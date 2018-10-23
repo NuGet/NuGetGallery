@@ -30,6 +30,7 @@ namespace NuGetGallery
 
         private const string LicenseNodeName = "license";
         private const string AllowedLicenseVersion = "1.0.0";
+        private const string Unlicensed = "UNLICENSED";
         private const int MaxAllowedLicenseLength = 1024 * 1024;
         private const int MaxAllowedLicenseNodeValueLength = 500;
 

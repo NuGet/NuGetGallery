@@ -533,6 +533,8 @@ namespace NuGetGallery
             }
 
             [Theory]
+            [InlineData("MIT", null, null)]
+            [InlineData("MIT", null, RegularLicenseUrl)]
             [InlineData(null, "license.txt", null)]
             [InlineData(null, "license.txt", RegularLicenseUrl)]
             public async Task RequiresDeprecationUrlWithEmbeddedLicense(string licenseExpression, string licenseFilename, string licenseUrl)
@@ -549,6 +551,94 @@ namespace NuGetGallery
 
                 Assert.Equal(PackageValidationResultType.Invalid, result.Type);
                 Assert.Equal("For backwards compatibility when a license is specified in the package, its <licenseUrl> node must point to https://aka.ms/deprecateLicenseUrl", result.Message);
+                Assert.Empty(result.Warnings);
+            }
+
+            [Fact]
+            public async Task RejectsUnlicensedPackages()
+            {
+                _nuGetPackage = GeneratePackage(licenseUrl: new Uri(LicenseDeprecationUrl), licenseExpression: "UNLICENSED", licenseFilename: null);
+
+                var result = await _target.ValidateBeforeGeneratePackageAsync(
+                    _nuGetPackage.Object,
+                    GetPackageMetadata(_nuGetPackage));
+
+                Assert.Equal(PackageValidationResultType.Invalid, result.Type);
+                Assert.Contains("UNLICENSED", result.Message);
+                Assert.Empty(result.Warnings);
+            }
+
+            [Theory]
+            [InlineData("MIT", true)]
+            [InlineData("MIT AND MIT", true)]
+            [InlineData("(((MIT)))", true)]
+            [InlineData("MIT OR GPL-1.0-only", true)]
+            [InlineData("MIT or GPL-1.0-only", false)]
+            [InlineData("MIT Or GPL-1.0-only", false)]
+            [InlineData("(MIT OR GPL-1.0-only)", true)]
+            [InlineData("(MIT AND GPL-1.0-only)", true)]
+            [InlineData("(MIT and GPL-1.0-only)", false)]
+            [InlineData("(MIT And GPL-1.0-only)", false)]
+            [InlineData("((((MIT) OR (GPL-1.0-only))))", true)]
+            [InlineData("(MIT", false)]
+            [InlineData("EUPL-1.0+", true)]
+            [InlineData("Vim WITH Font-exception-2.0", true)] // we are not checking if license expression make sense
+            [InlineData("Vim with Font-exception-2.0", false)]
+            [InlineData("Vim With Font-exception-2.0", false)]
+            [InlineData("(EUPL-1.0+ OR (TORQUE-1.1 WITH Nokia-Qt-exception-1.1) AND Noweb)", true)]
+            public async Task ChecksLicenseExpressionCorrectness(string licenseExpression, bool expectedSuccess)
+            {
+                _nuGetPackage = GeneratePackage(licenseUrl: new Uri(LicenseDeprecationUrl), licenseExpression: licenseExpression, licenseFilename: null);
+
+                var result = await _target.ValidateBeforeGeneratePackageAsync(
+                    _nuGetPackage.Object,
+                    GetPackageMetadata(_nuGetPackage));
+
+                if (!expectedSuccess)
+                {
+                    Assert.Equal(PackageValidationResultType.Invalid, result.Type);
+                    Assert.Contains("Invalid license metadata", result.Message);
+                    Assert.Empty(result.Warnings);
+                }
+                else
+                {
+                    Assert.Equal(PackageValidationResultType.Accepted, result.Type);
+                    Assert.Null(result.Message);
+                    Assert.Empty(result.Warnings);
+                }
+            }
+
+            [Theory]
+            [InlineData("MIIT")]
+            [InlineData("Mit")]
+            [InlineData("mit")]
+            public async Task RejectsUnknownLicense(string licenseExpression)
+            {
+                _nuGetPackage = GeneratePackage(licenseUrl: new Uri(LicenseDeprecationUrl), licenseExpression: licenseExpression, licenseFilename: null);
+
+                var result = await _target.ValidateBeforeGeneratePackageAsync(
+                    _nuGetPackage.Object,
+                    GetPackageMetadata(_nuGetPackage));
+
+                Assert.Equal(PackageValidationResultType.Invalid, result.Type);
+                Assert.Contains("Invalid license metadata", result.Message);
+                Assert.Contains(licenseExpression, result.Message);
+                Assert.Empty(result.Warnings);
+            }
+
+            [Theory]
+            [InlineData("GPL-1.0")]
+            [InlineData("GPL-1.0+")]
+            public async Task RejectsDeprecatedLicense(string licenseName)
+            {
+                _nuGetPackage = GeneratePackage(licenseUrl: new Uri(LicenseDeprecationUrl), licenseExpression: licenseName, licenseFilename: null);
+
+                var result = await _target.ValidateBeforeGeneratePackageAsync(
+                    _nuGetPackage.Object,
+                    GetPackageMetadata(_nuGetPackage));
+
+                Assert.Equal(PackageValidationResultType.Invalid, result.Type);
+                Assert.Contains("deprecated", result.Message);
                 Assert.Empty(result.Warnings);
             }
 

@@ -359,10 +359,7 @@ namespace NuGetGallery.Configuration
         [DefaultValue(false)]
         public bool BlockLegacyLicenseUrl { get; set; }
 
-        [DefaultValue(false)]
-        public bool AllowUnlicensedPackages { get; set; }
-
-        [DefaultValue(false)]
+        [DefaultValue(true)]
         public bool AllowLicenselessPackages { get; set; }
     }
 }
