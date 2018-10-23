@@ -110,7 +110,22 @@
 
             <xsl:when test="self::nuget:owners">
             </xsl:when>
-
+            
+            <xsl:when test="self::nuget:license">
+              <xsl:choose>
+                <xsl:when test="@type='file'">
+                  <ng:licenseFile>
+                    <xsl:value-of select="."/>
+                  </ng:licenseFile>
+                </xsl:when>
+                <xsl:when test="@type='expression'">
+                  <ng:licenseExpression>
+                    <xsl:value-of select="."/>
+                  </ng:licenseExpression>
+                </xsl:when>
+              </xsl:choose>
+            </xsl:when>
+            
             <xsl:when test="self::nuget:requireLicenseAcceptance">
               <ng:requireLicenseAcceptance rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">
                 <xsl:value-of select="."/>
