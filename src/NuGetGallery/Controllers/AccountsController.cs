@@ -132,7 +132,7 @@ namespace NuGetGallery
         {
             // We don't want Login to go to this page as a return URL
             // By having this value present in the dictionary BUT null, we don't put "returnUrl" on the Login link at all
-            ViewData[Constants.ReturnUrlViewDataKey] = null;
+            ViewData[GalleryConstants.ReturnUrlViewDataKey] = null;
 
             var account = GetAccount(accountName);
 

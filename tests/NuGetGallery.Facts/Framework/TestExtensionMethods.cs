@@ -82,11 +82,11 @@ namespace NuGetGallery
         {
             if (user != null)
             {
-                self.OwinContext.Environment[Constants.CurrentUserOwinEnvironmentKey] = user;
+                self.OwinContext.Environment[GalleryConstants.CurrentUserOwinEnvironmentKey] = user;
             }
             else
             {
-                self.OwinContext.Environment.Remove(Constants.CurrentUserOwinEnvironmentKey);
+                self.OwinContext.Environment.Remove(GalleryConstants.CurrentUserOwinEnvironmentKey);
             }
         }
 

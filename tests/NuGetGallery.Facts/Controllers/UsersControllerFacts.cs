@@ -258,7 +258,7 @@ namespace NuGetGallery
                 {
                     EmailAddress = "some@example.com",
                     PasswordResetToken = "confirmation",
-                    PasswordResetTokenExpirationDate = DateTime.UtcNow.AddHours(Constants.PasswordResetTokenExpirationHours)
+                    PasswordResetTokenExpirationDate = DateTime.UtcNow.AddHours(GalleryConstants.PasswordResetTokenExpirationHours)
                 };
                 GetMock<IMessageService>()
                     .Setup(s => s.SendMessageAsync(
@@ -274,7 +274,7 @@ namespace NuGetGallery
                     .Setup(s => s.FindByEmailAddress("user"))
                     .Returns(user);
                 GetMock<AuthenticationService>()
-                    .Setup(s => s.GeneratePasswordResetToken("user", Constants.PasswordResetTokenExpirationHours * 60))
+                    .Setup(s => s.GeneratePasswordResetToken("user", GalleryConstants.PasswordResetTokenExpirationHours * 60))
                     .CompletesWith(new PasswordResetResult(PasswordResetResultType.Success, user));
                 var controller = GetController<UsersController>();
                 var model = new ForgotPasswordViewModel { Email = "user" };
@@ -296,7 +296,7 @@ namespace NuGetGallery
             {
                 var user = new User { EmailAddress = "some@example.com", Username = "somebody" };
                 GetMock<AuthenticationService>()
-                    .Setup(s => s.GeneratePasswordResetToken("user", Constants.PasswordResetTokenExpirationHours * 60))
+                    .Setup(s => s.GeneratePasswordResetToken("user", GalleryConstants.PasswordResetTokenExpirationHours * 60))
                     .CompletesWith(new PasswordResetResult(PasswordResetResultType.Success, user))
                     .Verifiable();
                 var controller = GetController<UsersController>();
@@ -307,14 +307,14 @@ namespace NuGetGallery
 
                 Assert.NotNull(result);
                 GetMock<AuthenticationService>()
-                    .Verify(s => s.GeneratePasswordResetToken("user", Constants.PasswordResetTokenExpirationHours * 60));
+                    .Verify(s => s.GeneratePasswordResetToken("user", GalleryConstants.PasswordResetTokenExpirationHours * 60));
             }
 
             [Fact]
             public async Task ShowsErrorIfUserWasNotFound()
             {
                 GetMock<AuthenticationService>()
-                    .Setup(s => s.GeneratePasswordResetToken("user", Constants.PasswordResetTokenExpirationHours * 60))
+                    .Setup(s => s.GeneratePasswordResetToken("user", GalleryConstants.PasswordResetTokenExpirationHours * 60))
                     .ReturnsAsync(new PasswordResetResult(PasswordResetResultType.UserNotFound, user: null));
                 var controller = GetController<UsersController>();
 
@@ -350,7 +350,7 @@ namespace NuGetGallery
             {
                 // Arrange
                 GetMock<AuthenticationService>()
-                    .Setup(s => s.GeneratePasswordResetToken("user", Constants.PasswordResetTokenExpirationHours * 60))
+                    .Setup(s => s.GeneratePasswordResetToken("user", GalleryConstants.PasswordResetTokenExpirationHours * 60))
                     .ReturnsAsync(new PasswordResetResult((PasswordResetResultType)(-1), user: new User()));
                 var controller = GetController<UsersController>();
 
@@ -366,7 +366,7 @@ namespace NuGetGallery
             {
                 // Arrange
                 GetMock<AuthenticationService>()
-                    .Setup(s => s.GeneratePasswordResetToken("user", Constants.PasswordResetTokenExpirationHours * 60))
+                    .Setup(s => s.GeneratePasswordResetToken("user", GalleryConstants.PasswordResetTokenExpirationHours * 60))
                     .ReturnsAsync(new PasswordResetResult(resultType, user: new User()));
                 var controller = GetController<UsersController>();
 

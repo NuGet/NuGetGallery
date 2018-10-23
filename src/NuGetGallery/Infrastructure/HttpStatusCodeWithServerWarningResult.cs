@@ -28,7 +28,7 @@ namespace NuGetGallery
                 {
                     if (!string.IsNullOrWhiteSpace(warning))
                     {
-                        response.AppendHeader(Constants.WarningHeaderName, warning);
+                        response.AppendHeader(GalleryConstants.WarningHeaderName, warning);
                     }
                 }
             }

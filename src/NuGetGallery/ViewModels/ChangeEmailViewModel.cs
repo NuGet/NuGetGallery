@@ -11,7 +11,7 @@ namespace NuGetGallery
         [Required]
         [StringLength(255)]
         [Display(Name = "New Email Address")]
-        [RegularExpression(Constants.EmailValidationRegex, ErrorMessage = Constants.EmailValidationErrorMessage)]
+        [RegularExpression(GalleryConstants.EmailValidationRegex, ErrorMessage = GalleryConstants.EmailValidationErrorMessage)]
         public string NewEmail { get; set; }
 
         [Required]

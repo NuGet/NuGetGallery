@@ -149,7 +149,7 @@ namespace NuGetGallery
             var accountToTransform = GetCurrentUser();
 
             var adminUsername = transformViewModel.AdminUsername;
-            if (Regex.IsMatch(adminUsername, Constants.EmailValidationRegex, RegexOptions.None, Constants.EmailValidationRegexTimeout))
+            if (Regex.IsMatch(adminUsername, GalleryConstants.EmailValidationRegex, RegexOptions.None, GalleryConstants.EmailValidationRegexTimeout))
             {
                 ModelState.AddModelError(string.Empty, Strings.TransformAccount_AdminNameIsEmail);
                 return View(transformViewModel);
@@ -201,7 +201,7 @@ namespace NuGetGallery
             // sign out pending organization and prompt for admin sign in
             OwinContext.Authentication.SignOut();
 
-            TempData[Constants.ReturnUrlMessageViewDataKey] = String.Format(CultureInfo.CurrentCulture,
+            TempData[GalleryConstants.ReturnUrlMessageViewDataKey] = String.Format(CultureInfo.CurrentCulture,
                 Strings.TransformAccount_SignInToConfirm, adminUser.Username, accountToTransform.Username);
 
             var returnUrl = Url.ConfirmTransformAccount(accountToTransform);
@@ -453,7 +453,7 @@ namespace NuGetGallery
         {
             // No need to redirect here after someone logs in...
             // By having this value present in the dictionary BUT null, we don't put "returnUrl" on the Login link at all
-            ViewData[Constants.ReturnUrlViewDataKey] = null;
+            ViewData[GalleryConstants.ReturnUrlViewDataKey] = null;
             return View();
         }
 
@@ -536,7 +536,7 @@ namespace NuGetGallery
         {
             // We don't want Login to have us as a return URL
             // By having this value present in the dictionary BUT null, we don't put "returnUrl" on the Login link at all
-            ViewData[Constants.ReturnUrlViewDataKey] = null;
+            ViewData[GalleryConstants.ReturnUrlViewDataKey] = null;
 
             return View();
         }
@@ -547,11 +547,11 @@ namespace NuGetGallery
         {
             // We don't want Login to have us as a return URL
             // By having this value present in the dictionary BUT null, we don't put "returnUrl" on the Login link at all
-            ViewData[Constants.ReturnUrlViewDataKey] = null;
+            ViewData[GalleryConstants.ReturnUrlViewDataKey] = null;
 
             if (ModelState.IsValid)
             {
-                var result = await AuthenticationService.GeneratePasswordResetToken(model.Email, Constants.PasswordResetTokenExpirationHours * 60);
+                var result = await AuthenticationService.GeneratePasswordResetToken(model.Email, GalleryConstants.PasswordResetTokenExpirationHours * 60);
                 switch (result.Type)
                 {
                     case PasswordResetResultType.UserNotConfirmed:
@@ -575,10 +575,10 @@ namespace NuGetGallery
         {
             // We don't want Login to have us as a return URL
             // By having this value present in the dictionary BUT null, we don't put "returnUrl" on the Login link at all
-            ViewData[Constants.ReturnUrlViewDataKey] = null;
+            ViewData[GalleryConstants.ReturnUrlViewDataKey] = null;
 
             ViewBag.Email = TempData["Email"];
-            ViewBag.Expiration = Constants.PasswordResetTokenExpirationHours;
+            ViewBag.Expiration = GalleryConstants.PasswordResetTokenExpirationHours;
             return View();
         }
 
@@ -587,7 +587,7 @@ namespace NuGetGallery
         {
             // We don't want Login to have us as a return URL
             // By having this value present in the dictionary BUT null, we don't put "returnUrl" on the Login link at all
-            ViewData[Constants.ReturnUrlViewDataKey] = null;
+            ViewData[GalleryConstants.ReturnUrlViewDataKey] = null;
 
             ViewBag.ResetTokenValid = true;
             ViewBag.ForgotPassword = forgot;
@@ -600,7 +600,7 @@ namespace NuGetGallery
         {
             // We don't want Login to have us as a return URL
             // By having this value present in the dictionary BUT null, we don't put "returnUrl" on the Login link at all
-            ViewData[Constants.ReturnUrlViewDataKey] = null;
+            ViewData[GalleryConstants.ReturnUrlViewDataKey] = null;
 
             if (!ModelState.IsValid)
             {
@@ -659,7 +659,7 @@ namespace NuGetGallery
                     DownloadCount = p.PackageRegistration.DownloadCount
                 }).ToList();
 
-            var model = new UserProfileModel(user, currentUser, packages, page - 1, Constants.DefaultPackageListPageSize, Url);
+            var model = new UserProfileModel(user, currentUser, packages, page - 1, GalleryConstants.DefaultPackageListPageSize, Url);
 
             return View(model);
         }
@@ -677,7 +677,7 @@ namespace NuGetGallery
             if (oldPassword == null)
             {
                 // User is requesting a password set email
-                var resetResultType = await AuthenticationService.GeneratePasswordResetToken(user, Constants.PasswordResetTokenExpirationHours * 60);
+                var resetResultType = await AuthenticationService.GeneratePasswordResetToken(user, GalleryConstants.PasswordResetTokenExpirationHours * 60);
                 if (resetResultType == PasswordResetResultType.UserNotConfirmed)
                 {
                     ModelState.AddModelError("ChangePassword", Strings.UserIsNotYetConfirmed);

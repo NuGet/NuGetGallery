@@ -463,7 +463,7 @@ namespace NuGetGallery
 
             User user = null;
             object obj;
-            if (self.Environment.TryGetValue(Constants.CurrentUserOwinEnvironmentKey, out obj))
+            if (self.Environment.TryGetValue(GalleryConstants.CurrentUserOwinEnvironmentKey, out obj))
             {
                 user = obj as User;
             }
@@ -471,7 +471,7 @@ namespace NuGetGallery
             if (user == null)
             {
                 user = LoadUser(self);
-                self.Environment[Constants.CurrentUserOwinEnvironmentKey] = user;
+                self.Environment[GalleryConstants.CurrentUserOwinEnvironmentKey] = user;
             }
 
             if (user == null)

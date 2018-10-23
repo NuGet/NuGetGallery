@@ -18,7 +18,7 @@ using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
 using NuGetGallery.Infrastructure.Authentication;
 
-using static NuGetGallery.Constants;
+using static NuGetGallery.GalleryConstants;
 
 namespace NuGetGallery.Authentication
 {

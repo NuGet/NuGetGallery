@@ -78,7 +78,7 @@
 
 @helper VersionListDivider(int rowCount, bool versionsExpanded)
 {
-    if (rowCount == NuGetGallery.Constants.VisibleVersions + 1)
+    if (rowCount == GalleryConstants.VisibleVersions + 1)
     {
         @:</tbody><tbody class="no-border collapse @(versionsExpanded ? "in" : string.Empty)" id="hidden-versions">
     }
@@ -485,7 +485,7 @@
                             var rowCount = 0;
                             var versionsExpanded = Model
                                 .PackageVersions
-                                .Skip(NuGetGallery.Constants.VisibleVersions)
+                                .Skip(GalleryConstants.VisibleVersions)
                                 .Any(v => v.IsCurrent(Model));
                         }
                         @foreach (var packageVersion in Model.PackageVersions)
@@ -559,7 +559,7 @@
                         }
                     </tbody>
                 </table>
-                @if (rowCount > NuGetGallery.Constants.VisibleVersions)
+                @if (rowCount > GalleryConstants.VisibleVersions)
                 {
                     <a href="#" role="button" data-toggle="collapse" class="icon-link" data-target="#hidden-versions"
                        aria-expanded="@(versionsExpanded ? "true" : "false")" aria-controls="hidden-versions" id="show-hidden-versions">
@@ -775,7 +775,7 @@ foreach (var owner in Model.Owners)
             <li>
                 @if (!String.IsNullOrEmpty(owner.EmailAddress))
     {
-            <a href="@Url.User(owner)" title="@owner.Username">@ViewHelpers.GravatarImage(owner.EmailAddress, owner.Username, NuGetGallery.Constants.GravatarElementSize)</a>
+            <a href="@Url.User(owner)" title="@owner.Username">@ViewHelpers.GravatarImage(owner.EmailAddress, owner.Username, GalleryConstants.GravatarElementSize)</a>
 }
                 <a href="@Url.User(owner)" title="@owner.Username">
                     @owner.Username

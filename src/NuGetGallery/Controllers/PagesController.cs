@@ -130,7 +130,7 @@ namespace NuGetGallery
             if (_contentService != null)
             {
                 ViewBag.Content = await _contentService.GetContentItemAsync(
-                    Constants.ContentNames.TermsOfUse,
+                    GalleryConstants.ContentNames.TermsOfUse,
                     TimeSpan.FromDays(1));
             }
             return View();
@@ -142,7 +142,7 @@ namespace NuGetGallery
             if (_contentService != null)
             {
                 ViewBag.Content = await _contentService.GetContentItemAsync(
-                    Constants.ContentNames.PrivacyPolicy,
+                    GalleryConstants.ContentNames.PrivacyPolicy,
                     TimeSpan.FromDays(1));
             }
             return View();

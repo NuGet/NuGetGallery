@@ -281,6 +281,7 @@
     <Compile Include="Filters\ApiScopeRequiredAttribute.cs" />
     <Compile Include="Filters\UIAuthorizeAttribute.cs" />
     <Compile Include="Filters\ValidateRecaptchaResponseAttribute.cs" />
+    <Compile Include="GalleryConstants.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Helpers\GravatarHelper.cs" />
     <Compile Include="Helpers\ObfuscationHelper.cs" />
@@ -1443,7 +1444,6 @@
     <Compile Include="Services\IPackageService.cs" />
     <Compile Include="Services\PackageService.cs" />
     <Compile Include="Configuration\AppConfiguration.cs" />
-    <Compile Include="Constants.cs" />
     <Compile Include="App_Start\DefaultDependenciesModule.cs" />
     <Compile Include="ExtensionMethods.cs" />
     <Compile Include="Services\FormsAuthenticationService.cs" />

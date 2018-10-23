@@ -26,7 +26,7 @@ namespace NuGetGallery.Authentication
         {
             return new Credential(
                 CredentialTypes.Password.Sha1,
-                LegacyHasher.GenerateHash(plaintextPassword, Constants.Sha1HashAlgorithmId));
+                LegacyHasher.GenerateHash(plaintextPassword, GalleryConstants.Sha1HashAlgorithmId));
         }
 
         public static Credential CreateV1ApiKey(Guid apiKey, TimeSpan? expiration)

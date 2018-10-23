@@ -32,19 +32,19 @@ namespace NuGetGallery
         public async Task Refresh()
         {
             LoginDiscontinuationConfiguration = 
-                await Refresh<LoginDiscontinuationConfiguration>(Constants.ContentNames.LoginDiscontinuationConfiguration) ??
+                await Refresh<LoginDiscontinuationConfiguration>(GalleryConstants.ContentNames.LoginDiscontinuationConfiguration) ??
                 new LoginDiscontinuationConfiguration();
 
             CertificatesConfiguration =
-                await Refresh<CertificatesConfiguration>(Constants.ContentNames.CertificatesConfiguration) ??
+                await Refresh<CertificatesConfiguration>(GalleryConstants.ContentNames.CertificatesConfiguration) ??
                 new CertificatesConfiguration();
 
             SymbolsConfiguration =
-                await Refresh<SymbolsConfiguration>(Constants.ContentNames.SymbolsConfiguration) ??
+                await Refresh<SymbolsConfiguration>(GalleryConstants.ContentNames.SymbolsConfiguration) ??
                 new SymbolsConfiguration();
 
             TyposquattingConfiguration =
-               await Refresh<TyposquattingConfiguration>(Constants.ContentNames.TyposquattingConfiguration) ??
+               await Refresh<TyposquattingConfiguration>(GalleryConstants.ContentNames.TyposquattingConfiguration) ??
                new TyposquattingConfiguration();
         }
 

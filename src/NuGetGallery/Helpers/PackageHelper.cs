@@ -67,7 +67,7 @@ namespace NuGetGallery
 
         public static bool IsGitRepositoryType(string repositoryType)
         {
-            return Constants.GitRepository.Equals(repositoryType, StringComparison.OrdinalIgnoreCase);
+            return GalleryConstants.GitRepository.Equals(repositoryType, StringComparison.OrdinalIgnoreCase);
         }
 
         public static void ValidateNuGetPackageMetadata(PackageMetadata packageMetadata)

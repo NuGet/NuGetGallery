@@ -111,7 +111,7 @@ namespace NuGetGallery
         [ValidateAntiForgeryToken]
         public async Task<JsonResult> AddPackageOwner(string id, string username, string message)
         {
-            if (Regex.IsMatch(username, Constants.EmailValidationRegex, RegexOptions.None, Constants.EmailValidationRegexTimeout))
+            if (Regex.IsMatch(username, GalleryConstants.EmailValidationRegex, RegexOptions.None, GalleryConstants.EmailValidationRegexTimeout))
             {
                 return Json(new { success = false, message = Strings.AddOwner_NameIsEmail }, JsonRequestBehavior.AllowGet);
             }

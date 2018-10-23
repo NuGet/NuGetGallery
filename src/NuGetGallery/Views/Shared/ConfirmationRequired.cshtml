@@ -3,8 +3,8 @@
     ViewBag.Title = "Confirm Your "
         + (Model.IsOrganization ? "Organization " : "")
         + (Model.ConfirmingNewAccount ? "Account" : "Email");
-    ViewBag.SmPageColumns = Constants.ColumnsWideAuthenticationSm;
-    ViewBag.MdPageColumns = Constants.ColumnsWideAuthenticationMd;
+    ViewBag.SmPageColumns = GalleryConstants.ColumnsWideAuthenticationSm;
+    ViewBag.MdPageColumns = GalleryConstants.ColumnsWideAuthenticationMd;
 
     if (Model.IsOrganization)
     {

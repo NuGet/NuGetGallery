@@ -422,7 +422,7 @@ namespace NuGetGallery
             }
 
             // Check min client version
-            if (nuspec.GetMinClientVersion() > Constants.MaxSupportedMinClientVersion)
+            if (nuspec.GetMinClientVersion() > GalleryConstants.MaxSupportedMinClientVersion)
             {
                 return Json(HttpStatusCode.BadRequest, new[] {
                         string.Format(CultureInfo.CurrentCulture, Strings.UploadPackage_MinClientVersionOutOfRange, nuspec.GetMinClientVersion()) });
@@ -576,7 +576,7 @@ namespace NuGetGallery
             }
 
             Package package;
-            if (version != null && version.Equals(Constants.AbsoluteLatestUrlString, StringComparison.InvariantCultureIgnoreCase))
+            if (version != null && version.Equals(GalleryConstants.AbsoluteLatestUrlString, StringComparison.InvariantCultureIgnoreCase))
             {
                 package = _packageService.FindAbsoluteLatestPackageById(id, SemVerLevelKey.SemVer2);
             }
@@ -738,7 +738,7 @@ namespace NuGetGallery
                 q,
                 totalHits,
                 page - 1,
-                Constants.DefaultPackageListPageSize,
+                GalleryConstants.DefaultPackageListPageSize,
                 Url,
                 includePrerelease);
 
@@ -781,7 +781,7 @@ namespace NuGetGallery
                 }
             }
 
-            ViewData[Constants.ReturnUrlViewDataKey] = Url.ReportPackage(id, version);
+            ViewData[GalleryConstants.ReturnUrlViewDataKey] = Url.ReportPackage(id, version);
             return View(model);
         }
 
@@ -2433,9 +2433,9 @@ namespace NuGetGallery
         {
             switch (sortOrder)
             {
-                case Constants.AlphabeticSortOrder:
+                case GalleryConstants.AlphabeticSortOrder:
                     return "PackageRegistration.Id";
-                case Constants.RecentSortOrder:
+                case GalleryConstants.RecentSortOrder:
                     return "Published desc";
 
                 default:

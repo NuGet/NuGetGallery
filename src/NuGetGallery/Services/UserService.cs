@@ -88,7 +88,7 @@ namespace NuGetGallery
                 return request;
             }
 
-            if (Regex.IsMatch(memberName, Constants.EmailValidationRegex, RegexOptions.None, Constants.EmailValidationRegexTimeout))
+            if (Regex.IsMatch(memberName, GalleryConstants.EmailValidationRegex, RegexOptions.None, GalleryConstants.EmailValidationRegexTimeout))
             {
                 throw new EntityException(Strings.AddMember_NameIsEmail);
             }

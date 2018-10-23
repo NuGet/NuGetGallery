@@ -32,7 +32,7 @@ namespace NuGetGallery
 
             Username = member.Username;
             EmailAddress = member.EmailAddress;
-            GravatarUrl = GravatarHelper.Url(EmailAddress, Constants.GravatarElementSize);
+            GravatarUrl = GravatarHelper.Url(EmailAddress, GalleryConstants.GravatarElementSize);
         }
 
         public string Username { get; }

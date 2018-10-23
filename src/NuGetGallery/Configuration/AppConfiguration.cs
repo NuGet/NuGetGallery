@@ -12,7 +12,7 @@ namespace NuGetGallery.Configuration
     {
         private string _ExternalBrandingMessage;
 
-        [DefaultValue(Constants.DevelopmentEnvironment)]
+        [DefaultValue(GalleryConstants.DevelopmentEnvironment)]
         public string Environment { get; set; }
 
         [DefaultValue("")]

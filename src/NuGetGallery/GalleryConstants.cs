@@ -6,7 +6,7 @@ using System;
 
 namespace NuGetGallery
 {
-    public static class Constants
+    public static class GalleryConstants
     {
         public const string AlphabeticSortOrder = "package-title";
         public const int DefaultPackageListPageSize = 20;
