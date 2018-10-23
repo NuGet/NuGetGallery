@@ -3,10 +3,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
+using NuGet.Common;
 using NuGet.Frameworks;
 using NuGet.Packaging;
 using NuGet.Packaging.Core;
+using NuGet.Packaging.Signing;
 
 namespace NuGet.Indexing
 {
@@ -63,6 +66,26 @@ namespace NuGet.Indexing
             {
                 _catalogNuspecReader.Dispose();
             }
+        }
+
+        public override Task<PrimarySignature> GetPrimarySignatureAsync(CancellationToken token)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<bool> IsSignedAsync(CancellationToken token)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task ValidateIntegrityAsync(SignatureContent signatureContent, CancellationToken token)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<byte[]> GetArchiveHashAsync(HashAlgorithmName hashAlgorithm, CancellationToken token)
+        {
+            throw new NotImplementedException();
         }
     }
 }

@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using NuGet.Common;
 using NuGet.Packaging.Core;
 using NuGet.Protocol;
+using NuGet.Protocol.Core.Types;
 
 namespace NuGet.Services.Metadata.Catalog.Monitoring
 {
@@ -56,14 +57,14 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
         private async Task<V2FeedPackageInfo> GetPackageFromIndexAsync(PackageIdentity package, ILogger log, CancellationToken token)
         {
             // If the package is missing from FindPackagesById, this will return null.
-            var feedPackages = await _feedParser.FindPackagesByIdAsync(package.Id, log, token);
+            var feedPackages = await _feedParser.FindPackagesByIdAsync(package.Id, NullSourceCacheContext.Instance, log, token);
             return feedPackages.FirstOrDefault(p => p.Version == package.Version);
         }
 
         private Task<V2FeedPackageInfo> GetPackageFromLeafAsync(PackageIdentity package, ILogger log, CancellationToken token)
         {
             // If the package is missing from Packages(Id='...',Version='...'), this will return null.
-            return _feedParser.GetPackage(package, log, token);
+            return _feedParser.GetPackage(package, NullSourceCacheContext.Instance, log, token);
         }
     }
 }
