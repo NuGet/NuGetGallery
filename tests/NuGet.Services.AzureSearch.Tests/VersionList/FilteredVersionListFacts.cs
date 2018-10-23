@@ -29,9 +29,10 @@ namespace NuGet.Services.AzureSearch
                         HijackIndexChange.SetLatestToTrue(properties.ParsedVersion),
                     },
                     output.Hijack.ToArray());
-                Assert.Equal(properties.FullVersion, _list.LatestOrNull);
+                Assert.Equal(properties.FullVersion, _list.GetLatestVersionInfo().FullVersion);
                 Assert.Equal(properties.ParsedVersion, _list._latestOrNull);
-                Assert.Equal(new[] { properties.FullVersion }, _list.FullVersions.ToArray());
+                Assert.Equal(properties.FullVersion, _list._latestOrNull.ToFullString());
+                Assert.Equal(new[] { properties.FullVersion }, _list.GetLatestVersionInfo().ListedFullVersions);
                 Assert.Equal(new[] { properties.ParsedVersion }, _list._versions.Keys.ToArray());
             }
 
@@ -55,9 +56,9 @@ namespace NuGet.Services.AzureSearch
                         HijackIndexChange.SetLatestToTrue(latest.ParsedVersion),
                     },
                     output.Hijack.ToArray());
-                Assert.Equal(latest.FullVersion, _list.LatestOrNull);
+                Assert.Equal(latest.FullVersion, _list.GetLatestVersionInfo().FullVersion);
                 Assert.Equal(latest.ParsedVersion, _list._latestOrNull);
-                Assert.Equal(new[] { properties.FullVersion, latest.FullVersion }, _list.FullVersions.ToArray());
+                Assert.Equal(new[] { properties.FullVersion, latest.FullVersion }, _list.GetLatestVersionInfo().ListedFullVersions);
                 Assert.Equal(
                     new[] { properties.ParsedVersion, latest.ParsedVersion },
                     _list._versions.Keys.ToArray());
@@ -80,9 +81,9 @@ namespace NuGet.Services.AzureSearch
                         HijackIndexChange.SetLatestToTrue(InitialParsedVersion),
                     },
                     output.Hijack.ToArray());
-                Assert.Equal(InitialFullVersion, _list.LatestOrNull);
+                Assert.Equal(InitialFullVersion, _list.GetLatestVersionInfo().FullVersion);
                 Assert.Equal(InitialParsedVersion, _list._latestOrNull);
-                Assert.Equal(new[] { InitialFullVersion }, _list.FullVersions.ToArray());
+                Assert.Equal(new[] { InitialFullVersion }, _list.GetLatestVersionInfo().ListedFullVersions);
                 Assert.Equal(
                     new[] { unlisted.ParsedVersion, InitialParsedVersion }.OrderBy(x => x).ToArray(),
                     _list._versions.Keys.ToArray());
@@ -103,9 +104,9 @@ namespace NuGet.Services.AzureSearch
                         HijackIndexChange.SetLatestToTrue(InitialParsedVersion),
                     },
                     output.Hijack.ToArray());
-                Assert.Equal(InitialFullVersion, _list.LatestOrNull);
+                Assert.Equal(InitialFullVersion, _list.GetLatestVersionInfo().FullVersion);
                 Assert.Equal(InitialParsedVersion, _list._latestOrNull);
-                Assert.Equal(new[] { InitialFullVersion }, _list.FullVersions.ToArray());
+                Assert.Equal(new[] { InitialFullVersion }, _list.GetLatestVersionInfo().ListedFullVersions);
                 Assert.Equal(new[] { InitialParsedVersion }, _list._versions.Keys.ToArray());
             }
 
@@ -126,9 +127,9 @@ namespace NuGet.Services.AzureSearch
                         HijackIndexChange.SetLatestToTrue(listed.ParsedVersion),
                     },
                     output.Hijack.ToArray());
-                Assert.Equal(listed.FullVersion, _list.LatestOrNull);
+                Assert.Equal(listed.FullVersion, _list.GetLatestVersionInfo().FullVersion);
                 Assert.Equal(listed.ParsedVersion, _list._latestOrNull);
-                Assert.Equal(new[] { listed.FullVersion }, _list.FullVersions.ToArray());
+                Assert.Equal(new[] { listed.FullVersion }, _list.GetLatestVersionInfo().ListedFullVersions);
                 Assert.Equal(
                     new[] { InitialParsedVersion, listed.ParsedVersion }.OrderBy(x => x).ToArray(),
                     _list._versions.Keys.ToArray());
@@ -147,9 +148,8 @@ namespace NuGet.Services.AzureSearch
                         HijackIndexChange.SetLatestToFalse(InitialParsedVersion),
                     },
                     output.Hijack.ToArray());
-                Assert.Null(_list.LatestOrNull);
+                Assert.Null(_list.GetLatestVersionInfo());
                 Assert.Null(_list._latestOrNull);
-                Assert.Empty(_list.FullVersions);
                 Assert.Equal(new[] { InitialParsedVersion }, _list._versions.Keys.ToArray());
             }
 
@@ -170,9 +170,8 @@ namespace NuGet.Services.AzureSearch
                         HijackIndexChange.SetLatestToFalse(InitialParsedVersion),
                     },
                     output.Hijack.ToArray());
-                Assert.Null(_list.LatestOrNull);
+                Assert.Null(_list.GetLatestVersionInfo());
                 Assert.Null(_list._latestOrNull);
-                Assert.Empty(_list.FullVersions);
                 Assert.Equal(
                     new[] { InitialParsedVersion, unlisted.ParsedVersion }.OrderBy(x => x).ToArray(),
                     _list._versions.Keys.ToArray());
@@ -195,9 +194,9 @@ namespace NuGet.Services.AzureSearch
                         HijackIndexChange.SetLatestToTrue(PreviousParsedVersion),
                     },
                     output.Hijack.ToArray());
-                Assert.Equal(listed.FullVersion, _list.LatestOrNull);
+                Assert.Equal(listed.FullVersion, _list.GetLatestVersionInfo().FullVersion);
                 Assert.Equal(listed.ParsedVersion, _list._latestOrNull);
-                Assert.Equal(new[] { listed.FullVersion }, _list.FullVersions.ToArray());
+                Assert.Equal(new[] { listed.FullVersion }, _list.GetLatestVersionInfo().ListedFullVersions);
                 Assert.Equal(new[] { listed.ParsedVersion, InitialParsedVersion }, _list._versions.Keys.ToArray());
             }
 
@@ -218,9 +217,9 @@ namespace NuGet.Services.AzureSearch
                         HijackIndexChange.SetLatestToTrue(NextParsedVersion),
                     },
                     output.Hijack.ToArray());
-                Assert.Equal(listed.FullVersion, _list.LatestOrNull);
+                Assert.Equal(listed.FullVersion, _list.GetLatestVersionInfo().FullVersion);
                 Assert.Equal(listed.ParsedVersion, _list._latestOrNull);
-                Assert.Equal(new[] { listed.FullVersion }, _list.FullVersions.ToArray());
+                Assert.Equal(new[] { listed.FullVersion }, _list.GetLatestVersionInfo().ListedFullVersions);
                 Assert.Equal(new[] { InitialParsedVersion, listed.ParsedVersion }, _list._versions.Keys.ToArray());
             }
 
@@ -240,9 +239,9 @@ namespace NuGet.Services.AzureSearch
                         HijackIndexChange.SetLatestToTrue(InitialParsedVersion),
                     },
                     output.Hijack.ToArray());
-                Assert.Equal(InitialFullVersion, _list.LatestOrNull);
+                Assert.Equal(InitialFullVersion, _list.GetLatestVersionInfo().FullVersion);
                 Assert.Equal(InitialParsedVersion, _list._latestOrNull);
-                Assert.Equal(new[] { PreviousFullVersion, InitialFullVersion }, _list.FullVersions.ToArray());
+                Assert.Equal(new[] { PreviousFullVersion, InitialFullVersion }, _list.GetLatestVersionInfo().ListedFullVersions);
                 Assert.Equal(new[] { listed.ParsedVersion, InitialParsedVersion }, _list._versions.Keys.ToArray());
             }
 
@@ -263,9 +262,9 @@ namespace NuGet.Services.AzureSearch
                         HijackIndexChange.SetLatestToTrue(InitialParsedVersion),
                     },
                     output.Hijack.ToArray());
-                Assert.Equal(InitialFullVersion, _list.LatestOrNull);
+                Assert.Equal(InitialFullVersion, _list.GetLatestVersionInfo().FullVersion);
                 Assert.Equal(InitialParsedVersion, _list._latestOrNull);
-                Assert.Equal(new[] { listed.FullVersion, InitialFullVersion }, _list.FullVersions.ToArray());
+                Assert.Equal(new[] { listed.FullVersion, InitialFullVersion }, _list.GetLatestVersionInfo().ListedFullVersions);
                 Assert.Equal(new[] { listed.ParsedVersion, InitialParsedVersion }, _list._versions.Keys.ToArray());
             }
 
@@ -284,9 +283,8 @@ namespace NuGet.Services.AzureSearch
                         HijackIndexChange.SetLatestToFalse(InitialParsedVersion),
                     },
                     output.Hijack.ToArray());
-                Assert.Null(_list.LatestOrNull);
+                Assert.Null(_list.GetLatestVersionInfo());
                 Assert.Null(_list._latestOrNull);
-                Assert.Empty(_list.FullVersions);
                 Assert.Equal(new[] { InitialParsedVersion }, _list._versions.Keys.ToArray());
             }
 
@@ -305,9 +303,8 @@ namespace NuGet.Services.AzureSearch
                         HijackIndexChange.SetLatestToFalse(InitialParsedVersion),
                     },
                     output.Hijack.ToArray());
-                Assert.Null(_list.LatestOrNull);
+                Assert.Null(_list.GetLatestVersionInfo());
                 Assert.Null(_list._latestOrNull);
-                Assert.Empty(_list.FullVersions);
                 Assert.Equal(new[] { InitialParsedVersion }, _list._versions.Keys.ToArray());
             }
 
@@ -324,9 +321,9 @@ namespace NuGet.Services.AzureSearch
                         HijackIndexChange.SetLatestToTrue(InitialParsedVersion),
                     },
                     output.Hijack.ToArray());
-                Assert.Equal(InitialFullVersion, _list.LatestOrNull);
+                Assert.Equal(InitialFullVersion, _list.GetLatestVersionInfo().FullVersion);
                 Assert.Equal(InitialParsedVersion, _list._latestOrNull);
-                Assert.Equal(new[] { InitialFullVersion }, _list.FullVersions.ToArray());
+                Assert.Equal(new[] { InitialFullVersion }, _list.GetLatestVersionInfo().ListedFullVersions);
                 Assert.Equal(new[] { InitialParsedVersion }, _list._versions.Keys.ToArray());
             }
 
@@ -348,9 +345,9 @@ namespace NuGet.Services.AzureSearch
                         HijackIndexChange.SetLatestToTrue(InitialParsedVersion),
                     },
                     output.Hijack.ToArray());
-                Assert.Equal(InitialFullVersion, _list.LatestOrNull);
+                Assert.Equal(InitialFullVersion, _list.GetLatestVersionInfo().FullVersion);
                 Assert.Equal(InitialParsedVersion, _list._latestOrNull);
-                Assert.Equal(new[] { listed.FullVersion, InitialFullVersion }, _list.FullVersions.ToArray());
+                Assert.Equal(new[] { listed.FullVersion, InitialFullVersion }, _list.GetLatestVersionInfo().ListedFullVersions);
                 Assert.Equal(new[] { listed.ParsedVersion, InitialParsedVersion }, _list._versions.Keys.ToArray());
             }
         }
@@ -374,9 +371,8 @@ namespace NuGet.Services.AzureSearch
                         HijackIndexChange.SetLatestToFalse(removedVersion),
                     },
                     output.Hijack.ToArray());
-                Assert.Null(_list.LatestOrNull);
+                Assert.Null(_list.GetLatestVersionInfo());
                 Assert.Null(_list._latestOrNull);
-                Assert.Empty(_list.FullVersions);
                 Assert.Empty(_list._versions.Keys);
             }
 
@@ -397,9 +393,9 @@ namespace NuGet.Services.AzureSearch
                         HijackIndexChange.SetLatestToTrue(InitialParsedVersion),
                     },
                     output.Hijack.ToArray());
-                Assert.Equal(InitialFullVersion, _list.LatestOrNull);
+                Assert.Equal(InitialFullVersion, _list.GetLatestVersionInfo().FullVersion);
                 Assert.Equal(InitialParsedVersion, _list._latestOrNull);
-                Assert.Equal(new[] { InitialFullVersion }, _list.FullVersions.ToArray());
+                Assert.Equal(new[] { InitialFullVersion }, _list.GetLatestVersionInfo().ListedFullVersions);
                 Assert.Equal(new[] { InitialParsedVersion }, _list._versions.Keys.ToArray());
             }
 
@@ -421,9 +417,9 @@ namespace NuGet.Services.AzureSearch
                         HijackIndexChange.SetLatestToTrue(InitialParsedVersion),
                     },
                     output.Hijack.ToArray());
-                Assert.Equal(InitialFullVersion, _list.LatestOrNull);
+                Assert.Equal(InitialFullVersion, _list.GetLatestVersionInfo().FullVersion);
                 Assert.Equal(InitialParsedVersion, _list._latestOrNull);
-                Assert.Equal(new[] { InitialFullVersion }, _list.FullVersions.ToArray());
+                Assert.Equal(new[] { InitialFullVersion }, _list.GetLatestVersionInfo().ListedFullVersions);
                 Assert.Equal(new[] { InitialParsedVersion }, _list._versions.Keys.ToArray());
             }
 
@@ -444,9 +440,9 @@ namespace NuGet.Services.AzureSearch
                         HijackIndexChange.SetLatestToTrue(InitialParsedVersion),
                     },
                     output.Hijack.ToArray());
-                Assert.Equal(InitialFullVersion, _list.LatestOrNull);
+                Assert.Equal(InitialFullVersion, _list.GetLatestVersionInfo().FullVersion);
                 Assert.Equal(InitialParsedVersion, _list._latestOrNull);
-                Assert.Equal(new[] { InitialFullVersion }, _list.FullVersions.ToArray());
+                Assert.Equal(new[] { InitialFullVersion }, _list.GetLatestVersionInfo().ListedFullVersions);
                 Assert.Equal(new[] { InitialParsedVersion }, _list._versions.Keys.ToArray());
             }
 
@@ -465,9 +461,8 @@ namespace NuGet.Services.AzureSearch
                         HijackIndexChange.SetLatestToFalse(InitialParsedVersion),
                     },
                     output.Hijack.ToArray());
-                Assert.Null(_list.LatestOrNull);
+                Assert.Null(_list.GetLatestVersionInfo());
                 Assert.Null(_list._latestOrNull);
-                Assert.Empty(_list.FullVersions);
                 Assert.Empty(_list._versions);
             }
 
@@ -484,9 +479,8 @@ namespace NuGet.Services.AzureSearch
                         HijackIndexChange.SetLatestToFalse(InitialParsedVersion),
                     },
                     output.Hijack.ToArray());
-                Assert.Null(_list.LatestOrNull);
+                Assert.Null(_list.GetLatestVersionInfo());
                 Assert.Null(_list._latestOrNull);
-                Assert.Empty(_list.FullVersions);
                 Assert.Empty(_list._versions);
             }
 
@@ -505,9 +499,8 @@ namespace NuGet.Services.AzureSearch
                         HijackIndexChange.SetLatestToFalse(InitialParsedVersion),
                     },
                     output.Hijack.ToArray());
-                Assert.Null(_list.LatestOrNull);
+                Assert.Null(_list.GetLatestVersionInfo());
                 Assert.Null(_list._latestOrNull);
-                Assert.Empty(_list.FullVersions);
                 Assert.Empty(_list._versions.Keys);
             }
 
@@ -528,9 +521,8 @@ namespace NuGet.Services.AzureSearch
                         HijackIndexChange.SetLatestToFalse(InitialParsedVersion),
                     },
                     output.Hijack.ToArray());
-                Assert.Null(_list.LatestOrNull);
+                Assert.Null(_list.GetLatestVersionInfo());
                 Assert.Null(_list._latestOrNull);
-                Assert.Empty(_list.FullVersions);
                 Assert.Equal(new[] { unlisted.ParsedVersion }, _list._versions.Keys.ToArray());
             }
 
@@ -551,9 +543,9 @@ namespace NuGet.Services.AzureSearch
                         HijackIndexChange.SetLatestToTrue(InitialParsedVersion),
                     },
                     output.Hijack.ToArray());
-                Assert.Equal(InitialFullVersion, _list.LatestOrNull);
+                Assert.Equal(InitialFullVersion, _list.GetLatestVersionInfo().FullVersion);
                 Assert.Equal(InitialParsedVersion, _list._latestOrNull);
-                Assert.Equal(new[] { InitialFullVersion }, _list.FullVersions.ToArray());
+                Assert.Equal(new[] { InitialFullVersion }, _list.GetLatestVersionInfo().ListedFullVersions);
                 Assert.Equal(new[] { InitialParsedVersion }, _list._versions.Keys.ToArray());
             }
 
@@ -574,9 +566,9 @@ namespace NuGet.Services.AzureSearch
                         HijackIndexChange.SetLatestToTrue(NextParsedVersion),
                     },
                     output.Hijack.ToArray());
-                Assert.Equal(NextFullVersion, _list.LatestOrNull);
+                Assert.Equal(NextFullVersion, _list.GetLatestVersionInfo().FullVersion);
                 Assert.Equal(NextParsedVersion, _list._latestOrNull);
-                Assert.Equal(new[] { PreviousFullVersion, NextFullVersion }, _list.FullVersions.ToArray());
+                Assert.Equal(new[] { PreviousFullVersion, NextFullVersion }, _list.GetLatestVersionInfo().ListedFullVersions);
                 Assert.Equal(new[] { PreviousParsedVersion, NextParsedVersion }, _list._versions.Keys.ToArray());
             }
 
@@ -597,9 +589,9 @@ namespace NuGet.Services.AzureSearch
                         HijackIndexChange.SetLatestToTrue(InitialParsedVersion),
                     },
                     Enumerable.ToArray(output.Hijack));
-                Assert.Equal(InitialFullVersion, _list.LatestOrNull);
+                Assert.Equal(InitialFullVersion, _list.GetLatestVersionInfo().FullVersion);
                 Assert.Equal(InitialParsedVersion, _list._latestOrNull);
-                Assert.Equal(new[] { PreviousFullVersion, InitialFullVersion }, _list.FullVersions.ToArray());
+                Assert.Equal(new[] { PreviousFullVersion, InitialFullVersion }, _list.GetLatestVersionInfo().ListedFullVersions);
                 Assert.Equal(new[] { PreviousParsedVersion, InitialParsedVersion }, _list._versions.Keys.ToArray());
             }
         }
@@ -622,9 +614,8 @@ namespace NuGet.Services.AzureSearch
                         HijackIndexChange.Delete(deletedVersion),
                     },
                     output.Hijack.ToArray());
-                Assert.Null(_list.LatestOrNull);
+                Assert.Null(_list.GetLatestVersionInfo());
                 Assert.Null(_list._latestOrNull);
-                Assert.Empty(_list.FullVersions);
                 Assert.Empty(_list._versions.Keys);
             }
 
@@ -644,9 +635,9 @@ namespace NuGet.Services.AzureSearch
                         HijackIndexChange.SetLatestToTrue(InitialParsedVersion),
                     },
                     output.Hijack.ToArray());
-                Assert.Equal(InitialFullVersion, _list.LatestOrNull);
+                Assert.Equal(InitialFullVersion, _list.GetLatestVersionInfo().FullVersion);
                 Assert.Equal(InitialParsedVersion, _list._latestOrNull);
-                Assert.Equal(new[] { InitialFullVersion }, _list.FullVersions.ToArray());
+                Assert.Equal(new[] { InitialFullVersion }, _list.GetLatestVersionInfo().ListedFullVersions);
                 Assert.Equal(new[] { InitialParsedVersion }, _list._versions.Keys.ToArray());
             }
 
@@ -667,9 +658,9 @@ namespace NuGet.Services.AzureSearch
                         HijackIndexChange.SetLatestToTrue(InitialParsedVersion),
                     },
                     output.Hijack.ToArray());
-                Assert.Equal(InitialFullVersion, _list.LatestOrNull);
+                Assert.Equal(InitialFullVersion, _list.GetLatestVersionInfo().FullVersion);
                 Assert.Equal(InitialParsedVersion, _list._latestOrNull);
-                Assert.Equal(new[] { InitialFullVersion }, _list.FullVersions.ToArray());
+                Assert.Equal(new[] { InitialFullVersion }, _list.GetLatestVersionInfo().ListedFullVersions);
                 Assert.Equal(new[] { InitialParsedVersion }, _list._versions.Keys.ToArray());
             }
 
@@ -689,9 +680,9 @@ namespace NuGet.Services.AzureSearch
                         HijackIndexChange.SetLatestToTrue(InitialParsedVersion),
                     },
                     output.Hijack.ToArray());
-                Assert.Equal(InitialFullVersion, _list.LatestOrNull);
+                Assert.Equal(InitialFullVersion, _list.GetLatestVersionInfo().FullVersion);
                 Assert.Equal(InitialParsedVersion, _list._latestOrNull);
-                Assert.Equal(new[] { InitialFullVersion }, _list.FullVersions.ToArray());
+                Assert.Equal(new[] { InitialFullVersion }, _list.GetLatestVersionInfo().ListedFullVersions);
                 Assert.Equal(new[] { InitialParsedVersion }, _list._versions.Keys.ToArray());
             }
 
@@ -709,9 +700,8 @@ namespace NuGet.Services.AzureSearch
                         HijackIndexChange.Delete(InitialParsedVersion),
                     },
                     output.Hijack.ToArray());
-                Assert.Null(_list.LatestOrNull);
+                Assert.Null(_list.GetLatestVersionInfo());
                 Assert.Null(_list._latestOrNull);
-                Assert.Empty(_list.FullVersions);
                 Assert.Empty(_list._versions);
             }
 
@@ -727,9 +717,8 @@ namespace NuGet.Services.AzureSearch
                         HijackIndexChange.Delete(InitialParsedVersion),
                     },
                     output.Hijack.ToArray());
-                Assert.Null(_list.LatestOrNull);
+                Assert.Null(_list.GetLatestVersionInfo());
                 Assert.Null(_list._latestOrNull);
-                Assert.Empty(_list.FullVersions);
                 Assert.Empty(_list._versions);
             }
 
@@ -752,9 +741,8 @@ namespace NuGet.Services.AzureSearch
                         HijackIndexChange.Delete(InitialParsedVersion),
                     },
                     output.Hijack.ToArray());
-                Assert.Null(_list.LatestOrNull);
+                Assert.Null(_list.GetLatestVersionInfo());
                 Assert.Null(_list._latestOrNull);
-                Assert.Empty(_list.FullVersions);
                 Assert.Empty(_list._versions.Keys);
             }
 
@@ -774,9 +762,8 @@ namespace NuGet.Services.AzureSearch
                         HijackIndexChange.Delete(InitialParsedVersion),
                     },
                     output.Hijack.ToArray());
-                Assert.Null(_list.LatestOrNull);
+                Assert.Null(_list.GetLatestVersionInfo());
                 Assert.Null(_list._latestOrNull);
-                Assert.Empty(_list.FullVersions);
                 Assert.Equal(new[] { unlisted.ParsedVersion }, _list._versions.Keys.ToArray());
             }
 
@@ -796,9 +783,9 @@ namespace NuGet.Services.AzureSearch
                         HijackIndexChange.SetLatestToTrue(InitialParsedVersion),
                     },
                     output.Hijack.ToArray());
-                Assert.Equal(InitialFullVersion, _list.LatestOrNull);
+                Assert.Equal(InitialFullVersion, _list.GetLatestVersionInfo().FullVersion);
                 Assert.Equal(InitialParsedVersion, _list._latestOrNull);
-                Assert.Equal(new[] { InitialFullVersion }, _list.FullVersions.ToArray());
+                Assert.Equal(new[] { InitialFullVersion }, _list.GetLatestVersionInfo().ListedFullVersions);
                 Assert.Equal(new[] { InitialParsedVersion }, _list._versions.Keys.ToArray());
             }
 
@@ -818,9 +805,9 @@ namespace NuGet.Services.AzureSearch
                         HijackIndexChange.SetLatestToTrue(NextParsedVersion),
                     },
                     output.Hijack.ToArray());
-                Assert.Equal(NextFullVersion, _list.LatestOrNull);
+                Assert.Equal(NextFullVersion, _list.GetLatestVersionInfo().FullVersion);
                 Assert.Equal(NextParsedVersion, _list._latestOrNull);
-                Assert.Equal(new[] { PreviousFullVersion, NextFullVersion }, _list.FullVersions.ToArray());
+                Assert.Equal(new[] { PreviousFullVersion, NextFullVersion }, _list.GetLatestVersionInfo().ListedFullVersions);
                 Assert.Equal(new[] { PreviousParsedVersion, NextParsedVersion }, _list._versions.Keys.ToArray());
             }
 
@@ -840,9 +827,9 @@ namespace NuGet.Services.AzureSearch
                         HijackIndexChange.SetLatestToTrue(InitialParsedVersion),
                     },
                     Enumerable.ToArray(output.Hijack));
-                Assert.Equal(InitialFullVersion, _list.LatestOrNull);
+                Assert.Equal(InitialFullVersion, _list.GetLatestVersionInfo().FullVersion);
                 Assert.Equal(InitialParsedVersion, _list._latestOrNull);
-                Assert.Equal(new[] { PreviousFullVersion, InitialFullVersion }, _list.FullVersions.ToArray());
+                Assert.Equal(new[] { PreviousFullVersion, InitialFullVersion }, _list.GetLatestVersionInfo().ListedFullVersions);
                 Assert.Equal(new[] { PreviousParsedVersion, InitialParsedVersion }, _list._versions.Keys.ToArray());
             }
         }
@@ -860,7 +847,7 @@ namespace NuGet.Services.AzureSearch
 
                 var list = new FilteredVersionList(versions);
 
-                Assert.Equal("1.0.0", list.LatestOrNull);
+                Assert.Equal("1.0.0", list.GetLatestVersionInfo().FullVersion);
             }
 
             [Fact]
@@ -870,7 +857,7 @@ namespace NuGet.Services.AzureSearch
 
                 var list = new FilteredVersionList(versions);
 
-                Assert.Null(list.LatestOrNull);
+                Assert.Null(list._latestOrNull);
             }
 
             [Fact]
@@ -884,7 +871,7 @@ namespace NuGet.Services.AzureSearch
 
                 var list = new FilteredVersionList(versions);
 
-                Assert.Null(list.LatestOrNull);
+                Assert.Null(list._latestOrNull);
             }
         }
 
@@ -901,7 +888,7 @@ namespace NuGet.Services.AzureSearch
 
                 var list = new FilteredVersionList(versions);
 
-                Assert.Equal(new[] { "1.0.0" }, list.FullVersions.ToArray());
+                Assert.Equal(new[] { "1.0.0" }, list.GetLatestVersionInfo().ListedFullVersions);
             }
 
             [Fact]
@@ -921,7 +908,7 @@ namespace NuGet.Services.AzureSearch
 
                 Assert.Equal(
                     new[] { "2.0.0", "10.0.0-alpha", "10.0.0-beta.2", "10.0.0-beta.10", "10.0.0", "10.0.1" },
-                    list.FullVersions.ToArray());
+                    list.GetLatestVersionInfo().ListedFullVersions);
             }
         }
 

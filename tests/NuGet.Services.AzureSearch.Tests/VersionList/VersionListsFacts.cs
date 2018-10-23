@@ -36,16 +36,16 @@ namespace NuGet.Services.AzureSearch
                     list._versionLists.Keys);
                 Assert.Equal(
                     new[] { StableSemVer1 },
-                    list._versionLists[SearchFilters.Default].FullVersions.ToArray());
+                    list._versionLists[SearchFilters.Default].GetLatestVersionInfo().ListedFullVersions);
                 Assert.Equal(
                     new[] { StableSemVer1, PrereleaseSemVer1 },
-                    list._versionLists[SearchFilters.IncludePrerelease].FullVersions.ToArray());
+                    list._versionLists[SearchFilters.IncludePrerelease].GetLatestVersionInfo().ListedFullVersions);
                 Assert.Equal(
                     new[] { StableSemVer1, StableSemVer2 },
-                    list._versionLists[SearchFilters.IncludeSemVer2].FullVersions.ToArray());
+                    list._versionLists[SearchFilters.IncludeSemVer2].GetLatestVersionInfo().ListedFullVersions);
                 Assert.Equal(
                     new[] { StableSemVer1, PrereleaseSemVer1, StableSemVer2, PrereleaseSemVer2 },
-                    list._versionLists[SearchFilters.IncludePrereleaseAndSemVer2].FullVersions.ToArray());
+                    list._versionLists[SearchFilters.IncludePrereleaseAndSemVer2].GetLatestVersionInfo().ListedFullVersions);
             }
 
             [Fact]
@@ -87,7 +87,7 @@ namespace NuGet.Services.AzureSearch
                 Assert.Empty(list._versionLists[SearchFilters.IncludeSemVer2]._versions);
                 Assert.Equal(
                     new[] { PrereleaseSemVer2 },
-                    list._versionLists[SearchFilters.IncludePrereleaseAndSemVer2].FullVersions.ToArray());
+                    list._versionLists[SearchFilters.IncludePrereleaseAndSemVer2].GetLatestVersionInfo().ListedFullVersions);
             }
         }
 
@@ -257,8 +257,8 @@ namespace NuGet.Services.AzureSearch
                             .Where(x => x.Value)
                             .OrderBy(x => x.Key)
                             .Select(x => x.Key.ToFullString())
-                            .ToList(),
-                        filteredList.FullVersions);
+                            .ToArray(),
+                        filteredList.GetLatestVersionInfo()?.ListedFullVersions ?? new string[0]);
                     Assert.Equal(
                         expectedVersions
                             .Where(x => x.Value)
@@ -266,7 +266,7 @@ namespace NuGet.Services.AzureSearch
                             .OrderBy(x => x)
                             .LastOrDefault()?
                             .ToFullString(),
-                        filteredList.LatestOrNull);
+                        filteredList.GetLatestVersionInfo()?.FullVersion);
 
                     return new TestResult(testCase, exception: null);
                 }

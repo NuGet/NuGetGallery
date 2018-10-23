@@ -6,7 +6,7 @@ using System.Linq;
 using NuGet.Versioning;
 using Xunit;
 
-namespace NuGet.Services.AzureSearch.VersionList
+namespace NuGet.Services.AzureSearch
 {
     public class MutableIndexChangesFacts
     {

@@ -15,8 +15,8 @@ namespace NuGet.Services.AzureSearch
     /// </summary>
     internal class FilteredVersionList
     {
-        internal NuGetVersion _latestOrNull;
         internal readonly SortedList<NuGetVersion, FilteredVersionProperties> _versions;
+        internal NuGetVersion _latestOrNull;
 
         public FilteredVersionList(IEnumerable<FilteredVersionProperties> versions)
         {
@@ -35,23 +35,21 @@ namespace NuGet.Services.AzureSearch
             _latestOrNull = CalculateLatest();
         }
 
-        public string LatestOrNull
+        public LatestVersionInfo GetLatestVersionInfo()
         {
-            get
+            if (_latestOrNull == null)
             {
-                if (_latestOrNull == null)
-                {
-                    return null;
-                }
-
-                return _versions[_latestOrNull].FullVersion;
+                return null;
             }
-        }
 
-        public IReadOnlyList<string> FullVersions => _versions
-            .Where(x => x.Value.Listed)
-            .Select(x => x.Value.FullVersion)
-            .ToList();
+            return new LatestVersionInfo(
+                _latestOrNull,
+                _versions[_latestOrNull].FullVersion,
+                _versions
+                    .Where(x => x.Value.Listed)
+                    .Select(x => x.Value.FullVersion)
+                    .ToArray());
+        }
 
         public LatestIndexChanges Delete(NuGetVersion deleted)
         {
@@ -239,7 +237,7 @@ namespace NuGet.Services.AzureSearch
             return _versions
                 .Reverse()
                 .Where(x => x.Value.Listed)
-                .Select(x => x.Key)
+                .Select(x => x.Value.ParsedVersion)
                 .FirstOrDefault();
         }
 
