@@ -591,9 +591,7 @@ namespace NuGetGallery
                     return GetEmbeddedLicenseType(packageMetadata.LicenseMetadata.License);
 
                 case LicenseType.Expression:
-                    // execution shouldn't be able to reach here: validation should catch it first
-                    // so if we get here, it's a bug
-                    throw new NotImplementedException("License expression support is not implemented yet");
+                    return EmbeddedLicenseFileType.Absent;
 
                 default:
                     throw new NotImplementedException($"Unsupported license type: {packageMetadata.LicenseMetadata.Type}");

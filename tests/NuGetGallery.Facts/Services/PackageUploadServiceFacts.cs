@@ -868,6 +868,29 @@ namespace NuGetGallery
                 }
             }
 
+            public static IEnumerable<object[]> LongLicenseNodeValues_Input => new object[][]
+            {
+                new object[] { $"<license type='file'>{string.Join("", Enumerable.Range(0, 99).Select(_ => "abcde"))}fg.txt</license>" },
+                new object[] { $"<license type='expression'>{string.Join(" OR ", Enumerable.Range(0, 71).Select(_ => "MIT"))} OR 0BSD</license>" },
+            };
+
+            [Theory]
+            [MemberData(nameof(LongLicenseNodeValues_Input))]
+            public async Task RejectsLongLicenseNodeValues(string licenseNodeValue)
+            {
+                _nuGetPackage = GeneratePackage(
+                    licenseUrl: new Uri(LicenseDeprecationUrl),
+                    getCustomNuspecNodes: () => licenseNodeValue);
+
+                var result = await _target.ValidateBeforeGeneratePackageAsync(
+                    _nuGetPackage.Object,
+                    GetPackageMetadata(_nuGetPackage));
+
+                Assert.Equal(PackageValidationResultType.Invalid, result.Type);
+                Assert.Contains("License node value is too long", result.Message);
+                Assert.Empty(result.Warnings);
+            }
+
             private PackageMetadata GetPackageMetadata(Mock<TestPackageReader> mockPackage)
             {
                 return PackageMetadata.FromNuspecReader(mockPackage.Object.GetNuspecReader(), strict: true);
