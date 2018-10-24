@@ -42,7 +42,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CommonTelemetryServiceFacts.cs" />
-    <Compile Include="CsprojNuspecConsistencyFacts.cs" />
     <Compile Include="FileStreamUtilityFacts.cs" />
     <Compile Include="LoggerDiagnosticSourceFacts.cs" />
     <Compile Include="PathUtilityFacts.cs" />

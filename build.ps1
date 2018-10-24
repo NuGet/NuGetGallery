@@ -147,13 +147,17 @@ Invoke-BuildStep 'Creating artifacts' {
         # We need a few projects to be published for sharing the common bits with other repos.
         # We need symbols published for those, too. All other packages are deployment ones and
         # don't need to be shared, hence no need for symbols for them
-        $ProjectsWithSymbols =
+        $CsprojProjects =
             "src/NuGet.Jobs.Common/NuGet.Jobs.Common.csproj",
             "src/Validation.Common.Job/Validation.Common.Job.csproj",
             "src/Validation.ScanAndSign.Core/Validation.ScanAndSign.Core.csproj",
             "src/Validation.Symbols.Core/Validation.Symbols.Core.csproj"
 
-        $Projects = `
+        $CsprojProjects | ForEach-Object {
+            New-ProjectPackage (Join-Path $PSScriptRoot $_) -Configuration $Configuration -BuildNumber $BuildNumber -Version $SemanticVersion -Branch $Branch -Symbols
+        }
+
+        $NuspecProjects = `
             "src/Stats.CollectAzureCdnLogs/Stats.CollectAzureCdnLogs.csproj", `
             "src/Stats.AggregateCdnDownloadsInGallery/Stats.AggregateCdnDownloadsInGallery.csproj", `
             "src/Stats.ImportAzureCdnStatistics/Stats.ImportAzureCdnStatistics.csproj", `
@@ -181,12 +185,10 @@ Invoke-BuildStep 'Creating artifacts' {
             "src/Monitoring.RebootSearchInstance/Monitoring.RebootSearchInstance.csproj", `
             "src/StatusAggregator/StatusAggregator.csproj", `
             "src/Validation.Symbols.Core/Validation.Symbols.Core.csproj", `
-            "src/Validation.Symbols/Validation.Symbols.csproj" `
-            + $ProjectsWithSymbols
+            "src/Validation.Symbols/Validation.Symbols.csproj"
 
-        Foreach ($Project in $Projects) {
-            $Symbols = $ProjectsWithSymbols -contains $Project;
-            New-Package (Join-Path $PSScriptRoot "$Project") -Configuration $Configuration -BuildNumber $BuildNumber -Version $SemanticVersion -Branch $Branch -MSBuildVersion "$msBuildVersion" -Symbols:$Symbols
+        Foreach ($Project in $NuspecProjects) {
+            New-Package (Join-Path $PSScriptRoot "$Project") -Configuration $Configuration -BuildNumber $BuildNumber -Version $SemanticVersion -Branch $Branch -MSBuildVersion "$msBuildVersion"
         }
     } `
     -ev +BuildErrors
