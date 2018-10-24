@@ -320,6 +320,27 @@ namespace NuGetGallery
                 var package = await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), currentUser, currentUser, isVerified: false);
 
                 Assert.Equal(expectedFileType, package.EmbeddedLicenseType);
+                Assert.Null(package.LicenseExpression);
+            }
+
+            [Fact]
+            public async Task WillSaveLicenseExpression()
+            {
+                var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>();
+                var service = CreateService(packageRegistrationRepository: packageRegistrationRepository, setup:
+                        mockPackageService => { mockPackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null); });
+                const string licenseExpressionText = "some license expression text";
+                var nugetPackage = PackageServiceUtility.CreateNuGetPackage(
+                    licenseUrl: new Uri("http://thelicenseurl/"),
+                    projectUrl: new Uri("http://theprojecturl/"),
+                    iconUrl: new Uri("http://theiconurl/"),
+                    licenseExpression: licenseExpressionText);
+                var currentUser = new User();
+
+                var package = await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), currentUser, currentUser, isVerified: false);
+
+                Assert.Equal(licenseExpressionText, package.LicenseExpression);
+                Assert.Equal(EmbeddedLicenseFileType.Absent, package.EmbeddedLicenseType);
             }
 
             [Fact]
