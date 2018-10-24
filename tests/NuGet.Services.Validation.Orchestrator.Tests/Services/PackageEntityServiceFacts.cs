@@ -21,7 +21,7 @@ namespace NuGet.Services.Validation
         public class TheFindPackageByIdAndVersionStrictMethod
         {
             [Fact]
-            public void ReturnsNullIfPacakgeDoesNotExist()
+            public void ReturnsNullIfPackageDoesNotExist()
             {
                 // Arrange
                 var mockCorePackageService = new Mock<ICorePackageService>();

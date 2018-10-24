@@ -40,7 +40,7 @@ using NuGet.Services.Validation.PackageSigning.ProcessSignature;
 using NuGet.Services.Validation.PackageSigning.ValidateCertificate;
 using NuGet.Services.Validation.Vcs;
 using NuGetGallery.Diagnostics;
-using NuGetGallery.Services;
+using NuGetGallery.Infrastructure.Mail;
 
 namespace NuGet.Services.Validation.Orchestrator
 {
@@ -280,8 +280,8 @@ namespace NuGet.Services.Validation.Orchestrator
                     ? (IMailSender)new DiskMailSender()
                     : (IMailSender)new MailSender(mailSenderConfiguration);
             });
-            services.AddTransient<ICoreMessageServiceConfiguration, CoreMessageServiceConfiguration>();
-            services.AddTransient<ICoreMessageService, CoreMessageService>();
+            services.AddTransient<IMessageServiceConfiguration, CoreMessageServiceConfiguration>();
+            services.AddTransient<IMessageService, CoreMarkdownMessageService>();
             services.AddTransient<IMessageService<Package>, PackageMessageService>();
             services.AddTransient<ICommonTelemetryService, CommonTelemetryService>();
             services.AddTransient<ITelemetryService, TelemetryService>();
@@ -581,7 +581,7 @@ namespace NuGet.Services.Validation.Orchestrator
                     break;
                 case ValidatingType.SymbolPackage:
                     services.AddTransient<IFileMetadataService, SymbolPackageFileMetadataService>();
-                    services.AddTransient<IValidationFileService, ValidationSymbolFileService>();
+                    services.AddTransient<IValidationFileService, ValidationFileService>();
                     break;
                 default:
                     throw new NotImplementedException($"Unknown type: {validatingType}");
@@ -595,7 +595,7 @@ namespace NuGet.Services.Validation.Orchestrator
             services.AddTransient<ICoreSymbolPackageService, CoreSymbolPackageService>();
             services.AddTransient<ICriteriaEvaluator<SymbolPackage>, SymbolCriteriaEvaluator>();
             services.AddTransient<IValidationOutcomeProcessor<SymbolPackage>, ValidationOutcomeProcessor<SymbolPackage>>();
-            services.AddTransient<IStatusProcessor<SymbolPackage>, EntityStatusProcessor<SymbolPackage>>();
+            services.AddTransient<IStatusProcessor<SymbolPackage>, SymbolsStatusProcessor>();
             services.AddTransient<IValidationSetProvider<SymbolPackage>, ValidationSetProvider<SymbolPackage>>();
             services.AddTransient<IMessageService<SymbolPackage>, SymbolsPackageMessageService>();
             services.AddTransient<IBrokeredMessageSerializer<SymbolsValidatorMessage>, SymbolsValidatorMessageSerializer>();
