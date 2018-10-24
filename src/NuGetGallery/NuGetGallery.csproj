@@ -397,6 +397,10 @@
     <Compile Include="Migrations\201810180113046_EmbeddedLicenseFileType.Designer.cs">
       <DependentUpon>201810180113046_EmbeddedLicenseFileType.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201810240027536_LicenseExpressions.cs" />
+    <Compile Include="Migrations\201810240027536_LicenseExpressions.Designer.cs">
+      <DependentUpon>201810240027536_LicenseExpressions.cs</DependentUpon>
+    </Compile>
     <Compile Include="RequestModels\DeleteAccountRequest.cs" />
     <Compile Include="Migrations\201710301857232_Organizations.cs" />
     <Compile Include="Migrations\201710301857232_Organizations.Designer.cs">
@@ -1590,6 +1594,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201810180113046_EmbeddedLicenseFileType.resx">
       <DependentUpon>201810180113046_EmbeddedLicenseFileType.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201810240027536_LicenseExpressions.resx">
+      <DependentUpon>201810240027536_LicenseExpressions.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />

@@ -569,6 +569,7 @@ namespace NuGetGallery
             package.SemVerLevelKey = SemVerLevelKey.ForPackage(packageMetadata.Version, package.Dependencies);
 
             package.EmbeddedLicenseType = GetEmbeddedLicenseType(packageMetadata);
+            package.LicenseExpression = GetLicenseExpression(packageMetadata);
 
             return package;
         }
@@ -580,22 +581,22 @@ namespace NuGetGallery
 
         private static EmbeddedLicenseFileType GetEmbeddedLicenseType(PackageMetadata packageMetadata)
         {
-            if (packageMetadata.LicenseMetadata == null)
+            if (LicenseType.File != packageMetadata.LicenseMetadata?.Type)
             {
                 return EmbeddedLicenseFileType.Absent;
             }
 
-            switch (packageMetadata.LicenseMetadata.Type)
+            return GetEmbeddedLicenseType(packageMetadata.LicenseMetadata.License);
+        }
+
+        private string GetLicenseExpression(PackageMetadata packageMetadata)
+        {
+            if (LicenseType.Expression != packageMetadata.LicenseMetadata?.Type)
             {
-                case LicenseType.File:
-                    return GetEmbeddedLicenseType(packageMetadata.LicenseMetadata.License);
-
-                case LicenseType.Expression:
-                    return EmbeddedLicenseFileType.Absent;
-
-                default:
-                    throw new NotImplementedException($"Unsupported license type: {packageMetadata.LicenseMetadata.Type}");
+                return null;
             }
+
+            return packageMetadata.LicenseMetadata.License;
         }
 
         private static EmbeddedLicenseFileType GetEmbeddedLicenseType(string licenseFileName)
