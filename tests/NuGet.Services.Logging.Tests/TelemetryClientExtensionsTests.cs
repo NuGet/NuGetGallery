@@ -38,7 +38,7 @@ namespace NuGet.Services.Logging.Tests
 
         public class Base
         {
-            protected readonly Mock<ITelemetryClient> _target;
+            protected Mock<ITelemetryClient> _target;
 
             public Base()
             {
