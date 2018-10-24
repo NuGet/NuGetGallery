@@ -7,6 +7,7 @@ using System.Linq;
 using System.Security.Principal;
 using System.Web;
 using Newtonsoft.Json;
+using NuGet.Services.Entities;
 using NuGet.Versioning;
 using NuGetGallery.Authentication;
 using NuGetGallery.Diagnostics;
@@ -460,12 +461,12 @@ namespace NuGetGallery
         }
         private static string GetClientVersion()
         {
-            return HttpContext.Current?.Request?.Headers[Constants.ClientVersionHeaderName];
+            return HttpContext.Current?.Request?.Headers[GalleryConstants.ClientVersionHeaderName];
         }
 
         private static string GetProtocolVersion()
         {
-            return HttpContext.Current?.Request?.Headers[Constants.NuGetProtocolHeaderName];
+            return HttpContext.Current?.Request?.Headers[GalleryConstants.NuGetProtocolHeaderName];
         }
 
         private static string GetClientInformation()

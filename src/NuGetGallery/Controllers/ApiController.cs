@@ -16,6 +16,8 @@ using System.Web.Mvc;
 using Newtonsoft.Json.Linq;
 using NuGet.Frameworks;
 using NuGet.Packaging;
+using NuGet.Services.Entities;
+using NuGet.Services.Messaging.Email;
 using NuGet.Versioning;
 using NuGetGallery.Auditing;
 using NuGetGallery.Auditing.AuditedEntities;
@@ -530,7 +532,7 @@ namespace NuGetGallery
                                     errorsString));
                             }
 
-                            if (nuspec.GetMinClientVersion() > Constants.MaxSupportedMinClientVersion)
+                            if (nuspec.GetMinClientVersion() > GalleryConstants.MaxSupportedMinClientVersion)
                             {
                                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, string.Format(
                                     CultureInfo.CurrentCulture,
@@ -841,7 +843,7 @@ namespace NuGetGallery
 
         public virtual async Task<ActionResult> Team()
         {
-            var team = await ContentService.GetContentItemAsync(Constants.ContentNames.Team, TimeSpan.FromHours(1));
+            var team = await ContentService.GetContentItemAsync(GalleryConstants.ContentNames.Team, TimeSpan.FromHours(1));
             return Content(team.ToString(), "application/json");
         }
 

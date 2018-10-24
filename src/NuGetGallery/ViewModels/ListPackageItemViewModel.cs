@@ -4,6 +4,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using NuGet.Services.Entities;
 using NuGetGallery.Helpers;
 
 namespace NuGetGallery
@@ -68,7 +69,7 @@ namespace NuGetGallery
             {
                 // only use the version in URLs when necessary. This would happen when the latest version is not the
                 // same as the latest stable version.
-                return !(!IsSemVer2 && LatestVersion && LatestStableVersion) 
+                return !(!IsSemVer2 && LatestVersion && LatestStableVersion)
                     && !(IsSemVer2 && LatestStableVersionSemVer2 && LatestVersionSemVer2);
             }
         }
@@ -84,10 +85,10 @@ namespace NuGetGallery
                 }
 
                 var organizationAccountOwners = Owners.Where(o => o is Organization).ToList();
-                foreach(var o in organizationAccountOwners)
+                foreach (var o in organizationAccountOwners)
                 {
                     userAccountOwners = userAccountOwners.Union(OrganizationExtensions.GetUserAccountMembers((Organization)o)).ToList();
-                    if(userAccountOwners.Count() > 1)
+                    if (userAccountOwners.Count() > 1)
                     {
                         return false;
                     }

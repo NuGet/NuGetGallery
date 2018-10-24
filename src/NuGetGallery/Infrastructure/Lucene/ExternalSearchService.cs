@@ -9,6 +9,7 @@ using System.Net;
 using System.Threading.Tasks;
 using System.Web;
 using Newtonsoft.Json.Linq;
+using NuGet.Services.Entities;
 using NuGet.Services.Search.Client;
 using NuGet.Services.Search.Client.Correlation;
 using NuGetGallery.Configuration;

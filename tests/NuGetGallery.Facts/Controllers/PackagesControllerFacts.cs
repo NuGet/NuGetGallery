@@ -15,6 +15,8 @@ using System.Web.Mvc;
 using System.Web.Routing;
 using Moq;
 using NuGet.Packaging;
+using NuGet.Services.Entities;
+using NuGet.Services.Messaging.Email;
 using NuGet.Services.Validation;
 using NuGet.Services.Validation.Issues;
 using NuGet.Versioning;
@@ -27,7 +29,6 @@ using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
 using NuGetGallery.Framework;
 using NuGetGallery.Helpers;
-using NuGetGallery.Infrastructure.Mail;
 using NuGetGallery.Infrastructure.Mail.Messages;
 using NuGetGallery.Infrastructure.Mail.Requests;
 using NuGetGallery.Packaging;
@@ -627,7 +628,7 @@ namespace NuGetGallery
                 indexingService.Setup(i => i.GetLastWriteTime()).Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
 
                 // Act
-                var result = await controller.DisplayPackage("Foo", Constants.AbsoluteLatestUrlString);
+                var result = await controller.DisplayPackage("Foo", GalleryConstants.AbsoluteLatestUrlString);
 
                 // Assert
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);

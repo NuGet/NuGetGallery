@@ -1,8 +1,8 @@
 ﻿@model ReportAbuseViewModel
 @{
     ViewBag.Title = "Report Abuse by " + Model.PackageId + " " + Model.PackageVersion;
-    ViewBag.MdPageColumns = Constants.ColumnsFormMd;
-    string returnUrl = ViewData.ContainsKey(Constants.ReturnUrlViewDataKey) ? (string)ViewData[Constants.ReturnUrlViewDataKey] : Request.RawUrl;
+    ViewBag.MdPageColumns = GalleryConstants.ColumnsFormMd;
+    string returnUrl = ViewData.ContainsKey(GalleryConstants.ReturnUrlViewDataKey) ? (string)ViewData[GalleryConstants.ReturnUrlViewDataKey] : Request.RawUrl;
 }
 
 <section role="main" class="container main-container page-report-abuse">

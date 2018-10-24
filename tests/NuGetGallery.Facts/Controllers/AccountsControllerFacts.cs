@@ -7,8 +7,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using Moq;
+using NuGet.Services.Entities;
+using NuGet.Services.Messaging.Email;
 using NuGetGallery.Framework;
-using NuGetGallery.Infrastructure.Mail;
 using NuGetGallery.Infrastructure.Mail.Messages;
 using Xunit;
 
@@ -558,15 +559,15 @@ namespace NuGetGallery
                 var controller = GetController();
                 var account = GetAccount(controller);
                 var token = account.EmailConfirmationToken = "token";
-                controller.ViewData[Constants.ReturnUrlViewDataKey] = "https://localhost/returnUrl";
+                controller.ViewData[GalleryConstants.ReturnUrlViewDataKey] = "https://localhost/returnUrl";
 
-                Assert.NotNull(controller.ViewData[Constants.ReturnUrlViewDataKey]);
+                Assert.NotNull(controller.ViewData[GalleryConstants.ReturnUrlViewDataKey]);
 
                 // Act
                 var result = await InvokeConfirm(controller, account, getCurrentUser, token);
 
                 // Assert
-                Assert.Null(controller.ViewData[Constants.ReturnUrlViewDataKey]);
+                Assert.Null(controller.ViewData[GalleryConstants.ReturnUrlViewDataKey]);
             }
 
             [Theory]

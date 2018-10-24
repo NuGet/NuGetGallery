@@ -15,6 +15,8 @@ using System.Web;
 using System.Web.Caching;
 using System.Web.Mvc;
 using NuGet.Packaging;
+using NuGet.Services.Entities;
+using NuGet.Services.Messaging.Email;
 using NuGet.Versioning;
 using NuGetGallery.Areas.Admin;
 using NuGetGallery.Areas.Admin.Models;
@@ -22,11 +24,9 @@ using NuGetGallery.AsyncFileUpload;
 using NuGetGallery.Auditing;
 using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
-using NuGetGallery.Extensions;
 using NuGetGallery.Filters;
 using NuGetGallery.Helpers;
 using NuGetGallery.Infrastructure.Lucene;
-using NuGetGallery.Infrastructure.Mail;
 using NuGetGallery.Infrastructure.Mail.Messages;
 using NuGetGallery.Infrastructure.Mail.Requests;
 using NuGetGallery.OData;
@@ -422,7 +422,7 @@ namespace NuGetGallery
             }
 
             // Check min client version
-            if (nuspec.GetMinClientVersion() > Constants.MaxSupportedMinClientVersion)
+            if (nuspec.GetMinClientVersion() > GalleryConstants.MaxSupportedMinClientVersion)
             {
                 return Json(HttpStatusCode.BadRequest, new[] {
                         string.Format(CultureInfo.CurrentCulture, Strings.UploadPackage_MinClientVersionOutOfRange, nuspec.GetMinClientVersion()) });
@@ -576,7 +576,7 @@ namespace NuGetGallery
             }
 
             Package package;
-            if (version != null && version.Equals(Constants.AbsoluteLatestUrlString, StringComparison.InvariantCultureIgnoreCase))
+            if (version != null && version.Equals(GalleryConstants.AbsoluteLatestUrlString, StringComparison.InvariantCultureIgnoreCase))
             {
                 package = _packageService.FindAbsoluteLatestPackageById(id, SemVerLevelKey.SemVer2);
             }
@@ -738,7 +738,7 @@ namespace NuGetGallery
                 q,
                 totalHits,
                 page - 1,
-                Constants.DefaultPackageListPageSize,
+                GalleryConstants.DefaultPackageListPageSize,
                 Url,
                 includePrerelease);
 
@@ -781,7 +781,7 @@ namespace NuGetGallery
                 }
             }
 
-            ViewData[Constants.ReturnUrlViewDataKey] = Url.ReportPackage(id, version);
+            ViewData[GalleryConstants.ReturnUrlViewDataKey] = Url.ReportPackage(id, version);
             return View(model);
         }
 
@@ -1218,7 +1218,7 @@ namespace NuGetGallery
             model.VersionSelectList = new SelectList(
                 model
                 .PackageVersions
-                .Where(p => !p.Deleted 
+                .Where(p => !p.Deleted
                     && p.LatestSymbolsPackage != null
                     && p.LatestSymbolsPackage.StatusKey == PackageStatus.Available)
                 .Select(p => new
@@ -1328,7 +1328,7 @@ namespace NuGetGallery
                     case PackageStatus.Deleted:
                         return new HttpStatusCodeResult(HttpStatusCode.BadRequest,
                             string.Format(Strings.SymbolsPackage_RevalidateDeletedPackage, id, version));
-                   default:
+                    default:
                         return new HttpStatusCodeResult(HttpStatusCode.BadRequest, $"Unkown Package status {latestSymbolPackage.StatusKey}!");
                 }
 
@@ -2433,9 +2433,9 @@ namespace NuGetGallery
         {
             switch (sortOrder)
             {
-                case Constants.AlphabeticSortOrder:
+                case GalleryConstants.AlphabeticSortOrder:
                     return "PackageRegistration.Id";
-                case Constants.RecentSortOrder:
+                case GalleryConstants.RecentSortOrder:
                     return "Published desc";
 
                 default:

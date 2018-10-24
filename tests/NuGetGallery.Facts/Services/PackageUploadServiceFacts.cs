@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Moq;
 using NuGet.Packaging;
 using NuGet.Packaging.Core;
+using NuGet.Services.Entities;
 using NuGetGallery.Configuration;
 using NuGetGallery.Packaging;
 using NuGetGallery.TestUtils;

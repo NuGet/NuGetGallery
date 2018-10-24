@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.Owin;
 using Moq;
 using Newtonsoft.Json;
+using NuGet.Services.Entities;
 using NuGetGallery.Authentication;
 using AuthenticationTypes = NuGetGallery.Authentication.AuthenticationTypes;
 
@@ -81,11 +82,11 @@ namespace NuGetGallery
         {
             if (user != null)
             {
-                self.OwinContext.Environment[Constants.CurrentUserOwinEnvironmentKey] = user;
+                self.OwinContext.Environment[GalleryConstants.CurrentUserOwinEnvironmentKey] = user;
             }
             else
             {
-                self.OwinContext.Environment.Remove(Constants.CurrentUserOwinEnvironmentKey);
+                self.OwinContext.Environment.Remove(GalleryConstants.CurrentUserOwinEnvironmentKey);
             }
         }
 

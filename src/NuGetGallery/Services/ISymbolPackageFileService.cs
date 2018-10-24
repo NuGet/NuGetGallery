@@ -4,6 +4,7 @@
 using System;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using NuGet.Services.Entities;
 
 namespace NuGetGallery
 {

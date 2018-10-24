@@ -4,6 +4,7 @@
 using System;
 using System.Web;
 using System.Web.Mvc;
+using NuGet.Services.Entities;
 using NuGetGallery.Configuration;
 using NuGetGallery.Cookies;
 

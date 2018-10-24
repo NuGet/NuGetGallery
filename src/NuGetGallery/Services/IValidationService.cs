@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using NuGet.Services.Entities;
 using NuGet.Services.Validation.Issues;
 
 namespace NuGetGallery

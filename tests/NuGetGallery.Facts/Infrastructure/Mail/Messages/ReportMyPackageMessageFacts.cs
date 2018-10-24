@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using NuGet.Services.Messaging.Email;
 using NuGetGallery.Infrastructure.Mail.Requests;
 using Xunit;
 

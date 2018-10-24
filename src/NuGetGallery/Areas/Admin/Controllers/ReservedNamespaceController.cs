@@ -7,6 +7,7 @@ using System.Web.Mvc;
 using System.Threading.Tasks;
 using NuGetGallery.Areas.Admin.ViewModels;
 using System.Collections.Generic;
+using NuGet.Services.Entities;
 
 namespace NuGetGallery.Areas.Admin.Controllers
 {

@@ -59,7 +59,7 @@ namespace NuGetGallery
 
         private static string BuildFileName(int userKey)
         {
-            return String.Format(CultureInfo.InvariantCulture, Constants.UploadFileNameTemplate, userKey, CoreConstants.NuGetPackageFileExtension);
+            return String.Format(CultureInfo.InvariantCulture, GalleryConstants.UploadFileNameTemplate, userKey, CoreConstants.NuGetPackageFileExtension);
         }
 
         // Use the trick of a private core method that actually does the async stuff to allow for sync arg contract checking

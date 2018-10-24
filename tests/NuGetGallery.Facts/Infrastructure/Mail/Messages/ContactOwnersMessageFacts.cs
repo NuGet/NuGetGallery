@@ -5,6 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.Net.Mail;
 using Moq;
+using NuGet.Services.Entities;
+using NuGet.Services.Messaging.Email;
 using Xunit;
 
 namespace NuGetGallery.Infrastructure.Mail.Messages

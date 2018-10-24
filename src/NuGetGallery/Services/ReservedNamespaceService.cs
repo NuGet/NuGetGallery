@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using NuGetGallery.Auditing;
+using NuGet.Services.Entities;
 
 namespace NuGetGallery
 {
@@ -347,12 +348,12 @@ namespace NuGetGallery
                 throw new ArgumentException(Strings.ReservedNamespace_InvalidNamespace);
             }
 
-            if (value.Length > CoreConstants.MaxPackageIdLength)
+            if (value.Length > NuGet.Services.Entities.Constants.MaxPackageIdLength)
             {
                 throw new ArgumentException(string.Format(
                     CultureInfo.CurrentCulture,
                     Strings.ReservedNamespace_NamespaceExceedsLength,
-                    CoreConstants.MaxPackageIdLength));
+                    NuGet.Services.Entities.Constants.MaxPackageIdLength));
             }
 
             if (!NamespaceRegex.IsMatch(value))

@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web.Mvc;
+using NuGet.Services.Entities;
 using NuGetGallery.Areas.Admin.ViewModels;
 using NuGetGallery.TestUtils;
 using Xunit;
@@ -52,7 +53,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             var newNamespace = namespaces.First();
             var reservedNamespaceService = new TestableReservedNamespaceService(reservedNamespaces: namespaces);
             var controller = new ReservedNamespaceController(reservedNamespaceService);
-            
+
             // Act & Assert.
             JsonResult result = await controller.AddNamespace(newNamespace);
             dynamic data = result.Data;

@@ -5,6 +5,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Moq;
+using NuGet.Services.Entities;
 using Xunit;
 
 namespace NuGetGallery.Services
@@ -50,7 +51,7 @@ namespace NuGetGallery.Services
 
                 var repository = new Mock<IEntityRepository<PackageOwnerRequest>>();
                 repository.Setup(r => r.GetAll()).Returns(
-                    new[] 
+                    new[]
                     {
                         new PackageOwnerRequest
                         {

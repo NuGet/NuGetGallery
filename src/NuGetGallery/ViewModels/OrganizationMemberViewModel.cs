@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using NuGet.Services.Entities;
 using NuGetGallery.Helpers;
 
 namespace NuGetGallery
@@ -31,7 +32,7 @@ namespace NuGetGallery
 
             Username = member.Username;
             EmailAddress = member.EmailAddress;
-            GravatarUrl = GravatarHelper.Url(EmailAddress, Constants.GravatarElementSize);
+            GravatarUrl = GravatarHelper.Url(EmailAddress, GalleryConstants.GravatarElementSize);
         }
 
         public string Username { get; }

@@ -7,10 +7,11 @@ using System.Net;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
+using NuGet.Services.Entities;
+using NuGet.Services.Messaging.Email;
 using NuGetGallery.Authentication;
 using NuGetGallery.Filters;
 using NuGetGallery.Helpers;
-using NuGetGallery.Infrastructure.Mail;
 using NuGetGallery.Infrastructure.Mail.Messages;
 using NuGetGallery.Security;
 
@@ -131,7 +132,7 @@ namespace NuGetGallery
         {
             // We don't want Login to go to this page as a return URL
             // By having this value present in the dictionary BUT null, we don't put "returnUrl" on the Login link at all
-            ViewData[Constants.ReturnUrlViewDataKey] = null;
+            ViewData[GalleryConstants.ReturnUrlViewDataKey] = null;
 
             var account = GetAccount(accountName);
 

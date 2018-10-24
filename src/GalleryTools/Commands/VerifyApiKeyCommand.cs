@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.CommandLineUtils;
+using NuGet.Services.Entities;
 using NuGetGallery;
 using NuGetGallery.Infrastructure.Authentication;
 

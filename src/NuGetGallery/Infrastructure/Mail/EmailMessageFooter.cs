@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using NuGet.Services.Messaging.Email;
 
 namespace NuGetGallery.Infrastructure.Mail
 {
@@ -22,12 +23,12 @@ namespace NuGetGallery.Infrastructure.Mail
         public static string ForContactOwnerNotifications(EmailFormat format, string galleryOwnerDisplayName, string emailSettingsUrl)
         {
             return ForReason(
-                format, 
-                galleryOwnerDisplayName, 
-                emailSettingsUrl, 
+                format,
+                galleryOwnerDisplayName,
+                emailSettingsUrl,
                 "To stop receiving contact emails as an owner of this package");
         }
-               
+
         private static string ForReason(EmailFormat format, string galleryOwnerDisplayName, string emailSettingsUrl, string reason)
         {
             switch (format)

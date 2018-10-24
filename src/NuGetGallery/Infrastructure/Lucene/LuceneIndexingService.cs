@@ -1,5 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -10,6 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Lucene.Net.Index;
+using NuGet.Services.Entities;
 using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
 using WebBackgrounder;
@@ -25,11 +27,11 @@ namespace NuGetGallery
         private static ConcurrentDictionary<Lucene.Net.Store.Directory, IndexWriter> WriterCache =
             new ConcurrentDictionary<Lucene.Net.Store.Directory, IndexWriter>();
 
-        private Lucene.Net.Store.Directory _directory;
+        private readonly Lucene.Net.Store.Directory _directory;
         private IndexWriter _indexWriter;
         private IEntityRepository<Package> _packageRepository;
         private IEntityRepository<CuratedPackage> _curatedPackageRepository;
-        private Func<bool> _getShouldAutoUpdate;
+        private readonly Func<bool> _getShouldAutoUpdate;
 
         private IDiagnosticsSource Trace { get; set; }
 
@@ -47,7 +49,7 @@ namespace NuGetGallery
             IEntityRepository<Package> packageSource,
             IEntityRepository<CuratedPackage> curatedPackageSource,
             Lucene.Net.Store.Directory directory,
-			IDiagnosticsService diagnostics,
+            IDiagnosticsService diagnostics,
             IAppConfiguration config)
         {
             _packageRepository = packageSource;
@@ -149,7 +151,7 @@ namespace NuGetGallery
                 // We need to do this because some attributes that we index such as DownloadCount are values in the PackageRegistration table that may
                 // update independent of the package.
                 set = set.Where(
-                    p => (p.IsLatest || p.IsLatestStable || p.IsLatestSemVer2 || p.IsLatestStableSemVer2) && 
+                    p => (p.IsLatest || p.IsLatestStable || p.IsLatestSemVer2 || p.IsLatestStableSemVer2) &&
                         p.PackageRegistration.Packages.Any(p2 => p2.LastUpdated > lastIndexTime));
             }
             else
@@ -330,8 +332,8 @@ namespace NuGetGallery
                 return 0;
             }
 
-            return 
-                dir.EnumerateFiles().Sum(f => f.Length) + 
+            return
+                dir.EnumerateFiles().Sum(f => f.Length) +
                 dir.EnumerateDirectories().Select(d => CalculateSize(d)).Sum();
         }
     }

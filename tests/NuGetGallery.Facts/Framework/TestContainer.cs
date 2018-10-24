@@ -7,6 +7,7 @@ using System.Web.Mvc;
 using System.Web.Routing;
 using Autofac;
 using Moq;
+using NuGet.Services.Entities;
 using NuGetGallery.Configuration;
 
 namespace NuGetGallery.Framework

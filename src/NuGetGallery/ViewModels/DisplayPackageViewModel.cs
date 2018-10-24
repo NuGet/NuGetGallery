@@ -4,9 +4,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using NuGet.Services.Entities;
 using NuGet.Services.Validation.Issues;
 using NuGet.Versioning;
-using NuGetGallery.Extensions;
 
 namespace NuGetGallery
 {
@@ -103,7 +103,7 @@ namespace NuGetGallery
                 return latestPrereleaseVersion > NuGetVersion;
             }
         }
-        
+
         public bool HasNewerRelease
         {
             get

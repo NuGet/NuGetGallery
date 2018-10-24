@@ -3,6 +3,7 @@
 
 using System.Linq;
 using Moq;
+using NuGet.Services.Entities;
 using NuGetGallery.Configuration;
 using Xunit;
 

@@ -3,6 +3,7 @@
 
 using System.Net;
 using System.Web.Mvc;
+using NuGet.Services.Entities;
 using NuGetGallery.Framework;
 using Xunit;
 

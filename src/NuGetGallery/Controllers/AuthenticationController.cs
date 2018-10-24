@@ -11,12 +11,13 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
+using NuGet.Services.Entities;
+using NuGet.Services.Messaging.Email;
 using NuGetGallery.Authentication;
 using NuGetGallery.Authentication.Providers;
 using NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2;
 using NuGetGallery.Authentication.Providers.MicrosoftAccount;
 using NuGetGallery.Infrastructure.Authentication;
-using NuGetGallery.Infrastructure.Mail;
 using NuGetGallery.Infrastructure.Mail.Messages;
 using NuGetGallery.Security;
 
@@ -72,11 +73,11 @@ namespace NuGetGallery
         public virtual ActionResult LogOn(string returnUrl)
         {
             // I think it should be obvious why we don't want the current URL to be the return URL here ;)
-            ViewData[Constants.ReturnUrlViewDataKey] = returnUrl;
+            ViewData[GalleryConstants.ReturnUrlViewDataKey] = returnUrl;
 
-            if (TempData.ContainsKey(Constants.ReturnUrlMessageViewDataKey))
+            if (TempData.ContainsKey(GalleryConstants.ReturnUrlMessageViewDataKey))
             {
-                ViewData[Constants.ReturnUrlMessageViewDataKey] = TempData[Constants.ReturnUrlMessageViewDataKey];
+                ViewData[GalleryConstants.ReturnUrlMessageViewDataKey] = TempData[GalleryConstants.ReturnUrlMessageViewDataKey];
             }
 
             if (Request.IsAuthenticated)
@@ -93,7 +94,7 @@ namespace NuGetGallery
         [HttpGet]
         public virtual ActionResult LogOnNuGetAccount(string returnUrl)
         {
-            ViewData[Constants.ReturnUrlViewDataKey] = returnUrl;
+            ViewData[GalleryConstants.ReturnUrlViewDataKey] = returnUrl;
 
             if (Request.IsAuthenticated)
             {
@@ -108,7 +109,7 @@ namespace NuGetGallery
         public virtual ActionResult SignUp(string returnUrl)
         {
             // I think it should be obvious why we don't want the current URL to be the return URL here ;)
-            ViewData[Constants.ReturnUrlViewDataKey] = returnUrl;
+            ViewData[GalleryConstants.ReturnUrlViewDataKey] = returnUrl;
 
             if (Request.IsAuthenticated)
             {
@@ -123,7 +124,7 @@ namespace NuGetGallery
         public virtual async Task<ActionResult> SignIn(LogOnViewModel model, string returnUrl, bool linkingAccount)
         {
             // I think it should be obvious why we don't want the current URL to be the return URL here ;)
-            ViewData[Constants.ReturnUrlViewDataKey] = returnUrl;
+            ViewData[GalleryConstants.ReturnUrlViewDataKey] = returnUrl;
 
             if (Request.IsAuthenticated)
             {
@@ -243,7 +244,7 @@ namespace NuGetGallery
         public virtual async Task<ActionResult> Register(LogOnViewModel model, string returnUrl, bool linkingAccount)
         {
             // I think it should be obvious why we don't want the current URL to be the return URL here ;)
-            ViewData[Constants.ReturnUrlViewDataKey] = returnUrl;
+            ViewData[GalleryConstants.ReturnUrlViewDataKey] = returnUrl;
 
             if (Request.IsAuthenticated)
             {

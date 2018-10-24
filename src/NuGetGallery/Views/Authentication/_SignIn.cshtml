@@ -1,6 +1,6 @@
 ﻿@model LogOnViewModel
 @{
-    var returnUrl = ViewData.ContainsKey(Constants.ReturnUrlViewDataKey) ? (string)ViewData[Constants.ReturnUrlViewDataKey] : Request.RawUrl;
+    var returnUrl = ViewData.ContainsKey(GalleryConstants.ReturnUrlViewDataKey) ? (string)ViewData[GalleryConstants.ReturnUrlViewDataKey] : Request.RawUrl;
 }
 @using (Html.BeginForm("SignIn", "Authentication"))
 {

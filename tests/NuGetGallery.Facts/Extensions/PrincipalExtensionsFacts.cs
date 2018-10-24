@@ -4,6 +4,7 @@
 using System;
 using System.Linq;
 using System.Security.Claims;
+using NuGet.Services.Entities;
 using NuGetGallery.Authentication;
 using NuGetGallery.Framework;
 using Xunit;

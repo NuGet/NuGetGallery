@@ -7,6 +7,7 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using Moq;
+using NuGet.Services.Entities;
 using NuGetGallery.Areas.Admin.ViewModels;
 using NuGetGallery.Framework;
 using Xunit;
@@ -106,7 +107,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 _httpContextBase = new Mock<HttpContextBase>();
 
                 _target = new DeleteController(_packageService.Object, _packageDeleteService.Object, _telemetryService.Object);
-                
+
                 TestUtility.SetupHttpContextMockForUrlGeneration(_httpContextBase, _target);
             }
         }
