@@ -87,6 +87,17 @@ namespace NuGetGallery
         internal const string NuGetProtocolHeaderName = "X-NuGet-Protocol-Version";
         internal const string WarningHeaderName = "X-NuGet-Warning";
         internal const string UserAgentHeaderName = "User-Agent";
+        
+        /// <summary>
+        /// This header is for internal use only. It indicates whether an OData query is "custom". Custom means not
+        /// not optimized for search hijacking. Queries made by the official client should be optimized and therefore
+        /// not marked as custom queries (as to not overload the database). The value is either "true" or "false". If
+        /// the header is not present on an OData query response, that means that the search hijack detection is
+        /// failing, perhaps due to search service outage. The value of this header corresponds to the
+        /// <see cref="ITelemetryService.TrackODataCustomQuery(bool?)"/> telemetry emitted while generating the
+        /// response.
+        /// </summary>
+        internal const string CustomQueryHeaderName = "X-NuGet-CustomQuery";
 
         public static readonly string ReturnUrlParameterName = "ReturnUrl";
         public static readonly string CurrentUserOwinEnvironmentKey = "nuget.user";

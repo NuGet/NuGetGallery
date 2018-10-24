@@ -30,8 +30,9 @@ namespace NuGetGallery.Controllers
         public ODataV1FeedController(
             IEntityRepository<Package> packagesRepository,
             IGalleryConfigurationService configurationService,
-            ISearchService searchService)
-            : base(configurationService)
+            ISearchService searchService,
+            ITelemetryService telemetryService)
+            : base(configurationService, telemetryService)
         {
             _packagesRepository = packagesRepository;
             _configurationService = configurationService;
@@ -56,7 +57,7 @@ namespace NuGetGallery.Controllers
                                 .WithoutSortOnColumn(Id, ShouldIgnoreOrderById(options))
                                 .ToV1FeedPackageQuery(_configurationService.GetSiteRoot(UseHttps()));
 
-            return QueryResult(options, queryable, MaxPageSize);
+            return TrackedQueryResult(options, queryable, MaxPageSize, customQuery: true);
         }
 
         // /api/v1/Packages/$count
@@ -108,6 +109,8 @@ namespace NuGetGallery.Controllers
                 packages = packages.Where(p => p.Version == version);
             }
 
+            bool? customQuery = null;
+
             // try the search service
             try
             {
@@ -123,6 +126,8 @@ namespace NuGetGallery.Controllers
                 // If intercepted, create a paged queryresult
                 if (searchAdaptorResult.ResultsAreProvidedBySearchService)
                 {
+                    customQuery = false;
+
                     // Packages provided by search service
                     packages = searchAdaptorResult.Packages;
 
@@ -131,6 +136,7 @@ namespace NuGetGallery.Controllers
 
                     if (return404NotFoundWhenNoResults && totalHits == 0)
                     {
+                        _telemetryService.TrackODataCustomQuery(customQuery);
                         return NotFound();
                     }
 
@@ -138,8 +144,17 @@ namespace NuGetGallery.Controllers
                         .Take(options.Top != null ? Math.Min(options.Top.Value, MaxPageSize) : MaxPageSize)
                         .ToV1FeedPackageQuery(GetSiteRoot());
 
-                    return QueryResult(options, pagedQueryable, MaxPageSize, totalHits, (o, s, resultCount) =>
-                       SearchAdaptor.GetNextLink(Request.RequestUri, resultCount, new { id }, o, s));
+                    return TrackedQueryResult(
+                        options,
+                        pagedQueryable,
+                        MaxPageSize,
+                        totalHits,
+                        (o, s, resultCount) => SearchAdaptor.GetNextLink(Request.RequestUri, resultCount, new { id }, o, s),
+                        customQuery);
+                }
+                else
+                {
+                    customQuery = true;
                 }
             }
             catch (Exception ex)
@@ -151,11 +166,12 @@ namespace NuGetGallery.Controllers
 
             if (return404NotFoundWhenNoResults && !packages.Any())
             {
+                _telemetryService.TrackODataCustomQuery(customQuery);
                 return NotFound();
             }
 
             var queryable = packages.ToV1FeedPackageQuery(GetSiteRoot());
-            return QueryResult(options, queryable, MaxPageSize);
+            return TrackedQueryResult(options, queryable, MaxPageSize, customQuery);
         }
 
         // /api/v1/Packages(Id=,Version=)/propertyName
@@ -213,24 +229,36 @@ namespace NuGetGallery.Controllers
                 packages,
                 searchTerm,
                 targetFramework,
-                false,
+                includePrerelease: false, 
                 curatedFeed: null,
                 semVerLevel: null);
 
             // Packages provided by search service (even when not hijacked)
             var query = searchAdaptorResult.Packages;
+            bool? customQuery = null;
 
             // If intercepted, create a paged queryresult
             if (searchAdaptorResult.ResultsAreProvidedBySearchService)
             {
+                customQuery = false;
+
                 // Add explicit Take() needed to limit search hijack result set size if $top is specified
                 var totalHits = query.LongCount();
                 var pagedQueryable = query
                     .Take(options.Top != null ? Math.Min(options.Top.Value, MaxPageSize) : MaxPageSize)
                     .ToV1FeedPackageQuery(GetSiteRoot());
 
-                return QueryResult(options, pagedQueryable, MaxPageSize, totalHits, (o, s, resultCount) =>
-                   SearchAdaptor.GetNextLink(Request.RequestUri, resultCount, new { searchTerm, targetFramework }, o, s));
+                return TrackedQueryResult(
+                    options,
+                    pagedQueryable,
+                    MaxPageSize,
+                    totalHits,
+                    (o, s, resultCount) => SearchAdaptor.GetNextLink(Request.RequestUri, resultCount, new { searchTerm, targetFramework }, o, s),
+                    customQuery);
+            }
+            else
+            {
+                customQuery = true;
             }
 
             if (!ODataQueryVerifier.AreODataOptionsAllowed(options, ODataQueryVerifier.V1Search,
@@ -241,7 +269,7 @@ namespace NuGetGallery.Controllers
 
             // If not, just let OData handle things
             var queryable = query.ToV1FeedPackageQuery(GetSiteRoot());
-            return QueryResult(options, queryable, MaxPageSize);
+            return TrackedQueryResult(options, queryable, MaxPageSize, customQuery);
         }
 
         // /api/v1/Search()/$count?searchTerm=&targetFramework=&includePrerelease=

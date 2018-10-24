@@ -52,15 +52,21 @@ namespace NuGetGallery.Controllers
         protected abstract TController CreateController(
             IEntityRepository<Package> packagesRepository,
             IGalleryConfigurationService configurationService,
-            ISearchService searchService);
+            ISearchService searchService,
+            ITelemetryService telemetryService);
 
         protected TController CreateTestableODataFeedController(HttpRequestMessage request)
         {
             var searchService = new Mock<ISearchService>().Object;
             var configurationService = new TestGalleryConfigurationService();
             configurationService.Current.SiteRoot = _siteRoot;
+            var telemetryService = new Mock<ITelemetryService>();
 
-            var controller = CreateController(PackagesRepository, configurationService, searchService);
+            var controller = CreateController(
+                PackagesRepository,
+                configurationService,
+                searchService,
+                telemetryService.Object);
 
             AddRequestToController(request, controller);
 

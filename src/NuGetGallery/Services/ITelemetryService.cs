@@ -13,6 +13,8 @@ namespace NuGetGallery
     {
         void TrackODataQueryFilterEvent(string callContext, bool isEnabled, bool isAllowed, string queryPattern);
 
+        void TrackODataCustomQuery(bool? customQuery);
+
         void TrackPackagePushEvent(Package package, User user, IIdentity identity);
 
         void TrackPackagePushFailureEvent(string id, NuGetVersion version);

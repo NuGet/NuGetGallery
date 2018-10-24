@@ -16,12 +16,17 @@ namespace NuGetGallery.OData
         : ODataController
     {
         private readonly IGalleryConfigurationService _configurationService;
+        protected readonly ITelemetryService _telemetryService;
+
         protected const string Id = "Id";
         protected const string Version = "Version";
 
-        protected NuGetODataController(IGalleryConfigurationService configurationService)
+        protected NuGetODataController(
+            IGalleryConfigurationService configurationService,
+            ITelemetryService telemetryService)
         {
-            _configurationService = configurationService;
+            _configurationService = configurationService ?? throw new ArgumentNullException(nameof(configurationService));
+            _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
         }
 
         protected virtual HttpContextBase GetTraditionalHttpContext()
@@ -60,9 +65,15 @@ namespace NuGetGallery.OData
         /// <param name="queryable">Queryable to build QueryResult from.</param>
         /// <param name="maxPageSize">Maximum page size.</param>
         /// <returns>A QueryResult instance.</returns>
-        protected virtual IHttpActionResult QueryResult<TModel>(ODataQueryOptions<TModel> options, IQueryable<TModel> queryable, int maxPageSize)
+        protected virtual IHttpActionResult TrackedQueryResult<TModel>(
+            ODataQueryOptions<TModel> options,
+            IQueryable<TModel> queryable,
+            int maxPageSize,
+            bool? customQuery)
         {
-            return new QueryResult<TModel>(options, queryable, this, maxPageSize);
+            _telemetryService.TrackODataCustomQuery(customQuery);
+
+            return new QueryResult<TModel>(options, queryable, this, maxPageSize, customQuery);
         }
 
         /// <summary>
@@ -76,9 +87,17 @@ namespace NuGetGallery.OData
         /// <param name="totalResults">The total number of results. This number can be larger than the size of the page being served.</param>
         /// <param name="generateNextLink">Function that generates a next link.</param>
         /// <returns>A QueryResult instance.</returns>
-        protected virtual IHttpActionResult QueryResult<TModel>(ODataQueryOptions<TModel> options, IQueryable<TModel> queryable, int maxPageSize, long totalResults, Func<ODataQueryOptions<TModel>, ODataQuerySettings, long?, Uri> generateNextLink)
+        protected virtual IHttpActionResult TrackedQueryResult<TModel>(
+            ODataQueryOptions<TModel> options,
+            IQueryable<TModel> queryable,
+            int maxPageSize,
+            long totalResults,
+            Func<ODataQueryOptions<TModel>, ODataQuerySettings, long?, Uri> generateNextLink,
+            bool? customQuery)
         {
-            return new QueryResult<TModel>(options, queryable, this, maxPageSize, totalResults, generateNextLink);
+            _telemetryService.TrackODataCustomQuery(customQuery);
+
+            return new QueryResult<TModel>(options, queryable, this, maxPageSize, totalResults, generateNextLink, customQuery);
         }
 
         /// <summary>

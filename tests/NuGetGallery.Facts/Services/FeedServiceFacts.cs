@@ -1,11 +1,14 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Threading;
 using System.Threading.Tasks;
+using System.Web.Http;
 using System.Web.Http.OData;
 using System.Web.Http.OData.Query;
 using System.Web.Http.Results;
@@ -227,7 +230,12 @@ namespace NuGetGallery
                     configuration.Setup(c => c.Current).Returns(new AppConfiguration() { IsODataFilterEnabled = false });
                     var searchService = new Mock<ISearchService>(MockBehavior.Strict);
                     searchService.Setup(s => s.ContainsAllVersions).Returns(false);
-                    var v1Service = new TestableV1Feed(repo.Object, configuration.Object, searchService.Object);
+                    var telemetryService = new Mock<ITelemetryService>();
+                    var v1Service = new TestableV1Feed(
+                        repo.Object,
+                        configuration.Object,
+                        searchService.Object,
+                        telemetryService.Object);
                     v1Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
 
                     // Act
@@ -244,8 +252,54 @@ namespace NuGetGallery
                     Assert.Equal("Foo", result.First().Id);
                     Assert.Equal("1.0.0", result.First().Version);
                     Assert.Equal("https://localhost:8081/packages/Foo/1.0.0", result.First().GalleryDetailsUrl);
+                    telemetryService.Verify(x => x.TrackODataCustomQuery(true), Times.Once);
+                    telemetryService.Verify(x => x.TrackODataCustomQuery(It.IsAny<bool?>()), Times.Once);
                 }
 
+                [Fact]
+                public async Task V1FeedSearchCanUseSearchService()
+                {
+                    // Arrange
+                    var repo = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
+                    repo.Setup(r => r.GetAll()).Returns(Enumerable.Empty<Package>().AsQueryable());
+                    var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
+                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
+                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { IsODataFilterEnabled = false });
+                    var searchService = new Mock<ISearchService>(MockBehavior.Strict);
+                    searchService.Setup(s => s.ContainsAllVersions).Returns(true);
+                    searchService
+                        .Setup(s => s.Search(It.IsAny<SearchFilter>()))
+                        .ReturnsAsync(new SearchResults(0, indexTimestampUtc: null));
+                    var telemetryService = new Mock<ITelemetryService>();
+                    var v1Service = new TestableV1Feed(
+                        repo.Object,
+                        configuration.Object,
+                        searchService.Object,
+                        telemetryService.Object);
+                    v1Service.RawUrl = "https://localhost:8081/";
+                    v1Service.Request = new HttpRequestMessage(HttpMethod.Get, v1Service.RawUrl);
+                    v1Service.Configuration = new HttpConfiguration();
+                    var options = new ODataQueryOptions<V1FeedPackage>(
+                        new ODataQueryContext(NuGetODataV1FeedConfig.GetEdmModel(), typeof(V1FeedPackage)),
+                        v1Service.Request);
+
+                    // Act
+                    var genericResult = await v1Service.Search(options, null, null);
+                    var result = genericResult
+                        .ExpectQueryResult<V1FeedPackage>()
+                        .GetInnerResult()
+                        .ExpectOkNegotiatedContentResult<PageResult<V1FeedPackage>>();
+
+                    // Assert
+                    Assert.Empty(result);
+                    telemetryService.Verify(x => x.TrackODataCustomQuery(false), Times.Once);
+                    telemetryService.Verify(x => x.TrackODataCustomQuery(It.IsAny<bool?>()), Times.Once);
+                    var response = await genericResult.ExecuteAsync(CancellationToken.None);
+                    Assert.Contains(GalleryConstants.CustomQueryHeaderName, response.Headers.Select(x => x.Key));
+                    Assert.Equal(
+                        new[] { "false" },
+                        response.Headers.GetValues(GalleryConstants.CustomQueryHeaderName).ToArray());
+                }
 
                 [Fact]
                 public async Task V1FeedSearchDoesNotReturnDeletedPackages()
@@ -488,6 +542,8 @@ namespace NuGetGallery
                 [InlineData("Id eq 'Foo'")]
                 [InlineData("(Id eq 'Foo')")]
                 [InlineData("Id eq 'Bar' and Version eq '1.0.0'")]
+                [InlineData("Id eq 'Foo' and true")]
+                [InlineData("Id eq 'Foo' and false")]
                 public async Task V2FeedPackagesUsesSearchHijackForIdOrIdVersionQueries(string filter)
                 {
                     // Arrange
@@ -500,30 +556,52 @@ namespace NuGetGallery
 
                     var searchService = new Mock<ExternalSearchService>(MockBehavior.Loose);
                     searchService.CallBase = true;
+                    searchService
+                        .Setup(x => x.RawSearch(It.IsAny<SearchFilter>()))
+                        .ReturnsAsync(new SearchResults(0, indexTimestampUtc: null));
+
+                    var telemetryService = new Mock<ITelemetryService>();
 
                     string rawUrl = "https://localhost:8081/api/v2/Packages?$filter=" + filter + "&$top=10&$orderby=DownloadCount desc";
 
-                    var v2Service = new TestableV2Feed(repo.Object, configuration.Object, searchService.Object);
+                    var v2Service = new TestableV2Feed(
+                        repo.Object,
+                        configuration.Object,
+                        searchService.Object,
+                        telemetryService.Object);
                     v2Service.Request = new HttpRequestMessage(HttpMethod.Get, rawUrl);
                     v2Service.RawUrl = rawUrl;
+                    v2Service.Configuration = new HttpConfiguration();
+                    var options = new ODataQueryOptions<V2FeedPackage>(
+                        new ODataQueryContext(NuGetODataV2FeedConfig.GetEdmModel(), typeof(V2FeedPackage)),
+                        v2Service.Request);
 
                     // Act
-                    var result = (await v2Service.Get(new ODataQueryOptions<V2FeedPackage>(new ODataQueryContext(NuGetODataV2FeedConfig.GetEdmModel(), typeof(V2FeedPackage)), v2Service.Request)))
+                    var genericResult = await v2Service.Get(options);
+                    var result = genericResult
                         .ExpectQueryResult<V2FeedPackage>()
                         .GetInnerResult()
-                        .ExpectOkNegotiatedContentResult<IQueryable<V2FeedPackage>>()
+                        .ExpectOkNegotiatedContentResult<PageResult<V2FeedPackage>>()
                         .ToArray();
 
                     // Assert
                     Assert.NotNull(result);
                     searchService.Verify();
+                    telemetryService.Verify(x => x.TrackODataCustomQuery(false), Times.Once);
+                    telemetryService.Verify(x => x.TrackODataCustomQuery(It.IsAny<bool?>()), Times.Once);
+                    var response = await genericResult.ExecuteAsync(CancellationToken.None);
+                    Assert.Contains(GalleryConstants.CustomQueryHeaderName, response.Headers.Select(x => x.Key));
+                    Assert.Equal(
+                        new[] { "false" },
+                        response.Headers.GetValues(GalleryConstants.CustomQueryHeaderName).ToArray());
                 }
 
                 [Theory]
                 [InlineData("Id eq 'Bar' and IsPrerelease eq true")]
                 [InlineData("Id eq 'Bar' or Id eq 'Foo'")]
                 [InlineData("(Id eq 'Foo' and Version eq '1.0.0') or (Id eq 'Bar' and Version eq '1.0.0')")]
-                [InlineData("Id eq 'NotBar' and true")]
+                [InlineData("Id eq 'NotBar' and Version eq '1.0.0' and true")]
+                [InlineData("Id eq 'NotBar' and Version eq '1.0.0' and false")]
                 [InlineData("true")]
                 public async Task V2FeedPackagesDoesNotUseSearchHijackForFunkyQueries(string filter)
                 {
@@ -537,16 +615,30 @@ namespace NuGetGallery
 
                     bool called = false;
                     var searchService = new Mock<ExternalSearchService>(MockBehavior.Loose);
+                    searchService
+                        .Setup(x => x.RawSearch(It.IsAny<SearchFilter>()))
+                        .ReturnsAsync(new SearchResults(0, indexTimestampUtc: null));
                     searchService.CallBase = true;
+
+                    var telemetryService = new Mock<ITelemetryService>();
 
                     string rawUrl = "https://localhost:8081/api/v2/Packages?$filter=" + filter + "&$top=10";
 
-                    var v2Service = new TestableV2Feed(repo.Object, configuration.Object, searchService.Object);
+                    var v2Service = new TestableV2Feed(
+                        repo.Object,
+                        configuration.Object,
+                        searchService.Object,
+                        telemetryService.Object);
                     v2Service.Request = new HttpRequestMessage(HttpMethod.Get, rawUrl);
                     v2Service.RawUrl = rawUrl;
+                    v2Service.Configuration = new HttpConfiguration();
+                    var options = new ODataQueryOptions<V2FeedPackage>(
+                        new ODataQueryContext(NuGetODataV2FeedConfig.GetEdmModel(), typeof(V2FeedPackage)),
+                        v2Service.Request);
 
                     // Act
-                    var result = (await v2Service.Get(new ODataQueryOptions<V2FeedPackage>(new ODataQueryContext(NuGetODataV2FeedConfig.GetEdmModel(), typeof(V2FeedPackage)), v2Service.Request)))
+                    var genericResult = await v2Service.Get(options);
+                    var result = genericResult
                         .ExpectQueryResult<V2FeedPackage>()
                         .GetInnerResult()
                         .ExpectOkNegotiatedContentResult<IQueryable<V2FeedPackage>>()
@@ -556,6 +648,13 @@ namespace NuGetGallery
                     Assert.NotNull(result);
                     Assert.False(called); // Hijack was performed and it should not have been.
                     searchService.Verify();
+                    telemetryService.Verify(x => x.TrackODataCustomQuery(true), Times.Once);
+                    telemetryService.Verify(x => x.TrackODataCustomQuery(It.IsAny<bool?>()), Times.Once);
+                    var response = await genericResult.ExecuteAsync(CancellationToken.None);
+                    Assert.Contains(GalleryConstants.CustomQueryHeaderName, response.Headers.Select(x => x.Key));
+                    Assert.Equal(
+                        new[] { "true" },
+                        response.Headers.GetValues(GalleryConstants.CustomQueryHeaderName).ToArray());
                 }
 
                 [Theory]
@@ -615,7 +714,13 @@ namespace NuGetGallery
                     var searchService = new Mock<ISearchService>(MockBehavior.Strict);
                     searchService.Setup(s => s.ContainsAllVersions).Returns(false);
 
-                    var v2Service = new TestableV2Feed(repo.Object, configuration.Object, searchService.Object);
+                    var telemetryService = new Mock<ITelemetryService>();
+
+                    var v2Service = new TestableV2Feed(
+                        repo.Object,
+                        configuration.Object,
+                        searchService.Object,
+                        telemetryService.Object);
                     v2Service.Request = new HttpRequestMessage(
                         HttpMethod.Get,
                         $"https://localhost:8081/api/v2/Packages(Id=\'{expectedId}\', Version=\'{expectedVersion}\')");
@@ -629,6 +734,53 @@ namespace NuGetGallery
                     // Assert
                     Assert.Equal(expectedId, result.Id);
                     Assert.Equal(expectedVersion, result.Version);
+                    telemetryService.Verify(x => x.TrackODataCustomQuery(true), Times.Once);
+                    telemetryService.Verify(x => x.TrackODataCustomQuery(It.IsAny<bool?>()), Times.Once);
+                }
+
+                [Fact]
+                public async Task V2FeedPackagesByIdAndVersionCanUseTheSearchService()
+                {
+                    // Arrange
+                    var repo = FeedServiceHelpers.SetupTestPackageRepository();
+
+                    var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
+                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
+                    configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
+                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { IsODataFilterEnabled = false });
+
+                    var searchService = new Mock<ISearchService>(MockBehavior.Strict);
+                    searchService.Setup(s => s.ContainsAllVersions).Returns(true);
+                    var data = repo.Object.GetAll().Take(1).ToArray().AsQueryable();
+                    searchService
+                        .Setup(s => s.Search(It.IsAny<SearchFilter>()))
+                        .ReturnsAsync(new SearchResults(
+                            hits: 1,
+                            indexTimestampUtc: null,
+                            data: data));
+
+                    var telemetryService = new Mock<ITelemetryService>();
+
+                    var v2Service = new TestableV2Feed(
+                        repo.Object,
+                        configuration.Object,
+                        searchService.Object,
+                        telemetryService.Object);
+                    v2Service.RawUrl = $"https://localhost:8081/api/v2/Packages(Id=\'Foo\', Version=\'1.0.0\')";
+                    v2Service.Request = new HttpRequestMessage(HttpMethod.Get, v2Service.RawUrl);
+                    var options = new ODataQueryOptions<V2FeedPackage>(
+                        new ODataQueryContext(NuGetODataV2FeedConfig.GetEdmModel(), typeof(V2FeedPackage)),
+                        v2Service.Request);
+
+                    // Act
+                    var result = (await v2Service.Get(options, "Foo", "1.0.0"))
+                        .ExpectQueryResult<V2FeedPackage>()
+                        .GetInnerResult()
+                        .ExpectOkNegotiatedContentResult<V2FeedPackage>();
+
+                    // Assert
+                    telemetryService.Verify(x => x.TrackODataCustomQuery(false), Times.Once);
+                    telemetryService.Verify(x => x.TrackODataCustomQuery(It.IsAny<bool?>()), Times.Once);
                 }
 
                 [Theory]
@@ -731,7 +883,12 @@ namespace NuGetGallery
                     configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
                     var searchService = new Mock<ISearchService>(MockBehavior.Strict);
                     searchService.Setup(s => s.ContainsAllVersions).Returns(false);
-                    var v2Service = new TestableV2Feed(repo.Object, configuration.Object, searchService.Object);
+                    var telemetryService = new Mock<ITelemetryService>();
+                    var v2Service = new TestableV2Feed(
+                        repo.Object,
+                        configuration.Object,
+                        searchService.Object,
+                        telemetryService.Object);
                     v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
 
                     // Act
@@ -749,6 +906,9 @@ namespace NuGetGallery
 
                     Assert.Equal("Foo", result.Last().Id);
                     Assert.Equal("1.0.1-a", result.Last().Version);
+
+                    telemetryService.Verify(x => x.TrackODataCustomQuery(true), Times.Once);
+                    telemetryService.Verify(x => x.TrackODataCustomQuery(It.IsAny<bool?>()), Times.Once);
                 }
 
                 [Fact]
@@ -765,7 +925,13 @@ namespace NuGetGallery
                     var searchService = new Mock<ISearchService>(MockBehavior.Strict);
                     searchService.Setup(s => s.ContainsAllVersions).Returns(false);
 
-                    var v2Service = new TestableV2Feed(repo.Object, configuration.Object, searchService.Object);
+                    var telemetryService = new Mock<ITelemetryService>();
+
+                    var v2Service = new TestableV2Feed(
+                        repo.Object,
+                        configuration.Object,
+                        searchService.Object,
+                        telemetryService.Object);
                     v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
 
                     // Act
@@ -778,6 +944,116 @@ namespace NuGetGallery
 
                     // Assert
                     Assert.Equal(0, result.Count());
+                    telemetryService.Verify(x => x.TrackODataCustomQuery(true), Times.Once);
+                    telemetryService.Verify(x => x.TrackODataCustomQuery(It.IsAny<bool?>()), Times.Once);
+                }
+
+                [Fact]
+                public async Task V2FeedFindPackagesByIdCanUseSearchService()
+                {
+                    // Arrange
+                    var repo = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
+                    repo.Setup(r => r.GetAll()).Returns(() => Enumerable.Empty<Package>().AsQueryable());
+
+                    var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
+                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
+                    configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
+
+                    var searchService = new Mock<ISearchService>(MockBehavior.Strict);
+                    searchService.Setup(s => s.ContainsAllVersions).Returns(true);
+                    searchService
+                        .Setup(s => s.Search(It.IsAny<SearchFilter>()))
+                        .ReturnsAsync(new SearchResults(0, indexTimestampUtc: null));
+
+                    var telemetryService = new Mock<ITelemetryService>();
+
+                    var rawUrl = "https://localhost:8081/";
+
+                    var v2Service = new TestableV2Feed(
+                        repo.Object,
+                        configuration.Object,
+                        searchService.Object,
+                        telemetryService.Object);
+                    v2Service.Request = new HttpRequestMessage(HttpMethod.Get, rawUrl);
+                    v2Service.RawUrl = rawUrl;
+                    var options = new ODataQueryOptions<V2FeedPackage>(
+                        new ODataQueryContext(NuGetODataV2FeedConfig.GetEdmModel(), typeof(V2FeedPackage)),
+                        v2Service.Request);
+
+                    // Act
+                    var result = (await v2Service.FindPackagesById(options, "Foo"))
+                        .ExpectQueryResult<V2FeedPackage>()
+                        .GetInnerResult()
+                        .ExpectOkNegotiatedContentResult<PageResult<V2FeedPackage>>();
+
+                    // Assert
+                    Assert.Equal(0, result.Count());
+                    telemetryService.Verify(x => x.TrackODataCustomQuery(false), Times.Once);
+                    telemetryService.Verify(x => x.TrackODataCustomQuery(It.IsAny<bool?>()), Times.Once);
+                }
+
+                [Fact]
+                public async Task V2FeedFindPackagesConsidersSearchRequestFailureAsNonCustomQuery()
+                {
+                    // Arrange
+                    var packageRegistration = new PackageRegistration { Id = "Foo" };
+                    var repo = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
+                    repo.Setup(r => r.GetAll()).Returns(new[]
+                    {
+                        new Package
+                            {
+                                PackageRegistration = packageRegistration,
+                                Version = "1.0.0",
+                                IsPrerelease = false,
+                                Listed = false,
+                            },
+                        new Package
+                            {
+                                PackageRegistration = packageRegistration,
+                                Version = "1.0.1",
+                                IsPrerelease = false,
+                                Listed = true,
+                            },
+                    }.AsQueryable());
+                    var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
+                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
+                    configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
+
+                    var searchService = new Mock<ISearchService>(MockBehavior.Strict);
+                    searchService.Setup(s => s.ContainsAllVersions).Returns(true);
+                    searchService
+                        .Setup(s => s.Search(It.IsAny<SearchFilter>()))
+                        .ThrowsAsync(new InvalidOperationException("Search is down."));
+
+                    var telemetryService = new Mock<ITelemetryService>();
+
+                    var rawUrl = "https://localhost:8081/";
+
+                    var v2Service = new TestableV2Feed(
+                        repo.Object,
+                        configuration.Object,
+                        searchService.Object,
+                        telemetryService.Object);
+                    v2Service.Request = new HttpRequestMessage(HttpMethod.Get, rawUrl);
+                    v2Service.RawUrl = rawUrl;
+                    v2Service.Configuration = new HttpConfiguration();
+                    var options = new ODataQueryOptions<V2FeedPackage>(
+                        new ODataQueryContext(NuGetODataV2FeedConfig.GetEdmModel(), typeof(V2FeedPackage)),
+                        v2Service.Request);
+
+                    // Act
+                    var genericResult = await v2Service.FindPackagesById(options, packageRegistration.Id);
+                    var result = genericResult
+                        .ExpectQueryResult<V2FeedPackage>()
+                        .GetInnerResult()
+                        .ExpectOkNegotiatedContentResult<IQueryable<V2FeedPackage>>();
+
+                    // Assert
+                    Assert.Equal(2, result.Count());
+                    telemetryService.Verify(x => x.TrackODataCustomQuery(null), Times.Once);
+                    telemetryService.Verify(x => x.TrackODataCustomQuery(It.IsAny<bool?>()), Times.Once);
+                    var response = await genericResult.ExecuteAsync(CancellationToken.None);
+                    Assert.DoesNotContain(GalleryConstants.CustomQueryHeaderName, response.Headers.Select(x => x.Key));
                 }
 
                 [Fact]
@@ -869,11 +1145,18 @@ namespace NuGetGallery
                     configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
                     configuration.Setup(c => c.Current).Returns(new AppConfiguration() { IsODataFilterEnabled = false });
 
+                    var telemetryService = new Mock<ITelemetryService>();
+
                     var searchService = new Mock<ISearchService>(MockBehavior.Strict);
                     searchService.Setup(s => s.ContainsAllVersions).Returns(false);
 
-                    var v2Service = new TestableV2Feed(repo.Object, configuration.Object, searchService.Object);
-                    v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/api/v2/Search()?searchTerm='" + searchTerm + "'&targetFramework=''&includePrerelease=false");
+                    var v2Service = new TestableV2Feed(
+                        repo.Object,
+                        configuration.Object,
+                        searchService.Object,
+                        telemetryService.Object);
+                    v2Service.RawUrl = "https://localhost:8081/api/v2/Search()?searchTerm='" + searchTerm + "'&targetFramework=''&includePrerelease=false";
+                    v2Service.Request = new HttpRequestMessage(HttpMethod.Get, v2Service.RawUrl);
 
                     // Act
                     var result = (await v2Service.Search(
@@ -895,6 +1178,54 @@ namespace NuGetGallery
 
                         Assert.True(result.Any(p => p.Id == expectedId && p.Version == expectedVersion), string.Format("Search results did not contain {0} {1}", expectedId, expectedVersion));
                     }
+
+                    telemetryService.Verify(x => x.TrackODataCustomQuery(true), Times.Once);
+                    telemetryService.Verify(x => x.TrackODataCustomQuery(It.IsAny<bool?>()), Times.Once);
+                }
+
+                [Fact]
+                public async Task V2FeedSearchUsesSearchService()
+                {
+                    // Arrange
+                    var repo = FeedServiceHelpers.SetupTestPackageRepository();
+                    var searchTerm = "foo";
+                    var includePrerelease = true;
+
+                    var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
+                    configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
+                    configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
+                    configuration.Setup(c => c.Current).Returns(new AppConfiguration() { IsODataFilterEnabled = false });
+
+                    var telemetryService = new Mock<ITelemetryService>();
+
+                    var searchService = new Mock<ISearchService>(MockBehavior.Strict);
+                    searchService.Setup(s => s.ContainsAllVersions).Returns(true);
+                    searchService
+                        .Setup(s => s.Search(It.IsAny<SearchFilter>()))
+                        .ReturnsAsync(new SearchResults(0, indexTimestampUtc: null));
+
+                    var v2Service = new TestableV2Feed(
+                        repo.Object,
+                        configuration.Object,
+                        searchService.Object,
+                        telemetryService.Object);
+                    v2Service.RawUrl = "https://localhost:8081/api/v2/Search()?searchTerm='" + searchTerm + "'&targetFramework=''&includePrerelease=false";
+                    v2Service.Request = new HttpRequestMessage(HttpMethod.Get, v2Service.RawUrl);
+
+                    // Act
+                    var result = (await v2Service.Search(
+                        new ODataQueryOptions<V2FeedPackage>(new ODataQueryContext(NuGetODataV2FeedConfig.GetEdmModel(), typeof(V2FeedPackage)), v2Service.Request),
+                        searchTerm: searchTerm,
+                        targetFramework: null,
+                        includePrerelease: includePrerelease))
+                        .ExpectQueryResult<V2FeedPackage>()
+                        .GetInnerResult()
+                        .ExpectOkNegotiatedContentResult<PageResult<V2FeedPackage>>()
+                        .ToArray();
+
+                    // Assert
+                    telemetryService.Verify(x => x.TrackODataCustomQuery(false), Times.Once);
+                    telemetryService.Verify(x => x.TrackODataCustomQuery(It.IsAny<bool?>()), Times.Once);
                 }
 
                 [Theory]
@@ -958,7 +1289,8 @@ namespace NuGetGallery
                     var repo = Mock.Of<IEntityRepository<Package>>();
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Default);
                     configuration.Setup(c => c.Current).Returns(new AppConfiguration() { IsODataFilterEnabled = false });
-                    var v2Service = new TestableV2Feed(repo, configuration.Object, null);
+                    var telemetryService = new Mock<ITelemetryService>();
+                    var v2Service = new TestableV2Feed(repo, configuration.Object, null, telemetryService.Object);
                     v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
 
                     // Act
@@ -970,10 +1302,14 @@ namespace NuGetGallery
                         includeAllVersions: true,
                         targetFrameworks: null,
                         versionConstraints: null)
+                        .ExpectQueryResult<V2FeedPackage>()
+                        .GetInnerResult()
                         .ExpectOkNegotiatedContentResult<IQueryable<V2FeedPackage>>();
 
                     // Assert
                     Assert.Empty(result);
+                    telemetryService.Verify(x => x.TrackODataCustomQuery(false), Times.Once);
+                    telemetryService.Verify(x => x.TrackODataCustomQuery(It.IsAny<bool?>()), Times.Once);
                 }
 
                 [Fact]
@@ -1037,7 +1373,8 @@ namespace NuGetGallery
                     configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
                     configuration.Setup(c => c.Current).Returns(new AppConfiguration() { IsODataFilterEnabled = false });
-                    var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
+                    var telemetryService = new Mock<ITelemetryService>();
+                    var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null, telemetryService.Object);
                     v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
 
                     // Act
@@ -1059,6 +1396,8 @@ namespace NuGetGallery
                     AssertPackage(new { Id = "Foo", Version = "1.1.0" }, result[0]);
                     AssertPackage(new { Id = "Foo", Version = "1.2.0" }, result[1]);
                     AssertPackage(new { Id = "Qux", Version = "2.0" }, result[2]);
+                    telemetryService.Verify(x => x.TrackODataCustomQuery(false), Times.Once);
+                    telemetryService.Verify(x => x.TrackODataCustomQuery(It.IsAny<bool?>()), Times.Once);
                 }
 
                 [Theory]
@@ -1099,10 +1438,13 @@ namespace NuGetGallery
                         includeAllVersions: true,
                         targetFrameworks: null,
                         versionConstraints: constraintString)
-                        .ExpectOkNegotiatedContentResult<IQueryable<V2FeedPackage>>();
+                        .ExpectQueryResult<V2FeedPackage>()
+                        .GetInnerResult()
+                        .ExpectOkNegotiatedContentResult<IQueryable<V2FeedPackage>>()
+                        .ToArray();
 
                     // Assert
-                    Assert.Equal(0, result.Count());
+                    Assert.Empty(result);
                 }
 
                 [Fact]

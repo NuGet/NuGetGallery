@@ -89,10 +89,17 @@ namespace NuGetGallery.Controllers
             Assert.Equal(NonSemVer2Packages.Where(p => !p.IsPrerelease).Count(), searchCount);
         }
 
-        protected override ODataV1FeedController CreateController(IEntityRepository<Package> packagesRepository,
-            IGalleryConfigurationService configurationService, ISearchService searchService)
+        protected override ODataV1FeedController CreateController(
+            IEntityRepository<Package> packagesRepository,
+            IGalleryConfigurationService configurationService,
+            ISearchService searchService,
+            ITelemetryService telemetryService)
         {
-            return new ODataV1FeedController(packagesRepository, configurationService, searchService);
+            return new ODataV1FeedController(
+                packagesRepository,
+                configurationService,
+                searchService,
+                telemetryService);
         }
 
         private void AssertSemVer2PackagesFilteredFromResult(IEnumerable<V1FeedPackage> resultSet)

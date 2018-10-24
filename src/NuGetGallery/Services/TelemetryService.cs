@@ -19,6 +19,7 @@ namespace NuGetGallery
         internal class Events
         {
             public const string ODataQueryFilter = "ODataQueryFilter";
+            public const string ODataCustomQuery = "ODataCustomQuery";
             public const string PackagePush = "PackagePush";
             public const string PackagePushFailure = "PackagePushFailure";
             public const string CreatePackageVerificationKey = "CreatePackageVerificationKey";
@@ -72,12 +73,15 @@ namespace NuGetGallery
             ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
             Formatting = Formatting.None
         };
-        
+
         // ODataQueryFilter properties
         public const string CallContext = "CallContext";
         public const string IsEnabled = "IsEnabled";
         public const string IsAllowed = "IsAllowed";
         public const string QueryPattern = "QueryPattern";
+
+        // ODataCustomQuery properties
+        public const string IsCustomQuery = "IsCustomQuery";
 
         // Package push properties
         public const string AuthenticationMethod = "AuthenticationMethod";
@@ -183,6 +187,14 @@ namespace NuGetGallery
 
                 properties.Add(IsAllowed, $"{isAllowed}");
                 properties.Add(QueryPattern, queryPattern);
+            });
+        }
+
+        public void TrackODataCustomQuery(bool? customQuery)
+        {
+            TrackMetric(Events.ODataCustomQuery, 1, properties =>
+            {
+                properties.Add(IsCustomQuery, customQuery?.ToString() ?? "Unknown");
             });
         }
 

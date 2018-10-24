@@ -57,6 +57,10 @@ namespace NuGetGallery
                         (TrackAction)(s => s.TrackODataQueryFilterEvent("callContext", true, true, "queryPattern"))
                     };
 
+                    yield return new object[] { "ODataCustomQuery",
+                        (TrackAction)(s => s.TrackODataCustomQuery(true))
+                    };
+
                     yield return new object[] { "PackagePush",
                         (TrackAction)(s => s.TrackPackagePushEvent(package, fakes.User, identity))
                     };
@@ -629,6 +633,27 @@ namespace NuGetGallery
                 service.TrackRequestForAccountDeletion(fakes.User);
 
                 service.TelemetryClient.VerifyAll();
+            }
+
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public void TrackODataCustomQueryAddsCorrectData(bool customQuery)
+            {
+                var service = CreateService();
+                var allProperties = new List<IDictionary<string, string>>();
+                service.TelemetryClient
+                    .Setup(x => x.TrackMetric(It.IsAny<string>(), It.IsAny<double>(), It.IsAny<IDictionary<string, string>>()))
+                    .Callback<string, double, IDictionary<string, string>>((_, __, p) => allProperties.Add(p));
+
+                service.TrackODataCustomQuery(customQuery);
+
+                service.TelemetryClient.Verify(
+                    x => x.TrackMetric("ODataCustomQuery", 1, It.IsAny<IDictionary<string, string>>()),
+                    Times.Once);
+                var properties = Assert.Single(allProperties);
+                Assert.Contains("IsCustomQuery", properties.Keys);
+                Assert.Equal(customQuery.ToString(), properties["IsCustomQuery"]);
             }
 
             private TelemetryServiceWrapper CreateServiceForCertificateTelemetry(string metricName, string thumbprint)

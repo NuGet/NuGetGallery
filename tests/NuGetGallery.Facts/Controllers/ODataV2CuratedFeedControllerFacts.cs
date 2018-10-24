@@ -35,6 +35,7 @@ namespace NuGetGallery.Controllers
             private readonly Mock<ISearchService> _searchService;
             private readonly Mock<ICuratedFeedService> _curatedFeedService;
             private readonly Mock<IEntityRepository<Package>> _packages;
+            private readonly Mock<ITelemetryService> _telemetryService;
             private readonly ODataV2CuratedFeedController _target;
             private readonly HttpRequestMessage _request;
             private readonly ODataQueryOptions<V2FeedPackage> _options;
@@ -63,6 +64,7 @@ namespace NuGetGallery.Controllers
                 _searchService = new Mock<ISearchService>();
                 _curatedFeedService = new Mock<ICuratedFeedService>();
                 _packages = new Mock<IEntityRepository<Package>>();
+                _telemetryService = new Mock<ITelemetryService>();
 
                 _config
                     .Setup(x => x.Current)
@@ -87,7 +89,8 @@ namespace NuGetGallery.Controllers
                     _config.Object,
                     _searchService.Object,
                     _curatedFeedService.Object,
-                    _packages.Object);
+                    _packages.Object,
+                    _telemetryService.Object);
 
                 _request = new HttpRequestMessage(HttpMethod.Get, $"{_siteRoot}/api/v2/curated-feed/{_curatedFeedName}/Packages");
                 _options = new ODataQueryOptions<V2FeedPackage>(CreateODataQueryContext<V2FeedPackage>(), _request);
@@ -475,7 +478,8 @@ namespace NuGetGallery.Controllers
         protected override ODataV2CuratedFeedController CreateController(
             IEntityRepository<Package> packagesRepository,
             IGalleryConfigurationService configurationService,
-            ISearchService searchService)
+            ISearchService searchService,
+            ITelemetryService telemetryService)
         {
             var curatedFeed = new CuratedFeed { Name = _curatedFeedName };
 
@@ -487,7 +491,8 @@ namespace NuGetGallery.Controllers
                 configurationService,
                 searchService,
                 curatedFeedServiceMock.Object,
-                packagesRepository);
+                packagesRepository,
+                telemetryService);
         }
 
         private static IDbSet<T> GetQueryableMockDbSet<T>(params T[] sourceList) where T : class
