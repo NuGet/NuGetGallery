@@ -460,6 +460,7 @@ namespace NuGetGallery
                             : package.NormalizedVersion;
 
                 await _packageFileService.DeletePackageFileAsync(id, version);
+                await _packageFileService.DeleteLicenseFileAsync(id, version);
                 await _symbolPackageFileService.DeletePackageFileAsync(id, version);
 
                 await _packageFileService.DeleteValidationPackageFileAsync(id, version);

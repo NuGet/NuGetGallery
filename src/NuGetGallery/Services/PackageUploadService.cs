@@ -601,7 +601,7 @@ namespace NuGetGallery
                 var packageMetadata = PackageMetadata.FromNuspecReader(packageArchiveReader.GetNuspecReader(), strict: true);
                 if (packageMetadata.LicenseMetadata == null || packageMetadata.LicenseMetadata.Type != LicenseType.File || string.IsNullOrWhiteSpace(packageMetadata.LicenseMetadata.License))
                 {
-                    throw new Exception("No license file specified in the nuspec");
+                    throw new InvalidOperationException("No license file specified in the nuspec");
                 }
 
                 var filename = packageMetadata.LicenseMetadata.License;

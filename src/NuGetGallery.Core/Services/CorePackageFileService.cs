@@ -225,7 +225,7 @@ namespace NuGetGallery
                 ? CoreConstants.MarkdownContentType
                 : CoreConstants.TextContentType;
 
-            return _fileStorageService.SaveFileAsync(_metadata.PackageContentFolderName, fileName, contentType, licenseFile, overwrite: false);
+            return _fileStorageService.SaveFileAsync(_metadata.PackageContentFolderName, fileName, contentType, licenseFile, overwrite: true);
         }
 
         public Task<Stream> DownloadLicenseFileAsync(Package package)
