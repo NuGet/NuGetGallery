@@ -9,7 +9,7 @@ param (
     [string]$SemanticVersion = '1.0.0-zlocal',
     [string]$Branch = 'zlocal',
     [string]$CommitSHA,
-    [string]$BuildBranch = '80b8f1b4a1cfe57367881e59fca063866dcaaa42'
+    [string]$BuildBranch = '795fed66b8bae2d248237ee5ec82e688e7174a42'
 )
 
 $msBuildVersion = 15;
@@ -40,21 +40,6 @@ Function Clean-Tests {
     Trace-Log 'Cleaning test results'
     
     Remove-Item (Join-Path $PSScriptRoot "Results.*.xml")
-}
-
-Function Prepare-Vcs-Callback {
-    [CmdletBinding()]
-    param()
-    
-    Trace-Log 'Preparing Validation.Callback.Vcs Package'
-    
-    $ZipPackagePath = "src\Validation.Callback.Vcs\obj\Validation.Callback.Vcs.zip"
-    
-    if (Test-Path $ZipPackagePath) {
-        Remove-Item $ZipPackagePath
-    }
-    
-    Build-Solution $Configuration $BuildNumber -MSBuildVersion "$msBuildVersion" "src\Validation.Callback.Vcs\Validation.Callback.Vcs.csproj" -Target "Package" -MSBuildProperties "/P:PackageLocation=obj\Validation.Callback.Vcs.zip" -SkipRestore
 }
 
 Function Prepare-NuGetCDNRedirect {
@@ -132,12 +117,9 @@ Invoke-BuildStep 'Restoring solution packages' { `
 
 Invoke-BuildStep 'Building solution' { 
     param($Configuration, $BuildNumber, $SolutionPath, $SkipRestore)
-    Build-Solution $Configuration $BuildNumber -MSBuildVersion "$msBuildVersion" $SolutionPath -SkipRestore:$SkipRestore `
+    Build-Solution $Configuration $BuildNumber -MSBuildVersion "$msBuildVersion" $SolutionPath -MSBuildProperties "/m" -SkipRestore:$SkipRestore `
     } `
     -args $Configuration, $BuildNumber, (Join-Path $PSScriptRoot "NuGet.Jobs.sln"), $SkipRestore `
-    -ev +BuildErrors
-    
-Invoke-BuildStep 'Prepare Validation.Callback.Vcs Package' { Prepare-Vcs-Callback } `
     -ev +BuildErrors
 
 Invoke-BuildStep 'Prepare NuGetCDNRedirect Package' { Prepare-NuGetCDNRedirect } `
@@ -168,8 +150,6 @@ Invoke-BuildStep 'Creating artifacts' {
             "src/ArchivePackages/ArchivePackages.csproj", `
             "src/Search.GenerateAuxiliaryData/Search.GenerateAuxiliaryData.csproj", `
             "src/Stats.RollUpDownloadFacts/Stats.RollUpDownloadFacts.csproj", `
-            "src/Validation.Callback.Vcs/Validation.Callback.Vcs.csproj", `
-            "src/Validation.Callback.Vcs/Validation.Callback.Vcs.WebApp.nuspec", `
             "src/Validation.Runner/Validation.Runner.csproj", `
             "src/NuGet.SupportRequests.Notifications/NuGet.SupportRequests.Notifications.csproj", `
             "src/Validation.Helper/Validation.Helper.csproj", `
