@@ -21,14 +21,20 @@ namespace Validation.Common.Job.Tests
             var csprojDoc = XDocument.Load(csproj.FullName);
             var nuspecDoc = XDocument.Load(nuspec.FullName);
 
-            var csprojPackageReferences = csprojDoc.Root.Descendants().Where(e => e.Name.LocalName == "PackageReference").ToList();
-            var nuspecDependencies = nuspecDoc.Root.Descendants().Where(e => e.Name.LocalName == "dependency").ToList();
+            var csprojPackageReferences = csprojDoc.Root.Descendants()
+                .Where(e => e.Name.LocalName == "PackageReference")
+                .Where(e => !IsCsprojDevDependency(e)) // Development dependencies do not need to appear in the .nuspec.
+                .Select(GetCsprojDependencyInfo)
+                .ToList();
 
-            var nuspecDependencyList = nuspecDependencies.Select(GetNuspecDependencyInfo).ToList();
-
-            foreach (var csprojRef in csprojPackageReferences.Select(GetCsprojDependencyInfo))
+            var nuspecDependencies = nuspecDoc.Root.Descendants()
+                .Where(e => e.Name.LocalName == "dependency")
+                .Select(GetNuspecDependencyInfo)
+                .ToList();
+            
+            foreach (var csprojRef in csprojPackageReferences)
             {
-                Assert.Contains(csprojRef, nuspecDependencyList);
+                Assert.Contains(csprojRef, nuspecDependencies);
             }
         }
 
@@ -66,6 +72,28 @@ namespace Validation.Common.Job.Tests
             Assert.NotNull(version);
 
             return new DependencyInfo(id, version);
+        }
+
+        /// <remarks>
+        /// Unfortunately, there is no straight-forward way to determine if a dependency is only for development.
+        /// These are the set of attributes that the current tooling adds automatically to all development dependencies.
+        /// In the future, these attributes or their values may change.
+        /// </remarks>
+        private bool IsCsprojDevDependency(XElement xelement)
+        {
+            var privateAssetsChild = xelement.Elements().FirstOrDefault(x => x.Name.LocalName == "PrivateAssets");
+            if (privateAssetsChild == null || privateAssetsChild.Value != "all")
+            {
+                return false;
+            }
+
+            var includeAssetsChild = xelement.Elements().FirstOrDefault(x => x.Name.LocalName == "IncludeAssets");
+            if (includeAssetsChild == null || includeAssetsChild.Value != "runtime; build; native; contentfiles; analyzers")
+            {
+                return false;
+            }
+
+            return true;
         }
 
         private DependencyInfo GetNuspecDependencyInfo(XElement xelement)
