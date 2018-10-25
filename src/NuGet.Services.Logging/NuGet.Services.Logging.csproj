@@ -61,5 +61,9 @@
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <SignType Condition="'$(SignType)' == ''">none</SignType>
+  </PropertyGroup>
   <Import Project="..\..\build\sign.targets" />
+  <Import Project="..\..\build\sign.microbuild.targets" />
 </Project>

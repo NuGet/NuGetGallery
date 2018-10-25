@@ -1,5 +1,6 @@
 ﻿{
   "dependencies": {
+    "MicroBuild.Core": "0.3.0",
     "Microsoft.IdentityModel.Clients.ActiveDirectory": "3.13.5",
     "Newtonsoft.Json": "9.0.1"
   },

@@ -73,5 +73,9 @@
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- 
+  Even though this is a test project, it needs to be strong-named because it tests internal fields of a strong-named project.
+  Strong-name signed assemblies must specify a public key in their InternalsVisibleTo declarations.
+  -->
   <Import Project="..\..\build\sign.targets" />
 </Project>

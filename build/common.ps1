@@ -297,7 +297,7 @@ Function Invoke-FxCop {
     }
     
     # Invoke using the msbuild RunCodeAnalysis target
-    $msBuildProps = "/p:CustomBeforeMicrosoftCSharpTargets=$codeAnalysisProps"
+    $msBuildProps = "/p:CustomBeforeMicrosoftCSharpTargets=$codeAnalysisProps;SignType=none"
     
     if ($VerbosePreference) {
         $msBuildProps += ";CodeAnalysisVerbose=true"

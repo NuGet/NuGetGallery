@@ -22,8 +22,8 @@
       <ScriptsToSign Include="@(PowerShellScriptsToSign)"/>
       <ScriptsToSign Include="@(ExecutablesToSign)"/>
     </ItemGroup>
-    <!-- Copy the files into $(OutDir) where they can be signed. -->
-    <Copy Condition="'@(ScriptsToSign)'!=''"
+    <!-- Move the files into $(OutDir) where they can be signed. -->
+    <Move Condition="'@(ScriptsToSign)'!=''"
       SourceFiles="$(MSBuildProjectDirectory)\Scripts\%(ScriptsToSign.Identity)"
       DestinationFolder="$(OutDir)"
     />
@@ -38,12 +38,10 @@
     <Message Text="Files to sign:%0A@(FilesToSign, '%0A')" Importance="High" />
   </Target>
   <Target Name="CleanUpScriptFilesToSign" AfterTargets="SignFiles" Condition="'$(SignType)' != 'none'">
-    <!-- Copy the signed files from $(OutDir) back to the Scripts folder. -->
-    <Copy Condition="'@(ScriptsToSign)'!=''"
+    <!-- Move the signed files from $(OutDir) back to the Scripts folder. -->
+    <Move Condition="'@(ScriptsToSign)'!=''"
       SourceFiles="$(OutDir)%(ScriptsToSign.Identity)"
       DestinationFolder="$(MSBuildProjectDirectory)\Scripts"
     />
-    <!-- The copy of the files in $(OutDir) can now be deleted. -->
-    <Delete Condition="'@(ScriptsToSign)'!=''" Files="$(OutDir)%(ScriptsToSign.Identity)"/>
   </Target>
 </Project>

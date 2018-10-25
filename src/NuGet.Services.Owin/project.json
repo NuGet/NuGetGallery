@@ -1,5 +1,6 @@
-{
+﻿{
   "dependencies": {
+    "MicroBuild.Core": "0.3.0",
     "Microsoft.Owin": "3.0.1"
   },
   "frameworks": {
