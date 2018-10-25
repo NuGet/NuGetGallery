@@ -62,6 +62,7 @@
     <Compile Include="Services\SymbolEntityServiceFacts.cs" />
     <Compile Include="Symbol\SymbolScanValidatorFacts.cs" />
     <Compile Include="Symbol\SymbolsIngesterFacts.cs" />
+    <Compile Include="Symbol\SymbolsStatusProcessorFacts.cs" />
     <Compile Include="Symbol\SymbolValidatorFacts.cs" />
     <Compile Include="TelemetryServiceFacts.cs" />
     <Compile Include="SymbolValidationMessageHandlerFacts.cs" />

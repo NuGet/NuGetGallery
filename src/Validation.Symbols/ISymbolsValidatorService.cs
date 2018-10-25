@@ -13,7 +13,7 @@ namespace Validation.Symbols
         /// <summary>
         /// Validates the symbol package.
         /// </summary>
-        /// <param name="message">The <see cref="SymbolsValidatorMessage"/> regarding to the symbols pacakge to be validated..</param>
+        /// <param name="message">The <see cref="SymbolsValidatorMessage"/> regarding to the symbols package to be validated..</param>
         /// <param name="token">Cancellation token.</param>
         /// <returns>The validation result.</returns>
         Task<IValidationResult> ValidateSymbolsAsync(SymbolsValidatorMessage message, CancellationToken token);

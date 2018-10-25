@@ -266,6 +266,15 @@ namespace NuGet.Services.Validation.Orchestrator
             return streamMetadata;
         }
 
+        public async Task<string> GetPublicPackageBlobETagOrNullAsync(PackageValidationSet validationSet)
+        {
+            var fileName = BuildFileName(validationSet,
+                _fileMetadataService.FileSavePathTemplate,
+                _fileMetadataService.FileExtension);
+
+            return await _fileStorageService.GetETagOrNullAsync(_fileMetadataService.FileFolderName, fileName);
+        }
+
         private Task<string> CopyFileAsync(
             string srcFolderName,
             string srcFileName,

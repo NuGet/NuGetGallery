@@ -13,11 +13,11 @@ namespace NuGet.Services.Validation.Orchestrator
 {
     public class EntityStatusProcessor<T> : IStatusProcessor<T> where T : class, IEntity
     {
-        private readonly IEntityService<T> _galleryPackageService;
-        private readonly IValidationFileService _packageFileService;
-        private readonly IValidatorProvider _validatorProvider;
-        private readonly ITelemetryService _telemetryService;
-        private readonly ILogger<EntityStatusProcessor<T>> _logger;
+        protected readonly IEntityService<T> _galleryPackageService;
+        protected readonly IValidationFileService _packageFileService;
+        protected readonly IValidatorProvider _validatorProvider;
+        protected readonly ITelemetryService _telemetryService;
+        protected readonly ILogger<EntityStatusProcessor<T>> _logger;
 
         public EntityStatusProcessor(
             IEntityService<T> galleryPackageService,
@@ -76,7 +76,7 @@ namespace NuGet.Services.Validation.Orchestrator
             }
         }
 
-        private async Task MakePackageFailedValidationAsync(IValidatingEntity<T> validatingEntity, PackageValidationSet validationSet)
+        protected virtual async Task MakePackageFailedValidationAsync(IValidatingEntity<T> validatingEntity, PackageValidationSet validationSet)
         {
             var fromStatus = validatingEntity.Status;
 
@@ -88,7 +88,7 @@ namespace NuGet.Services.Validation.Orchestrator
             }
         }
 
-        private async Task MakePackageAvailableAsync(IValidatingEntity<T> validatingEntity, PackageValidationSet validationSet)
+        protected virtual async Task MakePackageAvailableAsync(IValidatingEntity<T> validatingEntity, PackageValidationSet validationSet)
         {
             // 1) Operate on blob storage.
             var copied = await UpdatePublicPackageAsync(validationSet);
