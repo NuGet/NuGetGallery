@@ -89,11 +89,9 @@ Function Get-MSBuildExe {
         $MSBuildPath = Join-Path $MSBuildExe $MSBuildExeRelPath
     } else {
         # Check if VS package to use to find $NuGetBuildPackageId is installed. If not, install it.
-        if (-not ([AppDomain]::CurrentDomain.GetAssemblies() | `
-            ForEach-Object { $_.GetTypes() } | `
-            Where-Object { `
-                $_.FullName -like "NuGet.Services.Build.VisualStudioSetupConfigurationHelper" `
-            }))
+        $buildPackageFound = [System.AppDomain]::CurrentDomain.GetAssemblies() | `
+            Where-Object { $_.FullName -like "$($NuGetBuildPackageId), *" }
+        if (-not $buildPackageFound)
         {
             Trace-Log "Installing and configuring $NuGetBuildPackageId"
             $opts = "install", $NuGetBuildPackageId, `
