@@ -75,6 +75,9 @@
     <PackageReference Include="Microsoft.Azure.Search">
       <Version>5.0.2</Version>
     </PackageReference>
+    <PackageReference Include="NuGet.Jobs.Common">
+      <Version>4.0.42887-dev</Version>
+    </PackageReference>
     <PackageReference Include="NuGetGallery.Core">
       <Version>4.4.4-dev-41931</Version>
     </PackageReference>
