@@ -38,7 +38,7 @@ namespace NuGetGallery.Helpers
             bool isText;
             using (var stream = new MemoryStream(data))
             {
-                isText = TextHelper.IsUtf8TextStream(stream);
+                isText = TextHelper.LooksLikeUtf8TextStream(stream);
             }
 
             Assert.Equal(expectedToBeText, isText);
@@ -58,7 +58,7 @@ namespace NuGetGallery.Helpers
             bool isText;
             using (var stream = new MemoryStream(largeInput))
             {
-                isText = TextHelper.IsUtf8TextStream(stream);
+                isText = TextHelper.LooksLikeUtf8TextStream(stream);
             }
 
             Assert.True(isText);
@@ -75,7 +75,7 @@ namespace NuGetGallery.Helpers
         [Fact]
         public void ThrowsWhenStreamIsNull()
         {
-            var ex = Assert.Throws<ArgumentNullException>(() => TextHelper.IsUtf8TextStream(null, 10));
+            var ex = Assert.Throws<ArgumentNullException>(() => TextHelper.LooksLikeUtf8TextStream(null, 10));
             Assert.Equal("stream", ex.ParamName);
         }
 
@@ -83,7 +83,7 @@ namespace NuGetGallery.Helpers
         public void ThrowsWhenStreamIsNotReadable()
         {
             var writeOnlyStream = new WriteOnlyStream();
-            var ex = Assert.Throws<ArgumentException>(() => TextHelper.IsUtf8TextStream(writeOnlyStream, 10));
+            var ex = Assert.Throws<ArgumentException>(() => TextHelper.LooksLikeUtf8TextStream(writeOnlyStream, 10));
             Assert.Equal("stream", ex.ParamName);
         }
 
@@ -91,7 +91,7 @@ namespace NuGetGallery.Helpers
         public void ThrowsWhenBufferSizeIsNegative()
         {
             var writeOnlyStream = new MemoryStream();
-            var ex = Assert.Throws<ArgumentOutOfRangeException>(() => TextHelper.IsUtf8TextStream(writeOnlyStream, -1));
+            var ex = Assert.Throws<ArgumentOutOfRangeException>(() => TextHelper.LooksLikeUtf8TextStream(writeOnlyStream, -1));
             Assert.Equal("bufferSize", ex.ParamName);
         }
 

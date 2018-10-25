@@ -2,10 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Web;
 
 namespace NuGetGallery.Helpers
 {
@@ -21,7 +18,7 @@ namespace NuGetGallery.Helpers
         /// Method will read from the stream until end of stream is encountered. It is caller's responsibility to resolve all potential
         /// concerns related to the size of the stream.
         /// </remarks>
-        public static bool IsUtf8TextStream(Stream stream, int bufferSize = 1024)
+        public static bool LooksLikeUtf8TextStream(Stream stream, int bufferSize = 1024)
         {
             if (stream == null)
             {
@@ -38,7 +35,7 @@ namespace NuGetGallery.Helpers
                 throw new ArgumentOutOfRangeException(nameof(bufferSize), $"{nameof(bufferSize)} must be greater than 0");
             }
 
-            byte[] buffer = new byte[bufferSize];
+            var buffer = new byte[bufferSize];
             int bytesRead;
             do
             {

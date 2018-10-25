@@ -142,7 +142,7 @@ namespace NuGetGallery
                 return PackageValidationResult.Invalid(Strings.UploadPackage_MissingLicenseInformation);
             }
 
-            if (LicenseDeprecationUrl == licenseUrl && licenseMetadata == null)
+            if (IsLicenseDeprecationUrl(licenseUrl) && licenseMetadata == null)
             {
                 return PackageValidationResult.Invalid(Strings.UploadPackage_DeprecationUrlUsage);
             }
@@ -159,7 +159,7 @@ namespace NuGetGallery
                 }
             }
 
-            if (licenseMetadata != null && IsLicenseDeprecationUrl(licenseUrl))
+            if (licenseMetadata != null && !IsLicenseDeprecationUrl(licenseUrl))
             {
                 return PackageValidationResult.Invalid(Strings.UploadPackage_DeprecationUrlRequired);
             }
@@ -207,7 +207,7 @@ namespace NuGetGallery
                 // check if specified file is a text file
                 using (var licenseFileStream = nuGetPackage.GetStream(licenseMetadata.License))
                 {
-                    if (!TextHelper.IsUtf8TextStream(licenseFileStream))
+                    if (!TextHelper.LooksLikeUtf8TextStream(licenseFileStream))
                     {
                         return PackageValidationResult.Invalid(Strings.UploadPackage_LicenseMustBePlainText);
                     }
@@ -218,7 +218,7 @@ namespace NuGetGallery
         }
 
         private static bool IsLicenseDeprecationUrl(string licenseUrl)
-            => LicenseDeprecationUrl != licenseUrl;
+            => LicenseDeprecationUrl == licenseUrl;
 
         private class LicenseCheckingNuspecReader : NuspecReader
         {
