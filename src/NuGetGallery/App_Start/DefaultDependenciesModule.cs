@@ -331,7 +331,7 @@ namespace NuGetGallery
             builder.RegisterType<TyposquattingService>()
                 .AsSelf()
                 .As<ITyposquattingService>()
-                .InstancePerLifetimeScope();
+                .SingleInstance();
 
             RegisterMessagingService(builder, configuration);
 
