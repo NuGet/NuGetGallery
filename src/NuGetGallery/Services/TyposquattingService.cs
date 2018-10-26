@@ -19,7 +19,6 @@ namespace NuGetGallery
             new ThresholdInfo (lowerBound: 30, upperBound: 50, threshold: 1),
             new ThresholdInfo (lowerBound: 50, upperBound: 129, threshold: 2)
         };
-        private static readonly object Locker = new object();
         private static int TyposquattingCheckListLength;
 
         private readonly IContentObjectService _contentObjectService;
@@ -66,7 +65,7 @@ namespace NuGetGallery
             Stopwatch checklistRetrievalStopwatch = null;
             if (_typosquattingCheckListCache.Cache == null || IsCheckListCacheExpired())
             {
-                lock(Locker)
+                lock(_typosquattingCheckListCache.Locker)
                 {
                     if (_typosquattingCheckListCache.Cache == null || IsCheckListCacheExpired())
                     {

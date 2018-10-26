@@ -8,6 +8,7 @@ namespace NuGetGallery
 {
     public class TyposquattingCheckListCache
     {
+        public object Locker { get; } = new object();
         public List<string> Cache { get; set; }
         public DateTime LastRefreshTime { get; set; }
         public TimeSpan DefaultExpireTime { get; set; }

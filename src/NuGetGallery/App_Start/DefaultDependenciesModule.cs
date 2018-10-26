@@ -334,8 +334,7 @@ namespace NuGetGallery
                 .InstancePerLifetimeScope();
 
             builder.RegisterType<TyposquattingCheckListCache>()
-                   .AsSelf()
-                   .SingleInstance();
+                .SingleInstance();
 
             RegisterMessagingService(builder, configuration);
 
