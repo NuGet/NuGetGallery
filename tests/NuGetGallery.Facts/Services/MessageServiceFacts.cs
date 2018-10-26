@@ -233,7 +233,7 @@ namespace NuGetGallery
             : TestContainer
         {
             [Fact]
-            public async Task WillCopySenderIfAsked()
+            public async Task WillSendCopyToSenderIfAsked()
             {
                 // arrange
                 var packageId = "smangit";
@@ -267,8 +267,7 @@ namespace NuGetGallery
                     package,
                     "http://someurl/",
                     "Test message",
-                    "http://someotherurl/",
-                    copySender: true);
+                    "http://someotherurl/");
 
                 // act
                 await messageService.SendMessageAsync(contactOwnersMessage, copySender: true, discloseSenderAddress: false);
@@ -285,6 +284,8 @@ namespace NuGetGallery
                 Assert.Equal(TestGalleryOwner, messages[1].From);
                 Assert.Equal(fromAddress, messages[0].ReplyToList.Single().Address);
                 Assert.Equal(fromAddress, messages[1].ReplyToList.Single().Address);
+                Assert.Empty(messages[0].CC);
+                Assert.Empty(messages[1].CC);
             }
 
             [Fact]
@@ -320,11 +321,10 @@ namespace NuGetGallery
                     package,
                     "http://packageUrl/",
                     "Test message",
-                    "http://emailSettingsUrl/",
-                    copySender: false);
+                    "http://emailSettingsUrl/");
 
                 await messageService.SendMessageAsync(contactOwnersMessage);
-                var message = messageService.MockMailSender.Sent.Last();
+                var message = messageService.MockMailSender.Sent.Single();
 
                 Assert.Equal(owner1Email, message.To[0].Address);
                 Assert.Equal(owner2Email, message.To[1].Address);
@@ -372,11 +372,10 @@ namespace NuGetGallery
                     package,
                     "http://someurl/",
                     "Test message",
-                    "http://someotherurl/",
-                    copySender: false);
+                    "http://someotherurl/");
 
                 await messageService.SendMessageAsync(contactOwnersMessage);
-                var message = messageService.MockMailSender.Sent.Last();
+                var message = messageService.MockMailSender.Sent.Single();
 
                 // assert
                 Assert.Equal(ownerAddress, message.To[0].Address);
@@ -418,8 +417,7 @@ namespace NuGetGallery
                     package,
                     "http://someurl/",
                     "Test message",
-                    "http://someotherurl/",
-                    copySender: false);
+                    "http://someotherurl/");
 
                 await messageService.SendMessageAsync(contactOwnersMessage);
 
@@ -428,7 +426,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task WillNotCopySenderIfNoOwnersAllow()
+            public async Task WillNotSendCopyToSenderIfNoOwnersAllow()
             {
                 // arrange
                 var packageId = "smangit";
@@ -461,8 +459,7 @@ namespace NuGetGallery
                     package,
                     "http://someurl/",
                     "Test message",
-                    "http://someotherurl/",
-                    copySender: false);
+                    "http://someotherurl/");
                 await messageService.SendMessageAsync(contactOwnersMessage);
 
                 // assert
