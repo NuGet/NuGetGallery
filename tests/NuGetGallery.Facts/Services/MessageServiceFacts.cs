@@ -233,7 +233,7 @@ namespace NuGetGallery
             : TestContainer
         {
             [Fact]
-            public async Task WillCopySenderIfAsked()
+            public async Task WillSendCopyToSenderIfAsked()
             {
                 // arrange
                 var packageId = "smangit";
@@ -284,8 +284,8 @@ namespace NuGetGallery
                 Assert.Equal(TestGalleryOwner, messages[1].From);
                 Assert.Equal(fromAddress, messages[0].ReplyToList.Single().Address);
                 Assert.Equal(fromAddress, messages[1].ReplyToList.Single().Address);
-                Assert.Null(messages[0].CC);
-                Assert.Null(messages[1].CC);
+                Assert.Empty(messages[0].CC);
+                Assert.Empty(messages[1].CC);
             }
 
             [Fact]
@@ -426,7 +426,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task WillNotCopySenderIfNoOwnersAllow()
+            public async Task WillNotSendCopyToSenderIfNoOwnersAllow()
             {
                 // arrange
                 var packageId = "smangit";
