@@ -844,6 +844,52 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public async Task WillReturnConflictIfGeneratePackageThrowsPackageAlreadyExistsException()
+            {
+                // Arrange
+                var packageId = "theId";
+                var nuGetPackage = TestPackage.CreateTestPackageStream(packageId, "1.0.42");
+
+                var currentUser = new User("currentUser") { Key = 1, EmailAddress = "currentUser@confirmed.com" };
+                var controller = new TestableApiController(GetConfigurationService());
+                controller.SetCurrentUser(currentUser);
+                controller.SetupPackageFromInputStream(nuGetPackage);
+
+                var owner = new User("owner") { Key = 2, EmailAddress = "org@confirmed.com" };
+
+                Expression<Func<IApiScopeEvaluator, ApiScopeEvaluationResult>> evaluateApiScope =
+                    x => x.Evaluate(
+                        currentUser,
+                        It.IsAny<IEnumerable<Scope>>(),
+                        ActionsRequiringPermissions.UploadNewPackageId,
+                        It.Is<ActionOnNewPackageContext>((context) => context.PackageId == packageId),
+                        NuGetScopes.PackagePush);
+
+                controller.MockApiScopeEvaluator
+                    .Setup(evaluateApiScope)
+                    .Returns(new ApiScopeEvaluationResult(owner, PermissionsCheckResult.Allowed, scopesAreValid: true));
+                controller
+                    .MockPackageUploadService
+                    .Setup(x => x.GeneratePackageAsync(It.IsAny<string>(),
+                        It.IsAny<PackageArchiveReader>(),
+                        It.IsAny<PackageStreamMetadata>(),
+                        It.IsAny<User>(),
+                        It.IsAny<User>()))
+                    .Throws(new PackageAlreadyExistsException("Package exists"));
+
+                // Act
+                var result = await controller.CreatePackagePut();
+
+                // Assert
+                ResultAssert.IsStatusCode(result, HttpStatusCode.Conflict);
+                controller.MockPackageUploadService.Verify(x => x.GeneratePackageAsync(It.IsAny<string>(),
+                        It.IsAny<PackageArchiveReader>(),
+                        It.IsAny<PackageStreamMetadata>(),
+                        It.IsAny<User>(),
+                        It.IsAny<User>()), Times.Once);
+            }
+
+            [Fact]
             public async Task WillReturnValidationWarnings()
             {
                 // Arrange
