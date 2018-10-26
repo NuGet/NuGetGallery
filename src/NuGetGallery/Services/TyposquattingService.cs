@@ -20,25 +20,29 @@ namespace NuGetGallery
             new ThresholdInfo (lowerBound: 50, upperBound: 129, threshold: 2)
         };
         private static readonly object Locker = new object();
-
         private static int TyposquattingCheckListLength;
-        private List<string> _checkListCache = null;
-        private DateTime _checkListCacheLastRefreshTime = DateTime.UtcNow;
-        private TimeSpan _checkListCacheDefaultExpireTime = TimeSpan.FromDays(1);
 
         private readonly IContentObjectService _contentObjectService;
         private readonly IPackageService _packageService;
         private readonly IReservedNamespaceService _reservedNamespaceService;
         private readonly ITelemetryService _telemetryService;
+        private readonly TyposquattingCheckListCache _typosquattingCheckListCache;
 
-        public TyposquattingService(IContentObjectService contentObjectService, IPackageService packageService, IReservedNamespaceService reservedNamespaceService, ITelemetryService telemetryService)
+        public TyposquattingService(IContentObjectService contentObjectService,
+                                    IPackageService packageService,
+                                    IReservedNamespaceService reservedNamespaceService,
+                                    ITelemetryService telemetryService,
+                                    TyposquattingCheckListCache typosquattingCheckListCache)
         {
             _contentObjectService = contentObjectService ?? throw new ArgumentNullException(nameof(contentObjectService));
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
             _reservedNamespaceService = reservedNamespaceService ?? throw new ArgumentNullException(nameof(reservedNamespaceService));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
+            _typosquattingCheckListCache = typosquattingCheckListCache ?? throw new ArgumentNullException(nameof(typosquattingCheckListCache));
 
             TyposquattingCheckListLength = _contentObjectService.TyposquattingConfiguration.PackageIdChecklistLength;
+            _typosquattingCheckListCache.DefaultExpireTime = TimeSpan.FromDays(1);
+            _typosquattingCheckListCache.LastRefreshTime = DateTime.UtcNow;
         }
 
         public bool IsUploadedPackageIdTyposquatting(string uploadedPackageId, User uploadedPackageOwner, out List<string> typosquattingCheckCollisionIds)
@@ -60,14 +64,14 @@ namespace NuGetGallery
             }
 
             Stopwatch checklistRetrievalStopwatch = null;
-            if (_checkListCache == null || IsCheckListCacheExpired())
+            if (_typosquattingCheckListCache.Cache == null || IsCheckListCacheExpired())
             {
                 lock(Locker)
                 {
-                    if (_checkListCache == null || IsCheckListCacheExpired())
+                    if (_typosquattingCheckListCache.Cache == null || IsCheckListCacheExpired())
                     {
                         checklistRetrievalStopwatch = Stopwatch.StartNew();
-                        _checkListCache = _packageService.GetAllPackageRegistrations()
+                        _typosquattingCheckListCache.Cache = _packageService.GetAllPackageRegistrations()
                             .OrderByDescending(pr => pr.IsVerified)
                             .ThenByDescending(pr => pr.DownloadCount)
                             .Select(pr => pr.Id)
@@ -75,11 +79,11 @@ namespace NuGetGallery
                             .ToList();
                         checklistRetrievalStopwatch.Stop();
 
-                        _checkListCacheLastRefreshTime = DateTime.UtcNow;
+                        _typosquattingCheckListCache.LastRefreshTime = DateTime.UtcNow;
                     }
                 }
             }
-            var packageIdsCheckList = _checkListCache;
+            var packageIdsCheckList = _typosquattingCheckListCache.Cache;
 
             var algorithmProcessingStopwatch = Stopwatch.StartNew();
             var threshold = GetThreshold(uploadedPackageId);
@@ -154,12 +158,10 @@ namespace NuGetGallery
 
             return wasUploadBlocked;
         }
-
         private bool IsCheckListCacheExpired()
         {
-            return DateTime.UtcNow >= _checkListCacheLastRefreshTime.Add(_checkListCacheDefaultExpireTime);
+            return DateTime.UtcNow >= _typosquattingCheckListCache.LastRefreshTime.Add(_typosquattingCheckListCache.DefaultExpireTime);
         }
-
         private static int GetThreshold(string packageId)
         {
             foreach (var thresholdInfo in ThresholdsList)
@@ -173,7 +175,6 @@ namespace NuGetGallery
             throw new ArgumentException(String.Format("There is no predefined typo-squatting threshold for this package Id: {0}", packageId));
         }
     }
-
     public class ThresholdInfo
     {
         public int LowerBound { get; }

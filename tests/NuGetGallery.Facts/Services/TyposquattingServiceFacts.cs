@@ -39,7 +39,8 @@ namespace NuGetGallery
             Mock<IPackageService> packageService = null,
             Mock<IContentObjectService> contentObjectService = null,
             Mock<IReservedNamespaceService> reservedNamespaceService = null,
-            Mock<ITelemetryService> telemetryService = null)
+            Mock<ITelemetryService> telemetryService = null,
+            TyposquattingCheckListCache typosquattingCheckListCache = null)
         {
             if (packageService == null)
             {
@@ -76,7 +77,12 @@ namespace NuGetGallery
                 telemetryService = new Mock<ITelemetryService>();
             }
 
-            return new TyposquattingService(contentObjectService.Object, packageService.Object, reservedNamespaceService.Object, telemetryService.Object); ;
+            if (typosquattingCheckListCache == null)
+            {
+                typosquattingCheckListCache = new TyposquattingCheckListCache();
+            }
+
+            return new TyposquattingService(contentObjectService.Object, packageService.Object, reservedNamespaceService.Object, telemetryService.Object, typosquattingCheckListCache); ;
         }
 
         [Fact]
