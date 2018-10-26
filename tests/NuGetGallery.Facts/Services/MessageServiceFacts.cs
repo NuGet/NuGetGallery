@@ -267,8 +267,7 @@ namespace NuGetGallery
                     package,
                     "http://someurl/",
                     "Test message",
-                    "http://someotherurl/",
-                    copySender: true);
+                    "http://someotherurl/");
 
                 // act
                 await messageService.SendMessageAsync(contactOwnersMessage, copySender: true, discloseSenderAddress: false);
@@ -285,6 +284,8 @@ namespace NuGetGallery
                 Assert.Equal(TestGalleryOwner, messages[1].From);
                 Assert.Equal(fromAddress, messages[0].ReplyToList.Single().Address);
                 Assert.Equal(fromAddress, messages[1].ReplyToList.Single().Address);
+                Assert.Null(messages[0].CC);
+                Assert.Null(messages[1].CC);
             }
 
             [Fact]
@@ -320,8 +321,7 @@ namespace NuGetGallery
                     package,
                     "http://packageUrl/",
                     "Test message",
-                    "http://emailSettingsUrl/",
-                    copySender: false);
+                    "http://emailSettingsUrl/");
 
                 await messageService.SendMessageAsync(contactOwnersMessage);
                 var message = messageService.MockMailSender.Sent.Last();
@@ -372,8 +372,7 @@ namespace NuGetGallery
                     package,
                     "http://someurl/",
                     "Test message",
-                    "http://someotherurl/",
-                    copySender: false);
+                    "http://someotherurl/");
 
                 await messageService.SendMessageAsync(contactOwnersMessage);
                 var message = messageService.MockMailSender.Sent.Last();
@@ -418,8 +417,7 @@ namespace NuGetGallery
                     package,
                     "http://someurl/",
                     "Test message",
-                    "http://someotherurl/",
-                    copySender: false);
+                    "http://someotherurl/");
 
                 await messageService.SendMessageAsync(contactOwnersMessage);
 
@@ -461,8 +459,7 @@ namespace NuGetGallery
                     package,
                     "http://someurl/",
                     "Test message",
-                    "http://someotherurl/",
-                    copySender: false);
+                    "http://someotherurl/");
                 await messageService.SendMessageAsync(contactOwnersMessage);
 
                 // assert
