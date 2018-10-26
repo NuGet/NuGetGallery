@@ -43,8 +43,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
                     package,
                     packageUrl,
                     message,
-                    emailSettingsUrl,
-                    copySender));
+                    emailSettingsUrl));
             }
         }
 
@@ -72,19 +71,9 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
             }
 
             [Fact]
-            public void AddsFromAddressToCCListWhenCopyingSender()
+            public void DoesNotAddFromAddressToCCList()
             {
-                var message = CreateMessage(copySender: true);
-                var recipients = message.GetRecipients();
-
-                Assert.Equal(1, recipients.CC.Count);
-                Assert.Contains(Fakes.FromAddress, recipients.CC);
-            }
-
-            [Fact]
-            public void DoesNotAddFromAddressToCCListWhenNotCopyingSender()
-            {
-                var message = CreateMessage(copySender: false);
+                var message = CreateMessage();
                 var recipients = message.GetRecipients();
 
                 Assert.Empty(recipients.CC);
@@ -122,7 +111,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
             Assert.Equal(Configuration.GalleryOwner, message.Sender);
         }
 
-        private static ContactOwnersMessage CreateMessage(bool copySender = false)
+        private static ContactOwnersMessage CreateMessage()
         {
             return new ContactOwnersMessage(
                 Configuration,
@@ -130,8 +119,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
                 Fakes.Package,
                 Fakes.PackageUrl,
                 "user input",
-                Fakes.EmailSettingsUrl,
-                copySender);
+                Fakes.EmailSettingsUrl);
         }
 
         private const string _expectedMarkdownBody =
