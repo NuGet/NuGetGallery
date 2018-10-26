@@ -4,11 +4,11 @@
 using System;
 using System.Net.Mail;
 using Microsoft.Extensions.Options;
-using NuGetGallery.Services;
+using NuGetGallery.Infrastructure.Mail;
 
 namespace NuGet.Services.Validation.Orchestrator
 {
-    public class CoreMessageServiceConfiguration : ICoreMessageServiceConfiguration
+    public class CoreMessageServiceConfiguration : IMessageServiceConfiguration
     {
         public CoreMessageServiceConfiguration(IOptionsSnapshot<EmailConfiguration> emailConfigurationAccessor)
         {

@@ -34,7 +34,7 @@ namespace Validation.Symbols
         /// <summary>
         /// Tracks the status of the validation.
         /// </summary>
-        /// <param name="packageId">The pacakge id.</param>
+        /// <param name="packageId">The package id.</param>
         /// <param name="packageNormalizedVersion">The package normalized version.</param>
         /// <param name="validationStatus">The validation result.</param>
         /// <param name="issue">Information about the issue id failed or empty if passed..</param>

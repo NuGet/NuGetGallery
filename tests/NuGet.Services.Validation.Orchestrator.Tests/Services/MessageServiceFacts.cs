@@ -9,7 +9,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using NuGetGallery;
-using NuGetGallery.Services;
+using NuGetGallery.Infrastructure.Mail;
+using NuGetGallery.Infrastructure.Mail.Messages;
 using Xunit;
 
 namespace NuGet.Services.Validation.Orchestrator.Tests
@@ -20,7 +21,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         public void ConstructorThrowsWhenCoreMessageServiceIsNull()
         {
             var ex = Assert.Throws<ArgumentNullException>(() => new PackageMessageService(null, EmailConfigurationAccessorMock.Object, LoggerMock.Object));
-            Assert.Equal("coreMessageService", ex.ParamName);
+            Assert.Equal("messageService", ex.ParamName);
         }
 
         [Fact]
@@ -103,18 +104,15 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         [Fact]
         public void SendPackagePublishedEmailMethodCallsCoreMessageService()
         {
-            var expectedPackageUrl = string.Format(EmailConfiguration.PackageUrlTemplate, Package.PackageRegistration.Id, Package.NormalizedVersion);
-            var expectedSupportUrl = string.Format(EmailConfiguration.PackageSupportTemplate, Package.PackageRegistration.Id, Package.NormalizedVersion);
-
             var service = new PackageMessageService(CoreMessageServiceMock.Object, EmailConfigurationAccessorMock.Object, LoggerMock.Object);
 
             var ex = Record.Exception(() => service.SendPublishedMessageAsync(Package).Wait());
             Assert.Null(ex);
 
             CoreMessageServiceMock
-                .Verify(cms => cms.SendPackageAddedNoticeAsync(Package, expectedPackageUrl, expectedSupportUrl, ValidSettingsUrl, It.IsAny<IEnumerable<string>>()), Times.Once());
+                 .Verify(cms => cms.SendMessageAsync(It.Is<PackageAddedMessage>(arg=>arg.Package == Package), It.IsAny<bool>(), It.IsAny<bool>()), Times.Once());
             CoreMessageServiceMock
-                .Verify(cms => cms.SendPackageAddedNoticeAsync(It.IsAny<Package>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IEnumerable<string>>()), Times.Once());
+                 .Verify(cms => cms.SendMessageAsync(It.IsAny<PackageAddedMessage>(), It.IsAny<bool>(), It.IsAny<bool>()), Times.Once());
         }
 
         [Fact]
@@ -128,18 +126,13 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         [Fact]
         public void SendPackageValidationFailedMessageCallsCoreMessageService()
         {
-            var expectedPackageUrl = string.Format(EmailConfiguration.PackageUrlTemplate, Package.PackageRegistration.Id, Package.NormalizedVersion);
-            var expectedSupportUrl = string.Format(EmailConfiguration.PackageSupportTemplate, Package.PackageRegistration.Id, Package.NormalizedVersion);
-
             var service = new PackageMessageService(CoreMessageServiceMock.Object, EmailConfigurationAccessorMock.Object, LoggerMock.Object);
 
             var ex = Record.Exception(() => service.SendValidationFailedMessageAsync(Package, ValidationSet).Wait());
             Assert.Null(ex);
 
             CoreMessageServiceMock
-                .Verify(cms => cms.SendPackageValidationFailedNoticeAsync(Package, ValidationSet, expectedPackageUrl, expectedSupportUrl, EmailConfiguration.AnnouncementsUrl, EmailConfiguration.TwitterUrl), Times.Once());
-            CoreMessageServiceMock
-                .Verify(cms => cms.SendPackageValidationFailedNoticeAsync(It.IsAny<Package>(), It.IsAny<PackageValidationSet>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Once());
+                .Verify(cms => cms.SendMessageAsync(It.IsAny<PackageValidationFailedMessage>(), It.IsAny<bool>(), It.IsAny<bool>()), Times.Once());
         }
 
         [Fact]
@@ -166,7 +159,9 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 PackageSupportTemplate = "https://example.com/packageSupport/{0}/{1}",
                 EmailSettingsUrl = ValidSettingsUrl,
                 AnnouncementsUrl = "https://announcements.com",
-                TwitterUrl = "https://twitter.com/nuget"
+                TwitterUrl = "https://twitter.com/nuget",
+                GalleryNoReplyAddress = "NuGet Gallery <support@nuget.org>",
+                GalleryOwner = "NuGet Gallery <support@nuget.org>"
             };
 
             EmailConfigurationAccessorMock
@@ -184,7 +179,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             ValidationSet = new PackageValidationSet();
         }
 
-        private Mock<ICoreMessageService> CoreMessageServiceMock { get; set; } = new Mock<ICoreMessageService>();
+        private Mock<IMessageService> CoreMessageServiceMock { get; set; } = new Mock<IMessageService>();
         private Mock<IOptionsSnapshot<EmailConfiguration>> EmailConfigurationAccessorMock { get; set; } = new Mock<IOptionsSnapshot<EmailConfiguration>>();
         private Mock<ILogger<PackageMessageService>> LoggerMock { get; set; } = new Mock<ILogger<PackageMessageService>>();
         private Package Package { get; set; }

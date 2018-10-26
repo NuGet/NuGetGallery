@@ -6,23 +6,24 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NuGetGallery;
-using NuGetGallery.Services;
+using NuGetGallery.Infrastructure.Mail;
+using NuGetGallery.Infrastructure.Mail.Messages;
 
 namespace NuGet.Services.Validation.Orchestrator
 {
     public class SymbolsPackageMessageService : IMessageService<SymbolPackage>
     {
-        private readonly ICoreMessageService _coreMessageService;
+        private readonly IMessageService _messageService;
         private readonly ILogger<SymbolsPackageMessageService> _logger;
         private readonly MessageServiceConfiguration _serviceConfiguration;
 
         public SymbolsPackageMessageService(
-            ICoreMessageService coreMessageService,
+            IMessageService messageService,
             IOptionsSnapshot<EmailConfiguration> emailConfigurationAccessor,
             ILogger<SymbolsPackageMessageService> logger)
         {
             _serviceConfiguration = new MessageServiceConfiguration(emailConfigurationAccessor);
-            _coreMessageService = coreMessageService ?? throw new ArgumentNullException(nameof(coreMessageService));
+            _messageService = messageService ?? throw new ArgumentNullException(nameof(messageService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -35,8 +36,14 @@ namespace NuGet.Services.Validation.Orchestrator
 
             var galleryPackageUrl = _serviceConfiguration.GalleryPackageUrl(symbolPackage.Id, symbolPackage.Package.NormalizedVersion);
             var packageSupportUrl = _serviceConfiguration.PackageSupportUrl(symbolPackage.Id, symbolPackage.Package.NormalizedVersion);
-
-            await _coreMessageService.SendSymbolPackageAddedNoticeAsync(symbolPackage, galleryPackageUrl, packageSupportUrl, _serviceConfiguration.EmailConfiguration.EmailSettingsUrl);
+            var symbolPackageAddedMessage = new SymbolPackageAddedMessage(
+                                    _serviceConfiguration,
+                                    symbolPackage,
+                                    galleryPackageUrl,
+                                    packageSupportUrl,
+                                    _serviceConfiguration.EmailConfiguration.EmailSettingsUrl,
+                                    Array.Empty<string>());
+            await _messageService.SendMessageAsync(symbolPackageAddedMessage);
         }
 
         public async Task  SendValidationFailedMessageAsync(SymbolPackage symbolPackage, PackageValidationSet validationSet)
@@ -50,7 +57,16 @@ namespace NuGet.Services.Validation.Orchestrator
             var galleryPackageUrl = _serviceConfiguration.GalleryPackageUrl(symbolPackage.Id, symbolPackage.Package.NormalizedVersion);
             var packageSupportUrl = _serviceConfiguration.PackageSupportUrl(symbolPackage.Id, symbolPackage.Package.NormalizedVersion);
 
-            await _coreMessageService.SendSymbolPackageValidationFailedNoticeAsync(symbolPackage, validationSet, galleryPackageUrl, packageSupportUrl, _serviceConfiguration.EmailConfiguration.AnnouncementsUrl, _serviceConfiguration.EmailConfiguration.TwitterUrl);
+            var symbolPackageValidationFailedMessage = new SymbolPackageValidationFailedMessage(
+                                   _serviceConfiguration,
+                                   symbolPackage,
+                                   validationSet,
+                                   galleryPackageUrl,
+                                   packageSupportUrl,
+                                   _serviceConfiguration.EmailConfiguration.AnnouncementsUrl,
+                                   _serviceConfiguration.EmailConfiguration.TwitterUrl);
+
+            await _messageService.SendMessageAsync(symbolPackageValidationFailedMessage);
         }
 
         public async Task SendValidationTakingTooLongMessageAsync(SymbolPackage symbolPackage)
@@ -59,8 +75,12 @@ namespace NuGet.Services.Validation.Orchestrator
             {
                 throw new ArgumentNullException(nameof(symbolPackage));
             }
+            var symbolPackageValidationTakingTooLongMessage = new SymbolPackageValidationTakingTooLongMessage(
+                                   _serviceConfiguration,
+                                   symbolPackage,
+                                   _serviceConfiguration.GalleryPackageUrl(symbolPackage.Package.PackageRegistration.Id, symbolPackage.Package.NormalizedVersion));
 
-            await _coreMessageService.SendValidationTakingTooLongNoticeAsync(symbolPackage, _serviceConfiguration.GalleryPackageUrl(symbolPackage.Id, symbolPackage.Package.NormalizedVersion));
+            await _messageService.SendMessageAsync(symbolPackageValidationTakingTooLongMessage);
         }
     }
 }
