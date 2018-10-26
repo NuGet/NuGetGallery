@@ -324,7 +324,7 @@ namespace NuGetGallery
                     "http://emailSettingsUrl/");
 
                 await messageService.SendMessageAsync(contactOwnersMessage);
-                var message = messageService.MockMailSender.Sent.Last();
+                var message = messageService.MockMailSender.Sent.Single();
 
                 Assert.Equal(owner1Email, message.To[0].Address);
                 Assert.Equal(owner2Email, message.To[1].Address);
@@ -375,7 +375,7 @@ namespace NuGetGallery
                     "http://someotherurl/");
 
                 await messageService.SendMessageAsync(contactOwnersMessage);
-                var message = messageService.MockMailSender.Sent.Last();
+                var message = messageService.MockMailSender.Sent.Single();
 
                 // assert
                 Assert.Equal(ownerAddress, message.To[0].Address);
