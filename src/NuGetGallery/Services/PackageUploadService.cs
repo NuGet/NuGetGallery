@@ -204,9 +204,19 @@ namespace NuGetGallery
                             MaxAllowedLicenseLength));
                 }
 
-                // check if specified file is a text file
                 using (var licenseFileStream = nuGetPackage.GetStream(licenseMetadata.License))
                 {
+                    if (!IsStreamLengthMatchesReported(licenseFileStream, licenseFileEntry.Length))
+                    {
+                        return PackageValidationResult.Invalid(Strings.UploadPackage_CorruptNupkg);
+                    }
+                }
+
+                // zip streams does not support seeking, so we'll have to reopen them
+
+                using (var licenseFileStream = nuGetPackage.GetStream(licenseMetadata.License))
+                {
+                    // check if specified file is a text file
                     if (!TextHelper.LooksLikeUtf8TextStream(licenseFileStream))
                     {
                         return PackageValidationResult.Invalid(Strings.UploadPackage_LicenseMustBePlainText);
@@ -215,6 +225,25 @@ namespace NuGetGallery
             }
 
             return null;
+        }
+
+        private bool IsStreamLengthMatchesReported(Stream licenseFileStream, long reportedLength)
+        {
+            // one may modify the zip file to report smaller file sizes for the compressed files than actual.
+            // Unfortunately, .Net's ZipArchive is not handling this case properly and allows to read full
+            // data without throwing any exceptions.
+            // so we'll try reading the stream ourselves and check if reported length matches the actual.
+
+            var buffer = new byte[4096];
+            long totalBytesRead = 0;
+            int read = 0;
+            do
+            {
+                read = licenseFileStream.Read(buffer, 0, buffer.Length);
+                totalBytesRead += read;
+            } while (read > 0 && totalBytesRead < reportedLength + 1); // we want to try to read past the reported length
+
+            return totalBytesRead == reportedLength;
         }
 
         private static bool IsLicenseDeprecationUrl(string licenseUrl)

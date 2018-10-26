@@ -891,6 +891,87 @@ namespace NuGetGallery
                 Assert.Empty(result.Warnings);
             }
 
+            [Fact]
+            public async Task RejectsNupkgsReportingIncorrectFileLength()
+            {
+                const string licenseFilename = "license.txt";
+                const string licenseFileContents = "abcdefghijklnopqrstuvwxyz";
+
+                // Arrange
+                var packageStream = GeneratePackageStream(
+                    licenseUrl: new Uri(LicenseDeprecationUrl),
+                    licenseFilename: licenseFilename,
+                    licenseFileContents: licenseFileContents);
+
+                var buffer = packageStream.GetBuffer();
+
+                var licenseFilenameBytes = Encoding.ASCII.GetBytes(licenseFilename);
+
+                // the file name should appear twice in the zip stream:
+                // 1. where the compressed stream is saved.
+                // 2. in the central directory
+                // we'll need to patch stream length in both places
+
+                var firstInstanceOffset = FindSequenceIndex(licenseFilenameBytes, buffer);
+                Assert.True(firstInstanceOffset > 0);
+                var firstSizeOffset = firstInstanceOffset - 8;
+                Assert.True(firstSizeOffset > 0);
+                var firstLength = BitConverter.ToInt32(buffer, firstSizeOffset);
+                Assert.Equal(licenseFileContents.Length, firstLength);
+
+                var secondInstanceOffset = FindSequenceIndex(licenseFilenameBytes, buffer, firstInstanceOffset + licenseFilename.Length);
+                Assert.True(secondInstanceOffset > 0);
+                var secondSizeOffset = secondInstanceOffset - 22;
+                Assert.True(secondSizeOffset > 0);
+                var secondLength = BitConverter.ToInt32(buffer, secondSizeOffset);
+                Assert.Equal(licenseFileContents.Length, secondLength);
+
+                // now that we have offsets, we'll just patch them
+                buffer[firstSizeOffset] = 1;
+                buffer[secondSizeOffset] = 1;
+
+                _nuGetPackage = PackageServiceUtility.CreateNuGetPackage(packageStream);
+
+                // Act
+                var result = await _target.ValidateBeforeGeneratePackageAsync(
+                    _nuGetPackage.Object,
+                    GetPackageMetadata(_nuGetPackage));
+
+                // Assert
+                Assert.Equal(PackageValidationResultType.Invalid, result.Type);
+                Assert.Contains("corrupt", result.Message);
+                Assert.Empty(result.Warnings);
+            }
+
+            /// <summary>
+            /// A (quite ineffective) method to search for a sequence in an array
+            /// </summary>
+            /// <param name="searchItem">byte sequence to search for.</param>
+            /// <param name="whereToSearch">the array to search in.</param>
+            /// <param name="startIndex">Index in the <paramref name="whereToSearch"/> to start searching from.</param>
+            /// <returns>Index of the first byte of the sequence. -1 if not found.</returns>
+            private static int FindSequenceIndex(byte[] searchItem, byte[] whereToSearch, int startIndex = 0)
+            {
+                Assert.True(whereToSearch.Length - startIndex >= searchItem.Length);
+
+                for (int start = startIndex; start < whereToSearch.Length - searchItem.Length; ++start)
+                {
+                    int searchIndex = 0;
+
+                    while (searchIndex < searchItem.Length && searchItem[searchIndex] == whereToSearch[start + searchIndex])
+                    {
+                        ++searchIndex;
+                    }
+
+                    if (searchIndex == searchItem.Length)
+                    {
+                        return start;
+                    }
+                }
+
+                return -1;
+            }
+
             private PackageMetadata GetPackageMetadata(Mock<TestPackageReader> mockPackage)
             {
                 return PackageMetadata.FromNuspecReader(mockPackage.Object.GetNuspecReader(), strict: true);
@@ -1627,7 +1708,34 @@ namespace NuGetGallery
                 string licenseFileContents = null,
                 byte[] licenseFileBinaryContents = null)
             {
-                return PackageServiceUtility.CreateNuGetPackage(
+                var packageStream = GeneratePackageStream(
+                    version: version,
+                    repositoryMetadata: repositoryMetadata,
+                    isSigned: isSigned,
+                    desiredTotalEntryCount: desiredTotalEntryCount,
+                    getCustomNuspecNodes: getCustomNuspecNodes,
+                    licenseUrl: licenseUrl,
+                    licenseExpression: licenseExpression,
+                    licenseFilename: licenseFilename,
+                    licenseFileContents: licenseFileContents,
+                    licenseFileBinaryContents: licenseFileBinaryContents);
+
+                return PackageServiceUtility.CreateNuGetPackage(packageStream);
+            }
+
+            protected static MemoryStream GeneratePackageStream(
+                string version = "1.2.3-alpha.0",
+                RepositoryMetadata repositoryMetadata = null,
+                bool isSigned = true,
+                int? desiredTotalEntryCount = null,
+                Func<string> getCustomNuspecNodes = null,
+                Uri licenseUrl = null,
+                string licenseExpression = null,
+                string licenseFilename = null,
+                string licenseFileContents = null,
+                byte[] licenseFileBinaryContents = null)
+            {
+                return PackageServiceUtility.CreateNuGetPackageStream(
                     id: "theId",
                     version: version,
                     repositoryMetadata: repositoryMetadata,

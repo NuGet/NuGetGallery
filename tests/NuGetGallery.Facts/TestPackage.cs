@@ -171,7 +171,7 @@ namespace NuGetGallery
             return builder.ToString();
         }
 
-        public static Stream CreateTestPackageStream(
+        public static MemoryStream CreateTestPackageStream(
             string id = "theId",
             string version = "1.0.42",
             string title = "Package Id",
@@ -226,7 +226,7 @@ namespace NuGetGallery
             }, desiredTotalEntryCount);
         }
 
-        public static Stream CreateTestSymbolPackageStream(string id = "theId", string version = "1.0.42", Action<ZipArchive> populatePackage = null)
+        public static MemoryStream CreateTestSymbolPackageStream(string id = "theId", string version = "1.0.42", Action<ZipArchive> populatePackage = null)
         {
             var packageTypes = new List<ClientPackageType>();
             packageTypes.Add(new ClientPackageType(name: "SymbolsPackage", version: ClientPackageType.EmptyVersion));
@@ -237,7 +237,7 @@ namespace NuGetGallery
                 isSymbolPackage: true);
         }
 
-        public static Stream CreateTestPackageStreamFromNuspec(string id, string nuspec, Action<ZipArchive> populatePackage = null)
+        public static MemoryStream CreateTestPackageStreamFromNuspec(string id, string nuspec, Action<ZipArchive> populatePackage = null)
         {
             return CreateTestPackageStream(packageArchive =>
             {
@@ -254,7 +254,7 @@ namespace NuGetGallery
             });
         }
 
-        public static Stream CreateTestPackageStream(Action<ZipArchive> populatePackage, int? desiredTotalEntryCount = null)
+        public static MemoryStream CreateTestPackageStream(Action<ZipArchive> populatePackage, int? desiredTotalEntryCount = null)
         {
             var packageStream = new MemoryStream();
             using (var packageArchive = new ZipArchive(packageStream, ZipArchiveMode.Create, leaveOpen: true))

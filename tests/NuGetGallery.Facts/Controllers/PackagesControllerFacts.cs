@@ -3982,7 +3982,7 @@ namespace NuGetGallery
                 var packageId = "CrestedGecko";
                 var packageVersion = "1.4.2";
 
-                var fakeFileStream = TestPackage.CreateTestPackageStream(packageId, packageVersion);
+                Stream fakeFileStream = TestPackage.CreateTestPackageStream(packageId, packageVersion);
                 var fakeUploadFileService = new Mock<IUploadFileService>();
                 fakeUploadFileService.Setup(x => x.DeleteUploadFileAsync(It.IsAny<int>())).Returns(Task.FromResult(0));
                 fakeUploadFileService.Setup(x => x.GetUploadFileAsync(It.IsAny<int>())).Returns(Task.FromResult(fakeFileStream));
@@ -4033,7 +4033,7 @@ namespace NuGetGallery
             {
                 var expectedMessage = "Bad, bad package!";
                 var currentUser = TestUtility.FakeUser;
-                var fakeFileStream = TestPackage.CreateTestPackageStream("CrestedGecko", "1.4.2");
+                Stream fakeFileStream = TestPackage.CreateTestPackageStream("CrestedGecko", "1.4.2");
 
                 var fakeUserService = new Mock<IUserService>();
                 fakeUserService
@@ -4067,7 +4067,7 @@ namespace NuGetGallery
             {
                 var expectedMessage = "Tricky package!";
                 var currentUser = TestUtility.FakeUser;
-                var fakeFileStream = TestPackage.CreateTestPackageStream("CrestedGecko", "1.4.2");
+                Stream fakeFileStream = TestPackage.CreateTestPackageStream("CrestedGecko", "1.4.2");
 
                 var fakeUserService = new Mock<IUserService>();
                 fakeUserService
@@ -4103,7 +4103,7 @@ namespace NuGetGallery
             {
                 var expectedMessage = "Tricky package!";
                 var currentUser = TestUtility.FakeUser;
-                var fakeFileStream = TestPackage.CreateTestSymbolPackageStream("CrestedGecko", "1.4.2");
+                Stream fakeFileStream = TestPackage.CreateTestSymbolPackageStream("CrestedGecko", "1.4.2");
 
                 var fakeUserService = new Mock<IUserService>();
                 fakeUserService
@@ -4336,7 +4336,7 @@ namespace NuGetGallery
             {
                 var fakeUploadedFile = new Mock<HttpPostedFileBase>();
                 fakeUploadedFile.Setup(x => x.FileName).Returns("theFile.nupkg");
-                var fakeFileStream = TestPackage.CreateTestPackageStream("Random.Package1", "1.0.0");
+                Stream fakeFileStream = TestPackage.CreateTestPackageStream("Random.Package1", "1.0.0");
                 fakeUploadedFile.Setup(x => x.InputStream).Returns(fakeFileStream);
 
                 var fakeUploadFileService = new Mock<IUploadFileService>();
@@ -4398,7 +4398,7 @@ namespace NuGetGallery
                 fakeUploadedFile.Setup(x => x.FileName).Returns("theFile.nupkg");
                 var fakeUploadedFileStream = TestPackage.CreateTestPackageStream(packageId, version);
                 fakeUploadedFile.Setup(x => x.InputStream).Returns(fakeUploadedFileStream);
-                var fakeSavedFileStream = TestPackage.CreateTestPackageStream(packageId, version);
+                Stream fakeSavedFileStream = TestPackage.CreateTestPackageStream(packageId, version);
 
                 var fakeUploadFileService = new Mock<IUploadFileService>();
                 fakeUploadFileService.Setup(x => x.DeleteUploadFileAsync(currentUser.Key)).Returns(Task.FromResult(0));
@@ -4453,7 +4453,7 @@ namespace NuGetGallery
                 fakeUploadedFile.Setup(x => x.FileName).Returns("theFile.nupkg");
                 var fakeUploadedFileStream = TestPackage.CreateTestPackageStream(packageId, version);
                 fakeUploadedFile.Setup(x => x.InputStream).Returns(fakeUploadedFileStream);
-                var fakeSavedFileStream = TestPackage.CreateTestPackageStream(packageId, version);
+                Stream fakeSavedFileStream = TestPackage.CreateTestPackageStream(packageId, version);
 
                 var fakeUploadFileService = new Mock<IUploadFileService>();
                 fakeUploadFileService.Setup(x => x.DeleteUploadFileAsync(currentUser.Key)).Returns(Task.FromResult(0));
@@ -4584,7 +4584,7 @@ namespace NuGetGallery
 
                 var fakeUploadedFile = new Mock<HttpPostedFileBase>();
                 fakeUploadedFile.Setup(x => x.FileName).Returns("theFile.nupkg");
-                var fakeFileStream = TestPackage.CreateTestPackageStream(id, version);
+                Stream fakeFileStream = TestPackage.CreateTestPackageStream(id, version);
                 fakeUploadedFile.Setup(x => x.InputStream).Returns(fakeFileStream);
                 var fakePackageService = new Mock<IPackageService>();
                 fakePackageService.Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>())).Returns(
@@ -4653,7 +4653,7 @@ namespace NuGetGallery
             {
                 var fakeUploadedFile = new Mock<HttpPostedFileBase>();
                 fakeUploadedFile.Setup(x => x.FileName).Returns("theFile.nupkg");
-                var fakeFileStream = TestPackage.CreateTestPackageStream("thePackageId", "1.0.0");
+                Stream fakeFileStream = TestPackage.CreateTestPackageStream("thePackageId", "1.0.0");
                 fakeUploadedFile.Setup(x => x.InputStream).Returns(fakeFileStream);
                 var fakeUploadFileService = new Mock<IUploadFileService>();
                 fakeUploadFileService.Setup(x => x.DeleteUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.FromResult(0));
@@ -4707,7 +4707,7 @@ namespace NuGetGallery
                 var expectedMessage = "Bad package.";
                 var fakeUploadedFile = new Mock<HttpPostedFileBase>();
                 fakeUploadedFile.Setup(x => x.FileName).Returns(PackageId + ".nupkg");
-                var fakeFileStream = TestPackage.CreateTestPackageStream(PackageId, PackageVersion);
+                Stream fakeFileStream = TestPackage.CreateTestPackageStream(PackageId, PackageVersion);
                 fakeUploadedFile.Setup(x => x.InputStream).Returns(fakeFileStream);
                 var fakeUploadFileService = new Mock<IUploadFileService>();
                 fakeUploadFileService.Setup(x => x.DeleteUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.FromResult(0));
@@ -4741,7 +4741,7 @@ namespace NuGetGallery
                 var expectedMessage = "Iffy package.";
                 var fakeUploadedFile = new Mock<HttpPostedFileBase>();
                 fakeUploadedFile.Setup(x => x.FileName).Returns(PackageId + ".nupkg");
-                var fakeFileStream = TestPackage.CreateTestPackageStream(PackageId, PackageVersion);
+                Stream fakeFileStream = TestPackage.CreateTestPackageStream(PackageId, PackageVersion);
                 fakeUploadedFile.Setup(x => x.InputStream).Returns(fakeFileStream);
                 var fakeUploadFileService = new Mock<IUploadFileService>();
                 fakeUploadFileService.Setup(x => x.DeleteUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.FromResult(0));
@@ -4955,7 +4955,7 @@ namespace NuGetGallery
                 };
                 var fakeUploadedFile = new Mock<HttpPostedFileBase>();
                 fakeUploadedFile.Setup(x => x.FileName).Returns("theFile.snupkg");
-                var fakeFileStream = TestPackage.CreateTestSymbolPackageStream(packageId, "1.0.0");
+                Stream fakeFileStream = TestPackage.CreateTestSymbolPackageStream(packageId, "1.0.0");
                 fakeUploadedFile.Setup(x => x.InputStream).Returns(fakeFileStream);
                 var fakeUploadFileService = new Mock<IUploadFileService>();
                 fakeUploadFileService

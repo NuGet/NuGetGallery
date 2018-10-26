@@ -1049,4 +1049,7 @@ The {1} Team</value>
     <value>Unsupported license version '{0}'. The only supported license version is 1.0.0.</value>
     <comment>{0} is the license version text from nuspec</comment>
   </data>
+  <data name="UploadPackage_CorruptNupkg" xml:space="preserve">
+    <value>Package file is corrupt.</value>
+  </data>
 </root>
