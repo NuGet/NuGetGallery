@@ -266,12 +266,16 @@ Function Invoke-FxCop {
         }
         
         if ($FxCopRuleSet) {
-            $items = Get-ChildItem $(Join-Path $FxCopDirectory $FxCopRuleSet) -Recurse
+            # To support overrides, look for ruleset in build tools first and then fxcop directory.
+            $items = Get-ChildItem $(Join-Path $PSScriptRoot $FxCopRuleSet) -Recurse
+            if ($items.Count -eq 0) {
+                $items = Get-ChildItem $(Join-Path $FxCopDirectory $FxCopRuleSet) -Recurse
+            }
             
             if ($items.Count -gt 0) {
                 $env:FXCOP_RULESET = $items[0]
                 $env:FXCOP_RULESET_DIRECTORY = $($items[0]).Directory
-                Trace-Log "Discovered FXCOP_RULESET=$FxCopRuleSetFullPath"
+                Trace-Log "Discovered FXCOP_RULESET=$($items[0])"
             }
             else {
                 throw "Failed to find $FxCopRuleSet under $FxCopDirectory"
