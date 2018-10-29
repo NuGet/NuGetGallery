@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Moq;
 using NuGet.Services.Metadata.Catalog.Persistence;
@@ -85,6 +86,27 @@ namespace CatalogTests.Persistence
 
             Assert.Same(expectedStream, actualStream);
 
+            _underlyingBlob.VerifyAll();
+        }
+
+        [Fact]
+        public async Task SetPropertiesAsync_CallsUnderlyingMethod()
+        {
+            // Arrange
+            var blob = new AzureCloudBlockBlob(_underlyingBlob.Object);
+
+            var accessCondition = AccessCondition.GenerateEmptyCondition();
+            var options = new BlobRequestOptions();
+            var operationContext = new OperationContext();
+
+            _underlyingBlob
+                .Setup(b => b.SetPropertiesAsync(accessCondition, options, operationContext))
+                .Returns(Task.CompletedTask);
+
+            // Act
+            await blob.SetPropertiesAsync(accessCondition, options, operationContext);
+
+            // Assert
             _underlyingBlob.VerifyAll();
         }
     }

@@ -9,7 +9,7 @@ param (
     [string]$SemanticVersion = '1.0.0-zlocal',
     [string]$Branch,
     [string]$CommitSHA,
-    [string]$BuildBranch = '795fed66b8bae2d248237ee5ec82e688e7174a42'
+    [string]$BuildBranch = '5fd8377a9abf3ff411918dbb973948a6677432db'
 )
 
 # For TeamCity - If any issue occurs, this script fails the build. - By default, TeamCity returns an exit code of 0 for all powershell scripts, even if they fail
@@ -105,7 +105,8 @@ Invoke-BuildStep 'Creating artifacts' {
         }
 
         $nuspecPackages = `
-            "src\Ng\Ng.nuspec"
+            "src\Ng\Ng.nuspec", `
+            "src\Ng\Ng.Operations.nuspec"
 
         $nuspecPackages | ForEach-Object {
             New-Package (Join-Path $PSScriptRoot $_) -Configuration $Configuration -BuildNumber $BuildNumber -Version $SemanticVersion -Branch $Branch

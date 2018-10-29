@@ -4,8 +4,8 @@
 using System.Collections.Generic;
 using Lucene.Net.Search;
 using Lucene.Net.Util;
-using NuGet.Indexing;
 using Lucene.Net.Documents;
+using NuGet.Indexing;
 using NuGet.Versioning;
 
 namespace NuGet.IndexingTests.TestSupport

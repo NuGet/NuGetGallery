@@ -7,6 +7,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 
 namespace NuGet.Services.Metadata.Catalog.Persistence
@@ -14,6 +15,15 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
     public sealed class AzureCloudBlockBlob : ICloudBlockBlob
     {
         private readonly CloudBlockBlob _blob;
+
+        /// <summary>
+        /// The Base64 encoded MD5 hash of the blob's content
+        /// </summary>
+        public string ContentMD5
+        {
+            get => _blob.Properties.ContentMD5;
+            set => _blob.Properties.ContentMD5 = value;
+        }
 
         public string ETag => _blob.Properties.ETag;
         public Uri Uri => _blob.Uri;
@@ -42,6 +52,11 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         public async Task<Stream> GetStreamAsync(CancellationToken cancellationToken)
         {
             return await _blob.OpenReadAsync(cancellationToken);
+        }
+
+        public async Task SetPropertiesAsync(AccessCondition accessCondition, BlobRequestOptions options, OperationContext operationContext)
+        {
+            await _blob.SetPropertiesAsync(accessCondition, options, operationContext);
         }
     }
 }
