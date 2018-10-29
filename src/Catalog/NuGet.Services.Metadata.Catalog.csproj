@@ -89,11 +89,14 @@
     <Compile Include="CommitCollector.cs" />
     <Compile Include="CommitMetadata.cs" />
     <Compile Include="Constants.cs" />
+    <Compile Include="FixPackageHashHandler.cs" />
     <Compile Include="Dnx\DnxConstants.cs" />
     <Compile Include="Dnx\DnxEntry.cs" />
     <Compile Include="Helpers\AsyncExtensions.cs" />
     <Compile Include="Helpers\PackageUtility.cs" />
+    <Compile Include="ICatalogIndexProcessor.cs" />
     <Compile Include="IPackageCatalogItemCreator.cs" />
+    <Compile Include="IPackagesContainerHandler.cs" />
     <Compile Include="PackageCatalogItemCreator.cs" />
     <Compile Include="PackageDownloader.cs" />
     <Compile Include="Helpers\CatalogProperties.cs" />
@@ -114,6 +117,7 @@
     <Compile Include="ReadOnlyGraph.cs" />
     <Compile Include="Persistence\StorageListItem.cs" />
     <Compile Include="Registration\FlatContainerPackagePathProvider.cs" />
+    <Compile Include="PackagesContainerCatalogProcessor.cs" />
     <Compile Include="SortingIdVersionCollector.cs" />
     <Compile Include="SortingIdCollector.cs" />
     <Compile Include="StringInterner.cs" />
@@ -155,6 +159,7 @@
     <Compile Include="SortingCollector.cs" />
     <Compile Include="SortingGraphCollector.cs" />
     <Compile Include="StorageWriteLock.cs" />
+    <Compile Include="ValidatePackageHashHandler.cs" />
     <Compile Include="VerboseFileSystemEmulatorHandler.cs" />
     <Compile Include="VerboseHandler.cs" />
     <Compile Include="CollectorBase.cs" />

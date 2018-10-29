@@ -86,6 +86,10 @@ namespace Ng
         public const string FlatContainerName = "flatContainerName";
         #endregion
 
+        #region Catalog2PackageFixup
+        public const string Verify = "verify";
+        #endregion
+
         #region CopyLucene
         public const string DestDirectoryType = "destDirectoryType";
         public const string DestPath = "destPath";

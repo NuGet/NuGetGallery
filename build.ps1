@@ -105,7 +105,8 @@ Invoke-BuildStep 'Creating artifacts' {
         }
 
         $nuspecPackages = `
-            "src\Ng\Ng.nuspec"
+            "src\Ng\Ng.nuspec", `
+            "src\Ng\Ng.Operations.nuspec"
 
         $nuspecPackages | ForEach-Object {
             New-Package (Join-Path $PSScriptRoot $_) -Configuration $Configuration -BuildNumber $BuildNumber -Version $SemanticVersion -Branch $Branch
