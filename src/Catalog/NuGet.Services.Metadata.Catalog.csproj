@@ -202,9 +202,6 @@
     <EmbeddedResource Include="sparql\ConstructPackagePageContentGraph.rq" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="content\further.js" />
-    <Content Include="content\jsonld.js" />
-    <Content Include="content\Promise.js" />
     <EmbeddedResource Include="Strings.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Strings.Designer.cs</LastGenOutput>
@@ -235,6 +232,11 @@
     <WCFMetadata Include="Connected Services\" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="MicroBuild.Core">
+      <Version>0.3.0</Version>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
     <PackageReference Include="dotNetRDF">
       <Version>1.0.8.3533</Version>
     </PackageReference>
@@ -273,6 +275,9 @@
     <SignPath>..\..\build</SignPath>
     <SignPath Condition="'$(BUILD_SOURCESDIRECTORY)' != ''">$(BUILD_SOURCESDIRECTORY)\build</SignPath>
     <SignPath Condition="'$(NuGetBuildPath)' != ''">$(NuGetBuildPath)</SignPath>
+    <SignType Condition="'$(SignType)' == ''">none</SignType>
   </PropertyGroup>
   <Import Project="$(SignPath)\sign.targets" Condition="Exists('$(SignPath)\sign.targets')" />
+  <Import Project="$(SignPath)\sign.microbuild.targets" Condition="Exists('$(SignPath)\sign.microbuild.targets')" />
+  <Import Project="..\..\sign.thirdparty.targets" />
 </Project>
