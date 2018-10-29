@@ -118,19 +118,20 @@ namespace CatalogTests.Helpers
             var stream = TestHelper.GetStream("Newtonsoft.Json.9.0.2-beta1.nupkg");
             var metadata = Utils.GetNupkgMetadata(stream, packageHash: null);
             var baseUrl = "http://example/";
+            var uriNodeName = new Uri(String.Concat(baseUrl, "newtonsoft.json.9.0.2-beta1.json"));
 
-            // Actq
+            // Act
             var graph = Utils.CreateNuspecGraph(metadata.Nuspec, baseUrl, normalizeXml: true);
             var licenseFileTriples = graph.GetTriplesWithSubjectPredicate(
-                graph.CreateUriNode(new Uri(String.Concat(baseUrl, "newtonsoft.json.9.0.2-beta1.json"))),
+                graph.CreateUriNode(uriNodeName),
                 graph.CreateUriNode(new Uri(String.Concat(Schema.Prefixes.NuGet + "licenseFile")))
                 );
             var licenseExpressionTriples = graph.GetTriplesWithSubjectPredicate(
-                graph.CreateUriNode(new Uri(String.Concat(baseUrl, "newtonsoft.json.9.0.2-beta1.json"))),
+                graph.CreateUriNode(uriNodeName),
                 graph.CreateUriNode(new Uri(String.Concat(Schema.Prefixes.NuGet + "licenseExpression")))
                 );
             var licenseUrlTriples = graph.GetTriplesWithSubjectPredicate(
-                graph.CreateUriNode(new Uri(String.Concat(baseUrl, "newtonsoft.json.9.0.2-beta1.json"))),
+                graph.CreateUriNode(uriNodeName),
                 graph.CreateUriNode(Schema.Predicates.LicenseUrl)
                 );
             
@@ -149,16 +150,22 @@ namespace CatalogTests.Helpers
             var stream = TestHelper.GetStream(packageName);
             var metadata = Utils.GetNupkgMetadata(stream, packageHash: null);
             var baseUrl = "http://example/";
+            var uriNodeName = new Uri(String.Concat(baseUrl, "testpackage.license.0.1.0.json"));
 
             // Act
             var graph = Utils.CreateNuspecGraph(metadata.Nuspec, baseUrl, normalizeXml: true);
             var licenseTriples = graph.GetTriplesWithSubjectPredicate(
-                graph.CreateUriNode(new Uri(String.Concat(baseUrl, "testpackage.license.0.1.0.json"))),
+                graph.CreateUriNode(uriNodeName),
                 graph.CreateUriNode(new Uri(String.Concat(Schema.Prefixes.NuGet, licenseType)))
                 );
+            var licenseUrlTriples = graph.GetTriplesWithSubjectPredicate(
+                graph.CreateUriNode(uriNodeName),
+                graph.CreateUriNode(Schema.Predicates.LicenseUrl)
+                );
             var result = (LiteralNode)licenseTriples.First().Object;
-            
+
             // Assert
+            Assert.Equal(0, licenseUrlTriples.Count());
             Assert.Equal(1, licenseTriples.Count());
             Assert.Equal(licenseContent, result.Value);
         }

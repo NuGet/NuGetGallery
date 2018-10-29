@@ -176,10 +176,10 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="TestData\TestPackage.LicenseExpression.0.1.0.nupkg">
-	 <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+     <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="TestData\TestPackage.LicenseFile.0.1.0.nupkg">
-	 <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+     <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="TestData\TestPackage.SemVer2.1.0.0-alpha.1.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
