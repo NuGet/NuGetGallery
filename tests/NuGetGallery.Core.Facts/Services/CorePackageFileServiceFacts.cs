@@ -818,7 +818,7 @@ namespace NuGetGallery
                 var packageRegistration = new PackageRegistration { Id = "theId" };
                 var package = new Package { PackageRegistration = packageRegistration, NormalizedVersion = null, Version = "01.01.01", EmbeddedLicenseType = licenseFileType };
 
-                fileStorageSvc.Setup(x => x.SaveFileAsync(CoreConstants.PackagesContentFolderName, BuildLicenseFileName("theId", "1.1.1"), expectedContentType, It.IsAny<Stream>(), false))
+                fileStorageSvc.Setup(x => x.SaveFileAsync(CoreConstants.PackagesContentFolderName, BuildLicenseFileName("theId", "1.1.1"), expectedContentType, It.IsAny<Stream>(), true))
                     .Completes()
                     .Verifiable();
 
