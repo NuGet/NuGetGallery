@@ -424,6 +424,26 @@ namespace NuGetGallery
             }
 
             [Fact]
+            private async Task WillThrowWhenThePackageRegistrationAndVersionAlreadyExists()
+            {
+                var currentUser = new User();
+                var packageId = "theId";
+                var packageVersion = "1.0.32";
+                var nugetPackage = PackageServiceUtility.CreateNuGetPackage(packageId, packageVersion);
+                var packageRegistration = new PackageRegistration
+                {
+                    Id = packageId,
+                    Owners = new HashSet<User> { currentUser },
+                };
+                packageRegistration.Packages.Add(new Package() { Version = packageVersion });
+                var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>();
+                var service = CreateService(packageRegistrationRepository: packageRegistrationRepository, setup:
+                        mockPackageService => { mockPackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns(packageRegistration); });
+
+                await Assert.ThrowsAsync<PackageAlreadyExistsException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), currentUser, currentUser, isVerified: false));
+            }
+
+            [Fact]
             private async Task WillThrowIfTheNuGetPackageIdIsLongerThanMaxPackageIdLength()
             {
                 var service = CreateService();
