@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net.Mail;
 using Moq;
@@ -12,28 +11,12 @@ namespace NuGet.Services.Messaging.Email.Tests
 {
     public class AsynchronousEmailMessageServiceFacts
     {
-        protected static readonly IMessageServiceConfiguration Configuration = new TestMessageServiceConfiguration();
-
         public class TheConstructor
         {
-            public static IEnumerable<object[]> ConstructorArguments
+            [Fact]
+            public void GivenANullEnqueuer_ItShouldThrow()
             {
-                get
-                {
-                    yield return new object[] { null, new Mock<IEmailMessageEnqueuer>().Object };
-                    yield return new object[] { Configuration, null };
-                }
-            }
-
-            [Theory]
-            [MemberData(nameof(ConstructorArguments))]
-            public void GivenANullArgument_ItShouldThrow(
-                IMessageServiceConfiguration configuration,
-                IEmailMessageEnqueuer emailMessageEnqueuer)
-            {
-                Assert.Throws<ArgumentNullException>(() => new AsynchronousEmailMessageService(
-                    configuration,
-                    emailMessageEnqueuer));
+                Assert.Throws<ArgumentNullException>(() => new AsynchronousEmailMessageService(null));
             }
         }
 
@@ -43,9 +26,7 @@ namespace NuGet.Services.Messaging.Email.Tests
             public void ThrowsArgumentNullExceptionForNullEmailBuilder()
             {
                 var emailMessageEnqueuer = new Mock<IEmailMessageEnqueuer>().Object;
-                var messageService = new AsynchronousEmailMessageService(
-                    Configuration,
-                    emailMessageEnqueuer);
+                var messageService = new AsynchronousEmailMessageService(emailMessageEnqueuer);
 
                 Assert.ThrowsAsync<ArgumentNullException>(() => messageService.SendMessageAsync(null, It.IsAny<bool>(), It.IsAny<bool>()));
             }
@@ -60,9 +41,7 @@ namespace NuGet.Services.Messaging.Email.Tests
                     .Verifiable();
 
                 var emailMessageEnqueuerMock = new Mock<IEmailMessageEnqueuer>();
-                var messageService = new AsynchronousEmailMessageService(
-                    Configuration,
-                    emailMessageEnqueuerMock.Object);
+                var messageService = new AsynchronousEmailMessageService(emailMessageEnqueuerMock.Object);
 
                 messageService.SendMessageAsync(emailBuilder.Object, false, false);
 
@@ -100,9 +79,7 @@ namespace NuGet.Services.Messaging.Email.Tests
                      .Verifiable();
 
                 var emailMessageEnqueuerMock = new Mock<IEmailMessageEnqueuer>();
-                var messageService = new AsynchronousEmailMessageService(
-                    Configuration,
-                    emailMessageEnqueuerMock.Object);
+                var messageService = new AsynchronousEmailMessageService(emailMessageEnqueuerMock.Object);
 
                 Assert.ThrowsAsync<ArgumentException>(() => messageService.SendMessageAsync(emailBuilder.Object, false, false));
 
@@ -128,9 +105,7 @@ namespace NuGet.Services.Messaging.Email.Tests
                      .Verifiable();
 
                 var emailMessageEnqueuerMock = new Mock<IEmailMessageEnqueuer>();
-                var messageService = new AsynchronousEmailMessageService(
-                    Configuration,
-                    emailMessageEnqueuerMock.Object);
+                var messageService = new AsynchronousEmailMessageService(emailMessageEnqueuerMock.Object);
 
                 Assert.ThrowsAsync<ArgumentException>(() => messageService.SendMessageAsync(emailBuilder.Object, false, false));
 
@@ -180,9 +155,7 @@ namespace NuGet.Services.Messaging.Email.Tests
                      .Verifiable();
 
                 var emailMessageEnqueuerMock = new Mock<IEmailMessageEnqueuer>();
-                var messageService = new AsynchronousEmailMessageService(
-                    Configuration,
-                    emailMessageEnqueuerMock.Object);
+                var messageService = new AsynchronousEmailMessageService(emailMessageEnqueuerMock.Object);
 
                 messageService.SendMessageAsync(emailBuilder.Object, false, false);
 

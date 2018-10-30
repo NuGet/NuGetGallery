@@ -10,14 +10,10 @@ namespace NuGet.Services.Messaging.Email
 {
     public class AsynchronousEmailMessageService : IMessageService
     {
-        private readonly IMessageServiceConfiguration _configuration;
         private readonly IEmailMessageEnqueuer _emailMessageEnqueuer;
 
-        public AsynchronousEmailMessageService(
-            IMessageServiceConfiguration configuration,
-            IEmailMessageEnqueuer emailMessageEnqueuer)
+        public AsynchronousEmailMessageService(IEmailMessageEnqueuer emailMessageEnqueuer)
         {
-            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             _emailMessageEnqueuer = emailMessageEnqueuer ?? throw new ArgumentNullException(nameof(emailMessageEnqueuer));
         }
 
