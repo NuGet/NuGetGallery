@@ -1,6 +1,14 @@
 ﻿<script type="text/html" id="validation-errors">
     <div data-bind="foreach:$data" class="validation-error-message-list">
-        @ViewHelpers.AlertDanger(@<text><span data-bind="text:$data"></span></text>)
+        @ViewHelpers.AlertDanger(
+            @<text>
+                <!-- ko if: $data.PlainTextMessage -->
+                <span data-bind="text:$data.PlainTextMessage"></span>
+                <!-- /ko -->
+                <!-- ko ifnot: $data.PlainTextMessage -->
+                <span data-bind="html:$data.RawHtmlMessage"></span>
+                <!-- /ko -->
+            </text>)
     </div>
 </script>
 
@@ -46,14 +54,19 @@
         <div data-bind="if: $data">
             <!-- ko if: $data.Warnings && $data.Warnings.length > 0 -->
             @ViewHelpers.AlertWarning(
-                            @<span>
-                                We found the following issue(s):
-                                <ul data-bind="foreach: $data.Warnings">
-                                    <li><span data-bind="text: $data"></span></li>
-                                </ul>
-                                We recommend that you fix these issues and upload a new package.
-                                <a href="https://docs.microsoft.com/en-us/nuget/policies/nuget-faq#managing-packages-on-nugetorg" alt="Read more">Read more</a><br />
-                            </span>)
+                @<span>
+                    We found the following issue(s):
+                    <ul data-bind="foreach: $data.Warnings">
+                        <!-- ko if: $data.PlainTextMessage -->
+                        <li><span data-bind="text: $data.PlainTextMessage"></span></li>
+                        <!-- /ko -->
+                        <!-- ko ifnot: $data.PlainTextMessage -->
+                        <li><span data-bind="text: $data.RawHtmlMessage"></span></li>
+                        <!-- /ko -->
+                    </ul>
+                    We recommend that you fix these issues and upload a new package.
+                    <a href="https://docs.microsoft.com/en-us/nuget/policies/nuget-faq#managing-packages-on-nugetorg" alt="Read more">Read more</a><br />
+                </span>)
             <!-- /ko -->
 
             <div class="verify-package-field">
