@@ -120,22 +120,11 @@ Invoke-BuildStep 'Creating artifacts' { `
             "src\NuGet.Services.Entities\NuGet.Services.Entities.csproj"
             
         $projects | ForEach-Object {
-            New-Package (Join-Path $PSScriptRoot $_) -Configuration $Configuration -Symbols -IncludeReferencedProjects -MSBuildVersion "15"
+            New-ProjectPackage (Join-Path $PSScriptRoot $_) -Configuration $Configuration -Symbols -BuildNumber $BuildNumber -Version $SemanticVersion -PackageId $packageId
         }
     } `
     -ev +BuildErrors
 
-Invoke-BuildStep 'Patching versions of artifacts' {`
-        $NupkgWrenchExe = (Join-Path $PSScriptRoot "packages\NupkgWrench\tools\NupkgWrench.exe")
-        
-        Trace-Log "Patching versions of NuGet packages to $SemanticVersion"
-        
-        & $NupkgWrenchExe release "$Artifacts" --new-version $SemanticVersion
-        
-        Trace-Log "Done"
-    }`
-    -ev +BuildErrors
-    
 Trace-Log ('-' * 60)
 
 ## Calculating Build time
