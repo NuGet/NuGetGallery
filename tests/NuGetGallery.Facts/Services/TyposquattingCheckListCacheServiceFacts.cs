@@ -75,7 +75,7 @@ namespace NuGetGallery
             var newService = new TyposquattingCheckListCacheService();
 
             // Act
-            var exception = Assert.Throws<ArgumentNullException>(
+            var exception = Assert.Throws<ArgumentOutOfRangeException>(
                 () => newService.GetTyposquattingCheckList(checkListLength, mockPackageService.Object));
 
             // Assert
