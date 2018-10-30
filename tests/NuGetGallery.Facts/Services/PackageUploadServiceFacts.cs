@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data.Entity.Infrastructure;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -1035,6 +1036,27 @@ namespace NuGetGallery
                     x => x.DeletePackageFileAsync(It.IsAny<string>(), It.IsAny<string>()),
                     Times.Once);
                 Assert.Same(_unexpectedException, exception);
+            }
+
+            [Fact]
+            public async Task ReturnsConflictWhenDBCommitThrowsConcurrencyViolations()
+            {
+                _package.PackageStatusKey = PackageStatus.Available;
+                var ex = new DbUpdateConcurrencyException("whoops!");
+                _entitiesContext
+                    .Setup(x => x.SaveChangesAsync())
+                    .Throws(ex);
+
+                var result = await _target.CommitPackageAsync(_package, _packageFile);
+
+                _packageFileService.Verify(
+                    x => x.DeletePackageFileAsync(Id, Version),
+                    Times.Once);
+                _packageFileService.Verify(
+                    x => x.DeletePackageFileAsync(It.IsAny<string>(), It.IsAny<string>()),
+                    Times.Once);
+
+                Assert.Equal(PackageCommitResult.Conflict, result);
             }
 
             [Fact]

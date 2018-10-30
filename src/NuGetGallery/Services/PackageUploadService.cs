@@ -3,6 +3,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data.Entity.Infrastructure;
+using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -427,7 +429,7 @@ namespace NuGetGallery
                 // commit all changes to database as an atomic transaction
                 await _entitiesContext.SaveChangesAsync();
             }
-            catch
+            catch (Exception ex)
             {
                 // If saving to the DB fails for any reason we need to delete the package we just saved.
                 if (package.PackageStatusKey == PackageStatus.Validating)
@@ -443,10 +445,36 @@ namespace NuGetGallery
                         package.Version);
                 }
 
-                throw;
+                return ReturnConflictOrThrow(ex);
             }
 
             return PackageCommitResult.Success;
+        }
+
+        private PackageCommitResult ReturnConflictOrThrow(Exception ex)
+        {
+            if (ex is DbUpdateConcurrencyException concurrencyEx)
+            {
+                return PackageCommitResult.Conflict;
+            }
+            else if (ex is DbUpdateException dbUpdateEx)
+            {
+                if (dbUpdateEx.InnerException?.InnerException != null)
+                {
+                    if (dbUpdateEx.InnerException.InnerException is SqlException sqlException)
+                    {
+                        switch (sqlException.Number)
+                        {
+                            case 547:   // Constraint check violation
+                            case 2601:  // Duplicated key row error
+                            case 2627:  // Unique constraint error
+                                return PackageCommitResult.Conflict;
+                        }
+                    }
+                }
+            }
+
+            throw ex;
         }
     }
 }
