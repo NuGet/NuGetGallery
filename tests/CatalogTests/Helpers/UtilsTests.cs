@@ -142,9 +142,11 @@ namespace CatalogTests.Helpers
         }
 
         [Theory]
-        [InlineData("TestPackage.LicenseExpression.0.1.0.nupkg", "licenseExpression", "MIT")]
-        [InlineData("TestPackage.LicenseFile.0.1.0.nupkg", "licenseFile", "license.txt")]
-        public void GetNupkgMetadataWithLicenseType_ReturnsLicense(string packageName, string licenseType, string licenseContent)
+        [InlineData("TestPackage.LicenseExpression.0.1.0.nupkg", "licenseExpression", "MIT", 0)]
+        [InlineData("TestPackage.LicenseFile.0.1.0.nupkg", "licenseFile", "license.txt", 0)]
+        [InlineData("TestPackage.LicenseExpressionAndUrl.0.1.0.nupkg", "licenseExpression", "MIT", 1)]
+        [InlineData("TestPackage.LicenseFileAndUrl.0.1.0.nupkg", "licenseFile", "license.txt", 1)]
+        public void GetNupkgMetadataWithLicenseType_ReturnsLicense(string packageName, string licenseType, string licenseContent, int expectedLicenseUrlNumber)
         {
             // Arrange
             var stream = TestHelper.GetStream(packageName);
@@ -165,7 +167,7 @@ namespace CatalogTests.Helpers
             var result = (LiteralNode)licenseTriples.First().Object;
 
             // Assert
-            Assert.Equal(0, licenseUrlTriples.Count());
+            Assert.Equal(expectedLicenseUrlNumber, licenseUrlTriples.Count());
             Assert.Equal(1, licenseTriples.Count());
             Assert.Equal(licenseContent, result.Value);
         }
