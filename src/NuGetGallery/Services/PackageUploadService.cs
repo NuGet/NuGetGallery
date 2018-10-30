@@ -46,7 +46,7 @@ namespace NuGetGallery
 
         public async Task<PackageValidationResult> ValidateBeforeGeneratePackageAsync(PackageArchiveReader nuGetPackage, PackageMetadata packageMetadata)
         {
-            var warnings = new List<string>();
+            var warnings = new List<IValidationMessage>();
 
             var result = await CheckPackageEntryCountAsync(nuGetPackage, warnings);
 
@@ -119,7 +119,7 @@ namespace NuGetGallery
 
         private async Task<PackageValidationResult> CheckPackageEntryCountAsync(
             PackageArchiveReader nuGetPackage,
-            List<string> warnings)
+            List<IValidationMessage> warnings)
         {
             if (!_config.RejectPackagesWithTooManyPackageEntries)
             {
@@ -150,7 +150,7 @@ namespace NuGetGallery
         /// 1. If the type is "git" - allow the URL scheme "git://" or "https://". We will translate "git://" to "https://" at display time for known domains.
         /// 2. For types other then "git" - URL scheme should be "https://"
         /// </summary>
-        private PackageValidationResult CheckRepositoryMetadata(PackageMetadata packageMetadata, List<string> warnings)
+        private PackageValidationResult CheckRepositoryMetadata(PackageMetadata packageMetadata, List<IValidationMessage> warnings)
         {
             if (packageMetadata.RepositoryUrl == null)
             {
@@ -162,14 +162,14 @@ namespace NuGetGallery
             {
                 if (!packageMetadata.RepositoryUrl.IsGitProtocol() && !packageMetadata.RepositoryUrl.IsHttpsProtocol())
                 {
-                    warnings.Add(Strings.WarningNotHttpsOrGitRepositoryUrlScheme);
+                    warnings.Add(new PlainTextOnlyValidationMessage(Strings.WarningNotHttpsOrGitRepositoryUrlScheme));
                 }
             }
             else
             {
                 if (!packageMetadata.RepositoryUrl.IsHttpsProtocol())
                 {
-                    warnings.Add(Strings.WarningNotHttpsRepositoryUrlScheme);
+                    warnings.Add(new PlainTextOnlyValidationMessage(Strings.WarningNotHttpsRepositoryUrlScheme));
                 }
             }
 
@@ -187,7 +187,7 @@ namespace NuGetGallery
         /// <returns>The package validation result or null.</returns>
         private async Task<PackageValidationResult> CheckForUnsignedPushAfterAuthorSignedAsync(
             PackageArchiveReader nuGetPackage,
-            List<string> warnings)
+            List<IValidationMessage> warnings)
         {
             // If the package is signed, there's no problem.
             if (await nuGetPackage.IsSignedAsync(CancellationToken.None))
@@ -218,9 +218,10 @@ namespace NuGetGallery
 
             if (previousPackage != null && previousPackage.CertificateKey.HasValue)
             {
-                warnings.Add(string.Format(
-                    Strings.UploadPackage_SignedToUnsignedTransition,
-                    previousPackage.Version.ToNormalizedString()));
+                warnings.Add(new PlainTextOnlyValidationMessage(
+                    string.Format(
+                        Strings.UploadPackage_SignedToUnsignedTransition,
+                        previousPackage.Version.ToNormalizedString())));
             }
 
             return null;
@@ -269,14 +270,11 @@ namespace NuGetGallery
                     {
                         if (requiredSigner == currentUser)
                         {
-                            return new PackageValidationResult(
-                                PackageValidationResultType.PackageShouldNotBeSignedButCanManageCertificates,
-                                Strings.UploadPackage_PackageIsSignedButMissingCertificate_CurrentUserCanManageCertificates);
+                            return PackageValidationResult.Invalid(new PackageShouldNotBeSignedUserFixableValidationMessage());
                         }
                         else
                         {
-                            return new PackageValidationResult(
-                               PackageValidationResultType.PackageShouldNotBeSigned,
+                            return PackageValidationResult.Invalid(
                                string.Format(
                                    Strings.UploadPackage_PackageIsSignedButMissingCertificate_RequiredSigner,
                                    requiredSigner.Username));
@@ -293,14 +291,11 @@ namespace NuGetGallery
                         // someone else for help.
                         if (isCurrentUserAnOwner)
                         {
-                            return new PackageValidationResult(
-                                PackageValidationResultType.PackageShouldNotBeSignedButCanManageCertificates,
-                                Strings.UploadPackage_PackageIsSignedButMissingCertificate_CurrentUserCanManageCertificates);
+                            return PackageValidationResult.Invalid(new PackageShouldNotBeSignedUserFixableValidationMessage());
                         }
                         else
                         {
-                            return new PackageValidationResult(
-                                PackageValidationResultType.PackageShouldNotBeSigned,
+                            return PackageValidationResult.Invalid(
                                 string.Format(
                                     Strings.UploadPackage_PackageIsSignedButMissingCertificate_RequiredSigner,
                                     owner.Username));
