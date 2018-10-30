@@ -40,22 +40,22 @@ namespace NuGetGallery
             Mock<IContentObjectService> contentObjectService = null,
             Mock<IReservedNamespaceService> reservedNamespaceService = null,
             Mock<ITelemetryService> telemetryService = null,
-            TyposquattingCheckListCache typosquattingCheckListCache = null)
+            Mock<ITyposquattingCheckListCacheService> typosquattingCheckListCacheService = null)
         {
             if (packageService == null)
             {
                 packageService = new Mock<IPackageService>();
                 packageService
-                .Setup(x => x.GetAllPackageRegistrations())
-                .Returns(PacakgeRegistrationsList);
+                    .Setup(x => x.GetAllPackageRegistrations())
+                    .Returns(PacakgeRegistrationsList);
             }
 
             if (contentObjectService == null)
             {
                 contentObjectService = new Mock<IContentObjectService>();
                 contentObjectService
-                 .Setup(x => x.TyposquattingConfiguration.PackageIdChecklistLength)
-                 .Returns(20000);
+                    .Setup(x => x.TyposquattingConfiguration.PackageIdChecklistLength)
+                    .Returns(20000);
                 contentObjectService
                 .Setup(x => x.TyposquattingConfiguration.IsCheckEnabled)
                 .Returns(true);
@@ -68,8 +68,8 @@ namespace NuGetGallery
             {
                 reservedNamespaceService = new Mock<IReservedNamespaceService>();
                 reservedNamespaceService
-                .Setup(x => x.GetReservedNamespacesForId(It.IsAny<string>()))
-                .Returns(new List<ReservedNamespace>());
+                    .Setup(x => x.GetReservedNamespacesForId(It.IsAny<string>()))
+                    .Returns(new List<ReservedNamespace>());
             }
 
             if (telemetryService == null)
@@ -77,12 +77,15 @@ namespace NuGetGallery
                 telemetryService = new Mock<ITelemetryService>();
             }
 
-            if (typosquattingCheckListCache == null)
+            if (typosquattingCheckListCacheService == null)
             {
-                typosquattingCheckListCache = new TyposquattingCheckListCache();
+                typosquattingCheckListCacheService = new Mock<ITyposquattingCheckListCacheService>();
+                typosquattingCheckListCacheService
+                    .Setup(x => x.GetTyposquattingCheckList(It.IsAny<int>(), It.IsAny<IPackageService>()))
+                    .Returns(PacakgeRegistrationsList.Select(pr => pr.Id).ToList());
             }
 
-            return new TyposquattingService(contentObjectService.Object, packageService.Object, reservedNamespaceService.Object, telemetryService.Object, typosquattingCheckListCache); ;
+            return new TyposquattingService(contentObjectService.Object, packageService.Object, reservedNamespaceService.Object, telemetryService.Object, typosquattingCheckListCacheService.Object);
         }
 
         [Fact]
@@ -151,10 +154,14 @@ namespace NuGetGallery
             });
             var mockPackageService = new Mock<IPackageService>();
             mockPackageService
-               .Setup(x => x.GetAllPackageRegistrations())
-               .Returns(pacakgeRegistrationsList);
+                .Setup(x => x.GetAllPackageRegistrations())
+                .Returns(pacakgeRegistrationsList);
+            var mockTyposquattingCheckListCacheService = new Mock<ITyposquattingCheckListCacheService>();
+            mockTyposquattingCheckListCacheService
+                .Setup(x => x.GetTyposquattingCheckList(It.IsAny<int>(), It.IsAny<IPackageService>()))
+                .Returns(pacakgeRegistrationsList.Select(pr => pr.Id).ToList());
 
-            var newService = CreateService(packageService: mockPackageService);
+            var newService = CreateService(packageService: mockPackageService, typosquattingCheckListCacheService: mockTyposquattingCheckListCacheService);
 
             // Act
             var typosquattingCheckResult = newService.IsUploadedPackageIdTyposquatting(uploadedPackageId, _uploadedPackageOwner, out List<string> typosquattingCheckCollisionIds);
@@ -184,10 +191,14 @@ namespace NuGetGallery
 
             var mockPackageService = new Mock<IPackageService>();
             mockPackageService
-               .Setup(x => x.GetAllPackageRegistrations())
-               .Returns(pacakgeRegistrationsList);
+                .Setup(x => x.GetAllPackageRegistrations())
+                .Returns(pacakgeRegistrationsList);
+            var mockTyposquattingCheckListCacheService = new Mock<ITyposquattingCheckListCacheService>();
+            mockTyposquattingCheckListCacheService
+                .Setup(x => x.GetTyposquattingCheckList(It.IsAny<int>(), It.IsAny<IPackageService>()))
+                .Returns(pacakgeRegistrationsList.Select(pr => pr.Id).ToList());
 
-            var newService = CreateService(packageService: mockPackageService);
+            var newService = CreateService(packageService: mockPackageService, typosquattingCheckListCacheService: mockTyposquattingCheckListCacheService);
 
             // Act
             var typosquattingCheckResult = newService.IsUploadedPackageIdTyposquatting(uploadedPackageId, _uploadedPackageOwner, out List<string> typosquattingCheckCollisionIds);
@@ -277,9 +288,13 @@ namespace NuGetGallery
             mockPackageService
                 .Setup(x => x.GetAllPackageRegistrations())
                 .Returns(new List<PackageRegistration>().AsQueryable());
+            var mockTyposquattingCheckListCacheService = new Mock<ITyposquattingCheckListCacheService>();
+            mockTyposquattingCheckListCacheService
+                .Setup(x => x.GetTyposquattingCheckList(It.IsAny<int>(), It.IsAny<IPackageService>()))
+                .Returns(new List<string>());
 
-            var newService = CreateService(packageService: mockPackageService);
-
+            var newService = CreateService(packageService: mockPackageService, typosquattingCheckListCacheService: mockTyposquattingCheckListCacheService);
+            
             // Act
             var typosquattingCheckResult = newService.IsUploadedPackageIdTyposquatting(uploadedPackageId, _uploadedPackageOwner, out List<string> typosquattingCheckCollisionIds);
 
@@ -298,10 +313,10 @@ namespace NuGetGallery
 
             var mockContentObjectService = new Mock<IContentObjectService>();
             mockContentObjectService
-             .Setup(x => x.TyposquattingConfiguration.PackageIdChecklistLength)
-             .Returns(20000);
+                .Setup(x => x.TyposquattingConfiguration.PackageIdChecklistLength)
+                .Returns(20000);
             mockContentObjectService
-                 .Setup(x => x.TyposquattingConfiguration.IsCheckEnabled)
+                .Setup(x => x.TyposquattingConfiguration.IsCheckEnabled)
                 .Returns(false);
             mockContentObjectService
                 .Setup(x => x.TyposquattingConfiguration.IsBlockUsersEnabled)
@@ -325,10 +340,10 @@ namespace NuGetGallery
 
             var mockContentObjectService = new Mock<IContentObjectService>();
             mockContentObjectService
-             .Setup(x => x.TyposquattingConfiguration.PackageIdChecklistLength)
-             .Returns(20000);
+                .Setup(x => x.TyposquattingConfiguration.PackageIdChecklistLength)
+                .Returns(20000);
             mockContentObjectService
-                 .Setup(x => x.TyposquattingConfiguration.IsCheckEnabled)
+                .Setup(x => x.TyposquattingConfiguration.IsCheckEnabled)
                 .Returns(false);
             mockContentObjectService
                 .Setup(x => x.TyposquattingConfiguration.IsBlockUsersEnabled)
@@ -351,10 +366,10 @@ namespace NuGetGallery
             var uploadedPackageId = "Microsoft_NetFramework_v1";
             var mockContentObjectService = new Mock<IContentObjectService>();
             mockContentObjectService
-             .Setup(x => x.TyposquattingConfiguration.PackageIdChecklistLength)
-             .Returns(20000);
+                .Setup(x => x.TyposquattingConfiguration.PackageIdChecklistLength)
+                .Returns(20000);
             mockContentObjectService
-                 .Setup(x => x.TyposquattingConfiguration.IsCheckEnabled)
+                .Setup(x => x.TyposquattingConfiguration.IsCheckEnabled)
                 .Returns(true);
             mockContentObjectService
                 .Setup(x => x.TyposquattingConfiguration.IsBlockUsersEnabled)
@@ -404,34 +419,6 @@ namespace NuGetGallery
             mockTelemetryService.Verify(
                 x => x.TrackMetricForTyposquattingOwnersCheckTime(uploadedPackageId, It.IsAny<TimeSpan>()),
                 Times.Once);
-        }
-
-        [Fact]
-        public void CheckTyposquattingChecklistCache()
-        {
-            // Arrange
-            var uploadedPackageId = "new_package_for_testing";
-            var mockPackageService = new Mock<IPackageService>();
-            mockPackageService
-                .Setup(x => x.GetAllPackageRegistrations())
-                .Returns(PacakgeRegistrationsList);
-
-            var newService = CreateService(packageService: mockPackageService);
-
-            int tasksNum = 3;
-            Task[] tasks = new Task[tasksNum];
-            for (int i = 0; i < tasksNum; i++)
-            {
-                tasks[i] = Task.Factory.StartNew(() =>
-                {
-                    newService.IsUploadedPackageIdTyposquatting(uploadedPackageId, _uploadedPackageOwner, out List<string> typosquattingCheckCollisionIds);
-                });
-            }
-            Task.WaitAll(tasks);
-
-            mockPackageService.Verify(
-               x => x.GetAllPackageRegistrations(),
-               Times.Once);
         }
 
         [Theory]
