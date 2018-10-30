@@ -19,8 +19,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
             Package package,
             string packageUrl,
             string htmlEncodedMessage,
-            string emailSettingsUrl,
-            bool copySender)
+            string emailSettingsUrl)
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             FromAddress = fromAddress ?? throw new ArgumentNullException(nameof(fromAddress));
@@ -28,7 +27,6 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
             PackageUrl = packageUrl ?? throw new ArgumentNullException(nameof(packageUrl));
             HtmlEncodedMessage = htmlEncodedMessage ?? throw new ArgumentNullException(nameof(htmlEncodedMessage));
             EmailSettingsUrl = emailSettingsUrl ?? throw new ArgumentNullException(nameof(emailSettingsUrl));
-            CopySender = copySender;
         }
 
         public MailAddress FromAddress { get; }
@@ -36,7 +34,6 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
         public string PackageUrl { get; }
         public string HtmlEncodedMessage { get; }
         public string EmailSettingsUrl { get; }
-        public bool CopySender { get; }
 
         public override MailAddress Sender => _configuration.GalleryOwner;
 
@@ -48,7 +45,6 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
 
             return new EmailRecipients(
                 to,
-                cc: CopySender ? new[] { FromAddress } : null,
                 replyTo: new[] { FromAddress });
         }
 
