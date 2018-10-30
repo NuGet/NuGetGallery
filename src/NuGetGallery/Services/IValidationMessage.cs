@@ -25,7 +25,7 @@ namespace NuGetGallery
 
         /// <summary>
         /// HANDLE WITH EXTREME CARE. Raw HTML representation of the message.
-        /// Under no conditions it may contain unvalidated user data.
+        /// Under no conditions may it contain unvalidated user data.
         /// </summary>
         string RawHtmlMessage { get; }
     }
