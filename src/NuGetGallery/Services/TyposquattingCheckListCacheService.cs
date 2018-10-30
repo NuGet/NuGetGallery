@@ -21,14 +21,18 @@ namespace NuGetGallery
         {
             TyposquattingCheckListLength = -1;
             DefaultExpireTime = TimeSpan.FromDays(1);
-            LastRefreshTime = DateTime.UtcNow;
+            LastRefreshTime = DateTime.MinValue;
         }
 
         public IReadOnlyCollection<string> GetTyposquattingCheckList(int checkListLength, IPackageService packageService)
         {
             if (checkListLength < 0)
             {
-                throw new ArgumentNullException(nameof(checkListLength));
+                throw new ArgumentOutOfRangeException(nameof(checkListLength));
+            }
+            if (packageService == null)
+            {
+                throw new ArgumentNullException(nameof(packageService));
             }
 
             if (Cache == null || checkListLength != TyposquattingCheckListLength || IsCheckListCacheExpired())
@@ -53,6 +57,7 @@ namespace NuGetGallery
 
             return Cache;
         }
+
         private bool IsCheckListCacheExpired()
         {
             return DateTime.UtcNow >= LastRefreshTime.Add(DefaultExpireTime);
