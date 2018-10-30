@@ -65,7 +65,7 @@
                         <!-- ko if: typeof($data) === "string" -->
                         <li><span data-bind="text: $data"></span></li>
                         <!-- /ko -->
-                        <!-- ko ifnot: typeof($data) === "string" -->
+                        <!-- ko if: typeof($data) === "object" -->
                             <!-- ko if: $data.PlainTextMessage -->
                             <li><span data-bind="text: $data.PlainTextMessage"></span></li>
                             <!-- /ko -->
