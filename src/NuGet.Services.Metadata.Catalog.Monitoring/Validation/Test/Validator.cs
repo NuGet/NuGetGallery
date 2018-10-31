@@ -15,6 +15,7 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
     /// </summary>
     public abstract class Validator : IValidator
     {
+        protected readonly ValidatorConfiguration Config;
         protected readonly ILogger<Validator> Logger;
         protected readonly Common.ILogger CommonLogger;
 
@@ -28,19 +29,19 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
             }
         }
 
-        /// <summary>
-        /// Constructor for testing purposes.
-        /// </summary>
-        protected Validator()
-        {
-        }
-
         protected Validator(
             IDictionary<FeedType, SourceRepository> feedToSource,
+            ValidatorConfiguration config,
             ILogger<Validator> logger)
         {
+            if (feedToSource == null)
+            {
+                throw new ArgumentNullException(nameof(feedToSource));
+            }
+
             _timestampMetadataResourceV2 = feedToSource[FeedType.HttpV2].GetResource<IPackageTimestampMetadataResource>();
-            Logger = logger;
+            Config = config ?? throw new ArgumentNullException(nameof(config));
+            Logger = logger ?? throw new ArgumentNullException(nameof(logger));
             CommonLogger = logger.AsCommon();
         }
 
@@ -116,8 +117,9 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
     {
         protected Validator(
             IDictionary<FeedType, SourceRepository> feedToSource,
+            ValidatorConfiguration config,
             ILogger<Validator> logger)
-            : base(feedToSource, logger)
+            : base(feedToSource, config, logger)
         {
         }
     }

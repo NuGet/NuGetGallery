@@ -102,23 +102,27 @@
       <DependentUpon>TestCatalogEntries.resx</DependentUpon>
     </Compile>
     <Compile Include="Data\Catalogs.cs" />
-    <Compile Include="Validators\CatalogAggregateValidatorFacts.cs" />
-    <Compile Include="Validators\DummyAggregateValidator.cs" />
-    <Compile Include="Validators\DummyValidator.cs" />
-    <Compile Include="Validators\PackageHasSignatureValidatorFacts.cs" />
-    <Compile Include="Validators\PackageIsRepositorySignedValidatorFacts.cs" />
-    <Compile Include="Validators\RegistrationIndexValidatorTestData.cs" />
-    <Compile Include="Validators\RegistrationIndexValidatorTests.cs" />
-    <Compile Include="Validators\RegistrationListedValidatorTestData.cs" />
-    <Compile Include="Validators\RegistrationRequireLicenseAcceptanceValidatorTestData.cs" />
-    <Compile Include="Validators\RegistrationLeafValidatorTestData.cs" />
-    <Compile Include="Validators\RegistrationExistsValidatorTestData.cs" />
-    <Compile Include="Validators\RegistrationLeafValidatorTests.cs" />
-    <Compile Include="Validators\RegistrationIdValidatorTestData.cs" />
-    <Compile Include="Validators\RegistrationVersionValidatorTestData.cs" />
-    <Compile Include="Validators\ValidationContextTests.cs" />
-    <Compile Include="Validators\ValidatorTests.cs" />
-    <Compile Include="Validators\ValidatorTestUtility.cs" />
+    <Compile Include="Validation\CatalogAggregateValidatorFacts.cs" />
+    <Compile Include="Validation\DummyAggregateValidator.cs" />
+    <Compile Include="Validation\DummyValidator.cs" />
+    <Compile Include="Validation\PackageHasSignatureValidatorFacts.cs" />
+    <Compile Include="Validation\PackageIsRepositorySignedValidatorFacts.cs" />
+    <Compile Include="Validation\PackageValidatorContextTests.cs" />
+    <Compile Include="Validation\RegistrationIndexValidatorTestData.cs" />
+    <Compile Include="Validation\RegistrationIndexValidatorTests.cs" />
+    <Compile Include="Validation\RegistrationListedValidatorTestData.cs" />
+    <Compile Include="Validation\RegistrationRequireLicenseAcceptanceValidatorTestData.cs" />
+    <Compile Include="Validation\RegistrationLeafValidatorTestData.cs" />
+    <Compile Include="Validation\RegistrationExistsValidatorTestData.cs" />
+    <Compile Include="Validation\RegistrationLeafValidatorTests.cs" />
+    <Compile Include="Validation\RegistrationIdValidatorTestData.cs" />
+    <Compile Include="Validation\RegistrationVersionValidatorTestData.cs" />
+    <Compile Include="Validation\ValidationContextTests.cs" />
+    <Compile Include="Validation\ValidatorConfigurationTests.cs" />
+    <Compile Include="Validation\ValidatorFactoryFactoryTests.cs" />
+    <Compile Include="Validation\ValidatorFactoryTests.cs" />
+    <Compile Include="Validation\ValidatorTests.cs" />
+    <Compile Include="Validation\ValidatorTestUtility.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\CatalogTests\TestData\TestPackage.SemVer2.1.0.0-alpha.1.nupkg">

@@ -19,8 +19,9 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
     {
         public PackageIsRepositorySignedValidator(
             IDictionary<FeedType, SourceRepository> feedToSource,
+            ValidatorConfiguration config,
             ILogger<PackageIsRepositorySignedValidator> logger)
-            : base(feedToSource, logger)
+            : base(feedToSource, config, logger)
         {
         }
 

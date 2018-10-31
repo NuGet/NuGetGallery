@@ -25,8 +25,9 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring.Validation.Test.Catalog
 
         public PackageHasSignatureValidator(
             IDictionary<FeedType, SourceRepository> feedToSource,
+            ValidatorConfiguration config,
             ILogger<PackageHasSignatureValidator> logger)
-          : base(feedToSource, logger)
+          : base(feedToSource, config, logger)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }

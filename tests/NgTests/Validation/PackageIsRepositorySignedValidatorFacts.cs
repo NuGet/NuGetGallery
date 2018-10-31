@@ -26,32 +26,88 @@ namespace NgTests
 {
     public class PackageIsRepositorySignedValidatorFacts
     {
-        public class Validate : FactsBase
+        public class Constructor
+        {
+            private readonly IDictionary<FeedType, SourceRepository> _feedToSource;
+            private readonly ValidatorConfiguration _configuration;
+
+            public Constructor()
+            {
+                var feedToSource = new Mock<IDictionary<FeedType, SourceRepository>>();
+
+                feedToSource.Setup(x => x[It.IsAny<FeedType>()]).Returns(new Mock<SourceRepository>().Object);
+
+                _feedToSource = feedToSource.Object;
+                _configuration = new ValidatorConfiguration(packageBaseAddress: "a", requirePackageSignature: true);
+            }
+
+            [Fact]
+            public void WhenFeedToSourceIsNull_Throws()
+            {
+                IDictionary<FeedType, SourceRepository> feedToSource = null;
+
+                var exception = Assert.Throws<ArgumentNullException>(
+                    () => new PackageIsRepositorySignedValidator(
+                        feedToSource,
+                        _configuration,
+                        Mock.Of<ILogger<PackageIsRepositorySignedValidator>>()));
+
+                Assert.Equal("feedToSource", exception.ParamName);
+            }
+
+            [Fact]
+            public void WhenConfigIsNull_Throws()
+            {
+                var exception = Assert.Throws<ArgumentNullException>(
+                    () => new PackageIsRepositorySignedValidator(
+                        _feedToSource,
+                        config: null,
+                        logger: Mock.Of<ILogger<PackageIsRepositorySignedValidator>>()));
+
+                Assert.Equal("config", exception.ParamName);
+            }
+
+            [Fact]
+            public void WhenLoggerIsNull_Throws()
+            {
+                var exception = Assert.Throws<ArgumentNullException>(
+                    () => new PackageIsRepositorySignedValidator(
+                        _feedToSource,
+                        _configuration,
+                        logger: null));
+
+                Assert.Equal("logger", exception.ParamName);
+            }
+        }
+
+        public class ValidateAsync : FactsBase
         {
             [Fact]
             public async Task FailsIfPackageIsMissing()
             {
                 // Arrange - modify the package ID on the validation context so that the
                 // nupkg can no longer be found.
+                var target = CreateTarget();
                 var context = CreateValidationContext(packageResource: null);
 
                 // Act
-                var result = await _target.ValidateAsync(context);
+                var result = await target.ValidateAsync(context);
 
                 // Assert
                 Assert.Equal(TestResult.Fail, result.Result);
                 Assert.NotNull(result.Exception);
-                Assert.Contains("Package TestPackage 1.0.0 couldn't be downloaded at https://localhost/packages/testpackage/1.0.0/testpackage.1.0.0.nupkg", result.Exception.Message);
+                Assert.Contains("Package TestPackage 1.0.0 couldn't be downloaded at https://nuget.test/packages/testpackage/1.0.0/testpackage.1.0.0.nupkg", result.Exception.Message);
             }
 
             [Fact]
             public async Task FailsIfPackageHasNoSignature()
             {
                 // Arrange
+                var target = CreateTarget();
                 var context = CreateValidationContext(packageResource: UnsignedPackageResource);
 
                 // Act
-                var result = await _target.ValidateAsync(context);
+                var result = await target.ValidateAsync(context);
 
                 // Assert
                 var exception = result.Exception as MissingRepositorySignatureException;
@@ -67,10 +123,11 @@ namespace NgTests
             public async Task FailsIfPackageHasAnAuthorSignatureButNoRepositoryCountersignature()
             {
                 // Arrange
+                var target = CreateTarget();
                 var context = CreateValidationContext(packageResource: AuthorSignedPackageResource);
 
                 // Act
-                var result = await _target.ValidateAsync(context);
+                var result = await target.ValidateAsync(context);
 
                 // Assert
                 var exception = result.Exception as MissingRepositorySignatureException;
@@ -86,10 +143,11 @@ namespace NgTests
             public async Task PassesIfPackageHasARepositoryPrimarySignature()
             {
                 // Arrange
+                var target = CreateTarget();
                 var context = CreateValidationContext(packageResource: RepoSignedPackageResource);
 
                 // Act
-                var result = await _target.ValidateAsync(context);
+                var result = await target.ValidateAsync(context);
 
                 // Assert
                 Assert.Equal(TestResult.Pass, result.Result);
@@ -103,7 +161,8 @@ namespace NgTests
                 var context = CreateValidationContext(packageResource: AuthorAndRepoSignedPackageResource);
 
                 // Act
-                var result = await _target.ValidateAsync(context);
+                var target = CreateTarget();
+                var result = await target.ValidateAsync(context);
 
                 // Assert
                 Assert.Equal(TestResult.Pass, result.Result);
@@ -133,14 +192,10 @@ namespace NgTests
 
             public FactsBase()
             {
-                var feedToSource = new Mock<IDictionary<FeedType, SourceRepository>>();
                 var timestampResource = new Mock<IPackageTimestampMetadataResource>();
-                var logger = Mock.Of<ILogger<PackageIsRepositorySignedValidator>>();
 
                 _source = new Mock<SourceRepository>();
                 _mockServer = new MockServerHttpClientHandler();
-
-                feedToSource.Setup(x => x[It.IsAny<FeedType>()]).Returns(_source.Object);
 
                 // Mock a catalog entry and leaf for the package we are validating.
                 _catalogEntries = new[]
@@ -165,12 +220,17 @@ namespace NgTests
                 var timestamp = PackageTimestampMetadata.CreateForPackageExistingOnFeed(created: PackageCreationTime, lastEdited: PackageCreationTime);
                 timestampResource.Setup(t => t.GetAsync(It.IsAny<ValidationContext>())).ReturnsAsync(timestamp);
                 _source.Setup(s => s.GetResource<IPackageTimestampMetadataResource>()).Returns(timestampResource.Object);
+            }
 
-                // Add the package base address resource
-                var resource = new PackageBaseAddressResource("https://localhost/packages/");
-                _source.Setup(s => s.GetResource<PackageBaseAddressResource>()).Returns(resource);
+            protected PackageIsRepositorySignedValidator CreateTarget(bool requirePackageSignature = true)
+            {
+                var feedToSource = new Mock<IDictionary<FeedType, SourceRepository>>();
+                var logger = Mock.Of<ILogger<PackageIsRepositorySignedValidator>>();
+                var config = ValidatorTestUtility.CreateValidatorConfig(requirePackageSignature: requirePackageSignature);
 
-                _target = new PackageIsRepositorySignedValidator(feedToSource.Object, logger);
+                feedToSource.Setup(x => x[It.IsAny<FeedType>()]).Returns(_source.Object);
+
+                return new PackageIsRepositorySignedValidator(feedToSource.Object, config, logger);
             }
 
             protected ValidationContext CreateValidationContext(string packageResource = null)

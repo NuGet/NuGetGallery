@@ -16,7 +16,9 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
 
         public RegistrationValidator(
             IDictionary<FeedType, SourceRepository> feedToSource,
-            ILogger<RegistrationValidator> logger) : base(feedToSource, logger)
+            ValidatorConfiguration config,
+            ILogger<RegistrationValidator> logger)
+            : base(feedToSource, config, logger)
         {
             V2Resource = feedToSource[FeedType.HttpV2].GetResource<IPackageRegistrationMetadataResource>();
             V3Resource = feedToSource[FeedType.HttpV3].GetResource<IPackageRegistrationMetadataResource>();

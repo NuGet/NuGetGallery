@@ -59,8 +59,12 @@ namespace Ng.Jobs
                 "CONFIG gallery: {Gallery} index: {Index} storage: {Storage} auditingStorage: {AuditingStorage} endpoints: {Endpoints}",
                 gallery, index, monitoringStorageFactory, auditingStorageFactory, string.Join(", ", endpointInputs.Select(e => e.Name)));
 
+            var validatorConfig = new ValidatorConfiguration(
+                packageBaseAddress,
+                requireSignature);
+
             _packageValidator = new PackageValidatorFactory(LoggerFactory)
-                .Create(gallery, index, packageBaseAddress, auditingStorageFactory, endpointInputs, messageHandlerFactory, requireSignature, verbose);
+                .Create(gallery, index, auditingStorageFactory, endpointInputs, messageHandlerFactory, validatorConfig, verbose);
 
             _queue = CommandHelpers.CreateStorageQueue<PackageValidatorContext>(arguments, PackageValidatorContext.Version);
 

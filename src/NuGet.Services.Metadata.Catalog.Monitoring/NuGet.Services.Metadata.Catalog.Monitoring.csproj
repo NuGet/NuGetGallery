@@ -59,8 +59,6 @@
     <Compile Include="Model\PackageRegistrationLeafMetadata.cs" />
     <Compile Include="Model\PackageTimestampMetadata.cs" />
     <Compile Include="Notification\IMonitoringNotificationService.cs" />
-    <Compile Include="Providers\PackageBaseAddressResourceProvider.cs" />
-    <Compile Include="Resources\PackageBaseAddressResource.cs" />
     <Compile Include="Status\IPackageMonitoringStatusService.cs" />
     <Compile Include="Notification\LoggerMonitoringNotificationService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -126,6 +124,7 @@
     <Compile Include="Validation\Test\ValidatorFactory.cs" />
     <Compile Include="Validation\Test\ValidatorFactoryFactory.cs" />
     <Compile Include="Validation\Test\ValidatorIdentity.cs" />
+    <Compile Include="Validation\Test\ValidatorConfiguration.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Catalog\NuGet.Services.Metadata.Catalog.csproj">
