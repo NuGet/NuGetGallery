@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Moq;
 using NuGet.Services.Entities;
@@ -34,7 +35,7 @@ namespace NuGetGallery
                 }).AsQueryable();
 
         [Fact]
-        public void CheckTyposquattingChecklistCache()
+        public void CheckTyposquattingCheckListCache()
         {
             // Arrange
             var mockPackageService = new Mock<IPackageService>();
@@ -51,7 +52,8 @@ namespace NuGetGallery
             {
                 tasks[i] = Task.Factory.StartNew(() =>
                 {
-                    newService.GetTyposquattingCheckList(_packageIds.Count, mockPackageService.Object);
+                    newService.GetTyposquattingCheckList(_packageIds.Count, 24, mockPackageService.Object);
+                    newService.GetTyposquattingCheckList(_packageIds.Count, 24, mockPackageService.Object);
                 });
             }
             Task.WaitAll(tasks);
@@ -63,7 +65,50 @@ namespace NuGetGallery
         }
 
         [Fact]
-        public void CheckRefreshedCheckListLengthAllowable()
+        public void CheckTyposquattingCheckListCacheWhenExceedExpireTime()
+        {
+            // Arrange
+            var mockPackageService = new Mock<IPackageService>();
+            mockPackageService
+                .Setup(x => x.GetAllPackageRegistrations())
+                .Returns(PacakgeRegistrationsList);
+
+            var newService = new TyposquattingCheckListCacheService();
+
+            // Act
+            newService.GetTyposquattingCheckList(_packageIds.Count, 0, mockPackageService.Object);
+            Thread.Sleep(1);
+            newService.GetTyposquattingCheckList(_packageIds.Count, 0, mockPackageService.Object);
+
+            // Assert
+            mockPackageService.Verify(
+               x => x.GetAllPackageRegistrations(),
+               Times.Exactly(2));
+        }
+
+        [Fact]
+        public void CheckTyposquattingCheckListCacheWhenNotEqualCheckListLength()
+        {
+            // Arrange
+            var mockPackageService = new Mock<IPackageService>();
+            mockPackageService
+                .Setup(x => x.GetAllPackageRegistrations())
+                .Returns(PacakgeRegistrationsList);
+
+            var newService = new TyposquattingCheckListCacheService();
+
+            // Act
+            newService.GetTyposquattingCheckList(_packageIds.Count, 24, mockPackageService.Object);
+            newService.GetTyposquattingCheckList(_packageIds.Count - 1, 24, mockPackageService.Object);
+
+            // Assert
+            mockPackageService.Verify(
+               x => x.GetAllPackageRegistrations(),
+               Times.Exactly(2));
+        }
+
+        [Fact]
+        public void CheckRefreshedCheckListLengthNotAllowed()
         {
             // Arrange
             var mockPackageService = new Mock<IPackageService>();
@@ -76,7 +121,7 @@ namespace NuGetGallery
 
             // Act
             var exception = Assert.Throws<ArgumentOutOfRangeException>(
-                () => newService.GetTyposquattingCheckList(checkListLength, mockPackageService.Object));
+                () => newService.GetTyposquattingCheckList(checkListLength, 24, mockPackageService.Object));
 
             // Assert
             Assert.Equal(nameof(checkListLength), exception.ParamName);

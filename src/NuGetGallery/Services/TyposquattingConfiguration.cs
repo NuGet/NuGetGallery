@@ -8,13 +8,17 @@ namespace NuGetGallery.Services
     public sealed class TyposquattingConfiguration : ITyposquattingConfiguration
     {
         private const int DefaultPackageIdCheckListLength = 20000;
+        private const double DefaultPackageIdChecklistCacheExpireTimeInHours = 6;
         public int PackageIdChecklistLength { get; }
         public bool IsCheckEnabled { get; }
         public bool IsBlockUsersEnabled { get; }
+        public double PackageIdChecklistCacheExpireTimeInHours { get; }
+
         public TyposquattingConfiguration()
             : this(packageIdChecklistLength: DefaultPackageIdCheckListLength,
                   isCheckEnabled: false,
-                  isBlockUsersEnabled: false)
+                  isBlockUsersEnabled: false,
+                  packageIdChecklistCacheExpireTimeInHours: DefaultPackageIdChecklistCacheExpireTimeInHours)
         {
         }
 
@@ -22,11 +26,13 @@ namespace NuGetGallery.Services
         public TyposquattingConfiguration(
             int packageIdChecklistLength,
             bool isCheckEnabled,
-            bool isBlockUsersEnabled)
+            bool isBlockUsersEnabled,
+            double packageIdChecklistCacheExpireTimeInHours)
         {
             PackageIdChecklistLength = packageIdChecklistLength;
             IsCheckEnabled = isCheckEnabled;
             IsBlockUsersEnabled = isBlockUsersEnabled;
+            PackageIdChecklistCacheExpireTimeInHours = packageIdChecklistCacheExpireTimeInHours;
         }
     }
 }

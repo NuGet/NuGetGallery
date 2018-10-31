@@ -214,7 +214,7 @@ namespace NuGetGallery
                     };
 
                     yield return new object[] { "TyposquattingCheckResultAndTotalTimeInMs",
-                        (TrackAction)(s => s.TrackMetricForTyposquattingCheckResultAndTotalTime(fakes.Package.Id, TimeSpan.FromMilliseconds(100), true, new List<string>{"newtonsoft-json" }, 10000))
+                        (TrackAction)(s => s.TrackMetricForTyposquattingCheckResultAndTotalTime(fakes.Package.Id, TimeSpan.FromMilliseconds(100), true, new List<string>{"newtonsoft-json" }, 10000, 24))
                     };
 
                     yield return new object[] { "TyposquattingChecklistRetrievalTimeInMs",

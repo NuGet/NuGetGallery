@@ -13,8 +13,9 @@ namespace NuGetGallery
         /// <summary>
         /// The function is used to get the checklist from the cache for typosquatting
         /// </summary>
-        /// <param name="checkListLength"> The length of the checklist for typosquatting </param>
-        /// <param name="packageService"> The package service for checklist retrieval from database</param>
-        IReadOnlyCollection<string> GetTyposquattingCheckList(int checkListLength, IPackageService packageService);
+        /// <param name="checkListLength">The length of the checklist for typosquatting</param>
+        /// <param name="checkListExpireTimeInHours">The expire time for checklist caching</param>
+        /// <param name="packageService">The package service for checklist retrieval from database</param>
+        IReadOnlyCollection<string> GetTyposquattingCheckList(int checkListLength, double checkListExpireTimeInHours, IPackageService packageService);
     }
 }

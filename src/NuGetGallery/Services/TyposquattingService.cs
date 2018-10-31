@@ -19,7 +19,6 @@ namespace NuGetGallery
             new ThresholdInfo (lowerBound: 30, upperBound: 50, threshold: 1),
             new ThresholdInfo (lowerBound: 50, upperBound: 129, threshold: 2)
         };
-        private static int TyposquattingCheckListLength;
 
         private readonly IContentObjectService _contentObjectService;
         private readonly IPackageService _packageService;
@@ -38,12 +37,12 @@ namespace NuGetGallery
             _reservedNamespaceService = reservedNamespaceService ?? throw new ArgumentNullException(nameof(reservedNamespaceService));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _typosquattingCheckListCacheService = typosquattingCheckListCacheService ?? throw new ArgumentNullException(nameof(typosquattingCheckListCacheService));
-
-            TyposquattingCheckListLength = _contentObjectService.TyposquattingConfiguration.PackageIdChecklistLength;
         }
 
         public bool IsUploadedPackageIdTyposquatting(string uploadedPackageId, User uploadedPackageOwner, out List<string> typosquattingCheckCollisionIds)
         {
+            var checkListLength = _contentObjectService.TyposquattingConfiguration.PackageIdChecklistLength;
+            var checkListExpireTimeInHours = _contentObjectService.TyposquattingConfiguration.PackageIdChecklistCacheExpireTimeInHours;
             typosquattingCheckCollisionIds = new List<string>();
             var wasUploadBlocked = false;
 
@@ -61,7 +60,7 @@ namespace NuGetGallery
             }
 
             var checklistRetrievalStopwatch = Stopwatch.StartNew();
-            var packageIdsCheckList = _typosquattingCheckListCacheService.GetTyposquattingCheckList(TyposquattingCheckListLength, _packageService);
+            var packageIdsCheckList = _typosquattingCheckListCacheService.GetTyposquattingCheckList(checkListLength, checkListExpireTimeInHours, _packageService);
             checklistRetrievalStopwatch.Stop();
 
             _telemetryService.TrackMetricForTyposquattingChecklistRetrievalTime(uploadedPackageId, checklistRetrievalStopwatch.Elapsed);
@@ -91,7 +90,8 @@ namespace NuGetGallery
                     totalTime,
                     wasUploadBlocked,
                     typosquattingCheckCollisionIds,
-                    TyposquattingCheckListLength);
+                    packageIdsCheckList.Count,
+                    checkListExpireTimeInHours);
 
                 return false;
             }
@@ -130,7 +130,8 @@ namespace NuGetGallery
                     totalTime,
                     wasUploadBlocked,
                     typosquattingCheckCollisionIds,
-                    TyposquattingCheckListLength);
+                    packageIdsCheckList.Count,
+                    checkListExpireTimeInHours);
 
             return wasUploadBlocked;
         }

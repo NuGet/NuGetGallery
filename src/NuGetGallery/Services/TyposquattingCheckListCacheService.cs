@@ -9,37 +9,35 @@ namespace NuGetGallery
 {
     public class TyposquattingCheckListCacheService : ITyposquattingCheckListCacheService
     {
-        private static readonly object Locker = new object();
+        private readonly object Locker = new object();
 
-        private static List<string> Cache;
-        private static DateTime LastRefreshTime;
-        private static TimeSpan DefaultExpireTime;
+        private List<string> Cache;
+        private DateTime LastRefreshTime;
 
-        private static int TyposquattingCheckListLength;
+        private int TyposquattingCheckListLength;
 
         public TyposquattingCheckListCacheService()
         {
             TyposquattingCheckListLength = -1;
-            DefaultExpireTime = TimeSpan.FromDays(1);
             LastRefreshTime = DateTime.MinValue;
         }
 
-        public IReadOnlyCollection<string> GetTyposquattingCheckList(int checkListLength, IPackageService packageService)
+        public IReadOnlyCollection<string> GetTyposquattingCheckList(int checkListLength, double checkListExpireTimeInHours, IPackageService packageService)
         {
             if (checkListLength < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(checkListLength));
+                throw new ArgumentOutOfRangeException(nameof(checkListLength), "Negative values are not supported.");
             }
             if (packageService == null)
             {
                 throw new ArgumentNullException(nameof(packageService));
             }
 
-            if (Cache == null || checkListLength != TyposquattingCheckListLength || IsCheckListCacheExpired())
+            if (Cache == null || checkListLength != TyposquattingCheckListLength || IsCheckListCacheExpired(checkListExpireTimeInHours))
             {
                 lock (Locker)
                 {
-                    if (Cache == null || checkListLength != TyposquattingCheckListLength || IsCheckListCacheExpired())
+                    if (Cache == null || checkListLength != TyposquattingCheckListLength || IsCheckListCacheExpired(checkListExpireTimeInHours))
                     {
                         TyposquattingCheckListLength = checkListLength;
 
@@ -58,9 +56,9 @@ namespace NuGetGallery
             return Cache;
         }
 
-        private bool IsCheckListCacheExpired()
+        private bool IsCheckListCacheExpired(double checkListExpireTimeInHours)
         {
-            return DateTime.UtcNow >= LastRefreshTime.Add(DefaultExpireTime);
+            return DateTime.UtcNow >= LastRefreshTime.Add(TimeSpan.FromHours(checkListExpireTimeInHours));
         }
     }
 }
