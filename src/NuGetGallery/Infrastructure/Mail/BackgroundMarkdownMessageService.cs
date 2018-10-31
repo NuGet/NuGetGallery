@@ -30,7 +30,7 @@ namespace NuGetGallery.Infrastructure.Mail
         private Func<BackgroundMarkdownMessageService> _messageServiceFactory;
         private bool _sentMessage;
 
-        protected override Task SendMessageInternalAsync(MailMessage mailMessage, bool copySender = false, bool discloseSenderAddress = false)
+        protected override Task SendMessageInternalAsync(MailMessage mailMessage)
         {
             // Some MVC controller actions send more than one message. Since this method sends
             // the message async, we need a new IMessageService per email, to avoid calling
@@ -39,7 +39,7 @@ namespace NuGetGallery.Infrastructure.Mail
             if (_sentMessage)
             {
                 var newMessageService = _messageServiceFactory.Invoke();
-                return newMessageService.SendMessageInternalAsync(mailMessage, copySender, discloseSenderAddress);
+                return newMessageService.SendMessageInternalAsync(mailMessage);
             }
             else
             {
@@ -55,7 +55,7 @@ namespace NuGetGallery.Infrastructure.Mail
                     {
                         try
                         {
-                            await base.SendMessageInternalAsync(messageCopy, copySender, discloseSenderAddress);
+                            await base.SendMessageInternalAsync(messageCopy);
                         }
                         catch (Exception ex)
                         {

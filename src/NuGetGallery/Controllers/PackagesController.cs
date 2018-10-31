@@ -1138,8 +1138,7 @@ namespace NuGetGallery
                 package,
                 Url.Package(package, false),
                 HttpUtility.HtmlEncode(contactForm.Message),
-                Url.AccountSettings(relativeUrl: false),
-                contactForm.CopySender);
+                Url.AccountSettings(relativeUrl: false));
 
             await _messageService.SendMessageAsync(contactOwnersMessage, contactForm.CopySender, discloseSenderAddress: false);
 
