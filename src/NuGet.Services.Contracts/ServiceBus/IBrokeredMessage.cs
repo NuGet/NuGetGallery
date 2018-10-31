@@ -14,6 +14,7 @@ namespace NuGet.Services.ServiceBus
         IDictionary<string, object> Properties { get; }
         DateTimeOffset EnqueuedTimeUtc { get; }
         DateTimeOffset ScheduledEnqueueTimeUtc { get; set; }
+        string MessageId { get; set; }
         Task CompleteAsync();
         Task AbandonAsync();
         string GetBody();

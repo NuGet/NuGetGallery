@@ -91,9 +91,10 @@ namespace NuGet.Services.ServiceBus
 
             TrackMessageLags(brokeredMessage);
 
-            using (var scope = _logger.BeginScope($"{nameof(SubscriptionProcessor<TMessage>)}.{nameof(OnMessageAsync)} {{CallGuid}} {{CallStartTimestamp}}",
+            using (var scope = _logger.BeginScope($"{nameof(SubscriptionProcessor<TMessage>)}.{nameof(OnMessageAsync)} {{CallGuid}} {{CallStartTimestamp}} {{MessageId}}",
                 Guid.NewGuid(),
-                DateTimeOffset.UtcNow.ToString("O")))
+                DateTimeOffset.UtcNow.ToString("O"),
+                brokeredMessage.MessageId))
             {
                 try
                 {

@@ -26,6 +26,11 @@ namespace NuGet.Services.ServiceBus
         public int DeliveryCount => BrokeredMessage.DeliveryCount;
         public IDictionary<string, object> Properties => BrokeredMessage.Properties;
         public DateTimeOffset EnqueuedTimeUtc => new DateTimeOffset(BrokeredMessage.EnqueuedTimeUtc);
+        public string MessageId
+        {
+            get => BrokeredMessage.MessageId;
+            set => BrokeredMessage.MessageId = value;
+        }
 
         public DateTimeOffset ScheduledEnqueueTimeUtc
         {
