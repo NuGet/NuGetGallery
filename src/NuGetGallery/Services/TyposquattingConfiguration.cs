@@ -8,7 +8,7 @@ namespace NuGetGallery.Services
     public sealed class TyposquattingConfiguration : ITyposquattingConfiguration
     {
         private const int DefaultPackageIdCheckListLength = 20000;
-        private const double DefaultPackageIdChecklistCacheExpireTimeInHours = 6;
+        private const double DefaultPackageIdChecklistCacheExpireTimeInHours = 24;
         public int PackageIdChecklistLength { get; }
         public bool IsCheckEnabled { get; }
         public bool IsBlockUsersEnabled { get; }
