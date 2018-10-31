@@ -30,25 +30,35 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
         [Description("Pushes many packages of the same ID and version. Verifies exactly one push succeeds and the rest fail with a conflict.")]
         [Priority(2)]
         [Category("P2Tests")]
-        public async Task DuplicatePushesAreRejectedAndNotDeleted()
+        public void DuplicatePushesAreRejectedAndNotDeleted()
         {
             // Arrange
-            using (var client = new HttpClient())
-            {
-                var packageCreationHelper = new PackageCreationHelper(TestOutputHelper);
-                var packageId = $"{nameof(DuplicatePushesAreRejectedAndNotDeleted)}.{DateTime.UtcNow.Ticks}";
+            var packageId = $"{nameof(DuplicatePushesAreRejectedAndNotDeleted)}.{DateTime.UtcNow.Ticks}";
 
-                for (var i = 0; i < 10; i++)
+            // Hold the test output in memory since we are running the code below in parallel and TestOutputHelper
+            // is not thread safe and then synchronously write to `TestOutputHelper`
+            int pushVersionCount = 10;
+            List<InMemoryTestOutputHelper> testOutputHelpers = new List<InMemoryTestOutputHelper>();
+            for (var i = 0; i < pushVersionCount; i++)
+            {
+                testOutputHelpers.Add(InMemoryTestOutputHelper.New);
+            }
+
+            Parallel.For(0, pushVersionCount, async (i) =>
+            {
+                using (var client = new HttpClient())
                 {
+                    var inMemoryOutputHelper = testOutputHelpers[i];
+                    var packageCreationHelper = new PackageCreationHelper(inMemoryOutputHelper);
                     if (i > 0)
                     {
-                        TestOutputHelper.WriteLine(string.Empty);
-                        TestOutputHelper.WriteLine(new string('=', 80));
-                        TestOutputHelper.WriteLine(string.Empty);
+                        inMemoryOutputHelper.WriteLine(string.Empty);
+                        inMemoryOutputHelper.WriteLine(new string('=', 80));
+                        inMemoryOutputHelper.WriteLine(string.Empty);
                     }
 
                     var packageVersion = $"1.0.{i}";
-                    TestOutputHelper.WriteLine($"Starting package {packageId} {packageVersion}...");
+                    inMemoryOutputHelper.WriteLine($"Starting package {packageId} {packageVersion}...");
 
                     var packagePath = await packageCreationHelper.CreatePackage(packageId, packageVersion);
 
@@ -66,16 +76,16 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
                     // Assert
                     for (var taskIndex = 1; taskIndex <= statusCodes.Length; taskIndex++)
                     {
-                        TestOutputHelper.WriteLine($"Task {taskIndex:D2} push:     HTTP {(int)statusCodes[taskIndex - 1]}");
+                        inMemoryOutputHelper.WriteLine($"Task {taskIndex:D2} push:     HTTP {(int)statusCodes[taskIndex - 1]}");
                     }
 
-                    // Wait for the packages to be available in V2 (due to async validation)
-                    await _clientSdkHelper.VerifyPackageExistsInV2Async(packageId, packageVersion);
+                    //Wait for the packages to be available in V2(due to async validation)
+                   await _clientSdkHelper.VerifyPackageExistsInV2Async(packageId, packageVersion);
 
                     var downloadUrl = $"{UrlHelper.V2FeedRootUrl}package/{packageId}/{packageVersion}";
                     using (var response = await client.GetAsync(downloadUrl))
                     {
-                        TestOutputHelper.WriteLine($"Package download: HTTP {(int)response.StatusCode}");
+                        inMemoryOutputHelper.WriteLine($"Package download: HTTP {(int)response.StatusCode}");
 
                         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
@@ -91,6 +101,11 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
                     Assert.Equal(1, statusCodes.Count(x => x == HttpStatusCode.Created));
                     Assert.Equal(TaskCount - 1, statusCodes.Count(x => x == HttpStatusCode.Conflict));
                 }
+            });
+
+            foreach(var testOutputHelper in testOutputHelpers)
+            {
+                TestOutputHelper.WriteLine(testOutputHelper.GetOutput());
             }
         }
 
