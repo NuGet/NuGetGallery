@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using NuGet.Services.Entities;
 using Xunit;
 
-namespace NuGet.Services.Validation.Vcs
+namespace NuGet.Services.Validation
 {
     public class PackageCriteriaEvaluatorFacts
     {

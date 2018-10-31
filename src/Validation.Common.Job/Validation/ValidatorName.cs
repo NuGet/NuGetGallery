@@ -5,7 +5,6 @@ namespace NuGet.Jobs.Validation
 {
     public static class ValidatorName
     {
-        public const string Vcs = "VcsValidator";
         public const string PackageCertificate = "PackageCertificatesValidator";
         public const string ScanAndSign = "ScanAndSign";
         public const string ScanOnly = "ScanOnly";

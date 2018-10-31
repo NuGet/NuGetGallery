@@ -8,16 +8,15 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
-using NuGet.Jobs.Validation.Storage;
 using NuGet.Jobs.Validation.ScanAndSign;
+using NuGet.Jobs.Validation.Storage;
+using NuGet.Services.Entities;
 using NuGet.Services.Validation;
 using NuGet.Services.Validation.Orchestrator;
 using NuGet.Services.Validation.Orchestrator.PackageSigning.ScanAndSign;
-using NuGet.Services.Validation.Vcs;
 using NuGetGallery;
 using Tests.ContextHelpers;
 using Xunit;
-using NuGet.Services.Entities;
 
 namespace Validation.PackageSigning.ScanAndSign.Tests
 {

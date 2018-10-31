@@ -3,7 +3,6 @@
 
 using System;
 using NuGet.Services.Entities;
-using NuGet.Services.Validation.Vcs;
 
 namespace NuGet.Services.Validation
 {

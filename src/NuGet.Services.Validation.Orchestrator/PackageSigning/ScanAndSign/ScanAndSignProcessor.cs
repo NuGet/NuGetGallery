@@ -12,7 +12,6 @@ using NuGet.Jobs.Validation;
 using NuGet.Jobs.Validation.ScanAndSign;
 using NuGet.Jobs.Validation.Storage;
 using NuGet.Services.Entities;
-using NuGet.Services.Validation.Vcs;
 using NuGetGallery;
 
 namespace NuGet.Services.Validation.Orchestrator.PackageSigning.ScanAndSign

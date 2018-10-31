@@ -107,12 +107,10 @@
     <Compile Include="SymbolValidationMessageHandler.cs" />
     <Compile Include="ValidationPackageFileService.cs" />
     <Compile Include="ValidationSetProcessorResult.cs" />
-    <Compile Include="Vcs\IPackageCriteria.cs" />
-    <Compile Include="Vcs\IPackageCriteriaEvaluator.cs" />
-    <Compile Include="Vcs\PackageCriteriaEvaluator.cs" />
-    <Compile Include="Vcs\PackageCriteria.cs" />
-    <Compile Include="Vcs\VcsConfiguration.cs" />
-    <Compile Include="Vcs\VcsValidator.cs" />
+    <Compile Include="Criteria\IPackageCriteria.cs" />
+    <Compile Include="Criteria\IPackageCriteriaEvaluator.cs" />
+    <Compile Include="Criteria\PackageCriteriaEvaluator.cs" />
+    <Compile Include="Criteria\PackageCriteria.cs" />
     <Compile Include="Configuration\ValidationDbConfiguration.cs" />
     <Compile Include="PackageValidationMessageHandler.cs" />
     <Compile Include="ValidationOutcomeProcessor.cs" />
@@ -141,10 +139,6 @@
     <ProjectReference Include="..\Validation.Common.Job\Validation.Common.Job.csproj">
       <Project>{fa87d075-a934-4443-8d0b-5db32640b6d7}</Project>
       <Name>Validation.Common.Job</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Validation.Common\Validation.Common.csproj">
-      <Project>{2539ddf3-0cc5-4a03-b5f9-39b47744a7bd}</Project>
-      <Name>Validation.Common</Name>
     </ProjectReference>
     <ProjectReference Include="..\Validation.PackageSigning.Core\Validation.PackageSigning.Core.csproj">
       <Project>{91C060DA-736F-4DA9-A57F-CB3AC0E6CB10}</Project>

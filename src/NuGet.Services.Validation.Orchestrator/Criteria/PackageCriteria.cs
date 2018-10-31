@@ -3,7 +3,7 @@
 
 using System.Collections.Generic;
 
-namespace NuGet.Services.Validation.Vcs
+namespace NuGet.Services.Validation
 {
     public class PackageCriteria : ICriteria
     {

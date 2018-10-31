@@ -84,7 +84,6 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             /// or data fix. These names are encoded into DB tables used for orchestrator bookkeeping.
             /// </summary>
             [Theory]
-            [InlineData("VcsValidator", false)]
             [InlineData("PackageSigningValidator", true)]
             [InlineData("PackageCertificatesValidator", false)]
             public void KnownValidatorsDoNotChangeNames(string validatorName, bool isProcessor)

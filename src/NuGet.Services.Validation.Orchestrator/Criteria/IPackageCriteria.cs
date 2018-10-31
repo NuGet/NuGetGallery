@@ -3,7 +3,7 @@
 
 using System.Collections.Generic;
 
-namespace NuGet.Services.Validation.Vcs
+namespace NuGet.Services.Validation
 {
     /// <summary>
     /// Generic criteria used to include or exclude packages from a process.

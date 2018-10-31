@@ -3,7 +3,7 @@
 
 using NuGet.Services.Entities;
 
-namespace NuGet.Services.Validation.Vcs
+namespace NuGet.Services.Validation
 {
     /// <summary>
     /// Evaluates whether a given entity matches some criteria.
