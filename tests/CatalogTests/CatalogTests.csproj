@@ -71,6 +71,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CatalogIndexEntryTests.cs" />
     <Compile Include="CatalogIndexReaderTests.cs" />
     <Compile Include="CollectorHttpClientTests.cs" />
     <Compile Include="Helpers\AsyncExtensionsTests.cs" />

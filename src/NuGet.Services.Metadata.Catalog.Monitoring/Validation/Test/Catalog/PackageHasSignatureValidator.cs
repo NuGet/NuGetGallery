@@ -63,7 +63,7 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring.Validation.Test.Catalog
             }
 
             // We don't need to validate the package if the latest entry indicates deletion.
-            if (latest.IsDelete())
+            if (latest.IsDelete)
             {
                 _logger.LogInformation(
                     "Skipping package {PackageId} {PackageVersion} as its latest catalog entry is a delete",

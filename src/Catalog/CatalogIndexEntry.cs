@@ -11,98 +11,103 @@ using NuGet.Versioning;
 
 namespace NuGet.Services.Metadata.Catalog
 {
-    public class CatalogIndexEntry : IComparable<CatalogIndexEntry>
+    public sealed class CatalogIndexEntry : IComparable<CatalogIndexEntry>
     {
-        private string _type;
+        private static readonly CatalogIndexEntryDateComparer _commitTimeStampComparer = new CatalogIndexEntryDateComparer();
 
-        public CatalogIndexEntry(JToken item)
-            : this(
-                new Uri(item["@id"].ToString()),
-                item["@type"].ToString(),
-                item["commitId"].ToString(),
-                DateTime.Parse(item["commitTimeStamp"].ToString()),
-                item["nuget:id"].ToString(),
-                NuGetVersion.Parse(item["nuget:version"].ToString()))
+        [JsonConstructor]
+        private CatalogIndexEntry()
         {
+            Types = Enumerable.Empty<string>();
         }
 
         public CatalogIndexEntry(Uri uri, string type, string commitId, DateTime commitTs, string id, NuGetVersion version)
         {
-            Uri = uri;
-            _type = type;
+            Uri = uri ?? throw new ArgumentNullException(nameof(uri));
+
+            if (string.IsNullOrWhiteSpace(type))
+            {
+                throw new ArgumentException(Strings.ArgumentMustNotBeNullOrEmpty, nameof(type));
+            }
+
+            Types = new[] { type };
+            IsDelete = type == "nuget:PackageDelete";
+
+            if (string.IsNullOrWhiteSpace(commitId))
+            {
+                throw new ArgumentException(Strings.ArgumentMustNotBeNullOrEmpty, nameof(commitId));
+            }
+
             CommitId = commitId;
             CommitTimeStamp = commitTs;
-            Id = id;
-            Version = version;
-        }
 
-        [JsonConstructor]
-        public CatalogIndexEntry()
-        {
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                throw new ArgumentException(Strings.ArgumentMustNotBeNullOrEmpty, nameof(id));
+            }
+
+            Id = id;
+            Version = version ?? throw new ArgumentNullException(nameof(version));
         }
 
         [JsonProperty("@id")]
+        [JsonRequired]
         public Uri Uri { get; private set; }
 
         [JsonProperty("@type")]
+        [JsonRequired]
         [JsonConverter(typeof(CatalogTypeConverter))]
-        public IEnumerable<string> Types
-        {
-            get
-            {
-                return new string[] { _type };
-            }
-            set
-            {
-                _type = value.Single();
-            }
-        }
-
-        [JsonProperty("nuget:id")]
-        public string Id { get; private set; }
-
-        [JsonProperty("nuget:version")]
-        public NuGetVersion Version { get; private set; }
+        public IEnumerable<string> Types { get; private set; }
 
         [JsonProperty("commitId")]
+        [JsonRequired]
         public string CommitId { get; private set; }
 
         [JsonProperty("commitTimeStamp")]
+        [JsonRequired]
         public DateTime CommitTimeStamp { get; private set; }
+
+        [JsonProperty("nuget:id")]
+        [JsonRequired]
+        public string Id { get; private set; }
+
+        [JsonProperty("nuget:version")]
+        [JsonRequired]
+        public NuGetVersion Version { get; private set; }
+
+        [JsonIgnore]
+        public bool IsDelete { get; }
 
         public int CompareTo(CatalogIndexEntry other)
         {
-            return CommitTSComparer.Compare(this, other);
-        }
-
-        public bool IsDelete()
-        {
-            return _type == "nuget:PackageDelete";
-        }
-
-        // common comparers for sorting and creating sets from these entries
-        public static CatalogIndexEntryIdComparer IdComparer
-        {
-            get
+            if (other == null)
             {
-                return new CatalogIndexEntryIdComparer();
+                throw new ArgumentNullException(nameof(other));
             }
+
+            return _commitTimeStampComparer.Compare(this, other);
         }
 
-        public static CatalogIndexEntryIdVersionComparer IdVersionComparer
+        public static CatalogIndexEntry Create(JToken token)
         {
-            get
+            if (token == null)
             {
-                return new CatalogIndexEntryIdVersionComparer();
+                throw new ArgumentNullException(nameof(token));
             }
-        }
 
-        public static CatalogIndexEntryDateComparer CommitTSComparer
-        {
-            get
-            {
-                return new CatalogIndexEntryDateComparer();
-            }
+            var uri = new Uri(token["@id"].ToString());
+            var type = token["@type"].ToString();
+            var commitId = token["commitId"].ToString();
+            var commitTimeStamp = DateTime.ParseExact(
+                token["commitTimeStamp"].ToString(),
+                "yyyy-MM-ddTHH:mm:ss.FFFFFFFZ",
+                DateTimeFormatInfo.CurrentInfo,
+                DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal);
+
+            var packageId = token["nuget:id"].ToString();
+            var packageVersion = NuGetVersion.Parse(token["nuget:version"].ToString());
+
+            return new CatalogIndexEntry(uri, type, commitId, commitTimeStamp, packageId, packageVersion);
         }
     }
 
@@ -111,34 +116,6 @@ namespace NuGet.Services.Metadata.Catalog
         public int Compare(CatalogIndexEntry x, CatalogIndexEntry y)
         {
             return x.CommitTimeStamp.CompareTo(y.CommitTimeStamp);
-        }
-    }
-
-
-    public class CatalogIndexEntryIdComparer : IEqualityComparer<CatalogIndexEntry>
-    {
-        public bool Equals(CatalogIndexEntry x, CatalogIndexEntry y)
-        {
-            return StringComparer.OrdinalIgnoreCase.Equals(x.Id, y.Id);
-        }
-
-        public int GetHashCode(CatalogIndexEntry obj)
-        {
-            return obj.Id.ToLowerInvariant().GetHashCode();
-        }
-    }
-
-    public class CatalogIndexEntryIdVersionComparer : IEqualityComparer<CatalogIndexEntry>
-    {
-        const string PackageIdFormat = "{0}.{1}";
-        public bool Equals(CatalogIndexEntry x, CatalogIndexEntry y)
-        {
-            return x.Id.Equals(y.Id, StringComparison.OrdinalIgnoreCase) && x.Version.Equals(y.Version);
-        }
-
-        public int GetHashCode(CatalogIndexEntry obj)
-        {
-            return String.Format(CultureInfo.InvariantCulture, PackageIdFormat, obj.Id.ToLowerInvariant(), obj.Version.ToNormalizedString().ToLowerInvariant()).GetHashCode();
         }
     }
 }

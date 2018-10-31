@@ -135,7 +135,7 @@ namespace Ng.Jobs
             var latestEntries = entries
                 .GroupBy(c => new PackageIdentity(c.Id, c.Version))
                 .Select(g => g.OrderByDescending(c => c.CommitTimeStamp).First())
-                .Where(c => !c.IsDelete());
+                .Where(c => !c.IsDelete);
 
             var packageEntries = new ConcurrentBag<CatalogIndexEntry>(latestEntries);
 

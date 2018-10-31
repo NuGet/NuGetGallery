@@ -146,9 +146,9 @@ namespace NgTests
                 _catalogEntries = new[]
                 {
                     new CatalogIndexEntry(
-                        new Uri("https://localhost/catalog/leaf.json"),
-                        string.Empty,
-                        string.Empty,
+                        new Uri("https://nuget.test/catalog/leaf.json"),
+                        CatalogConstants.NuGetPackageDetails,
+                        Guid.NewGuid().ToString(),
                         DateTime.UtcNow,
                         PackageId,
                         PackageNuGetVersion)

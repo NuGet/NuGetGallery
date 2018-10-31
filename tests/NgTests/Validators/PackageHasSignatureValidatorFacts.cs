@@ -40,20 +40,21 @@ namespace NgTests
             [Fact]
             public void SkipsIfLatestEntryIsDelete()
             {
+                var uri = new Uri($"https://nuget.test/{PackageId}");
                 var context = CreateValidationContext(
                     catalogEntries: new[]
                     {
                         new CatalogIndexEntry(
-                            uri: null,
+                            uri,
                             type: DetailsCatalogEntry,
-                            commitId: string.Empty,
+                            commitId: Guid.NewGuid().ToString(),
                             commitTs: DateTime.MinValue,
                             id: PackageId,
                             version: PackageNuGetVersion),
                         new CatalogIndexEntry(
-                            uri: null,
+                            uri,
                             type: DeleteCatalogEntry,
-                            commitId: string.Empty,
+                            commitId: Guid.NewGuid().ToString(),
                             commitTs: DateTime.MinValue.AddDays(1),
                             id: PackageId,
                             version: PackageNuGetVersion),
@@ -65,20 +66,21 @@ namespace NgTests
             [Fact]
             public void RunsIfLatestEntryIsntDelete()
             {
+                var uri = new Uri($"https://nuget.test/{PackageId}");
                 var context = CreateValidationContext(
                     catalogEntries: new[]
                     {
                         new CatalogIndexEntry(
-                            uri: null,
+                            uri,
                             type: DeleteCatalogEntry,
-                            commitId: string.Empty,
+                            commitId: Guid.NewGuid().ToString(),
                             commitTs: DateTime.MinValue,
                             id: PackageId,
                             version: PackageNuGetVersion),
                         new CatalogIndexEntry(
-                            uri: null,
+                            uri,
                             type: DetailsCatalogEntry,
-                            commitId: string.Empty,
+                            commitId: Guid.NewGuid().ToString(),
                             commitTs: DateTime.MinValue.AddDays(1),
                             id: PackageId,
                             version: PackageNuGetVersion),
@@ -100,14 +102,14 @@ namespace NgTests
                         new CatalogIndexEntry(
                             uri: new Uri("http://localhost/a.json"),
                             type: DetailsCatalogEntry,
-                            commitId: string.Empty,
+                            commitId: Guid.NewGuid().ToString(),
                             commitTs: DateTime.MinValue,
                             id: PackageId,
                             version: PackageNuGetVersion),
                         new CatalogIndexEntry(
                             uri: new Uri("http://localhost/b.json"),
                             type: DetailsCatalogEntry,
-                            commitId: string.Empty,
+                            commitId: Guid.NewGuid().ToString(),
                             commitTs: DateTime.MinValue.AddDays(1),
                             id: PackageId,
                             version: PackageNuGetVersion),
@@ -146,14 +148,14 @@ namespace NgTests
                         new CatalogIndexEntry(
                             uri: new Uri("http://localhost/a.json"),
                             type: DetailsCatalogEntry,
-                            commitId: string.Empty,
+                            commitId: Guid.NewGuid().ToString(),
                             commitTs: DateTime.MinValue,
                             id: PackageId,
                             version: PackageNuGetVersion),
                         new CatalogIndexEntry(
                             uri: malformedUri,
                             type: DetailsCatalogEntry,
-                            commitId: string.Empty,
+                            commitId: Guid.NewGuid().ToString(),
                             commitTs: DateTime.MinValue.AddDays(1),
                             id: PackageId,
                             version: PackageNuGetVersion),
@@ -193,7 +195,7 @@ namespace NgTests
                         new CatalogIndexEntry(
                             uri: malformedUri,
                             type: DetailsCatalogEntry,
-                            commitId: string.Empty,
+                            commitId: Guid.NewGuid().ToString(),
                             commitTs: DateTime.MinValue,
                             id: PackageId,
                             version: PackageNuGetVersion),
@@ -219,7 +221,7 @@ namespace NgTests
                         new CatalogIndexEntry(
                             uri: malformedUri,
                             type: DetailsCatalogEntry,
-                            commitId: string.Empty,
+                            commitId: Guid.NewGuid().ToString(),
                             commitTs: DateTime.MinValue,
                             id: PackageId,
                             version: PackageNuGetVersion),
