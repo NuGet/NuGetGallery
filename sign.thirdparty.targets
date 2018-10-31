@@ -4,7 +4,9 @@
     </ItemGroup>
     <Target Name="EnumerateThirdPartyBinariesToSign" AfterTargets="AfterBuild" Condition="'$(SignType)' != 'none'">
         <ItemGroup>
+            <ThirdPartyBinaries Include="AnglicanGeek.MarkdownMailer.dll" />
             <ThirdPartyBinaries Include="dotNetRDF.dll" />
+            <ThirdPartyBinaries Include="Elmah.dll" />
             <ThirdPartyBinaries Include="HtmlAgilityPack.dll" />
             <ThirdPartyBinaries Include="ICSharpCode.SharpZipLib.dll" />
             <ThirdPartyBinaries Include="json-ld.net.StrongName.dll" />
@@ -20,6 +22,7 @@
             <ThirdPartyBinaries Include="Lucene.Net.Contrib.SpellChecker.dll" />
             <ThirdPartyBinaries Include="Lucene.Net.dll" />
             <ThirdPartyBinaries Include="Lucene.Net.Store.Azure.dll" />
+            <ThirdPartyBinaries Include="MarkdownSharp.dll" />
             <ThirdPartyBinaries Include="Newtonsoft.Json.dll" />
             <ThirdPartyBinaries Include="Serilog.dll" />
             <ThirdPartyBinaries Include="Serilog.Enrichers.Environment.dll" />
