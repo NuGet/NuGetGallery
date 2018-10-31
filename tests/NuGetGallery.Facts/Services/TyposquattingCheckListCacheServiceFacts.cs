@@ -115,16 +115,16 @@ namespace NuGetGallery
             mockPackageService
                 .Setup(x => x.GetAllPackageRegistrations())
                 .Returns(PacakgeRegistrationsList);
-            var checkListLength = -1;
+            var checkListConfiguredLength = -1;
 
             var newService = new TyposquattingCheckListCacheService();
 
             // Act
             var exception = Assert.Throws<ArgumentOutOfRangeException>(
-                () => newService.GetTyposquattingCheckList(checkListLength, 24, mockPackageService.Object));
+                () => newService.GetTyposquattingCheckList(checkListConfiguredLength, 24, mockPackageService.Object));
 
             // Assert
-            Assert.Equal(nameof(checkListLength), exception.ParamName);
+            Assert.Equal(nameof(checkListConfiguredLength), exception.ParamName);
         }
     }
 }

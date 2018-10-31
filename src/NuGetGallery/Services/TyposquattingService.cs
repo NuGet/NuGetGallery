@@ -41,7 +41,7 @@ namespace NuGetGallery
 
         public bool IsUploadedPackageIdTyposquatting(string uploadedPackageId, User uploadedPackageOwner, out List<string> typosquattingCheckCollisionIds)
         {
-            var checkListLength = _contentObjectService.TyposquattingConfiguration.PackageIdChecklistLength;
+            var checkListConfiguredLength = _contentObjectService.TyposquattingConfiguration.PackageIdChecklistLength;
             var checkListExpireTimeInHours = _contentObjectService.TyposquattingConfiguration.PackageIdChecklistCacheExpireTimeInHours;
             typosquattingCheckCollisionIds = new List<string>();
             var wasUploadBlocked = false;
@@ -59,12 +59,12 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(uploadedPackageOwner));
             }
 
+            var totalTimeStopwatch = Stopwatch.StartNew();
             var checklistRetrievalStopwatch = Stopwatch.StartNew();
-            var packageIdsCheckList = _typosquattingCheckListCacheService.GetTyposquattingCheckList(checkListLength, checkListExpireTimeInHours, _packageService);
+            var packageIdsCheckList = _typosquattingCheckListCacheService.GetTyposquattingCheckList(checkListConfiguredLength, checkListExpireTimeInHours, _packageService);
             checklistRetrievalStopwatch.Stop();
 
             _telemetryService.TrackMetricForTyposquattingChecklistRetrievalTime(uploadedPackageId, checklistRetrievalStopwatch.Elapsed);
-            var totalTime = checklistRetrievalStopwatch.Elapsed;
 
             var algorithmProcessingStopwatch = Stopwatch.StartNew();
             var threshold = GetThreshold(uploadedPackageId);
@@ -81,13 +81,13 @@ namespace NuGetGallery
             algorithmProcessingStopwatch.Stop();
 
             _telemetryService.TrackMetricForTyposquattingAlgorithmProcessingTime(uploadedPackageId, algorithmProcessingStopwatch.Elapsed);
-            totalTime = totalTime.Add(algorithmProcessingStopwatch.Elapsed);
 
             if (collisionIds.Count == 0)
             {
+                totalTimeStopwatch.Stop();
                 _telemetryService.TrackMetricForTyposquattingCheckResultAndTotalTime(
                     uploadedPackageId,
-                    totalTime,
+                    totalTimeStopwatch.Elapsed,
                     wasUploadBlocked,
                     typosquattingCheckCollisionIds,
                     packageIdsCheckList.Count,
@@ -123,11 +123,11 @@ namespace NuGetGallery
             ownersCheckStopwatch.Stop();
 
             _telemetryService.TrackMetricForTyposquattingOwnersCheckTime(uploadedPackageId, ownersCheckStopwatch.Elapsed);
-            totalTime = totalTime.Add(ownersCheckStopwatch.Elapsed);
 
+            totalTimeStopwatch.Stop();
             _telemetryService.TrackMetricForTyposquattingCheckResultAndTotalTime(
                     uploadedPackageId,
-                    totalTime,
+                    totalTimeStopwatch.Elapsed,
                     wasUploadBlocked,
                     typosquattingCheckCollisionIds,
                     packageIdsCheckList.Count,

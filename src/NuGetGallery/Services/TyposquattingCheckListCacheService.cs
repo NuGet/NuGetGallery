@@ -14,38 +14,38 @@ namespace NuGetGallery
         private List<string> Cache;
         private DateTime LastRefreshTime;
 
-        private int TyposquattingCheckListLength;
+        private int TyposquattingCheckListConfiguredLength;
 
         public TyposquattingCheckListCacheService()
         {
-            TyposquattingCheckListLength = -1;
+            TyposquattingCheckListConfiguredLength = -1;
             LastRefreshTime = DateTime.MinValue;
         }
 
-        public IReadOnlyCollection<string> GetTyposquattingCheckList(int checkListLength, double checkListExpireTimeInHours, IPackageService packageService)
+        public IReadOnlyCollection<string> GetTyposquattingCheckList(int checkListConfiguredLength, double checkListExpireTimeInHours, IPackageService packageService)
         {
-            if (checkListLength < 0)
+            if (checkListConfiguredLength < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(checkListLength), "Negative values are not supported.");
+                throw new ArgumentOutOfRangeException(nameof(checkListConfiguredLength), "Negative values are not supported.");
             }
             if (packageService == null)
             {
                 throw new ArgumentNullException(nameof(packageService));
             }
 
-            if (Cache == null || checkListLength != TyposquattingCheckListLength || IsCheckListCacheExpired(checkListExpireTimeInHours))
+            if (ShouldCacheBeUpdated(checkListConfiguredLength, checkListExpireTimeInHours))
             {
                 lock (Locker)
                 {
-                    if (Cache == null || checkListLength != TyposquattingCheckListLength || IsCheckListCacheExpired(checkListExpireTimeInHours))
+                    if (ShouldCacheBeUpdated(checkListConfiguredLength, checkListExpireTimeInHours))
                     {
-                        TyposquattingCheckListLength = checkListLength;
+                        TyposquattingCheckListConfiguredLength = checkListConfiguredLength;
 
                         Cache = packageService.GetAllPackageRegistrations()
                             .OrderByDescending(pr => pr.IsVerified)
                             .ThenByDescending(pr => pr.DownloadCount)
                             .Select(pr => pr.Id)
-                            .Take(TyposquattingCheckListLength)
+                            .Take(TyposquattingCheckListConfiguredLength)
                             .ToList();
 
                         LastRefreshTime = DateTime.UtcNow;
@@ -54,6 +54,11 @@ namespace NuGetGallery
             }
 
             return Cache;
+        }
+
+        private bool ShouldCacheBeUpdated(int checkListConfiguredLength, double checkListExpireTimeInHours)
+        {
+            return Cache == null || checkListConfiguredLength != TyposquattingCheckListConfiguredLength || IsCheckListCacheExpired(checkListExpireTimeInHours);
         }
 
         private bool IsCheckListCacheExpired(double checkListExpireTimeInHours)
