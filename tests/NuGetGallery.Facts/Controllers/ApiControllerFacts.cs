@@ -905,7 +905,7 @@ namespace NuGetGallery
                     .MockPackageUploadService
                     .Setup(x => x.ValidateBeforeGeneratePackageAsync(
                         It.IsAny<PackageArchiveReader>(), It.IsAny<PackageMetadata>()))
-                    .ReturnsAsync(PackageValidationResult.AcceptedWithWarnings(new[] { messageA }));
+                    .ReturnsAsync(PackageValidationResult.AcceptedWithWarnings(new[] { new PlainTextOnlyValidationMessage(messageA) }));
                 controller
                     .MockPackageUploadService
                     .Setup(x => x.ValidateAfterGeneratePackageAsync(
@@ -914,7 +914,7 @@ namespace NuGetGallery
                         It.IsAny<User>(),
                         It.IsAny<User>(),
                         It.IsAny<bool>()))
-                    .ReturnsAsync(PackageValidationResult.AcceptedWithWarnings(new[] { messageB }));
+                    .ReturnsAsync(PackageValidationResult.AcceptedWithWarnings(new[] { new PlainTextOnlyValidationMessage(messageB) }));
 
                 // Act
                 ActionResult result = await controller.CreatePackagePut();
@@ -929,8 +929,6 @@ namespace NuGetGallery
 
             [Theory]
             [InlineData(PackageValidationResultType.Invalid)]
-            [InlineData(PackageValidationResultType.PackageShouldNotBeSigned)]
-            [InlineData(PackageValidationResultType.PackageShouldNotBeSignedButCanManageCertificates)]
             public async Task WillReturnValidationMessageWhenValidationFails(PackageValidationResultType type)
             {
                 // Arrange

@@ -202,7 +202,7 @@ namespace NuGetGallery
                 Assert.Equal(
                     $"The previous package version '{previous.NormalizedVersion}' is author signed but the uploaded " +
                     $"package is unsigned. To avoid this warning, sign the package before uploading.",
-                    Assert.Single(result.Warnings));
+                    Assert.Single(result.Warnings).PlainTextMessage);
                 _packageService.Verify(
                     x => x.FindPackageRegistrationById(It.IsAny<string>()),
                     Times.Once);
@@ -346,7 +346,7 @@ namespace NuGetGallery
                 else
                 {
                     Assert.Equal(1, result.Warnings.Count());
-                    Assert.Equal(expectedWarning, result.Warnings.First());
+                    Assert.Equal(expectedWarning, result.Warnings.First().PlainTextMessage);
                 }
             }
 
@@ -417,7 +417,7 @@ namespace NuGetGallery
                     GetPackageMetadata(_nuGetPackage));
 
                 Assert.Equal(PackageValidationResultType.Invalid, result.Type);
-                Assert.Equal("The package contains too many files and/or folders.", result.Message);
+                Assert.Equal("The package contains too many files and/or folders.", result.Message.PlainTextMessage);
                 Assert.Empty(result.Warnings);
             }
 
@@ -480,7 +480,7 @@ namespace NuGetGallery
                 else
                 {
                     Assert.Equal(PackageValidationResultType.Invalid, result.Type);
-                    Assert.Contains("license", result.Message);
+                    Assert.Contains("license", result.Message.PlainTextMessage);
                     Assert.Empty(result.Warnings);
                 }
             }
@@ -531,8 +531,8 @@ namespace NuGetGallery
                     _currentUser,
                     _isNewPackageRegistration);
 
-                Assert.Equal(PackageValidationResultType.PackageShouldNotBeSignedButCanManageCertificates, result.Type);
-                Assert.Equal(Strings.UploadPackage_PackageIsSignedButMissingCertificate_CurrentUserCanManageCertificates, result.Message);
+                Assert.Equal(PackageValidationResultType.Invalid, result.Type);
+                Assert.IsType<PackageShouldNotBeSignedUserFixableValidationMessage>(result.Message);
                 Assert.Empty(result.Warnings);
             }
 
@@ -549,8 +549,8 @@ namespace NuGetGallery
                     _currentUser,
                     _isNewPackageRegistration);
 
-                Assert.Equal(PackageValidationResultType.PackageShouldNotBeSignedButCanManageCertificates, result.Type);
-                Assert.Equal(Strings.UploadPackage_PackageIsSignedButMissingCertificate_CurrentUserCanManageCertificates, result.Message);
+                Assert.Equal(PackageValidationResultType.Invalid, result.Type);
+                Assert.IsType<PackageShouldNotBeSignedUserFixableValidationMessage>(result.Message);
                 Assert.Empty(result.Warnings);
             }
 
@@ -567,8 +567,8 @@ namespace NuGetGallery
                     _currentUser,
                     _isNewPackageRegistration);
 
-                Assert.Equal(PackageValidationResultType.PackageShouldNotBeSignedButCanManageCertificates, result.Type);
-                Assert.Equal(Strings.UploadPackage_PackageIsSignedButMissingCertificate_CurrentUserCanManageCertificates, result.Message);
+                Assert.Equal(PackageValidationResultType.Invalid, result.Type);
+                Assert.IsType<PackageShouldNotBeSignedUserFixableValidationMessage>(result.Message);
                 Assert.Empty(result.Warnings);
             }
 
@@ -590,10 +590,10 @@ namespace NuGetGallery
                     _currentUser,
                     _isNewPackageRegistration);
 
-                Assert.Equal(PackageValidationResultType.PackageShouldNotBeSigned, result.Type);
+                Assert.Equal(PackageValidationResultType.Invalid, result.Type);
                 Assert.Equal(
                     string.Format(Strings.UploadPackage_PackageIsSignedButMissingCertificate_RequiredSigner, otherUser.Username),
-                    result.Message);
+                    result.Message.PlainTextMessage);
                 Assert.Empty(result.Warnings);
             }
 
@@ -621,10 +621,10 @@ namespace NuGetGallery
                     _currentUser,
                     _isNewPackageRegistration);
 
-                Assert.Equal(PackageValidationResultType.PackageShouldNotBeSigned, result.Type);
+                Assert.Equal(PackageValidationResultType.Invalid, result.Type);
                 Assert.Equal(
                     string.Format(Strings.UploadPackage_PackageIsSignedButMissingCertificate_RequiredSigner, _owner.Username),
-                    result.Message);
+                    result.Message.PlainTextMessage);
                 Assert.Empty(result.Warnings);
             }
 
@@ -653,10 +653,10 @@ namespace NuGetGallery
                     _currentUser,
                     _isNewPackageRegistration);
 
-                Assert.Equal(PackageValidationResultType.PackageShouldNotBeSigned, result.Type);
+                Assert.Equal(PackageValidationResultType.Invalid, result.Type);
                 Assert.Equal(
                     string.Format(Strings.UploadPackage_PackageIsSignedButMissingCertificate_RequiredSigner, ownerB.Username),
-                    result.Message);
+                    result.Message.PlainTextMessage);
                 Assert.Empty(result.Warnings);
             }
 
@@ -713,7 +713,7 @@ namespace NuGetGallery
                     _isNewPackageRegistration);
 
                 Assert.Equal(PackageValidationResultType.Invalid, result.Type);
-                Assert.Equal(Strings.UploadPackage_PackageIsNotSigned, result.Message);
+                Assert.Equal(Strings.UploadPackage_PackageIsNotSigned, result.Message.PlainTextMessage);
                 Assert.Empty(result.Warnings);
             }
 
@@ -813,8 +813,7 @@ namespace NuGetGallery
                     _isNewPackageRegistration);
 
                 Assert.Equal(PackageValidationResultType.Invalid, result.Type);
-                Assert.Equal(string.Format(Strings.TyposquattingCheckFails, string.Join(",", _typosquattingCheckCollisionIds)), result.Message);
-                Assert.Contains("similar", result.Message);
+                Assert.Equal(string.Format(Strings.TyposquattingCheckFails, string.Join(",", _typosquattingCheckCollisionIds)), result.Message.PlainTextMessage);
                 Assert.Empty(result.Warnings);
             }
         }

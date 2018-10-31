@@ -710,12 +710,12 @@ namespace NuGetGallery
 
                             TelemetryService.TrackPackagePushEvent(package, currentUser, User.Identity);
 
-                            var warnings = new List<string>();
+                            var warnings = new List<IValidationMessage>();
                             warnings.AddRange(beforeValidationResult.Warnings);
                             warnings.AddRange(afterValidationResult.Warnings);
                             if (package.SemVerLevelKey == SemVerLevelKey.SemVer2)
                             {
-                                warnings.Add(Strings.WarningSemVer2PackagePushed);
+                                warnings.Add(new PlainTextOnlyValidationMessage(Strings.WarningSemVer2PackagePushed));
                             }
 
                             return new HttpStatusCodeWithServerWarningResult(HttpStatusCode.Created, warnings);
@@ -764,9 +764,7 @@ namespace NuGetGallery
                 case PackageValidationResultType.Accepted:
                     return null;
                 case PackageValidationResultType.Invalid:
-                case PackageValidationResultType.PackageShouldNotBeSigned:
-                case PackageValidationResultType.PackageShouldNotBeSignedButCanManageCertificates:
-                    return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, validationResult.Message);
+                    return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, validationResult.Message.PlainTextMessage);
                 default:
                     throw new NotImplementedException($"The package validation result type {validationResult.Type} is not supported.");
             }

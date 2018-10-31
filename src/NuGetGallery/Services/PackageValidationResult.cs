@@ -12,14 +12,19 @@ namespace NuGetGallery
     /// </summary>
     public class PackageValidationResult
     {
-        private static readonly IReadOnlyList<string> EmptyList = new string[0];
+        private static readonly IReadOnlyList<IValidationMessage> EmptyList = new IValidationMessage[0];
 
-        public PackageValidationResult(PackageValidationResultType type, string message)
+        public PackageValidationResult(PackageValidationResultType type, IValidationMessage message)
             : this(type, message, warnings: null)
         {
         }
 
-        public PackageValidationResult(PackageValidationResultType type, string message, IReadOnlyList<string> warnings)
+        public PackageValidationResult(PackageValidationResultType type, string message)
+            : this(type, new PlainTextOnlyValidationMessage(message))
+        {
+        }
+
+        public PackageValidationResult(PackageValidationResultType type, IValidationMessage message, IReadOnlyList<IValidationMessage> warnings)
         {
             if (type != PackageValidationResultType.Accepted && message == null)
             {
@@ -32,8 +37,8 @@ namespace NuGetGallery
         }
 
         public PackageValidationResultType Type { get; }
-        public string Message { get; }
-        public IReadOnlyList<string> Warnings { get; }
+        public IValidationMessage Message { get; }
+        public IReadOnlyList<IValidationMessage> Warnings { get; }
 
         public static PackageValidationResult Accepted()
         {
@@ -43,7 +48,7 @@ namespace NuGetGallery
                 warnings: null);
         }
 
-        public static PackageValidationResult AcceptedWithWarnings(IReadOnlyList<string> warnings)
+        public static PackageValidationResult AcceptedWithWarnings(IReadOnlyList<IValidationMessage> warnings)
         {
             return new PackageValidationResult(
                 PackageValidationResultType.Accepted,
@@ -52,6 +57,9 @@ namespace NuGetGallery
         }
 
         public static PackageValidationResult Invalid(string message)
+            => Invalid(new PlainTextOnlyValidationMessage(message));
+
+        public static PackageValidationResult Invalid(IValidationMessage message)
         {
             if (message == null)
             {

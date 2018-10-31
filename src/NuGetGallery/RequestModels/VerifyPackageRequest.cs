@@ -120,7 +120,7 @@ namespace NuGetGallery
         public bool IsSymbolsPackage { get; set; }
         public bool HasExistingAvailableSymbols { get; set; }
 
-        public List<string> Warnings { get; set; } = new List<string>();
+        public List<JsonValidationMessage> Warnings { get; set; } = new List<JsonValidationMessage>();
 
         private static IReadOnlyCollection<string> ParseUserList(IEnumerable<User> users)
         {
