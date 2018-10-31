@@ -21,7 +21,6 @@ namespace NuGetGallery
         public HttpStatusCodeWithServerWarningResult(HttpStatusCode statusCode, IReadOnlyList<IValidationMessage> warnings)
             : this(statusCode, warnings.Select(w => w.PlainTextMessage).ToList())
         {
-
         }
 
         public override void ExecuteResult(ControllerContext context)

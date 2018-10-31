@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
+
 namespace NuGetGallery
 {
     /// <summary>
@@ -10,12 +12,17 @@ namespace NuGetGallery
     {
         public JsonValidationMessage(string message)
         {
-            PlainTextMessage = message;
+            PlainTextMessage = message ?? throw new ArgumentNullException(nameof(message));
             RawHtmlMessage = null;
         }
 
         public JsonValidationMessage(IValidationMessage message)
         {
+            if (message == null)
+            {
+                throw new ArgumentNullException(nameof(message));
+            }
+
             if (message.HasRawHtmlRepresentation)
             {
                 PlainTextMessage = null;

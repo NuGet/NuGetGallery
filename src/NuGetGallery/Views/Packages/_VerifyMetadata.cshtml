@@ -1,16 +1,16 @@
 ﻿<script type="text/html" id="validation-errors">
-    <div data-bind="foreach:$data" class="validation-error-message-list">
+    <div data-bind="foreach: $data" class="validation-error-message-list">
         @ViewHelpers.AlertDanger(
             @<text>
                 <!-- ko if: typeof($data) === "string" -->
-                <span data-bind="text:$data"></span>
+                <span data-bind="text: $data"></span>
                 <!-- /ko -->
                 <!-- ko if: typeof($data) === "object" -->
                     <!-- ko if: $data.PlainTextMessage -->
-                    <span data-bind="text:$data.PlainTextMessage"></span>
+                    <span data-bind="text: $data.PlainTextMessage"></span>
                     <!-- /ko -->
                     <!-- ko ifnot: $data.PlainTextMessage -->
-                    <span data-bind="html:$data.RawHtmlMessage"></span>
+                    <span data-bind="html: $data.RawHtmlMessage"></span>
                     <!-- /ko -->
                 <!-- /ko -->
             </text>)
