@@ -18,5 +18,11 @@ namespace NuGetGallery.Configuration
 
         [DisplayName("SymbolsValidation.TopicName")]
         public string SymbolsValidation_TopicName { get; set; }
+
+        [DisplayName("EmailPublisher.ConnectionString")]
+        public string EmailPublisher_ConnectionString { get; set; }
+
+        [DisplayName("EmailPublisher.TopicName")]
+        public string EmailPublisher_TopicName { get; set; }
     }
 }

@@ -3,6 +3,8 @@
 
 using System;
 using System.Collections.Generic;
+using NuGet.Services.Entities;
+using NuGet.Services.Messaging.Email;
 using Xunit;
 
 namespace NuGetGallery.Infrastructure.Mail.Messages
@@ -93,6 +95,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
             [Theory]
             [InlineData(EmailFormat.Markdown, _expectedMarkdownBody)]
             [InlineData(EmailFormat.PlainText, _expectedPlainTextBody)]
+            [InlineData(EmailFormat.Html, _expectedHtmlBody)]
             public void ReturnsExpectedBody(EmailFormat format, string expectedString)
             {
                 var message = CreateMessage();
@@ -145,5 +148,13 @@ If you did not request this change, please contact support by responding to this
 
 Thanks,
 The NuGetGallery Team";
+
+        private const string _expectedHtmlBody =
+            "<p>We have received a request to transform account 'requestingUser' into an organization with user 'organizationAdmin' as its admin.</p>\n" +
+"<p>To cancel the transformation:</p>\n" +
+"<p><a href=\"cancellationUrl\">cancellationUrl</a></p>\n" +
+"<p>If you did not request this change, please contact support by responding to this email.</p>\n" +
+"<p>Thanks,\n" +
+"The NuGetGallery Team</p>\n";
     }
 }

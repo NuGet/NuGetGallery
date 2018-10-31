@@ -101,6 +101,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
             [Theory]
             [InlineData(EmailFormat.Markdown, _expectedMarkdownBody)]
             [InlineData(EmailFormat.PlainText, _expectedPlainTextBody)]
+            [InlineData(EmailFormat.Html, _expectedHtmlBody)]
             public void ReturnsExpectedBody(EmailFormat format, string expectedString)
             {
                 var message = CreateMessage();
@@ -146,5 +147,12 @@ reason
 
 Message:
 message";
+
+        private const string _expectedHtmlBody =
+            "<p><strong>Email:</strong> requestingUser (requestUser@gallery.org)</p>\n" +
+            "<p><strong>Reason:</strong>\n" +
+            "reason</p>\n" +
+            "<p><strong>Message:</strong>\n" +
+            "message</p>\n";
     }
 }

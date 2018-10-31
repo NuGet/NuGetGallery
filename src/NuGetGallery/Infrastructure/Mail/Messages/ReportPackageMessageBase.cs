@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Mail;
+using NuGet.Services.Messaging.Email;
 using NuGetGallery.Infrastructure.Mail.Requests;
 
 namespace NuGetGallery.Infrastructure.Mail.Messages

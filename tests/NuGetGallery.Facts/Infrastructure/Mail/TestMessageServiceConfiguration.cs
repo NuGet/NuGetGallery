@@ -2,8 +2,9 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Net.Mail;
+using NuGet.Services.Messaging.Email;
 
-namespace NuGetGallery.Infrastructure.Mail
+namespace NuGetGallery.Infrastructure.Mail.Messages
 {
     public class TestMessageServiceConfiguration
         : IMessageServiceConfiguration

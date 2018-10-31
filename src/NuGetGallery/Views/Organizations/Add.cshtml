@@ -1,7 +1,7 @@
 ﻿@model AddOrganizationViewModel
 @{
     ViewBag.Title = "Add Organization";
-    ViewBag.MdPageColumns = Constants.ColumnsFormMd;
+    ViewBag.MdPageColumns = GalleryConstants.ColumnsFormMd;
 
     var gravatarId = "gravatar-image";
     var emailBoxGroupId = "email-box-group";
@@ -73,7 +73,7 @@
         var organizationNameTextGroupId = "@organizationNameTextGroupId";
         var organizationNameTextId = "@organizationNameTextId";
         var defaultImage = "@Html.Raw(@Url.Absolute("~/Content/gallery/img/default-package-icon-256x256.png"))";
-        var emailValidationRegex = new RegExp("@Html.Raw(@Constants.EmailValidationRegex)");
+        var emailValidationRegex = new RegExp("@Html.Raw(@GalleryConstants.EmailValidationRegex)");
     </script>
     @Scripts.Render("~/Scripts/gallery/page-add-organization.min.js")
 }

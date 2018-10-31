@@ -14,7 +14,7 @@ namespace NuGetGallery
         [Required(ErrorMessage = "Please enter your email address.")]
         [StringLength(4000)]
         [Display(Name = "Your Email Address")]
-        [RegularExpression(Constants.EmailValidationRegex,
+        [RegularExpression(GalleryConstants.EmailValidationRegex,
             ErrorMessage = "This doesn't appear to be a valid email address.")]
         public string Email { get; set; }
 

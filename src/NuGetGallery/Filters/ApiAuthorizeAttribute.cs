@@ -36,14 +36,14 @@ namespace NuGetGallery.Filters
                     {
                         // expired warning
                         filterContext.HttpContext.Response.Headers.Add(
-                            Constants.WarningHeaderName,
+                            GalleryConstants.WarningHeaderName,
                             string.Format(CultureInfo.InvariantCulture, Strings.WarningApiKeyExpired, accountUrl));
                     }
                     else if (expirationPeriod.TotalDays <= controller.NuGetContext.Config.Current.WarnAboutExpirationInDaysForApiKeyV1)
                     {
                         // about to expire warning
                         filterContext.HttpContext.Response.Headers.Add(
-                            Constants.WarningHeaderName,
+                            GalleryConstants.WarningHeaderName,
                             string.Format(CultureInfo.InvariantCulture, Strings.WarningApiKeyAboutToExpire, Math.Round(expirationPeriod.TotalDays, 0), accountUrl));
                     }
                 }

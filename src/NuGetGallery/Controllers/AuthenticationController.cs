@@ -11,17 +11,24 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
+using NuGet.Services.Entities;
+using NuGet.Services.Messaging.Email;
 using NuGetGallery.Authentication;
 using NuGetGallery.Authentication.Providers;
 using NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2;
 using NuGetGallery.Authentication.Providers.MicrosoftAccount;
 using NuGetGallery.Infrastructure.Authentication;
-using NuGetGallery.Infrastructure.Mail;
 using NuGetGallery.Infrastructure.Mail.Messages;
 using NuGetGallery.Security;
 
 namespace NuGetGallery
 {
+    public static class AuthenticationFailureErrors
+    {
+        public const string ACCESSS_DENIED = "access_denied";
+        public const string CONSENT_REQUIRED = "consent_required";
+    }
+
     public partial class AuthenticationController
         : AppController
     {
@@ -66,11 +73,11 @@ namespace NuGetGallery
         public virtual ActionResult LogOn(string returnUrl)
         {
             // I think it should be obvious why we don't want the current URL to be the return URL here ;)
-            ViewData[Constants.ReturnUrlViewDataKey] = returnUrl;
+            ViewData[GalleryConstants.ReturnUrlViewDataKey] = returnUrl;
 
-            if (TempData.ContainsKey(Constants.ReturnUrlMessageViewDataKey))
+            if (TempData.ContainsKey(GalleryConstants.ReturnUrlMessageViewDataKey))
             {
-                ViewData[Constants.ReturnUrlMessageViewDataKey] = TempData[Constants.ReturnUrlMessageViewDataKey];
+                ViewData[GalleryConstants.ReturnUrlMessageViewDataKey] = TempData[GalleryConstants.ReturnUrlMessageViewDataKey];
             }
 
             if (Request.IsAuthenticated)
@@ -87,7 +94,7 @@ namespace NuGetGallery
         [HttpGet]
         public virtual ActionResult LogOnNuGetAccount(string returnUrl)
         {
-            ViewData[Constants.ReturnUrlViewDataKey] = returnUrl;
+            ViewData[GalleryConstants.ReturnUrlViewDataKey] = returnUrl;
 
             if (Request.IsAuthenticated)
             {
@@ -102,7 +109,7 @@ namespace NuGetGallery
         public virtual ActionResult SignUp(string returnUrl)
         {
             // I think it should be obvious why we don't want the current URL to be the return URL here ;)
-            ViewData[Constants.ReturnUrlViewDataKey] = returnUrl;
+            ViewData[GalleryConstants.ReturnUrlViewDataKey] = returnUrl;
 
             if (Request.IsAuthenticated)
             {
@@ -117,7 +124,7 @@ namespace NuGetGallery
         public virtual async Task<ActionResult> SignIn(LogOnViewModel model, string returnUrl, bool linkingAccount)
         {
             // I think it should be obvious why we don't want the current URL to be the return URL here ;)
-            ViewData[Constants.ReturnUrlViewDataKey] = returnUrl;
+            ViewData[GalleryConstants.ReturnUrlViewDataKey] = returnUrl;
 
             if (Request.IsAuthenticated)
             {
@@ -172,7 +179,7 @@ namespace NuGetGallery
                 authenticatedUser = loginUserDetails?.AuthenticatedUser;
                 if (authenticatedUser == null)
                 {
-                    return ExternalLinkExpired();
+                    return AuthenticationFailureOrExternalLinkExpired();
                 }
 
                 usedMultiFactorAuthentication = loginUserDetails.UsedMultiFactorAuthentication;
@@ -237,7 +244,7 @@ namespace NuGetGallery
         public virtual async Task<ActionResult> Register(LogOnViewModel model, string returnUrl, bool linkingAccount)
         {
             // I think it should be obvious why we don't want the current URL to be the return URL here ;)
-            ViewData[Constants.ReturnUrlViewDataKey] = returnUrl;
+            ViewData[GalleryConstants.ReturnUrlViewDataKey] = returnUrl;
 
             if (Request.IsAuthenticated)
             {
@@ -264,7 +271,7 @@ namespace NuGetGallery
                     var result = await _authService.ReadExternalLoginCredential(OwinContext);
                     if (result.ExternalIdentity == null)
                     {
-                        return ExternalLinkExpired();
+                        return AuthenticationFailureOrExternalLinkExpired();
                     }
 
                     usedMultiFactorAuthentication = result.LoginDetails?.WasMultiFactorAuthenticated ?? false;
@@ -497,7 +504,7 @@ namespace NuGetGallery
             return SafeRedirect(returnUrl);
         }
 
-        public virtual async Task<ActionResult> LinkExternalAccount(string returnUrl)
+        public virtual async Task<ActionResult> LinkExternalAccount(string returnUrl, string error = null, string errorDescription = null)
         {
             // Extract the external login info
             var result = await _authService.AuthenticateExternalLogin(OwinContext);
@@ -505,7 +512,8 @@ namespace NuGetGallery
             {
                 // User got here without an external login cookie (or an expired one)
                 // Send them to the logon action
-                return ExternalLinkExpired();
+                string errorMessage = GetAuthenticationFailureMessage(error, errorDescription);
+                return AuthenticationFailureOrExternalLinkExpired(errorMessage);
             }
 
             if (result.Authentication != null)
@@ -749,11 +757,11 @@ namespace NuGetGallery
             }
         }
 
-        private ActionResult ExternalLinkExpired()
+        private ActionResult AuthenticationFailureOrExternalLinkExpired(string errorMessage = null)
         {
             // User got here without an external login cookie (or an expired one)
             // Send them to the logon action with a message
-            TempData["Message"] = Strings.ExternalAccountLinkExpired;
+            TempData["Message"] = string.IsNullOrEmpty(errorMessage) ? Strings.ExternalAccountLinkExpired : errorMessage;
             return Redirect(Url.LogOn(null, relativeUrl: false));
         }
 
@@ -814,6 +822,25 @@ namespace NuGetGallery
             existingModel.Register = existingModel.Register ?? new RegisterViewModel();
 
             return View(viewName, existingModel);
+        }
+
+        private string GetAuthenticationFailureMessage(string error, string errorDescription)
+        {
+            if (string.IsNullOrEmpty(error))
+            {
+                return Strings.AuthenticationFailure_UnkownError;
+            }
+
+            switch (error)
+            {
+                case AuthenticationFailureErrors.ACCESSS_DENIED:
+                case AuthenticationFailureErrors.CONSENT_REQUIRED:
+                    return Strings.ExternalAccountLinkExpired;
+                default:
+                    return string.IsNullOrEmpty(errorDescription)
+                        ? error
+                        : errorDescription;
+            }
         }
     }
 }

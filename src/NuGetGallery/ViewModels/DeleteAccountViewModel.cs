@@ -4,8 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using NuGetGallery.Areas.Admin;
-using NuGetGallery.Areas.Admin.Models;
+using NuGet.Services.Entities;
 
 namespace NuGetGallery
 {

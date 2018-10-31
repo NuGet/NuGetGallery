@@ -11,10 +11,12 @@ using NuGet.Frameworks;
 using NuGet.Packaging;
 using NuGet.Packaging.Core;
 using NuGet.Packaging.Signing;
+using NuGet.Services.Entities;
 using NuGet.Versioning;
 using NuGetGallery.Configuration;
 using NuGetGallery.Framework;
 using NuGetGallery.Security;
+using PackageDependency = NuGet.Services.Entities.PackageDependency;
 
 namespace NuGetGallery.TestUtils
 {

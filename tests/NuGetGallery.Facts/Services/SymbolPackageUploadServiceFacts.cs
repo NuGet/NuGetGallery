@@ -6,6 +6,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Moq;
 using NuGet.Packaging;
+using NuGet.Services.Entities;
 using NuGetGallery.Packaging;
 using Xunit;
 
@@ -27,7 +28,8 @@ namespace NuGetGallery
                 symbolPackageService = new Mock<ISymbolPackageService>();
                 symbolPackageService
                     .Setup(x => x.CreateSymbolPackage(It.IsAny<Package>(), It.IsAny<PackageStreamMetadata>()))
-                    .Returns((Package package, PackageStreamMetadata streamMetadata) => {
+                    .Returns((Package package, PackageStreamMetadata streamMetadata) =>
+                    {
                         var symbolPackage = new SymbolPackage()
                         {
                             Package = package,
@@ -186,7 +188,7 @@ namespace NuGetGallery
                 Assert.NotNull(result);
                 Assert.Equal(SymbolPackageValidationResultType.Invalid, result.Type);
                 telemetryService
-                    .Verify(x => x.TrackSymbolPackageFailedGalleryValidationEvent(It.IsAny<string>(), It.IsAny<string>()), 
+                    .Verify(x => x.TrackSymbolPackageFailedGalleryValidationEvent(It.IsAny<string>(), It.IsAny<string>()),
                         times: Times.Once);
             }
 
@@ -227,7 +229,8 @@ namespace NuGetGallery
                 var validationService = new Mock<IValidationService>();
                 validationService
                     .Setup(x => x.StartValidationAsync(It.IsAny<SymbolPackage>()))
-                    .Returns((SymbolPackage sp) => {
+                    .Returns((SymbolPackage sp) =>
+                    {
                         sp.StatusKey = invalidStatus;
                         return Task.CompletedTask;
                     })
@@ -359,7 +362,8 @@ namespace NuGetGallery
                 // Arrange
                 var symbolPackage = new SymbolPackage()
                 {
-                    Package = new Package() {
+                    Package = new Package()
+                    {
                         PackageRegistration = new PackageRegistration() { Id = "foo" },
                         Version = "1.0.0",
                         NormalizedVersion = "1.0.0"

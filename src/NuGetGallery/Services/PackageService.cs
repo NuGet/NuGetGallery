@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using NuGet.Frameworks;
 using NuGet.Packaging;
 using NuGet.Packaging.Core;
+using NuGet.Services.Entities;
 using NuGet.Versioning;
 using NuGetGallery.Auditing;
 using NuGetGallery.Packaging;
@@ -479,8 +480,8 @@ namespace NuGetGallery
 
             if (package != null)
             {
-                throw new EntityException(
-                    "A package with identifier '{0}' and version '{1}' already exists.", packageRegistration.Id, package.Version);
+                throw new PackageAlreadyExistsException(
+                    string.Format(Strings.PackageExistsAndCannotBeModified, packageRegistration.Id, package.Version));
             }
 
             package = new Package();

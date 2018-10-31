@@ -6,12 +6,13 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
+using Moq;
+using NuGet.Services.Entities;
 using NuGetGallery.Areas.Admin;
 using NuGetGallery.Areas.Admin.Controllers;
 using NuGetGallery.Areas.Admin.Models;
 using NuGetGallery.Areas.Admin.ViewModels;
 using NuGetGallery.Framework;
-using Moq;
 using Xunit;
 
 namespace NuGetGallery.Controllers
@@ -60,7 +61,7 @@ namespace NuGetGallery.Controllers
                                                     Key = 3,
                                                     CreatedBy = null,
                                                     IssueTitle = "DeleteAccount" }};
-                var admins = new List<Admin>(){ new Admin(){ GalleryUsername = "admin1", Key = 1 } };
+                var admins = new List<Admin>() { new Admin() { GalleryUsername = "admin1", Key = 1 } };
                 var issuesStatuses = new List<IssueStatus>(){
                                                 new IssueStatus() { Name = "Resolved", Key = 1 },
                                                 new IssueStatus() { Name = "New", Key = 2 } };
@@ -70,7 +71,7 @@ namespace NuGetGallery.Controllers
                 supportRequestService.Setup(m => m.GetAllAdmins()).Returns(admins);
                 supportRequestService.Setup(m => m.GetAllIssueStatuses()).Returns(issuesStatuses);
                 supportRequestService.Setup(m => m.GetIssueCount(It.IsAny<int?>(), It.IsAny<string>(), It.IsAny<int?>())).Returns(issues.Count);
-               
+
                 var userService = new Mock<IUserService>();
                 IDictionary<int, string> emailAddresses = new Dictionary<int, string>();
                 emailAddresses.Add(111, "admin1.coldmail.com");
@@ -91,7 +92,7 @@ namespace NuGetGallery.Controllers
             }
         }
 
-        static SupportRequestController CreateController(ISupportRequestService supportRequestService, IUserService userService, User admin)
+        private static SupportRequestController CreateController(ISupportRequestService supportRequestService, IUserService userService, User admin)
         {
             var controller = new Mock<SupportRequestController>(supportRequestService, userService);
             controller.CallBase = true;

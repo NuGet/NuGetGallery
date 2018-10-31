@@ -11,6 +11,7 @@ using Moq.Language;
 using Moq.Language.Flow;
 using NuGetGallery.Authentication;
 using Xunit;
+using NuGet.Services.Entities;
 
 namespace NuGetGallery
 {

@@ -14,6 +14,7 @@ using System.Web.Http.OData;
 using System.Web.Http.OData.Builder;
 using System.Web.Http.OData.Query;
 using Moq;
+using NuGet.Services.Entities;
 using NuGetGallery.Configuration;
 using NuGetGallery.Framework;
 using NuGetGallery.OData;
@@ -51,15 +52,21 @@ namespace NuGetGallery.Controllers
         protected abstract TController CreateController(
             IEntityRepository<Package> packagesRepository,
             IGalleryConfigurationService configurationService,
-            ISearchService searchService);
+            ISearchService searchService,
+            ITelemetryService telemetryService);
 
         protected TController CreateTestableODataFeedController(HttpRequestMessage request)
         {
             var searchService = new Mock<ISearchService>().Object;
             var configurationService = new TestGalleryConfigurationService();
             configurationService.Current.SiteRoot = _siteRoot;
+            var telemetryService = new Mock<ITelemetryService>();
 
-            var controller = CreateController(PackagesRepository, configurationService, searchService);
+            var controller = CreateController(
+                PackagesRepository,
+                configurationService,
+                searchService,
+                telemetryService.Object);
 
             AddRequestToController(request, controller);
 

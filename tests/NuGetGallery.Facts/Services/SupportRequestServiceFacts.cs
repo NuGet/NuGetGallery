@@ -12,6 +12,7 @@ using NuGetGallery.Auditing;
 using NuGetGallery.Configuration;
 using Moq;
 using Xunit;
+using NuGet.Services.Entities;
 
 namespace NuGetGallery.Services
 {

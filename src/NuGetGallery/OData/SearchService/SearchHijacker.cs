@@ -11,6 +11,7 @@ using Microsoft.Data.Edm;
 using Microsoft.Data.OData;
 using Microsoft.Data.OData.Query;
 using Microsoft.Data.OData.Query.SemanticAst;
+using NuGet.Services.Entities;
 using NuGetGallery.WebApi;
 
 namespace NuGetGallery.OData

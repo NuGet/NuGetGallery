@@ -1,11 +1,12 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Moq;
-using NuGetGallery.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Moq;
+using NuGet.Services.Entities;
+using NuGetGallery.Framework;
 using Xunit;
 
 namespace NuGetGallery.Authentication
@@ -16,7 +17,7 @@ namespace NuGetGallery.Authentication
         {
             private const string DefaultSubject = "a";
 
-            private static Func<TestablePermissionsEntity, string> DefaultGetSubjectFromEntity = (e) => DefaultSubject;
+            private static readonly Func<TestablePermissionsEntity, string> DefaultGetSubjectFromEntity = (e) => DefaultSubject;
 
             private static Func<TestablePermissionsEntity, string> CreateGetSubjectFromEntity(string subject)
             {
@@ -29,7 +30,7 @@ namespace NuGetGallery.Authentication
                 {
                     mockUserService = new Mock<IUserService>();
                 }
-                
+
                 return new ApiScopeEvaluator(mockUserService.Object);
             }
 
@@ -80,7 +81,7 @@ namespace NuGetGallery.Authentication
             {
                 get
                 {
-                    yield return MemberDataHelper.AsData((IEnumerable<Scope>) null);
+                    yield return MemberDataHelper.AsData((IEnumerable<Scope>)null);
                     yield return MemberDataHelper.AsData(Enumerable.Empty<Scope>());
                 }
             }
@@ -205,7 +206,7 @@ namespace NuGetGallery.Authentication
             public void ThrowsIfMultipleOwnerScopes()
             {
                 // Arrange
-                var scopes = 
+                var scopes =
                     new[] { 535, 212, 6534 }
                         .Select(k => new Scope(k, NuGetPackagePattern.AllInclusivePattern, NuGetScopes.All));
 

@@ -4,6 +4,7 @@
 using System;
 using System.Data.SqlClient;
 using System.Threading.Tasks;
+using NuGet.Services.Entities;
 
 namespace NuGetGallery
 {

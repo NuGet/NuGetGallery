@@ -9,6 +9,7 @@ using System.Security.Claims;
 using System.Security.Principal;
 using Microsoft.Owin;
 using Moq;
+using NuGet.Services.Entities;
 using NuGetGallery.Authentication;
 using NuGetGallery.Infrastructure.Authentication;
 
@@ -16,10 +17,10 @@ namespace NuGetGallery.Framework
 {
     public class Fakes
     {
-        public static TimeSpan ExpirationForApiKeyV1 =  TimeSpan.FromDays(90);
+        public static TimeSpan ExpirationForApiKeyV1 = TimeSpan.FromDays(90);
 
         public static readonly string Password = "p@ssw0rd!";
-        
+
         public Fakes()
         {
             _users = Get<User>();
@@ -41,7 +42,7 @@ namespace NuGetGallery.Framework
                         ExpirationForApiKeyV1),
                     TestCredentialHelper.CreateV2ApiKey(Guid.Parse("779e180e-335c-491a-ac26-e83c4bd31d87"),
                         ExpirationForApiKeyV1).WithDefaultScopes(),
-                    TestCredentialHelper.CreateV3ApiKey(Guid.Parse(ApiKeyV3PlaintextValue), 
+                    TestCredentialHelper.CreateV3ApiKey(Guid.Parse(ApiKeyV3PlaintextValue),
                         ExpirationForApiKeyV1).WithDefaultScopes(),
                     TestCredentialHelper.CreateV4ApiKey(null, out string apiKeyV4PlaintextValue).WithDefaultScopes(),
                     TestCredentialHelper.CreateV2VerificationApiKey(Guid.Parse("b0c51551-823f-4701-8496-43980b4b3913")),
@@ -67,7 +68,7 @@ namespace NuGetGallery.Framework
                 },
                 MemberRequests = new List<MembershipRequest>()
             };
-            
+
             CreateOrganizationUsers(ref key, credentialBuilder, "", out var organization, out var organizationAdmin, out var organizationCollaborator);
             Organization = organization;
             OrganizationAdmin = organizationAdmin;
@@ -119,14 +120,14 @@ namespace NuGetGallery.Framework
             Owner = new User("testPackageOwner")
             {
                 Key = key++,
-                Credentials = new List<Credential> { TestCredentialHelper.CreatePbkdf2Password(Password)},
+                Credentials = new List<Credential> { TestCredentialHelper.CreatePbkdf2Password(Password) },
                 EmailAddress = "confirmed@example.com" //package owners need confirmed email addresses, obviously.
             };
 
             Package = new PackageRegistration
             {
                 Id = "FakePackage",
-                Owners = new List<User> {Owner, OrganizationOwner},
+                Owners = new List<User> { Owner, OrganizationOwner },
             };
             Package.Packages = new List<Package>
             {
@@ -196,7 +197,7 @@ namespace NuGetGallery.Framework
 
         public static IIdentity ToIdentity(User user)
         {
-             return new GenericIdentity(user.Username);
+            return new GenericIdentity(user.Username);
         }
 
         internal void ConfigureEntitiesContext(FakeEntitiesContext ctxt)
@@ -257,7 +258,7 @@ namespace NuGetGallery.Framework
             return typeof(Fakes)
                 .GetProperties()
                 .Where(p => typeof(T).IsAssignableFrom(p.PropertyType) && p.GetMethod != null)
-                .Select<PropertyInfo, Func<T>>(p => 
+                .Select<PropertyInfo, Func<T>>(p =>
                     () => (T)p.GetMethod.Invoke(this, new object[] { }));
         }
 

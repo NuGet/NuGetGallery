@@ -120,6 +120,7 @@
     <Compile Include="Infrastructure\Authentication\Base32EncoderTests.cs" />
     <Compile Include="Infrastructure\HttpStatusCodeWithBodyResultFacts.cs" />
     <Compile Include="Infrastructure\Lucene\ExternalSearchServiceFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\MarkdownMessageBuilderFacts.cs" />
     <Compile Include="Infrastructure\Mail\Messages\SigninAssistanceMessageFacts.cs" />
     <Compile Include="Infrastructure\Mail\Messages\ReportMyPackageMessageFacts.cs" />
     <Compile Include="Infrastructure\Mail\Messages\ReportAbuseMessageFacts.cs" />
@@ -147,6 +148,7 @@
     <Compile Include="Infrastructure\Mail\Messages\OrganizationTransformRejectedMessageFacts.cs" />
     <Compile Include="Infrastructure\Mail\Messages\OrganizationTransformAcceptedMessageFacts.cs" />
     <Compile Include="Infrastructure\Mail\Messages\OrganizationMemberUpdatedMessageFacts.cs" />
+    <Compile Include="Infrastructure\Mail\TestMessageServiceConfiguration.cs" />
     <Compile Include="Security\ControlRequiredSignerPolicyFacts.cs" />
     <Compile Include="Security\AutomaticallyOverwriteRequiredSignerPolicyFacts.cs" />
     <Compile Include="Security\MicrosoftTeamSubscriptionFacts.cs" />
@@ -262,6 +264,7 @@
     <Compile Include="TestUtils\TestServiceUtility.cs" />
     <Compile Include="TestUtils\TestDataUtility.cs" />
     <Compile Include="TestUtils\TestUtility.cs" />
+    <Compile Include="UriExtensionsFacts.cs" />
     <Compile Include="UrlHelperExtensionsFacts.cs" />
     <Compile Include="ViewModels\DependencySetsViewModelFacts.cs" />
     <Compile Include="ViewModels\DisplayPackageViewModelFacts.cs" />

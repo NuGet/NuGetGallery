@@ -279,6 +279,13 @@ namespace NuGetGallery
             return fileStorageDirectory;
         }
 
+        public Task<string> GetETagOrNullAsync(
+           string folderName,
+           string fileName)
+        {
+            throw new NotImplementedException(nameof(GetETagOrNullAsync));
+        }
+
         private static string GetContentType(string folderName)
         {
             switch (folderName)

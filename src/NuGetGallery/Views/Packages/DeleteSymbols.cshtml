@@ -2,7 +2,7 @@
 @{
     ViewBag.Title = "Manage Symbols Package " + Model.Id;
     ViewBag.Tab = "Symbol Packages";
-    ViewBag.MdPageColumns = Constants.ColumnsFormMd;
+    ViewBag.MdPageColumns = GalleryConstants.ColumnsFormMd;
 }
 
 <section role="main" class="container main-container page-delete-package">
@@ -61,16 +61,15 @@
                 </div>
 
                 <h2>
-                    <a href="#" role="button" data-toggle="collapse" data-target="#delete-package"
-                       aria-expanded="false" aria-controls="delete-package" id="show-delete-package">
-                        <i class="ms-Icon ms-Icon--ChevronRight" aria-hidden="true"></i>
+                    <a href="#" role="button" data-toggle="collapse" data-target="#delete-package" aria-expanded="true" aria-controls="delete-package" id="show-delete-package">
+                        <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
                         <span>Delete Symbols Package Version</span>
                     </a>
                 </h2>
-                <div class="list-unstyled panel-collapse collapse" id="delete-package">
+                <div class="list-unstyled panel-collapse collapse in" id="delete-package">
                     @ViewHelpers.AlertDanger(
                         @<text>
-                            <strong>Deleting this symbols package will remove all the symbols from the symbol server and make them unavailable.</strong><br />
+                            <strong>Deleting this symbols package will remove all symbols in this package from the symbol server and make them unavailable.</strong><br />
                         </text>)
 
                     @using (Html.BeginForm("DeleteSymbolsPackage", "Packages", FormMethod.Post, new { id = "delete-symbols-form" }))

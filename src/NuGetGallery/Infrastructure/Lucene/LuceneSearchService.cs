@@ -1,5 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -11,6 +12,7 @@ using Lucene.Net.Documents;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
 using Lucene.Net.Search.Function;
+using NuGet.Services.Entities;
 using NuGet.Services.Search.Models;
 using NuGetGallery.Helpers;
 
@@ -18,7 +20,7 @@ namespace NuGetGallery
 {
     public class LuceneSearchService : ISearchService
     {
-        private Lucene.Net.Store.Directory _directory;
+        private readonly Lucene.Net.Store.Directory _directory;
 
         private static readonly string[] FieldAliases = new[] { "Id", "Title", "Tag", "Tags", "Description", "Author", "Authors", "Owner", "Owners" };
         private static readonly string[] Fields = new[] { "Id", "Title", "Tags", "Description", "Authors", "Owners" };
@@ -89,7 +91,7 @@ namespace NuGetGallery
 
             Filter filter = new QueryWrapperFilter(filterQuery);
             var results = searcher.Search(query, filter: filter, n: numRecords, sort: new Sort(GetSortField(searchFilter)));
-            
+
             if (results.TotalHits == 0 || searchFilter.CountOnly)
             {
                 return new SearchResults(results.TotalHits, timestamp);
@@ -134,17 +136,17 @@ namespace NuGetGallery
             }
 
             var owners = doc.Get("FlattenedOwners")
-                            .SplitSafe(new[] {';'}, StringSplitOptions.RemoveEmptyEntries)
-                            .Select(o => new User {Username = o})
+                            .SplitSafe(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries)
+                            .Select(o => new User { Username = o })
                             .ToArray();
             var frameworks =
                 doc.Get("JoinedSupportedFrameworks")
-                   .SplitSafe(new[] {';'}, StringSplitOptions.RemoveEmptyEntries)
-                   .Select(s => new PackageFramework {TargetFramework = s})
+                   .SplitSafe(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries)
+                   .Select(s => new PackageFramework { TargetFramework = s })
                    .ToArray();
             var dependencies =
                 doc.Get("FlattenedDependencies")
-                   .SplitSafe(new[] {'|'}, StringSplitOptions.RemoveEmptyEntries)
+                   .SplitSafe(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries)
                    .Select(s => CreateDependency(s))
                    .ToArray();
 
@@ -198,7 +200,7 @@ namespace NuGetGallery
 
         private static PackageDependency CreateDependency(string s)
         {
-            string[] parts = s.SplitSafe(new[] {':'}, StringSplitOptions.RemoveEmptyEntries);
+            string[] parts = s.SplitSafe(new[] { ':' }, StringSplitOptions.RemoveEmptyEntries);
             return new PackageDependency
             {
                 Id = parts.Length > 0 ? parts[0] : null,
@@ -270,7 +272,7 @@ namespace NuGetGallery
             bool doExactId,
             string originalSearchText,
             Analyzer analyzer,
-            IEnumerable<NuGetSearchTerm> generalTerms, 
+            IEnumerable<NuGetSearchTerm> generalTerms,
             IEnumerable<Query> generalQueries)
         {
             // All terms in the multi-term query appear in at least one of the target fields.
@@ -332,7 +334,7 @@ namespace NuGetGallery
             var query = conjuctionQuery.Combine(queriesToCombine.ToArray());
             return query;
         }
-        
+
         // Helper function 
         // 1) fix cases of field names: ID -> Id
         // 2) null out field names that we don't understand (so we will search them as non-field-specific terms)

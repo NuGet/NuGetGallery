@@ -48,7 +48,7 @@ namespace NuGetGallery
             {
                 var fakeFileStorageService = new Mock<IFileStorageService>();
                 var service = CreateService(fakeFileStorageService: fakeFileStorageService);
-                var expectedFileName = String.Format(Constants.UploadFileNameTemplate, 1, CoreConstants.NuGetPackageFileExtension);
+                var expectedFileName = String.Format(GalleryConstants.UploadFileNameTemplate, 1, CoreConstants.NuGetPackageFileExtension);
 
                 service.DeleteUploadFileAsync(1);
 
@@ -84,7 +84,7 @@ namespace NuGetGallery
             {
                 var fakeFileStorageService = new Mock<IFileStorageService>();
                 var service = CreateService(fakeFileStorageService: fakeFileStorageService);
-                var expectedFileName = String.Format(Constants.UploadFileNameTemplate, 1, CoreConstants.NuGetPackageFileExtension);
+                var expectedFileName = String.Format(GalleryConstants.UploadFileNameTemplate, 1, CoreConstants.NuGetPackageFileExtension);
 
                 service.GetUploadFileAsync(1);
 
@@ -94,7 +94,7 @@ namespace NuGetGallery
             [Fact]
             public async Task WillReturnTheUploadFileStream()
             {
-                var expectedFileName = String.Format(Constants.UploadFileNameTemplate, 1, CoreConstants.NuGetPackageFileExtension);
+                var expectedFileName = String.Format(GalleryConstants.UploadFileNameTemplate, 1, CoreConstants.NuGetPackageFileExtension);
                 var fakeFileStorageService = new Mock<IFileStorageService>();
                 var fakeFileStream = new MemoryStream();
                 fakeFileStorageService.Setup(x => x.GetFileAsync(CoreConstants.UploadsFolderName, expectedFileName))
@@ -145,7 +145,7 @@ namespace NuGetGallery
             {
                 var fakeFileStorageService = new Mock<IFileStorageService>();
                 var service = CreateService(fakeFileStorageService: fakeFileStorageService);
-                var expectedFileName = String.Format(Constants.UploadFileNameTemplate, 1, CoreConstants.NuGetPackageFileExtension);
+                var expectedFileName = String.Format(GalleryConstants.UploadFileNameTemplate, 1, CoreConstants.NuGetPackageFileExtension);
 
                 service.SaveUploadFileAsync(1, new MemoryStream());
 

@@ -20,14 +20,14 @@ namespace NuGetGallery
         private readonly IAggregateStatsService _aggregateStatsService = null;
 
         private static readonly string[] PackageDownloadsByVersionDimensions = new[] {
-            Constants.StatisticsDimensions.Version,
-            Constants.StatisticsDimensions.ClientName,
-            Constants.StatisticsDimensions.ClientVersion,
+            GalleryConstants.StatisticsDimensions.Version,
+            GalleryConstants.StatisticsDimensions.ClientName,
+            GalleryConstants.StatisticsDimensions.ClientVersion,
         };
 
         private static readonly string[] PackageDownloadsDetailDimensions = new[] {
-            Constants.StatisticsDimensions.ClientName,
-            Constants.StatisticsDimensions.ClientVersion,
+            GalleryConstants.StatisticsDimensions.ClientName,
+            GalleryConstants.StatisticsDimensions.ClientVersion,
         };
 
         public StatisticsController(IAggregateStatsService aggregateStatsService)

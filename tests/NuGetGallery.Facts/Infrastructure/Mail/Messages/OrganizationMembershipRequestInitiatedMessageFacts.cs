@@ -4,6 +4,8 @@
 using System;
 using System.Collections.Generic;
 using Moq;
+using NuGet.Services.Entities;
+using NuGet.Services.Messaging.Email;
 using Xunit;
 
 namespace NuGetGallery.Infrastructure.Mail.Messages
@@ -108,6 +110,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
             [Theory]
             [InlineData(EmailFormat.Markdown, _expectedMessageBodyForAdmin)]
             [InlineData(EmailFormat.PlainText, _expectedMessageBodyForAdmin)]
+            [InlineData(EmailFormat.Html, _expectedHtmlBodyForAdmin)]
             public void ReturnsExpectedBodyForAdmin(EmailFormat format, string expectedString)
             {
                 var message = CreateMessage(isAdmin: true);
@@ -119,6 +122,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
             [Theory]
             [InlineData(EmailFormat.Markdown, _expectedMessageBodyForNonAdmin)]
             [InlineData(EmailFormat.PlainText, _expectedMessageBodyForNonAdmin)]
+            [InlineData(EmailFormat.Html, _expectedHtmlBodyForNonAdmin)]
             public void ReturnsExpectedBodyForNonAdmin(EmailFormat format, string expectedString)
             {
                 var message = CreateMessage();
@@ -172,5 +176,15 @@ The NuGetGallery Team";
 
 Thanks,
 The NuGetGallery Team";
+
+        private const string _expectedHtmlBodyForAdmin =
+            "<p>The user 'requestingUser' has requested that user 'requestingUser' be added as an administrator of organization 'requestingOrganization'. A confirmation mail has been sent to user 'requestingUser' to accept the membership request. This mail is to inform you of the membership changes to organization 'requestingOrganization' and there is no action required from you.</p>\n" +
+"<p>Thanks,\n" +
+"The NuGetGallery Team</p>\n";
+
+        private const string _expectedHtmlBodyForNonAdmin =
+            "<p>The user 'requestingUser' has requested that user 'requestingUser' be added as a collaborator of organization 'requestingOrganization'. A confirmation mail has been sent to user 'requestingUser' to accept the membership request. This mail is to inform you of the membership changes to organization 'requestingOrganization' and there is no action required from you.</p>\n" +
+"<p>Thanks,\n" +
+"The NuGetGallery Team</p>\n";
     }
 }

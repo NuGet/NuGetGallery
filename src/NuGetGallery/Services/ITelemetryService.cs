@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Security.Principal;
+using NuGet.Services.Entities;
 using NuGet.Versioning;
 
 namespace NuGetGallery
@@ -11,6 +12,8 @@ namespace NuGetGallery
     public interface ITelemetryService
     {
         void TrackODataQueryFilterEvent(string callContext, bool isEnabled, bool isAllowed, string queryPattern);
+
+        void TrackODataCustomQuery(bool? customQuery);
 
         void TrackPackagePushEvent(Package package, User user, IIdentity identity);
 

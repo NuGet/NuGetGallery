@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Net.Mail;
 using System.Threading.Tasks;
 using AnglicanGeek.MarkdownMailer;
+using NuGet.Services.Messaging.Email;
 using NuGetGallery.Configuration;
 
 namespace NuGetGallery.Infrastructure.Mail

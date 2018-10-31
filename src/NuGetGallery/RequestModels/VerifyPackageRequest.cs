@@ -4,6 +4,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using NuGet.Packaging;
+using NuGet.Services.Entities;
 using NuGetGallery.Packaging;
 
 namespace NuGetGallery
@@ -117,8 +118,9 @@ namespace NuGetGallery
         public string Tags { get; set; }
         public string Title { get; set; }
         public bool IsSymbolsPackage { get; set; }
+        public bool HasExistingAvailableSymbols { get; set; }
 
-        public List<string> Warnings { get; set; } = new List<string>();
+        public List<JsonValidationMessage> Warnings { get; set; } = new List<JsonValidationMessage>();
 
         private static IReadOnlyCollection<string> ParseUserList(IEnumerable<User> users)
         {

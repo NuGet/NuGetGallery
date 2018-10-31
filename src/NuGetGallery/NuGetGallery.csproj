@@ -281,6 +281,7 @@
     <Compile Include="Filters\ApiScopeRequiredAttribute.cs" />
     <Compile Include="Filters\UIAuthorizeAttribute.cs" />
     <Compile Include="Filters\ValidateRecaptchaResponseAttribute.cs" />
+    <Compile Include="GalleryConstants.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Helpers\GravatarHelper.cs" />
     <Compile Include="Helpers\ObfuscationHelper.cs" />
@@ -294,6 +295,7 @@
     <Compile Include="Infrastructure\Authentication\ApiKeyV3.cs" />
     <Compile Include="Infrastructure\Authentication\ApiKeyV4.cs" />
     <Compile Include="Infrastructure\Authentication\Base32Encoder.cs" />
+    <Compile Include="Infrastructure\Mail\EmailMessageFooter.cs" />
     <Compile Include="Infrastructure\Mail\EmailRecipientsWithPermission.cs" />
     <Compile Include="Infrastructure\Mail\Messages\AccountDeleteNoticeMessage.cs" />
     <Compile Include="Infrastructure\Mail\Messages\ContactOwnersMessage.cs" />
@@ -425,6 +427,10 @@
     <Compile Include="Services\ITyposquattingConfiguration.cs" />
     <Compile Include="Services\ISymbolsConfiguration.cs" />
     <Compile Include="Services\ITyposquattingService.cs" />
+    <Compile Include="Services\IValidationMessage.cs" />
+    <Compile Include="Services\JsonValidationMessage.cs" />
+    <Compile Include="Services\PackageShouldNotBeSignedUserFixableValidationMessage.cs" />
+    <Compile Include="Services\PlainTextOnlyValidationMessage.cs" />
     <Compile Include="Services\SymbolPackageValidationResult.cs" />
     <Compile Include="Infrastructure\Mail\MarkdownMessageService.cs" />
     <Compile Include="Services\SymbolPackageUploadService.cs" />
@@ -1443,7 +1449,6 @@
     <Compile Include="Services\IPackageService.cs" />
     <Compile Include="Services\PackageService.cs" />
     <Compile Include="Configuration\AppConfiguration.cs" />
-    <Compile Include="Constants.cs" />
     <Compile Include="App_Start\DefaultDependenciesModule.cs" />
     <Compile Include="ExtensionMethods.cs" />
     <Compile Include="Services\FormsAuthenticationService.cs" />
@@ -1974,7 +1979,16 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Markdig.Signed">
-      <Version>0.15.3</Version>
+      <Version>0.15.4</Version>
+    </PackageReference>
+    <PackageReference Include="NuGet.Services.Entities">
+      <Version>2.32.0-agr-license-2170862</Version>
+    </PackageReference>
+    <PackageReference Include="NuGet.Services.Messaging">
+      <Version>2.31.0</Version>
+    </PackageReference>
+    <PackageReference Include="NuGet.Services.Messaging.Email">
+      <Version>2.31.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.StrongName.AnglicanGeek.MarkdownMailer">
       <Version>1.2.0</Version>
@@ -2201,16 +2215,16 @@
       <Version>5.0.0-preview1.5626</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.KeyVault">
-      <Version>2.27.0</Version>
+      <Version>2.31.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Logging">
-      <Version>2.2.3</Version>
+      <Version>2.31.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Owin">
-      <Version>2.2.3</Version>
+      <Version>2.31.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Sql">
-      <Version>2.27.0</Version>
+      <Version>2.31.0</Version>
     </PackageReference>
     <PackageReference Include="Owin">
       <Version>1.0.0</Version>
@@ -2267,6 +2281,7 @@
     <SignPath>..\..\build</SignPath>
     <SignPath Condition="'$(BUILD_SOURCESDIRECTORY)' != ''">$(BUILD_SOURCESDIRECTORY)\build</SignPath>
     <SignPath Condition="'$(NuGetBuildPath)' != ''">$(NuGetBuildPath)</SignPath>
+    <SignType Condition="'$(SignType)' == ''">none</SignType>
   </PropertyGroup>
   <Import Project="$(SignPath)\sign.targets" Condition="Exists('$(SignPath)\sign.targets')" />
   <Import Project="$(SignPath)\sign.microbuild.targets" Condition="Exists('$(SignPath)\sign.microbuild.targets')" />

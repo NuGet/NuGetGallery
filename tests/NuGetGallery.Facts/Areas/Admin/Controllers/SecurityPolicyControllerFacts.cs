@@ -10,6 +10,7 @@ using Moq;
 using NuGetGallery.Security;
 using NuGetGallery.Areas.Admin.ViewModels;
 using Xunit;
+using NuGet.Services.Entities;
 
 namespace NuGetGallery.Areas.Admin.Controllers
 {

@@ -2,8 +2,8 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Web.Mvc;
+using NuGet.Services.Entities;
 using NuGetGallery.Helpers;
-using System.Linq;
 
 namespace NuGetGallery
 {
@@ -30,7 +30,7 @@ namespace NuGetGallery
             Name = user.Username;
             EmailAddress = user.EmailAddress;
             ProfileUrl = url.User(user, relativeUrl: false);
-            ImageUrl = GravatarHelper.Url(user.EmailAddress, size: Constants.GravatarImageSize);
+            ImageUrl = GravatarHelper.Url(user.EmailAddress, size: GalleryConstants.GravatarImageSize);
             GrantsCurrentUserAccess = ActionsRequiringPermissions.ManagePackageOwnership.CheckPermissions(currentUser, user, packageRegistration) == PermissionsCheckResult.Allowed;
             IsCurrentUserAdminOfOrganization = (user as Organization)?.GetMembershipOfUser(currentUser)?.IsAdmin ?? false;
             Pending = isPending;

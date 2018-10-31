@@ -18,8 +18,13 @@ using AnglicanGeek.MarkdownMailer;
 using Autofac;
 using Autofac.Core;
 using Elmah;
+using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.ServiceRuntime;
+using NuGet.Services.Entities;
 using NuGet.Services.KeyVault;
+using NuGet.Services.Logging;
+using NuGet.Services.Messaging;
+using NuGet.Services.Messaging.Email;
 using NuGet.Services.ServiceBus;
 using NuGet.Services.Sql;
 using NuGet.Services.Validation;
@@ -48,6 +53,7 @@ namespace NuGetGallery
             public const string SymbolsPackageValidationTopic = "SymbolsPackageValidationBindingKey";
             public const string PackageValidationEnqueuer = "PackageValidationEnqueuerBindingKey";
             public const string SymbolsPackageValidationEnqueuer = "SymbolsPackageValidationEnqueuerBindingKey";
+            public const string EmailPublisherTopic = "EmailPublisherBindingKey";
         }
 
         protected override void Load(ContainerBuilder builder)
@@ -359,7 +365,7 @@ namespace NuGetGallery
                 .AsSelf()
                 .InstancePerLifetimeScope();
 
-            if (configuration.Current.Environment == Constants.DevelopmentEnvironment)
+            if (configuration.Current.Environment == GalleryConstants.DevelopmentEnvironment)
             {
                 builder.RegisterType<AllowLocalHttpRedirectPolicy>()
                     .As<ISourceDestinationRedirectPolicy>()
@@ -376,6 +382,20 @@ namespace NuGetGallery
         }
 
         private static void RegisterMessagingService(ContainerBuilder builder, ConfigurationService configuration)
+        {
+            if (configuration.Current.AsynchronousEmailServiceEnabled)
+            {
+                // Register NuGet.Services.Messaging infrastructure
+                RegisterAsynchronousEmailMessagingService(builder, configuration);
+            }
+            else
+            {
+                // Register legacy SMTP messaging infrastructure
+                RegisterSmtpEmailMessagingService(builder, configuration);
+            }
+        }
+
+        private static void RegisterSmtpEmailMessagingService(ContainerBuilder builder, ConfigurationService configuration)
         {
             MailSender mailSenderFactory()
             {
@@ -425,6 +445,42 @@ namespace NuGetGallery
                 .InstancePerDependency();
         }
 
+        private static void RegisterAsynchronousEmailMessagingService(ContainerBuilder builder, ConfigurationService configuration)
+        {
+            builder
+                .RegisterType<NuGet.Services.Messaging.ServiceBusMessageSerializer>()
+                .As<NuGet.Services.Messaging.IServiceBusMessageSerializer>();
+
+            var emailPublisherConnectionString = configuration.ServiceBus.EmailPublisher_ConnectionString;
+            var emailPublisherTopicName = configuration.ServiceBus.EmailPublisher_TopicName;
+
+            builder
+                .Register(c => new TopicClientWrapper(emailPublisherConnectionString, emailPublisherTopicName))
+                .As<ITopicClient>()
+                .SingleInstance()
+                .Keyed<ITopicClient>(BindingKeys.EmailPublisherTopic)
+                .OnRelease(x => x.Close());
+
+            // Create an ILoggerFactory
+            var loggerConfiguration = LoggingSetup.CreateDefaultLoggerConfiguration(withConsoleLogger: false);
+            var loggerFactory = LoggingSetup.CreateLoggerFactory(loggerConfiguration);
+
+            builder
+                .RegisterType<EmailMessageEnqueuer>()
+                .WithParameter(new ResolvedParameter(
+                    (pi, ctx) => pi.ParameterType == typeof(ITopicClient),
+                    (pi, ctx) => ctx.ResolveKeyed<ITopicClient>(BindingKeys.EmailPublisherTopic)))
+                .WithParameter(new ResolvedParameter(
+                    (pi, ctx) => pi.ParameterType == typeof(ILogger<EmailMessageEnqueuer>),
+                    (pi, ctx) => loggerFactory.CreateLogger<EmailMessageEnqueuer>()))
+                .As<IEmailMessageEnqueuer>();
+
+            builder.RegisterType<AsynchronousEmailMessageService>()
+                .AsSelf()
+                .As<IMessageService>()
+                .InstancePerDependency();
+        }
+
         private static ISqlConnectionFactory CreateDbConnectionFactory(IDiagnosticsService diagnostics, string name,
             string connectionString, ISecretInjector secretInjector)
         {
@@ -467,8 +523,8 @@ namespace NuGetGallery
             ConfigurationService configuration, ISecretInjector secretInjector)
         {
             builder
-                .RegisterType<ServiceBusMessageSerializer>()
-                .As<IServiceBusMessageSerializer>();
+                .RegisterType<NuGet.Services.Validation.ServiceBusMessageSerializer>()
+                .As<NuGet.Services.Validation.IServiceBusMessageSerializer>();
 
             // We need to setup two enqueuers for Package validation and symbol validation each publishes 
             // to a different topic for validation.

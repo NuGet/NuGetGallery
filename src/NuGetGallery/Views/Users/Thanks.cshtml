@@ -1,7 +1,7 @@
 ﻿@{
     ViewBag.Title = "Thanks";
-    ViewBag.SmPageColumns = Constants.ColumnsWideAuthenticationSm;
-    ViewBag.MdPageColumns = Constants.ColumnsWideAuthenticationMd;
+    ViewBag.SmPageColumns = GalleryConstants.ColumnsWideAuthenticationSm;
+    ViewBag.MdPageColumns = GalleryConstants.ColumnsWideAuthenticationMd;
 }
 
 <section role="main" class="container main-container text-center">
@@ -14,7 +14,10 @@
         <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
             <p class="ms-fontSize-xl">Welcome @CurrentUser.Username! Now that you have a NuGet.org account, let's get you started!</p>
 
-            <p>Make sure your email is verified. <a href="@Url.ConfirmationRequired()">Confirm your account</a></p>
+            @if (!CurrentUser.Confirmed)
+            {
+                <p>Make sure your email is verified. <a href="@Url.ConfirmationRequired()">Confirm your account</a></p>
+            }
             
             <p>Want to update your account? <a href="@Url.AccountSettings()">View Account Settings</a></p>
             

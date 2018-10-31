@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using NuGet.Services.Messaging.Email;
 using NuGetGallery.Infrastructure.Mail.Requests;
 using Xunit;
 
@@ -89,6 +90,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
             [Theory]
             [InlineData(EmailFormat.Markdown, _expectedMarkdownBody)]
             [InlineData(EmailFormat.PlainText, _expectedPlainTextBody)]
+            [InlineData(EmailFormat.Html, _expectedHtmlBody)]
             public void ReturnsExpectedBody(EmailFormat format, string expectedString)
             {
                 var message = CreateMessage();
@@ -167,5 +169,19 @@ Message:
 message
 
 Message sent from NuGetGallery";
+
+        private const string _expectedHtmlBody =
+            "<p><strong>Email</strong>: Sender (sender@gallery.org)</p>\n" +
+"<p><strong>Package</strong>: PackageId\n" +
+"packageUrl</p>\n" +
+"<p><strong>Version</strong>: 1.0.0\n" +
+"packageVersionUrl</p>\n" +
+"<p><strong>User:</strong> requestingUser (requestUser@gallery.org)\n" +
+"profileUrl</p>\n" +
+"<p><strong>Reason</strong>:\n" +
+"reason</p>\n" +
+"<p><strong>Message</strong>:\n" +
+"message</p>\n" +
+"<p>Message sent from NuGetGallery</p>\n";
     }
 }

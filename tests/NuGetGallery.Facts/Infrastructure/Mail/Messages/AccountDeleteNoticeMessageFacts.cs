@@ -3,7 +3,8 @@
 
 using System;
 using System.Collections.Generic;
-using Moq;
+using NuGet.Services.Entities;
+using NuGet.Services.Messaging.Email;
 using Xunit;
 
 namespace NuGetGallery.Infrastructure.Mail.Messages
@@ -78,6 +79,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
             [Theory]
             [InlineData(EmailFormat.Markdown, _expectedMessageBody)]
             [InlineData(EmailFormat.PlainText, _expectedMessageBody)]
+            [InlineData(EmailFormat.Html, _expectedHtmlBody)]
             public void ReturnsExpectedBody(EmailFormat format, string expectedString)
             {
                 var message = CreateMessage();
@@ -116,5 +118,17 @@ We will not delete the NuGet packages associated with the account.
 Thanks,
 
 The NuGetGallery Team";
+
+        private const string _expectedHtmlBody =
+            "<p>We received a request to delete your account requestingUser. If you did not initiate this request, please contact the NuGetGallery team immediately.</p>\n" +
+"<p>When your account will be deleted, we will:</p>\n" +
+"<ul>\n" +
+"<li>revoke your API key(s)</li>\n" +
+"<li>remove you as the owner for any package you own</li>\n" +
+"<li>remove your ownership from any ID prefix reservations and delete any ID prefix reservations that you were the only owner of</li>\n" +
+"</ul>\n" +
+"<p>We will not delete the NuGet packages associated with the account.</p>\n" +
+"<p>Thanks,</p>\n" +
+"<p>The NuGetGallery Team</p>\n";
     }
 }

@@ -3,6 +3,7 @@
 
 using System;
 using System.Globalization;
+using NuGet.Services.Messaging.Email;
 using NuGetGallery.Infrastructure.Mail.Requests;
 
 namespace NuGetGallery.Infrastructure.Mail.Messages

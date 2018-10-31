@@ -2,11 +2,11 @@
 @{
     ViewBag.Title = "Sign In";
     ViewBag.Tab = "Sign in";
-    ViewBag.SmPageColumns = Constants.ColumnsAuthenticationSm;
-    ViewBag.MdPageColumns = Constants.ColumnsAuthenticationMd;
+    ViewBag.SmPageColumns = GalleryConstants.ColumnsAuthenticationSm;
+    ViewBag.MdPageColumns = GalleryConstants.ColumnsAuthenticationMd;
 
-    var returnUrl = (string)ViewData[Constants.ReturnUrlViewDataKey];
-    var returnUrlMessage = (string)ViewData[Constants.ReturnUrlMessageViewDataKey];
+    var returnUrl = (string)ViewData[GalleryConstants.ReturnUrlViewDataKey];
+    var returnUrlMessage = (string)ViewData[GalleryConstants.ReturnUrlMessageViewDataKey];
 }
 
 <section role="main" class="container main-container page-sign-in">

@@ -16,6 +16,8 @@ using System.Web.Mvc;
 using Newtonsoft.Json.Linq;
 using NuGet.Frameworks;
 using NuGet.Packaging;
+using NuGet.Services.Entities;
+using NuGet.Services.Messaging.Email;
 using NuGet.Versioning;
 using NuGetGallery.Auditing;
 using NuGetGallery.Auditing.AuditedEntities;
@@ -23,8 +25,6 @@ using NuGetGallery.Authentication;
 using NuGetGallery.Configuration;
 using NuGetGallery.Filters;
 using NuGetGallery.Infrastructure.Authentication;
-using NuGetGallery.Infrastructure.Mail;
-using NuGetGallery.Infrastructure.Mail.Messages;
 using NuGetGallery.Packaging;
 using NuGetGallery.Security;
 using PackageIdValidator = NuGetGallery.Packaging.PackageIdValidator;
@@ -530,7 +530,7 @@ namespace NuGetGallery
                                     errorsString));
                             }
 
-                            if (nuspec.GetMinClientVersion() > Constants.MaxSupportedMinClientVersion)
+                            if (nuspec.GetMinClientVersion() > GalleryConstants.MaxSupportedMinClientVersion)
                             {
                                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, string.Format(
                                     CultureInfo.CurrentCulture,
@@ -710,12 +710,12 @@ namespace NuGetGallery
 
                             TelemetryService.TrackPackagePushEvent(package, currentUser, User.Identity);
 
-                            var warnings = new List<string>();
+                            var warnings = new List<IValidationMessage>();
                             warnings.AddRange(beforeValidationResult.Warnings);
                             warnings.AddRange(afterValidationResult.Warnings);
                             if (package.SemVerLevelKey == SemVerLevelKey.SemVer2)
                             {
-                                warnings.Add(Strings.WarningSemVer2PackagePushed);
+                                warnings.Add(new PlainTextOnlyValidationMessage(Strings.WarningSemVer2PackagePushed));
                             }
 
                             return new HttpStatusCodeWithServerWarningResult(HttpStatusCode.Created, warnings);
@@ -728,6 +728,10 @@ namespace NuGetGallery
                     catch (InvalidDataException ex)
                     {
                         return BadRequestForExceptionMessage(ex);
+                    }
+                    catch (PackageAlreadyExistsException ex)
+                    {
+                        return new HttpStatusCodeWithBodyResult(HttpStatusCode.Conflict, ex.Message);
                     }
                     catch (EntityException ex)
                     {
@@ -760,9 +764,7 @@ namespace NuGetGallery
                 case PackageValidationResultType.Accepted:
                     return null;
                 case PackageValidationResultType.Invalid:
-                case PackageValidationResultType.PackageShouldNotBeSigned:
-                case PackageValidationResultType.PackageShouldNotBeSignedButCanManageCertificates:
-                    return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, validationResult.Message);
+                    return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, validationResult.Message.PlainTextMessage);
                 default:
                     throw new NotImplementedException($"The package validation result type {validationResult.Type} is not supported.");
             }
@@ -841,7 +843,7 @@ namespace NuGetGallery
 
         public virtual async Task<ActionResult> Team()
         {
-            var team = await ContentService.GetContentItemAsync(Constants.ContentNames.Team, TimeSpan.FromHours(1));
+            var team = await ContentService.GetContentItemAsync(GalleryConstants.ContentNames.Team, TimeSpan.FromHours(1));
             return Content(team.ToString(), "application/json");
         }
 

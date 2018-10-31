@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using NuGet.Services.Entities;
 using NuGet.Versioning;
 using NuGetGallery.Framework;
 using Xunit;
@@ -14,7 +15,8 @@ namespace NuGetGallery.ViewModels
     public class DisplayPackageViewModelFacts
     {
         private Random gen = new Random();
-        DateTime RandomDay()
+
+        private DateTime RandomDay()
         {
             DateTime start = new DateTime(1995, 1, 1);
             int range = (DateTime.Today - start).Days;
@@ -45,7 +47,7 @@ namespace NuGetGallery.ViewModels
         {
             var package = new Package
             {
-                Version= "1.0.0",
+                Version = "1.0.0",
                 RepositoryUrl = repoUrl,
                 RepositoryType = repoType,
             };
@@ -309,8 +311,8 @@ namespace NuGetGallery.ViewModels
         [InlineData("1.0.0", "1.0.0-alpha.1", false)]
         [InlineData("1.0.0-alpha", "1.0.0-alpha.1", true)]
         public void HasNewerPrereleaseReturnsTrueWhenNewerPrereleaseAvailable(
-            string currentVersion, 
-            string otherVersion, 
+            string currentVersion,
+            string otherVersion,
             bool expectedNewerPrereleaseAvailable)
         {
             // Arrange
@@ -346,7 +348,7 @@ namespace NuGetGallery.ViewModels
             // Assert
             Assert.Equal(expectedNewerPrereleaseAvailable, hasNewerPrerelease);
         }
-        
+
         [Theory]
         [InlineData("1.0.0", "1.0.1", true)]
         [InlineData("1.0.1-alpha+metadata", "1.0.1", true)]

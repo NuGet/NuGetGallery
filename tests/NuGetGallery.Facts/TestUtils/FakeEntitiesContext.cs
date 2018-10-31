@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Threading.Tasks;
+using NuGet.Services.Entities;
 using Xunit;
 
 namespace NuGetGallery

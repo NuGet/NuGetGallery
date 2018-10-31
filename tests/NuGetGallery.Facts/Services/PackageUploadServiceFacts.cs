@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data.Entity.Infrastructure;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -11,6 +12,7 @@ using System.Threading.Tasks;
 using Moq;
 using NuGet.Packaging;
 using NuGet.Packaging.Core;
+using NuGet.Services.Entities;
 using NuGetGallery.Configuration;
 using NuGetGallery.Packaging;
 using NuGetGallery.TestUtils;
@@ -201,7 +203,7 @@ namespace NuGetGallery
                 Assert.Equal(
                     $"The previous package version '{previous.NormalizedVersion}' is author signed but the uploaded " +
                     $"package is unsigned. To avoid this warning, sign the package before uploading.",
-                    Assert.Single(result.Warnings));
+                    Assert.Single(result.Warnings).PlainTextMessage);
                 _packageService.Verify(
                     x => x.FindPackageRegistrationById(It.IsAny<string>()),
                     Times.Once);
@@ -345,7 +347,7 @@ namespace NuGetGallery
                 else
                 {
                     Assert.Equal(1, result.Warnings.Count());
-                    Assert.Equal(expectedWarning, result.Warnings.First());
+                    Assert.Equal(expectedWarning, result.Warnings.First().PlainTextMessage);
                 }
             }
 
@@ -416,7 +418,7 @@ namespace NuGetGallery
                     GetPackageMetadata(_nuGetPackage));
 
                 Assert.Equal(PackageValidationResultType.Invalid, result.Type);
-                Assert.Equal("The package contains too many files and/or folders.", result.Message);
+                Assert.Equal("The package contains too many files and/or folders.", result.Message.PlainTextMessage);
                 Assert.Empty(result.Warnings);
             }
 
@@ -458,7 +460,7 @@ namespace NuGetGallery
                 if (!expectedSuccess)
                 {
                     Assert.Equal(PackageValidationResultType.Invalid, result.Type);
-                    Assert.Equal("Package has no license information specified.", result.Message);
+                    Assert.Equal("Package has no license information specified.", result.Message.PlainTextMessage);
                     Assert.Empty(result.Warnings);
                 }
                 else
@@ -506,7 +508,7 @@ namespace NuGetGallery
                 if (!expectedSuccess)
                 {
                     Assert.Equal(PackageValidationResultType.Invalid, result.Type);
-                    Assert.Equal("Specifying external license URLs are not allowed anymore, please specify the license in the package.", result.Message);
+                    Assert.Equal("Specifying external license URLs are not allowed anymore, please specify the license in the package.", result.Message.PlainTextMessage);
                     Assert.Empty(result.Warnings);
                 }
                 else
@@ -514,7 +516,7 @@ namespace NuGetGallery
                     Assert.Equal(PackageValidationResultType.Accepted, result.Type);
                     Assert.Null(result.Message);
                     Assert.Single(result.Warnings);
-                    Assert.Equal("Specifying external license URLs will be deprecated, please consider switching to specifying the license in the package.", result.Warnings[0]);
+                    Assert.Equal("Specifying external license URLs will be deprecated, please consider switching to specifying the license in the package.", result.Warnings[0].PlainTextMessage);
                 }
             }
 
@@ -528,7 +530,7 @@ namespace NuGetGallery
                     GetPackageMetadata(_nuGetPackage));
 
                 Assert.Equal(PackageValidationResultType.Invalid, result.Type);
-                Assert.Equal("The license deprecation URL must be used in conjunction with specifying the license in the package.", result.Message);
+                Assert.Equal("The license deprecation URL must be used in conjunction with specifying the license in the package.", result.Message.PlainTextMessage);
                 Assert.Empty(result.Warnings);
             }
 
@@ -550,7 +552,7 @@ namespace NuGetGallery
                     GetPackageMetadata(_nuGetPackage));
 
                 Assert.Equal(PackageValidationResultType.Invalid, result.Type);
-                Assert.Equal("For backwards compatibility when a license is specified in the package, its <licenseUrl> node must point to https://aka.ms/deprecateLicenseUrl", result.Message);
+                Assert.Equal("For backwards compatibility when a license is specified in the package, its <licenseUrl> node must point to https://aka.ms/deprecateLicenseUrl", result.Message.PlainTextMessage);
                 Assert.Empty(result.Warnings);
             }
 
@@ -564,7 +566,7 @@ namespace NuGetGallery
                     GetPackageMetadata(_nuGetPackage));
 
                 Assert.Equal(PackageValidationResultType.Invalid, result.Type);
-                Assert.Contains("UNLICENSED", result.Message);
+                Assert.Contains("UNLICENSED", result.Message.PlainTextMessage);
                 Assert.Empty(result.Warnings);
             }
 
@@ -597,7 +599,7 @@ namespace NuGetGallery
                 if (!expectedSuccess)
                 {
                     Assert.Equal(PackageValidationResultType.Invalid, result.Type);
-                    Assert.Contains("Invalid license metadata", result.Message);
+                    Assert.Contains("Invalid license metadata", result.Message.PlainTextMessage);
                     Assert.Empty(result.Warnings);
                 }
                 else
@@ -621,8 +623,8 @@ namespace NuGetGallery
                     GetPackageMetadata(_nuGetPackage));
 
                 Assert.Equal(PackageValidationResultType.Invalid, result.Type);
-                Assert.Contains("Invalid license metadata", result.Message);
-                Assert.Contains(licenseExpression, result.Message);
+                Assert.Contains("Invalid license metadata", result.Message.PlainTextMessage);
+                Assert.Contains(licenseExpression, result.Message.PlainTextMessage);
                 Assert.Empty(result.Warnings);
             }
 
@@ -638,7 +640,7 @@ namespace NuGetGallery
                     GetPackageMetadata(_nuGetPackage));
 
                 Assert.Equal(PackageValidationResultType.Invalid, result.Type);
-                Assert.Contains("deprecated", result.Message);
+                Assert.Contains("deprecated", result.Message.PlainTextMessage);
                 Assert.Empty(result.Warnings);
             }
 
@@ -658,9 +660,9 @@ namespace NuGetGallery
                     GetPackageMetadata(_nuGetPackage));
 
                 Assert.Equal(PackageValidationResultType.Invalid, result.Type);
-                Assert.Contains("file", result.Message);
-                Assert.Contains("does not exist", result.Message);
-                Assert.Contains(licenseFileName, result.Message);
+                Assert.Contains("file", result.Message.PlainTextMessage);
+                Assert.Contains("does not exist", result.Message.PlainTextMessage);
+                Assert.Contains(licenseFileName, result.Message.PlainTextMessage);
                 Assert.Empty(result.Warnings);
             }
 
@@ -695,9 +697,9 @@ namespace NuGetGallery
                 else
                 {
                     Assert.Equal(PackageValidationResultType.Invalid, result.Type);
-                    Assert.Contains("License file has invalid extension", result.Message);
-                    Assert.Contains("Extension must be one of the following", result.Message);
-                    Assert.Contains(extension, result.Message);
+                    Assert.Contains("License file has invalid extension", result.Message.PlainTextMessage);
+                    Assert.Contains("Extension must be one of the following", result.Message.PlainTextMessage);
+                    Assert.Contains(extension, result.Message.PlainTextMessage);
                     Assert.Empty(result.Warnings);
                 }
             }
@@ -734,7 +736,7 @@ namespace NuGetGallery
                 else
                 {
                     Assert.Equal(PackageValidationResultType.Invalid, result.Type);
-                    Assert.Contains("License file must be plain text using UTF-8 encoding.", result.Message);
+                    Assert.Contains("License file must be plain text using UTF-8 encoding.", result.Message.PlainTextMessage);
                     Assert.Empty(result.Warnings);
                 }
             }
@@ -785,7 +787,7 @@ namespace NuGetGallery
                 else
                 {
                     Assert.Equal(PackageValidationResultType.Invalid, result.Type);
-                    Assert.Contains("license", result.Message);
+                    Assert.Contains("license", result.Message.PlainTextMessage);
                     Assert.Empty(result.Warnings);
                 }
             }
@@ -812,7 +814,7 @@ namespace NuGetGallery
                     GetPackageMetadata(_nuGetPackage));
 
                 Assert.Equal(PackageValidationResultType.Invalid, result.Type);
-                Assert.Contains("License file is too long", result.Message);
+                Assert.Contains("License file is too long", result.Message.PlainTextMessage);
                 Assert.Empty(result.Warnings);
             }
 
@@ -834,7 +836,7 @@ namespace NuGetGallery
                     GetPackageMetadata(_nuGetPackage));
 
                 Assert.Equal(PackageValidationResultType.Invalid, result.Type);
-                Assert.Contains("child", result.Message);
+                Assert.Contains("child", result.Message.PlainTextMessage);
                 Assert.Empty(result.Warnings);
             }
 
@@ -863,7 +865,7 @@ namespace NuGetGallery
                 else
                 {
                     Assert.Equal(PackageValidationResultType.Invalid, result.Type);
-                    Assert.Contains("version", result.Message);
+                    Assert.Contains("version", result.Message.PlainTextMessage);
                     Assert.Empty(result.Warnings);
                 }
             }
@@ -887,7 +889,7 @@ namespace NuGetGallery
                     GetPackageMetadata(_nuGetPackage));
 
                 Assert.Equal(PackageValidationResultType.Invalid, result.Type);
-                Assert.Contains("License node value is too long", result.Message);
+                Assert.Contains("License node value is too long", result.Message.PlainTextMessage);
                 Assert.Empty(result.Warnings);
             }
 
@@ -939,7 +941,7 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.Equal(PackageValidationResultType.Invalid, result.Type);
-                Assert.Contains("corrupt", result.Message);
+                Assert.Contains("corrupt", result.Message.PlainTextMessage);
                 Assert.Empty(result.Warnings);
             }
 
@@ -1018,8 +1020,8 @@ namespace NuGetGallery
                     _currentUser,
                     _isNewPackageRegistration);
 
-                Assert.Equal(PackageValidationResultType.PackageShouldNotBeSignedButCanManageCertificates, result.Type);
-                Assert.Equal(Strings.UploadPackage_PackageIsSignedButMissingCertificate_CurrentUserCanManageCertificates, result.Message);
+                Assert.Equal(PackageValidationResultType.Invalid, result.Type);
+                Assert.IsType<PackageShouldNotBeSignedUserFixableValidationMessage>(result.Message);
                 Assert.Empty(result.Warnings);
             }
 
@@ -1036,8 +1038,8 @@ namespace NuGetGallery
                     _currentUser,
                     _isNewPackageRegistration);
 
-                Assert.Equal(PackageValidationResultType.PackageShouldNotBeSignedButCanManageCertificates, result.Type);
-                Assert.Equal(Strings.UploadPackage_PackageIsSignedButMissingCertificate_CurrentUserCanManageCertificates, result.Message);
+                Assert.Equal(PackageValidationResultType.Invalid, result.Type);
+                Assert.IsType<PackageShouldNotBeSignedUserFixableValidationMessage>(result.Message);
                 Assert.Empty(result.Warnings);
             }
 
@@ -1054,8 +1056,8 @@ namespace NuGetGallery
                     _currentUser,
                     _isNewPackageRegistration);
 
-                Assert.Equal(PackageValidationResultType.PackageShouldNotBeSignedButCanManageCertificates, result.Type);
-                Assert.Equal(Strings.UploadPackage_PackageIsSignedButMissingCertificate_CurrentUserCanManageCertificates, result.Message);
+                Assert.Equal(PackageValidationResultType.Invalid, result.Type);
+                Assert.IsType<PackageShouldNotBeSignedUserFixableValidationMessage>(result.Message);
                 Assert.Empty(result.Warnings);
             }
 
@@ -1077,10 +1079,10 @@ namespace NuGetGallery
                     _currentUser,
                     _isNewPackageRegistration);
 
-                Assert.Equal(PackageValidationResultType.PackageShouldNotBeSigned, result.Type);
+                Assert.Equal(PackageValidationResultType.Invalid, result.Type);
                 Assert.Equal(
                     string.Format(Strings.UploadPackage_PackageIsSignedButMissingCertificate_RequiredSigner, otherUser.Username),
-                    result.Message);
+                    result.Message.PlainTextMessage);
                 Assert.Empty(result.Warnings);
             }
 
@@ -1108,10 +1110,10 @@ namespace NuGetGallery
                     _currentUser,
                     _isNewPackageRegistration);
 
-                Assert.Equal(PackageValidationResultType.PackageShouldNotBeSigned, result.Type);
+                Assert.Equal(PackageValidationResultType.Invalid, result.Type);
                 Assert.Equal(
                     string.Format(Strings.UploadPackage_PackageIsSignedButMissingCertificate_RequiredSigner, _owner.Username),
-                    result.Message);
+                    result.Message.PlainTextMessage);
                 Assert.Empty(result.Warnings);
             }
 
@@ -1140,10 +1142,10 @@ namespace NuGetGallery
                     _currentUser,
                     _isNewPackageRegistration);
 
-                Assert.Equal(PackageValidationResultType.PackageShouldNotBeSigned, result.Type);
+                Assert.Equal(PackageValidationResultType.Invalid, result.Type);
                 Assert.Equal(
                     string.Format(Strings.UploadPackage_PackageIsSignedButMissingCertificate_RequiredSigner, ownerB.Username),
-                    result.Message);
+                    result.Message.PlainTextMessage);
                 Assert.Empty(result.Warnings);
             }
 
@@ -1200,7 +1202,7 @@ namespace NuGetGallery
                     _isNewPackageRegistration);
 
                 Assert.Equal(PackageValidationResultType.Invalid, result.Type);
-                Assert.Equal(Strings.UploadPackage_PackageIsNotSigned, result.Message);
+                Assert.Equal(Strings.UploadPackage_PackageIsNotSigned, result.Message.PlainTextMessage);
                 Assert.Empty(result.Warnings);
             }
 
@@ -1300,8 +1302,7 @@ namespace NuGetGallery
                     _isNewPackageRegistration);
 
                 Assert.Equal(PackageValidationResultType.Invalid, result.Type);
-                Assert.Equal(string.Format(Strings.TyposquattingCheckFails, string.Join(",", _typosquattingCheckCollisionIds)), result.Message);
-                Assert.Contains("similar", result.Message);
+                Assert.Equal(string.Format(Strings.TyposquattingCheckFails, string.Join(",", _typosquattingCheckCollisionIds)), result.Message.PlainTextMessage);
                 Assert.Empty(result.Warnings);
             }
         }
@@ -1524,6 +1525,27 @@ namespace NuGetGallery
                     x => x.DeletePackageFileAsync(It.IsAny<string>(), It.IsAny<string>()),
                     Times.Once);
                 Assert.Same(_unexpectedException, exception);
+            }
+
+            [Fact]
+            public async Task ReturnsConflictWhenDBCommitThrowsConcurrencyViolations()
+            {
+                _package.PackageStatusKey = PackageStatus.Available;
+                var ex = new DbUpdateConcurrencyException("whoops!");
+                _entitiesContext
+                    .Setup(x => x.SaveChangesAsync())
+                    .Throws(ex);
+
+                var result = await _target.CommitPackageAsync(_package, _packageFile);
+
+                _packageFileService.Verify(
+                    x => x.DeletePackageFileAsync(Id, Version),
+                    Times.Once);
+                _packageFileService.Verify(
+                    x => x.DeletePackageFileAsync(It.IsAny<string>(), It.IsAny<string>()),
+                    Times.Once);
+
+                Assert.Equal(PackageCommitResult.Conflict, result);
             }
 
             [Fact]
