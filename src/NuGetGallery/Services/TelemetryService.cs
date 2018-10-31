@@ -712,7 +712,7 @@ namespace NuGetGallery
             bool wasUploadBlocked,
             List<string> collisionPackageIds,
             int checkListLength,
-            double checkListCacheExpireTimeInHours)
+            TimeSpan checkListCacheExpireTime)
         {
             TrackMetric(Events.TyposquattingCheckResultAndTotalTimeInMs, totalTime.TotalMilliseconds, properties => {
                 properties.Add(PackageId, packageId);
@@ -721,7 +721,7 @@ namespace NuGetGallery
                 properties.Add(CollisionPackageIdsCount, collisionPackageIds.Count.ToString());
                 properties.Add(CheckListLength, checkListLength.ToString());
                 properties.Add(HasExtraCollisionPackageIds, (collisionPackageIds.Count > TyposquattingCollisionIdsMaxPropertyValue).ToString());
-                properties.Add(CheckListCacheExpireTimeInHours, checkListCacheExpireTimeInHours.ToString());
+                properties.Add(CheckListCacheExpireTimeInHours, checkListCacheExpireTime.ToString());
             });
         }
 

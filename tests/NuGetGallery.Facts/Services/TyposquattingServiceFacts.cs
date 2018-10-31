@@ -84,7 +84,7 @@ namespace NuGetGallery
             {
                 typosquattingCheckListCacheService = new Mock<ITyposquattingCheckListCacheService>();
                 typosquattingCheckListCacheService
-                    .Setup(x => x.GetTyposquattingCheckList(It.IsAny<int>(), It.IsAny<double>(), It.IsAny<IPackageService>()))
+                    .Setup(x => x.GetTyposquattingCheckList(It.IsAny<int>(), It.IsAny<TimeSpan>(), It.IsAny<IPackageService>()))
                     .Returns(PacakgeRegistrationsList.Select(pr => pr.Id).ToList());
             }
 
@@ -161,7 +161,7 @@ namespace NuGetGallery
                 .Returns(pacakgeRegistrationsList);
             var mockTyposquattingCheckListCacheService = new Mock<ITyposquattingCheckListCacheService>();
             mockTyposquattingCheckListCacheService
-                .Setup(x => x.GetTyposquattingCheckList(It.IsAny<int>(), It.IsAny<double>(), It.IsAny<IPackageService>()))
+                .Setup(x => x.GetTyposquattingCheckList(It.IsAny<int>(), It.IsAny<TimeSpan>(), It.IsAny<IPackageService>()))
                 .Returns(pacakgeRegistrationsList.Select(pr => pr.Id).ToList());
 
             var newService = CreateService(packageService: mockPackageService, typosquattingCheckListCacheService: mockTyposquattingCheckListCacheService);
@@ -198,7 +198,7 @@ namespace NuGetGallery
                 .Returns(pacakgeRegistrationsList);
             var mockTyposquattingCheckListCacheService = new Mock<ITyposquattingCheckListCacheService>();
             mockTyposquattingCheckListCacheService
-                .Setup(x => x.GetTyposquattingCheckList(It.IsAny<int>(), It.IsAny<double>(), It.IsAny<IPackageService>()))
+                .Setup(x => x.GetTyposquattingCheckList(It.IsAny<int>(), It.IsAny<TimeSpan>(), It.IsAny<IPackageService>()))
                 .Returns(pacakgeRegistrationsList.Select(pr => pr.Id).ToList());
 
             var newService = CreateService(packageService: mockPackageService, typosquattingCheckListCacheService: mockTyposquattingCheckListCacheService);
@@ -293,7 +293,7 @@ namespace NuGetGallery
                 .Returns(new List<PackageRegistration>().AsQueryable());
             var mockTyposquattingCheckListCacheService = new Mock<ITyposquattingCheckListCacheService>();
             mockTyposquattingCheckListCacheService
-                .Setup(x => x.GetTyposquattingCheckList(It.IsAny<int>(), It.IsAny<double>(), It.IsAny<IPackageService>()))
+                .Setup(x => x.GetTyposquattingCheckList(It.IsAny<int>(), It.IsAny<TimeSpan>(), It.IsAny<IPackageService>()))
                 .Returns(new List<string>());
 
             var newService = CreateService(packageService: mockPackageService, typosquattingCheckListCacheService: mockTyposquattingCheckListCacheService);
@@ -417,7 +417,7 @@ namespace NuGetGallery
                     It.IsAny<bool>(),
                     It.IsAny<List<string>>(),
                     It.IsAny<int>(),
-                    It.IsAny<double>()),
+                    It.IsAny<TimeSpan>()),
                 Times.Once);
 
             mockTelemetryService.Verify(

@@ -42,7 +42,7 @@ namespace NuGetGallery
         public bool IsUploadedPackageIdTyposquatting(string uploadedPackageId, User uploadedPackageOwner, out List<string> typosquattingCheckCollisionIds)
         {
             var checkListConfiguredLength = _contentObjectService.TyposquattingConfiguration.PackageIdChecklistLength;
-            var checkListExpireTimeInHours = _contentObjectService.TyposquattingConfiguration.PackageIdChecklistCacheExpireTimeInHours;
+            var checkListExpireTimeInHours = TimeSpan.FromHours(_contentObjectService.TyposquattingConfiguration.PackageIdChecklistCacheExpireTimeInHours);
             typosquattingCheckCollisionIds = new List<string>();
             var wasUploadBlocked = false;
 

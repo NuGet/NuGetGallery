@@ -52,8 +52,8 @@ namespace NuGetGallery
             {
                 tasks[i] = Task.Factory.StartNew(() =>
                 {
-                    newService.GetTyposquattingCheckList(_packageIds.Count, 24, mockPackageService.Object);
-                    newService.GetTyposquattingCheckList(_packageIds.Count, 24, mockPackageService.Object);
+                    newService.GetTyposquattingCheckList(_packageIds.Count, TimeSpan.FromHours(24), mockPackageService.Object);
+                    newService.GetTyposquattingCheckList(_packageIds.Count, TimeSpan.FromHours(24), mockPackageService.Object);
                 });
             }
             Task.WaitAll(tasks);
@@ -76,9 +76,9 @@ namespace NuGetGallery
             var newService = new TyposquattingCheckListCacheService();
 
             // Act
-            newService.GetTyposquattingCheckList(_packageIds.Count, 0, mockPackageService.Object);
+            newService.GetTyposquattingCheckList(_packageIds.Count, TimeSpan.FromHours(0), mockPackageService.Object);
             Thread.Sleep(1);
-            newService.GetTyposquattingCheckList(_packageIds.Count, 0, mockPackageService.Object);
+            newService.GetTyposquattingCheckList(_packageIds.Count, TimeSpan.FromHours(0), mockPackageService.Object);
 
             // Assert
             mockPackageService.Verify(
@@ -98,8 +98,8 @@ namespace NuGetGallery
             var newService = new TyposquattingCheckListCacheService();
 
             // Act
-            newService.GetTyposquattingCheckList(_packageIds.Count, 24, mockPackageService.Object);
-            newService.GetTyposquattingCheckList(_packageIds.Count - 1, 24, mockPackageService.Object);
+            newService.GetTyposquattingCheckList(_packageIds.Count, TimeSpan.FromHours(24), mockPackageService.Object);
+            newService.GetTyposquattingCheckList(_packageIds.Count - 1, TimeSpan.FromHours(24), mockPackageService.Object);
 
             // Assert
             mockPackageService.Verify(
@@ -121,7 +121,7 @@ namespace NuGetGallery
 
             // Act
             var exception = Assert.Throws<ArgumentOutOfRangeException>(
-                () => newService.GetTyposquattingCheckList(checkListConfiguredLength, 24, mockPackageService.Object));
+                () => newService.GetTyposquattingCheckList(checkListConfiguredLength, TimeSpan.FromHours(24), mockPackageService.Object));
 
             // Assert
             Assert.Equal(nameof(checkListConfiguredLength), exception.ParamName);

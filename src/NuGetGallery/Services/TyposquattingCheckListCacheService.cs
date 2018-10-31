@@ -22,7 +22,7 @@ namespace NuGetGallery
             LastRefreshTime = DateTime.MinValue;
         }
 
-        public IReadOnlyCollection<string> GetTyposquattingCheckList(int checkListConfiguredLength, double checkListExpireTimeInHours, IPackageService packageService)
+        public IReadOnlyCollection<string> GetTyposquattingCheckList(int checkListConfiguredLength, TimeSpan checkListExpireTime, IPackageService packageService)
         {
             if (checkListConfiguredLength < 0)
             {
@@ -33,11 +33,11 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(packageService));
             }
 
-            if (ShouldCacheBeUpdated(checkListConfiguredLength, checkListExpireTimeInHours))
+            if (ShouldCacheBeUpdated(checkListConfiguredLength, checkListExpireTime))
             {
                 lock (Locker)
                 {
-                    if (ShouldCacheBeUpdated(checkListConfiguredLength, checkListExpireTimeInHours))
+                    if (ShouldCacheBeUpdated(checkListConfiguredLength, checkListExpireTime))
                     {
                         TyposquattingCheckListConfiguredLength = checkListConfiguredLength;
 
@@ -56,14 +56,14 @@ namespace NuGetGallery
             return Cache;
         }
 
-        private bool ShouldCacheBeUpdated(int checkListConfiguredLength, double checkListExpireTimeInHours)
+        private bool ShouldCacheBeUpdated(int checkListConfiguredLength, TimeSpan checkListExpireTime)
         {
-            return Cache == null || checkListConfiguredLength != TyposquattingCheckListConfiguredLength || IsCheckListCacheExpired(checkListExpireTimeInHours);
+            return Cache == null || checkListConfiguredLength != TyposquattingCheckListConfiguredLength || IsCheckListCacheExpired(checkListExpireTime);
         }
 
-        private bool IsCheckListCacheExpired(double checkListExpireTimeInHours)
+        private bool IsCheckListCacheExpired(TimeSpan checkListExpireTime)
         {
-            return DateTime.UtcNow >= LastRefreshTime.Add(TimeSpan.FromHours(checkListExpireTimeInHours));
+            return DateTime.UtcNow >= LastRefreshTime.Add(checkListExpireTime);
         }
     }
 }
