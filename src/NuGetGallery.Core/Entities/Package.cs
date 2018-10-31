@@ -245,10 +245,5 @@ namespace NuGetGallery
         public virtual ICollection<SymbolPackage> SymbolPackages { get; set; }
 
         public string Id => PackageRegistration.Id;
-
-        public EmbeddedLicenseFileType EmbeddedLicenseType { get; set; }
-
-        [StringLength(500)]
-        public string LicenseExpression { get; set; }
     }
 }
