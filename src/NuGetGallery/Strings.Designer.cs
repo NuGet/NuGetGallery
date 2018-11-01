@@ -2292,6 +2292,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Learn more.
+        /// </summary>
+        public static string UploadPackage_LearnMore {
+            get {
+                return ResourceManager.GetString("UploadPackage_LearnMore", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Specifying &lt;licenseUrl&gt; in package metadata is not allowed anymore, please specify the license in the package..
         /// </summary>
         public static string UploadPackage_LegacyLicenseUrlNotAllowed {
@@ -2351,6 +2360,15 @@ namespace NuGetGallery {
         public static string UploadPackage_LicenseNodeValueTooLong {
             get {
                 return ResourceManager.GetString("UploadPackage_LicenseNodeValueTooLong", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to All published packages should have license information specified..
+        /// </summary>
+        public static string UploadPackage_LicenseShouldBeSpecified {
+            get {
+                return ResourceManager.GetString("UploadPackage_LicenseShouldBeSpecified", resourceCulture);
             }
         }
         

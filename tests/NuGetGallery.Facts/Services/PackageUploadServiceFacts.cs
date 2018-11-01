@@ -460,14 +460,17 @@ namespace NuGetGallery
                 if (!expectedSuccess)
                 {
                     Assert.Equal(PackageValidationResultType.Invalid, result.Type);
-                    Assert.Equal("Package has no license information specified.", result.Message.PlainTextMessage);
+                    Assert.StartsWith("Package has no license information specified.", result.Message.PlainTextMessage);
+                    Assert.IsType<LicenseUrlDeprecationValidationMessage>(result.Message);
                     Assert.Empty(result.Warnings);
                 }
                 else
                 {
                     Assert.Equal(PackageValidationResultType.Accepted, result.Type);
                     Assert.Null(result.Message);
-                    Assert.Empty(result.Warnings);
+                    Assert.Single(result.Warnings);
+                    Assert.IsType<LicenseUrlDeprecationValidationMessage>(result.Warnings[0]);
+                    Assert.StartsWith("All published packages should have license information specified.", result.Warnings[0].PlainTextMessage);
                 }
             }
 

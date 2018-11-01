@@ -11,8 +11,7 @@ namespace NuGetGallery
     /// </summary>
     public class LicenseUrlDeprecationValidationMessage : IValidationMessage
     {
-        private const string LearnMore = "Learn more";
-        private const string DeprecationLink = "<a href=\"" + GalleryConstants.LicenseDeprecationUrl + "\">" + LearnMore + ".</a>";
+        private readonly string DeprecationLink = $"<a href=\"{GalleryConstants.LicenseDeprecationUrl}\">{Strings.UploadPackage_LearnMore}.</a>";
 
         private readonly string _baseMessage;
         
@@ -24,7 +23,7 @@ namespace NuGetGallery
             }
 
             _baseMessage = basePlainTextMessage;
-            PlainTextMessage = $"{_baseMessage} {LearnMore}: {GalleryConstants.LicenseDeprecationUrl}.";
+            PlainTextMessage = $"{_baseMessage} {Strings.UploadPackage_LearnMore}: {GalleryConstants.LicenseDeprecationUrl}.";
         }
 
         public string PlainTextMessage { get; }

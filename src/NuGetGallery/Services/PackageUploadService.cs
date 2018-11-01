@@ -149,11 +149,11 @@ namespace NuGetGallery
                             versionText));
                 }
 
-                // TODO: should be uncommented
-                //if (LicenseType.File.ToString().Equals(versionText, StringComparison.OrdinalIgnoreCase))
-                //{
-                //    return PackageValidationResult.Invalid(Strings.UploadPackage_LicenseFilesAreNotAllowed);
-                //}
+                // TODO: remove when all pipeline changes are done
+                if (LicenseType.File.ToString().Equals(typeText, StringComparison.OrdinalIgnoreCase))
+                {
+                    return PackageValidationResult.Invalid(Strings.UploadPackage_LicenseFilesAreNotAllowed);
+                }
             }
 
             var licenseUrl = nuspecReader.GetLicenseUrl();
@@ -162,9 +162,16 @@ namespace NuGetGallery
 
             if (licenseMetadata == null)
             {
-                if (!_config.AllowLicenselessPackages && string.IsNullOrWhiteSpace(licenseUrl))
+                if (string.IsNullOrWhiteSpace(licenseUrl))
                 {
-                    return PackageValidationResult.Invalid(Strings.UploadPackage_MissingLicenseInformation);
+                    if (!_config.AllowLicenselessPackages)
+                    {
+                        return PackageValidationResult.Invalid(new LicenseUrlDeprecationValidationMessage(Strings.UploadPackage_MissingLicenseInformation));
+                    }
+                    else
+                    {
+                        warnings.Add(new LicenseUrlDeprecationValidationMessage(Strings.UploadPackage_LicenseShouldBeSpecified));
+                    }
                 }
 
                 if (licenseDeprecationUrl == licenseUrl)

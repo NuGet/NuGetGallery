@@ -1064,4 +1064,10 @@ The {1} Team</value>
     <value>To provide better experience for older clients when a license file is packaged, &lt;licenseUrl&gt; should be set to '{0}'.</value>
     <comment>{0} is the deprecation page URL</comment>
   </data>
+  <data name="UploadPackage_LearnMore" xml:space="preserve">
+    <value>Learn more</value>
+  </data>
+  <data name="UploadPackage_LicenseShouldBeSpecified" xml:space="preserve">
+    <value>All published packages should have license information specified.</value>
+  </data>
 </root>
