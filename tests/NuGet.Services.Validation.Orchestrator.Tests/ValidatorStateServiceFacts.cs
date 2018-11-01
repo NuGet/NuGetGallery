@@ -3,8 +3,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
+using System.Data.SqlClient;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -12,6 +16,7 @@ using NuGet.Jobs.Validation;
 using NuGet.Jobs.Validation.Storage;
 using Tests.ContextHelpers;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace NuGet.Services.Validation
 {
@@ -50,6 +55,10 @@ namespace NuGet.Services.Validation
 
         public class TheGetStatusMethod : FactsBase
         {
+            public TheGetStatusMethod(ITestOutputHelper output) : base(output)
+            {
+            }
+
             [Fact]
             public async Task GetStatusReturnsNotStartedIfNoPersistedStatus()
             {
@@ -170,6 +179,10 @@ namespace NuGet.Services.Validation
 
         public class TheIsRevalidationRequestMethod : FactsBase
         {
+            public TheIsRevalidationRequestMethod(ITestOutputHelper output) : base(output)
+            {
+            }
+
             [Fact]
             public async Task ReturnsFalseIfPackageHasNeverBeenValidated()
             {
@@ -318,6 +331,10 @@ namespace NuGet.Services.Validation
 
         public class TheAddStatusAsyncMethod : FactsBase
         {
+            public TheAddStatusAsyncMethod(ITestOutputHelper output) : base(output)
+            {
+            }
+
             [Fact]
             public async Task AddStatusAsyncThrowsIfValidatorNameIsWrong()
             {
@@ -372,6 +389,10 @@ namespace NuGet.Services.Validation
 
         public class TheSaveStatusAsyncMethod : FactsBase
         {
+            public TheSaveStatusAsyncMethod(ITestOutputHelper output) : base(output)
+            {
+            }
+
             [Fact]
             public async Task SaveStatusAsyncThrowsIfValidatorNameIsWrong()
             {
@@ -414,12 +435,41 @@ namespace NuGet.Services.Validation
 
         public class TheTryAddValidatorStatusAsyncMethod : FactsBase
         {
+            public TheTryAddValidatorStatusAsyncMethod(ITestOutputHelper output) : base(output)
+            {
+            }
+
             private ValidatorStatus NewStatus => new ValidatorStatus
             {
                 ValidationId = ValidationId,
                 PackageKey = PackageKey,
                 ValidatorName = nameof(AValidator),
             };
+
+            [Fact]
+            public async Task HandlesUniqueConstraintViolationGracefully()
+            {
+                // Arrange
+                var exception = new DbUpdateException(
+                    message: "Fail!",
+                    innerException: CreateSqlException(2627, "No can do, friend."));
+                _validationContext
+                    .Setup(x => x.SaveChangesAsync())
+                    .ThrowsAsync(exception);
+
+                _validationContext.Mock(validatorStatusesMock: new Mock<IDbSet<ValidatorStatus>>());
+                var status = NewStatus;
+
+                // Act
+                var result = await _target.TryAddValidatorStatusAsync(
+                    _validationRequest.Object,
+                    status,
+                    ValidationStatus.Succeeded);
+
+                // Assert
+                Assert.Same(status, result);
+                _validationContext.Verify(x => x.ValidatorStatuses, Times.Exactly(2));
+            }
 
             [Fact]
             public async Task PersistsStatus()
@@ -453,6 +503,10 @@ namespace NuGet.Services.Validation
 
         public class TheTryUpdateValidationStatusAsyncMethod : FactsBase
         {
+            public TheTryUpdateValidationStatusAsyncMethod(ITestOutputHelper output) : base(output)
+            {
+            }
+
             private ValidatorStatus ExistingStatus => new ValidatorStatus
             {
                 ValidationId = ValidationId,
@@ -460,6 +514,30 @@ namespace NuGet.Services.Validation
                 ValidatorName = nameof(AValidator),
                 State = ValidationStatus.NotStarted,
             };
+
+            [Fact]
+            public async Task HandlesUniqueConstraintViolationGracefully()
+            {
+                // Arrange
+                var exception = new DbUpdateConcurrencyException("Fail!");
+                _validationContext
+                    .Setup(x => x.SaveChangesAsync())
+                    .ThrowsAsync(exception);
+
+                _validationContext.Mock(validatorStatusesMock: new Mock<IDbSet<ValidatorStatus>>());
+                var status = ExistingStatus;
+                _validationContext.Object.ValidatorStatuses.Add(status);
+
+                // Act
+                var result = await _target.TryUpdateValidationStatusAsync(
+                    _validationRequest.Object,
+                    status,
+                    ValidationStatus.Succeeded);
+
+                // Assert
+                Assert.Same(status, result);
+                _validationContext.Verify(x => x.ValidatorStatuses, Times.Exactly(2));
+            }
 
             [Fact]
             public async Task PersistsStatus()
@@ -484,15 +562,17 @@ namespace NuGet.Services.Validation
 
         public abstract class FactsBase
         {
+            protected readonly ITestOutputHelper _output;
             protected readonly Mock<IValidationEntitiesContext> _validationContext;
-            protected readonly Mock<ILogger<ValidatorStateService>> _logger;
+            protected readonly ILogger<ValidatorStateService> _logger;
             protected readonly Mock<IValidationRequest> _validationRequest;
             protected readonly ValidatorStateService _target;
 
-            public FactsBase()
+            public FactsBase(ITestOutputHelper output)
             {
+                _output = output ?? throw new ArgumentNullException(nameof(output));
                 _validationContext = new Mock<IValidationEntitiesContext>();
-                _logger = new Mock<ILogger<ValidatorStateService>>();
+                _logger = new LoggerFactory().AddXunit(_output).CreateLogger<ValidatorStateService>();
 
                 _validationRequest = new Mock<IValidationRequest>();
                 _validationRequest.Setup(x => x.NupkgUrl).Returns(NupkgUrl);
@@ -508,7 +588,52 @@ namespace NuGet.Services.Validation
                 => new ValidatorStateService(
                     _validationContext.Object,
                     validatorName,
-                    _logger.Object);
+                    _logger);
+
+            /// <summary>
+            /// Source: http://blog.gauffin.org/2014/08/how-to-create-a-sqlexception/
+            /// </summary>
+            protected SqlException CreateSqlException(int number, string message)
+            {
+                var collectionConstructor = typeof(SqlErrorCollection)
+                    .GetConstructor(
+                        bindingAttr: BindingFlags.NonPublic | BindingFlags.Instance,
+                        binder: null,
+                        types: new Type[0],
+                        modifiers: null);
+                var addMethod = typeof(SqlErrorCollection).GetMethod("Add", BindingFlags.NonPublic | BindingFlags.Instance);
+                var errorCollection = (SqlErrorCollection)collectionConstructor.Invoke(null);
+
+                var errorConstructor = typeof(SqlError).GetConstructor(
+                    bindingAttr: BindingFlags.NonPublic | BindingFlags.Instance,
+                    binder: null,
+                    types: new[]
+                    {
+                        typeof (int), typeof (byte), typeof (byte), typeof (string), typeof(string), typeof (string),
+                        typeof (int), typeof (uint)
+                    },
+                    modifiers: null);
+                var error = errorConstructor.Invoke(new object[]
+                {
+                    number,
+                    (byte)0,
+                    (byte)0,
+                    "server",
+                    "errMsg",
+                    "procedure",
+                    100,
+                    (uint)0
+                });
+
+                addMethod.Invoke(errorCollection, new[] { error });
+
+                var constructor = typeof(SqlException).GetConstructor(
+                    bindingAttr: BindingFlags.NonPublic | BindingFlags.Instance,
+                    binder: null,
+                    types: new[] { typeof(string), typeof(SqlErrorCollection), typeof(Exception), typeof(Guid) },
+                    modifiers: null);
+                return (SqlException)constructor.Invoke(new object[] { message, errorCollection, null, Guid.NewGuid() });
+            }
         }
     }
 }
