@@ -510,7 +510,8 @@ namespace NuGetGallery
                 if (!expectedSuccess)
                 {
                     Assert.Equal(PackageValidationResultType.Invalid, result.Type);
-                    Assert.Equal("Specifying external license URLs are not allowed anymore, please specify the license in the package.", result.Message.PlainTextMessage);
+                    Assert.StartsWith("Specifying <licenseUrl> in package metadata is not allowed anymore, please specify the license in the package.", result.Message.PlainTextMessage);
+                    Assert.IsType<LicenseUrlDeprecationValidationMessage>(result.Message);
                     Assert.Empty(result.Warnings);
                 }
                 else
@@ -518,7 +519,8 @@ namespace NuGetGallery
                     Assert.Equal(PackageValidationResultType.Accepted, result.Type);
                     Assert.Null(result.Message);
                     Assert.Single(result.Warnings);
-                    Assert.Equal("Specifying external license URLs will be deprecated, please consider switching to specifying the license in the package.", result.Warnings[0].PlainTextMessage);
+                    Assert.StartsWith("<licenseUrl> element will be deprecated, please consider switching to specifying the license in the package.", result.Warnings[0].PlainTextMessage);
+                    Assert.IsType<LicenseUrlDeprecationValidationMessage>(result.Warnings[0]);
                 }
             }
 
@@ -554,7 +556,7 @@ namespace NuGetGallery
                 Assert.Equal(PackageValidationResultType.Accepted, result.Type);
                 Assert.Null(result.Message);
                 Assert.Single(result.Warnings);
-                Assert.Equal("To provide better experience for the older clients when a license file is packaged, <licenseUrl> should point to https://aka.ms/deprecateLicenseUrl", result.Warnings[0].PlainTextMessage);
+                Assert.Equal("To provide better experience for older clients when a license file is packaged, <licenseUrl> should be set to 'https://aka.ms/deprecateLicenseUrl'.", result.Warnings[0].PlainTextMessage);
             }
 
             [Theory]
@@ -574,7 +576,7 @@ namespace NuGetGallery
                 Assert.Equal(PackageValidationResultType.Accepted, result.Type);
                 Assert.Null(result.Message);
                 Assert.Single(result.Warnings);
-                Assert.Equal("For backwards compatibility, when a license expression is specified, <licenseUrl> should point to https://licenses.nuget.org/MIT", result.Warnings[0].PlainTextMessage);
+                Assert.Equal("To provide better experience for older clients when a license expression is specified, <licenseUrl> should be set to 'https://licenses.nuget.org/MIT'.", result.Warnings[0].PlainTextMessage);
             }
 
             [Fact]
@@ -611,7 +613,7 @@ namespace NuGetGallery
             [InlineData("(EUPL-1.0+ OR (TORQUE-1.1 WITH Nokia-Qt-exception-1.1) AND Noweb)", true)]
             public async Task ChecksLicenseExpressionCorrectness(string licenseExpression, bool expectedSuccess)
             {
-                _nuGetPackage = GeneratePackage(licenseUrl: new Uri(LicenseDeprecationUrl), licenseExpression: licenseExpression, licenseFilename: null);
+                _nuGetPackage = GeneratePackage(licenseUrl: GetLicenseExpressionDeprecationUrl(licenseExpression), licenseExpression: licenseExpression, licenseFilename: null);
 
                 var result = await _target.ValidateBeforeGeneratePackageAsync(
                     _nuGetPackage.Object,
@@ -762,6 +764,11 @@ namespace NuGetGallery
                 }
             }
 
+            private static Uri GetLicenseExpressionDeprecationUrl(string licenseExpression)
+            {
+                return new Uri(string.Format("https://licenses.nuget.org/{0}", licenseExpression));
+            }
+
             private static string[] LicenseNodeVariants => new string[]
             {
                 "<license/>",
@@ -870,7 +877,7 @@ namespace NuGetGallery
             public async Task RejectsPackagesWithInvalidLicenseVersion(string version, bool expectedSuccess)
             {
                 _nuGetPackage = GeneratePackage(
-                    licenseUrl: new Uri(LicenseDeprecationUrl),
+                    licenseUrl: new Uri("https://licenses.nuget.org/MIT"),
                     getCustomNuspecNodes: () => $"<license type='expression' version='{version}'>MIT</license>");
 
                 var result = await _target.ValidateBeforeGeneratePackageAsync(
@@ -980,7 +987,7 @@ namespace NuGetGallery
                     GetPackageMetadata(_nuGetPackage));
 
                 Assert.Equal(PackageValidationResultType.Invalid, result.Type);
-                Assert.Contains("type", result.Message.PlainTextMessage);
+                Assert.Contains("Unsupported license type", result.Message.PlainTextMessage);
                 Assert.Empty(result.Warnings);
             }
 

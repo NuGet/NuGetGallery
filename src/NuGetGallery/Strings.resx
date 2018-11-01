@@ -1006,10 +1006,7 @@ The {1} Team</value>
     <value>Unknown error!</value>
   </data>
   <data name="UploadPackage_DeprecatingLicenseUrl" xml:space="preserve">
-    <value>Specifying external license URLs will be deprecated, please consider switching to specifying the license in the package.</value>
-  </data>
-  <data name="UploadPackage_DeprecationUrlRequired" xml:space="preserve">
-    <value>For backwards compatibility when a license is specified in the package, its &lt;licenseUrl&gt; node must point to https://aka.ms/deprecateLicenseUrl</value>
+    <value>&lt;licenseUrl&gt; element will be deprecated, please consider switching to specifying the license in the package.</value>
   </data>
   <data name="UploadPackage_DeprecationUrlUsage" xml:space="preserve">
     <value>The license deprecation URL must be used in conjunction with specifying the license in the package.</value>
@@ -1019,10 +1016,7 @@ The {1} Team</value>
     <comment>{0} is the list of the issues found with license expression.</comment>
   </data>
   <data name="UploadPackage_LegacyLicenseUrlNotAllowed" xml:space="preserve">
-    <value>Specifying external license URLs are not allowed anymore, please specify the license in the package.</value>
-  </data>
-  <data name="UploadPackage_LicenseExpressionsNotSupported" xml:space="preserve">
-    <value>License expressions are not currenly supported.</value>
+    <value>Specifying &lt;licenseUrl&gt; in package metadata is not allowed anymore, please specify the license in the package.</value>
   </data>
   <data name="UploadPackage_MissingLicenseInformation" xml:space="preserve">
     <value>Package has no license information specified.</value>
@@ -1032,7 +1026,7 @@ The {1} Team</value>
     <comment>{0} is the specified extension. {1} is the string containing the allowed extensions list</comment>
   </data>
   <data name="UploadPackage_LicenseFileDoesNotExist" xml:space="preserve">
-    <value>License file '{0}' does not exist.</value>
+    <value>License file '{0}' does not exist in the package.</value>
     <comment>{0} is the license file name specified in the .nuspec</comment>
   </data>
   <data name="UploadPackage_LicenseMustBePlainText" xml:space="preserve">
@@ -1054,5 +1048,20 @@ The {1} Team</value>
   </data>
   <data name="UploadPackage_CorruptNupkg" xml:space="preserve">
     <value>Package file is corrupt.</value>
+  </data>
+  <data name="UploadPackage_UnsupportedLicenseType" xml:space="preserve">
+    <value>Unsupported license type '{0}'.</value>
+    <comment>{0} is the license type read from the nuspec</comment>
+  </data>
+  <data name="UploadPackage_LicenseFilesAreNotAllowed" xml:space="preserve">
+    <value>License files are not yet supported.</value>
+  </data>
+  <data name="UploadPackage_DeprecationUrlSuggestedForLicenseExpressions" xml:space="preserve">
+    <value>To provide better experience for older clients when a license expression is specified, &lt;licenseUrl&gt; should be set to '{0}'.</value>
+    <comment>{0} is the licenses.nuget.org link with license expression</comment>
+  </data>
+  <data name="UploadPackage_DeprecationUrlSuggestedForLicenseFiles" xml:space="preserve">
+    <value>To provide better experience for older clients when a license file is packaged, &lt;licenseUrl&gt; should be set to '{0}'.</value>
+    <comment>{0} is the deprecation page URL</comment>
   </data>
 </root>

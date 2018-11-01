@@ -2193,7 +2193,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Specifying external license URLs will be deprecated, please consider switching to specifying the license in the package..
+        ///   Looks up a localized string similar to &lt;licenseUrl&gt; element will be deprecated, please consider switching to specifying the license in the package..
         /// </summary>
         public static string UploadPackage_DeprecatingLicenseUrl {
             get {
@@ -2202,11 +2202,20 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to For backwards compatibility when a license is specified in the package, its &lt;licenseUrl&gt; node must point to https://aka.ms/deprecateLicenseUrl.
+        ///   Looks up a localized string similar to To provide better experience for older clients when a license expression is specified, &lt;licenseUrl&gt; should be set to &apos;{0}&apos;..
         /// </summary>
-        public static string UploadPackage_DeprecationUrlRequired {
+        public static string UploadPackage_DeprecationUrlSuggestedForLicenseExpressions {
             get {
-                return ResourceManager.GetString("UploadPackage_DeprecationUrlRequired", resourceCulture);
+                return ResourceManager.GetString("UploadPackage_DeprecationUrlSuggestedForLicenseExpressions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to To provide better experience for older clients when a license file is packaged, &lt;licenseUrl&gt; should be set to &apos;{0}&apos;..
+        /// </summary>
+        public static string UploadPackage_DeprecationUrlSuggestedForLicenseFiles {
+            get {
+                return ResourceManager.GetString("UploadPackage_DeprecationUrlSuggestedForLicenseFiles", resourceCulture);
             }
         }
         
@@ -2283,7 +2292,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Specifying external license URLs are not allowed anymore, please specify the license in the package..
+        ///   Looks up a localized string similar to Specifying &lt;licenseUrl&gt; in package metadata is not allowed anymore, please specify the license in the package..
         /// </summary>
         public static string UploadPackage_LegacyLicenseUrlNotAllowed {
             get {
@@ -2292,20 +2301,20 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to License expressions are not currenly supported..
-        /// </summary>
-        public static string UploadPackage_LicenseExpressionsNotSupported {
-            get {
-                return ResourceManager.GetString("UploadPackage_LicenseExpressionsNotSupported", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to License file &apos;{0}&apos; does not exist..
+        ///   Looks up a localized string similar to License file &apos;{0}&apos; does not exist in the package..
         /// </summary>
         public static string UploadPackage_LicenseFileDoesNotExist {
             get {
                 return ResourceManager.GetString("UploadPackage_LicenseFileDoesNotExist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to License files are not yet supported..
+        /// </summary>
+        public static string UploadPackage_LicenseFilesAreNotAllowed {
+            get {
+                return ResourceManager.GetString("UploadPackage_LicenseFilesAreNotAllowed", resourceCulture);
             }
         }
         
@@ -2442,6 +2451,15 @@ namespace NuGetGallery {
         public static string UploadPackage_SignedToUnsignedTransition {
             get {
                 return ResourceManager.GetString("UploadPackage_SignedToUnsignedTransition", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unsupported license type &apos;{0}&apos;..
+        /// </summary>
+        public static string UploadPackage_UnsupportedLicenseType {
+            get {
+                return ResourceManager.GetString("UploadPackage_UnsupportedLicenseType", resourceCulture);
             }
         }
         
