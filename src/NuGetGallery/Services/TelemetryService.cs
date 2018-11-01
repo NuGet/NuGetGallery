@@ -150,6 +150,7 @@ namespace NuGetGallery
         public const string CollisionPackageIdsCount = "CollisionPackageIdsCount";
         public const string CheckListLength = "CheckListLength";
         public const string HasExtraCollisionPackageIds = "HasExtraCollisionPackageIds";
+        public const string CheckListCacheExpireTimeInHours = "CheckListCacheExpireTimeInHours";
 
         public TelemetryService(IDiagnosticsService diagnosticsService, ITelemetryClient telemetryClient = null)
         {
@@ -722,15 +723,17 @@ namespace NuGetGallery
             TimeSpan totalTime,
             bool wasUploadBlocked,
             List<string> collisionPackageIds,
-            int checklistLength)
+            int checkListLength,
+            TimeSpan checkListCacheExpireTime)
         {
             TrackMetric(Events.TyposquattingCheckResultAndTotalTimeInMs, totalTime.TotalMilliseconds, properties => {
                 properties.Add(PackageId, packageId);
                 properties.Add(WasUploadBlocked, wasUploadBlocked.ToString());
                 properties.Add(CollisionPackageIds, string.Join(",", collisionPackageIds.Take(TyposquattingCollisionIdsMaxPropertyValue)));
                 properties.Add(CollisionPackageIdsCount, collisionPackageIds.Count.ToString());
-                properties.Add(CheckListLength, checklistLength.ToString());
+                properties.Add(CheckListLength, checkListLength.ToString());
                 properties.Add(HasExtraCollisionPackageIds, (collisionPackageIds.Count > TyposquattingCollisionIdsMaxPropertyValue).ToString());
+                properties.Add(CheckListCacheExpireTimeInHours, checkListCacheExpireTime.ToString());
             });
         }
 
