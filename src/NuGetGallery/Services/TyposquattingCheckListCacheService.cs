@@ -24,13 +24,17 @@ namespace NuGetGallery
 
         public IReadOnlyCollection<string> GetTyposquattingCheckList(int checkListConfiguredLength, TimeSpan checkListExpireTime, IPackageService packageService)
         {
+            if (packageService == null)
+            {
+                throw new ArgumentNullException(nameof(packageService));
+            }
             if (checkListConfiguredLength < 0)
             {
                 throw new ArgumentOutOfRangeException(nameof(checkListConfiguredLength), "Negative values are not supported.");
             }
-            if (packageService == null)
+            if (checkListExpireTime.CompareTo(TimeSpan.Zero) < 0)
             {
-                throw new ArgumentNullException(nameof(packageService));
+                throw new ArgumentOutOfRangeException(nameof(checkListExpireTime), "Negative values are not supported.");
             }
 
             if (ShouldCacheBeUpdated(checkListConfiguredLength, checkListExpireTime))

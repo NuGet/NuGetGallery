@@ -35,7 +35,7 @@ namespace NuGetGallery
                 }).AsQueryable();
 
         [Fact]
-        public void CheckTyposquattingCheckListCache()
+        public void WhenGettingCheckListFromMultipleThreadsItIsInitializedOnce()
         {
             // Arrange
             var mockPackageService = new Mock<IPackageService>();
@@ -65,7 +65,7 @@ namespace NuGetGallery
         }
 
         [Fact]
-        public void CheckTyposquattingCheckListCacheWhenExceedExpireTime()
+        public void WhenExceedExpireTimeRefreshCheckListCache()
         {
             // Arrange
             var mockPackageService = new Mock<IPackageService>();
@@ -87,7 +87,7 @@ namespace NuGetGallery
         }
 
         [Fact]
-        public void CheckTyposquattingCheckListCacheWhenNotEqualCheckListLength()
+        public void WhenNotEqualConfiguredLengthRefreshCheckListCache()
         {
             // Arrange
             var mockPackageService = new Mock<IPackageService>();
@@ -108,7 +108,7 @@ namespace NuGetGallery
         }
 
         [Fact]
-        public void CheckRefreshedCheckListLengthNotAllowed()
+        public void CheckConfiguredLengthNotAllowed()
         {
             // Arrange
             var mockPackageService = new Mock<IPackageService>();
@@ -125,6 +125,40 @@ namespace NuGetGallery
 
             // Assert
             Assert.Equal(nameof(checkListConfiguredLength), exception.ParamName);
+        }
+
+        [Fact]
+        public void CheckExpireTimeNotAllowed()
+        {
+            // Arrange
+            var checkListExpireTime = TimeSpan.FromHours(-1);
+            var mockPackageService = new Mock<IPackageService>();
+            mockPackageService
+                .Setup(x => x.GetAllPackageRegistrations())
+                .Returns(PacakgeRegistrationsList);
+
+            var newService = new TyposquattingCheckListCacheService();
+
+            // Act
+            var exception = Assert.Throws<ArgumentOutOfRangeException>(
+                () => newService.GetTyposquattingCheckList(_packageIds.Count, checkListExpireTime, mockPackageService.Object));
+
+            // Assert
+            Assert.Equal(nameof(checkListExpireTime), exception.ParamName);
+        }
+
+        [Fact]
+        public void CheckNullPackageService()
+        {
+            // Arrange
+            var newService = new TyposquattingCheckListCacheService();
+
+            // Act
+            var exception = Assert.Throws<ArgumentNullException>(
+                () => newService.GetTyposquattingCheckList(_packageIds.Count, TimeSpan.FromHours(24), null));
+
+            // Assert
+            Assert.Equal("packageService", exception.ParamName);
         }
     }
 }
