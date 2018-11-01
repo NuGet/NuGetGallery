@@ -42,7 +42,7 @@ namespace StatusAggregator.Factory
                     input.Id,
                     groupEntity,
                     affectedPath,
-                    (ComponentStatus)input.AffectedComponentStatus,
+                    input.AffectedComponentStatus,
                     input.StartTime,
                     input.EndTime);
 
