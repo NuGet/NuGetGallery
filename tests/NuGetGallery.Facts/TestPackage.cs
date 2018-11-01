@@ -57,7 +57,7 @@ namespace NuGetGallery
                         <language>" + (language ?? string.Empty) + @"</language>
                         <copyright>" + (copyright ?? string.Empty) + @"</copyright>
                         <releaseNotes>" + (releaseNotes ?? string.Empty) + @"</releaseNotes>
-                        <licenseUrl>" + (licenseUrl?.ToString() ?? string.Empty) + @"</licenseUrl>
+                        <licenseUrl>" + (licenseUrl?.AbsoluteUri ?? string.Empty) + @"</licenseUrl>
                         " + WriteLicense(licenseExpression, licenseFilename) + @"
                         <projectUrl>" + (projectUrl?.ToString() ?? string.Empty) + @"</projectUrl>
                         <iconUrl>" + (iconUrl?.ToString() ?? string.Empty) + @"</iconUrl>
