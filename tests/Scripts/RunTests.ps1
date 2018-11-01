@@ -29,9 +29,7 @@ $fullTestCategory = "$($testCategory)Tests"
 $exitCode = 0
 
 $functionalTestsDirectory = "$rootName\NuGetGallery.FunctionalTests\bin\$Config"
-
-#"-trait" "Category=$fullTestCategory" 
-& $xunit "$functionalTestsDirectory\NuGetGallery.FunctionalTests.dll" "-xml" $functionalTestsResults "-parallel" "all"
+& $xunit "$functionalTestsDirectory\NuGetGallery.FunctionalTests.dll" "-trait" "Category=$fullTestCategory" "-xml" $functionalTestsResults "-parallel" "all"
 if ($LastExitCode) {
     $exitCode = 1
 }

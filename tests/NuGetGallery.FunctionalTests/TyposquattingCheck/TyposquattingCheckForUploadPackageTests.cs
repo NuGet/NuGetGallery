@@ -20,6 +20,7 @@ namespace NuGetGallery.FunctionalTests.TyposquattingCheck
         }
 
         [TyposquattingTestFact]
+        [Category("P2Tests")]
         public async Task UploadTyposquattingPackageAndBlockUser()
         {
             var packageId = "newtonsoft-json";
