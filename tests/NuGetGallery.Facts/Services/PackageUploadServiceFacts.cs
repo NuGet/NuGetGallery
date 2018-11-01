@@ -466,6 +466,8 @@ namespace NuGetGallery
                 else
                 {
                     Assert.Equal(PackageValidationResultType.Accepted, result.Type);
+                    Assert.Null(result.Message);
+                    Assert.Empty(result.Warnings);
                 }
             }
 
@@ -535,25 +537,44 @@ namespace NuGetGallery
             }
 
             [Theory]
-            [InlineData("MIT", null, null)]
-            [InlineData("MIT", null, RegularLicenseUrl)]
-            [InlineData(null, "license.txt", null)]
-            [InlineData(null, "license.txt", RegularLicenseUrl)]
-            public async Task RequiresDeprecationUrlWithEmbeddedLicense(string licenseExpression, string licenseFilename, string licenseUrl)
+            [InlineData(null)]
+            [InlineData(RegularLicenseUrl)]
+            public async Task WarnsWhenInvalidLicenseUrlSpecifiedWithLicenseFile(string licenseUrl)
             {
                 _nuGetPackage = GeneratePackage(
                     licenseUrl: licenseUrl == null ? null : new Uri(licenseUrl),
-                    licenseExpression: licenseExpression,
-                    licenseFilename: licenseFilename,
-                    licenseFileContents: licenseFilename);
+                    licenseExpression: null,
+                    licenseFilename: "license.txt",
+                    licenseFileContents: "Some license text");
 
                 var result = await _target.ValidateBeforeGeneratePackageAsync(
                     _nuGetPackage.Object,
                     GetPackageMetadata(_nuGetPackage));
 
-                Assert.Equal(PackageValidationResultType.Invalid, result.Type);
-                Assert.Equal("For backwards compatibility when a license is specified in the package, its <licenseUrl> node must point to https://aka.ms/deprecateLicenseUrl", result.Message.PlainTextMessage);
-                Assert.Empty(result.Warnings);
+                Assert.Equal(PackageValidationResultType.Accepted, result.Type);
+                Assert.Null(result.Message);
+                Assert.Single(result.Warnings);
+                Assert.Equal("To provide better experience for the older clients when a license file is packaged, <licenseUrl> should point to https://aka.ms/deprecateLicenseUrl", result.Warnings[0].PlainTextMessage);
+            }
+
+            [Theory]
+            [InlineData(null)]
+            [InlineData(RegularLicenseUrl)]
+            public async Task WarnsWhenInvalidLicenseUrlSpecifiedWithLicenseExpression(string licenseUrl)
+            {
+                _nuGetPackage = GeneratePackage(
+                    licenseUrl: licenseUrl == null ? null : new Uri(licenseUrl),
+                    licenseExpression: "MIT",
+                    licenseFilename: null);
+
+                var result = await _target.ValidateBeforeGeneratePackageAsync(
+                    _nuGetPackage.Object,
+                    GetPackageMetadata(_nuGetPackage));
+
+                Assert.Equal(PackageValidationResultType.Accepted, result.Type);
+                Assert.Null(result.Message);
+                Assert.Single(result.Warnings);
+                Assert.Equal("For backwards compatibility, when a license expression is specified, <licenseUrl> should point to https://licenses.nuget.org/MIT", result.Warnings[0].PlainTextMessage);
             }
 
             [Fact]
@@ -942,6 +963,24 @@ namespace NuGetGallery
                 // Assert
                 Assert.Equal(PackageValidationResultType.Invalid, result.Type);
                 Assert.Contains("corrupt", result.Message.PlainTextMessage);
+                Assert.Empty(result.Warnings);
+            }
+
+            [Theory]
+            [InlineData("<license>foo</license>")]
+            [InlineData("<license type='foo'>bar</license>")]
+            public async Task RejectsNupkgsWithUnknownLicenseTypes(string licenseNode)
+            {
+                _nuGetPackage = GeneratePackage(
+                    licenseUrl: new Uri(LicenseDeprecationUrl),
+                    getCustomNuspecNodes: () => licenseNode);
+
+                var result = await _target.ValidateBeforeGeneratePackageAsync(
+                    _nuGetPackage.Object,
+                    GetPackageMetadata(_nuGetPackage));
+
+                Assert.Equal(PackageValidationResultType.Invalid, result.Type);
+                Assert.Contains("type", result.Message.PlainTextMessage);
                 Assert.Empty(result.Warnings);
             }
 
