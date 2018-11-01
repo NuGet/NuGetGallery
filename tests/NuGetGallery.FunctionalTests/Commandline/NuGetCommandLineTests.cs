@@ -15,6 +15,7 @@ namespace NuGetGallery.FunctionalTests.Commandline
     /// <summary>
     /// Tries to download and upload package from the gallery using NuGet.exe client.
     /// </summary>
+    [Collection("NuGetCommandLineTests")]
     public class NugetCommandLineTests
         : GalleryTestBase
     {
@@ -62,7 +63,7 @@ namespace NuGetGallery.FunctionalTests.Commandline
         [MemberData(nameof(UploadAndUnlistPackages_Data))]
         [Description("Tests upload and unlist scenarios with API key")]
         [Priority(0)]
-        [Category("P4Tests")]
+        [Category("P0Tests")]
         public async Task UploadAndUnlistPackages(string apiKey)
         {
             // Can push new package ID
@@ -78,7 +79,7 @@ namespace NuGetGallery.FunctionalTests.Commandline
         [Fact]
         [Description("Uses scoped API keys to push and unlist packages using Nuget.exe")]
         [Priority(0)]
-        [Category("P5Tests")]
+        [Category("P0Tests")]
         public async Task ScopedApiKeysCanOnlyPushAndUnlistWithCorrectScopes()
         {
             // Arrange
@@ -113,7 +114,7 @@ namespace NuGetGallery.FunctionalTests.Commandline
         [Fact]
         [Description("Creates a test package with minclientversion tag and .cs name. Pushes it to the server using Nuget.exe and then download via ClientSDK")]
         [Priority(0)]
-        [Category("P2Tests")]
+        [Category("P0Tests")]
         public async Task UploadAndDownloadPackageWithMinClientVersion()
         {
             string packageId = DateTime.Now.Ticks + "PackageWithDotCsNames.Cs";

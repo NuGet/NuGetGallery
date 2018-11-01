@@ -10,6 +10,7 @@ using Xunit.Abstractions;
 
 namespace NuGetGallery.FunctionalTests.ODataFeeds
 {
+    [Collection("SearchTest")]
     public class SearchTest
         : GalleryTestBase
     {

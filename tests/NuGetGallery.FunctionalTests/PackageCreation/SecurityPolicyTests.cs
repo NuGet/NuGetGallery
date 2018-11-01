@@ -16,6 +16,7 @@ using Xunit.Abstractions;
 
 namespace NuGetGallery.FunctionalTests.PackageCreation
 {
+    [Collection("SecurityPolicyTests")]
     public class SecurityPolicyTests : GalleryTestBase
     {
         private readonly ClientSdkHelper _clientSdkHelper;

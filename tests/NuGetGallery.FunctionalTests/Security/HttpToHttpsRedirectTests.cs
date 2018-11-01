@@ -11,6 +11,7 @@ using Xunit;
 
 namespace NuGetGallery.FunctionalTests.Security
 {
+    [Collection("HttpToHttpsRedirectTests")]
     public class HttpToHttpsRedirectTests
     {
         public static IEnumerable<object[]> UrlsToTest => new[] {

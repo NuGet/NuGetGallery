@@ -16,6 +16,7 @@ using Xunit.Abstractions;
 
 namespace NuGetGallery.FunctionalTests.ODataFeeds
 {
+    [Collection("V2FeedExtendedTests")]
     public class V2FeedExtendedTests
         : GalleryTestBase
     {
@@ -36,7 +37,7 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
         [Fact]
         [Description("Upload two packages and then issue the FindPackagesById request, expect to return both versions")]
         [Priority(1)]
-        [Category("P3Tests")]
+        [Category("P0Tests")]
         public async Task FindPackagesByIdTest()
         {
             var packageInfo = await _clientSdkHelper.UploadPackageVersion();
@@ -53,7 +54,7 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
         [Fact]
         [Description("Upload multiple packages and then unlist them and verify that they appear in the feed in the correct order")]
         [Priority(1)]
-        [Category("P3Tests")] 
+        [Category("P0Tests")] 
         public async Task PackagesAppearInFeedInOrderTest()
         {
             // This test uploads/unlists packages in a particular order to test the timestamps of the packages in the feed.

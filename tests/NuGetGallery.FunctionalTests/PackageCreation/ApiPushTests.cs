@@ -16,6 +16,7 @@ using Xunit.Abstractions;
 
 namespace NuGetGallery.FunctionalTests.PackageCreation
 {
+    [Collection("ApiPushTests")]
     public class ApiPushTests : GalleryTestBase
     {
         private const int TaskCount = 16;
