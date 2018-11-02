@@ -3,6 +3,7 @@
 
 using System;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace NuGetGallery.Helpers
 {
@@ -18,7 +19,7 @@ namespace NuGetGallery.Helpers
         /// Method will read from the stream until end of stream is encountered. It is caller's responsibility to resolve all potential
         /// concerns related to the size of the stream.
         /// </remarks>
-        public static bool LooksLikeUtf8TextStream(Stream stream, int bufferSize = 1024)
+        public static async Task<bool> LooksLikeUtf8TextStreamAsync(Stream stream, int bufferSize = 1024)
         {
             if (stream == null)
             {
@@ -39,7 +40,7 @@ namespace NuGetGallery.Helpers
             int bytesRead;
             do
             {
-                bytesRead = stream.Read(buffer, 0, bufferSize);
+                bytesRead = await stream.ReadAsync(buffer, 0, bufferSize);
                 for (int i = 0; i < bytesRead; ++i)
                 {
                     if (!IsUtf8TextByte(buffer[i]))

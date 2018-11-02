@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using Moq;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace NuGetGallery.Helpers
@@ -33,19 +33,19 @@ namespace NuGetGallery.Helpers
         [Theory]
         [MemberData(nameof(IsTextFile_Input))]
         [MemberData(nameof(IsTextFile_IndividualBytes))]
-        public void ClassifiesStreamCorrectly(byte[] data, bool expectedToBeText)
+        public async Task ClassifiesStreamCorrectly(byte[] data, bool expectedToBeText)
         {
             bool isText;
             using (var stream = new MemoryStream(data))
             {
-                isText = TextHelper.LooksLikeUtf8TextStream(stream);
+                isText = await TextHelper.LooksLikeUtf8TextStreamAsync(stream);
             }
 
             Assert.Equal(expectedToBeText, isText);
         }
 
         [Fact]
-        public void HandlesLargeInput()
+        public async Task HandlesLargeInput()
         {
             // had to make it a separate test case, because the argument below makes VS test explorer
             // very unhappy and never finish test discovery
@@ -58,7 +58,7 @@ namespace NuGetGallery.Helpers
             bool isText;
             using (var stream = new MemoryStream(largeInput))
             {
-                isText = TextHelper.LooksLikeUtf8TextStream(stream);
+                isText = await TextHelper.LooksLikeUtf8TextStreamAsync(stream);
             }
 
             Assert.True(isText);
@@ -73,25 +73,25 @@ namespace NuGetGallery.Helpers
         }
 
         [Fact]
-        public void ThrowsWhenStreamIsNull()
+        public async Task ThrowsWhenStreamIsNull()
         {
-            var ex = Assert.Throws<ArgumentNullException>(() => TextHelper.LooksLikeUtf8TextStream(null, 10));
+            var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => TextHelper.LooksLikeUtf8TextStreamAsync(null, 10));
             Assert.Equal("stream", ex.ParamName);
         }
 
         [Fact]
-        public void ThrowsWhenStreamIsNotReadable()
+        public async Task ThrowsWhenStreamIsNotReadable()
         {
             var writeOnlyStream = new WriteOnlyStream();
-            var ex = Assert.Throws<ArgumentException>(() => TextHelper.LooksLikeUtf8TextStream(writeOnlyStream, 10));
+            var ex = await Assert.ThrowsAsync<ArgumentException>(() => TextHelper.LooksLikeUtf8TextStreamAsync(writeOnlyStream, 10));
             Assert.Equal("stream", ex.ParamName);
         }
 
         [Fact]
-        public void ThrowsWhenBufferSizeIsNegative()
+        public async Task ThrowsWhenBufferSizeIsNegative()
         {
             var writeOnlyStream = new MemoryStream();
-            var ex = Assert.Throws<ArgumentOutOfRangeException>(() => TextHelper.LooksLikeUtf8TextStream(writeOnlyStream, -1));
+            var ex = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => TextHelper.LooksLikeUtf8TextStreamAsync(writeOnlyStream, -1));
             Assert.Equal("bufferSize", ex.ParamName);
         }
 

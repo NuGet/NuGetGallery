@@ -96,7 +96,7 @@ namespace NuGetGallery
                 return result;
             }
 
-            result = CheckLicenseMetadata(nuGetPackage, warnings);
+            result = await CheckLicenseMetadataAsync(nuGetPackage, warnings);
             if (result != null)
             {
                 return result;
@@ -105,7 +105,7 @@ namespace NuGetGallery
             return PackageValidationResult.AcceptedWithWarnings(warnings);
         }
 
-        private PackageValidationResult CheckLicenseMetadata(PackageArchiveReader nuGetPackage, List<IValidationMessage> warnings)
+        private async Task<PackageValidationResult> CheckLicenseMetadataAsync(PackageArchiveReader nuGetPackage, List<IValidationMessage> warnings)
         {
             LicenseCheckingNuspecReader nuspecReader = null;
             using (var nuspec = nuGetPackage.GetNuspec())
@@ -253,7 +253,7 @@ namespace NuGetGallery
 
                 using (var licenseFileStream = nuGetPackage.GetStream(licenseMetadata.License))
                 {
-                    if (!IsStreamLengthMatchesReported(licenseFileStream, licenseFileEntry.Length))
+                    if (!await IsStreamLengthMatchesReportedAsync(licenseFileStream, licenseFileEntry.Length))
                     {
                         return PackageValidationResult.Invalid(Strings.UploadPackage_CorruptNupkg);
                     }
@@ -263,7 +263,7 @@ namespace NuGetGallery
                 using (var licenseFileStream = nuGetPackage.GetStream(licenseMetadata.License))
                 {
                     // check if specified file is a text file
-                    if (!TextHelper.LooksLikeUtf8TextStream(licenseFileStream))
+                    if (!await TextHelper.LooksLikeUtf8TextStreamAsync(licenseFileStream))
                     {
                         return PackageValidationResult.Invalid(Strings.UploadPackage_LicenseMustBePlainText);
                     }
@@ -273,7 +273,7 @@ namespace NuGetGallery
             return null;
         }
 
-        private static bool IsStreamLengthMatchesReported(Stream licenseFileStream, long reportedLength)
+        private static async Task<bool> IsStreamLengthMatchesReportedAsync(Stream licenseFileStream, long reportedLength)
         {
             // one may modify the zip file to report smaller file sizes for the compressed files than actual.
             // Unfortunately, .Net's ZipArchive is not handling this case properly and allows to read full
@@ -285,7 +285,7 @@ namespace NuGetGallery
             int read = 0;
             do
             {
-                read = licenseFileStream.Read(buffer, 0, buffer.Length);
+                read = await licenseFileStream.ReadAsync(buffer, 0, buffer.Length);
                 totalBytesRead += read;
             } while (read > 0 && totalBytesRead < reportedLength + 1); // we want to try to read past the reported length
 
