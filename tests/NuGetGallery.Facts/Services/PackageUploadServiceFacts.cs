@@ -1777,10 +1777,10 @@ namespace NuGetGallery
                 Func<string> getCustomNuspecNodes = null)
                 => GeneratePackageWithLicense(
                     version: version,
-                    repositoryMetadata: null,
+                    repositoryMetadata: repositoryMetadata,
                     isSigned: isSigned,
                     desiredTotalEntryCount: desiredTotalEntryCount,
-                    getCustomNuspecNodes: null,
+                    getCustomNuspecNodes: getCustomNuspecNodes,
                     licenseUrl: new Uri("https://licenses.nuget.org/MIT"),
                     licenseExpression: "MIT",
                     licenseFilename: null,
