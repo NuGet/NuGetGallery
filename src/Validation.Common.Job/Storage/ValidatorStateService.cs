@@ -142,6 +142,7 @@ namespace NuGet.Jobs.Validation.Storage
                 _logger.LogWarning(
                     Error.ValidatorStateServiceFailedToAddStatus,
                     "Failed to add validation status for {ValidationId} ({PackageId} {PackageVersion}) as a record already exists",
+                    request.ValidationId,
                     request.PackageId,
                     request.PackageVersion);
 
@@ -169,6 +170,7 @@ namespace NuGet.Jobs.Validation.Storage
                 _logger.LogWarning(
                     Error.ValidatorStateServiceFailedToUpdateStatus,
                     "Failed to save validation status for {ValidationId} ({PackageId} {PackageVersion}) as the current status is stale",
+                    request.ValidationId,
                     request.PackageId,
                     request.PackageVersion);
 

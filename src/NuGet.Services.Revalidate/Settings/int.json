@@ -27,6 +27,7 @@
     },
 
     "Queue": {
+      "MaximumPackageVersions": #{Jobs.nuget.services.revalidate.MaximumPackageVersions},
       "MaximumAttempts": 5,
       "SleepBetweenAttempts": "00:00:30"
     }

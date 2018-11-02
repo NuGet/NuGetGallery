@@ -45,7 +45,22 @@ namespace NuGet.Services.Revalidate
                     i + 1,
                     _config.MaximumAttempts);
 
-                var next = await _validationContext.PackageRevalidations
+                // Find the next package to revalidate. We will skip packages if:
+                //   1. The package has more than "MaximumPackageVersions" versions
+                //   2. The package has already been enqueued for revalidation
+                //   3. The package's revalidation was completed by an external factory (like manual admin revalidation)
+                IQueryable<PackageRevalidation> query = _validationContext.PackageRevalidations;
+
+                if (_config.MaximumPackageVersions.HasValue)
+                {
+                    query = query.Where(
+                        r =>
+                        !_validationContext.PackageRevalidations.GroupBy(r2 => r2.PackageId)
+                        .Where(g => g.Count() > _config.MaximumPackageVersions)
+                        .Any(g => g.Key == r.PackageId));
+                }
+
+                var next = await query
                     .Where(r => r.Enqueued == null)
                     .Where(r => r.Completed == false)
                     .OrderBy(r => r.Key)

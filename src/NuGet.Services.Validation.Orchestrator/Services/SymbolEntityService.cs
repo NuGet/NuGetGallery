@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
 using NuGetGallery;
@@ -42,7 +43,9 @@ namespace NuGet.Services.Validation.Orchestrator
         {
             var symbolPackage = _symbolsPackageRepository
                    .GetAll()
-                   .SingleOrDefault(p => p.Key == key);
+                   .Include(sp => sp.Package)
+                   .Include(sp => sp.Package.PackageRegistration)
+                   .SingleOrDefault(sp => sp.Key == key);
             return symbolPackage == null ? null : new SymbolPackageValidatingEntity(symbolPackage);
         }
 
