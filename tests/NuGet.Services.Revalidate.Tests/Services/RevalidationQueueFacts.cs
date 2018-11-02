@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -130,6 +131,121 @@ namespace NuGet.Services.Revalidate.Tests.Services
                 Assert.Equal("1.0.0", next.PackageNormalizedVersion);
 
                 _telemetryService.Verify(t => t.TrackPackageRevalidationMarkedAsCompleted("Repository.Signed.Package", "1.0.0"), Times.Once);
+            }
+
+            [Theory]
+            [MemberData(nameof(SkipsPackagesWithTooManyVersionsData))]
+            public async Task SkipsPackagesWithTooManyVersions(int? maximumPackageVersions, bool skipsPackageWithManyVersions)
+            {
+                _config.MaximumPackageVersions = maximumPackageVersions;
+
+                // Arrange
+                _validationContext.Mock(packageRevalidations: new[]
+                {
+                    new PackageRevalidation
+                    {
+                        Key = 1,
+                        PackageId = "Package.With.Many.Versions",
+                        PackageNormalizedVersion = "1.0.0",
+                        Enqueued = null,
+                        Completed = false,
+                    },
+                    new PackageRevalidation
+                    {
+                        Key = 2,
+                        PackageId = "Package.With.Many.Versions",
+                        PackageNormalizedVersion = "2.0.0",
+                        Enqueued = null,
+                        Completed = false,
+                    },
+                    new PackageRevalidation
+                    {
+                        Key = 3,
+                        PackageId = "Package.With.Many.Versions",
+                        PackageNormalizedVersion = "3.0.0",
+                        Enqueued = null,
+                        Completed = false,
+                    },
+                    new PackageRevalidation
+                    {
+                        Key = 4,
+                        PackageId = "Package",
+                        PackageNormalizedVersion = "1.0.0",
+                        Enqueued = null,
+                        Completed = false,
+                    },
+                });
+
+                _galleryContext.Mock(packages: new[]
+                {
+                    new Package
+                    {
+                        PackageRegistration = new PackageRegistration { Id = "Package.With.Many.Versions" },
+                        NormalizedVersion = "1.0.0",
+                        PackageStatusKey = PackageStatus.Available,
+                    },
+                    new Package
+                    {
+                        PackageRegistration = new PackageRegistration { Id = "Package.With.Many.Versions" },
+                        NormalizedVersion = "2.0.0",
+                        PackageStatusKey = PackageStatus.Available,
+                    },
+                    new Package
+                    {
+                        PackageRegistration = new PackageRegistration { Id = "Package.With.Many.Versions" },
+                        NormalizedVersion = "3.0.0",
+                        PackageStatusKey = PackageStatus.Available,
+                    },
+                    new Package
+                    {
+                        PackageRegistration = new PackageRegistration { Id = "Package" },
+                        NormalizedVersion = "1.0.0",
+                        PackageStatusKey = PackageStatus.Available,
+                    },
+                });
+
+                // Act
+                var next = await _target.NextOrNullAsync();
+
+                // Assert
+                if (skipsPackageWithManyVersions)
+                {
+                    Assert.Equal("Package", next.PackageId);
+                    Assert.Equal("1.0.0", next.PackageNormalizedVersion);
+
+                    _telemetryService.Verify(t => t.TrackPackageRevalidationMarkedAsCompleted("Package.With.Many.Versions", "1.0.0"), Times.Never);
+                    _telemetryService.Verify(t => t.TrackPackageRevalidationMarkedAsCompleted("Package.With.Many.Versions", "2.0.0"), Times.Never);
+                    _telemetryService.Verify(t => t.TrackPackageRevalidationMarkedAsCompleted("Package.With.Many.Versions", "3.0.0"), Times.Never);
+                }
+                else
+                {
+                    Assert.Equal("Package.With.Many.Versions", next.PackageId);
+                    Assert.Equal("1.0.0", next.PackageNormalizedVersion);
+                }
+            }
+
+            public static IEnumerable<object[]> SkipsPackagesWithTooManyVersionsData()
+            {
+                // If the "MaximumPackageVersions" is null, no packages should be skipped for having too many versions.
+                yield return new object[]
+                {
+                    null,
+                    false
+                };
+
+                // If "MaximumPackageVersions" is set, packages with less versions than the value should not be skipped.
+                yield return new object[]
+                {
+                    100,
+                    false
+                };
+
+                // If "MaximumPackageVersions" is set, packages with more versions than the value should be skipped.
+                yield return new object[]
+                {
+                    2,
+                    true
+                };
             }
 
             [Fact]

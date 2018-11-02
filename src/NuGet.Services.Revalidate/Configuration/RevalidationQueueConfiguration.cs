@@ -8,6 +8,11 @@ namespace NuGet.Services.Revalidate
     public class RevalidationQueueConfiguration
     {
         /// <summary>
+        /// If non-null, this skips revalidations of packages with more than this many versions.
+        /// </summary>
+        public int? MaximumPackageVersions { get; set; }
+
+        /// <summary>
         /// The maximum times that the <see cref="RevalidationQueue"/> should look for a revalidation
         /// before giving up.
         /// </summary>
