@@ -16,7 +16,6 @@ using Xunit.Abstractions;
 
 namespace NuGetGallery.FunctionalTests.ODataFeeds
 {
-    [Collection("V2FeedExtendedTests")]
     public class V2FeedExtendedTests
         : GalleryTestBase
     {

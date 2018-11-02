@@ -12,7 +12,6 @@ using Xunit.Abstractions;
 
 namespace NuGetGallery.FunctionalTests
 {
-    [Collection("DistIntegrationTests")]
     public class DistIntegrationTests : GalleryTestBase
     {
         private const string Version = "2.8.6";

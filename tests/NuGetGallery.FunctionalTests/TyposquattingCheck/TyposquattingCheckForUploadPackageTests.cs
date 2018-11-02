@@ -9,7 +9,6 @@ using NuGetGallery.FunctionalTests.XunitExtensions;
 
 namespace NuGetGallery.FunctionalTests.TyposquattingCheck
 {
-    [Collection("TyposquattingCheckForUploadPackageTests")]
     public class TyposquattingCheckForUploadPackageTests : GalleryTestBase
     {
         private readonly CommandlineHelper _commandlineHelper;

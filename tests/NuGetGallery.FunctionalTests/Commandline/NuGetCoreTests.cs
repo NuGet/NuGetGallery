@@ -7,7 +7,6 @@ using Xunit.Abstractions;
 
 namespace NuGetGallery.FunctionalTests.Commandline
 {
-    [Collection("NuGetCoreTests")]
     public class NuGetCoreTests
         : GalleryTestBase
     {

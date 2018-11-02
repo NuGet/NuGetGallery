@@ -15,7 +15,6 @@ namespace NuGetGallery.FunctionalTests.Commandline
     /// <summary>
     /// Tries to download and upload package from the gallery using NuGet.exe client.
     /// </summary>
-    [Collection("NuGetCommandLineTests")]
     public class NugetCommandLineTests
         : GalleryTestBase
     {

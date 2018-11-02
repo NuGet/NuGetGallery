@@ -12,7 +12,6 @@ using Xunit.Abstractions;
 
 namespace NuGetGallery.FunctionalTests.Statistics
 {
-    [Collection("PackageStatisticsTest")]
     public class PackageStatisticsTests
     {
         public PackageStatisticsTests()

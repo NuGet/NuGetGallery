@@ -11,7 +11,6 @@ namespace NuGetGallery.FunctionalTests.WebPages
     /// This Class tests all of the links on each parent page,
     /// to make sure that there are no broken links on the gallery pages.
     /// </summary>
-    [Collection("LinksTests")]
     public class LinksTests
     {
         private readonly FluentLinkChecker _fluentLinkChecker;
