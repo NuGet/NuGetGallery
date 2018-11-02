@@ -66,13 +66,8 @@ namespace Ng.Jobs
                 {
                     AllowPipelining = true
                 });
-
-                // Build a user agent off of the current assembly's name.
-                var assembly = Assembly.GetEntryAssembly();
-                var assemblyName = assembly.GetName().Name;
-                var assemblyVersion = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "0.0.0";
-
-                httpClient.DefaultRequestHeaders.Add("User-Agent", $"{assemblyName}/{assemblyVersion}");
+                
+                httpClient.DefaultRequestHeaders.Add("User-Agent", UserAgentUtility.GetUserAgent());
                 httpClient.Timeout = TimeSpan.FromMinutes(10);
 
                 return httpClient;

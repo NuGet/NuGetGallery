@@ -110,6 +110,7 @@
     <Compile Include="SecondaryStorageBaseUrlRewriter.cs" />
     <Compile Include="StorageAccessHandler.cs" />
     <Compile Include="Telemetry\JobPropertiesTelemetryInitializer.cs" />
+    <Compile Include="UserAgentUtility.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">
