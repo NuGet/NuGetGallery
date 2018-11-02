@@ -11,5 +11,6 @@ namespace NuGet.Services.Configuration
         public static string KeyVaultValidateCertificateKey = "KeyVault_ValidateCertificate";
         public static string KeyVaultStoreNameKey = "KeyVault_StoreName";
         public static string KeyVaultStoreLocationKey = "KeyVault_StoreLocation";
+        public static string KeyVaultSendX5c = "KeyVault_SendX5c";
     }
 }

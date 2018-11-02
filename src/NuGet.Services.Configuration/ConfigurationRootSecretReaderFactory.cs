@@ -16,6 +16,7 @@ namespace NuGet.Services.Configuration
         private string _storeName;
         private string _storeLocation;
         private bool _validateCertificate;
+        private bool _sendX5c;
 
         public ConfigurationRootSecretReaderFactory(IConfigurationRoot config)
         {
@@ -24,11 +25,17 @@ namespace NuGet.Services.Configuration
             _certificateThumbprint = config[Constants.KeyVaultCertificateThumbprintKey];
             _storeName = config[Constants.KeyVaultStoreNameKey];
             _storeLocation = config[Constants.KeyVaultStoreLocationKey];
-
+            
             string validateCertificate = config[Constants.KeyVaultValidateCertificateKey];
             if (!string.IsNullOrEmpty(validateCertificate))
             {
                 _validateCertificate = bool.Parse(validateCertificate);
+            }
+
+            string sendX5c = config[Constants.KeyVaultSendX5c];
+            if (!string.IsNullOrEmpty(sendX5c))
+            {
+                _sendX5c = bool.Parse(sendX5c);
             }
         }
 
@@ -52,7 +59,8 @@ namespace NuGet.Services.Configuration
             var keyVaultConfiguration = new KeyVaultConfiguration(
                 _vaultName,
                 _clientId,
-                certificate);
+                certificate,
+                _sendX5c);
 
             return new KeyVaultReader(keyVaultConfiguration);
         }
