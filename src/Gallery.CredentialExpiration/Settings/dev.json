@@ -1,12 +1,12 @@
 {
   "Initialization": {
-    "AllowEmailResendAfterDays": 7,
     "ContainerName": "credentialexpiration",
     "DataStorageAccount": "DefaultEndpointsProtocol=https;AccountName=nugetdevuse2gallery;AccountKey=$$Dev-NuGetDevUse2Gallery-StorageKey$$",
+    "EmailPublisherConnectionString": "Endpoint=sb://nugetdev.servicebus.windows.net/;SharedAccessKeyName=enqueuer;SharedAccessKey=$$Dev-ServiceBus-SharedAccessKey-EmailPublisher-Enqueuer$$",
+    "EmailPublisherTopicName": "email-publisher",
     "GalleryAccountUrl": "https://dev.nugettest.org/account/ApiKeys",
     "GalleryBrand": "NuGet Gallery",
     "MailFrom": "support@nuget.org",
-    "SmtpUri": "#{Jobs.gallery.credentialexpiration.SmtpUri}",
     "WarnDaysBeforeExpiration": 7,
     "WhatIf": true
   },
