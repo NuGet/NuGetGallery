@@ -265,6 +265,59 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public async Task WillDeleteFailedValidationSnupkg()
+            {
+                // Arrange
+                var symbolPackageService = new Mock<ISymbolPackageService>();
+                symbolPackageService
+                    .Setup(x => x.CreateSymbolPackage(It.IsAny<Package>(), It.IsAny<PackageStreamMetadata>()))
+                    .Returns((Package package1, PackageStreamMetadata streamMetadata) =>
+                    {
+                        var symbolPackage = new SymbolPackage()
+                        {
+                            Package = package1,
+                            PackageKey = package1.Key,
+                            Created = DateTime.UtcNow,
+                            StatusKey = PackageStatus.Validating
+                        };
+
+                        return symbolPackage;
+                    })
+                    .Verifiable();
+
+                var symbolPackageFileService = new Mock<ISymbolPackageFileService>();
+                symbolPackageFileService
+                    .Setup(x => x.DoesValidationPackageFileExistAsync(It.IsAny<Package>()))
+                    .ReturnsAsync(true)
+                    .Verifiable();
+                symbolPackageFileService
+                    .Setup(x => x.DeleteValidationPackageFileAsync(It.IsAny<string>(), It.IsAny<string>()))
+                    .Completes()
+                    .Verifiable();
+                symbolPackageFileService
+                    .Setup(x => x.SaveValidationPackageFileAsync(It.IsAny<Package>(), It.IsAny<Stream>()))
+                    .Completes()
+                    .Verifiable();
+
+                var service = CreateService(symbolPackageService: symbolPackageService, symbolPackageFileService: symbolPackageFileService);
+                var package = new Package() { PackageRegistration = new PackageRegistration() { Id = "theId" }, Version = "1.0.23" };
+                package.SymbolPackages.Add(new SymbolPackage()
+                {
+                    StatusKey = PackageStatus.FailedValidation,
+                    Key = 1232,
+                    Package = package
+                });
+
+                // Act
+                var result = await service.CreateAndUploadSymbolsPackage(package, new MemoryStream());
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.Equal(PackageCommitResult.Success, result);
+                symbolPackageFileService.VerifyAll();
+            }
+
+            [Fact]
             public async Task WillDeleteSavedFileAndThrowWhenDBWriteFails()
             {
                 // Arrange

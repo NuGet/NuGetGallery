@@ -161,6 +161,20 @@ namespace NuGetGallery
             {
                 if (symbolPackage.StatusKey == PackageStatus.Validating)
                 {
+                    // If the last uploaded symbol package has failed validation, it will leave the snupkg in the 
+                    // validations container. We could possibly overwrite it, but that might introduce a concurrency 
+                    // issue on multiple snupkg uploads with a prior failed validation. The best thing to do would be
+                    // to delete the failed validation snupkg from validations container and then proceed with normal
+                    // upload.
+                    var lastSymbolPackage = symbolPackage.Package.LatestSymbolPackage();
+                    if (lastSymbolPackage != null && lastSymbolPackage.StatusKey == PackageStatus.FailedValidation)
+                    {
+                        if (await _symbolPackageFileService.DoesValidationPackageFileExistAsync(symbolPackage.Package))
+                        {
+                            await _symbolPackageFileService.DeleteValidationPackageFileAsync(symbolPackage.Id, symbolPackage.Version);
+                        }
+                    }
+
                     await _symbolPackageFileService.SaveValidationPackageFileAsync(symbolPackage.Package, symbolPackageFile);
                 }
                 else if (symbolPackage.StatusKey == PackageStatus.Available)
