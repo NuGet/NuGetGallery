@@ -146,6 +146,7 @@ namespace NuGetGallery
 
             Stream symbolPackageFile = symbolPackageStream.AsSeekableStream();
 
+            var previousSymbolsPackage = package.LatestSymbolPackage();
             var symbolPackage = _symbolPackageService.CreateSymbolPackage(package, packageStreamMetadata);
 
             await _validationService.StartValidationAsync(symbolPackage);
@@ -166,8 +167,7 @@ namespace NuGetGallery
                     // issue on multiple snupkg uploads with a prior failed validation. The best thing to do would be
                     // to delete the failed validation snupkg from validations container and then proceed with normal
                     // upload.
-                    var lastSymbolPackage = symbolPackage.Package.LatestSymbolPackage();
-                    if (lastSymbolPackage != null && lastSymbolPackage.StatusKey == PackageStatus.FailedValidation)
+                    if (previousSymbolsPackage != null && previousSymbolsPackage.StatusKey == PackageStatus.FailedValidation)
                     {
                         if (await _symbolPackageFileService.DoesValidationPackageFileExistAsync(symbolPackage.Package))
                         {
