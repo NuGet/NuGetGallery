@@ -26,13 +26,19 @@ namespace NuGetGallery
 
         public static bool IsDomainWithHttpsSupport(this Uri uri)
         {
-            return IsGitHubUri(uri) || IsCodeplexUri(uri) || IsMicrosoftUri(uri);
+            return IsGitHubUri(uri) || IsGitHubPagerUri(uri) || IsCodeplexUri(uri) || IsMicrosoftUri(uri);
         }
 
         public static bool IsGitHubUri(this Uri uri)
         {
             return string.Equals(uri.Host, "www.github.com", StringComparison.OrdinalIgnoreCase) ||
                    string.Equals(uri.Host, "github.com", StringComparison.OrdinalIgnoreCase);
+        }
+
+        public static bool IsGitHubPagerUri(this Uri uri)
+        {
+            return uri.Authority.EndsWith(".github.com", StringComparison.OrdinalIgnoreCase) ||
+                   uri.Authority.EndsWith(".github.io", StringComparison.OrdinalIgnoreCase);
         }
 
         private static bool IsCodeplexUri(this Uri uri)
