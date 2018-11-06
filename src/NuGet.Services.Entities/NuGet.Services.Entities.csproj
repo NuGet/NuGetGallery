@@ -53,6 +53,7 @@
     <Compile Include="CuratedFeed.cs" />
     <Compile Include="CuratedPackage.cs" />
     <Compile Include="EmailMessage.cs" />
+    <Compile Include="EmbeddedLicenseFileType.cs" />
     <Compile Include="EntityException.cs" />
     <Compile Include="Extensions\PackageExtensions.cs" />
     <Compile Include="Extensions\PackageRegistrationExtensions.cs" />
