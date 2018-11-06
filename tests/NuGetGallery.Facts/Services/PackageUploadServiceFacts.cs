@@ -462,7 +462,7 @@ namespace NuGetGallery
                 if (!expectedSuccess)
                 {
                     Assert.Equal(PackageValidationResultType.Invalid, result.Type);
-                    Assert.StartsWith("Package has no license information specified.", result.Message.PlainTextMessage);
+                    Assert.StartsWith("The package has no license information specified.", result.Message.PlainTextMessage);
                     Assert.IsType<LicenseUrlDeprecationValidationMessage>(result.Message);
                     Assert.Empty(result.Warnings);
                 }
@@ -516,7 +516,7 @@ namespace NuGetGallery
                 if (!expectedSuccess)
                 {
                     Assert.Equal(PackageValidationResultType.Invalid, result.Type);
-                    Assert.StartsWith("Specifying <licenseUrl> in package metadata is not allowed anymore, please specify the license in the package.", result.Message.PlainTextMessage);
+                    Assert.StartsWith("Specifying <licenseUrl> in the package metadata is no longer allowed, please specify the license in the package.", result.Message.PlainTextMessage);
                     Assert.IsType<LicenseUrlDeprecationValidationMessage>(result.Message);
                     Assert.Empty(result.Warnings);
                 }
@@ -924,7 +924,7 @@ namespace NuGetGallery
                     GetPackageMetadata(_nuGetPackage));
 
                 Assert.Equal(PackageValidationResultType.Invalid, result.Type);
-                Assert.Contains("License node value is too long", result.Message.PlainTextMessage);
+                Assert.Equal("The license node value must be shorter than 500 characters.", result.Message.PlainTextMessage);
                 Assert.Empty(result.Warnings);
             }
 

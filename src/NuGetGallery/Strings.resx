@@ -1016,7 +1016,7 @@ The {1} Team</value>
     <comment>{0} is the list of the issues found with license expression.</comment>
   </data>
   <data name="UploadPackage_LegacyLicenseUrlNotAllowed" xml:space="preserve">
-    <value>Specifying &lt;licenseUrl&gt; in package metadata is no longer allowed, please specify the license in the package.</value>
+    <value>Specifying &lt;licenseUrl&gt; in the package metadata is no longer allowed, please specify the license in the package.</value>
   </data>
   <data name="UploadPackage_MissingLicenseInformation" xml:space="preserve">
     <value>The package has no license information specified.</value>
@@ -1037,7 +1037,7 @@ The {1} Team</value>
     <comment>{0} is the max allowed number of bytes in the license.</comment>
   </data>
   <data name="UploadPackage_LicenseNodeContainsChildren" xml:space="preserve">
-    <value>The license node cannot contain children nodes.</value>
+    <value>The license node cannot contain child nodes.</value>
   </data>
   <data name="UploadPackage_LicenseNodeValueTooLong" xml:space="preserve">
     <value>The license node value must be shorter than 500 characters.</value>

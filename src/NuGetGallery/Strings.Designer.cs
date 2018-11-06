@@ -2301,7 +2301,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Specifying &lt;licenseUrl&gt; in package metadata is no longer allowed, please specify the license in the package..
+        ///   Looks up a localized string similar to Specifying &lt;licenseUrl&gt; in the package metadata is no longer allowed, please specify the license in the package..
         /// </summary>
         public static string UploadPackage_LegacyLicenseUrlNotAllowed {
             get {
@@ -2346,7 +2346,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The license node cannot contain children nodes..
+        ///   Looks up a localized string similar to The license node cannot contain child nodes..
         /// </summary>
         public static string UploadPackage_LicenseNodeContainsChildren {
             get {

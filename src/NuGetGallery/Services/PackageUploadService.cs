@@ -625,7 +625,7 @@ namespace NuGetGallery
                     {
                         // if the package is immediately made available, it means there is a high chance we don't have
                         // validation pipeline that would normally store the license file, so we'll do it ourselves here.
-                        await SavePackageLicenseFile(packageFile, licenseStream => _packageFileService.SaveLicenseFileAsync(package, licenseStream));
+                        await SavePackageLicenseFile(packageFile, package);
                     }
                     try
                     {
@@ -702,7 +702,7 @@ namespace NuGetGallery
             throw ex;
         }
 
-        private static async Task SavePackageLicenseFile(Stream packageFile, Func<Stream, Task> saveLicenseAsync)
+        private async Task SavePackageLicenseFile(Stream packageFile, Package package)
         {
             packageFile.Seek(0, SeekOrigin.Begin);
             using (var packageArchiveReader = new PackageArchiveReader(packageFile, leaveStreamOpen: true))
@@ -717,7 +717,7 @@ namespace NuGetGallery
                 var licenseFileEntry = packageArchiveReader.GetEntry(filename); // throws on non-existent file
                 using (var licenseFileStream = licenseFileEntry.Open())
                 {
-                    await saveLicenseAsync(licenseFileStream);
+                    await _packageFileService.SaveLicenseFileAsync(package, licenseFileStream);
                 }
             }
         }
