@@ -18,17 +18,5 @@ namespace NuGetGallery
         /// The package is invalid based on the package content.
         /// </summary>
         Invalid,
-
-        /// <summary>
-        /// The package is invalid because it should not be signed given the current required signer certificates (or
-        /// lack thereof).
-        /// </summary>
-        PackageShouldNotBeSigned,
-
-        /// <summary>
-        /// Similar to <see cref="PackageShouldNotBeSigned"/> but the current user can manage certificates and
-        /// potentially remediate the situation.
-        /// </summary>
-        PackageShouldNotBeSignedButCanManageCertificates,
     }
 }

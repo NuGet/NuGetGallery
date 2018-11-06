@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Moq;
+using NuGet.Services.Entities;
 using NuGetGallery.Security;
 using Xunit;
 

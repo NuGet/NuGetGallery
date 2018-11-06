@@ -6,6 +6,7 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using NuGet.Services.Entities;
 
 namespace NuGetGallery
 {
@@ -47,7 +48,7 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(package));
             }
             
-            var fileName = BuildFileName(package, ReadMeFilePathTemplateActive, Constants.MarkdownFileExtension);
+            var fileName = BuildFileName(package, ReadMeFilePathTemplateActive, GalleryConstants.MarkdownFileExtension);
 
             return _fileStorageService.DeleteFileAsync(CoreConstants.PackageReadMesFolderName, fileName);
         }
@@ -64,7 +65,7 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(readMeMd));
             }
 
-            var fileName = BuildFileName(package, ReadMeFilePathTemplateActive, Constants.MarkdownFileExtension);
+            var fileName = BuildFileName(package, ReadMeFilePathTemplateActive, GalleryConstants.MarkdownFileExtension);
 
             using (var readMeMdStream = new MemoryStream(Encoding.UTF8.GetBytes(readMeMd)))
             {
@@ -83,7 +84,7 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(package));
             }
             
-            var fileName = BuildFileName(package, ReadMeFilePathTemplateActive, Constants.MarkdownFileExtension);
+            var fileName = BuildFileName(package, ReadMeFilePathTemplateActive, GalleryConstants.MarkdownFileExtension);
 
             using (var readMeMdStream = await _fileStorageService.GetFileAsync(CoreConstants.PackageReadMesFolderName, fileName))
             {

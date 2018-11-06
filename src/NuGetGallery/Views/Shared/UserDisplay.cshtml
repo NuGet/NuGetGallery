@@ -1,7 +1,7 @@
 ﻿<div class="user-display">
     @if (!User.Identity.IsAuthenticated)
     {
-        string returnUrl = ViewData.ContainsKey(Constants.ReturnUrlViewDataKey) ? (string)ViewData[Constants.ReturnUrlViewDataKey] : Request.RawUrl;
+        string returnUrl = ViewData.ContainsKey(GalleryConstants.ReturnUrlViewDataKey) ? (string)ViewData[GalleryConstants.ReturnUrlViewDataKey] : Request.RawUrl;
         <span class="welcome">
             <a href="@Url.LogOn(returnUrl)" title="Register for an account or sign in with an existing account">Register / Sign in</a>
         </span>

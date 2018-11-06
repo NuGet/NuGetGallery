@@ -113,23 +113,10 @@
     <Compile Include="Diagnostics\IDiagnosticsSource.cs" />
     <Compile Include="Diagnostics\NullDiagnosticsSource.cs" />
     <Compile Include="DisposableAction.cs" />
-    <Compile Include="Entities\Certificate.cs" />
-    <Compile Include="Entities\Credential.cs" />
-    <Compile Include="Entities\CuratedFeed.cs" />
-    <Compile Include="Entities\CuratedPackage.cs" />
     <Compile Include="Entities\DatabaseWrapper.cs" />
     <Compile Include="Entities\DbContextTransactionWrapper.cs" />
     <Compile Include="Entities\IDatabase.cs" />
     <Compile Include="Entities\IDbContextTransaction.cs" />
-    <Compile Include="Entities\Membership.cs" />
-    <Compile Include="Entities\Organization.cs" />
-    <Compile Include="Entities\AccountDelete.cs" />
-    <Compile Include="Entities\MembershipRequest.cs" />
-    <Compile Include="Entities\OrganizationMigrationRequest.cs" />
-    <Compile Include="Entities\IPackageEntity.cs" />
-    <Compile Include="Entities\SymbolPackage.cs" />
-    <Compile Include="Entities\PackageDelete.cs" />
-    <Compile Include="Entities\EmailMessage.cs" />
     <Compile Include="Entities\EntitiesConfiguration.cs" />
     <Compile Include="Entities\EntitiesContext.cs" />
     <Compile Include="Entities\EntityException.cs" />
@@ -138,64 +125,20 @@
     <Compile Include="Entities\EntityRepository.cs" />
     <Compile Include="Entities\GallerySetting.cs" />
     <Compile Include="Entities\IEntitiesContext.cs" />
-    <Compile Include="Entities\IEntity.cs" />
     <Compile Include="Entities\Interception\IObjectMaterializedInterceptor.cs" />
     <Compile Include="Entities\IEntityRepository.cs" />
-    <Compile Include="Entities\Package.cs" />
-    <Compile Include="Entities\PackageAuthor.cs" />
-    <Compile Include="Entities\PackageDependency.cs" />
-    <Compile Include="Entities\PackageEditReadMeState.cs" />
-    <Compile Include="Entities\PackageFramework.cs" />
-    <Compile Include="Entities\PackageHistory.cs" />
-    <Compile Include="Entities\PackageLicense.cs" />
-    <Compile Include="Entities\PackageLicenseReport.cs" />
-    <Compile Include="Entities\PackageOwnerRequest.cs" />
-    <Compile Include="Entities\ReservedNamespace.cs" />
-    <Compile Include="Entities\PackageRegistration.cs" />
-    <Compile Include="Entities\PackageType.cs" />
     <Compile Include="Entities\ReadOnlyModeException.cs" />
-    <Compile Include="Entities\Role.cs" />
-    <Compile Include="Entities\Scope.cs" />
     <Compile Include="Entities\SuspendDbExecutionStrategy.cs" />
-    <Compile Include="Entities\UserCertificate.cs" />
-    <Compile Include="Entities\UserSecurityPolicy.cs" />
-    <Compile Include="Entities\User.cs" />
     <Compile Include="Extensions\EntitiesContextExtensions.cs" />
-    <Compile Include="Extensions\PackageExtensions.cs" />
-    <Compile Include="Extensions\PackageRegistrationExtensions.cs" />
-    <Compile Include="Extensions\PackageValidationSetExtensions.cs" />
     <Compile Include="Extensions\StorageExceptionExtensions.cs" />
     <Compile Include="Extensions\UserExtensionsCore.cs" />
     <Compile Include="ICloudStorageStatusDependency.cs" />
     <Compile Include="Infrastructure\AzureEntityList.cs" />
     <Compile Include="Infrastructure\ElmahException.cs" />
-    <Compile Include="Infrastructure\Mail\ConfirmationEmailBuilder.cs" />
-    <Compile Include="Infrastructure\Mail\EmailBuilder.cs" />
-    <Compile Include="Infrastructure\Mail\EmailFormat.cs" />
-    <Compile Include="Infrastructure\Mail\IEmailBuilder.cs" />
-    <Compile Include="Infrastructure\Mail\IEmailRecipients.cs" />
-    <Compile Include="Infrastructure\Mail\EmailRecipients.cs" />
-    <Compile Include="Infrastructure\Mail\IMessageServiceConfiguration.cs" />
-    <Compile Include="Infrastructure\Mail\MarkdownEmailBuilder.cs" />
-    <Compile Include="Infrastructure\Mail\Messages\ContactSupportMessage.cs" />
-    <Compile Include="Infrastructure\Mail\Messages\PackageAddedMessage.cs" />
-    <Compile Include="Infrastructure\Mail\Messages\PackageAddedWithWarningsMessage.cs" />
-    <Compile Include="Infrastructure\Mail\Messages\PackageValidationFailedMessage.cs" />
-    <Compile Include="Infrastructure\Mail\Messages\PackageValidationTakingTooLongMessage.cs" />
-    <Compile Include="Infrastructure\Mail\Messages\SymbolPackageAddedMessage.cs" />
-    <Compile Include="Infrastructure\Mail\Messages\SymbolPackageValidationFailedMessage.cs" />
-    <Compile Include="Infrastructure\Mail\Messages\SymbolPackageValidationTakingTooLongMessage.cs" />
-    <Compile Include="Infrastructure\Mail\Internal\PlainTextRenderer.cs" />
-    <Compile Include="Infrastructure\Mail\Internal\PlainTextLinkInlineRenderer.cs" />
-    <Compile Include="Infrastructure\Mail\Internal\PlainTextEmphasisInlineRenderer.cs" />
-    <Compile Include="Infrastructure\Mail\Internal\PlainTextAutoLinkInlineRenderer.cs" />
-    <Compile Include="Infrastructure\Mail\Internal\PlainTextListRenderer.cs" />
-    <Compile Include="Infrastructure\Mail\ValidationIssueExtensions.cs" />
     <Compile Include="Infrastructure\TableErrorLog.cs" />
     <Compile Include="Authentication\NuGetClaims.cs" />
     <Compile Include="PackageMetadataExtensions.cs" />
     <Compile Include="PackageReaderCoreExtensions.cs" />
-    <Compile Include="PackageStatus.cs" />
     <Compile Include="Packaging\InvalidPackageException.cs" />
     <Compile Include="Packaging\ManifestEdit.cs" />
     <Compile Include="Packaging\ManifestValidator.cs" />
@@ -214,11 +157,11 @@
     <Compile Include="Services\CloudBlobCoreFileStorageService.cs" />
     <Compile Include="Services\CloudBlobWrapper.cs" />
     <Compile Include="Services\CloudFileReference.cs" />
-    <Compile Include="Infrastructure\Mail\CoreMarkdownMessageService.cs" />
     <Compile Include="Services\CorePackageFileService.cs" />
     <Compile Include="Services\CoreSymbolPackageService.cs" />
     <Compile Include="Services\CorePackageService.cs" />
     <Compile Include="Services\CryptographyService.cs" />
+    <Compile Include="Services\PackageAlreadyExistsException.cs" />
     <Compile Include="Services\FileAlreadyExistsException.cs" />
     <Compile Include="Services\FileUriPermissions.cs" />
     <Compile Include="Services\IAccessCondition.cs" />
@@ -230,7 +173,6 @@
     <Compile Include="Services\IFileReference.cs" />
     <Compile Include="Services\ICoreFileStorageService.cs" />
     <Compile Include="Services\IFileMetadataService.cs" />
-    <Compile Include="Infrastructure\Mail\IMessageService.cs" />
     <Compile Include="Services\IRevalidationStateService.cs" />
     <Compile Include="Services\ISimpleCloudBlob.cs" />
     <Compile Include="Services\SymbolPackageFileServiceMetadata.cs" />
@@ -260,8 +202,11 @@
     <EmbeddedResource Include="Infrastructure\MigrateUserToOrganization.sql" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Markdig.Signed">
-      <Version>0.15.3</Version>
+    <PackageReference Include="NuGet.Services.Entities">
+      <Version>2.31.0</Version>
+    </PackageReference>
+    <PackageReference Include="NuGet.Services.Messaging">
+      <Version>2.31.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.StrongName.AnglicanGeek.MarkdownMailer">
       <Version>1.2.0</Version>
@@ -294,13 +239,13 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="NuGet.Packaging">
-      <Version>4.8.0-preview4.5287</Version>
+      <Version>4.8.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Validation">
-      <Version>2.29.0</Version>
+      <Version>2.31.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Validation.Issues">
-      <Version>2.29.0</Version>
+      <Version>2.31.0</Version>
     </PackageReference>
     <PackageReference Include="WindowsAzure.Storage">
       <Version>7.1.2</Version>

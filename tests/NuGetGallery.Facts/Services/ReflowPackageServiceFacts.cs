@@ -7,6 +7,7 @@ using System.IO.Compression;
 using System.Threading.Tasks;
 using Moq;
 using NuGet.Packaging;
+using NuGet.Services.Entities;
 using NuGetGallery.Framework;
 using NuGetGallery.Packaging;
 using NuGetGallery.Security;

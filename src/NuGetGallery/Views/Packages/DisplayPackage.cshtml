@@ -1,4 +1,3 @@
-
 @using NuGet.Services.Validation;
 
 @model DisplayPackageViewModel
@@ -79,7 +78,7 @@
 
 @helper VersionListDivider(int rowCount, bool versionsExpanded)
 {
-    if (rowCount == Constants.VisibleVersions + 1)
+    if (rowCount == GalleryConstants.VisibleVersions + 1)
     {
         @:</tbody><tbody class="no-border collapse @(versionsExpanded ? "in" : string.Empty)" id="hidden-versions">
     }
@@ -276,9 +275,8 @@
                 {
                     @ViewHelpers.AlertWarning(
                         @<text>
-                            The symbols for this package have not been indexed yet. They are not available
-                            for download from the NuGet.org symbol server. Symbols will be indexed and will 
-                            be available for download after both validation and indexing are complete. 
+                            <strong>The symbols for this package have not been indexed yet.</strong> They are not available
+                            for download from the NuGet.org symbol server. Symbols will be available for download after both validation and indexing are complete. 
                             Symbols validation and indexing may take up to an hour. <a href="https://aka.ms/NuGetSymbolsPackageValidation">Read more</a>.
                         </text>
                      )
@@ -486,7 +484,7 @@
                             var rowCount = 0;
                             var versionsExpanded = Model
                                 .PackageVersions
-                                .Skip(Constants.VisibleVersions)
+                                .Skip(GalleryConstants.VisibleVersions)
                                 .Any(v => v.IsCurrent(Model));
                         }
                         @foreach (var packageVersion in Model.PackageVersions)
@@ -560,7 +558,7 @@
                         }
                     </tbody>
                 </table>
-                @if (rowCount > Constants.VisibleVersions)
+                @if (rowCount > GalleryConstants.VisibleVersions)
                 {
                     <a href="#" role="button" data-toggle="collapse" class="icon-link" data-target="#hidden-versions"
                        aria-expanded="@(versionsExpanded ? "true" : "false")" aria-controls="hidden-versions" id="show-hidden-versions">
@@ -722,10 +720,13 @@
                         <a href="@Url.RevalidatePackage(Model)">Revalidate package</a>
                     </li>
 
-                    <li>
-                        <i class="ms-Icon ms-Icon--Refresh" aria-hidden="true"></i>
-                        <a href="@Url.RevalidateSymbolsPackage(Model)">Revalidate symbols</a>
-                    </li>
+                    if (Model.LatestSymbolsPackage != null)
+                    {
+                        <li>
+                            <i class="ms-Icon ms-Icon--Refresh" aria-hidden="true"></i>
+                            <a href="@Url.RevalidateSymbolsPackage(Model)">Revalidate symbols</a>
+                        </li>
+                    }
                 }
 
                 @if (User.IsAdministrator() && Config.Current.AsynchronousPackageValidationEnabled)
@@ -776,7 +777,7 @@ foreach (var owner in Model.Owners)
             <li>
                 @if (!String.IsNullOrEmpty(owner.EmailAddress))
     {
-            <a href="@Url.User(owner)" title="@owner.Username">@ViewHelpers.GravatarImage(owner.EmailAddress, owner.Username, Constants.GravatarElementSize)</a>
+            <a href="@Url.User(owner)" title="@owner.Username">@ViewHelpers.GravatarImage(owner.EmailAddress, owner.Username, GalleryConstants.GravatarElementSize)</a>
 }
                 <a href="@Url.User(owner)" title="@owner.Username">
                     @owner.Username

@@ -6,6 +6,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Moq;
 using NuGet.Packaging;
+using NuGet.Services.Entities;
 using NuGetGallery.Packaging;
 using Xunit;
 
@@ -27,7 +28,8 @@ namespace NuGetGallery
                 symbolPackageService = new Mock<ISymbolPackageService>();
                 symbolPackageService
                     .Setup(x => x.CreateSymbolPackage(It.IsAny<Package>(), It.IsAny<PackageStreamMetadata>()))
-                    .Returns((Package package, PackageStreamMetadata streamMetadata) => {
+                    .Returns((Package package, PackageStreamMetadata streamMetadata) =>
+                    {
                         var symbolPackage = new SymbolPackage()
                         {
                             Package = package,
@@ -186,7 +188,7 @@ namespace NuGetGallery
                 Assert.NotNull(result);
                 Assert.Equal(SymbolPackageValidationResultType.Invalid, result.Type);
                 telemetryService
-                    .Verify(x => x.TrackSymbolPackageFailedGalleryValidationEvent(It.IsAny<string>(), It.IsAny<string>()), 
+                    .Verify(x => x.TrackSymbolPackageFailedGalleryValidationEvent(It.IsAny<string>(), It.IsAny<string>()),
                         times: Times.Once);
             }
 
@@ -227,7 +229,8 @@ namespace NuGetGallery
                 var validationService = new Mock<IValidationService>();
                 validationService
                     .Setup(x => x.StartValidationAsync(It.IsAny<SymbolPackage>()))
-                    .Returns((SymbolPackage sp) => {
+                    .Returns((SymbolPackage sp) =>
+                    {
                         sp.StatusKey = invalidStatus;
                         return Task.CompletedTask;
                     })
@@ -259,6 +262,59 @@ namespace NuGetGallery
                 Assert.NotNull(result);
                 Assert.Equal(PackageCommitResult.Conflict, result);
                 symbolPackageFileService.Verify(x => x.SavePackageFileAsync(package, It.IsAny<Stream>(), It.IsAny<bool>()), Times.Once);
+            }
+
+            [Fact]
+            public async Task WillDeleteFailedValidationSnupkg()
+            {
+                // Arrange
+                var symbolPackageService = new Mock<ISymbolPackageService>();
+                symbolPackageService
+                    .Setup(x => x.CreateSymbolPackage(It.IsAny<Package>(), It.IsAny<PackageStreamMetadata>()))
+                    .Returns((Package package1, PackageStreamMetadata streamMetadata) =>
+                    {
+                        var symbolPackage = new SymbolPackage()
+                        {
+                            Package = package1,
+                            PackageKey = package1.Key,
+                            Created = DateTime.UtcNow,
+                            StatusKey = PackageStatus.Validating
+                        };
+
+                        return symbolPackage;
+                    })
+                    .Verifiable();
+
+                var symbolPackageFileService = new Mock<ISymbolPackageFileService>();
+                symbolPackageFileService
+                    .Setup(x => x.DoesValidationPackageFileExistAsync(It.IsAny<Package>()))
+                    .ReturnsAsync(true)
+                    .Verifiable();
+                symbolPackageFileService
+                    .Setup(x => x.DeleteValidationPackageFileAsync(It.IsAny<string>(), It.IsAny<string>()))
+                    .Completes()
+                    .Verifiable();
+                symbolPackageFileService
+                    .Setup(x => x.SaveValidationPackageFileAsync(It.IsAny<Package>(), It.IsAny<Stream>()))
+                    .Completes()
+                    .Verifiable();
+
+                var service = CreateService(symbolPackageService: symbolPackageService, symbolPackageFileService: symbolPackageFileService);
+                var package = new Package() { PackageRegistration = new PackageRegistration() { Id = "theId" }, Version = "1.0.23" };
+                package.SymbolPackages.Add(new SymbolPackage()
+                {
+                    StatusKey = PackageStatus.FailedValidation,
+                    Key = 1232,
+                    Package = package
+                });
+
+                // Act
+                var result = await service.CreateAndUploadSymbolsPackage(package, new MemoryStream());
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.Equal(PackageCommitResult.Success, result);
+                symbolPackageFileService.VerifyAll();
             }
 
             [Fact]
@@ -359,7 +415,8 @@ namespace NuGetGallery
                 // Arrange
                 var symbolPackage = new SymbolPackage()
                 {
-                    Package = new Package() {
+                    Package = new Package()
+                    {
                         PackageRegistration = new PackageRegistration() { Id = "foo" },
                         Version = "1.0.0",
                         NormalizedVersion = "1.0.0"

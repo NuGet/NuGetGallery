@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using NuGet.Frameworks;
 using NuGet.Packaging;
+using NuGet.Services.Entities;
 using NuGetGallery.Packaging;
 
 namespace NuGetGallery
@@ -145,6 +146,7 @@ namespace NuGetGallery
 
             Stream symbolPackageFile = symbolPackageStream.AsSeekableStream();
 
+            var previousSymbolsPackage = package.LatestSymbolPackage();
             var symbolPackage = _symbolPackageService.CreateSymbolPackage(package, packageStreamMetadata);
 
             await _validationService.StartValidationAsync(symbolPackage);
@@ -160,6 +162,16 @@ namespace NuGetGallery
             {
                 if (symbolPackage.StatusKey == PackageStatus.Validating)
                 {
+                    // If the last uploaded symbol package has failed validation, it will leave the snupkg in the 
+                    // validations container. We could possibly overwrite it, but that might introduce a concurrency 
+                    // issue on multiple snupkg uploads with a prior failed validation. The best thing to do would be
+                    // to delete the failed validation snupkg from validations container and then proceed with normal
+                    // upload.
+                    if (previousSymbolsPackage != null && previousSymbolsPackage.StatusKey == PackageStatus.FailedValidation)
+                    {
+                        await DeleteSymbolsPackageAsync(previousSymbolsPackage);
+                    }
+
                     await _symbolPackageFileService.SaveValidationPackageFileAsync(symbolPackage.Package, symbolPackageFile);
                 }
                 else if (symbolPackage.StatusKey == PackageStatus.Available)
@@ -238,7 +250,13 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(symbolPackage));
             }
 
-            if (await _symbolPackageFileService.DoesPackageFileExistAsync(symbolPackage.Package))
+            if (symbolPackage.StatusKey == PackageStatus.FailedValidation
+                && await _symbolPackageFileService.DoesValidationPackageFileExistAsync(symbolPackage.Package))
+            {
+                await _symbolPackageFileService.DeleteValidationPackageFileAsync(symbolPackage.Id, symbolPackage.Version);
+            }
+            else if (symbolPackage.StatusKey == PackageStatus.Available
+                && await _symbolPackageFileService.DoesPackageFileExistAsync(symbolPackage.Package))
             {
                 await _symbolPackageFileService.DeletePackageFileAsync(symbolPackage.Id, symbolPackage.Version);
             }

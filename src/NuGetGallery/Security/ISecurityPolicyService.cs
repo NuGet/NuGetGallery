@@ -4,6 +4,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Web;
+using NuGet.Services.Entities;
 
 namespace NuGetGallery.Security
 {

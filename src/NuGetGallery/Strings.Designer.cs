@@ -487,6 +487,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unknown error!.
+        /// </summary>
+        public static string AuthenticationFailure_UnkownError {
+            get {
+                return ResourceManager.GetString("AuthenticationFailure_UnkownError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The &apos;{0}&apos; authentication provider is disabled and cannot be used to authenticate
         ///.
         /// </summary>

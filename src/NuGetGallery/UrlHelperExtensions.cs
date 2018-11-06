@@ -7,6 +7,7 @@ using System.Globalization;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
+using NuGet.Services.Entities;
 using NuGetGallery.Areas.Admin;
 using NuGetGallery.Areas.Admin.Controllers;
 using NuGetGallery.Configuration;

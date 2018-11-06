@@ -8,9 +8,9 @@ using System.Threading.Tasks;
 using Moq;
 using NuGet.Frameworks;
 using NuGet.Packaging;
+using NuGet.Services.Entities;
 using NuGet.Versioning;
 using NuGetGallery.Auditing;
-using NuGetGallery.Configuration;
 using NuGetGallery.Framework;
 using NuGetGallery.Packaging;
 using NuGetGallery.Security;
@@ -424,6 +424,26 @@ namespace NuGetGallery
             }
 
             [Fact]
+            private async Task WillThrowWhenThePackageRegistrationAndVersionAlreadyExists()
+            {
+                var currentUser = new User();
+                var packageId = "theId";
+                var packageVersion = "1.0.32";
+                var nugetPackage = PackageServiceUtility.CreateNuGetPackage(packageId, packageVersion);
+                var packageRegistration = new PackageRegistration
+                {
+                    Id = packageId,
+                    Owners = new HashSet<User> { currentUser },
+                };
+                packageRegistration.Packages.Add(new Package() { Version = packageVersion });
+                var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>();
+                var service = CreateService(packageRegistrationRepository: packageRegistrationRepository, setup:
+                        mockPackageService => { mockPackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns(packageRegistration); });
+
+                await Assert.ThrowsAsync<PackageAlreadyExistsException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), currentUser, currentUser, isVerified: false));
+            }
+
+            [Fact]
             private async Task WillThrowIfTheNuGetPackageIdIsLongerThanMaxPackageIdLength()
             {
                 var service = CreateService();
@@ -431,7 +451,7 @@ namespace NuGetGallery
 
                 var ex = await Assert.ThrowsAsync<InvalidPackageException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), owner: null, currentUser: null, isVerified: false));
 
-                Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Id", CoreConstants.MaxPackageIdLength), ex.Message);
+                Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Id", NuGet.Services.Entities.Constants.MaxPackageIdLength), ex.Message);
             }
 
             [Fact]
@@ -532,7 +552,7 @@ namespace NuGetGallery
 
                 var ex = await Assert.ThrowsAsync<InvalidPackageException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), owner: null, currentUser: null, isVerified: false));
 
-                Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Dependency.Id", CoreConstants.MaxPackageIdLength), ex.Message);
+                Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Dependency.Id", NuGet.Services.Entities.Constants.MaxPackageIdLength), ex.Message);
             }
 
             [Fact]
@@ -2065,7 +2085,7 @@ namespace NuGetGallery
                 Assert.Equal(expectedResult, result);
             }
 
-            static PackageRegistration CreatePackageRegistration(int key)
+            private static PackageRegistration CreatePackageRegistration(int key)
             {
                 return new PackageRegistration() { Key = 1, Id = $"regKey{key}" };
             }

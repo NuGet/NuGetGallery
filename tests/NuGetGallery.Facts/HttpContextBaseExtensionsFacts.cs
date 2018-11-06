@@ -27,7 +27,7 @@ namespace NuGetGallery
             // Arrange
             var headers = new NameValueCollection
             {
-                { Constants.UserAgentHeaderName, userAgent }
+                { GalleryConstants.UserAgentHeaderName, userAgent }
             };
 
             var httpRequest = new Mock<HttpRequestBase>(MockBehavior.Strict);

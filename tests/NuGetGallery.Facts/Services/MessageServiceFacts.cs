@@ -9,6 +9,8 @@ using System.Net.Mail;
 using System.Threading.Tasks;
 using AnglicanGeek.MarkdownMailer;
 using Moq;
+using NuGet.Services.Entities;
+using NuGet.Services.Messaging.Email;
 using NuGet.Services.Validation;
 using NuGet.Services.Validation.Issues;
 using NuGet.Versioning;
@@ -59,7 +61,7 @@ namespace NuGetGallery
                 };
 
                 var reportAbuseMessage = new ReportAbuseMessage(
-                    configurationService.Current, 
+                    configurationService.Current,
                     request,
                     alreadyContactedOwners: true);
 
@@ -114,7 +116,7 @@ namespace NuGetGallery
                 };
 
                 var reportAbuseMessage = new ReportAbuseMessage(
-                    configurationService.Current, 
+                    configurationService.Current,
                     request,
                     alreadyContactedOwners: true);
 
@@ -216,7 +218,7 @@ namespace NuGetGallery
                     CopySender = true
                 };
                 var reportMyPackageMessage = new ReportMyPackageMessage(
-                    configurationService.Current, 
+                    configurationService.Current,
                     request);
                 await messageService.SendMessageAsync(reportMyPackageMessage);
 

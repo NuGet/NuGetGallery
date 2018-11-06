@@ -3,6 +3,7 @@
 
 using System;
 using System.Threading.Tasks;
+using NuGet.Services.Entities;
 using NuGet.Services.Validation;
 using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;

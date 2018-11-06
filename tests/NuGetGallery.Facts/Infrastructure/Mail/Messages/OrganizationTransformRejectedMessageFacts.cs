@@ -4,6 +4,8 @@
 using System;
 using System.Collections.Generic;
 using Moq;
+using NuGet.Services.Entities;
+using NuGet.Services.Messaging.Email;
 using Xunit;
 
 namespace NuGetGallery.Infrastructure.Mail.Messages
@@ -113,6 +115,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
             [Theory]
             [InlineData(EmailFormat.Markdown, _expectedMessageBody)]
             [InlineData(EmailFormat.PlainText, _expectedMessageBody)]
+            [InlineData(EmailFormat.Html, _expectedHtmlBody)]
             public void ReturnsExpectedBody(EmailFormat format, string expectedString)
             {
                 var message = CreateMessage();
@@ -152,5 +155,10 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
 
 Thanks,
 The NuGetGallery Team";
+
+        private const string _expectedHtmlBody =
+            "<p>Transformation of account 'requestingUser' has been cancelled by user 'requestingUser'.</p>\n" +
+"<p>Thanks,\n" +
+"The NuGetGallery Team</p>\n";
     }
 }

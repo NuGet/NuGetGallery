@@ -18,6 +18,11 @@ namespace NuGetGallery
             Warnings = warnings ?? new string[0];
         }
 
+        public HttpStatusCodeWithServerWarningResult(HttpStatusCode statusCode, IReadOnlyList<IValidationMessage> warnings)
+            : this(statusCode, warnings.Select(w => w.PlainTextMessage).ToList())
+        {
+        }
+
         public override void ExecuteResult(ControllerContext context)
         {
             var response = context.RequestContext.HttpContext.Response;
@@ -28,7 +33,7 @@ namespace NuGetGallery
                 {
                     if (!string.IsNullOrWhiteSpace(warning))
                     {
-                        response.AppendHeader(Constants.WarningHeaderName, warning);
+                        response.AppendHeader(GalleryConstants.WarningHeaderName, warning);
                     }
                 }
             }

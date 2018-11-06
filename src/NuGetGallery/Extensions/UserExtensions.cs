@@ -5,6 +5,7 @@ using System;
 using System.Linq;
 using System.Security.Claims;
 using System.Security.Principal;
+using NuGet.Services.Entities;
 using NuGetGallery.Authentication;
 using NuGetGallery.Security;
 

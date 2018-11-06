@@ -34,7 +34,7 @@ namespace NuGetGallery
                 return true;
             }
 
-            if (versionText.Equals(Constants.AbsoluteLatestUrlString, StringComparison.InvariantCultureIgnoreCase))
+            if (versionText.Equals(GalleryConstants.AbsoluteLatestUrlString, StringComparison.InvariantCultureIgnoreCase))
             {
                 return true;
             }

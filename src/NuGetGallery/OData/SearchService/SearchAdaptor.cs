@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Web.Http.OData.Query;
 using System.Web.Routing;
+using NuGet.Services.Entities;
 using NuGet.Services.Search.Models;
 using NuGetGallery.Infrastructure.Lucene;
 using NuGetGallery.OData.QueryFilter;
@@ -30,19 +31,19 @@ namespace NuGetGallery.OData
             var searchFilter = new SearchFilter(context)
             {
                 SearchTerm = q,
-                Skip = (page - 1) * Constants.DefaultPackageListPageSize, // pages are 1-based. 
-                Take = Constants.DefaultPackageListPageSize,
+                Skip = (page - 1) * GalleryConstants.DefaultPackageListPageSize, // pages are 1-based. 
+                Take = GalleryConstants.DefaultPackageListPageSize,
                 IncludePrerelease = includePrerelease,
                 SemVerLevel = semVerLevel
             };
 
             switch (sortOrder)
             {
-                case Constants.AlphabeticSortOrder:
+                case GalleryConstants.AlphabeticSortOrder:
                     searchFilter.SortOrder = SortOrder.TitleAscending;
                     break;
 
-                case Constants.RecentSortOrder:
+                case GalleryConstants.RecentSortOrder:
                     searchFilter.SortOrder = SortOrder.Published;
                     break;
 

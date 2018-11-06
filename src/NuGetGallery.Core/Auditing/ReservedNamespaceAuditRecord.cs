@@ -5,6 +5,7 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using NuGetGallery.Auditing.AuditedEntities;
+using NuGet.Services.Entities;
 
 namespace NuGetGallery.Auditing
 {

@@ -1,10 +1,10 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Principal;
+using NuGet.Services.Entities;
 
 namespace NuGetGallery
 {
@@ -37,7 +37,7 @@ namespace NuGetGallery
             {
                 return PermissionsCheckResult.AccountFailure;
             }
-            
+
             return CheckPermissionsForEntity(account, entity);
         }
 
@@ -50,7 +50,7 @@ namespace NuGetGallery
 
             return CheckPermissionsForEntity(account, entity);
         }
-        
+
         protected abstract PermissionsCheckResult CheckPermissionsForEntity(User account, TEntity entity);
 
         public PermissionsCheckResult CheckPermissionsOnBehalfOfAnyAccount(User currentUser, TEntity entity)
@@ -62,13 +62,13 @@ namespace NuGetGallery
         {
             accountsAllowedOnBehalfOf = new List<User>();
 
-            var possibleAccountsOnBehalfOf = 
+            var possibleAccountsOnBehalfOf =
                 new[] { currentUser }
                     .Concat(GetOwners(entity));
 
             if (currentUser != null)
             {
-                possibleAccountsOnBehalfOf = 
+                possibleAccountsOnBehalfOf =
                     possibleAccountsOnBehalfOf
                         .Concat(currentUser.Organizations.Select(o => o.Organization));
             }

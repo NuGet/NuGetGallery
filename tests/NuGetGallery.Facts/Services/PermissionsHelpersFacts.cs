@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Principal;
 using Moq;
+using NuGet.Services.Entities;
 using Xunit;
 
 namespace NuGetGallery.Services
@@ -25,7 +26,7 @@ namespace NuGetGallery.Services
                 IsOrganizationCollaborator = 1 << 3,
             }
 
-            private static readonly IEnumerable<ReturnsSatisfiedRequirementWhenExpected_State> _stateValues = 
+            private static readonly IEnumerable<ReturnsSatisfiedRequirementWhenExpected_State> _stateValues =
                 Enum.GetValues(typeof(ReturnsSatisfiedRequirementWhenExpected_State)).Cast<ReturnsSatisfiedRequirementWhenExpected_State>();
 
             private static readonly int _maxStateValue =

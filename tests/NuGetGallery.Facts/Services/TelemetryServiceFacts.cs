@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Moq;
+using NuGet.Services.Entities;
 using NuGet.Versioning;
 using NuGetGallery.Diagnostics;
 using NuGetGallery.Framework;
@@ -54,6 +55,10 @@ namespace NuGetGallery
 
                     yield return new object[] { "ODataQueryFilter",
                         (TrackAction)(s => s.TrackODataQueryFilterEvent("callContext", true, true, "queryPattern"))
+                    };
+
+                    yield return new object[] { "ODataCustomQuery",
+                        (TrackAction)(s => s.TrackODataCustomQuery(true))
                     };
 
                     yield return new object[] { "PackagePush",
@@ -213,7 +218,7 @@ namespace NuGetGallery
                     };
 
                     yield return new object[] { "TyposquattingCheckResultAndTotalTimeInMs",
-                        (TrackAction)(s => s.TrackMetricForTyposquattingCheckResultAndTotalTime(fakes.Package.Id, TimeSpan.FromMilliseconds(100), true, new List<string>{"newtonsoft-json" }, 10000))
+                        (TrackAction)(s => s.TrackMetricForTyposquattingCheckResultAndTotalTime(fakes.Package.Id, TimeSpan.FromMilliseconds(100), true, new List<string>{"newtonsoft-json" }, 10000, TimeSpan.FromHours(24)))
                     };
 
                     yield return new object[] { "TyposquattingChecklistRetrievalTimeInMs",
@@ -628,6 +633,27 @@ namespace NuGetGallery
                 service.TrackRequestForAccountDeletion(fakes.User);
 
                 service.TelemetryClient.VerifyAll();
+            }
+
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public void TrackODataCustomQueryAddsCorrectData(bool customQuery)
+            {
+                var service = CreateService();
+                var allProperties = new List<IDictionary<string, string>>();
+                service.TelemetryClient
+                    .Setup(x => x.TrackMetric(It.IsAny<string>(), It.IsAny<double>(), It.IsAny<IDictionary<string, string>>()))
+                    .Callback<string, double, IDictionary<string, string>>((_, __, p) => allProperties.Add(p));
+
+                service.TrackODataCustomQuery(customQuery);
+
+                service.TelemetryClient.Verify(
+                    x => x.TrackMetric("ODataCustomQuery", 1, It.IsAny<IDictionary<string, string>>()),
+                    Times.Once);
+                var properties = Assert.Single(allProperties);
+                Assert.Contains("IsCustomQuery", properties.Keys);
+                Assert.Equal(customQuery.ToString(), properties["IsCustomQuery"]);
             }
 
             private TelemetryServiceWrapper CreateServiceForCertificateTelemetry(string metricName, string thumbprint)

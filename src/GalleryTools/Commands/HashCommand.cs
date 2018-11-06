@@ -9,6 +9,7 @@ using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Autofac;
 using Microsoft.Extensions.CommandLineUtils;
+using NuGet.Services.Entities;
 using NuGetGallery;
 using NuGetGallery.Configuration;
 using NuGetGallery.Infrastructure.Authentication;

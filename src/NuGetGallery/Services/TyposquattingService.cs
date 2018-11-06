@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
 using System.Diagnostics;
+using NuGet.Services.Entities;
 
 namespace NuGetGallery
 {
@@ -19,58 +20,57 @@ namespace NuGetGallery
             new ThresholdInfo (lowerBound: 50, upperBound: 129, threshold: 2)
         };
 
-        private static int TyposquattingCheckListLength;
-
         private readonly IContentObjectService _contentObjectService;
         private readonly IPackageService _packageService;
         private readonly IReservedNamespaceService _reservedNamespaceService;
         private readonly ITelemetryService _telemetryService;
+        private readonly ITyposquattingCheckListCacheService _typosquattingCheckListCacheService;
 
-        public TyposquattingService(IContentObjectService contentObjectService, IPackageService packageService, IReservedNamespaceService reservedNamespaceService, ITelemetryService telemetryService)
+        public TyposquattingService(IContentObjectService contentObjectService,
+                                    IPackageService packageService,
+                                    IReservedNamespaceService reservedNamespaceService,
+                                    ITelemetryService telemetryService,
+                                    ITyposquattingCheckListCacheService typosquattingCheckListCacheService)
         {
             _contentObjectService = contentObjectService ?? throw new ArgumentNullException(nameof(contentObjectService));
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
             _reservedNamespaceService = reservedNamespaceService ?? throw new ArgumentNullException(nameof(reservedNamespaceService));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
-
-            TyposquattingCheckListLength = _contentObjectService.TyposquattingConfiguration.PackageIdChecklistLength;
+            _typosquattingCheckListCacheService = typosquattingCheckListCacheService ?? throw new ArgumentNullException(nameof(typosquattingCheckListCacheService));
         }
 
         public bool IsUploadedPackageIdTyposquatting(string uploadedPackageId, User uploadedPackageOwner, out List<string> typosquattingCheckCollisionIds)
         {
+            var checkListConfiguredLength = _contentObjectService.TyposquattingConfiguration.PackageIdChecklistLength;
+            var checkListExpireTimeInHours = TimeSpan.FromHours(_contentObjectService.TyposquattingConfiguration.PackageIdChecklistCacheExpireTimeInHours);
             typosquattingCheckCollisionIds = new List<string>();
             var wasUploadBlocked = false;
+
             if (!_contentObjectService.TyposquattingConfiguration.IsCheckEnabled || _reservedNamespaceService.GetReservedNamespacesForId(uploadedPackageId).Any())
             {
                 return wasUploadBlocked;
             }
-
             if (uploadedPackageId == null)
             {
                 throw new ArgumentNullException(nameof(uploadedPackageId));
             }
-
             if (uploadedPackageOwner == null)
             {
                 throw new ArgumentNullException(nameof(uploadedPackageOwner));
             }
 
+            var totalTimeStopwatch = Stopwatch.StartNew();
             var checklistRetrievalStopwatch = Stopwatch.StartNew();
-            var packageRegistrations = _packageService.GetAllPackageRegistrations();
-            var packagesCheckList = packageRegistrations
-                .OrderByDescending(pr => pr.IsVerified)
-                .ThenByDescending(pr => pr.DownloadCount)
-                .Select(pr => pr.Id)
-                .Take(TyposquattingCheckListLength)
-                .ToList();
+            var packageIdsCheckList = _typosquattingCheckListCacheService.GetTyposquattingCheckList(checkListConfiguredLength, checkListExpireTimeInHours, _packageService);
             checklistRetrievalStopwatch.Stop();
+
+            _telemetryService.TrackMetricForTyposquattingChecklistRetrievalTime(uploadedPackageId, checklistRetrievalStopwatch.Elapsed);
 
             var algorithmProcessingStopwatch = Stopwatch.StartNew();
             var threshold = GetThreshold(uploadedPackageId);
             var normalizedUploadedPackageId = TyposquattingStringNormalization.NormalizeString(uploadedPackageId);
-
             var collisionIds = new ConcurrentBag<string>();
-            Parallel.ForEach(packagesCheckList, (packageId, loopState) =>
+            Parallel.ForEach(packageIdsCheckList, (packageId, loopState) =>
             {
                 string normalizedPackageId = TyposquattingStringNormalization.NormalizeString(packageId);
                 if (TyposquattingDistanceCalculation.IsDistanceLessThanThreshold(normalizedUploadedPackageId, normalizedPackageId, threshold))
@@ -78,27 +78,26 @@ namespace NuGetGallery
                     collisionIds.Add(packageId);
                 }
             });
-
             algorithmProcessingStopwatch.Stop();
 
-            var totalTime = checklistRetrievalStopwatch.Elapsed.Add(algorithmProcessingStopwatch.Elapsed);
-            _telemetryService.TrackMetricForTyposquattingChecklistRetrievalTime(uploadedPackageId, checklistRetrievalStopwatch.Elapsed);
             _telemetryService.TrackMetricForTyposquattingAlgorithmProcessingTime(uploadedPackageId, algorithmProcessingStopwatch.Elapsed);
 
             if (collisionIds.Count == 0)
             {
+                totalTimeStopwatch.Stop();
                 _telemetryService.TrackMetricForTyposquattingCheckResultAndTotalTime(
                     uploadedPackageId,
-                    totalTime,
+                    totalTimeStopwatch.Elapsed,
                     wasUploadBlocked,
                     typosquattingCheckCollisionIds,
-                    TyposquattingCheckListLength);
+                    packageIdsCheckList.Count,
+                    checkListExpireTimeInHours);
 
                 return false;
             }
 
             var ownersCheckStopwatch = Stopwatch.StartNew();
-            var collisionPackagesIdAndOwners = packageRegistrations
+            var collisionPackagesIdAndOwners = _packageService.GetAllPackageRegistrations()
                 .Where(pr => collisionIds.Contains(pr.Id))
                 .Select(pr => new { Id = pr.Id, Owners = pr.Owners.Select(x => x.Key).ToList() })
                 .ToList();
@@ -121,21 +120,21 @@ namespace NuGetGallery
                 .Any(pio => pio.Owners.Any(k => k == uploadedPackageOwner.Key));
 
             wasUploadBlocked = _contentObjectService.TyposquattingConfiguration.IsBlockUsersEnabled && !isUserAllowedTyposquatting;
-
             ownersCheckStopwatch.Stop();
 
-            totalTime = totalTime.Add(ownersCheckStopwatch.Elapsed);
             _telemetryService.TrackMetricForTyposquattingOwnersCheckTime(uploadedPackageId, ownersCheckStopwatch.Elapsed);
+
+            totalTimeStopwatch.Stop();
             _telemetryService.TrackMetricForTyposquattingCheckResultAndTotalTime(
                     uploadedPackageId,
-                    totalTime,
+                    totalTimeStopwatch.Elapsed,
                     wasUploadBlocked,
                     typosquattingCheckCollisionIds,
-                    TyposquattingCheckListLength);
+                    packageIdsCheckList.Count,
+                    checkListExpireTimeInHours);
 
             return wasUploadBlocked;
         }
-
         private static int GetThreshold(string packageId)
         {
             foreach (var thresholdInfo in ThresholdsList)
@@ -149,7 +148,6 @@ namespace NuGetGallery
             throw new ArgumentException(String.Format("There is no predefined typo-squatting threshold for this package Id: {0}", packageId));
         }
     }
-
     public class ThresholdInfo
     {
         public int LowerBound { get; }

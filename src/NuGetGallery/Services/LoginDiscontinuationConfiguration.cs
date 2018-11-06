@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Mail;
 using Newtonsoft.Json;
+using NuGet.Services.Entities;
 using NuGetGallery.Authentication;
 
 namespace NuGetGallery

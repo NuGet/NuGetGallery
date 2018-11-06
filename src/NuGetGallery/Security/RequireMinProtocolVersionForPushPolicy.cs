@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NuGet.Protocol;
+using NuGet.Services.Entities;
 using NuGet.Versioning;
 
 namespace NuGetGallery.Security
@@ -59,7 +60,7 @@ namespace NuGetGallery.Security
         /// </summary>
         private NuGetVersion GetClientVersion(UserSecurityPolicyEvaluationContext context)
         {
-            var clientVersionString = context.HttpContext.Request?.Headers[Constants.ClientVersionHeaderName];
+            var clientVersionString = context.HttpContext.Request?.Headers[GalleryConstants.ClientVersionHeaderName];
 
             return NuGetVersion.TryParse(clientVersionString, out NuGetVersion clientVersion) ? clientVersion : null;
         }
@@ -69,7 +70,7 @@ namespace NuGetGallery.Security
         /// </summary>
         private NuGetVersion GetProtocolVersion(UserSecurityPolicyEvaluationContext context)
         {
-            var protocolVersionString = context.HttpContext.Request?.Headers[Constants.NuGetProtocolHeaderName];
+            var protocolVersionString = context.HttpContext.Request?.Headers[GalleryConstants.NuGetProtocolHeaderName];
 
             return NuGetVersion.TryParse(protocolVersionString, out NuGetVersion protocolVersion) ? protocolVersion : null;
         }

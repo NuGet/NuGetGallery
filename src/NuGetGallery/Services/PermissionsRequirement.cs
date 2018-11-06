@@ -27,7 +27,7 @@ namespace NuGetGallery
         Owner = 1 << 1,
 
         /// <summary>
-        /// If the user is an admin of the site (see <see cref="Constants.AdminRoleName"/>), they satisfy the requirement.
+        /// If the user is an admin of the site (see <see cref="GalleryConstants.AdminRoleName"/>), they satisfy the requirement.
         /// </summary>
         SiteAdmin = 1 << 2,
 

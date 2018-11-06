@@ -1,11 +1,12 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Moq;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Collections.Generic;
+using Moq;
+using NuGet.Services.Entities;
 using NuGetGallery.Auditing;
 using NuGetGallery.Framework;
 using NuGetGallery.TestUtils;
@@ -168,7 +169,7 @@ namespace NuGetGallery.Services
             public async Task WritesAnAuditRecord()
             {
                 var newNamespace = new ReservedNamespace("Microsoft.", isSharedNamespace: false, isPrefix: true);
-                
+
                 var service = new TestableReservedNamespaceService();
                 await service.AddReservedNamespaceAsync(newNamespace);
 
@@ -527,7 +528,7 @@ namespace NuGetGallery.Services
                 var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces, packageRegistrations: testPackageRegistrations);
 
                 service.AddPackageRegistrationToNamespace(existingNamespace.Value, existingReg);
-                
+
                 Assert.True(existingNamespace.PackageRegistrations.Contains(existingReg));
             }
 

@@ -67,15 +67,15 @@ namespace NuGetGallery
 
         public static bool IsGitRepositoryType(string repositoryType)
         {
-            return Constants.GitRepository.Equals(repositoryType, StringComparison.OrdinalIgnoreCase);
+            return GalleryConstants.GitRepository.Equals(repositoryType, StringComparison.OrdinalIgnoreCase);
         }
 
         public static void ValidateNuGetPackageMetadata(PackageMetadata packageMetadata)
         {
             // TODO: Change this to use DataAnnotations
-            if (packageMetadata.Id.Length > CoreConstants.MaxPackageIdLength)
+            if (packageMetadata.Id.Length > NuGet.Services.Entities.Constants.MaxPackageIdLength)
             {
-                throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Id", CoreConstants.MaxPackageIdLength);
+                throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Id", NuGet.Services.Entities.Constants.MaxPackageIdLength);
             }
             if (packageMetadata.Authors != null && packageMetadata.Authors.Flatten().Length > 4000)
             {
@@ -136,9 +136,9 @@ namespace NuGetGallery
                 foreach (var dependency in packageDependencies.SelectMany(s => s.Packages))
                 {
                     // NuGet.Core compatibility - dependency package id can not be > 128 characters
-                    if (dependency.Id != null && dependency.Id.Length > CoreConstants.MaxPackageIdLength)
+                    if (dependency.Id != null && dependency.Id.Length > NuGet.Services.Entities.Constants.MaxPackageIdLength)
                     {
-                        throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Dependency.Id", CoreConstants.MaxPackageIdLength);
+                        throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Dependency.Id", NuGet.Services.Entities.Constants.MaxPackageIdLength);
                     }
 
                     // NuGet.Core compatibility - dependency versionspec can not be > 256 characters

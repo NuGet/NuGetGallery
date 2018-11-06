@@ -3,14 +3,16 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data.Entity.Infrastructure;
+using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NuGet.Packaging;
+using NuGet.Services.Entities;
 using NuGet.Versioning;
 using NuGetGallery.Configuration;
-using NuGetGallery.Extensions;
 using NuGetGallery.Packaging;
 
 namespace NuGetGallery
@@ -46,7 +48,7 @@ namespace NuGetGallery
 
         public async Task<PackageValidationResult> ValidateBeforeGeneratePackageAsync(PackageArchiveReader nuGetPackage, PackageMetadata packageMetadata)
         {
-            var warnings = new List<string>();
+            var warnings = new List<IValidationMessage>();
 
             var result = await CheckPackageEntryCountAsync(nuGetPackage, warnings);
 
@@ -80,7 +82,7 @@ namespace NuGetGallery
 
             return PackageValidationResult.AcceptedWithWarnings(warnings);
         }
-        
+
         private class LicenseCheckingNuspecReader : NuspecReader
         {
             public LicenseCheckingNuspecReader(Stream stream)
@@ -119,7 +121,7 @@ namespace NuGetGallery
 
         private async Task<PackageValidationResult> CheckPackageEntryCountAsync(
             PackageArchiveReader nuGetPackage,
-            List<string> warnings)
+            List<IValidationMessage> warnings)
         {
             if (!_config.RejectPackagesWithTooManyPackageEntries)
             {
@@ -150,7 +152,7 @@ namespace NuGetGallery
         /// 1. If the type is "git" - allow the URL scheme "git://" or "https://". We will translate "git://" to "https://" at display time for known domains.
         /// 2. For types other then "git" - URL scheme should be "https://"
         /// </summary>
-        private PackageValidationResult CheckRepositoryMetadata(PackageMetadata packageMetadata, List<string> warnings)
+        private PackageValidationResult CheckRepositoryMetadata(PackageMetadata packageMetadata, List<IValidationMessage> warnings)
         {
             if (packageMetadata.RepositoryUrl == null)
             {
@@ -162,14 +164,14 @@ namespace NuGetGallery
             {
                 if (!packageMetadata.RepositoryUrl.IsGitProtocol() && !packageMetadata.RepositoryUrl.IsHttpsProtocol())
                 {
-                    warnings.Add(Strings.WarningNotHttpsOrGitRepositoryUrlScheme);
+                    warnings.Add(new PlainTextOnlyValidationMessage(Strings.WarningNotHttpsOrGitRepositoryUrlScheme));
                 }
             }
             else
             {
                 if (!packageMetadata.RepositoryUrl.IsHttpsProtocol())
                 {
-                    warnings.Add(Strings.WarningNotHttpsRepositoryUrlScheme);
+                    warnings.Add(new PlainTextOnlyValidationMessage(Strings.WarningNotHttpsRepositoryUrlScheme));
                 }
             }
 
@@ -187,7 +189,7 @@ namespace NuGetGallery
         /// <returns>The package validation result or null.</returns>
         private async Task<PackageValidationResult> CheckForUnsignedPushAfterAuthorSignedAsync(
             PackageArchiveReader nuGetPackage,
-            List<string> warnings)
+            List<IValidationMessage> warnings)
         {
             // If the package is signed, there's no problem.
             if (await nuGetPackage.IsSignedAsync(CancellationToken.None))
@@ -218,9 +220,10 @@ namespace NuGetGallery
 
             if (previousPackage != null && previousPackage.CertificateKey.HasValue)
             {
-                warnings.Add(string.Format(
-                    Strings.UploadPackage_SignedToUnsignedTransition,
-                    previousPackage.Version.ToNormalizedString()));
+                warnings.Add(new PlainTextOnlyValidationMessage(
+                    string.Format(
+                        Strings.UploadPackage_SignedToUnsignedTransition,
+                        previousPackage.Version.ToNormalizedString())));
             }
 
             return null;
@@ -269,14 +272,11 @@ namespace NuGetGallery
                     {
                         if (requiredSigner == currentUser)
                         {
-                            return new PackageValidationResult(
-                                PackageValidationResultType.PackageShouldNotBeSignedButCanManageCertificates,
-                                Strings.UploadPackage_PackageIsSignedButMissingCertificate_CurrentUserCanManageCertificates);
+                            return PackageValidationResult.Invalid(new PackageShouldNotBeSignedUserFixableValidationMessage());
                         }
                         else
                         {
-                            return new PackageValidationResult(
-                               PackageValidationResultType.PackageShouldNotBeSigned,
+                            return PackageValidationResult.Invalid(
                                string.Format(
                                    Strings.UploadPackage_PackageIsSignedButMissingCertificate_RequiredSigner,
                                    requiredSigner.Username));
@@ -293,14 +293,11 @@ namespace NuGetGallery
                         // someone else for help.
                         if (isCurrentUserAnOwner)
                         {
-                            return new PackageValidationResult(
-                                PackageValidationResultType.PackageShouldNotBeSignedButCanManageCertificates,
-                                Strings.UploadPackage_PackageIsSignedButMissingCertificate_CurrentUserCanManageCertificates);
+                            return PackageValidationResult.Invalid(new PackageShouldNotBeSignedUserFixableValidationMessage());
                         }
                         else
                         {
-                            return new PackageValidationResult(
-                                PackageValidationResultType.PackageShouldNotBeSigned,
+                            return PackageValidationResult.Invalid(
                                 string.Format(
                                     Strings.UploadPackage_PackageIsSignedButMissingCertificate_RequiredSigner,
                                     owner.Username));
@@ -427,7 +424,7 @@ namespace NuGetGallery
                 // commit all changes to database as an atomic transaction
                 await _entitiesContext.SaveChangesAsync();
             }
-            catch
+            catch (Exception ex)
             {
                 // If saving to the DB fails for any reason we need to delete the package we just saved.
                 if (package.PackageStatusKey == PackageStatus.Validating)
@@ -443,10 +440,36 @@ namespace NuGetGallery
                         package.Version);
                 }
 
-                throw;
+                return ReturnConflictOrThrow(ex);
             }
 
             return PackageCommitResult.Success;
+        }
+
+        private PackageCommitResult ReturnConflictOrThrow(Exception ex)
+        {
+            if (ex is DbUpdateConcurrencyException concurrencyEx)
+            {
+                return PackageCommitResult.Conflict;
+            }
+            else if (ex is DbUpdateException dbUpdateEx)
+            {
+                if (dbUpdateEx.InnerException?.InnerException != null)
+                {
+                    if (dbUpdateEx.InnerException.InnerException is SqlException sqlException)
+                    {
+                        switch (sqlException.Number)
+                        {
+                            case 547:   // Constraint check violation
+                            case 2601:  // Duplicated key row error
+                            case 2627:  // Unique constraint error
+                                return PackageCommitResult.Conflict;
+                        }
+                    }
+                }
+            }
+
+            throw ex;
         }
     }
 }

@@ -7,6 +7,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Security.Principal;
 using Newtonsoft.Json;
+using NuGet.Services.Entities;
 using NuGetGallery.Authentication;
 
 namespace NuGetGallery

@@ -1,10 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using NuGetGallery.Framework;
+using NuGet.Services.Entities;
 using Xunit;
 
 namespace NuGetGallery.ViewModels
@@ -534,7 +533,7 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
             }
         }
 
-        static PackageRegistration CreatePackageRegistration(int key)
+        private static PackageRegistration CreatePackageRegistration(int key)
         {
             return new PackageRegistration() { Key = 1, Id = $"regKey{key}" };
         }

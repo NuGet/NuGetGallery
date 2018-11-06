@@ -18,6 +18,8 @@ using Autofac;
 using Moq;
 using Newtonsoft.Json.Linq;
 using NuGet.Packaging;
+using NuGet.Services.Entities;
+using NuGet.Services.Messaging.Email;
 using NuGet.Versioning;
 using NuGetGallery.Auditing;
 using NuGetGallery.Authentication;
@@ -25,8 +27,6 @@ using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
 using NuGetGallery.Framework;
 using NuGetGallery.Infrastructure.Authentication;
-using NuGetGallery.Infrastructure.Mail;
-using NuGetGallery.Infrastructure.Mail.Messages;
 using NuGetGallery.Packaging;
 using NuGetGallery.Security;
 using NuGetGallery.TestUtils;
@@ -844,6 +844,52 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public async Task WillReturnConflictIfGeneratePackageThrowsPackageAlreadyExistsException()
+            {
+                // Arrange
+                var packageId = "theId";
+                var nuGetPackage = TestPackage.CreateTestPackageStream(packageId, "1.0.42");
+
+                var currentUser = new User("currentUser") { Key = 1, EmailAddress = "currentUser@confirmed.com" };
+                var controller = new TestableApiController(GetConfigurationService());
+                controller.SetCurrentUser(currentUser);
+                controller.SetupPackageFromInputStream(nuGetPackage);
+
+                var owner = new User("owner") { Key = 2, EmailAddress = "org@confirmed.com" };
+
+                Expression<Func<IApiScopeEvaluator, ApiScopeEvaluationResult>> evaluateApiScope =
+                    x => x.Evaluate(
+                        currentUser,
+                        It.IsAny<IEnumerable<Scope>>(),
+                        ActionsRequiringPermissions.UploadNewPackageId,
+                        It.Is<ActionOnNewPackageContext>((context) => context.PackageId == packageId),
+                        NuGetScopes.PackagePush);
+
+                controller.MockApiScopeEvaluator
+                    .Setup(evaluateApiScope)
+                    .Returns(new ApiScopeEvaluationResult(owner, PermissionsCheckResult.Allowed, scopesAreValid: true));
+                controller
+                    .MockPackageUploadService
+                    .Setup(x => x.GeneratePackageAsync(It.IsAny<string>(),
+                        It.IsAny<PackageArchiveReader>(),
+                        It.IsAny<PackageStreamMetadata>(),
+                        It.IsAny<User>(),
+                        It.IsAny<User>()))
+                    .Throws(new PackageAlreadyExistsException("Package exists"));
+
+                // Act
+                var result = await controller.CreatePackagePut();
+
+                // Assert
+                ResultAssert.IsStatusCode(result, HttpStatusCode.Conflict);
+                controller.MockPackageUploadService.Verify(x => x.GeneratePackageAsync(It.IsAny<string>(),
+                        It.IsAny<PackageArchiveReader>(),
+                        It.IsAny<PackageStreamMetadata>(),
+                        It.IsAny<User>(),
+                        It.IsAny<User>()), Times.Once);
+            }
+
+            [Fact]
             public async Task WillReturnValidationWarnings()
             {
                 // Arrange
@@ -859,7 +905,7 @@ namespace NuGetGallery
                     .MockPackageUploadService
                     .Setup(x => x.ValidateBeforeGeneratePackageAsync(
                         It.IsAny<PackageArchiveReader>(), It.IsAny<PackageMetadata>()))
-                    .ReturnsAsync(PackageValidationResult.AcceptedWithWarnings(new[] { messageA }));
+                    .ReturnsAsync(PackageValidationResult.AcceptedWithWarnings(new[] { new PlainTextOnlyValidationMessage(messageA) }));
                 controller
                     .MockPackageUploadService
                     .Setup(x => x.ValidateAfterGeneratePackageAsync(
@@ -868,7 +914,7 @@ namespace NuGetGallery
                         It.IsAny<User>(),
                         It.IsAny<User>(),
                         It.IsAny<bool>()))
-                    .ReturnsAsync(PackageValidationResult.AcceptedWithWarnings(new[] { messageB }));
+                    .ReturnsAsync(PackageValidationResult.AcceptedWithWarnings(new[] { new PlainTextOnlyValidationMessage(messageB) }));
 
                 // Act
                 ActionResult result = await controller.CreatePackagePut();
@@ -883,8 +929,6 @@ namespace NuGetGallery
 
             [Theory]
             [InlineData(PackageValidationResultType.Invalid)]
-            [InlineData(PackageValidationResultType.PackageShouldNotBeSigned)]
-            [InlineData(PackageValidationResultType.PackageShouldNotBeSignedButCanManageCertificates)]
             public async Task WillReturnValidationMessageWhenValidationFails(PackageValidationResultType type)
             {
                 // Arrange

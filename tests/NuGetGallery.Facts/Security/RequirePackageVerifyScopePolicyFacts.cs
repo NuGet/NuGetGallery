@@ -6,6 +6,7 @@ using System.Security.Principal;
 using System.Threading.Tasks;
 using System.Web;
 using Moq;
+using NuGet.Services.Entities;
 using NuGetGallery.Authentication;
 using Xunit;
 using AuthenticationTypes = NuGetGallery.Authentication.AuthenticationTypes;
@@ -64,10 +65,10 @@ namespace NuGetGallery.Security
 
             var principal = new Mock<IPrincipal>();
             principal.Setup(p => p.Identity).Returns(identity);
-            
+
             var httpContext = new Mock<HttpContextBase>();
             httpContext.Setup(c => c.User).Returns(principal.Object);
-            
+
             var context = new UserSecurityPolicyEvaluationContext(
                 new UserSecurityPolicy[] { new UserSecurityPolicy("RequireApiKeyWithPackageVerifyScopePolicy", "Subscription") },
                 httpContext.Object);
