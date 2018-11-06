@@ -33,7 +33,7 @@ namespace NuGet.Services.Cursor.Tests
         {
             var storageMock = CreateStorageMock();
             storageMock
-                .Protected().Setup<Task>("OnLoad", ItExpr.IsAny<Uri>(), ItExpr.IsAny<CancellationToken>())
+                .Protected().Setup<Task<StorageContent>>("OnLoad", ItExpr.IsAny<Uri>(), ItExpr.IsAny<CancellationToken>())
                 .Returns(Task.FromResult<StorageContent>(null))
                 .Verifiable();
 
@@ -47,7 +47,7 @@ namespace NuGet.Services.Cursor.Tests
         {
             var storageMock = CreateStorageMock();
             storageMock
-                .Protected().Setup<Task>("OnLoad", ItExpr.IsAny<Uri>(), ItExpr.IsAny<CancellationToken>())
+                .Protected().Setup<Task<StorageContent>>("OnLoad", ItExpr.IsAny<Uri>(), ItExpr.IsAny<CancellationToken>())
                 .Returns(Task.FromResult<StorageContent>(null));
 
             DateTimeOffset defaultValue = new DateTimeOffset(2017, 5, 5, 17, 8, 42, TimeSpan.Zero);

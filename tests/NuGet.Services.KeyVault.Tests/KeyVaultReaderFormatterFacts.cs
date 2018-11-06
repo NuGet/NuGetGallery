@@ -11,7 +11,7 @@ namespace NuGet.Services.KeyVault.Tests
 {
     public class KeyVaultReaderFormatterFacts
     {
-        private ISecretInjector _secretInjector;
+        private readonly ISecretInjector _secretInjector;
 
         public static IEnumerable<object[]> _testFormatParameters = new List<object[]>
         {
@@ -61,14 +61,14 @@ namespace NuGet.Services.KeyVault.Tests
         }
 
         [Theory]
-        [MemberData("_testFormatParameters")]
+        [MemberData(nameof(_testFormatParameters))]
         public async Task TestFormat(string input, string expectedOutput)
         {
             // Act
             string formattedString = await _secretInjector.InjectAsync(input);
 
             // Assert
-            formattedString.ShouldBeEquivalentTo(expectedOutput);
+            formattedString.Should().BeEquivalentTo(expectedOutput);
         }
     }
 }
