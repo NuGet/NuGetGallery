@@ -147,6 +147,8 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             public DateTimeOffset ExpiresAtUtc => throw new NotImplementedException();
             public DateTimeOffset EnqueuedTimeUtc => throw new NotImplementedException();
 
+            public string MessageId { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
             public Task AbandonAsync() => throw new NotImplementedException();
             public IBrokeredMessage Clone() => throw new NotImplementedException();
             public Task CompleteAsync() => throw new NotImplementedException();
