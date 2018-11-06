@@ -228,7 +228,7 @@ namespace Tests.CredentialExpiration
                 {
                     var credentialMessage = AreCredentialsExpired
                         ? $"{credential.Description} - has expired."
-                        : $"{credential.Description} - expires in {(credential.Expires - JobRunTime).TotalDays}.";
+                        : $"{credential.Description} - expires in {(int)(credential.Expires - JobRunTime).TotalDays} day(s).";
 
                     Assert.Contains(
                         credentialMessage,
