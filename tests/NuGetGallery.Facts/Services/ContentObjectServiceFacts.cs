@@ -36,6 +36,13 @@ namespace NuGetGallery.Services
                 Assert.False(symbolsConfiguration.IsSymbolsUploadEnabledForAll);
                 Assert.Empty(symbolsConfiguration.AlwaysEnabledForDomains);
                 Assert.Empty(symbolsConfiguration.AlwaysEnabledForEmailAddresses);
+
+                var typosquattingConfiguration = service.TyposquattingConfiguration as TyposquattingConfiguration;
+
+                Assert.Equal(TyposquattingConfiguration.DefaultPackageIdCheckListLength, typosquattingConfiguration.PackageIdChecklistLength);
+                Assert.False(typosquattingConfiguration.IsCheckEnabled);
+                Assert.False(typosquattingConfiguration.IsBlockUsersEnabled);
+                Assert.Equal(TyposquattingConfiguration.DefaultPackageIdChecklistCacheExpireTimeInHours, typosquattingConfiguration.PackageIdChecklistCacheExpireTimeInHours);
             }
 
             [Fact]
@@ -55,6 +62,9 @@ namespace NuGetGallery.Services
                 var alwaysEnabledForDomains = new[] { "a" };
                 var alwaysEnabledForEmailAddresses = new[] { "b" };
 
+                var packageIdChecklistLength = 20000;
+                var packageIdChecklistCacheExpireTimeInHours = 12.0;
+
                 var certificatesConfiguration = new CertificatesConfiguration(
                     isUIEnabledByDefault,
                     alwaysEnabledForDomains,
@@ -66,6 +76,13 @@ namespace NuGetGallery.Services
                     alwaysEnabledForDomains: alwaysEnabledForDomains,
                     alwaysEnabledForEmailAddresses: alwaysEnabledForEmailAddresses);
                 var symbolsJson = JsonConvert.SerializeObject(symbolsConfiguration);
+
+                var typosquattingConfiguration = new TyposquattingConfiguration(
+                    packageIdChecklistLength: packageIdChecklistLength,
+                    isCheckEnabled: true,
+                    isBlockUsersEnabled: true,
+                    packageIdChecklistCacheExpireTimeInHours: packageIdChecklistCacheExpireTimeInHours);
+                var typosquattingJson = JsonConvert.SerializeObject(typosquattingConfiguration);
 
                 var contentService = GetMock<IContentService>();
 
@@ -81,6 +98,10 @@ namespace NuGetGallery.Services
                     .Setup(x => x.GetContentItemAsync(GalleryConstants.ContentNames.SymbolsConfiguration, It.IsAny<TimeSpan>()))
                     .Returns(Task.FromResult<IHtmlString>(new HtmlString(symbolsJson)));
 
+                contentService
+                    .Setup(x => x.GetContentItemAsync(GalleryConstants.ContentNames.TyposquattingConfiguration, It.IsAny<TimeSpan>()))
+                    .Returns(Task.FromResult<IHtmlString>(new HtmlString(typosquattingJson)));
+
                 var service = GetService<ContentObjectService>();
 
                 // Act
@@ -89,6 +110,7 @@ namespace NuGetGallery.Services
                 loginDiscontinuationConfiguration = service.LoginDiscontinuationConfiguration as LoginDiscontinuationConfiguration;
                 certificatesConfiguration = service.CertificatesConfiguration as CertificatesConfiguration;
                 symbolsConfiguration = service.SymbolsConfiguration as SymbolsConfiguration;
+                typosquattingConfiguration = service.TyposquattingConfiguration as TyposquattingConfiguration;
 
                 // Assert
                 Assert.True(loginDiscontinuationConfiguration.DiscontinuedForEmailAddresses.SequenceEqual(emails));
@@ -103,6 +125,11 @@ namespace NuGetGallery.Services
                 Assert.True(symbolsConfiguration.IsSymbolsUploadEnabledForAll);
                 Assert.Equal(alwaysEnabledForDomains, symbolsConfiguration.AlwaysEnabledForDomains);
                 Assert.Equal(alwaysEnabledForEmailAddresses, symbolsConfiguration.AlwaysEnabledForEmailAddresses);
+
+                Assert.Equal(packageIdChecklistLength, typosquattingConfiguration.PackageIdChecklistLength);
+                Assert.True(typosquattingConfiguration.IsCheckEnabled);
+                Assert.True(typosquattingConfiguration.IsBlockUsersEnabled);
+                Assert.Equal(packageIdChecklistCacheExpireTimeInHours, typosquattingConfiguration.PackageIdChecklistCacheExpireTimeInHours);
             }
         }
     }
