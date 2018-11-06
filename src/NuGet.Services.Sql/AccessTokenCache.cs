@@ -157,9 +157,11 @@ namespace NuGet.Services.Sql
 
                 Debug.Assert(accessToken != null);
 
-                logger?.LogInformation("Refreshed access token for {InitialCatalog} in {ElapsedMilliseconds}.",
+                logger?.LogInformation("Refreshed access token {Token} for catalog {Catalog} which expires in {ExpirationMinutes}m (Latency = {ElapsedMilliseconds}ms).",
+                    accessToken.AuthenticationResult.AccessToken.GetHashCode(),
                     connectionString.Sql.InitialCatalog,
-                    (DateTimeOffset.Now - start).TotalMilliseconds);
+                    (accessToken.AuthenticationResult.ExpiresOn - DateTimeOffset.Now).TotalMinutes.ToString("F2"),
+                    (DateTimeOffset.Now - start).TotalMilliseconds.ToString("F2"));
 
                 _cache.AddOrUpdate(connectionString.ConnectionString, accessToken, (k, v) => accessToken);
 
@@ -167,7 +169,7 @@ namespace NuGet.Services.Sql
             }
             catch (Exception ex)
             {
-                logger?.LogError(0, ex, "Failed to refresh access token for {InitialCatalog}.",
+                logger?.LogError(0, ex, "Failed to refresh access token for {Catalog}.",
                     connectionString.Sql.InitialCatalog);
 
                 return false;
