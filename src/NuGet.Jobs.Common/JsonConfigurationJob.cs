@@ -31,6 +31,8 @@ namespace NuGet.Jobs
         private const string ServiceBusConfigurationSectionName = "ServiceBus";
         private const string ValidationStorageConfigurationSectionName = "ValidationStorage";
 
+        private bool testDatabaseConnections = true;
+
         public JsonConfigurationJob()
             : this(null)
         {
@@ -147,19 +149,26 @@ namespace NuGet.Jobs
 
         protected virtual void RegisterDatabases(IServiceProvider serviceProvider)
         {
-            RegisterDatabaseIfConfigured<GalleryDbConfiguration>(serviceProvider);
-            RegisterDatabaseIfConfigured<StatisticsDbConfiguration>(serviceProvider);
-            RegisterDatabaseIfConfigured<SupportRequestDbConfiguration>(serviceProvider);
-            RegisterDatabaseIfConfigured<ValidationDbConfiguration>(serviceProvider);
+            try
+            {
+                RegisterDatabaseIfConfigured<GalleryDbConfiguration>(serviceProvider, testDatabaseConnections);
+                RegisterDatabaseIfConfigured<StatisticsDbConfiguration>(serviceProvider, testDatabaseConnections);
+                RegisterDatabaseIfConfigured<SupportRequestDbConfiguration>(serviceProvider, testDatabaseConnections);
+                RegisterDatabaseIfConfigured<ValidationDbConfiguration>(serviceProvider, testDatabaseConnections);
+            }
+            finally
+            {
+                testDatabaseConnections = false;
+            }
         }
 
-        private void RegisterDatabaseIfConfigured<TDbConfiguration>(IServiceProvider serviceProvider)
+        private void RegisterDatabaseIfConfigured<TDbConfiguration>(IServiceProvider serviceProvider, bool testConnection)
             where TDbConfiguration : IDbConfiguration
         {
             var dbConfiguration = serviceProvider.GetRequiredService<IOptionsSnapshot<TDbConfiguration>>();
             if (!string.IsNullOrEmpty(dbConfiguration.Value?.ConnectionString))
             {
-                RegisterDatabase<TDbConfiguration>(serviceProvider);
+                RegisterDatabase<TDbConfiguration>(serviceProvider, testConnection);
             }
         }
 
