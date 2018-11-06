@@ -78,6 +78,8 @@ namespace NuGetGallery.ViewModels
         [InlineData("http://msdn.microsoft.com/en-us/library/vstudio/hh191443.aspx", "https://msdn.microsoft.com/en-us/library/vstudio/hh191443.aspx")]
         [InlineData("http://microsoft.com/iconurl/9594202", "https://microsoft.com/iconurl/9594202")]
         [InlineData("http://microsoft.com:80/", "https://microsoft.com/")]
+        [InlineData("http://githubpages.github.io/my.page", "https://githubpages.github.io/my.page")]
+        [InlineData("http://githubpages.github.com", "https://githubpages.github.com/")]
         public void ItInitializesProjectUrl(string projectUrl, string expected)
         {
             var package = new Package
@@ -99,6 +101,8 @@ namespace NuGetGallery.ViewModels
         [InlineData("http://aspnetwebstack.codeplex.com/license", "https://aspnetwebstack.codeplex.com/license")]
         [InlineData("http://go.microsoft.com/?linkid=9809688", "https://go.microsoft.com/?linkid=9809688")]
         [InlineData("http://github.com/url", "https://github.com/url")]
+        [InlineData("http://githubpages.github.io/my.page/license.html", "https://githubpages.github.io/my.page/license.html")]
+        [InlineData("http://githubpages.github.com", "https://githubpages.github.com/")]
         public void ItInitializesLicenseUrl(string licenseUrl, string expected)
         {
             var package = new Package
