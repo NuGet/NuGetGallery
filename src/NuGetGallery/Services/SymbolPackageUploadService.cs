@@ -169,10 +169,7 @@ namespace NuGetGallery
                     // upload.
                     if (previousSymbolsPackage != null && previousSymbolsPackage.StatusKey == PackageStatus.FailedValidation)
                     {
-                        if (await _symbolPackageFileService.DoesValidationPackageFileExistAsync(symbolPackage.Package))
-                        {
-                            await _symbolPackageFileService.DeleteValidationPackageFileAsync(symbolPackage.Id, symbolPackage.Version);
-                        }
+                        await DeleteSymbolsPackageAsync(previousSymbolsPackage);
                     }
 
                     await _symbolPackageFileService.SaveValidationPackageFileAsync(symbolPackage.Package, symbolPackageFile);
@@ -253,7 +250,13 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(symbolPackage));
             }
 
-            if (await _symbolPackageFileService.DoesPackageFileExistAsync(symbolPackage.Package))
+            if (symbolPackage.StatusKey == PackageStatus.FailedValidation
+                && await _symbolPackageFileService.DoesValidationPackageFileExistAsync(symbolPackage.Package))
+            {
+                await _symbolPackageFileService.DeleteValidationPackageFileAsync(symbolPackage.Id, symbolPackage.Version);
+            }
+            else if (symbolPackage.StatusKey == PackageStatus.Available
+                && await _symbolPackageFileService.DoesPackageFileExistAsync(symbolPackage.Package))
             {
                 await _symbolPackageFileService.DeletePackageFileAsync(symbolPackage.Id, symbolPackage.Version);
             }
