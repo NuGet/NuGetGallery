@@ -2184,7 +2184,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Package file is corrupt..
+        ///   Looks up a localized string similar to The package file is corrupt..
         /// </summary>
         public static string UploadPackage_CorruptNupkg {
             get {
@@ -2247,7 +2247,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to License file has invalid extension &apos;{0}&apos;. Extension must be one of the following: {1}..
+        ///   Looks up a localized string similar to The license file has invalid extension &apos;{0}&apos;. Extension must be either empty or one of the following: {1}..
         /// </summary>
         public static string UploadPackage_InvalidLicenseFileExtension {
             get {
@@ -2301,7 +2301,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Specifying &lt;licenseUrl&gt; in package metadata is not allowed anymore, please specify the license in the package..
+        ///   Looks up a localized string similar to Specifying &lt;licenseUrl&gt; in package metadata is no longer allowed, please specify the license in the package..
         /// </summary>
         public static string UploadPackage_LegacyLicenseUrlNotAllowed {
             get {
@@ -2310,7 +2310,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to License file &apos;{0}&apos; does not exist in the package..
+        ///   Looks up a localized string similar to The license file &apos;{0}&apos; does not exist in the package..
         /// </summary>
         public static string UploadPackage_LicenseFileDoesNotExist {
             get {
@@ -2328,7 +2328,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to License file is too long. The limit is {0} bytes..
+        ///   Looks up a localized string similar to The license file cannot be longer than {0} bytes..
         /// </summary>
         public static string UploadPackage_LicenseFileTooLong {
             get {
@@ -2337,7 +2337,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to License file must be plain text using UTF-8 encoding..
+        ///   Looks up a localized string similar to The license file must be plain text using UTF-8 encoding..
         /// </summary>
         public static string UploadPackage_LicenseMustBePlainText {
             get {
@@ -2346,7 +2346,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to License node cannot contain children nodes..
+        ///   Looks up a localized string similar to The license node cannot contain children nodes..
         /// </summary>
         public static string UploadPackage_LicenseNodeContainsChildren {
             get {
@@ -2355,7 +2355,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to License node value is too long. Please make sure it is under 500 characters long..
+        ///   Looks up a localized string similar to The license node value must be shorter than 500 characters..
         /// </summary>
         public static string UploadPackage_LicenseNodeValueTooLong {
             get {
@@ -2382,7 +2382,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Package has no license information specified..
+        ///   Looks up a localized string similar to The package has no license information specified..
         /// </summary>
         public static string UploadPackage_MissingLicenseInformation {
             get {

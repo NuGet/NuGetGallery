@@ -728,7 +728,7 @@ namespace NuGetGallery
                 {
                     Assert.Equal(PackageValidationResultType.Invalid, result.Type);
                     Assert.Contains("License file has invalid extension", result.Message.PlainTextMessage);
-                    Assert.Contains("Extension must be one of the following", result.Message.PlainTextMessage);
+                    Assert.Contains("Extension must be either empty or one of the following", result.Message.PlainTextMessage);
                     Assert.Contains(extension, result.Message.PlainTextMessage);
                     Assert.Empty(result.Warnings);
                 }

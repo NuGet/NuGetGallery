@@ -372,7 +372,7 @@ namespace NuGetGallery.Configuration
         bool RejectPackagesWithLicense { get; set; }
 
         /// <summary>
-        /// Indicates whether packages that specify the licene the "old" way (with a "licenseUrl" node only) should be rejected.
+        /// Indicates whether packages that specify the license the "old" way (with a "licenseUrl" node only) should be rejected.
         /// </summary>
         bool BlockLegacyLicenseUrl { get; set; }
 

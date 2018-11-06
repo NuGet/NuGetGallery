@@ -215,12 +215,12 @@ namespace NuGetGallery
 
             if (package.EmbeddedLicenseType == EmbeddedLicenseFileType.Absent)
             {
-                throw new ArgumentException("Package must have embedded license", nameof(package));
+                throw new ArgumentException("Package must have an embedded license", nameof(package));
             }
 
             var fileName = BuildLicenseFileName(package);
 
-            // Gallery will generally ignore the content type on license files and will use value from the DB,
+            // Gallery will generally ignore the content type on license files and will use the value from the DB,
             // but we'll be nice and try to specify correct content type for them.
             var contentType = package.EmbeddedLicenseType == EmbeddedLicenseFileType.Markdown
                 ? CoreConstants.MarkdownContentType

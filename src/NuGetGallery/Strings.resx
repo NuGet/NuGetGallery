@@ -1016,38 +1016,38 @@ The {1} Team</value>
     <comment>{0} is the list of the issues found with license expression.</comment>
   </data>
   <data name="UploadPackage_LegacyLicenseUrlNotAllowed" xml:space="preserve">
-    <value>Specifying &lt;licenseUrl&gt; in package metadata is not allowed anymore, please specify the license in the package.</value>
+    <value>Specifying &lt;licenseUrl&gt; in package metadata is no longer allowed, please specify the license in the package.</value>
   </data>
   <data name="UploadPackage_MissingLicenseInformation" xml:space="preserve">
-    <value>Package has no license information specified.</value>
+    <value>The package has no license information specified.</value>
   </data>
   <data name="UploadPackage_InvalidLicenseFileExtension" xml:space="preserve">
-    <value>License file has invalid extension '{0}'. Extension must be one of the following: {1}.</value>
-    <comment>{0} is the specified extension. {1} is the string containing the allowed extensions list</comment>
+    <value>The license file has invalid extension '{0}'. Extension must be either empty or one of the following: {1}.</value>
+    <comment>{0} is the specified extension. {1} is the string containing the allowed non-empty extensions list</comment>
   </data>
   <data name="UploadPackage_LicenseFileDoesNotExist" xml:space="preserve">
-    <value>License file '{0}' does not exist in the package.</value>
+    <value>The license file '{0}' does not exist in the package.</value>
     <comment>{0} is the license file name specified in the .nuspec</comment>
   </data>
   <data name="UploadPackage_LicenseMustBePlainText" xml:space="preserve">
-    <value>License file must be plain text using UTF-8 encoding.</value>
+    <value>The license file must be plain text using UTF-8 encoding.</value>
   </data>
   <data name="UploadPackage_LicenseFileTooLong" xml:space="preserve">
-    <value>License file is too long. The limit is {0} bytes.</value>
+    <value>The license file cannot be longer than {0} bytes.</value>
     <comment>{0} is the max allowed number of bytes in the license.</comment>
   </data>
   <data name="UploadPackage_LicenseNodeContainsChildren" xml:space="preserve">
-    <value>License node cannot contain children nodes.</value>
+    <value>The license node cannot contain children nodes.</value>
   </data>
   <data name="UploadPackage_LicenseNodeValueTooLong" xml:space="preserve">
-    <value>License node value is too long. Please make sure it is under 500 characters long.</value>
+    <value>The license node value must be shorter than 500 characters.</value>
   </data>
   <data name="UploadPackage_UnsupportedLicenseVersion" xml:space="preserve">
     <value>Unsupported license version '{0}'. The only supported license version is 1.0.0.</value>
     <comment>{0} is the license version text from nuspec</comment>
   </data>
   <data name="UploadPackage_CorruptNupkg" xml:space="preserve">
-    <value>Package file is corrupt.</value>
+    <value>The package file is corrupt.</value>
   </data>
   <data name="UploadPackage_UnsupportedLicenseType" xml:space="preserve">
     <value>Unsupported license type '{0}'.</value>

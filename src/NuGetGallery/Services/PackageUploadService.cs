@@ -193,7 +193,7 @@ namespace NuGetGallery
                     }
                 }
 
-                // no more checks for missing license metadata case
+                // we will return here, so the code below would not need to check for licenseMetadata to be non-null over and over.
                 return null;
             }
 
@@ -207,13 +207,13 @@ namespace NuGetGallery
 
             if (licenseDeprecationUrl != licenseUrl)
             {
-                if (LicenseType.File == licenseMetadata.Type)
+                if (licenseMetadata.Type == LicenseType.File)
                 {
                     warnings.Add(
                         new PlainTextOnlyValidationMessage(
                             string.Format(Strings.UploadPackage_DeprecationUrlSuggestedForLicenseFiles, licenseDeprecationUrl)));
                 }
-                else if (LicenseType.Expression == licenseMetadata.Type)
+                else if (licenseMetadata.Type == LicenseType.Expression)
                 {
                     warnings.Add(
                         new PlainTextOnlyValidationMessage(
@@ -221,7 +221,7 @@ namespace NuGetGallery
                 }
             }
 
-            if (LicenseType.File == licenseMetadata.Type)
+            if (licenseMetadata.Type == LicenseType.File)
             {
                 // check if specified file is present in the package
                 var fileList = new HashSet<string>(nuGetPackage.GetFiles());
@@ -241,7 +241,7 @@ namespace NuGetGallery
                         string.Format(
                             Strings.UploadPackage_InvalidLicenseFileExtension,
                             licenseFileExtension,
-                            string.Join(", ", AllowedLicenseFileExtensions.Select(extension => $"'{extension}'"))));
+                            string.Join(", ", AllowedLicenseFileExtensions.Where(x => x != string.Empty).Select(extension => $"'{extension}'"))));
                 }
 
                 var licenseFileEntry = nuGetPackage.GetEntry(licenseMetadata.License);
@@ -296,7 +296,6 @@ namespace NuGetGallery
 
         private static string GetExpectedLicenseUrl(LicenseMetadata licenseMetadata)
         {
-
             if (licenseMetadata == null || LicenseType.File == licenseMetadata.Type)
             {
                 return GalleryConstants.LicenseDeprecationUrl;
@@ -304,8 +303,7 @@ namespace NuGetGallery
 
             if (LicenseType.Expression == licenseMetadata.Type)
             {
-                var expectedUrl = new Uri(string.Format(LicenseExpressionDeprecationUrlFormat, licenseMetadata.License)).AbsoluteUri;
-                return expectedUrl;
+                return new Uri(string.Format(LicenseExpressionDeprecationUrlFormat, licenseMetadata.License)).AbsoluteUri;
             }
 
             throw new InvalidOperationException($"Unsupported license metadata type: {licenseMetadata.Type}");
