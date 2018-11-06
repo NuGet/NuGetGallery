@@ -78,6 +78,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Arguments.cs" />
+    <Compile Include="Extensions\TaskExtensions.cs" />
     <Compile Include="Jobs\Catalog2PackageFixupJob.cs" />
     <Compile Include="Telemetry\JobNameTelemetryInitializer.cs" />
     <Compile Include="Jobs\Catalog2DnxJob.cs" />

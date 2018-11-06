@@ -271,12 +271,14 @@ namespace NuGet.Services.V3PerPackage
             using (var indexWriter = Catalog2LuceneJob.CreateIndexWriter(directory))
             {
                 var commitEachBatch = false;
+                TimeSpan? commitTimeout = null;
                 string baseAddress = null;
 
                 var collector = new SearchIndexFromCatalogCollector(
                     catalogIndexUri,
                     indexWriter,
                     commitEachBatch,
+                    commitTimeout,
                     baseAddress,
                     serviceProvider.GetRequiredService<ITelemetryService>(),
                     serviceProvider.GetRequiredService<ILogger>(),

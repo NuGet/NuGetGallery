@@ -63,6 +63,7 @@ namespace Ng
         #region Catalog2Lucene
         public const string CatalogBaseAddress = "catalogBaseAddress";
         public const string Registration = "registration";
+        public const string CommitTimeoutInSeconds = "commitTimeoutInSeconds";
         #endregion
 
         #region Catalog2Registration

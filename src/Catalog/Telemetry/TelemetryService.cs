@@ -58,6 +58,16 @@ namespace NuGet.Services.Metadata.Catalog
                 });
         }
 
+        public IDisposable TrackIndexCommitDuration()
+        {
+            return _telemetryClient.TrackDuration(TelemetryConstants.IndexCommitDurationSeconds);
+        }
+
+        public void TrackIndexCommitTimeout()
+        {
+            _telemetryClient.TrackMetric(TelemetryConstants.IndexCommitTimeout, 1);
+        }
+
         public void TrackHandlerFailedToProcessPackage(IPackagesContainerHandler handler, string packageId, NuGetVersion packageVersion)
         {
             if (handler == null)

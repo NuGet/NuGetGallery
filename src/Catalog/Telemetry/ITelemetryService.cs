@@ -18,6 +18,9 @@ namespace NuGet.Services.Metadata.Catalog
         void TrackCatalogIndexWriteDuration(TimeSpan duration, Uri uri);
         void TrackCatalogIndexReadDuration(TimeSpan duration, Uri uri);
 
+        IDisposable TrackIndexCommitDuration();
+        void TrackIndexCommitTimeout();
+
         void TrackHandlerFailedToProcessPackage(IPackagesContainerHandler handler, string packageId, NuGetVersion packageVersion);
         void TrackPackageMissingHash(string packageId, NuGetVersion packageVersion);
         void TrackPackageHasIncorrectHash(string packageId, NuGetVersion packageVersion);

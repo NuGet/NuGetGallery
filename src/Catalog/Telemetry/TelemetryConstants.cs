@@ -9,6 +9,8 @@ namespace NuGet.Services.Metadata.Catalog
         public const string BlobModified = "BlobModified";
         public const string CatalogIndexReadDurationSeconds = "CatalogIndexReadDurationSeconds";
         public const string CatalogIndexWriteDurationSeconds = "CatalogIndexWriteDurationSeconds";
+        public const string IndexCommitDurationSeconds = "IndexCommitDurationSeconds";
+        public const string IndexCommitTimeout = "IndexCommitTimeout";
         public const string HandlerFailedToProcessPackage = "HandlerFailedToProcessPackage";
         public const string PackageMissingHash = "PackageMissingHash";
         public const string PackageHasIncorrectHash = "PackageHasIncorrectHash";

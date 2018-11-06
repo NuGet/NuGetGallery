@@ -89,6 +89,7 @@
     <Compile Include="Infrastructure\ODataPackage.cs" />
     <Compile Include="PackageMonitoringStatusServiceTests.cs" />
     <Compile Include="Infrastructure\TestPackage.cs" />
+    <Compile Include="StuckIndexWriter.cs" />
     <Compile Include="UriUtilsTests.cs" />
     <Compile Include="PackageTimestampMetadataTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

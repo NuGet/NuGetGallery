@@ -31,6 +31,15 @@ namespace NgTests.Infrastructure
         {
         }
 
+        public IDisposable TrackIndexCommitDuration()
+        {
+            return TrackDuration(nameof(TrackIndexCommitDuration));
+        }
+
+        public void TrackIndexCommitTimeout()
+        {
+        }
+
         public void TrackHandlerFailedToProcessPackage(IPackagesContainerHandler handler, string packageId, NuGetVersion packageVersion)
         {
         }
