@@ -536,7 +536,9 @@ namespace NuGetGallery
 
                 fakeBlob.Verify();
 
-                if (folderName == CoreConstants.PackagesFolderName || folderName == CoreConstants.SymbolPackagesFolderName)
+                if (folderName == CoreConstants.PackagesFolderName 
+                    || folderName == CoreConstants.SymbolPackagesFolderName
+                    || folderName == CoreConstants.ValidationFolderName)
                 {
                     Assert.Equal(CoreConstants.DefaultCacheControl, fakeBlob.Object.Properties.CacheControl);
                 }

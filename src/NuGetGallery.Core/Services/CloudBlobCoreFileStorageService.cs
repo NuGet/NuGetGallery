@@ -71,12 +71,12 @@ namespace NuGetGallery
 
         public async Task<Stream> GetFileAsync(string folderName, string fileName)
         {
-            if (String.IsNullOrWhiteSpace(folderName))
+            if (string.IsNullOrWhiteSpace(folderName))
             {
                 throw new ArgumentNullException(nameof(folderName));
             }
 
-            if (String.IsNullOrWhiteSpace(fileName))
+            if (string.IsNullOrWhiteSpace(fileName))
             {
                 throw new ArgumentNullException(nameof(fileName));
             }
@@ -86,12 +86,12 @@ namespace NuGetGallery
 
         public async Task<IFileReference> GetFileReferenceAsync(string folderName, string fileName, string ifNoneMatch = null)
         {
-            if (String.IsNullOrWhiteSpace(folderName))
+            if (string.IsNullOrWhiteSpace(folderName))
             {
                 throw new ArgumentNullException(nameof(folderName));
             }
 
-            if (String.IsNullOrWhiteSpace(fileName))
+            if (string.IsNullOrWhiteSpace(fileName))
             {
                 throw new ArgumentNullException(nameof(fileName));
             }
@@ -243,7 +243,7 @@ namespace NuGetGallery
             catch (StorageException ex) when (ex.IsFileAlreadyExistsException())
             {
                 throw new FileAlreadyExistsException(
-                    String.Format(
+                    string.Format(
                         CultureInfo.CurrentCulture,
                         "There is already a blob with name {0} in container {1}.",
                         destFileName,
@@ -276,6 +276,15 @@ namespace NuGetGallery
                 throw new StorageException($"The blob copy operation had copy status {destBlob.CopyState.Status} ({destBlob.CopyState.StatusDescription}).");
             }
 
+            await destBlob.FetchAttributesAsync();
+            var cacheControl = GetCacheControlForCopy(destFolderName);
+            if (!string.IsNullOrEmpty(cacheControl)
+                && string.IsNullOrEmpty(destBlob.Properties.CacheControl))
+            {
+                destBlob.Properties.CacheControl = cacheControl;
+                await destBlob.SetPropertiesAsync();
+            }
+
             return srcBlob.ETag;
         }
 
@@ -305,7 +314,7 @@ namespace NuGetGallery
             catch (StorageException ex) when (ex.IsFileAlreadyExistsException())
             {
                 throw new FileAlreadyExistsException(
-                    String.Format(
+                    string.Format(
                         CultureInfo.CurrentCulture,
                         "There is already a blob with name {0} in container {1}.",
                         fileName,
@@ -338,7 +347,7 @@ namespace NuGetGallery
             catch (StorageException ex) when (ex.IsFileAlreadyExistsException())
             {
                 throw new FileAlreadyExistsException(
-                    String.Format(
+                    string.Format(
                         CultureInfo.CurrentCulture,
                         "There is already a blob with name {0} in container {1}.",
                         fileName,
@@ -497,7 +506,7 @@ namespace NuGetGallery
             }
 
             throw new InvalidOperationException(
-                String.Format(CultureInfo.CurrentCulture, "The folder name {0} is not supported.", folderName));
+                string.Format(CultureInfo.CurrentCulture, "The folder name {0} is not supported.", folderName));
         }
 
         private async Task<StorageResult> GetBlobContentAsync(string folderName, string fileName, string ifNoneMatch = null)
@@ -577,7 +586,20 @@ namespace NuGetGallery
 
                 default:
                     throw new InvalidOperationException(
-                        String.Format(CultureInfo.CurrentCulture, "The folder name {0} is not supported.", folderName));
+                        string.Format(CultureInfo.CurrentCulture, "The folder name {0} is not supported.", folderName));
+            }
+        }
+
+        private static string GetCacheControlForCopy(string folderName)
+        {
+            switch (folderName)
+            {
+                case CoreConstants.PackagesFolderName:
+                case CoreConstants.SymbolPackagesFolderName:
+                    return CoreConstants.DefaultCacheControl;
+
+                default:
+                    return null;
             }
         }
 
@@ -587,11 +609,11 @@ namespace NuGetGallery
             {
                 case CoreConstants.PackagesFolderName:
                 case CoreConstants.SymbolPackagesFolderName:
+                case CoreConstants.ValidationFolderName:
                     return CoreConstants.DefaultCacheControl;
 
                 case CoreConstants.PackageBackupsFolderName:
                 case CoreConstants.UploadsFolderName:
-                case CoreConstants.ValidationFolderName:
                 case CoreConstants.SymbolPackageBackupsFolderName:
                 case CoreConstants.DownloadsFolderName:
                 case CoreConstants.PackageReadMesFolderName:
@@ -603,7 +625,7 @@ namespace NuGetGallery
 
                 default:
                     throw new InvalidOperationException(
-                        String.Format(CultureInfo.CurrentCulture, "The folder name {0} is not supported.", folderName));
+                        string.Format(CultureInfo.CurrentCulture, "The folder name {0} is not supported.", folderName));
             }
         }
 
