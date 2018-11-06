@@ -19,22 +19,23 @@ namespace Validation.PackageSigning.RevalidateCertificate
     {
         private const string RevalidationConfigurationSectionName = "RevalidateJob";
 
-        private ICertificateRevalidator _revalidator;
-
         public override void Init(IServiceContainer serviceContainer, IDictionary<string, string> jobArgsDictionary)
         {
             base.Init(serviceContainer, jobArgsDictionary);
-
-            _revalidator = _serviceProvider.GetRequiredService<ICertificateRevalidator>();
         }
 
         public override async Task Run()
         {
-            // Both of these methods only do a chunk of the possible promotion/revalidating work before
-            // completing. This "Run" method may need to run several times to promote all signatures
-            // and to revalidate all stale certificates.
-            await _revalidator.PromoteSignaturesAsync();
-            await _revalidator.RevalidateStaleCertificatesAsync();
+            using (var scope = _serviceProvider.CreateScope())
+            {
+                var revalidator = scope.ServiceProvider.GetRequiredService<ICertificateRevalidator>();
+
+                // Both of these methods only do a chunk of the possible promotion/revalidating work before
+                // completing. This "Run" method may need to run several times to promote all signatures
+                // and to revalidate all stale certificates.
+                await revalidator.PromoteSignaturesAsync();
+                await revalidator.RevalidateStaleCertificatesAsync();
+            }
         }
 
         protected override void ConfigureJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
