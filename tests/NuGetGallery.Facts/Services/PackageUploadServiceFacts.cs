@@ -470,9 +470,10 @@ namespace NuGetGallery
                 {
                     Assert.Equal(PackageValidationResultType.Accepted, result.Type);
                     Assert.Null(result.Message);
-                    Assert.Single(result.Warnings);
-                    Assert.IsType<LicenseUrlDeprecationValidationMessage>(result.Warnings[0]);
-                    Assert.StartsWith("All published packages should have license information specified.", result.Warnings[0].PlainTextMessage);
+                    Assert.Empty(result.Warnings);
+                    // TODO: uncomment when we have full support for licenses.
+                    //Assert.IsType<LicenseUrlDeprecationValidationMessage>(result.Warnings[0]);
+                    //Assert.StartsWith("All published packages should have license information specified.", result.Warnings[0].PlainTextMessage);
                 }
             }
 
@@ -523,9 +524,10 @@ namespace NuGetGallery
                 {
                     Assert.Equal(PackageValidationResultType.Accepted, result.Type);
                     Assert.Null(result.Message);
-                    Assert.Single(result.Warnings);
-                    Assert.StartsWith("<licenseUrl> element will be deprecated, please consider switching to specifying the license in the package.", result.Warnings[0].PlainTextMessage);
-                    Assert.IsType<LicenseUrlDeprecationValidationMessage>(result.Warnings[0]);
+                    Assert.Empty(result.Warnings);
+                    // TODO: uncomment when we have full support for licenses.
+                    //Assert.StartsWith("<licenseUrl> element will be deprecated, please consider switching to specifying the license in the package.", result.Warnings[0].PlainTextMessage);
+                    //Assert.IsType<LicenseUrlDeprecationValidationMessage>(result.Warnings[0]);
                 }
             }
 

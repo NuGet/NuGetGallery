@@ -170,7 +170,8 @@ namespace NuGetGallery
                     }
                     else
                     {
-                        warnings.Add(new LicenseUrlDeprecationValidationMessage(Strings.UploadPackage_LicenseShouldBeSpecified));
+                        // TODO: uncomment when we have full support for licenses.
+                        // warnings.Add(new LicenseUrlDeprecationValidationMessage(Strings.UploadPackage_LicenseShouldBeSpecified));
                     }
                 }
 
@@ -187,7 +188,8 @@ namespace NuGetGallery
                     }
                     else
                     {
-                        warnings.Add(new LicenseUrlDeprecationValidationMessage(Strings.UploadPackage_DeprecatingLicenseUrl));
+                        // TODO: uncomment when we have full support for licenses.
+                        //warnings.Add(new LicenseUrlDeprecationValidationMessage(Strings.UploadPackage_DeprecatingLicenseUrl));
                     }
                 }
 
