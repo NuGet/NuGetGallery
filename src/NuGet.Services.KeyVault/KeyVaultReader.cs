@@ -37,6 +37,12 @@ namespace NuGet.Services.KeyVault
             return secret.Value;
         }
 
+        public async Task<ISecret> GetSecretObjectAsync(string secretName)
+        {
+            var secret = await _keyVaultClient.Value.GetSecretAsync(_vault, secretName);
+            return new KeyVaultSecret(secretName, secret.Value, secret.Attributes.Expires);                
+        }
+
         private KeyVaultClient InitializeClient()
         {
             _clientAssertionCertificate = new ClientAssertionCertificate(_configuration.ClientId, _configuration.Certificate);
@@ -57,4 +63,5 @@ namespace NuGet.Services.KeyVault
             return result.AccessToken;
         }
     }
+
 }

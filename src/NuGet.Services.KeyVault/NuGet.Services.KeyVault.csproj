@@ -54,12 +54,14 @@
     <Compile Include="CachingSecretReader.cs" />
     <Compile Include="CachingSecretReaderFactory.cs" />
     <Compile Include="CertificateUtility.cs" />
+    <Compile Include="ISecret.cs" />
     <Compile Include="ISecretReaderFactory.cs" />
     <Compile Include="EmptySecretReader.cs" />
     <Compile Include="ISecretInjector.cs" />
     <Compile Include="ISecretReader.cs" />
     <Compile Include="KeyVaultConfiguration.cs" />
     <Compile Include="KeyVaultReader.cs" />
+    <Compile Include="KeyVaultSecret.cs" />
     <Compile Include="SecretInjector.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.*.cs" />
