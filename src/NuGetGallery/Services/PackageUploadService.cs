@@ -40,6 +40,14 @@ namespace NuGetGallery
         private const string LicenseNodeName = "license";
         private const string AllowedLicenseVersion = "1.0.0";
         private const string Unlicensed = "UNLICENSED";
+        /// <summary>
+        /// The upper limit on allowed license file size.
+        /// </summary>
+        /// <remarks>
+        /// This limit is chosen fairly arbitrarily, it has to be large enough to fit any sensible license
+        /// in plain text and small enough to not cause issues with scanning through such file a few times
+        /// during the package validation.
+        /// </remarks>
         private const long MaxAllowedLicenseLength = 1024 * 1024;
         private const int MaxAllowedLicenseNodeValueLength = 500;
 
