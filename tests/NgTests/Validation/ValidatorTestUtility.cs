@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Threading;
 using NuGet.Packaging.Core;
 using NuGet.Services.Metadata.Catalog;
+using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGet.Services.Metadata.Catalog.Monitoring;
 using NuGet.Versioning;
 
@@ -15,6 +16,13 @@ namespace NgTests
 {
     public static class ValidatorTestUtility
     {
+        public static ValidatorConfiguration CreateValidatorConfig(
+            string packageBaseAddress = "https://nuget.test/packages",
+            bool requirePackageSignature = false)
+        {
+            return new ValidatorConfiguration(packageBaseAddress, requirePackageSignature);
+        }
+
         public static IEnumerable<Tuple<T, T>> GetPairs<T>(IEnumerable<Func<T>> valueFactories)
         {
             var set = valueFactories;
@@ -87,14 +95,15 @@ namespace NgTests
             return types.Select(
                 t => (T)t.GetConstructor(new Type[] { }).Invoke(null));
         }
+
         public static ValidationContext GetFakeValidationContext()
         {
             return new ValidationContext(
-                new PackageIdentity("testPackage", new NuGetVersion(1, 0, 0)), 
-                null, 
-                null, 
-                new CollectorHttpClient(), 
-                CancellationToken.None);
+                new PackageIdentity("testPackage", new NuGetVersion(1, 0, 0)),
+                Enumerable.Empty<CatalogIndexEntry>(),
+                Enumerable.Empty<DeletionAuditEntry>(),
+                client: new CollectorHttpClient(),
+                token: CancellationToken.None);
         }
     }
 }

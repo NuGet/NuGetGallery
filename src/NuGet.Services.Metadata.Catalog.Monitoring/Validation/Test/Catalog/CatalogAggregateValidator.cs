@@ -13,18 +13,28 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring.Validation.Test.Catalog
     /// </summary>
     public sealed class CatalogAggregateValidator : IAggregateValidator
     {
-        private List<IValidator> _validators;
+        private readonly IReadOnlyList<IValidator> _validators;
 
-        public CatalogAggregateValidator(ValidatorFactory factory, bool requireSignature)
+        public CatalogAggregateValidator(ValidatorFactory factory, ValidatorConfiguration configuration)
         {
-            factory = factory ?? throw new ArgumentNullException(nameof(factory));
-
-            _validators = new List<IValidator>();
-
-            if (requireSignature)
+            if (factory == null)
             {
-                _validators.Add(factory.Create(typeof(PackageHasSignatureValidator)));
+                throw new ArgumentNullException(nameof(factory));
             }
+
+            if (configuration == null)
+            {
+                throw new ArgumentNullException(nameof(configuration));
+            }
+
+            var validators = new List<IValidator>();
+
+            if (configuration.RequirePackageSignature)
+            {
+                validators.Add(factory.Create(typeof(PackageHasSignatureValidator)));
+            }
+
+            _validators = validators;
         }
 
         public string Name => GetType().FullName;

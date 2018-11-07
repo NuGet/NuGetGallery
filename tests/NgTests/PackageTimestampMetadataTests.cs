@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -11,6 +12,7 @@ using NgTests.Data;
 using NgTests.Infrastructure;
 using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Monitoring;
+using NuGet.Versioning;
 using Xunit;
 
 namespace NgTests
@@ -85,16 +87,50 @@ namespace NgTests
             var client = await CreateDummyClient(catalogStorage);
 
             var expectedTimestamp = DateTime.Parse("2015-01-01T00:00:00");
+            var commitTimeStamp1 = DateTime.ParseExact(
+                "2015-10-12T10:08:54.1506742Z",
+                CatalogConstants.CommitTimeStampFormat,
+                DateTimeFormatInfo.CurrentInfo,
+                DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal);
+            var commitTimeStamp2 = DateTime.ParseExact(
+                "2015-10-12T10:08:55.3335317Z",
+                CatalogConstants.CommitTimeStampFormat,
+                DateTimeFormatInfo.CurrentInfo,
+                DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal);
 
-            var uris = new List<Uri>
+            var tasks = new Task<PackageTimestampMetadata>[]
             {
-                new Uri(catalogStorage.BaseAddress, "data/2015.10.12.10.08.54/listedpackage.1.0.0.json"),
-                new Uri(catalogStorage.BaseAddress, "data/2015.10.12.10.08.54/unlistedpackage.1.0.0.json"),
-                new Uri(catalogStorage.BaseAddress, "data/2015.10.12.10.08.55/listedpackage.1.0.1.json")
+                PackageTimestampMetadata.FromCatalogEntry(
+                    client,
+                    new CatalogIndexEntry(
+                        new Uri(catalogStorage.BaseAddress, "data/2015.10.12.10.08.54/listedpackage.1.0.0.json"),
+                        CatalogConstants.NuGetPackageDetails,
+                        "9a37734f-1960-4c07-8934-c8bc797e35c1",
+                        commitTimeStamp1,
+                        "ListedPackage",
+                        new NuGetVersion("1.0.0"))),
+                PackageTimestampMetadata.FromCatalogEntry(
+                    client,
+                    new CatalogIndexEntry(
+                        new Uri(catalogStorage.BaseAddress, "data/2015.10.12.10.08.54/unlistedpackage.1.0.0.json"),
+                        CatalogConstants.NuGetPackageDetails,
+                        "9a37734f-1960-4c07-8934-c8bc797e35c1",
+                        commitTimeStamp1,
+                        "UnlistedPackage",
+                        new NuGetVersion("1.0.0"))),
+                PackageTimestampMetadata.FromCatalogEntry(
+                    client,
+                    new CatalogIndexEntry(
+                        new Uri(catalogStorage.BaseAddress, "data/2015.10.12.10.08.55/listedpackage.1.0.1.json"),
+                        CatalogConstants.NuGetPackageDetails,
+                        "8a9e7694-73d4-4775-9b7a-20aa59b9773e",
+                        commitTimeStamp2,
+                        "ListedPackage",
+                        new NuGetVersion("1.0.1"))),
             };
 
             // Act
-            var entries = await Task.WhenAll(uris.Select(uri => PackageTimestampMetadata.FromCatalogEntry(client, new CatalogIndexEntry(uri, null, null, DateTime.MinValue, null, null))));
+            var entries = await Task.WhenAll(tasks);
 
             // Assert
             foreach (var entry in entries)
@@ -117,9 +153,20 @@ namespace NgTests
             var expectedTimestamp = DateTime.Parse("2015-01-01T01:01:01.0748028");
 
             var uri = new Uri(catalogStorage.BaseAddress, "data/2015.10.13.06.40.07/otherpackage.1.0.0.json");
+            var catalogIndexEntry = new CatalogIndexEntry(
+                uri,
+                CatalogConstants.NuGetPackageDelete,
+                "afc8c1f4-486e-4142-b3ec-cf5841eb8883",
+                DateTime.ParseExact(
+                    "2015-10-13T06:40:07.7850657Z",
+                    CatalogConstants.CommitTimeStampFormat,
+                    DateTimeFormatInfo.CurrentInfo,
+                    DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal),
+                "OtherPackage",
+                new NuGetVersion("1.0.0"));
 
             // Act
-            var entry = await PackageTimestampMetadata.FromCatalogEntry(client, new CatalogIndexEntry(uri, "nuget:PackageDelete", null, DateTime.MinValue, null, null));
+            var entry = await PackageTimestampMetadata.FromCatalogEntry(client, catalogIndexEntry);
 
             // Assert
             Assert.False(entry.Exists);

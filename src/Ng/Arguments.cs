@@ -63,6 +63,7 @@ namespace Ng
         #region Catalog2Lucene
         public const string CatalogBaseAddress = "catalogBaseAddress";
         public const string Registration = "registration";
+        public const string CommitTimeoutInSeconds = "commitTimeoutInSeconds";
         #endregion
 
         #region Catalog2Registration
@@ -84,6 +85,10 @@ namespace Ng
         public const string ContentIsFlatContainer = "contentIsFlatContainer";
         public const string CursorUri = "cursorUri";
         public const string FlatContainerName = "flatContainerName";
+        #endregion
+
+        #region Catalog2PackageFixup
+        public const string Verify = "verify";
         #endregion
 
         #region CopyLucene

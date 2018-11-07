@@ -59,8 +59,12 @@ namespace Ng.Jobs
                 "CONFIG gallery: {Gallery} index: {Index} storage: {Storage} auditingStorage: {AuditingStorage} endpoints: {Endpoints}",
                 gallery, index, monitoringStorageFactory, auditingStorageFactory, string.Join(", ", endpointInputs.Select(e => e.Name)));
 
+            var validatorConfig = new ValidatorConfiguration(
+                packageBaseAddress,
+                requireSignature);
+
             _packageValidator = new PackageValidatorFactory(LoggerFactory)
-                .Create(gallery, index, packageBaseAddress, auditingStorageFactory, endpointInputs, messageHandlerFactory, requireSignature, verbose);
+                .Create(gallery, index, auditingStorageFactory, endpointInputs, messageHandlerFactory, validatorConfig, verbose);
 
             _queue = CommandHelpers.CreateStorageQueue<PackageValidatorContext>(arguments, PackageValidatorContext.Version);
 
@@ -71,6 +75,21 @@ namespace Ng.Jobs
             _regResource = Repository.Factory.GetCoreV3(index).GetResource<RegistrationResourceV3>(cancellationToken);
 
             _client = new CollectorHttpClient(messageHandlerFactory());
+
+            SetUserAgentString();
+        }
+
+        /// <remarks>
+        /// Unfortunately, we have to use reflection to set the user agent string as we'd like to.
+        /// See https://github.com/NuGet/Home/issues/7464
+        /// </remarks>
+        private static void SetUserAgentString()
+        {
+            var userAgentString = UserAgentUtility.GetUserAgent();
+
+            typeof(UserAgent)
+                .GetProperty(nameof(UserAgent.UserAgentString))
+                .SetValue(null, userAgentString);
         }
 
         protected override async Task RunInternalAsync(CancellationToken cancellationToken)

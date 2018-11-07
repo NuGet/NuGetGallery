@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using Moq;
 using NuGet.Services.Logging;
 using NuGet.Services.Metadata.Catalog;
+using NuGet.Versioning;
 
 namespace NgTests.Infrastructure
 {
@@ -27,6 +28,35 @@ namespace NgTests.Infrastructure
         }
 
         public void TrackCatalogIndexWriteDuration(TimeSpan duration, Uri uri)
+        {
+        }
+
+        public IDisposable TrackIndexCommitDuration()
+        {
+            return TrackDuration(nameof(TrackIndexCommitDuration));
+        }
+
+        public void TrackIndexCommitTimeout()
+        {
+        }
+
+        public void TrackHandlerFailedToProcessPackage(IPackagesContainerHandler handler, string packageId, NuGetVersion packageVersion)
+        {
+        }
+
+        public void TrackPackageMissingHash(string packageId, NuGetVersion packageVersion)
+        {
+        }
+
+        public void TrackPackageHasIncorrectHash(string packageId, NuGetVersion packageVersion)
+        {
+        }
+
+        public void TrackPackageAlreadyHasHash(string packageId, NuGetVersion packageVersion)
+        {
+        }
+
+        public void TrackPackageHashFixed(string packageId, NuGetVersion packageVersion)
         {
         }
 

@@ -2,8 +2,19 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Moq;
+using NuGet.Packaging.Core;
+using NuGet.Protocol;
+using NuGet.Protocol.Core.Types;
+using NuGet.Services.Metadata.Catalog;
+using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGet.Services.Metadata.Catalog.Monitoring;
+using NuGet.Versioning;
 using Xunit;
 
 namespace NgTests
@@ -19,7 +30,7 @@ namespace NgTests
 
             var validator = new TestableValidator(shouldRun, runInternal);
 
-            var context = new ValidationContext();
+            var context = CreateContext();
 
             // Act
             var result = await validator.ValidateAsync(context);
@@ -39,7 +50,7 @@ namespace NgTests
 
             var validator = new TestableValidator(shouldRun, runInternal);
 
-            var context = new ValidationContext();
+            var context = CreateContext();
 
             // Act
             var result = await validator.ValidateAsync(context);
@@ -61,7 +72,7 @@ namespace NgTests
 
             var validator = new TestableValidator(shouldRun, runInternal);
 
-            var context = new ValidationContext();
+            var context = CreateContext();
 
             // Act
             var result = await validator.ValidateAsync(context);
@@ -71,11 +82,46 @@ namespace NgTests
             Assert.Equal(TestResult.Fail, result.Result);
             Assert.Same(exception, result.Exception);
         }
+
+        private static ValidationContext CreateContext()
+        {
+            return new ValidationContext(
+                new PackageIdentity("A", new NuGetVersion(1, 0, 0)),
+                Enumerable.Empty<CatalogIndexEntry>(),
+                Enumerable.Empty<DeletionAuditEntry>(),
+                new CollectorHttpClient(),
+                CancellationToken.None);
+        }
     }
 
     public class TestableValidator : Validator
     {
+        private static readonly IDictionary<FeedType, SourceRepository> _feedToSource;
+        private static readonly ILogger<Validator> _logger;
+        private static readonly ValidatorConfiguration _validatorConfiguration;
+
+        static TestableValidator()
+        {
+            var sourceRepository = new Mock<SourceRepository>();
+            var metadataResource = new Mock<IPackageTimestampMetadataResource>();
+
+            metadataResource.Setup(x => x.GetAsync(It.IsAny<ValidationContext>()))
+                .ReturnsAsync(PackageTimestampMetadata.CreateForPackageExistingOnFeed(DateTime.Now, DateTime.Now));
+
+            sourceRepository.Setup(x => x.GetResource<IPackageTimestampMetadataResource>())
+                .Returns(metadataResource.Object);
+
+            var feedToSource = new Mock<IDictionary<FeedType, SourceRepository>>();
+
+            feedToSource.Setup(x => x[It.IsAny<FeedType>()]).Returns(sourceRepository.Object);
+
+            _feedToSource = feedToSource.Object;
+            _validatorConfiguration = new ValidatorConfiguration(packageBaseAddress: "a", requirePackageSignature: true);
+            _logger = Mock.Of<ILogger<Validator>>();
+        }
+
         public TestableValidator(Func<bool> shouldRun, Action runInternal)
+            : base(_feedToSource, _validatorConfiguration, _logger)
         {
             _shouldRun = shouldRun;
             _runInternal = runInternal;

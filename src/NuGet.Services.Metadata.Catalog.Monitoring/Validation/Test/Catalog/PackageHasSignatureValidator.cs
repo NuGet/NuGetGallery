@@ -25,8 +25,9 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring.Validation.Test.Catalog
 
         public PackageHasSignatureValidator(
             IDictionary<FeedType, SourceRepository> feedToSource,
+            ValidatorConfiguration config,
             ILogger<PackageHasSignatureValidator> logger)
-          : base(feedToSource, logger)
+          : base(feedToSource, config, logger)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
@@ -63,7 +64,7 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring.Validation.Test.Catalog
             }
 
             // We don't need to validate the package if the latest entry indicates deletion.
-            if (latest.IsDelete())
+            if (latest.IsDelete)
             {
                 _logger.LogInformation(
                     "Skipping package {PackageId} {PackageVersion} as its latest catalog entry is a delete",

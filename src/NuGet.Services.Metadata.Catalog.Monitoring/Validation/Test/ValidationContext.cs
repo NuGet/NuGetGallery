@@ -46,29 +46,32 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
         /// </summary>
         public CancellationToken CancellationToken { get; }
 
-        /// <summary>
-        /// Empty constructor for testing.
-        /// </summary>
-        public ValidationContext()
-        {
-            _boolCache = new ConcurrentDictionary<string, Lazy<Task<bool>>>();
-            _indexCache = new ConcurrentDictionary<string, Lazy<Task<PackageRegistrationIndexMetadata>>>();
-            _leafCache = new ConcurrentDictionary<string, Lazy<Task<PackageRegistrationLeafMetadata>>>();
-        }
-
         public ValidationContext(
             PackageIdentity package,
             IEnumerable<CatalogIndexEntry> entries,
             IEnumerable<DeletionAuditEntry> deletionAuditEntries,
             CollectorHttpClient client,
             CancellationToken token)
-            : this()
         {
-            Package = package;
-            Entries = entries?.ToList() ?? null;
-            DeletionAuditEntries = deletionAuditEntries?.ToList() ?? null;
-            Client = client;
+            if (entries == null)
+            {
+                throw new ArgumentNullException(nameof(entries));
+            }
+
+            if (deletionAuditEntries == null)
+            {
+                throw new ArgumentNullException(nameof(deletionAuditEntries));
+            }
+
+            Package = package ?? throw new ArgumentNullException(nameof(package));
+            Entries = entries.ToList();
+            DeletionAuditEntries = deletionAuditEntries.ToList();
+            Client = client ?? throw new ArgumentNullException(nameof(client));
             CancellationToken = token;
+
+            _boolCache = new ConcurrentDictionary<string, Lazy<Task<bool>>>();
+            _indexCache = new ConcurrentDictionary<string, Lazy<Task<PackageRegistrationIndexMetadata>>>();
+            _leafCache = new ConcurrentDictionary<string, Lazy<Task<PackageRegistrationLeafMetadata>>>();
         }
 
         public Task<bool> GetCachedResultAsync(string key, Lazy<Task<bool>> lazyTask)

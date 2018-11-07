@@ -14,32 +14,12 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
     /// </summary>
     public abstract class FlatContainerValidator : Validator<FlatContainerEndpoint>
     {
-        private Lazy<string> _v3PackageBaseAddress;
-
         public FlatContainerValidator(
             IDictionary<FeedType, SourceRepository> feedToSource,
-            ILogger<FlatContainerValidator> logger) : base(feedToSource, logger)
+            ValidatorConfiguration config,
+            ILogger<FlatContainerValidator> logger)
+            : base(feedToSource, config, logger)
         {
-            _v3PackageBaseAddress = new Lazy<string>(() =>
-            {
-                return GetV3PackageBaseAddressAsync(feedToSource);
-            });
-        }
-
-        private string GetV3PackageBaseAddressAsync(IDictionary<FeedType, SourceRepository> feedToSource)
-        {
-            // Based off DownloadResourceV3Provider.
-            // See: https://github.com/NuGet/NuGet.Client/blob/3803820961f4d61c06d07b179dab1d0439ec0d91/src/NuGet.Core/NuGet.Protocol/Providers/DownloadResourceV3Provider.cs#L19
-            var packageBaseAddressResource = feedToSource[FeedType.HttpV3].GetResource<PackageBaseAddressResource>();
-
-            if (packageBaseAddressResource == null)
-            {
-                throw new ArgumentException(
-                    $"Could not find resource {nameof(PackageBaseAddressResource)} on {FeedType.HttpV3} source repository",
-                    nameof(feedToSource));
-            }
-
-            return packageBaseAddressResource.PackageBaseAddress;
         }
 
         protected Uri GetV3PackageUri(ValidationContext context)
@@ -49,7 +29,7 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
             var id = context.Package.Id.ToLowerInvariant();
             var version = context.Package.Version.ToNormalizedString().ToLowerInvariant();
 
-            return new Uri($"{_v3PackageBaseAddress.Value}/{id}/{version}/{id}.{version}.nupkg");
+            return new Uri($"{Config.PackageBaseAddress}/{id}/{version}/{id}.{version}.nupkg");
         }
     }
 }
