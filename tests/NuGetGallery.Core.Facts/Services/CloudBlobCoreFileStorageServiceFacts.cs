@@ -1109,6 +1109,7 @@ namespace NuGetGallery
                 instance._destBlobMock.Verify(
                     x => x.StartCopyAsync(It.IsAny<ISimpleCloudBlob>(), It.IsAny<AccessCondition>(), It.IsAny<AccessCondition>()),
                     Times.Once);
+                Assert.NotNull(instance._destProperties.CacheControl);
                 instance._blobClient.Verify(
                     x => x.GetBlobFromUri(instance._srcUri),
                     Times.Once);
