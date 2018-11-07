@@ -2328,7 +2328,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The license file cannot be longer than {0} bytes..
+        ///   Looks up a localized string similar to The license file cannot be longer than {0}..
         /// </summary>
         public static string UploadPackage_LicenseFileTooLong {
             get {

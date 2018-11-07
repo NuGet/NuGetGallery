@@ -40,7 +40,7 @@ namespace NuGetGallery
         private const string LicenseNodeName = "license";
         private const string AllowedLicenseVersion = "1.0.0";
         private const string Unlicensed = "UNLICENSED";
-        private const int MaxAllowedLicenseLength = 1024 * 1024;
+        private const long MaxAllowedLicenseLength = 1024 * 1024;
         private const int MaxAllowedLicenseNodeValueLength = 500;
 
         private readonly IPackageService _packageService;
@@ -250,7 +250,7 @@ namespace NuGetGallery
                     return PackageValidationResult.Invalid(
                         string.Format(
                             Strings.UploadPackage_LicenseFileTooLong,
-                            MaxAllowedLicenseLength));
+                            MaxAllowedLicenseLength.ToUserFriendlyBytesLabel()));
                 }
 
                 using (var licenseFileStream = nuGetPackage.GetStream(licenseMetadata.License))
