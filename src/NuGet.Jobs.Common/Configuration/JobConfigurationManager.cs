@@ -7,7 +7,6 @@ using System.ComponentModel.Design;
 using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using NuGet.Jobs.Extensions;
 using NuGet.Services.Configuration;
 using NuGet.Services.KeyVault;
 

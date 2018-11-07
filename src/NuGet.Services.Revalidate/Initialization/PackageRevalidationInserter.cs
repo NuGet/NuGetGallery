@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NuGet.Jobs;
 using NuGet.Jobs.Configuration;
-using NuGet.Jobs.Validation;
 using NuGet.Services.Validation;
 
 namespace NuGet.Services.Revalidate

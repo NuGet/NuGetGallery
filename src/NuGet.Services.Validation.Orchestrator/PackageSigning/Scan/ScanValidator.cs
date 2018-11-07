@@ -10,6 +10,7 @@ using NuGet.Jobs.Validation.Storage;
 using NuGet.Jobs.Validation.ScanAndSign;
 using NuGet.Services.Validation.Vcs;
 using NuGetGallery;
+using NuGet.Services.Entities;
 
 namespace NuGet.Services.Validation.Orchestrator.PackageSigning.ScanAndSign
 {

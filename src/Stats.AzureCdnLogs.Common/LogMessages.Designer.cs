@@ -8,10 +8,10 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Stats.AzureCdnLogs.Common {
-    using System;
-    
-    
+namespace Stats.AzureCdnLogs.Common
+{
+
+
     /// <summary>
     ///   A strongly-typed resource class, for looking up localized strings, etc.
     /// </summary>

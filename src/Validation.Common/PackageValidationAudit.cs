@@ -3,9 +3,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
 using Newtonsoft.Json;
-using NuGet.Jobs.Validation.Common.OData;
 
 namespace NuGet.Jobs.Validation.Common
 {

@@ -3,7 +3,6 @@
 
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.DataContracts;
-using NuGet.Jobs;
 using NuGet.Services.Logging;
 
 namespace Stats.CreateAzureCdnWarehouseReports

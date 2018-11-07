@@ -8,8 +8,8 @@ using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Linq.Expressions;
 using Moq;
+using NuGet.Services.Entities;
 using NuGet.Services.Validation;
-using NuGetGallery;
 
 namespace Tests.ContextHelpers
 {

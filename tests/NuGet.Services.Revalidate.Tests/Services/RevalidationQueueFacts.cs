@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Moq;
+using NuGet.Services.Entities;
 using NuGet.Services.Validation;
 using NuGetGallery;
 using Tests.ContextHelpers;

@@ -16,11 +16,11 @@ using NuGet.Jobs.Validation.PackageSigning;
 using NuGet.Jobs.Validation.PackageSigning.ProcessSignature;
 using NuGet.Jobs.Validation.PackageSigning.Storage;
 using NuGet.Packaging.Signing;
+using NuGet.Services.Entities;
 using NuGet.Services.Validation;
 using NuGetGallery;
 using Org.BouncyCastle.Cms;
 using Org.BouncyCastle.X509.Store;
-using Test.Utility.Signing;
 using Validation.PackageSigning.Core.Tests.Support;
 using Xunit;
 

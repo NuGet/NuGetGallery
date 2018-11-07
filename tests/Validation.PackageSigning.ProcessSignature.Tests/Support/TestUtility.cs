@@ -3,6 +3,7 @@
 
 using System;
 using Moq;
+using NuGet.Services.Entities;
 using NuGetGallery;
 
 namespace Validation.PackageSigning.ProcessSignature.Tests

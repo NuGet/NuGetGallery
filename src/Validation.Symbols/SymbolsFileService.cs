@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Threading;
 using NuGetGallery;
 using NuGet.Jobs.Validation;
+using NuGet.Services.Entities;
 
 namespace Validation.Symbols
 {

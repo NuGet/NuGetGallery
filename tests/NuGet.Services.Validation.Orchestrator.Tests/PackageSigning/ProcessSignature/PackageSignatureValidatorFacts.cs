@@ -10,6 +10,7 @@ using Microsoft.Extensions.Options;
 using Moq;
 using NuGet.Jobs.Validation;
 using NuGet.Jobs.Validation.Storage;
+using NuGet.Services.Entities;
 using NuGet.Services.Validation.Orchestrator.PackageSigning.ScanAndSign;
 using NuGet.Services.Validation.Orchestrator.Telemetry;
 using NuGet.Services.Validation.PackageSigning.ProcessSignature;

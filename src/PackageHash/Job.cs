@@ -13,6 +13,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NuGet.Jobs.Validation;
 using NuGet.Services.Cursor;
+using NuGet.Services.Entities;
 using NuGet.Services.Storage;
 using NuGetGallery;
 

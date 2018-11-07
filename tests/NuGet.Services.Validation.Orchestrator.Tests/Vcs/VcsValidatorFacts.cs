@@ -11,7 +11,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.WindowsAzure.Storage;
 using Moq;
 using NuGet.Jobs.Validation.Common;
-using NuGetGallery;
+using NuGet.Services.Entities;
 using NuGet.Services.Validation.Orchestrator;
 using Xunit;
 

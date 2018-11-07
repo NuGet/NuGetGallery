@@ -4,7 +4,7 @@
 using System;
 using System.Linq;
 using System.Text.RegularExpressions;
-using NuGetGallery;
+using NuGet.Services.Entities;
 
 namespace NuGet.Services.Validation.Vcs
 {
