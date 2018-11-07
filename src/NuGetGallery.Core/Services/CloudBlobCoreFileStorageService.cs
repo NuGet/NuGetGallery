@@ -276,13 +276,15 @@ namespace NuGetGallery
                 throw new StorageException($"The blob copy operation had copy status {destBlob.CopyState.Status} ({destBlob.CopyState.StatusDescription}).");
             }
 
-            await destBlob.FetchAttributesAsync();
             var cacheControl = GetCacheControlForCopy(destFolderName);
-            if (!string.IsNullOrEmpty(cacheControl)
-                && string.IsNullOrEmpty(destBlob.Properties.CacheControl))
+            if (!string.IsNullOrEmpty(cacheControl))
             {
-                destBlob.Properties.CacheControl = cacheControl;
-                await destBlob.SetPropertiesAsync();
+                await destBlob.FetchAttributesAsync();
+                if (string.IsNullOrEmpty(destBlob.Properties.CacheControl))
+                {
+                    destBlob.Properties.CacheControl = cacheControl;
+                    await destBlob.SetPropertiesAsync();
+                }
             }
 
             return srcBlob.ETag;

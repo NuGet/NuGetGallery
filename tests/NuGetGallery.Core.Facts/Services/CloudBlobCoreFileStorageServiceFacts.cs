@@ -1067,6 +1067,53 @@ namespace NuGetGallery
                     Times.Once);
             }
 
+            [Theory]
+            [InlineData(CoreConstants.PackagesFolderName)]
+            [InlineData(CoreConstants.SymbolPackagesFolderName)]
+            public async Task WillCopyAndSetCacheControlOnCopyForFolder(string folderName)
+            {
+                // Arrange
+                var instance = new TheCopyFileAsyncMethod();
+                instance._blobClient
+                    .Setup(x => x.GetBlobFromUri(It.IsAny<Uri>()))
+                    .Returns(instance._srcBlobMock.Object);
+                instance._blobClient
+                    .Setup(x => x.GetContainerReference(folderName))
+                    .Returns(() => instance._destContainer.Object);
+
+                instance._destBlobMock
+                    .Setup(x => x.StartCopyAsync(It.IsAny<ISimpleCloudBlob>(), It.IsAny<AccessCondition>(), It.IsAny<AccessCondition>()))
+                    .Returns(Task.FromResult(0))
+                    .Callback<ISimpleCloudBlob, AccessCondition, AccessCondition>((_, __, ___) =>
+                    {
+                        SetDestCopyStatus(CopyStatus.Success);
+                    });
+                
+                // Act
+                await instance._target.CopyFileAsync(
+                    instance._srcUri,
+                    folderName,
+                    instance._destFileName,
+                    AccessConditionWrapper.GenerateIfNotExistsCondition());
+
+                // Assert
+                instance._destBlobMock.Verify(
+                    x => x.StartCopyAsync(instance._srcBlobMock.Object, It.IsAny<AccessCondition>(), It.IsAny<AccessCondition>()),
+                    Times.Once);
+                instance._destBlobMock.Verify(
+                    x => x.StartCopyAsync(It.IsAny<ISimpleCloudBlob>(), It.IsAny<AccessCondition>(), It.IsAny<AccessCondition>()),
+                    Times.Once);
+                instance._destBlobMock.Verify(
+                    x => x.SetPropertiesAsync(),
+                    Times.Once);
+                instance._destBlobMock.Verify(
+                    x => x.StartCopyAsync(It.IsAny<ISimpleCloudBlob>(), It.IsAny<AccessCondition>(), It.IsAny<AccessCondition>()),
+                    Times.Once);
+                instance._blobClient.Verify(
+                    x => x.GetBlobFromUri(instance._srcUri),
+                    Times.Once);
+            }
+
             [Fact]
             public async Task WillCopyTheFileIfDestinationDoesNotExist()
             {
