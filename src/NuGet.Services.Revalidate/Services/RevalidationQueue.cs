@@ -7,6 +7,7 @@ using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using NuGet.Services.Entities;
 using NuGet.Services.Validation;
 using NuGetGallery;
 

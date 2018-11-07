@@ -2,7 +2,8 @@
   "Initialization": {
     "PagerDutyAccountName": "nuget",
     "PagerDutyApiKey": "$$Dev-PagerDuty-ApiKey$$",
-    "SmtpUri": "#{Jobs.supportrequests.notifications.SmtpUri}",
+    "EmailPublisherConnectionString": "Endpoint=sb://nugetdev.servicebus.windows.net/;SharedAccessKeyName=enqueuer;SharedAccessKey=$$Dev-ServiceBus-SharedAccessKey-EmailPublisher-Enqueuer$$",
+    "EmailPublisherTopicName": "email-publisher",
     "TargetEmailAddress": "#{Jobs.supportrequests.notifications.weeklysummarynotification.TargetEmailAddress}"
   },
 

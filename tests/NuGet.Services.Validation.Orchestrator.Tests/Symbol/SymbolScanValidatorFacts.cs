@@ -15,6 +15,7 @@ using NuGet.Services.Validation.Vcs;
 using NuGetGallery;
 using Xunit;
 using System.IO;
+using NuGet.Services.Entities;
 
 namespace NuGet.Services.Validation.Orchestrator.Tests.Symbol
 {

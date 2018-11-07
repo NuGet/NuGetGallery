@@ -112,7 +112,7 @@ namespace Tests.CredentialExpiration
         }
 
         [Fact]
-        public void OutdatedCursorShouldNotSendExiringToExpiredEmails()
+        public void OutdatedCursorShouldNotSendExpiringToExpiredEmails()
         {
             // Arange
             var cursorTime = new DateTimeOffset(year: 2018, month: 4, day: 10, hour: 8, minute: 2, second: 2, offset: TimeSpan.FromSeconds(0));
@@ -145,7 +145,7 @@ namespace Tests.CredentialExpiration
         }
 
         [Fact]
-        public void GetMaxandGetMinAreAsExpected()
+        public void GetMaxAndGetMinAreAsExpected()
         {
             // Arange
             var cursorTime = new DateTimeOffset(year: 2018, month: 4, day: 10, hour: 8, minute: 2, second: 2, offset: TimeSpan.FromSeconds(0));

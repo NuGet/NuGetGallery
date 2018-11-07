@@ -3,7 +3,6 @@
 
 using System;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Options;
 using NuGet.Jobs.Validation.Symbols.Core;
 using NuGet.Services.ServiceBus;
 using Moq;

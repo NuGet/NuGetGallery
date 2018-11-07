@@ -4,7 +4,7 @@
 using System;
 using System.Net.Mail;
 using Microsoft.Extensions.Options;
-using NuGetGallery.Infrastructure.Mail;
+using NuGet.Services.Messaging.Email;
 
 namespace NuGet.Services.Validation.Orchestrator
 {

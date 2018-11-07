@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Moq;
+using NuGet.Services.Entities;
 using NuGetGallery;
 using Xunit;
 using Xunit.Abstractions;

@@ -24,24 +24,28 @@ Function Run-Tests {
     
     $xUnitExe = (Join-Path $PSScriptRoot "packages\xunit.runner.console\tools\xunit.console.exe")
     
-    $TestAssemblies = "tests\Tests.Gallery.Maintenance\bin\$Configuration\Tests.Gallery.Maintenance.dll", `
-        "tests\Tests.Search.GenerateAuxiliaryData\bin\$Configuration\Tests.Search.GenerateAuxiliaryData.dll", `
-        "tests\Tests.Stats.CollectAzureCdnLogs\bin\$Configuration\Tests.Stats.CollectAzureCdnLogs.dll", `
-        "tests\Tests.Stats.ImportAzureCdnStatistics\bin\$Configuration\Tests.Stats.ImportAzureCdnStatistics.dll", `
-        "tests\Validation.Helper.Tests\bin\$Configuration\Validation.Helper.Tests.dll",`
-        "tests\Tests.Stats.CollectAzureChinaCDNLogs\bin\$Configuration\Tests.Stats.CollectAzureChinaCDNLogs.dll", `
-        "tests\NuGet.Services.Validation.Orchestrator.Tests\bin\$Configuration\NuGet.Services.Validation.Orchestrator.Tests.dll", `
+    $TestAssemblies = "tests\Monitoring.RebootSearchInstance.Tests\bin\$Configuration\NuGet.Monitoring.RebootSearchInstance.Tests.dll", `
+        "tests\NuGet.Jobs.Common.Tests\bin\$Configuration\NuGet.Jobs.Common.Tests.dll", `
         "tests\NuGet.Services.Revalidate.Tests\bin\$Configuration\NuGet.Services.Revalidate.Tests.dll", `
-        "tests\Validation.Common.Tests\bin\$Configuration\Validation.Common.Tests.dll", `
-        "tests\Validation.PackageSigning.ProcessSignature.Tests\bin\$Configuration\Validation.PackageSigning.ProcessSignature.Tests.dll", `
-        "tests\Validation.PackageSigning.ValidateCertificate.Tests\bin\$Configuration\Validation.PackageSigning.ValidateCertificate.Tests.dll", `
-        "tests\Validation.PackageSigning.RevalidateCertificate.Tests\bin\$Configuration\Validation.PackageSigning.RevalidateCertificate.Tests.dll", `
-        "tests\Validation.PackageSigning.Core.Tests\bin\$Configuration\Validation.PackageSigning.Core.Tests.dll", `
-        "tests\Validation.Common.Job.Tests\bin\$Configuration\Validation.Common.Job.Tests.dll", `
+        "tests\NuGet.Services.Validation.Orchestrator.Tests\bin\$Configuration\NuGet.Services.Validation.Orchestrator.Tests.dll", `
         "tests\StatusAggregator\bin\$Configuration\StatusAggregator.dll", `
-        "tests\Monitoring.RebootSearchInstance.Tests\bin\$Configuration\NuGet.Monitoring.RebootSearchInstance.Tests.dll", `
-        "tests\Validation.Symbols.Tests\bin\$Configuration\Validation.Symbols.Tests.dll", `
-        "tests\Validation.Symbols.Tests\bin\$Configuration\Validation.Symbols.Core.Tests.dll"
+        "tests\Tests.CredentialExpiration\bin\$Configuration\Tests.CredentialExpiration.dll", `
+        "tests\Tests.Gallery.Maintenance\bin\$Configuration\Tests.Gallery.Maintenance.dll", `
+        "tests\Tests.Search.GenerateAuxiliaryData\bin\$Configuration\Tests.Search.GenerateAuxiliaryData.dll", `
+        "tests\Tests.Stats.AggregateCdnDownloadsInGallery\bin\$Configuration\Tests.Stats.AggregateCdnDownloadsInGallery.dll", `
+        "tests\Tests.Stats.CollectAzureCdnLogs\bin\$Configuration\Tests.Stats.CollectAzureCdnLogs.dll", `
+        "tests\Tests.Stats.CollectAzureChinaCdnLogs\bin\$Configuration\Tests.Stats.CollectAzureChinaCdnLogs.dll", `
+        "tests\Tests.Stats.ImportAzureCdnStatistics\bin\$Configuration\Tests.Stats.ImportAzureCdnStatistics.dll", `
+        "tests\Validation.Common.Job.Tests\bin\$Configuration\Validation.Common.Job.Tests.dll", `
+        "tests\Validation.Common.Tests\bin\$Configuration\Validation.Common.Tests.dll", `
+        "tests\Validation.Helper.Tests\bin\$Configuration\Validation.Helper.Tests.dll",`
+        "tests\Validation.PackageSigning.Core.Tests\bin\$Configuration\Validation.PackageSigning.Core.Tests.dll", `
+        "tests\Validation.PackageSigning.ProcessSignature.Tests\bin\$Configuration\Validation.PackageSigning.ProcessSignature.Tests.dll", `
+        "tests\Validation.PackageSigning.RevalidateCertificate.Tests\bin\$Configuration\Validation.PackageSigning.RevalidateCertificate.Tests.dll", `
+        "tests\Validation.PackageSigning.ScanAndSign.Tests\bin\$Configuration\Validation.PackageSigning.ScanAndSign.Tests.dll", `
+        "tests\Validation.PackageSigning.ValidateCertificate.Tests\bin\$Configuration\Validation.PackageSigning.ValidateCertificate.Tests.dll", `
+        "tests\Validation.Symbols.Tests\bin\$Configuration\Validation.Symbols.Core.Tests.dll", `
+        "tests\Validation.Symbols.Tests\bin\$Configuration\Validation.Symbols.Tests.dll"
 
     $TestCount = 0
     

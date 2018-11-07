@@ -12,6 +12,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NuGet.Packaging.Core;
 using NuGet.Services.Cursor;
+using NuGet.Services.Entities;
 using NuGet.Versioning;
 using NuGetGallery;
 

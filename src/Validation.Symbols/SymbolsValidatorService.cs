@@ -21,7 +21,6 @@ namespace Validation.Symbols
     {
         private static TimeSpan _cleanWorkingDirectoryTimeSpan = TimeSpan.FromSeconds(20);
         private static readonly string[] PEExtensionsPatterns = new string[] { "*.dll", "*.exe" };
-        private static readonly string SymbolExtensionPattern = "*.pdb";
         private static readonly string[] PEExtensions = new string[] { ".dll", ".exe" };
         private static readonly string[] SymbolExtension = new string[] { ".pdb" };
 
@@ -62,9 +61,14 @@ namespace Validation.Symbols
 
                             using (_telemetryService.TrackSymbolValidationDurationEvent(message.PackageId, message.PackageNormalizedVersion, pdbs.Count))
                             {
-                                if (!SymbolsHaveMatchingPEFiles(pdbs, pes))
+                                List<string> orphanSymbolFiles;
+                                if (!SymbolsHaveMatchingPEFiles(pdbs, pes, out orphanSymbolFiles))
                                 {
-                                    _telemetryService.TrackSymbolsValidationResultEvent(message.PackageId, message.PackageNormalizedVersion, ValidationStatus.Failed, nameof(ValidationIssue.SymbolErrorCode_MatchingPortablePDBNotFound));
+                                    orphanSymbolFiles.ForEach((symbol) =>
+                                    {
+                                        _telemetryService.TrackSymbolsAssemblyValidationResultEvent(message.PackageId, message.PackageNormalizedVersion, ValidationStatus.Failed, nameof(ValidationIssue.SymbolErrorCode_MatchingPortablePDBNotFound), assemblyName: symbol);
+                                    });
+                                    _telemetryService.TrackSymbolsValidationResultEvent(message.PackageId, message.PackageNormalizedVersion, ValidationStatus.Failed);
                                     return ValidationResult.FailedWithIssues(ValidationIssue.SymbolErrorCode_MatchingPortablePDBNotFound);
                                 }
                                 var targetDirectory = Settings.GetWorkingDirectory();
@@ -151,79 +155,85 @@ namespace Validation.Symbols
             {
                 foreach (string peFile in Directory.GetFiles(targetDirectory, extension, SearchOption.AllDirectories))
                 {
-                    using (var peStream = File.OpenRead(peFile))
-                    using (var peReader = new PEReader(peStream))
+                    IValidationResult validationResult;
+                    if (!IsChecksumMatch(peFile, packageId, packageNormalizedVersion, out validationResult))
                     {
-                        // This checks if portable PDB is associated with the PE file and opens it for reading. 
-                        // It also validates that it matches the PE file.
-                        // It does not validate that the checksum matches, so we need to do that in the following block.
-                        if (peReader.TryOpenAssociatedPortablePdb(peFile, File.OpenRead, out var pdbReaderProvider, out var pdbPath) &&
-                           // No need to validate embedded PDB (pdbPath == null for embedded)
-                           pdbPath != null)
-                        {
-                            // Get all checksum entries. There can be more than one. At least one must match the PDB.
-                            var checksumRecords = peReader.ReadDebugDirectory().Where(entry => entry.Type == DebugDirectoryEntryType.PdbChecksum)
-                                .Select(e => peReader.ReadPdbChecksumDebugDirectoryData(e))
-                                .ToArray();
-
-                            if (checksumRecords.Length == 0)
-                            {
-                                _telemetryService.TrackSymbolsValidationResultEvent(packageId, packageNormalizedVersion, ValidationStatus.Failed, nameof(ValidationIssue.SymbolErrorCode_ChecksumDoesNotMatch));
-                                return ValidationResult.FailedWithIssues(ValidationIssue.SymbolErrorCode_ChecksumDoesNotMatch);
-                            }
-
-                            var pdbBytes = File.ReadAllBytes(pdbPath);
-                            var hashes = new Dictionary<string, byte[]>();
-
-                            using (pdbReaderProvider)
-                            {
-                                var pdbReader = pdbReaderProvider.GetMetadataReader();
-                                int idOffset = pdbReader.DebugMetadataHeader.IdStartOffset;
-
-                                foreach (var checksumRecord in checksumRecords)
-                                {
-                                    if (!hashes.TryGetValue(checksumRecord.AlgorithmName, out var hash))
-                                    {
-                                        HashAlgorithmName han = new HashAlgorithmName(checksumRecord.AlgorithmName);
-                                        using (var hashAlg = IncrementalHash.CreateHash(han))
-                                        {
-                                            hashAlg.AppendData(pdbBytes, 0, idOffset);
-                                            hashAlg.AppendData(new byte[20]);
-                                            int offset = idOffset + 20;
-                                            int count = pdbBytes.Length - offset;
-                                            hashAlg.AppendData(pdbBytes, offset, count);
-                                            hash = hashAlg.GetHashAndReset();
-                                        }
-                                        hashes.Add(checksumRecord.AlgorithmName, hash);
-                                    }
-                                    if (checksumRecord.Checksum.ToArray().SequenceEqual(hash))
-                                    {
-                                        // found the right checksum
-                                        _telemetryService.TrackSymbolsValidationResultEvent(packageId, packageNormalizedVersion, ValidationStatus.Succeeded, "");
-                                        return ValidationResult.Succeeded;
-                                    }
-                                }
-
-                                // Not found any checksum record that matches the PDB.
-                                _telemetryService.TrackSymbolsValidationResultEvent(packageId, packageNormalizedVersion, ValidationStatus.Failed, nameof(ValidationIssue.SymbolErrorCode_ChecksumDoesNotMatch));
-                                return ValidationResult.FailedWithIssues(ValidationIssue.SymbolErrorCode_ChecksumDoesNotMatch);
-                            }
-                        }
+                        _telemetryService.TrackSymbolsValidationResultEvent(packageId, packageNormalizedVersion, ValidationStatus.Failed);
+                        return validationResult;
                     }
-                    _telemetryService.TrackSymbolsValidationResultEvent(packageId, packageNormalizedVersion, ValidationStatus.Failed, nameof(ValidationIssue.SymbolErrorCode_MatchingPortablePDBNotFound));
-                    return ValidationResult.FailedWithIssues(ValidationIssue.SymbolErrorCode_MatchingPortablePDBNotFound);
                 }
             }
-            // If did not return there were not any PE files to validate. In this case return error to not proceeed with an ingestion.
-            _logger.LogError("{ValidatorName}: There were not any dll or exe files found locally." +
-                             "This could indicate an issue in the execution or the package was not correct created. PackageId {PackageId} PackageNormalizedVersion {PackageNormalizedVersion}. " +
-                             "SymbolCount: {SymbolCount}",
-                             ValidatorName.SymbolsValidator,
-                             packageId,
-                             packageNormalizedVersion,
-                             Directory.GetFiles(targetDirectory, SymbolExtensionPattern, SearchOption.AllDirectories));
-            _telemetryService.TrackSymbolsValidationResultEvent(packageId, packageNormalizedVersion, ValidationStatus.Failed, nameof(ValidationIssue.SymbolErrorCode_MatchingPortablePDBNotFound));
-            return ValidationResult.FailedWithIssues(ValidationIssue.SymbolErrorCode_MatchingPortablePDBNotFound);
+            _telemetryService.TrackSymbolsValidationResultEvent(packageId, packageNormalizedVersion, ValidationStatus.Succeeded);
+            return ValidationResult.Succeeded;
+        }
+
+        private bool IsChecksumMatch(string peFilePath, string packageId, string packageNormalizedVersion, out IValidationResult validationResult)
+        {
+            validationResult = ValidationResult.Succeeded;
+            using (var peStream = File.OpenRead(peFilePath))
+            using (var peReader = new PEReader(peStream))
+            {
+                // This checks if portable PDB is associated with the PE file and opens it for reading. 
+                // It also validates that it matches the PE file.
+                // It does not validate that the checksum matches, so we need to do that in the following block.
+                if (peReader.TryOpenAssociatedPortablePdb(peFilePath, File.OpenRead, out var pdbReaderProvider, out var pdbPath) &&
+                   // No need to validate embedded PDB (pdbPath == null for embedded)
+                   pdbPath != null)
+                {
+                    // Get all checksum entries. There can be more than one. At least one must match the PDB.
+                    var checksumRecords = peReader.ReadDebugDirectory().Where(entry => entry.Type == DebugDirectoryEntryType.PdbChecksum)
+                        .Select(e => peReader.ReadPdbChecksumDebugDirectoryData(e))
+                        .ToArray();
+
+                    if (checksumRecords.Length == 0)
+                    {
+                        _telemetryService.TrackSymbolsAssemblyValidationResultEvent(packageId, packageNormalizedVersion, ValidationStatus.Failed, nameof(ValidationIssue.SymbolErrorCode_ChecksumDoesNotMatch), assemblyName: Path.GetFileName(peFilePath));
+                        validationResult = ValidationResult.FailedWithIssues(ValidationIssue.SymbolErrorCode_ChecksumDoesNotMatch);
+                        return false;
+                    }
+
+                    var pdbBytes = File.ReadAllBytes(pdbPath);
+                    var hashes = new Dictionary<string, byte[]>();
+
+                    using (pdbReaderProvider)
+                    {
+                        var pdbReader = pdbReaderProvider.GetMetadataReader();
+                        int idOffset = pdbReader.DebugMetadataHeader.IdStartOffset;
+
+                        foreach (var checksumRecord in checksumRecords)
+                        {
+                            if (!hashes.TryGetValue(checksumRecord.AlgorithmName, out var hash))
+                            {
+                                HashAlgorithmName han = new HashAlgorithmName(checksumRecord.AlgorithmName);
+                                using (var hashAlg = IncrementalHash.CreateHash(han))
+                                {
+                                    hashAlg.AppendData(pdbBytes, 0, idOffset);
+                                    hashAlg.AppendData(new byte[20]);
+                                    int offset = idOffset + 20;
+                                    int count = pdbBytes.Length - offset;
+                                    hashAlg.AppendData(pdbBytes, offset, count);
+                                    hash = hashAlg.GetHashAndReset();
+                                }
+                                hashes.Add(checksumRecord.AlgorithmName, hash);
+                            }
+                            if (checksumRecord.Checksum.ToArray().SequenceEqual(hash))
+                            {
+                                // found the right checksum
+                                _telemetryService.TrackSymbolsAssemblyValidationResultEvent(packageId, packageNormalizedVersion,  ValidationStatus.Succeeded, issue:"", assemblyName:Path.GetFileName(peFilePath));
+                                return true;
+                            }
+                        }
+
+                        // Not found any checksum record that matches the PDB.
+                        _telemetryService.TrackSymbolsAssemblyValidationResultEvent(packageId, packageNormalizedVersion, ValidationStatus.Failed, nameof(ValidationIssue.SymbolErrorCode_ChecksumDoesNotMatch), assemblyName: Path.GetFileName(peFilePath));
+                        validationResult = ValidationResult.FailedWithIssues(ValidationIssue.SymbolErrorCode_ChecksumDoesNotMatch);
+                        return false;
+                    }
+                }
+            }
+            _telemetryService.TrackSymbolsAssemblyValidationResultEvent(packageId, packageNormalizedVersion, ValidationStatus.Failed, nameof(ValidationIssue.SymbolErrorCode_MatchingPortablePDBNotFound), assemblyName: Path.GetFileName(peFilePath));
+            validationResult = ValidationResult.FailedWithIssues(ValidationIssue.SymbolErrorCode_MatchingPortablePDBNotFound);
+            return false;
         }
 
         /// <summary>
@@ -232,7 +242,7 @@ namespace Validation.Symbols
         /// <param name="symbols">Symbol list extracted from the compressed folder.</param>
         /// <param name="PEs">The list of PE files extracted from the compressed folder.</param>
         /// <returns></returns>
-        public static bool SymbolsHaveMatchingPEFiles(IEnumerable<string> symbols, IEnumerable<string> PEs)
+        public static bool SymbolsHaveMatchingPEFiles(IEnumerable<string> symbols, IEnumerable<string> PEs, out List<string> orphanSymbolFiles)
         {
             if(symbols == null)
             {
@@ -244,7 +254,9 @@ namespace Validation.Symbols
             }
             var symbolsWithoutExtension = ZipArchiveService.RemoveExtension(symbols);
             var PEsWithoutExtensions = ZipArchiveService.RemoveExtension(PEs);
-            return !symbolsWithoutExtension.Except(PEsWithoutExtensions, StringComparer.OrdinalIgnoreCase).Any();
+            orphanSymbolFiles = symbolsWithoutExtension.Except(PEsWithoutExtensions, StringComparer.OrdinalIgnoreCase).ToList();
+
+            return !orphanSymbolFiles.Any();
         }
     }
 }

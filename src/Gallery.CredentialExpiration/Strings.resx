@@ -120,7 +120,7 @@
   <data name="ExpiredEmailBody" xml:space="preserve">
     <value>Hi {0},
 
-We wanted to inform you that the following API key(s) on {1} have expired.
+We wanted to inform you that the following API key(s) on {1} have expired:
 
 {2}
 

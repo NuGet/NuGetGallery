@@ -7,6 +7,7 @@ using System.Data.Entity;
 using System.Threading.Tasks;
 using NuGetGallery;
 using NuGetGallery.Packaging;
+using NuGet.Services.Entities;
 
 namespace NuGet.Services.Validation.Orchestrator
 {

@@ -17,6 +17,7 @@ using NuGet.Services.Validation.Vcs;
 using NuGetGallery;
 using Tests.ContextHelpers;
 using Xunit;
+using NuGet.Services.Entities;
 
 namespace Validation.PackageSigning.ScanAndSign.Tests
 {

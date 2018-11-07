@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using NuGet.Services.Entities;
 using NuGet.Versioning;
 using NuGetGallery;
 

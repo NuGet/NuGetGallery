@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Moq;
-using NuGetGallery;
+using NuGet.Services.Entities;
 using NuGet.Services.Validation.Issues;
 using NuGet.Services.Validation.Orchestrator.Telemetry;
 using Validation.PackageSigning.Core.Tests.Support;

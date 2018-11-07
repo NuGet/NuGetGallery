@@ -1,19 +1,20 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
+using System;
+using System.Linq;
+using System.IO;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NuGet.Jobs.Validation;
+using NuGet.Services.Entities;
 using NuGet.Services.Validation.Orchestrator;
 using NuGet.Services.Validation.Orchestrator.PackageSigning.ScanAndSign;
 using NuGet.Jobs.Validation.Storage;
 using NuGet.Jobs.Validation.ScanAndSign;
 using NuGet.Services.Validation.Vcs;
 using NuGetGallery;
-using System.Threading.Tasks;
-using System;
-using System.Linq;
-using System.IO;
 
 namespace NuGet.Services.Validation.Symbols
 {

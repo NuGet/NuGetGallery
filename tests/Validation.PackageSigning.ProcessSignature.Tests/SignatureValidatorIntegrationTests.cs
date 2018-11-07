@@ -23,6 +23,7 @@ using NuGet.Jobs.Validation.PackageSigning.Storage;
 using NuGet.Jobs.Validation.PackageSigning.Telemetry;
 using NuGet.Jobs.Validation.Storage;
 using NuGet.Packaging.Signing;
+using NuGet.Services.Entities;
 using NuGet.Services.Logging;
 using NuGet.Services.Validation;
 using NuGet.Services.Validation.Issues;

@@ -2,14 +2,12 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
-using NuGetGallery;
-using NuGetGallery.Infrastructure.Mail;
-using NuGetGallery.Infrastructure.Mail.Messages;
+using NuGet.Services.Entities;
+using NuGet.Services.Messaging.Email;
 using Xunit;
 
 namespace NuGet.Services.Validation.Orchestrator.Tests

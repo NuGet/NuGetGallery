@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
 using System.Linq;
-using System.Net;
 using System.Net.Mail;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,6 +17,9 @@ using Microsoft.Extensions.Options;
 using Microsoft.WindowsAzure.Storage;
 using Newtonsoft.Json;
 using NuGet.Jobs;
+using NuGet.Services.Messaging;
+using NuGet.Services.Messaging.Email;
+using NuGet.Services.ServiceBus;
 using NuGet.Services.Storage;
 
 namespace Gallery.CredentialExpiration
@@ -28,22 +30,27 @@ namespace Gallery.CredentialExpiration
 
         private readonly string _cursorFile = "cursorv2.json";
 
-        private InitializationConfiguration Configuration { get; set; }
+        private InitializationConfiguration InitializationConfiguration { get; set; }
+        private MailAddress FromAddress { get; set; }
+        private AsynchronousEmailMessageService EmailService { get; set; }
 
         private Storage Storage { get; set; }
-
-        private SmtpClient SmtpClient { get; set; }
 
         public override void Init(IServiceContainer serviceContainer, IDictionary<string, string> jobArgsDictionary)
         {
             base.Init(serviceContainer, jobArgsDictionary);
 
-            Configuration = _serviceProvider.GetRequiredService<IOptionsSnapshot<InitializationConfiguration>>().Value;
+            InitializationConfiguration = _serviceProvider.GetRequiredService<IOptionsSnapshot<InitializationConfiguration>>().Value;
 
-            SmtpClient = CreateSmtpClient(Configuration.SmtpUri);
+            var serializer = new ServiceBusMessageSerializer();
+            var topicClient = new TopicClientWrapper(InitializationConfiguration.EmailPublisherConnectionString, InitializationConfiguration.EmailPublisherTopicName);
+            var enqueuer = new EmailMessageEnqueuer(topicClient, serializer, LoggerFactory.CreateLogger<EmailMessageEnqueuer>());
+            EmailService = new AsynchronousEmailMessageService(enqueuer);
+
+            FromAddress = new MailAddress(InitializationConfiguration.MailFrom);
             
-            var storageAccount = CloudStorageAccount.Parse(Configuration.DataStorageAccount);
-            var storageFactory = new AzureStorageFactory(storageAccount, Configuration.ContainerName, LoggerFactory);
+            var storageAccount = CloudStorageAccount.Parse(InitializationConfiguration.DataStorageAccount);
+            var storageFactory = new AzureStorageFactory(storageAccount, InitializationConfiguration.ContainerName, LoggerFactory);
             Storage = storageFactory.Create();
         }
 
@@ -53,7 +60,7 @@ namespace Gallery.CredentialExpiration
             // Default values
             var jobCursor = new JobRunTimeCursor( jobCursorTime: jobRunTime, maxProcessedCredentialsTime: jobRunTime );
             var galleryCredentialExpiration = new GalleryCredentialExpiration(this,
-                new CredentialExpirationJobMetadata(jobRunTime, Configuration.WarnDaysBeforeExpiration, jobCursor));
+                new CredentialExpirationJobMetadata(jobRunTime, InitializationConfiguration.WarnDaysBeforeExpiration, jobCursor));
 
             try
             {
@@ -70,7 +77,7 @@ namespace Gallery.CredentialExpiration
                         new JsonSerializerSettings() { MissingMemberHandling = MissingMemberHandling.Error });
 
                     galleryCredentialExpiration = new GalleryCredentialExpiration(this,
-                        new CredentialExpirationJobMetadata(jobRunTime, Configuration.WarnDaysBeforeExpiration, jobCursor));
+                        new CredentialExpirationJobMetadata(jobRunTime, InitializationConfiguration.WarnDaysBeforeExpiration, jobCursor));
                 }
 
                 // Connect to database
@@ -86,11 +93,11 @@ namespace Gallery.CredentialExpiration
                     .ForEach(ecd => ecd.Description = Constants.NonScopedApiKeyDescription);
 
                 // Group credentials for each user
-                var userToExpiredCredsMapping = credentialsInRange
+                var userToCredentialsMapping = credentialsInRange
                     .GroupBy(x => x.Username)
                     .ToDictionary(user => user.Key, value => value.ToList());
 
-                foreach (var userCredMapping in userToExpiredCredsMapping)
+                foreach (var userCredMapping in userToCredentialsMapping)
                 {
                     var username = userCredMapping.Key;
                     var credentialList = userCredMapping.Value;
@@ -99,10 +106,10 @@ namespace Gallery.CredentialExpiration
                     var expiringCredentialList = galleryCredentialExpiration.GetExpiringCredentials(credentialList);
                     var expiredCredentialList = galleryCredentialExpiration.GetExpiredCredentials(credentialList);
 
-                    await HandleExpiredCredentialEmail(username, expiringCredentialList, jobRunTime, expired: false);
+                    await HandleExpiredCredentialEmail(username, expiringCredentialList, jobRunTime, areCredentialsExpired: false);
 
                     // send expired API keys email notification
-                    await HandleExpiredCredentialEmail(username, expiredCredentialList, jobRunTime, expired: true);
+                    await HandleExpiredCredentialEmail(username, expiredCredentialList, jobRunTime, areCredentialsExpired: true);
                 }
             }
             finally
@@ -117,53 +124,35 @@ namespace Gallery.CredentialExpiration
             }
         }
 
-        private async Task HandleExpiredCredentialEmail(string username, List<ExpiredCredentialData> credentialList, DateTimeOffset jobRunTime, bool expired)
+        private async Task HandleExpiredCredentialEmail(string username, List<ExpiredCredentialData> credentials, DateTimeOffset jobRunTime, bool areCredentialsExpired)
         {
-            if (credentialList == null || credentialList.Count == 0)
+            if (credentials == null || credentials.Count == 0)
             {
                 return;
             }
 
             Logger.LogInformation("Handling {Expired} credential(s) (Keys: {Descriptions})...",
-                expired ? "expired" : "expiring",
-                string.Join(", ", credentialList.Select(x => x.Description).ToList()));
+                areCredentialsExpired ? "expired" : "expiring",
+                string.Join(", ", credentials.Select(x => x.Description).ToList()));
 
-            // Build message
-            var userEmail = credentialList.FirstOrDefault().EmailAddress;
-            var mailMessage = new MailMessage(Configuration.MailFrom, userEmail);
-
-            var apiKeyExpiryMessageList = credentialList
-                .Select(x => BuildApiKeyExpiryMessage(x.Description, x.Expires, jobRunTime))
-                .ToList();
-
-            var apiKeyExpiryMessage = string.Join(Environment.NewLine, apiKeyExpiryMessageList);
-            // Build email body
-            if (expired)
-            {
-                mailMessage.Subject = string.Format(Strings.ExpiredEmailSubject, Configuration.GalleryBrand);
-                mailMessage.Body = string.Format(Strings.ExpiredEmailBody, username, Configuration.GalleryBrand, apiKeyExpiryMessage, Configuration.GalleryAccountUrl);
-            }
-            else
-            {
-                mailMessage.Subject = string.Format(Strings.ExpiringEmailSubject, Configuration.GalleryBrand);
-                mailMessage.Body = string.Format(Strings.ExpiringEmailBody, username, Configuration.GalleryBrand, apiKeyExpiryMessage, Configuration.GalleryAccountUrl);
-            }
+            var emailBuilder = new CredentialExpirationEmailBuilder(
+                InitializationConfiguration, 
+                FromAddress, 
+                username, 
+                credentials, 
+                jobRunTime, 
+                areCredentialsExpired);
 
             // Send email
             try
             {
-                if (!Configuration.WhatIf) // if WhatIf is passed, we will not send e-mails (e.g. dev/int don't have to annoy users)
+                if (!InitializationConfiguration.WhatIf) // if WhatIf is passed, we will not send e-mails (e.g. dev/int don't have to annoy users)
                 {
-                    await SmtpClient.SendMailAsync(mailMessage);
+                    await EmailService.SendMessageAsync(emailBuilder);
                 }
 
                 Logger.LogInformation("Handled {Expired} credential .",
-                    expired ? "expired" : "expiring");
-            }
-            catch (SmtpFailedRecipientException ex)
-            {
-                var logMessage = "Failed to handle credential - recipient failed!";
-                Logger.LogWarning(LogEvents.FailedToSendMail, ex, logMessage);
+                    areCredentialsExpired ? "expired" : "expiring");
             }
             catch (Exception ex)
             {
@@ -172,36 +161,6 @@ namespace Gallery.CredentialExpiration
 
                 throw;
             }
-        }
-
-        private static string BuildApiKeyExpiryMessage(string description, DateTimeOffset expiry, DateTimeOffset currentTime)
-        {
-            var expiryInDays = (expiry - currentTime).TotalDays;
-            var message = expiryInDays < 0
-                ? string.Format(Strings.ApiKeyExpired, description)
-                : string.Format(Strings.ApiKeyExpiring, description, (int)expiryInDays);
-
-            // \u2022 - Unicode for bullet point.
-            return "\u2022 " + message + Environment.NewLine;
-        }
-        
-        private SmtpClient CreateSmtpClient(string smtpUriString)
-        {
-            var smtpUri = new SmtpUri(new Uri(smtpUriString));
-            var smtpClient = new SmtpClient(smtpUri.Host, smtpUri.Port)
-            {
-                EnableSsl = smtpUri.Secure
-            };
-
-            if (!string.IsNullOrWhiteSpace(smtpUri.UserName))
-            {
-                smtpClient.UseDefaultCredentials = false;
-                smtpClient.Credentials = new NetworkCredential(
-                    smtpUri.UserName,
-                    smtpUri.Password);
-            }
-
-            return smtpClient;
         }
 
         protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder)

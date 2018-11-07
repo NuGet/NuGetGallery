@@ -5,6 +5,9 @@ using System;
 using System.Data.SqlClient;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using NuGet.Services.Messaging;
+using NuGet.Services.Messaging.Email;
+using NuGet.Services.ServiceBus;
 using NuGet.SupportRequests.Notifications.Notifications;
 using NuGet.SupportRequests.Notifications.Services;
 using NuGet.SupportRequests.Notifications.Templates;
@@ -33,25 +36,29 @@ namespace NuGet.SupportRequests.Notifications.Tasks
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
 
-            _messagingService = new MessagingService(loggerFactory, configuration.SmtpUri);
+            var serializer = new ServiceBusMessageSerializer();
+            var topicClient = new TopicClientWrapper(configuration.EmailPublisherConnectionString, configuration.EmailPublisherTopicName);
+            var enqueuer = new EmailMessageEnqueuer(topicClient, serializer, loggerFactory.CreateLogger<EmailMessageEnqueuer>());
+            var messageService = new AsynchronousEmailMessageService(enqueuer);
+            _messagingService = new MessagingService(messageService, loggerFactory.CreateLogger<MessagingService>());
             
             _supportRequestRepository = new SupportRequestRepository(loggerFactory, openSupportRequestSqlConnectionAsync);
         }
 
         protected abstract Task<TNotification> BuildNotification(SupportRequestRepository supportRequestRepository, DateTime referenceTime);
 
-        protected abstract string BuildNotificationBody(string template, TNotification notification);
+        protected abstract string BuildNotificationHtmlBody(string template, TNotification notification);
 
         public async Task RunAsync()
         {
             var referenceTime = DateTime.UtcNow.Date;
             var notification = await BuildNotification(_supportRequestRepository, referenceTime);
             var template = NotificationTemplateProvider.Get(notification.TemplateName);
-            var body = BuildNotificationBody(template, notification);
+            var htmlBody = BuildNotificationHtmlBody(template, notification);
 
-            _messagingService.SendNotification(
+            await _messagingService.SendNotification(
                 notification.Subject,
-                body,
+                htmlBody,
                 referenceTime,
                 notification.TargetEmailAddress);
         }

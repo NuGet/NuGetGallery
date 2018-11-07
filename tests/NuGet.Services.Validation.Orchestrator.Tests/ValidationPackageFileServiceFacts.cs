@@ -11,6 +11,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage;
 using Moq;
 using NuGet.Jobs.Validation;
+using NuGet.Services.Entities;
 using NuGet.Services.Validation.Orchestrator.Telemetry;
 using NuGetGallery;
 using Xunit;

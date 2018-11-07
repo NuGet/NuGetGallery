@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Globalization;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Stats.AzureCdnLogs.Common.Collect;
 

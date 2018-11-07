@@ -73,7 +73,7 @@ namespace NuGet.SupportRequests.Notifications.Tasks
                 topSupportRequestReasonsLastWeek);
         }
 
-        protected override string BuildNotificationBody(string template, WeeklySummaryNotification notification)
+        protected override string BuildNotificationHtmlBody(string template, WeeklySummaryNotification notification)
         {
 
             var newIssuesTrendPct = notification.GetNewIssuesTrendPct();

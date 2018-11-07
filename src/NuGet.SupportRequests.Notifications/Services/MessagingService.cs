@@ -2,42 +2,26 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Net;
-using System.Net.Mail;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using NuGet.Jobs;
+using NuGet.Services.Messaging.Email;
 
 namespace NuGet.SupportRequests.Notifications.Services
 {
     internal class MessagingService
     {
-        private readonly MailAddress _fromAddress;
         private readonly ILogger<MessagingService> _logger;
-        private readonly string _smtpUri;
-        private SmtpClient _smtpClient;
+        private readonly IMessageService _messageService;
 
-        private const string _noreplyAddress = "NuGet Gallery <noreply@nuget.org>";
-
-        public MessagingService(ILoggerFactory loggerFactory, string smtpUri)
+        public MessagingService(IMessageService messageService, ILogger<MessagingService> logger)
         {
-            if (loggerFactory == null)
-            {
-                throw new ArgumentNullException(nameof(loggerFactory));
-            }
-
-            if (smtpUri == null)
-            {
-                throw new ArgumentNullException(nameof(smtpUri));
-            }
-
-            _logger = loggerFactory.CreateLogger<MessagingService>();
-            _fromAddress = new MailAddress(_noreplyAddress);
-            _smtpUri = smtpUri;
+            _messageService = messageService ?? throw new ArgumentNullException(nameof(messageService));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        internal void SendNotification(
+        internal async Task SendNotification(
             string subject,
-            string body,
+            string htmlBody,
             DateTime referenceTime,
             string targetEmailAddress)
         {
@@ -46,9 +30,9 @@ namespace NuGet.SupportRequests.Notifications.Services
                 throw new ArgumentException(nameof(subject));
             }
 
-            if (string.IsNullOrEmpty(body))
+            if (string.IsNullOrEmpty(htmlBody))
             {
-                throw new ArgumentException(nameof(body));
+                throw new ArgumentException(nameof(htmlBody));
             }
 
             if (string.IsNullOrEmpty(targetEmailAddress))
@@ -56,57 +40,13 @@ namespace NuGet.SupportRequests.Notifications.Services
                 throw new ArgumentException(nameof(targetEmailAddress));
             }
 
-            var targetAddress = new MailAddress(targetEmailAddress);
-            using (var mailMessage = new MailMessage())
-            {
-                mailMessage.Subject = subject;
-                mailMessage.From = _fromAddress;
-                mailMessage.ReplyToList.Add(_fromAddress);
-                mailMessage.Body = body;
-                mailMessage.To.Add(targetAddress);
-
-                SendMessage(mailMessage);
-            }
+            var builder = new SupportRequestNotificationEmailBuilder(subject, htmlBody, targetEmailAddress);
+            await _messageService.SendMessageAsync(builder);
 
             _logger.LogInformation(
                 "Successfully sent notification '{NotificationType}' for reference time '{ReferenceTimeUtc}'",
                 subject,
                 referenceTime.ToShortDateString());
-        }
-
-        private void SendMessage(MailMessage mailMessage)
-        {
-            var smtpClient = GetOrCreateSmtpClient();
-
-            var alternateHtmlView = AlternateView.CreateAlternateViewFromString(mailMessage.Body, null, "text/html");
-            mailMessage.AlternateViews.Add(alternateHtmlView);
-
-            smtpClient.Send(mailMessage);
-        }
-
-        private SmtpClient GetOrCreateSmtpClient()
-        {
-            if (_smtpClient != null)
-            {
-                return _smtpClient;
-            }
-
-            var smtpUri = new SmtpUri(new Uri(_smtpUri));
-            _smtpClient = new SmtpClient();
-            _smtpClient.Host = smtpUri.Host;
-            _smtpClient.Port = smtpUri.Port;
-            _smtpClient.DeliveryMethod = SmtpDeliveryMethod.Network;
-            _smtpClient.EnableSsl = smtpUri.Secure;
-
-            if (!string.IsNullOrEmpty(smtpUri.UserName))
-            {
-                _smtpClient.UseDefaultCredentials = false;
-                _smtpClient.Credentials = new NetworkCredential(
-                  smtpUri.UserName,
-                  smtpUri.Password);
-            }
-
-            return _smtpClient;
         }
     }
 }

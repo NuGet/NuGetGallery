@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
+using NuGet.Services.Entities;
 using NuGet.Versioning;
 using NuGetGallery;
 using Tests.ContextHelpers;

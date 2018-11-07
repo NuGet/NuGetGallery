@@ -8,6 +8,7 @@ using NuGetGallery;
 using NuGetGallery.Packaging;
 using NuGet.Services.Validation.Orchestrator;
 using Xunit;
+using NuGet.Services.Entities;
 
 namespace NuGet.Services.Validation
 {

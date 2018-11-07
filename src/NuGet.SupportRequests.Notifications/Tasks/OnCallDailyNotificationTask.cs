@@ -52,7 +52,7 @@ namespace NuGet.SupportRequests.Notifications.Tasks
             return new OnCallDailyNotification(referenceTime, unresolvedIssues, targetEmailAddress);
         }
 
-        protected override string BuildNotificationBody(string template, OnCallDailyNotification notification)
+        protected override string BuildNotificationHtmlBody(string template, OnCallDailyNotification notification)
         {
             var result = template;
             var referenceTimeLabel = notification.ReferenceTime.ToString("dd/MM/yy");
