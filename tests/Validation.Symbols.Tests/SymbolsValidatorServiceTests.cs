@@ -128,7 +128,8 @@ namespace Validation.Symbols.Tests
                 string[] pes = new string[] { @"lib\math\foo.dll", @"lib\math\bar.exe", @"lib\math2\bar2.exe" };
 
                 // Act
-                var result = SymbolsValidatorService.SymbolsHaveMatchingPEFiles(symbols, pes);
+                List<string> orphanSymbols;
+                var result = SymbolsValidatorService.SymbolsHaveMatchingPEFiles(symbols, pes, out orphanSymbols);
 
                 // Assert
                 Assert.True(result);
@@ -142,7 +143,8 @@ namespace Validation.Symbols.Tests
                 string[] pes = new string[] { @"lib\math\foo.dll", @"lib\math\bar.exe", @"lib\math2\bar2.exe" };
 
                 // Act
-                var result = SymbolsValidatorService.SymbolsHaveMatchingPEFiles(symbols, pes);
+                List<string> orphanSymbols;
+                var result = SymbolsValidatorService.SymbolsHaveMatchingPEFiles(symbols, pes, out orphanSymbols);
 
                 // Assert
                 Assert.False(result);
@@ -156,8 +158,9 @@ namespace Validation.Symbols.Tests
                 string[] pes = new string[] { @"lib\math\foo.dll", @"lib\math\bar.exe", @"lib\math2\bar2.exe" };
 
                 // Act + Assert
-                Assert.Throws<ArgumentNullException>(()=>SymbolsValidatorService.SymbolsHaveMatchingPEFiles(null, pes));
-                Assert.Throws<ArgumentNullException>(() => SymbolsValidatorService.SymbolsHaveMatchingPEFiles(symbols, null));
+                List<string> orphanSymbols;
+                Assert.Throws<ArgumentNullException>(()=>SymbolsValidatorService.SymbolsHaveMatchingPEFiles(null, pes, out orphanSymbols));
+                Assert.Throws<ArgumentNullException>(() => SymbolsValidatorService.SymbolsHaveMatchingPEFiles(symbols, null, out orphanSymbols));
             }
         }
 

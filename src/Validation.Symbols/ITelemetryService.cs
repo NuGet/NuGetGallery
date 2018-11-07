@@ -32,12 +32,21 @@ namespace Validation.Symbols
         IDisposable TrackSymbolValidationDurationEvent(string packageId, string packageNormalizedVersion, int symbolCount);
 
         /// <summary>
-        /// Tracks the status of the validation.
+        /// Tracks the status of the validation per assembly.
         /// </summary>
         /// <param name="packageId">The package id.</param>
         /// <param name="packageNormalizedVersion">The package normalized version.</param>
         /// <param name="validationStatus">The validation result.</param>
         /// <param name="issue">Information about the issue id failed or empty if passed..</param>
-        void TrackSymbolsValidationResultEvent(string packageId, string packageNormalizedVersion, ValidationStatus validationStatus, string issue);
+        /// <param name="assemblyName">The assembly name.</param>
+        void TrackSymbolsAssemblyValidationResultEvent(string packageId, string packageNormalizedVersion, ValidationStatus validationStatus, string issue, string assemblyName);
+
+        /// <summary>
+        /// Tracks the status of the validation per package.
+        /// </summary>
+        /// <param name="packageId">The package id.</param>
+        /// <param name="packageNormalizedVersion">The package normalized version.</param>
+        /// <param name="validationStatus">The validation result.</param>
+        void TrackSymbolsValidationResultEvent(string packageId, string packageNormalizedVersion, ValidationStatus validationStatus);
     }
 }

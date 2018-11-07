@@ -17,6 +17,7 @@ namespace Validation.Symbols
         private const string MessageDeliveryLag = Prefix + "MessageDeliveryLag";
         private const string MessageEnqueueLag = Prefix + "MessageEnqueueLag";
         private const string SymbolValidationResult = Prefix + "SymbolValidationResult";
+        private const string SymbolAssemblyValidationResult = Prefix + "SymbolAssemblyValidationResult";
 
         private const string PackageId = "PackageId";
         private const string PackageNormalizedVersion = "PackageNormalizedVersion";
@@ -24,6 +25,7 @@ namespace Validation.Symbols
         private const string SymbolCount = "SymbolCount";
         private const string ValidationResult = "ValidationResult";
         private const string Issue = "Issue";
+        private const string AssemblyName = "AssemblyName";
 
         private readonly ITelemetryClient _telemetryClient;
 
@@ -68,7 +70,22 @@ namespace Validation.Symbols
                 });
         }
 
-        public void TrackSymbolsValidationResultEvent(string packageId, string packageNormalizedVersion, ValidationStatus validationStatus, string issue)
+        public void TrackSymbolsAssemblyValidationResultEvent(string packageId, string packageNormalizedVersion, ValidationStatus validationStatus, string issue, string assemblyName)
+        {
+            _telemetryClient.TrackMetric(
+                SymbolAssemblyValidationResult,
+                1,
+                new Dictionary<string, string>
+                {
+                    { ValidationResult, validationStatus.ToString() },
+                    { Issue, issue },
+                    { PackageId, packageId },
+                    { PackageNormalizedVersion, packageNormalizedVersion },
+                    { AssemblyName, assemblyName }
+                });
+        }
+
+        public void TrackSymbolsValidationResultEvent(string packageId, string packageNormalizedVersion, ValidationStatus validationStatus)
         {
             _telemetryClient.TrackMetric(
                 SymbolValidationResult,
@@ -76,7 +93,6 @@ namespace Validation.Symbols
                 new Dictionary<string, string>
                 {
                     { ValidationResult, validationStatus.ToString() },
-                    { Issue, issue },
                     { PackageId, packageId },
                     { PackageNormalizedVersion, packageNormalizedVersion }
                 });
