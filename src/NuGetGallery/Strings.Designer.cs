@@ -2409,7 +2409,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to License expression must only contain licenses that are OSI or FSF approved. Unsupported licenses: {0}..
+        ///   Looks up a localized string similar to License expression must only contain licenses that are approved by Open Source Initiative or Free Software Foundation. Unsupported licenses: {0}..
         /// </summary>
         public static string UploadPackage_NonFsfOrOsiLicense {
             get {

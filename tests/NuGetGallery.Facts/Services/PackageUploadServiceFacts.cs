@@ -675,8 +675,8 @@ namespace NuGetGallery
                     GetPackageMetadata(_nuGetPackage));
 
                 Assert.Equal(PackageValidationResultType.Invalid, result.Type);
-                Assert.Contains("OSI", result.Message.PlainTextMessage);
-                Assert.Contains("FSF", result.Message.PlainTextMessage);
+                Assert.Contains("Open Source Initiative", result.Message.PlainTextMessage);
+                Assert.Contains("Free Software Foundation", result.Message.PlainTextMessage);
                 foreach (var unapproved in unapprovedLicenses)
                 {
                     Assert.Contains(unapproved, result.Message.PlainTextMessage);
@@ -1753,6 +1753,7 @@ namespace NuGetGallery
             protected readonly Mock<IValidationService> _validationService;
             protected readonly Mock<IAppConfiguration> _config;
             protected readonly Mock<ITyposquattingService> _typosquattingService;
+            protected readonly Mock<ITelemetryService> _telemetryService;
 
             protected Package _package;
             protected Stream _packageFile;
@@ -1771,6 +1772,7 @@ namespace NuGetGallery
                 _config
                     .SetupGet(x => x.AllowLicenselessPackages)
                     .Returns(true);
+                _telemetryService = new Mock<ITelemetryService>();
 
                 _typosquattingService = new Mock<ITyposquattingService>();
 
@@ -1794,7 +1796,8 @@ namespace NuGetGallery
                     _reservedNamespaceService.Object,
                     _validationService.Object,
                     _config.Object,
-                    _typosquattingService.Object);
+                    _typosquattingService.Object,
+                    _telemetryService.Object);
             }
 
             protected static Mock<TestPackageReader> GeneratePackage(

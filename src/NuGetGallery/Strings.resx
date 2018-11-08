@@ -1071,7 +1071,7 @@ The {1} Team</value>
     <value>All published packages should have license information specified.</value>
   </data>
   <data name="UploadPackage_NonFsfOrOsiLicense" xml:space="preserve">
-    <value>License expression must only contain licenses that are OSI or FSF approved. Unsupported licenses: {0}.</value>
+    <value>License expression must only contain licenses that are approved by Open Source Initiative or Free Software Foundation. Unsupported licenses: {0}.</value>
     <comment>{0} is list of the package license ids that are neither OSI nor FSF approved</comment>
   </data>
 </root>
