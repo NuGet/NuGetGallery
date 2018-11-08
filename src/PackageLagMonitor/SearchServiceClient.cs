@@ -46,6 +46,15 @@ namespace NuGet.Jobs.Montoring.PackageLag
                 HttpCompletionOption.ResponseContentRead,
                 token))
             {
+                if (!diagResponse.IsSuccessStatusCode)
+                {
+                    throw new HttpResponseException(
+                        diagResponse.StatusCode,
+                        diagResponse.ReasonPhrase,
+                        $"The HTTP response when hitting {instance.DiagUrl} was {(int)diagResponse.StatusCode} " +
+                        $"{diagResponse.ReasonPhrase}, which is not successful.");
+                }
+
                 var diagContent = diagResponse.Content;
                 var searchDiagResultRaw = await diagContent.ReadAsStringAsync();
                 var searchDiagResultObject = JsonConvert.DeserializeObject<SearchDiagnosticResponse>(searchDiagResultRaw);

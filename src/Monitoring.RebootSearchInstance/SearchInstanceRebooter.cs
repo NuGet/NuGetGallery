@@ -4,6 +4,7 @@
 using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -219,6 +220,20 @@ namespace NuGet.Monitoring.RebootSearchInstance
             try
             {
                 commitDateTime = await _searchServiceClient.GetCommitDateTimeAsync(instance, token);
+            }
+            catch (HttpResponseException ex) when (ex.StatusCode == HttpStatusCode.ServiceUnavailable
+                                                || ex.StatusCode == HttpStatusCode.InternalServerError)
+            {
+                _logger.LogInformation(
+                    (EventId)0,
+                    ex,
+                    "The HTTP response when hitting {DiagUrl} was {StatusCode} {ReasonPhrase}. Considering this " +
+                    "instance as an unhealthy state.",
+                    instance.DiagUrl,
+                    (int)ex.StatusCode,
+                    ex.ReasonPhrase);
+
+                return InstanceHealth.Unhealthy;
             }
             catch (Exception ex)
             {
