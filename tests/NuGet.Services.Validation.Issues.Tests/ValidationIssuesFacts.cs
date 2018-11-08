@@ -244,7 +244,8 @@ namespace NuGet.Services.Validation.Issues.Tests
             { ValidationIssueCode.AuthorCounterSignaturesNotSupported, () => ValidationIssue.AuthorCounterSignaturesNotSupported },
             { ValidationIssueCode.PackageIsNotSigned, () => ValidationIssue.PackageIsNotSigned },
             { ValidationIssueCode.SymbolErrorCode_ChecksumDoesNotMatch, () => ValidationIssue.SymbolErrorCode_ChecksumDoesNotMatch },
-            { ValidationIssueCode.SymbolErrorCode_MatchingPortablePDBNotFound, () => ValidationIssue.SymbolErrorCode_MatchingPortablePDBNotFound }
+            { ValidationIssueCode.SymbolErrorCode_MatchingAssemblyNotFound, () => ValidationIssue.SymbolErrorCode_MatchingAssemblyNotFound },
+            { ValidationIssueCode.SymbolErrorCode_PdbIsNotPortable, () => ValidationIssue.SymbolErrorCode_PdbIsNotPortable }
         };
     }
 }

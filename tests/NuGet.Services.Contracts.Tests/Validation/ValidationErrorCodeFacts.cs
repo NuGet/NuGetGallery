@@ -23,7 +23,8 @@ namespace NuGet.Services.Validation
             { 8, ValidationIssueCode.PackageIsNotSigned },
             { 9, ValidationIssueCode.PackageIsSignedWithUnauthorizedCertificate },
             { 250, ValidationIssueCode.SymbolErrorCode_ChecksumDoesNotMatch },
-            { 251, ValidationIssueCode.SymbolErrorCode_MatchingPortablePDBNotFound },
+            { 251, ValidationIssueCode.SymbolErrorCode_MatchingAssemblyNotFound},
+            { 252, ValidationIssueCode.SymbolErrorCode_PdbIsNotPortable},
 #pragma warning disable 618
             { 9999, ValidationIssueCode.ObsoleteTesting },
 #pragma warning restore 618

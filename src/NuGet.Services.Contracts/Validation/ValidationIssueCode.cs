@@ -69,9 +69,14 @@ namespace NuGet.Services.Validation
         SymbolErrorCode_ChecksumDoesNotMatch = 250,
 
         /// <summary>
-        /// The pdb is not portable or did not have a binary assembly file associated.
+        /// The pdb does not have a binary assembly file associated.
         /// </summary>
-        SymbolErrorCode_MatchingPortablePDBNotFound = 251,
+        SymbolErrorCode_MatchingAssemblyNotFound = 251,
+
+        /// <summary>
+        /// The pdb is not portable.
+        /// </summary>
+        SymbolErrorCode_PdbIsNotPortable = 252,
         #endregion 
 
         /// <summary>

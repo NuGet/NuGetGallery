@@ -55,8 +55,10 @@ namespace NuGet.Services.Messaging.Email
                     return $"The package was signed, but the signing certificate {(certIssue != null ? $"(SHA-1 thumbprint {certIssue.Sha1Thumbprint})" : "")} is not associated with your account. You must register this certificate to publish signed packages. [Read more...](https://aka.ms/nuget-signed-ref)";
                 case ValidationIssueCode.SymbolErrorCode_ChecksumDoesNotMatch:
                     return "The checksum does not match for the dll(s) and corresponding pdb(s).";
-                case ValidationIssueCode.SymbolErrorCode_MatchingPortablePDBNotFound:
+                case ValidationIssueCode.SymbolErrorCode_MatchingAssemblyNotFound:
                     return "The uploaded symbols package contains pdb(s) for a corresponding dll(s) not found in the nuget package.";
+                case ValidationIssueCode.SymbolErrorCode_PdbIsNotPortable:
+                    return "The uploaded symbols package contains one or more pdbs that are not portable.";
                 default:
                     return "There was an unknown failure when validating your package.";
             }
