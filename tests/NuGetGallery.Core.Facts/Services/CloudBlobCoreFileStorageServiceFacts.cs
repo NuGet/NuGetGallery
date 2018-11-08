@@ -1067,54 +1067,6 @@ namespace NuGetGallery
                     Times.Once);
             }
 
-            [Theory]
-            [InlineData(CoreConstants.PackagesFolderName)]
-            [InlineData(CoreConstants.SymbolPackagesFolderName)]
-            public async Task WillCopyAndSetCacheControlOnCopyForFolder(string folderName)
-            {
-                // Arrange
-                var instance = new TheCopyFileAsyncMethod();
-                instance._blobClient
-                    .Setup(x => x.GetBlobFromUri(It.IsAny<Uri>()))
-                    .Returns(instance._srcBlobMock.Object);
-                instance._blobClient
-                    .Setup(x => x.GetContainerReference(folderName))
-                    .Returns(() => instance._destContainer.Object);
-
-                instance._destBlobMock
-                    .Setup(x => x.StartCopyAsync(It.IsAny<ISimpleCloudBlob>(), It.IsAny<AccessCondition>(), It.IsAny<AccessCondition>()))
-                    .Returns(Task.FromResult(0))
-                    .Callback<ISimpleCloudBlob, AccessCondition, AccessCondition>((_, __, ___) =>
-                    {
-                        SetDestCopyStatus(CopyStatus.Success);
-                    });
-                
-                // Act
-                await instance._target.CopyFileAsync(
-                    instance._srcUri,
-                    folderName,
-                    instance._destFileName,
-                    AccessConditionWrapper.GenerateIfNotExistsCondition());
-
-                // Assert
-                instance._destBlobMock.Verify(
-                    x => x.StartCopyAsync(instance._srcBlobMock.Object, It.IsAny<AccessCondition>(), It.IsAny<AccessCondition>()),
-                    Times.Once);
-                instance._destBlobMock.Verify(
-                    x => x.StartCopyAsync(It.IsAny<ISimpleCloudBlob>(), It.IsAny<AccessCondition>(), It.IsAny<AccessCondition>()),
-                    Times.Once);
-                instance._destBlobMock.Verify(
-                    x => x.SetPropertiesAsync(It.IsAny<AccessCondition>()),
-                    Times.Once);
-                instance._destBlobMock.Verify(
-                    x => x.StartCopyAsync(It.IsAny<ISimpleCloudBlob>(), It.IsAny<AccessCondition>(), It.IsAny<AccessCondition>()),
-                    Times.Once);
-                Assert.NotNull(instance._destProperties.CacheControl);
-                instance._blobClient.Verify(
-                    x => x.GetBlobFromUri(instance._srcUri),
-                    Times.Once);
-            }
-
             [Fact]
             public async Task WillCopyTheFileIfDestinationDoesNotExist()
             {
@@ -1451,6 +1403,110 @@ namespace NuGetGallery
                     updateMetadataAsync: (lazyStream, metadata) =>
                     {
                         Assert.NotNull(metadata);
+
+                        return Task.FromResult(true);
+                    });
+
+                _blob.VerifyAll();
+                _blobContainer.VerifyAll();
+                _blobClient.VerifyAll();
+            }
+        }
+
+        public class TheSetPropertiesAsyncMethod
+        {
+            private const string _content = "peach";
+
+            private readonly Mock<ICloudBlobClient> _blobClient;
+            private readonly Mock<ICloudBlobContainer> _blobContainer;
+            private readonly Mock<ISimpleCloudBlob> _blob;
+            private readonly CloudBlobCoreFileStorageService _service;
+
+            public TheSetPropertiesAsyncMethod()
+            {
+                _blobClient = new Mock<ICloudBlobClient>();
+                _blobContainer = new Mock<ICloudBlobContainer>();
+                _blob = new Mock<ISimpleCloudBlob>();
+
+                _blobClient.Setup(x => x.GetContainerReference(It.IsAny<string>()))
+                    .Returns(_blobContainer.Object);
+                _blobContainer.Setup(x => x.CreateIfNotExistAsync())
+                    .Returns(Task.FromResult(0));
+                _blobContainer.Setup(x => x.SetPermissionsAsync(It.IsAny<BlobContainerPermissions>()))
+                    .Returns(Task.FromResult(0));
+                _blobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>()))
+                    .Returns(_blob.Object);
+
+                _service = CreateService(fakeBlobClient: _blobClient);
+            }
+
+            [Fact]
+            public async Task WhenLazyStreamRead_ReturnsContent()
+            {
+                _blob.Setup(x => x.DownloadToStreamAsync(It.IsAny<Stream>(), It.IsAny<AccessCondition>()))
+                    .Callback<Stream, AccessCondition>((stream, _) =>
+                    {
+                        using (var writer = new StreamWriter(stream, Encoding.UTF8, bufferSize: 4096, leaveOpen: true))
+                        {
+                            writer.Write(_content);
+                        }
+                    })
+                    .Returns(Task.FromResult(0));
+
+                await _service.SetPropertiesAsync(
+                    folderName: CoreConstants.PackagesFolderName,
+                    fileName: "a",
+                    updatePropertiesAsync: async (lazyStream, properties) =>
+                    {
+                        using (var stream = await lazyStream.Value)
+                        using (var reader = new StreamReader(stream))
+                        {
+                            Assert.Equal(_content, reader.ReadToEnd());
+                        }
+
+                        return false;
+                    });
+
+                _blob.VerifyAll();
+                _blobContainer.VerifyAll();
+                _blobClient.VerifyAll();
+            }
+
+            [Fact]
+            public async Task WhenReturnValueIsFalse_PropertyChangesAreNotPersisted()
+            {
+                _blob.SetupGet(x => x.Properties)
+                    .Returns(new BlobProperties());
+
+                await _service.SetPropertiesAsync(
+                    folderName: CoreConstants.PackagesFolderName,
+                    fileName: "a",
+                    updatePropertiesAsync: (lazyStream, properties) =>
+                    {
+                        Assert.NotNull(properties);
+
+                        return Task.FromResult(false);
+                    });
+
+                _blob.VerifyAll();
+                _blobContainer.VerifyAll();
+                _blobClient.VerifyAll();
+            }
+
+            [Fact]
+            public async Task WhenReturnValueIsTrue_PropertiesChangesArePersisted()
+            {
+                _blob.SetupGet(x => x.Properties)
+                    .Returns(new BlobProperties());
+                _blob.Setup(x => x.SetPropertiesAsync(It.IsNotNull<AccessCondition>()))
+                    .Returns(Task.FromResult(0));
+
+                await _service.SetPropertiesAsync(
+                    folderName: CoreConstants.PackagesFolderName,
+                    fileName: "a",
+                    updatePropertiesAsync: (lazyStream, properties) =>
+                    {
+                        Assert.NotNull(properties);
 
                         return Task.FromResult(true);
                     });
