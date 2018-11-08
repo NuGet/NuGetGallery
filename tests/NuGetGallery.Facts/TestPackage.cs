@@ -38,7 +38,9 @@ namespace NuGetGallery
             IEnumerable<ClientPackageType> packageTypes = null,
             bool isSymbolPackage = false,
             RepositoryMetadata repositoryMetadata = null,
-            Func<string> getCustomNodes = null)
+            Func<string> getCustomNodes = null,
+            string licenseExpression = null,
+            string licenseFilename = null)
         {
             var fullNuspec = (@"<?xml version=""1.0""?>
                 <package xmlns=""http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd"">
@@ -55,7 +57,8 @@ namespace NuGetGallery
                         <language>" + (language ?? string.Empty) + @"</language>
                         <copyright>" + (copyright ?? string.Empty) + @"</copyright>
                         <releaseNotes>" + (releaseNotes ?? string.Empty) + @"</releaseNotes>
-                        <licenseUrl>" + (licenseUrl?.ToString() ?? string.Empty) + @"</licenseUrl>
+                        <licenseUrl>" + (licenseUrl?.AbsoluteUri ?? string.Empty) + @"</licenseUrl>
+                        " + WriteLicense(licenseExpression, licenseFilename) + @"
                         <projectUrl>" + (projectUrl?.ToString() ?? string.Empty) + @"</projectUrl>
                         <iconUrl>" + (iconUrl?.ToString() ?? string.Empty) + @"</iconUrl>
                         <packageTypes>" + WritePackageTypes(packageTypes) + @"</packageTypes>
@@ -80,6 +83,22 @@ namespace NuGetGallery
             {
                 streamWriter.WriteLine(isSymbolPackage ? symbolNuspec : fullNuspec);
             }
+        }
+
+        private static string WriteLicense(string licenseExpression, string licenseFilename)
+        {
+            var stringBuilder = new StringBuilder();
+            if (licenseExpression != null)
+            {
+                stringBuilder.Append($"<license type='expression'>{licenseExpression}</license>");
+            }
+
+            if (licenseFilename != null)
+            {
+                stringBuilder.Append($"<license type='file'>{licenseFilename}</license>");
+            }
+
+            return stringBuilder.ToString();
         }
 
         private static string WriteRepositoryMetadata(RepositoryMetadata repositoryMetadata)
@@ -152,7 +171,7 @@ namespace NuGetGallery
             return builder.ToString();
         }
 
-        public static Stream CreateTestPackageStream(
+        public static MemoryStream CreateTestPackageStream(
             string id = "theId",
             string version = "1.0.42",
             string title = "Package Id",
@@ -175,7 +194,10 @@ namespace NuGetGallery
             Action<ZipArchive> populatePackage = null,
             bool isSymbolPackage = false,
             int? desiredTotalEntryCount = null,
-            Func<string> getCustomNuspecNodes = null)
+            Func<string> getCustomNuspecNodes = null,
+            string licenseExpression = null,
+            string licenseFilename = null,
+            byte[] licenseFileContents = null)
         {
             return CreateTestPackageStream(packageArchive =>
             {
@@ -185,7 +207,16 @@ namespace NuGetGallery
                     WriteNuspec(stream, true, id, version, title, summary, authors, owners, description, tags, language,
                         copyright, releaseNotes, minClientVersion, licenseUrl, projectUrl, iconUrl,
                         requireLicenseAcceptance, packageDependencyGroups, packageTypes, isSymbolPackage, repositoryMetadata,
-                        getCustomNuspecNodes);
+                        getCustomNuspecNodes, licenseExpression, licenseFilename);
+                }
+
+                if (licenseFileContents != null && licenseFilename != null)
+                {
+                    var licenseEntry = packageArchive.CreateEntry(licenseFilename, CompressionLevel.Fastest);
+                    using (var licenseStream = licenseEntry.Open())
+                    {
+                        licenseStream.Write(licenseFileContents, 0, licenseFileContents.Length);
+                    }
                 }
 
                 if (populatePackage != null)
@@ -195,7 +226,7 @@ namespace NuGetGallery
             }, desiredTotalEntryCount);
         }
 
-        public static Stream CreateTestSymbolPackageStream(string id = "theId", string version = "1.0.42", Action<ZipArchive> populatePackage = null)
+        public static MemoryStream CreateTestSymbolPackageStream(string id = "theId", string version = "1.0.42", Action<ZipArchive> populatePackage = null)
         {
             var packageTypes = new List<ClientPackageType>();
             packageTypes.Add(new ClientPackageType(name: "SymbolsPackage", version: ClientPackageType.EmptyVersion));
@@ -206,7 +237,7 @@ namespace NuGetGallery
                 isSymbolPackage: true);
         }
 
-        public static Stream CreateTestPackageStreamFromNuspec(string id, string nuspec, Action<ZipArchive> populatePackage = null)
+        public static MemoryStream CreateTestPackageStreamFromNuspec(string id, string nuspec, Action<ZipArchive> populatePackage = null)
         {
             return CreateTestPackageStream(packageArchive =>
             {
@@ -223,7 +254,7 @@ namespace NuGetGallery
             });
         }
 
-        public static Stream CreateTestPackageStream(Action<ZipArchive> populatePackage, int? desiredTotalEntryCount = null)
+        public static MemoryStream CreateTestPackageStream(Action<ZipArchive> populatePackage, int? desiredTotalEntryCount = null)
         {
             var packageStream = new MemoryStream();
             using (var packageArchive = new ZipArchive(packageStream, ZipArchiveMode.Create, leaveOpen: true))

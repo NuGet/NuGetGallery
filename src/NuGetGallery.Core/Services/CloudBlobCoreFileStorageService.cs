@@ -304,8 +304,19 @@ namespace NuGetGallery
             return "(none)";
         }
 
-        public async Task SaveFileAsync(string folderName, string fileName, Stream file, bool overwrite = true)
+        public Task SaveFileAsync(string folderName, string fileName, Stream file, bool overwrite = true)
         {
+            var contentType = GetContentType(folderName);
+            return SaveFileAsync(folderName, fileName, contentType, file, overwrite);
+        }
+
+        public async Task SaveFileAsync(string folderName, string fileName, string contentType, Stream file, bool overwrite = true)
+        {
+            if (contentType == null)
+            {
+                throw new ArgumentNullException(nameof(contentType));
+            }
+
             ICloudBlobContainer container = await GetContainerAsync(folderName);
             var blob = container.GetBlobReference(fileName);
 
@@ -324,7 +335,7 @@ namespace NuGetGallery
                     ex);
             }
 
-            blob.Properties.ContentType = GetContentType(folderName);
+            blob.Properties.ContentType = contentType;
             blob.Properties.CacheControl = GetCacheControl(folderName);
             await blob.SetPropertiesAsync();
         }
@@ -586,6 +597,9 @@ namespace NuGetGallery
                 case CoreConstants.UserCertificatesFolderName:
                     return CoreConstants.CertificateContentType;
 
+                case CoreConstants.PackagesContentFolderName:
+                    return CoreConstants.OctetStreamContentType;
+
                 default:
                     throw new InvalidOperationException(
                         string.Format(CultureInfo.CurrentCulture, "The folder name {0} is not supported.", folderName));
@@ -611,6 +625,7 @@ namespace NuGetGallery
             {
                 case CoreConstants.PackagesFolderName:
                 case CoreConstants.SymbolPackagesFolderName:
+                case CoreConstants.PackagesContentFolderName:
                 case CoreConstants.ValidationFolderName:
                     return CoreConstants.DefaultCacheControl;
 

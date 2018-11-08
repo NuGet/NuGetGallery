@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -568,12 +569,55 @@ namespace NuGetGallery
             // Identify the SemVerLevelKey using the original package version string and package dependencies
             package.SemVerLevelKey = SemVerLevelKey.ForPackage(packageMetadata.Version, package.Dependencies);
 
+            package.EmbeddedLicenseType = GetEmbeddedLicenseType(packageMetadata);
+            package.LicenseExpression = GetLicenseExpression(packageMetadata);
+
             return package;
         }
 
         public virtual IEnumerable<NuGetFramework> GetSupportedFrameworks(PackageArchiveReader package)
         {
             return package.GetSupportedFrameworks();
+        }
+
+        private static EmbeddedLicenseFileType GetEmbeddedLicenseType(PackageMetadata packageMetadata)
+        {
+            if (LicenseType.File != packageMetadata.LicenseMetadata?.Type)
+            {
+                return EmbeddedLicenseFileType.Absent;
+            }
+
+            return GetEmbeddedLicenseType(packageMetadata.LicenseMetadata.License);
+        }
+
+        private string GetLicenseExpression(PackageMetadata packageMetadata)
+        {
+            if (LicenseType.Expression != packageMetadata.LicenseMetadata?.Type)
+            {
+                return null;
+            }
+
+            return packageMetadata.LicenseMetadata.License;
+        }
+
+        private static EmbeddedLicenseFileType GetEmbeddedLicenseType(string licenseFileName)
+        {
+            const string MarkdownFileExtension = ".md";
+            const string TextFileExtension = ".txt";
+
+            var extension = Path.GetExtension(licenseFileName);
+
+            if (MarkdownFileExtension.Equals(extension, StringComparison.OrdinalIgnoreCase))
+            {
+                return EmbeddedLicenseFileType.Markdown;
+            }
+
+            if (TextFileExtension.Equals(extension, StringComparison.OrdinalIgnoreCase) || string.Empty == extension)
+            {
+                return EmbeddedLicenseFileType.PlainText;
+            }
+
+            throw new ArgumentException($"Invalid file name: {licenseFileName}");
         }
 
         private static void ValidateSupportedFrameworks(string[] supportedFrameworks)
