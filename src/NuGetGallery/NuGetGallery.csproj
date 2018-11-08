@@ -2217,10 +2217,10 @@
       <Version>9.0.1</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Configuration">
-      <Version>5.0.0-preview1.5626</Version>
+      <Version>5.0.0-preview1.5665</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Protocol">
-      <Version>5.0.0-preview1.5626</Version>
+      <Version>5.0.0-preview1.5665</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.KeyVault">
       <Version>2.31.0</Version>

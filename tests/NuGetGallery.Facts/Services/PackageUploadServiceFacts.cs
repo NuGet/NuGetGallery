@@ -604,20 +604,20 @@ namespace NuGetGallery
             [InlineData("MIT", true)]
             [InlineData("MIT AND MIT", true)]
             [InlineData("(((MIT)))", true)]
-            [InlineData("MIT OR GPL-1.0-only", true)]
-            [InlineData("MIT or GPL-1.0-only", false)]
-            [InlineData("MIT Or GPL-1.0-only", false)]
-            [InlineData("(MIT OR GPL-1.0-only)", true)]
-            [InlineData("(MIT AND GPL-1.0-only)", true)]
-            [InlineData("(MIT and GPL-1.0-only)", false)]
-            [InlineData("(MIT And GPL-1.0-only)", false)]
-            [InlineData("((((MIT) OR (GPL-1.0-only))))", true)]
+            [InlineData("MIT OR GPL-2.0-only", true)]
+            [InlineData("MIT or GPL-2.0-only", false)]
+            [InlineData("MIT Or GPL-2.0-only", false)]
+            [InlineData("(MIT OR GPL-2.0-only)", true)]
+            [InlineData("(MIT AND GPL-2.0-only)", true)]
+            [InlineData("(MIT and GPL-2.0-only)", false)]
+            [InlineData("(MIT And GPL-2.0-only)", false)]
+            [InlineData("((((MIT) OR (GPL-2.0-only))))", true)]
             [InlineData("(MIT", false)]
-            [InlineData("EUPL-1.0+", true)]
+            [InlineData("EUPL-1.1+", true)]
             [InlineData("Vim WITH Font-exception-2.0", true)] // we are not checking if license expression make sense
             [InlineData("Vim with Font-exception-2.0", false)]
             [InlineData("Vim With Font-exception-2.0", false)]
-            [InlineData("(EUPL-1.0+ OR (TORQUE-1.1 WITH Nokia-Qt-exception-1.1) AND Noweb)", true)]
+            [InlineData("(EUPL-1.1+ OR (SPL-1.0 WITH Nokia-Qt-exception-1.1) AND Sleepycat)", true)]
             public async Task ChecksLicenseExpressionCorrectness(string licenseExpression, bool expectedSuccess)
             {
                 _nuGetPackage = GeneratePackageWithLicense(licenseUrl: GetLicenseExpressionDeprecationUrl(licenseExpression), licenseExpression: licenseExpression, licenseFilename: null);
@@ -655,6 +655,32 @@ namespace NuGetGallery
                 Assert.Equal(PackageValidationResultType.Invalid, result.Type);
                 Assert.Contains("Invalid license metadata", result.Message.PlainTextMessage);
                 Assert.Contains(licenseExpression, result.Message.PlainTextMessage);
+                Assert.Empty(result.Warnings);
+            }
+
+            [Theory]
+            [InlineData("GPL-1.0-only", new[] { "GPL-1.0-only" })]
+            [InlineData("GPL-1.0-only+", new[] { "GPL-1.0-only" })]
+            [InlineData("RSA-MD", new[] { "RSA-MD" })]
+            [InlineData("RSA-MD AND MIT+", new[] { "RSA-MD" })]
+            [InlineData("MIT OR GPL-1.0-only", new[] { "GPL-1.0-only" })]
+            [InlineData("MIT OR GPL-1.0-only WITH Classpath-exception-2.0", new[] { "GPL-1.0-only" })]
+            [InlineData("Saxpath OR GPL-1.0-only WITH Classpath-exception-2.0", new[] { "Saxpath", "GPL-1.0-only" })]
+            public async Task RejectsNonOsiFsfLicenses(string licenseExpression, string[] unapprovedLicenses)
+            {
+                _nuGetPackage = GeneratePackageWithLicense(licenseUrl: new Uri(LicenseDeprecationUrl), licenseExpression: licenseExpression, licenseFilename: null);
+
+                var result = await _target.ValidateBeforeGeneratePackageAsync(
+                    _nuGetPackage.Object,
+                    GetPackageMetadata(_nuGetPackage));
+
+                Assert.Equal(PackageValidationResultType.Invalid, result.Type);
+                Assert.Contains("OSI", result.Message.PlainTextMessage);
+                Assert.Contains("FSF", result.Message.PlainTextMessage);
+                foreach (var unapproved in unapprovedLicenses)
+                {
+                    Assert.Contains(unapproved, result.Message.PlainTextMessage);
+                }
                 Assert.Empty(result.Warnings);
             }
 

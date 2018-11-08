@@ -2409,6 +2409,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to License expression must only contain licenses that are OSI or FSF approved. Unsupported licenses: {0}..
+        /// </summary>
+        public static string UploadPackage_NonFsfOrOsiLicense {
+            get {
+                return ResourceManager.GetString("UploadPackage_NonFsfOrOsiLicense", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to This package contains a &lt;license&gt; metadata which is currently not supported..
         /// </summary>
         public static string UploadPackage_NotAcceptingPackagesWithLicense {

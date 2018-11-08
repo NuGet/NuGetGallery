@@ -63,6 +63,10 @@ namespace NuGetGallery
             public const string TyposquattingChecklistRetrievalTimeInMs = "TyposquattingChecklistRetrievalTimeInMs";
             public const string TyposquattingAlgorithmProcessingTimeInMs = "TyposquattingAlgorithmProcessingTimeInMs";
             public const string TyposquattingOwnersCheckTimeInMs = "TyposquattingOwnersCheckTimeInMs";
+            public const string InvalidLicenseMetadata = "InvalidLicenseMetadata";
+            public const string NonFsfOsiLicenseUsed = "NonFsfOsiLicenseUsed";
+            public const string LicenseFileRejected = "LicenseFileRejected";
+            public const string LicenseValidationFailed = "LicenseValidationFailed";
         }
 
         private IDiagnosticsSource _diagnosticsSource;
@@ -150,6 +154,9 @@ namespace NuGetGallery
         public const string CollisionPackageIdsCount = "CollisionPackageIdsCount";
         public const string CheckListLength = "CheckListLength";
         public const string HasExtraCollisionPackageIds = "HasExtraCollisionPackageIds";
+
+        // License related properties
+        public const string LicenseExpression = "LicenseExpression";
 
         public TelemetryService(IDiagnosticsService diagnosticsService, ITelemetryClient telemetryClient = null)
         {
@@ -768,5 +775,17 @@ namespace NuGetGallery
 
             _telemetryClient.TrackMetric(metricName, value, telemetryProperties);
         }
+
+        public void TrackInvalidLicenseMetadata(string licenseValue)
+            => TrackMetric(Events.InvalidLicenseMetadata, 1, p => p.Add(LicenseExpression, licenseValue));
+
+        public void TrackNonFsfOsiLicenseUse(string licenseExpression)
+            => TrackMetric(Events.NonFsfOsiLicenseUsed, 1, p => p.Add(LicenseExpression, licenseExpression));
+
+        public void TrackLicenseFileRejected()
+            => TrackMetric(Events.LicenseFileRejected, 1, p => { });
+
+        public void TrackLicenseValidationFailure()
+            => TrackMetric(Events.LicenseValidationFailed, 1, p => { });
     }
 }

@@ -5,13 +5,13 @@ using System;
 using System.Collections.Generic;
 using System.Data.Entity.Infrastructure;
 using System.Data.SqlClient;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using NuGet.Packaging;
+using NuGet.Packaging.Licenses;
 using NuGet.Services.Entities;
 using NuGet.Versioning;
 using NuGetGallery.Configuration;
@@ -58,6 +58,7 @@ namespace NuGetGallery
         private readonly IValidationService _validationService;
         private readonly IAppConfiguration _config;
         private readonly ITyposquattingService _typosquattingService;
+        private readonly ITelemetryService _telemetryService;
 
         public PackageUploadService(
             IPackageService packageService,
@@ -66,7 +67,8 @@ namespace NuGetGallery
             IReservedNamespaceService reservedNamespaceService,
             IValidationService validationService,
             IAppConfiguration config,
-            ITyposquattingService typosquattingService)
+            ITyposquattingService typosquattingService,
+            ITelemetryService telemetryService)
         {
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
             _packageFileService = packageFileService ?? throw new ArgumentNullException(nameof(packageFileService));
@@ -75,6 +77,7 @@ namespace NuGetGallery
             _validationService = validationService ?? throw new ArgumentNullException(nameof(validationService));
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _typosquattingService = typosquattingService ?? throw new ArgumentNullException(nameof(typosquattingService));
+            _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
         }
 
         public async Task<PackageValidationResult> ValidateBeforeGeneratePackageAsync(PackageArchiveReader nuGetPackage, PackageMetadata packageMetadata)
@@ -107,6 +110,7 @@ namespace NuGetGallery
             result = await CheckLicenseMetadataAsync(nuGetPackage, warnings);
             if (result != null)
             {
+                _telemetryService.TrackLicenseValidationFailure();
                 return result;
             }
 
@@ -160,6 +164,7 @@ namespace NuGetGallery
                 // TODO: remove when all pipeline changes are done
                 if (LicenseType.File.ToString().Equals(typeText, StringComparison.OrdinalIgnoreCase))
                 {
+                    _telemetryService.TrackLicenseFileRejected();
                     return PackageValidationResult.Invalid(Strings.UploadPackage_LicenseFilesAreNotAllowed);
                 }
             }
@@ -207,6 +212,7 @@ namespace NuGetGallery
 
             if (licenseMetadata.WarningsAndErrors != null && licenseMetadata.WarningsAndErrors.Any())
             {
+                _telemetryService.TrackInvalidLicenseMetadata(licenseMetadata.License);
                 return PackageValidationResult.Invalid(
                     string.Format(
                         Strings.UploadPackage_InvalidLicenseMetadata,
@@ -280,7 +286,64 @@ namespace NuGetGallery
                 }
             }
 
+            if (licenseMetadata.Type == LicenseType.Expression)
+            {
+                if (licenseMetadata.LicenseExpression == null)
+                {
+                    throw new InvalidOperationException($"Unexpected value of {nameof(licenseMetadata.LicenseExpression)} property");
+                }
+
+                var licenseList = GetLicenseList(licenseMetadata.LicenseExpression);
+                var unapprovedLicenses = licenseList.Where(license => !license.IsOsiApproved && !license.IsFsfLibre).ToList();
+                if (unapprovedLicenses.Any())
+                {
+                    _telemetryService.TrackNonFsfOsiLicenseUse(licenseMetadata.License);
+                    return PackageValidationResult.Invalid(
+                        string.Format(
+                            Strings.UploadPackage_NonFsfOrOsiLicense, string.Join(", ", unapprovedLicenses.Select(l => l.LicenseID))));
+                }
+            }
+
             return null;
+        }
+
+        private List<LicenseData> GetLicenseList(NuGetLicenseExpression licenseExpression)
+        {
+            var licenseList = new List<LicenseData>();
+            var queue = new Queue<NuGetLicenseExpression>();
+            queue.Enqueue(licenseExpression);
+            while (queue.Any())
+            {
+                var head = queue.Dequeue();
+                switch (head.Type)
+                {
+                    case LicenseExpressionType.License:
+                        {
+                            var license = (NuGetLicense)head;
+                            var licenseData = NuGetLicenseData.LicenseList[license.Identifier];
+                            licenseList.Add(licenseData);
+                        }
+                        break;
+                    case LicenseExpressionType.Operator:
+                        var op = (LicenseOperator)head;
+                        if (op.OperatorType == LicenseOperatorType.LogicalOperator)
+                        {
+                            var logicalOperator = (LogicalOperator)op;
+                            queue.Enqueue(logicalOperator.Left);
+                            queue.Enqueue(logicalOperator.Right);
+                        }
+                        else if (op.OperatorType == LicenseOperatorType.WithOperator)
+                        {
+                            var withOperator = (WithOperator)op;
+                            var licenseData = NuGetLicenseData.LicenseList[withOperator.License.Identifier];
+                            licenseList.Add(licenseData);
+                            // exceptions don't interest us for now
+                        }
+                        break;
+                }
+            }
+
+            return licenseList;
         }
 
         private static async Task<bool> IsStreamLengthMatchesReportedAsync(Stream licenseFileStream, long reportedLength)
