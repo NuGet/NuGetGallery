@@ -280,10 +280,18 @@ namespace NuGetGallery
             if (!string.IsNullOrEmpty(cacheControl))
             {
                 await destBlob.FetchAttributesAsync();
+
                 if (string.IsNullOrEmpty(destBlob.Properties.CacheControl))
                 {
+                    var accessCondition = AccessConditionWrapper.GenerateIfMatchCondition(destBlob.ETag);
+                    var mappedAccessCondition = new AccessCondition
+                    {
+                        IfNoneMatchETag = accessCondition.IfNoneMatchETag,
+                        IfMatchETag = accessCondition.IfMatchETag
+                    };
+
                     destBlob.Properties.CacheControl = cacheControl;
-                    await destBlob.SetPropertiesAsync();
+                    await destBlob.SetPropertiesAsync(mappedAccessCondition);
                 }
             }
 

@@ -1104,7 +1104,7 @@ namespace NuGetGallery
                     x => x.StartCopyAsync(It.IsAny<ISimpleCloudBlob>(), It.IsAny<AccessCondition>(), It.IsAny<AccessCondition>()),
                     Times.Once);
                 instance._destBlobMock.Verify(
-                    x => x.SetPropertiesAsync(),
+                    x => x.SetPropertiesAsync(It.IsAny<AccessCondition>()),
                     Times.Once);
                 instance._destBlobMock.Verify(
                     x => x.StartCopyAsync(It.IsAny<ISimpleCloudBlob>(), It.IsAny<AccessCondition>(), It.IsAny<AccessCondition>()),
