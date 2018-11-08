@@ -8,6 +8,7 @@ using System.IO;
 using System.Threading.Tasks;
 using System.Web.Hosting;
 using System.Web.Mvc;
+using Microsoft.WindowsAzure.Storage.Blob;
 using NuGetGallery.Configuration;
 
 namespace NuGetGallery
@@ -258,6 +259,14 @@ namespace NuGetGallery
             string folderName,
             string fileName,
             Func<Lazy<Task<Stream>>, IDictionary<string, string>, Task<bool>> updateMetadataAsync)
+        {
+            return Task.CompletedTask;
+        }
+
+        public Task SetPropertiesAsync(
+            string folderName,
+            string fileName, 
+            Func<Lazy<Task<Stream>>, BlobProperties, Task<bool>> updatePropertiesAsync)
         {
             return Task.CompletedTask;
         }

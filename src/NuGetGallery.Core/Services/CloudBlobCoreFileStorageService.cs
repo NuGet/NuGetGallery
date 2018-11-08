@@ -277,17 +277,6 @@ namespace NuGetGallery
                 throw new StorageException($"The blob copy operation had copy status {destBlob.CopyState.Status} ({destBlob.CopyState.StatusDescription}).");
             }
 
-            var cacheControl = GetCacheControlForCopy(destFolderName);
-            if (!string.IsNullOrEmpty(cacheControl))
-            {
-                await destBlob.FetchAttributesAsync();
-                if (string.IsNullOrEmpty(destBlob.Properties.CacheControl))
-                {
-                    destBlob.Properties.CacheControl = cacheControl;
-                    await destBlob.SetPropertiesAsync();
-                }
-            }
-
             return srcBlob.ETag;
         }
 
@@ -449,6 +438,55 @@ namespace NuGetGallery
             }
         }
 
+        /// <summary>
+        /// Asynchronously sets blob properties.
+        /// </summary>
+        /// <param name="folderName">The folder (container) name.</param>
+        /// <param name="fileName">The blob file name.</param>
+        /// <param name="updatePropertiesAsync">A function which updates blob properties and returns <c>true</c>
+        /// for changes to be persisted or <c>false</c> for changes to be discarded.</param>
+        /// <returns>A task that represents the asynchronous operation.</returns>
+        public async Task SetPropertiesAsync(
+            string folderName,
+            string fileName,
+            Func<Lazy<Task<Stream>>, BlobProperties, Task<bool>> updatePropertiesAsync)
+        {
+            if (folderName == null)
+            {
+                throw new ArgumentNullException(nameof(folderName));
+            }
+
+            if (fileName == null)
+            {
+                throw new ArgumentNullException(nameof(fileName));
+            }
+
+            if (updatePropertiesAsync == null)
+            {
+                throw new ArgumentNullException(nameof(updatePropertiesAsync));
+            }
+
+            var container = await GetContainerAsync(folderName);
+            var blob = container.GetBlobReference(fileName);
+
+            await blob.FetchAttributesAsync();
+
+            var lazyStream = new Lazy<Task<Stream>>(() => GetFileAsync(folderName, fileName));
+            var wasUpdated = await updatePropertiesAsync(lazyStream, blob.Properties);
+
+            if (wasUpdated)
+            {
+                var accessCondition = AccessConditionWrapper.GenerateIfMatchCondition(blob.ETag);
+                var mappedAccessCondition = new AccessCondition
+                {
+                    IfNoneMatchETag = accessCondition.IfNoneMatchETag,
+                    IfMatchETag = accessCondition.IfMatchETag
+                };
+
+                await blob.SetPropertiesAsync(mappedAccessCondition);
+            }
+        }
+
         public async Task<string> GetETagOrNullAsync(
             string folderName,
             string fileName)
@@ -604,19 +642,6 @@ namespace NuGetGallery
                 default:
                     throw new InvalidOperationException(
                         string.Format(CultureInfo.CurrentCulture, "The folder name {0} is not supported.", folderName));
-            }
-        }
-
-        private static string GetCacheControlForCopy(string folderName)
-        {
-            switch (folderName)
-            {
-                case CoreConstants.Folders.PackagesFolderName:
-                case CoreConstants.Folders.SymbolPackagesFolderName:
-                    return CoreConstants.DefaultCacheControl;
-
-                default:
-                    return null;
             }
         }
 

@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using Microsoft.WindowsAzure.Storage.Blob;
 
 namespace NuGetGallery
 {
@@ -135,6 +136,18 @@ namespace NuGetGallery
             string folderName,
             string fileName,
             Func<Lazy<Task<Stream>>, IDictionary<string, string>, Task<bool>> updateMetadataAsync);
+
+        /// <summary>
+        /// Updates properties on the file.
+        /// </summary>
+        /// <param name="folderName">The folder name.</param>
+        /// <param name="fileName">The file name.</param>
+        /// <param name="updatePropertiesAsync">A function that will update file properties.</param>
+        /// <returns>A task that represents the asynchronous operation.</returns>
+        Task SetPropertiesAsync(
+            string folderName,
+            string fileName,
+            Func<Lazy<Task<Stream>>, BlobProperties, Task<bool>> updatePropertiesAsync);
 
         /// <summary>
         /// Returns the etag value for the specified blob. If the blob does not exists it will return null.

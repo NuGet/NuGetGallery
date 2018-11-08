@@ -66,6 +66,11 @@ namespace NuGetGallery
             await _blob.SetPropertiesAsync();
         }
 
+        public async Task SetPropertiesAsync(AccessCondition accessCondition)
+        {
+            await _blob.SetPropertiesAsync(accessCondition, options: null, operationContext: null);
+        }
+
         public async Task SetMetadataAsync(AccessCondition accessCondition)
         {
             await _blob.SetMetadataAsync(accessCondition, options: null, operationContext: null);
