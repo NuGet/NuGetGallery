@@ -7,6 +7,7 @@ using System.Linq;
 using NuGet.Services.Entities;
 using NuGet.Services.Validation.Issues;
 using NuGet.Versioning;
+using NuGetGallery.Helpers;
 
 namespace NuGetGallery
 {
@@ -63,7 +64,11 @@ namespace NuGetGallery
                 ProjectUrl = projectUrl;
             }
 
-            if (PackageHelper.TryPrepareUrlForRendering(package.LicenseUrl, out string licenseUrl))
+            var licenseExpression = package.LicenseExpression;
+            if (!string.IsNullOrEmpty(licenseExpression))
+            {
+                LicenseUrl = LicenseExpressionRedirectUrlHelper.GetLicenseExpressionRedirectUrl(licenseExpression);
+            } else if (PackageHelper.TryPrepareUrlForRendering(package.LicenseUrl, out string licenseUrl))
             {
                 LicenseUrl = licenseUrl;
 
@@ -74,7 +79,6 @@ namespace NuGetGallery
                 }
             }
         }
-
         public bool ValidatingTooLong { get; set; }
         public IReadOnlyList<ValidationIssue> PackageValidationIssues { get; set; }
         public IReadOnlyList<ValidationIssue> SymbolsPackageValidationIssues { get; set; }
