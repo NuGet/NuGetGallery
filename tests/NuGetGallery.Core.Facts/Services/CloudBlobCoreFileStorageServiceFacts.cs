@@ -86,6 +86,24 @@ namespace NuGetGallery
             }
         }
 
+        [Fact]
+        public void FolderNameDataContainsAllFolders()
+        {
+            var folderNameFields = typeof(CoreConstants.Folders)
+                .GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy)
+                .Where(f => f.IsLiteral && !f.IsInitOnly).ToList();
+
+            var folderNames = new FolderNamesDataAttribute().GetData(null).Select(a => (string)a[0]).ToList();
+
+            Assert.Equal(folderNameFields.Count, folderNames.Count);
+
+            foreach (var folderNameField in folderNameFields)
+            {
+                var folderName = (string)folderNameField.GetRawConstantValue();
+                Assert.Contains(folderName, folderNames);
+            }
+        }
+
         public class TheCtor
         {
             [Theory]
