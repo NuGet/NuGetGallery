@@ -626,7 +626,6 @@ namespace NuGetGallery
             {
                 case CoreConstants.PackagesFolderName:
                 case CoreConstants.SymbolPackagesFolderName:
-                case CoreConstants.PackagesContentFolderName:
                 case CoreConstants.ValidationFolderName:
                     return CoreConstants.DefaultCacheControl;
 
@@ -639,6 +638,7 @@ namespace NuGetGallery
                 case CoreConstants.RevalidationFolderName:
                 case CoreConstants.StatusFolderName:
                 case CoreConstants.UserCertificatesFolderName:
+                case CoreConstants.PackagesContentFolderName:
                     return null;
 
                 default:
