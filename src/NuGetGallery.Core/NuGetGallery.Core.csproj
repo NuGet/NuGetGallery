@@ -203,7 +203,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="NuGet.Services.Entities">
-      <Version>2.31.0</Version>
+      <Version>2.32.0-agr-license-2170862</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Messaging">
       <Version>2.31.0</Version>
@@ -239,7 +239,7 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="NuGet.Packaging">
-      <Version>4.8.0</Version>
+      <Version>5.0.0-preview1.5665</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Validation">
       <Version>2.31.0</Version>

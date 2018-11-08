@@ -370,5 +370,16 @@ namespace NuGetGallery.Configuration
         /// Flag that indicates whether packages with `license` node in them should be rejected.
         /// </summary>
         bool RejectPackagesWithLicense { get; set; }
+
+        /// <summary>
+        /// Indicates whether packages that specify the license the "old" way (with a "licenseUrl" node only) should be rejected.
+        /// </summary>
+        bool BlockLegacyLicenseUrl { get; set; }
+
+        /// <summary>
+        /// Indicates whether packages that don't specify any license information (no license URL, no license expression,
+        /// no embedded license) are allowed into Gallery.
+        /// </summary>
+        bool AllowLicenselessPackages { get; set; }
     }
 }
