@@ -108,7 +108,7 @@ namespace NuGetGallery
             {
                 var fileStorageSvc = new Mock<ICoreFileStorageService>();
                 var service = CreateService(fileStorageService: fileStorageSvc);
-                fileStorageSvc.Setup(x => x.SaveFileAsync(CoreConstants.PackagesFolderName, It.IsAny<string>(), It.IsAny<Stream>(), It.Is<bool>(b => !b)))
+                fileStorageSvc.Setup(x => x.SaveFileAsync(CoreConstants.Folders.PackagesFolderName, It.IsAny<string>(), It.IsAny<Stream>(), It.Is<bool>(b => !b)))
                     .Completes()
                     .Verifiable();
 
@@ -633,7 +633,7 @@ namespace NuGetGallery
             {
                 var fileStorageSvc = new Mock<ICoreFileStorageService>();
                 var service = CreateService(fileStorageService: fileStorageSvc);
-                fileStorageSvc.Setup(x => x.SaveFileAsync(CoreConstants.PackageBackupsFolderName, It.IsAny<string>(), It.IsAny<Stream>(), It.Is<bool>(b => b)))
+                fileStorageSvc.Setup(x => x.SaveFileAsync(CoreConstants.Folders.PackageBackupsFolderName, It.IsAny<string>(), It.IsAny<Stream>(), It.Is<bool>(b => b)))
                     .Completes()
                     .Verifiable();
 
@@ -819,7 +819,7 @@ namespace NuGetGallery
                 var packageRegistration = new PackageRegistration { Id = "theId" };
                 var package = new Package { PackageRegistration = packageRegistration, NormalizedVersion = null, Version = "01.01.01", EmbeddedLicenseType = licenseFileType };
 
-                fileStorageSvc.Setup(x => x.SaveFileAsync(CoreConstants.PackagesContentFolderName, BuildLicenseFileName("theId", "1.1.1"), expectedContentType, It.IsAny<Stream>(), true))
+                fileStorageSvc.Setup(x => x.SaveFileAsync(CoreConstants.Folders.PackagesContentFolderName, BuildLicenseFileName("theId", "1.1.1"), expectedContentType, It.IsAny<Stream>(), true))
                     .Completes()
                     .Verifiable();
 
@@ -898,7 +898,7 @@ namespace NuGetGallery
                 await service.DownloadLicenseFileAsync(package);
 
                 fileStorageSvc
-                    .Verify(fss => fss.GetFileAsync(CoreConstants.PackagesContentFolderName, BuildLicenseFileName("theId", "1.1.1")),
+                    .Verify(fss => fss.GetFileAsync(CoreConstants.Folders.PackagesContentFolderName, BuildLicenseFileName("theId", "1.1.1")),
                         Times.Once);
                 fileStorageSvc
                     .Verify(fss => fss.GetFileAsync(It.IsAny<string>(), It.IsAny<string>()),
@@ -949,7 +949,7 @@ namespace NuGetGallery
                 await service.DeleteLicenseFileAsync("theId", "01.02.03");
 
                 fileStorageSvc
-                    .Verify(fss => fss.DeleteFileAsync(CoreConstants.PackagesContentFolderName, BuildLicenseFileName("theId", "1.2.3")), Times.Once);
+                    .Verify(fss => fss.DeleteFileAsync(CoreConstants.Folders.PackagesContentFolderName, BuildLicenseFileName("theId", "1.2.3")), Times.Once);
                 fileStorageSvc
                     .Verify(fss => fss.DeleteFileAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
             }

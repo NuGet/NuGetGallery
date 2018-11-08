@@ -7,7 +7,7 @@ namespace NuGetGallery
 {
     public class SymbolPackageFileMetadataService : IFileMetadataService
     {
-        public string FileFolderName => CoreConstants.SymbolPackagesFolderName;
+        public string FileFolderName => CoreConstants.Folders.SymbolPackagesFolderName;
 
         public string PackageContentFolderName => throw new NotImplementedException();
         public string PackageContentPathTemplate => throw new NotImplementedException();
@@ -16,9 +16,9 @@ namespace NuGetGallery
 
         public string FileExtension => CoreConstants.NuGetSymbolPackageFileExtension;
 
-        public string ValidationFolderName => CoreConstants.ValidationFolderName;
+        public string ValidationFolderName => CoreConstants.Folders.ValidationFolderName;
 
-        public string FileBackupsFolderName => CoreConstants.SymbolPackageBackupsFolderName;
+        public string FileBackupsFolderName => CoreConstants.Folders.SymbolPackageBackupsFolderName;
 
         public string FileBackupSavePathTemplate => CoreConstants.PackageFileBackupSavePathTemplate;
     }

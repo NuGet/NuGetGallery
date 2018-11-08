@@ -172,7 +172,7 @@ namespace NuGetGallery
             try
             {
                 await _fileStorageService.SaveFileAsync(
-                    CoreConstants.UserCertificatesFolderName,
+                    CoreConstants.Folders.UserCertificatesFolderName,
                     filePath,
                     certificateFile.Stream,
                     overwrite: false);

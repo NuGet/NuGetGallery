@@ -5,9 +5,9 @@ namespace NuGetGallery
 {
     public class PackageFileMetadataService : IFileMetadataService
     {
-        public string FileFolderName => CoreConstants.PackagesFolderName;
+        public string FileFolderName => CoreConstants.Folders.PackagesFolderName;
 
-        public string PackageContentFolderName => CoreConstants.PackagesContentFolderName;
+        public string PackageContentFolderName => CoreConstants.Folders.PackagesContentFolderName;
 
         public string PackageContentPathTemplate => CoreConstants.PackageContentFileSavePathTemplate;
 
@@ -15,9 +15,9 @@ namespace NuGetGallery
 
         public string FileExtension => CoreConstants.NuGetPackageFileExtension;
 
-        public string ValidationFolderName => CoreConstants.ValidationFolderName;
+        public string ValidationFolderName => CoreConstants.Folders.ValidationFolderName;
 
-        public string FileBackupsFolderName => CoreConstants.PackageBackupsFolderName;
+        public string FileBackupsFolderName => CoreConstants.Folders.PackageBackupsFolderName;
 
         public string FileBackupSavePathTemplate => CoreConstants.PackageFileBackupSavePathTemplate;
     }

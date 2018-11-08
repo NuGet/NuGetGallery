@@ -25,7 +25,7 @@ namespace NuGetGallery
 
             var uploadFileName = BuildFileName(userKey);
 
-            return _fileStorageService.DeleteFileAsync(CoreConstants.UploadsFolderName, uploadFileName);
+            return _fileStorageService.DeleteFileAsync(CoreConstants.Folders.UploadsFolderName, uploadFileName);
         }
 
         public Task<Stream> GetUploadFileAsync(int userKey)
@@ -54,7 +54,7 @@ namespace NuGetGallery
             packageFileStream.Position = 0;
 
             var uploadFileName = BuildFileName(userKey);
-            return _fileStorageService.SaveFileAsync(CoreConstants.UploadsFolderName, uploadFileName, packageFileStream);
+            return _fileStorageService.SaveFileAsync(CoreConstants.Folders.UploadsFolderName, uploadFileName, packageFileStream);
         }
 
         private static string BuildFileName(int userKey)
@@ -66,7 +66,7 @@ namespace NuGetGallery
         private async Task<Stream> GetUploadFileAsyncCore(int userKey)
         {
             var uploadFileName = BuildFileName(userKey);
-            return await _fileStorageService.GetFileAsync(CoreConstants.UploadsFolderName, uploadFileName);
+            return await _fileStorageService.GetFileAsync(CoreConstants.Folders.UploadsFolderName, uploadFileName);
         }
     }
 }
