@@ -67,7 +67,7 @@ namespace NuGetGallery
                     jsonWriter.Flush();
                     stream.Position = 0;
 
-                    await _storage.SaveFileAsync(CoreConstants.RevalidationFolderName, StateFileName, stream, accessCondition);
+                    await _storage.SaveFileAsync(CoreConstants.Folders.RevalidationFolderName, StateFileName, stream, accessCondition);
                 }
 
                 return state;
@@ -80,11 +80,11 @@ namespace NuGetGallery
 
         private async Task<InternalState> GetInternalStateAsync()
         {
-            var fileReference = await _storage.GetFileReferenceAsync(CoreConstants.RevalidationFolderName, StateFileName);
+            var fileReference = await _storage.GetFileReferenceAsync(CoreConstants.Folders.RevalidationFolderName, StateFileName);
 
             if (fileReference == null)
             {
-                throw new InvalidOperationException($"Could not find file '{StateFileName}' in folder '{CoreConstants.RevalidationFolderName}'");
+                throw new InvalidOperationException($"Could not find file '{StateFileName}' in folder '{CoreConstants.Folders.RevalidationFolderName}'");
             }
 
             using (var fileStream = fileReference.OpenRead())
@@ -95,7 +95,7 @@ namespace NuGetGallery
 
                 if (state == null)
                 {
-                    throw new InvalidOperationException($"State blob '{StateFileName}' in folder '{CoreConstants.RevalidationFolderName}' is malformed");
+                    throw new InvalidOperationException($"State blob '{StateFileName}' in folder '{CoreConstants.Folders.RevalidationFolderName}' is malformed");
                 }
 
                 return new InternalState(fileReference, state);

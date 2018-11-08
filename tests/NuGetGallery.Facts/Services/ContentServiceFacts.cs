@@ -96,7 +96,7 @@ namespace NuGetGallery.Services
                 Assert.Equal(CachedContent, actual.ToString());
                 contentService.MockFileStorage
                               .Verify(
-                                fs => fs.GetFileReferenceAsync(CoreConstants.ContentFolderName, "TestContentItem.md", It.IsAny<string>()),
+                                fs => fs.GetFileReferenceAsync(CoreConstants.Folders.ContentFolderName, "TestContentItem.md", It.IsAny<string>()),
                                 Times.Never());
             }
 
@@ -118,7 +118,7 @@ namespace NuGetGallery.Services
                 // Assert
                 Assert.Equal(CachedContent, actual.ToString());
                 contentService.MockFileStorage
-                              .Verify(fs => fs.GetFileReferenceAsync(CoreConstants.ContentFolderName, "TestContentItem.md", cachedContentId));
+                              .Verify(fs => fs.GetFileReferenceAsync(CoreConstants.Folders.ContentFolderName, "TestContentItem.md", cachedContentId));
                 Assert.Equal(0, file.OpenCount); // Make sure we never tried to open the file.
                 
                 var updatedCache = contentService.GetCached("TestContentItem");
@@ -146,7 +146,7 @@ namespace NuGetGallery.Services
                 // Assert
                 Assert.Equal(RenderedNewContent, actual.ToString());
                 contentService.MockFileStorage
-                              .Verify(fs => fs.GetFileReferenceAsync(CoreConstants.ContentFolderName, "TestContentItem.md", cachedContentId));
+                              .Verify(fs => fs.GetFileReferenceAsync(CoreConstants.Folders.ContentFolderName, "TestContentItem.md", cachedContentId));
                 Assert.Equal(1, file.OpenCount); // Make sure we never tried to open the file.
 
                 var updatedCache = contentService.GetCached("TestContentItem");
@@ -230,7 +230,7 @@ namespace NuGetGallery.Services
                 Assert.Equal(CachedContent, actual.ToString());
                 contentService.MockFileStorage
                               .Verify(
-                                fs => fs.GetFileReferenceAsync(CoreConstants.ContentFolderName, "TestContentItem.md", It.IsAny<string>()),
+                                fs => fs.GetFileReferenceAsync(CoreConstants.Folders.ContentFolderName, "TestContentItem.md", It.IsAny<string>()),
                                 Times.Never());
             }
 
@@ -252,7 +252,7 @@ namespace NuGetGallery.Services
                 // Assert
                 Assert.Equal(CachedContent, actual.ToString());
                 contentService.MockFileStorage
-                              .Verify(fs => fs.GetFileReferenceAsync(CoreConstants.ContentFolderName, "TestContentItem.md", cachedContentId));
+                              .Verify(fs => fs.GetFileReferenceAsync(CoreConstants.Folders.ContentFolderName, "TestContentItem.md", cachedContentId));
                 Assert.Equal(0, file.OpenCount); // Make sure we never tried to open the file.
 
                 var updatedCache = contentService.GetCached("TestContentItem");
@@ -280,7 +280,7 @@ namespace NuGetGallery.Services
                 // Assert
                 Assert.Equal(RenderedNewContent, actual.ToString());
                 contentService.MockFileStorage
-                              .Verify(fs => fs.GetFileReferenceAsync(CoreConstants.ContentFolderName, "TestContentItem.md", cachedContentId));
+                              .Verify(fs => fs.GetFileReferenceAsync(CoreConstants.Folders.ContentFolderName, "TestContentItem.md", cachedContentId));
                 Assert.Equal(1, file.OpenCount); // Make sure we never tried to open the file.
 
                 var updatedCache = contentService.GetCached("TestContentItem");
@@ -320,10 +320,10 @@ namespace NuGetGallery.Services
             public void SetFile(string filename, string cachedContentId, IFileReference file)
             {
                 MockFileStorage
-                    .Setup(fs => fs.GetFileReferenceAsync(CoreConstants.ContentFolderName, filename, cachedContentId))
+                    .Setup(fs => fs.GetFileReferenceAsync(CoreConstants.Folders.ContentFolderName, filename, cachedContentId))
                     .Returns(Task.FromResult<IFileReference>(file));
                 MockFileStorage
-                    .Setup(fs => fs.GetFileReferenceAsync(CoreConstants.ContentFolderName, It.Is<string>(s => !s.Equals(filename)), It.IsAny<string>()))
+                    .Setup(fs => fs.GetFileReferenceAsync(CoreConstants.Folders.ContentFolderName, It.Is<string>(s => !s.Equals(filename)), It.IsAny<string>()))
                     .Returns(Task.FromResult<IFileReference>(null));
             }
 

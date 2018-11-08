@@ -28,13 +28,13 @@ namespace NuGetGallery
         public Task<ActionResult> CreateDownloadPackageActionResultAsync(Uri requestUrl, Package package)
         {
             var fileName = BuildFileName(package, CoreConstants.PackageFileSavePathTemplate, CoreConstants.NuGetPackageFileExtension);
-            return _fileStorageService.CreateDownloadFileActionResultAsync(requestUrl, CoreConstants.PackagesFolderName, fileName);
+            return _fileStorageService.CreateDownloadFileActionResultAsync(requestUrl, CoreConstants.Folders.PackagesFolderName, fileName);
         }
 
         public Task<ActionResult> CreateDownloadPackageActionResultAsync(Uri requestUrl, string id, string version)
         {
             var fileName = BuildFileName(id, version, CoreConstants.PackageFileSavePathTemplate, CoreConstants.NuGetPackageFileExtension);
-            return _fileStorageService.CreateDownloadFileActionResultAsync(requestUrl, CoreConstants.PackagesFolderName, fileName);
+            return _fileStorageService.CreateDownloadFileActionResultAsync(requestUrl, CoreConstants.Folders.PackagesFolderName, fileName);
         }
 
         /// <summary>
@@ -50,7 +50,7 @@ namespace NuGetGallery
             
             var fileName = BuildFileName(package, ReadMeFilePathTemplateActive, GalleryConstants.MarkdownFileExtension);
 
-            return _fileStorageService.DeleteFileAsync(CoreConstants.PackageReadMesFolderName, fileName);
+            return _fileStorageService.DeleteFileAsync(CoreConstants.Folders.PackageReadMesFolderName, fileName);
         }
 
         /// <summary>
@@ -69,7 +69,7 @@ namespace NuGetGallery
 
             using (var readMeMdStream = new MemoryStream(Encoding.UTF8.GetBytes(readMeMd)))
             {
-                await _fileStorageService.SaveFileAsync(CoreConstants.PackageReadMesFolderName, fileName, readMeMdStream, overwrite: true);
+                await _fileStorageService.SaveFileAsync(CoreConstants.Folders.PackageReadMesFolderName, fileName, readMeMdStream, overwrite: true);
             }
         }
 
@@ -86,7 +86,7 @@ namespace NuGetGallery
             
             var fileName = BuildFileName(package, ReadMeFilePathTemplateActive, GalleryConstants.MarkdownFileExtension);
 
-            using (var readMeMdStream = await _fileStorageService.GetFileAsync(CoreConstants.PackageReadMesFolderName, fileName))
+            using (var readMeMdStream = await _fileStorageService.GetFileAsync(CoreConstants.Folders.PackageReadMesFolderName, fileName))
             {
                 // Note that fileStorageService implementations return null if not found.
                 if (readMeMdStream != null)

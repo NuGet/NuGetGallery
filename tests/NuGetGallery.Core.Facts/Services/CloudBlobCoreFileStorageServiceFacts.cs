@@ -48,15 +48,19 @@ namespace NuGetGallery
             {
                 var folderNames = new List<object[]>
                 {
-                    new object[] { CoreConstants.ContentFolderName, false, CoreConstants.JsonContentType, },
-                    new object[] { CoreConstants.DownloadsFolderName, true, CoreConstants.OctetStreamContentType },
-                    new object[] { CoreConstants.PackageBackupsFolderName, true, CoreConstants.PackageContentType },
-                    new object[] { CoreConstants.PackageReadMesFolderName, false, CoreConstants.TextContentType },
-                    new object[] { CoreConstants.PackagesFolderName, true, CoreConstants.PackageContentType },
-                    new object[] { CoreConstants.SymbolPackagesFolderName, true, CoreConstants.PackageContentType },
-                    new object[] { CoreConstants.UploadsFolderName, false, CoreConstants.PackageContentType },
-                    new object[] { CoreConstants.UserCertificatesFolderName, false, CoreConstants.CertificateContentType },
-                    new object[] { CoreConstants.ValidationFolderName, false, CoreConstants.PackageContentType }
+                    new object[] { CoreConstants.Folders.ContentFolderName, false, CoreConstants.JsonContentType, },
+                    new object[] { CoreConstants.Folders.DownloadsFolderName, true, CoreConstants.OctetStreamContentType },
+                    new object[] { CoreConstants.Folders.PackageBackupsFolderName, true, CoreConstants.PackageContentType },
+                    new object[] { CoreConstants.Folders.PackageReadMesFolderName, false, CoreConstants.TextContentType },
+                    new object[] { CoreConstants.Folders.PackagesFolderName, true, CoreConstants.PackageContentType },
+                    new object[] { CoreConstants.Folders.SymbolPackagesFolderName, true, CoreConstants.PackageContentType },
+                    new object[] { CoreConstants.Folders.SymbolPackageBackupsFolderName, true, CoreConstants.PackageContentType },
+                    new object[] { CoreConstants.Folders.UploadsFolderName, false, CoreConstants.PackageContentType },
+                    new object[] { CoreConstants.Folders.UserCertificatesFolderName, false, CoreConstants.CertificateContentType },
+                    new object[] { CoreConstants.Folders.ValidationFolderName, false, CoreConstants.PackageContentType },
+                    new object[] { CoreConstants.Folders.PackagesContentFolderName, false, CoreConstants.OctetStreamContentType },
+                    new object[] { CoreConstants.Folders.RevalidationFolderName, false, CoreConstants.JsonContentType },
+                    new object[] { CoreConstants.Folders.StatusFolderName, false, CoreConstants.JsonContentType },
                 };
 
                 if (!IncludePermissions && !IncludeContentTypes)
@@ -79,6 +83,24 @@ namespace NuGetGallery
                 }
 
                 return folderNames;
+            }
+        }
+
+        [Fact]
+        public void FolderNameDataContainsAllFolders()
+        {
+            var folderNameFields = typeof(CoreConstants.Folders)
+                .GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy)
+                .Where(f => f.IsLiteral && !f.IsInitOnly).ToList();
+
+            var folderNames = new FolderNamesDataAttribute().GetData(null).Select(a => (string)a[0]).ToList();
+
+            Assert.Equal(folderNameFields.Count, folderNames.Count);
+
+            foreach (var folderNameField in folderNameFields)
+            {
+                var folderName = (string)folderNameField.GetRawConstantValue();
+                Assert.Contains(folderName, folderNames);
             }
         }
 
@@ -182,7 +204,7 @@ namespace NuGetGallery
                 fakeBlob.Setup(x => x.Uri).Returns(new Uri("http://theUri"));
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
 
-                await service.DeleteFileAsync(CoreConstants.PackagesFolderName, "theFileName");
+                await service.DeleteFileAsync(CoreConstants.Folders.PackagesFolderName, "theFileName");
 
                 fakeBlob.Verify();
             }
@@ -422,7 +444,7 @@ namespace NuGetGallery
                 fakeBlob.Setup(x => x.Uri).Returns(new Uri("http://theUri"));
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
 
-                await service.SaveFileAsync(CoreConstants.PackagesFolderName, "theFileName", new MemoryStream());
+                await service.SaveFileAsync(CoreConstants.Folders.PackagesFolderName, "theFileName", new MemoryStream());
 
                 fakeBlob.Verify();
             }
@@ -447,7 +469,7 @@ namespace NuGetGallery
                 fakeBlob.Setup(x => x.Uri).Returns(new Uri("http://theUri"));
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
 
-                await Assert.ThrowsAsync<FileAlreadyExistsException>(async () => await service.SaveFileAsync(CoreConstants.PackagesFolderName, "theFileName", new MemoryStream(), overwrite: false));
+                await Assert.ThrowsAsync<FileAlreadyExistsException>(async () => await service.SaveFileAsync(CoreConstants.Folders.PackagesFolderName, "theFileName", new MemoryStream(), overwrite: false));
 
                 fakeBlob.Verify();
             }
@@ -470,7 +492,7 @@ namespace NuGetGallery
                 var fakePackageFile = new MemoryStream();
                 fakeBlob.Setup(x => x.UploadFromStreamAsync(fakePackageFile, true)).Returns(Task.FromResult(0)).Verifiable();
 
-                await service.SaveFileAsync(CoreConstants.PackagesFolderName, "theFileName", fakePackageFile);
+                await service.SaveFileAsync(CoreConstants.Folders.PackagesFolderName, "theFileName", fakePackageFile);
 
                 fakeBlob.Verify();
             }
@@ -536,9 +558,9 @@ namespace NuGetGallery
 
                 fakeBlob.Verify();
 
-                if (folderName == CoreConstants.PackagesFolderName 
-                    || folderName == CoreConstants.SymbolPackagesFolderName
-                    || folderName == CoreConstants.ValidationFolderName)
+                if (folderName == CoreConstants.Folders.PackagesFolderName 
+                    || folderName == CoreConstants.Folders.SymbolPackagesFolderName
+                    || folderName == CoreConstants.Folders.ValidationFolderName)
                 {
                     Assert.Equal(CoreConstants.DefaultCacheControl, fakeBlob.Object.Properties.CacheControl);
                 }
@@ -606,7 +628,7 @@ namespace NuGetGallery
 
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
 
-                await service.SaveFileAsync(CoreConstants.PackagesFolderName, "theFileName", new MemoryStream(), condition);
+                await service.SaveFileAsync(CoreConstants.Folders.PackagesFolderName, "theFileName", new MemoryStream(), condition);
 
                 fakeBlob.Verify(
                     b => b.UploadFromStreamAsync(
@@ -669,7 +691,7 @@ namespace NuGetGallery
 
                 await Assert.ThrowsAsync<FileAlreadyExistsException>(
                     () => service.SaveFileAsync(
-                        CoreConstants.PackagesFolderName,
+                        CoreConstants.Folders.PackagesFolderName,
                         "theFileName",
                         new MemoryStream(),
                         AccessConditionWrapper.GenerateIfNotExistsCondition()));
@@ -761,8 +783,8 @@ namespace NuGetGallery
             }
 
             [Theory]
-            [InlineData(CoreConstants.ValidationFolderName, "http://example.com/" + CoreConstants.ValidationFolderName + "/" + fileName + signature)]
-            [InlineData(CoreConstants.PackagesFolderName, "http://example.com/" + CoreConstants.PackagesFolderName + "/" + fileName + signature)]
+            [InlineData(CoreConstants.Folders.ValidationFolderName, "http://example.com/" + CoreConstants.Folders.ValidationFolderName + "/" + fileName + signature)]
+            [InlineData(CoreConstants.Folders.PackagesFolderName, "http://example.com/" + CoreConstants.Folders.PackagesFolderName + "/" + fileName + signature)]
             public async Task WillAlwaysUseSasTokenDependingOnContainerAvailability(string containerName, string expectedUri)
             {
                 var setupResult = Setup(containerName, fileName);
@@ -787,7 +809,7 @@ namespace NuGetGallery
             [Fact]
             public async Task WillPassTheEndOfAccessTimestampFurther()
             {
-                const string folderName = CoreConstants.ValidationFolderName;
+                const string folderName = CoreConstants.Folders.ValidationFolderName;
                 const string fileName = "theFileName";
                 const string signature = "?secret=42";
                 DateTimeOffset endOfAccess = DateTimeOffset.Now.AddHours(3);
@@ -875,8 +897,8 @@ namespace NuGetGallery
             }
 
             [Theory]
-            [InlineData(CoreConstants.ValidationFolderName, "http://example.com/" + CoreConstants.ValidationFolderName + "/" + fileName + signature)]
-            [InlineData(CoreConstants.PackagesFolderName, "http://example.com/" + CoreConstants.PackagesFolderName + "/" + fileName)]
+            [InlineData(CoreConstants.Folders.ValidationFolderName, "http://example.com/" + CoreConstants.Folders.ValidationFolderName + "/" + fileName + signature)]
+            [InlineData(CoreConstants.Folders.PackagesFolderName, "http://example.com/" + CoreConstants.Folders.PackagesFolderName + "/" + fileName)]
             public async Task WillUseSasTokenDependingOnContainerAvailability(string containerName, string expectedUri)
             {
                 var setupResult = Setup(containerName, fileName);
@@ -899,14 +921,14 @@ namespace NuGetGallery
             {
                 var service = CreateService();
 
-                var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => service.GetFileReadUriAsync(CoreConstants.ValidationFolderName, fileName, null));
+                var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => service.GetFileReadUriAsync(CoreConstants.Folders.ValidationFolderName, fileName, null));
                 Assert.Equal("endOfAccess", ex.ParamName);
             }
 
             [Fact]
             public async Task WillNotThrowIfNoEndOfAccessSpecifiedForPublicContainer()
             {
-                const string packagesFolderName = CoreConstants.PackagesFolderName;
+                const string packagesFolderName = CoreConstants.Folders.PackagesFolderName;
                 var setupResult = Setup(packagesFolderName, fileName);
                 var service = CreateService(setupResult.Item1);
 
@@ -918,7 +940,7 @@ namespace NuGetGallery
             [Fact]
             public async Task WillPassTheEndOfAccessTimestampFurther()
             {
-                const string folderName = CoreConstants.ValidationFolderName;
+                const string folderName = CoreConstants.Folders.ValidationFolderName;
                 const string signature = "?secret=42";
                 DateTimeOffset endOfAccess = DateTimeOffset.Now.AddHours(3);
                 var setupResult = Setup(folderName, fileName);
@@ -1350,7 +1372,7 @@ namespace NuGetGallery
                     .Returns(Task.FromResult(0));
 
                 await _service.SetMetadataAsync(
-                    folderName: CoreConstants.PackagesFolderName,
+                    folderName: CoreConstants.Folders.PackagesFolderName,
                     fileName: "a",
                     updateMetadataAsync: async (lazyStream, metadata) =>
                     {
@@ -1375,7 +1397,7 @@ namespace NuGetGallery
                     .Returns(new Dictionary<string, string>());
 
                 await _service.SetMetadataAsync(
-                    folderName: CoreConstants.PackagesFolderName,
+                    folderName: CoreConstants.Folders.PackagesFolderName,
                     fileName: "a",
                     updateMetadataAsync: (lazyStream, metadata) =>
                     {
@@ -1398,7 +1420,7 @@ namespace NuGetGallery
                     .Returns(Task.FromResult(0));
 
                 await _service.SetMetadataAsync(
-                    folderName: CoreConstants.PackagesFolderName,
+                    folderName: CoreConstants.Folders.PackagesFolderName,
                     fileName: "a",
                     updateMetadataAsync: (lazyStream, metadata) =>
                     {
@@ -1454,7 +1476,7 @@ namespace NuGetGallery
                     .Returns(Task.FromResult(0));
 
                 await _service.SetPropertiesAsync(
-                    folderName: CoreConstants.PackagesFolderName,
+                    folderName: CoreConstants.Folders.PackagesFolderName,
                     fileName: "a",
                     updatePropertiesAsync: async (lazyStream, properties) =>
                     {
@@ -1479,7 +1501,7 @@ namespace NuGetGallery
                     .Returns(new BlobProperties());
 
                 await _service.SetPropertiesAsync(
-                    folderName: CoreConstants.PackagesFolderName,
+                    folderName: CoreConstants.Folders.PackagesFolderName,
                     fileName: "a",
                     updatePropertiesAsync: (lazyStream, properties) =>
                     {
@@ -1502,7 +1524,7 @@ namespace NuGetGallery
                     .Returns(Task.FromResult(0));
 
                 await _service.SetPropertiesAsync(
-                    folderName: CoreConstants.PackagesFolderName,
+                    folderName: CoreConstants.Folders.PackagesFolderName,
                     fileName: "a",
                     updatePropertiesAsync: (lazyStream, properties) =>
                     {
@@ -1551,7 +1573,7 @@ namespace NuGetGallery
                 _blob.SetupGet(x => x.ETag).Returns(_etag);
 
                 // Act 
-                var etagValue = await _service.GetETagOrNullAsync(folderName: CoreConstants.PackagesFolderName, fileName: "a");
+                var etagValue = await _service.GetETagOrNullAsync(folderName: CoreConstants.Folders.PackagesFolderName, fileName: "a");
 
                 // Assert 
                 Assert.Equal(_etag, etagValue);
@@ -1565,7 +1587,7 @@ namespace NuGetGallery
                 _blob.Setup(x => x.FetchAttributesAsync()).ThrowsAsync(new StorageException("Boo"));
 
                 // Act 
-                var etagValue = await _service.GetETagOrNullAsync(folderName: CoreConstants.PackagesFolderName, fileName: "a");
+                var etagValue = await _service.GetETagOrNullAsync(folderName: CoreConstants.Folders.PackagesFolderName, fileName: "a");
 
                 // Assert 
                 Assert.Null(etagValue);
