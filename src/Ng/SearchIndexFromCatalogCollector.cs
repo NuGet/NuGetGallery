@@ -14,6 +14,7 @@ using Lucene.Net.Index;
 using Lucene.Net.Search;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
+using Ng.Extensions;
 using NuGet.Indexing;
 using NuGet.Services.Metadata.Catalog;
 using NuGet.Versioning;
@@ -26,6 +27,7 @@ namespace Ng
 
         private readonly IndexWriter _indexWriter;
         private readonly bool _commitEachBatch;
+        private readonly TimeSpan? _commitTimeout;
         private readonly ILogger _logger;
 
         private LuceneCommitMetadata _metadataForNextCommit;
@@ -34,6 +36,7 @@ namespace Ng
             Uri index,
             IndexWriter indexWriter,
             bool commitEachBatch,
+            TimeSpan? commitTimeout,
             string baseAddress,
             ITelemetryService telemetryService,
             ILogger logger,
@@ -42,6 +45,7 @@ namespace Ng
         {
             _indexWriter = indexWriter;
             _commitEachBatch = commitEachBatch;
+            _commitTimeout = commitTimeout;
             _baseAddress = baseAddress;
             _logger = logger;
         }
@@ -73,7 +77,7 @@ namespace Ng
 
             if (_commitEachBatch || isLastBatch)
             {
-                EnsureCommitted();
+                await EnsureCommittedAsync();
             }
 
             return true;
@@ -92,7 +96,7 @@ namespace Ng
                 commitTimeStamp, "from catalog", count, Guid.NewGuid().ToString());
         }
 
-        public void EnsureCommitted()
+        public async Task EnsureCommittedAsync()
         {
             if (_metadataForNextCommit == null)
             {
@@ -101,13 +105,49 @@ namespace Ng
                 return;
             }
 
-            _indexWriter.ExpungeDeletes();
-            _indexWriter.Commit(_metadataForNextCommit.ToDictionary());
+            try
+            {
+                var commitTask = CommitIndexAsync();
 
-            _logger.LogInformation("COMMIT index contains {0} documents. Metadata: commitTimeStamp {CommitTimeStamp}; change count {ChangeCount}; trace {CommitTrace}",
-                _indexWriter.NumDocs(), _metadataForNextCommit.CommitTimeStamp.ToString("O"), _metadataForNextCommit.Count, _metadataForNextCommit.Trace);
+                // Ensure that the commit finishes within the configured timeout. If the timeout
+                // threshold is reached, an OperationCanceledException will be thrown and will cause
+                // the process to crash. The process MUST be ended as otherwise the commit task may
+                // finish in the background.
+                if (_commitTimeout.HasValue)
+                {
+                    commitTask = commitTask.TimeoutAfter(_commitTimeout.Value);
+                }
 
-            _metadataForNextCommit = null;
+                await commitTask;
+            }
+            catch (OperationCanceledException)
+            {
+                _telemetryService.TrackIndexCommitTimeout();
+                _logger.LogError("TIMEOUT Committing index containing {0} documents. Metadata: commitTimeStamp {CommitTimeStamp}; change count {ChangeCount}; trace {CommitTrace}",
+                    _indexWriter.NumDocs(), _metadataForNextCommit.CommitTimeStamp.ToString("O"), _metadataForNextCommit.Count, _metadataForNextCommit.Trace);
+
+                throw;
+            }
+        }
+
+        private async Task CommitIndexAsync()
+        {
+            // This method commits to the index synchronously and may hang. Yield the current context to allow cancellation.
+            await Task.Yield();
+
+            using (_telemetryService.TrackIndexCommitDuration())
+            {
+                _logger.LogInformation("COMMITTING index contains {0} documents. Metadata: commitTimeStamp {CommitTimeStamp}; change count {ChangeCount}; trace {CommitTrace}",
+                    _indexWriter.NumDocs(), _metadataForNextCommit.CommitTimeStamp.ToString("O"), _metadataForNextCommit.Count, _metadataForNextCommit.Trace);
+
+                _indexWriter.ExpungeDeletes();
+                _indexWriter.Commit(_metadataForNextCommit.ToDictionary());
+
+                _logger.LogInformation("COMMIT index contains {0} documents. Metadata: commitTimeStamp {CommitTimeStamp}; change count {ChangeCount}; trace {CommitTrace}",
+                    _indexWriter.NumDocs(), _metadataForNextCommit.CommitTimeStamp.ToString("O"), _metadataForNextCommit.Count, _metadataForNextCommit.Trace);
+
+                _metadataForNextCommit = null;
+            }
         }
 
         private static async Task<IEnumerable<JObject>> FetchCatalogItemsAsync(

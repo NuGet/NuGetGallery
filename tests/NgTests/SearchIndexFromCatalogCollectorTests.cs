@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -14,6 +15,7 @@ using Ng;
 using Ng.Jobs;
 using NgTests.Data;
 using NgTests.Infrastructure;
+using NuGet.Services.Logging;
 using NuGet.Services.Metadata.Catalog;
 using Xunit;
 using Constants = NuGet.IndexingTests.TestSupport.Constants;
@@ -51,6 +53,12 @@ namespace NgTests
                 MemoryCursor.MinValue);
             ReadCursor back = MemoryCursor.CreateMax();
 
+            var commitTimeout = TimeSpan.FromSeconds(1);
+
+            var telemetryService = new Mock<ITelemetryService>();
+            var indexCommitDurationMetric = new Mock<IDisposable>();
+            telemetryService.Setup(t => t.TrackIndexCommitDuration()).Returns(indexCommitDurationMetric.Object);
+
             using (var testDirectory = TestDirectory.Create())
             {
                 var luceneDirectory = new SimpleFSDirectory(new DirectoryInfo(testDirectory));
@@ -60,8 +68,9 @@ namespace NgTests
                         new Uri("http://tempuri.org/index.json"),
                         indexWriter,
                         commitEachBatch: true,
+                        commitTimeout: commitTimeout,
                         baseAddress: null,
-                        telemetryService: new Mock<ITelemetryService>().Object,
+                        telemetryService: telemetryService.Object,
                         logger: new TestLogger(),
                         handlerFunc: () => mockServer);
 
@@ -102,6 +111,63 @@ namespace NgTests
 
                     Assert.Equal(DateTime.Parse(expectedCursorBeforeRetry).ToUniversalTime(), cursorBeforeRetry);
                     Assert.Equal(DateTime.Parse("2015-10-12T10:08:55.3335317Z").ToUniversalTime(), cursorAfterRetry);
+
+                    telemetryService.Verify(t => t.TrackIndexCommitDuration(), Times.Exactly(2));
+                    telemetryService.Verify(t => t.TrackIndexCommitTimeout(), Times.Never);
+                    indexCommitDurationMetric.Verify(m => m.Dispose(), Times.Exactly(2));
+                }
+            }
+        }
+
+        [Fact]
+        public async Task ThrowsIfCommitTimesOut()
+        {
+            // Arrange
+            var storage = new MemoryStorage();
+            var storageFactory = new TestStorageFactory(name => storage.WithName(name));
+
+            MockServerHttpClientHandler mockServer;
+            mockServer = new MockServerHttpClientHandler();
+            mockServer.SetAction("/", request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)));
+
+            var catalogStorage = Catalogs.CreateTestCatalogWithOnePackage();
+            await mockServer.AddStorageAsync(catalogStorage);
+
+            ReadWriteCursor front = new DurableCursor(
+                storage.ResolveUri("cursor.json"),
+                storage,
+                MemoryCursor.MinValue);
+            ReadCursor back = MemoryCursor.CreateMax();
+
+            var commitTimeout = TimeSpan.FromSeconds(1);
+            var stuckDuration = TimeSpan.FromMinutes(1);
+
+            var telemetryService = new Mock<ITelemetryService>();
+            var indexCommitDurationMetric = new Mock<IDisposable>();
+            telemetryService.Setup(t => t.TrackIndexCommitDuration()).Returns(indexCommitDurationMetric.Object);
+
+            using (var testDirectory = TestDirectory.Create())
+            {
+                var luceneDirectory = new SimpleFSDirectory(new DirectoryInfo(testDirectory));
+                using (var indexWriter = Catalog2LuceneJob.CreateIndexWriter(luceneDirectory))
+                using (var stuckIndexWriter = StuckIndexWriter.FromIndexWriter(indexWriter, stuckDuration))
+                {
+                    var target = new SearchIndexFromCatalogCollector(
+                        new Uri("http://tempuri.org/index.json"),
+                        stuckIndexWriter,
+                        commitEachBatch: true,
+                        commitTimeout: commitTimeout,
+                        baseAddress: null,
+                        telemetryService: telemetryService.Object,
+                        logger: new TestLogger(),
+                        handlerFunc: () => mockServer);
+
+                    // Act & Assert
+                    await Assert.ThrowsAsync<OperationCanceledException>(() => target.RunAsync(front, back, CancellationToken.None));
+
+                    telemetryService.Verify(t => t.TrackIndexCommitDuration(), Times.Once);
+                    telemetryService.Verify(t => t.TrackIndexCommitTimeout(), Times.Once);
+                    indexCommitDurationMetric.Verify(m => m.Dispose(), Times.Never);
                 }
             }
         }

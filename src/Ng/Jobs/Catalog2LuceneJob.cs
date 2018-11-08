@@ -23,6 +23,7 @@ namespace Ng.Jobs
         private Lucene.Net.Store.Directory _directory;
         private string _catalogBaseAddress;
         private string _storageBaseAddress;
+        private TimeSpan? _commitTimeout;
         private Func<HttpMessageHandler> _handlerFunc;
         private string _destination;
 
@@ -42,6 +43,7 @@ namespace Ng.Jobs
                    + $"[-{Arguments.LuceneStorageAccountName} <azure-acc> "
                    + $"-{Arguments.LuceneStorageKeyValue} <azure-key> "
                    + $"-{Arguments.LuceneStorageContainer} <azure-container> "
+                   + $"-{Arguments.CommitTimeoutInSeconds} <timeout>"
                    + $"[-{Arguments.VaultName} <keyvault-name> "
                    + $"-{Arguments.ClientId} <keyvault-client-id> "
                    + $"-{Arguments.CertificateThumbprint} <keyvault-certificate-thumbprint> "
@@ -70,12 +72,23 @@ namespace Ng.Jobs
 
             _storageBaseAddress = arguments.GetOrDefault<string>(Arguments.StorageBaseAddress);
 
+            var commitTimeoutInSeconds = arguments.GetOrDefault<int?>(Arguments.CommitTimeoutInSeconds);
+            if (commitTimeoutInSeconds.HasValue)
+            {
+                _commitTimeout = TimeSpan.FromSeconds(commitTimeoutInSeconds.Value);
+            }
+            else
+            {
+                _commitTimeout = null;
+            }
+
             Logger.LogInformation("CONFIG source: \"{ConfigSource}\" registration: \"{Registration}\"" +
-                                   " catalogBaseAddress: \"{CatalogBaseAddress}\" storageBaseAddress: \"{StorageBaseAddress}\"",
+                                   " catalogBaseAddress: \"{CatalogBaseAddress}\" storageBaseAddress: \"{StorageBaseAddress}\" commitTimeout: \"{CommmitTimeout}\"",
                                    _source,
                                    _registration ?? "(null)",
                                    _catalogBaseAddress ?? "(null)",
-                                   _storageBaseAddress ?? "(null)");
+                                   _storageBaseAddress ?? "(null)",
+                                   _commitTimeout?.ToString() ?? "(null)");
 
             _handlerFunc = CommandHelpers.GetHttpMessageHandlerFactory(
                 TelemetryService,
@@ -97,6 +110,7 @@ namespace Ng.Jobs
                     index: new Uri(_source),
                     indexWriter: indexWriter,
                     commitEachBatch: false,
+                    commitTimeout: _commitTimeout,
                     baseAddress: _catalogBaseAddress,
                     telemetryService: TelemetryService,
                     logger: Logger,
@@ -112,7 +126,7 @@ namespace Ng.Jobs
                 {
                     run = await collector.RunAsync(front, back, cancellationToken);
 
-                    collector.EnsureCommitted(); // commit after each catalog page
+                    await collector.EnsureCommittedAsync(); // commit after each catalog page
                 }
                 while (run);
             }

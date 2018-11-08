@@ -60,7 +60,7 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
 
             try
             {
-                if (catalogEntry.IsDelete())
+                if (catalogEntry.IsDelete)
                 {
                     // On the catalog page for a delete, the published value is the timestamp the package was deleted from the audit records.
                     var deleted = catalogPage.GetValue("published").Value<DateTimeOffset>();

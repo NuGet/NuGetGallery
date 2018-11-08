@@ -9,6 +9,13 @@ namespace NuGet.Services.Metadata.Catalog
         public const string BlobModified = "BlobModified";
         public const string CatalogIndexReadDurationSeconds = "CatalogIndexReadDurationSeconds";
         public const string CatalogIndexWriteDurationSeconds = "CatalogIndexWriteDurationSeconds";
+        public const string IndexCommitDurationSeconds = "IndexCommitDurationSeconds";
+        public const string IndexCommitTimeout = "IndexCommitTimeout";
+        public const string HandlerFailedToProcessPackage = "HandlerFailedToProcessPackage";
+        public const string PackageMissingHash = "PackageMissingHash";
+        public const string PackageHasIncorrectHash = "PackageHasIncorrectHash";
+        public const string PackageAlreadyHasHash = "PackageAlreadyHasHash";
+        public const string PackageHashFixed = "PackageHashFixed";
         public const string ContentBaseAddress = "ContentBaseAddress";
         public const string ContentLength = "ContentLength";
         public const string CreatedPackagesCount = "CreatedPackagesCount";
@@ -37,5 +44,7 @@ namespace NuGet.Services.Metadata.Catalog
         public const string Uri = "Uri";
         public const string UsePackageSourceFallback = "UsePackageSourceFallback";
         public const string Version = "Version";
+        public const string Handler = "Handler";
     }
 }
+ 

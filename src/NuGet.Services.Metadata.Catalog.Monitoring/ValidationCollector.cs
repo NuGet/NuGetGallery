@@ -43,7 +43,7 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
 
             _logger.LogInformation("Processing catalog entries for {PackageId} {PackageVersion}.", packageId, packageVersion);
 
-            var catalogEntries = sortedBatch.Value.Select(c => new CatalogIndexEntry(c));
+            var catalogEntries = sortedBatch.Value.Select(CatalogIndexEntry.Create);
 
             _logger.LogInformation("Adding {MostRecentCatalogEntryUri} to queue.", catalogEntries.OrderByDescending(c => c.CommitTimeStamp).First().Uri);
 

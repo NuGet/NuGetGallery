@@ -25,7 +25,7 @@ namespace Ng
 
         public static void Main(string[] args)
         {
-            MainAsync(args).Wait();
+            MainAsync(args).GetAwaiter().GetResult();
         }
 
         public static async Task MainAsync(string[] args)

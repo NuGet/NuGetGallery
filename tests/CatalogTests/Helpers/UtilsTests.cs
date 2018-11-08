@@ -7,6 +7,7 @@ using System.IO.Compression;
 using System.Linq;
 using NuGet.Services.Metadata.Catalog;
 using Xunit;
+using VDS.RDF;
 
 namespace CatalogTests.Helpers
 {
@@ -108,6 +109,67 @@ namespace CatalogTests.Helpers
         private static MemoryStream GetPackageStream()
         {
             return TestHelper.GetStream("Newtonsoft.Json.9.0.2-beta1.nupkg");
+        }
+
+        [Fact]
+        public void GetNupkgMetadataWithLicenseUrl_ReturnsLicenseUrl()
+        {
+            // Arrange
+            var stream = TestHelper.GetStream("Newtonsoft.Json.9.0.2-beta1.nupkg");
+            var metadata = Utils.GetNupkgMetadata(stream, packageHash: null);
+            var baseUrl = "http://example/";
+            var uriNodeName = new Uri(String.Concat(baseUrl, "newtonsoft.json.9.0.2-beta1.json"));
+
+            // Act
+            var graph = Utils.CreateNuspecGraph(metadata.Nuspec, baseUrl, normalizeXml: true);
+            var licenseFileTriples = graph.GetTriplesWithSubjectPredicate(
+                graph.CreateUriNode(uriNodeName),
+                graph.CreateUriNode(new Uri(String.Concat(Schema.Prefixes.NuGet + "licenseFile")))
+                );
+            var licenseExpressionTriples = graph.GetTriplesWithSubjectPredicate(
+                graph.CreateUriNode(uriNodeName),
+                graph.CreateUriNode(new Uri(String.Concat(Schema.Prefixes.NuGet + "licenseExpression")))
+                );
+            var licenseUrlTriples = graph.GetTriplesWithSubjectPredicate(
+                graph.CreateUriNode(uriNodeName),
+                graph.CreateUriNode(Schema.Predicates.LicenseUrl)
+                );
+            
+            // Assert
+            Assert.Equal(0, licenseFileTriples.Count());
+            Assert.Equal(0, licenseExpressionTriples.Count());
+            Assert.Equal(1, licenseUrlTriples.Count());
+        }
+
+        [Theory]
+        [InlineData("TestPackage.LicenseExpression.0.1.0.nupkg", "licenseExpression", "MIT", 0)]
+        [InlineData("TestPackage.LicenseFile.0.1.0.nupkg", "licenseFile", "license.txt", 0)]
+        [InlineData("TestPackage.LicenseExpressionAndUrl.0.1.0.nupkg", "licenseExpression", "MIT", 1)]
+        [InlineData("TestPackage.LicenseFileAndUrl.0.1.0.nupkg", "licenseFile", "license.txt", 1)]
+        public void GetNupkgMetadataWithLicenseType_ReturnsLicense(string packageName, string licenseType, string licenseContent, int expectedLicenseUrlNumber)
+        {
+            // Arrange
+            var stream = TestHelper.GetStream(packageName);
+            var metadata = Utils.GetNupkgMetadata(stream, packageHash: null);
+            var baseUrl = "http://example/";
+            var uriNodeName = new Uri(String.Concat(baseUrl, "testpackage.license.0.1.0.json"));
+
+            // Act
+            var graph = Utils.CreateNuspecGraph(metadata.Nuspec, baseUrl, normalizeXml: true);
+            var licenseTriples = graph.GetTriplesWithSubjectPredicate(
+                graph.CreateUriNode(uriNodeName),
+                graph.CreateUriNode(new Uri(String.Concat(Schema.Prefixes.NuGet, licenseType)))
+                );
+            var licenseUrlTriples = graph.GetTriplesWithSubjectPredicate(
+                graph.CreateUriNode(uriNodeName),
+                graph.CreateUriNode(Schema.Predicates.LicenseUrl)
+                );
+            var result = (LiteralNode)licenseTriples.First().Object;
+
+            // Assert
+            Assert.Equal(expectedLicenseUrlNumber, licenseUrlTriples.Count());
+            Assert.Equal(1, licenseTriples.Count());
+            Assert.Equal(licenseContent, result.Value);
         }
     }
 }

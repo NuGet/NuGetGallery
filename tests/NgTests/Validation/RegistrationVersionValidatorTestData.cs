@@ -14,10 +14,12 @@ namespace NgTests
     public class RegistrationVersionValidatorTestData : RegistrationIndexValidatorTestData<RegistrationVersionValidator>
     {
         protected override RegistrationVersionValidator CreateValidator(
-            IDictionary<FeedType, SourceRepository> feedToSource, 
+            IDictionary<FeedType, SourceRepository> feedToSource,
             ILogger<RegistrationVersionValidator> logger)
         {
-            return new RegistrationVersionValidator(feedToSource, logger);
+            var config = ValidatorTestUtility.CreateValidatorConfig();
+
+            return new RegistrationVersionValidator(feedToSource, config, logger);
         }
 
         public override IEnumerable<Func<PackageRegistrationIndexMetadata>> CreateIndexes => new Func<PackageRegistrationIndexMetadata>[]

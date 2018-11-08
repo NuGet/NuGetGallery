@@ -15,7 +15,9 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
     {
         public RegistrationLeafValidator(
             IDictionary<FeedType, SourceRepository> feedToSource,
-            ILogger<RegistrationLeafValidator> logger) : base(feedToSource, logger)
+            ValidatorConfiguration config,
+            ILogger<RegistrationLeafValidator> logger)
+            : base(feedToSource, config, logger)
         {
         }
 

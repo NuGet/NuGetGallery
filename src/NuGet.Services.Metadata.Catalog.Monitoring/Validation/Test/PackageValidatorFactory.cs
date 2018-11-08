@@ -13,8 +13,8 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
 {
     public class PackageValidatorFactory
     {
-        private ILoggerFactory _loggerFactory;
-        private ILogger<ValidationCollectorFactory> _logger;
+        private readonly ILoggerFactory _loggerFactory;
+        private readonly ILogger<ValidationCollectorFactory> _logger;
 
         public PackageValidatorFactory(ILoggerFactory loggerFactory)
         {
@@ -28,16 +28,16 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
             StorageFactory auditingStorageFactory,
             IEnumerable<EndpointFactory.Input> endpointInputs,
             Func<HttpMessageHandler> messageHandlerFactory,
-            bool requireSignature = false,
+            ValidatorConfiguration validatorConfig,
             bool verbose = false)
         {
-            var validatorFactory = new ValidatorFactoryFactory(_loggerFactory).Create(galleryUrl, indexUrl);
+            var validatorFactory = new ValidatorFactoryFactory(validatorConfig, _loggerFactory).Create(galleryUrl, indexUrl);
             var endpointFactory = new EndpointFactory(validatorFactory, messageHandlerFactory, _loggerFactory);
 
             var validators = new List<IAggregateValidator>();
 
             validators.AddRange(endpointInputs.Select(e => endpointFactory.Create(e)));
-            validators.Add(new CatalogAggregateValidator(validatorFactory, requireSignature));
+            validators.Add(new CatalogAggregateValidator(validatorFactory, validatorConfig));
 
             return new PackageValidator(validators, auditingStorageFactory, _loggerFactory.CreateLogger<PackageValidator>());
         }

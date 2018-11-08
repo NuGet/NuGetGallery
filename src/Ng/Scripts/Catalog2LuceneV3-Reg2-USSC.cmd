@@ -14,6 +14,7 @@ start /w ng.exe catalog2lucene ^
     -luceneStorageKeyValue #{Jobs.common.v3.Storage.USSC.Key} ^
     -luceneStorageContainer #{Jobs.catalog2lucenev3reg2ussc.LuceneContainer} ^
     -registration #{Jobs.catalog2lucenev3reg2ussc.Registration} ^
+    -commitTimeoutInSeconds #{Jobs.catalog2lucene.CommitTimeoutInSeconds} ^
     -instrumentationkey #{Jobs.common.v3.Logging.InstrumentationKey} ^
     -vaultName #{Deployment.Azure.KeyVault.VaultName} ^
     -clientId #{Deployment.Azure.KeyVault.ClientId} ^

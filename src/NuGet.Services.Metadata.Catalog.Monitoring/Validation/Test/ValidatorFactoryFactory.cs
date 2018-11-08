@@ -13,20 +13,25 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
 {
     public class ValidatorFactoryFactory
     {
+        private readonly ValidatorConfiguration _validatorConfig;
         private readonly ILoggerFactory _loggerFactory;
 
-        public ValidatorFactoryFactory(ILoggerFactory loggerFactory)
+        public ValidatorFactoryFactory(ValidatorConfiguration validatorConfig, ILoggerFactory loggerFactory)
         {
-            _loggerFactory = loggerFactory;
+            _validatorConfig = validatorConfig ?? throw new ArgumentNullException(nameof(validatorConfig));
+            _loggerFactory = loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory));
         }
 
         public ValidatorFactory Create(string galleryUrl, string indexUrl)
         {
-            return new ValidatorFactory(new Dictionary<FeedType, SourceRepository>()
-            {
-                {FeedType.HttpV2, new SourceRepository(new PackageSource(galleryUrl), GetResourceProviders(ResourceProvidersToInjectV2), FeedType.HttpV2)},
-                {FeedType.HttpV3, new SourceRepository(new PackageSource(indexUrl), GetResourceProviders(ResourceProvidersToInjectV3), FeedType.HttpV3)}
-            }, _loggerFactory);
+            return new ValidatorFactory(
+                new Dictionary<FeedType, SourceRepository>()
+                {
+                    {FeedType.HttpV2, new SourceRepository(new PackageSource(galleryUrl), GetResourceProviders(ResourceProvidersToInjectV2), FeedType.HttpV2)},
+                    {FeedType.HttpV3, new SourceRepository(new PackageSource(indexUrl), GetResourceProviders(ResourceProvidersToInjectV3), FeedType.HttpV3)}
+                },
+                _validatorConfig,
+                _loggerFactory);
         }
 
         private IList<Lazy<INuGetResourceProvider>> ResourceProvidersToInjectV2 => new List<Lazy<INuGetResourceProvider>>

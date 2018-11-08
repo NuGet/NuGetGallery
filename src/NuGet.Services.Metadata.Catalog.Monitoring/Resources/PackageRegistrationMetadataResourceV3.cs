@@ -9,6 +9,7 @@ using Newtonsoft.Json.Linq;
 using NuGet.Common;
 using NuGet.Packaging.Core;
 using NuGet.Protocol;
+using NuGet.Protocol.Core.Types;
 
 namespace NuGet.Services.Metadata.Catalog.Monitoring
 {
@@ -58,7 +59,7 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
         private Task<JObject> GetPackageFromIndexAsync(PackageIdentity package, ILogger log, CancellationToken token)
         {
             // If the registration index is missing, this will return null.
-            return _registration.GetPackageMetadata(package, log, token);
+            return _registration.GetPackageMetadata(package, NullSourceCacheContext.Instance, log, token);
         }
 
         private async Task<JObject> GetPackageFromLeafAsync(PackageIdentity package, ILogger log, CancellationToken token)
