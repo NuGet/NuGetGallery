@@ -54,6 +54,21 @@ namespace NuGetGallery
         Task SaveFileAsync(string folderName, string fileName, Stream file, bool overwrite = true);
 
         /// <summary>
+        /// Saves the file. If storage supports setting the content type for the file,
+        /// it will be set to the specified value
+        /// </summary>
+        /// <param name="folderName">The folder that will contain the file.</param>
+        /// <param name="fileName">The name of the file.</param>
+        /// <param name="contentType">The content type to set for the saved file if storage supports it.</param>
+        /// <param name="file">The content that should be saved.</param>
+        /// <param name="overwrite">Indicates whether file should be overwritten if exists.</param>
+        /// <exception cref="FileAlreadyExistsException">
+        /// Thrown when <paramref name="overwrite"/> is false and file already exists
+        /// in destination.
+        /// </exception>
+        Task SaveFileAsync(string folderName, string fileName, string contentType, Stream file, bool overwrite = true);
+
+        /// <summary>
         /// Saves the file. An exception should be thrown if the access condition is not met.
         /// </summary>
         /// <param name="folderName">The folder that contains the file.</param>

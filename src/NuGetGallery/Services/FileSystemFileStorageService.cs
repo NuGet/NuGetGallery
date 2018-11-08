@@ -125,6 +125,12 @@ namespace NuGetGallery
             return Task.FromResult<IFileReference>(file.Exists ? new LocalFileReference(file) : null);
         }
 
+        public Task SaveFileAsync(string folderName, string fileName, string contentType, Stream file, bool overwrite = true)
+        {
+            // file system does not support content type, so we'll simply ignore it
+            return SaveFileAsync(folderName, fileName, file, overwrite);
+        }
+
         public Task SaveFileAsync(string folderName, string fileName, Stream packageFile, bool overwrite = true)
         {
             if (string.IsNullOrWhiteSpace(folderName))

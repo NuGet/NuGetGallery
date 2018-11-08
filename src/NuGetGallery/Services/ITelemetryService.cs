@@ -233,5 +233,27 @@ namespace NuGetGallery
         /// <param name="packageId">The Id of the uploaded package.</param>
         /// <param name ="ownersCheckTime">The time used to double check the owners of collision Ids</param>
         void TrackMetricForTyposquattingOwnersCheckTime(string packageId, TimeSpan ownersCheckTime);
+
+        /// <summary>
+        /// We were unable to parse license metadada
+        /// </summary>
+        /// <param name="licenseValue">License data that caused the issue.</param>
+        void TrackInvalidLicenseMetadata(string licenseValue);
+
+        /// <summary>
+        /// One of the license IDs was not OSI/FSF approved.
+        /// </summary>
+        /// <param name="licenseExpression">License expression that contains unsupported license ID.</param>
+        void TrackNonFsfOsiLicenseUse(string licenseExpression);
+
+        /// <summary>
+        /// Tracks the license file rejections that we temporarily do.
+        /// </summary>
+        void TrackLicenseFileRejected();
+
+        /// <summary>
+        /// Any license validation failure
+        /// </summary>
+        void TrackLicenseValidationFailure();
     }
 }

@@ -205,7 +205,8 @@ namespace NuGetGallery
                 var nugetPackage = PackageServiceUtility.CreateNuGetPackage(
                     licenseUrl: new Uri("http://thelicenseurl/"),
                     projectUrl: new Uri("http://theprojecturl/"),
-                    iconUrl: new Uri("http://theiconurl/"));
+                    iconUrl: new Uri("http://theiconurl/"),
+                    licenseFilename: "license.txt");
                 var currentUser = new User();
 
                 var package = await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), currentUser, currentUser, isVerified: false);
@@ -227,6 +228,7 @@ namespace NuGetGallery
                 Assert.Equal("theTags", package.Tags);
                 Assert.Equal("theTitle", package.Title);
                 Assert.Equal("theCopyright", package.Copyright);
+                Assert.Equal(EmbeddedLicenseFileType.PlainText, package.EmbeddedLicenseType);
                 Assert.Null(package.Language);
                 Assert.False(package.IsPrerelease);
 
@@ -295,6 +297,51 @@ namespace NuGetGallery
                 // Assert
                 Assert.True(package.IsPrerelease);
                 packageRegistrationRepository.Verify();
+            }
+
+            [Theory]
+            [InlineData(null, EmbeddedLicenseFileType.Absent)]
+            [InlineData("foo.txt", EmbeddedLicenseFileType.PlainText)]
+            [InlineData("bar.md", EmbeddedLicenseFileType.Markdown)]
+            [InlineData("foo.tXt", EmbeddedLicenseFileType.PlainText)]
+            [InlineData("bar.mD", EmbeddedLicenseFileType.Markdown)]
+            [InlineData("baz", EmbeddedLicenseFileType.PlainText)]
+            public async Task WillDetectLicenseFileType(string licenseFileName, EmbeddedLicenseFileType expectedFileType)
+            {
+                var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>();
+                var service = CreateService(packageRegistrationRepository: packageRegistrationRepository, setup:
+                        mockPackageService => { mockPackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null); });
+                var nugetPackage = PackageServiceUtility.CreateNuGetPackage(
+                    licenseUrl: new Uri("http://thelicenseurl/"),
+                    projectUrl: new Uri("http://theprojecturl/"),
+                    iconUrl: new Uri("http://theiconurl/"),
+                    licenseFilename: licenseFileName);
+                var currentUser = new User();
+
+                var package = await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), currentUser, currentUser, isVerified: false);
+
+                Assert.Equal(expectedFileType, package.EmbeddedLicenseType);
+                Assert.Null(package.LicenseExpression);
+            }
+
+            [Fact]
+            public async Task WillSaveLicenseExpression()
+            {
+                var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>();
+                var service = CreateService(packageRegistrationRepository: packageRegistrationRepository, setup:
+                        mockPackageService => { mockPackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null); });
+                const string licenseExpressionText = "some license expression text";
+                var nugetPackage = PackageServiceUtility.CreateNuGetPackage(
+                    licenseUrl: new Uri("http://thelicenseurl/"),
+                    projectUrl: new Uri("http://theprojecturl/"),
+                    iconUrl: new Uri("http://theiconurl/"),
+                    licenseExpression: licenseExpressionText);
+                var currentUser = new User();
+
+                var package = await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), currentUser, currentUser, isVerified: false);
+
+                Assert.Equal(licenseExpressionText, package.LicenseExpression);
+                Assert.Equal(EmbeddedLicenseFileType.Absent, package.EmbeddedLicenseType);
             }
 
             [Fact]
