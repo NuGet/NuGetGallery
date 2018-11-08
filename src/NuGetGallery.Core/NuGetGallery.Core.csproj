@@ -203,7 +203,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="NuGet.Services.Messaging.Email">
-      <Version>2.36.0-master-2190850</Version>
+      <Version>2.36.0-sb-noemailrecipients-2192794</Version>
     </PackageReference>
     <PackageReference Include="NuGet.StrongName.AnglicanGeek.MarkdownMailer">
       <Version>1.2.0</Version>
