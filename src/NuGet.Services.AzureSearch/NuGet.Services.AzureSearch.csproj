@@ -35,16 +35,22 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Db2AzureSearch\NewPackageRegistration.cs" />
+    <Compile Include="Db2AzureSearch\Db2AzureSearchConfiguration.cs" />
+    <Compile Include="Db2AzureSearch\EntitiesContextFactory.cs" />
+    <Compile Include="Db2AzureSearch\EnumerableExtensions.cs" />
+    <Compile Include="Db2AzureSearch\IEntitiesContextFactory.cs" />
     <Compile Include="IIndexActionBuilder.cs" />
+    <Compile Include="Db2AzureSearch\INewPackageRegistrationProducer.cs" />
+    <Compile Include="Db2AzureSearch\NewPackageRegistration.cs" />
     <Compile Include="IndexActionBuilder.cs" />
+    <Compile Include="Db2AzureSearch\NewPackageRegistrationProducer.cs" />
+    <Compile Include="SearchAndHijackIndexActions.cs" />
     <Compile Include="Models\IBaseMetadataDocument.cs" />
     <Compile Include="Models\KeyedDocument.cs" />
     <Compile Include="Models\BaseMetadataDocument.cs" />
     <Compile Include="Models\HijackDocument.cs" />
     <Compile Include="Models\IKeyedDocument.cs" />
     <Compile Include="Models\SearchDocument.cs" />
-    <Compile Include="SearchAndHijackIndexActions.cs" />
     <Compile Include="VersionList\Guard.cs" />
     <Compile Include="VersionList\HijackIndexChange.cs" />
     <Compile Include="VersionList\HijackIndexChangeType.cs" />

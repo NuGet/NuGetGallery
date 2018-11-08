@@ -37,7 +37,17 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Db2AzureSearch\EnumerableExtensionsFacts.cs" />
+    <Compile Include="Db2AzureSearch\NewPackageRegistrationProducerFacts.cs" />
     <Compile Include="IndexActionBuilderFacts.cs" />
+    <Compile Include="Support\DbSetMockFactory.cs" />
+    <Compile Include="Support\RecordingLogger.cs" />
+    <Compile Include="Support\TestDbAsyncEnumerable.cs" />
+    <Compile Include="Support\TestDbAsyncEnumerator.cs" />
+    <Compile Include="Support\TestDbAsyncQueryProvider.cs" />
+    <Compile Include="Support\XunitLogger.cs" />
+    <Compile Include="Support\XunitLoggerFactoryExtensions.cs" />
+    <Compile Include="Support\XunitLoggerProvider.cs" />
     <Compile Include="VersionList\FilteredVersionListFacts.cs" />
     <Compile Include="VersionList\MutableHijackDocumentChangesFacts.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
