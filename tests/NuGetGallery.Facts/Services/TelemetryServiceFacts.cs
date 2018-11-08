@@ -232,6 +232,22 @@ namespace NuGetGallery
                     yield return new object[] { "TyposquattingOwnersCheckTimeInMs",
                         (TrackAction)(s => s.TrackMetricForTyposquattingOwnersCheckTime(fakes.Package.Id, TimeSpan.FromMilliseconds(100)))
                     };
+
+                    yield return new object[] { "InvalidLicenseMetadata",
+                        (TrackAction)(s => s.TrackInvalidLicenseMetadata("foo"))
+                    };
+
+                    yield return new object[] { "NonFsfOsiLicenseUsed",
+                        (TrackAction)(s => s.TrackNonFsfOsiLicenseUse("foo"))
+                    };
+
+                    yield return new object[] { "LicenseFileRejected",
+                        (TrackAction)(s => s.TrackLicenseFileRejected())
+                    };
+
+                    yield return new object[] { "LicenseValidationFailed",
+                        (TrackAction)(s => s.TrackLicenseValidationFailure())
+                    };
                 }
             }
 

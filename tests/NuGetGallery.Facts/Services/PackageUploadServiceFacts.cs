@@ -73,7 +73,8 @@ namespace NuGetGallery
                 reservedNamespaceService.Object,
                 validationService.Object,
                 config.Object,
-                new Mock<ITyposquattingService>().Object);
+                new Mock<ITyposquattingService>().Object,
+                Mock.Of<ITelemetryService>());
 
             return packageUploadService.Object;
         }
