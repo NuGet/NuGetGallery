@@ -28,21 +28,22 @@ namespace NuGetGallery
         private static readonly TimeSpan CopyPollFrequency = TimeSpan.FromMilliseconds(500);
 
         private static readonly HashSet<string> KnownPublicFolders = new HashSet<string> {
-            CoreConstants.PackagesFolderName,
-            CoreConstants.PackageBackupsFolderName,
-            CoreConstants.DownloadsFolderName,
-            CoreConstants.SymbolPackagesFolderName,
-            CoreConstants.SymbolPackageBackupsFolderName
+            CoreConstants.Folders.PackagesFolderName,
+            CoreConstants.Folders.PackageBackupsFolderName,
+            CoreConstants.Folders.DownloadsFolderName,
+            CoreConstants.Folders.SymbolPackagesFolderName,
+            CoreConstants.Folders.SymbolPackageBackupsFolderName
         };
 
         private static readonly HashSet<string> KnownPrivateFolders = new HashSet<string> {
-            CoreConstants.ContentFolderName,
-            CoreConstants.UploadsFolderName,
-            CoreConstants.PackageReadMesFolderName,
-            CoreConstants.ValidationFolderName,
-            CoreConstants.UserCertificatesFolderName,
-            CoreConstants.RevalidationFolderName,
-            CoreConstants.StatusFolderName,
+            CoreConstants.Folders.ContentFolderName,
+            CoreConstants.Folders.UploadsFolderName,
+            CoreConstants.Folders.PackageReadMesFolderName,
+            CoreConstants.Folders.ValidationFolderName,
+            CoreConstants.Folders.UserCertificatesFolderName,
+            CoreConstants.Folders.RevalidationFolderName,
+            CoreConstants.Folders.StatusFolderName,
+            CoreConstants.Folders.PackagesContentFolderName,
         };
 
         protected readonly ICloudBlobClient _client;
@@ -613,29 +614,29 @@ namespace NuGetGallery
         {
             switch (folderName)
             {
-                case CoreConstants.PackagesFolderName:
-                case CoreConstants.PackageBackupsFolderName:
-                case CoreConstants.UploadsFolderName:
-                case CoreConstants.ValidationFolderName:
-                case CoreConstants.SymbolPackagesFolderName:
-                case CoreConstants.SymbolPackageBackupsFolderName:
+                case CoreConstants.Folders.PackagesFolderName:
+                case CoreConstants.Folders.PackageBackupsFolderName:
+                case CoreConstants.Folders.UploadsFolderName:
+                case CoreConstants.Folders.ValidationFolderName:
+                case CoreConstants.Folders.SymbolPackagesFolderName:
+                case CoreConstants.Folders.SymbolPackageBackupsFolderName:
                     return CoreConstants.PackageContentType;
 
-                case CoreConstants.DownloadsFolderName:
+                case CoreConstants.Folders.DownloadsFolderName:
                     return CoreConstants.OctetStreamContentType;
 
-                case CoreConstants.PackageReadMesFolderName:
+                case CoreConstants.Folders.PackageReadMesFolderName:
                     return CoreConstants.TextContentType;
 
-                case CoreConstants.ContentFolderName:
-                case CoreConstants.RevalidationFolderName:
-                case CoreConstants.StatusFolderName:
+                case CoreConstants.Folders.ContentFolderName:
+                case CoreConstants.Folders.RevalidationFolderName:
+                case CoreConstants.Folders.StatusFolderName:
                     return CoreConstants.JsonContentType;
 
-                case CoreConstants.UserCertificatesFolderName:
+                case CoreConstants.Folders.UserCertificatesFolderName:
                     return CoreConstants.CertificateContentType;
 
-                case CoreConstants.PackagesContentFolderName:
+                case CoreConstants.Folders.PackagesContentFolderName:
                     return CoreConstants.OctetStreamContentType;
 
                 default:
@@ -648,21 +649,21 @@ namespace NuGetGallery
         {
             switch (folderName)
             {
-                case CoreConstants.PackagesFolderName:
-                case CoreConstants.SymbolPackagesFolderName:
-                case CoreConstants.PackagesContentFolderName:
-                case CoreConstants.ValidationFolderName:
+                case CoreConstants.Folders.PackagesFolderName:
+                case CoreConstants.Folders.SymbolPackagesFolderName:
+                case CoreConstants.Folders.ValidationFolderName:
                     return CoreConstants.DefaultCacheControl;
 
-                case CoreConstants.PackageBackupsFolderName:
-                case CoreConstants.UploadsFolderName:
-                case CoreConstants.SymbolPackageBackupsFolderName:
-                case CoreConstants.DownloadsFolderName:
-                case CoreConstants.PackageReadMesFolderName:
-                case CoreConstants.ContentFolderName:
-                case CoreConstants.RevalidationFolderName:
-                case CoreConstants.StatusFolderName:
-                case CoreConstants.UserCertificatesFolderName:
+                case CoreConstants.Folders.PackageBackupsFolderName:
+                case CoreConstants.Folders.UploadsFolderName:
+                case CoreConstants.Folders.SymbolPackageBackupsFolderName:
+                case CoreConstants.Folders.DownloadsFolderName:
+                case CoreConstants.Folders.PackageReadMesFolderName:
+                case CoreConstants.Folders.ContentFolderName:
+                case CoreConstants.Folders.RevalidationFolderName:
+                case CoreConstants.Folders.StatusFolderName:
+                case CoreConstants.Folders.UserCertificatesFolderName:
+                case CoreConstants.Folders.PackagesContentFolderName:
                     return null;
 
                 default:

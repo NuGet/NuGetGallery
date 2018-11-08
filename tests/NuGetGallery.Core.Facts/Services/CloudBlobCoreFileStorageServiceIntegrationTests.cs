@@ -62,7 +62,7 @@ namespace NuGetGallery
         public async Task ReturnsCurrentETagForIfMatch()
         {
             // Arrange
-            var folderName = CoreConstants.ValidationFolderName;
+            var folderName = CoreConstants.Folders.ValidationFolderName;
             var fileName = _prefixA;
             await _targetA.SaveFileAsync(folderName, fileName, new MemoryStream(new byte[0]));
             var initialReference = await _targetA.GetFileReferenceAsync(folderName, fileName);
@@ -81,7 +81,7 @@ namespace NuGetGallery
         public async Task ReturnsNullForMissingBlob()
         {
             // Arrange
-            var folderName = CoreConstants.ValidationFolderName;
+            var folderName = CoreConstants.Folders.ValidationFolderName;
             var fileName = _prefixA;
 
             // Act
@@ -95,7 +95,7 @@ namespace NuGetGallery
         public async Task ReturnsTheETagMatchingTheContent()
         {
             // Arrange
-            var folderName = CoreConstants.ValidationFolderName;
+            var folderName = CoreConstants.Folders.ValidationFolderName;
             var fileName = _prefixA;
             var contentToETag = new ConcurrentDictionary<string, string>();
             var iterations = 20;
@@ -154,7 +154,7 @@ namespace NuGetGallery
         public async Task CanReadAndDeleteBlobUsingPrivilegedFileUri()
         {
             // Arrange
-            var folderName = CoreConstants.ValidationFolderName;
+            var folderName = CoreConstants.Folders.ValidationFolderName;
             var fileName = _prefixA;
             var expectedContent = "Hello, world.";
 
@@ -206,11 +206,11 @@ namespace NuGetGallery
         public async Task DoesNotCopyWhenSourceAndDestinationHaveSameHash()
         {
             // Arrange
-            var srcFolderName = CoreConstants.ValidationFolderName;
+            var srcFolderName = CoreConstants.Folders.ValidationFolderName;
             var srcFileName = $"{_prefixA}/src";
             var srcContent = "Hello, world.";
 
-            var destFolderName = CoreConstants.PackagesFolderName;
+            var destFolderName = CoreConstants.Folders.PackagesFolderName;
             var destFileName = $"{_prefixB}/dest";
 
             await _targetA.SaveFileAsync(
@@ -252,11 +252,11 @@ namespace NuGetGallery
         public async Task CopiesWhenDestinationHasNotHashButContentsAreTheSame()
         {
             // Arrange
-            var srcFolderName = CoreConstants.ValidationFolderName;
+            var srcFolderName = CoreConstants.Folders.ValidationFolderName;
             var srcFileName = $"{_prefixA}/src";
             var srcContent = "Hello, world.";
 
-            var destFolderName = CoreConstants.PackagesFolderName;
+            var destFolderName = CoreConstants.Folders.PackagesFolderName;
             var destFileName = $"{_prefixB}/dest";
 
             await _targetA.SaveFileAsync(
@@ -317,11 +317,11 @@ namespace NuGetGallery
             CloudBlobCoreFileStorageService destService)
         {
             // Arrange
-            var srcFolderName = CoreConstants.ValidationFolderName;
+            var srcFolderName = CoreConstants.Folders.ValidationFolderName;
             var srcFileName = $"{srcPrefix}/src";
             var srcContent = "Hello, world.";
 
-            var destFolderName = CoreConstants.PackagesFolderName;
+            var destFolderName = CoreConstants.Folders.PackagesFolderName;
             var destFileName = $"{destPrefix}/dest";
 
             await srcService.SaveFileAsync(

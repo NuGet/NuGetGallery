@@ -299,11 +299,11 @@ namespace NuGetGallery
         {
             switch (folderName)
             {
-                case CoreConstants.PackagesFolderName:
-                case CoreConstants.SymbolPackagesFolderName:
+                case CoreConstants.Folders.PackagesFolderName:
+                case CoreConstants.Folders.SymbolPackagesFolderName:
                     return CoreConstants.PackageContentType;
 
-                case CoreConstants.DownloadsFolderName:
+                case CoreConstants.Folders.DownloadsFolderName:
                     return CoreConstants.OctetStreamContentType;
 
                 default:
