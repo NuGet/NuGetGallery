@@ -35,9 +35,11 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Db2AzureSearch\Db2AzureSearchCommand.cs" />
     <Compile Include="Db2AzureSearch\Db2AzureSearchConfiguration.cs" />
     <Compile Include="Db2AzureSearch\EntitiesContextFactory.cs" />
     <Compile Include="Db2AzureSearch\EnumerableExtensions.cs" />
+    <Compile Include="Db2AzureSearch\IDb2AzureSearchCommand.cs" />
     <Compile Include="Db2AzureSearch\IEntitiesContextFactory.cs" />
     <Compile Include="IIndexActionBuilder.cs" />
     <Compile Include="Db2AzureSearch\INewPackageRegistrationProducer.cs" />

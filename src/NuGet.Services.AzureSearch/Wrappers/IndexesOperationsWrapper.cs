@@ -17,6 +17,11 @@ namespace NuGet.Services.AzureSearch.Wrappers
             _inner = inner ?? throw new ArgumentNullException(nameof(inner));
         }
 
+        public ISearchIndexClientWrapper GetClient(string indexName)
+        {
+            return new SearchIndexClientWrapper(_inner.GetClient(indexName));
+        }
+
         public async Task<bool> ExistsAsync(string indexName)
         {
             return await _inner.ExistsAsync(indexName);

@@ -37,6 +37,7 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Db2AzureSearch\Db2AzureSearchCommandFacts.cs" />
     <Compile Include="Db2AzureSearch\EnumerableExtensionsFacts.cs" />
     <Compile Include="Db2AzureSearch\NewPackageRegistrationProducerFacts.cs" />
     <Compile Include="IndexActionBuilderFacts.cs" />

@@ -8,6 +8,7 @@ namespace NuGet.Services.AzureSearch.Wrappers
 {
     public interface IIndexesOperationsWrapper
     {
+        ISearchIndexClientWrapper GetClient(string indexName);
         Task<Index> CreateAsync(Index index);
         Task DeleteAsync(string indexName);
         Task<bool> ExistsAsync(string indexName);
