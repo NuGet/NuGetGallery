@@ -4,6 +4,7 @@
 using System;
 using System.IO;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using UAParser;
 
 namespace Stats.ImportAzureCdnStatistics
@@ -11,14 +12,39 @@ namespace Stats.ImportAzureCdnStatistics
     public class UserAgentParser
     {
         private static readonly Parser _defaultParser;
-        private static readonly Parser _customParser;
+        private static readonly Parser _knownClientsParser;
+        private static readonly Parser _knownClientsInChinaParser;
 
         static UserAgentParser()
         {
             _defaultParser = Parser.GetDefault();
 
             var yaml = ReadKnownClientsYaml();
-            _customParser = Parser.FromYaml(yaml);
+            _knownClientsParser = Parser.FromYaml(yaml);
+
+            var patchedYaml = AddSupportForChinaCdn(yaml);
+            _knownClientsInChinaParser = Parser.FromYaml(patchedYaml);
+        }
+
+        private static string AddSupportForChinaCdn(string yaml)
+        {
+            // Seems like user agent headers from requests hitting the China CDN endpoints 
+            // are using '+' characters instead of whitespace characters
+
+            var patchedYaml = Regex.Replace(
+                yaml,
+                @"(?:[:]\s'\()+([\w-.\s]+)(?:\))+", // Look for any matches of : '(user agent)
+                ReplaceWhitespaceWithPlusSign, // Replace whitespace ' ' character with '+' character in the user agent matches
+                RegexOptions.Compiled);
+
+            return patchedYaml;
+        }
+
+        private static string ReplaceWhitespaceWithPlusSign(Match match)
+        {
+            // The + sign needs to be escaped by a \ 
+            // as it is output to another regex in YAML.
+            return ": '(" + match.Groups[1].Value.Replace(" ", @"\+") + ")";
         }
 
         private static string ReadKnownClientsYaml()
@@ -35,7 +61,14 @@ namespace Stats.ImportAzureCdnStatistics
         public UserAgent ParseUserAgent(string userAgent)
         {
             // try custom parser first
-            var parsedResult = _customParser.ParseUserAgent(userAgent);
+            var parsedResult = _knownClientsParser.ParseUserAgent(userAgent);
+
+            if (string.Equals(parsedResult.Family, "other", StringComparison.InvariantCultureIgnoreCase))
+            {
+                // fallback to China parser
+                parsedResult = _knownClientsInChinaParser.ParseUserAgent(userAgent);
+            }
+
             if (string.Equals(parsedResult.Family, "other", StringComparison.InvariantCultureIgnoreCase))
             {
                 // fallback to default parser
@@ -47,7 +80,14 @@ namespace Stats.ImportAzureCdnStatistics
         public OS ParseOS(string userAgent)
         {
             // try custom parser first
-            var parsedResult = _customParser.ParseOS(userAgent);
+            var parsedResult = _knownClientsParser.ParseOS(userAgent);
+
+            if (string.Equals(parsedResult.Family, "other", StringComparison.InvariantCultureIgnoreCase))
+            {
+                // fallback to China parser
+                parsedResult = _knownClientsInChinaParser.ParseOS(userAgent);
+            }
+
             if (string.Equals(parsedResult.Family, "other", StringComparison.InvariantCultureIgnoreCase))
             {
                 // fallback to default parser
@@ -60,7 +100,14 @@ namespace Stats.ImportAzureCdnStatistics
         public Device ParseDevice(string userAgent)
         {
             // try custom parser first
-            var parsedResult = _customParser.ParseDevice(userAgent);
+            var parsedResult = _knownClientsParser.ParseDevice(userAgent);
+
+            if (string.Equals(parsedResult.Family, "other", StringComparison.InvariantCultureIgnoreCase))
+            {
+                // fallback to China parser
+                parsedResult = _knownClientsInChinaParser.ParseDevice(userAgent);
+            }
+
             if (string.Equals(parsedResult.Family, "other", StringComparison.InvariantCultureIgnoreCase))
             {
                 // fallback to default parser

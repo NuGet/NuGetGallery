@@ -67,6 +67,8 @@ namespace Tests.Stats.ImportAzureCdnStatistics
             [InlineData("NuGet Desktop MSBuild Task/4.4.0 (Microsoft Windows 10.0.15063)", "NuGet Desktop MSBuild Task", "4", "4", "0")]
             [InlineData("Cake NuGet Client/4.3.0 (Microsoft Windows 10.0.15063)", "Cake NuGet Client", "4", "3", "0")]
             [InlineData("NuGet VS VSIX/4.3.0 (Microsoft Windows 10.0.15063)", "NuGet VS VSIX", "4", "3", "0")]
+            [InlineData("NuGet+VS+VSIX/4.8.1+(Microsoft+Windows+NT+10.0.17134.0,+VS+Enterprise/15.0)", "NuGet VS VSIX", "4", "8", "1")]
+            [InlineData("NuGet+Command+Line/4.3.0+(Microsoft+Windows+NT+6.2.9200.0)", "NuGet Command Line", "4", "3", "0")]
             public void RecognizesCustomClients(string userAgent, string expectedClient, string expectedMajor, string expectedMinor, string expectedPatch)
             {
                 var parsed = _parser.ParseUserAgent(userAgent);
