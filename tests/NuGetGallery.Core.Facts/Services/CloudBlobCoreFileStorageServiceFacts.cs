@@ -56,7 +56,8 @@ namespace NuGetGallery
                     new object[] { CoreConstants.SymbolPackagesFolderName, true, CoreConstants.PackageContentType },
                     new object[] { CoreConstants.UploadsFolderName, false, CoreConstants.PackageContentType },
                     new object[] { CoreConstants.UserCertificatesFolderName, false, CoreConstants.CertificateContentType },
-                    new object[] { CoreConstants.ValidationFolderName, false, CoreConstants.PackageContentType }
+                    new object[] { CoreConstants.ValidationFolderName, false, CoreConstants.PackageContentType },
+                    new object[] { CoreConstants.PackagesContentFolderName, false, CoreConstants.TextContentType },
                 };
 
                 if (!IncludePermissions && !IncludeContentTypes)
