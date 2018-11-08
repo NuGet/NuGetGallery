@@ -39,6 +39,12 @@ namespace NuGet.Services.Messaging.Email
 
             using (var email = CreateMailMessage(emailBuilder))
             {
+                if (email == null || !email.To.Any())
+                {
+                    // A null email or one without recipients cannot be sent.
+                    return;
+                }
+
                 await SendMessageInternalAsync(email);
 
                 if (copySender && !discloseSenderAddress)
@@ -50,11 +56,6 @@ namespace NuGet.Services.Messaging.Email
 
         protected virtual async Task SendMessageInternalAsync(MailMessage mailMessage)
         {
-            if (!mailMessage.To.Any())
-            {
-                return;
-            }
-
             var attempt = 0;
             var success = false;
             while (!success)
