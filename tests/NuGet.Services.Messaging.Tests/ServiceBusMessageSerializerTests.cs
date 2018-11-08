@@ -55,6 +55,29 @@ namespace NuGet.Services.Messaging.Tests
                 var body = output.GetBody();
                 Assert.Equal(TestData.SerializedEmailMessageData1, body);
             }
+
+            [Fact]
+            public void SetsDefaultTimeToLive()
+            {
+                // Arrange
+                var expectedTtl = TimeSpan.FromDays(2);
+                var input = new EmailMessageData(
+                    Subject,
+                    PlainTextBody,
+                    HtmlBody,
+                    Sender,
+                    To,
+                    CC,
+                    BCC,
+                    ReplyTo,
+                    MessageTrackingId);
+
+                // Act
+                var output = _target.SerializeEmailMessageData(input);
+
+                // Assert
+                Assert.Equal(expectedTtl, output.TimeToLive);
+            }
         }
 
         public class TheDeserializeEmailMessageDataMethod : Base

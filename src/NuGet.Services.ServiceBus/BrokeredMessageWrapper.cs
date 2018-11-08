@@ -23,6 +23,12 @@ namespace NuGet.Services.ServiceBus
         public BrokeredMessage BrokeredMessage { get; }
 
         public DateTimeOffset ExpiresAtUtc => new DateTimeOffset(BrokeredMessage.ExpiresAtUtc);
+        public TimeSpan TimeToLive
+        {
+            get => BrokeredMessage.TimeToLive;
+            set => BrokeredMessage.TimeToLive = value;
+        }
+
         public int DeliveryCount => BrokeredMessage.DeliveryCount;
         public IDictionary<string, object> Properties => BrokeredMessage.Properties;
         public DateTimeOffset EnqueuedTimeUtc => new DateTimeOffset(BrokeredMessage.EnqueuedTimeUtc);

@@ -11,6 +11,7 @@ namespace NuGet.Services.ServiceBus
     {
         int DeliveryCount { get; }
         DateTimeOffset ExpiresAtUtc { get; }
+        TimeSpan TimeToLive { get; set; }
         IDictionary<string, object> Properties { get; }
         DateTimeOffset EnqueuedTimeUtc { get; }
         DateTimeOffset ScheduledEnqueueTimeUtc { get; set; }
