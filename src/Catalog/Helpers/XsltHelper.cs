@@ -21,12 +21,7 @@ namespace NuGet.Services.Metadata.Catalog
 
         public XPathNavigator Split(string original)
         {
-            char[] trimChar = { ',', ' ', '\t', '|', ';' };
-
-            IEnumerable<string> fields = original
-                .Split(trimChar)
-                .Select((w) => w.Trim(trimChar))
-                .Where((w) => w.Length > 0);
+            var fields = Utils.SplitTags(original);
 
             XmlDocument xmlDoc = Utils.SafeCreateXmlDocument();
             XmlElement root = xmlDoc.CreateElement("list");

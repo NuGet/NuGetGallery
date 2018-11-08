@@ -35,12 +35,16 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Db2AzureSearch\NewPackageRegistration.cs" />
+    <Compile Include="IIndexActionBuilder.cs" />
+    <Compile Include="IndexActionBuilder.cs" />
     <Compile Include="Models\IBaseMetadataDocument.cs" />
     <Compile Include="Models\KeyedDocument.cs" />
     <Compile Include="Models\BaseMetadataDocument.cs" />
     <Compile Include="Models\HijackDocument.cs" />
     <Compile Include="Models\IKeyedDocument.cs" />
     <Compile Include="Models\SearchDocument.cs" />
+    <Compile Include="SearchAndHijackIndexActions.cs" />
     <Compile Include="VersionList\Guard.cs" />
     <Compile Include="VersionList\HijackIndexChange.cs" />
     <Compile Include="VersionList\HijackIndexChangeType.cs" />
@@ -89,6 +93,12 @@
     <PackageReference Include="NuGetGallery.Core">
       <Version>4.4.4-dev-41931</Version>
     </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Catalog\NuGet.Services.Metadata.Catalog.csproj">
+      <Project>{e97f23b8-ecb0-4afa-b00c-015c39395fef}</Project>
+      <Name>NuGet.Services.Metadata.Catalog</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
