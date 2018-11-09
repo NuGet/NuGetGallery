@@ -19,7 +19,11 @@
   </ItemGroup>
   <Target Name="EnumerateFilesToSign" AfterTargets="AfterBuild" Condition="'$(SignAssembly)' == 'true' AND '$(SignType)' != 'none'">
     <ItemGroup>
-      <FilesToSign Include="$(TargetPath)">
+      <OutputToSign Include="$(MSBuildProjectDirectory)\%(IntermediateAssembly.Identity)" />
+      <OutputToSign Include="$(TargetPath)" />
+    </ItemGroup>
+    <ItemGroup>
+      <FilesToSign Include="%(OutputToSign.Identity)">
         <Authenticode>Microsoft</Authenticode>
         <StrongName>MsSharedLib72</StrongName>
       </FilesToSign>
