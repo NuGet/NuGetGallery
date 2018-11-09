@@ -97,7 +97,7 @@ namespace NuGetGallery
 
         public async Task<bool> IsAvailableAsync()
         {
-            var container = await GetContainerAsync(CoreConstants.PackagesFolderName);
+            var container = await GetContainerAsync(CoreConstants.Folders.PackagesFolderName);
             return await container.ExistsAsync();
         }
     }

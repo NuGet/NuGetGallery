@@ -8,6 +8,7 @@ using System.IO;
 using System.Threading.Tasks;
 using System.Web.Hosting;
 using System.Web.Mvc;
+using Microsoft.WindowsAzure.Storage.Blob;
 using NuGetGallery.Configuration;
 
 namespace NuGetGallery
@@ -123,6 +124,12 @@ namespace NuGetGallery
             // Get the last modified date of the file and use that as the ContentID
             var file = new FileInfo(path);
             return Task.FromResult<IFileReference>(file.Exists ? new LocalFileReference(file) : null);
+        }
+
+        public Task SaveFileAsync(string folderName, string fileName, string contentType, Stream file, bool overwrite = true)
+        {
+            // file system does not support content type, so we'll simply ignore it
+            return SaveFileAsync(folderName, fileName, file, overwrite);
         }
 
         public Task SaveFileAsync(string folderName, string fileName, Stream packageFile, bool overwrite = true)
@@ -256,6 +263,14 @@ namespace NuGetGallery
             return Task.CompletedTask;
         }
 
+        public Task SetPropertiesAsync(
+            string folderName,
+            string fileName, 
+            Func<Lazy<Task<Stream>>, BlobProperties, Task<bool>> updatePropertiesAsync)
+        {
+            return Task.CompletedTask;
+        }
+
         private static string BuildPath(string fileStorageDirectory, string folderName, string fileName)
         {
             // Resolve the file storage directory
@@ -284,11 +299,11 @@ namespace NuGetGallery
         {
             switch (folderName)
             {
-                case CoreConstants.PackagesFolderName:
-                case CoreConstants.SymbolPackagesFolderName:
+                case CoreConstants.Folders.PackagesFolderName:
+                case CoreConstants.Folders.SymbolPackagesFolderName:
                     return CoreConstants.PackageContentType;
 
-                case CoreConstants.DownloadsFolderName:
+                case CoreConstants.Folders.DownloadsFolderName:
                     return CoreConstants.OctetStreamContentType;
 
                 default:

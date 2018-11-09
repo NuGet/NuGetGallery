@@ -31,13 +31,10 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
 
         public override IEmailRecipients GetRecipients()
         {
-            if (!Organization.EmailAllowed)
-            {
-                return EmailRecipients.None;
-            }
-
             return new EmailRecipients(
-                to: new[] { Organization.ToMailAddress() },
+                to: Organization.EmailAllowed
+                    ? new[] { Organization.ToMailAddress() }
+                    : new MailAddress[0],
                 replyTo: new[] { Membership.Member.ToMailAddress() });
         }
 

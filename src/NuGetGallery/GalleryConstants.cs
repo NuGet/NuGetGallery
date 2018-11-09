@@ -106,6 +106,8 @@ namespace NuGetGallery
 
         public const string GitRepository = "git";
 
+        public const string LicenseDeprecationUrl = "https://aka.ms/deprecateLicenseUrl";
+
         public static class ContentNames
         {
             public static readonly string ReadOnly = "ReadOnly";

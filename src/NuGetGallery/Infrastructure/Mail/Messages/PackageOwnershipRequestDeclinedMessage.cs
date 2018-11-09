@@ -35,15 +35,11 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
 
         public override IEmailRecipients GetRecipients()
         {
-            if (!RequestingOwner.EmailAllowed)
-            {
-                // This will prevent the email from being sent.
-                return EmailRecipients.None;
-            }
-
-            return new EmailRecipientsWithPermission(
-                RequestingOwner,
-                ActionsRequiringPermissions.HandlePackageOwnershipRequest,
+            return new EmailRecipients(
+                to: RequestingOwner.EmailAllowed
+                    ? GalleryEmailRecipientsUtility.GetAddressesWithPermission(
+                        RequestingOwner, ActionsRequiringPermissions.HandlePackageOwnershipRequest)
+                    : new MailAddress[0],
                 replyTo: new[] { NewOwner.ToMailAddress() });
         }
 

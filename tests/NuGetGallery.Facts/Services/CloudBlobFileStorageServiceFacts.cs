@@ -59,8 +59,8 @@ namespace NuGetGallery
             {
                 var folderNames = new List<object[]>
                     {
-                        new object[] { CoreConstants.PackagesFolderName, true },
-                        new object[] { CoreConstants.UploadsFolderName, false }
+                        new object[] { CoreConstants.Folders.PackagesFolderName, true },
+                        new object[] { CoreConstants.Folders.UploadsFolderName, false }
                     };
 
                 if (!IncludePermissions)
@@ -124,7 +124,7 @@ namespace NuGetGallery
                 fakeBlob.Setup(x => x.Uri).Returns(new Uri(requestUri.Scheme + "://theUri"));
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
 
-                var result = await service.CreateDownloadFileActionResultAsync(requestUri, CoreConstants.PackagesFolderName, "theFileName") as RedirectResult;
+                var result = await service.CreateDownloadFileActionResultAsync(requestUri, CoreConstants.Folders.PackagesFolderName, "theFileName") as RedirectResult;
 
                 Assert.NotNull(result);
                 Assert.Equal(scheme + "theuri/", result.Url);
@@ -146,7 +146,7 @@ namespace NuGetGallery
                 fakeBlob.Setup(x => x.Uri).Returns(new Uri(blobUrl));
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
 
-                var result = await service.CreateDownloadFileActionResultAsync(new Uri(requestUrl), CoreConstants.PackagesFolderName, "theFileName") as RedirectResult;
+                var result = await service.CreateDownloadFileActionResultAsync(new Uri(requestUrl), CoreConstants.Folders.PackagesFolderName, "theFileName") as RedirectResult;
                 var redirectUrl = new Uri(result.Url);
                 Assert.Equal(expectedPort, redirectUrl.Port);
             }
@@ -168,7 +168,7 @@ namespace NuGetGallery
 
                 var result = await service.CreateDownloadFileActionResultAsync(
                     new Uri(HttpsRequestUrlString), 
-                    CoreConstants.PackagesFolderName, 
+                    CoreConstants.Folders.PackagesFolderName, 
                     "theFileName") as RedirectResult;
                 fakePolicy.Verify();
             }
@@ -191,7 +191,7 @@ namespace NuGetGallery
                 await Assert.ThrowsAsync<InvalidOperationException>(
                     () => service.CreateDownloadFileActionResultAsync(
                         new Uri(HttpsRequestUrlString), 
-                        CoreConstants.PackagesFolderName, "theFileName")
+                        CoreConstants.Folders.PackagesFolderName, "theFileName")
                     );
             }
         }

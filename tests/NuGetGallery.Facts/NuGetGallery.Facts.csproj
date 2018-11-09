@@ -88,6 +88,7 @@
     <Compile Include="Framework\MemberDataHelper.cs" />
     <Compile Include="Helpers\ObfuscationHelperFacts.cs" />
     <Compile Include="Helpers\PackageHelperTests.cs" />
+    <Compile Include="Helpers\TextHelperFacts.cs" />
     <Compile Include="Helpers\UploadHelperFacts.cs" />
     <Compile Include="Infrastructure\Authentication\ApiKeyV3Facts.cs" />
     <Compile Include="Infrastructure\Authentication\ApiKeyV4Facts.cs" />

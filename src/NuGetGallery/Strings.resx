@@ -1005,4 +1005,73 @@ The {1} Team</value>
   <data name="AuthenticationFailure_UnkownError" xml:space="preserve">
     <value>Unknown error!</value>
   </data>
+  <data name="UploadPackage_DeprecatingLicenseUrl" xml:space="preserve">
+    <value>&lt;licenseUrl&gt; element will be deprecated, please consider switching to specifying the license in the package.</value>
+  </data>
+  <data name="UploadPackage_DeprecationUrlUsage" xml:space="preserve">
+    <value>The license deprecation URL must be used in conjunction with specifying the license in the package.</value>
+  </data>
+  <data name="UploadPackage_InvalidLicenseMetadata" xml:space="preserve">
+    <value>Invalid license metadata: {0}</value>
+    <comment>{0} is the list of the issues found with license expression.</comment>
+  </data>
+  <data name="UploadPackage_LegacyLicenseUrlNotAllowed" xml:space="preserve">
+    <value>Specifying &lt;licenseUrl&gt; in the package metadata is no longer allowed, please specify the license in the package.</value>
+  </data>
+  <data name="UploadPackage_MissingLicenseInformation" xml:space="preserve">
+    <value>The package has no license information specified.</value>
+  </data>
+  <data name="UploadPackage_InvalidLicenseFileExtension" xml:space="preserve">
+    <value>The license file has invalid extension '{0}'. Extension must be either empty or one of the following: {1}.</value>
+    <comment>{0} is the specified extension. {1} is the string containing the allowed non-empty extensions list</comment>
+  </data>
+  <data name="UploadPackage_LicenseFileDoesNotExist" xml:space="preserve">
+    <value>The license file '{0}' does not exist in the package.</value>
+    <comment>{0} is the license file name specified in the .nuspec</comment>
+  </data>
+  <data name="UploadPackage_LicenseMustBePlainText" xml:space="preserve">
+    <value>The license file must be plain text using UTF-8 encoding.</value>
+  </data>
+  <data name="UploadPackage_LicenseFileTooLong" xml:space="preserve">
+    <value>The license file cannot be longer than {0}.</value>
+    <comment>{0} is the string representation max allowed license file size (in whatever units the caller choses)</comment>
+  </data>
+  <data name="UploadPackage_LicenseNodeContainsChildren" xml:space="preserve">
+    <value>The license node cannot contain child nodes.</value>
+  </data>
+  <data name="UploadPackage_LicenseNodeValueTooLong" xml:space="preserve">
+    <value>The license node value must be shorter than 500 characters.</value>
+  </data>
+  <data name="UploadPackage_UnsupportedLicenseVersion" xml:space="preserve">
+    <value>Unsupported license version '{0}'. The only supported license version is 1.0.0.</value>
+    <comment>{0} is the license version text from nuspec</comment>
+  </data>
+  <data name="UploadPackage_CorruptNupkg" xml:space="preserve">
+    <value>The package file is corrupt.</value>
+  </data>
+  <data name="UploadPackage_UnsupportedLicenseType" xml:space="preserve">
+    <value>Unsupported license type '{0}'.</value>
+    <comment>{0} is the license type read from the nuspec</comment>
+  </data>
+  <data name="UploadPackage_LicenseFilesAreNotAllowed" xml:space="preserve">
+    <value>License files are not yet supported.</value>
+  </data>
+  <data name="UploadPackage_DeprecationUrlSuggestedForLicenseExpressions" xml:space="preserve">
+    <value>To provide better experience for older clients when a license expression is specified, &lt;licenseUrl&gt; should be set to '{0}'.</value>
+    <comment>{0} is the licenses.nuget.org link with license expression</comment>
+  </data>
+  <data name="UploadPackage_DeprecationUrlSuggestedForLicenseFiles" xml:space="preserve">
+    <value>To provide better experience for older clients when a license file is packaged, &lt;licenseUrl&gt; should be set to '{0}'.</value>
+    <comment>{0} is the deprecation page URL</comment>
+  </data>
+  <data name="UploadPackage_LearnMore" xml:space="preserve">
+    <value>Learn more</value>
+  </data>
+  <data name="UploadPackage_LicenseShouldBeSpecified" xml:space="preserve">
+    <value>All published packages should have license information specified.</value>
+  </data>
+  <data name="UploadPackage_NonFsfOrOsiLicense" xml:space="preserve">
+    <value>License expression must only contain licenses that are approved by Open Source Initiative or Free Software Foundation. Unsupported licenses: {0}.</value>
+    <comment>{0} is list of the package license ids that are neither OSI nor FSF approved</comment>
+  </data>
 </root>
