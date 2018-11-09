@@ -23,6 +23,7 @@ trap {
     Write-Host ("`r`n" * 3)
     exit 1
 }
+
 if (-not (Test-Path "$PSScriptRoot/build")) {
     New-Item -Path "$PSScriptRoot/build" -ItemType "directory"
 }
