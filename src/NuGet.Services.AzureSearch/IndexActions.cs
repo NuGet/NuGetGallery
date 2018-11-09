@@ -8,22 +8,23 @@ using Microsoft.Azure.Search.Models;
 namespace NuGet.Services.AzureSearch
 {
     /// <summary>
-    /// <see cref="IndexAction{T}"/> instances seperated by whether they apply to the search index or the hijack index.
+    /// <see cref="IndexAction{T}"/> instances seperated by whether they apply to the search index or the hijack index
+    /// as well as the version list data to write to storage after the index actions have been applied.
     /// </summary>
-    public class SearchAndHijackIndexActions
+    public class IndexActions
     {
-        public SearchAndHijackIndexActions(
+        public IndexActions(
             IReadOnlyList<IndexAction<KeyedDocument>> search,
             IReadOnlyList<IndexAction<KeyedDocument>> hijack,
-            VersionListData versionListData)
+            ResultAndAccessCondition<VersionListData> versionListDataResult)
         {
             Search = search ?? throw new ArgumentNullException(nameof(search));
             Hijack = hijack ?? throw new ArgumentNullException(nameof(hijack));
-            VersionListData = versionListData ?? throw new ArgumentNullException(nameof(versionListData));
+            VersionListDataResult = versionListDataResult ?? throw new ArgumentNullException(nameof(versionListDataResult));
         }
 
         public IReadOnlyList<IndexAction<KeyedDocument>> Search { get; }
         public IReadOnlyList<IndexAction<KeyedDocument>> Hijack { get; }
-        public VersionListData VersionListData { get; }
+        public ResultAndAccessCondition<VersionListData> VersionListDataResult { get; }
     }
 }

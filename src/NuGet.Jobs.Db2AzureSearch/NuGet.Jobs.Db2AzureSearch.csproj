@@ -6,7 +6,7 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{209B1B7F-1C5C-41EC-B6A6-E01FD9C86E26}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>NuGet.Jobs.Db2AzureSearch</RootNamespace>
+    <RootNamespace>NuGet.Jobs</RootNamespace>
     <AssemblyName>NuGet.Jobs.Db2AzureSearch</AssemblyName>
     <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>

@@ -13,6 +13,7 @@ using Moq;
 using NuGet.Services.AzureSearch.Support;
 using NuGet.Services.AzureSearch.Wrappers;
 using NuGet.Services.Entities;
+using NuGetGallery;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -55,7 +56,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             {
                 SearchIndexName = "search",
                 HijackIndexName = "hijack",
-                WorkerCount = 1,
+                MaxConcurrentBatches = 1,
             };
 
             _options
@@ -72,10 +73,12 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 .Returns(() => _hijackIndexClientDocuments.Object);
             _builder
                 .Setup(x => x.AddNewPackageRegistration(It.IsAny<NewPackageRegistration>()))
-                .Returns(() => new SearchAndHijackIndexActions(
+                .Returns(() => new IndexActions(
                     new IndexAction<KeyedDocument>[0],
                     new IndexAction<KeyedDocument>[0],
-                    new VersionListData(new Dictionary<string, VersionPropertiesData>())));
+                    new ResultAndAccessCondition<VersionListData>(
+                        new VersionListData(new Dictionary<string, VersionPropertiesData>()),
+                        AccessConditionWrapper.GenerateEmptyCondition())));
 
             _target = new Db2AzureSearchCommand(
                 _producer.Object,
@@ -135,10 +138,12 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 });
             _builder
                 .Setup(x => x.AddNewPackageRegistration(It.IsAny<NewPackageRegistration>()))
-                .Returns<NewPackageRegistration>(x => new SearchAndHijackIndexActions(
+                .Returns<NewPackageRegistration>(x => new IndexActions(
                     new List<IndexAction<KeyedDocument>> { IndexAction.Upload(new KeyedDocument { Key = x.PackageId }) },
                     new List<IndexAction<KeyedDocument>>(),
-                    new VersionListData(new Dictionary<string, VersionPropertiesData>())));
+                    new ResultAndAccessCondition<VersionListData>(
+                        new VersionListData(new Dictionary<string, VersionPropertiesData>()),
+                        AccessConditionWrapper.GenerateEmptyCondition())));
 
             var batches = new List<List<IndexAction<KeyedDocument>>>();
             _searchIndexClientDocuments

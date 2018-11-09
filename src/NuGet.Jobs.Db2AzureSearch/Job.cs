@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Net;
 using System.Threading.Tasks;
 using Autofac;
 using Microsoft.Azure.Search;
@@ -25,8 +26,12 @@ namespace NuGet.Jobs
 
         public override async Task Run()
         {
-            var db2AzureSearch = _serviceProvider.GetRequiredService<IDb2AzureSearchCommand>();
-            await db2AzureSearch.ExecuteAsync();
+            ServicePointManager.DefaultConnectionLimit = 64;
+            ServicePointManager.MaxServicePointIdleTime = 10000;
+
+            await _serviceProvider
+                .GetRequiredService<Db2AzureSearchCommand>()
+                .ExecuteAsync();
         }
 
         protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder)
@@ -52,7 +57,7 @@ namespace NuGet.Jobs
                 .Keyed<ISearchIndexClientWrapper>(HijackIndexKey);
 
             containerBuilder
-                .Register<IDb2AzureSearchCommand>(c => new Db2AzureSearchCommand(
+                .Register(c => new Db2AzureSearchCommand(
                     c.Resolve<INewPackageRegistrationProducer>(),
                     c.Resolve<IIndexActionBuilder>(),
                     c.Resolve<ISearchServiceClientWrapper>(),
@@ -83,6 +88,7 @@ namespace NuGet.Jobs
                     readAccessGeoRedundant: true);
             });
 
+            services.AddTransient<Db2AzureSearchCommand>();
             services.AddTransient<ISearchServiceClientWrapper, SearchServiceClientWrapper>();
             services.AddTransient<IEntitiesContextFactory, EntitiesContextFactory>();
             services.AddTransient<INewPackageRegistrationProducer, NewPackageRegistrationProducer>();

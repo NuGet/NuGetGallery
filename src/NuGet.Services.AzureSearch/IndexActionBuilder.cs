@@ -20,7 +20,7 @@ namespace NuGet.Services.AzureSearch
     {
         private static readonly DateTimeOffset UnlistedPublished = new DateTimeOffset(1900, 1, 1, 0, 0, 0, TimeSpan.Zero);
 
-        public SearchAndHijackIndexActions AddNewPackageRegistration(NewPackageRegistration packageRegistration)
+        public IndexActions AddNewPackageRegistration(NewPackageRegistration packageRegistration)
         {
             var versionProperties = new Dictionary<string, VersionPropertiesData>();
             var versionListData = new VersionListData(versionProperties);
@@ -55,10 +55,12 @@ namespace NuGet.Services.AzureSearch
                     p.Value))
                 .ToList();
 
-            return new SearchAndHijackIndexActions(
+            return new IndexActions(
                 search,
                 hijack,
-                versionLists.GetVersionListData());
+                new ResultAndAccessCondition<VersionListData>(
+                    versionLists.GetVersionListData(),
+                    AccessConditionWrapper.GenerateEmptyCondition()));
         }
 
         private static VersionListChange GetVersionListChange(Package x)

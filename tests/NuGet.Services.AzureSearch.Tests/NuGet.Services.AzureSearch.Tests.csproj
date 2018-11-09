@@ -46,6 +46,7 @@
     <Compile Include="Support\TestDbAsyncEnumerable.cs" />
     <Compile Include="Support\TestDbAsyncEnumerator.cs" />
     <Compile Include="Support\TestDbAsyncQueryProvider.cs" />
+    <Compile Include="Support\TestOutputHelperExtensions.cs" />
     <Compile Include="Support\XunitLogger.cs" />
     <Compile Include="Support\XunitLoggerFactoryExtensions.cs" />
     <Compile Include="Support\XunitLoggerProvider.cs" />

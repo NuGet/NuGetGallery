@@ -6,7 +6,6 @@ using System.Data.Entity;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using NuGet.Services.AzureSearch.Support;
@@ -21,7 +20,6 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
     {
         public class ProduceWorkAsync
         {
-            private readonly ITestOutputHelper _output;
             private readonly Mock<IEntitiesContextFactory> _entitiesContextFactory;
             private readonly Mock<IEntitiesContext> _entitiesContext;
             private readonly Mock<IOptionsSnapshot<Db2AzureSearchConfiguration>> _options;
@@ -35,7 +33,6 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
 
             public ProduceWorkAsync(ITestOutputHelper output)
             {
-                _output = output;
                 _entitiesContextFactory = new Mock<IEntitiesContextFactory>();
                 _entitiesContext = new Mock<IEntitiesContext>();
                 _options = new Mock<IOptionsSnapshot<Db2AzureSearchConfiguration>>();
@@ -43,8 +40,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 {
                     DatabaseBatchSize = 2,
                 };
-                _logger = new RecordingLogger<NewPackageRegistrationProducer>(
-                    new LoggerFactory().AddXunit(_output).CreateLogger<NewPackageRegistrationProducer>());
+                _logger = output.GetLogger<NewPackageRegistrationProducer>();
                 _packageRegistrations = DbSetMockFactory.Create<PackageRegistration>();
                 _packages = DbSetMockFactory.Create<Package>();
                 _work = new ConcurrentBag<NewPackageRegistration>();

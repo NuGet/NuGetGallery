@@ -8,29 +8,53 @@ namespace NuGet.Services.AzureSearch
 {
     public class VersionListChange
     {
-        private VersionListChange(string fullOrOriginalVersion, bool isDelete, VersionPropertiesData data)
+        private VersionListChange(bool isDelete, NuGetVersion parsedVersion, string fullVersion, VersionPropertiesData data)
         {
-            if (fullOrOriginalVersion == null)
-            {
-                throw new ArgumentNullException(nameof(fullOrOriginalVersion));
-            }
-
             IsDelete = isDelete;
-            ParsedVersion = NuGetVersion.Parse(fullOrOriginalVersion);
-            FullVersion = ParsedVersion.ToFullString();
+            ParsedVersion = parsedVersion ?? throw new ArgumentNullException(nameof(parsedVersion));
+            FullVersion = fullVersion;
             Data = data;
         }
 
         public bool IsDelete { get; }
-        public string FullVersion { get; }
         public NuGetVersion ParsedVersion { get; }
+
+        /// <summary>
+        /// When <see cref="IsDelete"/> is true, this value is null.
+        /// </summary>
+        public string FullVersion { get; }
+
+        /// <summary>
+        /// When <see cref="IsDelete"/> is true, this value is null.
+        /// </summary>
         public VersionPropertiesData Data { get; }
 
-        public static VersionListChange Delete(string fullOrOriginalVersion)
+        /// <summary>
+        /// Initialize a version list change representing a delete of the provided version.
+        /// </summary>
+        /// <param name="version">The version string. This can be any form of the version.</param>
+        /// <returns>The version list change.</returns>
+        public static VersionListChange Delete(string version)
         {
-            return new VersionListChange(fullOrOriginalVersion, isDelete: true, data: null);
+            if (version == null)
+            {
+                throw new ArgumentNullException(nameof(version));
+            }
+
+            var parsedVersion = NuGetVersion.Parse(version);
+            return new VersionListChange(
+                isDelete: true,
+                parsedVersion: parsedVersion,
+                fullVersion: null,
+                data: null);
         }
 
+        /// <summary>
+        /// Initialize a version list change representing an upsert of the provided version.
+        /// </summary>
+        /// <param name="fullOrOriginalVersion">The full version string or the original version string.</param>
+        /// <param name="data">The properties relevent to the version list resource.</param>
+        /// <returns>The version list change.</returns>
         public static VersionListChange Upsert(string fullOrOriginalVersion, VersionPropertiesData data)
         {
             if (data == null)
@@ -38,7 +62,18 @@ namespace NuGet.Services.AzureSearch
                 throw new ArgumentNullException(nameof(data));
             }
 
-            return new VersionListChange(fullOrOriginalVersion, isDelete: false, data: data);
+            if (fullOrOriginalVersion == null)
+            {
+                throw new ArgumentNullException(nameof(fullOrOriginalVersion));
+            }
+
+            var parsedVersion = NuGetVersion.Parse(fullOrOriginalVersion);
+            var fullVersion = parsedVersion.ToFullString();
+            return new VersionListChange(
+                isDelete: false,
+                parsedVersion: parsedVersion,
+                fullVersion: fullVersion,
+                data: data);
         }
     }
 }

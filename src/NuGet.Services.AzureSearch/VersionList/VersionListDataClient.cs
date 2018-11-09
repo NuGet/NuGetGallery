@@ -84,13 +84,7 @@ namespace NuGet.Services.AzureSearch
 
         private string GetFileName(string id)
         {
-            var storagePath = _options.Value.StoragePath?.Trim('/') ?? string.Empty;
-            if (storagePath.Length > 0)
-            {
-                storagePath = storagePath + "/";
-            }
-
-            return $"{storagePath}version-lists/{id.ToLowerInvariant()}.json";
+            return $"{_options.Value.NormalizeStoragePath()}version-lists/{id.ToLowerInvariant()}.json";
         }
     }
 }

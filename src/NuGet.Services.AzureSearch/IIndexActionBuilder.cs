@@ -17,6 +17,6 @@ namespace NuGet.Services.AzureSearch
         /// </summary>
         /// <param name="packageRegistration">The package registration and its packages.</param>
         /// <returns>The index actions to send to Azure Search.</returns>
-        SearchAndHijackIndexActions AddNewPackageRegistration(NewPackageRegistration packageRegistration);
+        IndexActions AddNewPackageRegistration(NewPackageRegistration packageRegistration);
     }
 }

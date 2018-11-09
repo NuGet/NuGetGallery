@@ -12,11 +12,10 @@ using Microsoft.Azure.Search.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NuGet.Services.AzureSearch.Wrappers;
-using NuGetGallery;
 
 namespace NuGet.Services.AzureSearch.Db2AzureSearch
 {
-    public class Db2AzureSearchCommand : IDb2AzureSearchCommand
+    public class Db2AzureSearchCommand
     {
         private readonly INewPackageRegistrationProducer _producer;
         private readonly IIndexActionBuilder _indexActionBuilder;
@@ -45,6 +44,13 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             _versionListDataClient = versionListDataClient ?? throw new ArgumentNullException(nameof(versionListDataClient));
             _options = options ?? throw new ArgumentNullException(nameof(options));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+
+            if (_options.Value.MaxConcurrentBatches <= 0)
+            {
+                throw new ArgumentException(
+                    $"The {nameof(AzureSearchConfiguration.MaxConcurrentBatches)} must be greater than zero.",
+                    nameof(options));
+            }
         }
 
         public async Task ExecuteAsync()
@@ -59,7 +65,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 // Set up the producer and the consumers.
                 var producerTask = ProduceWorkAsync(allWork, produceWorkCts, cancelledCts.Token);
                 var consumerTasks = Enumerable
-                    .Range(0, _options.Value.WorkerCount)
+                    .Range(0, _options.Value.MaxConcurrentBatches)
                     .Select(i => ConsumeWorkAsync(allWork, produceWorkCts.Token, cancelledCts.Token))
                     .ToList();
                 var allTasks = new[] { producerTask }.Concat(consumerTasks).ToList();
@@ -162,8 +168,8 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                     // Write the version list data
                     await _versionListDataClient.ReplaceAsync(
                         work.PackageId,
-                        indexActions.VersionListData,
-                        AccessConditionWrapper.GenerateEmptyCondition());
+                        indexActions.VersionListDataResult.Result,
+                        indexActions.VersionListDataResult.AccessCondition);
                 }
 
                 var searchFinishTask = IndexAsync(_searchIndexClient, searchActions);

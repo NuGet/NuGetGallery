@@ -4,15 +4,15 @@
   },
 
   "Db2AzureSearch": {
-    "DatabaseBatchSize": 10000,
     "AzureSearchBatchSize": 1000,
-    "WorkerCount": 16,
+    "WorkerCount": 32,
     "SearchServiceName": "",
     "SearchServiceApiKey": "",
     "SearchIndexName": "",
     "HijackIndexName": "",
     "StorageConnectionString": "",
     "StoragePath": "",
+    "DatabaseBatchSize": 10000,
     "ReplaceIndexes": false
   },
 
