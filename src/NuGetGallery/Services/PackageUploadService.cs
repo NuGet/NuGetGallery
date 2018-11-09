@@ -22,8 +22,6 @@ namespace NuGetGallery
 {
     public class PackageUploadService : IPackageUploadService
     {
-        private const string LicenseExpressionDeprecationUrlFormat = "https://licenses.nuget.org/{0}";
-
         private static readonly IReadOnlyCollection<string> AllowedLicenseFileExtensions = new HashSet<string>
         {
             "",
@@ -374,7 +372,7 @@ namespace NuGetGallery
 
             if (LicenseType.Expression == licenseMetadata.Type)
             {
-                return new Uri(string.Format(LicenseExpressionDeprecationUrlFormat, licenseMetadata.License)).AbsoluteUri;
+                return LicenseExpressionRedirectUrlHelper.GetLicenseExpressionRedirectUrl(licenseMetadata.License);
             }
 
             throw new InvalidOperationException($"Unsupported license metadata type: {licenseMetadata.Type}");
