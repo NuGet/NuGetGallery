@@ -203,12 +203,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="NuGet.Services.Messaging.Email">
-      <Version>2.36.0-sb-noemailrecipients-2192794</Version>
-    <PackageReference Include="NuGet.Services.Entities">
-      <Version>2.32.0-agr-license-2170862</Version>
-    </PackageReference>
-    <PackageReference Include="NuGet.Services.Messaging">
-      <Version>2.31.0</Version>
+      <Version>2.36.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.StrongName.AnglicanGeek.MarkdownMailer">
       <Version>1.2.0</Version>
@@ -242,12 +237,6 @@
     </PackageReference>
     <PackageReference Include="NuGet.Packaging">
       <Version>5.0.0-preview1.5665</Version>
-    </PackageReference>
-    <PackageReference Include="NuGet.Services.Validation">
-      <Version>2.36.0</Version>
-    </PackageReference>
-    <PackageReference Include="NuGet.Services.Validation.Issues">
-      <Version>2.36.0</Version>
     </PackageReference>
     <PackageReference Include="WindowsAzure.Storage">
       <Version>7.1.2</Version>

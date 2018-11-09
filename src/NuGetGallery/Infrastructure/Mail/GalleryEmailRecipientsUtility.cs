@@ -6,19 +6,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Mail;
 using NuGet.Services.Entities;
-using NuGet.Services.Messaging.Email;
 
 namespace NuGetGallery.Infrastructure.Mail
 {
-    public class EmailRecipientsWithPermission
-        : IEmailRecipients
+    public static class GalleryEmailRecipientsUtility
     {
-        public EmailRecipientsWithPermission(
-            User user,
-            ActionRequiringAccountPermissions action,
-            IReadOnlyList<MailAddress> cc = null,
-            IReadOnlyList<MailAddress> bcc = null,
-            IReadOnlyList<MailAddress> replyTo = null)
+        public static IReadOnlyList<MailAddress> GetAddressesWithPermission(User user, ActionRequiringAccountPermissions action)
         {
             if (user == null)
             {
@@ -30,23 +23,6 @@ namespace NuGetGallery.Infrastructure.Mail
                 throw new ArgumentNullException(nameof(action));
             }
 
-            To = AddAddressesWithPermission(user, action);
-
-            CC = cc ?? new List<MailAddress>();
-            Bcc = bcc ?? new List<MailAddress>();
-            ReplyTo = replyTo ?? new List<MailAddress>();
-        }
-
-        public IReadOnlyList<MailAddress> To { get; }
-
-        public IReadOnlyList<MailAddress> CC { get; }
-
-        public IReadOnlyList<MailAddress> Bcc { get; }
-
-        public IReadOnlyList<MailAddress> ReplyTo { get; }
-
-        private static IReadOnlyList<MailAddress> AddAddressesWithPermission(User user, ActionRequiringAccountPermissions action)
-        {
             var recipients = new List<MailAddress>();
 
             if (user is Organization organization)
