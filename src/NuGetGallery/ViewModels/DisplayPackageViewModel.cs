@@ -7,6 +7,7 @@ using System.Linq;
 using NuGet.Services.Entities;
 using NuGet.Services.Validation.Issues;
 using NuGet.Versioning;
+using NuGetGallery.Helpers;
 
 namespace NuGetGallery
 {
@@ -63,7 +64,12 @@ namespace NuGetGallery
                 ProjectUrl = projectUrl;
             }
 
-            if (PackageHelper.TryPrepareUrlForRendering(package.LicenseUrl, out string licenseUrl))
+            var licenseExpression = package.LicenseExpression;
+            if (!String.IsNullOrWhiteSpace(licenseExpression))
+            {
+                LicenseUrl = LicenseExpressionRedirectUrlHelper.GetLicenseExpressionRedirectUrl(licenseExpression);
+            }
+            else if (PackageHelper.TryPrepareUrlForRendering(package.LicenseUrl, out string licenseUrl))
             {
                 LicenseUrl = licenseUrl;
 
