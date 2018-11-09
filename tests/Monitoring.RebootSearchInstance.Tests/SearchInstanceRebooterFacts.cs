@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -169,7 +170,7 @@ namespace NuGet.Monitoring.RebootSearchInstance
         }
 
         [Fact]
-        public async Task TreatsExceptionWhenGettingCommitTimestampAsUnknown()
+        public async Task TreatsUnknownExceptionWhenGettingCommitTimestampAsUnknown()
         {
             _searchServiceClient
                 .SetupSequence(x => x.GetCommitDateTimeAsync(It.IsAny<Instance>(), It.IsAny<CancellationToken>()))
@@ -192,6 +193,74 @@ namespace NuGet.Monitoring.RebootSearchInstance
             _telemetryService.Verify(x => x.TrackHealthyInstanceCount(_region, 2), Times.Once);
             _telemetryService.Verify(x => x.TrackUnhealthyInstanceCount(_region, 0), Times.Once);
             _telemetryService.Verify(x => x.TrackUnknownInstanceCount(_region, 1), Times.Once);
+            _telemetryService.Verify(x => x.TrackInstanceCount(_region, 3), Times.Once);
+        }
+
+        [Theory]
+        [InlineData(HttpStatusCode.BadGateway)]
+        [InlineData(HttpStatusCode.NotFound)]
+        public async Task TreatsUnknownHttpStatusCodeExceptionWhenGettingCommitTimestampAsUnknown(HttpStatusCode statusCode)
+        {
+            _searchServiceClient
+                .SetupSequence(x => x.GetCommitDateTimeAsync(It.IsAny<Instance>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new HttpResponseException(statusCode, "Service Unavailable", "Some problem."))
+                .ReturnsAsync(DateTimeOffset.MaxValue)
+                .ReturnsAsync(DateTimeOffset.MaxValue);
+
+            await _target.RunAsync(_token);
+
+            _azureManagementAPIWrapper.Verify(
+                x => x.RebootCloudServiceRoleInstanceAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()),
+                Times.Never);
+            _telemetryService.Verify(x => x.TrackHealthyInstanceCount(_region, 2), Times.Once);
+            _telemetryService.Verify(x => x.TrackUnhealthyInstanceCount(_region, 0), Times.Once);
+            _telemetryService.Verify(x => x.TrackUnknownInstanceCount(_region, 1), Times.Once);
+            _telemetryService.Verify(x => x.TrackInstanceCount(_region, 3), Times.Once);
+        }
+
+        [Theory]
+        [InlineData(HttpStatusCode.InternalServerError)]
+        [InlineData(HttpStatusCode.ServiceUnavailable)]
+        public async Task TreatsSome500sHttpResponseExceptionAsUnhealthy(HttpStatusCode statusCode)
+        {
+            _searchServiceClient
+                .SetupSequence(x => x.GetCommitDateTimeAsync(It.IsAny<Instance>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new HttpResponseException(statusCode, "Service Unavailable", "Some problem."))
+                .ReturnsAsync(DateTimeOffset.MaxValue)
+                .ReturnsAsync(DateTimeOffset.MaxValue);
+
+            await _target.RunAsync(_token);
+
+            _azureManagementAPIWrapper.Verify(
+                x => x.RebootCloudServiceRoleInstanceAsync(
+                    _subscription,
+                    _resourceGroup,
+                    _serviceName,
+                    "Production",
+                    _role,
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()),
+                Times.Once);
+            _azureManagementAPIWrapper.Verify(
+                x => x.RebootCloudServiceRoleInstanceAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()),
+                Times.Once);
+            _telemetryService.Verify(x => x.TrackHealthyInstanceCount(_region, 2), Times.Once);
+            _telemetryService.Verify(x => x.TrackUnhealthyInstanceCount(_region, 1), Times.Once);
+            _telemetryService.Verify(x => x.TrackUnknownInstanceCount(_region, 0), Times.Once);
             _telemetryService.Verify(x => x.TrackInstanceCount(_region, 3), Times.Once);
         }
 

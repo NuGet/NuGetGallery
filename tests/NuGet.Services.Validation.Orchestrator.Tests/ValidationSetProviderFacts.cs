@@ -69,7 +69,8 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 {
                     Name = validation1,
                     TrackAfter = TimeSpan.FromDays(1),
-                    RequiredValidations = new List<string>{}
+                    RequiredValidations = new List<string>(),
+                    ShouldStart = true,
                 }
             };
 
@@ -172,7 +173,13 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             const string validation1 = "validation1";
             Configuration.Validations = new List<ValidationConfigurationItem>
             {
-                new ValidationConfigurationItem(){ Name = validation1, TrackAfter = TimeSpan.FromDays(1), RequiredValidations = new List<string>{ } }
+                new ValidationConfigurationItem
+                {
+                    Name = validation1,
+                    TrackAfter = TimeSpan.FromDays(1),
+                    RequiredValidations = new List<string>(),
+                    ShouldStart = true,
+                }
             };
 
             Package.PackageStatusKey = PackageStatus.Available;
@@ -221,7 +228,13 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             const string validation1 = "validation1";
             Configuration.Validations = new List<ValidationConfigurationItem>
             {
-                new ValidationConfigurationItem(){ Name = validation1, TrackAfter = TimeSpan.FromDays(1), RequiredValidations = new List<string>{ } }
+                new ValidationConfigurationItem()
+                {
+                    Name = validation1,
+                    TrackAfter = TimeSpan.FromDays(1),
+                    RequiredValidations = new List<string>(),
+                    ShouldStart = true,
+                }
             };
 
             Package.PackageStatusKey = packageStatus;
@@ -286,8 +299,20 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             const string validation2 = "validation2";
             Configuration.Validations = new List<ValidationConfigurationItem>
             {
-                new ValidationConfigurationItem(){ Name = validation1, TrackAfter = TimeSpan.FromDays(1), RequiredValidations = new List<string>{ validation2 } },
-                new ValidationConfigurationItem(){ Name = validation2, TrackAfter = TimeSpan.FromDays(1), RequiredValidations = new List<string>{ } }
+                new ValidationConfigurationItem()
+                {
+                    Name = validation1,
+                    TrackAfter = TimeSpan.FromDays(1),
+                    RequiredValidations = new List<string>{ validation2 },
+                    ShouldStart = true,
+                },
+                new ValidationConfigurationItem()
+                {
+                    Name = validation2,
+                    TrackAfter = TimeSpan.FromDays(1),
+                    RequiredValidations = new List<string>(),
+                    ShouldStart = true,
+                }
             };
 
             Guid validationTrackingId = Guid.NewGuid();
@@ -347,6 +372,95 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             Assert.All(createdSet.PackageValidations, v => Assert.True(endOfCallTimestamp - v.ValidationStatusTimestamp < allowedTimeDifference));
             Assert.Contains(createdSet.PackageValidations, v => v.Type == validation1);
             Assert.Contains(createdSet.PackageValidations, v => v.Type == validation2);
+
+            PackageFileServiceMock.Verify(
+                x => x.CopyValidationPackageForValidationSetAsync(returnedSet),
+                Times.Once);
+            TelemetryServiceMock.Verify(
+                x => x.TrackDurationToValidationSetCreation(createdSet.Created - Package.Created),
+                Times.Once);
+        }
+
+        [Fact]
+        public async Task DoesNotCreateValidationsWhenShouldStartFalse()
+        {
+            const string validation1 = "validation1";
+            const string validation2 = "validation2";
+            Configuration.Validations = new List<ValidationConfigurationItem>
+            {
+                new ValidationConfigurationItem()
+                {
+                    Name = validation1,
+                    TrackAfter = TimeSpan.FromDays(1),
+                    RequiredValidations = new List<string>(),
+                    ShouldStart = true,
+                },
+                new ValidationConfigurationItem()
+                {
+                    Name = validation2,
+                    TrackAfter = TimeSpan.FromDays(1),
+                    RequiredValidations = new List<string>(),
+                    ShouldStart = false,
+                }
+            };
+
+            Guid validationTrackingId = Guid.NewGuid();
+            ValidationStorageMock
+                .Setup(vs => vs.GetValidationSetAsync(validationTrackingId))
+                .ReturnsAsync((PackageValidationSet)null)
+                .Verifiable();
+
+            ValidationStorageMock
+                .Setup(vs => vs.OtherRecentValidationSetForPackageExists(It.IsAny<IValidatingEntity<Package>>(), It.IsAny<TimeSpan>(), validationTrackingId))
+                .ReturnsAsync(false);
+
+            PackageValidationSet createdSet = null;
+            ValidationStorageMock
+                .Setup(vs => vs.CreateValidationSetAsync(It.IsAny<PackageValidationSet>()))
+                .Returns<PackageValidationSet>(pvs => Task.FromResult(pvs))
+                .Callback<PackageValidationSet>(pvs => createdSet = pvs)
+                .Verifiable();
+
+            ValidationStorageMock
+                .Setup(vs => vs.GetValidationSetCountAsync(It.IsAny<IValidatingEntity<Package>>()))
+                .ReturnsAsync(1);
+
+            var provider = new ValidationSetProvider<Package>(
+                ValidationStorageMock.Object,
+                PackageFileServiceMock.Object,
+                ValidatorProvider.Object,
+                ConfigurationAccessorMock.Object,
+                TelemetryServiceMock.Object,
+                LoggerMock.Object);
+
+            var packageValidationMessageData = new PackageValidationMessageData(
+                Package.PackageRegistration.Id,
+                Package.NormalizedVersion,
+                validationTrackingId);
+            var returnedSet = await provider.TryGetOrCreateValidationSetAsync(packageValidationMessageData, PackageValidatingEntity);
+            var endOfCallTimestamp = DateTime.UtcNow;
+
+            ValidationStorageMock
+                .Verify(vs => vs.CreateValidationSetAsync(It.IsAny<PackageValidationSet>()), Times.Once);
+
+            Assert.NotNull(returnedSet);
+            Assert.NotNull(createdSet);
+            Assert.Same(createdSet, returnedSet);
+            Assert.Equal(Package.PackageRegistration.Id, createdSet.PackageId);
+            Assert.Equal(Package.NormalizedVersion, createdSet.PackageNormalizedVersion);
+            Assert.Equal(Package.Key, createdSet.PackageKey);
+            Assert.Equal(validationTrackingId, createdSet.ValidationTrackingId);
+            Assert.True(createdSet.Created.Kind == DateTimeKind.Utc);
+            Assert.True(createdSet.Updated.Kind == DateTimeKind.Utc);
+
+            var allowedTimeDifference = TimeSpan.FromSeconds(5);
+            Assert.True(endOfCallTimestamp - createdSet.Created < allowedTimeDifference);
+            Assert.True(endOfCallTimestamp - createdSet.Updated < allowedTimeDifference);
+            Assert.All(createdSet.PackageValidations, v => Assert.Same(createdSet, v.PackageValidationSet));
+            Assert.All(createdSet.PackageValidations, v => Assert.Equal(ValidationStatus.NotStarted, v.ValidationStatus));
+            Assert.All(createdSet.PackageValidations, v => Assert.True(endOfCallTimestamp - v.ValidationStatusTimestamp < allowedTimeDifference));
+            Assert.Contains(createdSet.PackageValidations, v => v.Type == validation1);
+            Assert.DoesNotContain(createdSet.PackageValidations, v => v.Type == validation2);
 
             PackageFileServiceMock.Verify(
                 x => x.CopyValidationPackageForValidationSetAsync(returnedSet),

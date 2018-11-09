@@ -152,7 +152,11 @@ namespace NuGet.Services.Validation.Orchestrator
                 ValidatingType = message.ValidatingType
             };
 
-            foreach (var validation in _validationConfiguration.Validations)
+            var validationsToStart = _validationConfiguration
+                .Validations
+                .Where(v => v.ShouldStart);
+
+            foreach (var validation in validationsToStart)
             {
                 var packageValidation = new PackageValidation
                 {

@@ -23,13 +23,10 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
             allowNoTimestamp: true,
             allowUnknownRevocation: true,
             reportUnknownRevocation: false,
-            allowNoRepositoryCertificateList: true,
-            allowNoClientCertificateList: true,
             verificationTarget: VerificationTarget.All,
             signaturePlacement: SignaturePlacement.PrimarySignature,
             repositoryCountersignatureVerificationBehavior: SignatureVerificationBehavior.Never,
-            repoAllowListEntries: null,
-            clientAllowListEntries: null);
+            revocationMode: RevocationMode.Online);
 
         private static readonly PackageSignatureVerifier _minimalVerifier = new PackageSignatureVerifier(new[]
         {
@@ -40,7 +37,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
         {
             new IntegrityVerificationProvider(),
             new SignatureTrustAndValidityVerificationProvider(),
-            new AllowListVerificationProvider(),
+            new AllowListVerificationProvider(allowList: null),
         });
 
         private readonly IOptionsSnapshot<ProcessSignatureConfiguration> _config;
@@ -61,13 +58,10 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
                 allowNoTimestamp: false,
                 allowUnknownRevocation: true,
                 reportUnknownRevocation: true,
-                allowNoRepositoryCertificateList: true,
-                allowNoClientCertificateList: true,
                 verificationTarget: VerificationTarget.Author,
                 signaturePlacement: SignaturePlacement.PrimarySignature,
                 repositoryCountersignatureVerificationBehavior: SignatureVerificationBehavior.Never,
-                repoAllowListEntries: null,
-                clientAllowListEntries: null);
+                revocationMode: RevocationMode.Online);
 
             var repoAllowListEntries = _config
                 .Value
@@ -90,13 +84,10 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
                 allowNoTimestamp: _authorSignatureSettings.AllowNoTimestamp,
                 allowUnknownRevocation: _authorSignatureSettings.AllowUnknownRevocation,
                 reportUnknownRevocation: _authorSignatureSettings.ReportUnknownRevocation,
-                allowNoRepositoryCertificateList: false,
-                allowNoClientCertificateList: _authorSignatureSettings.AllowNoClientCertificateList,
                 verificationTarget: VerificationTarget.Repository,
                 signaturePlacement: SignaturePlacement.Any,
                 repositoryCountersignatureVerificationBehavior: SignatureVerificationBehavior.IfExists,
-                repoAllowListEntries: repoAllowListEntries,
-                clientAllowListEntries: _authorSignatureSettings.ClientCertificateList);
+                revocationMode: _authorSignatureSettings.RevocationMode);
 
             _authorOrRepositorySignatureSettings = new SignedPackageVerifierSettings(
                 allowUnsigned: _authorSignatureSettings.AllowUnsigned,
@@ -107,13 +98,10 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
                 allowNoTimestamp: _authorSignatureSettings.AllowNoTimestamp,
                 allowUnknownRevocation: _authorSignatureSettings.AllowUnknownRevocation,
                 reportUnknownRevocation: _authorSignatureSettings.ReportUnknownRevocation,
-                allowNoRepositoryCertificateList: false,
-                allowNoClientCertificateList: _authorSignatureSettings.AllowNoClientCertificateList,
                 verificationTarget: VerificationTarget.All,
                 signaturePlacement: SignaturePlacement.Any,
                 repositoryCountersignatureVerificationBehavior: SignatureVerificationBehavior.IfExists,
-                repoAllowListEntries: repoAllowListEntries,
-                clientAllowListEntries: _authorSignatureSettings.ClientCertificateList);
+                revocationMode: _authorSignatureSettings.RevocationMode);
         }
 
         public async Task<VerifySignaturesResult> ValidateMinimalAsync(
