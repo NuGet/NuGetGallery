@@ -44,13 +44,10 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
 
         public override IEmailRecipients GetRecipients()
         {
-            if (!_adminUser.EmailAllowed)
-            {
-                return EmailRecipients.None;
-            }
-
             return new EmailRecipients(
-                to: new[] { _adminUser.ToMailAddress() },
+                to: _adminUser.EmailAllowed
+                    ? new[] { _adminUser.ToMailAddress() }
+                    : new MailAddress[0],
                 replyTo: new[] { _accountToTransform.ToMailAddress() });
         }
 

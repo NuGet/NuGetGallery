@@ -50,13 +50,10 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
 
         public override IEmailRecipients GetRecipients()
         {
-            if (!NewUser.EmailAllowed)
-            {
-                return EmailRecipients.None;
-            }
-
             return new EmailRecipients(
-                to: new[] { NewUser.ToMailAddress() },
+                to: NewUser.EmailAllowed
+                    ? new[] { NewUser.ToMailAddress() }
+                    : new MailAddress[0],
                 replyTo: new[]
                 {
                     Organization.ToMailAddress(),
