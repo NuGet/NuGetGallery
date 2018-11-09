@@ -567,6 +567,24 @@ namespace NuGetGallery
                 Assert.Equal("To provide better experience for older clients when a license file is packaged, <licenseUrl> should be set to 'https://aka.ms/deprecateLicenseUrl'.", result.Warnings[0].PlainTextMessage);
             }
 
+            [Fact]
+            public async Task AcceptsAlternativeLicenseUrl()
+            {
+                _nuGetPackage = GeneratePackageWithLicense(
+                    licenseUrl: new Uri("https://licenses.nuget.org/Apache-1.0%2B+OR+MIT"),
+                    licenseExpression: "Apache-1.0+ OR MIT",
+                    licenseFilename: null,
+                    licenseFileContents: null);
+
+                var result = await _target.ValidateBeforeGeneratePackageAsync(
+                    _nuGetPackage.Object,
+                    GetPackageMetadata(_nuGetPackage));
+
+                Assert.Equal(PackageValidationResultType.Accepted, result.Type);
+                Assert.Null(result.Message);
+                Assert.Empty(result.Warnings);
+            }
+
             [Theory]
             [InlineData(null)]
             [InlineData(RegularLicenseUrl)]

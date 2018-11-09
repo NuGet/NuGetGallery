@@ -7,6 +7,7 @@ using System.Data.Entity.Infrastructure;
 using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -170,6 +171,7 @@ namespace NuGetGallery
             var licenseUrl = nuspecReader.GetLicenseUrl();
             var licenseMetadata = nuspecReader.GetLicenseMetadata();
             var licenseDeprecationUrl = GetExpectedLicenseUrl(licenseMetadata);
+            var alternativeDeprecationUrl = GetExpectedAlternativeUrl(licenseMetadata);
 
             if (licenseMetadata == null)
             {
@@ -217,7 +219,7 @@ namespace NuGetGallery
                         string.Join(" ", licenseMetadata.WarningsAndErrors)));
             }
 
-            if (licenseDeprecationUrl != licenseUrl)
+            if (licenseDeprecationUrl != licenseUrl && (alternativeDeprecationUrl == null || alternativeDeprecationUrl != licenseUrl))
             {
                 if (licenseMetadata.Type == LicenseType.File)
                 {
@@ -376,6 +378,25 @@ namespace NuGetGallery
             }
 
             throw new InvalidOperationException($"Unsupported license metadata type: {licenseMetadata.Type}");
+        }
+
+        /// <summary>
+        /// 15.9 client does url encoding with <see cref="WebUtility.UrlEncode(string)"/> which
+        /// replaces spaces with "+". We shouldn't work about it, but we should fix the client,
+        /// too.
+        /// </summary>
+        private static string GetExpectedAlternativeUrl(LicenseMetadata licenseMetadata)
+        {
+            if (licenseMetadata != null && licenseMetadata.Type == LicenseType.Expression)
+            {
+                return new Uri(
+                    string.Format(
+                        LicenseExpressionRedirectUrlHelper.LicenseExpressionDeprecationUrlFormat,
+                        WebUtility.UrlEncode(licenseMetadata.License)))
+                    .AbsoluteUri;
+            }
+
+            return null;
         }
 
         private static bool HasChildElements(XElement xElement)
