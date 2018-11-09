@@ -126,7 +126,7 @@ namespace Ng
                 _logger.LogError("TIMEOUT Committing index containing {0} documents. Metadata: commitTimeStamp {CommitTimeStamp}; change count {ChangeCount}; trace {CommitTrace}",
                     _indexWriter.NumDocs(), _metadataForNextCommit.CommitTimeStamp.ToString("O"), _metadataForNextCommit.Count, _metadataForNextCommit.Trace);
 
-                throw;
+                Environment.Exit(exitCode: 1);
             }
         }
 
