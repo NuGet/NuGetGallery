@@ -39,7 +39,7 @@ namespace NuGet.SupportRequests.Notifications.Tasks
             var serializer = new ServiceBusMessageSerializer();
             var topicClient = new TopicClientWrapper(configuration.EmailPublisherConnectionString, configuration.EmailPublisherTopicName);
             var enqueuer = new EmailMessageEnqueuer(topicClient, serializer, loggerFactory.CreateLogger<EmailMessageEnqueuer>());
-            var messageService = new AsynchronousEmailMessageService(enqueuer);
+            var messageService = new AsynchronousEmailMessageService(enqueuer, loggerFactory.CreateLogger<AsynchronousEmailMessageService>());
             _messagingService = new MessagingService(messageService, loggerFactory.CreateLogger<MessagingService>());
             
             _supportRequestRepository = new SupportRequestRepository(loggerFactory, openSupportRequestSqlConnectionAsync);

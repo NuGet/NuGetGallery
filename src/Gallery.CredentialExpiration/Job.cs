@@ -45,7 +45,7 @@ namespace Gallery.CredentialExpiration
             var serializer = new ServiceBusMessageSerializer();
             var topicClient = new TopicClientWrapper(InitializationConfiguration.EmailPublisherConnectionString, InitializationConfiguration.EmailPublisherTopicName);
             var enqueuer = new EmailMessageEnqueuer(topicClient, serializer, LoggerFactory.CreateLogger<EmailMessageEnqueuer>());
-            EmailService = new AsynchronousEmailMessageService(enqueuer);
+            EmailService = new AsynchronousEmailMessageService(enqueuer, LoggerFactory.CreateLogger<AsynchronousEmailMessageService>());
 
             FromAddress = new MailAddress(InitializationConfiguration.MailFrom);
             
