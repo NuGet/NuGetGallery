@@ -436,7 +436,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
             // Strip repository signatures that do not pass verification.
             var verifyResult = await _formatValidator.ValidateRepositorySignatureAsync(context.PackageReader, context.CancellationToken);
 
-            if (!verifyResult.Valid)
+            if (!verifyResult.IsValid)
             {
                 var warningsForLogs = verifyResult
                     .Results
@@ -654,7 +654,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
                 .Select(x => $"{x.Code}: {x.Message}")
                 .ToList();
 
-            if (!verifyResult.Valid)
+            if (!verifyResult.IsValid)
             {
                 _logger.LogInformation(
                     "Signed package {PackageId} {PackageVersion} is blocked during {VerificationName} for validation " +

@@ -125,6 +125,14 @@ namespace NuGet.Services.Validation.Orchestrator
         Task<PackageStreamMetadata> UpdatePackageBlobMetadataAsync(PackageValidationSet validationSet);
 
         /// <summary>
+        /// Updates package blob properties.
+        /// </summary>
+        /// <param name="validationSet">A validationSet that will identify the package that will have its blob metadata updated.</param>
+        /// <exception cref="Microsoft.WindowsAzure.Storage.StorageException">Thrown if the blob has changed between
+        /// successive read and write operations.</exception>
+        Task UpdatePackageBlobPropertiesAsync(PackageValidationSet validationSet);
+
+        /// <summary>
         /// Reads the ETag for the package in the public container.
         /// </summary>
         /// <param name="validationSet">A validationSet that will identify the package that will have its blob metadata updated.</param>

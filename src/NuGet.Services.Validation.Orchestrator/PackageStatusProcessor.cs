@@ -94,13 +94,16 @@ namespace NuGet.Services.Validation.Orchestrator
             // 1) Operate on blob storage.
             var copied = await UpdatePublicPackageAsync(validationSet);
 
-            // 2) Update the package's blob metadata in the packages blob storage container.
+            // 2) Update the package's blob metadata in the public blob storage container.
             var metadata = await _packageFileService.UpdatePackageBlobMetadataAsync(validationSet);
 
-            // 3) Operate on the database.
+            // 3) Update the package's blob properties in the public blob storage container.
+            await _packageFileService.UpdatePackageBlobPropertiesAsync(validationSet);
+
+            // 4) Operate on the database.
             var fromStatus = await MarkPackageAsAvailableAsync(validationSet, validatingEntity, metadata, copied);
 
-            // 4) Emit telemetry and clean up.
+            // 5) Emit telemetry and clean up.
             if (fromStatus != PackageStatus.Available)
             {
                 _telemetryService.TrackPackageStatusChange(fromStatus, PackageStatus.Available);
@@ -113,7 +116,7 @@ namespace NuGet.Services.Validation.Orchestrator
                 await _packageFileService.DeleteValidationPackageFileAsync(validationSet);
             }
 
-            // 4) Verify the package still exists (we've had bugs here before).
+            // 5) Verify the package still exists (we've had bugs here before).
             if (validatingEntity.Status == PackageStatus.Available
                 && !await _packageFileService.DoesPackageFileExistAsync(validationSet))
             {
