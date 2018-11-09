@@ -284,7 +284,9 @@
     <Compile Include="GalleryConstants.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Helpers\GravatarHelper.cs" />
+    <Compile Include="Helpers\LicenseExpressionRedirectUrlHelper.cs" />
     <Compile Include="Helpers\ObfuscationHelper.cs" />
+    <Compile Include="Helpers\TextHelper.cs" />
     <Compile Include="Helpers\ZipArchiveHelpers.cs" />
     <Compile Include="Helpers\PermissionsHelpers.cs" />
     <Compile Include="Helpers\RegexEx.cs" />
@@ -394,6 +396,10 @@
     <Compile Include="Migrations\201808312302101_AddIsVerifiedDownloadCountIdIndexForPackageRegistrationsTable.Designer.cs">
       <DependentUpon>201808312302101_AddIsVerifiedDownloadCountIdIndexForPackageRegistrationsTable.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201811011725146_LicenseChanges.cs" />
+    <Compile Include="Migrations\201811011725146_LicenseChanges.Designer.cs">
+      <DependentUpon>201811011725146_LicenseChanges.cs</DependentUpon>
+    </Compile>
     <Compile Include="RequestModels\DeleteAccountRequest.cs" />
     <Compile Include="Migrations\201710301857232_Organizations.cs" />
     <Compile Include="Migrations\201710301857232_Organizations.Designer.cs">
@@ -429,6 +435,7 @@
     <Compile Include="Services\ITyposquattingService.cs" />
     <Compile Include="Services\IValidationMessage.cs" />
     <Compile Include="Services\JsonValidationMessage.cs" />
+    <Compile Include="Services\LicenseUrlDeprecationValidationMessage.cs" />
     <Compile Include="Services\PackageShouldNotBeSignedUserFixableValidationMessage.cs" />
     <Compile Include="Services\PlainTextOnlyValidationMessage.cs" />
     <Compile Include="Services\SymbolPackageValidationResult.cs" />
@@ -1590,6 +1597,9 @@
     <EmbeddedResource Include="Migrations\201808312302101_AddIsVerifiedDownloadCountIdIndexForPackageRegistrationsTable.resx">
       <DependentUpon>201808312302101_AddIsVerifiedDownloadCountIdIndexForPackageRegistrationsTable.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201811011725146_LicenseChanges.resx">
+      <DependentUpon>201811011725146_LicenseChanges.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv2getupdates.json" />
@@ -1983,7 +1993,7 @@
       <Version>0.15.4</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Entities">
-      <Version>2.31.0</Version>
+      <Version>2.35.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Messaging">
       <Version>2.31.0</Version>
@@ -2210,10 +2220,10 @@
       <Version>9.0.1</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Configuration">
-      <Version>4.8.0</Version>
+      <Version>5.0.0-preview1.5665</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Protocol">
-      <Version>4.8.0</Version>
+      <Version>5.0.0-preview1.5665</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.KeyVault">
       <Version>2.31.0</Version>

@@ -124,7 +124,7 @@ namespace NuGetGallery
             using (Trace.Activity("Downloading Content Item: " + fileName))
             {
                 IFileReference reference = await FileStorage.GetFileReferenceAsync(
-                    CoreConstants.ContentFolderName,
+                    CoreConstants.Folders.ContentFolderName,
                     fileName,
                     ifNoneMatch: cachedItem?.ContentId);
 

@@ -209,7 +209,7 @@ namespace NuGetGallery.Services
                 .Returns(Task.CompletedTask);
             _fileStorageService.Setup(
                 x => x.SaveFileAsync(
-                    It.Is<string>(folderName => folderName == CoreConstants.UserCertificatesFolderName),
+                    It.Is<string>(folderName => folderName == CoreConstants.Folders.UserCertificatesFolderName),
                     It.Is<string>(fileName => fileName == $"SHA-256/{_sha256Thumbprint}.cer"),
                     It.IsNotNull<Stream>(),
                     It.Is<bool>(overwrite => overwrite == false)))

@@ -84,7 +84,54 @@ namespace NuGetGallery.TestUtils
             RepositoryMetadata repositoryMetadata = null,
             bool isSigned = false,
             int? desiredTotalEntryCount = null,
-            Func<string> getCustomNuspecNodes = null)
+            Func<string> getCustomNuspecNodes = null,
+            string licenseExpression = null,
+            string licenseFilename = null,
+            byte[] licenseFileContents = null)
+        {
+            var testPackage = CreateNuGetPackageStream(id, version, title,
+                summary, authors, owners, description, tags, language,
+                copyright, releaseNotes, minClientVersion, licenseUrl, projectUrl,
+                iconUrl, requireLicenseAcceptance, packageDependencyGroups,
+                packageTypes, repositoryMetadata, isSigned, desiredTotalEntryCount,
+                getCustomNuspecNodes, licenseExpression, licenseFilename,
+                licenseFileContents);
+
+            return CreateNuGetPackage(testPackage);
+        }
+
+        public static Mock<TestPackageReader> CreateNuGetPackage(Stream testPackage)
+        {
+            var mock = new Mock<TestPackageReader>(testPackage);
+            mock.CallBase = true;
+            return mock;
+        }
+
+        public static MemoryStream CreateNuGetPackageStream(string id = "theId",
+            string version = "01.0.42.0",
+            string title = "theTitle",
+            string summary = "theSummary",
+            string authors = "theFirstAuthor, theSecondAuthor",
+            string owners = "Package owners",
+            string description = "theDescription",
+            string tags = "theTags",
+            string language = null,
+            string copyright = "theCopyright",
+            string releaseNotes = "theReleaseNotes",
+            string minClientVersion = null,
+            Uri licenseUrl = null,
+            Uri projectUrl = null,
+            Uri iconUrl = null,
+            bool requireLicenseAcceptance = true,
+            IEnumerable<PackageDependencyGroup> packageDependencyGroups = null,
+            IEnumerable<NuGet.Packaging.Core.PackageType> packageTypes = null,
+            RepositoryMetadata repositoryMetadata = null,
+            bool isSigned = false,
+            int? desiredTotalEntryCount = null,
+            Func<string> getCustomNuspecNodes = null,
+            string licenseExpression = null,
+            string licenseFilename = null,
+            byte[] licenseFileContents = null)
         {
             if (packageDependencyGroups == null)
             {
@@ -126,7 +173,7 @@ namespace NuGetGallery.TestUtils
                 };
             }
 
-            var testPackage = TestPackage.CreateTestPackageStream(
+            return TestPackage.CreateTestPackageStream(
                 id, version, title, summary, authors, owners,
                 description, tags, language, copyright, releaseNotes,
                 minClientVersion, licenseUrl, projectUrl, iconUrl,
@@ -142,13 +189,11 @@ namespace NuGetGallery.TestUtils
                             writer.Write("Fake signature file.");
                         }
                     }
-                },
-                desiredTotalEntryCount: desiredTotalEntryCount,
-                getCustomNuspecNodes: getCustomNuspecNodes);
-
-            var mock = new Mock<TestPackageReader>(testPackage);
-            mock.CallBase = true;
-            return mock;
+                }, desiredTotalEntryCount: desiredTotalEntryCount,
+                getCustomNuspecNodes: getCustomNuspecNodes,
+                licenseExpression: licenseExpression,
+                licenseFilename: licenseFilename,
+                licenseFileContents: licenseFileContents);
         }
     }
 
