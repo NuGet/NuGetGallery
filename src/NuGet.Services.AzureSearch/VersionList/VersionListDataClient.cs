@@ -6,12 +6,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using NuGetGallery;
 
 namespace NuGet.Services.AzureSearch
 {
-    public class VersionListDataClient
+    public class VersionListDataClient : IVersionListDataClient
     {
         private static readonly JsonSerializer Serializer = JsonSerializer.Create(new JsonSerializerSettings
         {
@@ -19,10 +20,14 @@ namespace NuGet.Services.AzureSearch
             Formatting = Formatting.Indented, // Negligable performance impact but much more readable.
         });
         private readonly ICoreFileStorageService _storageService;
+        private readonly IOptionsSnapshot<AzureSearchConfiguration> _options;
 
-        public VersionListDataClient(ICoreFileStorageService storageService)
+        public VersionListDataClient(
+            ICoreFileStorageService storageService,
+            IOptionsSnapshot<AzureSearchConfiguration> options)
         {
             _storageService = storageService ?? throw new ArgumentNullException(nameof(storageService));
+            _options = options ?? throw new ArgumentNullException(nameof(options));
         }
 
         public async Task<ResultAndAccessCondition<VersionListData>> ReadAsync(string id)
@@ -77,9 +82,15 @@ namespace NuGet.Services.AzureSearch
             }
         }
 
-        private static string GetFileName(string id)
+        private string GetFileName(string id)
         {
-            return $"version-lists/{id.ToLowerInvariant()}.json";
+            var storagePath = _options.Value.StoragePath?.Trim('/') ?? string.Empty;
+            if (storagePath.Length > 0)
+            {
+                storagePath = storagePath + "/";
+            }
+
+            return $"{storagePath}version-lists/{id.ToLowerInvariant()}.json";
         }
     }
 }

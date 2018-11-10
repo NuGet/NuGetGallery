@@ -12,7 +12,7 @@ using Microsoft.Extensions.Options;
 using Moq;
 using NuGet.Services.AzureSearch.Support;
 using NuGet.Services.AzureSearch.Wrappers;
-using NuGetGallery;
+using NuGet.Services.Entities;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -29,6 +29,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
         private readonly Mock<IDocumentsOperationsWrapper> _searchIndexClientDocuments;
         private readonly Mock<ISearchIndexClientWrapper> _hijackIndexClient;
         private readonly Mock<IDocumentsOperationsWrapper> _hijackIndexClientDocuments;
+        private readonly Mock<IVersionListDataClient> _versionListDataClient;
         private readonly Mock<IOptionsSnapshot<Db2AzureSearchConfiguration>> _options;
         private readonly Db2AzureSearchConfiguration _config;
         private readonly RecordingLogger<Db2AzureSearchCommand> _logger;
@@ -45,6 +46,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             _searchIndexClientDocuments = new Mock<IDocumentsOperationsWrapper>();
             _hijackIndexClient = new Mock<ISearchIndexClientWrapper>();
             _hijackIndexClientDocuments = new Mock<IDocumentsOperationsWrapper>();
+            _versionListDataClient = new Mock<IVersionListDataClient>();
             _options = new Mock<IOptionsSnapshot<Db2AzureSearchConfiguration>>();
             _logger = new RecordingLogger<Db2AzureSearchCommand>(
                 new LoggerFactory().AddXunit(_output).CreateLogger<Db2AzureSearchCommand>());
@@ -72,7 +74,8 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 .Setup(x => x.AddNewPackageRegistration(It.IsAny<NewPackageRegistration>()))
                 .Returns(() => new SearchAndHijackIndexActions(
                     new IndexAction<KeyedDocument>[0],
-                    new IndexAction<KeyedDocument>[0]));
+                    new IndexAction<KeyedDocument>[0],
+                    new VersionListData(new Dictionary<string, VersionPropertiesData>())));
 
             _target = new Db2AzureSearchCommand(
                 _producer.Object,
@@ -80,6 +83,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 _serviceClient.Object,
                 _searchIndexClient.Object,
                 _hijackIndexClient.Object,
+                _versionListDataClient.Object,
                 _options.Object,
                 _logger);
         }
@@ -133,7 +137,8 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 .Setup(x => x.AddNewPackageRegistration(It.IsAny<NewPackageRegistration>()))
                 .Returns<NewPackageRegistration>(x => new SearchAndHijackIndexActions(
                     new List<IndexAction<KeyedDocument>> { IndexAction.Upload(new KeyedDocument { Key = x.PackageId }) },
-                    new List<IndexAction<KeyedDocument>>()));
+                    new List<IndexAction<KeyedDocument>>(),
+                    new VersionListData(new Dictionary<string, VersionPropertiesData>())));
 
             var batches = new List<List<IndexAction<KeyedDocument>>>();
             _searchIndexClientDocuments

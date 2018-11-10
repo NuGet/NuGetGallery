@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using NuGet.Services.Entities;
 using NuGetGallery;
 
 namespace NuGet.Services.AzureSearch.Db2AzureSearch

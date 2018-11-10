@@ -12,6 +12,7 @@ using Microsoft.Azure.Search.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NuGet.Services.AzureSearch.Wrappers;
+using NuGetGallery;
 
 namespace NuGet.Services.AzureSearch.Db2AzureSearch
 {
@@ -22,6 +23,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
         private readonly ISearchServiceClientWrapper _serviceClient;
         private readonly ISearchIndexClientWrapper _searchIndexClient;
         private readonly ISearchIndexClientWrapper _hijackIndexClient;
+        private readonly IVersionListDataClient _versionListDataClient;
         private readonly IOptionsSnapshot<Db2AzureSearchConfiguration> _options;
         private readonly ILogger<Db2AzureSearchCommand> _logger;
 
@@ -31,6 +33,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             ISearchServiceClientWrapper serviceClient,
             ISearchIndexClientWrapper searchIndexClient,
             ISearchIndexClientWrapper hijackIndexClient,
+            IVersionListDataClient versionListDataClient,
             IOptionsSnapshot<Db2AzureSearchConfiguration> options,
             ILogger<Db2AzureSearchCommand> logger)
         {
@@ -39,6 +42,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             _serviceClient = serviceClient ?? throw new ArgumentNullException(nameof(serviceClient));
             _searchIndexClient = searchIndexClient ?? throw new ArgumentNullException(nameof(searchIndexClient));
             _hijackIndexClient = hijackIndexClient ?? throw new ArgumentNullException(nameof(hijackIndexClient));
+            _versionListDataClient = versionListDataClient ?? throw new ArgumentNullException(nameof(versionListDataClient));
             _options = options ?? throw new ArgumentNullException(nameof(options));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
@@ -140,6 +144,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
 
                     var indexActions = _indexActionBuilder.AddNewPackageRegistration(work);
 
+                    // Process the index changes
                     foreach (var action in indexActions.Search)
                     {
                         searchActions.Enqueue(action);
@@ -153,6 +158,12 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                     var searchBatchesTask = PushFullBatchesAsync(_searchIndexClient, searchActions);
                     var hijackBatchesTask = PushFullBatchesAsync(_hijackIndexClient, hijackActions);
                     await Task.WhenAll(searchBatchesTask, hijackBatchesTask);
+
+                    // Write the version list data
+                    await _versionListDataClient.ReplaceAsync(
+                        work.PackageId,
+                        indexActions.VersionListData,
+                        AccessConditionWrapper.GenerateEmptyCondition());
                 }
 
                 var searchFinishTask = IndexAsync(_searchIndexClient, searchActions);

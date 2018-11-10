@@ -11,6 +11,8 @@
     "SearchServiceApiKey": "",
     "SearchIndexName": "",
     "HijackIndexName": "",
+    "StorageConnectionString": "",
+    "StoragePath": "",
     "ReplaceIndexes": false
   },
 

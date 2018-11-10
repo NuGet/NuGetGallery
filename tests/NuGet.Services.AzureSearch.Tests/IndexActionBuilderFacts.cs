@@ -8,11 +8,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.Search;
 using Microsoft.Azure.Search.Models;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 using NuGet.Services.AzureSearch.Db2AzureSearch;
+using NuGet.Services.Entities;
 using NuGet.Versioning;
-using NuGetGallery;
 using Xunit;
 
 namespace NuGet.Services.AzureSearch

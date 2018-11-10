@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using NuGet.Services.AzureSearch.Support;
+using NuGet.Services.Entities;
 using NuGetGallery;
 using Xunit;
 using Xunit.Abstractions;

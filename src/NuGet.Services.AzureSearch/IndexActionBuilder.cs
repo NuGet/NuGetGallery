@@ -9,6 +9,7 @@ using System.Text.RegularExpressions;
 using System.Web;
 using Microsoft.Azure.Search.Models;
 using NuGet.Services.AzureSearch.Db2AzureSearch;
+using NuGet.Services.Entities;
 using NuGet.Services.Metadata.Catalog;
 using NuGet.Versioning;
 using NuGetGallery;
@@ -54,7 +55,10 @@ namespace NuGet.Services.AzureSearch
                     p.Value))
                 .ToList();
 
-            return new SearchAndHijackIndexActions(search, hijack);
+            return new SearchAndHijackIndexActions(
+                search,
+                hijack,
+                versionLists.GetVersionListData());
         }
 
         private static VersionListChange GetVersionListChange(Package x)

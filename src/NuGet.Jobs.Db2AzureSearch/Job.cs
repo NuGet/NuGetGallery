@@ -8,9 +8,12 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using NuGet.Jobs.Validation;
 using NuGet.Services.AzureSearch;
 using NuGet.Services.AzureSearch.Db2AzureSearch;
 using NuGet.Services.AzureSearch.Wrappers;
+using NuGetGallery;
+using NuGetGallery.Diagnostics;
 
 namespace NuGet.Jobs
 {
@@ -55,6 +58,7 @@ namespace NuGet.Jobs
                     c.Resolve<ISearchServiceClientWrapper>(),
                     c.ResolveKeyed<ISearchIndexClientWrapper>(SearchIndexKey),
                     c.ResolveKeyed<ISearchIndexClientWrapper>(HijackIndexKey),
+                    c.Resolve<IVersionListDataClient>(),
                     c.Resolve<IOptionsSnapshot<Db2AzureSearchConfiguration>>(),
                     c.Resolve<ILogger<Db2AzureSearchCommand>>()));
         }
@@ -62,19 +66,30 @@ namespace NuGet.Jobs
         protected override void ConfigureJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
         {
             services.Configure<Db2AzureSearchConfiguration>(configurationRoot.GetSection(Db2AzureSearchSectionName));
+            services.Configure<AzureSearchConfiguration>(configurationRoot.GetSection(Db2AzureSearchSectionName));
 
-            services.AddSingleton<ISearchServiceClient>(p =>
+            services.AddTransient<ISearchServiceClient>(p =>
             {
                 var options = p.GetRequiredService<IOptionsSnapshot<Db2AzureSearchConfiguration>>();
                 return new SearchServiceClient(
                     options.Value.SearchServiceName,
                     new SearchCredentials(options.Value.SearchServiceApiKey));
             });
+            services.AddTransient<ICloudBlobClient, CloudBlobClientWrapper>(p =>
+            {
+                var options = p.GetRequiredService<IOptionsSnapshot<Db2AzureSearchConfiguration>>();
+                return new CloudBlobClientWrapper(
+                    options.Value.StorageConnectionString,
+                    readAccessGeoRedundant: true);
+            });
 
-            services.AddSingleton<ISearchServiceClientWrapper, SearchServiceClientWrapper>();
+            services.AddTransient<ISearchServiceClientWrapper, SearchServiceClientWrapper>();
             services.AddTransient<IEntitiesContextFactory, EntitiesContextFactory>();
             services.AddTransient<INewPackageRegistrationProducer, NewPackageRegistrationProducer>();
+            services.AddTransient<IVersionListDataClient, VersionListDataClient>();
             services.AddTransient<IIndexActionBuilder, IndexActionBuilder>();
+            services.AddTransient<ICoreFileStorageService, CloudBlobCoreFileStorageService>();
+            services.AddTransient<IDiagnosticsService, LoggerDiagnosticsService>();
         }
     }
 }

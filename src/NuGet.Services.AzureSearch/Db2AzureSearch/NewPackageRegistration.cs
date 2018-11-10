@@ -3,7 +3,7 @@
 
 using System;
 using System.Collections.Generic;
-using NuGetGallery;
+using NuGet.Services.Entities;
 
 namespace NuGet.Services.AzureSearch.Db2AzureSearch
 {

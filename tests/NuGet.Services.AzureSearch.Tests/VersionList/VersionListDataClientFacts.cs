@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
 using Moq;
 using NuGetGallery;
 using Xunit;
@@ -30,15 +31,18 @@ namespace NuGet.Services.AzureSearch
                 Assert.Null(output.AccessCondition.IfMatchETag);
             }
 
-            [Fact]
-            public async Task UsesExpectedContainerAndFileName()
+            [Theory]
+            [MemberData(nameof(ExpectedPaths))]
+            public async Task UsesExpectedContainerAndFileName(string path, string expected)
             {
+                _config.StoragePath = path;
+
                 await _target.ReadAsync(_id);
 
                 _storageService.Verify(
                     x => x.GetFileReferenceAsync(
                         "content",
-                        "version-lists/nuget.versioning.json",
+                        expected,
                         It.IsAny<string>()),
                     Times.Once);
             }
@@ -89,15 +93,18 @@ namespace NuGet.Services.AzureSearch
 
         public class ReplaceVersionListAsync : Facts
         {
-            [Fact]
-            public async Task UsesExpectedStorageParameters()
+            [Theory]
+            [MemberData(nameof(ExpectedPaths))]
+            public async Task UsesExpectedStorageParameters(string path, string expected)
             {
+                _config.StoragePath = path;
+
                 await _target.ReplaceAsync(_id, _versionList, _accessCondition.Object);
 
                 _storageService.Verify(
                     x => x.SaveFileAsync(
                         "content",
-                        "version-lists/nuget.versioning.json",
+                        expected,
                         It.IsAny<Stream>(),
                         _accessCondition.Object),
                     Times.Once);
@@ -151,10 +158,27 @@ namespace NuGet.Services.AzureSearch
             protected readonly Mock<IAccessCondition> _accessCondition;
             protected readonly VersionListData _versionList;
             protected readonly Mock<ICoreFileStorageService> _storageService;
+            protected readonly Mock<IOptionsSnapshot<AzureSearchConfiguration>> _options;
+            protected readonly AzureSearchConfiguration _config;
             protected readonly VersionListDataClient _target;
 
             protected readonly List<byte[]> _savedBytes = new List<byte[]>();
             protected readonly List<string> _savedStrings = new List<string>();
+
+            public static IEnumerable<object[]> ExpectedPaths => new[]
+            {
+                new object[] { "/", "version-lists/nuget.versioning.json" },
+                new object[] { "", "version-lists/nuget.versioning.json" },
+                new object[] { null, "version-lists/nuget.versioning.json" },
+                new object[] { "/search/", "search/version-lists/nuget.versioning.json" },
+                new object[] { "/search", "search/version-lists/nuget.versioning.json" },
+                new object[] { "search/", "search/version-lists/nuget.versioning.json" },
+                new object[] { "search", "search/version-lists/nuget.versioning.json" },
+                new object[] { "/search/1/", "search/1/version-lists/nuget.versioning.json" },
+                new object[] { "/search/1", "search/1/version-lists/nuget.versioning.json" },
+                new object[] { "search/1", "search/1/version-lists/nuget.versioning.json" },
+                new object[] { "search/1/", "search/1/version-lists/nuget.versioning.json" },
+            };
 
             public Facts()
             {
@@ -166,7 +190,12 @@ namespace NuGet.Services.AzureSearch
                 });
 
                 _storageService = new Mock<ICoreFileStorageService>();
+                _options = new Mock<IOptionsSnapshot<AzureSearchConfiguration>>();
+                _config = new AzureSearchConfiguration();
 
+                _options
+                    .Setup(x => x.Value)
+                    .Returns(() => _config);
                 _storageService
                     .Setup(x => x.SaveFileAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Stream>(), It.IsAny<IAccessCondition>()))
                     .Returns(Task.CompletedTask)
@@ -182,7 +211,9 @@ namespace NuGet.Services.AzureSearch
                         }
                     });
 
-                _target = new VersionListDataClient(_storageService.Object);
+                _target = new VersionListDataClient(
+                    _storageService.Object,
+                    _options.Object);
             }
         }
     }

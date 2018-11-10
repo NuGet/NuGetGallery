@@ -14,13 +14,16 @@ namespace NuGet.Services.AzureSearch
     {
         public SearchAndHijackIndexActions(
             IReadOnlyList<IndexAction<KeyedDocument>> search,
-            IReadOnlyList<IndexAction<KeyedDocument>> hijack)
+            IReadOnlyList<IndexAction<KeyedDocument>> hijack,
+            VersionListData versionListData)
         {
             Search = search ?? throw new ArgumentNullException(nameof(search));
             Hijack = hijack ?? throw new ArgumentNullException(nameof(hijack));
+            VersionListData = versionListData ?? throw new ArgumentNullException(nameof(versionListData));
         }
 
         public IReadOnlyList<IndexAction<KeyedDocument>> Search { get; }
         public IReadOnlyList<IndexAction<KeyedDocument>> Hijack { get; }
+        public VersionListData VersionListData { get; }
     }
 }

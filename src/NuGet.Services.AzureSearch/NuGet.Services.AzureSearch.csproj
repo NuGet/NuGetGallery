@@ -35,6 +35,7 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AzureSearchConfiguration.cs" />
     <Compile Include="Db2AzureSearch\Db2AzureSearchCommand.cs" />
     <Compile Include="Db2AzureSearch\Db2AzureSearchConfiguration.cs" />
     <Compile Include="Db2AzureSearch\EntitiesContextFactory.cs" />
@@ -58,6 +59,7 @@
     <Compile Include="VersionList\HijackIndexChangeType.cs" />
     <Compile Include="VersionList\HijackDocumentChanges.cs" />
     <Compile Include="VersionList\IndexChanges.cs" />
+    <Compile Include="VersionList\IVersionListDataClient.cs" />
     <Compile Include="VersionList\LatestIndexChanges.cs" />
     <Compile Include="VersionList\KeyValuePair.cs" />
     <Compile Include="VersionList\LatestVersionInfo.cs" />
@@ -95,11 +97,8 @@
     <PackageReference Include="Microsoft.Azure.Search">
       <Version>5.0.2</Version>
     </PackageReference>
-    <PackageReference Include="NuGet.Jobs.Common">
-      <Version>4.0.42887-dev</Version>
-    </PackageReference>
-    <PackageReference Include="NuGetGallery.Core">
-      <Version>4.4.4-dev-41931</Version>
+    <PackageReference Include="NuGet.Services.Validation.Common.Job">
+      <Version>4.1.0-master-2197886</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
