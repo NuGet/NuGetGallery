@@ -122,6 +122,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             public DateTimeOffset ScheduledEnqueueTimeUtc { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
             public DateTimeOffset ExpiresAtUtc => throw new NotImplementedException();
             public DateTimeOffset EnqueuedTimeUtc => throw new NotImplementedException();
+            public TimeSpan TimeToLive { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
             public string MessageId { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 

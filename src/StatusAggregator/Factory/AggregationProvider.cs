@@ -43,20 +43,31 @@ namespace StatusAggregator.Factory
 
             var possiblePath = _aggregationPathProvider.Get(input);
             // Find an aggregation to link to
-            var possibleAggregations = _table
+            var possibleAggregationsQuery = _table
                 .CreateQuery<TAggregationEntity>()
                 .Where(e =>
                     // The aggregation must affect the same path
                     e.AffectedComponentPath == possiblePath &&
                     // The aggregation must begin before or at the same time
-                    e.StartTime <= input.StartTime &&
-                    // The aggregation must cover the same time period
-                    (
-                        // If the aggregation is active, it covers the same time period
-                        e.IsActive || 
-                        // Otherwise, if the child is not active, and the aggregation ends after it ends, it covers the same time period
-                        (!input.IsActive && e.EndTime >= input.EndTime)
-                    ))
+                    e.StartTime <= input.StartTime);
+
+            // The aggregation must cover the same time period
+            if (input.IsActive)
+            {
+                // An active input can only be linked to an active aggregation
+                possibleAggregationsQuery = possibleAggregationsQuery
+                    .Where(e => e.IsActive);
+            }
+            else
+            {
+                // An inactive input can be linked to an active aggregation or an inactive aggregation that ends after it
+                possibleAggregationsQuery = possibleAggregationsQuery
+                    .Where(e =>
+                        e.IsActive ||
+                        e.EndTime >= input.EndTime);
+            }
+
+            var possibleAggregations = possibleAggregationsQuery
                 .ToList();
 
             _logger.LogInformation("Found {AggregationCount} possible aggregations to link entity to with path {AffectedComponentPath}.", possibleAggregations.Count(), possiblePath);

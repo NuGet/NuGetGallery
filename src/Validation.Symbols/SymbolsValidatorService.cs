@@ -66,10 +66,10 @@ namespace Validation.Symbols
                                 {
                                     orphanSymbolFiles.ForEach((symbol) =>
                                     {
-                                        _telemetryService.TrackSymbolsAssemblyValidationResultEvent(message.PackageId, message.PackageNormalizedVersion, ValidationStatus.Failed, nameof(ValidationIssue.SymbolErrorCode_MatchingPortablePDBNotFound), assemblyName: symbol);
+                                        _telemetryService.TrackSymbolsAssemblyValidationResultEvent(message.PackageId, message.PackageNormalizedVersion, ValidationStatus.Failed, nameof(ValidationIssue.SymbolErrorCode_MatchingAssemblyNotFound), assemblyName: symbol);
                                     });
                                     _telemetryService.TrackSymbolsValidationResultEvent(message.PackageId, message.PackageNormalizedVersion, ValidationStatus.Failed);
-                                    return ValidationResult.FailedWithIssues(ValidationIssue.SymbolErrorCode_MatchingPortablePDBNotFound);
+                                    return ValidationResult.FailedWithIssues(ValidationIssue.SymbolErrorCode_MatchingAssemblyNotFound);
                                 }
                                 var targetDirectory = Settings.GetWorkingDirectory();
                                 try
@@ -231,8 +231,8 @@ namespace Validation.Symbols
                     }
                 }
             }
-            _telemetryService.TrackSymbolsAssemblyValidationResultEvent(packageId, packageNormalizedVersion, ValidationStatus.Failed, nameof(ValidationIssue.SymbolErrorCode_MatchingPortablePDBNotFound), assemblyName: Path.GetFileName(peFilePath));
-            validationResult = ValidationResult.FailedWithIssues(ValidationIssue.SymbolErrorCode_MatchingPortablePDBNotFound);
+            _telemetryService.TrackSymbolsAssemblyValidationResultEvent(packageId, packageNormalizedVersion, ValidationStatus.Failed, nameof(ValidationIssue.SymbolErrorCode_PdbIsNotPortable), assemblyName: Path.GetFileName(peFilePath));
+            validationResult = ValidationResult.FailedWithIssues(ValidationIssue.SymbolErrorCode_PdbIsNotPortable);
             return false;
         }
 
