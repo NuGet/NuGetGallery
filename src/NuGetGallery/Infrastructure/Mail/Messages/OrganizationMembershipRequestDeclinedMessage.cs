@@ -31,9 +31,10 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
 
         public override IEmailRecipients GetRecipients()
         {
-            return new EmailRecipientsWithPermission(
-                Organization,
-                ActionsRequiringPermissions.ManageAccount,
+            return new EmailRecipients(
+                to: GalleryEmailRecipientsUtility.GetAddressesWithPermission(
+                    Organization,
+                    ActionsRequiringPermissions.ManageAccount),
                 replyTo: new[] { PendingUser.ToMailAddress() });
         }
 

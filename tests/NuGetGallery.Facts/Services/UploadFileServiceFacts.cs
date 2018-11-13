@@ -40,7 +40,7 @@ namespace NuGetGallery
 
                 service.DeleteUploadFileAsync(1);
 
-                fakeFileStorageService.Verify(x => x.DeleteFileAsync(CoreConstants.UploadsFolderName, It.IsAny<string>()));
+                fakeFileStorageService.Verify(x => x.DeleteFileAsync(CoreConstants.Folders.UploadsFolderName, It.IsAny<string>()));
             }
 
             [Fact]
@@ -76,7 +76,7 @@ namespace NuGetGallery
 
                 service.GetUploadFileAsync(1);
 
-                fakeFileStorageService.Verify(x => x.GetFileAsync(CoreConstants.UploadsFolderName, It.IsAny<string>()));
+                fakeFileStorageService.Verify(x => x.GetFileAsync(CoreConstants.Folders.UploadsFolderName, It.IsAny<string>()));
             }
 
             [Fact]
@@ -97,7 +97,7 @@ namespace NuGetGallery
                 var expectedFileName = String.Format(GalleryConstants.UploadFileNameTemplate, 1, CoreConstants.NuGetPackageFileExtension);
                 var fakeFileStorageService = new Mock<IFileStorageService>();
                 var fakeFileStream = new MemoryStream();
-                fakeFileStorageService.Setup(x => x.GetFileAsync(CoreConstants.UploadsFolderName, expectedFileName))
+                fakeFileStorageService.Setup(x => x.GetFileAsync(CoreConstants.Folders.UploadsFolderName, expectedFileName))
                                       .Returns(Task.FromResult<Stream>(fakeFileStream));
                 var service = CreateService(fakeFileStorageService: fakeFileStorageService);
 
@@ -137,7 +137,7 @@ namespace NuGetGallery
 
                 service.SaveUploadFileAsync(1, new MemoryStream());
 
-                fakeFileStorageService.Verify(x => x.SaveFileAsync(CoreConstants.UploadsFolderName, It.IsAny<string>(), It.IsAny<Stream>(), It.Is<bool>(b => b)));
+                fakeFileStorageService.Verify(x => x.SaveFileAsync(CoreConstants.Folders.UploadsFolderName, It.IsAny<string>(), It.IsAny<Stream>(), It.Is<bool>(b => b)));
             }
 
             [Fact]

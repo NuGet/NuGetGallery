@@ -20,7 +20,7 @@ namespace NuGetGallery.Services
             public async Task ThrowsIfFileDoesNotExist()
             {
                 _storage
-                    .Setup(s => s.GetFileReferenceAsync(CoreConstants.RevalidationFolderName, "state.json", null))
+                    .Setup(s => s.GetFileReferenceAsync(CoreConstants.Folders.RevalidationFolderName, "state.json", null))
                     .ReturnsAsync((string folder, string file, bool ifNoneMatch) => null);
 
                 var e = await Assert.ThrowsAsync<InvalidOperationException>(() => _target.GetStateAsync());
@@ -247,7 +247,7 @@ namespace NuGetGallery.Services
                 var fileReference = new TestableFileReference(stream, writer, contentId);
 
                 _storage
-                    .Setup(s => s.GetFileReferenceAsync(CoreConstants.RevalidationFolderName, "state.json", null))
+                    .Setup(s => s.GetFileReferenceAsync(CoreConstants.Folders.RevalidationFolderName, "state.json", null))
                     .ReturnsAsync((string folder, string file, bool ifNoneMatch) => fileReference);
 
                 if (storageExceptionCode.HasValue)

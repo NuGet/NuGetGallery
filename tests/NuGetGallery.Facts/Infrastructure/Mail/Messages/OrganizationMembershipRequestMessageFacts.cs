@@ -70,7 +70,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
                 var message = CreateMessage(newUserEmailAllowed: false);
                 var recipients = message.GetRecipients();
 
-                Assert.Equal(EmailRecipients.None, recipients);
+                Assert.Empty(recipients.To);
             }
 
             [Fact]
