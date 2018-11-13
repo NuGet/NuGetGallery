@@ -7,7 +7,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.Search.Models;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using NuGet.Services.AzureSearch.Support;
@@ -21,16 +20,11 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
 {
     public class Db2AzureSearchCommandFacts
     {
-        private readonly ITestOutputHelper _output;
         private readonly Mock<INewPackageRegistrationProducer> _producer;
         private readonly Mock<IIndexActionBuilder> _builder;
         private readonly Mock<ISearchServiceClientWrapper> _serviceClient;
         private readonly Mock<IIndexesOperationsWrapper> _serviceClientIndexes;
-        private readonly Mock<ISearchIndexClientWrapper> _searchIndexClient;
-        private readonly Mock<IDocumentsOperationsWrapper> _searchIndexClientDocuments;
-        private readonly Mock<ISearchIndexClientWrapper> _hijackIndexClient;
-        private readonly Mock<IDocumentsOperationsWrapper> _hijackIndexClientDocuments;
-        private readonly Mock<IVersionListDataClient> _versionListDataClient;
+        private readonly Mock<IBatchPusher> _batchPusher;
         private readonly Mock<IOptionsSnapshot<Db2AzureSearchConfiguration>> _options;
         private readonly Db2AzureSearchConfiguration _config;
         private readonly RecordingLogger<Db2AzureSearchCommand> _logger;
@@ -38,19 +32,13 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
 
         public Db2AzureSearchCommandFacts(ITestOutputHelper output)
         {
-            _output = output;
             _producer = new Mock<INewPackageRegistrationProducer>();
             _builder = new Mock<IIndexActionBuilder>();
             _serviceClient = new Mock<ISearchServiceClientWrapper>();
             _serviceClientIndexes = new Mock<IIndexesOperationsWrapper>();
-            _searchIndexClient = new Mock<ISearchIndexClientWrapper>();
-            _searchIndexClientDocuments = new Mock<IDocumentsOperationsWrapper>();
-            _hijackIndexClient = new Mock<ISearchIndexClientWrapper>();
-            _hijackIndexClientDocuments = new Mock<IDocumentsOperationsWrapper>();
-            _versionListDataClient = new Mock<IVersionListDataClient>();
+            _batchPusher = new Mock<IBatchPusher>();
             _options = new Mock<IOptionsSnapshot<Db2AzureSearchConfiguration>>();
-            _logger = new RecordingLogger<Db2AzureSearchCommand>(
-                new LoggerFactory().AddXunit(_output).CreateLogger<Db2AzureSearchCommand>());
+            _logger = output.GetLogger<Db2AzureSearchCommand>();
 
             _config = new Db2AzureSearchConfiguration
             {
@@ -65,12 +53,6 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             _serviceClient
                 .Setup(x => x.Indexes)
                 .Returns(() => _serviceClientIndexes.Object);
-            _searchIndexClient
-                .Setup(x => x.Documents)
-                .Returns(() => _searchIndexClientDocuments.Object);
-            _hijackIndexClient
-                .Setup(x => x.Documents)
-                .Returns(() => _hijackIndexClientDocuments.Object);
             _builder
                 .Setup(x => x.AddNewPackageRegistration(It.IsAny<NewPackageRegistration>()))
                 .Returns(() => new IndexActions(
@@ -84,9 +66,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 _producer.Object,
                 _builder.Object,
                 _serviceClient.Object,
-                _searchIndexClient.Object,
-                _hijackIndexClient.Object,
-                _versionListDataClient.Object,
+                () => _batchPusher.Object,
                 _options.Object,
                 _logger);
         }
@@ -145,32 +125,27 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                         new VersionListData(new Dictionary<string, VersionPropertiesData>()),
                         AccessConditionWrapper.GenerateEmptyCondition())));
 
-            var batches = new List<List<IndexAction<KeyedDocument>>>();
-            _searchIndexClientDocuments
-                .Setup(x => x.IndexAsync(It.IsAny<IndexBatch<KeyedDocument>>()))
-                .ReturnsAsync(() => new DocumentIndexResult(new List<IndexingResult>()))
-                .Callback<IndexBatch<KeyedDocument>>(b =>
+            var enqueuedIndexActions = new List<KeyValuePair<string, IndexActions>>();
+            _batchPusher
+                .Setup(x => x.EnqueueIndexActions(It.IsAny<string>(), It.IsAny<IndexActions>()))
+                .Callback<string, IndexActions>((id, actions) =>
                 {
-                    batches.Add(b.Actions.ToList());
+                    enqueuedIndexActions.Add(KeyValuePair.Create(id, actions));
                 });
 
             await _target.ExecuteAsync();
 
-            Assert.Equal(3, batches.Count);
-
-            var orderedBatches = batches.OrderBy(x => x.Count).ToList();
-            Assert.Single(orderedBatches[0]);
-            Assert.Equal(2, orderedBatches[1].Count);
-            Assert.Equal(2, orderedBatches[2].Count);
-
-            var keys = batches
-                .SelectMany(x => x)
-                .Select(x => x.Document.Key)
+            Assert.Equal(5, enqueuedIndexActions.Count);
+            var keys = enqueuedIndexActions
+                .Select(x => x.Key)
                 .OrderBy(x => x)
                 .ToArray();
             Assert.Equal(
                 new[] { "A", "B", "C", "D", "E" },
                 keys);
+
+            _batchPusher.Verify(x => x.PushFullBatchesAsync(), Times.Exactly(5));
+            _batchPusher.Verify(x => x.FinishAsync(), Times.Once);
         }
     }
 }

@@ -36,6 +36,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AzureSearchConfiguration.cs" />
+    <Compile Include="BatchPusher.cs" />
+    <Compile Include="IBatchPusher.cs" />
     <Compile Include="Db2AzureSearch\Db2AzureSearchCommand.cs" />
     <Compile Include="Db2AzureSearch\Db2AzureSearchConfiguration.cs" />
     <Compile Include="Db2AzureSearch\EntitiesContextFactory.cs" />

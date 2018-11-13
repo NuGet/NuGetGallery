@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,9 +19,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
         private readonly INewPackageRegistrationProducer _producer;
         private readonly IIndexActionBuilder _indexActionBuilder;
         private readonly ISearchServiceClientWrapper _serviceClient;
-        private readonly ISearchIndexClientWrapper _searchIndexClient;
-        private readonly ISearchIndexClientWrapper _hijackIndexClient;
-        private readonly IVersionListDataClient _versionListDataClient;
+        private readonly Func<IBatchPusher> _batchPusherFactory;
         private readonly IOptionsSnapshot<Db2AzureSearchConfiguration> _options;
         private readonly ILogger<Db2AzureSearchCommand> _logger;
 
@@ -30,18 +27,14 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             INewPackageRegistrationProducer producer,
             IIndexActionBuilder indexActionBuilder,
             ISearchServiceClientWrapper serviceClient,
-            ISearchIndexClientWrapper searchIndexClient,
-            ISearchIndexClientWrapper hijackIndexClient,
-            IVersionListDataClient versionListDataClient,
+            Func<IBatchPusher> batchPusherFactory,
             IOptionsSnapshot<Db2AzureSearchConfiguration> options,
             ILogger<Db2AzureSearchCommand> logger)
         {
             _producer = producer ?? throw new ArgumentNullException(nameof(producer));
             _indexActionBuilder = indexActionBuilder ?? throw new ArgumentNullException(nameof(indexActionBuilder));
             _serviceClient = serviceClient ?? throw new ArgumentNullException(nameof(serviceClient));
-            _searchIndexClient = searchIndexClient ?? throw new ArgumentNullException(nameof(searchIndexClient));
-            _hijackIndexClient = hijackIndexClient ?? throw new ArgumentNullException(nameof(hijackIndexClient));
-            _versionListDataClient = versionListDataClient ?? throw new ArgumentNullException(nameof(versionListDataClient));
+            _batchPusherFactory = batchPusherFactory ?? throw new ArgumentNullException(nameof(batchPusherFactory));
             _options = options ?? throw new ArgumentNullException(nameof(options));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
@@ -132,8 +125,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
         {
             await Task.Yield();
 
-            var searchActions = new Queue<IndexAction<KeyedDocument>>();
-            var hijackActions = new Queue<IndexAction<KeyedDocument>>();
+            var batchPusher = _batchPusherFactory();
 
             NewPackageRegistration work = null;
             try
@@ -150,31 +142,11 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
 
                     var indexActions = _indexActionBuilder.AddNewPackageRegistration(work);
 
-                    // Process the index changes
-                    foreach (var action in indexActions.Search)
-                    {
-                        searchActions.Enqueue(action);
-                    }
-
-                    foreach (var action in indexActions.Hijack)
-                    {
-                        hijackActions.Enqueue(action);
-                    }
-
-                    var searchBatchesTask = PushFullBatchesAsync(_searchIndexClient, searchActions);
-                    var hijackBatchesTask = PushFullBatchesAsync(_hijackIndexClient, hijackActions);
-                    await Task.WhenAll(searchBatchesTask, hijackBatchesTask);
-
-                    // Write the version list data
-                    await _versionListDataClient.ReplaceAsync(
-                        work.PackageId,
-                        indexActions.VersionListDataResult.Result,
-                        indexActions.VersionListDataResult.AccessCondition);
+                    batchPusher.EnqueueIndexActions(work.PackageId, indexActions);
+                    await batchPusher.PushFullBatchesAsync();
                 }
 
-                var searchFinishTask = IndexAsync(_searchIndexClient, searchActions);
-                var hijackFinishTask = IndexAsync(_hijackIndexClient, hijackActions);
-                await Task.WhenAll(searchFinishTask, hijackFinishTask);
+                await batchPusher.FinishAsync();
             }
             catch (Exception ex)
             {
@@ -184,63 +156,6 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                     "An exception was thrown while processing package ID {PackageId}.",
                     work?.PackageId ?? "(last batch...)");
                 throw;
-            }
-        }
-
-        private async Task PushFullBatchesAsync(
-            ISearchIndexClientWrapper indexClient,
-            Queue<IndexAction<KeyedDocument>> actions)
-        {
-            while (actions.Count > _options.Value.AzureSearchBatchSize)
-            {
-                var batch = new List<IndexAction<KeyedDocument>>();
-                while (batch.Count < _options.Value.AzureSearchBatchSize)
-                {
-                    batch.Add(actions.Dequeue());
-                }
-
-                await IndexAsync(indexClient, batch);
-            }
-        }
-
-        private async Task IndexAsync(
-            ISearchIndexClientWrapper indexClient,
-            IReadOnlyCollection<IndexAction<KeyedDocument>> batch)
-        {
-            if (batch.Count == 0)
-            {
-                return;
-            }
-
-            await Task.Yield();
-
-            _logger.LogInformation(
-                "Pushing batch of {BatchSize} to index {IndexName}.",
-                batch.Count,
-                indexClient.IndexName);
-            var batchResults = await indexClient.Documents.IndexAsync(new IndexBatch<KeyedDocument>(batch));
-            const int errorsToLog = 5;
-            var errorCount = 0;
-            foreach (var result in batchResults.Results)
-            {
-                if (!result.Succeeded)
-                {
-                    if (errorCount < errorsToLog)
-                    {
-                        _logger.LogError(
-                            "Indexing document with key {Key} failed. {StatusCode}: {ErrorMessage}",
-                            result.Key,
-                            result.StatusCode,
-                            result.ErrorMessage);
-                    }
-
-                    errorCount++;
-                }
-            }
-
-            if (errorCount > 0)
-            {
-                throw new InvalidOperationException($"{errorCount} errors were found when indexing a batch. Only {errorsToLog} were logged.");
             }
         }
     }

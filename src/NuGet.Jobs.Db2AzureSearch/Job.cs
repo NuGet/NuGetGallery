@@ -57,15 +57,12 @@ namespace NuGet.Jobs
                 .Keyed<ISearchIndexClientWrapper>(HijackIndexKey);
 
             containerBuilder
-                .Register(c => new Db2AzureSearchCommand(
-                    c.Resolve<INewPackageRegistrationProducer>(),
-                    c.Resolve<IIndexActionBuilder>(),
-                    c.Resolve<ISearchServiceClientWrapper>(),
+                .Register<IBatchPusher>(c => new BatchPusher(
                     c.ResolveKeyed<ISearchIndexClientWrapper>(SearchIndexKey),
                     c.ResolveKeyed<ISearchIndexClientWrapper>(HijackIndexKey),
                     c.Resolve<IVersionListDataClient>(),
                     c.Resolve<IOptionsSnapshot<Db2AzureSearchConfiguration>>(),
-                    c.Resolve<ILogger<Db2AzureSearchCommand>>()));
+                    c.Resolve<ILogger<BatchPusher>>()));
         }
 
         protected override void ConfigureJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
