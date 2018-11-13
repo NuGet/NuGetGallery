@@ -296,10 +296,12 @@
     <Compile Include="Infrastructure\Authentication\ApiKeyV3.cs" />
     <Compile Include="Infrastructure\Authentication\ApiKeyV4.cs" />
     <Compile Include="Infrastructure\Authentication\Base32Encoder.cs" />
+    <Compile Include="Infrastructure\Mail\ConfirmationEmailBuilder.cs" />
     <Compile Include="Infrastructure\Mail\EmailMessageFooter.cs" />
     <Compile Include="Infrastructure\Mail\GalleryEmailRecipientsUtility.cs" />
     <Compile Include="Infrastructure\Mail\Messages\AccountDeleteNoticeMessage.cs" />
     <Compile Include="Infrastructure\Mail\Messages\ContactOwnersMessage.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\ContactSupportMessage.cs" />
     <Compile Include="Infrastructure\Mail\Messages\CredentialAddedMessage.cs" />
     <Compile Include="Infrastructure\Mail\Messages\CredentialRemovedMessage.cs" />
     <Compile Include="Infrastructure\Mail\Messages\EmailChangeConfirmationMessage.cs" />
@@ -315,6 +317,7 @@
     <Compile Include="Infrastructure\Mail\Messages\OrganizationTransformInitiatedMessage.cs" />
     <Compile Include="Infrastructure\Mail\Messages\OrganizationTransformRejectedMessage.cs" />
     <Compile Include="Infrastructure\Mail\Messages\OrganizationTransformRequestMessage.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\PackageAddedWithWarningsMessage.cs" />
     <Compile Include="Infrastructure\Mail\Messages\PackageDeletedNoticeMessage.cs" />
     <Compile Include="Infrastructure\Mail\Messages\PackageOwnerAddedMessage.cs" />
     <Compile Include="Infrastructure\Mail\Messages\PackageOwnerRemovedMessage.cs" />
