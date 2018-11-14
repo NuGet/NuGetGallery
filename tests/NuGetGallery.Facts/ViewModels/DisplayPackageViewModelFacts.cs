@@ -168,6 +168,55 @@ namespace NuGetGallery.ViewModels
         }
 
         [Fact]
+        public void TheCtorDoesNotPopulateLatestSymbolsPackageForHistory()
+        {
+            var package = new Package
+            {
+                Version = "1.0.0",
+                Dependencies = Enumerable.Empty<PackageDependency>().ToList(),
+                PackageRegistration = new PackageRegistration
+                {
+                    Owners = Enumerable.Empty<User>().ToList(),
+                }
+            };
+
+            package.SymbolPackages.Add(new SymbolPackage()
+            {
+                Package = package,
+                StatusKey = PackageStatus.Available
+            });
+
+            package.PackageRegistration.Packages = new[]
+                {
+                    new Package { Version = "1.0.0-alpha2", PackageRegistration = package.PackageRegistration },
+                    new Package { Version = "1.0.0", PackageRegistration = package.PackageRegistration },
+                    new Package { Version = "1.0.0-alpha", PackageRegistration = package.PackageRegistration },
+                    new Package { Version = "1.0.0-beta", PackageRegistration = package.PackageRegistration },
+                    new Package { Version = "1.0.2-beta", PackageRegistration = package.PackageRegistration },
+                    new Package { Version = "1.0.2", PackageRegistration = package.PackageRegistration },
+                    new Package { Version = "1.0.10", PackageRegistration = package.PackageRegistration }
+                };
+
+            foreach (var packageVersion in package.PackageRegistration.Packages)
+            {
+                packageVersion.SymbolPackages.Add(new SymbolPackage()
+                {
+                    Package = packageVersion,
+                    StatusKey = PackageStatus.Available
+                });
+            }
+
+            var viewModel = new DisplayPackageViewModel(package, null, package.PackageRegistration.Packages.OrderByDescending(p => new NuGetVersion(p.Version)));
+
+            // Descending
+            Assert.NotNull(viewModel.LatestSymbolsPackage);
+            foreach (var version in viewModel.PackageVersions)
+            {
+                Assert.Null(version.LatestSymbolsPackage);
+            }
+        }
+
+        [Fact]
         public void TheCtorReturnsLatestSymbolPackageByDateCreated()
         {
             var package = new Package
