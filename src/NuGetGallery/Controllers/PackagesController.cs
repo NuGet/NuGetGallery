@@ -1221,17 +1221,20 @@ namespace NuGetGallery
             }
 
             var model = new DeletePackageViewModel(package, currentUser, DeleteReasons);
+            var packageViewModelsForAllAvailableSymbolsPackage = package
+                .PackageRegistration
+                .Packages
+                .Where(p => p.PackageStatusKey != PackageStatus.Deleted)
+                .Select(p => p.LatestSymbolPackage())
+                .Where(sp => sp != null && sp.StatusKey == PackageStatus.Available)
+                .Select(sp => new PackageViewModel(sp.Package));
 
             model.VersionSelectList = new SelectList(
-                model
-                .PackageVersions
-                .Where(p => !p.Deleted
-                    && p.LatestSymbolsPackage != null
-                    && p.LatestSymbolsPackage.StatusKey == PackageStatus.Available)
-                .Select(p => new
+                packageViewModelsForAllAvailableSymbolsPackage
+                .Select(pvm => new
                 {
-                    text = p.NuGetVersion.ToFullString() + (p.LatestVersionSemVer2 ? " (Latest)" : string.Empty),
-                    url = Url.DeleteSymbolsPackage(p)
+                    text = pvm.NuGetVersion.ToFullString() + (pvm.LatestVersionSemVer2 ? " (Latest)" : string.Empty),
+                    url = Url.DeleteSymbolsPackage(pvm)
                 }), "url", "text", Url.DeleteSymbolsPackage(model));
 
             return View(model);
