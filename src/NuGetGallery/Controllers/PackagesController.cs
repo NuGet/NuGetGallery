@@ -1221,6 +1221,12 @@ namespace NuGetGallery
             }
 
             var model = new DeletePackageViewModel(package, currentUser, DeleteReasons);
+
+            // Fetch all the available symbols package for all the versions from the 
+            // database since the DisplayPackageViewModel(base class for DeletePackageViewModel) does not
+            // set the `LatestSymbolsPackage` data on the model(since it is an unnecessary and expensive db
+            // query). It is fine to do this here when invoking delete page. Note: this could also potentially 
+            // cause unbounded(high number) db calls based on the number of versions associated with a package.
             var packageViewModelsForAllAvailableSymbolsPackage = package
                 .PackageRegistration
                 .Packages
