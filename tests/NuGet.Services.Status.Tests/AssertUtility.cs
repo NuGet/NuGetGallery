@@ -12,6 +12,7 @@ namespace NuGet.Services.Status.Tests
     {
         public static void AssertStatus(ServiceStatus expected, ServiceStatus actual)
         {
+            AssertFieldEqual(expected, actual, i => i.LastBuilt);
             AssertFieldEqual(expected, actual, i => i.LastUpdated);
             AssertFieldEqual(expected, actual, i => i.ServiceRootComponent, AssertComponent);
             AssertFieldEqual(expected, actual, i => i.Events, AssertEvent);

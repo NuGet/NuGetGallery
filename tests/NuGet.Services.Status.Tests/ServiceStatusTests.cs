@@ -12,6 +12,68 @@ namespace NuGet.Services.Status.Tests
     public class ServiceStatusTests
     {
         [Fact]
+        public void SetsFieldsAsExpected()
+        {
+            var lastBuilt = new DateTime(2018, 11, 13);
+            var lastUpdated = new DateTime(2018, 11, 14);
+
+            var rootComponentName = "name";
+            var rootComponentDescription = "description";
+            var rootComponentStatus = (ComponentStatus)99;
+            var rootComponent = new ReadOnlyComponent(
+                rootComponentName,
+                rootComponentDescription,
+                rootComponentStatus,
+                Enumerable.Empty<IReadOnlyComponent>());
+
+            var eventPath = "path";
+            var eventStartTime = new DateTime(2018, 11, 15);
+            var eventEndTime = new DateTime(2018, 11, 16);
+            var messageTime = new DateTime(2018, 11, 17);
+            var messageContents = "contents";
+            var recentEvents = new[] 
+            {
+                new Event(
+                    eventPath, 
+                    eventStartTime, 
+                    eventEndTime, 
+                    new[] 
+                    {
+                        new Message(
+                            messageTime, 
+                            messageContents)
+                    })
+            };
+
+            var status = new ServiceStatus(lastBuilt, lastUpdated, rootComponent, recentEvents);
+
+            // Assert ServiceStatus
+            Assert.Equal(lastBuilt, status.LastBuilt);
+            Assert.Equal(lastUpdated, status.LastUpdated);
+            Assert.Equal(rootComponent, status.ServiceRootComponent);
+            AssertUtility.AssertComponent(rootComponent, status.ServiceRootComponent);
+            Assert.Equal(recentEvents, status.Events);
+            AssertUtility.AssertAll(recentEvents, status.Events, AssertUtility.AssertEvent);
+
+            // Assert ReadOnlyComponent
+            var actualRootComponent = status.ServiceRootComponent;
+            Assert.Equal(rootComponentName, actualRootComponent.Name);
+            Assert.Equal(rootComponentDescription, actualRootComponent.Description);
+            Assert.Equal(rootComponentStatus, actualRootComponent.Status);
+
+            // Assert Event
+            var actualEvent = status.Events.Single();
+            Assert.Equal(eventPath, actualEvent.AffectedComponentPath);
+            Assert.Equal(eventStartTime, actualEvent.StartTime);
+            Assert.Equal(eventEndTime, actualEvent.EndTime);
+
+            // Assert Message
+            var actualMessage = actualEvent.Messages.Single();
+            Assert.Equal(messageTime, actualMessage.Time);
+            Assert.Equal(messageContents, actualMessage.Contents);
+        }
+
+        [Fact]
         public void SerializesAndDeserializesCorrectly()
         {
             var expected = CreateStatus();
@@ -25,6 +87,7 @@ namespace NuGet.Services.Status.Tests
         private static ServiceStatus CreateStatus()
         {
             return new ServiceStatus(
+                GetDate(),
                 GetDate(), 
                 CreateRootComponent(),
                 new[] { CreateEvent(), CreateEvent(), CreateEvent() });

@@ -15,6 +15,18 @@ namespace NuGet.Services.Status
         /// <summary>
         /// The time this status was generated.
         /// </summary>
+        /// <remarks>
+        /// Every time the status backend runs it will update this field to the current time.
+        /// </remarks>
+        public DateTime LastBuilt { get; }
+
+        /// <summary>
+        /// The last time the status was updated.
+        /// </summary>
+        /// <remarks>
+        /// This field is updated to the current time whenever the status backend is able to successfully refresh its information.
+        /// If the status backend is running, but is unable to refresh its information, this field will stagnate.
+        /// </remarks>
         public DateTime LastUpdated { get; }
 
         /// <summary>
@@ -28,31 +40,32 @@ namespace NuGet.Services.Status
         /// </summary>
         public IEnumerable<Event> Events { get; }
 
-        public ServiceStatus(IReadOnlyComponent serviceRootComponent, IEnumerable<Event> events)
-            : this(DateTime.Now, serviceRootComponent, events)
-        {
-        }
-
-        public ServiceStatus(IComponent serviceRootComponent, IEnumerable<Event> events)
-            : this(DateTime.Now, serviceRootComponent, events)
-        {
-        }
-
         public ServiceStatus(DateTime lastUpdated, IReadOnlyComponent serviceRootComponent, IEnumerable<Event> events)
+            : this(DateTime.Now, lastUpdated, serviceRootComponent, events)
         {
+        }
+
+        public ServiceStatus(DateTime lastUpdated, IComponent serviceRootComponent, IEnumerable<Event> events)
+            : this(DateTime.Now, lastUpdated, serviceRootComponent, events)
+        {
+        }
+
+        public ServiceStatus(DateTime lastBuilt, DateTime lastUpdated, IReadOnlyComponent serviceRootComponent, IEnumerable<Event> events)
+        {
+            LastBuilt = lastBuilt;
             LastUpdated = lastUpdated;
             ServiceRootComponent = serviceRootComponent;
             Events = events;
         }
 
-        public ServiceStatus(DateTime lastUpdated, IComponent serviceRootComponent, IEnumerable<Event> events)
-            : this(lastUpdated, new ReadOnlyComponent(serviceRootComponent), events)
+        public ServiceStatus(DateTime lastBuilt, DateTime lastUpdated, IComponent serviceRootComponent, IEnumerable<Event> events)
+            : this(lastBuilt, lastUpdated, new ReadOnlyComponent(serviceRootComponent), events)
         {
         }
 
         [JsonConstructor]
-        public ServiceStatus(DateTime lastUpdated, ReadOnlyComponent serviceRootComponent, IEnumerable<Event> events)
-            : this(lastUpdated, (IReadOnlyComponent)serviceRootComponent, events)
+        public ServiceStatus(DateTime lastBuilt, DateTime lastUpdated, ReadOnlyComponent serviceRootComponent, IEnumerable<Event> events)
+            : this(lastBuilt, lastUpdated, (IReadOnlyComponent)serviceRootComponent, events)
         {
         }
     }
