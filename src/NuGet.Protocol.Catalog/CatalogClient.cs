@@ -2,8 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.IO;
-using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -12,24 +10,26 @@ namespace NuGet.Protocol.Catalog
 {
     public class CatalogClient : ICatalogClient
     {
-        private static readonly JsonSerializer JsonSerializer = CatalogJsonSerialization.Serializer;
-        private readonly HttpClient _httpClient;
+        private static readonly JsonSerializer JsonSerializer = NuGetJsonSerialization.Serializer;
+        private readonly ISimpleHttpClient _jsonClient;
         private readonly ILogger<CatalogClient> _logger;
 
-        public CatalogClient(HttpClient httpClient, ILogger<CatalogClient> logger)
+        public CatalogClient(ISimpleHttpClient jsonClient, ILogger<CatalogClient> logger)
         {
-            _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+            _jsonClient = jsonClient ?? throw new ArgumentNullException(nameof(jsonClient));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public Task<CatalogIndex> GetIndexAsync(string indexUrl)
+        public async Task<CatalogIndex> GetIndexAsync(string indexUrl)
         {
-            return DeserializeUrlAsync<CatalogIndex>(indexUrl);
+            var result = await _jsonClient.DeserializeUrlAsync<CatalogIndex>(indexUrl);
+            return result.GetResultOrThrow();
         }
 
-        public Task<CatalogPage> GetPageAsync(string pageUrl)
+        public async Task<CatalogPage> GetPageAsync(string pageUrl)
         {
-            return DeserializeUrlAsync<CatalogPage>(pageUrl);
+            var result = await _jsonClient.DeserializeUrlAsync<CatalogPage>(pageUrl);
+            return result.GetResultOrThrow();
         }
 
         public async Task<CatalogLeaf> GetLeafAsync(string leafUrl)
@@ -37,15 +37,15 @@ namespace NuGet.Protocol.Catalog
             // Buffer all of the JSON so we can parse twice. Once to determine the leaf type and once to deserialize
             // the entire thing to the proper leaf type.
             _logger.LogDebug("Downloading {leafUrl} as a byte array.", leafUrl);
-            var jsonBytes = await _httpClient.GetByteArrayAsync(leafUrl);
-            var untypedLeaf = DeserializeBytes<CatalogLeaf>(jsonBytes);
+            var jsonBytes = await _jsonClient.GetByteArrayAsync(leafUrl);
+            var untypedLeaf = _jsonClient.DeserializeBytes<CatalogLeaf>(jsonBytes);
 
             switch (untypedLeaf.Type)
             {
                 case CatalogLeafType.PackageDetails:
-                    return DeserializeBytes<PackageDetailsCatalogLeaf>(jsonBytes);
+                    return _jsonClient.DeserializeBytes<PackageDetailsCatalogLeaf>(jsonBytes);
                 case CatalogLeafType.PackageDelete:
-                    return DeserializeBytes<PackageDeleteCatalogLeaf>(jsonBytes);
+                    return _jsonClient.DeserializeBytes<PackageDeleteCatalogLeaf>(jsonBytes);
                 default:
                     throw new NotSupportedException($"The catalog leaf type '{untypedLeaf.Type}' is not supported.");
             }
@@ -76,7 +76,8 @@ namespace NuGet.Protocol.Catalog
 
         private async Task<T> GetAndValidateLeafAsync<T>(CatalogLeafType type, string leafUrl) where T : CatalogLeaf
         {
-            var leaf = await DeserializeUrlAsync<T>(leafUrl);
+            var result = await _jsonClient.DeserializeUrlAsync<T>(leafUrl);
+            var leaf = result.GetResultOrThrow();
 
             if (leaf.Type != type)
             {
@@ -86,28 +87,6 @@ namespace NuGet.Protocol.Catalog
             }
 
             return leaf;
-        }
-
-        private T DeserializeBytes<T>(byte[] jsonBytes)
-        {
-            using (var stream = new MemoryStream(jsonBytes))
-            using (var textReader = new StreamReader(stream))
-            using (var jsonReader = new JsonTextReader(textReader))
-            {
-                return JsonSerializer.Deserialize<T>(jsonReader);
-            }
-        }
-
-        private async Task<T> DeserializeUrlAsync<T>(string documentUrl)
-        {
-            _logger.LogDebug("Downloading {documentUrl} as a stream.", documentUrl);
-
-            using (var stream = await _httpClient.GetStreamAsync(documentUrl))
-            using (var textReader = new StreamReader(stream))
-            using (var jsonReader = new JsonTextReader(textReader))
-            {
-                return JsonSerializer.Deserialize<T>(jsonReader);
-            }
         }
     }
 }

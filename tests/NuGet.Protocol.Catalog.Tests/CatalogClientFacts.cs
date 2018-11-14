@@ -19,7 +19,7 @@ namespace NuGet.Protocol.Catalog
                 // Arrange
                 using (var httpClient = new HttpClient(new TestDataHttpMessageHandler()))
                 {
-                    var client = new CatalogClient(httpClient, new NullLogger<CatalogClient>());
+                    var client = GetCatalogClient(httpClient);
 
                     // Act
                     var actual = await client.GetIndexAsync(TestData.CatalogIndexUrl);
@@ -41,7 +41,7 @@ namespace NuGet.Protocol.Catalog
                 // Arrange
                 using (var httpClient = new HttpClient(new TestDataHttpMessageHandler()))
                 {
-                    var client = new CatalogClient(httpClient, new NullLogger<CatalogClient>());
+                    var client = GetCatalogClient(httpClient);
 
                     // Act
                     var actual = await client.GetPageAsync(TestData.CatalogPageUrl);
@@ -63,7 +63,7 @@ namespace NuGet.Protocol.Catalog
                 // Arrange
                 using (var httpClient = new HttpClient(new TestDataHttpMessageHandler()))
                 {
-                    var client = new CatalogClient(httpClient, new NullLogger<CatalogClient>());
+                    var client = GetCatalogClient(httpClient);
 
                     // Act
                     var actual = await client.GetPackageDeleteLeafAsync(TestData.PackageDeleteCatalogLeafUrl);
@@ -82,7 +82,7 @@ namespace NuGet.Protocol.Catalog
                 // Arrange
                 using (var httpClient = new HttpClient(new TestDataHttpMessageHandler()))
                 {
-                    var client = new CatalogClient(httpClient, new NullLogger<CatalogClient>());
+                    var client = GetCatalogClient(httpClient);
 
                     // Act
                     var actual = await client.GetPackageDetailsLeafAsync(TestData.PackageDetailsCatalogLeafUrl);
@@ -101,7 +101,7 @@ namespace NuGet.Protocol.Catalog
                 // Arrange
                 using (var httpClient = new HttpClient(new TestDataHttpMessageHandler()))
                 {
-                    var client = new CatalogClient(httpClient, new NullLogger<CatalogClient>());
+                    var client = GetCatalogClient(httpClient);
 
                     // Act
                     var actual = await client.GetLeafAsync(TestData.PackageDeleteCatalogLeafUrl);
@@ -117,7 +117,7 @@ namespace NuGet.Protocol.Catalog
                 // Arrange
                 using (var httpClient = new HttpClient(new TestDataHttpMessageHandler()))
                 {
-                    var client = new CatalogClient(httpClient, new NullLogger<CatalogClient>());
+                    var client = GetCatalogClient(httpClient);
 
                     // Act
                     var actual = await client.GetLeafAsync(TestData.PackageDetailsCatalogLeafUrl);
@@ -126,6 +126,11 @@ namespace NuGet.Protocol.Catalog
                     Assert.NotNull(actual);
                 }
             }
+        }
+
+        private static CatalogClient GetCatalogClient(HttpClient httpClient)
+        {
+            return new CatalogClient(new SimpleHttpClient(httpClient, new NullLogger<SimpleHttpClient>()), new NullLogger<CatalogClient>());
         }
     }
 }

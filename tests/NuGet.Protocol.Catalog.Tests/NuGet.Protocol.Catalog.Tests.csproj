@@ -36,6 +36,7 @@
   <ItemGroup>
     <Compile Include="CatalogClientFacts.cs" />
     <Compile Include="CatalogProcessorSettingsFacts.cs" />
+    <Compile Include="Models\ModelExtensionsFacts.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TestData.Designer.cs">
       <AutoGen>True</AutoGen>

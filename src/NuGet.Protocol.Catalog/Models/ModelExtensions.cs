@@ -151,7 +151,7 @@ namespace NuGet.Protocol.Catalog
         }
 
         /// <summary>
-        /// Determines if the provided package details list represents a listed package.
+        /// Determines if the provided package details leaf represents a listed package.
         /// </summary>
         /// <param name="leaf">The catalog leaf.</param>
         /// <returns>True if the package is listed.</returns>
@@ -165,6 +165,48 @@ namespace NuGet.Protocol.Catalog
             // A published year of 1900 indicates that this package is unlisted, when the listed property itself is
             // not present (legacy behavior).
             return leaf.Published.Year != 1900;
+        }
+
+        /// <summary>
+        /// Determines if the provied package details leaf represents a SemVer 2.0.0 package. A package is considered
+        /// SemVer 2.0.0 if it's version is SemVer 2.0.0 or one of its dependency version ranges is SemVer 2.0.0.
+        /// </summary>
+        /// <param name="leaf">The catalog leaf.</param>
+        /// <returns>True if the package is SemVer 2.0.0.</returns>
+        public static bool IsSemVer2(this PackageDetailsCatalogLeaf leaf)
+        {
+            var parsedPackageVersion = leaf.ParsePackageVersion();
+            if (parsedPackageVersion.IsSemVer2)
+            {
+                return true;
+            }
+
+            if (leaf.VerbatimVersion != null)
+            {
+                var parsedVerbatimVersion = NuGetVersion.Parse(leaf.VerbatimVersion);
+                if (parsedVerbatimVersion.IsSemVer2)
+                {
+                    return true;
+                }
+            }
+
+            if (leaf.DependencyGroups != null)
+            {
+                foreach (var dependencyGroup in leaf.DependencyGroups)
+                {
+                    foreach (var dependency in dependencyGroup.Dependencies)
+                    {
+                        var versionRange = dependency.ParseRange();
+                        if ((versionRange.MaxVersion != null && versionRange.MaxVersion.IsSemVer2)
+                            || (versionRange.MinVersion != null && versionRange.MinVersion.IsSemVer2))
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
         }
     }
 }

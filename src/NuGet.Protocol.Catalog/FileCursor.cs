@@ -15,7 +15,7 @@ namespace NuGet.Protocol.Catalog
     /// </summary>
     public class FileCursor : ICursor
     {
-        private static readonly JsonSerializerSettings Settings = CatalogJsonSerialization.Settings;
+        private static readonly JsonSerializerSettings Settings = NuGetJsonSerialization.Settings;
         private readonly string _path;
         private readonly ILogger<FileCursor> _logger;
 

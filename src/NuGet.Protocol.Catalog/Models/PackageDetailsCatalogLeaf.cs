@@ -12,6 +12,9 @@ namespace NuGet.Protocol.Catalog
         [JsonProperty("authors")]
         public string Authors { get; set; }
 
+        [JsonProperty("copyright")]
+        public string Copyright { get; set; }
+
         [JsonProperty("created")]
         public DateTimeOffset Created { get; set; }
 
