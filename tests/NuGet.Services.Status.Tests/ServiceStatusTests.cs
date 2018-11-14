@@ -102,13 +102,16 @@ namespace NuGet.Services.Status.Tests
                     new[] 
                     {
                         CreateTreeComponent(),
-                        CreatePrimarySecondaryComponent(),
+                        CreateActivePassiveComponent(),
+                        CreateActiveActiveComponent(),
                         CreateSubComponent(),
                         CreateTreeComponent(),
-                        CreatePrimarySecondaryComponent(),
+                        CreateActivePassiveComponent(),
+                        CreateActiveActiveComponent(),
                         CreateSubComponent(),
                         CreateTreeComponent(),
-                        CreatePrimarySecondaryComponent(),
+                        CreateActivePassiveComponent(),
+                        CreateActiveActiveComponent(),
                         CreateSubComponent()
                     }));
         }
@@ -126,13 +129,26 @@ namespace NuGet.Services.Status.Tests
                     }));
         }
 
-        private static IComponent CreatePrimarySecondaryComponent()
+        private static IComponent CreateActivePassiveComponent()
         {
             return CreateComponent(
-                new PrimarySecondaryComponent(
-                    GetString(), 
-                    GetString(), 
-                    new[] 
+                new ActivePassiveComponent(
+                    GetString(),
+                    GetString(),
+                    new[]
+                    {
+                        CreateSubComponent(),
+                        CreateSubComponent()
+                    }));
+        }
+
+        private static IComponent CreateActiveActiveComponent()
+        {
+            return CreateComponent(
+                new ActiveActiveComponent(
+                    GetString(),
+                    GetString(),
+                    new[]
                     {
                         CreateSubComponent(),
                         CreateSubComponent()

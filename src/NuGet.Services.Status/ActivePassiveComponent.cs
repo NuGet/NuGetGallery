@@ -6,10 +6,10 @@ using System.Collections.Generic;
 namespace NuGet.Services.Status
 {
     /// <summary>
-    /// An <see cref="Component"/> that ignores the status of its secondary subcomponents if its primary subcomponent is up.
+    /// An <see cref="IComponent"/> with an active component that ignores the status of its passive subcomponents if its active subcomponent is up.
     /// </summary>
     /// <remarks>
-    /// The primary subcomponent is the first subcomponent in its <see cref="Component.SubComponents"/>.
+    /// The active subcomponent is the first subcomponent in its <see cref="Component.SubComponents"/>. All other subcomponents are passive.
     /// </remarks>
     /// <example>
     /// A website is deployed to two regions, region A and region B.
@@ -17,16 +17,16 @@ namespace NuGet.Services.Status
     /// If region A is not performing as expected, traffic is directed to region B.
     /// Customers will never see an impact as long as region A is up, even if region B is completely down.
     /// </example>
-    public class PrimarySecondaryComponent : Component
+    public class ActivePassiveComponent : Component
     {
-        public PrimarySecondaryComponent(
+        public ActivePassiveComponent(
             string name,
             string description)
             : base(name, description)
         {
         }
 
-        public PrimarySecondaryComponent(
+        public ActivePassiveComponent(
             string name,
             string description,
             IEnumerable<IComponent> subComponents)

@@ -51,6 +51,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ActiveActiveComponent.cs" />
     <Compile Include="Component.cs" />
     <Compile Include="ComponentUtility.cs" />
     <Compile Include="Constants.cs" />
@@ -62,7 +63,7 @@
     <Compile Include="ComponentStatus.cs" />
     <Compile Include="IReadOnlyComponent.cs" />
     <Compile Include="Message.cs" />
-    <Compile Include="PrimarySecondaryComponent.cs" />
+    <Compile Include="ActivePassiveComponent.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ReadOnlyComponentWrapper.cs" />
     <Compile Include="ServiceStatus.cs" />

@@ -5,16 +5,16 @@ using System.Collections.Generic;
 
 namespace NuGet.Services.Status.Tests
 {
-    public class PrimarySecondaryComponentTests : ComponentWithSubComponentsTests
+    public class ActivePassiveComponentTests : ComponentWithSubComponentsTests
     {
         protected override IComponent CreateComponent(string name, string description)
         {
-            return new PrimarySecondaryComponent(name, description);
+            return new ActivePassiveComponent(name, description);
         }
 
         protected override IComponent CreateComponent(string name, string description, IEnumerable<IComponent> subComponents)
         {
-            return new PrimarySecondaryComponent(name, description, subComponents);
+            return new ActivePassiveComponent(name, description, subComponents);
         }
 
         protected override ComponentStatus GetExpectedStatusWithTwoSubComponents(ComponentStatus subStatus1, ComponentStatus subStatus2)

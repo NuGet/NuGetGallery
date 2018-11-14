@@ -42,13 +42,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ActiveActiveComponentTests.cs" />
     <Compile Include="ComponentTestData.cs" />
     <Compile Include="ComponentTests.cs" />
     <Compile Include="ComponentWithSubComponentsTests.cs" />
     <Compile Include="GetAllComponentsTests.cs" />
     <Compile Include="GetDeepestVisibleAffectedComponentPathTests.cs" />
     <Compile Include="LeafComponentTests.cs" />
-    <Compile Include="PrimarySecondaryComponentTests.cs" />
+    <Compile Include="ActivePassiveComponentTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ServiceStatusTests.cs" />
     <Compile Include="TestComponent.cs" />
