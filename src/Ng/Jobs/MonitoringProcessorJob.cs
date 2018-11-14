@@ -207,6 +207,7 @@ namespace Ng.Jobs
 
             var catalogPageUri = new Uri(leafBlob["@id"].ToString());
             var catalogPage = await _client.GetJObjectAsync(catalogPageUri, token);
+
             return new CatalogIndexEntry[]
             {
                 new CatalogIndexEntry(
@@ -214,8 +215,7 @@ namespace Ng.Jobs
                     Schema.DataTypes.PackageDetails.ToString(),
                     catalogPage["catalog:commitId"].ToString(),
                     DateTime.Parse(catalogPage["catalog:commitTimeStamp"].ToString()),
-                    id,
-                    version)
+                    new PackageIdentity(id, version))
             };
         }
 

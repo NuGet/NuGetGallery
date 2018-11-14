@@ -3,51 +3,44 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+using NuGet.Packaging.Core;
 using NuGet.Versioning;
 
 namespace NuGet.Services.Metadata.Catalog
 {
     public sealed class CatalogIndexEntry : IComparable<CatalogIndexEntry>
     {
-        private static readonly CatalogIndexEntryDateComparer _commitTimeStampComparer = new CatalogIndexEntryDateComparer();
-
         [JsonConstructor]
         private CatalogIndexEntry()
         {
             Types = Enumerable.Empty<string>();
         }
 
-        public CatalogIndexEntry(Uri uri, string type, string commitId, DateTime commitTs, string id, NuGetVersion version)
+        public CatalogIndexEntry(
+            Uri uri,
+            string type,
+            string commitId,
+            DateTime commitTs,
+            PackageIdentity packageIdentity)
         {
-            Uri = uri ?? throw new ArgumentNullException(nameof(uri));
-
             if (string.IsNullOrWhiteSpace(type))
             {
-                throw new ArgumentException(Strings.ArgumentMustNotBeNullOrEmpty, nameof(type));
+                throw new ArgumentException(Strings.ArgumentMustNotBeNullEmptyOrWhitespace, nameof(type));
             }
 
-            Types = new[] { type };
-            IsDelete = type == "nuget:PackageDelete";
+            Initialize(uri, new[] { type }, commitId, commitTs, packageIdentity);
+        }
 
-            if (string.IsNullOrWhiteSpace(commitId))
-            {
-                throw new ArgumentException(Strings.ArgumentMustNotBeNullOrEmpty, nameof(commitId));
-            }
-
-            CommitId = commitId;
-            CommitTimeStamp = commitTs;
-
-            if (string.IsNullOrWhiteSpace(id))
-            {
-                throw new ArgumentException(Strings.ArgumentMustNotBeNullOrEmpty, nameof(id));
-            }
-
-            Id = id;
-            Version = version ?? throw new ArgumentNullException(nameof(version));
+        public CatalogIndexEntry(
+            Uri uri,
+            IReadOnlyList<string> types,
+            string commitId,
+            DateTime commitTs,
+            PackageIdentity packageIdentity)
+        {
+            Initialize(uri, types, commitId, commitTs, packageIdentity);
         }
 
         [JsonProperty("@id")]
@@ -76,7 +69,7 @@ namespace NuGet.Services.Metadata.Catalog
         public NuGetVersion Version { get; private set; }
 
         [JsonIgnore]
-        public bool IsDelete { get; }
+        public bool IsDelete { get; private set; }
 
         public int CompareTo(CatalogIndexEntry other)
         {
@@ -85,37 +78,61 @@ namespace NuGet.Services.Metadata.Catalog
                 throw new ArgumentNullException(nameof(other));
             }
 
-            return _commitTimeStampComparer.Compare(this, other);
+            return CommitTimeStamp.CompareTo(other.CommitTimeStamp);
         }
 
-        public static CatalogIndexEntry Create(JToken token)
+        public static CatalogIndexEntry Create(CatalogCommitItem commitItem)
         {
-            if (token == null)
+            if (commitItem == null)
             {
-                throw new ArgumentNullException(nameof(token));
+                throw new ArgumentNullException(nameof(commitItem));
             }
 
-            var uri = new Uri(token["@id"].ToString());
-            var type = token["@type"].ToString();
-            var commitId = token["commitId"].ToString();
-            var commitTimeStamp = DateTime.ParseExact(
-                token["commitTimeStamp"].ToString(),
-                "yyyy-MM-ddTHH:mm:ss.FFFFFFFZ",
-                DateTimeFormatInfo.CurrentInfo,
-                DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal);
-
-            var packageId = token["nuget:id"].ToString();
-            var packageVersion = NuGetVersion.Parse(token["nuget:version"].ToString());
-
-            return new CatalogIndexEntry(uri, type, commitId, commitTimeStamp, packageId, packageVersion);
+            return new CatalogIndexEntry(
+                commitItem.Uri,
+                commitItem.Types,
+                commitItem.CommitId,
+                commitItem.CommitTimeStamp,
+                commitItem.PackageIdentity);
         }
-    }
 
-    public class CatalogIndexEntryDateComparer : IComparer<CatalogIndexEntry>
-    {
-        public int Compare(CatalogIndexEntry x, CatalogIndexEntry y)
+        private void Initialize(
+            Uri uri,
+            IReadOnlyList<string> types,
+            string commitId,
+            DateTime commitTs,
+            PackageIdentity packageIdentity)
         {
-            return x.CommitTimeStamp.CompareTo(y.CommitTimeStamp);
+            Uri = uri ?? throw new ArgumentNullException(nameof(uri));
+
+            if (types == null || !types.Any())
+            {
+                throw new ArgumentException(Strings.ArgumentMustNotBeNullOrEmpty, nameof(types));
+            }
+
+            if (types.Any(type => string.IsNullOrWhiteSpace(type)))
+            {
+                throw new ArgumentException(Strings.ArgumentMustNotBeNullEmptyOrWhitespace, nameof(types));
+            }
+
+            Types = types;
+            IsDelete = types.Any(type => type == "nuget:PackageDelete");
+
+            if (string.IsNullOrWhiteSpace(commitId))
+            {
+                throw new ArgumentException(Strings.ArgumentMustNotBeNullOrEmpty, nameof(commitId));
+            }
+
+            CommitId = commitId;
+            CommitTimeStamp = commitTs;
+
+            if (packageIdentity == null)
+            {
+                throw new ArgumentNullException(nameof(packageIdentity));
+            }
+
+            Id = packageIdentity.Id;
+            Version = packageIdentity.Version;
         }
     }
 }

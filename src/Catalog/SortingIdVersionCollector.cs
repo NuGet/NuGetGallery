@@ -3,7 +3,6 @@
 
 using System;
 using System.Net.Http;
-using Newtonsoft.Json.Linq;
 using NuGet.Services.Metadata.Catalog.Helpers;
 
 namespace NuGet.Services.Metadata.Catalog
@@ -15,9 +14,9 @@ namespace NuGet.Services.Metadata.Catalog
         {
         }
 
-        protected override FeedPackageIdentity GetKey(JObject item)
+        protected override FeedPackageIdentity GetKey(CatalogCommitItem item)
         {
-            return new FeedPackageIdentity(item["nuget:id"].ToString(), item["nuget:version"].ToString());
+            return new FeedPackageIdentity(item.PackageIdentity);
         }
     }
 }

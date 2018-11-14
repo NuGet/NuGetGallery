@@ -4,12 +4,12 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using NgTests.Data;
 using NgTests.Infrastructure;
+using NuGet.Packaging.Core;
 using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Monitoring;
 using NuGet.Versioning;
@@ -107,8 +107,7 @@ namespace NgTests
                         CatalogConstants.NuGetPackageDetails,
                         "9a37734f-1960-4c07-8934-c8bc797e35c1",
                         commitTimeStamp1,
-                        "ListedPackage",
-                        new NuGetVersion("1.0.0"))),
+                        new PackageIdentity("ListedPackage", new NuGetVersion("1.0.0")))),
                 PackageTimestampMetadata.FromCatalogEntry(
                     client,
                     new CatalogIndexEntry(
@@ -116,8 +115,7 @@ namespace NgTests
                         CatalogConstants.NuGetPackageDetails,
                         "9a37734f-1960-4c07-8934-c8bc797e35c1",
                         commitTimeStamp1,
-                        "UnlistedPackage",
-                        new NuGetVersion("1.0.0"))),
+                        new PackageIdentity("UnlistedPackage", new NuGetVersion("1.0.0")))),
                 PackageTimestampMetadata.FromCatalogEntry(
                     client,
                     new CatalogIndexEntry(
@@ -125,8 +123,7 @@ namespace NgTests
                         CatalogConstants.NuGetPackageDetails,
                         "8a9e7694-73d4-4775-9b7a-20aa59b9773e",
                         commitTimeStamp2,
-                        "ListedPackage",
-                        new NuGetVersion("1.0.1"))),
+                        new PackageIdentity("ListedPackage", new NuGetVersion("1.0.1"))))
             };
 
             // Act
@@ -162,8 +159,7 @@ namespace NgTests
                     CatalogConstants.CommitTimeStampFormat,
                     DateTimeFormatInfo.CurrentInfo,
                     DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal),
-                "OtherPackage",
-                new NuGetVersion("1.0.0"));
+                new PackageIdentity("OtherPackage", new NuGetVersion("1.0.0")));
 
             // Act
             var entry = await PackageTimestampMetadata.FromCatalogEntry(client, catalogIndexEntry);

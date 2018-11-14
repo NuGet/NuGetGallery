@@ -305,14 +305,13 @@ namespace NgTests
             var nupkgUri = _catalogToDnxStorage.ResolveUri("/listedpackage/1.0.0/listedpackage.1.0.0.nupkg");
             var nuspecUri = _catalogToDnxStorage.ResolveUri("/listedpackage/1.0.0/listedpackage.nuspec");
             var catalogStorage = Catalogs.CreateTestCatalogWithThreePackagesAndDelete();
-            var nupkgStream = File.OpenRead("Packages\\ListedPackage.1.0.0.zip");
-            var expectedNupkg = GetStreamBytes(nupkgStream);
+            var expectedNupkg = File.ReadAllBytes("Packages\\ListedPackage.1.0.0.zip");
 
             await _mockServer.AddStorageAsync(catalogStorage);
 
             _mockServer.SetAction(
                 "/packages/listedpackage.1.0.0.nupkg",
-                request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(nupkgStream) }));
+                request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new ByteArrayContent(expectedNupkg) }));
 
             var front = new DurableCursor(_cursorJsonUri, _catalogToDnxStorage, MemoryCursor.MinValue);
             ReadCursor back = MemoryCursor.CreateMax();
@@ -409,7 +408,6 @@ namespace NgTests
             var nupkgUri = _catalogToDnxStorage.ResolveUri("/listedpackage/1.0.1/listedpackage.1.0.1.nupkg");
             var nuspecUri = _catalogToDnxStorage.ResolveUri("/listedpackage/1.0.1/listedpackage.nuspec");
             var nupkgStream = File.OpenRead("Packages\\ListedPackage.1.0.1.zip");
-            var expectedNupkg = GetStreamBytes(nupkgStream);
 
             await _catalogToDnxStorage.SaveAsync(
                 new Uri("http://tempuri.org/listedpackage/index.json"),
@@ -464,7 +462,6 @@ namespace NgTests
             var nupkgUri = _catalogToDnxStorage.ResolveUri("/listedpackage/1.0.0/listedpackage.1.0.0.nupkg");
             var nuspecUri = _catalogToDnxStorage.ResolveUri("/listedpackage/1.0.0/listedpackage.nuspec");
             var nupkgStream = File.OpenRead("Packages\\ListedPackage.1.0.0.zip");
-            var expectedNupkg = GetStreamBytes(nupkgStream);
 
             await _catalogToDnxStorage.SaveAsync(
                 new Uri("http://tempuri.org/listedpackage/index.json"),
@@ -518,8 +515,7 @@ namespace NgTests
             var indexJsonUri = _catalogToDnxStorage.ResolveUri("/listedpackage/index.json");
             var nupkgUri = _catalogToDnxStorage.ResolveUri("/listedpackage/1.0.0/listedpackage.1.0.0.nupkg");
             var nuspecUri = _catalogToDnxStorage.ResolveUri("/listedpackage/1.0.0/listedpackage.nuspec");
-            var nupkgStream = File.OpenRead("Packages\\ListedPackage.1.0.0.zip");
-            var expectedNupkg = GetStreamBytes(nupkgStream);
+            var expectedNupkg = File.ReadAllBytes("Packages\\ListedPackage.1.0.0.zip");
 
             await _catalogToDnxStorage.SaveAsync(
                 new Uri("http://tempuri.org/listedpackage/index.json"),
@@ -541,7 +537,7 @@ namespace NgTests
 
             _mockServer.SetAction(
                 "/packages/listedpackage.1.0.0.nupkg",
-                request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(nupkgStream) }));
+                request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new ByteArrayContent(expectedNupkg) }));
 
             var front = new DurableCursor(_cursorJsonUri, _catalogToDnxStorage, MemoryCursor.MinValue);
             ReadCursor back = MemoryCursor.CreateMax();
@@ -753,15 +749,14 @@ namespace NgTests
             var indexJsonUri = _catalogToDnxStorage.ResolveUri("/listedpackage/index.json");
             var nupkgUri = _catalogToDnxStorage.ResolveUri("/listedpackage/1.0.0/listedpackage.1.0.0.nupkg");
             var nuspecUri = _catalogToDnxStorage.ResolveUri("/listedpackage/1.0.0/listedpackage.nuspec");
-            var nupkgStream = File.OpenRead(@"Packages\ListedPackage.1.0.1.zip");
-            var expectedNupkg = GetStreamBytes(nupkgStream);
+            var expectedNupkg = File.ReadAllBytes(@"Packages\ListedPackage.1.0.0.zip");
             var catalogStorage = Catalogs.CreateTestCatalogWithMultipleEntriesWithSamePackageIdentityInSameBatch();
 
             await _mockServer.AddStorageAsync(catalogStorage);
 
             _mockServer.SetAction(
                 "/packages/listedpackage.1.0.0.nupkg",
-                request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(nupkgStream) }));
+                request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new ByteArrayContent(expectedNupkg) }));
 
             var front = new DurableCursor(_cursorJsonUri, _catalogToDnxStorage, MemoryCursor.MinValue);
             ReadCursor back = MemoryCursor.CreateMax();
@@ -770,20 +765,6 @@ namespace NgTests
                 () => _target.RunAsync(front, back, CancellationToken.None));
 
             Assert.Equal("The catalog batch 10/13/2015 6:40:07 AM contains multiple entries for the same package identity.  Package(s):  listedpackage 1.0.0", exception.Message);
-        }
-
-        private static byte[] GetStreamBytes(Stream srcStream)
-        {
-            using (var memoryStream = new MemoryStream())
-            {
-                srcStream.Position = 0;
-
-                srcStream.CopyTo(memoryStream);
-
-                srcStream.Position = 0;
-
-                return memoryStream.ToArray();
-            }
         }
 
         private static string GetExpectedIndexJsonContent(string version)

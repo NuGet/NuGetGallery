@@ -57,18 +57,13 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
 
         protected override async Task<bool> OnProcessBatchAsync(
             CollectorHttpClient client,
-            IEnumerable<JToken> items,
+            IEnumerable<CatalogCommitItem> items,
             JToken context,
             DateTime commitTimeStamp,
             bool isLastBatch,
             CancellationToken cancellationToken)
         {
-            var catalogEntries = items.Select(
-                    item => new CatalogEntry(
-                        item["nuget:id"].ToString().ToLowerInvariant(),
-                        NuGetVersionUtility.NormalizeVersion(item["nuget:version"].ToString()).ToLowerInvariant(),
-                        item["@type"].ToString().Replace("nuget:", Schema.Prefixes.NuGet),
-                        item))
+            var catalogEntries = items.Select(item => CatalogEntry.Create(item))
                 .ToList();
 
             // Sanity check:  a single catalog batch should not contain multiple entries for the same package ID and version.
@@ -95,7 +90,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
                 var packageId = catalogEntry.PackageId;
                 var normalizedPackageVersion = catalogEntry.NormalizedPackageVersion;
 
-                if (catalogEntry.EntryType == Schema.DataTypes.PackageDetails.ToString())
+                if (catalogEntry.Type.AbsoluteUri == Schema.DataTypes.PackageDetails.AbsoluteUri)
                 {
                     var properties = GetTelemetryProperties(catalogEntry);
 
@@ -138,7 +133,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
                         }
                     }
                 }
-                else if (catalogEntry.EntryType == Schema.DataTypes.PackageDelete.ToString())
+                else if (catalogEntry.Type.AbsoluteUri == Schema.DataTypes.PackageDelete.AbsoluteUri)
                 {
                     var properties = GetTelemetryProperties(catalogEntry);
 
@@ -190,11 +185,11 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
                     {
                         foreach (var catalogEntry in catalogEntryGroup)
                         {
-                            if (catalogEntry.EntryType == Schema.DataTypes.PackageDetails.ToString())
+                            if (catalogEntry.Type.AbsoluteUri == Schema.DataTypes.PackageDetails.AbsoluteUri)
                             {
                                 versions.Add(NuGetVersion.Parse(catalogEntry.NormalizedPackageVersion));
                             }
-                            else if (catalogEntry.EntryType == Schema.DataTypes.PackageDelete.ToString())
+                            else if (catalogEntry.Type.AbsoluteUri == Schema.DataTypes.PackageDelete.AbsoluteUri)
                             {
                                 versions.Remove(NuGetVersion.Parse(catalogEntry.NormalizedPackageVersion));
                             }
@@ -445,17 +440,30 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
 
         private sealed class CatalogEntry
         {
+            internal DateTime CommitTimeStamp { get; }
             internal string PackageId { get; }
             internal string NormalizedPackageVersion { get; }
-            internal string EntryType { get; }
-            internal JToken Entry { get; }
+            internal Uri Type { get; }
 
-            internal CatalogEntry(string packageId, string normalizedPackageVersion, string entryType, JToken entry)
+            private CatalogEntry(DateTime commitTimeStamp, string packageId, string normalizedPackageVersion, Uri type)
             {
+                CommitTimeStamp = commitTimeStamp;
                 PackageId = packageId;
                 NormalizedPackageVersion = normalizedPackageVersion;
-                EntryType = entryType;
-                Entry = entry;
+                Type = type;
+            }
+
+            internal static CatalogEntry Create(CatalogCommitItem item)
+            {
+                var typeUri = item.TypeUris.Single(uri =>
+                    uri.AbsoluteUri == Schema.DataTypes.PackageDetails.AbsoluteUri ||
+                    uri.AbsoluteUri == Schema.DataTypes.PackageDelete.AbsoluteUri);
+
+                return new CatalogEntry(
+                    item.CommitTimeStamp,
+                    item.PackageIdentity.Id.ToLowerInvariant(),
+                    item.PackageIdentity.Version.ToNormalizedString().ToLowerInvariant(),
+                    typeUri);
             }
         }
     }

@@ -8,7 +8,7 @@ namespace NuGet.Services.Metadata.Catalog
     public sealed class BatchProcessingException : Exception
     {
         public BatchProcessingException(Exception inner)
-            : base(Strings.BatchProcessingFailure)
+            : base(Strings.BatchProcessingFailure, inner ?? throw new ArgumentNullException(nameof(inner)))
         {
         }
     }
