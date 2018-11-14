@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Mail;
-using NuGet.Services.Entities;
 
 namespace NuGet.Services.Messaging.Email
 {
@@ -32,41 +31,5 @@ namespace NuGet.Services.Messaging.Email
         public IReadOnlyList<MailAddress> Bcc { get; }
 
         public IReadOnlyList<MailAddress> ReplyTo { get; }
-
-        public static IReadOnlyList<MailAddress> GetAllOwners(PackageRegistration packageRegistration, bool requireEmailAllowed)
-        {
-            if (packageRegistration == null)
-            {
-                throw new ArgumentNullException(nameof(packageRegistration));
-            }
-
-            var recipients = new List<MailAddress>();
-            var owners = requireEmailAllowed 
-                ? packageRegistration.Owners.Where(o => o.EmailAllowed) 
-                : packageRegistration.Owners;
-
-            foreach (var owner in owners)
-            {
-                recipients.Add(owner.ToMailAddress());
-            }
-
-            return recipients;
-        }
-
-        public static IReadOnlyList<MailAddress> GetOwnersSubscribedToPackagePushedNotification(PackageRegistration packageRegistration)
-        {
-            if (packageRegistration == null)
-            {
-                throw new ArgumentNullException(nameof(packageRegistration));
-            }
-
-            var recipients = new List<MailAddress>();
-            foreach (var owner in packageRegistration.Owners.Where(o => o.NotifyPackagePushed))
-            {
-                recipients.Add(owner.ToMailAddress());
-            }
-
-            return recipients;
-        }
     }
 }
