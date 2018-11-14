@@ -11,6 +11,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Moq;
+using NuGet.Packaging.Core;
 using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using NuGet.Versioning;
@@ -20,8 +21,7 @@ namespace NgTests.PackageFixup
 {
     public class PackagesContainerCatalogProcessorFacts
     {
-        private const string PackageId = "TestPackage";
-        private static readonly NuGetVersion PackageVersion = new NuGetVersion("1.0.0");
+        private static readonly PackageIdentity PackageIdentity = new PackageIdentity("TestPackage", new NuGetVersion("1.0.0"));
 
         private readonly CatalogIndexEntry _catalogEntry;
         private readonly Mock<CloudBlockBlob> _rawBlob;
@@ -41,8 +41,7 @@ namespace NgTests.PackageFixup
                 "nuget:PackageDetails",
                 "123",
                 DateTime.UtcNow,
-                PackageId,
-                PackageVersion);
+                PackageIdentity);
 
             _handler = new Mock<IPackagesContainerHandler>();
             _telemetryService = new Mock<ITelemetryService>();

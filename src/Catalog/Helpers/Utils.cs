@@ -6,6 +6,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -359,21 +360,13 @@ namespace NuGet.Services.Metadata.Catalog
             return false;
         }
 
-        public static bool IsType(JToken context, JObject obj, Uri[] types)
-        {
-            foreach (Uri type in types)
-            {
-                if (IsType(context, obj, type))
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-
         public static Uri Expand(JToken context, JToken token)
         {
-            string term = token.ToString();
+            return Expand(context, token.ToString());
+        }
+
+        public static Uri Expand(JToken context, string term)
+        {
             if (term.StartsWith("http:", StringComparison.OrdinalIgnoreCase))
             {
                 return new Uri(term);
@@ -575,6 +568,26 @@ namespace NuGet.Services.Metadata.Catalog
                     TraceException(e.InnerException);
                 }
             }
+        }
+
+        internal static T Deserialize<T>(JObject jObject, string propertyName)
+        {
+            if (jObject == null)
+            {
+                throw new ArgumentNullException(nameof(jObject));
+            }
+
+            if (string.IsNullOrEmpty(propertyName))
+            {
+                throw new ArgumentException(Strings.ArgumentMustNotBeNullOrEmpty, nameof(propertyName));
+            }
+
+            if (!jObject.TryGetValue(propertyName, out var value) || value == null)
+            {
+                throw new ArgumentException(string.Format(CultureInfo.InvariantCulture, Strings.PropertyRequired, propertyName));
+            }
+
+            return value.ToObject<T>();
         }
     }
 }

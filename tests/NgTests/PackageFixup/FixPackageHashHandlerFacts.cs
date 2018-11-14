@@ -9,9 +9,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
 using Moq;
 using NgTests.Infrastructure;
+using NuGet.Packaging.Core;
 using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using NuGet.Versioning;
@@ -21,8 +21,7 @@ namespace NgTests.PackageFixup
 {
     public class FixPackageHashHandlerFacts
     {
-        private const string PackageId = "TestUnsigned";
-        private static readonly NuGetVersion PackageVersion = new NuGetVersion("1.0.0");
+        private static readonly PackageIdentity PackageIdentity = new PackageIdentity("TestUnsigned", new NuGetVersion("1.0.0"));
 
         private readonly CatalogIndexEntry _packageEntry;
         private readonly Mock<ICloudBlockBlob> _blob;
@@ -46,8 +45,7 @@ namespace NgTests.PackageFixup
                 "nuget:PackageDetails",
                 "123",
                 DateTime.UtcNow,
-                PackageId,
-                PackageVersion);
+                PackageIdentity);
 
             _blob = new Mock<ICloudBlockBlob>();
             _blob.Setup(b => b.Uri).Returns(new Uri("http://localhost/packages/testunsigned.1.0.0.nupkg"));
@@ -70,8 +68,8 @@ namespace NgTests.PackageFixup
 
             // Assert
             _blob.Verify(b => b.FetchAttributesAsync(It.IsAny<CancellationToken>()), Times.Once);
-            _telemetryService.Verify(t => t.TrackPackageAlreadyHasHash(PackageId, PackageVersion), Times.Once);
-            _telemetryService.Verify(t => t.TrackPackageHashFixed(PackageId, PackageVersion), Times.Never);
+            _telemetryService.Verify(t => t.TrackPackageAlreadyHasHash(PackageIdentity.Id, PackageIdentity.Version), Times.Once);
+            _telemetryService.Verify(t => t.TrackPackageHashFixed(PackageIdentity.Id, PackageIdentity.Version), Times.Never);
         }
 
         [Fact]
@@ -98,8 +96,8 @@ namespace NgTests.PackageFixup
                     null),
                 Times.Once);
 
-            _telemetryService.Verify(t => t.TrackPackageAlreadyHasHash(PackageId, PackageVersion), Times.Never);
-            _telemetryService.Verify(t => t.TrackPackageHashFixed(PackageId, PackageVersion), Times.Once);
+            _telemetryService.Verify(t => t.TrackPackageAlreadyHasHash(PackageIdentity.Id, PackageIdentity.Version), Times.Never);
+            _telemetryService.Verify(t => t.TrackPackageHashFixed(PackageIdentity.Id, PackageIdentity.Version), Times.Once);
         }
     }
 }

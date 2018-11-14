@@ -20,22 +20,22 @@ namespace NuGet.Services.Metadata.Catalog
 
         protected override async Task<bool> OnProcessBatchAsync(
             CollectorHttpClient client,
-            IEnumerable<JToken> items,
+            IEnumerable<CatalogCommitItem> items,
             JToken context,
             DateTime commitTimeStamp,
             bool isLastBatch,
             CancellationToken cancellationToken)
         {
-            IDictionary<T, IList<JObject>> sortedItems = new Dictionary<T, IList<JObject>>();
+            var sortedItems = new Dictionary<T, IList<CatalogCommitItem>>();
 
-            foreach (JObject item in items)
+            foreach (CatalogCommitItem item in items)
             {
                 T key = GetKey(item);
 
-                IList<JObject> itemList;
+                IList<CatalogCommitItem> itemList;
                 if (!sortedItems.TryGetValue(key, out itemList))
                 {
-                    itemList = new List<JObject>();
+                    itemList = new List<CatalogCommitItem>();
                     sortedItems.Add(key, itemList);
                 }
 
@@ -44,7 +44,7 @@ namespace NuGet.Services.Metadata.Catalog
 
             IList<Task> tasks = new List<Task>();
 
-            foreach (KeyValuePair<T, IList<JObject>> sortedBatch in sortedItems)
+            foreach (KeyValuePair<T, IList<CatalogCommitItem>> sortedBatch in sortedItems)
             {
                 Task task = ProcessSortedBatchAsync(client, sortedBatch, context, cancellationToken);
 
@@ -56,11 +56,11 @@ namespace NuGet.Services.Metadata.Catalog
             return true;
         }
 
-        protected abstract T GetKey(JObject item);
+        protected abstract T GetKey(CatalogCommitItem item);
 
         protected abstract Task ProcessSortedBatchAsync(
             CollectorHttpClient client,
-            KeyValuePair<T, IList<JObject>> sortedBatch,
+            KeyValuePair<T, IList<CatalogCommitItem>> sortedBatch,
             JToken context,
             CancellationToken cancellationToken);
     }

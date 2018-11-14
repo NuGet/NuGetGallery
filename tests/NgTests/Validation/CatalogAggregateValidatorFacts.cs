@@ -190,8 +190,7 @@ namespace NgTests.Validators
                     CatalogConstants.NuGetPackageDetails,
                     Guid.NewGuid().ToString(),
                     commitTimeStamp,
-                    _packageIdentity.Id,
-                    _packageIdentity.Version)
+                    _packageIdentity)
             };
 
             return new ValidationContext(

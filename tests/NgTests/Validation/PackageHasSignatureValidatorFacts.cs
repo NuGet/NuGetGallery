@@ -96,7 +96,7 @@ namespace NgTests
             public void SkipsIfLatestEntryIsDelete()
             {
                 var target = CreateTarget();
-                var uri = new Uri($"https://nuget.test/{PackageId}");
+                var uri = new Uri($"https://nuget.test/{PackageIdentity.Id}");
                 var context = CreateValidationContext(
                     catalogEntries: new[]
                     {
@@ -105,15 +105,13 @@ namespace NgTests
                             type: CatalogConstants.NuGetPackageDetails,
                             commitId: Guid.NewGuid().ToString(),
                             commitTs: DateTime.MinValue,
-                            id: PackageId,
-                            version: PackageNuGetVersion),
+                            packageIdentity: PackageIdentity),
                         new CatalogIndexEntry(
                             uri,
                             type: CatalogConstants.NuGetPackageDelete,
                             commitId: Guid.NewGuid().ToString(),
                             commitTs: DateTime.MinValue.AddDays(1),
-                            id: PackageId,
-                            version: PackageNuGetVersion),
+                            packageIdentity: PackageIdentity),
                     });
 
                 Assert.False(target.ShouldRunValidator(context));
@@ -123,7 +121,7 @@ namespace NgTests
             public void RunsIfLatestEntryIsntDelete()
             {
                 var target = CreateTarget();
-                var uri = new Uri($"https://nuget.test/{PackageId}");
+                var uri = new Uri($"https://nuget.test/{PackageIdentity.Id}");
                 var context = CreateValidationContext(
                     catalogEntries: new[]
                     {
@@ -132,15 +130,13 @@ namespace NgTests
                             type: CatalogConstants.NuGetPackageDelete,
                             commitId: Guid.NewGuid().ToString(),
                             commitTs: DateTime.MinValue,
-                            id: PackageId,
-                            version: PackageNuGetVersion),
+                            packageIdentity: PackageIdentity),
                         new CatalogIndexEntry(
                             uri,
                             type: CatalogConstants.NuGetPackageDetails,
                             commitId: Guid.NewGuid().ToString(),
                             commitTs: DateTime.MinValue.AddDays(1),
-                            id: PackageId,
-                            version: PackageNuGetVersion),
+                            packageIdentity: PackageIdentity),
                     });
 
                 Assert.True(target.ShouldRunValidator(context));
@@ -162,15 +158,13 @@ namespace NgTests
                             type: CatalogConstants.NuGetPackageDetails,
                             commitId: Guid.NewGuid().ToString(),
                             commitTs: DateTime.MinValue,
-                            id: PackageId,
-                            version: PackageNuGetVersion),
+                            packageIdentity: PackageIdentity),
                         new CatalogIndexEntry(
                             uri: new Uri("https://nuget.test/b.json"),
                             type: CatalogConstants.NuGetPackageDetails,
                             commitId: Guid.NewGuid().ToString(),
                             commitTs: DateTime.MinValue.AddDays(1),
-                            id: PackageId,
-                            version: PackageNuGetVersion),
+                            packageIdentity: PackageIdentity),
                     });
 
                 AddCatalogLeaf("/a.json", new CatalogLeaf
@@ -209,15 +203,13 @@ namespace NgTests
                             type: CatalogConstants.NuGetPackageDetails,
                             commitId: Guid.NewGuid().ToString(),
                             commitTs: DateTime.MinValue,
-                            id: PackageId,
-                            version: PackageNuGetVersion),
+                            packageIdentity: PackageIdentity),
                         new CatalogIndexEntry(
                             uri: malformedUri,
                             type: CatalogConstants.NuGetPackageDetails,
                             commitId: Guid.NewGuid().ToString(),
                             commitTs: DateTime.MinValue.AddDays(1),
-                            id: PackageId,
-                            version: PackageNuGetVersion),
+                            packageIdentity: PackageIdentity),
                     });
 
                 AddCatalogLeaf("/a.json", new CatalogLeaf
@@ -257,8 +249,7 @@ namespace NgTests
                             type: CatalogConstants.NuGetPackageDetails,
                             commitId: Guid.NewGuid().ToString(),
                             commitTs: DateTime.MinValue,
-                            id: PackageId,
-                            version: PackageNuGetVersion),
+                            packageIdentity: PackageIdentity),
                     });
 
                 AddCatalogLeaf("/a.json", "{ 'this': 'is missing the packageEntries field' }");
@@ -284,8 +275,7 @@ namespace NgTests
                             type: CatalogConstants.NuGetPackageDetails,
                             commitId: Guid.NewGuid().ToString(),
                             commitTs: DateTime.MinValue,
-                            id: PackageId,
-                            version: PackageNuGetVersion),
+                            packageIdentity: PackageIdentity),
                     });
 
                 AddCatalogLeaf("/a.json", "{ 'packageEntries': 'malformed'}");
@@ -299,10 +289,7 @@ namespace NgTests
 
         public class FactsBase
         {
-            public const string PackageId = "TestPackage";
-            public const string PackageVersion = "1.0.0";
-
-            public static readonly NuGetVersion PackageNuGetVersion = NuGetVersion.Parse(PackageVersion);
+            public static readonly PackageIdentity PackageIdentity = new PackageIdentity("TestPackage", NuGetVersion.Parse("1.0.0"));
 
             protected readonly Mock<ILogger<PackageHasSignatureValidator>> _logger;
             private readonly MockServerHttpClientHandler _mockServer;
@@ -320,7 +307,7 @@ namespace NgTests
                 var httpClient = new CollectorHttpClient(_mockServer);
 
                 return new ValidationContext(
-                    new PackageIdentity(PackageId, PackageNuGetVersion),
+                    PackageIdentity,
                     catalogEntries,
                     new DeletionAuditEntry[0],
                     httpClient,

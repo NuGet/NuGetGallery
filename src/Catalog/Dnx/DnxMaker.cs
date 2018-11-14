@@ -173,7 +173,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             var versions = versionsContext.Versions;
 
             updateAction(versions);
-            List<NuGetVersion> result = new List<NuGetVersion>(versions);
+            var result = new List<NuGetVersion>(versions);
 
             if (result.Any())
             {

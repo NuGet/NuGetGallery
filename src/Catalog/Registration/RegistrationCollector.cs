@@ -3,11 +3,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGet.Services.Metadata.Catalog.Persistence;
@@ -27,9 +26,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
         private readonly StorageFactory _semVer2StorageFactory;
         private readonly ShouldIncludeRegistrationPackage _shouldIncludeSemVer2;
         private readonly int _maxConcurrentBatches;
-
-        // Doesn't exist until .NET 4.6
-        private static readonly Task CompletedTask = Task.FromResult(0);
+        private readonly ILogger _logger;
 
         public RegistrationCollector(
             Uri index,
@@ -37,11 +34,13 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             StorageFactory semVer2StorageFactory,
             Uri contentBaseAddress,
             ITelemetryService telemetryService,
+            ILogger logger,
             Func<HttpMessageHandler> handlerFunc = null,
             int maxConcurrentBatches = DefaultMaxConcurrentBatches)
             : base(index, new Uri[] { Schema.DataTypes.PackageDetails, Schema.DataTypes.PackageDelete }, telemetryService, handlerFunc)
         {
             _legacyStorageFactory = legacyStorageFactory ?? throw new ArgumentNullException(nameof(legacyStorageFactory));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _semVer2StorageFactory = semVer2StorageFactory;
             _shouldIncludeSemVer2 = GetShouldIncludeRegistrationPackage(_semVer2StorageFactory);
             ContentBaseAddress = contentBaseAddress;
@@ -59,7 +58,8 @@ namespace NuGet.Services.Metadata.Catalog.Registration
 
         public Uri ContentBaseAddress { get; }
 
-        protected override Task<IEnumerable<CatalogItemBatch>> CreateBatchesAsync(IEnumerable<CatalogItem> catalogItems)
+        protected override Task<IEnumerable<CatalogCommitItemBatch>> CreateBatchesAsync(
+            IEnumerable<CatalogCommitItem> catalogItems)
         {
             // Grouping batches by commit is slow if it contains
             // the same package registration id over and over again.
@@ -80,31 +80,14 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             // from the correct location (even though we may have
             // a little rework).
 
-            var batches = catalogItems
-                .GroupBy(item => GetKey(item.Value))
-                .Select(group => new CatalogItemBatch(
-                    group.Min(item => item.CommitTimeStamp),
-                    group));
+            var batches = CatalogCommitUtilities.CreateCommitItemBatches(catalogItems, GetKey);
 
             return Task.FromResult(batches);
         }
 
-        private async Task<CatalogItemBatch[]> CreateBatchesAsync(ReadWriteCursor front, ReadCursor back, JObject page)
+        protected override string GetKey(CatalogCommitItem item)
         {
-            IEnumerable<CatalogItem> pageItems = page["items"]
-                .Select(item => new CatalogItem((JObject)item))
-                .Where(item => item.CommitTimeStamp > front.Value && item.CommitTimeStamp <= back.Value);
-
-            IEnumerable<CatalogItemBatch> batches = await CreateBatchesAsync(pageItems);
-
-            return batches
-                .OrderBy(batch => batch.CommitTimeStamp)
-                .ToArray();
-        }
-
-        protected override string GetKey(JObject item)
-        {
-            return item["nuget:id"].ToString().ToLowerInvariant();
+            return CatalogCommitUtilities.GetPackageIdKey(item);
         }
 
         // Summary:
@@ -120,111 +103,23 @@ namespace NuGet.Services.Metadata.Catalog.Registration
         //          been transactional.  Actively cancelling tasks would make an inconsistent registration more likely.
         //      6.  Update the cursor if and only if all preceding commits and the current (oldest) commit have been
         //          fully and successfully processed.
-        protected override async Task<bool> FetchAsync(
+        protected override Task<bool> FetchAsync(
             CollectorHttpClient client,
             ReadWriteCursor front,
             ReadCursor back,
             CancellationToken cancellationToken)
         {
-            IEnumerable<CatalogItem> catalogItems = await FetchCatalogItemsAsync(client, front, cancellationToken);
-
-            var hasAnyBatchFailed = false;
-            var hasAnyBatchBeenProcessed = false;
-
-            foreach (CatalogItem catalogItem in catalogItems)
-            {
-                JObject page = await client.GetJObjectAsync(catalogItem.Uri, cancellationToken);
-                JToken context = page["@context"];
-                CatalogItemBatch[] batches = await CreateBatchesAsync(front, back, page);
-                SortedDictionary<DateTime, CommitBatchTasks> commitBatchTasksMap = CreateCommitBatchTasksMap(batches);
-
-                var unprocessedBatches = new Queue<CatalogItemBatch>(batches);
-                var processingBatches = new Queue<BatchTask>();
-
-                CatalogItemBatch lastBatch = unprocessedBatches.LastOrDefault();
-                var exceptions = new List<Exception>();
-
-                EnqueueBatchesIfNoFailures(
-                    client,
-                    context,
-                    commitBatchTasksMap,
-                    unprocessedBatches,
-                    processingBatches,
-                    lastBatch,
-                    cancellationToken);
-
-                while (processingBatches.Any())
-                {
-                    var activeTasks = processingBatches.Where(batch => !batch.Task.IsCompleted)
-                        .Select(batch => batch.Task)
-                        .DefaultIfEmpty(CompletedTask);
-
-                    await Task.WhenAny(activeTasks);
-
-                    while (!hasAnyBatchFailed && commitBatchTasksMap.Any())
-                    {
-                        var commitBatchTasks = commitBatchTasksMap.First().Value;
-                        var isCommitFullyProcessed = commitBatchTasks.BatchTasks.All(batch => batch.Task != null && batch.Task.IsCompleted);
-
-                        if (!isCommitFullyProcessed)
-                        {
-                            break;
-                        }
-
-                        var isCommitSuccessfullyProcessed = commitBatchTasks.BatchTasks.All(batch => batch.Task.Status == TaskStatus.RanToCompletion);
-
-                        if (isCommitSuccessfullyProcessed)
-                        {
-                            var commitTimeStamp = commitBatchTasks.CommitTimeStamp;
-
-                            front.Value = commitTimeStamp;
-
-                            await front.SaveAsync(cancellationToken);
-
-                            Trace.TraceInformation($"{nameof(RegistrationCollector)}.{nameof(FetchAsync)} {nameof(front)}.{nameof(front.Value)} saved since timestamp changed from previous: {{0}}", front);
-
-                            DequeueBatchesWhileMatches(processingBatches, batch => batch.CommitTimeStamp == commitTimeStamp);
-
-                            commitBatchTasksMap.Remove(commitTimeStamp);
-                        }
-                        else // Canceled or Failed
-                        {
-                            hasAnyBatchFailed = true;
-
-                            exceptions.AddRange(
-                                commitBatchTasks.BatchTasks
-                                    .Select(batch => batch.Task)
-                                    .Where(task => (task.IsFaulted || task.IsCanceled) && task.Exception != null)
-                                    .Select(task => task.Exception));
-                        }
-                    }
-
-                    if (hasAnyBatchFailed)
-                    {
-                        DequeueBatchesWhileMatches(processingBatches, batch => batch.Task.IsCompleted);
-                    }
-
-                    hasAnyBatchBeenProcessed = true;
-
-                    EnqueueBatchesIfNoFailures(
-                        client,
-                        context,
-                        commitBatchTasksMap,
-                        unprocessedBatches,
-                        processingBatches,
-                        lastBatch,
-                        cancellationToken);
-                }
-
-                if (hasAnyBatchFailed)
-                {
-                    var innerException = exceptions.Count == 1 ? exceptions.Single() : new AggregateException(exceptions);
-
-                    throw new BatchProcessingException(innerException);
-                }
-            }
-
-            return hasAnyBatchBeenProcessed;
+            return CatalogCommitUtilities.FetchAsync(
+                client,
+                front,
+                back,
+                FetchCatalogCommitsAsync,
+                CreateBatchesAsync,
+                ProcessBatchAsync,
+                _maxConcurrentBatches,
+                nameof(RegistrationCollector),
+                _logger,
+                cancellationToken);
         }
 
         protected override async Task ProcessGraphsAsync(
@@ -282,64 +177,12 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             return (k, u, g) => !NuGetVersionUtility.IsGraphSemVer2(k.Version, u, g);
         }
 
-        private static void DequeueBatchesWhileMatches(Queue<BatchTask> batches, Func<BatchTask, bool> isMatch)
-        {
-            BatchTask batch;
-
-            while ((batch = batches.FirstOrDefault()) != null)
-            {
-                if (isMatch(batch))
-                {
-                    batches.Dequeue();
-                }
-                else
-                {
-                    break;
-                }
-            }
-        }
-
-        private void EnqueueBatchesIfNoFailures(
-            CollectorHttpClient client,
-            JToken context,
-            SortedDictionary<DateTime, CommitBatchTasks> commitBatchTasksMap,
-            Queue<CatalogItemBatch> unprocessedBatches,
-            Queue<BatchTask> processingBatches,
-            CatalogItemBatch lastBatch,
-            CancellationToken cancellationToken)
-        {
-            var hasAnyBatchFailed = processingBatches.Any(batch => batch.Task.IsFaulted || batch.Task.IsCanceled);
-
-            if (hasAnyBatchFailed)
-            {
-                return;
-            }
-
-            var batchesToEnqueue = Math.Min(
-                _maxConcurrentBatches - processingBatches.Count(batch => !batch.Task.IsCompleted),
-                unprocessedBatches.Count);
-
-            for (var i = 0; i < batchesToEnqueue; ++i)
-            {
-                var batch = unprocessedBatches.Dequeue();
-                var batchItem = batch.Items.First();
-                var packageId = GetKey(batchItem.Value);
-
-                var batchTask = commitBatchTasksMap[batchItem.CommitTimeStamp].BatchTasks
-                    .Single(bt => bt.PackageId == packageId);
-
-                batchTask.Task = ProcessBatchAsync(client, context, packageId, batch, lastBatch, cancellationToken);
-
-                processingBatches.Enqueue(batchTask);
-            }
-        }
-
         private async Task ProcessBatchAsync(
             CollectorHttpClient client,
             JToken context,
             string packageId,
-            CatalogItemBatch batch,
-            CatalogItemBatch lastBatch,
+            CatalogCommitItemBatch batch,
+            CatalogCommitItemBatch lastBatch,
             CancellationToken cancellationToken)
         {
             await Task.Yield();
@@ -354,82 +197,12 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             {
                 await OnProcessBatchAsync(
                     client,
-                    batch.Items.Select(item => item.Value),
+                    batch.Items,
                     context,
                     batch.CommitTimeStamp,
                     batch.CommitTimeStamp == lastBatch.CommitTimeStamp,
                     cancellationToken);
             }
-        }
-
-        private SortedDictionary<DateTime, CommitBatchTasks> CreateCommitBatchTasksMap(CatalogItemBatch[] batches)
-        {
-            var map = new SortedDictionary<DateTime, CommitBatchTasks>();
-
-            foreach (var batch in batches)
-            {
-                var jObject = batch.Items.First().Value;
-                var packageId = GetKey(jObject);
-                var batchTask = new BatchTask(batch.CommitTimeStamp, packageId);
-
-                foreach (var commitTimeStamp in batch.Items.Select(item => item.CommitTimeStamp))
-                {
-                    CommitBatchTasks commitBatchTasks;
-
-                    if (!map.TryGetValue(commitTimeStamp, out commitBatchTasks))
-                    {
-                        commitBatchTasks = new CommitBatchTasks(commitTimeStamp);
-
-                        map[commitTimeStamp] = commitBatchTasks;
-                    }
-
-                    commitBatchTasks.BatchTasks.Add(batchTask);
-                }
-            }
-
-            return map;
-        }
-
-        private sealed class BatchTask
-        {
-            internal BatchTask(DateTime commitTimeStamp, string packageId)
-            {
-                CommitTimeStamp = commitTimeStamp;
-                PackageId = packageId;
-            }
-
-            internal DateTime CommitTimeStamp { get; }
-            internal string PackageId { get; }
-            internal Task Task { get; set; }
-
-            public override int GetHashCode()
-            {
-                return PackageId.GetHashCode();
-            }
-
-            public override bool Equals(object obj)
-            {
-                var other = obj as BatchTask;
-
-                if (ReferenceEquals(other, null))
-                {
-                    return false;
-                }
-
-                return GetHashCode() == other.GetHashCode();
-            }
-        }
-
-        private sealed class CommitBatchTasks
-        {
-            internal CommitBatchTasks(DateTime commitTimeStamp)
-            {
-                BatchTasks = new HashSet<BatchTask>();
-                CommitTimeStamp = commitTimeStamp;
-            }
-
-            internal HashSet<BatchTask> BatchTasks { get; }
-            internal DateTime CommitTimeStamp { get; }
         }
     }
 }

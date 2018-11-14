@@ -82,16 +82,25 @@
   <ItemGroup>
     <Compile Include="AggregateCursor.cs" />
     <Compile Include="BatchProcessingException.cs" />
+    <Compile Include="CatalogCommit.cs" />
+    <Compile Include="CatalogCommitBatchTask.cs" />
     <Compile Include="CatalogIndexEntry.cs" />
     <Compile Include="CatalogIndexReader.cs" />
     <Compile Include="CatalogTypeConverter.cs" />
     <Compile Include="CloudBlobStorageExtensions.cs" />
+    <Compile Include="CatalogCommitBatchTasks.cs" />
     <Compile Include="CommitCollector.cs" />
+    <Compile Include="CatalogCommitItem.cs" />
+    <Compile Include="CatalogCommitItemBatch.cs" />
     <Compile Include="CommitMetadata.cs" />
+    <Compile Include="CatalogCommitUtilities.cs" />
     <Compile Include="Constants.cs" />
+    <Compile Include="CreateCommitItemBatchesAsync.cs" />
+    <Compile Include="FetchCatalogCommitsAsync.cs" />
     <Compile Include="FixPackageHashHandler.cs" />
     <Compile Include="Dnx\DnxConstants.cs" />
     <Compile Include="Dnx\DnxEntry.cs" />
+    <Compile Include="GetCatalogCommitItemKey.cs" />
     <Compile Include="Helpers\AsyncExtensions.cs" />
     <Compile Include="Helpers\PackageUtility.cs" />
     <Compile Include="ICatalogIndexProcessor.cs" />
@@ -114,6 +123,7 @@
     <Compile Include="Persistence\NamedStorageFactory.cs" />
     <Compile Include="Persistence\OptimisticConcurrencyControlToken.cs" />
     <Compile Include="Persistence\StorageConstants.cs" />
+    <Compile Include="ProcessCommitItemBatchAsync.cs" />
     <Compile Include="ReadOnlyGraph.cs" />
     <Compile Include="Persistence\StorageListItem.cs" />
     <Compile Include="Registration\FlatContainerPackagePathProvider.cs" />

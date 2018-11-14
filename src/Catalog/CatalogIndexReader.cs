@@ -9,6 +9,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
+using NuGet.Packaging.Core;
 using NuGet.Versioning;
 
 namespace NuGet.Services.Metadata.Catalog
@@ -84,6 +85,7 @@ namespace NuGet.Services.Metadata.Catalog
                     var commitId = interner.Intern(item["commitId"].ToString());
                     var nugetId = interner.Intern(item["nuget:id"].ToString());
                     var nugetVersion = interner.Intern(item["nuget:version"].ToString());
+                    var packageIdentity = new PackageIdentity(nugetId, NuGetVersion.Parse(nugetVersion));
 
                     // No string is directly operated on here.
                     var commitTimeStamp = item["commitTimeStamp"].ToObject<DateTime>();
@@ -93,8 +95,7 @@ namespace NuGet.Services.Metadata.Catalog
                         type,
                         commitId,
                         commitTimeStamp,
-                        nugetId,
-                        NuGetVersion.Parse(nugetVersion));
+                        packageIdentity);
 
                     entries.Add(entry);
                 }
