@@ -39,12 +39,10 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
 
         public override IEmailRecipients GetRecipients()
         {
-            var to = EmailRecipients.GetAllOwners(
-                Package.PackageRegistration,
-                requireEmailAllowed: true);
-
             return new EmailRecipients(
-                to,
+                to: EmailRecipients.GetAllOwners(
+                    Package.PackageRegistration,
+                    requireEmailAllowed: true),
                 replyTo: new[] { FromAddress });
         }
 

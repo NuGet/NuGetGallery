@@ -88,6 +88,7 @@
     <Compile Include="Framework\MemberDataHelper.cs" />
     <Compile Include="Helpers\ObfuscationHelperFacts.cs" />
     <Compile Include="Helpers\PackageHelperTests.cs" />
+    <Compile Include="Helpers\TextHelperFacts.cs" />
     <Compile Include="Helpers\UploadHelperFacts.cs" />
     <Compile Include="Infrastructure\Authentication\ApiKeyV3Facts.cs" />
     <Compile Include="Infrastructure\Authentication\ApiKeyV4Facts.cs" />
@@ -157,6 +158,7 @@
     <Compile Include="Services\ActionRequiringEntityPermissionsFacts.cs" />
     <Compile Include="Services\CertificatesConfigurationFacts.cs" />
     <Compile Include="Services\CuratedFeedServiceFacts.cs" />
+    <Compile Include="Services\TyposquattingCheckListCacheServiceFacts.cs" />
     <Compile Include="Services\TyposquattingServiceFacts.cs" />
     <Compile Include="Services\CloudDownloadCountServiceFacts.cs" />
     <Compile Include="Services\CertificateServiceFacts.cs" />

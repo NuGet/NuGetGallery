@@ -78,6 +78,7 @@ namespace NuGetGallery.Helpers
             [InlineData("http://www.github.com/nuget is my site.", "<a href=\"https://www.github.com/nuget\" rel=\"nofollow\">https://www.github.com/nuget</a> is my site.")]
             [InlineData("My site is http://www.asp.net best site ever!", "My site is <a href=\"https://www.asp.net/\" rel=\"nofollow\">https://www.asp.net/</a> best site ever!")]
             [InlineData("My site is http:////github.com bad url", "My site is http:////github.com bad url")]
+            [InlineData("Im using github pages! http://mypage.github.com/stuff.", "Im using github pages! <a href=\"https://mypage.github.com/stuff\" rel=\"nofollow\">https://mypage.github.com/stuff</a>.")]
             public void ConvertsUrlsToLinks(string input, string expected)
             {
                 // Arrange

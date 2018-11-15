@@ -8,5 +8,6 @@ namespace NuGetGallery.Services
         int PackageIdChecklistLength { get; }
         bool IsCheckEnabled { get; }
         bool IsBlockUsersEnabled { get; }
+        double PackageIdChecklistCacheExpireTimeInHours { get; }
     }
 }

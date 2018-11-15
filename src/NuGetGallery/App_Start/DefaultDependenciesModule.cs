@@ -58,6 +58,15 @@ namespace NuGetGallery
 
         protected override void Load(ContainerBuilder builder)
         {
+            var loggerConfiguration = LoggingSetup.CreateDefaultLoggerConfiguration(withConsoleLogger: false);
+            var loggerFactory = LoggingSetup.CreateLoggerFactory(loggerConfiguration);
+            builder.RegisterInstance(loggerFactory)
+                .AsSelf()
+                .As<ILoggerFactory>();
+            builder.RegisterGeneric(typeof(Logger<>))
+                .As(typeof(ILogger<>))
+                .SingleInstance();
+
             var telemetryClient = TelemetryClientWrapper.Instance;
             builder.RegisterInstance(telemetryClient)
                 .AsSelf()
@@ -333,6 +342,11 @@ namespace NuGetGallery
                 .As<ITyposquattingService>()
                 .InstancePerLifetimeScope();
 
+            builder.RegisterType<TyposquattingCheckListCacheService>()
+                .AsSelf()
+                .As<ITyposquattingCheckListCacheService>()
+                .SingleInstance();
+
             RegisterMessagingService(builder, configuration);
 
             builder.Register(c => HttpContext.Current.User)
@@ -461,18 +475,11 @@ namespace NuGetGallery
                 .Keyed<ITopicClient>(BindingKeys.EmailPublisherTopic)
                 .OnRelease(x => x.Close());
 
-            // Create an ILoggerFactory
-            var loggerConfiguration = LoggingSetup.CreateDefaultLoggerConfiguration(withConsoleLogger: false);
-            var loggerFactory = LoggingSetup.CreateLoggerFactory(loggerConfiguration);
-
             builder
                 .RegisterType<EmailMessageEnqueuer>()
                 .WithParameter(new ResolvedParameter(
                     (pi, ctx) => pi.ParameterType == typeof(ITopicClient),
                     (pi, ctx) => ctx.ResolveKeyed<ITopicClient>(BindingKeys.EmailPublisherTopic)))
-                .WithParameter(new ResolvedParameter(
-                    (pi, ctx) => pi.ParameterType == typeof(ILogger<EmailMessageEnqueuer>),
-                    (pi, ctx) => loggerFactory.CreateLogger<EmailMessageEnqueuer>()))
                 .As<IEmailMessageEnqueuer>();
 
             builder.RegisterType<AsynchronousEmailMessageService>()

@@ -218,7 +218,7 @@ namespace NuGetGallery
                     };
 
                     yield return new object[] { "TyposquattingCheckResultAndTotalTimeInMs",
-                        (TrackAction)(s => s.TrackMetricForTyposquattingCheckResultAndTotalTime(fakes.Package.Id, TimeSpan.FromMilliseconds(100), true, new List<string>{"newtonsoft-json" }, 10000))
+                        (TrackAction)(s => s.TrackMetricForTyposquattingCheckResultAndTotalTime(fakes.Package.Id, TimeSpan.FromMilliseconds(100), true, new List<string>{"newtonsoft-json" }, 10000, TimeSpan.FromHours(24)))
                     };
 
                     yield return new object[] { "TyposquattingChecklistRetrievalTimeInMs",
@@ -231,6 +231,22 @@ namespace NuGetGallery
 
                     yield return new object[] { "TyposquattingOwnersCheckTimeInMs",
                         (TrackAction)(s => s.TrackMetricForTyposquattingOwnersCheckTime(fakes.Package.Id, TimeSpan.FromMilliseconds(100)))
+                    };
+
+                    yield return new object[] { "InvalidLicenseMetadata",
+                        (TrackAction)(s => s.TrackInvalidLicenseMetadata("foo"))
+                    };
+
+                    yield return new object[] { "NonFsfOsiLicenseUsed",
+                        (TrackAction)(s => s.TrackNonFsfOsiLicenseUse("foo"))
+                    };
+
+                    yield return new object[] { "LicenseFileRejected",
+                        (TrackAction)(s => s.TrackLicenseFileRejected())
+                    };
+
+                    yield return new object[] { "LicenseValidationFailed",
+                        (TrackAction)(s => s.TrackLicenseValidationFailure())
                     };
                 }
             }

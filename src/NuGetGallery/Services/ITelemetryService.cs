@@ -203,13 +203,15 @@ namespace NuGetGallery
         /// <param name="totalTime">The total time for the typosquatting check logic</param>
         /// <param name="wasUploadBlocked">Whether the uploaded package is blocked because of typosquatting check.</param>
         /// <param name="collisionPackageIds">The list of collision package Ids for this uploaded package.</param>
-        /// <param name="checklistLength">The length of the checklist for typosquatting check</param>
+        /// <param name="checkListLength">The length of the checklist for typosquatting check</param>
+        /// <param name="checkListCacheExpireTime">The expire time for checklist caching</param>
         void TrackMetricForTyposquattingCheckResultAndTotalTime(
             string packageId,
             TimeSpan totalTime,
             bool wasUploadBlocked,
             List<string> collisionPackageIds,
-            int checklistLength);
+            int checkListLength,
+            TimeSpan checkListCacheExpireTime);
 
         /// <summary>
         /// The retrieval time to get the checklist for typosquatting check.
@@ -231,5 +233,27 @@ namespace NuGetGallery
         /// <param name="packageId">The Id of the uploaded package.</param>
         /// <param name ="ownersCheckTime">The time used to double check the owners of collision Ids</param>
         void TrackMetricForTyposquattingOwnersCheckTime(string packageId, TimeSpan ownersCheckTime);
+
+        /// <summary>
+        /// We were unable to parse license metadada
+        /// </summary>
+        /// <param name="licenseValue">License data that caused the issue.</param>
+        void TrackInvalidLicenseMetadata(string licenseValue);
+
+        /// <summary>
+        /// One of the license IDs was not OSI/FSF approved.
+        /// </summary>
+        /// <param name="licenseExpression">License expression that contains unsupported license ID.</param>
+        void TrackNonFsfOsiLicenseUse(string licenseExpression);
+
+        /// <summary>
+        /// Tracks the license file rejections that we temporarily do.
+        /// </summary>
+        void TrackLicenseFileRejected();
+
+        /// <summary>
+        /// Any license validation failure
+        /// </summary>
+        void TrackLicenseValidationFailure();
     }
 }

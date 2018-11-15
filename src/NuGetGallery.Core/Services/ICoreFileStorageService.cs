@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using Microsoft.WindowsAzure.Storage.Blob;
 
 namespace NuGetGallery
 {
@@ -52,6 +53,21 @@ namespace NuGetGallery
             DateTimeOffset endOfAccess);
 
         Task SaveFileAsync(string folderName, string fileName, Stream file, bool overwrite = true);
+
+        /// <summary>
+        /// Saves the file. If storage supports setting the content type for the file,
+        /// it will be set to the specified value
+        /// </summary>
+        /// <param name="folderName">The folder that will contain the file.</param>
+        /// <param name="fileName">The name of the file.</param>
+        /// <param name="contentType">The content type to set for the saved file if storage supports it.</param>
+        /// <param name="file">The content that should be saved.</param>
+        /// <param name="overwrite">Indicates whether file should be overwritten if exists.</param>
+        /// <exception cref="FileAlreadyExistsException">
+        /// Thrown when <paramref name="overwrite"/> is false and file already exists
+        /// in destination.
+        /// </exception>
+        Task SaveFileAsync(string folderName, string fileName, string contentType, Stream file, bool overwrite = true);
 
         /// <summary>
         /// Saves the file. An exception should be thrown if the access condition is not met.
@@ -120,6 +136,18 @@ namespace NuGetGallery
             string folderName,
             string fileName,
             Func<Lazy<Task<Stream>>, IDictionary<string, string>, Task<bool>> updateMetadataAsync);
+
+        /// <summary>
+        /// Updates properties on the file.
+        /// </summary>
+        /// <param name="folderName">The folder name.</param>
+        /// <param name="fileName">The file name.</param>
+        /// <param name="updatePropertiesAsync">A function that will update file properties.</param>
+        /// <returns>A task that represents the asynchronous operation.</returns>
+        Task SetPropertiesAsync(
+            string folderName,
+            string fileName,
+            Func<Lazy<Task<Stream>>, BlobProperties, Task<bool>> updatePropertiesAsync);
 
         /// <summary>
         /// Returns the etag value for the specified blob. If the blob does not exists it will return null.

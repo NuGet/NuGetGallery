@@ -461,6 +461,8 @@ namespace NuGetGallery
                             : package.NormalizedVersion;
 
                 await _packageFileService.DeletePackageFileAsync(id, version);
+                // we didn't backup license file before deleting it because it is backed up as part of the package
+                await _packageFileService.DeleteLicenseFileAsync(id, version);
                 await _symbolPackageFileService.DeletePackageFileAsync(id, version);
 
                 await _packageFileService.DeleteValidationPackageFileAsync(id, version);
