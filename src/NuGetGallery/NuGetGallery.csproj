@@ -228,7 +228,6 @@
     <Compile Include="Configuration\IPackageDeleteConfiguration.cs" />
     <Compile Include="Configuration\IServiceBusConfiguration.cs" />
     <Compile Include="Configuration\PackageDeleteConfiguration.cs" />
-    <Compile Include="Configuration\SecretReader\CachingSecretReader.cs" />
     <Compile Include="Configuration\SecretReader\EmptySecretReaderFactory.cs" />
     <Compile Include="Configuration\SecretReader\SecretReaderFactory.cs" />
     <Compile Include="Configuration\ServiceBusConfiguration.cs" />
