@@ -20,13 +20,13 @@ namespace NuGetGallery
 
         public Task<ActionResult> CreateDownloadSymbolPackageActionResultAsync(Uri requestUrl, SymbolPackage symbolPackage)
         {
-            var fileName = BuildFileName(symbolPackage.Package, CoreConstants.PackageFileSavePathTemplate, CoreConstants.NuGetSymbolPackageFileExtension);
+            var fileName = FileNameHelper.BuildFileName(symbolPackage.Package, CoreConstants.PackageFileSavePathTemplate, CoreConstants.NuGetSymbolPackageFileExtension);
             return _fileStorageService.CreateDownloadFileActionResultAsync(requestUrl, CoreConstants.Folders.SymbolPackagesFolderName, fileName);
         }
 
         public Task<ActionResult> CreateDownloadSymbolPackageActionResultAsync(Uri requestUrl, string id, string version)
         {
-            var fileName = BuildFileName(id, version, CoreConstants.PackageFileSavePathTemplate, CoreConstants.NuGetSymbolPackageFileExtension);
+            var fileName = FileNameHelper.BuildFileName(id, version, CoreConstants.PackageFileSavePathTemplate, CoreConstants.NuGetSymbolPackageFileExtension);
             return _fileStorageService.CreateDownloadFileActionResultAsync(requestUrl, CoreConstants.Folders.SymbolPackagesFolderName, fileName);
         }
     }

@@ -34,6 +34,7 @@ namespace NuGetGallery
             Mock<ISymbolPackageFileService> symbolPackageFileService = null,
             Mock<ISymbolPackageService> symbolPackageService = null,
             Mock<IEntityRepository<SymbolPackage>> symbolPackageRepository = null,
+            Mock<ICoreLicenseFileService> coreLicenseFileService = null,
             Action<Mock<TestPackageDeleteService>> setup = null,
             bool useRealConstructor = false)
         {
@@ -61,6 +62,7 @@ namespace NuGetGallery
             symbolPackageFileService = symbolPackageFileService ?? new Mock<ISymbolPackageFileService>();
             symbolPackageService = symbolPackageService ?? new Mock<ISymbolPackageService>();
             symbolPackageRepository = symbolPackageRepository ?? new Mock<IEntityRepository<SymbolPackage>>();
+            coreLicenseFileService = coreLicenseFileService ?? new Mock<ICoreLicenseFileService>();
 
             if (useRealConstructor)
             {
@@ -78,7 +80,8 @@ namespace NuGetGallery
                     telemetryService.Object,
                     symbolPackageFileService.Object,
                     symbolPackageService.Object,
-                    symbolPackageRepository.Object);
+                    symbolPackageRepository.Object,
+                    coreLicenseFileService.Object);
             }
             else
             {
@@ -96,7 +99,8 @@ namespace NuGetGallery
                     telemetryService.Object,
                     symbolPackageFileService.Object,
                     symbolPackageService.Object,
-                    symbolPackageRepository.Object);
+                    symbolPackageRepository.Object,
+                    coreLicenseFileService.Object);
 
                 packageDeleteService.CallBase = true;
 
@@ -128,7 +132,8 @@ namespace NuGetGallery
                 ITelemetryService telemetryService,
                 ISymbolPackageFileService symbolPackageFileService,
                 ISymbolPackageService symbolPackageService,
-                IEntityRepository<SymbolPackage> symbolPackageRepository) : base(
+                IEntityRepository<SymbolPackage> symbolPackageRepository,
+                ICoreLicenseFileService coreLicenseFileService) : base(
                     packageRepository,
                     packageRegistrationRepository,
                     packageDeletesRepository,
@@ -142,7 +147,8 @@ namespace NuGetGallery
                     telemetryService,
                     symbolPackageFileService,
                     symbolPackageService,
-                    symbolPackageRepository)
+                    symbolPackageRepository,
+                    coreLicenseFileService)
             {
             }
 

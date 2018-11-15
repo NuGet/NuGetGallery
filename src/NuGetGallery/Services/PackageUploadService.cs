@@ -58,6 +58,7 @@ namespace NuGetGallery
         private readonly IAppConfiguration _config;
         private readonly ITyposquattingService _typosquattingService;
         private readonly ITelemetryService _telemetryService;
+        private readonly ICoreLicenseFileService _coreLicenseFileService;
 
         public PackageUploadService(
             IPackageService packageService,
@@ -67,7 +68,8 @@ namespace NuGetGallery
             IValidationService validationService,
             IAppConfiguration config,
             ITyposquattingService typosquattingService,
-            ITelemetryService telemetryService)
+            ITelemetryService telemetryService,
+            ICoreLicenseFileService coreLicenseFileService)
         {
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
             _packageFileService = packageFileService ?? throw new ArgumentNullException(nameof(packageFileService));
@@ -77,6 +79,7 @@ namespace NuGetGallery
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _typosquattingService = typosquattingService ?? throw new ArgumentNullException(nameof(typosquattingService));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
+            _coreLicenseFileService = coreLicenseFileService ?? throw new ArgumentNullException(nameof(coreLicenseFileService));
         }
 
         public async Task<PackageValidationResult> ValidateBeforeGeneratePackageAsync(PackageArchiveReader nuGetPackage, PackageMetadata packageMetadata)
@@ -723,7 +726,7 @@ namespace NuGetGallery
                     }
                     catch when (package.EmbeddedLicenseType != EmbeddedLicenseFileType.Absent)
                     {
-                        await _packageFileService.DeleteLicenseFileAsync(
+                        await _coreLicenseFileService.DeleteLicenseFileAsync(
                             package.PackageRegistration.Id,
                             package.NormalizedVersion);
                         throw;
@@ -755,7 +758,7 @@ namespace NuGetGallery
                     await _packageFileService.DeletePackageFileAsync(
                         package.PackageRegistration.Id,
                         package.Version);
-                    await _packageFileService.DeleteLicenseFileAsync(
+                    await _coreLicenseFileService.DeleteLicenseFileAsync(
                         package.PackageRegistration.Id,
                         package.NormalizedVersion);
                 }
@@ -807,7 +810,7 @@ namespace NuGetGallery
                 var licenseFileEntry = packageArchiveReader.GetEntry(filename); // throws on non-existent file
                 using (var licenseFileStream = licenseFileEntry.Open())
                 {
-                    await _packageFileService.SaveLicenseFileAsync(package, licenseFileStream);
+                    await _coreLicenseFileService.SaveLicenseFileAsync(package, licenseFileStream);
                 }
             }
         }

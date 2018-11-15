@@ -74,7 +74,8 @@ namespace NuGetGallery
                 validationService.Object,
                 config.Object,
                 new Mock<ITyposquattingService>().Object,
-                Mock.Of<ITelemetryService>());
+                Mock.Of<ITelemetryService>(),
+                Mock.Of<ICoreLicenseFileService>());
 
             return packageUploadService.Object;
         }
@@ -1710,8 +1711,8 @@ namespace NuGetGallery
 
                 var result = await _target.CommitPackageAsync(_package, _packageFile);
 
-                _packageFileService.Verify(
-                    pfs => pfs.SaveLicenseFileAsync(_package, It.Is<Stream>(s => s != null)),
+                _licenseFileService.Verify(
+                    lfs => lfs.SaveLicenseFileAsync(_package, It.Is<Stream>(s => s != null)),
                     expectedLicenseSave ? Times.Once() : Times.Never());
             }
 
@@ -1735,8 +1736,8 @@ namespace NuGetGallery
 
                 await Assert.ThrowsAsync<Exception>(() => _target.CommitPackageAsync(_package, _packageFile));
 
-                _packageFileService.Verify(
-                    pfs => pfs.DeleteLicenseFileAsync(_package.Id, _package.NormalizedVersion),
+                _licenseFileService.Verify(
+                    lfs => lfs.DeleteLicenseFileAsync(_package.Id, _package.NormalizedVersion),
                     expectedLicenseDelete ? Times.Once() : Times.Never());
             }
 
@@ -1757,8 +1758,8 @@ namespace NuGetGallery
 
                 await Assert.ThrowsAsync<Exception>(() => _target.CommitPackageAsync(_package, _packageFile));
 
-                _packageFileService.Verify(
-                    pfs => pfs.DeleteLicenseFileAsync(_package.Id, _package.NormalizedVersion.ToString()),
+                _licenseFileService.Verify(
+                    lfs => lfs.DeleteLicenseFileAsync(_package.Id, _package.NormalizedVersion.ToString()),
                     expectedLicenseDelete ? Times.Once() : Times.Never());
             }
         }
@@ -1773,6 +1774,7 @@ namespace NuGetGallery
             protected readonly Mock<IAppConfiguration> _config;
             protected readonly Mock<ITyposquattingService> _typosquattingService;
             protected readonly Mock<ITelemetryService> _telemetryService;
+            protected readonly Mock<ICoreLicenseFileService> _licenseFileService;
 
             protected Package _package;
             protected Stream _packageFile;
@@ -1807,6 +1809,7 @@ namespace NuGetGallery
                 _unexpectedException = new ArgumentException("Fail!");
                 _conflictException = new FileAlreadyExistsException("Conflict!");
                 _token = CancellationToken.None;
+                _licenseFileService = new Mock<ICoreLicenseFileService>();
 
                 _target = new PackageUploadService(
                     _packageService.Object,
@@ -1816,7 +1819,8 @@ namespace NuGetGallery
                     _validationService.Object,
                     _config.Object,
                     _typosquattingService.Object,
-                    _telemetryService.Object);
+                    _telemetryService.Object,
+                    _licenseFileService.Object);
             }
 
             protected static Mock<TestPackageReader> GeneratePackage(
