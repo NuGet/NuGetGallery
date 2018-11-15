@@ -80,7 +80,7 @@ namespace NuGetGallery
                 .SingleInstance();
 
             var configuration = new ConfigurationService();
-            var secretReaderFactory = new SecretReaderFactory(configuration, diagnosticsService);
+            var secretReaderFactory = new SecretReaderFactory(configuration);
             var secretReader = secretReaderFactory.CreateSecretReader();
             var secretInjector = secretReaderFactory.CreateSecretInjector(secretReader);
 

@@ -5,7 +5,6 @@ using System;
 using System.Globalization;
 using System.Security.Cryptography.X509Certificates;
 using NuGet.Services.KeyVault;
-using NuGetGallery.Diagnostics;
 
 namespace NuGetGallery.Configuration.SecretReader
 {
@@ -15,13 +14,11 @@ namespace NuGetGallery.Configuration.SecretReader
         internal const string VaultNameConfigurationKey = "VaultName";
         internal const string ClientIdConfigurationKey = "ClientId";
         internal const string CertificateThumbprintConfigurationKey = "CertificateThumbprint";
-        private IDiagnosticsService _diagnosticsService;
         private IGalleryConfigurationService _configurationService;
 
-        public SecretReaderFactory(IGalleryConfigurationService configurationService, IDiagnosticsService diagnosticsService)
+        public SecretReaderFactory(IGalleryConfigurationService configurationService)
         {
             _configurationService = configurationService ?? throw new ArgumentNullException(nameof(configurationService));
-            _diagnosticsService = diagnosticsService ?? throw new ArgumentNullException(nameof(diagnosticsService));
         }
 
         public ISecretInjector CreateSecretInjector(ISecretReader secretReader)
@@ -60,7 +57,7 @@ namespace NuGetGallery.Configuration.SecretReader
                 secretReader = new EmptySecretReader();
             }
 
-            return new CachingSecretReader(secretReader, _diagnosticsService);
+            return new CachingSecretReader(secretReader);
         }
     }
 }
