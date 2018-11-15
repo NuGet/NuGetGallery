@@ -4,17 +4,17 @@
 namespace NuGet.Services.Revalidate
 {
     /// <summary>
-    /// The result from <see cref="IRevalidationService.StartNextRevalidationAsync"/>
+    /// The result from <see cref="IRevalidationStarter.StartNextRevalidationsAsync"/>
     /// </summary>
-    public enum RevalidationResult
+    public enum StartRevalidationStatus
     {
         /// <summary>
-        /// A revalidation was successfully enqueued.
+        /// One or more revalidations were successfully enqueued.
         /// </summary>
-        RevalidationEnqueued,
+        RevalidationsEnqueued,
 
         /// <summary>
-        /// A revalidation could not be enqueued at this time. The revalidation should be retried later.
+        /// A revalidation could not be enqueued at this time. The revalidations should be retried later.
         /// </summary>
         RetryLater,
 

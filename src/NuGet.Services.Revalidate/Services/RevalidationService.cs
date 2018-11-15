@@ -49,23 +49,28 @@ namespace NuGet.Services.Revalidate
             {
                 _logger.LogInformation("Starting next revalidation...");
 
-                var result = await StartNextRevalidationAsync();
+                var startRevalidationsStopwatch = Stopwatch.StartNew();
+                var result = await StartNextRevalidationsAsync();
+                startRevalidationsStopwatch.Stop();
 
-                switch (result)
+                switch (result.Status)
                 {
-                    case RevalidationResult.RevalidationEnqueued:
-                        _logger.LogInformation("Successfully enqueued revalidation");
+                    case StartRevalidationStatus.RevalidationsEnqueued:
+                        _logger.LogInformation(
+                            "Successfully enqueued {RevalidationsStarted} revalidations in {Duration}",
+                            result.RevalidationsStarted,
+                            startRevalidationsStopwatch.Elapsed);
 
-                        await _throttler.DelayUntilNextRevalidationAsync();
+                        await _throttler.DelayUntilNextRevalidationAsync(result.RevalidationsStarted, startRevalidationsStopwatch.Elapsed);
                         break;
 
-                    case RevalidationResult.RetryLater:
+                    case StartRevalidationStatus.RetryLater:
                         _logger.LogInformation("Could not start revalidation, retrying later");
 
                         await _throttler.DelayUntilRevalidationRetryAsync();
                         break;
 
-                    case RevalidationResult.UnrecoverableError:
+                    case StartRevalidationStatus.UnrecoverableError:
                     default:
                         _logger.LogCritical(
                             "Stopping revalidations due to unrecoverable or unknown result {Result}",
@@ -79,15 +84,16 @@ namespace NuGet.Services.Revalidate
             _logger.LogInformation("Finished running after {ElapsedTime}", runTime.Elapsed);
         }
 
-        private async Task<RevalidationResult> StartNextRevalidationAsync()
+        private async Task<StartRevalidationResult> StartNextRevalidationsAsync()
         {
             using (var operation = _telemetryService.TrackStartNextRevalidationOperation())
             using (var scope = _scopeFactory.CreateScope())
             {
                 var starter = scope.ServiceProvider.GetRequiredService<IRevalidationStarter>();
-                var result = await starter.StartNextRevalidationAsync();
+                var result = await starter.StartNextRevalidationsAsync();
 
-                operation.Properties.Result = result;
+                operation.Properties.Result = result.Status;
+                operation.Properties.Started = result.RevalidationsStarted;
 
                 return result;
             }

@@ -20,6 +20,6 @@ namespace NuGet.Services.Revalidate
         /// 4. A revalidation could not be found at this time
         /// </summary>
         /// <returns>The result of the revalidation attempt.</returns>
-        Task<RevalidationResult> StartNextRevalidationAsync();
+        Task<StartRevalidationResult> StartNextRevalidationsAsync();
     }
 }

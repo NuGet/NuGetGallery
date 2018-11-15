@@ -16,7 +16,7 @@ namespace NuGet.Services.Revalidate.Tests.Services
 {
     public class RevalidationQueueFacts
     {
-        public class TheNextOrNullAsyncMethod : FactsBase
+        public class TheNextAsyncMethod : FactsBase
         {
             [Fact]
             public async Task SkipsEnqueuedOrCompletedRevalidations()
@@ -69,28 +69,36 @@ namespace NuGet.Services.Revalidate.Tests.Services
                 });
 
                 // Act
-                var next = await _target.NextOrNullAsync();
+                var nextRevalidations = await _target.NextAsync();
 
                 // Assert
+                var next = Assert.Single(nextRevalidations);
                 Assert.Equal("Package", next.PackageId);
                 Assert.Equal("1.0.0", next.PackageNormalizedVersion);
+
+                _validationContext.Verify(c => c.SaveChangesAsync(), Times.Never);
+                _telemetryService.Verify(t => t.TrackFindNextRevalidations(), Times.Once);
             }
 
             [Fact]
             public async Task SkipsRepositorySignedPackages()
             {
                 // Arrange
+                _config.MaxBatchSize = 10;
+
+                var repositorySignedPackageRevalidation = new PackageRevalidation
+                {
+                    Key = 1,
+                    PackageId = "Repository.Signed.Package",
+                    PackageNormalizedVersion = "1.0.0",
+                    Enqueued = null,
+                    Completed = false,
+                };
+
                 _validationContext.Mock(
                     packageRevalidations: new[]
                     {
-                        new PackageRevalidation
-                        {
-                            Key = 1,
-                            PackageId = "Repository.Signed.Package",
-                            PackageNormalizedVersion = "1.0.0",
-                            Enqueued = null,
-                            Completed = false,
-                        },
+                        repositorySignedPackageRevalidation,
                         new PackageRevalidation
                         {
                             Key = 2,
@@ -121,16 +129,27 @@ namespace NuGet.Services.Revalidate.Tests.Services
                         PackageRegistration = new PackageRegistration { Id = "Package" },
                         NormalizedVersion = "1.0.0",
                         PackageStatusKey = PackageStatus.Available,
+                    },
+                    new Package
+                    {
+                        PackageRegistration = new PackageRegistration { Id = "Repository.Signed.Package" },
+                        NormalizedVersion = "1.0.0",
+                        PackageStatusKey = PackageStatus.Available,
                     }
                 });
 
                 // Act
-                var next = await _target.NextOrNullAsync();
+                var nextRevalidations = await _target.NextAsync();
 
                 // Assert
+                var next = Assert.Single(nextRevalidations);
                 Assert.Equal("Package", next.PackageId);
                 Assert.Equal("1.0.0", next.PackageNormalizedVersion);
 
+                Assert.True(repositorySignedPackageRevalidation.Completed);
+
+                _validationContext.Verify(c => c.SaveChangesAsync(), Times.Once);
+                _telemetryService.Verify(t => t.TrackFindNextRevalidations(), Times.Once);
                 _telemetryService.Verify(t => t.TrackPackageRevalidationMarkedAsCompleted("Repository.Signed.Package", "1.0.0"), Times.Once);
             }
 
@@ -206,9 +225,10 @@ namespace NuGet.Services.Revalidate.Tests.Services
                 });
 
                 // Act
-                var next = await _target.NextOrNullAsync();
+                var nextRevalidations = await _target.NextAsync();
 
                 // Assert
+                var next = Assert.Single(nextRevalidations);
                 if (skipsPackageWithManyVersions)
                 {
                     Assert.Equal("Package", next.PackageId);
@@ -223,6 +243,9 @@ namespace NuGet.Services.Revalidate.Tests.Services
                     Assert.Equal("Package.With.Many.Versions", next.PackageId);
                     Assert.Equal("1.0.0", next.PackageNormalizedVersion);
                 }
+
+                _validationContext.Verify(c => c.SaveChangesAsync(), Times.Never);
+                _telemetryService.Verify(t => t.TrackFindNextRevalidations(), Times.Once);
             }
 
             public static IEnumerable<object[]> SkipsPackagesWithTooManyVersionsData()
@@ -253,24 +276,30 @@ namespace NuGet.Services.Revalidate.Tests.Services
             public async Task SkipsDeletedPackages()
             {
                 // Arrange
+                _config.MaxBatchSize = 10;
+
+                var softDeletedPackageRevalidation = new PackageRevalidation
+                {
+                    Key = 1,
+                    PackageId = "Soft.Deleted.Package",
+                    PackageNormalizedVersion = "1.0.0",
+                    Enqueued = null,
+                    Completed = false,
+                };
+
+                var hardDeletedPackageRevalidation = new PackageRevalidation
+                {
+                    Key = 2,
+                    PackageId = "Hard.Deleted.Package",
+                    PackageNormalizedVersion = "1.0.0",
+                    Enqueued = null,
+                    Completed = false,
+                };
+
                 _validationContext.Mock(packageRevalidations: new[]
                 {
-                    new PackageRevalidation
-                    {
-                        Key = 1,
-                        PackageId = "Soft.Deleted.Package",
-                        PackageNormalizedVersion = "1.0.0",
-                        Enqueued = null,
-                        Completed = false,
-                    },
-                    new PackageRevalidation
-                    {
-                        Key = 2,
-                        PackageId = "Hard.Deleted.Package",
-                        PackageNormalizedVersion = "1.0.0",
-                        Enqueued = null,
-                        Completed = false,
-                    },
+                    softDeletedPackageRevalidation,
+                    hardDeletedPackageRevalidation,
                     new PackageRevalidation
                     {
                         Key = 3,
@@ -298,28 +327,37 @@ namespace NuGet.Services.Revalidate.Tests.Services
                 });
 
                 // Act
-                var next = await _target.NextOrNullAsync();
+                var nextRevalidations = await _target.NextAsync();
 
                 // Assert
+                var next = Assert.Single(nextRevalidations);
                 Assert.Equal("Package", next.PackageId);
                 Assert.Equal("1.0.0", next.PackageNormalizedVersion);
 
+                Assert.True(softDeletedPackageRevalidation.Completed);
+                Assert.True(hardDeletedPackageRevalidation.Completed);
+
+                _validationContext.Verify(c => c.SaveChangesAsync(), Times.Once);
+
+                _telemetryService.Verify(t => t.TrackFindNextRevalidations(), Times.Once);
                 _telemetryService.Verify(t => t.TrackPackageRevalidationMarkedAsCompleted("Soft.Deleted.Package", "1.0.0"), Times.Once);
                 _telemetryService.Verify(t => t.TrackPackageRevalidationMarkedAsCompleted("Hard.Deleted.Package", "1.0.0"), Times.Once);
             }
 
-            [Fact]
-            public async Task IfReachesAttemptsThreshold_ReturnsNull()
+            [Theory]
+            [InlineData(1, false)]
+            [InlineData(2, true)]
+            public async Task RespectsTheMaxBatchSizeConfiguration(int maxBatchSize, bool includesSecondVersion)
             {
                 // Arrange
-                _config.MaximumAttempts = 1;
+                _config.MaxBatchSize = maxBatchSize;
 
                 _validationContext.Mock(packageRevalidations: new[]
                 {
                     new PackageRevalidation
                     {
                         Key = 1,
-                        PackageId = "Hard.Deleted.Package",
+                        PackageId = "Package",
                         PackageNormalizedVersion = "1.0.0",
                         Enqueued = null,
                         Completed = false,
@@ -328,7 +366,7 @@ namespace NuGet.Services.Revalidate.Tests.Services
                     {
                         Key = 2,
                         PackageId = "Package",
-                        PackageNormalizedVersion = "1.0.0",
+                        PackageNormalizedVersion = "2.0.0",
                         Enqueued = null,
                         Completed = false,
                     },
@@ -341,16 +379,30 @@ namespace NuGet.Services.Revalidate.Tests.Services
                         PackageRegistration = new PackageRegistration { Id = "Package" },
                         NormalizedVersion = "1.0.0",
                         PackageStatusKey = PackageStatus.Available,
+                    },
+                    new Package
+                    {
+                        PackageRegistration = new PackageRegistration { Id = "Package" },
+                        NormalizedVersion = "2.0.0",
+                        PackageStatusKey = PackageStatus.Available,
                     }
                 });
 
                 // Act
-                var next = await _target.NextOrNullAsync();
+                var nextRevalidations = await _target.NextAsync();
 
                 // Assert
-                Assert.Null(next);
+                Assert.Equal(includesSecondVersion ? 2 : 1, nextRevalidations.Count);
+                Assert.Equal("Package", nextRevalidations[0].PackageId);
+                Assert.Equal("1.0.0", nextRevalidations[0].PackageNormalizedVersion);
 
-                _telemetryService.Verify(t => t.TrackPackageRevalidationMarkedAsCompleted("Hard.Deleted.Package", "1.0.0"), Times.Once);
+                if (includesSecondVersion)
+                {
+                    Assert.Equal("Package", nextRevalidations[1].PackageId);
+                    Assert.Equal("2.0.0", nextRevalidations[1].PackageNormalizedVersion);
+                }
+
+                _telemetryService.Verify(t => t.TrackFindNextRevalidations(), Times.Once);
             }
         }
 
@@ -371,8 +423,7 @@ namespace NuGet.Services.Revalidate.Tests.Services
 
                 _config = new RevalidationQueueConfiguration
                 {
-                    MaximumAttempts = 5,
-                    SleepBetweenAttempts = TimeSpan.FromSeconds(0)
+                    MaxBatchSize = 1
                 };
 
                 _target = new RevalidationQueue(

@@ -6,8 +6,13 @@ namespace NuGet.Services.Revalidate
     public class StartNextRevalidationOperation
     {
         /// <summary>
-        /// The result of attempting to start the next revalidation.
+        /// The result of attempting to start the next revalidations.
         /// </summary>
-        public RevalidationResult Result { get; set; }
+        public StartRevalidationStatus Result { get; set; }
+
+        /// <summary>
+        /// The number of revalidations started.
+        /// </summary>
+        public int Started { get; set; }
     }
 }
