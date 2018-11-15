@@ -128,12 +128,10 @@ namespace NuGet.Services.Metadata.Catalog
 
         protected virtual Task<IEnumerable<CatalogCommitItemBatch>> CreateBatchesAsync(IEnumerable<CatalogCommitItem> catalogItems)
         {
-            const string NullKey = null;
-
             var batches = catalogItems
                 .GroupBy(item => item.CommitTimeStamp)
                 .OrderBy(group => group.Key)
-                .Select(group => new CatalogCommitItemBatch(group.Key, NullKey, group));
+                .Select(group => new CatalogCommitItemBatch(group));
 
             return Task.FromResult(batches);
         }

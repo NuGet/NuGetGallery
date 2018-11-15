@@ -16,24 +16,21 @@ namespace NuGet.Services.Metadata.Catalog
         /// <summary>
         /// Initializes a <see cref="CatalogCommitItemBatch" /> instance.
         /// </summary>
-        /// <param name="commitTimeStamp">A commit timestamp relevant to <paramref name="items" />.
-        /// For example, the minimum or maximum commit timestamp amongst all <paramref name="items" />,
-        /// depending on the <see cref="CommitCollector" />.</param>
+        /// <param name="items">An enumerable of <see cref="CatalogCommitItem" />.  Items may span multiple commits.</param>
         /// <param name="key">A unique key for all items in a batch.  This is used for parallelization and may be
         /// <c>null</c> if parallelization is not used.</param>
-        /// <param name="items">An enumerable of <see cref="CatalogCommitItem" />.  Items may span multiple commits.</param>
         /// <exception cref="ArgumentException">Thrown if <paramref name="items" /> is either <c>null</c> or empty.</exception>
-        public CatalogCommitItemBatch(DateTime commitTimeStamp, string key, IEnumerable<CatalogCommitItem> items)
+        public CatalogCommitItemBatch(IEnumerable<CatalogCommitItem> items, string key = null)
         {
             if (items == null || !items.Any())
             {
                 throw new ArgumentException(Strings.ArgumentMustNotBeNullOrEmpty, nameof(items));
             }
 
-            CommitTimeStamp = commitTimeStamp;
-            Key = key;
-
             var list = items.ToList();
+
+            CommitTimeStamp = list.Min(item => item.CommitTimeStamp);
+            Key = key;
 
             list.Sort();
 

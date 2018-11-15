@@ -109,7 +109,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             ReadCursor back,
             CancellationToken cancellationToken)
         {
-            return CatalogCommitUtilities.FetchAsync(
+            return CatalogCommitUtilities.ProcessCatalogCommitsAsync(
                 client,
                 front,
                 back,
@@ -117,7 +117,6 @@ namespace NuGet.Services.Metadata.Catalog.Registration
                 CreateBatchesAsync,
                 ProcessBatchAsync,
                 _maxConcurrentBatches,
-                nameof(RegistrationCollector),
                 _logger,
                 cancellationToken);
         }
@@ -200,8 +199,8 @@ namespace NuGet.Services.Metadata.Catalog.Registration
                     batch.Items,
                     context,
                     batch.CommitTimeStamp,
-                    batch.CommitTimeStamp == lastBatch.CommitTimeStamp,
-                    cancellationToken);
+                    isLastBatch: false,
+                    cancellationToken: cancellationToken);
             }
         }
     }

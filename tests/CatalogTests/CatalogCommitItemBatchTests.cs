@@ -16,13 +16,12 @@ namespace CatalogTests
         private static readonly PackageIdentity _packageIdentity = new PackageIdentity(
             id: "a",
             version: new NuGetVersion("1.0.0"));
-        private const string _nullKey = null;
 
         [Fact]
         public void Constructor_WhenItemsIsNull_Throws()
         {
             var exception = Assert.Throws<ArgumentException>(
-                () => new CatalogCommitItemBatch(DateTime.MinValue, _nullKey, items: null));
+                () => new CatalogCommitItemBatch(items: null));
 
             Assert.Equal("items", exception.ParamName);
         }
@@ -31,7 +30,7 @@ namespace CatalogTests
         public void Constructor_WhenItemsIsEmpty_Throws()
         {
             var exception = Assert.Throws<ArgumentException>(
-                () => new CatalogCommitItemBatch(DateTime.MinValue, _nullKey, Enumerable.Empty<CatalogCommitItem>()));
+                () => new CatalogCommitItemBatch(Enumerable.Empty<CatalogCommitItem>()));
 
             Assert.Equal("items", exception.ParamName);
         }
@@ -47,11 +46,10 @@ namespace CatalogTests
             var commitItem2 = TestUtility.CreateCatalogCommitItem(commitTimeStamp.AddMinutes(2), _packageIdentity);
 
             var commitItemBatch = new CatalogCommitItemBatch(
-                commitTimeStamp,
-                key,
-                new[] { commitItem1, commitItem0, commitItem2 });
+                new[] { commitItem1, commitItem0, commitItem2 },
+                key);
 
-            Assert.Equal(commitTimeStamp, commitItemBatch.CommitTimeStamp);
+            Assert.Equal(commitTimeStamp, commitItemBatch.CommitTimeStamp.ToUniversalTime());
             Assert.Equal(3, commitItemBatch.Items.Count);
             Assert.Equal(key, commitItemBatch.Key);
             Assert.Same(commitItem0, commitItemBatch.Items[0]);

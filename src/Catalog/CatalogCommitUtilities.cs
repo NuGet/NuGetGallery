@@ -26,7 +26,7 @@ namespace NuGet.Services.Metadata.Catalog
         /// </remarks>
         /// <param name="catalogItems">An enumerable of <see cref="CatalogCommitItem" />.</param>
         /// <param name="getCatalogCommitItemKey">A function that returns a key for a <see cref="CatalogCommitItem" />.</param>
-        /// <returns>An enumerable of <see cref="CatalogCommitItemBatch" />.</returns>
+        /// <returns>An enumerable of <see cref="CatalogCommitItemBatch" /> with no ordering guarantee.</returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="catalogItems" /> is <c>null</c>.</exception>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="getCatalogCommitItemKey" /> is <c>null</c>.</exception>
         public static IEnumerable<CatalogCommitItemBatch> CreateCommitItemBatches(
@@ -43,191 +43,43 @@ namespace NuGet.Services.Metadata.Catalog
                 throw new ArgumentNullException(nameof(getCatalogCommitItemKey));
             }
 
-            AssertNotMoreThanOneCommitIdPerCommitTimeStamp(catalogItems);
-
             var catalogItemsGroups = catalogItems
                 .GroupBy(catalogItem => getCatalogCommitItemKey(catalogItem));
 
+            var batches = new List<CatalogCommitItemBatch>();
+
             foreach (var catalogItemsGroup in catalogItemsGroups)
             {
-                // Before filtering out all but the latest commit for each package identity, determine the earliest
-                // commit timestamp for all items in this batch.  This timestamp is important for processing commits
-                // in chronological order.
-                var minCommitTimeStamp = catalogItemsGroup.Select(commitItem => commitItem.CommitTimeStamp).Min();
                 var catalogItemsWithOnlyLatestCommitForEachPackageIdentity = catalogItemsGroup
                     .GroupBy(commitItem => new
                     {
                         PackageId = commitItem.PackageIdentity.Id.ToLowerInvariant(),
                         PackageVersion = commitItem.PackageIdentity.Version.ToNormalizedString().ToLowerInvariant()
                     })
-                    .Select(group => group.OrderBy(item => item.CommitTimeStamp).Last());
+                    .Select(group => group.OrderBy(item => item.CommitTimeStamp).Last())
+                    .ToArray();
+                var minCommitTimeStamp = catalogItemsWithOnlyLatestCommitForEachPackageIdentity
+                    .Select(catalogItem => catalogItem.CommitTimeStamp)
+                    .Min();
 
-                yield return new CatalogCommitItemBatch(
-                    minCommitTimeStamp,
-                    catalogItemsGroup.Key,
-                    catalogItemsWithOnlyLatestCommitForEachPackageIdentity);
+                batches.Add(
+                    new CatalogCommitItemBatch(
+                        catalogItemsWithOnlyLatestCommitForEachPackageIdentity,
+                        catalogItemsGroup.Key));
             }
+
+            // Assert only after skipping older commits for each package identity to reduce the likelihood
+            // of unnecessary failures.
+            AssertNotMoreThanOneCommitIdPerCommitTimeStamp(batches, nameof(catalogItems));
+
+            return batches;
         }
 
-        private static void AssertNotMoreThanOneCommitIdPerCommitTimeStamp(IEnumerable<CatalogCommitItem> catalogItems)
-        {
-            var commitsWithDifferentCommitIds = catalogItems.GroupBy(catalogItem => catalogItem.CommitTimeStamp)
-                .Where(group => group.Select(item => item.CommitId).Distinct().Count() > 1);
-
-            if (commitsWithDifferentCommitIds.Any())
-            {
-                var commits = commitsWithDifferentCommitIds.SelectMany(group => group)
-                    .Select(commit => $"{{ CommitId = {commit.CommitId}, CommitTimeStamp = {commit.CommitTimeStamp.ToString("O")} }}");
-
-                throw new ArgumentException(
-                    string.Format(
-                        CultureInfo.InvariantCulture,
-                        Strings.MultipleCommitIdsForSameCommitTimeStamp,
-                        string.Join(", ", commits)),
-                    nameof(catalogItems));
-            }
-        }
-
-        /// <summary>
-        /// Generate a map of commit timestamps to commit batch tasks.
-        /// </summary>
-        /// <remarks>
-        /// Where P represents a package and T a commit timestamp, suppose the following catalog commits:
-        ///
-        ///            P₀   P₁   P₂   P₃
-        ///     ^      ------------------
-        ///     |      T₃   T₃
-        ///     |                     T₂
-        ///     |      T₁        T₁
-        ///   time     T₀   T₀
-        ///
-        /// For a fixed catalog commit timestamp range (e.g.:  T₀-T₃), each column will contain all relevant
-        /// catalog commits for its corresponding package.
-        ///
-        /// Each column is represented by a <see cref="CatalogCommitBatchTask" /> instance.  Each group of columns
-        /// sharing the same minimum commit timestamp is represented by a <see cref="CatalogCommitBatchTasks" /> instance.
-        ///
-        /// For the example above, this method would return a map with the following entries
-        ///
-        ///     { T₀, new CatalogCommitBatchTasks(T₀,
-        ///         new[]
-        ///         {
-        ///             new CatalogCommitBatchTask(T₀, P₀, [T₀, T₁, T₃]),
-        ///             new CatalogCommitBatchTask(T₀, P₁, [T₀, T₃])
-        ///         }
-        ///     },
-        ///     { T₁, new CatalogCommitBatchTasks(T₁,
-        ///         new[]
-        ///         {
-        ///             new CatalogCommitBatchTask(T₁, P₂, [T₁])
-        ///         }
-        ///     },
-        ///     { T₂, new CatalogCommitBatchTasks(T₂,
-        ///         new[]
-        ///         {
-        ///             new CatalogCommitBatchTask(T₂, P₃, [P₃])
-        ///         }
-        ///     }
-        ///
-        /// Note #1:  typically only the latest commit for each package identity need be processed.  This is true for
-        /// Catalog2Dnx and Catalog2Registration jobs.  In those cases all but the latest commits for each package
-        /// identity should be excluded BEFORE calling this method.  However, ...
-        ///
-        /// Note #2:  it is assumed that each <see cref="CatalogCommitItemBatch.CommitTimeStamp" /> is the minimum
-        /// unprocessed commit timestamp for package ID (not identity), even <see cref="CatalogCommitItemBatch.Items" />
-        /// if contains no item for that commit timestamp (because of Note #1 above).
-        ///
-        /// For the example above with these notes applied, this method would return a map with the following entries:
-        ///
-        ///     { T₀, new CatalogCommitBatchTasks(T₀,
-        ///         new[]
-        ///         {
-        ///             new CatalogCommitBatchTask(T₀, P₀, [T₃]),     // P₀-T₀ and P₀-T₁ have been skipped
-        ///             new CatalogCommitBatchTask(T₀, P₁, [T₃])] },  // P₁-T₀ has been skipped
-        ///         }
-        ///     },
-        ///     { T₁, new CatalogCommitBatchTasks(T₁,
-        ///         new[]
-        ///         {
-        ///             new CatalogCommitBatchTask(T₁, P₂, [T₁])
-        ///         }
-        ///     },
-        ///     { T₂, new CatalogCommitBatchTasks(T₂,
-        ///         new[]
-        ///         {
-        ///             new CatalogCommitBatchTask(T₂, P₃, [P₃])
-        ///         }
-        ///     }
-        /// </remarks>
-        /// <param name="batches">An enumerable of <see cref="CatalogCommitItemBatch" /> instances.</param>
-        /// <returns>A map of commit timestamps to commit batch tasks.</returns>
-        /// <exception cref="ArgumentException">Thrown if <paramref name="batches" /> is either <c>null</c> or empty.</exception>
-        public static SortedDictionary<DateTime, CatalogCommitBatchTasks> CreateCommitBatchTasksMap(
-            IEnumerable<CatalogCommitItemBatch> batches)
-        {
-            if (batches == null || !batches.Any())
-            {
-                throw new ArgumentException(Strings.ArgumentMustNotBeNullOrEmpty, nameof(batches));
-            }
-
-            var map = new SortedDictionary<DateTime, CatalogCommitBatchTasks>();
-
-            foreach (var batch in batches)
-            {
-                var minCommitTimeStamp = batch.CommitTimeStamp;
-                var batchTask = new CatalogCommitBatchTask(minCommitTimeStamp, batch.Key);
-
-                CatalogCommitBatchTasks commitBatchTasks;
-
-                if (!map.TryGetValue(minCommitTimeStamp, out commitBatchTasks))
-                {
-                    commitBatchTasks = new CatalogCommitBatchTasks(minCommitTimeStamp);
-
-                    map[minCommitTimeStamp] = commitBatchTasks;
-                }
-
-                commitBatchTasks.BatchTasks.Add(batchTask);
-            }
-
-            return map;
-        }
-
-        public static void DequeueBatchesWhileMatches(
-            Queue<CatalogCommitBatchTask> batches,
-            Func<CatalogCommitBatchTask, bool> isMatch)
-        {
-            if (batches == null)
-            {
-                throw new ArgumentNullException(nameof(batches));
-            }
-
-            if (isMatch == null)
-            {
-                throw new ArgumentNullException(nameof(isMatch));
-            }
-
-            CatalogCommitBatchTask batch;
-
-            while ((batch = batches.FirstOrDefault()) != null)
-            {
-                if (isMatch(batch))
-                {
-                    batches.Dequeue();
-                }
-                else
-                {
-                    break;
-                }
-            }
-        }
-
-        public static void EnqueueBatchesIfNoFailures(
+        public static void StartProcessingBatchesIfNoFailures(
             CollectorHttpClient client,
             JToken context,
-            SortedDictionary<DateTime, CatalogCommitBatchTasks> commitBatchTasksMap,
-            Queue<CatalogCommitItemBatch> unprocessedBatches,
-            Queue<CatalogCommitBatchTask> processingBatches,
-            CatalogCommitItemBatch lastBatch,
+            List<CatalogCommitItemBatch> unprocessedBatches,
+            List<CatalogCommitItemBatchTask> processingBatches,
             int maxConcurrentBatches,
             ProcessCommitItemBatchAsync processCommitItemBatchAsync,
             CancellationToken cancellationToken)
@@ -242,11 +94,6 @@ namespace NuGet.Services.Metadata.Catalog
                 throw new ArgumentNullException(nameof(context));
             }
 
-            if (commitBatchTasksMap == null)
-            {
-                throw new ArgumentNullException(nameof(commitBatchTasksMap));
-            }
-
             if (unprocessedBatches == null)
             {
                 throw new ArgumentNullException(nameof(unprocessedBatches));
@@ -255,11 +102,6 @@ namespace NuGet.Services.Metadata.Catalog
             if (processingBatches == null)
             {
                 throw new ArgumentNullException(nameof(processingBatches));
-            }
-
-            if (lastBatch == null)
-            {
-                throw new ArgumentNullException(nameof(lastBatch));
             }
 
             if (maxConcurrentBatches < 1)
@@ -288,18 +130,24 @@ namespace NuGet.Services.Metadata.Catalog
 
             for (var i = 0; i < batchesToEnqueue; ++i)
             {
-                var batch = unprocessedBatches.Dequeue();
+                var batch = unprocessedBatches[0];
 
-                var batchTask = commitBatchTasksMap[batch.CommitTimeStamp].BatchTasks
-                    .Single(bt => bt.Key == batch.Key);
+                unprocessedBatches.RemoveAt(0);
 
-                batchTask.Task = processCommitItemBatchAsync(client, context, batch.Key, batch, lastBatch, cancellationToken);
+                var task = processCommitItemBatchAsync(
+                    client,
+                    context,
+                    batch.Key,
+                    batch,
+                    lastBatch: null,
+                    cancellationToken: cancellationToken);
+                var batchTask = new CatalogCommitItemBatchTask(batch, task);
 
-                processingBatches.Enqueue(batchTask);
+                processingBatches.Add(batchTask);
             }
         }
 
-        internal static async Task<bool> FetchAsync(
+        internal static async Task<bool> ProcessCatalogCommitsAsync(
             CollectorHttpClient client,
             ReadWriteCursor front,
             ReadCursor back,
@@ -307,7 +155,6 @@ namespace NuGet.Services.Metadata.Catalog
             CreateCommitItemBatchesAsync createCommitItemBatchesAsync,
             ProcessCommitItemBatchAsync processCommitItemBatchAsync,
             int maxConcurrentBatches,
-            string typeName,
             ILogger logger,
             CancellationToken cancellationToken)
         {
@@ -320,29 +167,30 @@ namespace NuGet.Services.Metadata.Catalog
             {
                 JObject page = await client.GetJObjectAsync(rootItem.Uri, cancellationToken);
                 var context = (JObject)page["@context"];
-                CatalogCommitItemBatch[] batches = await CreateBatchesForAllAvailableItemsInPageAsync(front, back, page, context, createCommitItemBatchesAsync);
+                CatalogCommitItemBatch[] batches = await CreateBatchesForAllAvailableItemsInPageAsync(
+                    front,
+                    back,
+                    page,
+                    context,
+                    createCommitItemBatchesAsync);
 
                 if (!batches.Any())
                 {
                     continue;
                 }
 
+                hasAnyBatchBeenProcessed = true;
+
                 DateTime maxCommitTimeStamp = GetMaxCommitTimeStamp(batches);
-                SortedDictionary<DateTime, CatalogCommitBatchTasks> commitBatchTasksMap = CreateCommitBatchTasksMap(batches);
-
-                var unprocessedBatches = new Queue<CatalogCommitItemBatch>(batches);
-                var processingBatches = new Queue<CatalogCommitBatchTask>();
-
-                CatalogCommitItemBatch lastBatch = unprocessedBatches.LastOrDefault();
+                var unprocessedBatches = batches.ToList();
+                var processingBatches = new List<CatalogCommitItemBatchTask>();
                 var exceptions = new List<Exception>();
 
-                EnqueueBatchesIfNoFailures(
+                StartProcessingBatchesIfNoFailures(
                     client,
                     context,
-                    commitBatchTasksMap,
                     unprocessedBatches,
                     processingBatches,
-                    lastBatch,
                     maxConcurrentBatches,
                     processCommitItemBatchAsync,
                     cancellationToken);
@@ -355,80 +203,40 @@ namespace NuGet.Services.Metadata.Catalog
 
                     await Task.WhenAny(activeTasks);
 
-                    DateTime? newCommitTimeStamp = null;
-
-                    while (!hasAnyBatchFailed && commitBatchTasksMap.Any())
+                    for (var i = 0; i < processingBatches.Count; ++i)
                     {
-                        var commitBatchTasks = commitBatchTasksMap.First().Value;
-                        var isCommitFullyProcessed = commitBatchTasks.BatchTasks.All(batch => batch.Task != null && batch.Task.IsCompleted);
+                        var batch = processingBatches[i];
 
-                        if (!isCommitFullyProcessed)
-                        {
-                            break;
-                        }
-
-                        var isCommitSuccessfullyProcessed = commitBatchTasks.BatchTasks.All(batch => batch.Task.Status == TaskStatus.RanToCompletion);
-
-                        if (isCommitSuccessfullyProcessed)
-                        {
-                            // If there were multiple successfully processed commits, keep track of the most recent one
-                            // and update the front cursor later after determining the latest successful commit timestamp
-                            // to use.  Updating the cursor here for each commit can be very slow.
-                            newCommitTimeStamp = commitBatchTasks.CommitTimeStamp;
-
-                            DequeueBatchesWhileMatches(processingBatches, batch => batch.MinCommitTimeStamp == newCommitTimeStamp.Value);
-
-                            commitBatchTasksMap.Remove(newCommitTimeStamp.Value);
-
-                            if (!commitBatchTasksMap.Any())
-                            {
-                                if (maxCommitTimeStamp > newCommitTimeStamp)
-                                {
-                                    // Although all commits for the current page have been successfully processed, the
-                                    // current CatalogCommitBatchTasks.CommitTimeStamp value is not the maximum commit
-                                    // timestamp processed.
-                                    newCommitTimeStamp = maxCommitTimeStamp;
-                                }
-                            }
-                        }
-                        else // Canceled or Failed
+                        if (batch.Task.IsFaulted || batch.Task.IsCanceled)
                         {
                             hasAnyBatchFailed = true;
 
-                            exceptions.AddRange(
-                                commitBatchTasks.BatchTasks
-                                    .Select(batch => batch.Task)
-                                    .Where(task => (task.IsFaulted || task.IsCanceled) && task.Exception != null)
-                                    .Select(task => ExceptionUtilities.Unwrap(task.Exception)));
+                            if (batch.Task.Exception != null)
+                            {
+                                var exception = ExceptionUtilities.Unwrap(batch.Task.Exception);
+
+                                exceptions.Add(exception);
+                            }
+                        }
+
+                        if (batch.Task.IsCompleted)
+                        {
+                            processingBatches.RemoveAt(i);
+                            --i;
                         }
                     }
 
-                    if (newCommitTimeStamp.HasValue)
+                    if (!hasAnyBatchFailed)
                     {
-                        front.Value = newCommitTimeStamp.Value;
-
-                        await front.SaveAsync(cancellationToken);
-
-                        Trace.TraceInformation($"{typeName}.{nameof(FetchAsync)} {nameof(front)}.{nameof(front.Value)} saved since timestamp changed from previous: {{0}}", front);
+                        StartProcessingBatchesIfNoFailures(
+                            client,
+                            context,
+                            unprocessedBatches,
+                            processingBatches,
+                            maxConcurrentBatches,
+                            processCommitItemBatchAsync,
+                            cancellationToken);
                     }
-
-                    if (hasAnyBatchFailed)
-                    {
-                        DequeueBatchesWhileMatches(processingBatches, batch => batch.Task.IsCompleted);
-                    }
-
-                    hasAnyBatchBeenProcessed = true;
-
-                    EnqueueBatchesIfNoFailures(
-                        client,
-                        context,
-                        commitBatchTasksMap,
-                        unprocessedBatches,
-                        processingBatches,
-                        lastBatch,
-                        maxConcurrentBatches,
-                        processCommitItemBatchAsync,
-                        cancellationToken);
                 }
 
                 if (hasAnyBatchFailed)
@@ -442,6 +250,13 @@ namespace NuGet.Services.Metadata.Catalog
 
                     throw new BatchProcessingException(innerException);
                 }
+
+                front.Value = maxCommitTimeStamp;
+
+                await front.SaveAsync(cancellationToken);
+
+                Trace.TraceInformation($"{nameof(CatalogCommitUtilities)}.{nameof(ProcessCatalogCommitsAsync)} " +
+                    $"{nameof(front)}.{nameof(front.Value)} saved since timestamp changed from previous: {{0}}", front);
             }
 
             return hasAnyBatchBeenProcessed;
@@ -480,6 +295,29 @@ namespace NuGet.Services.Metadata.Catalog
             return batches.SelectMany(batch => batch.Items)
                 .Select(item => item.CommitTimeStamp)
                 .Max();
+        }
+
+        private static void AssertNotMoreThanOneCommitIdPerCommitTimeStamp(
+            IEnumerable<CatalogCommitItemBatch> batches,
+            string parameterName)
+        {
+            var commitsWithSameTimeStampButDifferentCommitIds = batches
+                .SelectMany(batch => batch.Items)
+                .GroupBy(commitItem => commitItem.CommitTimeStamp)
+                .Where(group => group.Select(item => item.CommitId).Distinct().Count() > 1);
+
+            if (commitsWithSameTimeStampButDifferentCommitIds.Any())
+            {
+                var commits = commitsWithSameTimeStampButDifferentCommitIds.SelectMany(group => group)
+                    .Select(commit => $"{{ CommitId = {commit.CommitId}, CommitTimeStamp = {commit.CommitTimeStamp.ToString("O")} }}");
+
+                throw new ArgumentException(
+                    string.Format(
+                        CultureInfo.InvariantCulture,
+                        Strings.MultipleCommitIdsForSameCommitTimeStamp,
+                        string.Join(", ", commits)),
+                    parameterName);
+            }
         }
     }
 }

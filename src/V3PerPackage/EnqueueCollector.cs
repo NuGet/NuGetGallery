@@ -37,7 +37,7 @@ namespace NuGet.Services.V3PerPackage
 
             var maxCommitTimestamp = catalogItems.Max(x => x.CommitTimeStamp);
 
-            return Task.FromResult(new[] { new CatalogCommitItemBatch(maxCommitTimestamp, key: null, items: catalogItemList) }.AsEnumerable());
+            return Task.FromResult(new[] { new CatalogCommitItemBatch(catalogItemList) }.AsEnumerable());
         }
 
         protected override async Task<bool> OnProcessBatchAsync(

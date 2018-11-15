@@ -120,6 +120,9 @@
   <data name="ArgumentMustBeInstanceOfType" xml:space="preserve">
     <value>The argument must be an instance of type {0}.</value>
   </data>
+  <data name="ArgumentMustNotBeNull" xml:space="preserve">
+    <value>The argument must not be null.</value>
+  </data>
   <data name="ArgumentMustNotBeNullEmptyOrWhitespace" xml:space="preserve">
     <value>The argument must not be null, empty, or whitespace.</value>
   </data>

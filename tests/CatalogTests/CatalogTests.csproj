@@ -72,7 +72,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BatchProcessingExceptionTests.cs" />
-    <Compile Include="CatalogCommitBatchTasksTests.cs" />
     <Compile Include="CatalogCommitBatchTaskTests.cs" />
     <Compile Include="CatalogCommitItemBatchTests.cs" />
     <Compile Include="CatalogCommitItemTests.cs" />

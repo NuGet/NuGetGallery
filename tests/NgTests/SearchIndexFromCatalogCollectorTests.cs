@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -15,7 +14,6 @@ using Ng;
 using Ng.Jobs;
 using NgTests.Data;
 using NgTests.Infrastructure;
-using NuGet.Services.Logging;
 using NuGet.Services.Metadata.Catalog;
 using Xunit;
 using Constants = NuGet.IndexingTests.TestSupport.Constants;
@@ -53,8 +51,6 @@ namespace NgTests
                 MemoryCursor.MinValue);
             ReadCursor back = MemoryCursor.CreateMax();
 
-            var commitTimeout = TimeSpan.FromSeconds(1);
-
             var telemetryService = new Mock<ITelemetryService>();
             var indexCommitDurationMetric = new Mock<IDisposable>();
             telemetryService.Setup(t => t.TrackIndexCommitDuration()).Returns(indexCommitDurationMetric.Object);
@@ -68,7 +64,7 @@ namespace NgTests
                         new Uri("http://tempuri.org/index.json"),
                         indexWriter,
                         commitEachBatch: true,
-                        commitTimeout: commitTimeout,
+                        commitTimeout: Timeout.InfiniteTimeSpan,
                         baseAddress: null,
                         telemetryService: telemetryService.Object,
                         logger: new TestLogger(),
