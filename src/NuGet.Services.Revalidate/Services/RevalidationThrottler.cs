@@ -9,6 +9,8 @@ namespace NuGet.Services.Revalidate
 {
     public class RevalidationThrottler : IRevalidationThrottler
     {
+        private static readonly TimeSpan MinimumDelayUntilNextRevalidations = TimeSpan.FromSeconds(5);
+
         private readonly IRevalidationJobStateService _jobState;
         private readonly IPackageRevalidationStateService _packageState;
         private readonly IGalleryService _gallery;
@@ -59,10 +61,20 @@ namespace NuGet.Services.Revalidate
             }
         }
 
-        public async Task DelayUntilNextRevalidationAsync()
+        public async Task DelayUntilNextRevalidationAsync(int revalidationsStarted, TimeSpan startDuration)
         {
             var desiredHourlyRate = await _jobState.GetDesiredPackageEventRateAsync();
-            var sleepDuration = TimeSpan.FromHours(1.0 / desiredHourlyRate);
+
+            // Calculate the time to sleep. If this batch started 50 revalidations in 30 seconds and we would like
+            // to achieve 1,000 revalidations per hour, we should sleep for 2.5 minutes:
+            //
+            // (50/1000) * 60 - (30/60) = 2.5
+            var sleepDuration = TimeSpan.FromHours((float)revalidationsStarted / desiredHourlyRate) - startDuration;
+            if (sleepDuration < MinimumDelayUntilNextRevalidations)
+            {
+                _logger.LogWarning($"The delay until next revalidation is too small, overriding it to {MinimumDelayUntilNextRevalidations}!");
+                sleepDuration = MinimumDelayUntilNextRevalidations;
+            }
 
             _logger.LogInformation("Delaying until next revalidation by sleeping for {SleepDuration}...", sleepDuration);
 

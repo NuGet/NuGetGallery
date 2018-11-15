@@ -34,10 +34,10 @@ namespace NuGet.Services.Revalidate
         Task<int> CountRevalidationsEnqueuedInPastHourAsync();
 
         /// <summary>
-        /// Update the package revalidation and mark is as enqueued.
+        /// Update the package revalidations and mark them as enqueued.
         /// </summary>
-        /// <param name="revalidation">The revalidation to update.</param>
-        /// <returns>A task that completes once the revalidation has been updated.</returns>
-        Task MarkPackageRevalidationAsEnqueuedAsync(PackageRevalidation revalidation);
+        /// <param name="revalidations">The revalidations to update.</param>
+        /// <returns>A task that completes once the revalidations have been updated.</returns>
+        Task MarkPackageRevalidationsAsEnqueuedAsync(IReadOnlyList<PackageRevalidation> revalidations);
     }
 }

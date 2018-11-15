@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
 using System.Linq;
@@ -37,19 +38,17 @@ namespace NuGet.Services.Revalidate
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task<PackageRevalidation> NextOrNullAsync()
+        public async Task<IReadOnlyList<PackageRevalidation>> NextAsync()
         {
-            for (var i = 0; i < _config.MaximumAttempts; i++)
+            // Find the next package to revalidate. We will skip packages if:
+            //   1. The package has more than "MaximumPackageVersions" versions
+            //   2. The package has already been enqueued for revalidation
+            //   3. The package's revalidation was completed by an external factory (like manual admin revalidation)
+            List<PackageRevalidation> next;
+            using (_telemetry.TrackFindNextRevalidations())
             {
-                _logger.LogInformation(
-                    "Attempting to find the next revalidation. Try {Attempt} of {MaxAttempts}",
-                    i + 1,
-                    _config.MaximumAttempts);
+                _logger.LogInformation("Finding the next packages to revalidate...");
 
-                // Find the next package to revalidate. We will skip packages if:
-                //   1. The package has more than "MaximumPackageVersions" versions
-                //   2. The package has already been enqueued for revalidation
-                //   3. The package's revalidation was completed by an external factory (like manual admin revalidation)
                 IQueryable<PackageRevalidation> query = _validationContext.PackageRevalidations;
 
                 if (_config.MaximumPackageVersions.HasValue)
@@ -61,82 +60,130 @@ namespace NuGet.Services.Revalidate
                         .Any(g => g.Key == r.PackageId));
                 }
 
-                var next = await query
+                next = await query
                     .Where(r => r.Enqueued == null)
                     .Where(r => r.Completed == false)
                     .OrderBy(r => r.Key)
-                    .FirstOrDefaultAsync();
+                    .Take(_config.MaxBatchSize)
+                    .ToListAsync();
+            }
 
-                if (next == null)
+            _logger.LogInformation("Found {Revalidations} packages to revalidate", next.Count);
+
+            // Return all the revalidations that aren't already completed.
+            return await FilterCompletedRevalidationsAsync(next);
+        }
+
+        private async Task<IReadOnlyList<PackageRevalidation>> FilterCompletedRevalidationsAsync(IReadOnlyList<PackageRevalidation> revalidations)
+        {
+            if (!revalidations.Any())
+            {
+                return revalidations;
+            }
+
+            var completed = new List<PackageRevalidation>();
+            var uncompleted = revalidations.ToDictionary(
+                r => $"{r.PackageId}/{r.PackageNormalizedVersion}",
+                r => r);
+
+            // Packages that already have a repository signature do not need to be revalidated.
+            _logger.LogInformation("Finding revalidations that can be skipped because their packages are already repository signed...");
+
+            var hasRepositorySignatures = await _validationContext.PackageSigningStates
+                .Select(s => new {
+                    IdAndVersion = s.PackageId + "/" + s.PackageNormalizedVersion,
+                    s.PackageSignatures
+                })
+                .Where(s => uncompleted.Keys.Contains(s.IdAndVersion))
+                .Where(s => s.PackageSignatures.Any(sig => sig.Type == PackageSignatureType.Repository))
+                .Select(s => s.IdAndVersion)
+                .ToListAsync();
+
+            _logger.LogInformation(
+                "Found {RevalidationCount} revalidations that can be skipped because their packages are already repository signed",
+                hasRepositorySignatures.Count);
+
+            foreach (var idAndVersion in hasRepositorySignatures)
+            {
+                completed.Add(uncompleted[idAndVersion]);
+                uncompleted.Remove(idAndVersion);
+            }
+
+            // Packages that are no longer available should not be revalidated.
+            _logger.LogInformation("Finding revalidations' package statuses...");
+
+            var packageStatuses = await _galleryContext.Set<Package>()
+                .Select(p => new
                 {
-                    _logger.LogWarning("Could not find any incomplete revalidations");
-                    return null;
-                }
+                    Identity = p.PackageRegistration.Id + "/" + p.NormalizedVersion,
+                    p.PackageStatusKey
+                })
+                .Where(p => uncompleted.Keys.Contains(p.Identity))
+                .ToDictionaryAsync(
+                    p => p.Identity,
+                    p => p.PackageStatusKey);
 
-                // Don't revalidate packages that already have a repository signature or that no longer exist.
-                if (await HasRepositorySignature(next) || await IsDeleted(next))
+            _logger.LogInformation("Found {PackageStatusCount} revalidations' package statuses", packageStatuses.Count);
+
+            foreach (var key in uncompleted.Keys.ToList())
+            {
+                // Packages that are hard deleted won't have a status.
+                if (!packageStatuses.TryGetValue(key, out var status) || status == PackageStatus.Deleted)
                 {
-                    await MarkAsCompleted(next);
-                    await Task.Delay(_config.SleepBetweenAttempts);
-
+                    completed.Add(uncompleted[key]);
+                    uncompleted.Remove(key);
                     continue;
                 }
-
-                _logger.LogInformation(
-                    "Found revalidation for {PackageId} {PackageNormalizedVersion} after {Attempt} attempts",
-                    next.PackageId,
-                    next.PackageNormalizedVersion,
-                    i + 1);
-
-                return next;
             }
 
             _logger.LogInformation(
-                "Did not find any revalidations after {MaxAttempts}. Retry later...",
-                _config.MaximumAttempts);
+                "Found {CompletedRevalidations} revalidations that can be skipped. There are {UncompletedRevalidations} " +
+                "revalidations remaining in this batch",
+                completed.Count,
+                uncompleted.Count);
 
-            return null;
+            // Update revalidations that were determined to be completed and return the remaining revalidations.
+            if (completed.Any())
+            {
+                await MarkRevalidationsAsCompletedAsync(completed);
+            }
+
+            return uncompleted.Values.ToList();
         }
 
-        private Task<bool> HasRepositorySignature(PackageRevalidation revalidation)
+        private async Task MarkRevalidationsAsCompletedAsync(IReadOnlyList<PackageRevalidation> revalidations)
         {
-            return _validationContext.PackageSigningStates
-                .Where(s => s.PackageId == revalidation.PackageId)
-                .Where(s => s.PackageNormalizedVersion == revalidation.PackageNormalizedVersion)
-                .Where(s => s.PackageSignatures.Any(sig => sig.Type == PackageSignatureType.Repository))
-                .AnyAsync();
-        }
-
-        private async Task<bool> IsDeleted(PackageRevalidation revalidation)
-        {
-            var packageStatus = await _galleryContext.Set<Package>()
-                .Where(p => p.PackageRegistration.Id == revalidation.PackageId)
-                .Where(p => p.NormalizedVersion == revalidation.PackageNormalizedVersion)
-                .Select(p => (PackageStatus?)p.PackageStatusKey)
-                .FirstOrDefaultAsync();
-
-            return (packageStatus == null || packageStatus == PackageStatus.Deleted);
-        }
-
-        private async Task MarkAsCompleted(PackageRevalidation revalidation)
-        {
-            _logger.LogInformation(
-                "Marking package revalidation as completed as it has a repository signature or is deleted for {PackageId} {PackageNormalizedVersion}",
-                revalidation.PackageId,
-                revalidation.PackageNormalizedVersion);
-
             try
             {
-                revalidation.Completed = true;
+                foreach (var revalidation in revalidations)
+                {
+                    _logger.LogInformation(
+                        "Marking package {PackageId} {PackageNormalizedVersion} revalidation as completed as the package is unavailable or the package is already repository signed...",
+                        revalidation.PackageId,
+                        revalidation.PackageNormalizedVersion);
+
+                    revalidation.Completed = true;
+                }
 
                 await _validationContext.SaveChangesAsync();
 
-                _telemetry.TrackPackageRevalidationMarkedAsCompleted(revalidation.PackageId, revalidation.PackageNormalizedVersion);
+                foreach (var revalidation in revalidations)
+                {
+                    _logger.LogInformation(
+                        "Marked package {PackageId} {PackageNormalizedVersion} revalidation as completed",
+                        revalidation.PackageId,
+                        revalidation.PackageNormalizedVersion);
+
+                    _telemetry.TrackPackageRevalidationMarkedAsCompleted(revalidation.PackageId, revalidation.PackageNormalizedVersion);
+                }
             }
-            catch (DbUpdateConcurrencyException)
+            catch (DbUpdateConcurrencyException e)
             {
-                // Swallow concurrency exceptions. The package will be marked as completed
-                // on the next iteration of "NextOrNullAsync".
+                _logger.LogError(
+                    0,
+                    e,
+                    "Failed to mark package revalidations as completed. " +
+                    $"These revalidations will be marked as completed on the next iteration of {nameof(NextAsync)}...");
             }
         }
     }

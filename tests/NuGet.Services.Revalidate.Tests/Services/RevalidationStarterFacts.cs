@@ -23,13 +23,14 @@ namespace NuGet.Services.Revalidate.Tests.Services
                 Setup(isSingleton: false);
 
                 // Act & Assert
-                var result = await _target.StartNextRevalidationAsync();
+                var result = await _target.StartNextRevalidationsAsync();
 
                 _singletonService.Verify(s => s.IsSingletonAsync(), Times.Once);
                 _jobState.Verify(s => s.IncreaseDesiredPackageEventRateAsync(), Times.Never);
                 _validationEnqueuer.Verify(e => e.StartValidationAsync(It.IsAny<PackageValidationMessageData>()), Times.Never);
 
-                Assert.Equal(RevalidationResult.UnrecoverableError, result);
+                Assert.Equal(StartRevalidationStatus.UnrecoverableError, result.Status);
+                Assert.Equal(0, result.RevalidationsStarted);
             }
 
             [Fact]
@@ -39,9 +40,10 @@ namespace NuGet.Services.Revalidate.Tests.Services
                 Setup(singletonThrows: true);
 
                 // Act & Assert
-                var result = await _target.StartNextRevalidationAsync();
+                var result = await _target.StartNextRevalidationsAsync();
 
-                Assert.Equal(RevalidationResult.RetryLater, result);
+                Assert.Equal(StartRevalidationStatus.RetryLater, result.Status);
+                Assert.Equal(0, result.RevalidationsStarted);
             }
 
             [Fact]
@@ -51,13 +53,14 @@ namespace NuGet.Services.Revalidate.Tests.Services
                 Setup(killswitchActive: true);
 
                 // Act & Assert
-                var result = await _target.StartNextRevalidationAsync();
+                var result = await _target.StartNextRevalidationsAsync();
 
                 _jobState.Verify(s => s.IsKillswitchActiveAsync(), Times.Once);
                 _jobState.Verify(s => s.IncreaseDesiredPackageEventRateAsync(), Times.Never);
                 _validationEnqueuer.Verify(e => e.StartValidationAsync(It.IsAny<PackageValidationMessageData>()), Times.Never);
 
-                Assert.Equal(RevalidationResult.RetryLater, result);
+                Assert.Equal(StartRevalidationStatus.RetryLater, result.Status);
+                Assert.Equal(0, result.RevalidationsStarted);
             }
 
             [Fact]
@@ -67,9 +70,10 @@ namespace NuGet.Services.Revalidate.Tests.Services
                 Setup(killswitchThrows: true);
 
                 // Act & Assert
-                var result = await _target.StartNextRevalidationAsync();
+                var result = await _target.StartNextRevalidationsAsync();
 
-                Assert.Equal(RevalidationResult.RetryLater, result);
+                Assert.Equal(StartRevalidationStatus.RetryLater, result.Status);
+                Assert.Equal(0, result.RevalidationsStarted);
             }
 
             [Fact]
@@ -79,13 +83,14 @@ namespace NuGet.Services.Revalidate.Tests.Services
                 Setup(isThrottled: true);
 
                 // Act & Assert
-                var result = await _target.StartNextRevalidationAsync();
+                var result = await _target.StartNextRevalidationsAsync();
 
                 _throttler.Verify(s => s.IsThrottledAsync(), Times.Once);
                 _jobState.Verify(s => s.IncreaseDesiredPackageEventRateAsync(), Times.Never);
                 _validationEnqueuer.Verify(e => e.StartValidationAsync(It.IsAny<PackageValidationMessageData>()), Times.Never);
 
-                Assert.Equal(RevalidationResult.RetryLater, result);
+                Assert.Equal(StartRevalidationStatus.RetryLater, result.Status);
+                Assert.Equal(0, result.RevalidationsStarted);
             }
 
             [Fact]
@@ -95,9 +100,10 @@ namespace NuGet.Services.Revalidate.Tests.Services
                 Setup(throttledThrows: true);
 
                 // Act & Assert
-                var result = await _target.StartNextRevalidationAsync();
+                var result = await _target.StartNextRevalidationsAsync();
 
-                Assert.Equal(RevalidationResult.RetryLater, result);
+                Assert.Equal(StartRevalidationStatus.RetryLater, result.Status);
+                Assert.Equal(0, result.RevalidationsStarted);
             }
 
             [Fact]
@@ -107,13 +113,14 @@ namespace NuGet.Services.Revalidate.Tests.Services
                 Setup(isHealthy: false);
 
                 // Act & Assert
-                var result = await _target.StartNextRevalidationAsync();
+                var result = await _target.StartNextRevalidationsAsync();
 
                 _jobState.Verify(s => s.IncreaseDesiredPackageEventRateAsync(), Times.Never);
                 _healthService.Verify(h => h.IsHealthyAsync(), Times.Once);
                 _validationEnqueuer.Verify(e => e.StartValidationAsync(It.IsAny<PackageValidationMessageData>()), Times.Never);
 
-                Assert.Equal(RevalidationResult.RetryLater, result);
+                Assert.Equal(StartRevalidationStatus.RetryLater, result.Status);
+                Assert.Equal(0, result.RevalidationsStarted);
             }
 
             [Fact]
@@ -123,19 +130,20 @@ namespace NuGet.Services.Revalidate.Tests.Services
                 Setup(healthyThrows: true);
 
                 // Act & Assert
-                var result = await _target.StartNextRevalidationAsync();
+                var result = await _target.StartNextRevalidationsAsync();
 
-                Assert.Equal(RevalidationResult.RetryLater, result);
+                Assert.Equal(StartRevalidationStatus.RetryLater, result.Status);
+                Assert.Equal(0, result.RevalidationsStarted);
             }
 
             [Fact]
             public async Task IfRevalidationQueueEmpty_ReturnsRetryLater()
             {
                 // Arrange
-                Setup(next: null);
+                Setup(next: new List<PackageRevalidation>());
 
                 // Act & Assert
-                var result = await _target.StartNextRevalidationAsync();
+                var result = await _target.StartNextRevalidationsAsync();
 
                 _singletonService.Verify(s => s.IsSingletonAsync(), Times.Once);
                 _jobState.Verify(s => s.IsKillswitchActiveAsync(), Times.Exactly(2));
@@ -146,7 +154,8 @@ namespace NuGet.Services.Revalidate.Tests.Services
 
                 _validationEnqueuer.Verify(e => e.StartValidationAsync(It.IsAny<PackageValidationMessageData>()), Times.Never);
 
-                Assert.Equal(RevalidationResult.RetryLater, result);
+                Assert.Equal(StartRevalidationStatus.RetryLater, result.Status);
+                Assert.Equal(0, result.RevalidationsStarted);
             }
 
             [Fact]
@@ -156,33 +165,32 @@ namespace NuGet.Services.Revalidate.Tests.Services
                 Setup(nextThrows: true);
 
                 // Act & Assert
-                var result = await _target.StartNextRevalidationAsync();
+                var result = await _target.StartNextRevalidationsAsync();
 
-                Assert.Equal(RevalidationResult.RetryLater, result);
+                Assert.Equal(StartRevalidationStatus.RetryLater, result.Status);
+                Assert.Equal(0, result.RevalidationsStarted);
             }
 
             [Fact]
             public async Task StartsNextRevalidation()
             {
                 // Arrange
-                Setup(next: _revalidation);
+                Setup(next: new List<PackageRevalidation> { _revalidation1, _revalidation2 });
 
-                var order = 0;
-                int enqueueStep = 0;
-                int markStep = 0;
+                var steps = new List<string>();
 
                 _validationEnqueuer
                     .Setup(e => e.StartValidationAsync(It.IsAny<PackageValidationMessageData>()))
-                    .Callback(() => enqueueStep = order++)
+                    .Callback<PackageValidationMessageData>(m => steps.Add($"Enqueue {m.PackageId} {m.PackageNormalizedVersion}"))
                     .Returns(Task.CompletedTask);
 
                 _packageState
-                    .Setup(s => s.MarkPackageRevalidationAsEnqueuedAsync(It.IsAny<PackageRevalidation>()))
-                    .Callback(() => markStep = order++)
+                    .Setup(s => s.MarkPackageRevalidationsAsEnqueuedAsync(It.IsAny<IReadOnlyList<PackageRevalidation>>()))
+                    .Callback(() => steps.Add("Mark as enqueued"))
                     .Returns(Task.CompletedTask);
 
                 // Act
-                var result = await _target.StartNextRevalidationAsync();
+                var result = await _target.StartNextRevalidationsAsync();
 
                 // Assert
                 _singletonService.Verify(s => s.IsSingletonAsync(), Times.Once);
@@ -194,17 +202,30 @@ namespace NuGet.Services.Revalidate.Tests.Services
 
                 _validationEnqueuer.Verify(
                     e => e.StartValidationAsync(It.Is<PackageValidationMessageData>(m =>
-                        m.PackageId == _revalidation.PackageId &&
-                        m.PackageNormalizedVersion == _revalidation.PackageNormalizedVersion &&
-                        m.ValidationTrackingId == _revalidation.ValidationTrackingId.Value)),
+                        m.PackageId == _revalidation1.PackageId &&
+                        m.PackageNormalizedVersion == _revalidation1.PackageNormalizedVersion &&
+                        m.ValidationTrackingId == _revalidation1.ValidationTrackingId.Value)),
                     Times.Once);
 
-                _packageState.Verify(s => s.MarkPackageRevalidationAsEnqueuedAsync(_revalidation), Times.Once);
-                _telemetryService.Verify(t => t.TrackPackageRevalidationStarted(_revalidation.PackageId, _revalidation.PackageNormalizedVersion));
+                _packageState.Verify(
+                    s => s.MarkPackageRevalidationsAsEnqueuedAsync(
+                        It.Is<IReadOnlyList<PackageRevalidation>>(
+                            revalidations => revalidations.Count == 2 &&
+                                revalidations[0] == _revalidation1 &&
+                                revalidations[1] == _revalidation2)),
+                    Times.Once);
 
-                Assert.Equal(RevalidationResult.RevalidationEnqueued, result);
-                Assert.Equal(2, order);
-                Assert.True(enqueueStep < markStep);
+                _telemetryService.Verify(t => t.TrackPackageRevalidationStarted(_revalidation1.PackageId, _revalidation1.PackageNormalizedVersion));
+                _telemetryService.Verify(t => t.TrackPackageRevalidationStarted(_revalidation2.PackageId, _revalidation2.PackageNormalizedVersion));
+
+                Assert.Equal(StartRevalidationStatus.RevalidationsEnqueued, result.Status);
+                Assert.Equal(2, result.RevalidationsStarted);
+
+                // Verify that revalidations were enqueued before the revalidations were marked as completed.
+                Assert.Equal(3, steps.Count);
+                Assert.Equal("Enqueue Foo.Bar 1.2.3", steps[0]);
+                Assert.Equal("Enqueue Toodle.Doo 4.5.6", steps[1]);
+                Assert.Equal("Mark as enqueued", steps[2]);
             }
         }
 
@@ -219,7 +240,8 @@ namespace NuGet.Services.Revalidate.Tests.Services
             protected readonly Mock<IPackageValidationEnqueuer> _validationEnqueuer;
             protected readonly Mock<ITelemetryService> _telemetryService;
 
-            protected readonly PackageRevalidation _revalidation;
+            protected readonly PackageRevalidation _revalidation1;
+            protected readonly PackageRevalidation _revalidation2;
 
             public RevalidationStarter _target;
 
@@ -242,10 +264,17 @@ namespace NuGet.Services.Revalidate.Tests.Services
                         new StartNextRevalidationOperation(),
                         Mock.Of<Func<StartNextRevalidationOperation, IDictionary<string, string>>>()));
 
-                _revalidation = new PackageRevalidation
+                _revalidation1 = new PackageRevalidation
                 {
                     PackageId = "Foo.Bar",
                     PackageNormalizedVersion = "1.2.3",
+                    ValidationTrackingId = Guid.NewGuid()
+                };
+
+                _revalidation2 = new PackageRevalidation
+                {
+                    PackageId = "Toodle.Doo",
+                    PackageNormalizedVersion = "4.5.6",
                     ValidationTrackingId = Guid.NewGuid()
                 };
 
@@ -266,7 +295,7 @@ namespace NuGet.Services.Revalidate.Tests.Services
                 bool killswitchActive = false,
                 bool isThrottled = false,
                 bool isHealthy = true,
-                PackageRevalidation next = null,
+                IReadOnlyList<PackageRevalidation> next = null,
                 bool initializedThrows = false,
                 bool singletonThrows = false,
                 bool killswitchThrows = false,
@@ -278,7 +307,7 @@ namespace NuGet.Services.Revalidate.Tests.Services
                 _jobState.Setup(s => s.IsKillswitchActiveAsync()).ReturnsAsync(killswitchActive);
                 _throttler.Setup(t => t.IsThrottledAsync()).ReturnsAsync(isThrottled);
                 _healthService.Setup(t => t.IsHealthyAsync()).ReturnsAsync(isHealthy);
-                _revalidationQueue.Setup(q => q.NextOrNullAsync()).ReturnsAsync(next);
+                _revalidationQueue.Setup(q => q.NextAsync()).ReturnsAsync(next);
 
                 var exception = new Exception();
 
@@ -286,7 +315,7 @@ namespace NuGet.Services.Revalidate.Tests.Services
                 if (killswitchThrows) _jobState.Setup(s => s.IsKillswitchActiveAsync()).ThrowsAsync(exception);
                 if (throttledThrows) _throttler.Setup(t => t.IsThrottledAsync()).ThrowsAsync(exception);
                 if (healthyThrows) _healthService.Setup(t => t.IsHealthyAsync()).ThrowsAsync(exception);
-                if (nextThrows) _revalidationQueue.Setup(q => q.NextOrNullAsync()).ThrowsAsync(exception);
+                if (nextThrows) _revalidationQueue.Setup(q => q.NextAsync()).ThrowsAsync(exception);
             }
 
             protected void SetupUnrecoverableErrorResult()

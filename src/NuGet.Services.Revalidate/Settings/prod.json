@@ -27,9 +27,8 @@
     },
 
     "Queue": {
-      "MaximumPackageVersions": #{Jobs.nuget.services.revalidate.MaximumPackageVersions},
-      "MaximumAttempts": 5,
-      "SleepBetweenAttempts": "00:00:30"
+      "MaxBatchSize": #{Jobs.nuget.services.revalidate.MaxBatchSize},
+      "MaximumPackageVersions": #{Jobs.nuget.services.revalidate.MaximumPackageVersions}
     }
   },
 

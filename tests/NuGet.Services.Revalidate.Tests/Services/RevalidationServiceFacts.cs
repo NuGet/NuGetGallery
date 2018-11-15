@@ -46,8 +46,8 @@ namespace NuGet.Services.Revalidate.Tests.Services
                     .ReturnsAsync(true);
 
                 _starter
-                    .Setup(s => s.StartNextRevalidationAsync())
-                    .ReturnsAsync(RevalidationResult.UnrecoverableError);
+                    .Setup(s => s.StartNextRevalidationsAsync())
+                    .ReturnsAsync(StartRevalidationResult.UnrecoverableError);
 
                 // Act
                 await _target.RunAsync();
@@ -56,7 +56,7 @@ namespace NuGet.Services.Revalidate.Tests.Services
                 _telemetryService.Verify(t => t.TrackStartNextRevalidationOperation(), Times.Once);
                 _scopeFactory.Verify(f => f.CreateScope(), Times.Once);
 
-                Assert.Equal(RevalidationResult.UnrecoverableError, _operation.Properties.Result);
+                Assert.Equal(StartRevalidationStatus.UnrecoverableError, _operation.Properties.Result);
             }
 
             [Fact]
@@ -68,8 +68,8 @@ namespace NuGet.Services.Revalidate.Tests.Services
                     .ReturnsAsync(true);
 
                 _starter
-                    .Setup(s => s.StartNextRevalidationAsync())
-                    .ReturnsAsync(RevalidationResult.RetryLater);
+                    .Setup(s => s.StartNextRevalidationsAsync())
+                    .ReturnsAsync(StartRevalidationResult.RetryLater);
 
                 // Act & Assert
                 await _target.RunAsync();
@@ -78,7 +78,7 @@ namespace NuGet.Services.Revalidate.Tests.Services
                 _scopeFactory.Verify(f => f.CreateScope(), Times.Once);
                 _throttler.Verify(t => t.DelayUntilRevalidationRetryAsync(), Times.Once);
 
-                Assert.Equal(RevalidationResult.RetryLater, _operation.Properties.Result);
+                Assert.Equal(StartRevalidationStatus.RetryLater, _operation.Properties.Result);
             }
 
             [Fact]
@@ -90,17 +90,17 @@ namespace NuGet.Services.Revalidate.Tests.Services
                     .ReturnsAsync(true);
 
                 _starter
-                    .Setup(s => s.StartNextRevalidationAsync())
-                    .ReturnsAsync(RevalidationResult.RevalidationEnqueued);
+                    .Setup(s => s.StartNextRevalidationsAsync())
+                    .ReturnsAsync(StartRevalidationResult.RevalidationsEnqueued(123));
 
                 // Act & Assert
                 await _target.RunAsync();
 
                 _telemetryService.Verify(t => t.TrackStartNextRevalidationOperation(), Times.Once);
                 _scopeFactory.Verify(f => f.CreateScope(), Times.Once);
-                _throttler.Verify(t => t.DelayUntilNextRevalidationAsync(), Times.Once);
+                _throttler.Verify(t => t.DelayUntilNextRevalidationAsync(123, It.IsAny<TimeSpan>()), Times.Once);
 
-                Assert.Equal(RevalidationResult.RevalidationEnqueued, _operation.Properties.Result);
+                Assert.Equal(StartRevalidationStatus.RevalidationsEnqueued, _operation.Properties.Result);
             }
         }
 
@@ -178,27 +178,6 @@ namespace NuGet.Services.Revalidate.Tests.Services
                 var exception = new Exception();
 
                 if (initializedThrows) _jobState.Setup(s => s.IsInitializedAsync()).ThrowsAsync(exception);
-            }
-
-            protected void SetupUnrecoverableErrorResult()
-            {
-                _starter
-                    .Setup(s => s.StartNextRevalidationAsync())
-                    .ReturnsAsync(RevalidationResult.UnrecoverableError);
-            }
-
-            protected void SetupRetryLaterResult()
-            {
-                _starter
-                    .Setup(s => s.StartNextRevalidationAsync())
-                    .ReturnsAsync(RevalidationResult.RetryLater);
-            }
-
-            protected void SetupRevalidationEnqueuedResult()
-            {
-                _starter
-                    .Setup(s => s.StartNextRevalidationAsync())
-                    .ReturnsAsync(RevalidationResult.RevalidationEnqueued);
             }
         }
     }

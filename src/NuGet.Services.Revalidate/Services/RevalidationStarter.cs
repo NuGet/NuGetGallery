@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NuGet.Services.Validation;
@@ -39,7 +41,7 @@ namespace NuGet.Services.Revalidate
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task<RevalidationResult> StartNextRevalidationAsync()
+        public async Task<StartRevalidationResult> StartNextRevalidationsAsync()
         {
             try
             {
@@ -52,51 +54,61 @@ namespace NuGet.Services.Revalidate
                         "Detected that a revalidation should not be started due to result {Result}",
                         checkResult.Value);
 
-                    return checkResult.Value;
+                    switch (checkResult.Value)
+                    {
+                        case StartRevalidationStatus.RetryLater:
+                            return StartRevalidationResult.RetryLater;
+
+                        case StartRevalidationStatus.UnrecoverableError:
+                            return StartRevalidationResult.UnrecoverableError;
+
+                        default:
+                            throw new InvalidOperationException($"Unexpected status {checkResult.Value} from {nameof(CanStartRevalidationAsync)}");
+                    }
                 }
 
-                // Everything is in tip-top shape! Increase the throttling quota and start the next revalidation.
+                // Everything is in tip-top shape! Increase the throttling quota and start the next revalidations.
                 await _jobState.IncreaseDesiredPackageEventRateAsync();
 
-                var revalidation = await _revalidationQueue.NextOrNullAsync();
-                if (revalidation == null)
+                var revalidations = await _revalidationQueue.NextAsync();
+                if (!revalidations.Any())
                 {
-                    _logger.LogInformation("Could not find a package to revalidate at this time, retry later...");
+                    _logger.LogInformation("Could not find packages to revalidate at this time, retry later...");
 
-                    return RevalidationResult.RetryLater;
+                    return StartRevalidationResult.RetryLater;
                 }
 
-                return await StartRevalidationAsync(revalidation);
+                return await StartRevalidationsAsync(revalidations);
             }
             catch (Exception e)
             {
                 _logger.LogError(0, e, "Failed to start next validation due to exception, retry later...");
 
-                return RevalidationResult.RetryLater;
+                return StartRevalidationResult.RetryLater;
             }
         }
 
-        private async Task<RevalidationResult?> CanStartRevalidationAsync()
+        private async Task<StartRevalidationStatus?> CanStartRevalidationAsync()
         {
             if (!await _singletonService.IsSingletonAsync())
             {
                 _logger.LogCritical("Detected another instance of the revalidate job, cancelling revalidations!");
 
-                return RevalidationResult.UnrecoverableError;
+                return StartRevalidationStatus.UnrecoverableError;
             }
 
             if (await _jobState.IsKillswitchActiveAsync())
             {
                 _logger.LogWarning("Revalidation killswitch has been activated, retry later...");
 
-                return RevalidationResult.RetryLater;
+                return StartRevalidationStatus.RetryLater;
             }
 
             if (await _throttler.IsThrottledAsync())
             {
                 _logger.LogInformation("Revalidations have reached the desired event rate, retry later...");
 
-                return RevalidationResult.RetryLater;
+                return StartRevalidationStatus.RetryLater;
             }
 
             if (!await _healthService.IsHealthyAsync())
@@ -105,32 +117,51 @@ namespace NuGet.Services.Revalidate
 
                 await _jobState.ResetDesiredPackageEventRateAsync();
 
-                return RevalidationResult.RetryLater;
+                return StartRevalidationStatus.RetryLater;
             }
 
             if (await _jobState.IsKillswitchActiveAsync())
             {
                 _logger.LogWarning("Revalidation killswitch has been activated after the throttle and health check, retry later...");
 
-                return RevalidationResult.RetryLater;
+                return StartRevalidationStatus.RetryLater;
             }
 
             return null;
         }
 
-        private async Task<RevalidationResult> StartRevalidationAsync(PackageRevalidation revalidation)
+        private async Task<StartRevalidationResult> StartRevalidationsAsync(IReadOnlyList<PackageRevalidation> revalidations)
         {
-            var message = new PackageValidationMessageData(
-                revalidation.PackageId,
-                revalidation.PackageNormalizedVersion,
-                revalidation.ValidationTrackingId.Value);
+            _logger.LogInformation("Starting {RevalidationCount} revalidations...", revalidations.Count);
 
-            await _validationEnqueuer.StartValidationAsync(message);
-            await _packageState.MarkPackageRevalidationAsEnqueuedAsync(revalidation);
+            foreach (var revalidation in revalidations)
+            {
+                _logger.LogInformation(
+                    "Starting revalidation for package {PackageId} {PackageVersion}...",
+                    revalidation.PackageId,
+                    revalidation.PackageNormalizedVersion);
 
-            _telemetryService.TrackPackageRevalidationStarted(revalidation.PackageId, revalidation.PackageNormalizedVersion);
+                var message = new PackageValidationMessageData(
+                    revalidation.PackageId,
+                    revalidation.PackageNormalizedVersion,
+                    revalidation.ValidationTrackingId.Value);
 
-            return RevalidationResult.RevalidationEnqueued;
+                await _validationEnqueuer.StartValidationAsync(message);
+
+                _telemetryService.TrackPackageRevalidationStarted(revalidation.PackageId, revalidation.PackageNormalizedVersion);
+                _logger.LogInformation(
+                    "Started revalidation for package {PackageId} {PackageVersion}",
+                    revalidation.PackageId,
+                    revalidation.PackageNormalizedVersion);
+            }
+
+            _logger.LogInformation("Started {RevalidationCount} revalidations, marking them as enqueued...", revalidations.Count);
+
+            await _packageState.MarkPackageRevalidationsAsEnqueuedAsync(revalidations);
+
+            _logger.LogInformation("Marked {RevalidationCount} revalidations as enqueued", revalidations.Count);
+
+            return StartRevalidationResult.RevalidationsEnqueued(revalidations.Count);
         }
     }
 }

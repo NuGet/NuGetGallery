@@ -69,7 +69,7 @@
     <Compile Include="Initialization\PackageRevalidationInserter.cs" />
     <Compile Include="Services\RevalidationOperation.cs" />
     <Compile Include="Services\RevalidationQueue.cs" />
-    <Compile Include="Services\RevalidationResult.cs" />
+    <Compile Include="Services\StartRevalidationStatus.cs" />
     <Compile Include="Services\RevalidationService.cs" />
     <Compile Include="Services\RevalidationJobStateService.cs" />
     <Compile Include="Services\PackageRevalidationStateService.cs" />
@@ -82,6 +82,7 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.*.cs" />
+    <Compile Include="Services\StartRevalidationResult.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
