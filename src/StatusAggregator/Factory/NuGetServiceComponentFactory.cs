@@ -34,7 +34,7 @@ namespace StatusAggregator.Factory
                 "",
                 new IComponent[]
                 {
-                    new PrimarySecondaryComponent(
+                    new ActivePassiveComponent(
                         GalleryName,
                         "Browsing the Gallery website",
                         new[]
@@ -55,7 +55,7 @@ namespace StatusAggregator.Factory
                                     new LeafComponent(GlobalRegionName, "V3 restore for users outside of China"),
                                     new LeafComponent(ChinaRegionName, "V3 restore for users inside China")
                                 }),
-                            new PrimarySecondaryComponent(
+                            new ActiveActiveComponent(
                                 V2ProtocolName,
                                 "Restore using the V2 API",
                                 new[]
@@ -69,7 +69,7 @@ namespace StatusAggregator.Factory
                         "Searching for new and existing packages in Visual Studio or the Gallery website",
                         new[]
                         {
-                            new PrimarySecondaryComponent(
+                            new ActiveActiveComponent(
                                 GlobalRegionName,
                                 "Search for packages outside China",
                                 new[]
@@ -77,7 +77,7 @@ namespace StatusAggregator.Factory
                                     new LeafComponent(UsncInstanceName, "Primary region"),
                                     new LeafComponent(UsscInstanceName, "Backup region")
                                 }),
-                            new PrimarySecondaryComponent(
+                            new ActiveActiveComponent(
                                 ChinaRegionName,
                                 "Search for packages inside China",
                                 new[]

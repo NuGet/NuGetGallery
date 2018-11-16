@@ -122,7 +122,7 @@ namespace StatusAggregator.Tests.Messages
             public async Task CreatesStartMessageFromNullContextForHiddenComponent(ComponentStatus status)
             {
                 var child = new TestComponent("child");
-                var root = new PrimarySecondaryComponent("hi", "", new[] { child });
+                var root = new ActivePassiveComponent("hi", "", new[] { child });
 
                 var change = new MessageChangeEvent(
                     DefaultTimestamp,
@@ -313,7 +313,7 @@ namespace StatusAggregator.Tests.Messages
             {
                 var child = new TestComponent("child");
                 child.Status = changeStatus;
-                var root = new PrimarySecondaryComponent("hi", "", new[] { child });
+                var root = new ActiveActiveComponent("hi", "", new[] { child });
 
                 var affectedComponent = root.GetByNames<IComponent>(root.Name, child.Name);
                 var change = new MessageChangeEvent(
