@@ -2319,18 +2319,18 @@ namespace NuGetGallery
         {
             if (formData == null || !_readMeService.HasReadMeSource(formData))
             {
-                return Json(HttpStatusCode.BadRequest, new[] { new JsonValidationMessage(Strings.PreviewReadMe_ReadMeMissing) });
+                return Json(HttpStatusCode.BadRequest, new[] { Strings.PreviewReadMe_ReadMeMissing });
             }
 
             try
             {
                 var readMeHtml = await _readMeService.GetReadMeHtmlAsync(formData, Request.ContentEncoding);
-                return Json(new[] { new JsonValidationMessage(readMeHtml) });
+                return Json(new[] { readMeHtml });
             }
             catch (Exception ex)
             {
                 return Json(HttpStatusCode.BadRequest, new[] {
-                    new JsonValidationMessage(string.Format(CultureInfo.CurrentCulture, Strings.PreviewReadMe_ConversionFailed, ex.Message)) });
+                    string.Format(CultureInfo.CurrentCulture, Strings.PreviewReadMe_ConversionFailed, ex.Message) });
             }
         }
 
