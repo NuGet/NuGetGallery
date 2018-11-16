@@ -567,12 +567,17 @@ namespace NuGetGallery
                 Assert.Equal("To provide better experience for older clients when a license file is packaged, <licenseUrl> should be set to 'https://aka.ms/deprecateLicenseUrl'.", result.Warnings[0].PlainTextMessage);
             }
 
-            [Fact]
-            public async Task AcceptsAlternativeLicenseUrl()
+            [Theory]
+            [InlineData("Apache-1.0+ OR MIT", "Apache-1.0%2B+OR+MIT")]
+            [InlineData("Apache-1.0+ AND MIT", "Apache-1.0%2B+AND+MIT")]
+            [InlineData("Apache-1.0+ AND MIT WITH Classpath-exception-2.0", "Apache-1.0%2B+AND+MIT+WITH+Classpath-exception-2.0")]
+            [InlineData("MIT WITH Classpath-exception-2.0", "MIT+WITH+Classpath-exception-2.0")]
+            [InlineData("MIT", "Apache-1.0%2B+OR+MIT")]
+            public async Task RejectsAlternativeLicenseUrl(string licenseExpression, string licenseUrlPostfix)
             {
                 _nuGetPackage = GeneratePackageWithLicense(
-                    licenseUrl: new Uri("https://licenses.nuget.org/Apache-1.0%2B+OR+MIT"),
-                    licenseExpression: "Apache-1.0+ OR MIT",
+                    licenseUrl: new Uri($"https://licenses.nuget.org/{licenseUrlPostfix}"),
+                    licenseExpression: licenseExpression,
                     licenseFilename: null,
                     licenseFileContents: null);
 
@@ -580,15 +585,15 @@ namespace NuGetGallery
                     _nuGetPackage.Object,
                     GetPackageMetadata(_nuGetPackage));
 
-                Assert.Equal(PackageValidationResultType.Accepted, result.Type);
-                Assert.Null(result.Message);
+                Assert.Equal(PackageValidationResultType.Invalid, result.Type);
+                Assert.Contains("malformed license URL", result.Message.PlainTextMessage);
                 Assert.Empty(result.Warnings);
             }
 
             [Theory]
             [InlineData(null)]
             [InlineData(RegularLicenseUrl)]
-            public async Task WarnsWhenInvalidLicenseUrlSpecifiedWithLicenseExpression(string licenseUrl)
+            public async Task ErrorsWhenInvalidLicenseUrlSpecifiedWithLicenseExpression(string licenseUrl)
             {
                 _nuGetPackage = GeneratePackageWithLicense(
                     licenseUrl: licenseUrl == null ? null : new Uri(licenseUrl),
@@ -599,10 +604,10 @@ namespace NuGetGallery
                     _nuGetPackage.Object,
                     GetPackageMetadata(_nuGetPackage));
 
-                Assert.Equal(PackageValidationResultType.Accepted, result.Type);
-                Assert.Null(result.Message);
-                Assert.Single(result.Warnings);
-                Assert.Equal("To provide better experience for older clients when a license expression is specified, <licenseUrl> should be set to 'https://licenses.nuget.org/MIT'.", result.Warnings[0].PlainTextMessage);
+                Assert.Equal(PackageValidationResultType.Invalid, result.Type);
+                Assert.IsType<InvalidLicenseUrlValidationMessage>(result.Message);
+                Assert.StartsWith("To provide a better experience for older clients when a license expression is specified, <licenseUrl> must be set to 'https://licenses.nuget.org/MIT'.", result.Message.PlainTextMessage);
+                Assert.Empty(result.Warnings);
             }
 
             [Fact]
@@ -687,7 +692,8 @@ namespace NuGetGallery
             [InlineData("Saxpath OR GPL-1.0-only WITH Classpath-exception-2.0", new[] { "Saxpath", "GPL-1.0-only" })]
             public async Task RejectsNonOsiFsfLicenses(string licenseExpression, string[] unapprovedLicenses)
             {
-                _nuGetPackage = GeneratePackageWithLicense(licenseUrl: new Uri(LicenseDeprecationUrl), licenseExpression: licenseExpression, licenseFilename: null);
+                var licenseUri = new Uri($"https://licenses.nuget.org/{licenseExpression}");
+                _nuGetPackage = GeneratePackageWithLicense(licenseUrl: licenseUri, licenseExpression: licenseExpression, licenseFilename: null);
 
                 var result = await _target.ValidateBeforeGeneratePackageAsync(
                     _nuGetPackage.Object,
