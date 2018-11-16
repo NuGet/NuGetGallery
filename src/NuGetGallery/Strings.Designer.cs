@@ -2202,20 +2202,20 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to To provide better experience for older clients when a license expression is specified, &lt;licenseUrl&gt; should be set to &apos;{0}&apos;..
+        ///   Looks up a localized string similar to To provide a better experience for older clients when a license expression is specified, &lt;licenseUrl&gt; must be set to &apos;{0}&apos;..
         /// </summary>
-        public static string UploadPackage_DeprecationUrlSuggestedForLicenseExpressions {
+        public static string UploadPackage_DeprecationUrlRequiredForLicenseExpressions {
             get {
-                return ResourceManager.GetString("UploadPackage_DeprecationUrlSuggestedForLicenseExpressions", resourceCulture);
+                return ResourceManager.GetString("UploadPackage_DeprecationUrlRequiredForLicenseExpressions", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to To provide better experience for older clients when a license file is packaged, &lt;licenseUrl&gt; should be set to &apos;{0}&apos;..
+        ///   Looks up a localized string similar to To provide a better experience for older clients when a license file is packaged, &lt;licenseUrl&gt; must be set to &apos;{0}&apos;..
         /// </summary>
-        public static string UploadPackage_DeprecationUrlSuggestedForLicenseFiles {
+        public static string UploadPackage_DeprecationUrlRequiredForLicenseFiles {
             get {
-                return ResourceManager.GetString("UploadPackage_DeprecationUrlSuggestedForLicenseFiles", resourceCulture);
+                return ResourceManager.GetString("UploadPackage_DeprecationUrlRequiredForLicenseFiles", resourceCulture);
             }
         }
         
@@ -2373,7 +2373,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The package has a malformed license URL..
+        ///   Looks up a localized string similar to The package contains a malformed license URL..
         /// </summary>
         public static string UploadPackage_MalformedLicenseUrl {
             get {

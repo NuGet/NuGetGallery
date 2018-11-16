@@ -593,7 +593,7 @@ namespace NuGetGallery
             [Theory]
             [InlineData(null)]
             [InlineData(RegularLicenseUrl)]
-            public async Task WarnsWhenInvalidLicenseUrlSpecifiedWithLicenseExpression(string licenseUrl)
+            public async Task ErrorsWhenInvalidLicenseUrlSpecifiedWithLicenseExpression(string licenseUrl)
             {
                 _nuGetPackage = GeneratePackageWithLicense(
                     licenseUrl: licenseUrl == null ? null : new Uri(licenseUrl),
@@ -604,10 +604,10 @@ namespace NuGetGallery
                     _nuGetPackage.Object,
                     GetPackageMetadata(_nuGetPackage));
 
-                Assert.Equal(PackageValidationResultType.Accepted, result.Type);
-                Assert.Null(result.Message);
-                Assert.Single(result.Warnings);
-                Assert.Equal("To provide better experience for older clients when a license expression is specified, <licenseUrl> should be set to 'https://licenses.nuget.org/MIT'.", result.Warnings[0].PlainTextMessage);
+                Assert.Equal(PackageValidationResultType.Invalid, result.Type);
+                Assert.IsType<InvalidLicenseUrlValidationMessage>(result.Message);
+                Assert.StartsWith("To provide a better experience for older clients when a license expression is specified, <licenseUrl> must be set to 'https://licenses.nuget.org/MIT'.", result.Message.PlainTextMessage);
+                Assert.Empty(result.Warnings);
             }
 
             [Fact]
@@ -692,7 +692,8 @@ namespace NuGetGallery
             [InlineData("Saxpath OR GPL-1.0-only WITH Classpath-exception-2.0", new[] { "Saxpath", "GPL-1.0-only" })]
             public async Task RejectsNonOsiFsfLicenses(string licenseExpression, string[] unapprovedLicenses)
             {
-                _nuGetPackage = GeneratePackageWithLicense(licenseUrl: new Uri(LicenseDeprecationUrl), licenseExpression: licenseExpression, licenseFilename: null);
+                var licenseUri = new Uri($"https://licenses.nuget.org/{licenseExpression}");
+                _nuGetPackage = GeneratePackageWithLicense(licenseUrl: licenseUri, licenseExpression: licenseExpression, licenseFilename: null);
 
                 var result = await _target.ValidateBeforeGeneratePackageAsync(
                     _nuGetPackage.Object,

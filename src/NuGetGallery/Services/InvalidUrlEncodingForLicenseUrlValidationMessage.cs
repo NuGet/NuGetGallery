@@ -1,11 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-
 namespace NuGetGallery
 {
     /// <summary>
@@ -14,8 +9,8 @@ namespace NuGetGallery
     /// </summary>
     public class InvalidUrlEncodingForLicenseUrlValidationMessage : IValidationMessage
     {
-        private string DetailsLink => $"<a href=\"https://docs.microsoft.com/en-us/nuget/reference/errors-and-warnings/nu5036\">{Strings.UploadPackage_LearnMore}</a>.";
-        private string DetailsPlainText => "(NU5036; https://aka.ms/malformedNuGetLicenseUrl)";
+        private string DetailsLink => $"<a href=\"https://aka.ms/malformedNuGetLicenseUrl\">{Strings.UploadPackage_LearnMore}</a>.";
+        private string DetailsPlainText => "https://aka.ms/malformedNuGetLicenseUrl";
 
         private string BaseMessage => Strings.UploadPackage_MalformedLicenseUrl;
 
@@ -23,6 +18,6 @@ namespace NuGetGallery
 
         public bool HasRawHtmlRepresentation => true;
 
-        public string RawHtmlMessage => PlainTextMessage + " " + DetailsLink;
+        public string RawHtmlMessage => BaseMessage + " " + DetailsLink;
     }
 }

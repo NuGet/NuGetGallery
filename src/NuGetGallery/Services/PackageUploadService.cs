@@ -227,15 +227,15 @@ namespace NuGetGallery
                 
                 if (licenseMetadata.Type == LicenseType.File)
                 {
-                    warnings.Add(
-                        new PlainTextOnlyValidationMessage(
-                            string.Format(Strings.UploadPackage_DeprecationUrlSuggestedForLicenseFiles, licenseDeprecationUrl)));
+                    return PackageValidationResult.Invalid(
+                        new InvalidLicenseUrlValidationMessage(
+                            string.Format(Strings.UploadPackage_DeprecationUrlRequiredForLicenseFiles, licenseDeprecationUrl)));
                 }
                 else if (licenseMetadata.Type == LicenseType.Expression)
                 {
-                    warnings.Add(
-                        new PlainTextOnlyValidationMessage(
-                            string.Format(Strings.UploadPackage_DeprecationUrlSuggestedForLicenseExpressions, licenseDeprecationUrl)));
+                    return PackageValidationResult.Invalid(
+                        new InvalidLicenseUrlValidationMessage(
+                            string.Format(Strings.UploadPackage_DeprecationUrlRequiredForLicenseExpressions, licenseDeprecationUrl)));
                 }
             }
 
