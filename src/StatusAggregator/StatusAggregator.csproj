@@ -160,10 +160,10 @@
       <Version>2.33.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Status">
-      <Version>2.33.0</Version>
+      <Version>2.37.0-sb-statusfb-2205681</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Status.Table">
-      <Version>2.33.0</Version>
+      <Version>2.37.0-sb-statusfb-2205681</Version>
     </PackageReference>
     <PackageReference Include="WindowsAzure.Storage">
       <Version>9.2.0</Version>

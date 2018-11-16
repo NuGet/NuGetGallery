@@ -6,7 +6,9 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NuGet.Services.Status;
+using StatusAggregator.Collector;
 using StatusAggregator.Export;
+using StatusAggregator.Update;
 using Xunit;
 
 namespace StatusAggregator.Tests.Export
@@ -29,18 +31,24 @@ namespace StatusAggregator.Tests.Export
                 EventExporter
                     .Setup(x => x.Export(cursor))
                     .Returns(events);
-                
+
+                var lastUpdated = new DateTime(2018, 9, 12);
+                Cursor
+                    .Setup(x => x.Get(StatusUpdater.LastUpdatedCursorName))
+                    .ReturnsAsync(lastUpdated);
+
                 await Exporter.Export(cursor);
 
                 Serializer
                     .Verify(
-                        x => x.Serialize(cursor, component, events),
+                        x => x.Serialize(cursor, lastUpdated, component, events),
                         Times.Once());
             }
         }
 
         public class StatusExporterTest
         {
+            public Mock<ICursor> Cursor { get; }
             public Mock<IComponentExporter> ComponentExporter { get; }
             public Mock<IEventsExporter> EventExporter { get; }
             public Mock<IStatusSerializer> Serializer { get; }
@@ -48,11 +56,13 @@ namespace StatusAggregator.Tests.Export
 
             public StatusExporterTest()
             {
+                Cursor = new Mock<ICursor>();
                 ComponentExporter = new Mock<IComponentExporter>();
                 EventExporter = new Mock<IEventsExporter>();
                 Serializer = new Mock<IStatusSerializer>();
 
                 Exporter = new StatusExporter(
+                    Cursor.Object,
                     ComponentExporter.Object,
                     EventExporter.Object,
                     Serializer.Object,

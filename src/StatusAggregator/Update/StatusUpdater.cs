@@ -13,8 +13,7 @@ namespace StatusAggregator.Update
 {
     public class StatusUpdater : IStatusUpdater
     {
-        private const string ManualCursorBaseName = "manual";
-        private const string IncidentCursorName = "incident";
+        public const string LastUpdatedCursorName = "updated";
 
         private readonly ICursor _cursor;
         private readonly IEntityCollector _incidentCollector;
@@ -50,8 +49,17 @@ namespace StatusAggregator.Update
                     await manualStatusChangeCollector.FetchLatest();
                 }
 
-                await _incidentCollector.FetchLatest();
-                await _activeEventUpdater.UpdateAllAsync(cursor);
+                try
+                {
+                    await _incidentCollector.FetchLatest();
+                    await _activeEventUpdater.UpdateAllAsync(cursor);
+
+                    await _cursor.Set(LastUpdatedCursorName, cursor);
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError(LogEvents.IncidentIngestionFailure, e, "Failed to update incident API data.");
+                }
             }
         }
 
