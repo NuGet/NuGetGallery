@@ -4,6 +4,8 @@
 using System;
 using System.Collections.Generic;
 using Moq;
+using NuGet.Services.Entities;
+using NuGet.Services.Messaging.Email;
 using Xunit;
 
 namespace NuGetGallery.Infrastructure.Mail.Messages
@@ -139,7 +141,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
     To stop receiving emails as an owner of this package, sign in to the NuGetGallery and
     [change your email notification settings](emailSettingsUrl).
 </em>";
-        
+
         private const string _expectedPlainTextBody =
             @"The symbol package PackageId 1.0.0 (packageUrl) was recently published on NuGetGallery by Username. If this was not intended, please contact support (packageSupportUrl).
 

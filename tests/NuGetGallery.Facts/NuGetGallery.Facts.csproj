@@ -96,7 +96,6 @@
     <Compile Include="AutocompleteServicePackageIdsQueryFacts.cs" />
     <Compile Include="AutocompleteServicePackageVersionsQueryFacts.cs" />
     <Compile Include="App_Start\ConfigurationServiceFacts.cs" />
-    <Compile Include="App_Start\CachingSecretReaderFacts.cs" />
     <Compile Include="Controllers\AppControllerFacts.cs" />
     <Compile Include="Controllers\AuthenticationControllerFacts.cs" />
     <Compile Include="Controllers\ApiControllerFacts.cs" />
@@ -120,7 +119,8 @@
     <Compile Include="Infrastructure\Authentication\Base32EncoderTests.cs" />
     <Compile Include="Infrastructure\HttpStatusCodeWithBodyResultFacts.cs" />
     <Compile Include="Infrastructure\Lucene\ExternalSearchServiceFacts.cs" />
-    <Compile Include="Infrastructure\Mail\Messages\MarkdownMessageBuilderFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\ContactSupportMessageFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\PackageAddedWithWarningsMessageFacts.cs" />
     <Compile Include="Infrastructure\Mail\Messages\SigninAssistanceMessageFacts.cs" />
     <Compile Include="Infrastructure\Mail\Messages\ReportMyPackageMessageFacts.cs" />
     <Compile Include="Infrastructure\Mail\Messages\ReportAbuseMessageFacts.cs" />
