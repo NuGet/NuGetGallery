@@ -17,7 +17,7 @@ using NuGet.Services.Metadata.Catalog.Persistence;
 using NuGet.Versioning;
 using Xunit;
 
-namespace NgTests
+namespace CatalogTests.Dnx
 {
     public class DnxMakerTests
     {

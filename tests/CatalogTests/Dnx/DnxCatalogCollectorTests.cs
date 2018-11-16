@@ -21,7 +21,7 @@ using NuGet.Services.Metadata.Catalog.Dnx;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using Xunit;
 
-namespace NgTests
+namespace CatalogTests.Dnx
 {
     public class DnxCatalogCollectorTests
     {
