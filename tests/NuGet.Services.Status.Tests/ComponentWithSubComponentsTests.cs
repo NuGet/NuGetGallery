@@ -184,6 +184,43 @@ namespace NuGet.Services.Status.Tests
                 ancestorComponent, 
                 ancestorComponent.Path);
         }
+        
+        [Theory]
+        [ClassData(typeof(ComponentTestData.ComponentStatusPairs))]
+        public void SetsDisplaySubComponentsProperly(
+            ComponentStatus subStatus1,
+            ComponentStatus subStatus2)
+        {
+            var subComponent1 = CreateComponent("subComponent1", "subDescription1");
+            subComponent1.Status = subStatus1;
+
+            var subComponent2 = CreateComponent("subComponent2", "subDescription2");
+            subComponent2.Status = subStatus2;
+
+            var ancestorComponent = CreateComponent("root", "rootDescription", new[] { subComponent1, subComponent2 });
+
+            AssertDisplayComponentsSetProperly(ancestorComponent);
+        }
+
+        /// <summary>
+        /// <see cref="Component.DisplaySubComponents"/> should be set to false by a <see cref="Component"/> implementation if 
+        /// when one of its <see cref="Component.SubComponents"/> is not <see cref="Component.Up"/>, it MUST NOT return <see cref="ComponentStatus.Up"/>.
+        /// </summary>
+        /// <remarks>
+        /// The intention of <see cref="Component.DisplaySubComponents"/> is to hide components that are not impactful from being displayed to customers.
+        /// If a component determines status in such a way that it is not degraded when any of its subcomponents are degraded, 
+        /// it implies that its subcomponents are not impactful, so it should set <see cref="Component.DisplaySubComponents"/> to false.
+        /// </remarks>
+        private void AssertDisplayComponentsSetProperly(IComponent ancestorComponent)
+        {
+            Assert.True(
+                // Either all subcomponents are up
+                ancestorComponent.SubComponents.All(c => c.Status == ComponentStatus.Up) ||
+                // Or the status is not up
+                ancestorComponent.Status != ComponentStatus.Up || 
+                // Or we are hiding subcomponents
+                !ancestorComponent.DisplaySubComponents);
+        }
 
         private void AssertLeastCommonAncestorPath(IComponent firstComponent, IComponent secondComponent, string expectedLeastCommonAncestor)
         {

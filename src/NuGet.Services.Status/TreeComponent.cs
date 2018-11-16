@@ -28,7 +28,7 @@ namespace NuGet.Services.Status
             string name,
             string description,
             IEnumerable<IComponent> subComponents)
-            : base(name, description, subComponents)
+            : base(name, description, subComponents, displaySubComponents: true)
         {
         }
 

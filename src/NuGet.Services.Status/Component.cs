@@ -37,7 +37,7 @@ namespace NuGet.Services.Status
             string name,
             string description,
             IEnumerable<IComponent> subComponents,
-            bool displaySubComponents = true)
+            bool displaySubComponents)
             : this(name, description)
         {
             SubComponents = subComponents?.Select(s => new ComponentWrapper(s, this)).ToList()
