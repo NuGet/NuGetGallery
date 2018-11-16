@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace NuGet.Services.Metadata.Catalog
 {
     // See https://docs.microsoft.com/en-us/dotnet/standard/microservices-architecture/implement-resilient-applications/implement-custom-http-call-retries-exponential-backoff
-    internal sealed class RetryWithExponentialBackoff
+    internal sealed class RetryWithExponentialBackoff : IHttpRetryStrategy
     {
         private readonly ushort _maximumRetries;
         private readonly TimeSpan _delay;
@@ -23,7 +23,7 @@ namespace NuGet.Services.Metadata.Catalog
             _maximumDelay = TimeSpan.FromSeconds(10);
         }
 
-        internal async Task<HttpResponseMessage> SendAsync(HttpClient client, Uri address, CancellationToken cancellationToken)
+        public async Task<HttpResponseMessage> SendAsync(HttpClient client, Uri address, CancellationToken cancellationToken)
         {
             var backoff = new ExponentialBackoff(_maximumRetries, _delay, _maximumDelay);
 
@@ -56,9 +56,10 @@ namespace NuGet.Services.Metadata.Catalog
 
         private static bool IsTransientError(HttpResponseMessage response)
         {
-            return (int)response.StatusCode >= 500 &&
-                response.StatusCode != HttpStatusCode.NotImplemented &&
-                response.StatusCode != HttpStatusCode.HttpVersionNotSupported;
+            return response == null
+                || ((int)response.StatusCode >= 500 &&
+                    response.StatusCode != HttpStatusCode.NotImplemented &&
+                    response.StatusCode != HttpStatusCode.HttpVersionNotSupported);
         }
 
         private sealed class ExponentialBackoff

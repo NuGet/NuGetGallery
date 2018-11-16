@@ -18,8 +18,9 @@ namespace NuGet.Services.Metadata.Catalog
             Uri index,
             ITelemetryService telemetryService,
             Func<HttpMessageHandler> handlerFunc = null,
-            TimeSpan? httpClientTimeout = null)
-            : base(index, telemetryService, handlerFunc, httpClientTimeout)
+            TimeSpan? httpClientTimeout = null,
+            IHttpRetryStrategy httpRetryStrategy = null)
+            : base(index, telemetryService, handlerFunc, httpClientTimeout, httpRetryStrategy)
         {
         }
 

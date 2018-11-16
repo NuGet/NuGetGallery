@@ -13,8 +13,12 @@ namespace NuGet.Services.Metadata.Catalog
 {
     public abstract class SortingCollector<T> : CommitCollector where T : IEquatable<T>
     {
-        public SortingCollector(Uri index, ITelemetryService telemetryService, Func<HttpMessageHandler> handlerFunc = null)
-            : base(index, telemetryService, handlerFunc)
+        public SortingCollector(
+            Uri index,
+            ITelemetryService telemetryService,
+            Func<HttpMessageHandler> handlerFunc = null,
+            IHttpRetryStrategy httpRetryStrategy = null)
+            : base(index, telemetryService, handlerFunc, httpRetryStrategy: httpRetryStrategy)
         {
         }
 

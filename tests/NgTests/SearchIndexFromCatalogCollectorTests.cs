@@ -68,7 +68,8 @@ namespace NgTests
                         baseAddress: null,
                         telemetryService: telemetryService.Object,
                         logger: new TestLogger(),
-                        handlerFunc: () => mockServer);
+                        handlerFunc: () => mockServer,
+                        httpRetryStrategy: new NoRetryStrategy());
 
                     // Act
                     await Assert.ThrowsAsync<Exception>(() => target.RunAsync(front, back, CancellationToken.None));
@@ -156,7 +157,8 @@ namespace NgTests
                         baseAddress: null,
                         telemetryService: telemetryService.Object,
                         logger: new TestLogger(),
-                        handlerFunc: () => mockServer);
+                        handlerFunc: () => mockServer,
+                        httpRetryStrategy: new NoRetryStrategy());
 
                     // Act & Assert
                     await Assert.ThrowsAsync<OperationCanceledException>(() => target.RunAsync(front, back, CancellationToken.None));

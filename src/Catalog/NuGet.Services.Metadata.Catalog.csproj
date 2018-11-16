@@ -105,6 +105,7 @@
     <Compile Include="ICatalogIndexProcessor.cs" />
     <Compile Include="IPackageCatalogItemCreator.cs" />
     <Compile Include="IPackagesContainerHandler.cs" />
+    <Compile Include="IHttpRetryStrategy.cs" />
     <Compile Include="PackageCatalogItemCreator.cs" />
     <Compile Include="PackageDownloader.cs" />
     <Compile Include="Helpers\CatalogProperties.cs" />

@@ -80,7 +80,8 @@ namespace CatalogTests.Registration
                 contentBaseUri ?? new Uri("http://tempuri.org/packages"),
                 Mock.Of<ITelemetryService>(),
                 Mock.Of<ILogger>(),
-                handlerFunc: () => _mockServer);
+                handlerFunc: () => _mockServer,
+                httpRetryStrategy: new NoRetryStrategy());
 
             RegistrationMakerCatalogItem.PackagePathProvider = new PackagesFolderPackagePathProvider();
         }
