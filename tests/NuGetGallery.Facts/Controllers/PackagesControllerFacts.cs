@@ -65,7 +65,8 @@ namespace NuGetGallery
             Mock<IPackageOwnershipManagementService> packageOwnershipManagementService = null,
             IReadMeService readMeService = null,
             Mock<IContentObjectService> contentObjectService = null,
-            Mock<ISymbolPackageUploadService> symbolPackageUploadService = null)
+            Mock<ISymbolPackageUploadService> symbolPackageUploadService = null,
+            Mock<ILicenseFileService> licenseFileService = null)
         {
             packageService = packageService ?? new Mock<IPackageService>();
             if (uploadFileService == null)
@@ -166,6 +167,15 @@ namespace NuGetGallery
                     .Setup(x => x.DeleteSymbolsPackageAsync(It.IsAny<SymbolPackage>()))
                     .Completes();
             }
+
+            if (licenseFileService == null)
+            {
+                licenseFileService = new Mock<ILicenseFileService>();
+                licenseFileService
+                    .Setup(x => x.GetLicenseFileBlobStoragePath(It.IsAny<string>(), It.IsAny<string>()))
+                    .ReturnsAsync("");
+            }
+
             var diagnosticsService = new Mock<IDiagnosticsService>();
             var controller = new Mock<PackagesController>(
                 packageService.Object,
@@ -190,7 +200,8 @@ namespace NuGetGallery
                 packageOwnershipManagementService.Object,
                 contentObjectService.Object,
                 symbolPackageUploadService.Object,
-                diagnosticsService.Object);
+                diagnosticsService.Object,
+                licenseFileService.Object);
 
             controller.CallBase = true;
             controller.Object.SetOwinContextOverride(Fakes.CreateOwinContext());

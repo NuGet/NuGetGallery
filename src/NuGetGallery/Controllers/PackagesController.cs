@@ -94,6 +94,7 @@ namespace NuGetGallery
         private readonly IContentObjectService _contentObjectService;
         private readonly ISymbolPackageUploadService _symbolPackageUploadService;
         private readonly IDiagnosticsSource _trace;
+        private readonly ILicenseFileService _licenseFileService;
 
         public PackagesController(
             IPackageService packageService,
@@ -118,7 +119,8 @@ namespace NuGetGallery
             IPackageOwnershipManagementService packageOwnershipManagementService,
             IContentObjectService contentObjectService,
             ISymbolPackageUploadService symbolPackageUploadService,
-            IDiagnosticsService diagnosticsService)
+            IDiagnosticsService diagnosticsService,
+            ILicenseFileService licenseFileService)
         {
             _packageService = packageService;
             _uploadFileService = uploadFileService;
@@ -143,6 +145,7 @@ namespace NuGetGallery
             _contentObjectService = contentObjectService;
             _symbolPackageUploadService = symbolPackageUploadService;
             _trace = diagnosticsService?.SafeGetSource(nameof(PackagesController)) ?? throw new ArgumentNullException(nameof(diagnosticsService));
+            _licenseFileService = licenseFileService;
         }
 
         [HttpGet]
@@ -661,6 +664,17 @@ namespace NuGetGallery
 
             ViewBag.FacebookAppID = _config.FacebookAppId;
             return View(model);
+        }
+
+        public virtual async Task<ActionResult> License(string id, string version)
+        {
+            var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
+            if (package == null)
+            {
+                return HttpNotFound();
+            }
+
+            return Redirect(await _licenseFileService.GetLicenseFileBlobStoragePath(package.Id, package.NormalizedVersion));
         }
 
         public virtual async Task<ActionResult> ListPackages(PackageListSearchViewModel searchAndListModel)

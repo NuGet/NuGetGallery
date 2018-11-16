@@ -13,8 +13,6 @@ namespace NuGetGallery
 {
     public class CorePackageFileService : ICorePackageFileService
     {
-        private const string LicenseFileName = "license";
-
         private readonly ICoreFileStorageService _fileStorageService;
         private readonly IFileMetadataService _metadata;
 
@@ -263,7 +261,7 @@ namespace NuGetGallery
             return _fileStorageService.DeleteFileAsync(_metadata.PackageContentFolderName, fileName);
         }
 
-        private string LicensePathTemplate => $"{_metadata.PackageContentPathTemplate}/{LicenseFileName}";
+        private string LicensePathTemplate => $"{_metadata.PackageContentPathTemplate}/{CoreConstants.LicenseFileName}";
 
         private string BuildLicenseFileName(Package package)
             => BuildFileName(package, LicensePathTemplate, string.Empty);

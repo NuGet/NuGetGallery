@@ -347,6 +347,10 @@ namespace NuGetGallery
                 .As<ITyposquattingCheckListCacheService>()
                 .SingleInstance();
 
+            builder.RegisterType<LicenseFileService>()
+                .As<ILicenseFileService>()
+                .InstancePerLifetimeScope();
+
             RegisterMessagingService(builder, configuration);
 
             builder.Register(c => HttpContext.Current.User)
