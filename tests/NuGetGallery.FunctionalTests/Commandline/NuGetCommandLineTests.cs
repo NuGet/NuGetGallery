@@ -61,7 +61,7 @@ namespace NuGetGallery.FunctionalTests.Commandline
         [Theory]
         [MemberData(nameof(UploadAndUnlistPackages_Data))]
         [Description("Tests upload and unlist scenarios with API key")]
-        [Priority(0)]
+        [Priority(1)]
         [Category("P1Tests")]
         public async Task UploadAndUnlistPackages(string apiKey)
         {
