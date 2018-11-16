@@ -15,7 +15,7 @@ namespace NuGetGallery
     public class InvalidUrlEncodingForLicenseUrlValidationMessage : IValidationMessage
     {
         private string DetailsLink => $"<a href=\"https://docs.microsoft.com/en-us/nuget/reference/errors-and-warnings/nu5036\">{Strings.UploadPackage_LearnMore}</a>.";
-        private string DetailsPlainText => "(NU5026; https://aka.ms/malformedNuGetLicenseUrl)";
+        private string DetailsPlainText => "(NU5036; https://aka.ms/malformedNuGetLicenseUrl)";
 
         private string BaseMessage => Strings.UploadPackage_MalformedLicenseUrl;
 
