@@ -1075,6 +1075,6 @@ The {1} Team</value>
     <comment>{0} is list of the package license ids that are neither OSI nor FSF approved</comment>
   </data>
   <data name="UploadPackage_MalformedLicenseUrl" xml:space="preserve">
-    <value>The package has malformed license URL.</value>
+    <value>The package has a malformed license URL.</value>
   </data>
 </root>

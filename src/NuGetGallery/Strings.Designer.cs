@@ -2373,7 +2373,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The package has malformed license URL..
+        ///   Looks up a localized string similar to The package has a malformed license URL..
         /// </summary>
         public static string UploadPackage_MalformedLicenseUrl {
             get {
