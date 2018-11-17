@@ -609,10 +609,6 @@ namespace NuGetGallery
             builder.RegisterType<RevalidationAdminService>()
                 .AsSelf()
                 .InstancePerLifetimeScope();
-
-            builder.RegisterType<RevalidationStateService>()
-                .As<IRevalidationStateService>()
-                .InstancePerLifetimeScope();
         }
 
         private static void ConfigureSearch(ContainerBuilder builder, IGalleryConfigurationService configuration)

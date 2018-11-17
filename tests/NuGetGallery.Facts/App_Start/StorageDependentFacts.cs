@@ -20,10 +20,6 @@ namespace NuGetGallery
             var allGalleryTypes = typeof(DefaultDependenciesModule).Assembly.GetTypes();
             var allGalleryAndCoreTypes = allGalleryTypes.Concat(typeof(ICoreFileStorageService).Assembly.GetTypes());
 
-            // types that depend on ICoreFileStorageService but not used to provide file access 
-            // through storage abstraction
-            var nonStorageTypes = new HashSet<Type>(new[] { typeof(RevalidationStateService) });
-
             Assert.True(typeof(ICoreFileStorageService).IsAssignableFrom(typeof(IFileStorageService)));
 
             // classes in Gallery and Gallery.Core that depend on ICoreFileStorageService (or,
@@ -33,12 +29,11 @@ namespace NuGetGallery
                         .GetConstructors()
                         .Any(c => c
                             .GetParameters()
-                            .Any(pi => typeof(ICoreFileStorageService).IsAssignableFrom(pi.ParameterType))))
-                     .Where(gct => !nonStorageTypes.Contains(gct)));
+                            .Any(pi => typeof(ICoreFileStorageService).IsAssignableFrom(pi.ParameterType)))));
 
             var fileStorageDependentsInterfaces = new HashSet<Type>(fileStorageDependents.SelectMany(t => t.GetInterfaces()));
 
-            // file storage depdendets that are actually used by Gallery types.
+            // file storage dependents that are actually used by Gallery types.
             var fileStorageDependentsInterfacesUsedByGallery = new HashSet<Type>(allGalleryTypes
                     .SelectMany(gt => gt
                         .GetConstructors()
