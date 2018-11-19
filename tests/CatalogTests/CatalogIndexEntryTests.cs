@@ -251,12 +251,15 @@ namespace CatalogTests
             Assert.False(entry.IsDelete);
         }
 
-        [Fact]
-        public void IsDelete_WhenTypeIsPackageDelete_ReturnsTrue()
+        [Theory]
+        [InlineData(CatalogConstants.NuGetPackageDelete)]
+        [InlineData(CatalogConstants.PackageDelete)]
+        [InlineData("http://schema.nuget.org/schema#PackageDelete")]
+        public void IsDelete_WhenTypeIsPackageDelete_ReturnsTrue(string type)
         {
             var entry = new CatalogIndexEntry(
                 _uri,
-                CatalogConstants.NuGetPackageDelete,
+                type,
                 _commitId,
                 _commitTimeStamp,
                 _packageIdentity);
