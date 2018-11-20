@@ -26,6 +26,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         }
 
         public string ETag => _blob.Properties.ETag;
+        public long Length => _blob.Properties.Length;
         public Uri Uri => _blob.Uri;
 
         public AzureCloudBlockBlob(CloudBlockBlob blob)

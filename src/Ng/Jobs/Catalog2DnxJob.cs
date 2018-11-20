@@ -79,6 +79,8 @@ namespace Ng.Jobs
                 preferredPackageSourceStorageFactory);
             Logger.LogInformation("HTTP client timeout: {Timeout}", httpClientTimeout);
 
+            MaxDegreeOfParallelism = 256;
+
             _collector = new DnxCatalogCollector(
                 new Uri(source),
                 storageFactory,

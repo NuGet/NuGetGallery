@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,7 +25,8 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
         private readonly IAzureStorage _sourceStorage;
         private readonly DnxMaker _dnxMaker;
         private readonly ILogger _logger;
-        private readonly int _maxDegreeOfParallelism;
+        private readonly int _maxConcurrentBatches;
+        private readonly int _maxConcurrentCommitItemsWithinBatch;
         private readonly Uri _contentBaseAddress;
 
         public DnxCatalogCollector(
@@ -52,7 +54,43 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
                     string.Format(Strings.ArgumentOutOfRange, 1, int.MaxValue));
             }
 
-            _maxDegreeOfParallelism = maxDegreeOfParallelism;
+            // Find two factors which are close or equal to each other.
+            var squareRoot = Math.Sqrt(maxDegreeOfParallelism);
+
+            // If the max degree of parallelism is a perfect square, great.
+            // Otherwise, prefer a greater degree of parallelism in batches than commit items within a batch.
+            _maxConcurrentBatches = Convert.ToInt32(Math.Ceiling(squareRoot));
+            _maxConcurrentCommitItemsWithinBatch = Convert.ToInt32(maxDegreeOfParallelism / _maxConcurrentBatches);
+
+            ServicePointManager.DefaultConnectionLimit = _maxConcurrentBatches * _maxConcurrentCommitItemsWithinBatch;
+        }
+
+        protected override Task<IEnumerable<CatalogCommitItemBatch>> CreateBatchesAsync(
+            IEnumerable<CatalogCommitItem> catalogItems)
+        {
+            var batches = CatalogCommitUtilities.CreateCommitItemBatches(
+                catalogItems,
+                CatalogCommitUtilities.GetPackageIdKey);
+
+            return Task.FromResult(batches);
+        }
+
+        protected override Task<bool> FetchAsync(
+            CollectorHttpClient client,
+            ReadWriteCursor front,
+            ReadCursor back,
+            CancellationToken cancellationToken)
+        {
+            return CatalogCommitUtilities.ProcessCatalogCommitsAsync(
+                client,
+                front,
+                back,
+                FetchCatalogCommitsAsync,
+                CreateBatchesAsync,
+                ProcessBatchAsync,
+                _maxConcurrentBatches,
+                _logger,
+                cancellationToken);
         }
 
         protected override async Task<bool> OnProcessBatchAsync(
@@ -66,7 +104,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             var catalogEntries = items.Select(item => CatalogEntry.Create(item))
                 .ToList();
 
-            // Sanity check:  a single catalog batch should not contain multiple entries for the same package ID and version.
+            // Sanity check:  a single catalog batch should not contain multiple entries for the same package identity.
             AssertNoMultipleEntriesForSamePackageIdentity(commitTimeStamp, catalogEntries);
 
             // Process .nupkg/.nuspec adds and deletes.
@@ -85,16 +123,16 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
         {
             var processedCatalogEntries = new ConcurrentBag<CatalogEntry>();
 
-            await catalogEntries.ForEachAsync(_maxDegreeOfParallelism, async catalogEntry =>
+            await catalogEntries.ForEachAsync(_maxConcurrentCommitItemsWithinBatch, async catalogEntry =>
             {
                 var packageId = catalogEntry.PackageId;
                 var normalizedPackageVersion = catalogEntry.NormalizedPackageVersion;
 
                 if (catalogEntry.Type.AbsoluteUri == Schema.DataTypes.PackageDetails.AbsoluteUri)
                 {
-                    var properties = GetTelemetryProperties(catalogEntry);
+                    var telemetryProperties = GetTelemetryProperties(catalogEntry);
 
-                    using (_telemetryService.TrackDuration(TelemetryConstants.ProcessPackageDetailsSeconds, properties))
+                    using (_telemetryService.TrackDuration(TelemetryConstants.ProcessPackageDetailsSeconds, telemetryProperties))
                     {
                         var packageFileName = PackageUtility.GetPackageFileName(
                             packageId,
@@ -127,6 +165,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
                                 packageId,
                                 normalizedPackageVersion,
                                 sourceUri,
+                                telemetryProperties,
                                 cancellationToken))
                         {
                             processedCatalogEntries.Add(catalogEntry);
@@ -170,7 +209,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
         {
             var catalogEntryGroups = catalogEntries.GroupBy(catalogEntry => catalogEntry.PackageId);
 
-            await catalogEntryGroups.ForEachAsync(_maxDegreeOfParallelism, async catalogEntryGroup =>
+            await catalogEntryGroups.ForEachAsync(_maxConcurrentCommitItemsWithinBatch, async catalogEntryGroup =>
             {
                 var packageId = catalogEntryGroup.Key;
                 var properties = new Dictionary<string, string>()
@@ -209,11 +248,13 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             string packageId,
             string normalizedPackageVersion,
             Uri sourceUri,
+            Dictionary<string, string> telemetryProperties,
             CancellationToken cancellationToken)
         {
             if (await ProcessPackageDetailsViaStorageAsync(
                 packageId,
                 normalizedPackageVersion,
+                telemetryProperties,
                 cancellationToken))
             {
                 return true;
@@ -229,12 +270,14 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
                 packageId,
                 normalizedPackageVersion,
                 sourceUri,
+                telemetryProperties,
                 cancellationToken);
         }
 
         private async Task<bool> ProcessPackageDetailsViaStorageAsync(
             string packageId,
             string normalizedPackageVersion,
+            Dictionary<string, string> telemetryProperties,
             CancellationToken cancellationToken)
         {
             if (_sourceStorage == null)
@@ -254,6 +297,8 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
                 // different times.  To detect the blob changing between reads, we check the ETag again later.
                 // If the ETag's differ, we'll fall back to using a single HTTP GET request.
                 var token1 = await _sourceStorage.GetOptimisticConcurrencyControlTokenAsync(sourceUri, cancellationToken);
+
+                telemetryProperties[TelemetryConstants.SizeInBytes] = sourceBlob.Length.ToString();
 
                 var nuspec = await GetNuspecAsync(sourceBlob, packageId, cancellationToken);
 
@@ -306,6 +351,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             string id,
             string version,
             Uri sourceUri,
+            Dictionary<string, string> telemetryProperties,
             CancellationToken cancellationToken)
         {
             var packageDownloader = new PackageDownloader(client, _logger);
@@ -319,6 +365,8 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
 
                     return false;
                 }
+
+                telemetryProperties[TelemetryConstants.SizeInBytes] = stream.Length.ToString();
 
                 var nuspec = GetNuspec(stream, id);
 
@@ -380,7 +428,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             }
         }
 
-        private static async Task<string> GetNuspecAsync(
+        private async Task<string> GetNuspecAsync(
             ICloudBlockBlob sourceBlob,
             string packageId,
             CancellationToken cancellationToken)
@@ -436,6 +484,34 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
                 { TelemetryConstants.Id, packageId },
                 { TelemetryConstants.Version, normalizedPackageVersion }
             };
+        }
+
+        private async Task ProcessBatchAsync(
+            CollectorHttpClient client,
+            JToken context,
+            string packageId,
+            CatalogCommitItemBatch batch,
+            CatalogCommitItemBatch lastBatch,
+            CancellationToken cancellationToken)
+        {
+            await Task.Yield();
+
+            using (_telemetryService.TrackDuration(
+                TelemetryConstants.ProcessBatchSeconds,
+                new Dictionary<string, string>()
+                {
+                    { TelemetryConstants.Id, packageId },
+                    { TelemetryConstants.BatchItemCount, batch.Items.Count.ToString() }
+                }))
+            {
+                await OnProcessBatchAsync(
+                    client,
+                    batch.Items,
+                    context,
+                    batch.CommitTimeStamp,
+                    isLastBatch: false,
+                    cancellationToken: cancellationToken);
+            }
         }
 
         private sealed class CatalogEntry

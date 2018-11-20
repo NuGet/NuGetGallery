@@ -15,6 +15,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
     {
         string ContentMD5 { get; set; }
         string ETag { get; }
+        long Length { get; }
         Uri Uri { get; }
 
         Task<bool> ExistsAsync(CancellationToken cancellationToken);

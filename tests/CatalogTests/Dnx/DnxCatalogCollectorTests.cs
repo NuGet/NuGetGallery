@@ -12,8 +12,12 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using CatalogTests.Helpers;
 using Microsoft.Extensions.Logging;
 using Moq;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using NgTests;
 using NgTests.Data;
 using NgTests.Infrastructure;
 using NuGet.Services.Metadata.Catalog;
@@ -25,22 +29,51 @@ namespace CatalogTests.Dnx
 {
     public class DnxCatalogCollectorTests
     {
+        private static readonly Uri _baseUri = new Uri("https://nuget.test");
         private const string _nuspecData = "nuspec data";
         private const int _maxDegreeOfParallelism = 20;
         private static readonly HttpContent _noContent = new ByteArrayContent(new byte[0]);
         private const IAzureStorage _nullPreferredPackageSourceStorage = null;
         private static readonly Uri _contentBaseAddress = new Uri("http://tempuri.org/packages/");
+        private readonly JObject _contextKeyword = new JObject(
+            new JProperty(CatalogConstants.VocabKeyword, CatalogConstants.NuGetSchemaUri),
+            new JProperty(CatalogConstants.NuGet, CatalogConstants.NuGetSchemaUri),
+            new JProperty(CatalogConstants.Items,
+                new JObject(
+                    new JProperty(CatalogConstants.IdKeyword, CatalogConstants.Item),
+                    new JProperty(CatalogConstants.ContainerKeyword, CatalogConstants.SetKeyword))),
+            new JProperty(CatalogConstants.Parent,
+                new JObject(
+                    new JProperty(CatalogConstants.TypeKeyword, CatalogConstants.IdKeyword))),
+            new JProperty(CatalogConstants.CommitTimeStamp,
+                new JObject(
+                    new JProperty(CatalogConstants.TypeKeyword, CatalogConstants.XsdDateTime))),
+            new JProperty(CatalogConstants.NuGetLastCreated,
+                new JObject(
+                    new JProperty(CatalogConstants.TypeKeyword, CatalogConstants.XsdDateTime))),
+            new JProperty(CatalogConstants.NuGetLastEdited,
+                new JObject(
+                    new JProperty(CatalogConstants.TypeKeyword, CatalogConstants.XsdDateTime))),
+            new JProperty(CatalogConstants.NuGetLastDeleted,
+                new JObject(
+                    new JProperty(CatalogConstants.TypeKeyword, CatalogConstants.XsdDateTime))));
+        private readonly JsonSerializerSettings _jsonSettings = new JsonSerializerSettings()
+        {
+            DateParseHandling = DateParseHandling.None,
+            NullValueHandling = NullValueHandling.Ignore
+        };
 
         private MemoryStorage _catalogToDnxStorage;
         private TestStorageFactory _catalogToDnxStorageFactory;
         private MockServerHttpClientHandler _mockServer;
         private ILogger<DnxCatalogCollector> _logger;
         private DnxCatalogCollector _target;
+        private Random _random;
         private Uri _cursorJsonUri;
 
         public DnxCatalogCollectorTests()
         {
-            _catalogToDnxStorage = new MemoryStorage();
+            _catalogToDnxStorage = new MemoryStorage(_baseUri);
             _catalogToDnxStorageFactory = new TestStorageFactory(name => _catalogToDnxStorage.WithName(name));
             _mockServer = new MockServerHttpClientHandler();
             _mockServer.SetAction("/", request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)));
@@ -59,6 +92,7 @@ namespace CatalogTests.Dnx
                 () => _mockServer);
 
             _cursorJsonUri = _catalogToDnxStorage.ResolveUri("cursor.json");
+            _random = new Random();
         }
 
         [Fact]
@@ -630,11 +664,12 @@ namespace CatalogTests.Dnx
             var front = new DurableCursor(_cursorJsonUri, _catalogToDnxStorage, MemoryCursor.MinValue);
             ReadCursor back = MemoryCursor.CreateMax();
 
-            var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            var exception = await Assert.ThrowsAsync<BatchProcessingException>(
                 () => _target.RunAsync(front, back, CancellationToken.None));
+            Assert.IsType<InvalidOperationException>(exception.InnerException);
             Assert.Equal(
                 $"Expected status code OK for package download, actual: {statusCode}",
-                exception.Message);
+                exception.InnerException.Message);
             Assert.Equal(0, _catalogToDnxStorage.Content.Count);
         }
 
@@ -717,7 +752,9 @@ namespace CatalogTests.Dnx
             ReadCursor back = MemoryCursor.CreateMax();
 
             // Act
-            await Assert.ThrowsAsync<HttpRequestException>(() => _target.RunAsync(front, back, CancellationToken.None));
+            var exception = await Assert.ThrowsAsync<BatchProcessingException>(
+                () => _target.RunAsync(front, back, CancellationToken.None));
+            Assert.IsType<HttpRequestException>(exception.InnerException);
             var cursorBeforeRetry = front.Value;
             await _target.RunAsync(front, back, CancellationToken.None);
             var cursorAfterRetry = front.Value;
@@ -738,33 +775,296 @@ namespace CatalogTests.Dnx
                 .FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/anotherpackage/1.0.0/anotherpackage.1.0.0.nupkg"));
             Assert.NotNull(anotherPackage100.Key);
 
-            Assert.Equal(DateTime.Parse(expectedCursorBeforeRetry).ToUniversalTime(), cursorBeforeRetry);
+            Assert.Equal(MemoryCursor.MinValue, cursorBeforeRetry);
             Assert.Equal(DateTime.Parse("2015-10-12T10:08:55.3335317Z").ToUniversalTime(), cursorAfterRetry);
         }
 
         [Fact]
-        public async Task RunAsync_WhenMultipleEntriesWithSamePackageIdentityInSameBatch_Throws()
+        public async Task RunAsync_WithIdenticalCommitItems_ProcessesPackage()
         {
-            var zipWithWrongNameNuspec = CreateZipStreamWithEntry("Newtonsoft.Json.nuspec", _nuspecData);
-            var indexJsonUri = _catalogToDnxStorage.ResolveUri("/listedpackage/index.json");
-            var nupkgUri = _catalogToDnxStorage.ResolveUri("/listedpackage/1.0.0/listedpackage.1.0.0.nupkg");
-            var nuspecUri = _catalogToDnxStorage.ResolveUri("/listedpackage/1.0.0/listedpackage.nuspec");
-            var expectedNupkg = File.ReadAllBytes(@"Packages\ListedPackage.1.0.0.zip");
-            var catalogStorage = Catalogs.CreateTestCatalogWithMultipleEntriesWithSamePackageIdentityInSameBatch();
+            using (var package = TestPackage.Create(_random))
+            {
+                var catalogIndexUri = new Uri(_baseUri, "index.json");
+                var catalogPageUri = new Uri(_baseUri, "page0.json");
 
-            await _mockServer.AddStorageAsync(catalogStorage);
+                var commitId = Guid.NewGuid().ToString();
+                var commitTimeStamp = DateTimeOffset.UtcNow;
+                var independentPackageDetails0 = new CatalogIndependentPackageDetails(
+                    package.Id,
+                    package.Version.ToNormalizedString(),
+                    _baseUri.AbsoluteUri,
+                    commitId,
+                    commitTimeStamp);
+                var independentPackageDetails1 = new CatalogIndependentPackageDetails(
+                    package.Id,
+                    package.Version.ToNormalizedString(),
+                    _baseUri.AbsoluteUri,
+                    commitId,
+                    commitTimeStamp);
+                var packageDetails = new[]
+                {
+                    CatalogPackageDetails.Create(independentPackageDetails0),
+                    CatalogPackageDetails.Create(independentPackageDetails1)
+                };
 
-            _mockServer.SetAction(
-                "/packages/listedpackage.1.0.0.nupkg",
-                request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new ByteArrayContent(expectedNupkg) }));
+                var independentPage = new CatalogIndependentPage(
+                    catalogPageUri.AbsoluteUri,
+                    CatalogConstants.CatalogPage,
+                    commitId,
+                    commitTimeStamp.ToString(CatalogConstants.CommitTimeStampFormat),
+                    packageDetails.Length,
+                    catalogIndexUri.AbsoluteUri,
+                    packageDetails,
+                    _contextKeyword);
 
-            var front = new DurableCursor(_cursorJsonUri, _catalogToDnxStorage, MemoryCursor.MinValue);
-            ReadCursor back = MemoryCursor.CreateMax();
+                var index = CatalogIndex.Create(independentPage, _contextKeyword);
+                var catalogStorage = new MemoryStorage(_baseUri);
 
-            var exception = await Assert.ThrowsAsync<InvalidOperationException>(
-                () => _target.RunAsync(front, back, CancellationToken.None));
+                catalogStorage.Content.TryAdd(catalogIndexUri, CreateStringStorageContent(index));
+                catalogStorage.Content.TryAdd(catalogPageUri, CreateStringStorageContent(independentPage));
+                catalogStorage.Content.TryAdd(
+                    new Uri(independentPackageDetails0.IdKeyword),
+                    CreateStringStorageContent(independentPackageDetails0));
+                catalogStorage.Content.TryAdd(
+                    new Uri(independentPackageDetails1.IdKeyword),
+                    CreateStringStorageContent(independentPackageDetails1));
 
-            Assert.Equal("The catalog batch 10/13/2015 6:40:07 AM contains multiple entries for the same package identity.  Package(s):  listedpackage 1.0.0", exception.Message);
+                byte[] expectedNupkgBytes = ReadPackageBytes(package);
+
+                await _mockServer.AddStorageAsync(catalogStorage);
+
+                var packageId = package.Id.ToLowerInvariant();
+                var packageVersion = package.Version.ToNormalizedString().ToLowerInvariant();
+                var nupkgPathAndQuery = $"/packages/{packageId}.{packageVersion}.nupkg";
+
+                _mockServer.SetAction(
+                    nupkgPathAndQuery,
+                    request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+                    {
+                        Content = new ByteArrayContent(expectedNupkgBytes)
+                    }));
+
+                var front = new DurableCursor(_cursorJsonUri, _catalogToDnxStorage, MemoryCursor.MinValue);
+                ReadCursor back = MemoryCursor.CreateMax();
+
+                await _target.RunAsync(front, back, CancellationToken.None);
+
+                Assert.Equal(4, _catalogToDnxStorage.Content.Count);
+                Assert.Equal(3, _mockServer.Requests.Count);
+
+                Assert.EndsWith("/index.json", _mockServer.Requests[0].RequestUri.AbsoluteUri);
+                Assert.EndsWith("/page0.json", _mockServer.Requests[1].RequestUri.AbsoluteUri);
+                Assert.Contains(nupkgPathAndQuery, _mockServer.Requests[2].RequestUri.AbsoluteUri);
+
+                var indexJsonUri = _catalogToDnxStorage.ResolveUri($"{packageId}/index.json");
+                var nupkgUri = _catalogToDnxStorage.ResolveUri($"{packageId}/{packageVersion}/{packageId}.{packageVersion}.nupkg");
+                var nuspecUri = _catalogToDnxStorage.ResolveUri($"{packageId}/{packageVersion}/{packageId}.nuspec");
+
+                Assert.True(_catalogToDnxStorage.Content.ContainsKey(_cursorJsonUri));
+                Assert.True(_catalogToDnxStorage.Content.ContainsKey(indexJsonUri));
+                Assert.True(_catalogToDnxStorage.Content.ContainsKey(nupkgUri));
+                Assert.True(_catalogToDnxStorage.Content.ContainsKey(nuspecUri));
+                Assert.True(_catalogToDnxStorage.ContentBytes.TryGetValue(_cursorJsonUri, out var cursorBytes));
+                Assert.True(_catalogToDnxStorage.ContentBytes.TryGetValue(indexJsonUri, out var indexBytes));
+                Assert.True(_catalogToDnxStorage.ContentBytes.TryGetValue(nupkgUri, out var actualNupkgBytes));
+                Assert.True(_catalogToDnxStorage.ContentBytes.TryGetValue(nuspecUri, out var nuspecBytes));
+
+                var actualCursorJson = Encoding.UTF8.GetString(cursorBytes);
+                var actualIndexJson = Encoding.UTF8.GetString(indexBytes);
+                var actualNuspec = Encoding.UTF8.GetString(nuspecBytes);
+
+                Assert.Equal(GetExpectedCursorJsonContent(front.Value.ToString("yyyy-MM-ddTHH:mm:ss.fffffff")), actualCursorJson);
+                Assert.Equal(GetExpectedIndexJsonContent(packageVersion), actualIndexJson);
+                Assert.Equal(expectedNupkgBytes, actualNupkgBytes);
+                Assert.Equal(package.Nuspec, actualNuspec);
+            }
+        }
+
+        [Fact]
+        public async Task RunAsync_WhenMultipleCommitItemsWithSamePackageIdentityExistAcrossMultipleCommits_OnlyLastCommitIsProcessed()
+        {
+            using (var package = TestPackage.Create(_random))
+            {
+                var catalogIndexUri = new Uri(_baseUri, "index.json");
+                var catalogPageUri = new Uri(_baseUri, "page0.json");
+
+                var commitTimeStamp1 = DateTimeOffset.UtcNow;
+                var commitTimeStamp0 = commitTimeStamp1.AddMinutes(-1);
+                var independentPackageDetails0 = new CatalogIndependentPackageDetails(
+                    package.Id,
+                    package.Version.ToNormalizedString(),
+                    _baseUri.AbsoluteUri,
+                    Guid.NewGuid().ToString(),
+                    commitTimeStamp0);
+                var independentPackageDetails1 = new CatalogIndependentPackageDetails(
+                    package.Id,
+                    package.Version.ToNormalizedString(),
+                    _baseUri.AbsoluteUri,
+                    Guid.NewGuid().ToString(),
+                    commitTimeStamp1);
+                var packageDetails = new[]
+                {
+                    CatalogPackageDetails.Create(independentPackageDetails0),
+                    CatalogPackageDetails.Create(independentPackageDetails1)
+                };
+
+                var independentPage = new CatalogIndependentPage(
+                    catalogPageUri.AbsoluteUri,
+                    CatalogConstants.CatalogPage,
+                    independentPackageDetails1.CommitId,
+                    independentPackageDetails1.CommitTimeStamp,
+                    packageDetails.Length,
+                    catalogIndexUri.AbsoluteUri,
+                    packageDetails,
+                    _contextKeyword);
+
+                var index = CatalogIndex.Create(independentPage, _contextKeyword);
+                var catalogStorage = new MemoryStorage(_baseUri);
+
+                catalogStorage.Content.TryAdd(catalogIndexUri, CreateStringStorageContent(index));
+                catalogStorage.Content.TryAdd(catalogPageUri, CreateStringStorageContent(independentPage));
+                catalogStorage.Content.TryAdd(
+                    new Uri(independentPackageDetails0.IdKeyword),
+                    CreateStringStorageContent(independentPackageDetails0));
+                catalogStorage.Content.TryAdd(
+                    new Uri(independentPackageDetails1.IdKeyword),
+                    CreateStringStorageContent(independentPackageDetails1));
+
+                byte[] expectedNupkgBytes = ReadPackageBytes(package);
+
+                await _mockServer.AddStorageAsync(catalogStorage);
+
+                var packageId = package.Id.ToLowerInvariant();
+                var packageVersion = package.Version.ToNormalizedString().ToLowerInvariant();
+                var nupkgPathAndQuery = $"/packages/{packageId}.{packageVersion}.nupkg";
+
+                _mockServer.SetAction(
+                    nupkgPathAndQuery,
+                    request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+                    {
+                        Content = new ByteArrayContent(expectedNupkgBytes)
+                    }));
+
+                var front = new DurableCursor(_cursorJsonUri, _catalogToDnxStorage, MemoryCursor.MinValue);
+                ReadCursor back = MemoryCursor.CreateMax();
+
+                await _target.RunAsync(front, back, CancellationToken.None);
+
+                Assert.Equal(4, _catalogToDnxStorage.Content.Count);
+                Assert.Equal(3, _mockServer.Requests.Count);
+
+                Assert.EndsWith("/index.json", _mockServer.Requests[0].RequestUri.AbsoluteUri);
+                Assert.EndsWith("/page0.json", _mockServer.Requests[1].RequestUri.AbsoluteUri);
+                Assert.Contains(nupkgPathAndQuery, _mockServer.Requests[2].RequestUri.AbsoluteUri);
+
+                var indexJsonUri = _catalogToDnxStorage.ResolveUri($"{packageId}/index.json");
+                var nupkgUri = _catalogToDnxStorage.ResolveUri($"{packageId}/{packageVersion}/{packageId}.{packageVersion}.nupkg");
+                var nuspecUri = _catalogToDnxStorage.ResolveUri($"{packageId}/{packageVersion}/{packageId}.nuspec");
+
+                Assert.True(_catalogToDnxStorage.Content.ContainsKey(_cursorJsonUri));
+                Assert.True(_catalogToDnxStorage.Content.ContainsKey(indexJsonUri));
+                Assert.True(_catalogToDnxStorage.Content.ContainsKey(nupkgUri));
+                Assert.True(_catalogToDnxStorage.Content.ContainsKey(nuspecUri));
+                Assert.True(_catalogToDnxStorage.ContentBytes.TryGetValue(_cursorJsonUri, out var cursorBytes));
+                Assert.True(_catalogToDnxStorage.ContentBytes.TryGetValue(indexJsonUri, out var indexBytes));
+                Assert.True(_catalogToDnxStorage.ContentBytes.TryGetValue(nupkgUri, out var actualNupkgBytes));
+                Assert.True(_catalogToDnxStorage.ContentBytes.TryGetValue(nuspecUri, out var nuspecBytes));
+
+                var actualCursorJson = Encoding.UTF8.GetString(cursorBytes);
+                var actualIndexJson = Encoding.UTF8.GetString(indexBytes);
+                var actualNuspec = Encoding.UTF8.GetString(nuspecBytes);
+
+                Assert.Equal(GetExpectedCursorJsonContent(front.Value.ToString("yyyy-MM-ddTHH:mm:ss.fffffff")), actualCursorJson);
+                Assert.Equal(GetExpectedIndexJsonContent(packageVersion), actualIndexJson);
+                Assert.Equal(expectedNupkgBytes, actualNupkgBytes);
+                Assert.Equal(package.Nuspec, actualNuspec);
+            }
+        }
+
+        [Fact]
+        public async Task RunAsync_WhenMultipleCommitItemsHaveSameCommitTimeStampButDifferentCommitId_Throws()
+        {
+            using (var package0 = TestPackage.Create(_random))
+            using (var package1 = TestPackage.Create(_random))
+            {
+                var catalogIndexUri = new Uri(_baseUri, "index.json");
+                var catalogPageUri = new Uri(_baseUri, "page0.json");
+
+                var commitId0 = Guid.NewGuid().ToString();
+                var commitId1 = Guid.NewGuid().ToString();
+                var commitTimeStamp = DateTime.UtcNow;
+                var independentPackageDetails0 = new CatalogIndependentPackageDetails(
+                    package0.Id,
+                    package0.Version.ToNormalizedString(),
+                    _baseUri.AbsoluteUri,
+                    commitId0,
+                    commitTimeStamp);
+                var independentPackageDetails1 = new CatalogIndependentPackageDetails(
+                    package1.Id,
+                    package1.Version.ToNormalizedString(),
+                    _baseUri.AbsoluteUri,
+                    commitId1,
+                    commitTimeStamp);
+                var packageDetails = new[]
+                {
+                    CatalogPackageDetails.Create(independentPackageDetails0),
+                    CatalogPackageDetails.Create(independentPackageDetails1)
+                };
+
+                var independentPage = new CatalogIndependentPage(
+                    catalogPageUri.AbsoluteUri,
+                    CatalogConstants.CatalogPage,
+                    independentPackageDetails1.CommitId,
+                    commitTimeStamp.ToString(CatalogConstants.CommitTimeStampFormat),
+                    packageDetails.Length,
+                    catalogIndexUri.AbsoluteUri,
+                    packageDetails,
+                    _contextKeyword);
+
+                var index = CatalogIndex.Create(independentPage, _contextKeyword);
+                var catalogStorage = new MemoryStorage(_baseUri);
+
+                catalogStorage.Content.TryAdd(catalogIndexUri, CreateStringStorageContent(index));
+                catalogStorage.Content.TryAdd(catalogPageUri, CreateStringStorageContent(independentPage));
+                catalogStorage.Content.TryAdd(
+                    new Uri(independentPackageDetails0.IdKeyword),
+                    CreateStringStorageContent(independentPackageDetails0));
+                catalogStorage.Content.TryAdd(
+                    new Uri(independentPackageDetails1.IdKeyword),
+                    CreateStringStorageContent(independentPackageDetails1));
+
+                byte[] expectedNupkgBytes = ReadPackageBytes(package0);
+
+                await _mockServer.AddStorageAsync(catalogStorage);
+
+                var packageId = package0.Id.ToLowerInvariant();
+                var packageVersion = package0.Version.ToNormalizedString().ToLowerInvariant();
+                var nupkgPathAndQuery = $"/packages/{packageId}.{packageVersion}.nupkg";
+
+                _mockServer.SetAction(
+                    nupkgPathAndQuery,
+                    request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+                    {
+                        Content = new ByteArrayContent(expectedNupkgBytes)
+                    }));
+
+                var front = new DurableCursor(_cursorJsonUri, _catalogToDnxStorage, MemoryCursor.MinValue);
+                ReadCursor back = MemoryCursor.CreateMax();
+
+                var exception = await Assert.ThrowsAsync<ArgumentException>(
+                    () => _target.RunAsync(front, back, CancellationToken.None));
+
+                var expectedMessage = "Multiple commits exist with the same commit timestamp but different commit ID's:  " +
+                    $"{{ CommitId = {commitId0}, CommitTimeStamp = {commitTimeStamp.ToString("yyyy-MM-ddTHH:mm:ss.fffffff")} }}, " +
+                    $"{{ CommitId = {commitId1}, CommitTimeStamp = {commitTimeStamp.ToString("yyyy-MM-ddTHH:mm:ss.fffffff")} }}";
+
+                Assert.StartsWith(expectedMessage, exception.Message);
+            }
+        }
+
+        private static string GetExpectedCursorJsonContent(string cursor)
+        {
+            return $"{{\r\n  \"value\": \"{cursor}\"\r\n}}";
         }
 
         private static string GetExpectedIndexJsonContent(string version)
@@ -789,6 +1089,11 @@ namespace CatalogTests.Dnx
             _mockServer.SetAction(relativeUri, failFirst);
         }
 
+        private StringStorageContent CreateStringStorageContent<T>(T value)
+        {
+            return new StringStorageContent(JsonConvert.SerializeObject(value, _jsonSettings));
+        }
+
         private static MemoryStream CreateZipStreamWithEntry(string name, string content)
         {
             var zipWithNoNuspec = new MemoryStream();
@@ -807,6 +1112,14 @@ namespace CatalogTests.Dnx
             zipWithNoNuspec.Position = 0;
 
             return zipWithNoNuspec;
+        }
+
+        private static byte[] ReadPackageBytes(TestPackage package)
+        {
+            using (var reader = new BinaryReader(package.Stream))
+            {
+                return reader.ReadBytes((int)package.Stream.Length);
+            }
         }
 
         private class SynchronizedMemoryStorage : MemoryStorage
