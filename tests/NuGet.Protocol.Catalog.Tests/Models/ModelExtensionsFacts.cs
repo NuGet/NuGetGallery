@@ -3,12 +3,35 @@
 
 using System;
 using System.Collections.Generic;
+using NuGet.Versioning;
 using Xunit;
 
 namespace NuGet.Protocol.Catalog
 {
     public class ModelExtensionsFacts
     {
+        public class ParseRange
+        {
+            [Theory]
+            [InlineData("")]
+            [InlineData("  ")]
+            [InlineData("\r\n")]
+            [InlineData(null)]
+            [InlineData("0.0.0-~4")]
+            [InlineData("(, )")]
+            public void ReturnsAllRangeForMissingOrInvalid(string range)
+            {
+                var packageDependency = new PackageDependency
+                {
+                    Range = range,
+                };
+
+                var output = packageDependency.ParseRange();
+
+                Assert.Equal(VersionRange.All, output);
+            }
+        }
+
         public class IsListed
         {
             [Theory]
@@ -103,6 +126,24 @@ namespace NuGet.Protocol.Catalog
                 {
                     PackageVersion = "1.0.0",
                     VerbatimVersion = "1.0.0",
+                };
+
+                var actual = leaf.IsSemVer2();
+
+                Assert.False(actual);
+            }
+
+            [Fact]
+            public void AllowsNullDependencies()
+            {
+                var leaf = new PackageDetailsCatalogLeaf
+                {
+                    PackageVersion = "1.0.0",
+                    VerbatimVersion = "1.0.0",
+                    DependencyGroups = new List<PackageDependencyGroup>
+                    {
+                        new PackageDependencyGroup(),
+                    }
                 };
 
                 var actual = leaf.IsSemVer2();

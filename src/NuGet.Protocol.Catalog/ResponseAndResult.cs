@@ -37,7 +37,9 @@ namespace NuGet.Protocol.Catalog
             if (!HasResult)
             {
                 throw new SimpleHttpClientException(
-                    "The HTTP request failed.",
+                    $"The HTTP request failed.{Environment.NewLine}" +
+                    $"Request: {Method} {RequestUri}{Environment.NewLine}" +
+                    $"Response: {(int)StatusCode} {ReasonPhrase}",
                     Method,
                     RequestUri,
                     StatusCode,

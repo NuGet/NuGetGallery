@@ -42,6 +42,7 @@
     <Compile Include="Db2AzureSearch\EnumerableExtensionsFacts.cs" />
     <Compile Include="Db2AzureSearch\NewPackageRegistrationProducerFacts.cs" />
     <Compile Include="IndexActionBuilderFacts.cs" />
+    <Compile Include="Registration\RegistrationClientFacts.cs" />
     <Compile Include="Support\DbSetMockFactory.cs" />
     <Compile Include="Support\RecordingLogger.cs" />
     <Compile Include="Support\TestDbAsyncEnumerable.cs" />
@@ -60,9 +61,17 @@
     <Compile Include="VersionList\VersionListsFacts.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\src\NuGet.Protocol.Catalog\NuGet.Protocol.Catalog.csproj">
+      <Project>{D44C2E89-2D98-44BD-8712-8CCBE4E67C9C}</Project>
+      <Name>NuGet.Protocol.Catalog</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\src\NuGet.Services.AzureSearch\NuGet.Services.AzureSearch.csproj">
       <Project>{1a53fe3d-8041-4773-942f-d73aef5b82b2}</Project>
       <Name>NuGet.Services.AzureSearch</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NuGet.Protocol.Catalog.Tests\NuGet.Protocol.Catalog.Tests.csproj">
+      <Project>{1f3bc053-796c-4a35-88f4-955a0f142197}</Project>
+      <Name>NuGet.Protocol.Catalog.Tests</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
@@ -70,10 +79,10 @@
       <Version>4.7.25</Version>
     </PackageReference>
     <PackageReference Include="xunit">
-      <Version>2.4.0</Version>
+      <Version>2.4.1</Version>
     </PackageReference>
     <PackageReference Include="xunit.runner.visualstudio">
-      <Version>2.4.0</Version>
+      <Version>2.4.1</Version>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>

@@ -122,12 +122,17 @@ namespace NuGet.Protocol.Catalog
         /// <returns>The version range.</returns>
         public static VersionRange ParseRange(this PackageDependency packageDependency)
         {
-            if (string.IsNullOrEmpty(packageDependency.Range))
+            // Server side treats invalid version ranges as empty strings.
+            // Source: https://github.com/NuGet/NuGet.Services.Metadata/blob/382c214c60993edfd7158bc6d223fafeebbc920c/src/Catalog/Helpers/NuGetVersionUtility.cs#L25-L34
+            // Client side treats empty string version ranges as the "all" range.
+            // Source: https://github.com/NuGet/NuGet.Client/blob/849063018d8ee08625774a2dcd07ab84224dabb9/src/NuGet.Core/NuGet.Protocol/DependencyInfo/RegistrationUtility.cs#L20-L30
+            // Example: https://api.nuget.org/v3/catalog0/data/2016.03.14.21.19.28/servicestack.extras.serilog.2.0.1.json
+            if (!VersionRange.TryParse(packageDependency.Range, out var parsed))
             {
                 return VersionRange.All;
             }
 
-            return VersionRange.Parse(packageDependency.Range);
+            return parsed;
         }
 
         /// <summary>
@@ -164,6 +169,7 @@ namespace NuGet.Protocol.Catalog
 
             // A published year of 1900 indicates that this package is unlisted, when the listed property itself is
             // not present (legacy behavior).
+            // Example: https://api.nuget.org/v3/catalog0/data/2015.02.01.06.22.45/antixss.4.0.1.json
             return leaf.Published.Year != 1900;
         }
 
@@ -194,6 +200,12 @@ namespace NuGet.Protocol.Catalog
             {
                 foreach (var dependencyGroup in leaf.DependencyGroups)
                 {
+                    // Example: https://api.nuget.org/v3/catalog0/data/2018.10.28.07.42.42/mvcsitemapprovider.3.3.0-pre1.json
+                    if (dependencyGroup.Dependencies == null)
+                    {
+                        continue;
+                    }
+
                     foreach (var dependency in dependencyGroup.Dependencies)
                     {
                         var versionRange = dependency.ParseRange();

@@ -56,6 +56,13 @@
     <Compile Include="Models\HijackDocument.cs" />
     <Compile Include="Models\IKeyedDocument.cs" />
     <Compile Include="Models\SearchDocument.cs" />
+    <Compile Include="Registration\IRegistrationClient.cs" />
+    <Compile Include="Registration\Models\RegistrationCatalogEntry.cs" />
+    <Compile Include="Registration\Models\RegistrationIndex.cs" />
+    <Compile Include="Registration\Models\RegistrationLeafItem.cs" />
+    <Compile Include="Registration\Models\RegistrationPage.cs" />
+    <Compile Include="Registration\RegistrationClient.cs" />
+    <Compile Include="Registration\Models\RegistrationLeaf.cs" />
     <Compile Include="VersionList\Guard.cs" />
     <Compile Include="VersionList\HijackIndexChange.cs" />
     <Compile Include="VersionList\HijackIndexChangeType.cs" />
@@ -107,6 +114,10 @@
     <ProjectReference Include="..\Catalog\NuGet.Services.Metadata.Catalog.csproj">
       <Project>{e97f23b8-ecb0-4afa-b00c-015c39395fef}</Project>
       <Name>NuGet.Services.Metadata.Catalog</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NuGet.Protocol.Catalog\NuGet.Protocol.Catalog.csproj">
+      <Project>{D44C2E89-2D98-44BD-8712-8CCBE4E67C9C}</Project>
+      <Name>NuGet.Protocol.Catalog</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

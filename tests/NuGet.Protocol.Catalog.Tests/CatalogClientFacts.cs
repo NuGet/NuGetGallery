@@ -130,7 +130,9 @@ namespace NuGet.Protocol.Catalog
 
         private static CatalogClient GetCatalogClient(HttpClient httpClient)
         {
-            return new CatalogClient(new SimpleHttpClient(httpClient, new NullLogger<SimpleHttpClient>()), new NullLogger<CatalogClient>());
+            return new CatalogClient(
+                new SimpleHttpClient(httpClient, new NullLogger<SimpleHttpClient>()),
+                new NullLogger<CatalogClient>());
         }
     }
 }
