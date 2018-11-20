@@ -94,7 +94,7 @@ namespace NuGetGallery
         private readonly IContentObjectService _contentObjectService;
         private readonly ISymbolPackageUploadService _symbolPackageUploadService;
         private readonly IDiagnosticsSource _trace;
-        private readonly ILicenseFileService _licenseFileService;
+        private readonly ILicenseFileBlobStorageService _licenseFileBlobStorageService;
 
         public PackagesController(
             IPackageService packageService,
@@ -120,7 +120,7 @@ namespace NuGetGallery
             IContentObjectService contentObjectService,
             ISymbolPackageUploadService symbolPackageUploadService,
             IDiagnosticsService diagnosticsService,
-            ILicenseFileService licenseFileService)
+            ILicenseFileBlobStorageService licenseFileBlobStorageService)
         {
             _packageService = packageService;
             _uploadFileService = uploadFileService;
@@ -145,7 +145,7 @@ namespace NuGetGallery
             _contentObjectService = contentObjectService;
             _symbolPackageUploadService = symbolPackageUploadService;
             _trace = diagnosticsService?.SafeGetSource(nameof(PackagesController)) ?? throw new ArgumentNullException(nameof(diagnosticsService));
-            _licenseFileService = licenseFileService;
+            _licenseFileBlobStorageService = licenseFileBlobStorageService;
         }
 
         [HttpGet]
@@ -674,7 +674,7 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            return Redirect(await _licenseFileService.GetLicenseFileBlobStoragePath(package.Id, package.NormalizedVersion));
+            return Redirect(await _licenseFileBlobStorageService.GetLicenseFileBlobStoragePathAsync(package.Id, package.NormalizedVersion));
         }
 
         public virtual async Task<ActionResult> ListPackages(PackageListSearchViewModel searchAndListModel)

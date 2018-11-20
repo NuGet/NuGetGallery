@@ -8,13 +8,13 @@ namespace NuGetGallery
     /// <summary>
     /// This interface is used to get the license file storage path.
     /// </summary>
-    public interface ILicenseFileService
+    public interface ILicenseFileBlobStorageService
     {
         /// <summary>
         /// The function is used to get the license file storage path.
         /// </summary>
         /// <param name="packageId"> The package ID</param>
         /// <param name="packageVersion"> The package version</param>
-        Task<string> GetLicenseFileBlobStoragePath(string packageId, string packageVersion);
+        Task<string> GetLicenseFileBlobStoragePathAsync(string packageId, string packageVersion);
     }
 }

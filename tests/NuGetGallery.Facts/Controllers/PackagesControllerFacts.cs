@@ -66,7 +66,7 @@ namespace NuGetGallery
             IReadMeService readMeService = null,
             Mock<IContentObjectService> contentObjectService = null,
             Mock<ISymbolPackageUploadService> symbolPackageUploadService = null,
-            Mock<ILicenseFileService> licenseFileService = null)
+            Mock<ILicenseFileBlobStorageService> licenseFileBlobStorageService = null)
         {
             packageService = packageService ?? new Mock<IPackageService>();
             if (uploadFileService == null)
@@ -168,11 +168,11 @@ namespace NuGetGallery
                     .Completes();
             }
 
-            if (licenseFileService == null)
+            if (licenseFileBlobStorageService == null)
             {
-                licenseFileService = new Mock<ILicenseFileService>();
-                licenseFileService
-                    .Setup(x => x.GetLicenseFileBlobStoragePath(It.IsAny<string>(), It.IsAny<string>()))
+                licenseFileBlobStorageService = new Mock<ILicenseFileBlobStorageService>();
+                licenseFileBlobStorageService
+                    .Setup(x => x.GetLicenseFileBlobStoragePathAsync(It.IsAny<string>(), It.IsAny<string>()))
                     .ReturnsAsync("");
             }
 
@@ -201,7 +201,7 @@ namespace NuGetGallery
                 contentObjectService.Object,
                 symbolPackageUploadService.Object,
                 diagnosticsService.Object,
-                licenseFileService.Object);
+                licenseFileBlobStorageService.Object);
 
             controller.CallBase = true;
             controller.Object.SetOwinContextOverride(Fakes.CreateOwinContext());
@@ -7018,6 +7018,61 @@ namespace NuGetGallery
 
                 Assert.NotNull(result);
                 Assert.Equal((int)HttpStatusCode.OK, controller.Response.StatusCode);
+            }
+        }
+
+        public class LicenseMethod : TestContainer
+        {
+            private readonly Mock<IPackageService> _packageService;
+            private readonly Mock<ILicenseFileBlobStorageService> _licenseFileBlobStorageService;
+            private string _packageId = "packageId";
+            private string _packageVersion = "1.0.0";
+
+            public LicenseMethod()
+            {
+                _packageService = new Mock<IPackageService>();
+                _licenseFileBlobStorageService = new Mock<ILicenseFileBlobStorageService>();
+            }
+
+            [Fact]
+            public async Task GivenInvalidPackageInfoThrowException()
+            {
+                // arrange
+                _packageService.Setup(p => p.FindPackageByIdAndVersionStrict(_packageId, _packageVersion)).Returns<Package>(null);
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: _packageService);
+
+                // act
+                var result = await controller.License(_packageId, _packageVersion);
+
+                // assert
+                Assert.IsType<HttpNotFoundResult>(result);
+            }
+
+            [Fact]
+            public async Task GivenValidPackageInfoRedirectToLicenseFileUrl()
+            {
+                // Act
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration { Id = _packageId },
+                    Version = _packageVersion,
+                };
+
+                _packageService.Setup(p => p.FindPackageByIdAndVersionStrict(_packageId, _packageVersion)).Returns(package);
+                _licenseFileBlobStorageService.Setup(p => p.GetLicenseFileBlobStoragePathAsync(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync("theReturnUrl");
+
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: _packageService,
+                    licenseFileBlobStorageService: _licenseFileBlobStorageService);
+                
+                // Act
+                var result = await controller.License(_packageId, _packageVersion);
+                
+                // Assert
+                ResultAssert.IsRedirectTo(result, "theReturnUrl");
             }
         }
     }
