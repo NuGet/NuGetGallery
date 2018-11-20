@@ -9,59 +9,53 @@ using NuGet.Services.Messaging.Email;
 
 namespace NuGetGallery.Infrastructure.Mail.Messages
 {
-    public class PackageDeletedNoticeMessage : MarkdownEmailBuilder
+    public class SymbolPackageValidationTakingTooLongMessage : MarkdownEmailBuilder
     {
         private readonly IMessageServiceConfiguration _configuration;
+        private readonly SymbolPackage _symbolPackage;
         private readonly string _packageUrl;
-        private readonly string _packageSupportUrl;
 
-        public PackageDeletedNoticeMessage(
+        public SymbolPackageValidationTakingTooLongMessage(
             IMessageServiceConfiguration configuration,
-            Package package,
-            string packageUrl,
-            string packageSupportUrl)
+            SymbolPackage symbolPackage,
+            string packageUrl)
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+            _symbolPackage = symbolPackage ?? throw new ArgumentNullException(nameof(symbolPackage));
             _packageUrl = packageUrl ?? throw new ArgumentNullException(nameof(packageUrl));
-            _packageSupportUrl = packageSupportUrl ?? throw new ArgumentNullException(nameof(packageSupportUrl));
-            Package = package ?? throw new ArgumentNullException(nameof(package));
         }
 
         public override MailAddress Sender => _configuration.GalleryNoReplyAddress;
 
-        public Package Package { get; }
-
         public override IEmailRecipients GetRecipients()
         {
-            return new EmailRecipients(
-                to: EmailRecipientsHelper.GetAllOwners(
-                    Package.PackageRegistration,
-                    requireEmailAllowed: false));
+            var to = EmailRecipientsHelper.GetOwnersSubscribedToPackagePushedNotification(_symbolPackage.Package.PackageRegistration);
+            return new EmailRecipients(to);
         }
 
         public override string GetSubject()
             => string.Format(
                 CultureInfo.CurrentCulture,
-                "[{0}] Package deleted - {1} {2}",
+                "[{0}] Symbol package validation taking longer than expected - {1} {2}",
                 _configuration.GalleryOwner.DisplayName,
-                Package.PackageRegistration.Id,
-                Package.Version);
+                _symbolPackage.Package.PackageRegistration.Id,
+                _symbolPackage.Version);
 
         protected override string GetMarkdownBody()
         {
-            var body = @"The package [{1} {2}]({3}) was just deleted from {0}. If this was not intended, please [contact support]({4}).
+            var body = @"It is taking longer than expected for your symbol package [{1} {2}]({3}) to get published.
 
-Thanks,
-The {0} Team";
+We are looking into it and there is no action on you at this time. We’ll send you an email notification when your symbol package has been published.
+
+Thank you for your patience.";
 
             return string.Format(
                 CultureInfo.CurrentCulture,
                 body,
                 _configuration.GalleryOwner.DisplayName,
-                Package.PackageRegistration.Id,
-                Package.Version,
-                _packageUrl,
-                _packageSupportUrl);
+                _symbolPackage.Id,
+                _symbolPackage.Version,
+                _packageUrl);
         }
     }
 }

@@ -55,8 +55,6 @@ namespace NuGetGallery
 
             PushedBy = pushedBy;
 
-            LatestSymbolsPackage = package.LatestSymbolPackage();
-
             InitializeRepositoryMetadata(package.RepositoryUrl, package.RepositoryType);
 
             if (PackageHelper.TryPrepareUrlForRendering(package.ProjectUrl, out string projectUrl))
@@ -65,7 +63,7 @@ namespace NuGetGallery
             }
 
             var licenseExpression = package.LicenseExpression;
-            if (!String.IsNullOrWhiteSpace(licenseExpression))
+            if (!string.IsNullOrWhiteSpace(licenseExpression))
             {
                 LicenseUrl = LicenseExpressionRedirectUrlHelper.GetLicenseExpressionRedirectUrl(licenseExpression);
             }

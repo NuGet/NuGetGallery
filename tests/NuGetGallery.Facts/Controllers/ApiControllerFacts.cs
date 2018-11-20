@@ -27,6 +27,7 @@ using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
 using NuGetGallery.Framework;
 using NuGetGallery.Infrastructure.Authentication;
+using NuGetGallery.Infrastructure.Mail.Messages;
 using NuGetGallery.Packaging;
 using NuGetGallery.Security;
 using NuGetGallery.TestUtils;
