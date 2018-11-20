@@ -183,7 +183,7 @@ namespace NuGet.Services.Revalidate.Tests.Services
                 await _target.IncreaseDesiredPackageEventRateAsync();
 
                 // Assert
-                Assert.Equal(124, state.DesiredPackageEventRate);
+                Assert.Equal(143, state.DesiredPackageEventRate);
                 Assert.True(result);
 
                 _state.Verify(s => s.MaybeUpdateStateAsync(It.IsAny<Func<RevalidationState, bool>>()), Times.Once);
@@ -261,6 +261,11 @@ namespace NuGet.Services.Revalidate.Tests.Services
                 {
                     MinPackageEventRate = 100,
                     MaxPackageEventRate = 500,
+
+                    Queue = new RevalidationQueueConfiguration
+                    {
+                        MaxBatchSize = 20
+                    }
                 };
 
                 _target = new RevalidationJobStateService(

@@ -126,253 +126,126 @@ namespace StatusAggregator.Tests.Messages
 
         public class BuildsContentsSuccessfully_Data : IEnumerable<object[]>
         {
-            public IEnumerable<Tuple<MessageType, string[], ComponentStatus, Func<string, string>>> Data = 
-                new Tuple<MessageType, string[], ComponentStatus, Func<string, string>>[]
+            /// <remarks>
+            /// This is a map of what message template should be used given a message type and component path.
+            /// </remarks>
+            public IEnumerable<Tuple<MessageType, string[], Func<string, string>>> Data = 
+                new Tuple<MessageType, string[], Func<string, string>>[]
                 {
-                    Tuple.Create<MessageType, string[], ComponentStatus, Func<string, string>>(
+                    Tuple.Create<MessageType, string[], Func<string, string>>(
                         MessageType.Start,
                         new[] { NuGetServiceComponentFactory.RootName, NuGetServiceComponentFactory.GalleryName },
-                        ComponentStatus.Degraded,
                         status => $"**NuGet.org is {status}.** You may encounter issues browsing the NuGet Gallery."),
 
-                    Tuple.Create<MessageType, string[], ComponentStatus, Func<string, string>>(
+                    Tuple.Create<MessageType, string[], Func<string, string>>(
                         MessageType.End,
                         new[] { NuGetServiceComponentFactory.RootName, NuGetServiceComponentFactory.GalleryName },
-                        ComponentStatus.Degraded,
                         status => $"**NuGet.org is no longer {status}.** You should no longer encounter any issues browsing the NuGet Gallery. Thank you for your patience."),
 
-                    Tuple.Create<MessageType, string[], ComponentStatus, Func<string, string>>(
-                        MessageType.Start,
-                        new[] { NuGetServiceComponentFactory.RootName, NuGetServiceComponentFactory.GalleryName },
-                        ComponentStatus.Down,
-                        status => $"**NuGet.org is {status}.** You may encounter issues browsing the NuGet Gallery."),
-
-                    Tuple.Create<MessageType, string[], ComponentStatus, Func<string, string>>(
-                        MessageType.End,
-                        new[] { NuGetServiceComponentFactory.RootName, NuGetServiceComponentFactory.GalleryName },
-                        ComponentStatus.Down,
-                        status => $"**NuGet.org is no longer {status}.** You should no longer encounter any issues browsing the NuGet Gallery. Thank you for your patience."),
-
-                    Tuple.Create<MessageType, string[], ComponentStatus, Func<string, string>>(
+                    Tuple.Create<MessageType, string[], Func<string, string>>(
                         MessageType.Start,
                         new[] { NuGetServiceComponentFactory.RootName, NuGetServiceComponentFactory.RestoreName, NuGetServiceComponentFactory.V3ProtocolName, NuGetServiceComponentFactory.ChinaRegionName },
-                        ComponentStatus.Degraded,
                         status => $"**China V3 Protocol Restore is {status}.** You may encounter issues restoring packages from NuGet.org's V3 feed from China."),
 
-                    Tuple.Create<MessageType, string[], ComponentStatus, Func<string, string>>(
+                    Tuple.Create<MessageType, string[], Func<string, string>>(
                         MessageType.End,
                         new[] { NuGetServiceComponentFactory.RootName, NuGetServiceComponentFactory.RestoreName, NuGetServiceComponentFactory.V3ProtocolName, NuGetServiceComponentFactory.ChinaRegionName },
-                        ComponentStatus.Degraded,
                         status => $"**China V3 Protocol Restore is no longer {status}.** You should no longer encounter any issues restoring packages from NuGet.org's V3 feed from China. Thank you for your patience."),
 
-                    Tuple.Create<MessageType, string[], ComponentStatus, Func<string, string>>(
-                        MessageType.Start,
-                        new[] { NuGetServiceComponentFactory.RootName, NuGetServiceComponentFactory.RestoreName, NuGetServiceComponentFactory.V3ProtocolName, NuGetServiceComponentFactory.ChinaRegionName },
-                        ComponentStatus.Down,
-                        status => $"**China V3 Protocol Restore is {status}.** You may encounter issues restoring packages from NuGet.org's V3 feed from China."),
-
-                    Tuple.Create<MessageType, string[], ComponentStatus, Func<string, string>>(
-                        MessageType.End,
-                        new[] { NuGetServiceComponentFactory.RootName, NuGetServiceComponentFactory.RestoreName, NuGetServiceComponentFactory.V3ProtocolName, NuGetServiceComponentFactory.ChinaRegionName },
-                        ComponentStatus.Down,
-                        status => $"**China V3 Protocol Restore is no longer {status}.** You should no longer encounter any issues restoring packages from NuGet.org's V3 feed from China. Thank you for your patience."),
-
-                    Tuple.Create<MessageType, string[], ComponentStatus, Func<string, string>>(
+                    Tuple.Create<MessageType, string[], Func<string, string>>(
                         MessageType.Start,
                         new[] { NuGetServiceComponentFactory.RootName, NuGetServiceComponentFactory.RestoreName, NuGetServiceComponentFactory.V3ProtocolName, NuGetServiceComponentFactory.GlobalRegionName },
-                        ComponentStatus.Degraded,
                         status => $"**Global V3 Protocol Restore is {status}.** You may encounter issues restoring packages from NuGet.org's V3 feed."),
 
-                    Tuple.Create<MessageType, string[], ComponentStatus, Func<string, string>>(
+                    Tuple.Create<MessageType, string[], Func<string, string>>(
                         MessageType.End,
                         new[] { NuGetServiceComponentFactory.RootName, NuGetServiceComponentFactory.RestoreName, NuGetServiceComponentFactory.V3ProtocolName, NuGetServiceComponentFactory.GlobalRegionName },
-                        ComponentStatus.Degraded,
                         status => $"**Global V3 Protocol Restore is no longer {status}.** You should no longer encounter any issues restoring packages from NuGet.org's V3 feed. Thank you for your patience."),
 
-                    Tuple.Create<MessageType, string[], ComponentStatus, Func<string, string>>(
-                        MessageType.Start,
-                        new[] { NuGetServiceComponentFactory.RootName, NuGetServiceComponentFactory.RestoreName, NuGetServiceComponentFactory.V3ProtocolName, NuGetServiceComponentFactory.GlobalRegionName },
-                        ComponentStatus.Down,
-                        status => $"**Global V3 Protocol Restore is {status}.** You may encounter issues restoring packages from NuGet.org's V3 feed."),
-
-                    Tuple.Create<MessageType, string[], ComponentStatus, Func<string, string>>(
-                        MessageType.End,
-                        new[] { NuGetServiceComponentFactory.RootName, NuGetServiceComponentFactory.RestoreName, NuGetServiceComponentFactory.V3ProtocolName, NuGetServiceComponentFactory.GlobalRegionName },
-                        ComponentStatus.Down,
-                        status => $"**Global V3 Protocol Restore is no longer {status}.** You should no longer encounter any issues restoring packages from NuGet.org's V3 feed. Thank you for your patience."),
-
-                    Tuple.Create<MessageType, string[], ComponentStatus, Func<string, string>>(
+                    Tuple.Create<MessageType, string[], Func<string, string>>(
                         MessageType.Start,
                         new[] { NuGetServiceComponentFactory.RootName, NuGetServiceComponentFactory.RestoreName, NuGetServiceComponentFactory.V3ProtocolName },
-                        ComponentStatus.Degraded,
                         status => $"**V3 Protocol Restore is {status}.** You may encounter issues restoring packages from NuGet.org's V3 feed."),
 
-                    Tuple.Create<MessageType, string[], ComponentStatus, Func<string, string>>(
+                    Tuple.Create<MessageType, string[], Func<string, string>>(
                         MessageType.End,
                         new[] { NuGetServiceComponentFactory.RootName, NuGetServiceComponentFactory.RestoreName, NuGetServiceComponentFactory.V3ProtocolName },
-                        ComponentStatus.Degraded,
                         status => $"**V3 Protocol Restore is no longer {status}.** You should no longer encounter any issues restoring packages from NuGet.org's V3 feed. Thank you for your patience."),
 
-                    Tuple.Create<MessageType, string[], ComponentStatus, Func<string, string>>(
-                        MessageType.Start,
-                        new[] { NuGetServiceComponentFactory.RootName, NuGetServiceComponentFactory.RestoreName, NuGetServiceComponentFactory.V3ProtocolName },
-                        ComponentStatus.Down,
-                        status => $"**V3 Protocol Restore is {status}.** You may encounter issues restoring packages from NuGet.org's V3 feed."),
-
-                    Tuple.Create<MessageType, string[], ComponentStatus, Func<string, string>>(
-                        MessageType.End,
-                        new[] { NuGetServiceComponentFactory.RootName, NuGetServiceComponentFactory.RestoreName, NuGetServiceComponentFactory.V3ProtocolName },
-                        ComponentStatus.Down,
-                        status => $"**V3 Protocol Restore is no longer {status}.** You should no longer encounter any issues restoring packages from NuGet.org's V3 feed. Thank you for your patience."),
-
-                    Tuple.Create<MessageType, string[], ComponentStatus, Func<string, string>>(
+                    Tuple.Create<MessageType, string[], Func<string, string>>(
                         MessageType.Start,
                         new[] { NuGetServiceComponentFactory.RootName, NuGetServiceComponentFactory.RestoreName, NuGetServiceComponentFactory.V2ProtocolName },
-                        ComponentStatus.Degraded,
                         status => $"**V2 Protocol Restore is {status}.** You may encounter issues restoring packages from NuGet.org's V2 feed."),
 
-                    Tuple.Create<MessageType, string[], ComponentStatus, Func<string, string>>(
+                    Tuple.Create<MessageType, string[], Func<string, string>>(
                         MessageType.End,
                         new[] { NuGetServiceComponentFactory.RootName, NuGetServiceComponentFactory.RestoreName, NuGetServiceComponentFactory.V2ProtocolName },
-                        ComponentStatus.Degraded,
-                        status => $"**V2 Protocol Restore is no longer {status}.** You should no longer encounter any issues restoring packages from NuGet.org's V2 feed. Thank you for your patience."),
-
-                    Tuple.Create<MessageType, string[], ComponentStatus, Func<string, string>>(
-                        MessageType.Start,
-                        new[] { NuGetServiceComponentFactory.RootName, NuGetServiceComponentFactory.RestoreName, NuGetServiceComponentFactory.V2ProtocolName },
-                        ComponentStatus.Down,
-                        status => $"**V2 Protocol Restore is {status}.** You may encounter issues restoring packages from NuGet.org's V2 feed."),
-
-                    Tuple.Create<MessageType, string[], ComponentStatus, Func<string, string>>(
-                        MessageType.End,
-                        new[] { NuGetServiceComponentFactory.RootName, NuGetServiceComponentFactory.RestoreName, NuGetServiceComponentFactory.V2ProtocolName },
-                        ComponentStatus.Down,
                         status => $"**V2 Protocol Restore is no longer {status}.** You should no longer encounter any issues restoring packages from NuGet.org's V2 feed. Thank you for your patience."),
                     
-                    Tuple.Create<MessageType, string[], ComponentStatus, Func<string, string>>(
+                    Tuple.Create<MessageType, string[], Func<string, string>>(
                         MessageType.Start,
                         new[] { NuGetServiceComponentFactory.RootName, NuGetServiceComponentFactory.RestoreName },
-                        ComponentStatus.Degraded,
                         status => $"**Restore is {status}.** You may encounter issues restoring packages."),
 
-                    Tuple.Create<MessageType, string[], ComponentStatus, Func<string, string>>(
+                    Tuple.Create<MessageType, string[], Func<string, string>>(
                         MessageType.End,
                         new[] { NuGetServiceComponentFactory.RootName, NuGetServiceComponentFactory.RestoreName },
-                        ComponentStatus.Degraded,
                         status => $"**Restore is no longer {status}.** You should no longer encounter any issues restoring packages. Thank you for your patience."),
 
-                    Tuple.Create<MessageType, string[], ComponentStatus, Func<string, string>>(
-                        MessageType.Start,
-                        new[] { NuGetServiceComponentFactory.RootName, NuGetServiceComponentFactory.RestoreName },
-                        ComponentStatus.Down,
-                        status => $"**Restore is {status}.** You may encounter issues restoring packages."),
-
-                    Tuple.Create<MessageType, string[], ComponentStatus, Func<string, string>>(
-                        MessageType.End,
-                        new[] { NuGetServiceComponentFactory.RootName, NuGetServiceComponentFactory.RestoreName },
-                        ComponentStatus.Down,
-                        status => $"**Restore is no longer {status}.** You should no longer encounter any issues restoring packages. Thank you for your patience."),
-
-                    Tuple.Create<MessageType, string[], ComponentStatus, Func<string, string>>(
+                    Tuple.Create<MessageType, string[], Func<string, string>>(
                         MessageType.Start,
                         new[] { NuGetServiceComponentFactory.RootName, NuGetServiceComponentFactory.SearchName, NuGetServiceComponentFactory.ChinaRegionName },
-                        ComponentStatus.Degraded,
                         status => $"**China Search is {status}.** You may encounter issues searching for packages from China."),
 
-                    Tuple.Create<MessageType, string[], ComponentStatus, Func<string, string>>(
+                    Tuple.Create<MessageType, string[], Func<string, string>>(
                         MessageType.End,
                         new[] { NuGetServiceComponentFactory.RootName, NuGetServiceComponentFactory.SearchName, NuGetServiceComponentFactory.ChinaRegionName },
-                        ComponentStatus.Degraded,
                         status => $"**China Search is no longer {status}.** You should no longer encounter any issues searching for packages from China. Thank you for your patience."),
 
-                    Tuple.Create<MessageType, string[], ComponentStatus, Func<string, string>>(
-                        MessageType.Start,
-                        new[] { NuGetServiceComponentFactory.RootName, NuGetServiceComponentFactory.SearchName, NuGetServiceComponentFactory.ChinaRegionName },
-                        ComponentStatus.Down,
-                        status => $"**China Search is {status}.** You may encounter issues searching for packages from China."),
-
-                    Tuple.Create<MessageType, string[], ComponentStatus, Func<string, string>>(
-                        MessageType.End,
-                        new[] { NuGetServiceComponentFactory.RootName, NuGetServiceComponentFactory.SearchName, NuGetServiceComponentFactory.ChinaRegionName },
-                        ComponentStatus.Down,
-                        status => $"**China Search is no longer {status}.** You should no longer encounter any issues searching for packages from China. Thank you for your patience."),
-
-                    Tuple.Create<MessageType, string[], ComponentStatus, Func<string, string>>(
+                    Tuple.Create<MessageType, string[], Func<string, string>>(
                         MessageType.Start,
                         new[] { NuGetServiceComponentFactory.RootName, NuGetServiceComponentFactory.SearchName, NuGetServiceComponentFactory.GlobalRegionName },
-                        ComponentStatus.Degraded,
                         status => $"**Global Search is {status}.** You may encounter issues searching for packages."),
 
-                    Tuple.Create<MessageType, string[], ComponentStatus, Func<string, string>>(
+                    Tuple.Create<MessageType, string[], Func<string, string>>(
                         MessageType.End,
                         new[] { NuGetServiceComponentFactory.RootName, NuGetServiceComponentFactory.SearchName, NuGetServiceComponentFactory.GlobalRegionName },
-                        ComponentStatus.Degraded,
                         status => $"**Global Search is no longer {status}.** You should no longer encounter any issues searching for packages. Thank you for your patience."),
 
-                    Tuple.Create<MessageType, string[], ComponentStatus, Func<string, string>>(
-                        MessageType.Start,
-                        new[] { NuGetServiceComponentFactory.RootName, NuGetServiceComponentFactory.SearchName, NuGetServiceComponentFactory.GlobalRegionName },
-                        ComponentStatus.Down,
-                        status => $"**Global Search is {status}.** You may encounter issues searching for packages."),
-
-                    Tuple.Create<MessageType, string[], ComponentStatus, Func<string, string>>(
-                        MessageType.End,
-                        new[] { NuGetServiceComponentFactory.RootName, NuGetServiceComponentFactory.SearchName, NuGetServiceComponentFactory.GlobalRegionName },
-                        ComponentStatus.Down,
-                        status => $"**Global Search is no longer {status}.** You should no longer encounter any issues searching for packages. Thank you for your patience."),
-
-                    Tuple.Create<MessageType, string[], ComponentStatus, Func<string, string>>(
+                    Tuple.Create<MessageType, string[], Func<string, string>>(
                         MessageType.Start,
                         new[] { NuGetServiceComponentFactory.RootName, NuGetServiceComponentFactory.SearchName },
-                        ComponentStatus.Degraded,
                         status => $"**Search is {status}.** You may encounter issues searching for packages."),
 
-                    Tuple.Create<MessageType, string[], ComponentStatus, Func<string, string>>(
+                    Tuple.Create<MessageType, string[], Func<string, string>>(
                         MessageType.End,
                         new[] { NuGetServiceComponentFactory.RootName, NuGetServiceComponentFactory.SearchName },
-                        ComponentStatus.Degraded,
                         status => $"**Search is no longer {status}.** You should no longer encounter any issues searching for packages. Thank you for your patience."),
 
-                    Tuple.Create<MessageType, string[], ComponentStatus, Func<string, string>>(
-                        MessageType.Start,
-                        new[] { NuGetServiceComponentFactory.RootName, NuGetServiceComponentFactory.SearchName },
-                        ComponentStatus.Down,
-                        status => $"**Search is {status}.** You may encounter issues searching for packages."),
-
-                    Tuple.Create<MessageType, string[], ComponentStatus, Func<string, string>>(
-                        MessageType.End,
-                        new[] { NuGetServiceComponentFactory.RootName, NuGetServiceComponentFactory.SearchName },
-                        ComponentStatus.Down,
-                        status => $"**Search is no longer {status}.** You should no longer encounter any issues searching for packages. Thank you for your patience."),
-
-                    Tuple.Create<MessageType, string[], ComponentStatus, Func<string, string>>(
+                    Tuple.Create<MessageType, string[], Func<string, string>>(
                         MessageType.Start,
                         new[] { NuGetServiceComponentFactory.RootName, NuGetServiceComponentFactory.UploadName },
-                        ComponentStatus.Degraded,
                         status => $"**Package Publishing is {status}.** You may encounter issues uploading new packages."),
 
-                    Tuple.Create<MessageType, string[], ComponentStatus, Func<string, string>>(
+                    Tuple.Create<MessageType, string[], Func<string, string>>(
                         MessageType.End,
                         new[] { NuGetServiceComponentFactory.RootName, NuGetServiceComponentFactory.UploadName },
-                        ComponentStatus.Degraded,
-                        status => $"**Package Publishing is no longer {status}.** You should no longer encounter any issues uploading new packages. Thank you for your patience."),
-
-                    Tuple.Create<MessageType, string[], ComponentStatus, Func<string, string>>(
-                        MessageType.Start,
-                        new[] { NuGetServiceComponentFactory.RootName, NuGetServiceComponentFactory.UploadName },
-                        ComponentStatus.Down,
-                        status => $"**Package Publishing is {status}.** You may encounter issues uploading new packages."),
-
-                    Tuple.Create<MessageType, string[], ComponentStatus, Func<string, string>>(
-                        MessageType.End,
-                        new[] { NuGetServiceComponentFactory.RootName, NuGetServiceComponentFactory.UploadName },
-                        ComponentStatus.Down,
-                        status => $"**Package Publishing is no longer {status}.** You should no longer encounter any issues uploading new packages. Thank you for your patience."),
-
+                        status => $"**Package Publishing is no longer {status}.** You should no longer encounter any issues uploading new packages. Thank you for your patience.")
                 };
 
+            /// <remarks>
+            /// Each scenario in <see cref="Data"/> needs to be tested given all possible <see cref="ComponentStatus"/> except <see cref="ComponentStatus.Up"/>.
+            /// </remarks>
+            private IEnumerable<object[]> WrapDataWithComponentStatus(Tuple<MessageType, string[], Func<string, string>> data)
+            {
+                foreach (var status in new[] { ComponentStatus.Degraded, ComponentStatus.Down })
+                {
+                    yield return new object[] { data.Item1, data.Item2, status, data.Item3 };
+                }
+            }
+
             public IEnumerator<object[]> GetEnumerator() => Data
-                .Select(t => new object[] { t.Item1, t.Item2, t.Item3, t.Item4 })
+                .SelectMany(WrapDataWithComponentStatus)
                 .GetEnumerator();
 
             IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();

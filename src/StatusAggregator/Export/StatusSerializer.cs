@@ -36,13 +36,13 @@ namespace StatusAggregator.Export
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task Serialize(DateTime cursor, IComponent rootComponent, IEnumerable<Event> recentEvents)
+        public async Task Serialize(DateTime lastBuilt, DateTime lastUpdated, IComponent rootComponent, IEnumerable<Event> recentEvents)
         {
             ServiceStatus status;
             string statusJson;
             using (_logger.Scope("Serializing service status."))
             {
-                status = new ServiceStatus(cursor, rootComponent, recentEvents);
+                status = new ServiceStatus(lastBuilt, lastUpdated, rootComponent, recentEvents);
                 statusJson = JsonConvert.SerializeObject(status, Settings);
             }
 

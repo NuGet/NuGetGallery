@@ -104,7 +104,8 @@ namespace NuGet.Services.Revalidate
                     return false;
                 }
 
-                var nextRate = Math.Min(_config.MaxPackageEventRate, state.DesiredPackageEventRate + 1);
+                var nextRate = state.DesiredPackageEventRate + _config.Queue.MaxBatchSize;
+                nextRate = Math.Min(_config.MaxPackageEventRate, nextRate);
 
                 _logger.LogInformation(
                     "Increasing desired package event rate to {ToRate} from {FromRate}",

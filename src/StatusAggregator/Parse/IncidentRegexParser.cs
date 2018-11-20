@@ -56,7 +56,7 @@ namespace StatusAggregator.Parse
                     return false;
                 }
 
-                _logger.LogInformation("RegEx match result: {MatchResult}", title, match.Success);
+                _logger.LogInformation("RegEx match result: {MatchResult}", match.Success);
                 return match.Success && TryParseIncident(incident, match.Groups, out parsedIncident);
             }
         }

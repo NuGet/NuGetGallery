@@ -71,7 +71,7 @@ namespace StatusAggregator.Export
                 foreach (var activeEntity in activeEntities)
                 {
                     using (_logger.Scope("Applying active entity affecting {AffectedComponentPath} of severity {AffectedComponentStatus} at {StartTime} to root component",
-                        activeEntity.AffectedComponentPath, activeEntity.AffectedComponentStatus, activeEntity.StartTime))
+                        activeEntity.AffectedComponentPath, (ComponentStatus)activeEntity.AffectedComponentStatus, activeEntity.StartTime))
                     {
                         var currentComponent = rootComponent.GetByPath(activeEntity.AffectedComponentPath);
 
