@@ -78,7 +78,7 @@ namespace NuGetGallery.Configuration
         /// <summary>
         /// The Azure storage connection string used for RevalidateCertificate job admin panel.
         /// </summary>
-        string AzureStorage_RevalidateCertificate_ConnectionString { get; set; }
+        string AzureStorage_Revalidation_ConnectionString { get; set; }
 
         /// <summary>
         /// Gets a setting if Read Access Geo Redundant is enabled in azure storage
