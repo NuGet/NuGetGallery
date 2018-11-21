@@ -7,7 +7,8 @@ namespace NuGetGallery.Helpers
 {
     public static class LicenseExpressionRedirectUrlHelper
     {
-        public const string LicenseExpressionDeprecationUrlFormat = "https://licenses.nuget.org/{0}";
+        public const string LicenseExpressionHostname = "licenses.nuget.org";
+        public const string LicenseExpressionDeprecationUrlFormat = "https://" + LicenseExpressionHostname + "/{0}";
 
         public static string GetLicenseExpressionRedirectUrl(string licenseExpression)
         {

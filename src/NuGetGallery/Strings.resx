@@ -1056,12 +1056,12 @@ The {1} Team</value>
   <data name="UploadPackage_LicenseFilesAreNotAllowed" xml:space="preserve">
     <value>License files are not yet supported.</value>
   </data>
-  <data name="UploadPackage_DeprecationUrlSuggestedForLicenseExpressions" xml:space="preserve">
-    <value>To provide better experience for older clients when a license expression is specified, &lt;licenseUrl&gt; should be set to '{0}'.</value>
+  <data name="UploadPackage_DeprecationUrlRequiredForLicenseExpressions" xml:space="preserve">
+    <value>To provide a better experience for older clients when a license expression is specified, &lt;licenseUrl&gt; must be set to '{0}'.</value>
     <comment>{0} is the licenses.nuget.org link with license expression</comment>
   </data>
-  <data name="UploadPackage_DeprecationUrlSuggestedForLicenseFiles" xml:space="preserve">
-    <value>To provide better experience for older clients when a license file is packaged, &lt;licenseUrl&gt; should be set to '{0}'.</value>
+  <data name="UploadPackage_DeprecationUrlRequiredForLicenseFiles" xml:space="preserve">
+    <value>To provide a better experience for older clients when a license file is packaged, &lt;licenseUrl&gt; must be set to '{0}'.</value>
     <comment>{0} is the deprecation page URL</comment>
   </data>
   <data name="UploadPackage_LearnMore" xml:space="preserve">
@@ -1073,5 +1073,8 @@ The {1} Team</value>
   <data name="UploadPackage_NonFsfOrOsiLicense" xml:space="preserve">
     <value>License expression must only contain licenses that are approved by Open Source Initiative or Free Software Foundation. Unsupported licenses: {0}.</value>
     <comment>{0} is list of the package license ids that are neither OSI nor FSF approved</comment>
+  </data>
+  <data name="UploadPackage_MalformedLicenseUrl" xml:space="preserve">
+    <value>The package contains a malformed license URL.</value>
   </data>
 </root>
