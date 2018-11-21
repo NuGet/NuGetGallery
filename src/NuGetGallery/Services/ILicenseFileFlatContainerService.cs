@@ -6,15 +6,15 @@ using System.Threading.Tasks;
 namespace NuGetGallery
 {
     /// <summary>
-    /// This interface is used to get the license file storage path.
+    /// This interface is used to get the license file path.
     /// </summary>
-    public interface ILicenseFileBlobStorageService
+    public interface ILicenseFileFlatContainerService
     {
         /// <summary>
-        /// The function is used to get the license file storage path.
+        /// The function is used to get the license file path.
         /// </summary>
         /// <param name="packageId"> The package ID</param>
         /// <param name="packageVersion"> The package version</param>
-        Task<string> GetLicenseFileBlobStoragePathAsync(string packageId, string packageVersion);
+        Task<string> GetLicenseFileFlatContainerPathAsync(string packageId, string packageVersion);
     }
 }

@@ -158,7 +158,7 @@
     <Compile Include="Services\ActionRequiringEntityPermissionsFacts.cs" />
     <Compile Include="Services\CertificatesConfigurationFacts.cs" />
     <Compile Include="Services\CuratedFeedServiceFacts.cs" />
-    <Compile Include="Services\LicenseFileBlobStorageServiceFacts.cs" />
+    <Compile Include="Services\LicenseFileFlatContainerServiceFacts.cs" />
     <Compile Include="Services\TyposquattingCheckListCacheServiceFacts.cs" />
     <Compile Include="Services\TyposquattingServiceFacts.cs" />
     <Compile Include="Services\CloudDownloadCountServiceFacts.cs" />

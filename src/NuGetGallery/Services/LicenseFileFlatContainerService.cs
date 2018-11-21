@@ -9,11 +9,11 @@ using NuGetGallery.Configuration;
 
 namespace NuGetGallery
 {
-    public class LicenseFileBlobStorageService : ILicenseFileBlobStorageService
+    public class LicenseFileFlatContainerService : ILicenseFileFlatContainerService
     {
         private readonly ServiceDiscoveryClient _serviceDiscoveryClient;
 
-        public LicenseFileBlobStorageService(IAppConfiguration configuration)
+        public LicenseFileFlatContainerService(IAppConfiguration configuration)
         {
             if (configuration == null)
             {
@@ -22,7 +22,7 @@ namespace NuGetGallery
             _serviceDiscoveryClient = new ServiceDiscoveryClient(configuration.ServiceDiscoveryUri);
         }
 
-        public async Task<string> GetLicenseFileBlobStoragePathAsync(string packageId, string packageVersion)
+        public async Task<string> GetLicenseFileFlatContainerPathAsync(string packageId, string packageVersion)
         {
             if (packageId == null)
             {
@@ -34,9 +34,9 @@ namespace NuGetGallery
             }
 
             var relativePath = string.Join("/", new string[] { packageId.ToLowerInvariant(), NuGetVersionFormatter.Normalize(packageVersion).ToLowerInvariant(), CoreConstants.LicenseFileName});
-            var packageBaseAddress = await _serviceDiscoveryClient.GetEndpointsForResourceType(CoreConstants.PackageBaseAddress);
+            var packageBaseAddress = await _serviceDiscoveryClient.GetEndpointsForResourceType(GalleryConstants.PackageBaseAddress);
 
-            return string.Concat(packageBaseAddress.First().AbsoluteUri, "/", relativePath);
+            return string.Concat(packageBaseAddress.First().AbsoluteUri.TrimEnd('/'), "/", relativePath);
         }
     }
 }

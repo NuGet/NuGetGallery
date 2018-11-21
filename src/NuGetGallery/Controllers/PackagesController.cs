@@ -94,7 +94,7 @@ namespace NuGetGallery
         private readonly IContentObjectService _contentObjectService;
         private readonly ISymbolPackageUploadService _symbolPackageUploadService;
         private readonly IDiagnosticsSource _trace;
-        private readonly ILicenseFileBlobStorageService _licenseFileBlobStorageService;
+        private readonly ILicenseFileFlatContainerService _licenseFileFlatContainerService;
 
         public PackagesController(
             IPackageService packageService,
@@ -120,7 +120,7 @@ namespace NuGetGallery
             IContentObjectService contentObjectService,
             ISymbolPackageUploadService symbolPackageUploadService,
             IDiagnosticsService diagnosticsService,
-            ILicenseFileBlobStorageService licenseFileBlobStorageService)
+            ILicenseFileFlatContainerService licenseFileFlatContainerService)
         {
             _packageService = packageService;
             _uploadFileService = uploadFileService;
@@ -145,7 +145,7 @@ namespace NuGetGallery
             _contentObjectService = contentObjectService;
             _symbolPackageUploadService = symbolPackageUploadService;
             _trace = diagnosticsService?.SafeGetSource(nameof(PackagesController)) ?? throw new ArgumentNullException(nameof(diagnosticsService));
-            _licenseFileBlobStorageService = licenseFileBlobStorageService;
+            _licenseFileFlatContainerService = licenseFileFlatContainerService;
         }
 
         [HttpGet]
@@ -674,7 +674,26 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            return Redirect(await _licenseFileBlobStorageService.GetLicenseFileBlobStoragePathAsync(package.Id, package.NormalizedVersion));
+            if (package.EmbeddedLicenseType == EmbeddedLicenseFileType.Absent)
+            {
+                return HttpNotFound();
+            }
+
+            if (!_config.AsynchronousPackageValidationEnabled)
+            {
+                try
+                {
+                    var licenseFileContent = await _packageFileService.DownloadLicenseFileAsync(package);
+                    return new FileStreamResult(licenseFileContent, "text/plain");
+                }
+                catch (Exception ex)
+                {
+                    _telemetryService.TraceException(ex);
+                    return HttpNotFound();
+                }
+            }
+
+            return Redirect(await _licenseFileFlatContainerService.GetLicenseFileFlatContainerPathAsync(package.Id, package.NormalizedVersion));
         }
 
         public virtual async Task<ActionResult> ListPackages(PackageListSearchViewModel searchAndListModel)

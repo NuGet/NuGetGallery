@@ -347,8 +347,8 @@ namespace NuGetGallery
                 .As<ITyposquattingCheckListCacheService>()
                 .SingleInstance();
 
-            builder.RegisterType<LicenseFileBlobStorageService>()
-                .As<ILicenseFileBlobStorageService>()
+            builder.RegisterType<LicenseFileFlatContainerService>()
+                .As<ILicenseFileFlatContainerService>()
                 .InstancePerLifetimeScope();
 
             RegisterMessagingService(builder, configuration);

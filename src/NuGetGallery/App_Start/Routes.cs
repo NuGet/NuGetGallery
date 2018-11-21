@@ -229,7 +229,7 @@ namespace NuGetGallery
 
             routes.MapRoute(
                 RouteName.License,
-                "packages/{id}/{version}",
+                "packages/{id}/{version}/license",
                 new { controller = "Packages", action = "License" });
             
             //Redirecting v1 Confirmation Route

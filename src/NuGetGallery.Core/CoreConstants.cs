@@ -46,7 +46,6 @@ namespace NuGetGallery
 
         public const string UploadTracingKeyHeaderName = "upload-id";
 
-        public const string PackageBaseAddress = "PackageBaseAddress/3.0.0";
         public const string LicenseFileName = "license";
     }
 }

@@ -9,7 +9,7 @@ using Xunit;
 
 namespace NuGetGallery
 {
-    public class LicenseFileBlobStorageServiceFacts
+    public class LicenseFileFlatContainerServiceFacts
     {
         private IAppConfiguration GetConfiguration()
         {
@@ -23,10 +23,10 @@ namespace NuGetGallery
         {
             // Arrange
             string packageId = null;
-            var licenseFileBlobStorageService = new LicenseFileBlobStorageService(GetConfiguration());
+            var licenseFileBlobStorageService = new LicenseFileFlatContainerService(GetConfiguration());
 
             // Act
-            var exception =  await Assert.ThrowsAsync<ArgumentNullException>(async () => await licenseFileBlobStorageService.GetLicenseFileBlobStoragePathAsync(packageId, "1.0.0"));
+            var exception =  await Assert.ThrowsAsync<ArgumentNullException>(async () => await licenseFileBlobStorageService.GetLicenseFileFlatContainerPathAsync(packageId, "1.0.0"));
             
             // Assert
             Assert.Equal(nameof(packageId), exception.ParamName);
@@ -37,10 +37,10 @@ namespace NuGetGallery
         {
             // Arrange
             string packageVersion = null;
-            var licenseFileBlobStorageService = new LicenseFileBlobStorageService(GetConfiguration());
+            var licenseFileBlobStorageService = new LicenseFileFlatContainerService(GetConfiguration());
 
             // Act
-            var exception = await Assert.ThrowsAsync<ArgumentNullException>(async () => await licenseFileBlobStorageService.GetLicenseFileBlobStoragePathAsync("packageId", packageVersion));
+            var exception = await Assert.ThrowsAsync<ArgumentNullException>(async () => await licenseFileBlobStorageService.GetLicenseFileFlatContainerPathAsync("packageId", packageVersion));
 
             // Assert
             Assert.Equal(nameof(packageVersion), exception.ParamName);
@@ -52,10 +52,10 @@ namespace NuGetGallery
             // Arrange
             var packageId = "packageId";
             var packageVersion = "1.0.0";
-            var licenseFileBlobStorageService = new LicenseFileBlobStorageService(GetConfiguration());
+            var licenseFileBlobStorageService = new LicenseFileFlatContainerService(GetConfiguration());
 
             // Act
-            var licenseFileBlobStoragePath = await licenseFileBlobStorageService.GetLicenseFileBlobStoragePathAsync(packageId, packageVersion);
+            var licenseFileBlobStoragePath = await licenseFileBlobStorageService.GetLicenseFileFlatContainerPathAsync(packageId, packageVersion);
 
             // Assert
             var relativePath = String.Join("/", new string[] { packageId.ToLowerInvariant(), NuGetVersionFormatter.Normalize(packageVersion).ToLowerInvariant(), CoreConstants.LicenseFileName });
