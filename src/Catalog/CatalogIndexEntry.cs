@@ -69,7 +69,13 @@ namespace NuGet.Services.Metadata.Catalog
         public NuGetVersion Version { get; private set; }
 
         [JsonIgnore]
-        public bool IsDelete { get; private set; }
+        public bool IsDelete
+        {
+            get
+            {
+                return Types.Any(type => type == "nuget:PackageDelete" || type == "PackageDelete" || type == Schema.DataTypes.PackageDelete.ToString());
+            }
+        }
 
         public int CompareTo(CatalogIndexEntry other)
         {
@@ -116,7 +122,6 @@ namespace NuGet.Services.Metadata.Catalog
             }
 
             Types = types;
-            IsDelete = types.Any(type => type == "nuget:PackageDelete" || type == "PackageDelete" || type == Schema.DataTypes.PackageDelete.ToString());
 
             if (string.IsNullOrWhiteSpace(commitId))
             {
