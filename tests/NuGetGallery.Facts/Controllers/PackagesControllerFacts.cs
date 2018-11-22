@@ -7009,5 +7009,79 @@ namespace NuGetGallery
                 Assert.Equal((int)HttpStatusCode.OK, controller.Response.StatusCode);
             }
         }
+
+        public class ThePreviewReadMeMethod : TestContainer
+        {
+            [Fact]
+            public async Task ReturnsProperResponseModelWhenSucceeds()
+            {
+                var readmeService = new Mock<IReadMeService>();
+                var controller = CreateController(GetConfigurationService(),
+                    readMeService: readmeService.Object);
+
+                var request = new ReadMeRequest();
+
+                readmeService
+                    .Setup(rs => rs.HasReadMeSource(request))
+                    .Returns(true);
+
+                const string html = "some HTML";
+
+                readmeService
+                    .Setup(rs => rs.GetReadMeHtmlAsync(request, It.IsAny<Encoding>()))
+                    .ReturnsAsync(html);
+
+                var result = await controller.PreviewReadMe(request);
+
+                var stringArray = Assert.IsType<string[]>(result.Data);
+                Assert.Single(stringArray);
+                Assert.Equal(html, stringArray[0]);
+            }
+
+            [Fact]
+            public async Task ReturnsProperResponseModelWhenNoReadme()
+            {
+                var readmeService = new Mock<IReadMeService>();
+                var controller = CreateController(GetConfigurationService(),
+                    readMeService: readmeService.Object);
+
+                var request = new ReadMeRequest();
+
+                readmeService
+                    .Setup(rs => rs.HasReadMeSource(request))
+                    .Returns(false);
+
+                var result = await controller.PreviewReadMe(request);
+
+                var stringArray = Assert.IsType<string[]>(result.Data);
+                Assert.Single(stringArray);
+                Assert.Equal("There is no Markdown Documentation available to preview.", stringArray[0]);
+            }
+
+            [Fact]
+            public async Task ReturnsProperResponseModelWhenConversionFails()
+            {
+                var readmeService = new Mock<IReadMeService>();
+                var controller = CreateController(GetConfigurationService(),
+                    readMeService: readmeService.Object);
+
+                var request = new ReadMeRequest();
+
+                readmeService
+                    .Setup(rs => rs.HasReadMeSource(request))
+                    .Returns(true);
+
+                const string exceptionMessage = "failure";
+                readmeService
+                    .Setup(rs => rs.GetReadMeHtmlAsync(request, It.IsAny<Encoding>()))
+                    .ThrowsAsync(new Exception(exceptionMessage));
+
+                var result = await controller.PreviewReadMe(request);
+
+                var stringArray = Assert.IsType<string[]>(result.Data);
+                Assert.Single(stringArray);
+                Assert.Contains(exceptionMessage, stringArray[0]);
+            }
+        }
     }
 }
