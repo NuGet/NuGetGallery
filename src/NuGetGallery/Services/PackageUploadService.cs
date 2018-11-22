@@ -171,7 +171,6 @@ namespace NuGetGallery
             var licenseUrl = nuspecReader.GetLicenseUrl();
             var licenseMetadata = nuspecReader.GetLicenseMetadata();
             var licenseDeprecationUrl = GetExpectedLicenseUrl(licenseMetadata);
-            var alternativeDeprecationUrl = GetExpectedAlternativeUrl(licenseMetadata);
 
             if (licenseMetadata == null)
             {
@@ -219,19 +218,24 @@ namespace NuGetGallery
                         string.Join(" ", licenseMetadata.WarningsAndErrors)));
             }
 
-            if (licenseDeprecationUrl != licenseUrl && (alternativeDeprecationUrl == null || alternativeDeprecationUrl != licenseUrl))
+            if (licenseDeprecationUrl != licenseUrl)
             {
+                if (IsMalformedDeprecationUrl(licenseUrl))
+                {
+                    return PackageValidationResult.Invalid(new InvalidUrlEncodingForLicenseUrlValidationMessage());
+                }
+                
                 if (licenseMetadata.Type == LicenseType.File)
                 {
-                    warnings.Add(
-                        new PlainTextOnlyValidationMessage(
-                            string.Format(Strings.UploadPackage_DeprecationUrlSuggestedForLicenseFiles, licenseDeprecationUrl)));
+                    return PackageValidationResult.Invalid(
+                        new InvalidLicenseUrlValidationMessage(
+                            string.Format(Strings.UploadPackage_DeprecationUrlRequiredForLicenseFiles, licenseDeprecationUrl)));
                 }
                 else if (licenseMetadata.Type == LicenseType.Expression)
                 {
-                    warnings.Add(
-                        new PlainTextOnlyValidationMessage(
-                            string.Format(Strings.UploadPackage_DeprecationUrlSuggestedForLicenseExpressions, licenseDeprecationUrl)));
+                    return PackageValidationResult.Invalid(
+                        new InvalidLicenseUrlValidationMessage(
+                            string.Format(Strings.UploadPackage_DeprecationUrlRequiredForLicenseExpressions, licenseDeprecationUrl)));
                 }
             }
 
@@ -307,6 +311,28 @@ namespace NuGetGallery
             return null;
         }
 
+        private bool IsMalformedDeprecationUrl(string licenseUrl)
+        {
+            // nuget.exe 4.9.0 and its dotnet and msbuild counterparts encode spaces as "+"
+            // when generating legacy license URL, which is bad. We explicitly forbid such
+            // URLs. On the other hand, if license expression does not contain spaces they
+            // generate good URLs which we don't want to reject. This method detects the 
+            // case when spaces are in the expression in a meaningful way.
+
+            if (Uri.TryCreate(licenseUrl, UriKind.Absolute, out var url))
+            {
+                if (url.Host != LicenseExpressionRedirectUrlHelper.LicenseExpressionHostname)
+                {
+                    return false;
+                }
+
+                var invalidUrlBits = new string[] { "+OR+", "+AND+", "+WITH+" };
+                return invalidUrlBits.Any(invalidBit => licenseUrl.IndexOf(invalidBit, StringComparison.OrdinalIgnoreCase) >= 0);
+            }
+
+            return false;
+        }
+
         private List<LicenseData> GetLicenseList(NuGetLicenseExpression licenseExpression)
         {
             var licenseList = new List<LicenseData>();
@@ -378,25 +404,6 @@ namespace NuGetGallery
             }
 
             throw new InvalidOperationException($"Unsupported license metadata type: {licenseMetadata.Type}");
-        }
-
-        /// <summary>
-        /// 15.9 client does url encoding with <see cref="WebUtility.UrlEncode(string)"/> which
-        /// replaces spaces with "+". We shouldn't work about it, but we should fix the client,
-        /// too.
-        /// </summary>
-        private static string GetExpectedAlternativeUrl(LicenseMetadata licenseMetadata)
-        {
-            if (licenseMetadata != null && licenseMetadata.Type == LicenseType.Expression)
-            {
-                return new Uri(
-                    string.Format(
-                        LicenseExpressionRedirectUrlHelper.LicenseExpressionDeprecationUrlFormat,
-                        WebUtility.UrlEncode(licenseMetadata.License)))
-                    .AbsoluteUri;
-            }
-
-            return null;
         }
 
         private static bool HasChildElements(XElement xElement)

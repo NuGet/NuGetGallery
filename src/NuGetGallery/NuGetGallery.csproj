@@ -429,6 +429,8 @@
     <Compile Include="Services\ActionsRequiringPermissions.cs" />
     <Compile Include="Services\AsynchronousPackageValidationInitiator.cs" />
     <Compile Include="Infrastructure\Mail\BackgroundMarkdownMessageService.cs" />
+    <Compile Include="Services\InvalidLicenseUrlValidationMessage.cs" />
+    <Compile Include="Services\InvalidUrlEncodingForLicenseUrlValidationMessage.cs" />
     <Compile Include="Services\ISymbolPackageUploadService.cs" />
     <Compile Include="Services\ISymbolPackageFileService.cs" />
     <Compile Include="Services\ITyposquattingCheckListCacheService.cs" />
@@ -2032,9 +2034,6 @@
     </PackageReference>
     <PackageReference Include="EntityFramework">
       <Version>6.1.3</Version>
-    </PackageReference>
-    <PackageReference Include="FontAwesome">
-      <Version>3.0.2.3</Version>
     </PackageReference>
     <PackageReference Include="jQuery">
       <Version>1.11.0</Version>
