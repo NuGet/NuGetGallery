@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Microsoft.ServiceBus.Messaging;
 
 namespace NuGet.Services.ServiceBus
 {
@@ -91,8 +92,11 @@ namespace NuGet.Services.ServiceBus
 
             TrackMessageLags(brokeredMessage);
 
+            var callGuid = Guid.NewGuid();
+            var stopwatch = Stopwatch.StartNew();
+
             using (var scope = _logger.BeginScope($"{nameof(SubscriptionProcessor<TMessage>)}.{nameof(OnMessageAsync)} {{CallGuid}} {{CallStartTimestamp}} {{MessageId}}",
-                Guid.NewGuid(),
+                callGuid,
                 DateTimeOffset.UtcNow.ToString("O"),
                 brokeredMessage.MessageId))
             {
@@ -104,18 +108,38 @@ namespace NuGet.Services.ServiceBus
 
                     if (await _handler.HandleAsync(message))
                     {
-                        _logger.LogInformation("Message was successfully handled, marking the brokered message as completed");
+                        _logger.LogInformation(
+                            "Message was successfully handled after {ElapsedSeconds} seconds, marking the brokered message as completed",
+                            stopwatch.Elapsed.TotalSeconds);
 
                         await brokeredMessage.CompleteAsync();
+
+                        _telemetryService.TrackMessageHandlerDuration<TMessage>(stopwatch.Elapsed, callGuid, handled: true);
                     }
                     else
                     {
-                        _logger.LogInformation("Handler did not finish processing message, requeueing message to be reprocessed");
+                        _logger.LogInformation(
+                            "Handler did not finish processing message after {DurationSeconds} seconds, requeueing message to be reprocessed",
+                            stopwatch.Elapsed.TotalSeconds);
+
+                        _telemetryService.TrackMessageHandlerDuration<TMessage>(stopwatch.Elapsed, callGuid, handled: false);
                     }
                 }
                 catch (Exception e)
                 {
-                    _logger.LogError(Event.SubscriptionMessageHandlerException, e, "Requeueing message as it was unsuccessfully processed due to exception");
+                    _logger.LogError(
+                        Event.SubscriptionMessageHandlerException,
+                        e,
+                        "Requeueing message as it was unsuccessfully processed due to exception after {DurationSeconds} seconds",
+                        stopwatch.Elapsed.TotalSeconds);
+
+                    if (e is MessageLockLostException)
+                    {
+                        _telemetryService.TrackMessageLockLost<TMessage>(callGuid);
+                    }
+
+                    _telemetryService.TrackMessageHandlerDuration<TMessage>(stopwatch.Elapsed, callGuid, handled: false);
+
                     // exception should not be propagated to the topic client, because it will
                     // abandon the message and will cause the retry to happen immediately, which,
                     // in turn, have higher chances of failing again if we, for example, experiencing

@@ -96,7 +96,7 @@ namespace NuGet.Services.Configuration.Tests
             Assert.Equal(default(NoConversionFromStringToThisClass), unsupportedFromDictionary);
             Assert.Equal(defaultNoConversion, unsupportedFromDictionaryWithDefault);
             // Safety check to prevent the test from passing if defaultNoConversion is equal to default(NoConversionFromStringToThisClass)
-            Assert.NotEqual(defaultNoConversion, default(NoConversionFromStringToThisClass));
+            Assert.NotEqual(default(NoConversionFromStringToThisClass), defaultNoConversion);
         }
 
         [Theory]
@@ -106,7 +106,10 @@ namespace NuGet.Services.Configuration.Tests
             // Arrange
             const string notKey = "notKey";
 
-            IDictionary<string, string> dictionary = new Dictionary<string, string>();
+            IDictionary<string, string> dictionary = new Dictionary<string, string>
+            {
+                { "otherKey", value.ToString() }
+            };
 
             // Assert
             Assert.Throws<KeyNotFoundException>(() => dictionary.GetOrThrow<T>(notKey));

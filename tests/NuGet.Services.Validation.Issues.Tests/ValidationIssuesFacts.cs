@@ -92,7 +92,7 @@ namespace NuGet.Services.Validation.Issues.Tests
         {
             [Theory]
             [MemberData(nameof(DeserializationOfIssuesWithNoPropertiesData))]
-            public void DeserializationOfIssuesWithNoProperties(ValidationIssueCode code, string data)
+            public void DeserializationOfIssuesWithNoProperties(ValidationIssueCode code)
             {
                 // Arrange
                 var validationIssue = CreatePackageValidationIssue(code, Strings.EmptyJson);
@@ -112,10 +112,7 @@ namespace NuGet.Services.Validation.Issues.Tests
                 {
                     foreach (var code in IssuesWithNoProperties.Keys)
                     {
-                        foreach (var data in InvalidData)
-                        {
-                            yield return new object[] { code, data };
-                        }
+                        yield return new object[] { code };
                     }
                 }
             }

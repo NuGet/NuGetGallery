@@ -19,5 +19,13 @@ namespace NuGet.Services.ServiceBus
         {
 
         }
+
+        public void TrackMessageHandlerDuration<TMessage>(TimeSpan duration, Guid callGuid, bool success)
+        {
+        }
+
+        public void TrackMessageLockLost<TMessage>(Guid callGuid)
+        {
+        }
     }
 }

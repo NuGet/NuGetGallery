@@ -113,7 +113,7 @@ namespace NuGet.Services.Validation.Tests
                 Assert.Equal(ValidationTrackingId, output.ValidationTrackingId);
                 Assert.Equal(DeliveryCount, output.DeliveryCount);
                 Assert.Equal(ValidatingType.Package, output.ValidatingType);
-                Assert.Equal(null, output.EntityKey);
+                Assert.Null(output.EntityKey);
             }
 
             [Theory]

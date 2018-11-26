@@ -131,7 +131,7 @@ namespace NuGet.Services.Configuration.Tests
 
             // Assert
             Assert.Throws<KeyNotFoundException>(() => dummy[notFoundKey]);
-            Assert.Equal(false, result);
+            Assert.False(result);
         }
 
         [Fact]
