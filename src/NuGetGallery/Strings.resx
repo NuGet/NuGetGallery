@@ -160,7 +160,7 @@
     <value>The file must be a .nupkg or .snupkg file.</value>
   </data>
   <data name="SuccessfullyUploadedPackage" xml:space="preserve">
-    <value>You successfully uploaded {0} {1}.</value>
+    <value>You successfully uploaded {0}+{1}.</value>
   </data>
   <data name="PackageWithIdDoesNotExist" xml:space="preserve">
     <value>No package with this ID exists.</value>
