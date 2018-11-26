@@ -36,8 +36,14 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             ITelemetryService telemetryService,
             ILogger logger,
             Func<HttpMessageHandler> handlerFunc = null,
+            IHttpRetryStrategy httpRetryStrategy = null,
             int maxConcurrentBatches = DefaultMaxConcurrentBatches)
-            : base(index, new Uri[] { Schema.DataTypes.PackageDetails, Schema.DataTypes.PackageDelete }, telemetryService, handlerFunc)
+            : base(
+                  index,
+                  new Uri[] { Schema.DataTypes.PackageDetails, Schema.DataTypes.PackageDelete },
+                  telemetryService,
+                  handlerFunc,
+                  httpRetryStrategy)
         {
             _legacyStorageFactory = legacyStorageFactory ?? throw new ArgumentNullException(nameof(legacyStorageFactory));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -109,7 +115,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             ReadCursor back,
             CancellationToken cancellationToken)
         {
-            return CatalogCommitUtilities.FetchAsync(
+            return CatalogCommitUtilities.ProcessCatalogCommitsAsync(
                 client,
                 front,
                 back,
@@ -117,7 +123,6 @@ namespace NuGet.Services.Metadata.Catalog.Registration
                 CreateBatchesAsync,
                 ProcessBatchAsync,
                 _maxConcurrentBatches,
-                nameof(RegistrationCollector),
                 _logger,
                 cancellationToken);
         }
@@ -200,8 +205,8 @@ namespace NuGet.Services.Metadata.Catalog.Registration
                     batch.Items,
                     context,
                     batch.CommitTimeStamp,
-                    batch.CommitTimeStamp == lastBatch.CommitTimeStamp,
-                    cancellationToken);
+                    isLastBatch: false,
+                    cancellationToken: cancellationToken);
             }
         }
     }

@@ -70,6 +70,15 @@ namespace NuGet.Services.Metadata.Catalog {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The argument must not be null..
+        /// </summary>
+        internal static string ArgumentMustNotBeNull {
+            get {
+                return ResourceManager.GetString("ArgumentMustNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The argument must not be null, empty, or whitespace..
         /// </summary>
         internal static string ArgumentMustNotBeNullEmptyOrWhitespace {

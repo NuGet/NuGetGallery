@@ -28,7 +28,7 @@ namespace CatalogTests
             var commitTimeStamp = DateTime.UtcNow;
             var commit = TestUtility.CreateCatalogCommitItem(commitTimeStamp, _packageIdentitya);
 
-            _lastBatch = new CatalogCommitItemBatch(DateTime.UtcNow, _packageIdentitya.Id, new[] { commit });
+            _lastBatch = new CatalogCommitItemBatch(new[] { commit }, _packageIdentitya.Id);
         }
 
         [Fact]
@@ -39,8 +39,7 @@ namespace CatalogTests
             var exception = Assert.Throws<ArgumentNullException>(
                 () => CatalogCommitUtilities.CreateCommitItemBatches(
                     catalogItems,
-                    CatalogCommitUtilities.GetPackageIdKey)
-                    .ToArray()); // force evaluation
+                    CatalogCommitUtilities.GetPackageIdKey));
 
             Assert.Equal("catalogItems", exception.ParamName);
         }
@@ -51,14 +50,13 @@ namespace CatalogTests
             var exception = Assert.Throws<ArgumentNullException>(
                 () => CatalogCommitUtilities.CreateCommitItemBatches(
                     Enumerable.Empty<CatalogCommitItem>(),
-                    getCatalogCommitItemKey: null)
-                    .ToArray()); // force evaluation
+                    getCatalogCommitItemKey: null));
 
             Assert.Equal("getCatalogCommitItemKey", exception.ParamName);
         }
 
         [Fact]
-        public void CreateCommitItemBatches_WhenMultipleCommitsShareCommitTimeStampButNotCommitId_Throws()
+        public void CreateCommitItemBatches_WhenMultipleCommitItemsShareCommitTimeStampButNotCommitId_Throws()
         {
             var commitTimeStamp = DateTime.UtcNow;
             var context = TestUtility.CreateCatalogContextJObject();
@@ -70,17 +68,55 @@ namespace CatalogTests
                 TestUtility.CreateCatalogCommitItemJObject(commitTimeStamp, _packageIdentityb));
             var commitItems = new[] { commitItem0, commitItem1 };
 
-            var exception = Assert.Throws<ArgumentException>(() =>
-                CatalogCommitUtilities.CreateCommitItemBatches(
+            var exception = Assert.Throws<ArgumentException>(
+                () => CatalogCommitUtilities.CreateCommitItemBatches(
                     commitItems,
-                    CatalogCommitUtilities.GetPackageIdKey)
-                    .ToArray()); // force evaluation
+                    CatalogCommitUtilities.GetPackageIdKey));
 
             Assert.Equal("catalogItems", exception.ParamName);
             Assert.StartsWith("Multiple commits exist with the same commit timestamp but different commit ID's:  " +
                 $"{{ CommitId = {commitItem0.CommitId}, CommitTimeStamp = {commitItem0.CommitTimeStamp.ToString("O")} }}, " +
                 $"{{ CommitId = {commitItem1.CommitId}, CommitTimeStamp = {commitItem1.CommitTimeStamp.ToString("O")} }}.",
                 exception.Message);
+        }
+
+        [Fact]
+        public void CreateCommitItemBatches_WhenMultipleCommitItemsShareCommitTimeStampButNotCommitIdAndLaterCommitExists_DoesNotThrow()
+        {
+            var commitTimeStamp0 = DateTime.UtcNow;
+            var commitTimeStamp1 = commitTimeStamp0.AddMinutes(1);
+            var context = TestUtility.CreateCatalogContextJObject();
+            var commitItem0 = CatalogCommitItem.Create(
+                context,
+                TestUtility.CreateCatalogCommitItemJObject(commitTimeStamp0, _packageIdentitya));
+            var commitItem1 = CatalogCommitItem.Create(
+                context,
+                TestUtility.CreateCatalogCommitItemJObject(commitTimeStamp0, _packageIdentityb));
+            var commitItem2 = CatalogCommitItem.Create(
+                context,
+                TestUtility.CreateCatalogCommitItemJObject(commitTimeStamp1, _packageIdentitya));
+            var commitItems = new[] { commitItem0, commitItem1, commitItem2 };
+
+            var batches = CatalogCommitUtilities.CreateCommitItemBatches(
+                commitItems,
+                CatalogCommitUtilities.GetPackageIdKey);
+
+            Assert.Collection(
+                batches,
+                batch =>
+                {
+                    Assert.Equal(commitTimeStamp1, batch.CommitTimeStamp.ToUniversalTime());
+                    Assert.Collection(
+                        batch.Items,
+                        commit => Assert.True(ReferenceEquals(commit, commitItem2)));
+                },
+                batch =>
+                {
+                    Assert.Equal(commitTimeStamp0, batch.CommitTimeStamp.ToUniversalTime());
+                    Assert.Collection(
+                        batch.Items,
+                        commit => Assert.True(ReferenceEquals(commit, commitItem1)));
+                });
         }
 
         [Fact]
@@ -144,7 +180,7 @@ namespace CatalogTests
                 batches,
                 batch =>
                 {
-                    Assert.Equal(commitItem0.CommitTimeStamp, batch.CommitTimeStamp);
+                    Assert.Equal(commitItem2.CommitTimeStamp, batch.CommitTimeStamp);
                     Assert.Collection(
                         batch.Items,
                         commit => Assert.True(ReferenceEquals(commit, commitItem2)));
@@ -152,161 +188,16 @@ namespace CatalogTests
         }
 
         [Fact]
-        public void CreateCommitBatchTasksMap_WhenBatchesIsNull_Throws()
-        {
-            IEnumerable<CatalogCommitItemBatch> batches = null;
-
-            var exception = Assert.Throws<ArgumentException>(
-                () => CatalogCommitUtilities.CreateCommitBatchTasksMap(batches));
-
-            Assert.Equal("batches", exception.ParamName);
-        }
-
-        [Fact]
-        public void CreateCommitBatchTasksMap_WhenBatchesIsEmpty_Throws()
-        {
-            var batches = Enumerable.Empty<CatalogCommitItemBatch>();
-
-            var exception = Assert.Throws<ArgumentException>(
-                () => CatalogCommitUtilities.CreateCommitBatchTasksMap(batches));
-
-            Assert.Equal("batches", exception.ParamName);
-        }
-
-        [Fact]
-        public void CreateCommitBatchTasksMap_WhenArgumentsAreValid_ReturnsMap()
-        {
-            var commitTimeStamp = DateTime.UtcNow;
-
-            var commit0 = TestUtility.CreateCatalogCommitItem(commitTimeStamp, _packageIdentitya);
-            var commit1 = TestUtility.CreateCatalogCommitItem(commitTimeStamp.AddMinutes(1), _packageIdentitya);
-            var commitBatch0 = new CatalogCommitItemBatch(commit0.CommitTimeStamp, _packageIdentitya.Id, new[] { commit0, commit1 });
-
-            var commit2 = TestUtility.CreateCatalogCommitItem(commitTimeStamp.AddMinutes(1), _packageIdentityb);
-            var commit3 = TestUtility.CreateCatalogCommitItem(commitTimeStamp.AddMinutes(2), _packageIdentityb);
-            var commitBatch1 = new CatalogCommitItemBatch(commit2.CommitTimeStamp, _packageIdentityb.Id, new[] { commit2, commit3 });
-
-            var commitBatches = new[] { commitBatch0, commitBatch1 };
-
-            var map = CatalogCommitUtilities.CreateCommitBatchTasksMap(commitBatches);
-
-            Assert.Collection(
-                map,
-                element =>
-                {
-                    Assert.Equal(commitTimeStamp, element.Key.ToUniversalTime());
-                    Assert.Equal(commitTimeStamp, element.Value.CommitTimeStamp.ToUniversalTime());
-                    Assert.Single(element.Value.BatchTasks);
-
-                    var batchTask = element.Value.BatchTasks.Single();
-
-                    Assert.Equal(commitBatch0.CommitTimeStamp, batchTask.MinCommitTimeStamp);
-                    Assert.Equal(_packageIdentitya.Id, batchTask.Key);
-                },
-                element =>
-                {
-                    var expectedCommitTimeStamp = commitTimeStamp.AddMinutes(1);
-
-                    Assert.Equal(expectedCommitTimeStamp, element.Key.ToUniversalTime());
-                    Assert.Equal(expectedCommitTimeStamp, element.Value.CommitTimeStamp.ToUniversalTime());
-                    Assert.Single(element.Value.BatchTasks);
-
-                    var batchTask = element.Value.BatchTasks.Single();
-
-                    Assert.Equal(commitBatch1.CommitTimeStamp, batchTask.MinCommitTimeStamp);
-                    Assert.Equal(_packageIdentityb.Id, batchTask.Key);
-                });
-        }
-
-        [Fact]
-        public void DequeueBatchesWhileMatches_WhenBatchesIsNull_Throws()
-        {
-            Queue<CatalogCommitBatchTask> batches = null;
-
-            var exception = Assert.Throws<ArgumentNullException>(
-                () => CatalogCommitUtilities.DequeueBatchesWhileMatches(batches, _ => true));
-
-            Assert.Equal("batches", exception.ParamName);
-        }
-
-        [Fact]
-        public void DequeueBatchesWhileMatches_WhenIsMatchIsNull_Throws()
-        {
-            var exception = Assert.Throws<ArgumentNullException>(
-                () => CatalogCommitUtilities.DequeueBatchesWhileMatches(
-                    new Queue<CatalogCommitBatchTask>(),
-                    isMatch: null));
-
-            Assert.Equal("isMatch", exception.ParamName);
-        }
-
-        [Fact]
-        public void DequeueBatchesWhileMatches_WhenQueueIsEmpty_NoOps()
-        {
-            var batches = new Queue<CatalogCommitBatchTask>();
-
-            CatalogCommitUtilities.DequeueBatchesWhileMatches(batches, batch => true);
-
-            Assert.Empty(batches);
-        }
-
-        [Fact]
-        public void DequeueBatchesWhileMatches_WhenNoMatchIsFound_NoOps()
-        {
-            var now = DateTime.UtcNow;
-            var id0 = "a";
-            var id1 = "b";
-            var commitBatchTask0 = new CatalogCommitBatchTask(now, id0);
-            var commitBatchTask1 = new CatalogCommitBatchTask(now.AddMinutes(1), id1);
-            var commitBatchTask2 = new CatalogCommitBatchTask(now.AddMinutes(2), id0);
-
-            var batches = new Queue<CatalogCommitBatchTask>();
-
-            batches.Enqueue(commitBatchTask0);
-            batches.Enqueue(commitBatchTask1);
-            batches.Enqueue(commitBatchTask2);
-
-            CatalogCommitUtilities.DequeueBatchesWhileMatches(batches, batch => false);
-
-            Assert.Equal(3, batches.Count);
-        }
-
-        [Fact]
-        public void DequeueBatchesWhileMatches_WhenMatchIsFound_Dequeues()
-        {
-            var now = DateTime.UtcNow;
-            var id0 = "a";
-            var id1 = "b";
-            var commitBatchTask0 = new CatalogCommitBatchTask(now, id0);
-            var commitBatchTask1 = new CatalogCommitBatchTask(now.AddMinutes(1), id1);
-            var commitBatchTask2 = new CatalogCommitBatchTask(now.AddMinutes(2), id0);
-
-            var batches = new Queue<CatalogCommitBatchTask>();
-
-            batches.Enqueue(commitBatchTask0);
-            batches.Enqueue(commitBatchTask1);
-            batches.Enqueue(commitBatchTask2);
-
-            CatalogCommitUtilities.DequeueBatchesWhileMatches(batches, batch => batch.Key == id0);
-
-            Assert.Equal(2, batches.Count);
-            Assert.Same(commitBatchTask1, batches.Dequeue());
-            Assert.Same(commitBatchTask2, batches.Dequeue());
-        }
-
-        [Fact]
-        public void EnqueueBatchesIfNoFailures_WhenClientIsNull_Throws()
+        public void StartProcessingBatchesIfNoFailures_WhenClientIsNull_Throws()
         {
             const CollectorHttpClient client = null;
 
             var exception = Assert.Throws<ArgumentNullException>(
-                () => CatalogCommitUtilities.EnqueueBatchesIfNoFailures(
+                () => CatalogCommitUtilities.StartProcessingBatchesIfNoFailures(
                     client,
                     new JObject(),
-                    new SortedDictionary<DateTime, CatalogCommitBatchTasks>(),
-                    new Queue<CatalogCommitItemBatch>(),
-                    new Queue<CatalogCommitBatchTask>(),
-                    _lastBatch,
+                    new List<CatalogCommitItemBatch>(),
+                    new List<CatalogCommitItemBatchTask>(),
                     _maxConcurrentBatches,
                     NoOpProcessBatchAsync,
                     CancellationToken.None));
@@ -315,18 +206,16 @@ namespace CatalogTests
         }
 
         [Fact]
-        public void EnqueueBatchesIfNoFailures_WhenContextIsNull_Throws()
+        public void StartProcessingBatchesIfNoFailures_WhenContextIsNull_Throws()
         {
             const JToken context = null;
 
             var exception = Assert.Throws<ArgumentNullException>(
-                () => CatalogCommitUtilities.EnqueueBatchesIfNoFailures(
+                () => CatalogCommitUtilities.StartProcessingBatchesIfNoFailures(
                     new CollectorHttpClient(),
                     context,
-                    new SortedDictionary<DateTime, CatalogCommitBatchTasks>(),
-                    new Queue<CatalogCommitItemBatch>(),
-                    new Queue<CatalogCommitBatchTask>(),
-                    _lastBatch,
+                    new List<CatalogCommitItemBatch>(),
+                    new List<CatalogCommitItemBatchTask>(),
                     _maxConcurrentBatches,
                     NoOpProcessBatchAsync,
                     CancellationToken.None));
@@ -335,38 +224,16 @@ namespace CatalogTests
         }
 
         [Fact]
-        public void EnqueueBatchesIfNoFailures_WhenCommitBatchTasksMapIsNull_Throws()
+        public void StartProcessingBatchesIfNoFailures_WhenUnprocessedBatchesIsNull_Throws()
         {
-            const SortedDictionary<DateTime, CatalogCommitBatchTasks> commitBatchTasksMap = null;
+            const List<CatalogCommitItemBatch> unprocessedBatches = null;
 
             var exception = Assert.Throws<ArgumentNullException>(
-                () => CatalogCommitUtilities.EnqueueBatchesIfNoFailures(
+                () => CatalogCommitUtilities.StartProcessingBatchesIfNoFailures(
                     new CollectorHttpClient(),
                     new JObject(),
-                    commitBatchTasksMap,
-                    new Queue<CatalogCommitItemBatch>(),
-                    new Queue<CatalogCommitBatchTask>(),
-                    _lastBatch,
-                    _maxConcurrentBatches,
-                    NoOpProcessBatchAsync,
-                    CancellationToken.None));
-
-            Assert.Equal("commitBatchTasksMap", exception.ParamName);
-        }
-
-        [Fact]
-        public void EnqueueBatchesIfNoFailures_WhenUnprocessedBatchesIsNull_Throws()
-        {
-            const Queue<CatalogCommitItemBatch> unprocessedBatches = null;
-
-            var exception = Assert.Throws<ArgumentNullException>(
-                () => CatalogCommitUtilities.EnqueueBatchesIfNoFailures(
-                    new CollectorHttpClient(),
-                    new JObject(),
-                    new SortedDictionary<DateTime, CatalogCommitBatchTasks>(),
                     unprocessedBatches,
-                    new Queue<CatalogCommitBatchTask>(),
-                    _lastBatch,
+                    new List<CatalogCommitItemBatchTask>(),
                     _maxConcurrentBatches,
                     NoOpProcessBatchAsync,
                     CancellationToken.None));
@@ -375,18 +242,16 @@ namespace CatalogTests
         }
 
         [Fact]
-        public void EnqueueBatchesIfNoFailures_WhenProcessingBatchesIsNull_Throws()
+        public void StartProcessingBatchesIfNoFailures_WhenProcessingBatchesIsNull_Throws()
         {
-            const Queue<CatalogCommitBatchTask> processingBatches = null;
+            const List<CatalogCommitItemBatchTask> processingBatches = null;
 
             var exception = Assert.Throws<ArgumentNullException>(
-                () => CatalogCommitUtilities.EnqueueBatchesIfNoFailures(
+                () => CatalogCommitUtilities.StartProcessingBatchesIfNoFailures(
                     new CollectorHttpClient(),
                     new JObject(),
-                    new SortedDictionary<DateTime, CatalogCommitBatchTasks>(),
-                    new Queue<CatalogCommitItemBatch>(),
+                    new List<CatalogCommitItemBatch>(),
                     processingBatches,
-                    _lastBatch,
                     _maxConcurrentBatches,
                     NoOpProcessBatchAsync,
                     CancellationToken.None));
@@ -395,38 +260,16 @@ namespace CatalogTests
         }
 
         [Fact]
-        public void EnqueueBatchesIfNoFailures_WhenLastBatchIsNull_Throws()
-        {
-            const CatalogCommitItemBatch lastBatch = null;
-
-            var exception = Assert.Throws<ArgumentNullException>(
-                () => CatalogCommitUtilities.EnqueueBatchesIfNoFailures(
-                    new CollectorHttpClient(),
-                    new JObject(),
-                    new SortedDictionary<DateTime, CatalogCommitBatchTasks>(),
-                    new Queue<CatalogCommitItemBatch>(),
-                    new Queue<CatalogCommitBatchTask>(),
-                    lastBatch,
-                    _maxConcurrentBatches,
-                    NoOpProcessBatchAsync,
-                    CancellationToken.None));
-
-            Assert.Equal("lastBatch", exception.ParamName);
-        }
-
-        [Fact]
-        public void EnqueueBatchesIfNoFailures_WhenMaxConcurrentBatchesIsLessThanOne_Throws()
+        public void StartProcessingBatchesIfNoFailures_WhenMaxConcurrentBatchesIsLessThanOne_Throws()
         {
             const int maxConcurrentBatches = 0;
 
             var exception = Assert.Throws<ArgumentOutOfRangeException>(
-                () => CatalogCommitUtilities.EnqueueBatchesIfNoFailures(
+                () => CatalogCommitUtilities.StartProcessingBatchesIfNoFailures(
                     new CollectorHttpClient(),
                     new JObject(),
-                    new SortedDictionary<DateTime, CatalogCommitBatchTasks>(),
-                    new Queue<CatalogCommitItemBatch>(),
-                    new Queue<CatalogCommitBatchTask>(),
-                    _lastBatch,
+                    new List<CatalogCommitItemBatch>(),
+                    new List<CatalogCommitItemBatchTask>(),
                     maxConcurrentBatches,
                     NoOpProcessBatchAsync,
                     CancellationToken.None));
@@ -435,18 +278,16 @@ namespace CatalogTests
         }
 
         [Fact]
-        public void EnqueueBatchesIfNoFailures_WhenProcessCommitItemBatchAsyncIsNull_Throws()
+        public void StartProcessingBatchesIfNoFailures_WhenProcessCommitItemBatchAsyncIsNull_Throws()
         {
             const ProcessCommitItemBatchAsync processCommitItemBatchAsync = null;
 
             var exception = Assert.Throws<ArgumentNullException>(
-                () => CatalogCommitUtilities.EnqueueBatchesIfNoFailures(
+                () => CatalogCommitUtilities.StartProcessingBatchesIfNoFailures(
                     new CollectorHttpClient(),
                     new JObject(),
-                    new SortedDictionary<DateTime, CatalogCommitBatchTasks>(),
-                    new Queue<CatalogCommitItemBatch>(),
-                    new Queue<CatalogCommitBatchTask>(),
-                    _lastBatch,
+                    new List<CatalogCommitItemBatch>(),
+                    new List<CatalogCommitItemBatchTask>(),
                     _maxConcurrentBatches,
                     processCommitItemBatchAsync,
                     CancellationToken.None));
@@ -454,7 +295,7 @@ namespace CatalogTests
             Assert.Equal("processCommitItemBatchAsync", exception.ParamName);
         }
 
-        public class EnqueueBatchesIfNoFailures
+        public class StartProcessingBatchesIfNoFailures
         {
             private PackageIdentity _packageIdentityc = new PackageIdentity(id: "c", version: new NuGetVersion("1.0.0"));
             private PackageIdentity _packageIdentityd = new PackageIdentity(id: "d", version: new NuGetVersion("1.0.0"));
@@ -464,7 +305,7 @@ namespace CatalogTests
             private readonly CatalogCommitItem _commitItem2;
             private readonly CatalogCommitItem _commitItem3;
 
-            public EnqueueBatchesIfNoFailures()
+            public StartProcessingBatchesIfNoFailures()
             {
                 _commitItem0 = TestUtility.CreateCatalogCommitItem(_now, _packageIdentitya);
                 _commitItem1 = TestUtility.CreateCatalogCommitItem(_now, _packageIdentityb);
@@ -473,30 +314,20 @@ namespace CatalogTests
             }
 
             [Fact]
-            public void EnqueueBatchesIfNoFailures_WhenAnyBatchIsFailed_DoesNotEnqueue()
+            public void StartProcessingBatchesIfNoFailures_WhenAnyBatchIsFailed_DoesNotStartNewBatch()
             {
-                var commitItemBatch = new CatalogCommitItemBatch(_now, _packageIdentitya.Id, new[] { _commitItem0, _commitItem1 });
-                var commitBatchMap = CatalogCommitUtilities.CreateCommitBatchTasksMap(new[] { commitItemBatch });
-                var batchTasks = new CatalogCommitBatchTasks(_now);
-                var failedBatchTask = new CatalogCommitBatchTask(_now, _packageIdentitya.Id) { Task = FailedTask };
+                var commitItemBatch = new CatalogCommitItemBatch(
+                    new[] { _commitItem0, _commitItem1 },
+                    _packageIdentitya.Id);
+                var failedBatchTask = new CatalogCommitItemBatchTask(commitItemBatch, FailedTask);
+                var unprocessedBatches = new List<CatalogCommitItemBatch>() { commitItemBatch };
+                var processingBatches = new List<CatalogCommitItemBatchTask>() { failedBatchTask };
 
-                batchTasks.BatchTasks.Add(failedBatchTask);
-
-                var unprocessedBatches = new Queue<CatalogCommitItemBatch>();
-
-                unprocessedBatches.Enqueue(commitItemBatch);
-
-                var processingBatches = new Queue<CatalogCommitBatchTask>();
-
-                processingBatches.Enqueue(failedBatchTask);
-
-                CatalogCommitUtilities.EnqueueBatchesIfNoFailures(
+                CatalogCommitUtilities.StartProcessingBatchesIfNoFailures(
                     new CollectorHttpClient(),
                     new JObject(),
-                    commitBatchMap,
                     unprocessedBatches,
                     processingBatches,
-                    _lastBatch,
                     _maxConcurrentBatches,
                     NoOpProcessBatchAsync,
                     CancellationToken.None);
@@ -506,33 +337,22 @@ namespace CatalogTests
             }
 
             [Fact]
-            public void EnqueueBatchesIfNoFailures_WhenNoBatchIsCancelled_DoesNotEnqueue()
+            public void StartProcessingBatchesIfNoFailures_WhenNoBatchIsCancelled_DoesNotStartNewBatch()
             {
-                var commitItemBatch = new CatalogCommitItemBatch(_now, _packageIdentitya.Id, new[] { _commitItem0, _commitItem1 });
-                var commitBatchMap = CatalogCommitUtilities.CreateCommitBatchTasksMap(new[] { commitItemBatch });
-                var batchTasks = new CatalogCommitBatchTasks(_now);
-                var cancelledBatchTask = new CatalogCommitBatchTask(_now, _packageIdentitya.Id)
-                {
-                    Task = Task.FromCanceled(new CancellationToken(canceled: true))
-                };
+                var commitItemBatch = new CatalogCommitItemBatch(
+                    new[] { _commitItem0, _commitItem1 },
+                    _packageIdentitya.Id);
+                var cancelledBatchTask = new CatalogCommitItemBatchTask(
+                    commitItemBatch,
+                    Task.FromCanceled(new CancellationToken(canceled: true)));
+                var unprocessedBatches = new List<CatalogCommitItemBatch>() { commitItemBatch };
+                var processingBatches = new List<CatalogCommitItemBatchTask>() { cancelledBatchTask };
 
-                batchTasks.BatchTasks.Add(cancelledBatchTask);
-
-                var unprocessedBatches = new Queue<CatalogCommitItemBatch>();
-
-                unprocessedBatches.Enqueue(commitItemBatch);
-
-                var processingBatches = new Queue<CatalogCommitBatchTask>();
-
-                processingBatches.Enqueue(cancelledBatchTask);
-
-                CatalogCommitUtilities.EnqueueBatchesIfNoFailures(
+                CatalogCommitUtilities.StartProcessingBatchesIfNoFailures(
                     new CollectorHttpClient(),
                     new JObject(),
-                    commitBatchMap,
                     unprocessedBatches,
                     processingBatches,
-                    _lastBatch,
                     _maxConcurrentBatches,
                     NoOpProcessBatchAsync,
                     CancellationToken.None);
@@ -542,37 +362,26 @@ namespace CatalogTests
             }
 
             [Fact]
-            public void EnqueueBatchesIfNoFailures_WhenMaxConcurrencyLimitHit_DoesNotEnqueue()
+            public void StartProcessingBatchesIfNoFailures_WhenMaxConcurrencyLimitHit_DoesNotStartNewBatch()
             {
-                var commitItemBatch0 = new CatalogCommitItemBatch(_now, _packageIdentitya.Id, new[] { _commitItem0 });
-                var commitItemBatch1 = new CatalogCommitItemBatch(_now, _packageIdentityc.Id, new[] { _commitItem2 });
-                var commitBatchMap = CatalogCommitUtilities.CreateCommitBatchTasksMap(new[] { commitItemBatch0, commitItemBatch1 });
-                var batchTasks = new CatalogCommitBatchTasks(_now);
+                var commitItemBatch0 = new CatalogCommitItemBatch(new[] { _commitItem0 }, _packageIdentitya.Id);
+                var commitItemBatch1 = new CatalogCommitItemBatch(new[] { _commitItem2 }, _packageIdentityc.Id);
 
                 using (var cancellationTokenSource = new CancellationTokenSource())
                 {
-                    var inprocessTask = new CatalogCommitBatchTask(_now, _packageIdentitya.Id)
-                    {
-                        Task = Task.Delay(TimeSpan.FromMilliseconds(-1), cancellationTokenSource.Token)
-                    };
-
-                    var unprocessedBatches = new Queue<CatalogCommitItemBatch>();
-
-                    unprocessedBatches.Enqueue(commitItemBatch1);
-
-                    var processingBatches = new Queue<CatalogCommitBatchTask>();
-
-                    processingBatches.Enqueue(inprocessTask);
+                    var inProcessTask = new CatalogCommitItemBatchTask(
+                        commitItemBatch0,
+                        Task.Delay(TimeSpan.FromMilliseconds(-1), cancellationTokenSource.Token));
+                    var unprocessedBatches = new List<CatalogCommitItemBatch>() { commitItemBatch1 };
+                    var processingBatches = new List<CatalogCommitItemBatchTask>() { inProcessTask };
 
                     const int maxConcurrentBatches = 1;
 
-                    CatalogCommitUtilities.EnqueueBatchesIfNoFailures(
+                    CatalogCommitUtilities.StartProcessingBatchesIfNoFailures(
                         new CollectorHttpClient(),
                         new JObject(),
-                        commitBatchMap,
                         unprocessedBatches,
                         processingBatches,
-                        _lastBatch,
                         maxConcurrentBatches,
                         NoOpProcessBatchAsync,
                         CancellationToken.None);
@@ -583,25 +392,17 @@ namespace CatalogTests
             }
 
             [Fact]
-            public void EnqueueBatchesIfNoFailures_WhenCanEnqueue_Enqueues()
+            public void StartProcessingBatchesIfNoFailures_WhenCanStartNewBatch_StartsNewBatch()
             {
-                var commitItemBatch = new CatalogCommitItemBatch(_now, _packageIdentitya.Id, new[] { _commitItem0 });
-                var commitBatchMap = CatalogCommitUtilities.CreateCommitBatchTasksMap(new[] { commitItemBatch });
-                var batchTasks = new CatalogCommitBatchTasks(_now);
+                var commitItemBatch = new CatalogCommitItemBatch(new[] { _commitItem0 }, _packageIdentitya.Id);
+                var unprocessedBatches = new List<CatalogCommitItemBatch>() { commitItemBatch };
+                var processingBatches = new List<CatalogCommitItemBatchTask>();
 
-                var unprocessedBatches = new Queue<CatalogCommitItemBatch>();
-
-                unprocessedBatches.Enqueue(commitItemBatch);
-
-                var processingBatches = new Queue<CatalogCommitBatchTask>();
-
-                CatalogCommitUtilities.EnqueueBatchesIfNoFailures(
+                CatalogCommitUtilities.StartProcessingBatchesIfNoFailures(
                     new CollectorHttpClient(),
                     new JObject(),
-                    commitBatchMap,
                     unprocessedBatches,
                     processingBatches,
-                    _lastBatch,
                     _maxConcurrentBatches,
                     NoOpProcessBatchAsync,
                     CancellationToken.None);
@@ -611,29 +412,19 @@ namespace CatalogTests
             }
 
             [Fact]
-            public void EnqueueBatchesIfNoFailures_WhenProcessingQueueContainsCompletedTasks_Enqueues()
+            public void StartProcessingBatchesIfNoFailures_WhenProcessingQueueContainsCompletedTasks_StartsNewBatch()
             {
-                var commitItemBatch0 = new CatalogCommitItemBatch(_now, _packageIdentitya.Id, new[] { _commitItem0 });
-                var commitItemBatch1 = new CatalogCommitItemBatch(_now, _packageIdentityb.Id, new[] { _commitItem1 });
-                var commitBatchMap = CatalogCommitUtilities.CreateCommitBatchTasksMap(new[] { commitItemBatch0, commitItemBatch1 });
-                var batchTasks = new CatalogCommitBatchTasks(_now);
-                var completedTask = new CatalogCommitBatchTask(_now, _packageIdentitya.Id) { Task = Task.CompletedTask };
+                var commitItemBatch0 = new CatalogCommitItemBatch(new[] { _commitItem0 }, _packageIdentitya.Id);
+                var commitItemBatch1 = new CatalogCommitItemBatch(new[] { _commitItem1 }, _packageIdentityb.Id);
+                var completedTask = new CatalogCommitItemBatchTask(commitItemBatch0, Task.CompletedTask);
+                var unprocessedBatches = new List<CatalogCommitItemBatch>() { commitItemBatch1 };
+                var processingBatches = new List<CatalogCommitItemBatchTask>() { completedTask };
 
-                var unprocessedBatches = new Queue<CatalogCommitItemBatch>();
-
-                unprocessedBatches.Enqueue(commitItemBatch1);
-
-                var processingBatches = new Queue<CatalogCommitBatchTask>();
-
-                processingBatches.Enqueue(completedTask);
-
-                CatalogCommitUtilities.EnqueueBatchesIfNoFailures(
+                CatalogCommitUtilities.StartProcessingBatchesIfNoFailures(
                     new CollectorHttpClient(),
                     new JObject(),
-                    commitBatchMap,
                     unprocessedBatches,
                     processingBatches,
-                    _lastBatch,
                     _maxConcurrentBatches,
                     NoOpProcessBatchAsync,
                     CancellationToken.None);
@@ -657,7 +448,9 @@ namespace CatalogTests
         [InlineData("A")]
         public void GetPackageIdKey_WhenPackageIdVariesInCase_ReturnsLowerCase(string packageId)
         {
-            var commitItem = TestUtility.CreateCatalogCommitItem(DateTime.UtcNow, new PackageIdentity(packageId, new NuGetVersion("1.0.0")));
+            var commitItem = TestUtility.CreateCatalogCommitItem(
+                DateTime.UtcNow,
+                new PackageIdentity(packageId, new NuGetVersion("1.0.0")));
             var key = CatalogCommitUtilities.GetPackageIdKey(commitItem);
 
             Assert.Equal(packageId.ToLowerInvariant(), key);
@@ -669,7 +462,7 @@ namespace CatalogTests
         {
             var commit = TestUtility.CreateCatalogCommitItem(commitTimeStamp, packageIdentity);
 
-            return new CatalogCommitItemBatch(commitTimeStamp, packageIdentity.Id, new[] { commit });
+            return new CatalogCommitItemBatch(new[] { commit }, packageIdentity.Id);
         }
 
         private static Task NoOpProcessBatchAsync(

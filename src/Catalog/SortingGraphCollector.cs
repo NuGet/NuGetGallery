@@ -20,8 +20,9 @@ namespace NuGet.Services.Metadata.Catalog
             Uri index,
             Uri[] types,
             ITelemetryService telemetryService,
-            Func<HttpMessageHandler> handlerFunc = null)
-            : base(index, telemetryService, handlerFunc)
+            Func<HttpMessageHandler> handlerFunc = null,
+            IHttpRetryStrategy httpRetryStrategy = null)
+            : base(index, telemetryService, handlerFunc, httpRetryStrategy)
         {
             _types = types;
         }

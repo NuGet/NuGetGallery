@@ -40,8 +40,9 @@ namespace Ng
             string baseAddress,
             ITelemetryService telemetryService,
             ILogger logger,
-            Func<HttpMessageHandler> handlerFunc = null)
-            : base(index, telemetryService, handlerFunc)
+            Func<HttpMessageHandler> handlerFunc = null,
+            IHttpRetryStrategy httpRetryStrategy = null)
+            : base(index, telemetryService, handlerFunc, httpRetryStrategy: httpRetryStrategy)
         {
             _indexWriter = indexWriter;
             _commitEachBatch = commitEachBatch;

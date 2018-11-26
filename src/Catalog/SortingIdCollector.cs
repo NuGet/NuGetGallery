@@ -8,8 +8,12 @@ namespace NuGet.Services.Metadata.Catalog
 {
     public abstract class SortingIdCollector : SortingCollector<string>
     {
-        public SortingIdCollector(Uri index, ITelemetryService telemetryService, Func<HttpMessageHandler> handlerFunc = null)
-            : base(index, telemetryService, handlerFunc)
+        public SortingIdCollector(
+            Uri index,
+            ITelemetryService telemetryService,
+            Func<HttpMessageHandler> handlerFunc = null,
+            IHttpRetryStrategy retryStrategy = null)
+            : base(index, telemetryService, handlerFunc, retryStrategy)
         {
         }
 

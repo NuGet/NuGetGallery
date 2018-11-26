@@ -15,18 +15,18 @@ namespace NuGet.Services.Metadata.Catalog
     public class CollectorHttpClient : HttpClient
     {
         private int _requestCount;
-        private readonly RetryWithExponentialBackoff _retryStrategy;
+        private readonly IHttpRetryStrategy _retryStrategy;
 
         public CollectorHttpClient()
             : this(new WebRequestHandler { AllowPipelining = true })
         {
         }
 
-        public CollectorHttpClient(HttpMessageHandler handler)
+        public CollectorHttpClient(HttpMessageHandler handler, IHttpRetryStrategy retryStrategy = null)
             : base(handler ?? new WebRequestHandler { AllowPipelining = true })
         {
             _requestCount = 0;
-            _retryStrategy = new RetryWithExponentialBackoff();
+            _retryStrategy = retryStrategy ?? new RetryWithExponentialBackoff();
         }
 
         public int RequestCount

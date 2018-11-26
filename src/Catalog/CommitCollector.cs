@@ -18,8 +18,9 @@ namespace NuGet.Services.Metadata.Catalog
             Uri index,
             ITelemetryService telemetryService,
             Func<HttpMessageHandler> handlerFunc = null,
-            TimeSpan? httpClientTimeout = null)
-            : base(index, telemetryService, handlerFunc, httpClientTimeout)
+            TimeSpan? httpClientTimeout = null,
+            IHttpRetryStrategy httpRetryStrategy = null)
+            : base(index, telemetryService, handlerFunc, httpClientTimeout, httpRetryStrategy)
         {
         }
 
@@ -128,12 +129,10 @@ namespace NuGet.Services.Metadata.Catalog
 
         protected virtual Task<IEnumerable<CatalogCommitItemBatch>> CreateBatchesAsync(IEnumerable<CatalogCommitItem> catalogItems)
         {
-            const string NullKey = null;
-
             var batches = catalogItems
                 .GroupBy(item => item.CommitTimeStamp)
                 .OrderBy(group => group.Key)
-                .Select(group => new CatalogCommitItemBatch(group.Key, NullKey, group));
+                .Select(group => new CatalogCommitItemBatch(group));
 
             return Task.FromResult(batches);
         }

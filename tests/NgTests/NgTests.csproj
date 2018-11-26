@@ -63,13 +63,12 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>TestRegistrationEntries.resx</DependentUpon>
     </Compile>
-    <Compile Include="DnxCatalogCollectorTests.cs" />
-    <Compile Include="DnxMakerTests.cs" />
     <Compile Include="Feed2CatalogTests.cs" />
     <Compile Include="Infrastructure\MemoryStorage.cs" />
     <Compile Include="Infrastructure\MemoryStorageFactory.cs" />
     <Compile Include="Infrastructure\MockServerHttpClientHandlerExtensions.cs" />
     <Compile Include="Infrastructure\MockTelemetryService.cs" />
+    <Compile Include="Infrastructure\NoRetryStrategy.cs" />
     <Compile Include="Infrastructure\TelemetryCall.cs" />
     <Compile Include="Infrastructure\TestUtility.cs" />
     <Compile Include="Infrastructure\TrackMetricCall.cs" />

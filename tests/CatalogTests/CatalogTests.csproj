@@ -72,7 +72,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BatchProcessingExceptionTests.cs" />
-    <Compile Include="CatalogCommitBatchTasksTests.cs" />
     <Compile Include="CatalogCommitBatchTaskTests.cs" />
     <Compile Include="CatalogCommitItemBatchTests.cs" />
     <Compile Include="CatalogCommitItemTests.cs" />
@@ -81,6 +80,8 @@
     <Compile Include="CatalogIndexReaderTests.cs" />
     <Compile Include="CatalogCommitTests.cs" />
     <Compile Include="CollectorHttpClientTests.cs" />
+    <Compile Include="Dnx\DnxCatalogCollectorTests.cs" />
+    <Compile Include="Dnx\DnxMakerTests.cs" />
     <Compile Include="Helpers\AsyncExtensionsTests.cs" />
     <Compile Include="Helpers\CatalogIndependentPage.cs" />
     <Compile Include="Helpers\CatalogIndex.cs" />

@@ -9,22 +9,24 @@ using NuGet.Versioning;
 
 namespace NgTests.Infrastructure
 {
-    internal sealed class TestPackage : IDisposable
+    public sealed class TestPackage : IDisposable
     {
         private bool _isDisposed;
 
-        internal string Id { get; }
-        internal NuGetVersion Version { get; }
-        internal string Author { get; }
-        internal string Description { get; }
-        internal Stream Stream { get; private set; }
+        public string Id { get; }
+        public NuGetVersion Version { get; }
+        public string Author { get; }
+        public string Description { get; }
+        public string Nuspec { get; }
+        public Stream Stream { get; }
 
-        internal TestPackage(string id, NuGetVersion version, string author, string description, Stream stream)
+        public TestPackage(string id, NuGetVersion version, string author, string description, string nuspec, Stream stream)
         {
             Id = id;
             Version = version;
             Author = author;
             Description = description;
+            Nuspec = nuspec;
             Stream = stream;
         }
 
@@ -40,7 +42,7 @@ namespace NgTests.Infrastructure
             }
         }
 
-        internal static TestPackage Create(Random random)
+        public static TestPackage Create(Random random)
         {
             var id = TestUtility.CreateRandomAlphanumericString(random);
             var version = CreateRandomVersion(random);
@@ -52,7 +54,7 @@ namespace NgTests.Infrastructure
             {
                 var stream = CreatePackageStream(id, nuspec, rng, random);
 
-                return new TestPackage(id, version, author, description, stream);
+                return new TestPackage(id, version, author, description, nuspec, stream);
             }
         }
 
@@ -102,6 +104,8 @@ namespace NgTests.Infrastructure
                     }
                 }
             }
+
+            stream.Position = 0;
 
             return stream;
         }

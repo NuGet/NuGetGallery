@@ -251,12 +251,15 @@ namespace CatalogTests
             Assert.False(entry.IsDelete);
         }
 
-        [Fact]
-        public void IsDelete_WhenTypeIsPackageDelete_ReturnsTrue()
+        [Theory]
+        [InlineData(CatalogConstants.NuGetPackageDelete)]
+        [InlineData(CatalogConstants.PackageDelete)]
+        [InlineData("http://schema.nuget.org/schema#PackageDelete")]
+        public void IsDelete_WhenTypeIsPackageDelete_ReturnsTrue(string type)
         {
             var entry = new CatalogIndexEntry(
                 _uri,
-                CatalogConstants.NuGetPackageDelete,
+                type,
                 _commitId,
                 _commitTimeStamp,
                 _packageIdentity);
@@ -274,7 +277,7 @@ namespace CatalogTests
                 _commitTimeStamp,
                 _packageIdentity);
 
-            var jObject = CreateCatalogIndexJObject();
+            var jObject = CreateCatalogIndexJObject(CatalogConstants.NuGetPackageDetails);
 
             var expectedResult = jObject.ToString(Formatting.None, _settings.Converters.ToArray());
             var actualResult = JsonConvert.SerializeObject(entry, Formatting.None, _settings);
@@ -291,7 +294,7 @@ namespace CatalogTests
         [InlineData(CatalogConstants.NuGetVersion)]
         public void JsonDeserialization_WhenRequiredPropertyIsMissing_Throws(string propertyToRemove)
         {
-            var jObject = CreateCatalogIndexJObject();
+            var jObject = CreateCatalogIndexJObject(CatalogConstants.NuGetPackageDetails);
 
             jObject.Remove(propertyToRemove);
 
@@ -304,28 +307,49 @@ namespace CatalogTests
         }
 
         [Fact]
-        public void JsonDeserialization_ReturnsCorrectObject()
+        public void JsonDeserialization_WhenTypeIsPackageDetails_ReturnsCorrectObject()
         {
-            var jObject = CreateCatalogIndexJObject();
+            var jObject = CreateCatalogIndexJObject(CatalogConstants.NuGetPackageDetails);
             var json = jObject.ToString(Formatting.None, _settings.Converters.ToArray());
 
             var entry = JsonConvert.DeserializeObject<CatalogIndexEntry>(json, _settings);
 
             Assert.Equal(_uri.AbsoluteUri, entry.Uri.AbsoluteUri);
             Assert.Equal(CatalogConstants.NuGetPackageDetails, entry.Types.Single());
+            Assert.False(entry.IsDelete);
             Assert.Equal(_commitId, entry.CommitId);
             Assert.Equal(_commitTimeStamp, entry.CommitTimeStamp);
             Assert.Equal(_packageId, entry.Id);
             Assert.Equal(_packageVersion, entry.Version);
         }
 
-        private JObject CreateCatalogIndexJObject(string commitTimeStamp = null)
+        [Theory]
+        [InlineData(CatalogConstants.NuGetPackageDelete)]
+        [InlineData(CatalogConstants.PackageDelete)]
+        [InlineData("http://schema.nuget.org/schema#PackageDelete")]
+        public void JsonDeserialization_WhenTypeIsPackageDelete_ReturnsCorrectObject(string type)
+        {
+            var jObject = CreateCatalogIndexJObject(type);
+            var json = jObject.ToString(Formatting.None, _settings.Converters.ToArray());
+
+            var entry = JsonConvert.DeserializeObject<CatalogIndexEntry>(json, _settings);
+
+            Assert.Equal(_uri.AbsoluteUri, entry.Uri.AbsoluteUri);
+            Assert.Equal(type, entry.Types.Single());
+            Assert.True(entry.IsDelete);
+            Assert.Equal(_commitId, entry.CommitId);
+            Assert.Equal(_commitTimeStamp, entry.CommitTimeStamp);
+            Assert.Equal(_packageId, entry.Id);
+            Assert.Equal(_packageVersion, entry.Version);
+        }
+
+        private JObject CreateCatalogIndexJObject(string type)
         {
             return new JObject(
                 new JProperty(CatalogConstants.IdKeyword, _uri),
-                new JProperty(CatalogConstants.TypeKeyword, CatalogConstants.NuGetPackageDetails),
+                new JProperty(CatalogConstants.TypeKeyword, type),
                 new JProperty(CatalogConstants.CommitId, _commitId),
-                new JProperty(CatalogConstants.CommitTimeStamp, commitTimeStamp ?? _commitTimeStamp.ToString(CatalogConstants.CommitTimeStampFormat)),
+                new JProperty(CatalogConstants.CommitTimeStamp, _commitTimeStamp.ToString(CatalogConstants.CommitTimeStampFormat)),
                 new JProperty(CatalogConstants.NuGetId, _packageId),
                 new JProperty(CatalogConstants.NuGetVersion, _packageVersion.ToNormalizedString()));
         }
