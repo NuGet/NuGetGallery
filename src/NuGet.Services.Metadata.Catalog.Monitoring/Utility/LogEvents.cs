@@ -13,5 +13,7 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
 
         public static EventId StatusDeserializationFailure = new EventId(903, "Status deserialization failed!");
         public static EventId StatusDeserializationFatalFailure = new EventId(904, "Status deserialization failed, and was unable to parse id and version from filename!");
+
+        public static EventId QueueMessageFatalFailure = new EventId(905, "Failed to process queue message");
     }
 }
