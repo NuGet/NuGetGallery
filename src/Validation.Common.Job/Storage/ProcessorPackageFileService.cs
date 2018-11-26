@@ -50,7 +50,7 @@ namespace NuGet.Jobs.Validation.Storage
             var fileName = BuildFileName(packageId, packageNormalizedVersion, validationId);
 
             return _fileStorageService.GetPriviledgedFileUriAsync(
-                CoreConstants.ValidationFolderName,
+                CoreConstants.Folders.ValidationFolderName,
                 fileName,
                 FileUriPermissions.Read | FileUriPermissions.Delete,
                 DateTimeOffset.UtcNow + AccessDuration);
@@ -80,7 +80,7 @@ namespace NuGet.Jobs.Validation.Storage
             packageFile.Position = 0;
 
             return _fileStorageService.SaveFileAsync(
-                CoreConstants.ValidationFolderName,
+                CoreConstants.Folders.ValidationFolderName,
                 fileName,
                 packageFile,
                 overwrite: true);

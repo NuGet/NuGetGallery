@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NuGet.Services.Entities;
 using NuGet.Services.Messaging.Email;
+using NuGetGallery.Infrastructure.Mail.Messages;
 
 namespace NuGet.Services.Validation.Orchestrator
 {
