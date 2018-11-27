@@ -18,6 +18,13 @@ namespace NuGetGallery
         Task SaveLicenseFileAsync(Package package, Stream licenseFile);
 
         /// <summary>
+        /// Saves the license file from package stream.
+        /// </summary>
+        /// <param name="package">Package information.</param>
+        /// <param name="packageStream">Package stream with .nupkg contents.</param>
+        Task ExtractAndSaveLicenseFileAsync(Package package, Stream packageStream);
+
+        /// <summary>
         /// Downloads previously saved license file for a specified package.
         /// </summary>
         Task<Stream> DownloadLicenseFileAsync(Package package);

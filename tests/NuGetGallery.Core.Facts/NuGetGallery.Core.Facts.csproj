@@ -110,6 +110,9 @@
     <Compile Include="Services\CorePackageFileServiceFacts.cs" />
     <Compile Include="Services\CorePackageServiceFacts.cs" />
     <Compile Include="TestUtils\CoreMockExtensions.cs" />
+    <Compile Include="TestUtils\PackageServiceUtility.cs" />
+    <Compile Include="TestUtils\TestPackage.cs" />
+    <Compile Include="TestUtils\TestPackageReader.cs" />
     <Compile Include="Utilities\TestDirectory.cs" />
   </ItemGroup>
   <ItemGroup>

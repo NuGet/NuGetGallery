@@ -7,6 +7,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Moq;
 using NuGet.Services.Entities;
+using NuGetGallery.TestUtils;
 using Xunit;
 
 namespace NuGetGallery.Services
@@ -105,6 +106,14 @@ namespace NuGetGallery.Services
                 await service.SaveLicenseFileAsync(package, Stream.Null);
 
                 fileStorageSvc.VerifyAll();
+            }
+        }
+
+        public class ExtractAndSaveLicenseFileAsync
+        {
+            private static MemoryStream GeneratePackageAsync(string licenseFileName = null)
+            {
+                return PackageServiceUtility.CreateNuGetPackageStream();
             }
         }
 

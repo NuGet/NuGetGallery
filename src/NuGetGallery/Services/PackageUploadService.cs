@@ -725,7 +725,7 @@ namespace NuGetGallery
                     {
                         // if the package is immediately made available, it means there is a high chance we don't have
                         // validation pipeline that would normally store the license file, so we'll do it ourselves here.
-                        await SavePackageLicenseFile(packageFile, package);
+                        await _coreLicenseFileService.ExtractAndSaveLicenseFileAsync(package, packageFile);
                     }
                     try
                     {
@@ -800,26 +800,6 @@ namespace NuGetGallery
             }
 
             throw ex;
-        }
-
-        private async Task SavePackageLicenseFile(Stream packageFile, Package package)
-        {
-            packageFile.Seek(0, SeekOrigin.Begin);
-            using (var packageArchiveReader = new PackageArchiveReader(packageFile, leaveStreamOpen: true))
-            {
-                var packageMetadata = PackageMetadata.FromNuspecReader(packageArchiveReader.GetNuspecReader(), strict: true);
-                if (packageMetadata.LicenseMetadata == null || packageMetadata.LicenseMetadata.Type != LicenseType.File || string.IsNullOrWhiteSpace(packageMetadata.LicenseMetadata.License))
-                {
-                    throw new InvalidOperationException("No license file specified in the nuspec");
-                }
-
-                var filename = packageMetadata.LicenseMetadata.License;
-                var licenseFileEntry = packageArchiveReader.GetEntry(filename); // throws on non-existent file
-                using (var licenseFileStream = licenseFileEntry.Open())
-                {
-                    await _coreLicenseFileService.SaveLicenseFileAsync(package, licenseFileStream);
-                }
-            }
         }
     }
 }
