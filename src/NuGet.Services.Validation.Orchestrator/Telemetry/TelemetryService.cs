@@ -32,6 +32,8 @@ namespace NuGet.Services.Validation.Orchestrator.Telemetry
         private const string DurationToHashPackageSeconds = OrchestratorPrefix + "DurationToHashPackageSeconds";
         private const string MessageDeliveryLag = OrchestratorPrefix + "MessageDeliveryLag";
         private const string MessageEnqueueLag = OrchestratorPrefix + "MessageEnqueueLag";
+        private const string MessageHandlerDurationSeconds = OrchestratorPrefix + "MessageHandlerDurationSeconds";
+        private const string MessageLockLost = OrchestratorPrefix + "MessageLockLost";
         private const string SymbolsMessageEnqueued = OrchestratorPrefix + "SymbolsMessageEnqueued";
 
         private const string DurationToStartPackageSigningValidatorSeconds = PackageSigningPrefix + "DurationToStartSeconds";
@@ -51,6 +53,8 @@ namespace NuGet.Services.Validation.Orchestrator.Telemetry
         private const string HashAlgorithm = "HashAlgorithm";
         private const string StreamType = "StreamType";
         private const string MessageType = "MessageType";
+        private const string CallGuid = "CallGuid";
+        private const string Handled = "Handled";
         private const string ValidationId = "ValidationId";
         private const string OperationDateTime = "OperationDateTime";
 
@@ -250,6 +254,31 @@ namespace NuGet.Services.Validation.Orchestrator.Telemetry
                 {
                     { MessageType, typeof(TMessage).Name }
                 });
+
+        public void TrackMessageHandlerDuration<TMessage>(TimeSpan duration, Guid callGuid, bool handled)
+        {
+            _telemetryClient.TrackMetric(
+                MessageHandlerDurationSeconds,
+                duration.TotalSeconds,
+                new Dictionary<string, string>
+                {
+                    { MessageType, typeof(TMessage).Name },
+                    { CallGuid, callGuid.ToString() },
+                    { Handled, handled.ToString() }
+                });
+        }
+
+        public void TrackMessageLockLost<TMessage>(Guid callGuid)
+        {
+            _telemetryClient.TrackMetric(
+                MessageLockLost,
+                1,
+                new Dictionary<string, string>
+                {
+                    { MessageType, typeof(TMessage).Name },
+                    { CallGuid, callGuid.ToString() }
+                });
+        }
 
         public void TrackEnqueueLag<TMessage>(TimeSpan enqueueLag)
             => _telemetryClient.TrackMetric(
