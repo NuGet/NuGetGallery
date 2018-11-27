@@ -10,6 +10,7 @@ using Microsoft.Extensions.Options;
 using Moq;
 using NuGet.Services.Entities;
 using NuGet.Services.Messaging.Email;
+using NuGetGallery.Infrastructure.Mail.Messages;
 using Xunit;
 
 namespace NuGet.Services.Validation.Orchestrator.Tests

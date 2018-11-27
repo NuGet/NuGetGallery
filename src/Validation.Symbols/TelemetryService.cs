@@ -16,6 +16,8 @@ namespace Validation.Symbols
         private const string SymbolValidationDuration = Prefix + "SymbolValidationDurationInSeconds";
         private const string MessageDeliveryLag = Prefix + "MessageDeliveryLag";
         private const string MessageEnqueueLag = Prefix + "MessageEnqueueLag";
+        private const string MessageHandlerDurationSeconds = Prefix + "MessageHandlerDurationSeconds";
+        private const string MessageLockLost = Prefix + "MessageLockLost";
         private const string SymbolValidationResult = Prefix + "SymbolValidationResult";
         private const string SymbolAssemblyValidationResult = Prefix + "SymbolAssemblyValidationResult";
 
@@ -26,6 +28,8 @@ namespace Validation.Symbols
         private const string ValidationResult = "ValidationResult";
         private const string Issue = "Issue";
         private const string AssemblyName = "AssemblyName";
+        private const string CallGuid = "CallGuid";
+        private const string Handled = "Handled";
 
         private readonly ITelemetryClient _telemetryClient;
 
@@ -115,5 +119,30 @@ namespace Validation.Symbols
                 {
                     { MessageType, typeof(TMessage).Name }
                 });
+
+        public void TrackMessageHandlerDuration<TMessage>(TimeSpan duration, Guid callGuid, bool handled)
+        {
+            _telemetryClient.TrackMetric(
+                MessageHandlerDurationSeconds,
+                duration.TotalSeconds,
+                new Dictionary<string, string>
+                {
+                    { MessageType, typeof(TMessage).Name },
+                    { CallGuid, callGuid.ToString() },
+                    { Handled, handled.ToString() }
+                });
+        }
+
+        public void TrackMessageLockLost<TMessage>(Guid callGuid)
+        {
+            _telemetryClient.TrackMetric(
+                MessageLockLost,
+                1,
+                new Dictionary<string, string>
+                {
+                    { MessageType, typeof(TMessage).Name },
+                    { CallGuid, callGuid.ToString() }
+                });
+        }
     }
 }

@@ -47,6 +47,11 @@ namespace NuGet.Services.Validation.Orchestrator
 {
     public class Job : JobBase
     {
+        /// <summary>
+        /// The maximum number of concurrent connections that can be established to a single server.
+        /// </summary>
+        private const int MaximumConnectionsPerServer = 64;
+
         private const string ConfigurationArgument = "Configuration";
         private const string ValidateArgument = "Validate";
 
@@ -93,6 +98,8 @@ namespace NuGet.Services.Validation.Orchestrator
 
         public override void Init(IServiceContainer serviceContainer, IDictionary<string, string> jobArgsDictionary)
         {
+            ServicePointManager.DefaultConnectionLimit = MaximumConnectionsPerServer;
+
             var configurationFilename = JobConfigurationManager.GetArgument(jobArgsDictionary, ConfigurationArgument);
             _validateOnly = JobConfigurationManager.TryGetBoolArgument(jobArgsDictionary, ValidateArgument, defaultValue: false);
 

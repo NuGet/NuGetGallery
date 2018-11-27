@@ -71,5 +71,48 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
 
             _telemetryClient.VerifyAll();
         }
+
+        [Fact]
+        public void TrackDurationToBackupPackage_TracksDuration()
+        {
+            // Arrange
+            var validationTrackingId = Guid.NewGuid();
+            var packageId = "a";
+            var normalizedVersion = "b";
+            var validationSet = new PackageValidationSet
+            {
+                ValidationTrackingId = validationTrackingId,
+                PackageId = packageId,
+                PackageNormalizedVersion = normalizedVersion
+            };
+
+            var expectedReturnValue = Mock.Of<IDisposable>();
+
+            _telemetryClient.Setup(
+                    x => x.TrackMetric(
+                        It.IsNotNull<string>(),
+                        It.IsAny<double>(),
+                        It.IsNotNull<IDictionary<string, string>>()))
+                .Callback((string metricName, double value, IDictionary<string, string> properties) =>
+                {
+                    Assert.Equal("Orchestrator.DurationToBackupPackageSeconds", metricName);
+                    Assert.True(value > 0);
+                    Assert.NotEmpty(properties);
+                    Assert.Equal(new Dictionary<string, string>()
+                    {
+                        { "ValidationTrackingId", validationTrackingId.ToString() },
+                        { "PackageId", packageId },
+                        { "NormalizedVersion", normalizedVersion },
+                    }, properties);
+                });
+
+            // Act
+            using (_telemetryService.TrackDurationToBackupPackage(validationSet))
+            {
+            }
+
+            // Assert
+            _telemetryClient.VerifyAll();
+        }
     }
 }

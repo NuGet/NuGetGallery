@@ -118,19 +118,22 @@ namespace NuGet.Services.Validation.Orchestrator
 
         public async Task BackupPackageFileFromValidationSetPackageAsync(PackageValidationSet validationSet)
         {
-            _logger.LogInformation(
-                "Backing up package for validation set {ValidationTrackingId} ({PackageId} {PackageVersion}).",
-                validationSet.ValidationTrackingId,
-                validationSet.PackageId,
-                validationSet.PackageNormalizedVersion);
-
-            var packageUri = await GetPackageForValidationSetReadUriAsync(
-                validationSet,
-                DateTimeOffset.UtcNow.Add(AccessDuration));
-
-            using (var packageStream = await _fileDownloader.DownloadAsync(packageUri, CancellationToken.None))
+            using (_telemetryService.TrackDurationToBackupPackage(validationSet))
             {
-                await StorePackageFileInBackupLocationAsync(validationSet, packageStream);
+                _logger.LogInformation(
+                    "Backing up package for validation set {ValidationTrackingId} ({PackageId} {PackageVersion}).",
+                    validationSet.ValidationTrackingId,
+                    validationSet.PackageId,
+                    validationSet.PackageNormalizedVersion);
+
+                var packageUri = await GetPackageForValidationSetReadUriAsync(
+                    validationSet,
+                    DateTimeOffset.UtcNow.Add(AccessDuration));
+
+                using (var packageStream = await _fileDownloader.DownloadAsync(packageUri, CancellationToken.None))
+                {
+                    await StorePackageFileInBackupLocationAsync(validationSet, packageStream);
+                }
             }
         }
 

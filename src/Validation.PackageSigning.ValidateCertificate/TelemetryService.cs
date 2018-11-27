@@ -17,6 +17,8 @@ namespace Validation.PackageSigning.ValidateCertificate
         private const string UnableToValidateCertificate = Prefix + "UnableToValidateCertificate";
         private const string MessageDeliveryLag = Prefix + "MessageDeliveryLag";
         private const string MessageEnqueueLag = Prefix + "MessageEnqueueLag";
+        private const string MessageHandlerDurationSeconds = Prefix + "MessageHandlerDurationSeconds";
+        private const string MessageLockLost = Prefix + "MessageLockLost";
 
         private const string PackageId = "PackageId";
         private const string PackageNormalizedVersion = "PackageNormalizedVersion";
@@ -24,6 +26,8 @@ namespace Validation.PackageSigning.ValidateCertificate
         private const string CertificateId = "CertificateId";
         private const string CertificateThumbprint = "CertificateThumbprint";
         private const string MessageType = "MessageType";
+        private const string CallGuid = "CallGuid";
+        private const string Handled = "Handled";
 
         private readonly TelemetryClient _telemetryClient;
 
@@ -87,5 +91,30 @@ namespace Validation.PackageSigning.ValidateCertificate
                 {
                     { MessageType, typeof(TMessage).Name }
                 });
+
+        public void TrackMessageHandlerDuration<TMessage>(TimeSpan duration, Guid callGuid, bool handled)
+        {
+            _telemetryClient.TrackMetric(
+                MessageHandlerDurationSeconds,
+                duration.TotalSeconds,
+                new Dictionary<string, string>
+                {
+                    { MessageType, typeof(TMessage).Name },
+                    { CallGuid, callGuid.ToString() },
+                    { Handled, handled.ToString() }
+                });
+        }
+
+        public void TrackMessageLockLost<TMessage>(Guid callGuid)
+        {
+            _telemetryClient.TrackMetric(
+                MessageLockLost,
+                1,
+                new Dictionary<string, string>
+                {
+                    { MessageType, typeof(TMessage).Name },
+                    { CallGuid, callGuid.ToString() }
+                });
+        }
     }
 }

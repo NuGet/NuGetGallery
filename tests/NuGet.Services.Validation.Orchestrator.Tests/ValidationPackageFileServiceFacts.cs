@@ -112,6 +112,15 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 .Returns(Task.CompletedTask)
                 .Verifiable();
 
+            var backupDurationMetric = new Mock<IDisposable>(MockBehavior.Strict);
+            backupDurationMetric
+                .Setup(m => m.Dispose())
+                .Verifiable();
+
+            _telemetryService
+                .Setup(t => t.TrackDurationToBackupPackage(_validationSet))
+                .Returns(backupDurationMetric.Object);
+
             var before = DateTimeOffset.UtcNow;
             await _target.BackupPackageFileFromValidationSetPackageAsync(_validationSet);
             var after = DateTimeOffset.UtcNow;
@@ -304,7 +313,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 var wasUpdated = false;
 
                 _fileStorageService.Setup(x => x.SetMetadataAsync(
-                        It.Is<string>(folderName => folderName == CoreConstants.PackagesFolderName),
+                        It.Is<string>(folderName => folderName == CoreConstants.Folders.PackagesFolderName),
                         It.Is<string>(fileName => fileName == _packageFileName),
                         It.IsNotNull<Func<Lazy<Task<Stream>>, IDictionary<string, string>, Task<bool>>>()))
                     .Callback<string, string, Func<Lazy<Task<Stream>>, IDictionary<string, string>, Task<bool>>>(
@@ -350,7 +359,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 var wasUpdated = false;
 
                 _fileStorageService.Setup(x => x.SetMetadataAsync(
-                        It.Is<string>(folderName => folderName == CoreConstants.PackagesFolderName),
+                        It.Is<string>(folderName => folderName == CoreConstants.Folders.PackagesFolderName),
                         It.Is<string>(fileName => fileName == _packageFileName),
                         It.IsNotNull<Func<Lazy<Task<Stream>>, IDictionary<string, string>, Task<bool>>>()))
                     .Callback<string, string, Func<Lazy<Task<Stream>>, IDictionary<string, string>, Task<bool>>>(
