@@ -1718,7 +1718,7 @@ namespace NuGetGallery
                 var result = await _target.CommitPackageAsync(_package, _packageFile);
 
                 _licenseFileService.Verify(
-                    lfs => lfs.SaveLicenseFileAsync(_package, It.Is<Stream>(s => s != null)),
+                    lfs => lfs.ExtractAndSaveLicenseFileAsync(_package, _packageFile),
                     expectedLicenseSave ? Times.Once() : Times.Never());
             }
 
