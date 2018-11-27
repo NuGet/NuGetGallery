@@ -16,6 +16,7 @@ namespace NuGet.Services.Validation.Orchestrator.Telemetry
         private const string PackageCertificatesPrefix = "PackageCertificates.";
 
         private const string DurationToValidationSetCreationSeconds = OrchestratorPrefix + "DurationToValidationSetCreationSeconds";
+        private const string DurationToBackupPackageSeconds = OrchestratorPrefix + "DurationToBackupPackageSeconds";
         private const string PackageStatusChange = OrchestratorPrefix + "PackageStatusChange";
         private const string TotalValidationDurationSeconds = OrchestratorPrefix + "TotalValidationDurationSeconds";
         private const string SentValidationTakingTooLongMessage = OrchestratorPrefix + "SentValidationTakingTooLongMessage";
@@ -84,6 +85,18 @@ namespace NuGet.Services.Validation.Orchestrator.Telemetry
             _telemetryClient.TrackMetric(
                 DurationToValidationSetCreationSeconds,
                 duration.TotalSeconds);
+        }
+
+        public IDisposable TrackDurationToBackupPackage(PackageValidationSet validationSet)
+        {
+            return _telemetryClient.TrackDuration(
+                DurationToBackupPackageSeconds,
+                new Dictionary<string, string>
+                {
+                    { ValidationTrackingId, validationSet.ValidationTrackingId.ToString() },
+                    { PackageId, validationSet.PackageId },
+                    { NormalizedVersion, validationSet.PackageNormalizedVersion }
+                });
         }
 
         public void TrackPackageStatusChange(PackageStatus fromStatus, PackageStatus toStatus)

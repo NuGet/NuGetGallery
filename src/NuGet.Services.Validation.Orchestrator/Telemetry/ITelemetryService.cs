@@ -18,11 +18,18 @@ namespace NuGet.Services.Validation.Orchestrator.Telemetry
         void TrackDurationToValidationSetCreation(TimeSpan duration);
 
         /// <summary>
+        /// Track how long a package's backup takes.
+        /// </summary>
+        /// <param name="validationSet">The validation set that requested the backup.</param>
+        /// <returns>Reports the duration when disposed.</returns>
+        IDisposable TrackDurationToBackupPackage(PackageValidationSet validationSet);
+
+        /// <summary>
         /// A counter metric emitted when a package changes package status. This metric is not emitted if package status
         /// does not change. This metric is emitted for revalidation if the terminal state changes.
         /// </summary>
         /// <param name="fromStatus">The status that the package moved from.</param>
-        /// <param name="toStatus">The status that the package moved tp.</param>
+        /// <param name="toStatus">The status that the package moved to.</param>
         void TrackPackageStatusChange(PackageStatus fromStatus, PackageStatus toStatus);
 
         /// <summary>
