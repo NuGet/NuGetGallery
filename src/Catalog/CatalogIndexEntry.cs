@@ -73,7 +73,7 @@ namespace NuGet.Services.Metadata.Catalog
         {
             get
             {
-                return Types.Any(type => type == "nuget:PackageDelete" || type == "PackageDelete" || type == Schema.DataTypes.PackageDelete.ToString());
+                return Types.Any(type => type == "nuget:PackageDelete");
             }
         }
 
