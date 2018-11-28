@@ -97,7 +97,7 @@ namespace Stats.CollectAzureCdnLogs.Ftp
             }
         }
 
-        public async Task<IEnumerable<RawLogFileInfo>> GetRawLogFiles(Uri uri)
+        public async Task<IEnumerable<Uri>> GetRawLogFileUris(Uri uri)
         {
             if (uri == null)
             {
@@ -124,15 +124,13 @@ namespace Stats.CollectAzureCdnLogs.Ftp
 
                     var fileNames = directoryList.Split(Environment.NewLine.ToCharArray(),
                         StringSplitOptions.RemoveEmptyEntries);
-                    var rawLogFiles = fileNames.Select(fn => new RawLogFileInfo(new Uri(uri.EnsureTrailingSlash(), fn)));
-
-                    return rawLogFiles;
+                    return fileNames.Select(fn => new Uri(uri.EnsureTrailingSlash(), fn));
                 }
                 catch (Exception e)
                 {
                     Logger.LogError(LogEvents.FailedBlobListing, e, "Failed to get raw log files.");
 
-                    return Enumerable.Empty<RawLogFileInfo>();
+                    return Enumerable.Empty<Uri>();
                 }
             }
         }

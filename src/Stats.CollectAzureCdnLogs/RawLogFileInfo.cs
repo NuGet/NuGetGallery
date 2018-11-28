@@ -70,10 +70,8 @@ namespace Stats.CollectAzureCdnLogs
                     if (Extension.EndsWith(FileExtensions.Gzip, StringComparison.InvariantCultureIgnoreCase))
                     {
                         ContentType = _contentTypeGzip;
-                    }
-                    else
-                    {
-                        throw new InvalidRawLogFileNameException(FileName);
+
+                        return;
                     }
                 }
                 else if (lastPart.Count() == 4)
@@ -85,17 +83,13 @@ namespace Stats.CollectAzureCdnLogs
                     {
                         IsPendingDownload = true;
                         ContentType = _contentTypeGzip;
+
+                        return;
                     }
                 }
-                else
-                {
-                    throw new InvalidRawLogFileNameException(FileName);
-                }
             }
-            else
-            {
-                throw new InvalidRawLogFileNameException(FileName);
-            }
+
+            throw new InvalidRawLogFileNameException(FileName);
         }
 
         private int TryParseRollingFileNumber(string rollingFileNumberString)

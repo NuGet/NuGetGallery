@@ -114,15 +114,17 @@ namespace Stats.CollectAzureCdnLogs
             var azureClient = new CloudBlobRawLogClient(LoggerFactory, _cloudStorageAccount);
 
             // Collect directory listing.
-            var rawLogFiles = await ftpClient.GetRawLogFiles(_ftpServerUri);
+            var rawLogFileUris = await ftpClient.GetRawLogFileUris(_ftpServerUri);
 
             // Prepare cloud storage blob container.
             var cloudBlobContainer = await azureClient.CreateContainerIfNotExistsAsync(_cloudStorageContainerName);
 
-            foreach (var rawLogFile in rawLogFiles)
+            foreach (var rawLogFileUri in rawLogFileUris)
             {
                 try
                 {
+                    var rawLogFile = new RawLogFileInfo(rawLogFileUri);
+
                     if (_azureCdnPlatform != rawLogFile.AzureCdnPlatform
                         || !_azureCdnAccountNumber.Equals(rawLogFile.AzureCdnAccountNumber, StringComparison.InvariantCultureIgnoreCase))
                     {
