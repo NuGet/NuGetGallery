@@ -6,18 +6,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Newtonsoft.Json.Linq;
 using NgTests.Infrastructure;
+using NgTests.Validation;
 using NuGet.Packaging.Core;
 using NuGet.Packaging.Signing;
 using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
 using NuGet.Services.Metadata.Catalog;
-using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGet.Services.Metadata.Catalog.Monitoring;
 using NuGet.Services.Metadata.Catalog.Monitoring.Validation.Test.Catalog;
 using NuGet.Services.Metadata.Catalog.Monitoring.Validation.Test.Exceptions;
@@ -49,7 +48,6 @@ namespace NgTests.Validators
             var exception = Assert.Throws<ArgumentNullException>(
                 () => new CatalogAggregateValidator(
                     new ValidatorFactory(
-                        Mock.Of<IDictionary<FeedType, SourceRepository>>(),
                         _validatorConfiguration,
                         Mock.Of<ILoggerFactory>()),
                     configuration: null));
@@ -68,7 +66,6 @@ namespace NgTests.Validators
                 ValidationContext context = CreateContext(client, DateTime.UtcNow);
                 CatalogAggregateValidator validator = CreateValidator(
                     context,
-                    DateTime.UtcNow,
                     requirePackageSignature: false);
 
                 Assert.Equal(typeof(CatalogAggregateValidator).FullName, validator.Name);
@@ -91,7 +88,7 @@ namespace NgTests.Validators
             using (CollectorHttpClient client = await CreateCollectorHttpClientStubAsync(clientHandler, storage))
             {
                 ValidationContext context = CreateContext(client, now);
-                CatalogAggregateValidator validator = CreateValidator(context, now, requirePackageSignature: false);
+                CatalogAggregateValidator validator = CreateValidator(context, requirePackageSignature: false);
 
                 AggregateValidationResult result = await validator.ValidateAsync(context);
 
@@ -115,7 +112,7 @@ namespace NgTests.Validators
             using (CollectorHttpClient client = await CreateCollectorHttpClientStubAsync(clientHandler, storage))
             {
                 ValidationContext context = CreateContext(client, now);
-                CatalogAggregateValidator validator = CreateValidator(context, now, requirePackageSignature: true);
+                CatalogAggregateValidator validator = CreateValidator(context, requirePackageSignature: true);
 
                 AggregateValidationResult result = await validator.ValidateAsync(context);
 
@@ -160,23 +157,11 @@ namespace NgTests.Validators
 
         private static CatalogAggregateValidator CreateValidator(
             ValidationContext context,
-            DateTime now,
             bool requirePackageSignature)
         {
-            var feedToSource = new Mock<IDictionary<FeedType, SourceRepository>>();
             var config = ValidatorTestUtility.CreateValidatorConfig(requirePackageSignature: requirePackageSignature);
             var loggerFactory = CreateLoggerFactory();
-            var validatorFactory = new ValidatorFactory(feedToSource.Object, config, loggerFactory);
-            var sourceRepository = new Mock<SourceRepository>();
-            var metadataResource = new Mock<IPackageTimestampMetadataResource>();
-
-            metadataResource.Setup(x => x.GetAsync(It.Is<ValidationContext>(vc => vc == context)))
-                .ReturnsAsync(PackageTimestampMetadata.CreateForPackageExistingOnFeed(now, now));
-
-            sourceRepository.Setup(x => x.GetResource<IPackageTimestampMetadataResource>())
-                .Returns(metadataResource.Object);
-
-            feedToSource.Setup(x => x[It.IsAny<FeedType>()]).Returns(sourceRepository.Object);
+            var validatorFactory = new ValidatorFactory(config, loggerFactory);
 
             return new CatalogAggregateValidator(validatorFactory, config);
         }
@@ -193,12 +178,16 @@ namespace NgTests.Validators
                     _packageIdentity)
             };
 
-            return new ValidationContext(
+            var metadataResource = new Mock<IPackageTimestampMetadataResource>();
+
+            metadataResource.Setup(x => x.GetAsync(It.IsAny<ValidationContext>()))
+                .ReturnsAsync(PackageTimestampMetadata.CreateForPackageExistingOnFeed(commitTimeStamp, commitTimeStamp));
+
+            return ValidationContextStub.Create(
                 _packageIdentity,
                 catalogEntries,
-                Enumerable.Empty<DeletionAuditEntry>(),
-                client,
-                CancellationToken.None);
+                client: client,
+                timestampMetadataResource: metadataResource.Object);
         }
 
         private static ILoggerFactory CreateLoggerFactory()

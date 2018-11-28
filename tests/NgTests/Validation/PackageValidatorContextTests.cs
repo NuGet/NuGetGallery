@@ -14,7 +14,8 @@ namespace NgTests.Validation
 {
     public class PackageValidatorContextTests
     {
-        private static readonly FeedPackageIdentity _package = new FeedPackageIdentity(id: "a", version: "1.0.0");
+        private static readonly PackageIdentity _packageIdentity = new PackageIdentity(id: "a", version: new NuGetVersion("1.0.0"));
+        private static readonly FeedPackageIdentity _feedPackageIdentity = new FeedPackageIdentity(_packageIdentity);
 
         [Fact]
         public void Constructor_WhenPackageIsNull_Throws()
@@ -32,7 +33,7 @@ namespace NgTests.Validation
         {
             var exception = Assert.Throws<ArgumentNullException>(
                 () => new PackageValidatorContext(
-                    _package,
+                    _feedPackageIdentity,
                     catalogEntries: null));
 
             Assert.Equal("catalogEntries", exception.ParamName);
@@ -48,11 +49,11 @@ namespace NgTests.Validation
                     CatalogConstants.NuGetPackageDetails,
                     Guid.NewGuid().ToString(),
                     DateTime.UtcNow,
-                    new PackageIdentity(id: "a", version: new NuGetVersion("1.0.0")))
+                    _packageIdentity)
             };
-            var context = new PackageValidatorContext(_package, catalogEntries);
+            var context = new PackageValidatorContext(_feedPackageIdentity, catalogEntries);
 
-            Assert.Same(_package, context.Package);
+            Assert.Same(_feedPackageIdentity, context.Package);
             Assert.Same(catalogEntries, context.CatalogEntries);
         }
     }

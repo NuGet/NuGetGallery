@@ -8,6 +8,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NuGet.Packaging.Core;
+using NuGet.Protocol;
+using NuGet.Protocol.Core.Types;
 using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using NuGet.Versioning;
@@ -21,14 +23,17 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
     {
         public IEnumerable<IAggregateValidator> AggregateValidators { get; }
 
+        private readonly IReadOnlyDictionary<FeedType, SourceRepository> _feedToSource;
         private readonly ILogger<PackageValidator> _logger;
-
+        private readonly ILogger<ValidationContext> _contextLogger;
         private readonly StorageFactory _auditingStorageFactory;
 
         public PackageValidator(
             IEnumerable<IAggregateValidator> aggregateValidators,
             StorageFactory auditingStorageFactory,
-            ILogger<PackageValidator> logger)
+            IReadOnlyDictionary<FeedType, SourceRepository> feedToSource,
+            ILogger<PackageValidator> logger,
+            ILogger<ValidationContext> contextLogger)
         {
             var validators = aggregateValidators?.ToList();
 
@@ -39,7 +44,9 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
 
             AggregateValidators = validators;
             _auditingStorageFactory = auditingStorageFactory ?? throw new ArgumentNullException(nameof(auditingStorageFactory));
+            _feedToSource = feedToSource ?? throw new ArgumentNullException(nameof(feedToSource));
             _logger = logger;
+            _contextLogger = contextLogger ?? throw new ArgumentNullException(nameof(contextLogger));
         }
 
         /// <summary>
@@ -48,6 +55,18 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
         /// <returns>A <see cref="PackageValidationResult"/> generated from the results of the <see cref="IValidator"/>s.</returns>
         public async Task<PackageValidationResult> ValidateAsync(PackageValidatorContext context, CollectorHttpClient client, CancellationToken cancellationToken)
         {
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
+            if (client == null)
+            {
+                throw new ArgumentNullException(nameof(client));
+            }
+
+            cancellationToken.ThrowIfCancellationRequested();
+
             var package = new PackageIdentity(context.Package.Id, NuGetVersion.Parse(context.Package.Version));
 
             var deletionAuditEntries = await DeletionAuditEntry.GetAsync(
@@ -56,8 +75,16 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
                 package,
                 logger: _logger);
 
-            var validationContext = new ValidationContext(package, context.CatalogEntries, deletionAuditEntries, client, cancellationToken);
+            var validationContext = new ValidationContext(
+                package,
+                context.CatalogEntries,
+                deletionAuditEntries,
+                _feedToSource,
+                client,
+                cancellationToken,
+                _contextLogger);
             var results = await Task.WhenAll(AggregateValidators.Select(endpoint => endpoint.ValidateAsync(validationContext)).ToList());
+
             return new PackageValidationResult(validationContext, results);
         }
     }

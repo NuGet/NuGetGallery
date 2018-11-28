@@ -2,10 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
-using NuGet.Protocol;
-using NuGet.Protocol.Core.Types;
 
 namespace NuGet.Services.Metadata.Catalog.Monitoring
 {
@@ -14,11 +11,8 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
     /// </summary>
     public abstract class FlatContainerValidator : Validator<FlatContainerEndpoint>
     {
-        public FlatContainerValidator(
-            IDictionary<FeedType, SourceRepository> feedToSource,
-            ValidatorConfiguration config,
-            ILogger<FlatContainerValidator> logger)
-            : base(feedToSource, config, logger)
+        public FlatContainerValidator(ValidatorConfiguration config, ILogger<FlatContainerValidator> logger)
+            : base(config, logger)
         {
         }
 

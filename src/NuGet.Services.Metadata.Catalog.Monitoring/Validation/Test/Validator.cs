@@ -2,11 +2,8 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using NuGet.Protocol;
-using NuGet.Protocol.Core.Types;
 
 namespace NuGet.Services.Metadata.Catalog.Monitoring
 {
@@ -19,8 +16,6 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
         protected readonly ILogger<Validator> Logger;
         protected readonly Common.ILogger CommonLogger;
 
-        private readonly IPackageTimestampMetadataResource _timestampMetadataResourceV2;
-
         public virtual string Name
         {
             get
@@ -29,17 +24,8 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
             }
         }
 
-        protected Validator(
-            IDictionary<FeedType, SourceRepository> feedToSource,
-            ValidatorConfiguration config,
-            ILogger<Validator> logger)
+        protected Validator(ValidatorConfiguration config, ILogger<Validator> logger)
         {
-            if (feedToSource == null)
-            {
-                throw new ArgumentNullException(nameof(feedToSource));
-            }
-
-            _timestampMetadataResourceV2 = feedToSource[FeedType.HttpV2].GetResource<IPackageTimestampMetadataResource>();
             Config = config ?? throw new ArgumentNullException(nameof(config));
             Logger = logger ?? throw new ArgumentNullException(nameof(logger));
             CommonLogger = logger.AsCommon();
@@ -81,7 +67,7 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
         /// </summary>
         protected virtual async Task<bool> ShouldRunAsync(ValidationContext context)
         {
-            var timestampV2 = await _timestampMetadataResourceV2.GetAsync(context);
+            var timestampV2 = await context.GetTimestampMetadataV2Async();
             var timestampCatalog = await PackageTimestampMetadata.FromCatalogEntries(context.Client, context.Entries);
 
             if (!timestampV2.Last.HasValue)
@@ -115,11 +101,8 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
     /// </summary>
     public abstract class Validator<T> : Validator, IValidator<T> where T : EndpointValidator
     {
-        protected Validator(
-            IDictionary<FeedType, SourceRepository> feedToSource,
-            ValidatorConfiguration config,
-            ILogger<Validator> logger)
-            : base(feedToSource, config, logger)
+        protected Validator(ValidatorConfiguration config, ILogger<Validator> logger)
+            : base(config, logger)
         {
         }
     }

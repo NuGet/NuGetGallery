@@ -1,21 +1,15 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using NuGet.Protocol;
-using NuGet.Protocol.Core.Types;
 
 namespace NuGet.Services.Metadata.Catalog.Monitoring
 {
     public class RegistrationExistsValidator : RegistrationLeafValidator
     {
-        public RegistrationExistsValidator(
-            IDictionary<FeedType, SourceRepository> feedToSource,
-            ValidatorConfiguration config,
-            ILogger<RegistrationExistsValidator> logger)
-            : base(feedToSource, config, logger)
+        public RegistrationExistsValidator(ValidatorConfiguration config, ILogger<RegistrationExistsValidator> logger)
+            : base(config, logger)
         {
         }
 
@@ -50,7 +44,9 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
                 const string existsString = "exists";
                 const string doesNotExistString = "doesn't exist";
 
-                throw new MetadataInconsistencyException<PackageRegistrationLeafMetadata>(v2, v3,
+                throw new MetadataInconsistencyException<PackageRegistrationLeafMetadata>(
+                    v2,
+                    v3,
                     $"V2 {(v2Exists ? existsString : doesNotExistString)} but V3 {(v3Exists ? existsString : doesNotExistString)}!");
             }
 

@@ -5,10 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Threading;
+using NgTests.Validation;
 using NuGet.Packaging.Core;
-using NuGet.Services.Metadata.Catalog;
-using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGet.Services.Metadata.Catalog.Monitoring;
 using NuGet.Versioning;
 
@@ -98,12 +96,7 @@ namespace NgTests
 
         public static ValidationContext GetFakeValidationContext()
         {
-            return new ValidationContext(
-                new PackageIdentity("testPackage", new NuGetVersion(1, 0, 0)),
-                Enumerable.Empty<CatalogIndexEntry>(),
-                Enumerable.Empty<DeletionAuditEntry>(),
-                client: new CollectorHttpClient(),
-                token: CancellationToken.None);
+            return ValidationContextStub.Create(new PackageIdentity("testPackage", new NuGetVersion(1, 0, 0)));
         }
     }
 }
