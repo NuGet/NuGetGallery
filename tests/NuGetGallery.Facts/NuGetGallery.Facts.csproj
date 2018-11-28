@@ -148,6 +148,8 @@
     <Compile Include="Infrastructure\Mail\Messages\OrganizationTransformRejectedMessageFacts.cs" />
     <Compile Include="Infrastructure\Mail\Messages\OrganizationTransformAcceptedMessageFacts.cs" />
     <Compile Include="Infrastructure\Mail\Messages\OrganizationMemberUpdatedMessageFacts.cs" />
+    <Compile Include="Infrastructure\Mail\TestableMarkdownMessageService.cs" />
+    <Compile Include="Infrastructure\Mail\TestMailSender.cs" />
     <Compile Include="Infrastructure\Mail\TestMessageServiceConfiguration.cs" />
     <Compile Include="Security\ControlRequiredSignerPolicyFacts.cs" />
     <Compile Include="Security\AutomaticallyOverwriteRequiredSignerPolicyFacts.cs" />

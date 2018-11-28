@@ -6,17 +6,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Mail;
 using System.Threading.Tasks;
-using AnglicanGeek.MarkdownMailer;
-using Moq;
 using NuGet.Services.Entities;
 using NuGet.Services.Validation;
 using NuGet.Services.Validation.Issues;
 using NuGet.Versioning;
 using NuGetGallery.Authentication;
-using NuGetGallery.Configuration;
 using NuGetGallery.Framework;
 using NuGetGallery.Infrastructure.Authentication;
-using NuGetGallery.Infrastructure.Mail;
 using NuGetGallery.Infrastructure.Mail.Messages;
 using NuGetGallery.Infrastructure.Mail.Requests;
 using Xunit;
@@ -25,8 +21,8 @@ namespace NuGetGallery
 {
     public class MarkdownMessageServiceFacts
     {
-        public static readonly MailAddress TestGalleryOwner = new MailAddress("joe@example.com", "Joe Shmoe");
-        public static readonly MailAddress TestGalleryNoReplyAddress = new MailAddress("noreply@example.com", "No Reply");
+        private static readonly MailAddress TestGalleryOwner = TestableMarkdownMessageService.TestGalleryOwner;
+        private static readonly MailAddress TestGalleryNoReplyAddress = TestableMarkdownMessageService.TestGalleryNoReplyAddress;
 
         public class TheReportPackageRequestMessage
             : TestContainer
@@ -2487,59 +2483,7 @@ namespace NuGetGallery
                 Assert.Empty(messageService.MockMailSender.Sent);
             }
         }
-
-        public class TestableMarkdownMessageService
-            : MarkdownMessageService
-        {
-            private TestableMarkdownMessageService(IGalleryConfigurationService configurationService)
-                : base(new TestMailSender(), configurationService.Current, new Mock<ITelemetryService>().Object)
-            {
-                configurationService.Current.GalleryOwner = TestGalleryOwner;
-                configurationService.Current.GalleryNoReplyAddress = TestGalleryNoReplyAddress;
-
-                MockMailSender = (TestMailSender)MailSender;
-            }
-
-            public Mock<AuthenticationService> MockAuthService { get; protected set; }
-            public TestMailSender MockMailSender { get; protected set; }
-
-            public static TestableMarkdownMessageService Create(IGalleryConfigurationService configurationService)
-            {
-                configurationService.Current.SmtpUri = new Uri("smtp://fake.mail.server");
-                return new TestableMarkdownMessageService(configurationService);
-            }
-        }
-
-        // Normally I don't like hand-written mocks, but this actually seems appropriate - anurse
-        public class TestMailSender : IMailSender
-        {
-            public IList<MailMessage> Sent { get; private set; }
-
-            public TestMailSender()
-            {
-                Sent = new List<MailMessage>();
-            }
-
-            public void Send(MailMessage mailMessage)
-            {
-                Sent.Add(mailMessage);
-            }
-
-            public void Send(MailAddress fromAddress, MailAddress toAddress, string subject, string markdownBody)
-            {
-                Send(new MailMessage(fromAddress, toAddress)
-                {
-                    Subject = subject,
-                    Body = markdownBody
-                });
-            }
-
-            public void Send(string fromAddress, string toAddress, string subject, string markdownBody)
-            {
-                Send(new MailMessage(fromAddress, toAddress, subject, markdownBody));
-            }
-        }
-
+               
         private static void AssertMessageSentToPackageOwnershipManagersOfOrganizationOnly(MailMessage message, Organization organization)
         {
             AssertMessageSentToMembersOfOrganizationWithPermissionOnly(message, organization, ActionsRequiringPermissions.HandlePackageOwnershipRequest);
