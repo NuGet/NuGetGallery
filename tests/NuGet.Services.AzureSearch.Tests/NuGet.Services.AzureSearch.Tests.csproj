@@ -38,6 +38,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BatchPusherFacts.cs" />
+    <Compile Include="Catalog2AzureSearch\CatalogLeafFetcherFacts.cs" />
     <Compile Include="Db2AzureSearch\Db2AzureSearchCommandFacts.cs" />
     <Compile Include="Db2AzureSearch\EnumerableExtensionsFacts.cs" />
     <Compile Include="Db2AzureSearch\NewPackageRegistrationProducerFacts.cs" />

@@ -12,5 +12,6 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
         public string Source { get; set; }
         public TimeSpan HttpClientTimeout { get; set; }
         public List<string> DependencyCursorUrls { get; set; }
+        public string RegistrationsBaseUrl { get; set; }
     }
 }

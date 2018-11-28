@@ -1,7 +1,7 @@
 {
   "Catalog2AzureSearch": {
     "AzureSearchBatchSize": 1000,
-    "WorkerCount": 32,
+    "MaxConcurrentBatches": 32,
     "SearchServiceName": "",
     "SearchServiceApiKey": "",
     "SearchIndexName": "",
@@ -13,7 +13,8 @@
     "HttpClientTimeout": "00:15:00",
     "DependencyCursorUrls": [
       ""
-    ]
+    ],
+    "RegistrationsBaseUrl": ""
   },
 
   "KeyVault_VaultName": "#{Deployment.Azure.KeyVault.VaultName}",

@@ -5,7 +5,7 @@
 
   "Db2AzureSearch": {
     "AzureSearchBatchSize": 1000,
-    "WorkerCount": 32,
+    "MaxConcurrentBatches": 32,
     "SearchServiceName": "",
     "SearchServiceApiKey": "",
     "SearchIndexName": "",

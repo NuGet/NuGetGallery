@@ -38,6 +38,9 @@
     <Compile Include="AzureSearchConfiguration.cs" />
     <Compile Include="Catalog2AzureSearch\Catalog2AzureSearchConfiguration.cs" />
     <Compile Include="BatchPusher.cs" />
+    <Compile Include="Catalog2AzureSearch\CatalogLeafFetcher.cs" />
+    <Compile Include="Catalog2AzureSearch\ICatalogLeafFetcher.cs" />
+    <Compile Include="Catalog2AzureSearch\LatestCatalogLeaves.cs" />
     <Compile Include="IBatchPusher.cs" />
     <Compile Include="Db2AzureSearch\Db2AzureSearchCommand.cs" />
     <Compile Include="Db2AzureSearch\Db2AzureSearchConfiguration.cs" />

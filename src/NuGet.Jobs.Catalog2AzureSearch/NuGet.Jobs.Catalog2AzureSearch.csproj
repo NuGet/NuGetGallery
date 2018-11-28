@@ -53,6 +53,10 @@
       <Project>{E97F23B8-ECB0-4AFA-B00C-015C39395FEF}</Project>
       <Name>NuGet.Services.Metadata.Catalog</Name>
     </ProjectReference>
+    <ProjectReference Include="..\NuGet.Protocol.Catalog\NuGet.Protocol.Catalog.csproj">
+      <Project>{D44C2E89-2D98-44BD-8712-8CCBE4E67C9C}</Project>
+      <Name>NuGet.Protocol.Catalog</Name>
+    </ProjectReference>
     <ProjectReference Include="..\NuGet.Services.AzureSearch\NuGet.Services.AzureSearch.csproj">
       <Project>{1a53fe3d-8041-4773-942f-d73aef5b82b2}</Project>
       <Name>NuGet.Services.AzureSearch</Name>
