@@ -38,6 +38,7 @@
   <ItemGroup>
     <Compile Include="AsynchronousEmailMessageServiceFacts.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TestMessageServiceConfiguration.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\NuGet.Services.Messaging.Email\NuGet.Services.Messaging.Email.csproj">
