@@ -20,7 +20,6 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
     {
         private readonly bool _compressContent;
         private readonly CloudBlobDirectory _directory;
-        private readonly BlobRequestOptions _blobRequestOptions;
         private readonly bool _useServerSideCopy;
 
         public static readonly TimeSpan DefaultServerTimeout = TimeSpan.FromSeconds(30);
@@ -72,22 +71,24 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         {
             _directory = directory;
 
+            // Unless overridden at the level of a single API call, these options will apply to all service calls that 
+            // use BlobRequestOptions.
+            _directory.ServiceClient.DefaultRequestOptions = new BlobRequestOptions()
+            {
+                ServerTimeout = serverTimeout,
+                MaximumExecutionTime = maxExecutionTime,
+                RetryPolicy = new ExponentialRetry()
+            };
+
             if (_directory.Container.CreateIfNotExists())
             {
                 _directory.Container.SetPermissions(new BlobContainerPermissions { PublicAccess = BlobContainerPublicAccessType.Blob });
 
                 if (Verbose)
                 {
-                    Trace.WriteLine(String.Format("Created '{0}' publish container", _directory.Container.Name));
+                    Trace.WriteLine(string.Format("Created '{0}' publish container", _directory.Container.Name));
                 }
             }
-
-            _blobRequestOptions = new BlobRequestOptions()
-            {
-                ServerTimeout = serverTimeout,
-                MaximumExecutionTime = maxExecutionTime,
-                RetryPolicy = new ExponentialRetry()
-            };
         }
 
         public override async Task<OptimisticConcurrencyControlToken> GetOptimisticConcurrencyControlTokenAsync(
@@ -134,7 +135,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             }
             if (Verbose)
             {
-                Trace.WriteLine(String.Format("The blob {0} does not exist.", packageRegistrationUri));
+                Trace.WriteLine(string.Format("The blob {0} does not exist.", packageRegistrationUri));
             }
             return false;
         }
@@ -230,11 +231,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
                     destinationStream.Seek(0, SeekOrigin.Begin);
 
-                    await blob.UploadFromStreamAsync(destinationStream,
-                        accessCondition: null,
-                        options: _blobRequestOptions,
-                        operationContext: null,
-                        cancellationToken: cancellationToken);
+                    await blob.UploadFromStreamAsync(destinationStream, cancellationToken);
 
                     Trace.WriteLine(string.Format("Saved compressed blob {0} to container {1}", blob.Uri.ToString(), _directory.Container.Name));
                 }
@@ -243,11 +240,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             {
                 using (Stream stream = content.GetContentStream())
                 {
-                    await blob.UploadFromStreamAsync(stream,
-                        accessCondition: null,
-                        options: _blobRequestOptions,
-                        operationContext: null,
-                        cancellationToken: cancellationToken);
+                    await blob.UploadFromStreamAsync(stream, cancellationToken);
                 }
 
                 Trace.WriteLine(string.Format("Saved uncompressed blob {0} to container {1}", blob.Uri.ToString(), _directory.Container.Name));
@@ -306,32 +299,30 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
             if (blob.Exists())
             {
-                MemoryStream originalStream = new MemoryStream();
-                await blob.DownloadToStreamAsync(originalStream,
-                                                 accessCondition: null,
-                                                 options: _blobRequestOptions,
-                                                 operationContext: null,
-                                                 cancellationToken: cancellationToken);
-
-                originalStream.Seek(0, SeekOrigin.Begin);
-
                 string content;
 
-                if (blob.Properties.ContentEncoding == "gzip")
+                using (var originalStream = new MemoryStream())
                 {
-                    using (var uncompressedStream = new GZipStream(originalStream, CompressionMode.Decompress))
+                    await blob.DownloadToStreamAsync(originalStream, cancellationToken);
+
+                    originalStream.Seek(0, SeekOrigin.Begin);
+
+                    if (blob.Properties.ContentEncoding == "gzip")
                     {
-                        using (var reader = new StreamReader(uncompressedStream))
+                        using (var uncompressedStream = new GZipStream(originalStream, CompressionMode.Decompress))
+                        {
+                            using (var reader = new StreamReader(uncompressedStream))
+                            {
+                                content = await reader.ReadToEndAsync();
+                            }
+                        }
+                    }
+                    else
+                    {
+                        using (var reader = new StreamReader(originalStream))
                         {
                             content = await reader.ReadToEndAsync();
                         }
-                    }
-                }
-                else
-                {
-                    using (var reader = new StreamReader(originalStream))
-                    {
-                        content = await reader.ReadToEndAsync();
                     }
                 }
 
@@ -340,7 +331,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
             if (Verbose)
             {
-                Trace.WriteLine(String.Format("Can't load '{0}'. Blob doesn't exist", resourceUri));
+                Trace.WriteLine(string.Format("Can't load '{0}'. Blob doesn't exist", resourceUri));
             }
 
             return null;
@@ -353,7 +344,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             CloudBlockBlob blob = _directory.GetBlockBlobReference(name);
             await blob.DeleteAsync(deleteSnapshotsOption: DeleteSnapshotsOption.IncludeSnapshots,
                                    accessCondition: null,
-                                   options: _blobRequestOptions,
+                                   options: null,
                                    operationContext: null,
                                    cancellationToken: cancellationToken);
         }

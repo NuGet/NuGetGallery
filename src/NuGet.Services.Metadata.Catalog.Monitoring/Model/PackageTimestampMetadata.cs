@@ -53,24 +53,25 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
             };
         }
 
-        public static async Task<PackageTimestampMetadata> FromCatalogEntry(CollectorHttpClient client,
+        public static async Task<PackageTimestampMetadata> FromCatalogEntry(
+            CollectorHttpClient client,
             CatalogIndexEntry catalogEntry)
         {
-            var catalogPage = await client.GetJObjectAsync(catalogEntry.Uri);
+            var catalogLeaf = await client.GetJObjectAsync(catalogEntry.Uri);
 
             try
             {
                 if (catalogEntry.IsDelete)
                 {
                     // On the catalog page for a delete, the published value is the timestamp the package was deleted from the audit records.
-                    var deleted = catalogPage.GetValue("published").Value<DateTimeOffset>();
+                    var deleted = catalogLeaf.GetValue("published").Value<DateTimeOffset>();
 
                     return CreateForPackageMissingFromFeed(deleted.DateTime);
                 }
                 else
                 {
-                    var created = catalogPage.GetValue("created").Value<DateTimeOffset>();
-                    var lastEdited = catalogPage.GetValue("lastEdited").Value<DateTimeOffset>();
+                    var created = catalogLeaf.GetValue("created").Value<DateTimeOffset>();
+                    var lastEdited = catalogLeaf.GetValue("lastEdited").Value<DateTimeOffset>();
 
                     return CreateForPackageExistingOnFeed(created.DateTime, lastEdited.DateTime);
                 }
@@ -81,7 +82,8 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
             }
         }
 
-        public static async Task<PackageTimestampMetadata> FromCatalogEntries(CollectorHttpClient client,
+        public static async Task<PackageTimestampMetadata> FromCatalogEntries(
+            CollectorHttpClient client,
             IEnumerable<CatalogIndexEntry> catalogEntries)
         {
             var packageTimestampMetadatas =

@@ -40,8 +40,9 @@ namespace Ng
             string baseAddress,
             ITelemetryService telemetryService,
             ILogger logger,
-            Func<HttpMessageHandler> handlerFunc = null)
-            : base(index, telemetryService, handlerFunc)
+            Func<HttpMessageHandler> handlerFunc = null,
+            IHttpRetryStrategy httpRetryStrategy = null)
+            : base(index, telemetryService, handlerFunc, httpRetryStrategy: httpRetryStrategy)
         {
             _indexWriter = indexWriter;
             _commitEachBatch = commitEachBatch;
@@ -50,7 +51,13 @@ namespace Ng
             _logger = logger;
         }
 
-        protected override async Task<bool> OnProcessBatchAsync(CollectorHttpClient client, IEnumerable<JToken> items, JToken context, DateTime commitTimeStamp, bool isLastBatch, CancellationToken cancellationToken)
+        protected override async Task<bool> OnProcessBatchAsync(
+            CollectorHttpClient client,
+            IEnumerable<CatalogCommitItem> items,
+            JToken context,
+            DateTime commitTimeStamp,
+            bool isLastBatch,
+            CancellationToken cancellationToken)
         {
             JObject catalogIndex = null;
             if (_baseAddress != null)
@@ -152,16 +159,14 @@ namespace Ng
 
         private static async Task<IEnumerable<JObject>> FetchCatalogItemsAsync(
             CollectorHttpClient client,
-            IEnumerable<JToken> items,
+            IEnumerable<CatalogCommitItem> items,
             CancellationToken cancellationToken)
         {
-            IList<Task<JObject>> tasks = new List<Task<JObject>>();
+            var tasks = new List<Task<JObject>>();
 
-            foreach (JToken item in items)
+            foreach (var item in items)
             {
-                Uri catalogItemUri = item["@id"].ToObject<Uri>();
-
-                tasks.Add(client.GetJObjectAsync(catalogItemUri, cancellationToken));
+                tasks.Add(client.GetJObjectAsync(item.Uri, cancellationToken));
             }
 
             await Task.WhenAll(tasks);

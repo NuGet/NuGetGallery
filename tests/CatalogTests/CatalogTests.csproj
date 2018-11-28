@@ -71,9 +71,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BatchProcessingExceptionTests.cs" />
+    <Compile Include="CatalogCommitBatchTaskTests.cs" />
+    <Compile Include="CatalogCommitItemBatchTests.cs" />
+    <Compile Include="CatalogCommitItemTests.cs" />
+    <Compile Include="CatalogCommitUtilitiesTests.cs" />
     <Compile Include="CatalogIndexEntryTests.cs" />
     <Compile Include="CatalogIndexReaderTests.cs" />
+    <Compile Include="CatalogCommitTests.cs" />
     <Compile Include="CollectorHttpClientTests.cs" />
+    <Compile Include="Dnx\DnxCatalogCollectorTests.cs" />
+    <Compile Include="Dnx\DnxMakerTests.cs" />
     <Compile Include="Helpers\AsyncExtensionsTests.cs" />
     <Compile Include="Helpers\CatalogIndependentPage.cs" />
     <Compile Include="Helpers\CatalogIndex.cs" />
@@ -177,16 +185,16 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="TestData\TestPackage.LicenseExpression.0.1.0.nupkg">
-     <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="TestData\TestPackage.LicenseFile.0.1.0.nupkg">
-     <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="TestData\TestPackage.LicenseExpressionAndUrl.0.1.0.nupkg">
-     <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="TestData\TestPackage.LicenseFileAndUrl.0.1.0.nupkg">
-     <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="TestData\TestPackage.SemVer2.1.0.0-alpha.1.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

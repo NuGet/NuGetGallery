@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json.Linq;
 using NuGet.Services.Metadata.Catalog;
-using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGet.Services.Storage;
 
 namespace NuGet.Services.V3PerPackage
@@ -32,24 +31,24 @@ namespace NuGet.Services.V3PerPackage
             _queue = queue ?? throw new ArgumentNullException(nameof(queue));
         }
 
-        protected override Task<IEnumerable<CatalogItemBatch>> CreateBatchesAsync(IEnumerable<CatalogItem> catalogItems)
+        protected override Task<IEnumerable<CatalogCommitItemBatch>> CreateBatchesAsync(IEnumerable<CatalogCommitItem> catalogItems)
         {
             var catalogItemList = catalogItems.ToList();
 
             var maxCommitTimestamp = catalogItems.Max(x => x.CommitTimeStamp);
 
-            return Task.FromResult(new[] { new CatalogItemBatch(maxCommitTimestamp, catalogItemList) }.AsEnumerable());
+            return Task.FromResult(new[] { new CatalogCommitItemBatch(catalogItemList) }.AsEnumerable());
         }
 
         protected override async Task<bool> OnProcessBatchAsync(
             CollectorHttpClient client,
-            IEnumerable<JToken> items,
+            IEnumerable<CatalogCommitItem> items,
             JToken context,
             DateTime commitTimeStamp,
             bool isLastBatch,
             CancellationToken cancellationToken)
         {
-            var itemBag = new ConcurrentBag<JToken>(items);
+            var itemBag = new ConcurrentBag<CatalogCommitItem>(items);
 
             var tasks = Enumerable
                 .Range(0, 16)
@@ -61,18 +60,17 @@ namespace NuGet.Services.V3PerPackage
             return true;
         }
 
-        private async Task EnqueueAsync(ConcurrentBag<JToken> itemBag, CancellationToken cancellationToken)
+        private async Task EnqueueAsync(ConcurrentBag<CatalogCommitItem> itemBag, CancellationToken cancellationToken)
         {
             while (itemBag.TryTake(out var item))
             {
-                var id = item["nuget:id"].ToString().ToLowerInvariant();
-                var version = NuGetVersionUtility.NormalizeVersion(item["nuget:version"].ToString().ToLowerInvariant());
-                var type = item["@type"].ToString().Replace("nuget:", Schema.Prefixes.NuGet);
-
-                if (type != Schema.DataTypes.PackageDetails.ToString())
+                if (!item.TypeUris.Any(itemType => itemType.AbsoluteUri != Schema.DataTypes.PackageDetails.AbsoluteUri))
                 {
                     continue;
                 }
+
+                var id = item.PackageIdentity.Id.ToLowerInvariant();
+                var version = item.PackageIdentity.Version.ToNormalizedString().ToLowerInvariant();
 
                 await _queue.AddAsync(new PackageMessage(id, version), cancellationToken);
             }

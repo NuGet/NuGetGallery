@@ -172,8 +172,7 @@ namespace NgTests
 
         public class FactsBase
         {
-            public const string PackageId = "TestPackage";
-            public const string PackageVersion = "1.0.0";
+            public static readonly PackageIdentity PackageIdentity = new PackageIdentity("TestPackage", new NuGetVersion("1.0.0"));
 
             public const string UnsignedPackageResource = "Packages\\TestUnsigned.1.0.0.nupkg";
             public const string AuthorSignedPackageResource = "Packages\\TestSigned.leaf-1.1.0.0.nupkg";
@@ -181,7 +180,6 @@ namespace NgTests
             public const string AuthorAndRepoSignedPackageResource = "Packages\\TestAuthorAndRepoSigned.leaf-1.1.0.0.nupkg";
 
             public static readonly DateTime PackageCreationTime = DateTime.UtcNow;
-            public static readonly NuGetVersion PackageNuGetVersion = NuGetVersion.Parse(PackageVersion);
 
             private readonly IEnumerable<CatalogIndexEntry> _catalogEntries;
 
@@ -205,8 +203,7 @@ namespace NgTests
                         CatalogConstants.NuGetPackageDetails,
                         Guid.NewGuid().ToString(),
                         DateTime.UtcNow,
-                        PackageId,
-                        PackageNuGetVersion)
+                        PackageIdentity)
                 };
 
                 AddCatalogLeafToMockServer("/catalog/leaf.json", new CatalogLeaf
@@ -252,7 +249,7 @@ namespace NgTests
                 var httpClient = new CollectorHttpClient(_mockServer);
 
                 return new ValidationContext(
-                    new PackageIdentity(PackageId, PackageNuGetVersion),
+                    PackageIdentity,
                     _catalogEntries,
                     new DeletionAuditEntry[0],
                     httpClient,

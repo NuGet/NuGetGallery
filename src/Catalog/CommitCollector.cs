@@ -18,8 +18,9 @@ namespace NuGet.Services.Metadata.Catalog
             Uri index,
             ITelemetryService telemetryService,
             Func<HttpMessageHandler> handlerFunc = null,
-            TimeSpan? httpClientTimeout = null)
-            : base(index, telemetryService, handlerFunc, httpClientTimeout)
+            TimeSpan? httpClientTimeout = null,
+            IHttpRetryStrategy httpRetryStrategy = null)
+            : base(index, telemetryService, handlerFunc, httpClientTimeout, httpRetryStrategy)
         {
         }
 
@@ -29,19 +30,19 @@ namespace NuGet.Services.Metadata.Catalog
             ReadCursor back,
             CancellationToken cancellationToken)
         {
-            IEnumerable<CatalogItem> catalogItems = await FetchCatalogItemsAsync(client, front, cancellationToken);
+            IEnumerable<CatalogCommit> commits = await FetchCatalogCommitsAsync(client, front, cancellationToken);
 
             bool acceptNextBatch = false;
 
-            foreach (CatalogItem catalogItem in catalogItems)
+            foreach (CatalogCommit commit in commits)
             {
-                JObject page = await client.GetJObjectAsync(catalogItem.Uri, cancellationToken);
+                JObject page = await client.GetJObjectAsync(commit.Uri, cancellationToken);
 
                 JToken context = null;
                 page.TryGetValue("@context", out context);
 
                 var batches = await CreateBatchesAsync(page["items"]
-                    .Select(item => new CatalogItem((JObject)item))
+                    .Select(item => CatalogCommitItem.Create((JObject)context, (JObject)item))
                     .Where(item => item.CommitTimeStamp > front.Value && item.CommitTimeStamp <= back.Value));
 
                 var orderedBatches = batches
@@ -70,7 +71,7 @@ namespace NuGet.Services.Metadata.Catalog
                     {
                         acceptNextBatch = await OnProcessBatchAsync(
                             client,
-                            batch.Items.Select(item => item.Value),
+                            batch.Items,
                             context,
                             batch.CommitTimeStamp,
                             batch.CommitTimeStamp == lastBatch.CommitTimeStamp,
@@ -104,7 +105,7 @@ namespace NuGet.Services.Metadata.Catalog
             return acceptNextBatch;
         }
 
-        protected async Task<IEnumerable<CatalogItem>> FetchCatalogItemsAsync(
+        protected async Task<IEnumerable<CatalogCommit>> FetchCatalogCommitsAsync(
             CollectorHttpClient client,
             ReadWriteCursor front,
             CancellationToken cancellationToken)
@@ -118,67 +119,30 @@ namespace NuGet.Services.Metadata.Catalog
                 root = await client.GetJObjectAsync(Index, cancellationToken);
             }
 
-            IEnumerable<CatalogItem> rootItems = root["items"]
-                .Select(item => new CatalogItem((JObject)item))
+            IEnumerable<CatalogCommit> commits = root["items"]
+                .Select(item => CatalogCommit.Create((JObject)item))
                 .Where(item => item.CommitTimeStamp > front.Value)
                 .OrderBy(item => item.CommitTimeStamp);
 
-            return rootItems;
+            return commits;
         }
 
-        protected virtual Task<IEnumerable<CatalogItemBatch>> CreateBatchesAsync(IEnumerable<CatalogItem> catalogItems)
+        protected virtual Task<IEnumerable<CatalogCommitItemBatch>> CreateBatchesAsync(IEnumerable<CatalogCommitItem> catalogItems)
         {
             var batches = catalogItems
                 .GroupBy(item => item.CommitTimeStamp)
                 .OrderBy(group => group.Key)
-                .Select(group => new CatalogItemBatch(group.Key, group));
+                .Select(group => new CatalogCommitItemBatch(group));
 
             return Task.FromResult(batches);
         }
 
         protected abstract Task<bool> OnProcessBatchAsync(
             CollectorHttpClient client,
-            IEnumerable<JToken> items,
+            IEnumerable<CatalogCommitItem> items,
             JToken context,
             DateTime commitTimeStamp,
             bool isLastBatch,
             CancellationToken cancellationToken);
-
-        protected class CatalogItemBatch : IComparable
-        {
-            public CatalogItemBatch(DateTime commitTimeStamp, IEnumerable<CatalogItem> items)
-            {
-                CommitTimeStamp = commitTimeStamp;
-                Items = items.ToList();
-                Items.Sort();
-            }
-
-            public DateTime CommitTimeStamp { get; }
-            public List<CatalogItem> Items { get; }
-
-            public int CompareTo(object obj)
-            {
-                return CommitTimeStamp.CompareTo(((CatalogItem)obj).CommitTimeStamp);
-            }
-        }
-
-        protected class CatalogItem : IComparable
-        {
-            public CatalogItem(JObject value)
-            {
-                CommitTimeStamp = value["commitTimeStamp"].ToObject<DateTime>();
-                Uri = value["@id"].ToObject<Uri>();
-                Value = value;
-            }
-
-            public DateTime CommitTimeStamp { get; }
-            public Uri Uri { get; }
-            public JObject Value { get; }
-
-            public int CompareTo(object obj)
-            {
-                return CommitTimeStamp.CompareTo(((CatalogItem)obj).CommitTimeStamp);
-            }
-        }
     }
 }

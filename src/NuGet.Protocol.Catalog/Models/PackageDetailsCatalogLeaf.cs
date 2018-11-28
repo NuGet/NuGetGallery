@@ -1,0 +1,75 @@
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
+using System.Collections.Generic;
+using Newtonsoft.Json;
+
+namespace NuGet.Protocol.Catalog
+{
+    public class PackageDetailsCatalogLeaf : CatalogLeaf
+    {
+        [JsonProperty("authors")]
+        public string Authors { get; set; }
+
+        [JsonProperty("created")]
+        public DateTimeOffset Created { get; set; }
+
+        [JsonProperty("lastEdited")]
+        public DateTimeOffset LastEdited { get; set; }
+
+        [JsonProperty("dependencyGroups")]
+        public List<PackageDependencyGroup> DependencyGroups { get; set; }
+
+        [JsonProperty("description")]
+        public string Description { get; set; }
+
+        [JsonProperty("iconUrl")]
+        public string IconUrl { get; set; }
+
+        [JsonProperty("isPrerelease")]
+        public bool IsPrerelease { get; set; }
+
+        [JsonProperty("language")]
+        public string Language { get; set; }
+
+        [JsonProperty("licenseUrl")]
+        public string LicenseUrl { get; set; }
+
+        [JsonProperty("listed")]
+        public bool? Listed { get; set; }
+
+        [JsonProperty("minClientVersion")]
+        public string MinClientVersion { get; set; }
+
+        [JsonProperty("packageHash")]
+        public string PackageHash { get; set; }
+
+        [JsonProperty("packageHashAlgorithm")]
+        public string PackageHashAlgorithm { get; set; }
+
+        [JsonProperty("packageSize")]
+        public long PackageSize { get; set; }
+
+        [JsonProperty("projectUrl")]
+        public string ProjectUrl { get; set; }
+
+        [JsonProperty("releaseNotes")]
+        public string ReleaseNotes { get; set; }
+
+        [JsonProperty("requireLicenseAgreement")]
+        public bool? RequireLicenseAgreement { get; set; }
+
+        [JsonProperty("summary")]
+        public string Summary { get; set; }
+
+        [JsonProperty("tags")]
+        public List<string> Tags { get; set; }
+
+        [JsonProperty("title")]
+        public string Title { get; set; }
+
+        [JsonProperty("verbatimVersion")]
+        public string VerbatimVersion { get; set; }
+    }
+}

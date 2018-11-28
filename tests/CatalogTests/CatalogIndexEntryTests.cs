@@ -2,12 +2,13 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Globalization;
 using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
 using NgTests;
+using NgTests.Infrastructure;
+using NuGet.Packaging.Core;
 using NuGet.Protocol;
 using NuGet.Services.Metadata.Catalog;
 using NuGet.Versioning;
@@ -21,8 +22,9 @@ namespace CatalogTests
 
         private readonly string _commitId;
         private readonly DateTime _commitTimeStamp;
-        private const string _packageId = "A";
+        private const string _packageId = "a";
         private readonly NuGetVersion _packageVersion;
+        private readonly PackageIdentity _packageIdentity;
         private readonly Uri _uri;
 
         static CatalogIndexEntryTests()
@@ -39,6 +41,7 @@ namespace CatalogTests
             _commitTimeStamp = DateTime.UtcNow;
             _packageVersion = new NuGetVersion("1.2.3");
             _uri = new Uri("https://nuget.test/a");
+            _packageIdentity = new PackageIdentity(_packageId, _packageVersion);
         }
 
         [Fact]
@@ -52,8 +55,7 @@ namespace CatalogTests
                     CatalogConstants.NuGetPackageDetails,
                     _commitId,
                     _commitTimeStamp,
-                    _packageId,
-                    _packageVersion));
+                    _packageIdentity));
 
             Assert.Equal("uri", exception.ParamName);
         }
@@ -70,10 +72,39 @@ namespace CatalogTests
                     type,
                     _commitId,
                     _commitTimeStamp,
-                    _packageId,
-                    _packageVersion));
+                    _packageIdentity));
 
             Assert.Equal("type", exception.ParamName);
+        }
+
+        [Fact]
+        public void Constructor_WhenTypesIsNull_Throws()
+        {
+            string[] types = null;
+
+            var exception = Assert.Throws<ArgumentException>(
+                () => new CatalogIndexEntry(
+                    _uri,
+                    types,
+                    _commitId,
+                    _commitTimeStamp,
+                    _packageIdentity));
+
+            Assert.Equal("types", exception.ParamName);
+        }
+
+        [Fact]
+        public void Constructor_WhenTypesIsEmpty_Throws()
+        {
+            var exception = Assert.Throws<ArgumentException>(
+                () => new CatalogIndexEntry(
+                    _uri,
+                    Array.Empty<string>(),
+                    _commitId,
+                    _commitTimeStamp,
+                    _packageIdentity));
+
+            Assert.Equal("types", exception.ParamName);
         }
 
         [Theory]
@@ -88,43 +119,23 @@ namespace CatalogTests
                     CatalogConstants.NuGetPackageDelete,
                     commitId,
                     _commitTimeStamp,
-                    _packageId,
-                    _packageVersion));
+                    _packageIdentity));
 
             Assert.Equal("commitId", exception.ParamName);
         }
 
-        [Theory]
-        [InlineData(null)]
-        [InlineData("")]
-        [InlineData(" ")]
-        public void Constructor_WhenIdIsNullEmptyOrWhitespace_Throws(string id)
+        [Fact]
+        public void Constructor_WhenPackageIdentityIsNull_Throws()
         {
-            var exception = Assert.Throws<ArgumentException>(
+            var exception = Assert.Throws<ArgumentNullException>(
                 () => new CatalogIndexEntry(
                     _uri,
                     CatalogConstants.NuGetPackageDelete,
                     _commitId,
                     _commitTimeStamp,
-                    id,
-                    _packageVersion));
+                    packageIdentity: null));
 
-            Assert.Equal("id", exception.ParamName);
-        }
-
-        [Fact]
-        public void Constructor_WhenVersionIsNull_Throws()
-        {
-            var exception = Assert.Throws<ArgumentNullException>(
-                () => new CatalogIndexEntry(
-                    _uri,
-                    CatalogConstants.NuGetPackageDetails,
-                    _commitId,
-                    _commitTimeStamp,
-                    _packageId,
-                    version: null));
-
-            Assert.Equal("version", exception.ParamName);
+            Assert.Equal("packageIdentity", exception.ParamName);
         }
 
         [Fact]
@@ -135,8 +146,7 @@ namespace CatalogTests
                 CatalogConstants.NuGetPackageDetails,
                 _commitId,
                 _commitTimeStamp,
-                _packageId,
-                _packageVersion);
+                _packageIdentity);
 
             Assert.Equal(_uri.AbsoluteUri, entry.Uri.AbsoluteUri);
             Assert.Equal(CatalogConstants.NuGetPackageDetails, entry.Types.Single());
@@ -147,55 +157,28 @@ namespace CatalogTests
         }
 
         [Fact]
-        public void Create_WhenTokenIsNull_Throws()
+        public void Create_WhenCommitItemIsNull_Throws()
         {
-            var exception = Assert.Throws<ArgumentNullException>(() => CatalogIndexEntry.Create(token: null));
+            var exception = Assert.Throws<ArgumentNullException>(() => CatalogIndexEntry.Create(commitItem: null));
 
-            Assert.Equal("token", exception.ParamName);
+            Assert.Equal("commitItem", exception.ParamName);
         }
 
         [Fact]
         public void Create_WhenArgumentIsValid_ReturnsInstance()
         {
-            var jObject = CreateCatalogIndexJObject();
+            var contextJObject = TestUtility.CreateCatalogContextJObject();
+            var commitItemJObject = TestUtility.CreateCatalogCommitItemJObject(_commitTimeStamp, _packageIdentity);
+            var commitItem = CatalogCommitItem.Create(contextJObject, commitItemJObject);
 
-            var entry = CatalogIndexEntry.Create(jObject);
+            var entry = CatalogIndexEntry.Create(commitItem);
 
             Assert.Equal(_uri.AbsoluteUri, entry.Uri.AbsoluteUri);
             Assert.Equal(CatalogConstants.NuGetPackageDetails, entry.Types.Single());
-            Assert.Equal(_commitId, entry.CommitId);
-            Assert.Equal(_commitTimeStamp, entry.CommitTimeStamp);
+            Assert.Equal(commitItemJObject[CatalogConstants.CommitId].ToString(), entry.CommitId);
+            Assert.Equal(_commitTimeStamp, entry.CommitTimeStamp.ToUniversalTime());
             Assert.Equal(_packageId, entry.Id);
             Assert.Equal(_packageVersion, entry.Version);
-        }
-
-        [Theory]
-        [InlineData("2018-10-15T01:12:40.1234567Z")]
-        [InlineData("2018-10-15T01:12:40.123456Z")]
-        [InlineData("2018-10-15T01:12:40.12345Z")]
-        [InlineData("2018-10-15T01:12:40.1234Z")]
-        [InlineData("2018-10-15T01:12:40.123Z")]
-        [InlineData("2018-10-15T01:12:40.12Z")]
-        [InlineData("2018-10-15T01:12:40.1Z")]
-        public void Create_WhenCommitTimeStampVariesInSignificantDigits_DeserializesCorrectly(string commitTimeStamp)
-        {
-            var jObject = new JObject(
-                new JProperty(CatalogConstants.IdKeyword, _uri),
-                new JProperty(CatalogConstants.TypeKeyword, CatalogConstants.NuGetPackageDetails),
-                new JProperty(CatalogConstants.CommitId, _commitId),
-                new JProperty(CatalogConstants.CommitTimeStamp, commitTimeStamp),
-                new JProperty(CatalogConstants.NuGetId, _packageId),
-                new JProperty(CatalogConstants.NuGetVersion, _packageVersion.ToNormalizedString()));
-
-            var entry = CatalogIndexEntry.Create(jObject);
-
-            var expectedCommitTimeStamp = DateTime.ParseExact(
-                commitTimeStamp,
-                CatalogConstants.CommitTimeStampFormat,
-                DateTimeFormatInfo.CurrentInfo,
-                DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal);
-
-            Assert.Equal(expectedCommitTimeStamp, entry.CommitTimeStamp);
         }
 
         [Fact]
@@ -206,8 +189,7 @@ namespace CatalogTests
                 CatalogConstants.NuGetPackageDetails,
                 _commitId,
                 _commitTimeStamp,
-                _packageId,
-                _packageVersion);
+                _packageIdentity);
 
             var exception = Assert.Throws<ArgumentNullException>(() => entry.CompareTo(other: null));
 
@@ -223,15 +205,13 @@ namespace CatalogTests
                 CatalogConstants.NuGetPackageDetails,
                 _commitId,
                 now.AddHours(-1),
-                _packageId,
-                _packageVersion);
+                _packageIdentity);
             var newerEntry = new CatalogIndexEntry(
                 _uri,
                 CatalogConstants.NuGetPackageDetails,
                 _commitId,
                 now,
-                _packageId,
-                _packageVersion);
+                _packageIdentity);
 
             Assert.Equal(-1, olderEntry.CompareTo(newerEntry));
             Assert.Equal(1, newerEntry.CompareTo(olderEntry));
@@ -240,23 +220,22 @@ namespace CatalogTests
         [Fact]
         public void CompareTo_WhenCommitTimeStampsAreEqual_ReturnsZero()
         {
+            var entry0 = new CatalogIndexEntry(
+                new Uri("https://nuget.test/a"),
+                CatalogConstants.NuGetPackageDetails,
+                _commitId,
+                _commitTimeStamp,
+                _packageIdentity);
             var entry1 = new CatalogIndexEntry(
-                _uri,
-                CatalogConstants.NuGetPackageDetails,
-                _commitId,
+                new Uri("https://nuget.test/b"),
+                CatalogConstants.NuGetPackageDelete,
+                Guid.NewGuid().ToString(),
                 _commitTimeStamp,
-                _packageId,
-                _packageVersion);
-            var entry2 = new CatalogIndexEntry(
-                _uri,
-                CatalogConstants.NuGetPackageDetails,
-                _commitId,
-                _commitTimeStamp,
-                _packageId,
-                _packageVersion);
+                new PackageIdentity(id: "b", version: new NuGetVersion("4.5.6")));
 
-            Assert.Equal(0, entry1.CompareTo(entry2));
-            Assert.Equal(0, entry2.CompareTo(entry1));
+            Assert.Equal(0, entry0.CompareTo(entry0));
+            Assert.Equal(0, entry0.CompareTo(entry1));
+            Assert.Equal(0, entry1.CompareTo(entry0));
         }
 
         [Fact]
@@ -267,8 +246,7 @@ namespace CatalogTests
                 CatalogConstants.NuGetPackageDetails,
                 _commitId,
                 _commitTimeStamp,
-                _packageId,
-                _packageVersion);
+                _packageIdentity);
 
             Assert.False(entry.IsDelete);
         }
@@ -281,8 +259,7 @@ namespace CatalogTests
                 CatalogConstants.NuGetPackageDelete,
                 _commitId,
                 _commitTimeStamp,
-                _packageId,
-                _packageVersion);
+                _packageIdentity);
 
             Assert.True(entry.IsDelete);
         }
@@ -295,10 +272,9 @@ namespace CatalogTests
                 CatalogConstants.NuGetPackageDetails,
                 _commitId,
                 _commitTimeStamp,
-                _packageId,
-                _packageVersion);
+                _packageIdentity);
 
-            var jObject = CreateCatalogIndexJObject();
+            var jObject = CreateCatalogIndexJObject(CatalogConstants.NuGetPackageDetails);
 
             var expectedResult = jObject.ToString(Formatting.None, _settings.Converters.ToArray());
             var actualResult = JsonConvert.SerializeObject(entry, Formatting.None, _settings);
@@ -315,7 +291,7 @@ namespace CatalogTests
         [InlineData(CatalogConstants.NuGetVersion)]
         public void JsonDeserialization_WhenRequiredPropertyIsMissing_Throws(string propertyToRemove)
         {
-            var jObject = CreateCatalogIndexJObject();
+            var jObject = CreateCatalogIndexJObject(CatalogConstants.NuGetPackageDetails);
 
             jObject.Remove(propertyToRemove);
 
@@ -328,28 +304,46 @@ namespace CatalogTests
         }
 
         [Fact]
-        public void JsonDeserialization_ReturnsCorrectObject()
+        public void JsonDeserialization_WhenTypeIsPackageDetails_ReturnsCorrectObject()
         {
-            var jObject = CreateCatalogIndexJObject();
+            var jObject = CreateCatalogIndexJObject(CatalogConstants.NuGetPackageDetails);
             var json = jObject.ToString(Formatting.None, _settings.Converters.ToArray());
 
             var entry = JsonConvert.DeserializeObject<CatalogIndexEntry>(json, _settings);
 
             Assert.Equal(_uri.AbsoluteUri, entry.Uri.AbsoluteUri);
             Assert.Equal(CatalogConstants.NuGetPackageDetails, entry.Types.Single());
+            Assert.False(entry.IsDelete);
             Assert.Equal(_commitId, entry.CommitId);
             Assert.Equal(_commitTimeStamp, entry.CommitTimeStamp);
             Assert.Equal(_packageId, entry.Id);
             Assert.Equal(_packageVersion, entry.Version);
         }
 
-        private JObject CreateCatalogIndexJObject(string commitTimeStamp = null)
+        [Fact]
+        public void JsonDeserialization_WhenTypeIsPackageDelete_ReturnsCorrectObject()
+        {
+            var jObject = CreateCatalogIndexJObject(CatalogConstants.NuGetPackageDelete);
+            var json = jObject.ToString(Formatting.None, _settings.Converters.ToArray());
+
+            var entry = JsonConvert.DeserializeObject<CatalogIndexEntry>(json, _settings);
+
+            Assert.Equal(_uri.AbsoluteUri, entry.Uri.AbsoluteUri);
+            Assert.Equal(CatalogConstants.NuGetPackageDelete, entry.Types.Single());
+            Assert.True(entry.IsDelete);
+            Assert.Equal(_commitId, entry.CommitId);
+            Assert.Equal(_commitTimeStamp, entry.CommitTimeStamp);
+            Assert.Equal(_packageId, entry.Id);
+            Assert.Equal(_packageVersion, entry.Version);
+        }
+
+        private JObject CreateCatalogIndexJObject(string type)
         {
             return new JObject(
                 new JProperty(CatalogConstants.IdKeyword, _uri),
-                new JProperty(CatalogConstants.TypeKeyword, CatalogConstants.NuGetPackageDetails),
+                new JProperty(CatalogConstants.TypeKeyword, type),
                 new JProperty(CatalogConstants.CommitId, _commitId),
-                new JProperty(CatalogConstants.CommitTimeStamp, commitTimeStamp ?? _commitTimeStamp.ToString(CatalogConstants.CommitTimeStampFormat)),
+                new JProperty(CatalogConstants.CommitTimeStamp, _commitTimeStamp.ToString(CatalogConstants.CommitTimeStampFormat)),
                 new JProperty(CatalogConstants.NuGetId, _packageId),
                 new JProperty(CatalogConstants.NuGetVersion, _packageVersion.ToNormalizedString()));
         }

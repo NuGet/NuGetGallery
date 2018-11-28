@@ -9,6 +9,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using CatalogTests.Helpers;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -77,8 +78,10 @@ namespace CatalogTests.Registration
                 _legacyStorageFactory,
                 _semVer2StorageFactory,
                 contentBaseUri ?? new Uri("http://tempuri.org/packages"),
-                new Mock<ITelemetryService>().Object,
-                handlerFunc: () => _mockServer);
+                Mock.Of<ITelemetryService>(),
+                Mock.Of<ILogger>(),
+                handlerFunc: () => _mockServer,
+                httpRetryStrategy: new NoRetryStrategy());
 
             RegistrationMakerCatalogItem.PackagePathProvider = new PackagesFolderPackagePathProvider();
         }
@@ -96,7 +99,8 @@ namespace CatalogTests.Registration
                     storageFactory,
                     storageFactory,
                     _baseUri,
-                    new Mock<ITelemetryService>().Object,
+                    Mock.Of<ITelemetryService>(),
+                    Mock.Of<ILogger>(),
                     maxConcurrentBatches: maxConcurrentBatches));
 
             Assert.Equal("maxConcurrentBatches", exception.ParamName);
@@ -150,7 +154,7 @@ namespace CatalogTests.Registration
                 .FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/anotherpackage/1.0.0.json"));
             Assert.NotNull(anotherPackage100.Key);
 
-            Assert.Equal(DateTime.Parse(expectedCursorBeforeRetry).ToUniversalTime(), cursorBeforeRetry);
+            Assert.Equal(MemoryCursor.MinValue, cursorBeforeRetry);
             Assert.Equal(DateTime.Parse("2015-10-12T10:08:55.3335317Z").ToUniversalTime(), cursorAfterRetry);
         }
 

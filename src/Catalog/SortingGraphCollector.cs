@@ -20,15 +20,16 @@ namespace NuGet.Services.Metadata.Catalog
             Uri index,
             Uri[] types,
             ITelemetryService telemetryService,
-            Func<HttpMessageHandler> handlerFunc = null)
-            : base(index, telemetryService, handlerFunc)
+            Func<HttpMessageHandler> handlerFunc = null,
+            IHttpRetryStrategy httpRetryStrategy = null)
+            : base(index, telemetryService, handlerFunc, httpRetryStrategy)
         {
             _types = types;
         }
 
         protected override async Task ProcessSortedBatchAsync(
             CollectorHttpClient client,
-            KeyValuePair<string, IList<JObject>> sortedBatch,
+            KeyValuePair<string, IList<CatalogCommitItem>> sortedBatch,
             JToken context,
             CancellationToken cancellationToken)
         {
@@ -37,16 +38,25 @@ namespace NuGet.Services.Metadata.Catalog
 
             foreach (var item in sortedBatch.Value)
             {
-                if (Utils.IsType((JObject)context, item, _types))
-                {
-                    var itemUri = item["@id"].ToString();
+                var isMatch = false;
 
+                foreach (Uri type in _types)
+                {
+                    if (item.TypeUris.Any(typeUri => typeUri.AbsoluteUri == type.AbsoluteUri))
+                    {
+                        isMatch = true;
+                        break;
+                    }
+                }
+
+                if (isMatch)
+                {
                     // Load package details from catalog.
                     // Download the graph to a read-only container. This allows operations on each graph to be safely
                     // parallelized.
-                    var task = client.GetGraphAsync(new Uri(itemUri), readOnly: true, token: cancellationToken);
+                    var task = client.GetGraphAsync(item.Uri, readOnly: true, token: cancellationToken);
 
-                    graphTasks.Add(itemUri, task);
+                    graphTasks.Add(item.Uri.AbsoluteUri, task);
                 }
             }
 

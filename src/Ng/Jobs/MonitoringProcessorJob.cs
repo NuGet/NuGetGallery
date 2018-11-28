@@ -129,15 +129,31 @@ namespace Ng.Jobs
                 // We can remove the message from the queue because it was processed.
                 messageWasProcessed = true;
             }
-            catch (Exception e)
+            catch (Exception validationFailedToRunException)
             {
-                // Validations failed to run! Save this failed status to storage.
-                await SaveFailedPackageMonitoringStatusAsync(queuedContext, e, token);
-                // We can then remove the message from the queue because this failed status can be used to requeue the message.
-                messageWasProcessed = true;
+                try
+                {
+                    // Validations failed to run! Save this failed status to storage.
+                    await SaveFailedPackageMonitoringStatusAsync(queuedContext, validationFailedToRunException, token);
+                    // We can then remove the message from the queue because this failed status can be used to requeue the message.
+                    messageWasProcessed = true;
+                }
+                catch (Exception failedValidationSaveFailureException)
+                {
+                    // We failed to run validations and failed to save the failed validation!
+                    // We were not able to process this message. We need to log the exceptions so we can debug the issue.
+                    var aggregateException = new AggregateException(
+                        "Validations failed to run and saving unsuccessful validation failed!", 
+                        new[] { validationFailedToRunException, failedValidationSaveFailureException });
+
+                    Logger.LogCritical(
+                        NuGet.Services.Metadata.Catalog.Monitoring.LogEvents.QueueMessageFatalFailure,
+                        aggregateException,
+                        "Failed to process queue message");
+                }
             }
 
-            // Note that if both validations fail and saving the failure status fail, we cannot remove the message from the queue.
+            // If we failed to run validations and failed to save the failed validation, we cannot remove the message from the queue.
             if (messageWasProcessed)
             {
                 await _queue.RemoveAsync(queueMessage, token);
@@ -207,6 +223,7 @@ namespace Ng.Jobs
 
             var catalogPageUri = new Uri(leafBlob["@id"].ToString());
             var catalogPage = await _client.GetJObjectAsync(catalogPageUri, token);
+
             return new CatalogIndexEntry[]
             {
                 new CatalogIndexEntry(
@@ -214,8 +231,7 @@ namespace Ng.Jobs
                     Schema.DataTypes.PackageDetails.ToString(),
                     catalogPage["catalog:commitId"].ToString(),
                     DateTime.Parse(catalogPage["catalog:commitTimeStamp"].ToString()),
-                    id,
-                    version)
+                    new PackageIdentity(id, version))
             };
         }
 

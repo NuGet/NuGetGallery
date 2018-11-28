@@ -3,6 +3,7 @@
 
 using System;
 using System.Linq;
+using NuGet.Packaging.Core;
 using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGet.Services.Metadata.Catalog.Monitoring;
@@ -47,8 +48,7 @@ namespace NgTests.Validation
                     CatalogConstants.NuGetPackageDetails,
                     Guid.NewGuid().ToString(),
                     DateTime.UtcNow,
-                    "a",
-                    new NuGetVersion("1.0.0"))
+                    new PackageIdentity(id: "a", version: new NuGetVersion("1.0.0")))
             };
             var context = new PackageValidatorContext(_package, catalogEntries);
 

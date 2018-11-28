@@ -61,6 +61,24 @@ namespace NuGet.Services.Metadata.Catalog {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The argument must be an instance of type {0}..
+        /// </summary>
+        internal static string ArgumentMustBeInstanceOfType {
+            get {
+                return ResourceManager.GetString("ArgumentMustBeInstanceOfType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The argument must not be null..
+        /// </summary>
+        internal static string ArgumentMustNotBeNull {
+            get {
+                return ResourceManager.GetString("ArgumentMustNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The argument must not be null, empty, or whitespace..
         /// </summary>
         internal static string ArgumentMustNotBeNullEmptyOrWhitespace {
@@ -93,6 +111,33 @@ namespace NuGet.Services.Metadata.Catalog {
         internal static string BatchProcessingFailure {
             get {
                 return ResourceManager.GetString("BatchProcessingFailure", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Multiple commits exist with the same commit timestamp but different commit ID&apos;s:  {0}..
+        /// </summary>
+        internal static string MultipleCommitIdsForSameCommitTimeStamp {
+            get {
+                return ResourceManager.GetString("MultipleCommitIdsForSameCommitTimeStamp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The value of property &apos;{0}&apos; must be non-null and non-empty..
+        /// </summary>
+        internal static string NonEmptyPropertyValueRequired {
+            get {
+                return ResourceManager.GetString("NonEmptyPropertyValueRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The property &apos;{0}&apos; is required and is value must not be null..
+        /// </summary>
+        internal static string PropertyRequired {
+            get {
+                return ResourceManager.GetString("PropertyRequired", resourceCulture);
             }
         }
     }

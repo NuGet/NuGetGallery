@@ -13,17 +13,20 @@ namespace NuGet.Services.Metadata.Catalog
     {
         protected readonly ITelemetryService _telemetryService;
         private readonly Func<HttpMessageHandler> _handlerFunc;
+        private readonly IHttpRetryStrategy _httpRetryStrategy;
         private readonly TimeSpan? _httpClientTimeout;
 
         public CollectorBase(
             Uri index,
             ITelemetryService telemetryService,
             Func<HttpMessageHandler> handlerFunc = null,
-            TimeSpan? httpClientTimeout = null)
+            TimeSpan? httpClientTimeout = null,
+            IHttpRetryStrategy httpRetryStrategy = null)
         {
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _handlerFunc = handlerFunc;
             _httpClientTimeout = httpClientTimeout;
+            _httpRetryStrategy = httpRetryStrategy;
             Index = index ?? throw new ArgumentNullException(nameof(index));
         }
 
@@ -54,7 +57,7 @@ namespace NuGet.Services.Metadata.Catalog
                 handler = _handlerFunc();
             }
 
-            using (CollectorHttpClient client = new CollectorHttpClient(handler))
+            using (CollectorHttpClient client = new CollectorHttpClient(handler, _httpRetryStrategy))
             {
                 if (_httpClientTimeout.HasValue)
                 {

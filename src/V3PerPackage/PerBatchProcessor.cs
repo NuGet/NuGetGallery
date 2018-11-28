@@ -255,6 +255,7 @@ namespace NuGet.Services.V3PerPackage
                 registrationStorageFactories.SemVer2StorageFactory,
                 context.Global.ContentBaseAddress,
                 serviceProvider.GetRequiredService<ITelemetryService>(),
+                _logger,
                 () => serviceProvider.GetRequiredService<HttpMessageHandler>());
 
             await collector.RunAsync(CancellationToken.None);

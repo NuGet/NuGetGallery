@@ -17,7 +17,7 @@ namespace Ng.Jobs
         protected ILoggerFactory LoggerFactory;
         protected ILogger Logger;
 
-        protected int MaxDegreeOfParallelism { get; }
+        protected int MaxDegreeOfParallelism { get; set; }
 
         protected NgJob(ITelemetryService telemetryService, ILoggerFactory loggerFactory)
         {

@@ -104,6 +104,7 @@ namespace Ng.Jobs
                 storageFactories.SemVer2StorageFactory,
                 contentBaseAddress == null ? null : new Uri(contentBaseAddress),
                 TelemetryService,
+                Logger,
                 CommandHelpers.GetHttpMessageHandlerFactory(TelemetryService, verbose));
 
             var cursorStorage = storageFactories.LegacyStorageFactory.Create();

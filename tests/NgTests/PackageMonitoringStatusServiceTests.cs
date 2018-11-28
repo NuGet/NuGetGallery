@@ -123,7 +123,10 @@ namespace NgTests
         {
             return new CatalogIndexEntry(
                 new UriBuilder() { Path = $"{id.ToLowerInvariant()}/{id.ToLowerInvariant()}.{version.ToLowerInvariant()}" }.Uri,
-                "nuget:PackageDetails", Guid.NewGuid().ToString(), DateTime.UtcNow, id, new NuGetVersion(version));
+                CatalogConstants.NuGetPackageDetails,
+                Guid.NewGuid().ToString(),
+                DateTime.UtcNow,
+                new PackageIdentity(id, new NuGetVersion(version)));
         }
 
         private static DeletionAuditEntry CreateDeletionAuditEntry(string id, string version)

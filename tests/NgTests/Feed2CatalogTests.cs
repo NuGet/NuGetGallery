@@ -1552,7 +1552,7 @@ namespace NgTests
                 }
             }
 
-            return new TestPackage(package.Id, package.Version, package.Author, package.Description, stream);
+            return new TestPackage(package.Id, package.Version, package.Author, package.Description, package.Nuspec, stream);
         }
 
         private static JObject ReadJsonWithoutDateTimeHandling(JObject jObject)
