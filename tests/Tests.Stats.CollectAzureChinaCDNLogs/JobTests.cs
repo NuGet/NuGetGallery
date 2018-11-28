@@ -4,7 +4,9 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
+using Microsoft.Extensions.Options;
 using Microsoft.WindowsAzure.Storage;
+using Moq;
 using Stats.CollectAzureChinaCDNLogs;
 using Xunit;
 
@@ -12,7 +14,7 @@ namespace Tests.Stats.CollectAzureChinaCDNLogs
 {
     public class JobTests
     {
-        private static IServiceContainer ServiceContainer = new ServiceContainer();
+        private static Mock<IServiceContainer> MockServiceContainer = new Mock<IServiceContainer>();
 
         [Fact]
         public void InitFailsWhenEmptyArguments()
@@ -20,45 +22,88 @@ namespace Tests.Stats.CollectAzureChinaCDNLogs
             var jobArgsDictionary = new Dictionary<string, string>();
 
             var job = new Job();
-            Assert.ThrowsAny<Exception>(() => job.Init(ServiceContainer, jobArgsDictionary));
+            Assert.ThrowsAny<ArgumentNullException>(() => job.Init(MockServiceContainer.Object, jobArgsDictionary));
         }
 
         [Fact]
         public void InitFailsWithInvalidAccount()
         {
-            var jobArgsDictionary = CreateValidJobArgsDictionary();
-
             var job = new Job();
-            Assert.ThrowsAny<StorageException>(() => job.Init(ServiceContainer, jobArgsDictionary));
+            var configuration = GetDefaultConfiguration();
+
+            Assert.ThrowsAny<StorageException>(() => job.InitializeJobConfiguration(GetMockServiceProvider(configuration)));
         }
 
         [Theory]
-        [InlineData("AzureAccountConStringSource")]
-        [InlineData("AzureAccountConStringDest")]
-        [InlineData("AzureContainerNameDest")]
-        [InlineData("AzureContainerNameSource")]
-        [InlineData("DestinationFilePrefix")]
-        public void InitMissingArgArguments(string keyToRemove)
+        // null values
+        [InlineData("AzureAccountConnectionStringSource", null, typeof(ArgumentException))]
+        [InlineData("AzureAccountConnectionStringDestination", null, typeof(ArgumentException))]
+        [InlineData("AzureContainerNameDestination", null, typeof(ArgumentNullException))]
+        [InlineData("AzureContainerNameSource", null, typeof(ArgumentNullException))]
+        [InlineData("DestinationFilePrefix", null, typeof(StorageException))]
+        // empty values
+        [InlineData("AzureAccountConnectionStringSource", "", typeof(ArgumentException))]
+        [InlineData("AzureAccountConnectionStringDestination", "", typeof(ArgumentException))]
+        [InlineData("AzureContainerNameDestination", "", typeof(ArgumentException))]
+        [InlineData("AzureContainerNameSource", "", typeof(ArgumentException))]
+        [InlineData("DestinationFilePrefix", "", typeof(StorageException))]
+        public void InitMissingArgArguments(string property, object value, Type exceptionType)
         {
-            var jobArgsDictionary = CreateValidJobArgsDictionary();
-            jobArgsDictionary.Remove(keyToRemove);
             var job = new Job();
-            Assert.ThrowsAny<Exception>(() => job.Init(ServiceContainer, jobArgsDictionary));
+            var configuration = GetModifiedConfiguration(property, value);
+
+            Assert.Throws(exceptionType, () => job.InitializeJobConfiguration(GetMockServiceProvider(configuration)));
         }
 
-
-        private static Dictionary<string, string> CreateValidJobArgsDictionary()
+        private static CollectAzureChinaCdnLogsConfiguration GetModifiedConfiguration(string property, object value)
         {
-            var jobArgsDictionary = new Dictionary<string, string>();
-            jobArgsDictionary.Add("AzureAccountConnectionStringSource", "DefaultEndpointsProtocol=https;AccountName=name;AccountKey=cdummy4aadummyAAWhdummyAdummyA6A+dummydoAdummyJqdummymnm+H+2dummyA/dummygdummyqdummyKK==;EndpointSuffix=core.chinacloudapi.cn");
-            jobArgsDictionary.Add("AzureAccountConnectionStringDestination", "DefaultEndpointsProtocol=https;AccountName=name;AccountKey=cdummy4aadummyAAWhdummyAdummyA6A+dummydoAdummyJqdummymnm+H+2dummyA/dummygdummyqdummyKK==;EndpointSuffix=core.windows.net");
-            jobArgsDictionary.Add("AzureContainerNameDestination", "DestContainer");
-            jobArgsDictionary.Add("AzureContainerNameSource", "SourceContainer");
-            jobArgsDictionary.Add("DestinationFilePrefix", "SomePrfix");
-            jobArgsDictionary.Add("ExecutionTimeoutInSeconds", "60");
+            var configuration = GetDefaultConfiguration();
 
-            return jobArgsDictionary;
+            typeof(CollectAzureChinaCdnLogsConfiguration)
+                .GetProperty(property)
+                .SetValue(configuration, value);
+
+            return configuration;
         }
 
+        private static CollectAzureChinaCdnLogsConfiguration GetDefaultConfiguration()
+        {
+            return new CollectAzureChinaCdnLogsConfiguration
+            {
+                AzureAccountConnectionStringSource = "DefaultEndpointsProtocol=https;AccountName=name;AccountKey=cdummy4aadummyAAWhdummyAdummyA6A+dummydoAdummyJqdummymnm+H+2dummyA/dummygdummyqdummyKK==;EndpointSuffix=core.chinacloudapi.cn",
+                AzureAccountConnectionStringDestination = "DefaultEndpointsProtocol=https;AccountName=name;AccountKey=cdummy4aadummyAAWhdummyAdummyA6A+dummydoAdummyJqdummymnm+H+2dummyA/dummygdummyqdummyKK==;EndpointSuffix=core.windows.net",
+                AzureContainerNameDestination = "DestContainer",
+                AzureContainerNameSource = "SourceContainer",
+                DestinationFilePrefix = "SomePrfix",
+                ExecutionTimeoutInSeconds = 60
+            };
+        }
+
+        private static IServiceProvider GetMockServiceProvider(CollectAzureChinaCdnLogsConfiguration configuration)
+        {
+            var mockOptionsSnapshot = new Mock<IOptionsSnapshot<CollectAzureChinaCdnLogsConfiguration>>();
+
+            mockOptionsSnapshot
+                .Setup(x => x.Value)
+                .Returns(configuration);
+
+            var mockProvider = new Mock<IServiceProvider>();
+
+            mockProvider
+                .Setup(sp => sp.GetService(It.IsAny<Type>()))
+                .Returns<Type>(serviceType =>
+                {
+                    if (serviceType == typeof(IOptionsSnapshot<CollectAzureChinaCdnLogsConfiguration>))
+                    {
+                        return mockOptionsSnapshot.Object;
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException($"Unexpected service lookup: {serviceType.Name}");
+                    }
+                });
+
+            return mockProvider.Object;
+        }
     }
 }

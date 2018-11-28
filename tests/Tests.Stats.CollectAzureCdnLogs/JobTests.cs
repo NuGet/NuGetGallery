@@ -4,6 +4,8 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
+using Microsoft.Extensions.Options;
+using Moq;
 using Stats.CollectAzureCdnLogs;
 using Xunit;
 
@@ -30,115 +32,95 @@ namespace Tests.Stats.CollectAzureCdnLogs
         }
 
         [Fact]
-        public void InitSucceedsWhenValidArguments()
+        public void InitSucceedsWhenValidConfiguration()
         {
-            var jobArgsDictionary = CreateValidJobArgsDictionary();
-
             var job = new Job();
-            job.Init(ServiceContainer, jobArgsDictionary);
+            var configuration = GetDefaultConfiguration();
+
+            job.InitializeJobConfiguration(GetMockServiceProvider(configuration));
         }
 
         [Theory]
-        [InlineData("")]
-        [InlineData(null)]
-        [InlineData("http://localhost")]
-        [InlineData("ftps://someserver/folder")]
-        [InlineData("ftp://")]
-        public void InitFailsForInvalidFtpServerUri(string serverUri)
+        // null values
+        [InlineData("AzureCdnAccountNumber", null, typeof(ArgumentException))]
+        [InlineData("AzureCdnCloudStorageAccount", null, typeof(ArgumentException))]
+        [InlineData("AzureCdnCloudStorageContainerName", null, typeof(ArgumentException))]
+        [InlineData("AzureCdnPlatform", null, typeof(ArgumentException))]
+        [InlineData("FtpSourceUri", null, typeof(ArgumentException))]
+        [InlineData("FtpSourceUsername", null, typeof(ArgumentException))]
+        [InlineData("FtpSourcePassword", null, typeof(ArgumentException))]
+        // empty values
+        [InlineData("AzureCdnAccountNumber", "", typeof(ArgumentException))]
+        [InlineData("AzureCdnCloudStorageAccount", "", typeof(ArgumentException))]
+        [InlineData("AzureCdnCloudStorageContainerName", "", typeof(ArgumentException))]
+        [InlineData("AzureCdnPlatform", "", typeof(ArgumentException))]
+        [InlineData("FtpSourceUri", "", typeof(ArgumentException))]
+        [InlineData("FtpSourceUsername", "", typeof(ArgumentException))]
+        [InlineData("FtpSourcePassword", "", typeof(ArgumentException))]
+        // invalid values
+        [InlineData("FtpSourceUri", "http://localhost", typeof(UriFormatException))]
+        [InlineData("FtpSourceUri", "ftps://someserver/folder", typeof(UriFormatException))]
+        [InlineData("FtpSourceUri", "ftp://", typeof(UriFormatException))]
+        [InlineData("AzureCdnPlatform", "bla", typeof(ArgumentException))]
+        [InlineData("AzureCdnCloudStorageAccount", "bla", typeof(ArgumentException))]
+        public void InitFailsWhenInvalidConfiguration(string property, object value, Type exceptionType)
         {
-            var jobArgsDictionary = CreateValidJobArgsDictionary();
-            jobArgsDictionary["FtpSourceUri"] = serverUri;
-
             var job = new Job();
-            Assert.ThrowsAny<Exception>(() => job.Init(ServiceContainer, jobArgsDictionary));
+            var configuration = GetModifiedConfiguration(property, value);
+
+            Assert.Throws(exceptionType, () => job.InitializeJobConfiguration(GetMockServiceProvider(configuration)));
         }
 
-        [Theory]
-        [InlineData("")]
-        [InlineData(null)]
-        public void InitFailsForMissingFtpUsername(string username)
+        private static CollectAzureCdnLogsConfiguration GetModifiedConfiguration(string property, object value)
         {
-            var jobArgsDictionary = CreateValidJobArgsDictionary();
-            jobArgsDictionary["FtpSourceUsername"] = username;
+            var configuration = GetDefaultConfiguration();
 
-            var job = new Job();
-            Assert.ThrowsAny<Exception>(() => job.Init(ServiceContainer, jobArgsDictionary));
+            typeof(CollectAzureCdnLogsConfiguration)
+                .GetProperty(property)
+                .SetValue(configuration, value);
+
+            return configuration;
         }
 
-        [Theory]
-        [InlineData("")]
-        [InlineData(null)]
-        public void InitFailsForMissingFtpPassword(string password)
+        private static CollectAzureCdnLogsConfiguration GetDefaultConfiguration()
         {
-            var jobArgsDictionary = CreateValidJobArgsDictionary();
-            jobArgsDictionary["FtpSourcePassword"] = password;
-
-            var job = new Job();
-            Assert.ThrowsAny<Exception>(() => job.Init(ServiceContainer, jobArgsDictionary));
+            return new CollectAzureCdnLogsConfiguration
+            {
+                AzureCdnAccountNumber = "AA00",
+                AzureCdnCloudStorageAccount = "UseDevelopmentStorage=true;",
+                AzureCdnCloudStorageContainerName = "cdnLogs",
+                AzureCdnPlatform = "HttpLargeObject",
+                FtpSourceUri = "ftp://someserver/logFolder",
+                FtpSourceUsername = @"domain\alias",
+                FtpSourcePassword = "secret"
+            };
         }
 
-        [Theory]
-        [InlineData("")]
-        [InlineData(null)]
-        [InlineData("bla")]
-        public void InitFailsForMissingOrInvalidAzureCdnPlatform(string platform)
+        private static IServiceProvider GetMockServiceProvider(CollectAzureCdnLogsConfiguration configuration)
         {
-            var jobArgsDictionary = CreateValidJobArgsDictionary();
-            jobArgsDictionary["AzureCdnPlatform"] = platform;
+            var mockOptionsSnapshot = new Mock<IOptionsSnapshot<CollectAzureCdnLogsConfiguration>>();
 
-            var job = new Job();
-            Assert.ThrowsAny<Exception>(() => job.Init(ServiceContainer, jobArgsDictionary));
-        }
+            mockOptionsSnapshot
+                .Setup(x => x.Value)
+                .Returns(configuration);
 
-        [Theory]
-        [InlineData("")]
-        [InlineData(null)]
-        public void InitFailsForMissingAzureCdnAccountNumber(string accountNumber)
-        {
-            var jobArgsDictionary = CreateValidJobArgsDictionary();
-            jobArgsDictionary["AzureCdnAccountNumber"] = accountNumber;
+            var mockProvider = new Mock<IServiceProvider>();
 
-            var job = new Job();
-            Assert.ThrowsAny<Exception>(() => job.Init(ServiceContainer, jobArgsDictionary));
-        }
+            mockProvider
+                .Setup(sp => sp.GetService(It.IsAny<Type>()))
+                .Returns<Type>(serviceType =>
+                {
+                    if (serviceType == typeof(IOptionsSnapshot<CollectAzureCdnLogsConfiguration>))
+                    {
+                        return mockOptionsSnapshot.Object;
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException($"Unexpected service lookup: {serviceType.Name}");
+                    }
+                });
 
-        [Theory]
-        [InlineData("")]
-        [InlineData(null)]
-        [InlineData("bla")]
-        public void InitFailsForMissingOrInvalidAzureCdnCloudStorageAccount(string cloudStorageAccount)
-        {
-            var jobArgsDictionary = CreateValidJobArgsDictionary();
-            jobArgsDictionary["AzureCdnCloudStorageAccount"] = cloudStorageAccount;
-
-            var job = new Job();
-            Assert.ThrowsAny<Exception>(() => job.Init(ServiceContainer, jobArgsDictionary));
-        }
-
-        [Theory]
-        [InlineData("")]
-        [InlineData(null)]
-        public void InitFailsForMissingAzureCdnCloudStorageContainerName(string containerName)
-        {
-            var jobArgsDictionary = CreateValidJobArgsDictionary();
-            jobArgsDictionary["AzureCdnCloudStorageContainerName"] = containerName;
-
-            var job = new Job();
-            Assert.ThrowsAny<Exception>(() => job.Init(ServiceContainer, jobArgsDictionary));
-        }
-
-        private static Dictionary<string, string> CreateValidJobArgsDictionary()
-        {
-            var jobArgsDictionary = new Dictionary<string, string>();
-            jobArgsDictionary.Add("FtpSourceUri", "ftp://someserver/logFolder");
-            jobArgsDictionary.Add("FtpSourceUsername", @"domain\alias");
-            jobArgsDictionary.Add("FtpSourcePassword", "secret");
-            jobArgsDictionary.Add("AzureCdnPlatform", "HttpLargeObject");
-            jobArgsDictionary.Add("AzureCdnAccountNumber", "AA00");
-            jobArgsDictionary.Add("AzureCdnCloudStorageAccount", "UseDevelopmentStorage=true;");
-            jobArgsDictionary.Add("AzureCdnCloudStorageContainerName", "cdnLogs");
-
-            return jobArgsDictionary;
+            return mockProvider.Object;
         }
     }
 }

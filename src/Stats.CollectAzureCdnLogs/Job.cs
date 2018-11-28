@@ -9,9 +9,13 @@ using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Autofac;
 using ICSharpCode.SharpZipLib;
 using ICSharpCode.SharpZipLib.GZip;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.WindowsAzure.Storage;
 using NuGet.Jobs;
 using Stats.AzureCdnLogs.Common;
@@ -20,31 +24,50 @@ using Stats.CollectAzureCdnLogs.Ftp;
 
 namespace Stats.CollectAzureCdnLogs
 {
-    public class Job
-         : JobBase
+    public class Job : JsonConfigurationJob
     {
         private static readonly DateTime _unixTimestamp = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
         private Uri _ftpServerUri;
-        private string _ftpUsername;
-        private string _ftpPassword;
-        private string _azureCdnAccountNumber;
         private AzureCdnPlatform _azureCdnPlatform;
         private CloudStorageAccount _cloudStorageAccount;
-        private string _cloudStorageContainerName;
+
+        private CollectAzureCdnLogsConfiguration _configuration;
 
         public override void Init(IServiceContainer serviceContainer, IDictionary<string, string> jobArgsDictionary)
         {
-            var ftpLogFolder = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.FtpSourceUri);
-            var azureCdnPlatform = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.AzureCdnPlatform);
-            var cloudStorageAccount = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.AzureCdnCloudStorageAccount);
-            _cloudStorageContainerName = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.AzureCdnCloudStorageContainerName);
-            _azureCdnAccountNumber = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.AzureCdnAccountNumber);
-            _ftpUsername = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.FtpSourceUsername);
-            _ftpPassword = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.FtpSourcePassword);
+            base.Init(serviceContainer, jobArgsDictionary);
 
-            _ftpServerUri = ValidateFtpUri(ftpLogFolder);
-            _azureCdnPlatform = ValidateAzureCdnPlatform(azureCdnPlatform);
-            _cloudStorageAccount = ValidateAzureCloudStorageAccount(cloudStorageAccount);
+            InitializeJobConfiguration(_serviceProvider);
+        }
+
+        public void InitializeJobConfiguration(IServiceProvider serviceProvider)
+        {
+            _configuration = serviceProvider.GetRequiredService<IOptionsSnapshot<CollectAzureCdnLogsConfiguration>>().Value;
+
+            if (string.IsNullOrEmpty(_configuration.AzureCdnAccountNumber))
+            {
+                throw new ArgumentException("Configuration 'AzureCdnAccountNumber' is required", nameof(_configuration));
+            }
+
+            if (string.IsNullOrEmpty(_configuration.AzureCdnCloudStorageContainerName))
+            {
+                throw new ArgumentException("Configuration 'AzureCdnCloudStorageContainerName' is required", nameof(_configuration));
+            }
+
+            if (string.IsNullOrEmpty(_configuration.FtpSourceUsername)) {
+                throw new ArgumentException("Configuration 'FtpSourceUsername' is required", nameof(_configuration));
+            }
+
+            if (string.IsNullOrEmpty(_configuration.FtpSourcePassword))
+            {
+                throw new ArgumentException("Configuration 'FtpSourcePassword' is required", nameof(_configuration));
+            }
+
+            _cloudStorageAccount = ValidateAzureCloudStorageAccount(_configuration.AzureCdnCloudStorageAccount);
+
+            _azureCdnPlatform = ValidateAzureCdnPlatform(_configuration.AzureCdnPlatform);
+
+            _ftpServerUri = ValidateFtpUri(_configuration.FtpSourceUri);
         }
 
         private static CloudStorageAccount ValidateAzureCloudStorageAccount(string cloudStorageAccount)
@@ -110,14 +133,14 @@ namespace Stats.CollectAzureCdnLogs
 
         public override async Task Run()
         {
-            var ftpClient = new FtpRawLogClient(LoggerFactory, _ftpUsername, _ftpPassword);
+            var ftpClient = new FtpRawLogClient(LoggerFactory, _configuration.FtpSourceUsername, _configuration.FtpSourcePassword);
             var azureClient = new CloudBlobRawLogClient(LoggerFactory, _cloudStorageAccount);
 
             // Collect directory listing.
             var rawLogFileUris = await ftpClient.GetRawLogFileUris(_ftpServerUri);
 
             // Prepare cloud storage blob container.
-            var cloudBlobContainer = await azureClient.CreateContainerIfNotExistsAsync(_cloudStorageContainerName);
+            var cloudBlobContainer = await azureClient.CreateContainerIfNotExistsAsync(_configuration.AzureCdnCloudStorageContainerName);
 
             foreach (var rawLogFileUri in rawLogFileUris)
             {
@@ -126,7 +149,7 @@ namespace Stats.CollectAzureCdnLogs
                     var rawLogFile = new RawLogFileInfo(rawLogFileUri);
 
                     if (_azureCdnPlatform != rawLogFile.AzureCdnPlatform
-                        || !_azureCdnAccountNumber.Equals(rawLogFile.AzureCdnAccountNumber, StringComparison.InvariantCultureIgnoreCase))
+                        || !_configuration.AzureCdnAccountNumber.Equals(rawLogFile.AzureCdnAccountNumber, StringComparison.InvariantCultureIgnoreCase))
                     {
                         // Only process the raw log files matching the target CDN platform and account number.
                         continue;
@@ -366,6 +389,15 @@ namespace Stats.CollectAzureCdnLogs
         {
             var secondsPastEpoch = (dateTime - _unixTimestamp).TotalSeconds;
             return secondsPastEpoch.ToString(CultureInfo.InvariantCulture);
+        }
+
+        protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder)
+        {
+        }
+
+        protected override void ConfigureJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
+        {
+            ConfigureInitializationSection<CollectAzureCdnLogsConfiguration>(services, configurationRoot);
         }
     }
 }

@@ -6,39 +6,47 @@ using System.Collections.Generic;
 using System.ComponentModel.Design;
 using System.Threading;
 using System.Threading.Tasks;
+using Autofac;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.WindowsAzure.Storage;
 using NuGet.Jobs;
 using Stats.AzureCdnLogs.Common.Collect;
 
 namespace Stats.CollectAzureChinaCDNLogs
 {
-    public class Job : JobBase
+    public class Job : JsonConfigurationJob
     {
         private const int DefaultExecutionTimeoutInSeconds = 14400; // 4 hours
         private const int MaxFilesToProcess = 4;
-
-        private CloudStorageAccount _cloudStorageAccountSource;
-        private CloudStorageAccount _cloudStorageAccountDestination;
-        private string _cloudStorageContainerNameDestination;
-        private string _cloudStorageContainerNameSource;
-        private Collector _chinaCollector;
+        
+        private CollectAzureChinaCdnLogsConfiguration _configuration;
         private int _executionTimeoutInSeconds;
-        private string _destinationFilePrefix;
+        private Collector _chinaCollector;
 
         public override void Init(IServiceContainer serviceContainer, IDictionary<string, string> jobArgsDictionary)
         {
-            var cloudStorageAccountConnStringSource = JobConfigurationManager.GetArgument(jobArgsDictionary, ArgumentNames.AzureAccountConnectionStringSource);
-            var cloudStorageAccountConnStringDest = JobConfigurationManager.GetArgument(jobArgsDictionary, ArgumentNames.AzureAccountConnectionStringDestination);
-            _cloudStorageAccountSource = ValidateAzureCloudStorageAccount(cloudStorageAccountConnStringSource);
-            _cloudStorageAccountDestination = ValidateAzureCloudStorageAccount(cloudStorageAccountConnStringDest);
-            _cloudStorageContainerNameDestination = JobConfigurationManager.GetArgument(jobArgsDictionary, ArgumentNames.AzureContainerNameDestination);
-            _cloudStorageContainerNameSource = JobConfigurationManager.GetArgument(jobArgsDictionary, ArgumentNames.AzureContainerNameSource);
-            _destinationFilePrefix = JobConfigurationManager.GetArgument(jobArgsDictionary, ArgumentNames.DestinationFilePrefix);
-            _executionTimeoutInSeconds = JobConfigurationManager.TryGetIntArgument(jobArgsDictionary, ArgumentNames.ExecutionTimeoutInSeconds) ?? DefaultExecutionTimeoutInSeconds;
+            base.Init(serviceContainer, jobArgsDictionary);
 
-            var source = new AzureStatsLogSource(cloudStorageAccountConnStringSource, _cloudStorageContainerNameSource, _executionTimeoutInSeconds/MaxFilesToProcess);
-            var dest = new AzureStatsLogDestination(cloudStorageAccountConnStringDest,_cloudStorageContainerNameDestination);
+            InitializeJobConfiguration(_serviceProvider);
+        }
+
+        public void InitializeJobConfiguration(IServiceProvider serviceProvider)
+        {
+            _configuration = serviceProvider.GetRequiredService<IOptionsSnapshot<CollectAzureChinaCdnLogsConfiguration>>().Value;
+            _executionTimeoutInSeconds = _configuration.ExecutionTimeoutInSeconds ?? DefaultExecutionTimeoutInSeconds;
+
+            var source = new AzureStatsLogSource(
+                ValidateAzureCloudStorageAccount(_configuration.AzureAccountConnectionStringSource),
+                _configuration.AzureContainerNameSource,
+                _executionTimeoutInSeconds / MaxFilesToProcess);
+
+            var dest = new AzureStatsLogDestination(
+                ValidateAzureCloudStorageAccount(_configuration.AzureAccountConnectionStringDestination),
+                _configuration.AzureContainerNameDestination);
+
             _chinaCollector = new ChinaStatsCollector(source, dest);
         }
 
@@ -47,7 +55,7 @@ namespace Stats.CollectAzureChinaCDNLogs
             CancellationTokenSource cts = new CancellationTokenSource();
             cts.CancelAfter(_executionTimeoutInSeconds*1000);
             var aggregateExceptions = await _chinaCollector.TryProcessAsync(maxFileCount: MaxFilesToProcess,
-                 fileNameTransform: s => $"{_destinationFilePrefix}_{s}",
+                 fileNameTransform: s => $"{_configuration.DestinationFilePrefix}_{s}",
                  sourceContentType: ContentType.GZip,
                  destinationContentType: ContentType.GZip,
                  token: cts.Token);
@@ -79,6 +87,15 @@ namespace Stats.CollectAzureChinaCDNLogs
                 return account;
             }
             throw new ArgumentException("Job parameter for Azure CDN Cloud Storage Account is invalid.");
+        }
+
+        protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder)
+        {
+        }
+
+        protected override void ConfigureJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
+        {
+            ConfigureInitializationSection<CollectAzureChinaCdnLogsConfiguration>(services, configurationRoot);
         }
     }
 }

@@ -24,9 +24,9 @@ namespace Stats.AzureCdnLogs.Common.Collect
         private CloudBlobClient _cloudBlobClient;
         private CloudBlobContainer _cloudBlobContainer;
 
-        public AzureStatsLogDestination(string connectionString, string containerName)
+        public AzureStatsLogDestination(CloudStorageAccount storageAccount, string containerName)
         {
-            _azureAccount = CloudStorageAccount.Parse(connectionString);
+            _azureAccount = storageAccount;
             _cloudBlobClient = _azureAccount.CreateCloudBlobClient();
             _cloudBlobContainer = _cloudBlobClient.GetContainerReference(containerName);
             _cloudBlobContainer.CreateIfNotExists();
