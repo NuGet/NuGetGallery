@@ -4,6 +4,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Moq;
 using NuGet.Services.Entities;
@@ -111,9 +113,94 @@ namespace NuGetGallery.Services
 
         public class ExtractAndSaveLicenseFileAsync
         {
-            private static MemoryStream GeneratePackageAsync(string licenseFileName = null)
+            [Fact]
+            public async Task ThrowsWhenPackageIsNull()
             {
-                return PackageServiceUtility.CreateNuGetPackageStream();
+                var service = CreateService();
+                var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => service.ExtractAndSaveLicenseFileAsync(
+                    package: null,
+                    packageStream: Mock.Of<Stream>()));
+
+                Assert.Equal("package", ex.ParamName);
+            }
+
+            [Fact]
+            public async Task ThrowsWhenPackageStreamIsNull()
+            {
+                var service = CreateService();
+
+                var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => service.ExtractAndSaveLicenseFileAsync(
+                    package: Mock.Of<Package>(),
+                    packageStream: null));
+
+                Assert.Equal("packageStream", ex.ParamName);
+            }
+
+            [Theory]
+            [InlineData(null, null)]
+            [InlineData(" ", null)]
+            [InlineData(null, "MIT")] // should also throw for license expression
+            public async Task ThrowsWhenNoLicenseFileSpecified(string licenseFileName, string licenseExpression)
+            {
+                var service = CreateService();
+                var packageStream = GeneratePackageAsync(licenseFileName, licenseExpression);
+                var package = PackageServiceUtility.CreateTestPackage();
+                package.EmbeddedLicenseType = EmbeddedLicenseFileType.PlainText; // tested method should ignore the package settings and check .nuspec
+
+                var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => service.ExtractAndSaveLicenseFileAsync(package, packageStream));
+
+                Assert.Contains("No license file", ex.Message);
+            }
+
+            [Fact]
+            public async Task ThrowsOnMissingLicenseFile()
+            {
+                var service = CreateService();
+                const string LicenseFileName = "license.txt";
+                var packageStream = GeneratePackageAsync(LicenseFileName, null, false);
+                var package = PackageServiceUtility.CreateTestPackage();
+
+                var ex = await Assert.ThrowsAsync<FileNotFoundException>(() => service.ExtractAndSaveLicenseFileAsync(package, packageStream));
+                Assert.Contains(LicenseFileName, ex.Message); // current implementation of the client does not properly set the FileName property
+            }
+
+            [Fact]
+            public async Task SavesLicenseFile()
+            {
+                var fileStorageSvc = new Mock<ICoreFileStorageService>();
+                var service = CreateService(fileStorageSvc);
+                const string LicenseFileName = "license.txt";
+                var packageStream = GeneratePackageAsync(LicenseFileName);
+                var package = PackageServiceUtility.CreateTestPackage();
+                package.EmbeddedLicenseType = EmbeddedLicenseFileType.PlainText;
+                var savedLicenseBytes = new byte[LicenseFileContents.Length];
+                var expectedFileName = BuildLicenseFileName(package.Id, package.Version);
+
+                fileStorageSvc.Setup(x => x.SaveFileAsync(
+                        CoreConstants.Folders.PackagesContentFolderName,
+                        expectedFileName,
+                        "text/plain",
+                        It.IsAny<Stream>(),
+                        true))
+                    .Completes()
+                    .Callback<string, string, string, Stream, bool>((_, __, ___, s, ____) => s.Read(savedLicenseBytes, 0, savedLicenseBytes.Length))
+                    .Verifiable();
+
+                await service.ExtractAndSaveLicenseFileAsync(package, packageStream);
+
+                fileStorageSvc
+                    .VerifyAll();
+                Assert.Equal(LicenseFileContents, savedLicenseBytes);
+            }
+
+            private static byte[] LicenseFileContents => Encoding.UTF8.GetBytes("Sample license text");
+
+            private static MemoryStream GeneratePackageAsync(string licenseFileName = null, string licenseExpression = null, bool saveLicenseFile = true)
+            {
+                return PackageServiceUtility.CreateNuGetPackageStream(
+                    licenseExpression: licenseExpression,
+                    licenseFilename: licenseFileName,
+                    licenseFileContents: licenseFileName != null && saveLicenseFile ? LicenseFileContents : null);
             }
         }
 
