@@ -43,7 +43,11 @@
     <Compile Include="Db2AzureSearch\EnumerableExtensionsFacts.cs" />
     <Compile Include="Db2AzureSearch\NewPackageRegistrationProducerFacts.cs" />
     <Compile Include="IndexActionBuilderFacts.cs" />
+    <Compile Include="DocumentUtilitiesFacts.cs" />
+    <Compile Include="HijackDocumentBuilderFacts.cs" />
+    <Compile Include="SearchDocumentBuilderFacts.cs" />
     <Compile Include="Registration\RegistrationClientFacts.cs" />
+    <Compile Include="Support\SerializationUtilities.cs" />
     <Compile Include="Support\DbSetMockFactory.cs" />
     <Compile Include="Support\RecordingLogger.cs" />
     <Compile Include="Support\TestDbAsyncEnumerable.cs" />

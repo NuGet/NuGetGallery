@@ -41,6 +41,8 @@
     <Compile Include="Catalog2AzureSearch\CatalogLeafFetcher.cs" />
     <Compile Include="Catalog2AzureSearch\ICatalogLeafFetcher.cs" />
     <Compile Include="Catalog2AzureSearch\LatestCatalogLeaves.cs" />
+    <Compile Include="DocumentUtilities.cs" />
+    <Compile Include="HijackDocumentBuilder.cs" />
     <Compile Include="IBatchPusher.cs" />
     <Compile Include="Db2AzureSearch\Db2AzureSearchCommand.cs" />
     <Compile Include="Db2AzureSearch\Db2AzureSearchConfiguration.cs" />
@@ -52,7 +54,9 @@
     <Compile Include="Db2AzureSearch\NewPackageRegistration.cs" />
     <Compile Include="IndexActionBuilder.cs" />
     <Compile Include="Db2AzureSearch\NewPackageRegistrationProducer.cs" />
+    <Compile Include="IHijackDocumentBuilder.cs" />
     <Compile Include="IndexActions.cs" />
+    <Compile Include="ISearchDocumentBuilder.cs" />
     <Compile Include="Models\IBaseMetadataDocument.cs" />
     <Compile Include="Models\KeyedDocument.cs" />
     <Compile Include="Models\BaseMetadataDocument.cs" />
@@ -66,6 +70,7 @@
     <Compile Include="Registration\Models\RegistrationPage.cs" />
     <Compile Include="Registration\RegistrationClient.cs" />
     <Compile Include="Registration\Models\RegistrationLeaf.cs" />
+    <Compile Include="SearchDocumentBuilder.cs" />
     <Compile Include="VersionList\Guard.cs" />
     <Compile Include="VersionList\HijackIndexChange.cs" />
     <Compile Include="VersionList\HijackIndexChangeType.cs" />

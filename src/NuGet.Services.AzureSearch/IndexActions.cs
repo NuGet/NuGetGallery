@@ -8,7 +8,7 @@ using Microsoft.Azure.Search.Models;
 namespace NuGet.Services.AzureSearch
 {
     /// <summary>
-    /// <see cref="IndexAction{T}"/> instances seperated by whether they apply to the search index or the hijack index
+    /// <see cref="IndexAction{T}"/> instances separated by whether they apply to the search index or the hijack index
     /// as well as the version list data to write to storage after the index actions have been applied.
     /// </summary>
     public class IndexActions
