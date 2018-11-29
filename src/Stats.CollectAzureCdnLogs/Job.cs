@@ -64,9 +64,7 @@ namespace Stats.CollectAzureCdnLogs
             }
 
             _cloudStorageAccount = ValidateAzureCloudStorageAccount(_configuration.AzureCdnCloudStorageAccount);
-
             _azureCdnPlatform = ValidateAzureCdnPlatform(_configuration.AzureCdnPlatform);
-
             _ftpServerUri = ValidateFtpUri(_configuration.FtpSourceUri);
         }
 
