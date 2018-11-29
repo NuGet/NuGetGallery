@@ -8,6 +8,7 @@ echo "Starting job - #{Jobs.Stats.CollectAzureChinaCDNLogs.Title}"
 title #{Jobs.Stats.CollectAzureChinaCDNLogs.Title}
 
 start /w Stats.CollectAzureChinaCDNLogs.exe ^
+    -Configuration "#{Jobs.Stats.CollectAzureChinaCDNLogs.Configuration}" ^
     -InstrumentationKey "#{Jobs.Stats.CollectAzureChinaCDNLogs.InstrumentationKey}" ^
     -verbose true ^
     -Interval #{Jobs.Stats.CollectAzureChinaCDNLogs.Interval}
