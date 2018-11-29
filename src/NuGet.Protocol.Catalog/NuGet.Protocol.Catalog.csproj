@@ -91,6 +91,7 @@
     <Compile Include="Serialization\CatalogLeafItemTypeConverter.cs" />
     <Compile Include="Serialization\CatalogLeafTypeConverter.cs" />
     <Compile Include="Serialization\NuGetJsonSerialization.cs" />
+    <Compile Include="Serialization\PackageDependencyRangeConverter.cs" />
     <Compile Include="SimpleHttpClient.cs" />
     <Compile Include="SimpleHttpClientException.cs" />
   </ItemGroup>

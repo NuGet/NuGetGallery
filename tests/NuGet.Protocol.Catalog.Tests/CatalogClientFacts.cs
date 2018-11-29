@@ -91,6 +91,24 @@ namespace NuGet.Protocol.Catalog
                     Assert.NotNull(actual);
                 }
             }
+
+            [Fact]
+            public async Task WorksWithNuGetOrgDependencyVersionRangeArraySnapshot()
+            {
+                // Arrange
+                using (var httpClient = new HttpClient(new TestDataHttpMessageHandler()))
+                {
+                    var client = GetCatalogClient(httpClient);
+
+                    // Act
+                    var actual = await client.GetPackageDetailsLeafAsync(
+                        TestData.CatalogLeafInvalidDependencyVersionRangeUrl);
+
+                    // Assert
+                    Assert.NotNull(actual);
+                    Assert.Equal("[4.0.10, )", actual.DependencyGroups[1].Dependencies[3].Range);
+                }
+            }
         }
 
         public class GetLeafAsync

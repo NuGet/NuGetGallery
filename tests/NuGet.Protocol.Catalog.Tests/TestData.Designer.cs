@@ -79,6 +79,36 @@ namespace NuGet.Protocol.Catalog {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {
+        ///  &quot;@id&quot;: &quot;https://api.nuget.org/v3/catalog0/data/2016.02.21.11.06.01/dingu.generic.repo.ef7.1.0.0-beta2.json&quot;,
+        ///  &quot;@type&quot;: [
+        ///    &quot;PackageDetails&quot;,
+        ///    &quot;catalog:Permalink&quot;
+        ///  ],
+        ///  &quot;authors&quot;: &quot;3344hp&quot;,
+        ///  &quot;catalog:commitId&quot;: &quot;eddb29f8-32c6-41da-8928-0940927a708b&quot;,
+        ///  &quot;catalog:commitTimeStamp&quot;: &quot;2016-02-21T11:06:01.8896907Z&quot;,
+        ///  &quot;created&quot;: &quot;2016-02-21T11:05:37.54Z&quot;,
+        ///  &quot;description&quot;: &quot;Dingu.Generic.Repo.EF7 Class Library&quot;,
+        ///  &quot;frameworkAssemblyGroup&quot;: {
+        ///    &quot;@id&quot;: &quot;https://api.nuget.org/v3/catalog0/data [rest of string was truncated]&quot;;.
+        /// </summary>
+        public static string CatalogLeafInvalidDependencyVersionRange {
+            get {
+                return ResourceManager.GetString("CatalogLeafInvalidDependencyVersionRange", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to https://api.nuget.org/v3/catalog0/data/2016.02.21.11.06.01/dingu.generic.repo.ef7.1.0.0-beta2.json.
+        /// </summary>
+        public static string CatalogLeafInvalidDependencyVersionRangeUrl {
+            get {
+                return ResourceManager.GetString("CatalogLeafInvalidDependencyVersionRangeUrl", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {&quot;@id&quot;:&quot;https://api.nuget.org/v3/catalog0/page2944.json&quot;,&quot;@type&quot;:&quot;CatalogPage&quot;,&quot;commitId&quot;:&quot;f241ce46-35ba-44c2-bd72-790eb44539a5&quot;,&quot;commitTimeStamp&quot;:&quot;2017-11-06T22:07:49.3270578Z&quot;,&quot;count&quot;:218,&quot;parent&quot;:&quot;https://api.nuget.org/v3/catalog0/index.json&quot;,&quot;items&quot;:[{&quot;@id&quot;:&quot;https://api.nuget.org/v3/catalog0/data/2017.11.06.22.07.49/dotnettency.container.1.3.2.json&quot;,&quot;@type&quot;:&quot;nuget:PackageDetails&quot;,&quot;commitId&quot;:&quot;f241ce46-35ba-44c2-bd72-790eb44539a5&quot;,&quot;commitTimeStamp&quot;:&quot;2017-11-06T22:07:49.3270578Z&quot;,&quot;nuget:id&quot;:&quot;Dotnettency.Co [rest of string was truncated]&quot;;.
         /// </summary>
         public static string CatalogPage {
