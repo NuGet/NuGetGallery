@@ -148,6 +148,8 @@
     <Compile Include="Infrastructure\Mail\Messages\OrganizationTransformRejectedMessageFacts.cs" />
     <Compile Include="Infrastructure\Mail\Messages\OrganizationTransformAcceptedMessageFacts.cs" />
     <Compile Include="Infrastructure\Mail\Messages\OrganizationMemberUpdatedMessageFacts.cs" />
+    <Compile Include="Infrastructure\Mail\TestableMarkdownMessageService.cs" />
+    <Compile Include="Infrastructure\Mail\TestMailSender.cs" />
     <Compile Include="Infrastructure\Mail\TestMessageServiceConfiguration.cs" />
     <Compile Include="Security\ControlRequiredSignerPolicyFacts.cs" />
     <Compile Include="Security\AutomaticallyOverwriteRequiredSignerPolicyFacts.cs" />
@@ -158,6 +160,7 @@
     <Compile Include="Services\ActionRequiringEntityPermissionsFacts.cs" />
     <Compile Include="Services\CertificatesConfigurationFacts.cs" />
     <Compile Include="Services\CuratedFeedServiceFacts.cs" />
+    <Compile Include="Infrastructure\Mail\MarkdownMessageServiceFacts.cs" />
     <Compile Include="Services\TyposquattingCheckListCacheServiceFacts.cs" />
     <Compile Include="Services\TyposquattingServiceFacts.cs" />
     <Compile Include="Services\CloudDownloadCountServiceFacts.cs" />
@@ -241,7 +244,6 @@
     <Compile Include="Services\ContentServiceFacts.cs" />
     <Compile Include="TestUtils\Infrastructure\FeedServiceHelpers.cs" />
     <Compile Include="Services\FileSystemFileStorageServiceFacts.cs" />
-    <Compile Include="Services\MessageServiceFacts.cs" />
     <Compile Include="Services\ODataRemoveSorterFacts.cs" />
     <Compile Include="Services\PackageFileServiceFacts.cs" />
     <Compile Include="Services\PackageDeleteServiceFacts.cs" />
