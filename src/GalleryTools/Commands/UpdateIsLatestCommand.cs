@@ -23,10 +23,10 @@ namespace GalleryTools.Commands
                 "The SQL connectionstring of the target NuGetGallery database.",
                 CommandOptionType.SingleValue);
 
-            config.OnExecute(async () => await Execute(connectionstringOption));
+            config.OnExecute(async () => await ExecuteAsync(connectionstringOption));
         }
 
-        private static async Task<int> Execute(
+        private static async Task<int> ExecuteAsync(
             CommandOption connectionStringOption)
         {
             if (!connectionStringOption.HasValue())
@@ -51,26 +51,28 @@ namespace GalleryTools.Commands
                     return -1;
                 }
 
-                var entitiesContext = new EntitiesContext(sqlConnection, readOnly: false);
-                var packageRegistrationRepository = new EntityRepository<PackageRegistration>(entitiesContext);
-
-                var packageService = new CorePackageService(
-                    new EntityRepository<Package>(entitiesContext),
-                    packageRegistrationRepository,
-                    new EntityRepository<Certificate>(entitiesContext));
-
-                Console.WriteLine("Retrieving package registrations...");
-                var packageRegistrations = packageRegistrationRepository.GetAll().ToList();
-                Console.WriteLine($"Processing {packageRegistrations.Count} records...");
-
-                double counter = 0;
-                foreach (var packageRegistration in packageRegistrations.OrderBy(pr => pr.Id))
+                using (var entitiesContext = new EntitiesContext(sqlConnection, readOnly: false))
                 {
-                    var pct = 100 * counter++ / packageRegistrations.Count;
+                    var packageRegistrationRepository = new EntityRepository<PackageRegistration>(entitiesContext);
 
-                    Console.Write($"  [{pct.ToString("N2")} %] Updating {packageRegistration.Id} ...");
-                    await packageService.UpdateIsLatestAsync(packageRegistration, commitChanges: true);
-                    Console.WriteLine($" OK");
+                    var packageService = new CorePackageService(
+                        new EntityRepository<Package>(entitiesContext),
+                        packageRegistrationRepository,
+                        new EntityRepository<Certificate>(entitiesContext));
+
+                    Console.WriteLine("Retrieving package registrations...");
+                    var packageRegistrations = packageRegistrationRepository.GetAll().ToList();
+                    Console.WriteLine($"Processing {packageRegistrations.Count} records...");
+
+                    double counter = 0;
+                    foreach (var packageRegistration in packageRegistrations.OrderBy(pr => pr.Id))
+                    {
+                        var pct = 100 * counter++ / packageRegistrations.Count;
+
+                        Console.Write($"  [{pct.ToString("N2")} %] Updating {packageRegistration.Id} ...");
+                        await packageService.UpdateIsLatestAsync(packageRegistration, commitChanges: true);
+                        Console.WriteLine($" OK");
+                    }
                 }
             }
 
