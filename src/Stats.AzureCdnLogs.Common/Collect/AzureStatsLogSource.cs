@@ -33,9 +33,9 @@ namespace Stats.AzureCdnLogs.Common.Collect
         /// </summary>
         /// <param name="connectionString">The connection string for the Azure account.</param>
         /// <param name="containerName">The container name.</param>
-        public AzureStatsLogSource(string connectionString, string containerName, int azureServerTimeoutInSeconds)
+        public AzureStatsLogSource(CloudStorageAccount storageAccount, string containerName, int azureServerTimeoutInSeconds)
         {
-            _azureAccount = CloudStorageAccount.Parse(connectionString);
+            _azureAccount = storageAccount;
             _blobClient = _azureAccount.CreateCloudBlobClient();
             _container = _blobClient.GetContainerReference(containerName);
             _blobRequestOptions = new BlobRequestOptions();
