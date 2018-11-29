@@ -134,7 +134,7 @@ namespace NuGet.Services.Validation.Orchestrator.PackageSigning.ScanAndSign
 
             var owners = FindPackageOwners(request);
 
-            if (await ShouldRepositorySignAsync(request, owners))
+            if (await ShouldRepositorySignAsync(request))
             {
                 _logger.LogInformation(
                     "Repository signing {PackageId} {PackageVersion} with {ServiceIndex} and {Owners}",
@@ -198,7 +198,7 @@ namespace NuGet.Services.Validation.Orchestrator.PackageSigning.ScanAndSign
             return false;
         }
 
-        private async Task<bool> ShouldRepositorySignAsync(IValidationRequest request, List<string> owners)
+        private async Task<bool> ShouldRepositorySignAsync(IValidationRequest request)
         {
             var hasRepositorySignature = await _validationContext
                 .PackageSignatures
@@ -212,19 +212,6 @@ namespace NuGet.Services.Validation.Orchestrator.PackageSigning.ScanAndSign
                     "Package {PackageId} {PackageVersion} already has a repository signature. Scanning instead of signing package",
                     request.PackageId,
                     request.PackageVersion);
-
-                return false;
-            }
-
-            // TODO: Remove this check.
-            // See: https://github.com/NuGet/Engineering/issues/1582
-            if (owners.Any(UsernameHelper.IsInvalid))
-            {
-                _logger.LogWarning(
-                    "Package {PackageId} {PackageVersion} has an owner with an invalid username. Scanning instead of signing. {Owners}",
-                    request.PackageId,
-                    request.PackageVersion,
-                    owners);
 
                 return false;
             }
