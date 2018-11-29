@@ -27,7 +27,7 @@ namespace NuGetGallery.Services
             {
                 // Arrange
                 PackageRegistration registration = null;
-                var testUser = CreateTestData(ref registration);
+                var testUser = CreateTestUser(ref registration);
                 var testableService = new DeleteAccountTestService(testUser, registration);
                 var deleteAccountService = testableService.GetDeleteAccountService();
 
@@ -44,7 +44,7 @@ namespace NuGetGallery.Services
             {
                 // Arrange
                 PackageRegistration registration = null;
-                var testUser = CreateTestData(ref registration);
+                var testUser = CreateTestUser(ref registration);
                 var testableService = new DeleteAccountTestService(testUser, registration);
                 var deleteAccountService = testableService.GetDeleteAccountService();
 
@@ -64,7 +64,7 @@ namespace NuGetGallery.Services
             {
                 // Arrange
                 PackageRegistration registration = null;
-                var testUser = CreateTestData(ref registration);
+                var testUser = CreateTestUser(ref registration);
                 testUser.IsDeleted = true;
                 var testableService = new DeleteAccountTestService(testUser, registration);
                 var deleteAccountService = testableService.GetDeleteAccountService();
@@ -79,21 +79,61 @@ namespace NuGetGallery.Services
                 Assert.Equal(expected, result.Description);
             }
 
+            public enum DeleteAccountPackageOrphanState
+            {
+                Orphaned,
+                OwnedByOtherUser,
+                OwnedByOtherOrganization
+            }
+
+            public static IEnumerable<object[]> DeleteAccount_Data
+            {
+                get
+                {
+                    foreach (var packageOrphanedState in
+                        Enum.GetValues(typeof(DeleteAccountPackageOrphanState)).Cast<DeleteAccountPackageOrphanState>())
+                    {
+                        foreach (var orphanPolicy in
+                            Enum.GetValues(typeof(AccountDeletionOrphanPackagePolicy)).Cast<AccountDeletionOrphanPackagePolicy>())
+                        {
+                            yield return new object[] { packageOrphanedState, orphanPolicy };
+                        }
+                    }
+                }
+            }
+
             /// <summary>
             /// One user with one package that has one namespace reserved and one security policy.
             /// After the account deletion:
-            /// The user data(for example the email address) will be cleaned
+            /// The user data (for example the email address) will be cleaned
             /// The package will be unlisted.
             /// The user will have the policies removed.
             /// The namespace will be unassigned from the user.
             /// The information about the deletion will be saved.
             /// </summary>
-            [Fact]
-            public async Task DeleteHappyUser()
+            [Theory]
+            [MemberData(nameof(DeleteAccount_Data))]
+            public async Task DeleteHappyUser(DeleteAccountPackageOrphanState packageOrphanedState, AccountDeletionOrphanPackagePolicy orphanPolicy)
             {
                 // Arrange
                 PackageRegistration registration = null;
-                var testUser = CreateTestData(ref registration);
+                var testUser = CreateTestUser(ref registration);
+                
+                if (packageOrphanedState == DeleteAccountPackageOrphanState.OwnedByOtherUser)
+                {
+                    var otherUser = new User("testUser2") { Key = Key++ };
+                    registration.Owners.Add(otherUser);
+                }
+
+                if (packageOrphanedState == DeleteAccountPackageOrphanState.OwnedByOtherOrganization)
+                {
+                    var otherOrganization = new Organization("testOrg") { Key = Key++ };
+                    var otherMembership = new Membership() { Organization = otherOrganization, Member = testUser };
+                    testUser.Organizations.Add(otherMembership);
+                    otherOrganization.Members.Add(otherMembership);
+                    registration.Owners.Add(otherOrganization);
+                }
+
                 var testUserOrganizations = testUser.Organizations.ToList();
                 var testableService = new DeleteAccountTestService(testUser, registration);
                 var deleteAccountService = testableService.GetDeleteAccountService();
@@ -101,40 +141,68 @@ namespace NuGetGallery.Services
                 // Act
                 await deleteAccountService.
                     DeleteAccountAsync(userToBeDeleted: testUser,
-                                                userToExecuteTheDelete: testUser,
-                                                commitAsTransaction: false,
-                                                orphanPackagePolicy: AccountDeletionOrphanPackagePolicy.UnlistOrphans);
-                
-                Assert.Empty(registration.Owners);
-                Assert.Empty(testUser.SecurityPolicies);
-                Assert.Empty(testUser.ReservedNamespaces);
-                Assert.False(registration.Packages.ElementAt(0).Listed);
-                Assert.Null(testUser.EmailAddress);
-                Assert.Single(testableService.DeletedAccounts);
-                Assert.Single(testableService.SupportRequests);
-                Assert.Empty(testableService.PackageOwnerRequests);
-                Assert.True(testableService.HasDeletedOwnerScope);
-                Assert.Equal(1, testableService.AuditService.Records.Count());
-                Assert.Null(testUser.OrganizationMigrationRequest);
-                Assert.Empty(testUser.OrganizationMigrationRequests);
-                Assert.Empty(testUser.OrganizationRequests);
+                        userToExecuteTheDelete: testUser,
+                        commitAsTransaction: false,
+                        orphanPackagePolicy: orphanPolicy);
 
-                Assert.Empty(testUser.Organizations);
-                foreach (var testUserOrganization in testUserOrganizations)
+
+                if (orphanPolicy == AccountDeletionOrphanPackagePolicy.DoNotAllowOrphans &&
+                    packageOrphanedState == DeleteAccountPackageOrphanState.Orphaned)
                 {
-                    var notDeletedMembers = testUserOrganization.Organization.Members.Where(m => m.Member != testUser);
-                    if (!notDeletedMembers.Any())
-                    {
-                        Assert.Contains(testUserOrganization.Organization, testableService.DeletedUsers);
-                    }
-                    else
-                    {
-                        Assert.Contains(notDeletedMembers, m => m.IsAdmin);
-                    }
+                    Assert.True(registration.Owners.Any(o => o.MatchesUser(testUser)));
+                    Assert.NotEmpty(testUser.SecurityPolicies);
+                    Assert.True(registration.Packages.Single().Listed);
+                    Assert.NotNull(testUser.EmailAddress);
+                    Assert.Empty(testableService.DeletedAccounts);
+                    Assert.NotEmpty(testableService.PackageOwnerRequests);
+                    Assert.False(testableService.HasDeletedOwnerScope);
+                    Assert.Empty(testableService.AuditService.Records); 
+                    Assert.NotNull(testUser.OrganizationMigrationRequest);
+                    Assert.NotEmpty(testUser.OrganizationMigrationRequests);
+                    Assert.NotEmpty(testUser.OrganizationRequests);
+                    Assert.NotEmpty(testUser.Organizations);
                 }
-                
-                var deleteRecord = testableService.AuditService.Records[0] as DeleteAccountAuditRecord;
-                Assert.True(deleteRecord != null);
+                else
+                {
+                    Assert.False(registration.Owners.Any(o => o.MatchesUser(testUser)));
+                    Assert.Empty(testUser.SecurityPolicies);
+                    Assert.Equal(
+                        packageOrphanedState != DeleteAccountPackageOrphanState.Orphaned || orphanPolicy != AccountDeletionOrphanPackagePolicy.UnlistOrphans,
+                        registration.Packages.Single().Listed);
+                    Assert.Null(testUser.EmailAddress);
+                    Assert.Single(testableService.DeletedAccounts);
+                    Assert.Empty(testableService.PackageOwnerRequests);
+                    Assert.True(testableService.HasDeletedOwnerScope);
+                    Assert.Single(testableService.AuditService.Records);
+                    Assert.Null(testUser.OrganizationMigrationRequest);
+                    Assert.Empty(testUser.OrganizationMigrationRequests);
+                    Assert.Empty(testUser.OrganizationRequests);
+
+                    Assert.Empty(testUser.Organizations);
+                    foreach (var testUserOrganization in testUserOrganizations)
+                    {
+                        var notDeletedMembers = testUserOrganization.Organization.Members.Where(m => m.Member != testUser);
+                        if (!notDeletedMembers.Any())
+                        {
+                            // If an organization that the deleted user was a part of had no other members, it should have been deleted.
+                            Assert.Contains(testUserOrganization.Organization, testableService.DeletedUsers);
+                        }
+                        else
+                        {
+                            // If an organization that the deleted user was a part of had other members, it should have at least one admin.
+                            Assert.Contains(notDeletedMembers, m => m.IsAdmin);
+                        }
+                    }
+
+                    var deleteRecord = testableService.AuditService.Records[0] as DeleteAccountAuditRecord;
+                    Assert.True(deleteRecord != null);
+                }
+
+                // Reserved namespaces and support requests are deleted before the request fails due to orphaned packages.
+                // Because we are not committing as a transaction in these tests, they remain deleted.
+                // In production, they would not be deleted because the transaction they were deleted in would fail.
+                Assert.Single(testableService.SupportRequests);
+                Assert.Empty(testUser.ReservedNamespaces);
             }
 
             [Fact]
@@ -163,12 +231,17 @@ namespace NuGetGallery.Services
                 Assert.Equal(DeleteAccountAuditRecord.ActionStatus.Success, deleteAccountAuditRecord.Status);
             }
 
-            [Fact]
-            public async Task DeleteConfirmedOrganization()
+            [Theory]
+            [MemberData(nameof(DeleteAccount_Data))]
+            public async Task DeleteOrganization(DeleteAccountPackageOrphanState packageOrphanedState, AccountDeletionOrphanPackagePolicy orphanPolicy)
             {
                 // Arrange
                 var member = new User("testUser") { Key = Key++ };
-                var organization = new Organization("testOrganization") { Key = Key++, EmailAddress = "org@test.com" };
+                var organization = new Organization("testOrganization")
+                {
+                    Key = Key++,
+                    EmailAddress = "org@test.com"
+                };
 
                 var membership = new Membership() { Organization = organization, Member = member };
                 member.Organizations.Add(membership);
@@ -181,6 +254,26 @@ namespace NuGetGallery.Services
 
                 PackageRegistration registration = new PackageRegistration();
                 registration.Owners.Add(organization);
+
+                if (packageOrphanedState == DeleteAccountPackageOrphanState.OwnedByOtherUser)
+                {
+                    registration.Owners.Add(member);
+                }
+
+                if (packageOrphanedState == DeleteAccountPackageOrphanState.OwnedByOtherOrganization)
+                {
+                    var otherOrganization = new Organization("testOrg")
+                    {
+                        Key = Key++,
+                        EmailAddress = "org2@test.com"
+                    };
+
+                    var otherMembership = new Membership() { Organization = otherOrganization, Member = member };
+                    member.Organizations.Add(otherMembership);
+                    otherOrganization.Members.Add(otherMembership);
+
+                    registration.Owners.Add(otherOrganization);
+                }
 
                 Package p = new Package()
                 {
@@ -199,22 +292,45 @@ namespace NuGetGallery.Services
                         organization,
                         member,
                         commitAsTransaction: false,
-                        orphanPackagePolicy: AccountDeletionOrphanPackagePolicy.KeepOrphans);
+                        orphanPackagePolicy: orphanPolicy);
 
                 // Assert
-                Assert.True(status.Success);
-                Assert.Null(organization.EmailAddress);
-                Assert.Empty(registration.Owners);
-                Assert.Empty(organization.SecurityPolicies);
+                if (orphanPolicy == AccountDeletionOrphanPackagePolicy.DoNotAllowOrphans &&
+                    packageOrphanedState == DeleteAccountPackageOrphanState.Orphaned)
+                {
+                    Assert.False(status.Success);
+                    Assert.Equal(organization.Confirmed, organization.EmailAddress != null);
+                    Assert.True(registration.Owners.Any(o => o.MatchesUser(organization)));
+                    Assert.NotEmpty(organization.SecurityPolicies);
+                    Assert.Empty(testableService.DeletedAccounts);
+                    Assert.NotEmpty(testableService.PackageOwnerRequests);
+                    Assert.Empty(testableService.AuditService.Records);
+                    Assert.False(testableService.HasDeletedOwnerScope);
+                    Assert.Empty(testableService.AuditService.Records);
+                }
+                else
+                {
+                    Assert.True(status.Success);
+                    Assert.Null(organization.EmailAddress);
+                    Assert.Equal(
+                        packageOrphanedState != DeleteAccountPackageOrphanState.Orphaned || orphanPolicy != AccountDeletionOrphanPackagePolicy.UnlistOrphans,
+                        registration.Packages.Single().Listed);
+                    Assert.False(registration.Owners.Any(o => o.MatchesUser(organization)));
+                    Assert.Empty(organization.SecurityPolicies);
+                    Assert.Single(testableService.DeletedAccounts);
+                    Assert.Empty(testableService.PackageOwnerRequests);
+                    Assert.Single(testableService.AuditService.Records);
+                    Assert.True(testableService.HasDeletedOwnerScope);
+
+                    var deleteRecord = testableService.AuditService.Records[0] as DeleteAccountAuditRecord;
+                    Assert.True(deleteRecord != null);
+                }
+
+                // Reserved namespaces and support requests are deleted before the request fails due to orphaned packages.
+                // Because we are not committing as a transaction in these tests, they remain deleted.
+                // In production, they would not be deleted because the transaction they were deleted in would fail.
                 Assert.Empty(organization.ReservedNamespaces);
-                Assert.Single(testableService.DeletedAccounts);
                 Assert.Single(testableService.SupportRequests);
-                Assert.Empty(testableService.PackageOwnerRequests);
-                Assert.Single(testableService.AuditService.Records);
-                Assert.True(testableService.HasDeletedOwnerScope);
-                
-                var deleteRecord = testableService.AuditService.Records[0] as DeleteAccountAuditRecord;
-                Assert.True(deleteRecord != null);
             }
 
             [Fact]
@@ -271,7 +387,7 @@ namespace NuGetGallery.Services
                 Assert.True(deleteRecord != null);
             }
 
-            private static User CreateTestData(ref PackageRegistration registration)
+            private static User CreateTestUser(ref PackageRegistration registration)
             {
                 var testUser = new User("TestUser") { Key = Key++ };
                 testUser.EmailAddress = "user@test.com";
@@ -363,7 +479,7 @@ namespace NuGetGallery.Services
         {
             private const string SubscriptionName = "SecPolicySubscription";
             private User _user = null;
-            private static ReservedNamespace _reserverdNamespace = new ReservedNamespace("Ns1", false, false);
+            private static ReservedNamespace _reservedNamespace = new ReservedNamespace("Ns1", false, false);
             private Credential _credential = new Credential("CredType", "CredValue");
             private UserSecurityPolicy _securityPolicy = new UserSecurityPolicy("PolicyName", SubscriptionName);
             private PackageRegistration _userPackagesRegistration = null;
@@ -388,7 +504,7 @@ namespace NuGetGallery.Services
             public DeleteAccountTestService(User user, PackageRegistration userPackagesRegistration)
             {
                 _user = user;
-                _user.ReservedNamespaces.Add(_reserverdNamespace);
+                _user.ReservedNamespaces.Add(_reservedNamespace);
                 _user.Credentials.Add(_credential);
                 _user.SecurityPolicies.Add(_securityPolicy);
                 _userPackagesRegistration = userPackagesRegistration;
@@ -479,7 +595,7 @@ namespace NuGetGallery.Services
                 {
                     namespaceService.Setup(m => m.DeleteOwnerFromReservedNamespaceAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>()))
                                     .Returns(Task.CompletedTask)
-                                    .Callback(() => _user.ReservedNamespaces.Remove(_reserverdNamespace));
+                                    .Callback(() => _user.ReservedNamespaces.Remove(_reservedNamespace));
                 }
 
                 return namespaceService;
@@ -614,7 +730,7 @@ namespace NuGetGallery.Services
                                                      .Callback(() =>
                                                      {
                                                          _userPackagesRegistration.Owners.Remove(_user);
-                                                         _userPackagesRegistration.ReservedNamespaces.Remove(_reserverdNamespace);
+                                                         _userPackagesRegistration.ReservedNamespaces.Remove(_reservedNamespace);
                                                      });
 
                     packageOwnershipManagementService.Setup(m => m.GetPackageOwnershipRequests(null, null, _user))

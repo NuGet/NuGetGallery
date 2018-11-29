@@ -183,8 +183,7 @@ namespace NuGetGallery
         {
             foreach (var package in GetPackagesOwnedByUser(user))
             {
-                var owners = user is Organization ? package.PackageRegistration.Owners : _packageService.GetPackageUserAccountOwners(package);
-                if (owners.Count() <= 1)
+                if (WillPackageBeOrphanedIfUserRemoved(user, package))
                 {
                     // Package will be orphaned by removing ownership.
                     if (orphanPackagePolicy == AccountDeletionOrphanPackagePolicy.DoNotAllowOrphans)
@@ -201,10 +200,20 @@ namespace NuGetGallery
             }
         }
 
-        private bool WillPackageBeOrphaned(User user, Package package)
+        /// <remarks>
+        /// A package is orphaned if it is not owned by a user account or an organization with user account members.
+        /// </remarks>
+        private bool WillPackageBeOrphanedIfUserRemoved(User user, Package package)
         {
-            var owners = user is Organization ? package.PackageRegistration.Owners : _packageService.GetPackageUserAccountOwners(package);
-            return owners.Count() <= 1;
+            var remainingOwners = package.PackageRegistration.Owners
+                .Where(o => !user.MatchesUser(o))
+                .SelectMany(owner =>
+                    owner is Organization
+                        ? OrganizationExtensions.GetUserAccountMembers((Organization)owner)
+                        : new List<User> { owner })
+                .Distinct();
+
+            return !remainingOwners.Any();
         }
 
         private List<Package> GetPackagesOwnedByUser(User user)
@@ -225,22 +234,21 @@ namespace NuGetGallery
         {
             foreach (var membership in user.Organizations.ToArray())
             {
-                var organization = membership.Organization;
-                var members = organization.Members.ToList();
-                var collaborators = members.Where(m => !m.IsAdmin).ToList();
-                var memberCount = members.Count();
                 user.Organizations.Remove(membership);
+                var organization = membership.Organization;
+                var otherMembers = organization.Members
+                    .Where(m => !m.Member.MatchesUser(user));
 
-                if (memberCount < 2)
+                if (!otherMembers.Any())
                 {
                     // The user we are deleting is the only member of the organization.
                     // We should delete the entire organization.
                     await DeleteAccountImplAsync(organization, requestingUser, orphanPackagePolicy);
                 }
-                else if (memberCount - 1 <= collaborators.Count())
+                else if (otherMembers.All(m => !m.IsAdmin))
                 {
                     // All other members of this organization are collaborators, so we should promote them to administrators.
-                    foreach (var collaborator in collaborators)
+                    foreach (var collaborator in otherMembers)
                     {
                         collaborator.IsAdmin = true;
                     }

@@ -82,13 +82,6 @@ namespace NuGetGallery
         Task UpdatePackageVerifiedStatusAsync(IReadOnlyCollection<PackageRegistration> package, bool isVerified, bool commitChanges = true);
 
         /// <summary>
-        /// For a package get the list of owners that are not organizations.
-        /// </summary>
-        /// <param name="package">The package.</param>
-        /// <returns>The list of package owners that are not organizations.</returns>
-        IEnumerable<User> GetPackageUserAccountOwners(Package package);
-
-        /// <summary>
         /// Sets the required signer on all owned package registrations.
         /// </summary>
         /// <param name="signer">A signer or <c>null</c> if none.</param>

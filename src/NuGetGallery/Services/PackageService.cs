@@ -282,26 +282,6 @@ namespace NuGetGallery
                 .ToList();
         }
 
-        /// <summary>
-        /// For a package get the list of owners that are not organizations.
-        /// All the resulted user accounts will be distinct.
-        /// </summary>
-        /// <param name="package">The package.</param>
-        /// <returns>The list of package owners.</returns>
-        public IEnumerable<User> GetPackageUserAccountOwners(Package package)
-        {
-            return package.PackageRegistration.Owners
-                .SelectMany((owner) =>
-                {
-                    if (owner is Organization)
-                    {
-                        return OrganizationExtensions.GetUserAccountMembers((Organization)owner);
-                    }
-                    return new List<User> { owner };
-                })
-                .Distinct();
-        }
-
         public IQueryable<PackageRegistration> FindPackageRegistrationsByOwner(User user)
         {
             return _packageRegistrationRepository.GetAll().Where(p => p.Owners.Any(o => o.Key == user.Key));
