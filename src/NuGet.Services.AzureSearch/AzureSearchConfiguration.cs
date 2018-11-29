@@ -7,6 +7,7 @@ namespace NuGet.Services.AzureSearch
     {
         public int AzureSearchBatchSize { get; set; }
         public int MaxConcurrentBatches { get; set; }
+        public int MaxConcurrentVersionListWriters { get; set; }
         public string SearchServiceName { get; set; }
         public string SearchServiceApiKey { get; set; }
         public string SearchIndexName { get; set; }

@@ -2,10 +2,12 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Azure.Search;
 using Microsoft.Azure.Search.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -42,6 +44,13 @@ namespace NuGet.Services.AzureSearch
             _searchActions = new Queue<IdAndValue<IndexAction<KeyedDocument>>>();
             _hijackActions = new Queue<IdAndValue<IndexAction<KeyedDocument>>>();
             _versionListDataResults = new Dictionary<string, ResultAndAccessCondition<VersionListData>>();
+
+            if (_options.Value.MaxConcurrentVersionListWriters <= 0)
+            {
+                throw new ArgumentException(
+                    $"The {nameof(AzureSearchConfiguration.MaxConcurrentVersionListWriters)} must be greater than zero.",
+                    nameof(options));
+            }
         }
 
         public void EnqueueIndexActions(string packageId, IndexActions indexActions)
@@ -117,22 +126,32 @@ namespace NuGet.Services.AzureSearch
                        .Select(x => x.Id)
                        .Take(5)
                        .ToArray();
+                    var workerCount = Math.Min(allFinished.Count, _options.Value.MaxConcurrentVersionListWriters);
                     _logger.LogInformation(
-                        "Updating {VersionListCount} version lists, including {IdSample}.",
+                        "Updating {VersionListCount} version lists with {WorkerCount} workers, including {IdSample}.",
                         allFinished.Count,
+                        workerCount,
                         versionListIdSample);
+
                     var stopwatch = Stopwatch.StartNew();
-
-                    foreach (var finished in allFinished)
-                    {
-                        _logger.LogDebug("Updating version list for package ID {PackageId}.", finished.Id);
-                        await _versionListDataClient.ReplaceAsync(
-                            finished.Id,
-                            finished.Value.Result,
-                            finished.Value.AccessCondition);
-                    }
-
+                    var work = new ConcurrentBag<IdAndValue<ResultAndAccessCondition<VersionListData>>>(allFinished);
+                    var tasks = Enumerable
+                        .Range(0, workerCount)
+                        .Select(async x =>
+                        {
+                            await Task.Yield();
+                            while (work.TryTake(out var finished))
+                            {
+                                await _versionListDataClient.ReplaceAsync(
+                                    finished.Id,
+                                    finished.Value.Result,
+                                    finished.Value.AccessCondition);
+                            }
+                        })
+                        .ToList();
+                    await Task.WhenAll(tasks);
                     stopwatch.Stop();
+
                     _logger.LogInformation(
                         "Done updating {VersionListCount} version lists (took {Duration}).",
                         allFinished.Count,
@@ -172,18 +191,37 @@ namespace NuGet.Services.AzureSearch
                 "Pushing batch of {BatchSize} to index {IndexName}.",
                 batch.Count,
                 indexClient.IndexName);
-            var batchResults = await indexClient.Documents.IndexAsync(new IndexBatch<KeyedDocument>(batch));
+
+            IList<IndexingResult> indexingResults;
+            Exception innerException = null;
+            try
+            {
+                var batchResults = await indexClient.Documents.IndexAsync(new IndexBatch<KeyedDocument>(batch));
+                indexingResults = batchResults.Results;
+            }
+            catch (IndexBatchException ex)
+            {
+                _logger.LogError(
+                    0,
+                    ex,
+                    "An exception was thrown while sending documents to index {IndexName}.",
+                    indexClient.IndexName);
+                indexingResults = ex.IndexingResults;
+                innerException = ex;
+            }
+
             const int errorsToLog = 5;
             var errorCount = 0;
-            foreach (var result in batchResults.Results)
+            foreach (var result in indexingResults)
             {
                 if (!result.Succeeded)
                 {
                     if (errorCount < errorsToLog)
                     {
                         _logger.LogError(
-                            "Indexing document with key {Key} failed. {StatusCode}: {ErrorMessage}",
+                            "Indexing document with key {Key} failed for index {IndexName}. {StatusCode}: {ErrorMessage}",
                             result.Key,
+                            indexClient.IndexName,
                             result.StatusCode,
                             result.ErrorMessage);
                     }
@@ -195,10 +233,13 @@ namespace NuGet.Services.AzureSearch
             if (errorCount > 0)
             {
                 _logger.LogError(
-                    "{ErrorCount} errors were found when indexing a batch. {LoggedErrors} were logged.",
+                    "{ErrorCount} errors were found when indexing a batch for index {IndexName}. {LoggedErrors} were logged.",
                     errorCount,
+                    indexClient.IndexName,
                     Math.Min(errorCount, errorsToLog));
-                throw new InvalidOperationException($"Errors were found when indexing a batch. Up to {errorsToLog} errors get logged.");
+                throw new InvalidOperationException(
+                    $"Errors were found when indexing a batch. Up to {errorsToLog} errors get logged.",
+                    innerException);
             }
         }
 
@@ -240,18 +281,6 @@ namespace NuGet.Services.AzureSearch
         private IdAndValue<T> NewIdAndValue<T>(string id, T value)
         {
             return new IdAndValue<T>(id, value);
-        }
-
-        internal class IdAndValue<T>
-        {
-            public IdAndValue(string id, T value)
-            {
-                Id = id ?? throw new ArgumentNullException(nameof(id));
-                Value = value;
-            }
-
-            public string Id { get; }
-            public T Value { get; }
         }
     }
 }

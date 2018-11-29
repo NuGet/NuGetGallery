@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using NuGetGallery;
@@ -21,13 +22,16 @@ namespace NuGet.Services.AzureSearch
         });
         private readonly ICoreFileStorageService _storageService;
         private readonly IOptionsSnapshot<AzureSearchConfiguration> _options;
+        private readonly ILogger<VersionListDataClient> _logger;
 
         public VersionListDataClient(
             ICoreFileStorageService storageService,
-            IOptionsSnapshot<AzureSearchConfiguration> options)
+            IOptionsSnapshot<AzureSearchConfiguration> options,
+            ILogger<VersionListDataClient> logger)
         {
             _storageService = storageService ?? throw new ArgumentNullException(nameof(storageService));
             _options = options ?? throw new ArgumentNullException(nameof(options));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         public async Task<ResultAndAccessCondition<VersionListData>> ReadAsync(string id)
@@ -35,6 +39,8 @@ namespace NuGet.Services.AzureSearch
             var fileReference = await _storageService.GetFileReferenceAsync(
                 CoreConstants.ContentFolderName,
                 GetFileName(id));
+
+            _logger.LogInformation("Reading the version list for package ID {PackageId}.", id);
 
             VersionListData data;
             IAccessCondition accessCondition;
@@ -73,6 +79,8 @@ namespace NuGet.Services.AzureSearch
                 }
 
                 stream.Position = 0;
+
+                _logger.LogInformation("Replacing the version list for package ID {PackageId}.", id);
 
                 await _storageService.SaveFileAsync(
                     CoreConstants.ContentFolderName,

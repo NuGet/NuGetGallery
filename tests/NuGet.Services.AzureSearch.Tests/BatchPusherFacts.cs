@@ -185,14 +185,16 @@ namespace NuGet.Services.AzureSearch
                     () => _target.PushFullBatchesAsync());
 
                 Assert.Contains("Errors were found when indexing a batch. Up to 5 errors get logged.", ex.Message);
-                Assert.Contains("Indexing document with key A-0 failed. 0: A-0 message", _logger.Messages);
-                Assert.Contains("Indexing document with key A-1 failed. 1: A-1 message", _logger.Messages);
-                Assert.Contains("Indexing document with key A-3 failed. 3: A-3 message", _logger.Messages);
-                Assert.Contains("Indexing document with key A-4 failed. 4: A-4 message", _logger.Messages);
-                Assert.Contains("Indexing document with key A-5 failed. 5: A-5 message", _logger.Messages);
+                Assert.Contains("Indexing document with key A-0 failed for index search. 0: A-0 message", _logger.Messages);
+                Assert.Contains("Indexing document with key A-1 failed for index search. 1: A-1 message", _logger.Messages);
+                Assert.Contains("Indexing document with key A-3 failed for index search. 3: A-3 message", _logger.Messages);
+                Assert.Contains("Indexing document with key A-4 failed for index search. 4: A-4 message", _logger.Messages);
+                Assert.Contains("Indexing document with key A-5 failed for index search. 5: A-5 message", _logger.Messages);
 
                 Assert.All(_logger.Messages, x => Assert.DoesNotContain("A-2", x));
                 Assert.All(_logger.Messages, x => Assert.DoesNotContain("A-6", x));
+
+                Assert.Null(ex.InnerException);
             }
 
             [Fact]
@@ -450,7 +452,9 @@ namespace NuGet.Services.AzureSearch
                 _config = new AzureSearchConfiguration();
                 _options = new Mock<IOptionsSnapshot<AzureSearchConfiguration>>();
 
+                _searchIndexClientWrapper.Setup(x => x.IndexName).Returns("search");
                 _searchIndexClientWrapper.Setup(x => x.Documents).Returns(() => _searchDocumentsWrapper.Object);
+                _hijackIndexClientWrapper.Setup(x => x.IndexName).Returns("hijack");
                 _hijackIndexClientWrapper.Setup(x => x.Documents).Returns(() => _hijackDocumentsWrapper.Object);
                 _options.Setup(x => x.Value).Returns(() => _config);
 
@@ -467,6 +471,7 @@ namespace NuGet.Services.AzureSearch
                     .Callback<IndexBatch<KeyedDocument>>(b => _hijackBatches.Add(b));
 
                 _config.AzureSearchBatchSize = 2;
+                _config.MaxConcurrentVersionListWriters = 1;
 
                 _searchDocumentA = IndexAction.Upload(new KeyedDocument());
                 _searchDocumentB = IndexAction.Upload(new KeyedDocument());

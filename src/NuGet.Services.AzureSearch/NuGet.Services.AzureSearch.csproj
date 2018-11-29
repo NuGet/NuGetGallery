@@ -54,6 +54,7 @@
     <Compile Include="Db2AzureSearch\NewPackageRegistration.cs" />
     <Compile Include="IndexActionBuilder.cs" />
     <Compile Include="Db2AzureSearch\NewPackageRegistrationProducer.cs" />
+    <Compile Include="IdAndValue.cs" />
     <Compile Include="IHijackDocumentBuilder.cs" />
     <Compile Include="IndexActions.cs" />
     <Compile Include="ISearchDocumentBuilder.cs" />

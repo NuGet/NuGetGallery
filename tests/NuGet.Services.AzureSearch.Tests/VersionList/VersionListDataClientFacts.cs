@@ -8,8 +8,10 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using Moq;
+using NuGet.Services.AzureSearch.Support;
 using NuGetGallery;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace NuGet.Services.AzureSearch
 {
@@ -17,6 +19,10 @@ namespace NuGet.Services.AzureSearch
     {
         public class ReadVersionListAsync : Facts
         {
+            public ReadVersionListAsync(ITestOutputHelper output) : base(output)
+            {
+            }
+
             [Fact]
             public async Task ReturnsEmptyListWhenFileDoesNotExist()
             {
@@ -93,6 +99,10 @@ namespace NuGet.Services.AzureSearch
 
         public class ReplaceVersionListAsync : Facts
         {
+            public ReplaceVersionListAsync(ITestOutputHelper output) : base(output)
+            {
+            }
+
             [Theory]
             [MemberData(nameof(ExpectedPaths))]
             public async Task UsesExpectedStorageParameters(string path, string expected)
@@ -159,6 +169,7 @@ namespace NuGet.Services.AzureSearch
             protected readonly VersionListData _versionList;
             protected readonly Mock<ICoreFileStorageService> _storageService;
             protected readonly Mock<IOptionsSnapshot<AzureSearchConfiguration>> _options;
+            protected readonly RecordingLogger<VersionListDataClient> _logger;
             protected readonly AzureSearchConfiguration _config;
             protected readonly VersionListDataClient _target;
 
@@ -180,7 +191,7 @@ namespace NuGet.Services.AzureSearch
                 new object[] { "search/1/", "search/1/version-lists/nuget.versioning.json" },
             };
 
-            public Facts()
+            public Facts(ITestOutputHelper output)
             {
                 _id = "NuGet.Versioning";
                 _accessCondition = new Mock<IAccessCondition>();
@@ -191,6 +202,7 @@ namespace NuGet.Services.AzureSearch
 
                 _storageService = new Mock<ICoreFileStorageService>();
                 _options = new Mock<IOptionsSnapshot<AzureSearchConfiguration>>();
+                _logger = output.GetLogger<VersionListDataClient>();
                 _config = new AzureSearchConfiguration();
 
                 _options
@@ -213,7 +225,8 @@ namespace NuGet.Services.AzureSearch
 
                 _target = new VersionListDataClient(
                     _storageService.Object,
-                    _options.Object);
+                    _options.Object,
+                    _logger);
             }
         }
     }

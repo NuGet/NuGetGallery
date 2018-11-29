@@ -2,6 +2,7 @@
   "Catalog2AzureSearch": {
     "AzureSearchBatchSize": 1000,
     "MaxConcurrentBatches": 32,
+    "MaxConcurrentVersionListWriters": 32,
     "SearchServiceName": "",
     "SearchServiceApiKey": "",
     "SearchIndexName": "",

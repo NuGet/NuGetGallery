@@ -15,6 +15,16 @@ namespace NuGet.Services.AzureSearch
             bool latestStableSemVer2,
             bool latestSemVer2)
         {
+            if (delete && updateMetadata)
+            {
+                throw new ArgumentException("Deleting and updating a hijack document are mutually exclusive.");
+            }
+
+            if (delete && (latestStableSemVer1 || latestSemVer1 || latestStableSemVer2 || latestSemVer2))
+            {
+                throw new ArgumentException("Deleting a document is mutually exclusive with making that document that latest.");
+            }
+
             Delete = delete;
             UpdateMetadata = updateMetadata;
             LatestStableSemVer1 = latestStableSemVer1;
