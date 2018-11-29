@@ -341,9 +341,17 @@ namespace NuGetGallery.Services
         static CoreLicenseFileService CreateService(Mock<ICoreFileStorageService> fileStorageService = null)
         {
             fileStorageService = fileStorageService ?? new Mock<ICoreFileStorageService>();
+            var contentFileMetadataService = new Mock<IContentFileMetadataService>();
+            contentFileMetadataService
+                .SetupGet(c => c.PackageContentFolderName)
+                .Returns(CoreConstants.Folders.PackagesContentFolderName);
+
+            contentFileMetadataService
+                .SetupGet(c => c.PackageContentPathTemplate)
+                .Returns(CoreConstants.PackageContentFileSavePathTemplate);
 
             return new CoreLicenseFileService(
-                fileStorageService.Object, new PackageFileMetadataService());
+                fileStorageService.Object, contentFileMetadataService.Object);
         }
 
         private static string BuildLicenseFileName(string id, string version)

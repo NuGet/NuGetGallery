@@ -2,10 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using NuGet.Packaging;
 using NuGet.Services.Entities;
@@ -18,9 +15,9 @@ namespace NuGetGallery
         private const string LicenseFileName = "license";
 
         private readonly ICoreFileStorageService _fileStorageService;
-        private readonly IFileMetadataService _metadata;
+        private readonly IContentFileMetadataService _metadata;
 
-        public CoreLicenseFileService(ICoreFileStorageService fileStorageService, IFileMetadataService metadata)
+        public CoreLicenseFileService(ICoreFileStorageService fileStorageService, IContentFileMetadataService metadata)
         {
             _fileStorageService = fileStorageService ?? throw new ArgumentNullException(nameof(fileStorageService));
             _metadata = metadata ?? throw new ArgumentNullException(nameof(metadata));
