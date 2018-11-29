@@ -153,16 +153,6 @@ namespace NuGetGallery
                 .As<IEntityRepository<ReservedNamespace>>()
                 .InstancePerLifetimeScope();
 
-            builder.RegisterType<EntityRepository<CuratedFeed>>()
-                .AsSelf()
-                .As<IEntityRepository<CuratedFeed>>()
-                .InstancePerLifetimeScope();
-
-            builder.RegisterType<EntityRepository<CuratedPackage>>()
-                .AsSelf()
-                .As<IEntityRepository<CuratedPackage>>()
-                .InstancePerLifetimeScope();
-
             builder.RegisterType<EntityRepository<PackageRegistration>>()
                 .AsSelf()
                 .As<IEntityRepository<PackageRegistration>>()
@@ -216,11 +206,6 @@ namespace NuGetGallery
             builder.RegisterType<EntityRepository<SymbolPackage>>()
                 .AsSelf()
                 .As<IEntityRepository<SymbolPackage>>()
-                .InstancePerLifetimeScope();
-
-            builder.RegisterType<CuratedFeedService>()
-                .AsSelf()
-                .As<ICuratedFeedService>()
                 .InstancePerLifetimeScope();
 
             var supportDbConnectionFactory = CreateDbConnectionFactory(

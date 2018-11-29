@@ -402,6 +402,10 @@
     <Compile Include="Migrations\201811011725146_LicenseChanges.Designer.cs">
       <DependentUpon>201811011725146_LicenseChanges.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201811291758016_RemoveCuratedFeedEntities.cs" />
+    <Compile Include="Migrations\201811291758016_RemoveCuratedFeedEntities.Designer.cs">
+      <DependentUpon>201811291758016_RemoveCuratedFeedEntities.cs</DependentUpon>
+    </Compile>
     <Compile Include="RequestModels\DeleteAccountRequest.cs" />
     <Compile Include="Migrations\201710301857232_Organizations.cs" />
     <Compile Include="Migrations\201710301857232_Organizations.Designer.cs">
@@ -1435,9 +1439,7 @@
     <Compile Include="Services\AppActivatorException.cs" />
     <Compile Include="Services\CloudDownloadCountService.cs" />
     <Compile Include="Services\ConfirmOwnershipResult.cs" />
-    <Compile Include="Services\CuratedFeedService.cs" />
     <Compile Include="Services\DownloadCountObjectMaterializedInterceptor.cs" />
-    <Compile Include="Services\ICuratedFeedService.cs" />
     <Compile Include="Services\ContentService.cs" />
     <Compile Include="Services\IContentService.cs" />
     <Compile Include="Services\IDownloadCountService.cs" />
@@ -1648,6 +1650,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201811011725146_LicenseChanges.resx">
       <DependentUpon>201811011725146_LicenseChanges.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201811291758016_RemoveCuratedFeedEntities.resx">
+      <DependentUpon>201811291758016_RemoveCuratedFeedEntities.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
