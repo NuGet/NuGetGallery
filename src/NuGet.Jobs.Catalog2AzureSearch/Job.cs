@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Net;
 using System.Threading.Tasks;
 using Autofac;
 using Microsoft.Extensions.Configuration;
@@ -12,21 +13,30 @@ namespace NuGet.Jobs
 {
     public class Job : JsonConfigurationJob
     {
-        private const string Db2AzureSearchSectionName = "Catalog2AzureSearch";
+        private const string ConfigurationSectionName = "Catalog2AzureSearch";
 
-        public override Task Run()
+        public override async Task Run()
         {
-            return Task.CompletedTask;
+            ServicePointManager.DefaultConnectionLimit = 64;
+            ServicePointManager.MaxServicePointIdleTime = 10000;
+
+            await _serviceProvider
+                .GetRequiredService<Catalog2AzureSearchCommand>()
+                .ExecuteAsync();
         }
 
         protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder)
         {
+            containerBuilder.AddAzureSearch();
         }
 
         protected override void ConfigureJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
         {
-            services.Configure<Catalog2AzureSearchConfiguration>(configurationRoot.GetSection(Db2AzureSearchSectionName));
-            services.Configure<AzureSearchConfiguration>(configurationRoot.GetSection(Db2AzureSearchSectionName));
+            services.AddAzureSearch();
+
+            services.Configure<Catalog2AzureSearchConfiguration>(configurationRoot.GetSection(ConfigurationSectionName));
+            services.Configure<AzureSearchConfiguration>(configurationRoot.GetSection(ConfigurationSectionName));
+            services.AddTransient<Catalog2AzureSearchCommand>();
         }
     }
 }

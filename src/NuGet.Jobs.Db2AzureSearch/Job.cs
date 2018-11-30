@@ -4,25 +4,16 @@
 using System.Net;
 using System.Threading.Tasks;
 using Autofac;
-using Microsoft.Azure.Search;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using NuGet.Jobs.Validation;
 using NuGet.Services.AzureSearch;
 using NuGet.Services.AzureSearch.Db2AzureSearch;
-using NuGet.Services.AzureSearch.Wrappers;
-using NuGetGallery;
-using NuGetGallery.Diagnostics;
 
 namespace NuGet.Jobs
 {
     public class Job : JsonConfigurationJob
     {
-        private const string Db2AzureSearchSectionName = "Db2AzureSearch";
-        private const string SearchIndexKey = "SearchIndex";
-        private const string HijackIndexKey = "HijackIndex";
+        private const string ConfigurationSectionName = "Db2AzureSearch";
 
         public override async Task Run()
         {
@@ -36,62 +27,16 @@ namespace NuGet.Jobs
 
         protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder)
         {
-            containerBuilder
-                .Register(c =>
-                {
-                    var serviceClient = c.Resolve<ISearchServiceClientWrapper>();
-                    var options = c.Resolve<IOptionsSnapshot<Db2AzureSearchConfiguration>>();
-                    return serviceClient.Indexes.GetClient(options.Value.SearchIndexName);
-                })
-                .SingleInstance()
-                .Keyed<ISearchIndexClientWrapper>(SearchIndexKey);
-
-            containerBuilder
-                .Register(c =>
-                {
-                    var serviceClient = c.Resolve<ISearchServiceClientWrapper>();
-                    var options = c.Resolve<IOptionsSnapshot<Db2AzureSearchConfiguration>>();
-                    return serviceClient.Indexes.GetClient(options.Value.HijackIndexName);
-                })
-                .SingleInstance()
-                .Keyed<ISearchIndexClientWrapper>(HijackIndexKey);
-
-            containerBuilder
-                .Register<IBatchPusher>(c => new BatchPusher(
-                    c.ResolveKeyed<ISearchIndexClientWrapper>(SearchIndexKey),
-                    c.ResolveKeyed<ISearchIndexClientWrapper>(HijackIndexKey),
-                    c.Resolve<IVersionListDataClient>(),
-                    c.Resolve<IOptionsSnapshot<Db2AzureSearchConfiguration>>(),
-                    c.Resolve<ILogger<BatchPusher>>()));
+            containerBuilder.AddAzureSearch();
         }
 
         protected override void ConfigureJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
         {
-            services.Configure<Db2AzureSearchConfiguration>(configurationRoot.GetSection(Db2AzureSearchSectionName));
-            services.Configure<AzureSearchConfiguration>(configurationRoot.GetSection(Db2AzureSearchSectionName));
+            services.AddAzureSearch();
 
-            services.AddTransient<ISearchServiceClient>(p =>
-            {
-                var options = p.GetRequiredService<IOptionsSnapshot<Db2AzureSearchConfiguration>>();
-                return new SearchServiceClient(
-                    options.Value.SearchServiceName,
-                    new SearchCredentials(options.Value.SearchServiceApiKey));
-            });
-            services.AddTransient<ICloudBlobClient, CloudBlobClientWrapper>(p =>
-            {
-                var options = p.GetRequiredService<IOptionsSnapshot<Db2AzureSearchConfiguration>>();
-                return new CloudBlobClientWrapper(
-                    options.Value.StorageConnectionString,
-                    readAccessGeoRedundant: true);
-            });
-
+            services.Configure<Db2AzureSearchConfiguration>(configurationRoot.GetSection(ConfigurationSectionName));
+            services.Configure<AzureSearchConfiguration>(configurationRoot.GetSection(ConfigurationSectionName));
             services.AddTransient<Db2AzureSearchCommand>();
-            services.AddTransient<ISearchServiceClientWrapper, SearchServiceClientWrapper>();
-            services.AddTransient<IEntitiesContextFactory, EntitiesContextFactory>();
-            services.AddTransient<INewPackageRegistrationProducer, NewPackageRegistrationProducer>();
-            services.AddTransient<IVersionListDataClient, VersionListDataClient>();
-            services.AddTransient<ICoreFileStorageService, CloudBlobCoreFileStorageService>();
-            services.AddTransient<IDiagnosticsService, LoggerDiagnosticsService>();
         }
     }
 }

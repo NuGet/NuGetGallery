@@ -48,6 +48,7 @@
     <Compile Include="Catalog2AzureSearch\ICommitCollectorLogic.cs" />
     <Compile Include="Catalog2AzureSearch\LatestCatalogLeaves.cs" />
     <Compile Include="Catalog2AzureSearch\ReferenceEqualityComparer.cs" />
+    <Compile Include="DependencyInjectionExtensions.cs" />
     <Compile Include="DocumentUtilities.cs" />
     <Compile Include="HijackDocumentBuilder.cs" />
     <Compile Include="IBatchPusher.cs" />
