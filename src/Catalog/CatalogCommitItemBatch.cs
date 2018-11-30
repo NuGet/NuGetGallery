@@ -19,8 +19,13 @@ namespace NuGet.Services.Metadata.Catalog
         /// <param name="items">An enumerable of <see cref="CatalogCommitItem" />.  Items may span multiple commits.</param>
         /// <param name="key">A unique key for all items in a batch.  This is used for parallelization and may be
         /// <c>null</c> if parallelization is not used.</param>
+        /// <param name="commitTimestamp">The commit timestamp to use for this batch. If <c>null</c>, the minimum of
+        /// all item commit timestamps will be used.</param>
         /// <exception cref="ArgumentException">Thrown if <paramref name="items" /> is either <c>null</c> or empty.</exception>
-        public CatalogCommitItemBatch(IEnumerable<CatalogCommitItem> items, string key = null)
+        public CatalogCommitItemBatch(
+            IEnumerable<CatalogCommitItem> items,
+            string key = null,
+            DateTime? commitTimestamp = null)
         {
             if (items == null || !items.Any())
             {
@@ -29,7 +34,7 @@ namespace NuGet.Services.Metadata.Catalog
 
             var list = items.ToList();
 
-            CommitTimeStamp = list.Min(item => item.CommitTimeStamp);
+            CommitTimeStamp = commitTimestamp ?? list.Min(item => item.CommitTimeStamp);
             Key = key;
 
             list.Sort();

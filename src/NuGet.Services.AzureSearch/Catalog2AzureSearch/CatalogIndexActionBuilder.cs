@@ -36,7 +36,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
         public async Task<IndexActions> AddCatalogEntriesAsync(
             string packageId,
             ResultAndAccessCondition<VersionListData> versionListDataResult,
-            IEnumerable<CatalogCommitItem> latestEntries,
+            IReadOnlyList<CatalogCommitItem> latestEntries,
             IReadOnlyDictionary<CatalogCommitItem, PackageDetailsCatalogLeaf> entryToLeaf)
         {
             var context = new Context(

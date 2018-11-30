@@ -13,7 +13,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
         Task<IndexActions> AddCatalogEntriesAsync(
             string packageId,
             ResultAndAccessCondition<VersionListData> versionListDataResult,
-            IEnumerable<CatalogCommitItem> latestEntries,
+            IReadOnlyList<CatalogCommitItem> latestEntries,
             IReadOnlyDictionary<CatalogCommitItem, PackageDetailsCatalogLeaf> entryToLeaf);
     }
 }
