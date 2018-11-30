@@ -76,7 +76,7 @@ namespace NuGetGallery
         /// <remarks>
         /// A package is orphaned if it is not owned by a user account or an organization with user account members.
         /// </remarks>
-        bool WillPackageBeOrphanedIfOwnerRemoved(PackageRegistration package, User owner);
+        bool WillPackageBeOrphanedIfOwnerRemoved(PackageRegistration package, User ownerToRemove);
 
         Task SetLicenseReportVisibilityAsync(Package package, bool visible, bool commitChanges = true);
 

@@ -358,18 +358,41 @@ namespace NuGetGallery
             }
         }
         
-        public bool WillPackageBeOrphanedIfOwnerRemoved(PackageRegistration package, User owner)
+        public bool WillPackageBeOrphanedIfOwnerRemoved(PackageRegistration package, User ownerToRemove)
         {
-            var remainingOwners = package.Owners
-                .Where(o => !owner.MatchesUser(o))
-                .SelectMany(user =>
-                    user is Organization organization
-                        ? OrganizationExtensions.GetUserAccountMembers(organization)
-                            .Where(m => !m.MatchesUser(owner))
-                        : new List<User> { user })
-                .Distinct();
+            return WillPackageBeOrphanedIfOwnerRemovedHelper(package.Owners, ownerToRemove);
+        }
 
-            return !remainingOwners.Any();
+        private bool WillPackageBeOrphanedIfOwnerRemovedHelper(IEnumerable<User> owners, User ownerToRemove)
+        {
+            // Iterate through each owner, attempting to find a user that is not the owner we are removing.
+            foreach (var owner in owners)
+            {
+                if (owner.MatchesUser(ownerToRemove))
+                {
+                    continue;
+                }
+
+                if (owner is Organization organization)
+                {
+                    // The package will still be orphaned if it is owned by an orphaned organization.
+                    // Iterate through the organization owner's members to determine if it has any members that are not the member we are removing.
+                    if (!WillPackageBeOrphanedIfOwnerRemovedHelper(
+                        organization.Members.Select(m => m.Member),
+                        ownerToRemove))
+                    {
+                        return false;
+                    }
+                }
+                else
+                {
+                    // The package will not be orphaned because it is owned by a user that is not the owner we are removing.
+                    return false;
+                }
+            }
+
+            // The package will be orphaned because we did not find an owner that is not the owner we are removing.
+            return true;
         }
 
         public async Task MarkPackageListedAsync(Package package, bool commitChanges = true)
