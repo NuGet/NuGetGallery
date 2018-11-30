@@ -183,7 +183,7 @@ namespace NuGetGallery
         {
             foreach (var package in GetPackagesOwnedByUser(user))
             {
-                if (WillPackageBeOrphanedIfUserRemoved(user, package))
+                if (_packageService.WillPackageBeOrphanedIfOwnerRemoved(package.PackageRegistration, user))
                 {
                     // Package will be orphaned by removing ownership.
                     if (orphanPackagePolicy == AccountDeletionOrphanPackagePolicy.DoNotAllowOrphans)
@@ -198,22 +198,6 @@ namespace NuGetGallery
 
                 await _packageOwnershipManagementService.RemovePackageOwnerAsync(package.PackageRegistration, requestingUser, user, commitAsTransaction:false);
             }
-        }
-
-        /// <remarks>
-        /// A package is orphaned if it is not owned by a user account or an organization with user account members.
-        /// </remarks>
-        private bool WillPackageBeOrphanedIfUserRemoved(User user, Package package)
-        {
-            var remainingOwners = package.PackageRegistration.Owners
-                .Where(o => !user.MatchesUser(o))
-                .SelectMany(owner =>
-                    owner is Organization
-                        ? OrganizationExtensions.GetUserAccountMembers((Organization)owner)
-                        : new List<User> { owner })
-                .Distinct();
-
-            return !remainingOwners.Any();
         }
 
         private List<Package> GetPackagesOwnedByUser(User user)

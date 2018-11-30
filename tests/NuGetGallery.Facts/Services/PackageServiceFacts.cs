@@ -2076,6 +2076,164 @@ namespace NuGetGallery
             }
         }
 
+        public class TheWillOrphanPackageIfOwnerRemovedMethod
+        {
+            [Flags]
+            public enum OwnershipState
+            {
+                OwnedByUser1 = 1 << 0,
+                OwnedByUser2 = 1 << 1,
+                OwnedByOrganization1 = 1 << 2,
+                OwnedByOrganization2 = 1 << 3,
+                User1InOrganization1 = 1 << 4,
+                User2InOrganization1 = 1 << 5,
+                User1InOrganization2 = 1 << 6,
+                User2InOrganization2 = 1 << 7,
+            }
+
+            public enum AccountToDelete
+            {
+                User1,
+                User2,
+                Organization1,
+                Organization2
+            }
+
+            public static IEnumerable<object[]> WillBeOrphaned_Input
+            {
+                get
+                {
+                    for (int i = 0; i < Enum.GetValues(typeof(OwnershipState)).Cast<int>().Max() * 2; i++)
+                    {
+                        var ownershipState = (OwnershipState)i;
+                        foreach (var accountToDelete in Enum.GetValues(typeof(AccountToDelete)).Cast<AccountToDelete>())
+                        {
+                            yield return new object[] { ownershipState, accountToDelete };
+                        }
+                    }
+                }
+            }
+
+            [Theory]
+            [MemberData(nameof(WillBeOrphaned_Input))]
+            public void WillBeOrphaned(OwnershipState state, AccountToDelete accountToDelete)
+            {
+                var user1 = new User("testUser") { Key = 0 };
+                var user2 = new User("testUser2") { Key = 1 };
+                var organization1 = new Organization("testOrganization") { Key = 2 };
+                var organization2 = new Organization("testOrganization2") { Key = 3 };
+
+                if (state.HasFlag(OwnershipState.User1InOrganization1))
+                {
+                    AddMemberToOrganization(organization1, user1);
+                }
+
+                if (state.HasFlag(OwnershipState.User2InOrganization1))
+                {
+                    AddMemberToOrganization(organization1, user2);
+                }
+
+                if (state.HasFlag(OwnershipState.User1InOrganization2))
+                {
+                    AddMemberToOrganization(organization2, user1);
+                }
+
+                if (state.HasFlag(OwnershipState.User2InOrganization2))
+                {
+                    AddMemberToOrganization(organization2, user2);
+                }
+
+                var package = new PackageRegistration() { Key = 4 };
+
+                if (state.HasFlag(OwnershipState.OwnedByUser1))
+                {
+                    package.Owners.Add(user1);
+                }
+
+                if (state.HasFlag(OwnershipState.OwnedByUser2))
+                {
+                    package.Owners.Add(user2);
+                }
+
+                if (state.HasFlag(OwnershipState.OwnedByOrganization1))
+                {
+                    package.Owners.Add(organization1);
+                }
+
+                if (state.HasFlag(OwnershipState.OwnedByOrganization2))
+                {
+                    package.Owners.Add(organization2);
+                }
+
+                var expectedResult = true;
+                User userToDelete;
+                if (accountToDelete == AccountToDelete.User1)
+                {
+                    userToDelete = user1;
+
+                    // If we delete the first user, the package is orphaned unless it is owned by the second user or an organization that the second user is a member of.
+                    if (state.HasFlag(OwnershipState.OwnedByUser2) ||
+                        (state.HasFlag(OwnershipState.OwnedByOrganization1) && state.HasFlag(OwnershipState.User2InOrganization1)) ||
+                        (state.HasFlag(OwnershipState.OwnedByOrganization2) && state.HasFlag(OwnershipState.User2InOrganization2)))
+                    {
+                        expectedResult = false;
+                    }
+                }
+                else if (accountToDelete == AccountToDelete.User2)
+                {
+                    userToDelete = user2;
+
+                    // If we delete the second user, the package is orphaned unless it is owned by the first user or an organization that the second user is a member of.
+                    if (state.HasFlag(OwnershipState.OwnedByUser1) ||
+                        (state.HasFlag(OwnershipState.OwnedByOrganization1) && state.HasFlag(OwnershipState.User1InOrganization1)) ||
+                        (state.HasFlag(OwnershipState.OwnedByOrganization2) && state.HasFlag(OwnershipState.User1InOrganization2)))
+                    {
+                        expectedResult = false;
+                    }
+                }
+                else if (accountToDelete == AccountToDelete.Organization1)
+                {
+                    userToDelete = organization1;
+
+                    // If we delete the first organization, the package is orphaned unless is it owned a user or it is owned by the second organization and that organization has members.
+                    if (state.HasFlag(OwnershipState.OwnedByUser1) ||
+                        state.HasFlag(OwnershipState.OwnedByUser2) || 
+                        (state.HasFlag(OwnershipState.OwnedByOrganization2) && (state.HasFlag(OwnershipState.User1InOrganization2) || state.HasFlag(OwnershipState.User2InOrganization2))))
+                    {
+                        expectedResult = false;
+                    }
+                }
+                else if (accountToDelete == AccountToDelete.Organization2)
+                {
+                    userToDelete = organization2;
+
+                    // If we delete the second organization, the package is orphaned unless is it owned a user or it is owned by the first organization and that organization has members.
+                    if (state.HasFlag(OwnershipState.OwnedByUser1) ||
+                        state.HasFlag(OwnershipState.OwnedByUser2) ||
+                        (state.HasFlag(OwnershipState.OwnedByOrganization1) && (state.HasFlag(OwnershipState.User1InOrganization1) || state.HasFlag(OwnershipState.User2InOrganization1))))
+                    {
+                        expectedResult = false;
+                    }
+                }
+                else
+                {
+                    throw new ArgumentException(nameof(accountToDelete));
+                }
+
+                var service = CreateService();
+                var result = service.WillPackageBeOrphanedIfOwnerRemoved(package, userToDelete);
+
+                Assert.Equal(expectedResult, result);
+            }
+
+            private void AddMemberToOrganization(Organization organization, User member)
+            {
+                var membership = new Membership() { Member = member, Organization = organization };
+                organization.Members.Add(membership);
+                member.Organizations.Add(membership);
+            }
+        }
+
         public class TheSetLicenseReportVisibilityMethod
         {
             [Fact]

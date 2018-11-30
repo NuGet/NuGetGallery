@@ -357,6 +357,20 @@ namespace NuGetGallery
                 await _packageRepository.CommitChangesAsync();
             }
         }
+        
+        public bool WillPackageBeOrphanedIfOwnerRemoved(PackageRegistration package, User owner)
+        {
+            var remainingOwners = package.Owners
+                .Where(o => !owner.MatchesUser(o))
+                .SelectMany(user =>
+                    user is Organization organization
+                        ? OrganizationExtensions.GetUserAccountMembers(organization)
+                            .Where(m => !m.MatchesUser(owner))
+                        : new List<User> { user })
+                .Distinct();
+
+            return !remainingOwners.Any();
+        }
 
         public async Task MarkPackageListedAsync(Package package, bool commitChanges = true)
         {

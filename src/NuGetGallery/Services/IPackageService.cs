@@ -73,6 +73,11 @@ namespace NuGetGallery
 
         Task RemovePackageOwnerAsync(PackageRegistration package, User user, bool commitChanges = true);
 
+        /// <remarks>
+        /// A package is orphaned if it is not owned by a user account or an organization with user account members.
+        /// </remarks>
+        bool WillPackageBeOrphanedIfOwnerRemoved(PackageRegistration package, User owner);
+
         Task SetLicenseReportVisibilityAsync(Package package, bool visible, bool commitChanges = true);
 
         Task EnsureValid(PackageArchiveReader packageArchiveReader);
