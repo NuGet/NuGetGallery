@@ -60,6 +60,7 @@ namespace Tests.Stats.CollectAzureCdnLogs
         [InlineData("ftp://someserver/logs/wpc_A000_20150603_0058.log")]
         [InlineData("ftp://someserver/logs/wpc_A000_20151342_0058.log.gz")]
         [InlineData("ftp://someserver/logs/wpc_A000_20150603_0058.log.download")]
+        [InlineData("ftp://someserver/logs/wpc_A000_20150603_0058.log.gz.tmp")]
         public void ThrowsWhenInvalidRawLogFileName(string uriString)
         {
             Assert.Throws<InvalidRawLogFileNameException>(() => new RawLogFileInfo(new Uri(uriString)));

@@ -2,15 +2,6 @@
   "Configuration": {
     "Validations": [
       {
-        "name": "VcsValidator",
-        "TrackAfter": "1:00:00:00",
-        "requiredValidations": [
-          "PackageSigningValidator"
-        ],
-        "ShouldStart": true,
-        "FailureBehavior": "MustSucceed"
-      },
-      {
         "name": "PackageSigningValidator",
         "TrackAfter": "00:10:00",
         "requiredValidations": [],
@@ -42,18 +33,6 @@
     "NewValidationRequestDeduplicationWindow": "00:20:00",
     "ValidationSetNotificationTimeout": "00:50:00",
     "TimeoutValidationSetAfter": "1:00:00:00"
-  },
-  "Vcs": {
-    "ContainerName": "validation",
-    "DataStorageAccount": "UseDevelopmentStorage=true",
-    "PackageCriteria": {
-      "ExcludeOwners": [
-        "NugetTestAccount"
-      ],
-      "IncludeIdPatterns": [
-        "E2E.SemVer1Stable.*"
-      ]
-    }
   },
   "PackageSigning": {
     "ServiceBus": {

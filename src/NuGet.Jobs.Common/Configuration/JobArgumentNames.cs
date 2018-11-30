@@ -99,12 +99,6 @@ namespace NuGet.Jobs
         public const string PackageUrlTemplate = "PackageUrlTemplate";
         public const string BatchSize = "BatchSize";
 
-        // Arguments specific to VCS validation task
-        public const string VcsValidatorServiceUrl = "VcsValidatorServiceUrl";
-        public const string VcsValidatorCallbackUrl = "VcsValidatorCallbackUrl";
-        public const string VcsContactAlias = "VcsContactAlias";
-        public const string VcsValidatorSubmitterAlias = "VcsValidatorAlias";
-
         // Key Vault
         public const string VaultName = "VaultName";
         public const string ClientId = "ClientId";

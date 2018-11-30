@@ -17,31 +17,28 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.WindowsAzure.Storage;
 using NuGet.Jobs;
 using NuGet.Jobs.Configuration;
 using NuGet.Jobs.Validation;
-using NuGet.Jobs.Validation.Common;
 using NuGet.Jobs.Validation.PackageSigning.Messages;
 using NuGet.Jobs.Validation.ScanAndSign;
 using NuGet.Jobs.Validation.Storage;
-using NuGet.Services.Validation.Symbols;
 using NuGet.Jobs.Validation.Symbols.Core;
 using NuGet.Services.Configuration;
+using NuGet.Services.Entities;
 using NuGet.Services.KeyVault;
 using NuGet.Services.Logging;
+using NuGet.Services.Messaging;
+using NuGet.Services.Messaging.Email;
 using NuGet.Services.ServiceBus;
 using NuGet.Services.Sql;
 using NuGet.Services.Validation.Orchestrator.PackageSigning.ScanAndSign;
 using NuGet.Services.Validation.Orchestrator.Telemetry;
 using NuGet.Services.Validation.PackageSigning.ProcessSignature;
 using NuGet.Services.Validation.PackageSigning.ValidateCertificate;
-using NuGet.Services.Validation.Vcs;
-using NuGet.Services.Messaging.Email;
+using NuGet.Services.Validation.Symbols;
 using NuGetGallery;
 using NuGetGallery.Diagnostics;
-using NuGet.Services.Entities;
-using NuGet.Services.Messaging;
 
 namespace NuGet.Services.Validation.Orchestrator
 {
@@ -56,7 +53,6 @@ namespace NuGet.Services.Validation.Orchestrator
         private const string ValidateArgument = "Validate";
 
         private const string ConfigurationSectionName = "Configuration";
-        private const string VcsSectionName = "Vcs";
         private const string PackageSigningSectionName = "PackageSigning";
         private const string PackageCertificatesSectionName = "PackageCertificates";
         private const string ScanAndSignSectionName = "ScanAndSign";
@@ -70,7 +66,6 @@ namespace NuGet.Services.Validation.Orchestrator
         private const string PackageDownloadTimeoutName = "PackageDownloadTimeout";
 
         private const string EmailBindingKey = EmailConfigurationSectionName;
-        private const string VcsBindingKey = VcsSectionName;
         private const string PackageVerificationTopicClientBindingKey = "PackageVerificationTopicClient";
         private const string PackageSignatureBindingKey = PackageSigningSectionName;
         private const string PackageCertificatesBindingKey = PackageCertificatesSectionName;
@@ -188,7 +183,6 @@ namespace NuGet.Services.Validation.Orchestrator
         private void ConfigureJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
         {
             services.Configure<ValidationConfiguration>(configurationRoot.GetSection(ConfigurationSectionName));
-            services.Configure<VcsConfiguration>(configurationRoot.GetSection(VcsSectionName));
             services.Configure<ProcessSignatureConfiguration>(configurationRoot.GetSection(PackageSigningSectionName));
             services.Configure<ValidateCertificateConfiguration>(configurationRoot.GetSection(PackageCertificatesSectionName));
             services.Configure<OrchestrationRunnerConfiguration>(configurationRoot.GetSection(RunnerConfigurationSectionName));
@@ -239,7 +233,6 @@ namespace NuGet.Services.Validation.Orchestrator
             services.AddTransient<IServiceBusMessageSerializer, ServiceBusMessageSerializer>();
             services.AddTransient<IBrokeredMessageSerializer<PackageValidationMessageData>, PackageValidationMessageDataSerializationAdapter>();
             services.AddTransient<ICriteriaEvaluator<Package>, PackageCriteriaEvaluator>();
-            services.AddTransient<VcsValidator>();
             services.AddTransient<IProcessSignatureEnqueuer, ProcessSignatureEnqueuer>();
             services.AddTransient<ICloudBlobClient>(c =>
                 {
@@ -298,17 +291,6 @@ namespace NuGet.Services.Validation.Orchestrator
             var containerBuilder = new ContainerBuilder();
             containerBuilder.Populate(services);
 
-            /// Initialize dependencies for the <see cref="VcsValidator"/>. There is some additional complexity here
-            /// because the implementations require ambiguous types (such as a <see cref="string"/> and a
-            /// <see cref="CloudStorageAccount"/> which there may be more than one configuration of).
-            containerBuilder
-                .Register(c =>
-                {
-                    var vcsConfiguration = c.Resolve<IOptionsSnapshot<VcsConfiguration>>();
-                    var cloudStorageAccount = CloudStorageAccount.Parse(vcsConfiguration.Value.DataStorageAccount);
-                    return cloudStorageAccount;
-                })
-                .Keyed<CloudStorageAccount>(VcsBindingKey);
             containerBuilder
                 .Register(c =>
                 {
@@ -317,23 +299,7 @@ namespace NuGet.Services.Validation.Orchestrator
                     return topicClient;
                 })
                 .Keyed<TopicClientWrapper>(PackageVerificationTopicClientBindingKey);
-
-            containerBuilder
-                .RegisterType<PackageValidationService>()
-                .WithKeyedParameter(typeof(CloudStorageAccount), VcsBindingKey)
-                .WithParameter(new ResolvedParameter(
-                    (pi, ctx) => pi.ParameterType == typeof(string),
-                    (pi, ctx) => ctx.Resolve<IOptionsSnapshot<VcsConfiguration>>().Value.ContainerName))
-                .As<IPackageValidationService>();
-
-            containerBuilder
-                .RegisterType<PackageValidationAuditor>()
-                .WithKeyedParameter(typeof(CloudStorageAccount), VcsBindingKey)
-                .WithParameter(new ResolvedParameter(
-                    (pi, ctx) => pi.ParameterType == typeof(string),
-                    (pi, ctx) => ctx.Resolve<IOptionsSnapshot<VcsConfiguration>>().Value.ContainerName))
-                .As<IPackageValidationAuditor>();
-
+            
             containerBuilder
                 .RegisterType<ProcessSignatureEnqueuer>()
                 .WithParameter(new ResolvedParameter(

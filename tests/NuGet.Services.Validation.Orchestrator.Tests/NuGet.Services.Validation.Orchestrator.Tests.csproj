@@ -75,8 +75,7 @@
     <Compile Include="ValidationStorageServiceFacts.cs" />
     <Compile Include="Services\PackageEntityServiceFacts.cs" />
     <Compile Include="ValidatorStateServiceFacts.cs" />
-    <Compile Include="Vcs\PackageCriteriaEvaluatorFacts.cs" />
-    <Compile Include="Vcs\VcsValidatorFacts.cs" />
+    <Compile Include="Criteria\PackageCriteriaEvaluatorFacts.cs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="EntityFramework">
@@ -106,10 +105,6 @@
     <ProjectReference Include="..\..\src\Validation.Common.Job\Validation.Common.Job.csproj">
       <Project>{fa87d075-a934-4443-8d0b-5db32640b6d7}</Project>
       <Name>Validation.Common.Job</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\src\Validation.Common\Validation.Common.csproj">
-      <Project>{2539DDF3-0CC5-4A03-B5F9-39B47744A7BD}</Project>
-      <Name>Validation.Common</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\src\Validation.PackageSigning.Core\Validation.PackageSigning.Core.csproj">
       <Project>{91C060DA-736F-4DA9-A57F-CB3AC0E6CB10}</Project>

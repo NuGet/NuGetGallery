@@ -93,20 +93,6 @@ namespace NuGet.Services.Validation.PackageSigning.ProcessSignature
                     return ValidationResult.Succeeded;
                 }
 
-                // TODO: Remove this.
-                // See: https://github.com/NuGet/Engineering/issues/1592
-                if (HasOwnerWithInvalidUsername(request))
-                {
-                    _logger.LogWarning(
-                        "Ignoring invalid validation result in package signature validator as the package has an owner with an invalid username. " +
-                        "Status = {ValidationStatus}, Nupkg URL = {NupkgUrl}, validation issues = {Issues}",
-                        result.Status,
-                        result.NupkgUrl,
-                        result.Issues.Select(i => i.IssueCode));
-
-                    return ValidationResult.Succeeded;
-                }
-
                 _logger.LogCritical(
                     "Unexpected validation result in package signature validator. This may be caused by an invalid repository " +
                     "signature. Throwing an exception to force this validation to dead-letter. " +
@@ -132,33 +118,6 @@ namespace NuGet.Services.Validation.PackageSigning.ProcessSignature
             }
 
             return result;
-        }
-
-        private bool HasOwnerWithInvalidUsername(IValidationRequest request)
-        {
-            var registration = _packages.FindPackageRegistrationById(request.PackageId);
-
-            if (registration == null)
-            {
-                _logger.LogError("Attempted to validate package that has no package registration");
-
-                throw new InvalidOperationException($"Registration for package id {request.PackageId} does not exist");
-            }
-
-            var owners = registration.Owners.Select(o => o.Username).ToList();
-
-            if (owners.Any(UsernameHelper.IsInvalid))
-            {
-                _logger.LogWarning(
-                    "Package {PackageId} {PackageVersion} has an owner with an invalid username. {Owners}",
-                    request.PackageId,
-                    request.PackageVersion,
-                    owners);
-
-                return true;
-            }
-
-            return false;
         }
     }
 }

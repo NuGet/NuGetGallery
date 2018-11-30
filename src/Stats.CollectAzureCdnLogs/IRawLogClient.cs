@@ -10,7 +10,7 @@ namespace Stats.CollectAzureCdnLogs
 {
     internal interface IRawLogClient
     {
-        Task<IEnumerable<RawLogFileInfo>> GetRawLogFiles(Uri uri);
+        Task<IEnumerable<Uri>> GetRawLogFileUris(Uri uri);
         Task<Stream> OpenReadAsync(Uri uri);
         Task<bool> RenameAsync(Uri uri, string newFileName);
         Task DeleteAsync(Uri uri);

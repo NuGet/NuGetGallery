@@ -87,7 +87,6 @@ Invoke-BuildStep 'Clearing artifacts' { Clear-Artifacts } `
     
 Invoke-BuildStep 'Set version metadata in AssemblyInfo.cs' { `
         $versionMetadata =
-            "$PSScriptRoot\src\Validation.Helper\Properties\AssemblyInfo.g.cs",
             "$PSScriptRoot\src\CopyAzureContainer\Properties\AssemblyInfo.g.cs",
             "$PSScriptRoot\src\NuGetCDNRedirect\Properties\AssemblyInfo.g.cs",
             "$PSScriptRoot\src\NuGet.Services.Validation.Orchestrator\Properties\AssemblyInfo.g.cs",
@@ -96,7 +95,6 @@ Invoke-BuildStep 'Set version metadata in AssemblyInfo.cs' { `
             "$PSScriptRoot\src\Validation.PackageSigning.ProcessSignature\Properties\AssemblyInfo.g.cs",
             "$PSScriptRoot\src\Validation.PackageSigning.ValidateCertificate\Properties\AssemblyInfo.g.cs",
             "$PSScriptRoot\src\Validation.PackageSigning.RevalidateCertificate\Properties\AssemblyInfo.g.cs",
-            "$PSScriptRoot\src\NuGet.Jobs.Common\Properties\AssemblyInfo.g.cs",
             "$PSScriptRoot\src\Validation.Common.Job\Properties\AssemblyInfo.g.cs",
             "$PSScriptRoot\src\Validation.ScanAndSign.Core\Properties\AssemblyInfo.g.cs",
             "$PSScriptRoot\src\PackageLagMonitor\Properties\AssemblyInfo.g.cs",
@@ -150,9 +148,7 @@ Invoke-BuildStep 'Creating artifacts' {
             "src/ArchivePackages/ArchivePackages.csproj", `
             "src/Search.GenerateAuxiliaryData/Search.GenerateAuxiliaryData.csproj", `
             "src/Stats.RollUpDownloadFacts/Stats.RollUpDownloadFacts.csproj", `
-            "src/Validation.Runner/Validation.Runner.csproj", `
             "src/NuGet.SupportRequests.Notifications/NuGet.SupportRequests.Notifications.csproj", `
-            "src/Validation.Helper/Validation.Helper.csproj", `
             "src/CopyAzureContainer/CopyAzureContainer.csproj", `
             "src/NuGetCDNRedirect/NuGetCDNRedirect.csproj", `
             "src/NuGet.Services.Validation.Orchestrator/NuGet.Services.Validation.Orchestrator.csproj", `

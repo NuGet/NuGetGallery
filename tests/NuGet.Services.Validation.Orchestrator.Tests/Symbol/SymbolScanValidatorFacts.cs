@@ -3,19 +3,18 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
-using NuGet.Services.Validation.Symbols;
 using NuGet.Jobs.Validation.ScanAndSign;
 using NuGet.Jobs.Validation.Storage;
+using NuGet.Services.Entities;
 using NuGet.Services.Validation.Orchestrator.PackageSigning.ScanAndSign;
-using NuGet.Services.Validation.Vcs;
+using NuGet.Services.Validation.Symbols;
 using NuGetGallery;
 using Xunit;
-using System.IO;
-using NuGet.Services.Entities;
 
 namespace NuGet.Services.Validation.Orchestrator.Tests.Symbol
 {

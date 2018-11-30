@@ -37,8 +37,6 @@ Function Run-Tests {
         "tests\Tests.Stats.CollectAzureChinaCdnLogs\bin\$Configuration\Tests.Stats.CollectAzureChinaCdnLogs.dll", `
         "tests\Tests.Stats.ImportAzureCdnStatistics\bin\$Configuration\Tests.Stats.ImportAzureCdnStatistics.dll", `
         "tests\Validation.Common.Job.Tests\bin\$Configuration\Validation.Common.Job.Tests.dll", `
-        "tests\Validation.Common.Tests\bin\$Configuration\Validation.Common.Tests.dll", `
-        "tests\Validation.Helper.Tests\bin\$Configuration\Validation.Helper.Tests.dll",`
         "tests\Validation.PackageSigning.Core.Tests\bin\$Configuration\Validation.PackageSigning.Core.Tests.dll", `
         "tests\Validation.PackageSigning.ProcessSignature.Tests\bin\$Configuration\Validation.PackageSigning.ProcessSignature.Tests.dll", `
         "tests\Validation.PackageSigning.RevalidateCertificate.Tests\bin\$Configuration\Validation.PackageSigning.RevalidateCertificate.Tests.dll", `

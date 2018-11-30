@@ -6,11 +6,10 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NuGet.Jobs.Validation;
-using NuGet.Jobs.Validation.Storage;
 using NuGet.Jobs.Validation.ScanAndSign;
-using NuGet.Services.Validation.Vcs;
-using NuGetGallery;
+using NuGet.Jobs.Validation.Storage;
 using NuGet.Services.Entities;
+using NuGetGallery;
 
 namespace NuGet.Services.Validation.Orchestrator.PackageSigning.ScanAndSign
 {

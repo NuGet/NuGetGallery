@@ -49,6 +49,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Blob\CloudBlobRawLogClient.cs" />
+    <Compile Include="Configuration\CollectAzureCdnLogsConfiguration.cs" />
     <Compile Include="FileExtensions.cs" />
     <Compile Include="Ftp\FtpDownloadStream.cs" />
     <Compile Include="Ftp\FtpRawLogClient.cs" />
@@ -70,6 +71,9 @@
       <SubType>Designer</SubType>
     </None>
     <None Include="Scripts\*" />
+    <None Include="Settings\dev.json" />
+    <None Include="Settings\int.json" />
+    <None Include="Settings\prod.json" />
     <None Include="Stats.CollectAzureCdnLogs.nuspec" />
   </ItemGroup>
   <ItemGroup>
@@ -110,6 +114,7 @@
       <Version>7.1.2</Version>
     </PackageReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <SignPath>..\..\build</SignPath>

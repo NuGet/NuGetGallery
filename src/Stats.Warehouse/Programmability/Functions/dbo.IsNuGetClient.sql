@@ -14,6 +14,9 @@ BEGIN
 			CHARINDEX('NuGet Cross-Platform Command Line', @ClientName) > 0
 		OR	CHARINDEX('NuGet Client V3', @ClientName) > 0
 
+			-- VS NuGet 4.6+
+		OR	CHARINDEX('NuGet VS VSIX', @ClientName) > 0
+
 			-- VS NuGet 2.8+
 		OR	CHARINDEX('NuGet VS PowerShell Console', @ClientName) > 0
 		OR	CHARINDEX('NuGet VS Packages Dialog - Solution', @ClientName) > 0
