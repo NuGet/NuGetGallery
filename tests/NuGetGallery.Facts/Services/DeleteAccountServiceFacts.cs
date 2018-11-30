@@ -22,14 +22,16 @@ namespace NuGetGallery.Services
         {
             private static int Key = -1;
 
-            [Fact]
-            public async Task NullUser()
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public async Task NullUser(bool isPackageOrphaned)
             {
                 // Arrange
                 PackageRegistration registration = null;
                 var testUser = CreateTestUser(ref registration);
                 var testableService = new DeleteAccountTestService(testUser, registration);
-                var deleteAccountService = testableService.GetDeleteAccountService();
+                var deleteAccountService = testableService.GetDeleteAccountService(isPackageOrphaned);
 
                 // Assert
                 await Assert.ThrowsAsync<ArgumentNullException>(() => deleteAccountService.DeleteAccountAsync(
@@ -39,14 +41,16 @@ namespace NuGetGallery.Services
                     orphanPackagePolicy: AccountDeletionOrphanPackagePolicy.UnlistOrphans));
             }
 
-            [Fact]
-            public async Task NullAdmin()
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public async Task NullAdmin(bool isPackageOrphaned)
             {
                 // Arrange
                 PackageRegistration registration = null;
                 var testUser = CreateTestUser(ref registration);
                 var testableService = new DeleteAccountTestService(testUser, registration);
-                var deleteAccountService = testableService.GetDeleteAccountService();
+                var deleteAccountService = testableService.GetDeleteAccountService(isPackageOrphaned);
 
                 // Assert
                 await Assert.ThrowsAsync<ArgumentNullException>(() => deleteAccountService.DeleteAccountAsync(
@@ -59,15 +63,17 @@ namespace NuGetGallery.Services
             /// <summary>
             /// The action to delete a deleted user will be a no-op.
             /// </summary>
-            [Fact]
-            public async Task DeleteDeletedUser()
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public async Task DeleteDeletedUser(bool isPackageOrphaned)
             {
                 // Arrange
                 PackageRegistration registration = null;
                 var testUser = CreateTestUser(ref registration);
                 testUser.IsDeleted = true;
                 var testableService = new DeleteAccountTestService(testUser, registration);
-                var deleteAccountService = testableService.GetDeleteAccountService();
+                var deleteAccountService = testableService.GetDeleteAccountService(isPackageOrphaned);
 
                 // Act
                 var result = await deleteAccountService.
@@ -79,24 +85,16 @@ namespace NuGetGallery.Services
                 Assert.Equal(expected, result.Description);
             }
 
-            public enum DeleteAccountPackageOrphanState
-            {
-                Orphaned,
-                OwnedByOtherUser,
-                OwnedByOtherOrganization
-            }
-
             public static IEnumerable<object[]> DeleteAccount_Data
             {
                 get
                 {
-                    foreach (var packageOrphanedState in
-                        Enum.GetValues(typeof(DeleteAccountPackageOrphanState)).Cast<DeleteAccountPackageOrphanState>())
+                    foreach (var isPackageOrphaned in new[] { false, true })
                     {
                         foreach (var orphanPolicy in
                             Enum.GetValues(typeof(AccountDeletionOrphanPackagePolicy)).Cast<AccountDeletionOrphanPackagePolicy>())
                         {
-                            yield return new object[] { packageOrphanedState, orphanPolicy };
+                            yield return new object[] { isPackageOrphaned, orphanPolicy };
                         }
                     }
                 }
@@ -113,30 +111,14 @@ namespace NuGetGallery.Services
             /// </summary>
             [Theory]
             [MemberData(nameof(DeleteAccount_Data))]
-            public async Task DeleteHappyUser(DeleteAccountPackageOrphanState packageOrphanedState, AccountDeletionOrphanPackagePolicy orphanPolicy)
+            public async Task DeleteHappyUser(bool isPackageOrphaned, AccountDeletionOrphanPackagePolicy orphanPolicy)
             {
                 // Arrange
                 PackageRegistration registration = null;
                 var testUser = CreateTestUser(ref registration);
-                
-                if (packageOrphanedState == DeleteAccountPackageOrphanState.OwnedByOtherUser)
-                {
-                    var otherUser = new User("testUser2") { Key = Key++ };
-                    registration.Owners.Add(otherUser);
-                }
-
-                if (packageOrphanedState == DeleteAccountPackageOrphanState.OwnedByOtherOrganization)
-                {
-                    var otherOrganization = new Organization("testOrg") { Key = Key++ };
-                    var otherMembership = new Membership() { Organization = otherOrganization, Member = testUser };
-                    testUser.Organizations.Add(otherMembership);
-                    otherOrganization.Members.Add(otherMembership);
-                    registration.Owners.Add(otherOrganization);
-                }
-
                 var testUserOrganizations = testUser.Organizations.ToList();
                 var testableService = new DeleteAccountTestService(testUser, registration);
-                var deleteAccountService = testableService.GetDeleteAccountService();
+                var deleteAccountService = testableService.GetDeleteAccountService(isPackageOrphaned);
 
                 // Act
                 await deleteAccountService.
@@ -146,8 +128,7 @@ namespace NuGetGallery.Services
                         orphanPackagePolicy: orphanPolicy);
 
 
-                if (orphanPolicy == AccountDeletionOrphanPackagePolicy.DoNotAllowOrphans &&
-                    packageOrphanedState == DeleteAccountPackageOrphanState.Orphaned)
+                if (orphanPolicy == AccountDeletionOrphanPackagePolicy.DoNotAllowOrphans && isPackageOrphaned)
                 {
                     Assert.True(registration.Owners.Any(o => o.MatchesUser(testUser)));
                     Assert.NotEmpty(testUser.SecurityPolicies);
@@ -167,8 +148,8 @@ namespace NuGetGallery.Services
                     Assert.False(registration.Owners.Any(o => o.MatchesUser(testUser)));
                     Assert.Empty(testUser.SecurityPolicies);
                     Assert.Equal(
-                        packageOrphanedState != DeleteAccountPackageOrphanState.Orphaned || orphanPolicy != AccountDeletionOrphanPackagePolicy.UnlistOrphans,
-                        registration.Packages.Single().Listed);
+                        orphanPolicy == AccountDeletionOrphanPackagePolicy.UnlistOrphans && isPackageOrphaned,
+                        !registration.Packages.Single().Listed);
                     Assert.Null(testUser.EmailAddress);
                     Assert.Single(testableService.DeletedAccounts);
                     Assert.Empty(testableService.PackageOwnerRequests);
@@ -205,13 +186,15 @@ namespace NuGetGallery.Services
                 Assert.Empty(testUser.ReservedNamespaces);
             }
 
-            [Fact]
-            public async Task WhenUserIsNotConfirmedTheUserRecordIsDeleted()
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public async Task WhenUserIsNotConfirmedTheUserRecordIsDeleted(bool isPackageOrphaned)
             {
                 //Arange
                 User testUser = new User("TestsUser") { Key = Key++, UnconfirmedEmailAddress = "user@test.com" };
                 var testableService = new DeleteAccountTestService(testUser);
-                var deleteAccountService = testableService.GetDeleteAccountService();
+                var deleteAccountService = testableService.GetDeleteAccountService(isPackageOrphaned);
 
                 //Act
                 var status = await deleteAccountService.DeleteAccountAsync(userToBeDeleted: testUser,
@@ -233,7 +216,7 @@ namespace NuGetGallery.Services
 
             [Theory]
             [MemberData(nameof(DeleteAccount_Data))]
-            public async Task DeleteOrganization(DeleteAccountPackageOrphanState packageOrphanedState, AccountDeletionOrphanPackagePolicy orphanPolicy)
+            public async Task DeleteOrganization(bool isPackageOrphaned, AccountDeletionOrphanPackagePolicy orphanPolicy)
             {
                 // Arrange
                 var member = new User("testUser") { Key = Key++ };
@@ -255,26 +238,6 @@ namespace NuGetGallery.Services
                 PackageRegistration registration = new PackageRegistration();
                 registration.Owners.Add(organization);
 
-                if (packageOrphanedState == DeleteAccountPackageOrphanState.OwnedByOtherUser)
-                {
-                    registration.Owners.Add(member);
-                }
-
-                if (packageOrphanedState == DeleteAccountPackageOrphanState.OwnedByOtherOrganization)
-                {
-                    var otherOrganization = new Organization("testOrg")
-                    {
-                        Key = Key++,
-                        EmailAddress = "org2@test.com"
-                    };
-
-                    var otherMembership = new Membership() { Organization = otherOrganization, Member = member };
-                    member.Organizations.Add(otherMembership);
-                    otherOrganization.Members.Add(otherMembership);
-
-                    registration.Owners.Add(otherOrganization);
-                }
-
                 Package p = new Package()
                 {
                     Description = "TestPackage",
@@ -284,7 +247,7 @@ namespace NuGetGallery.Services
                 registration.Packages.Add(p);
 
                 var testableService = new DeleteAccountTestService(organization, registration);
-                var deleteAccountService = testableService.GetDeleteAccountService();
+                var deleteAccountService = testableService.GetDeleteAccountService(isPackageOrphaned);
 
                 // Act
                 var status = await deleteAccountService.
@@ -295,8 +258,7 @@ namespace NuGetGallery.Services
                         orphanPackagePolicy: orphanPolicy);
 
                 // Assert
-                if (orphanPolicy == AccountDeletionOrphanPackagePolicy.DoNotAllowOrphans &&
-                    packageOrphanedState == DeleteAccountPackageOrphanState.Orphaned)
+                if (orphanPolicy == AccountDeletionOrphanPackagePolicy.DoNotAllowOrphans && isPackageOrphaned)
                 {
                     Assert.False(status.Success);
                     Assert.Equal(organization.Confirmed, organization.EmailAddress != null);
@@ -313,8 +275,8 @@ namespace NuGetGallery.Services
                     Assert.True(status.Success);
                     Assert.Null(organization.EmailAddress);
                     Assert.Equal(
-                        packageOrphanedState != DeleteAccountPackageOrphanState.Orphaned || orphanPolicy != AccountDeletionOrphanPackagePolicy.UnlistOrphans,
-                        registration.Packages.Single().Listed);
+                        orphanPolicy == AccountDeletionOrphanPackagePolicy.UnlistOrphans && isPackageOrphaned,
+                        !registration.Packages.Single().Listed);
                     Assert.False(registration.Owners.Any(o => o.MatchesUser(organization)));
                     Assert.Empty(organization.SecurityPolicies);
                     Assert.Single(testableService.DeletedAccounts);
@@ -333,8 +295,10 @@ namespace NuGetGallery.Services
                 Assert.Single(testableService.SupportRequests);
             }
 
-            [Fact]
-            public async Task DeleteUnconfirmedOrganization()
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public async Task DeleteUnconfirmedOrganization(bool isPackageOrphaned)
             {
                 // Arrange
                 var member = new User("testUser") { Key = Key++ };
@@ -361,7 +325,7 @@ namespace NuGetGallery.Services
                 registration.Packages.Add(p);
 
                 var testableService = new DeleteAccountTestService(organization, registration);
-                var deleteAccountService = testableService.GetDeleteAccountService();
+                var deleteAccountService = testableService.GetDeleteAccountService(isPackageOrphaned);
 
                 // Act
                 var status = await deleteAccountService.
@@ -547,13 +511,13 @@ namespace NuGetGallery.Services
             {
             }
 
-            public DeleteAccountService GetDeleteAccountService()
+            public DeleteAccountService GetDeleteAccountService(bool isPackageOrphaned)
             {
                 return new DeleteAccountService(SetupAccountDeleteRepository().Object,
                     SetupUserRepository().Object,
                     SetupScopeRepository().Object,
                     SetupEntitiesContext().Object,
-                    SetupPackageService().Object,
+                    SetupPackageService(isPackageOrphaned).Object,
                     SetupPackageOwnershipManagementService().Object,
                     SetupReservedNamespaceService().Object,
                     SetupSecurityPolicyService().Object,
@@ -669,17 +633,23 @@ namespace NuGetGallery.Services
                 return scopeRepository;
             }
 
-            private Mock<IPackageService> SetupPackageService()
+            private Mock<IPackageService> SetupPackageService(bool isPackageOrphaned)
             {
                 var packageService = new Mock<IPackageService>();
                 if (_user != null)
                 {
                     packageService.Setup(m => m.FindPackagesByAnyMatchingOwner(_user, true, It.IsAny<bool>())).Returns(_userPackages);
                 }
+
+                packageService
+                    .Setup(p => p.WillPackageBeOrphanedIfOwnerRemoved(It.IsAny<PackageRegistration>(), It.IsAny<User>()))
+                    .Returns(isPackageOrphaned);
+
                 //the .Returns(Task.CompletedTask) to avoid NullRef exception by the Mock infrastructure when invoking async operations
                 packageService.Setup(m => m.MarkPackageUnlistedAsync(It.IsAny<Package>(), true))
                               .Returns(Task.CompletedTask)
                               .Callback<Package, bool>((package, commit) => { package.Listed = false; });
+
                 return packageService;
             }
 
