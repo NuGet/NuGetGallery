@@ -156,6 +156,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                                     {
                                         Url = "https://example/1.0.0",
                                         Version = "1.0.0",
+                                        Listed = true,
                                     },
                                 },
                                 new RegistrationLeafItem
@@ -164,6 +165,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                                     {
                                         Url = "https://example/2.0.0",
                                         Version = "2.0.0",
+                                        Listed = true,
                                     },
                                 },
                                 new RegistrationLeafItem
@@ -172,6 +174,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                                     {
                                         Url = "https://example/3.0.0",
                                         Version = "3.0.0",
+                                        Listed = false,
                                     },
                                 },
                             },
@@ -250,6 +253,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                                     {
                                         Url = "https://example/1.0.0",
                                         Version = "1.0.0+git",
+                                        Listed = true,
                                     },
                                 },
                                 new RegistrationLeafItem
@@ -258,6 +262,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                                     {
                                         Url = "https://example/2.0.0-alpha",
                                         Version = "2.0.0-alpha",
+                                        Listed = true,
                                     },
                                 },
                                 new RegistrationLeafItem
@@ -266,6 +271,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                                     {
                                         Url = "https://example/3.0.0",
                                         Version = "3.0.0",
+                                        Listed = false,
                                     },
                                 },
                             },
@@ -510,6 +516,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                                     {
                                         Url = "https://example/1",
                                         Version = "1.0.0",
+                                        Listed = true,
                                     },
                                 },
                                 new RegistrationLeafItem
@@ -518,6 +525,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                                     {
                                         Url = "https://example/2",
                                         Version = "2.0.0-alpha",
+                                        Listed = true,
                                     },
                                 },
                                 new RegistrationLeafItem
@@ -526,6 +534,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                                     {
                                         Url = "https://example/3",
                                         Version = "3.0.0+git",
+                                        Listed = true,
                                     },
                                 },
                                 new RegistrationLeafItem
@@ -534,6 +543,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                                     {
                                         Url = "https://example/4",
                                         Version = "4.0.0-beta.1",
+                                        Listed = true,
                                     },
                                 },
                             },
@@ -608,7 +618,10 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                 _registrationClient = new Mock<IRegistrationClient>();
                 _catalogClient = new Mock<ICatalogClient>();
                 _options = new Mock<IOptionsSnapshot<Catalog2AzureSearchConfiguration>>();
-                _config = new Catalog2AzureSearchConfiguration();
+                _config = new Catalog2AzureSearchConfiguration
+                {
+                    MaxConcurrentBatches = 1,
+                };
                 _logger = output.GetLogger<CatalogLeafFetcher>();
 
                 _options.Setup(x => x.Value).Returns(() => _config);

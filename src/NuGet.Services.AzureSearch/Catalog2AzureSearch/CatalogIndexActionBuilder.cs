@@ -113,6 +113,8 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                             .ListedFullVersions
                             .Select(NuGetVersion.Parse)
                             .ToList())
+                        .GroupBy(x => x, new CollectionComparer<NuGetVersion>())
+                        .Select(x => x.First())
                         .ToList();
 
                     var latestCatalogLeaves = await _leafFetcher.GetLatestLeavesAsync(
@@ -357,6 +359,21 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                 }
 
                 return EntryToLeaf[entry];
+            }
+        }
+
+        private class CollectionComparer<T> : IEqualityComparer<IReadOnlyCollection<T>>
+        {
+            public bool Equals(IReadOnlyCollection<T> x, IReadOnlyCollection<T> y)
+            {
+                return x.SequenceEqual(y);
+            }
+
+            public int GetHashCode(IReadOnlyCollection<T> obj)
+            {
+                return obj
+                    .OrderBy(x => x)
+                    .Aggregate(0, (sum, i) => unchecked(sum + (i?.GetHashCode() ?? 0)));
             }
         }
     }

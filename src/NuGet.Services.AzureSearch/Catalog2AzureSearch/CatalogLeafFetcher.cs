@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -30,6 +31,13 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
             _catalogClient = catalogClient ?? throw new ArgumentNullException(nameof(catalogClient));
             _options = options ?? throw new ArgumentNullException(nameof(options));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+
+            if (_options.Value.MaxConcurrentBatches <= 0)
+            {
+                throw new ArgumentException(
+                    $"The {nameof(AzureSearchConfiguration.MaxConcurrentBatches)} must be greater than zero.",
+                    nameof(options));
+            }
         }
 
         public async Task<LatestCatalogLeaves> GetLatestLeavesAsync(
@@ -52,7 +60,8 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
             }
 
             var unavailable = new HashSet<NuGetVersion>();
-            var available = new Dictionary<NuGetVersion, PackageDetailsCatalogLeaf>();
+            var fetched = new Dictionary<NuGetVersion, PackageDetailsCatalogLeaf>();
+            var unlisted = new Dictionary<NuGetVersion, string>();
 
             var registrationIndexUrl = GetRegistrationIndexUrl(packageId);
             var registrationIndex = await _registrationClient.GetIndexOrNullAsync(registrationIndexUrl);
@@ -68,7 +77,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                     unavailable.Add(version);
                 }
 
-                return new LatestCatalogLeaves(unavailable, available);
+                return new LatestCatalogLeaves(unavailable, fetched);
             }
 
             var pageUrlToInfo = registrationIndex
@@ -89,10 +98,33 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                     pageUrlToInfo,
                     ranges,
                     unavailable,
-                    available);
+                    fetched,
+                    unlisted);
             }
 
-            return new LatestCatalogLeaves(unavailable, available);
+            // Fetch the unlisted version's metadata in parallel. This can be many versions in the case of a bulk
+            // unlist.
+            var allWork = new ConcurrentBag<KeyValuePair<NuGetVersion, string>>(unlisted);
+            var allResults = new ConcurrentBag<KeyValuePair<NuGetVersion, PackageDetailsCatalogLeaf>>();
+            var tasks = Enumerable
+                .Range(0, _options.Value.MaxConcurrentBatches)
+                .Select(async x =>
+                {
+                    await Task.Yield();
+                    while (allWork.TryTake(out var work))
+                    {
+                        var leaf = await _catalogClient.GetPackageDetailsLeafAsync(work.Value);
+                        allResults.Add(KeyValuePair.Create(work.Key, leaf));
+                    }
+                })
+                .ToList();
+            await Task.WhenAll(tasks);
+            foreach (var pair in allResults)
+            {
+                fetched.Add(pair.Key, pair.Value);
+            }
+
+            return new LatestCatalogLeaves(unavailable, fetched);
         }
 
         private async Task AddLatestLeafAsync(
@@ -101,7 +133,8 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
             Dictionary<string, RegistrationPageInfo> pageUrlToInfo,
             List<string> ranges,
             HashSet<NuGetVersion> unavailable,
-            Dictionary<NuGetVersion, PackageDetailsCatalogLeaf> available)
+            Dictionary<NuGetVersion, PackageDetailsCatalogLeaf> fetched,
+            Dictionary<NuGetVersion, string> unlisted)
         {
             var descendingVersions = versionList
                 .OrderByDescending(x => x)
@@ -118,10 +151,19 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                     continue;
                 }
 
-                if (available.TryGetValue(version, out var leaf))
+                if (unlisted.ContainsKey(version))
                 {
                     _logger.LogDebug(
-                        "For {PackageId}, version {Version} was already discovered to be available.",
+                        "For {PackageId}, version {Version} was already discovered to be unlisted.",
+                        packageId,
+                        version);
+                    continue;
+                }
+
+                if (fetched.TryGetValue(version, out var leaf))
+                {
+                    _logger.LogDebug(
+                        "For {PackageId}, version {Version} was already fetched.",
                         packageId,
                         version);
                 }
@@ -167,6 +209,17 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                         continue;
                     }
 
+                    if (!item.CatalogEntry.Listed)
+                    {
+                        _logger.LogInformation(
+                            "{PackageId} {Version} was found to be unlisted from page {Url}. This will not be used as a latest version.",
+                            packageId,
+                            version,
+                            info.Page.Url);
+                        unlisted.Add(version, item.CatalogEntry.Url);
+                        continue;
+                    }
+
                     _logger.LogInformation(
                         "Fetching the catalog leaf for {PackageId} {Version} from {LeafUrl}",
                         packageId,
@@ -174,7 +227,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                         item.CatalogEntry.Url);
 
                     leaf = await _catalogClient.GetPackageDetailsLeafAsync(item.CatalogEntry.Url);
-                    available.Add(version, leaf);
+                    fetched.Add(version, leaf);
                 }
 
                 if (leaf.IsListed())
@@ -188,8 +241,10 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                 }
                 else
                 {
+                    // We'll only hit this case if the catalog index/page told us that this version was listed but the
+                    // leaf says that it is unlisted.
                     _logger.LogInformation(
-                        "{PackageId} {Version} was found to be unlisted from {Url}. This will not be used as a latest version.",
+                        "{PackageId} {Version} was found to be unlisted from leaf {Url}. This will not be used as a latest version.",
                         packageId,
                         version,
                         leaf.Url);

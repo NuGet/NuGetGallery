@@ -15,5 +15,9 @@ namespace NuGet.Protocol.Registration
 
         [JsonProperty("version")]
         public string Version { get; set; }
+
+        [JsonProperty("listed")]
+        [JsonRequired]
+        public bool Listed { get; set; }
     }
 }

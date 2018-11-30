@@ -189,6 +189,93 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                 Assert.False(properties[existingVersion].SemVer2);
                 Assert.False(properties[_packageVersion].Listed);
                 Assert.False(properties[_packageVersion].SemVer2);
+
+                _fetcher.Verify(
+                    x => x.GetLatestLeavesAsync(
+                        It.IsAny<string>(),
+                        It.Is<IReadOnlyList<IReadOnlyList<NuGetVersion>>>(y => y.Count == 1)),
+                    Times.Once);
+            }
+
+            [Fact]
+            public async Task DowngradeToDifferent()
+            {
+                var existingVersion1 = "0.0.1";
+                var existingVersion2 = "0.0.2-alpha";
+                var existingLeaf1 = new PackageDetailsCatalogLeaf
+                {
+                    CommitTimestamp = new DateTimeOffset(2018, 12, 1, 0, 0, 0, TimeSpan.Zero),
+                    Url = "http://example/leaf/0.0.1",
+                    PackageId = _packageId,
+                    VerbatimVersion = existingVersion1,
+                    PackageVersion = existingVersion1,
+                    Listed = true,
+                };
+                var existingLeaf2 = new PackageDetailsCatalogLeaf
+                {
+                    CommitTimestamp = new DateTimeOffset(2018, 12, 1, 0, 0, 0, TimeSpan.Zero),
+                    Url = "http://example/leaf/0.0.2-alpha",
+                    PackageId = _packageId,
+                    VerbatimVersion = existingVersion2,
+                    PackageVersion = existingVersion2,
+                    Listed = true,
+                    IsPrerelease = true,
+                };
+                _leaf.Listed = false;
+                _versionListDataResult = new ResultAndAccessCondition<VersionListData>(
+                    new VersionListData(new Dictionary<string, VersionPropertiesData>
+                    {
+                        { existingVersion1, new VersionPropertiesData(listed: true, semVer2: false) },
+                        { existingVersion2, new VersionPropertiesData(listed: true, semVer2: false) },
+                        { _packageVersion, new VersionPropertiesData(listed: true, semVer2: false) },
+                    }),
+                    _versionListDataResult.AccessCondition);
+                _latestCatalogLeaves = new LatestCatalogLeaves(
+                    new HashSet<NuGetVersion>(),
+                    new Dictionary<NuGetVersion, PackageDetailsCatalogLeaf>
+                    {
+                        { NuGetVersion.Parse(existingVersion1), existingLeaf1 },
+                        { NuGetVersion.Parse(existingVersion2), existingLeaf2 },
+                    });
+
+                var indexActions = await _target.AddCatalogEntriesAsync(
+                    _packageId,
+                    _versionListDataResult,
+                    _latestEntries,
+                    _entryToLeaf);
+
+                Assert.Equal(4, indexActions.Search.Count);
+                Assert.All(indexActions.Search, x => Assert.IsType<SearchDocument.UpdateLatest>(x.Document));
+                Assert.All(indexActions.Search, x => Assert.Equal(IndexActionType.MergeOrUpload, x.ActionType));
+
+                Assert.Equal(3, indexActions.Hijack.Count);
+                var existing1 = indexActions.Hijack.Single(x => x.Document.Key == existingVersion1);
+                Assert.IsType<HijackDocument.Full>(existing1.Document);
+                Assert.Equal(IndexActionType.MergeOrUpload, existing1.ActionType);
+                var existing2 = indexActions.Hijack.Single(x => x.Document.Key == existingVersion2);
+                Assert.IsType<HijackDocument.Full>(existing2.Document);
+                Assert.Equal(IndexActionType.MergeOrUpload, existing2.ActionType);
+                var added = indexActions.Hijack.Single(x => x.Document.Key == _packageVersion);
+                Assert.IsType<HijackDocument.Full>(added.Document);
+                Assert.Equal(IndexActionType.MergeOrUpload, added.ActionType);
+
+                Assert.Same(_versionListDataResult.AccessCondition, indexActions.VersionListDataResult.AccessCondition);
+                var properties = indexActions.VersionListDataResult.Result.VersionProperties;
+                Assert.Equal(
+                    new[] { existingVersion1, existingVersion2, _packageVersion },
+                    properties.Keys.ToArray());
+                Assert.True(properties[existingVersion1].Listed);
+                Assert.False(properties[existingVersion1].SemVer2);
+                Assert.True(properties[existingVersion2].Listed);
+                Assert.False(properties[existingVersion2].SemVer2);
+                Assert.False(properties[_packageVersion].Listed);
+                Assert.False(properties[_packageVersion].SemVer2);
+
+                _fetcher.Verify(
+                    x => x.GetLatestLeavesAsync(
+                        It.IsAny<string>(),
+                        It.Is<IReadOnlyList<IReadOnlyList<NuGetVersion>>>(y => y.Count == 2)),
+                    Times.Once);
             }
 
             [Fact]
