@@ -185,7 +185,6 @@ namespace NuGetGallery
             {
                 if (_packageService.WillPackageBeOrphanedIfOwnerRemoved(package.PackageRegistration, user))
                 {
-                    // Package will be orphaned by removing ownership.
                     if (orphanPackagePolicy == AccountDeletionOrphanPackagePolicy.DoNotAllowOrphans)
                     {
                         throw new InvalidOperationException($"Deleting user '{user.Username}' will make package '{package.PackageRegistration.Id}' an orphan, but no orphans were expected.");

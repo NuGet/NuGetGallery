@@ -2118,9 +2118,9 @@ namespace NuGetGallery
             [MemberData(nameof(WillBeOrphaned_Input))]
             public void WillBeOrphaned(OwnershipState state, AccountToDelete accountToDelete)
             {
-                var user1 = new User("testUser") { Key = 0 };
+                var user1 = new User("testUser1") { Key = 0 };
                 var user2 = new User("testUser2") { Key = 1 };
-                var organization1 = new Organization("testOrganization") { Key = 2 };
+                var organization1 = new Organization("testOrganization1") { Key = 2 };
                 var organization2 = new Organization("testOrganization2") { Key = 3 };
 
                 if (state.HasFlag(OwnershipState.User1InOrganization1))
