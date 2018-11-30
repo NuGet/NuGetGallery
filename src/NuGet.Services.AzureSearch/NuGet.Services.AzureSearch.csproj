@@ -38,9 +38,12 @@
     <Compile Include="AzureSearchConfiguration.cs" />
     <Compile Include="Catalog2AzureSearch\Catalog2AzureSearchConfiguration.cs" />
     <Compile Include="BatchPusher.cs" />
+    <Compile Include="Catalog2AzureSearch\CatalogIndexActionBuilder.cs" />
     <Compile Include="Catalog2AzureSearch\CatalogLeafFetcher.cs" />
+    <Compile Include="Catalog2AzureSearch\ICatalogIndexActionBuilder.cs" />
     <Compile Include="Catalog2AzureSearch\ICatalogLeafFetcher.cs" />
     <Compile Include="Catalog2AzureSearch\LatestCatalogLeaves.cs" />
+    <Compile Include="Catalog2AzureSearch\ReferenceEqualityComparer.cs" />
     <Compile Include="DocumentUtilities.cs" />
     <Compile Include="HijackDocumentBuilder.cs" />
     <Compile Include="IBatchPusher.cs" />
@@ -49,14 +52,13 @@
     <Compile Include="Db2AzureSearch\EntitiesContextFactory.cs" />
     <Compile Include="Db2AzureSearch\EnumerableExtensions.cs" />
     <Compile Include="Db2AzureSearch\IEntitiesContextFactory.cs" />
-    <Compile Include="IIndexActionBuilder.cs" />
     <Compile Include="Db2AzureSearch\INewPackageRegistrationProducer.cs" />
     <Compile Include="Db2AzureSearch\NewPackageRegistration.cs" />
-    <Compile Include="IndexActionBuilder.cs" />
     <Compile Include="Db2AzureSearch\NewPackageRegistrationProducer.cs" />
     <Compile Include="IdAndValue.cs" />
     <Compile Include="IHijackDocumentBuilder.cs" />
     <Compile Include="IndexActions.cs" />
+    <Compile Include="Db2AzureSearch\IPackageEntityIndexActionBuilder.cs" />
     <Compile Include="ISearchDocumentBuilder.cs" />
     <Compile Include="Models\IBaseMetadataDocument.cs" />
     <Compile Include="Models\KeyedDocument.cs" />
@@ -64,6 +66,7 @@
     <Compile Include="Models\HijackDocument.cs" />
     <Compile Include="Models\IKeyedDocument.cs" />
     <Compile Include="Models\SearchDocument.cs" />
+    <Compile Include="Db2AzureSearch\PackageEntityIndexActionBuilder.cs" />
     <Compile Include="Registration\IRegistrationClient.cs" />
     <Compile Include="Registration\Models\RegistrationCatalogEntry.cs" />
     <Compile Include="Registration\Models\RegistrationIndex.cs" />

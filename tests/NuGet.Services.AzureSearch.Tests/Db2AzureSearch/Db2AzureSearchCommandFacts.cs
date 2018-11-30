@@ -21,7 +21,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
     public class Db2AzureSearchCommandFacts
     {
         private readonly Mock<INewPackageRegistrationProducer> _producer;
-        private readonly Mock<IIndexActionBuilder> _builder;
+        private readonly Mock<IPackageEntityIndexActionBuilder> _builder;
         private readonly Mock<ISearchServiceClientWrapper> _serviceClient;
         private readonly Mock<IIndexesOperationsWrapper> _serviceClientIndexes;
         private readonly Mock<IBatchPusher> _batchPusher;
@@ -33,7 +33,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
         public Db2AzureSearchCommandFacts(ITestOutputHelper output)
         {
             _producer = new Mock<INewPackageRegistrationProducer>();
-            _builder = new Mock<IIndexActionBuilder>();
+            _builder = new Mock<IPackageEntityIndexActionBuilder>();
             _serviceClient = new Mock<ISearchServiceClientWrapper>();
             _serviceClientIndexes = new Mock<IIndexesOperationsWrapper>();
             _batchPusher = new Mock<IBatchPusher>();

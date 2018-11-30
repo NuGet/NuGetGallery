@@ -32,16 +32,15 @@ namespace NuGet.Services.AzureSearch
         /// <summary>
         /// Initialize a version list change representing a delete of the provided version.
         /// </summary>
-        /// <param name="version">The version string. This can be any form of the version.</param>
+        /// <param name="parsedVersion">The version. This can be parsed from any form of the version.</param>
         /// <returns>The version list change.</returns>
-        public static VersionListChange Delete(string version)
+        public static VersionListChange Delete(NuGetVersion parsedVersion)
         {
-            if (version == null)
+            if (parsedVersion == null)
             {
-                throw new ArgumentNullException(nameof(version));
+                throw new ArgumentNullException(nameof(parsedVersion));
             }
 
-            var parsedVersion = NuGetVersion.Parse(version);
             return new VersionListChange(
                 isDelete: true,
                 parsedVersion: parsedVersion,

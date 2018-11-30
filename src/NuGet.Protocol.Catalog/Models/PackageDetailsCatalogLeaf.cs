@@ -30,6 +30,10 @@ namespace NuGet.Protocol.Catalog
         [JsonProperty("iconUrl")]
         public string IconUrl { get; set; }
 
+        /// <summary>
+        /// Note that an old bug in the NuGet.org catalog had this wrong in some cases.
+        /// Example: https://api.nuget.org/v3/catalog0/data/2016.03.11.21.02.55/mvid.fody.2.json
+        /// </summary>
         [JsonProperty("isPrerelease")]
         public bool IsPrerelease { get; set; }
 

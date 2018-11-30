@@ -38,11 +38,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BatchPusherFacts.cs" />
+    <Compile Include="Catalog2AzureSearch\CatalogIndexActionBuilderFacts.cs" />
     <Compile Include="Catalog2AzureSearch\CatalogLeafFetcherFacts.cs" />
     <Compile Include="Db2AzureSearch\Db2AzureSearchCommandFacts.cs" />
     <Compile Include="Db2AzureSearch\EnumerableExtensionsFacts.cs" />
     <Compile Include="Db2AzureSearch\NewPackageRegistrationProducerFacts.cs" />
-    <Compile Include="IndexActionBuilderFacts.cs" />
+    <Compile Include="Db2AzureSearch\PackageEntityIndexActionBuilderFacts.cs" />
     <Compile Include="DocumentUtilitiesFacts.cs" />
     <Compile Include="HijackDocumentBuilderFacts.cs" />
     <Compile Include="SearchDocumentBuilderFacts.cs" />
@@ -66,6 +67,10 @@
     <Compile Include="VersionList\VersionListsFacts.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\src\Catalog\NuGet.Services.Metadata.Catalog.csproj">
+      <Project>{E97F23B8-ECB0-4AFA-B00C-015C39395FEF}</Project>
+      <Name>NuGet.Services.Metadata.Catalog</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\src\NuGet.Protocol.Catalog\NuGet.Protocol.Catalog.csproj">
       <Project>{D44C2E89-2D98-44BD-8712-8CCBE4E67C9C}</Project>
       <Name>NuGet.Protocol.Catalog</Name>

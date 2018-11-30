@@ -17,7 +17,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
     public class Db2AzureSearchCommand
     {
         private readonly INewPackageRegistrationProducer _producer;
-        private readonly IIndexActionBuilder _indexActionBuilder;
+        private readonly IPackageEntityIndexActionBuilder _indexActionBuilder;
         private readonly ISearchServiceClientWrapper _serviceClient;
         private readonly Func<IBatchPusher> _batchPusherFactory;
         private readonly IOptionsSnapshot<Db2AzureSearchConfiguration> _options;
@@ -25,7 +25,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
 
         public Db2AzureSearchCommand(
             INewPackageRegistrationProducer producer,
-            IIndexActionBuilder indexActionBuilder,
+            IPackageEntityIndexActionBuilder indexActionBuilder,
             ISearchServiceClientWrapper serviceClient,
             Func<IBatchPusher> batchPusherFactory,
             IOptionsSnapshot<Db2AzureSearchConfiguration> options,

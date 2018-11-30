@@ -335,7 +335,7 @@ namespace NuGet.Services.AzureSearch
                             fullVersion,
                             new VersionPropertiesData(listed: false, semVer2: false));
                     case VersionAction.Deleted:
-                        return VersionListChange.Delete(fullVersion);
+                        return VersionListChange.Delete(NuGetVersion.Parse(fullVersion));
                     default:
                         throw new NotSupportedException($"The version action {action} is not supported.");
                 }
@@ -1766,8 +1766,8 @@ namespace NuGet.Services.AzureSearch
                     Full = Listed.FullVersion;
                     Parsed = Listed.ParsedVersion;
                     Unlisted = VersionListChange.Upsert(fullOrOriginalVersion, new VersionPropertiesData(listed: false, semVer2: false));
-                    Deleted = VersionListChange.Delete(fullOrOriginalVersion);
-                    Deleted = VersionListChange.Delete(fullOrOriginalVersion);
+                    Deleted = VersionListChange.Delete(Listed.ParsedVersion);
+                    Deleted = VersionListChange.Delete(Listed.ParsedVersion);
                 }
 
                 public string Full { get; }

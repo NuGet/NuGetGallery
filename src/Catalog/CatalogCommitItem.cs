@@ -18,7 +18,7 @@ namespace NuGet.Services.Metadata.Catalog
     {
         private const string _typeKeyword = "@type";
 
-        private CatalogCommitItem(
+        public CatalogCommitItem(
             Uri uri,
             string commitId,
             DateTime commitTimeStamp,
@@ -32,6 +32,9 @@ namespace NuGet.Services.Metadata.Catalog
             PackageIdentity = packageIdentity;
             Types = types;
             TypeUris = typeUris;
+
+            IsPackageDetails = HasTypeUri(Schema.DataTypes.PackageDetails);
+            IsPackageDelete = HasTypeUri(Schema.DataTypes.PackageDelete);
         }
 
         public Uri Uri { get; }
@@ -40,6 +43,14 @@ namespace NuGet.Services.Metadata.Catalog
         public PackageIdentity PackageIdentity { get; }
         public IReadOnlyList<string> Types { get; }
         public IReadOnlyList<Uri> TypeUris { get; }
+
+        public bool IsPackageDetails { get; }
+        public bool IsPackageDelete { get; }
+
+        public bool HasTypeUri(Uri typeUri)
+        {
+            return TypeUris.Any(x => x.IsAbsoluteUri && x.AbsoluteUri == typeUri.AbsoluteUri);
+        }
 
         public int CompareTo(object obj)
         {

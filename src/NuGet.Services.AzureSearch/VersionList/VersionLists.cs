@@ -14,8 +14,6 @@ namespace NuGet.Services.AzureSearch
     /// </summary>
     public class VersionLists
     {
-        private static readonly IReadOnlyList<string> EmptyStringList = new string[0];
-
         private static readonly IReadOnlyDictionary<SearchFilters, Func<VersionProperties, bool>> SearchFilterPredicates
             = new Dictionary<SearchFilters, Func<VersionProperties, bool>>
             {
@@ -36,10 +34,6 @@ namespace NuGet.Services.AzureSearch
                     p => true
                 },
             };
-
-        private static readonly IReadOnlyList<SearchFilters> AllSearchFilters = SearchFilterPredicates
-            .Select(x => x.Key)
-            .ToList();
 
         internal readonly Dictionary<SearchFilters, FilteredVersionList> _versionLists;
         internal readonly SortedDictionary<NuGetVersion, KeyValuePair<string, VersionPropertiesData>> _versionProperties;

@@ -90,7 +90,6 @@ namespace NuGet.Jobs
             services.AddTransient<IEntitiesContextFactory, EntitiesContextFactory>();
             services.AddTransient<INewPackageRegistrationProducer, NewPackageRegistrationProducer>();
             services.AddTransient<IVersionListDataClient, VersionListDataClient>();
-            services.AddTransient<IIndexActionBuilder, IndexActionBuilder>();
             services.AddTransient<ICoreFileStorageService, CloudBlobCoreFileStorageService>();
             services.AddTransient<IDiagnosticsService, LoggerDiagnosticsService>();
         }
