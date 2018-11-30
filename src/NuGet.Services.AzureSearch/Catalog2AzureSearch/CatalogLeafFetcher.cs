@@ -118,63 +118,64 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                     continue;
                 }
 
-                if (available.ContainsKey(version))
+                if (available.TryGetValue(version, out var leaf))
                 {
                     _logger.LogDebug(
                         "For {PackageId}, version {Version} was already discovered to be available.",
                         packageId,
                         version);
-                    continue;
                 }
-
-                _logger.LogInformation(
-                    "Looking for the catalog leaf for {PackageId} {Version}.",
-                    packageId,
-                    version);
-
-                var info = GetPageInfo(pageUrlToInfo, version);
-                if (info == null)
-                {
-                    _logger.LogWarning(
-                        "No page was found for {PackageId} {Version}. Page ranges were: {Ranges}",
-                        packageId,
-                        version,
-                        ranges);
-                    unavailable.Add(version);
-                    continue;
-                }
-
-                // When the items are not inlined, we need to make a network request to get the metadata.
-                if (info.VersionToItem == null)
+                else
                 {
                     _logger.LogInformation(
-                        "Fetching the items for page {PageUrl}. Range: {Range}",
-                        info.Page.Url,
-                        info.RangeString);
+                        "Looking for the catalog leaf for {PackageId} {Version}.",
+                        packageId,
+                        version);
 
-                    var page = await _registrationClient.GetPageAsync(info.Page.Url);
-                    info.SetVersionToItem(page.Items);
-                }
+                    var info = GetPageInfo(pageUrlToInfo, version);
+                    if (info == null)
+                    {
+                        _logger.LogWarning(
+                            "No page was found for {PackageId} {Version}. Page ranges were: {Ranges}",
+                            packageId,
+                            version,
+                            ranges);
+                        unavailable.Add(version);
+                        continue;
+                    }
 
-                if (!info.VersionToItem.TryGetValue(version, out var item))
-                {
-                    _logger.LogWarning(
-                        "No registration leaf item found for {PackageId} {Version} on {PageUrl}",
+                    // When the items are not inlined, we need to make a network request to get the metadata.
+                    if (info.VersionToItem == null)
+                    {
+                        _logger.LogInformation(
+                            "Fetching the items for page {PageUrl}. Range: {Range}",
+                            info.Page.Url,
+                            info.RangeString);
+
+                        var page = await _registrationClient.GetPageAsync(info.Page.Url);
+                        info.SetVersionToItem(page.Items);
+                    }
+
+                    if (!info.VersionToItem.TryGetValue(version, out var item))
+                    {
+                        _logger.LogWarning(
+                            "No registration leaf item found for {PackageId} {Version} on {PageUrl}",
+                            packageId,
+                            version,
+                            info.Page.Url);
+                        unavailable.Add(version);
+                        continue;
+                    }
+
+                    _logger.LogInformation(
+                        "Fetching the catalog leaf for {PackageId} {Version} from {LeafUrl}",
                         packageId,
                         version,
-                        info.Page.Url);
-                    unavailable.Add(version);
-                    continue;
+                        item.CatalogEntry.Url);
+
+                    leaf = await _catalogClient.GetPackageDetailsLeafAsync(item.CatalogEntry.Url);
+                    available.Add(version, leaf);
                 }
-
-                _logger.LogInformation(
-                    "Fetching the catalog leaf for {PackageId} {Version} from {LeafUrl}",
-                    packageId,
-                    version,
-                    item.CatalogEntry.Url);
-
-                var leaf = await _catalogClient.GetPackageDetailsLeafAsync(item.CatalogEntry.Url);
-                available[version] = leaf;
 
                 if (leaf.IsListed())
                 {

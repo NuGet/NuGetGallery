@@ -125,7 +125,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
             }
 
             [Fact]
-            public async Task ContinuesWhenVersionIsFoundToBeUnlisted()
+            public async Task ContinuesWhenVersionIsFoundToBeUnlistedOneVersionList()
             {
                 var versions = new List<IReadOnlyList<NuGetVersion>>
                 {
@@ -198,6 +198,100 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                     new[] { Parse("2.0.0"), Parse("3.0.0") },
                     latest.Available.Keys.OrderBy(x => x).ToArray());
                 Assert.Same(details2, latest.Available[Parse("2.0.0")]);
+                Assert.Same(details3, latest.Available[Parse("3.0.0")]);
+                _registrationClient.Verify(
+                    x => x.GetIndexOrNullAsync(It.IsAny<string>()), Times.Once);
+                _registrationClient.Verify(
+                    x => x.GetIndexOrNullAsync("https://example/v3-registration/nuget.versioning/index.json"), Times.Once);
+                _registrationClient.Verify(
+                    x => x.GetPageAsync(It.IsAny<string>()), Times.Never);
+                _catalogClient.Verify(
+                    x => x.GetPackageDetailsLeafAsync(It.IsAny<string>()),
+                    Times.Exactly(2));
+                _catalogClient.Verify(
+                    x => x.GetPackageDetailsLeafAsync("https://example/1.0.0"),
+                    Times.Never);
+            }
+
+            [Fact]
+            public async Task ContinuesWhenVersionIsFoundToBeUnlistedDifferentVersionLists()
+            {
+                var versions = new List<IReadOnlyList<NuGetVersion>>
+                {
+                    new List<NuGetVersion>
+                    {
+                        Parse("1.0.0+git"),
+                        Parse("2.0.0-alpha"),
+                        Parse("3.0.0"),
+                    },
+                    new List<NuGetVersion>
+                    {
+                        Parse("2.0.0-alpha"),
+                        Parse("3.0.0"),
+                    },
+                };
+                var details1 = new PackageDetailsCatalogLeaf { Listed = true };
+                var details2 = new PackageDetailsCatalogLeaf { Listed = true };
+                var details3 = new PackageDetailsCatalogLeaf { Listed = false };
+                var index = new RegistrationIndex
+                {
+                    Items = new List<RegistrationPage>
+                    {
+                        new RegistrationPage
+                        {
+                            Lower = "1.0.0",
+                            Upper = "3.0.0",
+                            Url = "https://example/page",
+                            Items = new List<RegistrationLeafItem>
+                            {
+                                new RegistrationLeafItem
+                                {
+                                    CatalogEntry = new RegistrationCatalogEntry
+                                    {
+                                        Url = "https://example/1.0.0",
+                                        Version = "1.0.0+git",
+                                    },
+                                },
+                                new RegistrationLeafItem
+                                {
+                                    CatalogEntry = new RegistrationCatalogEntry
+                                    {
+                                        Url = "https://example/2.0.0-alpha",
+                                        Version = "2.0.0-alpha",
+                                    },
+                                },
+                                new RegistrationLeafItem
+                                {
+                                    CatalogEntry = new RegistrationCatalogEntry
+                                    {
+                                        Url = "https://example/3.0.0",
+                                        Version = "3.0.0",
+                                    },
+                                },
+                            },
+                        },
+                    },
+                };
+                _catalogClient
+                    .Setup(x => x.GetPackageDetailsLeafAsync("https://example/1.0.0"))
+                    .ReturnsAsync(details1);
+                _catalogClient
+                    .Setup(x => x.GetPackageDetailsLeafAsync("https://example/2.0.0-alpha"))
+                    .ReturnsAsync(details2);
+                _catalogClient
+                    .Setup(x => x.GetPackageDetailsLeafAsync("https://example/3.0.0"))
+                    .ReturnsAsync(details3);
+                _registrationClient
+                    .Setup(x => x.GetIndexOrNullAsync(It.IsAny<string>()))
+                    .ReturnsAsync(index);
+
+                var latest = await _target.GetLatestLeavesAsync(PackageId, versions);
+
+                Assert.Empty(latest.Unavailable);
+                Assert.Equal(
+                    new[] { Parse("2.0.0-alpha"), Parse("3.0.0") },
+                    latest.Available.Keys.OrderBy(x => x).ToArray());
+                Assert.Same(details2, latest.Available[Parse("2.0.0-alpha")]);
                 Assert.Same(details3, latest.Available[Parse("3.0.0")]);
                 _registrationClient.Verify(
                     x => x.GetIndexOrNullAsync(It.IsAny<string>()), Times.Once);
