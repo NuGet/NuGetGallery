@@ -163,15 +163,15 @@ namespace NuGetGallery.Services
                     foreach (var testUserOrganization in testUserOrganizations)
                     {
                         var notDeletedMembers = testUserOrganization.Organization.Members.Where(m => m.Member != testUser);
-                        if (!notDeletedMembers.Any())
-                        {
-                            // If an organization that the deleted user was a part of had no other members, it should have been deleted.
-                            Assert.Contains(testUserOrganization.Organization, testableService.DeletedUsers);
-                        }
-                        else
+                        if (notDeletedMembers.Any())
                         {
                             // If an organization that the deleted user was a part of had other members, it should have at least one admin.
                             Assert.Contains(notDeletedMembers, m => m.IsAdmin);
+                        }
+                        else
+                        {
+                            // If an organization that the deleted user was a part of had no other members, it should have been deleted.
+                            Assert.Contains(testUserOrganization.Organization, testableService.DeletedUsers);
                         }
                     }
 
