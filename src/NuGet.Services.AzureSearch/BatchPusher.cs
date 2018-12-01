@@ -6,11 +6,13 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using Microsoft.Azure.Search;
 using Microsoft.Azure.Search.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.Rest.Azure;
 using NuGet.Services.AzureSearch.Wrappers;
 
 namespace NuGet.Services.AzureSearch
@@ -192,7 +194,7 @@ namespace NuGet.Services.AzureSearch
                 batch.Count,
                 indexClient.IndexName);
 
-            IList<IndexingResult> indexingResults;
+            IList<IndexingResult> indexingResults = null;
             Exception innerException = null;
             try
             {
@@ -209,37 +211,63 @@ namespace NuGet.Services.AzureSearch
                 indexingResults = ex.IndexingResults;
                 innerException = ex;
             }
-
-            const int errorsToLog = 5;
-            var errorCount = 0;
-            foreach (var result in indexingResults)
+            catch (CloudException ex) when (ex.Response.StatusCode == HttpStatusCode.RequestEntityTooLarge)
             {
-                if (!result.Succeeded)
+                if (batch.Count == 1)
                 {
-                    if (errorCount < errorsToLog)
-                    {
-                        _logger.LogError(
-                            "Indexing document with key {Key} failed for index {IndexName}. {StatusCode}: {ErrorMessage}",
-                            result.Key,
-                            indexClient.IndexName,
-                            result.StatusCode,
-                            result.ErrorMessage);
-                    }
-
-                    errorCount++;
+                    throw;
                 }
+
+                var halfCount = batch.Count / 2;
+                var halfA = batch.Take(halfCount).ToList();
+                var halfB = batch.Skip(halfCount).ToList();
+
+                _logger.LogWarning(
+                    0,
+                    ex,
+                    "The request body for a batch of {BatchSize} was too large. Splitting into two batches of size " +
+                    "{HalfA} and {HalfB}.",
+                    batch.Count,
+                    halfA.Count,
+                    halfB.Count);
+
+                await IndexAsync(indexClient, halfA);
+                await IndexAsync(indexClient, halfB);
             }
 
-            if (errorCount > 0)
+            if (indexingResults != null)
             {
-                _logger.LogError(
-                    "{ErrorCount} errors were found when indexing a batch for index {IndexName}. {LoggedErrors} were logged.",
-                    errorCount,
-                    indexClient.IndexName,
-                    Math.Min(errorCount, errorsToLog));
-                throw new InvalidOperationException(
-                    $"Errors were found when indexing a batch. Up to {errorsToLog} errors get logged.",
-                    innerException);
+                const int errorsToLog = 5;
+                var errorCount = 0;
+                foreach (var result in indexingResults)
+                {
+                    if (!result.Succeeded)
+                    {
+                        if (errorCount < errorsToLog)
+                        {
+                            _logger.LogError(
+                                "Indexing document with key {Key} failed for index {IndexName}. {StatusCode}: {ErrorMessage}",
+                                result.Key,
+                                indexClient.IndexName,
+                                result.StatusCode,
+                                result.ErrorMessage);
+                        }
+
+                        errorCount++;
+                    }
+                }
+
+                if (errorCount > 0)
+                {
+                    _logger.LogError(
+                        "{ErrorCount} errors were found when indexing a batch for index {IndexName}. {LoggedErrors} were logged.",
+                        errorCount,
+                        indexClient.IndexName,
+                        Math.Min(errorCount, errorsToLog));
+                    throw new InvalidOperationException(
+                        $"Errors were found when indexing a batch. Up to {errorsToLog} errors get logged.",
+                        innerException);
+                }
             }
         }
 

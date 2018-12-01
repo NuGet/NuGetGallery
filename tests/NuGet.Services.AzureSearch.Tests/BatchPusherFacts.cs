@@ -4,9 +4,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Azure.Search.Models;
 using Microsoft.Extensions.Options;
+using Microsoft.Rest;
+using Microsoft.Rest.Azure;
 using Moq;
 using NuGet.Services.AzureSearch.Support;
 using NuGet.Services.AzureSearch.Wrappers;
@@ -154,6 +158,95 @@ namespace NuGet.Services.AzureSearch
                 Assert.Empty(_target._searchActions);
                 Assert.Empty(_target._idReferenceCount);
             }
+
+            [Fact]
+            public async Task SplitsBatchesInHalfWhenTooLarge()
+            {
+                _config.AzureSearchBatchSize = 100;
+                _target.EnqueueIndexActions(IdA, _indexActions);
+                _hijackDocumentsWrapper
+                    .Setup(x => x.IndexAsync(It.IsAny<IndexBatch<KeyedDocument>>()))
+                    .Returns<IndexBatch<KeyedDocument>>(b =>
+                    {
+                        _hijackBatches.Add(b);
+                        if (b.Actions.Count() > 1)
+                        {
+                            throw new CloudException
+                            {
+                                Response = new HttpResponseMessageWrapper(
+                                    new HttpResponseMessage(HttpStatusCode.RequestEntityTooLarge),
+                                    "Too big!"),
+                            };
+                        }
+
+                        return Task.FromResult(new DocumentIndexResult(new List<IndexingResult>()));
+                    });
+
+                await _target.FinishAsync();
+
+                Assert.Equal(9, _hijackBatches.Count);
+                Assert.Equal(
+                    new[] { _hijackDocumentA, _hijackDocumentB, _hijackDocumentC, _hijackDocumentD, _hijackDocumentE },
+                    _hijackBatches[0].Actions.ToArray());
+                Assert.Equal(
+                    new[] { _hijackDocumentA, _hijackDocumentB },
+                    _hijackBatches[1].Actions.ToArray());
+                Assert.Equal(
+                    new[] { _hijackDocumentA },
+                    _hijackBatches[2].Actions.ToArray());
+                Assert.Equal(
+                    new[] { _hijackDocumentB },
+                    _hijackBatches[3].Actions.ToArray());
+                Assert.Equal(
+                    new[] { _hijackDocumentC, _hijackDocumentD, _hijackDocumentE },
+                    _hijackBatches[4].Actions.ToArray());
+                Assert.Equal(
+                    new[] { _hijackDocumentC },
+                    _hijackBatches[5].Actions.ToArray());
+                Assert.Equal(
+                    new[] { _hijackDocumentD, _hijackDocumentE },
+                    _hijackBatches[6].Actions.ToArray());
+                Assert.Equal(
+                    new[] { _hijackDocumentD },
+                    _hijackBatches[7].Actions.ToArray());
+                Assert.Equal(
+                    new[] { _hijackDocumentE },
+                    _hijackBatches[8].Actions.ToArray());
+            }
+
+            [Fact]
+            public async Task StopsSplittingBatchesAtOne()
+            {
+                _config.AzureSearchBatchSize = 100;
+                _target.EnqueueIndexActions(IdA, _indexActions);
+                _hijackDocumentsWrapper
+                    .Setup(x => x.IndexAsync(It.IsAny<IndexBatch<KeyedDocument>>()))
+                    .Returns<IndexBatch<KeyedDocument>>(b =>
+                    {
+                        _hijackBatches.Add(b);
+                        throw new CloudException
+                        {
+                            Response = new HttpResponseMessageWrapper(
+                                new HttpResponseMessage(HttpStatusCode.RequestEntityTooLarge),
+                                "Too big!"),
+                        };
+                    });
+
+                var ex = await Assert.ThrowsAsync<CloudException>(
+                    () => _target.FinishAsync());
+
+                Assert.Equal(HttpStatusCode.RequestEntityTooLarge, ex.Response.StatusCode);
+                Assert.Equal(3, _hijackBatches.Count);
+                Assert.Equal(
+                    new[] { _hijackDocumentA, _hijackDocumentB, _hijackDocumentC, _hijackDocumentD, _hijackDocumentE },
+                    _hijackBatches[0].Actions.ToArray());
+                Assert.Equal(
+                    new[] { _hijackDocumentA, _hijackDocumentB },
+                    _hijackBatches[1].Actions.ToArray());
+                Assert.Equal(
+                    new[] { _hijackDocumentA },
+                    _hijackBatches[2].Actions.ToArray());
+            }
         }
 
         public class PushFullBatchesAsync : BaseFacts
@@ -165,7 +258,6 @@ namespace NuGet.Services.AzureSearch
             [Fact]
             public async Task LogsUpALimitedNumberOfFailedResults()
             {
-                _config.MaxConcurrentBatches = 1;
                 _target.EnqueueIndexActions(IdA, _indexActions);
                 _searchDocumentsWrapper
                     .Setup(x => x.IndexAsync(It.IsAny<IndexBatch<KeyedDocument>>()))
@@ -179,7 +271,6 @@ namespace NuGet.Services.AzureSearch
                         new IndexingResult(key: "A-5", errorMessage: "A-5 message", succeeded: false, statusCode: 5),
                         new IndexingResult(key: "A-6", errorMessage: "A-6 message", succeeded: false, statusCode: 6),
                     }));
-
 
                 var ex = await Assert.ThrowsAsync<InvalidOperationException>(
                     () => _target.PushFullBatchesAsync());
