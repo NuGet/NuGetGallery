@@ -62,9 +62,9 @@ namespace NuGetGallery.Packaging
 
             // Check and validate URL properties
             foreach (var result in CheckUrls(
-                packageMetadata.GetValueFromMetadata("IconUrl"),
-                packageMetadata.GetValueFromMetadata("ProjectUrl"),
-                packageMetadata.GetValueFromMetadata("LicenseUrl")))
+                packageMetadata.GetValueFromMetadata(PackageMetadataStrings.IconUrl),
+                packageMetadata.GetValueFromMetadata(PackageMetadataStrings.ProjectUrl),
+                packageMetadata.GetValueFromMetadata(PackageMetadataStrings.LicenseUrl)))
             {
                 yield return result;
             }
@@ -72,7 +72,7 @@ namespace NuGetGallery.Packaging
             // Check version
             if (packageMetadata.Version == null)
             {
-                var version = packageMetadata.GetValueFromMetadata("version");
+                var version = packageMetadata.GetValueFromMetadata(PackageMetadataStrings.Version);
 
                 yield return new ValidationResult(String.Format(
                     CultureInfo.CurrentCulture,

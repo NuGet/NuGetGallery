@@ -5,6 +5,8 @@ namespace NuGetGallery.Packaging
 {
     public static class PackageMetadataStrings
     {
+        public const string Id = "id";
+        public const string Version = "version";
         public const string Authors = "authors";
         public const string Copyright = "copyright";
         public const string Description = "description";
@@ -19,5 +21,6 @@ namespace NuGetGallery.Packaging
         public const string Summary = "summary";
         public const string Tags = "tags";
         public const string Title = "title";
+        public const string DevelopmentDependency = "developmentDependency";
     }
 }
