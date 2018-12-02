@@ -15,6 +15,7 @@ CONSTRUCT
                   nuget:summary ?summary ;
                   nuget:iconUrl ?iconUrl ;
                   nuget:licenseUrl ?licenseUrl ;
+				  nuget:licenseExpression ?licenseExpression ;
                   nuget:projectUrl ?projectUrl ;
                   nuget:requireLicenseAcceptance ?requireLicenseAcceptance ;
                   nuget:language ?language ;
@@ -38,14 +39,15 @@ WHERE
     ?catalogEntry nuget:version ?version ;
                   nuget:id ?id ;
 	              nuget:published ?published ;
-	              OPTIONAL { ?catalogEntry nuget:packageContent ?packageContent . }
-    
+
+	OPTIONAL { ?catalogEntry nuget:packageContent ?packageContent . }
 	OPTIONAL { ?catalogEntry nuget:listed ?listed . }
     OPTIONAL { ?catalogEntry nuget:description ?description . }
     OPTIONAL { ?catalogEntry nuget:title ?title . }
     OPTIONAL { ?catalogEntry nuget:summary ?summary . }
     OPTIONAL { ?catalogEntry nuget:iconUrl ?iconUrl . }
     OPTIONAL { ?catalogEntry nuget:licenseUrl ?licenseUrl . }
+	OPTIONAL { ?catalogEntry nuget:licenseExpression ?licenseExpression . }
     OPTIONAL { ?catalogEntry nuget:projectUrl ?projectUrl . }
     OPTIONAL { ?catalogEntry nuget:requireLicenseAcceptance ?requireLicenseAcceptance . }
     OPTIONAL { ?catalogEntry nuget:language ?language . }

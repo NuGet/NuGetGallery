@@ -29,6 +29,7 @@ namespace Ng.Jobs
             return "Usage: ng catalog2registration "
                    + $"-{Arguments.Source} <catalog> "
                    + $"-{Arguments.ContentBaseAddress} <content-address> "
+                   + $"-{Arguments.GalleryBaseAddress} <gallery-base-address> "
                    + $"-{Arguments.StorageBaseAddress} <storage-base-address> "
                    + $"-{Arguments.StorageType} file|azure "
                    + $"[-{Arguments.StoragePath} <path>]"
@@ -71,6 +72,7 @@ namespace Ng.Jobs
             var verbose = arguments.GetOrDefault(Arguments.Verbose, false);
 
             var contentBaseAddress = arguments.GetOrDefault<string>(Arguments.ContentBaseAddress);
+            var galleryBaseAddress = arguments.GetOrDefault<string>(Arguments.GalleryBaseAddress);
             var isContentFlatContainer = arguments.GetOrDefault<bool>(Arguments.ContentIsFlatContainer);
 
             // The term "legacy" here refers to the registration hives that do not contain any SemVer 2.0.0 packages.
@@ -103,6 +105,7 @@ namespace Ng.Jobs
                 storageFactories.LegacyStorageFactory,
                 storageFactories.SemVer2StorageFactory,
                 contentBaseAddress == null ? null : new Uri(contentBaseAddress),
+                galleryBaseAddress == null ? null : new Uri(galleryBaseAddress),
                 TelemetryService,
                 Logger,
                 CommandHelpers.GetHttpMessageHandlerFactory(TelemetryService, verbose));

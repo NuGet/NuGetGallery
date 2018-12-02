@@ -51,6 +51,9 @@ namespace Ng.Jobs
             sw.WriteLine($"  -{Arguments.ContentBaseAddress} <content-address>");
             sw.WriteLine($"      The base address for package contents.");
             sw.WriteLine();
+            sw.WriteLine($"  -{Arguments.GalleryBaseAddress} <gallery-base-address>");
+            sw.WriteLine($"      The base address for gallery.");
+            sw.WriteLine();
             sw.WriteLine($"  -{Arguments.Verbose} true|false");
             sw.WriteLine($"      Switch output verbosity on/off.");
             sw.WriteLine();
@@ -130,6 +133,7 @@ namespace Ng.Jobs
         private bool _verbose;
         private TextWriter _log;
         private string _contentBaseAddress;
+        private string _galleryBaseAddress;
         private RegistrationStorageFactories _storageFactories;
         private ShouldIncludeRegistrationPackage _shouldIncludeSemVer2;
         private IDictionary<string, string> _arguments;
@@ -170,6 +174,7 @@ namespace Ng.Jobs
             _verbose = arguments.GetOrDefault(Arguments.Verbose, false);
             _log = _verbose ? Console.Out : new StringWriter();
             _contentBaseAddress = arguments.GetOrThrow<string>(Arguments.ContentBaseAddress);
+            _galleryBaseAddress = arguments.GetOrThrow<string>(Arguments.GalleryBaseAddress);
             _storageFactories = CommandHelpers.CreateRegistrationStorageFactories(arguments, _verbose);
             _shouldIncludeSemVer2 = RegistrationCollector.GetShouldIncludeRegistrationPackage(_storageFactories.SemVer2StorageFactory);
             // We save the arguments because the "prepare" command generates "strike" commands. Some of the arguments
@@ -483,6 +488,7 @@ namespace Ng.Jobs
                 _shouldIncludeSemVer2,
                 _storageFactories.LegacyStorageFactory,
                 new Uri(_contentBaseAddress),
+                new Uri(_galleryBaseAddress),
                 RegistrationCollector.PartitionSize,
                 RegistrationCollector.PackageCountThreshold,
                 TelemetryService,
@@ -495,6 +501,7 @@ namespace Ng.Jobs
                     sortedGraphs,
                     _storageFactories.SemVer2StorageFactory,
                     new Uri(_contentBaseAddress),
+                    new Uri(_galleryBaseAddress),
                     RegistrationCollector.PartitionSize,
                     RegistrationCollector.PackageCountThreshold,
                     TelemetryService,

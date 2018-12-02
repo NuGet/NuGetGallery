@@ -33,6 +33,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             StorageFactory legacyStorageFactory,
             StorageFactory semVer2StorageFactory,
             Uri contentBaseAddress,
+            Uri galleryBaseAddress,
             ITelemetryService telemetryService,
             ILogger logger,
             Func<HttpMessageHandler> handlerFunc = null,
@@ -50,6 +51,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             _semVer2StorageFactory = semVer2StorageFactory;
             _shouldIncludeSemVer2 = GetShouldIncludeRegistrationPackage(_semVer2StorageFactory);
             ContentBaseAddress = contentBaseAddress;
+            GalleryBaseAddress = galleryBaseAddress;
 
             if (maxConcurrentBatches < 1)
             {
@@ -63,6 +65,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
         }
 
         public Uri ContentBaseAddress { get; }
+        public Uri GalleryBaseAddress { get; }
 
         protected override Task<IEnumerable<CatalogCommitItemBatch>> CreateBatchesAsync(
             IEnumerable<CatalogCommitItem> catalogItems)
@@ -145,6 +148,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
                     shouldInclude: _shouldIncludeSemVer2,
                     storageFactory: _legacyStorageFactory,
                     contentBaseAddress: ContentBaseAddress,
+                    galleryBaseAddress: GalleryBaseAddress,
                     partitionSize: PartitionSize,
                     packageCountThreshold: PackageCountThreshold,
                     telemetryService: _telemetryService,
@@ -158,6 +162,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
                        newItems: sortedGraphs.Value,
                        storageFactory: _semVer2StorageFactory,
                        contentBaseAddress: ContentBaseAddress,
+                       galleryBaseAddress: GalleryBaseAddress,
                        partitionSize: PartitionSize,
                        packageCountThreshold: PackageCountThreshold,
                        telemetryService: _telemetryService,
