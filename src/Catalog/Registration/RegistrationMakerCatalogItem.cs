@@ -189,7 +189,9 @@ namespace NuGet.Services.Metadata.Catalog.Registration
 
         private string GetOverWriteLicenseUrl(string id, string version)
         {
-            return string.Join("/", new string[] { _galleryBaseAddress.AbsoluteUri.TrimEnd('/'), "packages", id, version, "license" });
+            var uriBuilder = new UriBuilder(_galleryBaseAddress.AbsoluteUri);
+            uriBuilder.Path = string.Join("/", new string[] { "packages", id, version, "license" });
+            return uriBuilder.Uri.ToString();
         }
 
         public override IGraph CreatePageContent(CatalogContext context)
