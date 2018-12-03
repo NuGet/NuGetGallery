@@ -544,6 +544,17 @@ namespace NuGetGallery
             }
 
             [Fact]
+            private async Task WillThrowIfTheNuGetPackageReleaseNotesIsLongerThan35000()
+            {
+                var service = CreateService();
+                var nugetPackage = PackageServiceUtility.CreateNuGetPackage(releaseNotes: "theReleaseNotes".PadRight(35001, '_'));
+
+                var ex = await Assert.ThrowsAsync<InvalidPackageException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), owner: null, currentUser: null, isVerified: false));
+
+                Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "ReleaseNotes", "35000"), ex.Message);
+            }
+
+            [Fact]
             private async Task WillThrowIfTheVersionIsLongerThan64Characters()
             {
                 var service = CreateService();
