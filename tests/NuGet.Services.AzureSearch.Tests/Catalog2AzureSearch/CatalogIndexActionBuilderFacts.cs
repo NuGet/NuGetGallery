@@ -336,6 +336,118 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
             }
 
             [Fact]
+            public async Task DowngradeUnlistsOtherSearchFilterLatest()
+            {
+                var existingVersion1 = "2.5.11";
+                var existingVersion2 = "3.0.107-pre";
+                var existingVersion3 = "3.1.0+sha.8e3b68e";
+                var existingLeaf1 = new PackageDetailsCatalogLeaf // This version is still listed.
+                {
+                    CommitTimestamp = new DateTimeOffset(2018, 12, 1, 0, 0, 0, TimeSpan.Zero),
+                    Url = "http://example/leaf/1",
+                    PackageId = _packageId,
+                    VerbatimVersion = existingVersion1,
+                    PackageVersion = existingVersion1,
+                    Listed = true,
+                };
+                var existingLeaf2 = new PackageDetailsCatalogLeaf // This version is still listed.
+                {
+                    CommitTimestamp = new DateTimeOffset(2018, 12, 1, 0, 0, 0, TimeSpan.Zero),
+                    Url = "http://example/leaf/2",
+                    PackageId = _packageId,
+                    VerbatimVersion = existingVersion2,
+                    PackageVersion = existingVersion2,
+                    Listed = true,
+                };
+                var newLeaf3 = new PackageDetailsCatalogLeaf // This version is no longer listed.
+                {
+                    CommitTimestamp = new DateTimeOffset(2018, 12, 1, 0, 0, 0, TimeSpan.Zero),
+                    Url = "http://example/leaf/3",
+                    PackageId = _packageId,
+                    VerbatimVersion = existingVersion3,
+                    PackageVersion = existingVersion3,
+                    Listed = false,
+                };
+
+                _packageVersion = "3.2.0-dev.1+sha.ad6878e"; // This version is no longer listed.
+                _commitItem = GenerateCatalogCommitItem(_packageVersion);
+                _leaf.Listed = false;
+                _leaf.VerbatimVersion = _packageVersion;
+                _leaf.PackageVersion = _packageVersion;
+                _latestEntries = new List<CatalogCommitItem> { _commitItem };
+                _entryToLeaf.Clear();
+                _entryToLeaf[_commitItem] = _leaf;
+
+                _versionListDataResult = new ResultAndAccessCondition<VersionListData>(
+                    new VersionListData(new Dictionary<string, VersionPropertiesData>
+                    {
+                        { existingVersion1, new VersionPropertiesData(listed: true, semVer2: false) },
+                        { existingVersion2, new VersionPropertiesData(listed: true, semVer2: false) },
+                        { existingVersion3, new VersionPropertiesData(listed: true, semVer2: true) },
+                        { _packageVersion, new VersionPropertiesData(listed: true, semVer2: true) },
+                    }),
+                    _versionListDataResult.AccessCondition);
+                _fetcher
+                    .SetupSequence(x => x.GetLatestLeavesAsync(It.IsAny<string>(), It.IsAny<IReadOnlyList<IReadOnlyList<NuGetVersion>>>()))
+                    .ReturnsAsync(new LatestCatalogLeaves(
+                        new HashSet<NuGetVersion>(),
+                        new Dictionary<NuGetVersion, PackageDetailsCatalogLeaf>
+                        {
+                            { NuGetVersion.Parse(existingVersion2), existingLeaf2 },
+                            { NuGetVersion.Parse(existingVersion3), newLeaf3 },
+                        }))
+                    .ReturnsAsync(new LatestCatalogLeaves(
+                        new HashSet<NuGetVersion>(),
+                        new Dictionary<NuGetVersion, PackageDetailsCatalogLeaf>
+                        {
+                            { NuGetVersion.Parse(existingVersion1), existingLeaf1 },
+                        }))
+                    .Throws<NotImplementedException>();
+
+                var indexActions = await _target.AddCatalogEntriesAsync(
+                    _packageId,
+                    _versionListDataResult,
+                    _latestEntries,
+                    _entryToLeaf);
+
+                Assert.Equal(4, indexActions.Search.Count);
+                Assert.All(indexActions.Search, x => Assert.IsType<SearchDocument.UpdateLatest>(x.Document));
+                Assert.All(indexActions.Search, x => Assert.Equal(IndexActionType.MergeOrUpload, x.ActionType));
+
+                Assert.Same(_versionListDataResult.AccessCondition, indexActions.VersionListDataResult.AccessCondition);
+                var properties = indexActions.VersionListDataResult.Result.VersionProperties;
+                Assert.Equal(
+                    new[] { existingVersion1, existingVersion2, existingVersion3, _packageVersion },
+                    properties.Keys.ToArray());
+                Assert.True(properties[existingVersion1].Listed);
+                Assert.False(properties[existingVersion1].SemVer2);
+                Assert.True(properties[existingVersion2].Listed);
+                Assert.False(properties[existingVersion2].SemVer2);
+                Assert.False(properties[existingVersion3].Listed);
+                Assert.True(properties[existingVersion3].SemVer2);
+                Assert.False(properties[_packageVersion].Listed);
+                Assert.True(properties[_packageVersion].SemVer2);
+
+                _fetcher.Verify(
+                    x => x.GetLatestLeavesAsync(_packageId, It.Is<IReadOnlyList<IReadOnlyList<NuGetVersion>>>(y =>
+                        y.Count == 1 &&
+                        y[0].Count == 3 &&
+                        y[0][0] == NuGetVersion.Parse(existingVersion1) &&
+                        y[0][1] == NuGetVersion.Parse(existingVersion2) &&
+                        y[0][2] == NuGetVersion.Parse(existingVersion3))),
+                    Times.Once);
+                _fetcher.Verify(
+                    x => x.GetLatestLeavesAsync(_packageId, It.Is<IReadOnlyList<IReadOnlyList<NuGetVersion>>>(y =>
+                        y.Count == 1 &&
+                        y[0].Count == 1 &&
+                        y[0][0] == NuGetVersion.Parse(existingVersion1))),
+                    Times.Once);
+                _fetcher.Verify(
+                    x => x.GetLatestLeavesAsync(It.IsAny<string>(), It.IsAny<IReadOnlyList<IReadOnlyList<NuGetVersion>>>()),
+                    Times.Exactly(2));
+            }
+
+            [Fact]
             public async Task DowngradeToDelete()
             {
                 var existingVersion = "0.0.1";

@@ -16,6 +16,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
 {
     public class CatalogIndexActionBuilder : ICatalogIndexActionBuilder
     {
+        private static readonly int SearchFiltersCount = Enum.GetValues(typeof(SearchFilters)).Length;
         private readonly ICatalogLeafFetcher _leafFetcher;
         private readonly ISearchDocumentBuilder _search;
         private readonly IHijackDocumentBuilder _hijack;
@@ -73,34 +74,13 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
 
         private async Task<IndexChanges> GetIndexChangesAsync(Context context)
         {
-            List<NuGetVersion> versionsWithoutMetadata;
+            var downgradeLatest = new List<LatestVersionInfo>();
+            var versionsWithoutMetadata = new List<NuGetVersion>();
             IndexChanges indexChanges;
             var attempts = 0;
             do
             {
                 attempts++;
-
-                var versionListChanges = context
-                    .VersionToEntry
-                    .Values
-                    .Select(e => GetVersionListChange(context, e))
-                    .ToList();
-
-                context.VersionLists = new VersionLists(context.VersionListDataResult.Result);
-
-                indexChanges = context.VersionLists.ApplyChanges(versionListChanges);
-
-                var downgradeLatest = indexChanges
-                    .Search
-                    .Where(x => x.Value == SearchIndexChangeType.DowngradeLatest)
-                    .Select(x => context.VersionLists.GetLatestVersionInfoOrNull(x.Key))
-                    .ToList();
-                versionsWithoutMetadata = downgradeLatest
-                    .Where(x => !context.VersionToEntry.ContainsKey(x.ParsedVersion))
-                    .Select(x => x.ParsedVersion)
-                    .OrderBy(x => x)
-                    .Distinct()
-                    .ToList();
 
                 if (versionsWithoutMetadata.Any())
                 {
@@ -135,8 +115,30 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                         context.EntryToLeaf.Remove(entry);
                     }
                 }
+
+                var versionListChanges = context
+                    .VersionToEntry
+                    .Values
+                    .Select(e => GetVersionListChange(context, e))
+                    .ToList();
+
+                context.VersionLists = new VersionLists(context.VersionListDataResult.Result);
+
+                indexChanges = context.VersionLists.ApplyChanges(versionListChanges);
+
+                downgradeLatest = indexChanges
+                    .Search
+                    .Where(x => x.Value == SearchIndexChangeType.DowngradeLatest)
+                    .Select(x => context.VersionLists.GetLatestVersionInfoOrNull(x.Key))
+                    .ToList();
+                versionsWithoutMetadata = downgradeLatest
+                    .Where(x => !context.VersionToEntry.ContainsKey(x.ParsedVersion))
+                    .Select(x => x.ParsedVersion)
+                    .OrderBy(x => x)
+                    .Distinct()
+                    .ToList();
             }
-            while (versionsWithoutMetadata.Any() && attempts < 2);
+            while (versionsWithoutMetadata.Any() && attempts < SearchFiltersCount);
 
             if (versionsWithoutMetadata.Any())
             {
