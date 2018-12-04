@@ -10,22 +10,19 @@ using System.Collections.Generic;
 
 namespace NuGetGallery
 {
-    public class LicenseFileFlatContainerServiceFacts
+    public class FlatContainerServiceFacts
     {
-        private Uri _packageBaseAddressUri = new Uri("https://test.org");
-        private ILicenseFileFlatContainerService createService(Mock<IServiceDiscoveryClient> serviceDiscoveryClient = null)
+        private IFlatContainerService CreateService(Mock<IServiceDiscoveryClient> serviceDiscoveryClient = null)
         {
             if (serviceDiscoveryClient == null)
             {
-                var uriList = new List<Uri>()
-                {
-                    _packageBaseAddressUri
-                };
                 serviceDiscoveryClient = new Mock<IServiceDiscoveryClient>();
-                serviceDiscoveryClient.Setup(c => c.GetEndpointsForResourceType(It.IsAny<string>())).Returns(Task.FromResult<IEnumerable<Uri>>(uriList));
+                serviceDiscoveryClient
+                    .Setup(c => c.GetEndpointsForResourceType(It.IsAny<string>()))
+                    .ReturnsAsync(new List<Uri>() { new Uri("https://test.org") });
             }
 
-            return new LicenseFileFlatContainerService(serviceDiscoveryClient.Object);
+            return new FlatContainerService(serviceDiscoveryClient.Object);
         }
 
         [Fact]
@@ -33,7 +30,7 @@ namespace NuGetGallery
         {
             // Arrange
             string packageId = null;
-            var licenseFileFlatContainerService = createService();
+            var licenseFileFlatContainerService = CreateService();
             
             // Act
             var exception =  await Assert.ThrowsAsync<ArgumentNullException>(async () => await licenseFileFlatContainerService.GetLicenseFileFlatContainerPathAsync(packageId, "1.0.0"));
@@ -47,7 +44,7 @@ namespace NuGetGallery
         {
             // Arrange
             string packageVersion = null;
-            var licenseFileFlatContainerService = createService();
+            var licenseFileFlatContainerService = CreateService();
             
             // Act
             var exception = await Assert.ThrowsAsync<ArgumentNullException>(async () => await licenseFileFlatContainerService.GetLicenseFileFlatContainerPathAsync("packageId", packageVersion));
@@ -56,22 +53,29 @@ namespace NuGetGallery
             Assert.Equal(nameof(packageVersion), exception.ParamName);
         }
 
-        [Fact]
-        public async Task GivenPackageIdAndVersionReturnFlatContainerUrl()
+        [Theory]
+        [InlineData("https://test.org", "https://test.org/packageid/1.0.0/license")]
+        [InlineData("https://test.org/", "https://test.org/packageid/1.0.0/license")]
+        [InlineData("https://test.org/flat-container", "https://test.org/flat-container/packageid/1.0.0/license")]
+        [InlineData("https://test.org/flat-container/", "https://test.org/flat-container/packageid/1.0.0/license")]
+        [InlineData("https://test.org/flat-container//", "https://test.org/flat-container/packageid/1.0.0/license")]
+        public async Task GivenPackageIdAndVersionReturnFlatContainerUrl(string packageBaseUri, string expectedLicenseFileFlatContainerPath)
         {
             // Arrange
             var packageId = "packageId";
             var packageVersion = "1.0.0";
-            var licenseFileFlatContainerService = createService();
+
+            var serviceDiscoveryClient = new Mock<IServiceDiscoveryClient>();
+            serviceDiscoveryClient
+                .Setup(c => c.GetEndpointsForResourceType(It.IsAny<string>()))
+                .ReturnsAsync(new List<Uri>() { new Uri(packageBaseUri) });
+
+            var licenseFileFlatContainerService = CreateService(serviceDiscoveryClient);
 
             // Act
             var licenseFileFlatContainerPath = await licenseFileFlatContainerService.GetLicenseFileFlatContainerPathAsync(packageId, packageVersion);
 
             // Assert
-            var expectedLicenseFileUriBuilder = new UriBuilder(_packageBaseAddressUri);
-            expectedLicenseFileUriBuilder.Path = string.Join("/", new string[] { packageId.ToLowerInvariant(), NuGetVersionFormatter.Normalize(packageVersion).ToLowerInvariant(), CoreConstants.LicenseFileName });
-            var expectedLicenseFileFlatContainerPath = expectedLicenseFileUriBuilder.Uri.ToString();
-
             Assert.Equal(expectedLicenseFileFlatContainerPath, licenseFileFlatContainerPath);
         }
     }

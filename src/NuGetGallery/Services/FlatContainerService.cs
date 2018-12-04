@@ -8,11 +8,11 @@ using NuGet.Services.Search.Client;
 
 namespace NuGetGallery
 {
-    public class LicenseFileFlatContainerService : ILicenseFileFlatContainerService
+    public class FlatContainerService : IFlatContainerService
     {
         private readonly IServiceDiscoveryClient _serviceDiscoveryClient;
 
-        public LicenseFileFlatContainerService(IServiceDiscoveryClient serviceDiscoveryClient)
+        public FlatContainerService(IServiceDiscoveryClient serviceDiscoveryClient)
         {
             _serviceDiscoveryClient = serviceDiscoveryClient ?? throw new ArgumentNullException(nameof(serviceDiscoveryClient));
         }
@@ -30,10 +30,10 @@ namespace NuGetGallery
 
             var packageBaseAddress = await _serviceDiscoveryClient.GetEndpointsForResourceType(GalleryConstants.PackageBaseAddress);
 
-            var licenseUriBuilder = new UriBuilder(packageBaseAddress.First().AbsoluteUri);
-            licenseUriBuilder.Path = string.Join("/", new string[] { packageId.ToLowerInvariant(), NuGetVersionFormatter.Normalize(packageVersion).ToLowerInvariant(), CoreConstants.LicenseFileName });
+            var packageBaseUri = new Uri(packageBaseAddress.First().AbsoluteUri.TrimEnd('/') + "/");   // make sure that there is one "/" at the end of the Uri.
+            var licenseFileRelativeUri = string.Join("/", new string[] { packageId.ToLowerInvariant(), NuGetVersionFormatter.Normalize(packageVersion).ToLowerInvariant(), CoreConstants.LicenseFileName });
 
-            return licenseUriBuilder.Uri.ToString();
+            return new Uri(packageBaseUri, licenseFileRelativeUri).AbsoluteUri;
         }
     }
 }

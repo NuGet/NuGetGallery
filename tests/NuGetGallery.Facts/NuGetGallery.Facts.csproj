@@ -176,7 +176,7 @@
     <Compile Include="Services\SymbolPackageServiceFacts.cs" />
     <Compile Include="Services\PermissionsHelpersFacts.cs" />
     <Compile Include="Services\ReadMeServiceFacts.cs" />
-    <Compile Include="Services\LicenseFileFlatContainerServiceFacts.cs" />
+    <Compile Include="Services\FlatContainerServiceFacts.cs" />
     <Compile Include="Infrastructure\UserAuditRecordFacts.cs" />
     <Compile Include="OData\Filter\ODataFilterFacts.cs" />
     <Compile Include="OData\SearchService\SearchHijackerFacts.cs" />

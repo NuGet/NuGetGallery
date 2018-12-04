@@ -66,7 +66,7 @@ namespace NuGetGallery
             IReadMeService readMeService = null,
             Mock<IContentObjectService> contentObjectService = null,
             Mock<ISymbolPackageUploadService> symbolPackageUploadService = null,
-            Mock<ILicenseFileFlatContainerService> licenseFileBlobStorageService = null)
+            Mock<IFlatContainerService> flatContainerService = null)
         {
             packageService = packageService ?? new Mock<IPackageService>();
             if (uploadFileService == null)
@@ -168,10 +168,10 @@ namespace NuGetGallery
                     .Completes();
             }
 
-            if (licenseFileBlobStorageService == null)
+            if (flatContainerService == null)
             {
-                licenseFileBlobStorageService = new Mock<ILicenseFileFlatContainerService>();
-                licenseFileBlobStorageService
+                flatContainerService = new Mock<IFlatContainerService>();
+                flatContainerService
                     .Setup(x => x.GetLicenseFileFlatContainerPathAsync(It.IsAny<string>(), It.IsAny<string>()))
                     .ReturnsAsync("");
             }
@@ -201,7 +201,7 @@ namespace NuGetGallery
                 contentObjectService.Object,
                 symbolPackageUploadService.Object,
                 diagnosticsService.Object,
-                licenseFileBlobStorageService.Object);
+                flatContainerService.Object);
 
             controller.CallBase = true;
             controller.Object.SetOwinContextOverride(Fakes.CreateOwinContext());
@@ -7098,7 +7098,7 @@ namespace NuGetGallery
         public class LicenseMethod : TestContainer
         {
             private readonly Mock<IPackageService> _packageService;
-            private readonly Mock<ILicenseFileFlatContainerService> _licenseFileBlobStorageService;
+            private readonly Mock<IFlatContainerService> _flatContainerService;
             private readonly Mock<IPackageFileService> _packageFileService;
             private string _packageId = "packageId";
             private string _packageVersion = "1.0.0";
@@ -7106,7 +7106,7 @@ namespace NuGetGallery
             public LicenseMethod()
             {
                 _packageService = new Mock<IPackageService>();
-                _licenseFileBlobStorageService = new Mock<ILicenseFileFlatContainerService>();
+                _flatContainerService = new Mock<IFlatContainerService>();
                 _packageFileService = new Mock<IPackageFileService>();
             }
 
@@ -7165,11 +7165,11 @@ namespace NuGetGallery
                 configurationService.Current.AsynchronousPackageValidationEnabled = true;
 
                 _packageService.Setup(p => p.FindPackageByIdAndVersionStrict(_packageId, _packageVersion)).Returns(package);
-                _licenseFileBlobStorageService.Setup(p => p.GetLicenseFileFlatContainerPathAsync(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync("theReturnUrl");
+                _flatContainerService.Setup(p => p.GetLicenseFileFlatContainerPathAsync(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync("theReturnUrl");
                 var controller = CreateController(
                     configurationService,
                     packageService: _packageService,
-                    licenseFileBlobStorageService: _licenseFileBlobStorageService);
+                    flatContainerService: _flatContainerService);
 
                 // Act
                 var result = await controller.License(_packageId, _packageVersion);

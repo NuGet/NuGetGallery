@@ -94,7 +94,7 @@ namespace NuGetGallery
         private readonly IContentObjectService _contentObjectService;
         private readonly ISymbolPackageUploadService _symbolPackageUploadService;
         private readonly IDiagnosticsSource _trace;
-        private readonly ILicenseFileFlatContainerService _licenseFileFlatContainerService;
+        private readonly IFlatContainerService _flatContainerService;
 
         public PackagesController(
             IPackageService packageService,
@@ -120,7 +120,7 @@ namespace NuGetGallery
             IContentObjectService contentObjectService,
             ISymbolPackageUploadService symbolPackageUploadService,
             IDiagnosticsService diagnosticsService,
-            ILicenseFileFlatContainerService licenseFileFlatContainerService)
+            IFlatContainerService flatContainerService)
         {
             _packageService = packageService;
             _uploadFileService = uploadFileService;
@@ -145,7 +145,7 @@ namespace NuGetGallery
             _contentObjectService = contentObjectService;
             _symbolPackageUploadService = symbolPackageUploadService;
             _trace = diagnosticsService?.SafeGetSource(nameof(PackagesController)) ?? throw new ArgumentNullException(nameof(diagnosticsService));
-            _licenseFileFlatContainerService = licenseFileFlatContainerService;
+            _flatContainerService = flatContainerService;
         }
 
         [HttpGet]
@@ -693,7 +693,7 @@ namespace NuGetGallery
                 }
             }
 
-            return Redirect(await _licenseFileFlatContainerService.GetLicenseFileFlatContainerPathAsync(package.Id, package.NormalizedVersion));
+            return Redirect(await _flatContainerService.GetLicenseFileFlatContainerPathAsync(package.Id, package.NormalizedVersion));
         }
 
         public virtual async Task<ActionResult> ListPackages(PackageListSearchViewModel searchAndListModel)

@@ -8,7 +8,7 @@ namespace NuGetGallery
     /// <summary>
     /// This interface is used to get the license file path.
     /// </summary>
-    public interface ILicenseFileFlatContainerService
+    public interface IFlatContainerService
     {
         /// <summary>
         /// The function is used to get the license file path.

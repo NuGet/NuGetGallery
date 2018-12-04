@@ -333,8 +333,8 @@ namespace NuGetGallery
                 .As<ITyposquattingCheckListCacheService>()
                 .SingleInstance();
 
-            builder.RegisterType<LicenseFileFlatContainerService>()
-                .As<ILicenseFileFlatContainerService>()
+            builder.RegisterType<FlatContainerService>()
+                .As<IFlatContainerService>()
                 .InstancePerLifetimeScope();
 
             builder.Register<ServiceDiscoveryClient>(c =>
