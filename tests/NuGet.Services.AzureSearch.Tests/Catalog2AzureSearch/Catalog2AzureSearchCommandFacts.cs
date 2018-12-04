@@ -112,7 +112,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
             protected readonly Mock<IIndexBuilder> _indexBuilder;
             protected readonly Mock<IOptionsSnapshot<Catalog2AzureSearchConfiguration>> _options;
             protected readonly Catalog2AzureSearchConfiguration _config;
-            protected readonly TestStorage _storage;
+            protected readonly TestCursorStorage _storage;
             protected readonly RecordingLogger<Catalog2AzureSearchCommand> _logger;
             protected readonly Catalog2AzureSearchCommand _target;
 
@@ -126,7 +126,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                 _logger = output.GetLogger<Catalog2AzureSearchCommand>();
 
                 _config = new Catalog2AzureSearchConfiguration();
-                _storage = new TestStorage(new Uri("https://example/base/"));
+                _storage = new TestCursorStorage(new Uri("https://example/base/"));
 
                 _options.Setup(x => x.Value).Returns(() => _config);
                 _storageFactory.Setup(x => x.Create(It.IsAny<string>())).Returns(() => _storage);
@@ -139,64 +139,6 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                     _options.Object,
                     _logger);
             }
-        }
-
-        public class TestHttpMessageHandler : HttpMessageHandler
-        {
-            public virtual Task<HttpResponseMessage> OnSendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
-            {
-                throw new NotImplementedException();
-            }
-
-            protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
-            {
-                return await OnSendAsync(request, cancellationToken);
-            }
-        }
-
-        public class TestStorage : Metadata.Catalog.Persistence.Storage
-        {
-            public DateTime CursorValue { get; set; }
-
-            public TestStorage(Uri baseAddress) : base(baseAddress)
-            {
-            }
-
-            protected override async Task<StorageContent> OnLoadAsync(
-                Uri resourceUri,
-                CancellationToken cancellationToken)
-            {
-                await Task.Yield();
-
-                return new StringStorageContent(JsonConvert.SerializeObject(new Cursor
-                {
-                    Value = CursorValue,
-                }));
-            }
-
-            public override bool Exists(
-                string fileName) => throw new NotImplementedException();
-            public override Task<IEnumerable<StorageListItem>> ListAsync(
-                CancellationToken cancellationToken) => throw new NotImplementedException();
-            protected override Task OnCopyAsync(
-                Uri sourceUri,
-                IStorage destinationStorage,
-                Uri destinationUri,
-                IReadOnlyDictionary<string, string> destinationProperties,
-                CancellationToken cancellationToken) => throw new NotImplementedException();
-            protected override Task OnDeleteAsync(
-                Uri resourceUri,
-                CancellationToken cancellationToken) => throw new NotImplementedException();
-            protected override Task OnSaveAsync(
-                Uri resourceUri,
-                StorageContent content,
-                CancellationToken cancellationToken) => throw new NotImplementedException();
-        }
-
-        public class Cursor
-        {
-            [JsonProperty("value")]
-            public DateTime Value { get; set; }
         }
     }
 }

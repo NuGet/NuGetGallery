@@ -14,7 +14,8 @@
     "StorageConnectionString": "",
     "StoragePath": "",
     "DatabaseBatchSize": 10000,
-    "ReplaceIndexes": false
+    "ReplaceIndexes": false,
+    "CatalogIndexUrl": ""
   },
 
   "KeyVault_VaultName": "#{Deployment.Azure.KeyVault.VaultName}",

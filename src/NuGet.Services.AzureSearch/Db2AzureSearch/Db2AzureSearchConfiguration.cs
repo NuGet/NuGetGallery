@@ -7,5 +7,6 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
     {
         public int DatabaseBatchSize { get; set; }
         public bool ReplaceIndexes { get; set; }
+        public string CatalogIndexUrl { get; set; }
     }
 }

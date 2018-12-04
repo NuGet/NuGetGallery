@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,8 +10,10 @@ using System.Threading.Tasks;
 using Microsoft.Azure.Search.Models;
 using Microsoft.Extensions.Options;
 using Moq;
+using NuGet.Protocol.Catalog;
 using NuGet.Services.AzureSearch.Support;
 using NuGet.Services.Entities;
+using NuGet.Services.Metadata.Catalog.Persistence;
 using NuGetGallery;
 using Xunit;
 using Xunit.Abstractions;
@@ -23,8 +26,11 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
         private readonly Mock<IPackageEntityIndexActionBuilder> _builder;
         private readonly Mock<IIndexBuilder> _indexBuilder;
         private readonly Mock<IBatchPusher> _batchPusher;
+        private readonly Mock<ICatalogClient> _catalogClient;
+        private readonly Mock<IStorageFactory> _storageFactory;
         private readonly Mock<IOptionsSnapshot<Db2AzureSearchConfiguration>> _options;
         private readonly Db2AzureSearchConfiguration _config;
+        private readonly TestCursorStorage _storage;
         private readonly RecordingLogger<Db2AzureSearchCommand> _logger;
         private readonly Db2AzureSearchCommand _target;
 
@@ -34,13 +40,13 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             _builder = new Mock<IPackageEntityIndexActionBuilder>();
             _indexBuilder = new Mock<IIndexBuilder>();
             _batchPusher = new Mock<IBatchPusher>();
+            _catalogClient = new Mock<ICatalogClient>();
+            _storageFactory = new Mock<IStorageFactory>();
             _options = new Mock<IOptionsSnapshot<Db2AzureSearchConfiguration>>();
             _logger = output.GetLogger<Db2AzureSearchCommand>();
 
-            _config = new Db2AzureSearchConfiguration
-            {
-                MaxConcurrentBatches = 1,
-            };
+            _config = new Db2AzureSearchConfiguration { MaxConcurrentBatches = 1 };
+            _storage = new TestCursorStorage(new Uri("https://example/base/"));
 
             _options
                 .Setup(x => x.Value)
@@ -53,14 +59,35 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                     new ResultAndAccessCondition<VersionListData>(
                         new VersionListData(new Dictionary<string, VersionPropertiesData>()),
                         AccessConditionWrapper.GenerateEmptyCondition())));
+            _catalogClient
+                .Setup(x => x.GetIndexAsync(It.IsAny<string>()))
+                .ReturnsAsync(new CatalogIndex());
+            _storageFactory
+                .Setup(x => x.Create(It.IsAny<string>()))
+                .Returns(() => _storage);
 
             _target = new Db2AzureSearchCommand(
                 _producer.Object,
                 _builder.Object,
                 _indexBuilder.Object,
                 () => _batchPusher.Object,
+                _catalogClient.Object,
+                _storageFactory.Object,
                 _options.Object,
                 _logger);
+        }
+
+        [Fact]
+        public async Task SavesCatalogCommitTimestamp()
+        {
+            var initial = new DateTimeOffset(2017, 1, 1, 12, 0, 0, TimeSpan.FromHours(4));
+            _catalogClient
+                .Setup(x => x.GetIndexAsync(It.IsAny<string>()))
+                .ReturnsAsync(new CatalogIndex { CommitTimestamp = initial });
+
+            await _target.ExecuteAsync();
+
+            Assert.Equal(new DateTime(2017, 1, 1, 8, 0, 0), _storage.CursorValue);
         }
 
         [Fact]

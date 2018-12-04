@@ -15,6 +15,8 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
 {
     public class Catalog2AzureSearchCommand
     {
+        public const string CursorRelativeUri = "cursor.json";
+
         private readonly ICollector _collector;
         private readonly IStorageFactory _storageFactory;
         private readonly Func<HttpMessageHandler> _handlerFunc;
@@ -55,7 +57,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
             // Initialize the cursors.
             var frontCursorStorage = _storageFactory.Create();
             var frontCursor = new DurableCursor(
-                frontCursorStorage.ResolveUri("cursor.json"),
+                frontCursorStorage.ResolveUri(CursorRelativeUri),
                 frontCursorStorage,
                 DateTime.MinValue);
 

@@ -8,6 +8,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using NuGet.Protocol.Catalog;
+using NuGet.Services.AzureSearch.Catalog2AzureSearch;
+using NuGet.Services.Metadata.Catalog;
+using NuGet.Services.Metadata.Catalog.Persistence;
 
 namespace NuGet.Services.AzureSearch.Db2AzureSearch
 {
@@ -17,6 +21,8 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
         private readonly IPackageEntityIndexActionBuilder _indexActionBuilder;
         private readonly IIndexBuilder _indexBuilder;
         private readonly Func<IBatchPusher> _batchPusherFactory;
+        private readonly ICatalogClient _catalogClient;
+        private readonly IStorageFactory _storageFactory;
         private readonly IOptionsSnapshot<Db2AzureSearchConfiguration> _options;
         private readonly ILogger<Db2AzureSearchCommand> _logger;
 
@@ -25,6 +31,8 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             IPackageEntityIndexActionBuilder indexActionBuilder,
             IIndexBuilder indexBuilder,
             Func<IBatchPusher> batchPusherFactory,
+            ICatalogClient catalogClient,
+            IStorageFactory storageFactory,
             IOptionsSnapshot<Db2AzureSearchConfiguration> options,
             ILogger<Db2AzureSearchCommand> logger)
         {
@@ -32,6 +40,8 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             _indexActionBuilder = indexActionBuilder ?? throw new ArgumentNullException(nameof(indexActionBuilder));
             _indexBuilder = indexBuilder ?? throw new ArgumentNullException(nameof(indexBuilder));
             _batchPusherFactory = batchPusherFactory ?? throw new ArgumentNullException(nameof(batchPusherFactory));
+            _catalogClient = catalogClient ?? throw new ArgumentNullException(nameof(catalogClient));
+            _storageFactory = storageFactory ?? throw new ArgumentNullException(nameof(storageFactory));
             _options = options ?? throw new ArgumentNullException(nameof(options));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
@@ -45,12 +55,36 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
 
         public async Task ExecuteAsync()
         {
+            await ExecuteAsync(CancellationToken.None);
+        }
+
+        private async Task ExecuteAsync(CancellationToken token)
+        {
             var allWork = new ConcurrentBag<NewPackageRegistration>();
             using (var cancelledCts = new CancellationTokenSource())
             using (var produceWorkCts = new CancellationTokenSource())
             {
-                // Initialize the indexes
+                // Initialize the indexes.
                 await InitializeAsync();
+
+                // Here, we fetch the current catalog timestamp to use as the initial cursor value for
+                // catalog2azuresearch. The idea here is that database is always more up-to-date than the catalog.
+                // We're about to read the database so if we capture a catalog timestamp now, we are guaranteed that
+                // any data we get from a database query will be more recent than the data represented by this catalog
+                // timestamp. When catalog2azuresearch starts up for the first time to update the index produced by this
+                // job, it will probably encounter some duplicate packages, but this is okay.
+                //
+                // Note that we could capture any dependency cursors here instead of catalog cursor, but this is
+                // pointless because there is no reliable way to filter out data fetched from the database based on a
+                // catalog-based cursor value. Suppose the dependency cursor is catalog2registration. If
+                // catalog2registration is very behind, then the index produced by this job will include packages that
+                // are not yet restorable (since they are not in the registration hives). This could lead to a case
+                // where a user is able to search for a package that he cannot restore. We mitigate this risk by
+                // trusting that our end-to-end tests will fail when catalog2registration (or any other V3 component) is
+                // broken, this blocking the deployment of new Azure Search indexes.
+                var catalogIndex = await _catalogClient.GetIndexAsync(_options.Value.CatalogIndexUrl);
+                var initialCursorValue = catalogIndex.CommitTimestamp;
+                _logger.LogInformation("The initial cursor value will be {CursorValue:O}.", initialCursorValue);
 
                 // Set up the producer and the consumers.
                 var producerTask = ProduceWorkAsync(allWork, produceWorkCts, cancelledCts.Token);
@@ -69,6 +103,16 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
 
                 await firstTask;
                 await Task.WhenAll(allTasks);
+
+                // Write the cursor.
+                _logger.LogInformation("Writing the initial cursor value to be {CursorValue:O}.", initialCursorValue);
+                var frontCursorStorage = _storageFactory.Create();
+                var frontCursor = new DurableCursor(
+                    frontCursorStorage.ResolveUri(Catalog2AzureSearchCommand.CursorRelativeUri),
+                    frontCursorStorage,
+                    DateTime.MinValue);
+                frontCursor.Value = initialCursorValue.UtcDateTime;
+                await frontCursor.SaveAsync(token);
             }
         }
 
