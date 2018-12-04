@@ -6,11 +6,8 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Azure.Search;
-using Microsoft.Azure.Search.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using NuGet.Services.AzureSearch.Wrappers;
 using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Persistence;
 
@@ -21,7 +18,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
         private readonly ICollector _collector;
         private readonly IStorageFactory _storageFactory;
         private readonly Func<HttpMessageHandler> _handlerFunc;
-        private readonly ISearchServiceClientWrapper _serviceClient;
+        private readonly IIndexBuilder _indexBuilder;
         private readonly IOptionsSnapshot<Catalog2AzureSearchConfiguration> _options;
         private readonly ILogger<Catalog2AzureSearchCommand> _logger;
 
@@ -29,14 +26,14 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
             ICollector collector,
             IStorageFactory storageFactory,
             Func<HttpMessageHandler> handlerFunc,
-            ISearchServiceClientWrapper serviceClient,
+            IIndexBuilder indexBuilder,
             IOptionsSnapshot<Catalog2AzureSearchConfiguration> options,
             ILogger<Catalog2AzureSearchCommand> logger)
         {
             _collector = collector ?? throw new ArgumentNullException(nameof(collector));
             _storageFactory = storageFactory ?? throw new ArgumentNullException(nameof(storageFactory));
             _handlerFunc = handlerFunc ?? throw new ArgumentNullException(nameof(handlerFunc));
-            _serviceClient = serviceClient ?? throw new ArgumentNullException(nameof(serviceClient));
+            _indexBuilder = indexBuilder ?? throw new ArgumentNullException(nameof(indexBuilder));
             _options = options ?? throw new ArgumentNullException(nameof(options));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
@@ -51,8 +48,8 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
             // Optionally create the indexes.
             if (_options.Value.CreateIndexes)
             {
-                await CreateIndexIfNotExistsAsync<SearchDocument.Full>(_options.Value.SearchIndexName);
-                await CreateIndexIfNotExistsAsync<HijackDocument.Full>(_options.Value.HijackIndexName);
+                await _indexBuilder.CreateSearchIndexIfNotExistsAsync();
+                await _indexBuilder.CreateHijackIndexIfNotExistsAsync();
             }
 
             // Initialize the cursors.
@@ -87,20 +84,6 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                 frontCursor,
                 backCursor,
                 token);
-        }
-
-        private async Task CreateIndexIfNotExistsAsync<T>(string indexName)
-        {
-            if (!(await _serviceClient.Indexes.ExistsAsync(indexName)))
-            {
-                _logger.LogInformation("Creating index {IndexName}.", indexName);
-                await _serviceClient.Indexes.CreateAsync(new Index
-                {
-                    Name = indexName,
-                    Fields = FieldBuilder.BuildForType<T>(),
-                });
-                _logger.LogInformation("Done creating index {IndexName}.", indexName);
-            }
         }
     }
 }

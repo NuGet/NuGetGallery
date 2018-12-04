@@ -10,7 +10,6 @@ using Microsoft.Azure.Search.Models;
 using Microsoft.Extensions.Options;
 using Moq;
 using NuGet.Services.AzureSearch.Support;
-using NuGet.Services.AzureSearch.Wrappers;
 using NuGet.Services.Entities;
 using NuGetGallery;
 using Xunit;
@@ -22,8 +21,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
     {
         private readonly Mock<INewPackageRegistrationProducer> _producer;
         private readonly Mock<IPackageEntityIndexActionBuilder> _builder;
-        private readonly Mock<ISearchServiceClientWrapper> _serviceClient;
-        private readonly Mock<IIndexesOperationsWrapper> _serviceClientIndexes;
+        private readonly Mock<IIndexBuilder> _indexBuilder;
         private readonly Mock<IBatchPusher> _batchPusher;
         private readonly Mock<IOptionsSnapshot<Db2AzureSearchConfiguration>> _options;
         private readonly Db2AzureSearchConfiguration _config;
@@ -34,25 +32,19 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
         {
             _producer = new Mock<INewPackageRegistrationProducer>();
             _builder = new Mock<IPackageEntityIndexActionBuilder>();
-            _serviceClient = new Mock<ISearchServiceClientWrapper>();
-            _serviceClientIndexes = new Mock<IIndexesOperationsWrapper>();
+            _indexBuilder = new Mock<IIndexBuilder>();
             _batchPusher = new Mock<IBatchPusher>();
             _options = new Mock<IOptionsSnapshot<Db2AzureSearchConfiguration>>();
             _logger = output.GetLogger<Db2AzureSearchCommand>();
 
             _config = new Db2AzureSearchConfiguration
             {
-                SearchIndexName = "search",
-                HijackIndexName = "hijack",
                 MaxConcurrentBatches = 1,
             };
 
             _options
                 .Setup(x => x.Value)
                 .Returns(() => _config);
-            _serviceClient
-                .Setup(x => x.Indexes)
-                .Returns(() => _serviceClientIndexes.Object);
             _builder
                 .Setup(x => x.AddNewPackageRegistration(It.IsAny<NewPackageRegistration>()))
                 .Returns(() => new IndexActions(
@@ -65,40 +57,36 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             _target = new Db2AzureSearchCommand(
                 _producer.Object,
                 _builder.Object,
-                _serviceClient.Object,
+                _indexBuilder.Object,
                 () => _batchPusher.Object,
                 _options.Object,
                 _logger);
         }
 
         [Fact]
-        public async Task ReplacesIndexes()
+        public async Task DoesNotDeleteIndexesIfNotSupposedToReplace()
         {
-            _config.ReplaceIndexes = true;
-            _serviceClientIndexes
-                .Setup(x => x.ExistsAsync(It.IsAny<string>()))
-                .ReturnsAsync(true);
+            _config.ReplaceIndexes = false;
 
             await _target.ExecuteAsync();
 
-            _serviceClientIndexes.Verify(
-                x => x.ExistsAsync(_config.SearchIndexName),
-                Times.Once);
-            _serviceClientIndexes.Verify(
-                x => x.ExistsAsync(_config.HijackIndexName),
-                Times.Once);
-            _serviceClientIndexes.Verify(
-                x => x.DeleteAsync(_config.SearchIndexName),
-                Times.Once);
-            _serviceClientIndexes.Verify(
-                x => x.DeleteAsync(_config.HijackIndexName),
-                Times.Once);
-            _serviceClientIndexes.Verify(
-                x => x.CreateAsync(It.Is<Index>(i => i.Name == _config.SearchIndexName)),
-                Times.Once);
-            _serviceClientIndexes.Verify(
-                x => x.CreateAsync(It.Is<Index>(i => i.Name == _config.HijackIndexName)),
-                Times.Once);
+            _indexBuilder.Verify(x => x.DeleteSearchIndexIfExistsAsync(), Times.Never);
+            _indexBuilder.Verify(x => x.DeleteHijackIndexIfExistsAsync(), Times.Never);
+            _indexBuilder.Verify(x => x.CreateSearchIndexAsync(), Times.Once);
+            _indexBuilder.Verify(x => x.CreateHijackIndexAsync(), Times.Once);
+        }
+
+        [Fact]
+        public async Task ReplacesIndexesIfSpecified()
+        {
+            _config.ReplaceIndexes = true;
+
+            await _target.ExecuteAsync();
+
+            _indexBuilder.Verify(x => x.DeleteSearchIndexIfExistsAsync(), Times.Once);
+            _indexBuilder.Verify(x => x.DeleteHijackIndexIfExistsAsync(), Times.Once);
+            _indexBuilder.Verify(x => x.CreateSearchIndexAsync(), Times.Once);
+            _indexBuilder.Verify(x => x.CreateHijackIndexAsync(), Times.Once);
         }
 
         [Fact]

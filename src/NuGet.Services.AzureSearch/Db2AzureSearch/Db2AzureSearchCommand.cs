@@ -6,11 +6,8 @@ using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Azure.Search;
-using Microsoft.Azure.Search.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using NuGet.Services.AzureSearch.Wrappers;
 
 namespace NuGet.Services.AzureSearch.Db2AzureSearch
 {
@@ -18,7 +15,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
     {
         private readonly INewPackageRegistrationProducer _producer;
         private readonly IPackageEntityIndexActionBuilder _indexActionBuilder;
-        private readonly ISearchServiceClientWrapper _serviceClient;
+        private readonly IIndexBuilder _indexBuilder;
         private readonly Func<IBatchPusher> _batchPusherFactory;
         private readonly IOptionsSnapshot<Db2AzureSearchConfiguration> _options;
         private readonly ILogger<Db2AzureSearchCommand> _logger;
@@ -26,14 +23,14 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
         public Db2AzureSearchCommand(
             INewPackageRegistrationProducer producer,
             IPackageEntityIndexActionBuilder indexActionBuilder,
-            ISearchServiceClientWrapper serviceClient,
+            IIndexBuilder indexBuilder,
             Func<IBatchPusher> batchPusherFactory,
             IOptionsSnapshot<Db2AzureSearchConfiguration> options,
             ILogger<Db2AzureSearchCommand> logger)
         {
             _producer = producer ?? throw new ArgumentNullException(nameof(producer));
             _indexActionBuilder = indexActionBuilder ?? throw new ArgumentNullException(nameof(indexActionBuilder));
-            _serviceClient = serviceClient ?? throw new ArgumentNullException(nameof(serviceClient));
+            _indexBuilder = indexBuilder ?? throw new ArgumentNullException(nameof(indexBuilder));
             _batchPusherFactory = batchPusherFactory ?? throw new ArgumentNullException(nameof(batchPusherFactory));
             _options = options ?? throw new ArgumentNullException(nameof(options));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -79,33 +76,12 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
         {
             if (_options.Value.ReplaceIndexes)
             {
-                await DeleteIndexIfExistsAsync(_options.Value.SearchIndexName);
-                await DeleteIndexIfExistsAsync(_options.Value.HijackIndexName);
+                await _indexBuilder.DeleteSearchIndexIfExistsAsync();
+                await _indexBuilder.DeleteHijackIndexIfExistsAsync();
             }
 
-            await CreateIndexAsync<SearchDocument.Full>(_options.Value.SearchIndexName);
-            await CreateIndexAsync<HijackDocument.Full>(_options.Value.HijackIndexName);
-        }
-
-        private async Task DeleteIndexIfExistsAsync(string indexName)
-        {
-            if (await _serviceClient.Indexes.ExistsAsync(indexName))
-            {
-                _logger.LogWarning("Deleting index {IndexName}.", indexName);
-                await _serviceClient.Indexes.DeleteAsync(indexName);
-                _logger.LogWarning("Done deleting index {IndexName}.", indexName);
-            }
-        }
-
-        private async Task CreateIndexAsync<T>(string indexName)
-        {
-            _logger.LogInformation("Creating index {IndexName}.", indexName);
-            await _serviceClient.Indexes.CreateAsync(new Index
-            {
-                Name = indexName,
-                Fields = FieldBuilder.BuildForType<T>(),
-            });
-            _logger.LogInformation("Done creating index {IndexName}.", indexName);
+            await _indexBuilder.CreateSearchIndexAsync();
+            await _indexBuilder.CreateHijackIndexAsync();
         }
 
         private async Task ProduceWorkAsync(

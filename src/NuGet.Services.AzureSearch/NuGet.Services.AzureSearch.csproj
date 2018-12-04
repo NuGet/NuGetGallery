@@ -63,8 +63,10 @@
     <Compile Include="Db2AzureSearch\NewPackageRegistrationProducer.cs" />
     <Compile Include="IdAndValue.cs" />
     <Compile Include="IHijackDocumentBuilder.cs" />
+    <Compile Include="IIndexBuilder.cs" />
     <Compile Include="IndexActions.cs" />
     <Compile Include="Db2AzureSearch\IPackageEntityIndexActionBuilder.cs" />
+    <Compile Include="IndexBuilder.cs" />
     <Compile Include="ISearchDocumentBuilder.cs" />
     <Compile Include="Models\IBaseMetadataDocument.cs" />
     <Compile Include="Models\KeyedDocument.cs" />
