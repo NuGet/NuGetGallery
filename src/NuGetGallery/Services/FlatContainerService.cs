@@ -17,7 +17,7 @@ namespace NuGetGallery
             _serviceDiscoveryClient = serviceDiscoveryClient ?? throw new ArgumentNullException(nameof(serviceDiscoveryClient));
         }
 
-        public async Task<string> GetLicenseFileFlatContainerPathAsync(string packageId, string packageVersion)
+        public async Task<string> GetLicenseFileFlatContainerUrlAsync(string packageId, string packageVersion)
         {
             if (packageId == null)
             {

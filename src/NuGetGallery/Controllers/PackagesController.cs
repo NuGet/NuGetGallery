@@ -693,7 +693,7 @@ namespace NuGetGallery
                 }
             }
 
-            return Redirect(await _flatContainerService.GetLicenseFileFlatContainerPathAsync(package.Id, package.NormalizedVersion));
+            return Redirect(await _flatContainerService.GetLicenseFileFlatContainerUrlAsync(package.Id, package.NormalizedVersion));
         }
 
         public virtual async Task<ActionResult> ListPackages(PackageListSearchViewModel searchAndListModel)

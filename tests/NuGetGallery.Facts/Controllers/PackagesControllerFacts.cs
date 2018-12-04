@@ -172,7 +172,7 @@ namespace NuGetGallery
             {
                 flatContainerService = new Mock<IFlatContainerService>();
                 flatContainerService
-                    .Setup(x => x.GetLicenseFileFlatContainerPathAsync(It.IsAny<string>(), It.IsAny<string>()))
+                    .Setup(x => x.GetLicenseFileFlatContainerUrlAsync(It.IsAny<string>(), It.IsAny<string>()))
                     .ReturnsAsync("");
             }
 
@@ -7165,7 +7165,7 @@ namespace NuGetGallery
                 configurationService.Current.AsynchronousPackageValidationEnabled = true;
 
                 _packageService.Setup(p => p.FindPackageByIdAndVersionStrict(_packageId, _packageVersion)).Returns(package);
-                _flatContainerService.Setup(p => p.GetLicenseFileFlatContainerPathAsync(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync("theReturnUrl");
+                _flatContainerService.Setup(p => p.GetLicenseFileFlatContainerUrlAsync(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync("theReturnUrl");
                 var controller = CreateController(
                     configurationService,
                     packageService: _packageService,

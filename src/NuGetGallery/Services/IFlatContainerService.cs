@@ -15,6 +15,6 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="packageId"> The package ID</param>
         /// <param name="packageVersion"> The package version</param>
-        Task<string> GetLicenseFileFlatContainerPathAsync(string packageId, string packageVersion);
+        Task<string> GetLicenseFileFlatContainerUrlAsync(string packageId, string packageVersion);
     }
 }

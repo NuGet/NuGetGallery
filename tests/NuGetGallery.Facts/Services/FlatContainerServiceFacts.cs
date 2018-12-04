@@ -33,7 +33,7 @@ namespace NuGetGallery
             var licenseFileFlatContainerService = CreateService();
             
             // Act
-            var exception =  await Assert.ThrowsAsync<ArgumentNullException>(async () => await licenseFileFlatContainerService.GetLicenseFileFlatContainerPathAsync(packageId, "1.0.0"));
+            var exception =  await Assert.ThrowsAsync<ArgumentNullException>(async () => await licenseFileFlatContainerService.GetLicenseFileFlatContainerUrlAsync(packageId, "1.0.0"));
             
             // Assert
             Assert.Equal(nameof(packageId), exception.ParamName);
@@ -47,23 +47,23 @@ namespace NuGetGallery
             var licenseFileFlatContainerService = CreateService();
             
             // Act
-            var exception = await Assert.ThrowsAsync<ArgumentNullException>(async () => await licenseFileFlatContainerService.GetLicenseFileFlatContainerPathAsync("packageId", packageVersion));
+            var exception = await Assert.ThrowsAsync<ArgumentNullException>(async () => await licenseFileFlatContainerService.GetLicenseFileFlatContainerUrlAsync("packageId", packageVersion));
 
             // Assert
             Assert.Equal(nameof(packageVersion), exception.ParamName);
         }
 
         [Theory]
-        [InlineData("https://test.org", "https://test.org/packageid/1.0.0/license")]
-        [InlineData("https://test.org/", "https://test.org/packageid/1.0.0/license")]
-        [InlineData("https://test.org/flat-container", "https://test.org/flat-container/packageid/1.0.0/license")]
-        [InlineData("https://test.org/flat-container/", "https://test.org/flat-container/packageid/1.0.0/license")]
-        [InlineData("https://test.org/flat-container//", "https://test.org/flat-container/packageid/1.0.0/license")]
+        [InlineData("https://test.org", "https://test.org/packageid/1.2.3/license")]
+        [InlineData("https://test.org/", "https://test.org/packageid/1.2.3/license")]
+        [InlineData("https://test.org/flat-container", "https://test.org/flat-container/packageid/1.2.3/license")]
+        [InlineData("https://test.org/flat-container/", "https://test.org/flat-container/packageid/1.2.3/license")]
+        [InlineData("https://test.org/flat-container//", "https://test.org/flat-container/packageid/1.2.3/license")]
         public async Task GivenPackageIdAndVersionReturnFlatContainerUrl(string packageBaseUri, string expectedLicenseFileFlatContainerPath)
         {
             // Arrange
             var packageId = "packageId";
-            var packageVersion = "1.0.0";
+            var packageVersion = "01.02.03+ABC";
 
             var serviceDiscoveryClient = new Mock<IServiceDiscoveryClient>();
             serviceDiscoveryClient
@@ -73,7 +73,7 @@ namespace NuGetGallery
             var licenseFileFlatContainerService = CreateService(serviceDiscoveryClient);
 
             // Act
-            var licenseFileFlatContainerPath = await licenseFileFlatContainerService.GetLicenseFileFlatContainerPathAsync(packageId, packageVersion);
+            var licenseFileFlatContainerPath = await licenseFileFlatContainerService.GetLicenseFileFlatContainerUrlAsync(packageId, packageVersion);
 
             // Assert
             Assert.Equal(expectedLicenseFileFlatContainerPath, licenseFileFlatContainerPath);
