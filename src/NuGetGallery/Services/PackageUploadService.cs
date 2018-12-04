@@ -161,13 +161,6 @@ namespace NuGetGallery
                             Strings.UploadPackage_UnsupportedLicenseVersion,
                             versionText));
                 }
-
-                // TODO: remove when all pipeline changes are done
-                if (LicenseType.File.ToString().Equals(typeText, StringComparison.OrdinalIgnoreCase))
-                {
-                    _telemetryService.TrackLicenseFileRejected();
-                    return PackageValidationResult.Invalid(Strings.UploadPackage_LicenseFilesAreNotAllowed);
-                }
             }
 
             var licenseUrl = nuspecReader.GetLicenseUrl();
