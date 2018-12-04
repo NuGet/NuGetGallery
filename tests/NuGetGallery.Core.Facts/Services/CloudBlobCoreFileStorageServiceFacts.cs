@@ -61,6 +61,7 @@ namespace NuGetGallery
                     new object[] { CoreConstants.Folders.PackagesContentFolderName, false, CoreConstants.OctetStreamContentType },
                     new object[] { CoreConstants.Folders.RevalidationFolderName, false, CoreConstants.JsonContentType },
                     new object[] { CoreConstants.Folders.StatusFolderName, false, CoreConstants.JsonContentType },
+                    new object[] { CoreConstants.Folders.FlatContainerFolderName, false, CoreConstants.PackageContentType },
                 };
 
                 if (!IncludePermissions && !IncludeContentTypes)

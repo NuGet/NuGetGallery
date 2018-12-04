@@ -40,6 +40,7 @@ namespace NuGetGallery
             public const string StatusFolderName = "status";
             public const string SymbolPackagesFolderName = "symbol-packages";
             public const string SymbolPackageBackupsFolderName = "symbol-package-backups";
+            public const string FlatContainerFolderName = "v3-flatcontainer";
         }
 
         public const string NuGetSymbolPackageFileExtension = ".snupkg";
