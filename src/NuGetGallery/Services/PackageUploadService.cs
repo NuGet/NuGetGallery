@@ -177,8 +177,7 @@ namespace NuGetGallery
                     }
                     else
                     {
-                        // TODO: uncomment when we have full support for licenses.
-                        // warnings.Add(new LicenseUrlDeprecationValidationMessage(Strings.UploadPackage_LicenseShouldBeSpecified));
+                        warnings.Add(new LicenseUrlDeprecationValidationMessage(Strings.UploadPackage_LicenseShouldBeSpecified));
                     }
                 }
 
@@ -195,8 +194,7 @@ namespace NuGetGallery
                     }
                     else
                     {
-                        // TODO: uncomment when we have full support for licenses.
-                        //warnings.Add(new LicenseUrlDeprecationValidationMessage(Strings.UploadPackage_DeprecatingLicenseUrl));
+                        warnings.Add(new LicenseUrlDeprecationValidationMessage(Strings.UploadPackage_DeprecatingLicenseUrl));
                     }
                 }
 
