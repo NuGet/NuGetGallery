@@ -2364,7 +2364,7 @@ namespace NuGetGallery
                 // Assert
                 Assert.Equal(testUser.Username, model.AccountName);
                 Assert.Single(model.Packages);
-                Assert.Equal(isPackageOrphaned, model.HasOrphanPackages);
+                Assert.Equal(isPackageOrphaned, model.HasPackagesThatWillBeOrphaned);
                 Assert.Equal(withPendingIssues, model.HasPendingRequests);
             }
         }

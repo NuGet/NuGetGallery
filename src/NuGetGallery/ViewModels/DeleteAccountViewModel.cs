@@ -36,7 +36,7 @@ namespace NuGetGallery
                  .Select(p => new DeleteAccountListPackageItemViewModel(p, userToDelete, currentUser, packageService))
                  .ToList();
 
-            HasOrphanPackages = Packages.Any(p => p.WillBeOrphaned);
+            HasPackagesThatWillBeOrphaned = Packages.Any(p => p.WillBeOrphaned);
         }
 
         public List<DeleteAccountListPackageItemViewModel> Packages { get; }
@@ -45,7 +45,7 @@ namespace NuGetGallery
 
         public string AccountName => User.Username;
 
-        public bool HasOrphanPackages { get; }
+        public bool HasPackagesThatWillBeOrphaned { get; }
     }
 
     public class DeleteAccountListPackageItemViewModel : ListPackageItemViewModel
@@ -67,6 +67,6 @@ namespace NuGetGallery
     {
         string AccountName { get; }
 
-        bool HasOrphanPackages { get; }
+        bool HasPackagesThatWillBeOrphaned { get; }
     }
 }
