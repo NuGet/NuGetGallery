@@ -2118,11 +2118,13 @@ namespace NuGetGallery
             [MemberData(nameof(WillBeOrphaned_Input))]
             public void WillBeOrphaned(OwnershipState state, AccountToDelete accountToDelete)
             {
+                // Create users to test
                 var user1 = new User("testUser1") { Key = 0 };
                 var user2 = new User("testUser2") { Key = 1 };
                 var organization1 = new Organization("testOrganization1") { Key = 2 };
                 var organization2 = new Organization("testOrganization2") { Key = 3 };
 
+                // Configure organization membership
                 if (state.HasFlag(OwnershipState.User1InOrganization1))
                 {
                     AddMemberToOrganization(organization1, user1);
@@ -2143,8 +2145,8 @@ namespace NuGetGallery
                     AddMemberToOrganization(organization2, user2);
                 }
 
+                // Configure package ownership
                 var package = new PackageRegistration() { Key = 4 };
-
                 if (state.HasFlag(OwnershipState.OwnedByUser1))
                 {
                     package.Owners.Add(user1);
@@ -2165,6 +2167,7 @@ namespace NuGetGallery
                     package.Owners.Add(organization2);
                 }
 
+                // Determine expected result and account to delete
                 var expectedResult = true;
                 User userToDelete;
                 if (accountToDelete == AccountToDelete.User1)
@@ -2220,9 +2223,11 @@ namespace NuGetGallery
                     throw new ArgumentException(nameof(accountToDelete));
                 }
 
+                // Delete account
                 var service = CreateService();
                 var result = service.WillPackageBeOrphanedIfOwnerRemoved(package, userToDelete);
 
+                // Assert expected result
                 Assert.Equal(expectedResult, result);
             }
 
