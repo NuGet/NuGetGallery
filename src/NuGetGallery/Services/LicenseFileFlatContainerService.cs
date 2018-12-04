@@ -5,21 +5,16 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using NuGet.Services.Search.Client;
-using NuGetGallery.Configuration;
 
 namespace NuGetGallery
 {
     public class LicenseFileFlatContainerService : ILicenseFileFlatContainerService
     {
-        private readonly ServiceDiscoveryClient _serviceDiscoveryClient;
+        private readonly IServiceDiscoveryClient _serviceDiscoveryClient;
 
-        public LicenseFileFlatContainerService(IAppConfiguration configuration)
+        public LicenseFileFlatContainerService(IServiceDiscoveryClient serviceDiscoveryClient)
         {
-            if (configuration == null)
-            {
-                throw new ArgumentNullException(nameof(configuration));
-            }
-            _serviceDiscoveryClient = new ServiceDiscoveryClient(configuration.ServiceDiscoveryUri);
+            _serviceDiscoveryClient = serviceDiscoveryClient ?? throw new ArgumentNullException(nameof(serviceDiscoveryClient));
         }
 
         public async Task<string> GetLicenseFileFlatContainerPathAsync(string packageId, string packageVersion)
@@ -33,10 +28,12 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(packageVersion));
             }
 
-            var relativePath = string.Join("/", new string[] { packageId.ToLowerInvariant(), NuGetVersionFormatter.Normalize(packageVersion).ToLowerInvariant(), CoreConstants.LicenseFileName});
             var packageBaseAddress = await _serviceDiscoveryClient.GetEndpointsForResourceType(GalleryConstants.PackageBaseAddress);
 
-            return string.Concat(packageBaseAddress.First().AbsoluteUri.TrimEnd('/'), "/", relativePath);
+            var licenseUriBuilder = new UriBuilder(packageBaseAddress.First().AbsoluteUri);
+            licenseUriBuilder.Path = string.Join("/", new string[] { packageId.ToLowerInvariant(), NuGetVersionFormatter.Normalize(packageVersion).ToLowerInvariant(), CoreConstants.LicenseFileName });
+
+            return licenseUriBuilder.Uri.ToString();
         }
     }
 }

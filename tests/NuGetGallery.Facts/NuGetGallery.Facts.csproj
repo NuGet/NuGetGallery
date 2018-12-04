@@ -159,8 +159,6 @@
     <Compile Include="Security\RequirePackageMetadataCompliancePolicyFacts.cs" />
     <Compile Include="Services\ActionRequiringEntityPermissionsFacts.cs" />
     <Compile Include="Services\CertificatesConfigurationFacts.cs" />
-    <Compile Include="Services\CuratedFeedServiceFacts.cs" />
-    <Compile Include="Services\LicenseFileFlatContainerServiceFacts.cs" />
     <Compile Include="Infrastructure\Mail\MarkdownMessageServiceFacts.cs" />
     <Compile Include="Services\TyposquattingCheckListCacheServiceFacts.cs" />
     <Compile Include="Services\TyposquattingServiceFacts.cs" />
@@ -178,6 +176,7 @@
     <Compile Include="Services\SymbolPackageServiceFacts.cs" />
     <Compile Include="Services\PermissionsHelpersFacts.cs" />
     <Compile Include="Services\ReadMeServiceFacts.cs" />
+    <Compile Include="Services\LicenseFileFlatContainerServiceFacts.cs" />
     <Compile Include="Infrastructure\UserAuditRecordFacts.cs" />
     <Compile Include="OData\Filter\ODataFilterFacts.cs" />
     <Compile Include="OData\SearchService\SearchHijackerFacts.cs" />

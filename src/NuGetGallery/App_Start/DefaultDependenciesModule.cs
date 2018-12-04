@@ -25,6 +25,7 @@ using NuGet.Services.KeyVault;
 using NuGet.Services.Logging;
 using NuGet.Services.Messaging;
 using NuGet.Services.Messaging.Email;
+using NuGet.Services.Search.Client;
 using NuGet.Services.ServiceBus;
 using NuGet.Services.Sql;
 using NuGet.Services.Validation;
@@ -335,6 +336,10 @@ namespace NuGetGallery
             builder.RegisterType<LicenseFileFlatContainerService>()
                 .As<ILicenseFileFlatContainerService>()
                 .InstancePerLifetimeScope();
+
+            builder.Register<ServiceDiscoveryClient>(c =>
+                    new ServiceDiscoveryClient(c.Resolve<IAppConfiguration>().ServiceDiscoveryUri))
+                .As<IServiceDiscoveryClient>();
 
             RegisterMessagingService(builder, configuration);
 
