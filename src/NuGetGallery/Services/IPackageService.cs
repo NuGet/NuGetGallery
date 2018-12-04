@@ -73,6 +73,11 @@ namespace NuGetGallery
 
         Task RemovePackageOwnerAsync(PackageRegistration package, User user, bool commitChanges = true);
 
+        /// <remarks>
+        /// A package is orphaned if it is not owned by a user account or an organization with user account members.
+        /// </remarks>
+        bool WillPackageBeOrphanedIfOwnerRemoved(PackageRegistration package, User ownerToRemove);
+
         Task SetLicenseReportVisibilityAsync(Package package, bool visible, bool commitChanges = true);
 
         Task EnsureValid(PackageArchiveReader packageArchiveReader);
@@ -80,13 +85,6 @@ namespace NuGetGallery
         Task IncrementDownloadCountAsync(string id, string version, bool commitChanges = true);
 
         Task UpdatePackageVerifiedStatusAsync(IReadOnlyCollection<PackageRegistration> package, bool isVerified, bool commitChanges = true);
-
-        /// <summary>
-        /// For a package get the list of owners that are not organizations.
-        /// </summary>
-        /// <param name="package">The package.</param>
-        /// <returns>The list of package owners that are not organizations.</returns>
-        IEnumerable<User> GetPackageUserAccountOwners(Package package);
 
         /// <summary>
         /// Sets the required signer on all owned package registrations.
