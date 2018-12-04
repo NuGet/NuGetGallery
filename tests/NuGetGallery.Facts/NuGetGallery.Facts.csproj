@@ -83,7 +83,6 @@
     <Compile Include="Controllers\SupportControllerFacts.cs" />
     <Compile Include="Extensions\NumberExtensionsFacts.cs" />
     <Compile Include="Extensions\RouteExtensionsFacts.cs" />
-    <Compile Include="Extensions\OrganizationExtensionsFacts.cs" />
     <Compile Include="Filters\UIAuthorizeAttributeFacts.cs" />
     <Compile Include="Framework\MemberDataHelper.cs" />
     <Compile Include="Helpers\ObfuscationHelperFacts.cs" />
