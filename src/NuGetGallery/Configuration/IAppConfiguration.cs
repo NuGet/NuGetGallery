@@ -351,12 +351,6 @@ namespace NuGetGallery.Configuration
         bool BlockSearchEngineIndexing { get; set; }
 
         /// <summary>
-        /// The name of zero or more curated feeds that are disabled. If a curated feed is disabled, it appears as if
-        /// it doesn't exist.
-        /// </summary>
-        string[] DisabledCuratedFeeds { get; set; }
-
-        /// <summary>
         /// The name of zero or more curated feeds that are redirected to the main feed.
         /// </summary>
         string[] RedirectedCuratedFeeds { get; set; }

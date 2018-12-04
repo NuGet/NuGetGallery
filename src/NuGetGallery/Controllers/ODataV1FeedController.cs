@@ -120,7 +120,6 @@ namespace NuGetGallery.Controllers
                     packages,
                     id,
                     version,
-                    curatedFeed: null,
                     semVerLevel: null);
 
                 // If intercepted, create a paged queryresult
@@ -230,7 +229,6 @@ namespace NuGetGallery.Controllers
                 searchTerm,
                 targetFramework,
                 includePrerelease: false, 
-                curatedFeed: null,
                 semVerLevel: null);
 
             // Packages provided by search service (even when not hijacked)

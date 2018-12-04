@@ -65,8 +65,7 @@ namespace NuGetGallery
             Mock<IPackageOwnershipManagementService> packageOwnershipManagementService = null,
             IReadMeService readMeService = null,
             Mock<IContentObjectService> contentObjectService = null,
-            Mock<ISymbolPackageUploadService> symbolPackageUploadService = null,
-            Mock<ILicenseFileFlatContainerService> licenseFileBlobStorageService = null)
+            Mock<ISymbolPackageUploadService> symbolPackageUploadService = null)
         {
             packageService = packageService ?? new Mock<IPackageService>();
             if (uploadFileService == null)
@@ -167,15 +166,6 @@ namespace NuGetGallery
                     .Setup(x => x.DeleteSymbolsPackageAsync(It.IsAny<SymbolPackage>()))
                     .Completes();
             }
-
-            if (licenseFileBlobStorageService == null)
-            {
-                licenseFileBlobStorageService = new Mock<ILicenseFileFlatContainerService>();
-                licenseFileBlobStorageService
-                    .Setup(x => x.GetLicenseFileFlatContainerPathAsync(It.IsAny<string>(), It.IsAny<string>()))
-                    .ReturnsAsync("");
-            }
-
             var diagnosticsService = new Mock<IDiagnosticsService>();
             var controller = new Mock<PackagesController>(
                 packageService.Object,
@@ -200,8 +190,7 @@ namespace NuGetGallery
                 packageOwnershipManagementService.Object,
                 contentObjectService.Object,
                 symbolPackageUploadService.Object,
-                diagnosticsService.Object,
-                licenseFileBlobStorageService.Object);
+                diagnosticsService.Object);
 
             controller.CallBase = true;
             controller.Object.SetOwinContextOverride(Fakes.CreateOwinContext());
@@ -7021,147 +7010,80 @@ namespace NuGetGallery
             }
         }
 
-        public class LicenseMethod : TestContainer
+        public class ThePreviewReadMeMethod : TestContainer
         {
-            private readonly Mock<IPackageService> _packageService;
-            private readonly Mock<ILicenseFileFlatContainerService> _licenseFileBlobStorageService;
-            private readonly Mock<IPackageFileService> _packageFileService;
-            private string _packageId = "packageId";
-            private string _packageVersion = "1.0.0";
-
-            public LicenseMethod()
+            [Fact]
+            public async Task ReturnsProperResponseModelWhenSucceeds()
             {
-                _packageService = new Mock<IPackageService>();
-                _licenseFileBlobStorageService = new Mock<ILicenseFileFlatContainerService>();
-                _packageFileService = new Mock<IPackageFileService>();
+                var readmeService = new Mock<IReadMeService>();
+                var controller = CreateController(GetConfigurationService(),
+                    readMeService: readmeService.Object);
+
+                var request = new ReadMeRequest();
+
+                readmeService
+                    .Setup(rs => rs.HasReadMeSource(request))
+                    .Returns(true);
+
+                const string html = "some HTML";
+
+                readmeService
+                    .Setup(rs => rs.GetReadMeHtmlAsync(request, It.IsAny<Encoding>()))
+                    .ReturnsAsync(html);
+
+                var result = await controller.PreviewReadMe(request);
+
+                var stringArray = Assert.IsType<string[]>(result.Data);
+                Assert.Single(stringArray);
+                Assert.Equal(html, stringArray[0]);
             }
 
             [Fact]
-            public async Task GivenInvalidPackageReturns404()
+            public async Task ReturnsProperResponseModelWhenNoReadme()
             {
-                // arrange
-                _packageService.Setup(p => p.FindPackageByIdAndVersionStrict(_packageId, _packageVersion)).Returns<Package>(null);
-                var controller = CreateController(
-                    GetConfigurationService(),
-                    packageService: _packageService);
+                var readmeService = new Mock<IReadMeService>();
+                var controller = CreateController(GetConfigurationService(),
+                    readMeService: readmeService.Object);
 
-                // act
-                var result = await controller.License(_packageId, _packageVersion);
+                var request = new ReadMeRequest();
 
-                // assert
-                Assert.IsType<HttpNotFoundResult>(result);
+                readmeService
+                    .Setup(rs => rs.HasReadMeSource(request))
+                    .Returns(false);
+
+                var result = await controller.PreviewReadMe(request);
+
+                var stringArray = Assert.IsType<string[]>(result.Data);
+                Assert.Single(stringArray);
+                Assert.Equal("There is no Markdown Documentation available to preview.", stringArray[0]);
             }
 
             [Fact]
-            public async Task GivenPackageWithoutLicenseFileReturns404()
+            public async Task ReturnsProperResponseModelWhenConversionFails()
             {
-                // arrange
-                var package = new Package
-                {
-                    PackageRegistration = new PackageRegistration { Id = _packageId },
-                    Version = _packageVersion,
-                };
-                package.EmbeddedLicenseType = EmbeddedLicenseFileType.Absent;
+                var readmeService = new Mock<IReadMeService>();
+                var controller = CreateController(GetConfigurationService(),
+                    readMeService: readmeService.Object);
 
-                _packageService.Setup(p => p.FindPackageByIdAndVersionStrict(_packageId, _packageVersion)).Returns(package);
-                var controller = CreateController(
-                    GetConfigurationService(),
-                    packageService: _packageService);
+                var request = new ReadMeRequest();
 
-                // act
-                var result = await controller.License(_packageId, _packageVersion);
+                readmeService
+                    .Setup(rs => rs.HasReadMeSource(request))
+                    .Returns(true);
 
-                // assert
-                Assert.IsType<HttpNotFoundResult>(result);
-            }
+                const string exceptionMessage = "failure";
+                readmeService
+                    .Setup(rs => rs.GetReadMeHtmlAsync(request, It.IsAny<Encoding>()))
+                    .ThrowsAsync(new Exception(exceptionMessage));
 
-            [Theory]
-            [InlineData(EmbeddedLicenseFileType.Markdown)]
-            [InlineData(EmbeddedLicenseFileType.PlainText)]
-            public async Task GivenValidPackageInfoRedirectToLicenseFileUrlWhenUsingFlatContainer(EmbeddedLicenseFileType embeddedLicenseFileType)
-            {
-                // Arrange
-                var package = new Package
-                {
-                    PackageRegistration = new PackageRegistration { Id = _packageId },
-                    Version = _packageVersion,
-                };
-                package.EmbeddedLicenseType = embeddedLicenseFileType;
-                var configurationService = GetConfigurationService();
-                configurationService.Current.AsynchronousPackageValidationEnabled = true;
+                var result = await controller.PreviewReadMe(request);
 
-                 _packageService.Setup(p => p.FindPackageByIdAndVersionStrict(_packageId, _packageVersion)).Returns(package);
-                _licenseFileBlobStorageService.Setup(p => p.GetLicenseFileFlatContainerPathAsync(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync("theReturnUrl");
-                var controller = CreateController(
-                    configurationService,
-                    packageService: _packageService,
-                    licenseFileBlobStorageService: _licenseFileBlobStorageService);
-                
-                // Act
-                var result = await controller.License(_packageId, _packageVersion);
-                
-                // Assert
-                ResultAssert.IsRedirectTo(result, "theReturnUrl");
-            }
-
-            [Theory]
-            [InlineData(EmbeddedLicenseFileType.Markdown)]
-            [InlineData(EmbeddedLicenseFileType.PlainText)]
-            public async Task GivenValidPackageInfoButInvalidLicenseFileReturns404(EmbeddedLicenseFileType embeddedLicenseFileType)
-            {
-                // Arrange
-                var package = new Package
-                {
-                    PackageRegistration = new PackageRegistration { Id = null },
-                    Version = _packageVersion,
-                };
-                package.EmbeddedLicenseType = embeddedLicenseFileType;
-                var configurationService = GetConfigurationService();
-                configurationService.Current.AsynchronousPackageValidationEnabled = false;
-
-                _packageService.Setup(p => p.FindPackageByIdAndVersionStrict(_packageId, _packageVersion)).Returns(package);
-                _packageFileService.Setup(p => p.DownloadLicenseFileAsync(package)).Throws(new ArgumentException());
-                var controller = CreateController(
-                    configurationService,
-                    packageService: _packageService,
-                    packageFileService: _packageFileService);
-
-                // Act
-                var result = await controller.License(_packageId, _packageVersion);
-
-                // Assert
-                Assert.IsType<HttpNotFoundResult>(result);
-            }
-
-            [Theory]
-            [InlineData(EmbeddedLicenseFileType.Markdown)]
-            [InlineData(EmbeddedLicenseFileType.PlainText)]
-            public async Task GivenValidPackageInfoAndLicenseFileReturnsLicenseContentWhenUsingFiles(EmbeddedLicenseFileType embeddedLicenseFileType)
-            {
-                // Arrange
-                var package = new Package
-                {
-                    PackageRegistration = new PackageRegistration { Id = _packageId },
-                    Version = _packageVersion,
-                };
-                package.EmbeddedLicenseType = embeddedLicenseFileType;
-                var configurationService = GetConfigurationService();
-                configurationService.Current.AsynchronousPackageValidationEnabled = false;
-
-                _packageService.Setup(p => p.FindPackageByIdAndVersionStrict(_packageId, _packageVersion)).Returns(package);
-                var controller = CreateController(
-                    configurationService,
-                    packageService: _packageService,
-                    packageFileService: _packageFileService);
-
-                // Act
-                await controller.License(_packageId, _packageVersion);
-
-                // Assert
-                _packageFileService
-                    .Verify(p => p.DownloadLicenseFileAsync(package),
-                        Times.Once);
+                var stringArray = Assert.IsType<string[]>(result.Data);
+                Assert.Single(stringArray);
+                Assert.Contains(exceptionMessage, stringArray[0]);
             }
         }
+
+
     }
 }
