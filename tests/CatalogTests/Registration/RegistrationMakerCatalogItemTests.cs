@@ -109,38 +109,43 @@ namespace CatalogTests.Registration
             }
 
             [Theory]
-            [InlineData(false, false, false, "", "", "http://gallery.org")]
-            [InlineData(true, false, false, "https://test.org", "", "http://gallery.org")]
-            [InlineData(true, true, false, "http://gallery.org/packages/MyPackage/1.2.3/license", "MIT", "http://gallery.org")]
-            [InlineData(true, false, true, "http://gallery.org/packages/MyPackage/1.2.3/license", "", "http://gallery.org")]
-            [InlineData(false, true, false, "http://gallery.org/packages/MyPackage/1.2.3/license", "MIT", "http://gallery.org")]
-            [InlineData(false, false, true, "http://gallery.org/packages/MyPackage/1.2.3/license", "", "http://gallery.org")]
-            [InlineData(false, false, true, "http://gallery.org/packages/MyPackage/1.2.3/license", "", "http://gallery.org/")]
-            [InlineData(false, false, true, "http://gallery.org/packages/MyPackage/1.2.3/license", "", "http://gallery.org//")]
-            public void CreatePageContent_SetsLicenseUrlAndExpressionProperly(bool hasLicenseUrl, bool hasLicenseExpression, bool hasLicenseFile,
-                                                                             string expectedLicenseUrlValue, string expectedLicenseExpressionValue, string galleryBaseAddress)
+            [InlineData(null, null, null, "", "http://gallery.org")]
+            [InlineData("https://test.org", null, null, "https://test.org", "http://gallery.org")]
+            [InlineData("https://test.org", "TestExpression", null, "http://gallery.org/packages/MyPackage/1.2.3/license", "http://gallery.org")]
+            [InlineData("https://test.org", null, "TestLicense", "http://gallery.org/packages/MyPackage/1.2.3/license", "http://gallery.org")]
+            [InlineData(null, "TestExpression", null, "http://gallery.org/packages/MyPackage/1.2.3/license", "http://gallery.org")]
+            [InlineData(null, null, "TestLicense", "http://gallery.org/packages/MyPackage/1.2.3/license", "http://gallery.org")]
+            [InlineData(null, null, "TestFile", "http://gallery.org/packages/MyPackage/1.2.3/license", "http://gallery.org")]
+            [InlineData(null, null, "TestLicense.txt", "http://gallery.org/packages/MyPackage/1.2.3/license", "http://gallery.org")]
+            [InlineData(null, null, "TestLicense.exe", "http://gallery.org/packages/MyPackage/1.2.3/license", "http://gallery.org")]
+            [InlineData(null, null, "TestLicense.any", "http://gallery.org/packages/MyPackage/1.2.3/license", "http://gallery.org")]
+            [InlineData(null, null, "/Folder/TestLicense", "http://gallery.org/packages/MyPackage/1.2.3/license", "http://gallery.org")]
+            [InlineData(null, null, "TestLicense", "http://gallery.org/packages/MyPackage/1.2.3/license", "http://gallery.org/")]
+            [InlineData(null, null, "TestLicense", "http://gallery.org/packages/MyPackage/1.2.3/license", "http://gallery.org//")]
+            public void CreatePageContent_SetsLicenseUrlAndExpressionProperly(string licenseUrl, string licenseExpression, string licenseFile,
+                                                                             string expectedLicenseUrlValue, string galleryBaseAddress)
             {
                 // Arrange
-                if (hasLicenseUrl)
+                if (licenseUrl != null)
                 {
                     _graph.Assert(
                     _graph.CreateUriNode(_catalogUri),
                     _graph.CreateUriNode(Schema.Predicates.LicenseUrl),
-                    _graph.CreateLiteralNode("https://test.org"));
+                    _graph.CreateLiteralNode(licenseUrl));
                 }
-                if (hasLicenseExpression)
+                if (licenseExpression != null)
                 {
                     _graph.Assert(
                     _graph.CreateUriNode(_catalogUri),
                     _graph.CreateUriNode(Schema.Predicates.LicenseExpression),
-                    _graph.CreateLiteralNode("MIT"));
+                    _graph.CreateLiteralNode(licenseExpression));
                 }
-                if (hasLicenseFile)
+                if (licenseFile != null)
                 {
                     _graph.Assert(
                     _graph.CreateUriNode(_catalogUri),
                     _graph.CreateUriNode(Schema.Predicates.LicenseFile),
-                    _graph.CreateLiteralNode("license"));
+                    _graph.CreateLiteralNode(licenseFile));
                 }
 
                 var item = new RegistrationMakerCatalogItem(
@@ -172,7 +177,7 @@ namespace CatalogTests.Registration
                 Assert.Equal(1, licenseUrlTriples.Count());
                 Assert.Equal(expectedLicenseUrlValue, licenseUrlTriples.First().Object.ToString());
                 Assert.Equal(1, licenseExpressionTriples.Count());
-                Assert.Equal(expectedLicenseExpressionValue, licenseExpressionTriples.First().Object.ToString());
+                Assert.Equal(licenseExpression == null ? "" : licenseExpression, licenseExpressionTriples.First().Object.ToString());
                 Assert.Equal(0, licenseFileTriples.Count());
             }
         }
