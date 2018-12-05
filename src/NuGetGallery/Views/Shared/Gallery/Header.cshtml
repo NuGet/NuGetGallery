@@ -214,11 +214,11 @@
                 <div class="@ViewHelpers.GetColumnClasses(ViewBag)" role="alert" aria-live="assertive">
                     @if (User.HasExternalLogin()) 
                     {
-                        @ViewHelpers.AlertWarning(@<text>NuGet.org password login is deprecated. Go to <a href="@Url.AccountSettings()">Account Settings</a> to disable your password login and use Microsoft account to sign in to the @(this.Config.Current.Brand).</text>)
+                        @ViewHelpers.AlertWarning(@<text>NuGet.org password login is no longer supported. Go to <a href="@Url.AccountSettings()">Account Settings</a> to disable your password login and use Microsoft account to sign in to the @(this.Config.Current.Brand).</text>)
                     }
                     else
                     {
-                        @ViewHelpers.AlertWarning(@<text>NuGet.org password login is deprecated. Go to <a href="@Url.AccountSettings()">Account Settings</a> and link a Microsoft account to sign in to the @(this.Config.Current.Brand).</text>)
+                        @ViewHelpers.AlertWarning(@<text>NuGet.org password login is no longer supported. Go to <a href="@Url.AccountSettings()">Account Settings</a> and link a Microsoft account to sign in to the @(this.Config.Current.Brand).</text>)
                     }
                 </div>
             </div>

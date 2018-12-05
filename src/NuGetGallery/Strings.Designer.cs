@@ -856,7 +856,7 @@ namespace NuGetGallery {
         ///
         ///[{0}]({0})
         ///
-        ///Note that NuGet.org password login is deprecated. Please use Microsoft account to sign into {1}.
+        ///Note that NuGet.org password login is no longer supported. Please use Microsoft account to sign into {1}.
         ///
         ///Thanks,
         ///The {1} Team.
@@ -884,7 +884,7 @@ namespace NuGetGallery {
         ///
         ///[{0}]({0})
         ///
-        ///Note that NuGet.org password login is deprecated. Please use Microsoft account to sign into {1}.
+        ///Note that NuGet.org password login is no longer supported. Please use Microsoft account to sign into {1}.
         ///
         ///Thanks,
         ///The {1} Team.
