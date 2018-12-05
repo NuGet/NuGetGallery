@@ -10,7 +10,7 @@ using Newtonsoft.Json.Linq;
 
 namespace NuGet.Services.Search.Client
 {
-    public class ServiceDiscoveryClient
+    public class ServiceDiscoveryClient : IServiceDiscoveryClient
     {
         private readonly HttpClient _httpClient;
         private readonly Uri _serviceDiscoveryEndpoint;

@@ -30,7 +30,6 @@ namespace NuGetGallery
         private readonly Lucene.Net.Store.Directory _directory;
         private IndexWriter _indexWriter;
         private IEntityRepository<Package> _packageRepository;
-        private IEntityRepository<CuratedPackage> _curatedPackageRepository;
         private readonly Func<bool> _getShouldAutoUpdate;
 
         private IDiagnosticsSource Trace { get; set; }
@@ -47,13 +46,11 @@ namespace NuGetGallery
 
         public LuceneIndexingService(
             IEntityRepository<Package> packageSource,
-            IEntityRepository<CuratedPackage> curatedPackageSource,
             Lucene.Net.Store.Directory directory,
             IDiagnosticsService diagnostics,
             IAppConfiguration config)
         {
             _packageRepository = packageSource;
-            _curatedPackageRepository = curatedPackageSource;
             _directory = directory;
             _getShouldAutoUpdate = config == null ? new Func<bool>(() => true) : new Func<bool>(() => config.AutoUpdateSearchIndex);
             Trace = diagnostics.SafeGetSource("LuceneIndexingService");
@@ -165,23 +162,10 @@ namespace NuGetGallery
                 .Include(p => p.SupportedFrameworks)
                 .ToList();
 
-            var curatedFeedsPerPackageRegistration = _curatedPackageRepository.GetAll()
-                .Select(cp => new { cp.PackageRegistrationKey, cp.CuratedFeedKey })
-                .GroupBy(x => x.PackageRegistrationKey)
-                .ToDictionary(group => group.Key, element => element.Select(x => x.CuratedFeedKey));
-
-            Func<int, IEnumerable<int>> GetFeeds = packageRegistrationKey =>
-            {
-                IEnumerable<int> ret = null;
-                curatedFeedsPerPackageRegistration.TryGetValue(packageRegistrationKey, out ret);
-                return ret;
-            };
-
             var packagesForIndexing = list.Select(
                 p => new PackageIndexEntity
                 {
-                    Package = p,
-                    CuratedFeedKeys = GetFeeds(p.PackageRegistrationKey)
+                    Package = p
                 });
 
             return packagesForIndexing.ToList();

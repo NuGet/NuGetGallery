@@ -1326,9 +1326,11 @@ namespace NuGetGallery
         public class TheDeleteAccountRequestAction : TheDeleteOrganizationBaseAction
         {
             [Theory]
-            [InlineData(false)]
-            [InlineData(true)]
-            public async Task IfAdministrator_ShowsViewWithCorrectData(bool withAdditionalMembers)
+            [InlineData(false, false)]
+            [InlineData(false, true)]
+            [InlineData(true, false)]
+            [InlineData(true, true)]
+            public async Task IfAdministrator_ShowsViewWithCorrectData(bool isPackageOrphaned, bool withAdditionalMembers)
             {
                 // Arrange
                 var controller = GetController<OrganizationsController>();
@@ -1361,6 +1363,9 @@ namespace NuGetGallery
                 GetMock<IPackageService>()
                     .Setup(stub => stub.FindPackagesByAnyMatchingOwner(testOrganization, It.IsAny<bool>(), false))
                     .Returns(userPackages);
+                GetMock<IPackageService>()
+                    .Setup(stub => stub.WillPackageBeOrphanedIfOwnerRemoved(packageRegistration, testOrganization))
+                    .Returns(isPackageOrphaned);
 
                 // act
                 var result = await Invoke(controller, testOrganization.Username);
@@ -1369,7 +1374,7 @@ namespace NuGetGallery
                 var model = ResultAssert.IsView<DeleteOrganizationViewModel>(result, "DeleteAccount");
                 Assert.Equal(testOrganization.Username, model.AccountName);
                 Assert.Single(model.Packages);
-                Assert.True(model.HasOrphanPackages);
+                Assert.Equal(isPackageOrphaned, model.HasPackagesThatWillBeOrphaned);
                 Assert.Equal(withAdditionalMembers, model.HasAdditionalMembers);
             }
 
@@ -1393,6 +1398,9 @@ namespace NuGetGallery
                 GetMock<IPackageService>()
                     .Setup(x => x.FindPackagesByAnyMatchingOwner(testOrganization, true, false))
                     .Returns(new[] { new Package { Version = "1.0.0", PackageRegistration = new PackageRegistration { Owners = new[] { testOrganization } } } });
+                GetMock<IPackageService>()
+                    .Setup(x => x.WillPackageBeOrphanedIfOwnerRemoved(It.IsAny<PackageRegistration>(), testOrganization))
+                    .Returns(true);
 
                 // Act & Assert
                 await RedirectsToDeleteRequest(

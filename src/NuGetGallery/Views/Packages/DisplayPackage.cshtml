@@ -612,7 +612,7 @@
                         }
 
                         <a href="@Model.RepositoryUrl" data-track="outbound-repository-url" title="View the source code for this package" rel="nofollow">
-                            Source Code
+                            Source repository
                         </a>
                     </li>
                 }
@@ -659,7 +659,7 @@
                 {
                     <li>
                         <i class="ms-Icon ms-Icon--CloudDownload" aria-hidden="true"></i>
-                        <a href="@Url.PackageDownload(2, Model.Id, Model.Version)" data-track="outbound-manual-download" title="Download the raw nupkg file." rel="nofollow">Download Package</a>
+                        <a href="@Url.PackageDownload(2, Model.Id, Model.Version)" data-track="outbound-manual-download" title="Download the raw nupkg file." rel="nofollow">Download package</a>
                         &nbsp;(@Model.PackageFileSize.ToUserFriendlyBytesLabel())
                     </li>
                     if (hasSymbolsPackageAvailable)

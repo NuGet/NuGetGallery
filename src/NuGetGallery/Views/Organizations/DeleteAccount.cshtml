@@ -25,9 +25,9 @@
                     <li>Not delete the NuGet packages associated with the organization.</li>
                 </ul>
             </p>
-            @if (Model.HasOrphanPackages || Model.HasAdditionalMembers)
+            @if (Model.HasPackagesThatWillBeOrphaned || Model.HasAdditionalMembers)
             {
-                if (Model.HasOrphanPackages)
+                if (Model.HasPackagesThatWillBeOrphaned)
                 {
                     <p>
                         Before deleting your organization, you must transfer ownership of any package where you are the sole owner, using the <i>manage owners</i> <i class="ms-Icon ms-Icon--People" aria-hidden="true"></i> button for that package below. Read more about <a href="https://go.microsoft.com/fwlink/?linkid=862794">Manage package owners.</a>

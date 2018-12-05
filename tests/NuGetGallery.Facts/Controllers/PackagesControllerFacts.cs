@@ -65,7 +65,9 @@ namespace NuGetGallery
             Mock<IPackageOwnershipManagementService> packageOwnershipManagementService = null,
             IReadMeService readMeService = null,
             Mock<IContentObjectService> contentObjectService = null,
-            Mock<ISymbolPackageUploadService> symbolPackageUploadService = null)
+            Mock<ISymbolPackageUploadService> symbolPackageUploadService = null,
+            Mock<IFlatContainerService> flatContainerService = null,
+            Mock<ICoreLicenseFileService> coreLicenseFileService = null)
         {
             packageService = packageService ?? new Mock<IPackageService>();
             if (uploadFileService == null)
@@ -166,6 +168,23 @@ namespace NuGetGallery
                     .Setup(x => x.DeleteSymbolsPackageAsync(It.IsAny<SymbolPackage>()))
                     .Completes();
             }
+
+            if (flatContainerService == null)
+            {
+                flatContainerService = new Mock<IFlatContainerService>();
+                flatContainerService
+                    .Setup(x => x.GetLicenseFileFlatContainerUrlAsync(It.IsAny<string>(), It.IsAny<string>()))
+                    .ReturnsAsync("");
+            }
+
+            if (coreLicenseFileService == null)
+            {
+                coreLicenseFileService = new Mock<ICoreLicenseFileService>();
+                coreLicenseFileService
+                    .Setup(clfs => clfs.DownloadLicenseFileAsync(It.IsAny<Package>()))
+                    .ReturnsAsync(() => new MemoryStream());
+            }
+
             var diagnosticsService = new Mock<IDiagnosticsService>();
             var controller = new Mock<PackagesController>(
                 packageService.Object,
@@ -190,7 +209,9 @@ namespace NuGetGallery
                 packageOwnershipManagementService.Object,
                 contentObjectService.Object,
                 symbolPackageUploadService.Object,
-                diagnosticsService.Object);
+                diagnosticsService.Object,
+                flatContainerService.Object,
+                coreLicenseFileService.Object);
 
             controller.CallBase = true;
             controller.Object.SetOwinContextOverride(Fakes.CreateOwinContext());
@@ -7007,6 +7028,231 @@ namespace NuGetGallery
 
                 Assert.NotNull(result);
                 Assert.Equal((int)HttpStatusCode.OK, controller.Response.StatusCode);
+            }
+        }
+
+        public class ThePreviewReadMeMethod : TestContainer
+        {
+            [Fact]
+            public async Task ReturnsProperResponseModelWhenSucceeds()
+            {
+                var readmeService = new Mock<IReadMeService>();
+                var controller = CreateController(GetConfigurationService(),
+                    readMeService: readmeService.Object);
+
+                var request = new ReadMeRequest();
+
+                readmeService
+                    .Setup(rs => rs.HasReadMeSource(request))
+                    .Returns(true);
+
+                const string html = "some HTML";
+
+                readmeService
+                    .Setup(rs => rs.GetReadMeHtmlAsync(request, It.IsAny<Encoding>()))
+                    .ReturnsAsync(html);
+
+                var result = await controller.PreviewReadMe(request);
+
+                var stringArray = Assert.IsType<string[]>(result.Data);
+                Assert.Single(stringArray);
+                Assert.Equal(html, stringArray[0]);
+            }
+
+            [Fact]
+            public async Task ReturnsProperResponseModelWhenNoReadme()
+            {
+                var readmeService = new Mock<IReadMeService>();
+                var controller = CreateController(GetConfigurationService(),
+                    readMeService: readmeService.Object);
+
+                var request = new ReadMeRequest();
+
+                readmeService
+                    .Setup(rs => rs.HasReadMeSource(request))
+                    .Returns(false);
+
+                var result = await controller.PreviewReadMe(request);
+
+                var stringArray = Assert.IsType<string[]>(result.Data);
+                Assert.Single(stringArray);
+                Assert.Equal("There is no Markdown Documentation available to preview.", stringArray[0]);
+            }
+
+            [Fact]
+            public async Task ReturnsProperResponseModelWhenConversionFails()
+            {
+                var readmeService = new Mock<IReadMeService>();
+                var controller = CreateController(GetConfigurationService(),
+                    readMeService: readmeService.Object);
+
+                var request = new ReadMeRequest();
+
+                readmeService
+                    .Setup(rs => rs.HasReadMeSource(request))
+                    .Returns(true);
+
+                const string exceptionMessage = "failure";
+                readmeService
+                    .Setup(rs => rs.GetReadMeHtmlAsync(request, It.IsAny<Encoding>()))
+                    .ThrowsAsync(new Exception(exceptionMessage));
+
+                var result = await controller.PreviewReadMe(request);
+
+                var stringArray = Assert.IsType<string[]>(result.Data);
+                Assert.Single(stringArray);
+                Assert.Contains(exceptionMessage, stringArray[0]);
+            }
+        }
+
+        public class LicenseMethod : TestContainer
+        {
+            private readonly Mock<IPackageService> _packageService;
+            private readonly Mock<IFlatContainerService> _flatContainerService;
+            private readonly Mock<IPackageFileService> _packageFileService;
+            private readonly Mock<ICoreLicenseFileService> _coreLicenseFileService;
+            private string _packageId = "packageId";
+            private string _packageVersion = "1.0.0";
+
+            public LicenseMethod()
+            {
+                _packageService = new Mock<IPackageService>();
+                _flatContainerService = new Mock<IFlatContainerService>();
+                _packageFileService = new Mock<IPackageFileService>();
+                _coreLicenseFileService = new Mock<ICoreLicenseFileService>();
+            }
+
+            [Fact]
+            public async Task GivenInvalidPackageReturns404()
+            {
+                // arrange
+                _packageService.Setup(p => p.FindPackageByIdAndVersionStrict(_packageId, _packageVersion)).Returns<Package>(null);
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: _packageService);
+
+                // act
+                var result = await controller.License(_packageId, _packageVersion);
+
+                // assert
+                Assert.IsType<HttpNotFoundResult>(result);
+            }
+
+            [Fact]
+            public async Task GivenPackageWithoutLicenseFileReturns404()
+            {
+                // arrange
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration { Id = _packageId },
+                    Version = _packageVersion,
+                };
+                package.EmbeddedLicenseType = EmbeddedLicenseFileType.Absent;
+
+                _packageService.Setup(p => p.FindPackageByIdAndVersionStrict(_packageId, _packageVersion)).Returns(package);
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: _packageService);
+
+                // act
+                var result = await controller.License(_packageId, _packageVersion);
+
+                // assert
+                Assert.IsType<HttpNotFoundResult>(result);
+            }
+
+            [Theory]
+            [InlineData(EmbeddedLicenseFileType.Markdown)]
+            [InlineData(EmbeddedLicenseFileType.PlainText)]
+            public async Task GivenValidPackageInfoRedirectToLicenseFileUrlWhenUsingFlatContainer(EmbeddedLicenseFileType embeddedLicenseFileType)
+            {
+                // Arrange
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration { Id = _packageId },
+                    Version = _packageVersion,
+                };
+                package.EmbeddedLicenseType = embeddedLicenseFileType;
+                var configurationService = GetConfigurationService();
+                configurationService.Current.AsynchronousPackageValidationEnabled = true;
+
+                _packageService.Setup(p => p.FindPackageByIdAndVersionStrict(_packageId, _packageVersion)).Returns(package);
+                _flatContainerService.Setup(p => p.GetLicenseFileFlatContainerUrlAsync(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync("theReturnUrl");
+                var controller = CreateController(
+                    configurationService,
+                    packageService: _packageService,
+                    flatContainerService: _flatContainerService);
+
+                // Act
+                var result = await controller.License(_packageId, _packageVersion);
+
+                // Assert
+                ResultAssert.IsRedirectTo(result, "theReturnUrl");
+            }
+
+            [Theory]
+            [InlineData(EmbeddedLicenseFileType.Markdown)]
+            [InlineData(EmbeddedLicenseFileType.PlainText)]
+            public async Task GivenValidPackageInfoButInvalidLicenseFileReturns404(EmbeddedLicenseFileType embeddedLicenseFileType)
+            {
+                // Arrange
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration { Id = null },
+                    Version = _packageVersion,
+                };
+                package.EmbeddedLicenseType = embeddedLicenseFileType;
+                var configurationService = GetConfigurationService();
+                configurationService.Current.AsynchronousPackageValidationEnabled = false;
+
+                _packageService.Setup(p => p.FindPackageByIdAndVersionStrict(_packageId, _packageVersion)).Returns(package);
+                _coreLicenseFileService.Setup(p => p.DownloadLicenseFileAsync(package)).Throws(new ArgumentException());
+                var controller = CreateController(
+                    configurationService,
+                    packageService: _packageService,
+                    coreLicenseFileService: _coreLicenseFileService);
+
+                // Act
+                var result = await controller.License(_packageId, _packageVersion);
+
+                // Assert
+                Assert.IsType<HttpNotFoundResult>(result);
+            }
+
+            [Theory]
+            [InlineData(EmbeddedLicenseFileType.Markdown)]
+            [InlineData(EmbeddedLicenseFileType.PlainText)]
+            public async Task GivenValidPackageInfoAndLicenseFileReturnsLicenseContentWhenUsingFiles(EmbeddedLicenseFileType embeddedLicenseFileType)
+            {
+                // Arrange
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration { Id = _packageId },
+                    Version = _packageVersion,
+                };
+                package.EmbeddedLicenseType = embeddedLicenseFileType;
+                var configurationService = GetConfigurationService();
+                configurationService.Current.AsynchronousPackageValidationEnabled = false;
+
+                _packageService.Setup(p => p.FindPackageByIdAndVersionStrict(_packageId, _packageVersion)).Returns(package);
+                var controller = CreateController(
+                    configurationService,
+                    packageService: _packageService,
+                    coreLicenseFileService: _coreLicenseFileService);
+
+                var fakeFileStream = new MemoryStream();
+                _coreLicenseFileService
+                    .Setup(p => p.DownloadLicenseFileAsync(package))
+                    .Returns(Task.FromResult<Stream>(fakeFileStream));
+
+                // Act
+                var licenseFile = await controller.License(_packageId, _packageVersion);
+
+                // Assert
+                Assert.IsType<FileStreamResult>(licenseFile);
+                _coreLicenseFileService
+                    .Verify(p => p.DownloadLicenseFileAsync(package),
+                        Times.Once);
             }
         }
     }

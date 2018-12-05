@@ -109,6 +109,10 @@ namespace NuGetGallery
             {
                 throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Summary", "4000");
             }
+            if (packageMetadata.ReleaseNotes != null && packageMetadata.ReleaseNotes.Length > 35000)
+            {
+                throw new EntityException(Strings.NuGetPackagePropertyTooLong, "ReleaseNotes", "35000");
+            }
             if (packageMetadata.Tags != null && packageMetadata.Tags.Length > 4000)
             {
                 throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Tags", "4000");
