@@ -7138,6 +7138,31 @@ namespace NuGetGallery
                 Assert.IsType<HttpNotFoundResult>(result);
             }
 
+            [Theory]
+            [InlineData("MIT", "https://licenses.nuget.org/MIT")]
+            [InlineData("TestLicenseExpression", "https://licenses.nuget.org/TestLicenseExpression")]
+            public async Task GivenValidPackageWithLicenseExpressionRedirectToLicenseUrl(string licenseExpression, string expectedRedirectUrl)
+            {
+                // arrange
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration { Id = _packageId },
+                    Version = _packageVersion,
+                    LicenseExpression = licenseExpression
+                };
+
+                _packageService.Setup(p => p.FindPackageByIdAndVersionStrict(_packageId, _packageVersion)).Returns(package);
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: _packageService);
+
+                // act
+                var result = await controller.License(_packageId, _packageVersion);
+
+                // assert
+                ResultAssert.IsRedirectTo(result, expectedRedirectUrl);
+            }
+
             [Fact]
             public async Task GivenPackageWithoutLicenseFileReturns404()
             {
