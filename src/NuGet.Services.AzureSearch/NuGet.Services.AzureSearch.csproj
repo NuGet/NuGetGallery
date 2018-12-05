@@ -31,6 +31,14 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <Authors>.NET Foundation</Authors>
+    <PackageLicenseUrl>https://github.com/NuGet/NuGet.Services.Metadata/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/NuGet/NuGet.Services.Metadata</PackageProjectUrl>
+    <Description>Push NuGetGallery DB packages or catalog leaves to Azure Search.</Description>
+    <PackageTags>nuget azure search catalog leaf details incremental collector</PackageTags>
+    <Copyright>Copyright .NET Foundation</Copyright>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
@@ -128,6 +136,11 @@
     </PackageReference>
     <PackageReference Include="NuGet.Services.Validation.Common.Job">
       <Version>4.1.0-master-2197886</Version>
+    </PackageReference>
+    <PackageReference Include="NuGet.Build.Tasks.Pack">
+      <Version>4.8.0</Version>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>

@@ -102,7 +102,8 @@ Invoke-BuildStep 'Creating artifacts' {
             "src\NuGet.Indexing\NuGet.Indexing.csproj", `
             "src\Catalog\NuGet.Services.Metadata.Catalog.csproj", `
             "src\NuGet.ApplicationInsights.Owin\NuGet.ApplicationInsights.Owin.csproj", `
-            "src\NuGet.Services.Metadata.Catalog.Monitoring\NuGet.Services.Metadata.Catalog.Monitoring.csproj"
+            "src\NuGet.Services.Metadata.Catalog.Monitoring\NuGet.Services.Metadata.Catalog.Monitoring.csproj", `
+            "src\NuGet.Services.AzureSearch\NuGet.Services.AzureSearch.csproj"
 
         $csprojPackages | ForEach-Object {
             New-ProjectPackage (Join-Path $PSScriptRoot $_) -Configuration $Configuration -Symbols -BuildNumber $BuildNumber -Version $SemanticVersion -Branch $Branch
