@@ -207,6 +207,7 @@
     <Compile Include="Telemetry\ClientTelemetryPIIProcessorTests.cs" />
     <Compile Include="Telemetry\ObfuscatorFacts.cs" />
     <Compile Include="Telemetry\QuietLogFacts.cs" />
+    <Compile Include="TestUtils\TestServiceUtility.cs" />
     <Compile Include="TestUtils\Infrastructure\TestableV1Feed.cs" />
     <Compile Include="TestUtils\Infrastructure\TestableV2Feed.cs" />
     <Compile Include="TestUtils\Infrastructure\TestDependencyResolver.cs" />
@@ -219,7 +220,6 @@
     <Compile Include="ExtensionMethodsFacts.cs" />
     <Compile Include="Filters\ApiAuthorizeAttributeFacts.cs" />
     <Compile Include="Filters\RequiresAccountConfirmationAttributeFacts.cs" />
-    <Compile Include="TestPackage.cs" />
     <Compile Include="Framework\AssertEx.cs" />
     <Compile Include="Framework\Fakes.cs" />
     <Compile Include="Framework\LooseMocksRegistrationSource.cs" />
@@ -251,7 +251,6 @@
     <Compile Include="Services\UploadFileServiceFacts.cs" />
     <Compile Include="Services\UserServiceFacts.cs" />
     <Compile Include="Services\FeedServiceFacts.cs" />
-    <Compile Include="TestPackageReader.cs" />
     <Compile Include="TestUtils\ContractAssert.cs" />
     <Compile Include="TestUtils\FakeDbSet.cs" />
     <Compile Include="TestUtils\FakeEntitiesContext.cs" />
@@ -263,7 +262,6 @@
     <Compile Include="TestUtils\OwinTestExtensions.cs" />
     <Compile Include="TestUtils\ResultAssert.cs" />
     <Compile Include="TestUtils\StubHttpPostedFile.cs" />
-    <Compile Include="TestUtils\TestServiceUtility.cs" />
     <Compile Include="TestUtils\TestDataUtility.cs" />
     <Compile Include="TestUtils\TestUtility.cs" />
     <Compile Include="UriExtensionsFacts.cs" />

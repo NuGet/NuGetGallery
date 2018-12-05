@@ -66,7 +66,8 @@ namespace NuGetGallery
             IReadMeService readMeService = null,
             Mock<IContentObjectService> contentObjectService = null,
             Mock<ISymbolPackageUploadService> symbolPackageUploadService = null,
-            Mock<IFlatContainerService> flatContainerService = null)
+            Mock<IFlatContainerService> flatContainerService = null,
+            Mock<ICoreLicenseFileService> coreLicenseFileService = null)
         {
             packageService = packageService ?? new Mock<IPackageService>();
             if (uploadFileService == null)
@@ -176,6 +177,14 @@ namespace NuGetGallery
                     .ReturnsAsync("");
             }
 
+            if (coreLicenseFileService == null)
+            {
+                coreLicenseFileService = new Mock<ICoreLicenseFileService>();
+                coreLicenseFileService
+                    .Setup(clfs => clfs.DownloadLicenseFileAsync(It.IsAny<Package>()))
+                    .ReturnsAsync(() => new MemoryStream());
+            }
+
             var diagnosticsService = new Mock<IDiagnosticsService>();
             var controller = new Mock<PackagesController>(
                 packageService.Object,
@@ -201,7 +210,8 @@ namespace NuGetGallery
                 contentObjectService.Object,
                 symbolPackageUploadService.Object,
                 diagnosticsService.Object,
-                flatContainerService.Object);
+                flatContainerService.Object,
+                coreLicenseFileService.Object);
 
             controller.CallBase = true;
             controller.Object.SetOwinContextOverride(Fakes.CreateOwinContext());
@@ -7100,6 +7110,7 @@ namespace NuGetGallery
             private readonly Mock<IPackageService> _packageService;
             private readonly Mock<IFlatContainerService> _flatContainerService;
             private readonly Mock<IPackageFileService> _packageFileService;
+            private readonly Mock<ICoreLicenseFileService> _coreLicenseFileService;
             private string _packageId = "packageId";
             private string _packageVersion = "1.0.0";
 
@@ -7108,6 +7119,7 @@ namespace NuGetGallery
                 _packageService = new Mock<IPackageService>();
                 _flatContainerService = new Mock<IFlatContainerService>();
                 _packageFileService = new Mock<IPackageFileService>();
+                _coreLicenseFileService = new Mock<ICoreLicenseFileService>();
             }
 
             [Fact]
@@ -7194,11 +7206,11 @@ namespace NuGetGallery
                 configurationService.Current.AsynchronousPackageValidationEnabled = false;
 
                 _packageService.Setup(p => p.FindPackageByIdAndVersionStrict(_packageId, _packageVersion)).Returns(package);
-                _packageFileService.Setup(p => p.DownloadLicenseFileAsync(package)).Throws(new ArgumentException());
+                _coreLicenseFileService.Setup(p => p.DownloadLicenseFileAsync(package)).Throws(new ArgumentException());
                 var controller = CreateController(
                     configurationService,
                     packageService: _packageService,
-                    packageFileService: _packageFileService);
+                    coreLicenseFileService: _coreLicenseFileService);
 
                 // Act
                 var result = await controller.License(_packageId, _packageVersion);
@@ -7226,10 +7238,10 @@ namespace NuGetGallery
                 var controller = CreateController(
                     configurationService,
                     packageService: _packageService,
-                    packageFileService: _packageFileService);
+                    coreLicenseFileService: _coreLicenseFileService);
 
                 var fakeFileStream = new MemoryStream();
-                _packageFileService
+                _coreLicenseFileService
                     .Setup(p => p.DownloadLicenseFileAsync(package))
                     .Returns(Task.FromResult<Stream>(fakeFileStream));
 
@@ -7238,7 +7250,7 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.IsType<FileStreamResult>(licenseFile);
-                _packageFileService
+                _coreLicenseFileService
                     .Verify(p => p.DownloadLicenseFileAsync(package),
                         Times.Once);
             }

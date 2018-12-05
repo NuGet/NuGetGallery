@@ -95,6 +95,7 @@ namespace NuGetGallery
         private readonly ISymbolPackageUploadService _symbolPackageUploadService;
         private readonly IDiagnosticsSource _trace;
         private readonly IFlatContainerService _flatContainerService;
+        private readonly ICoreLicenseFileService _coreLicenseFileService;
 
         public PackagesController(
             IPackageService packageService,
@@ -120,7 +121,8 @@ namespace NuGetGallery
             IContentObjectService contentObjectService,
             ISymbolPackageUploadService symbolPackageUploadService,
             IDiagnosticsService diagnosticsService,
-            IFlatContainerService flatContainerService)
+            IFlatContainerService flatContainerService,
+            ICoreLicenseFileService coreLicenseFileService)
         {
             _packageService = packageService;
             _uploadFileService = uploadFileService;
@@ -146,6 +148,7 @@ namespace NuGetGallery
             _symbolPackageUploadService = symbolPackageUploadService;
             _trace = diagnosticsService?.SafeGetSource(nameof(PackagesController)) ?? throw new ArgumentNullException(nameof(diagnosticsService));
             _flatContainerService = flatContainerService;
+            _coreLicenseFileService = coreLicenseFileService ?? throw new ArgumentNullException(nameof(coreLicenseFileService));
         }
 
         [HttpGet]
@@ -683,7 +686,7 @@ namespace NuGetGallery
             {
                 try
                 {
-                    var licenseFileContent = await _packageFileService.DownloadLicenseFileAsync(package);
+                    var licenseFileContent = await _coreLicenseFileService.DownloadLicenseFileAsync(package);
                     return new FileStreamResult(licenseFileContent, "text/plain");
                 }
                 catch (Exception ex)

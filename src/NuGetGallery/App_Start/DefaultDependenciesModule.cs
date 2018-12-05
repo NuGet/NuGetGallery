@@ -341,6 +341,10 @@ namespace NuGetGallery
                     new ServiceDiscoveryClient(c.Resolve<IAppConfiguration>().ServiceDiscoveryUri))
                 .As<IServiceDiscoveryClient>();
 
+            builder.RegisterType<GalleryContentFileMetadataService>()
+                .As<IContentFileMetadataService>()
+                .InstancePerLifetimeScope();
+
             RegisterMessagingService(builder, configuration);
 
             builder.Register(c => HttpContext.Current.User)
@@ -602,10 +606,6 @@ namespace NuGetGallery
 
             builder.RegisterType<RevalidationAdminService>()
                 .AsSelf()
-                .InstancePerLifetimeScope();
-
-            builder.RegisterType<RevalidationStateService>()
-                .As<IRevalidationStateService>()
                 .InstancePerLifetimeScope();
         }
 
