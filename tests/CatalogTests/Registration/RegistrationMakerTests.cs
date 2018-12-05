@@ -359,7 +359,7 @@ namespace CatalogTests.Registration
 
             Assert.Equal(pageUri.AbsoluteUri, page.IdKeyword);
             Assert.Equal(CatalogConstants.CatalogCatalogPage, page.TypeKeyword);
-            Assert.Equal(commitId, page.CommitId);     
+            Assert.Equal(commitId, page.CommitId);
             Assert.Equal(commitTimeStamp, page.CommitTimeStamp);
             Assert.Equal(expectedPage.LowerVersion, page.Lower);
             Assert.Equal(expectedPage.UpperVersion, page.Upper);

@@ -162,7 +162,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             INode subject = _catalogItem.CreateUriNode(_catalogUri);
 
             string id = _catalogItem.GetTriplesWithSubjectPredicate(subject, _catalogItem.CreateUriNode(Schema.Predicates.Id)).FirstOrDefault().Object.ToString();
-            string version = _catalogItem.GetTriplesWithSubjectPredicate(subject, _catalogItem.CreateUriNode(Schema.Predicates.Version)).FirstOrDefault().Object.ToString();
+            string version = NuGetVersionUtility.NormalizeVersion(_catalogItem.GetTriplesWithSubjectPredicate(subject, _catalogItem.CreateUriNode(Schema.Predicates.Version)).FirstOrDefault().Object.ToString());
             Triple licenseExpression = _catalogItem.GetTriplesWithSubjectPredicate(subject, _catalogItem.CreateUriNode(Schema.Predicates.LicenseExpression)).FirstOrDefault();
             Triple licenseFile = _catalogItem.GetTriplesWithSubjectPredicate(subject, _catalogItem.CreateUriNode(Schema.Predicates.LicenseFile)).FirstOrDefault();
             Triple licenseUrl = _catalogItem.GetTriplesWithSubjectPredicate(subject, _catalogItem.CreateUriNode(Schema.Predicates.LicenseUrl)).FirstOrDefault();
@@ -171,11 +171,11 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             {
                 if (licenseExpression != null && !string.IsNullOrWhiteSpace(licenseExpression.Object.ToString()))
                 {
-                    return GetOverWriteLicenseUrl(id, version);
+                    return GetGalleryLicenseUrl(id, version);
                 }
                 if (licenseFile != null && !string.IsNullOrWhiteSpace(licenseFile.Object.ToString()))
                 {
-                    return GetOverWriteLicenseUrl(id, version);
+                    return GetGalleryLicenseUrl(id, version);
                 }
             }
 
@@ -187,11 +187,12 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             return string.Empty;
         }
 
-        private string GetOverWriteLicenseUrl(string id, string version)
+        private string GetGalleryLicenseUrl(string id, string version)
         {
-            var uriBuilder = new UriBuilder(_galleryBaseAddress.AbsoluteUri);
-            uriBuilder.Path = string.Join("/", new string[] { "packages", id, version, "license" });
-            return uriBuilder.Uri.ToString();
+            var galleryBaseAddress = new Uri(_galleryBaseAddress.AbsoluteUri.TrimEnd('/') + "/");
+            var licenseRelativeUri = string.Join("/", new string[] { "packages", id, version, "license" });
+
+            return new Uri(galleryBaseAddress, licenseRelativeUri).AbsoluteUri;
         }
 
         public override IGraph CreatePageContent(CatalogContext context)

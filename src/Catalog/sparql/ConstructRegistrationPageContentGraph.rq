@@ -20,7 +20,7 @@ CONSTRUCT
                   nuget:summary ?summary ;
                   nuget:iconUrl ?iconUrl ;
                   nuget:licenseUrl ?licenseUrl ;
-				  nuget:licenseExpression ?licenseExpression ;
+                  nuget:licenseExpression ?licenseExpression ;
                   nuget:projectUrl ?projectUrl ;
                   nuget:requireLicenseAcceptance ?requireLicenseAcceptance ;
                   nuget:language ?language ;
