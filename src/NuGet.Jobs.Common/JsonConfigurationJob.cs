@@ -76,7 +76,7 @@ namespace NuGet.Jobs
 
             var builder = new ConfigurationBuilder()
                 .SetBasePath(Environment.CurrentDirectory)
-                .AddJsonFile(configurationFilename, optional: false, reloadOnChange: true);
+                .AddJsonFile(configurationFilename, optional: false, reloadOnChange: false);
 
             var uninjectedConfiguration = builder.Build();
 

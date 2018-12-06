@@ -40,7 +40,6 @@ namespace NuGet.Jobs.Montoring.PackageLag
         private ICatalogClient _catalogClient;
         private IServiceProvider _serviceProvider;
         private PackageLagMonitorConfiguration _configuration;
-        private IConfigurationBuilder _builder = null;
 
         public override void Init(IServiceContainer serviceContainer, IDictionary<string, string> jobArgsDictionary)
         {

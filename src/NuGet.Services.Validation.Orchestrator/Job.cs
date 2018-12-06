@@ -124,7 +124,7 @@ namespace NuGet.Services.Validation.Orchestrator
             Logger.LogInformation("Using the {ConfigurationFilename} configuration file", configurationFilename);
             var builder = new ConfigurationBuilder()
                 .SetBasePath(Environment.CurrentDirectory)
-                .AddJsonFile(configurationFilename, optional: false, reloadOnChange: true);
+                .AddJsonFile(configurationFilename, optional: false, reloadOnChange: false);
 
             var uninjectedConfiguration = builder.Build();
 
