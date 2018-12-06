@@ -11,6 +11,8 @@
   <files>
     <file src="bin\$configuration$\*.*" target="bin" />
     <file src="Scripts\*.cmd" />
+    <file src="Scripts\*.ps1" />
+    <file src="Scripts\nssm.exe" />
     <file src="Settings\*.json" target="bin" />
   </files>
 </package>
