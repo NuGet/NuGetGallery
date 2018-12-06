@@ -33,7 +33,7 @@ namespace NuGet.Services.AzureSearch
                 .Register(c =>
                 {
                     var serviceClient = c.Resolve<ISearchServiceClientWrapper>();
-                    var options = c.Resolve<IOptionsSnapshot<AzureSearchJobConfiguration>>();
+                    var options = c.Resolve<IOptionsSnapshot<AzureSearchConfiguration>>();
                     return serviceClient.Indexes.GetClient(options.Value.SearchIndexName);
                 })
                 .SingleInstance()
@@ -43,7 +43,7 @@ namespace NuGet.Services.AzureSearch
                 .Register(c =>
                 {
                     var serviceClient = c.Resolve<ISearchServiceClientWrapper>();
-                    var options = c.Resolve<IOptionsSnapshot<AzureSearchJobConfiguration>>();
+                    var options = c.Resolve<IOptionsSnapshot<AzureSearchConfiguration>>();
                     return serviceClient.Indexes.GetClient(options.Value.HijackIndexName);
                 })
                 .SingleInstance()
@@ -98,7 +98,7 @@ namespace NuGet.Services.AzureSearch
 
             services.AddTransient<ISearchServiceClient>(p =>
             {
-                var options = p.GetRequiredService<IOptionsSnapshot<AzureSearchJobConfiguration>>();
+                var options = p.GetRequiredService<IOptionsSnapshot<AzureSearchConfiguration>>();
                 return new SearchServiceClient(
                     options.Value.SearchServiceName,
                     new SearchCredentials(options.Value.SearchServiceApiKey));

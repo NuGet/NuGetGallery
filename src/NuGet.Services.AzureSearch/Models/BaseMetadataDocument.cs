@@ -3,7 +3,6 @@
 
 using System;
 using Microsoft.Azure.Search;
-using Microsoft.Azure.Search.Models;
 
 namespace NuGet.Services.AzureSearch
 {

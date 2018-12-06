@@ -9,7 +9,7 @@ param (
     [string]$SemanticVersion = '1.0.0-zlocal',
     [string]$Branch,
     [string]$CommitSHA,
-    [string]$BuildBranch = 'b5f9d1c89da96c462935e2195ceb00e69287b93e'
+    [string]$BuildBranch = '0ca7db071c51b359996a03e01dbd069ef2f25f71'
 )
 
 # For TeamCity - If any issue occurs, this script fails the build. - By default, TeamCity returns an exit code of 0 for all powershell scripts, even if they fail
@@ -97,7 +97,13 @@ Invoke-BuildStep 'Building solution' {
         Build-Solution $Configuration $BuildNumber -MSBuildVersion "15" $SolutionPath -SkipRestore:$SkipRestore `
     } `
     -ev +BuildErrors
-    
+
+Invoke-BuildStep 'Building Search Service web app package' { 
+        $ProjectPath = Join-Path $PSScriptRoot "src\NuGet.Services.SearchService\NuGet.Services.SearchService.csproj"
+        New-WebAppPackage $ProjectPath -Configuration $Configuration -BuildNumber $BuildNumber `
+    } `
+    -ev +BuildErrors
+
 Invoke-BuildStep 'Creating artifacts' {
         $csprojPackages = `
             "src\NuGet.Indexing\NuGet.Indexing.csproj", `
