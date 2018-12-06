@@ -21,6 +21,8 @@ namespace NuGetGallery
 
         public const int VisibleVersions = 5;
 
+        public const int ManagePackagesPagingSize = 10;
+
         public const int GravatarElementSize = 32;
         public const int GravatarImageSize = GravatarElementSize * 2;
         public const int GravatarImageSizeLarge = 332;

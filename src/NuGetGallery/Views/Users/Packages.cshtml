@@ -115,16 +115,16 @@
                         <th class="hidden-xs"><span class="hidden">Package Icon</span></th>
                         <th>Package ID</th>
                         <th>Owners</th>
-                    @if (Model.IsCertificatesUIEnabled)
-                    {
-                        <th>Signing Owner</th>
-                    }
+                        @if (Model.IsCertificatesUIEnabled)
+                        {
+                            <th>Signing Owner</th>
+                        }
                         <th>Downloads</th>
                         <th>Latest Version</th>
                         <th><span class="hidden">Icon</span></th>
                     </tr>
                 </thead>
-                <tbody data-bind="foreach: Packages">
+                <tbody data-bind="foreach: CurrentPackagesPage()">
                     <tr class="manage-package-listing" data-bind="visible: Visible">
                         <td class="align-middle hidden-xs">
                             <img class="package-icon img-responsive" aria-hidden="true"
@@ -146,16 +146,16 @@
                                 <!-- /ko -->
                             </span>
                         </td>
-                    @if (Model.IsCertificatesUIEnabled)
-                    {
-                        <td class="align-middle">
-                            <!-- ko if: $data.ShowTextBox -->
-                            <span data-bind="text: RequiredSigner" />
-                            <!-- /ko -->
-                            <!-- ko ifnot: $data.ShowTextBox -->
-                            <select class="form-control required-signer"
-                                    aria-label="Select the signing owner"
-                                    data-bind="options: AllSigners,
+                        @if (Model.IsCertificatesUIEnabled)
+                        {
+                            <td class="align-middle">
+                                <!-- ko if: $data.ShowTextBox -->
+                                <span data-bind="text: RequiredSigner" />
+                                <!-- /ko -->
+                                <!-- ko ifnot: $data.ShowTextBox -->
+                                <select class="form-control required-signer"
+                                        aria-label="Select the signing owner"
+                                        data-bind="options: AllSigners,
                                     optionsText: 'OptionText',
                                     optionsValue: 'Username',
                                     enable: CanEditRequiredSigner,
@@ -163,9 +163,9 @@
                                     value: RequiredSigner,
                                     event: { change: $data.OnRequiredSignerChange },
                                     attr: { title: RequiredSignerMessage }"></select>
-                            <!-- /ko -->
-                        </td>
-                    }
+                                <!-- /ko -->
+                            </td>
+                        }
                         <td class="align-middle text-nowrap">
                             <span data-bind="text: FormattedDownloadCount"></span>
                         </td>
@@ -198,6 +198,11 @@
                     </tr>
                 </tbody>
             </table>
+            <!-- ko if: VisiblePackagePagesCount() > 1 -->
+            <div class="text-center" data-bind="foreach: PackagePages">
+                <a href="#" data-bind="text: $data + 1, click: $parent.SetPackagePage"></a>
+            </div>
+            <!-- /ko -->
             <!-- /ko -->
             <!-- ko ifnot: VisiblePackagesCount -->
             <span>There are no packages that fit this criteria.</span>
@@ -476,6 +481,8 @@
 
 @section BottomScripts {
     <script type="text/javascript">
+        var pageSize = @Json.Encode(GalleryConstants.ManagePackagesPagingSize);
+
         var strings_RequiredSigner_ThisAction = "@Html.Raw(Strings.RequiredSigner_ThisAction)";
         var strings_RequiredSigner_OwnerHasNoCertificate = "@Html.Raw(Strings.RequiredSigner_OwnerHasNoCertificate)";
         var strings_RequiredSigner_OwnerHasAtLeastOneCertificate = "@Html.Raw(Strings.RequiredSigner_OwnerHasAtLeastOneCertificate)";
@@ -487,16 +494,11 @@
         var initialData = @Html.Raw(JsonConvert.SerializeObject(new
                      {
                          Owners = Model.Owners,
-                         ListedPackages = Model.ListedPackages
-                            .Select(p => GetSerializablePackage(p)),
-                         UnlistedPackages = Model.UnlistedPackages
-                            .Select(p => GetSerializablePackage(p)),
-                         ReservedNamespaces = Model.ReservedNamespaces.ReservedNamespaces
-                            .Select(n => GetSerializableNamespace(n)),
-                         RequestsReceived = Model.OwnerRequests.Received.Requests
-                            .Select(r => GetSerializableOwnerRequest(r)),
-                         RequestsSent = Model.OwnerRequests.Sent.Requests
-                            .Select(r => GetSerializableOwnerRequest(r)),
+                         ListedPackages = Model.ListedPackages.Select(GetSerializablePackage),
+                         UnlistedPackages = Model.UnlistedPackages.Select(GetSerializablePackage),
+                         ReservedNamespaces = Model.ReservedNamespaces.ReservedNamespaces.Select(GetSerializableNamespace),
+                         RequestsReceived = Model.OwnerRequests.Received.Requests.Select(GetSerializableOwnerRequest),
+                         RequestsSent = Model.OwnerRequests.Sent.Requests.Select(GetSerializableOwnerRequest),
                          DefaultPackageIconUrl = Url.Absolute("~/Content/gallery/img/default-package-icon.svg"),
                          PackageIconUrlFallback = Url.Absolute("~/Content/gallery/img/default-package-icon-256x256.png")
                      }));

@@ -517,6 +517,7 @@ namespace NuGetGallery
                 WasMultiFactorAuthenticated = User.WasMultiFactorAuthenticated(),
                 IsCertificatesUIEnabled = ContentObjectService.CertificatesConfiguration?.IsUIEnabledForUser(currentUser) ?? false
             };
+
             return View(model);
         }
 

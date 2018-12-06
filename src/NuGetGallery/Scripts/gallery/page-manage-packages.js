@@ -175,9 +175,37 @@
 
             this.ManagePackagesViewModel = managePackagesViewModel;
             this.Type = type;
+
             this.Packages = $.map(packages, function (data) {
                 return new PackageListItemViewModel(self, data);
             });
+
+            this.PagedPackages = ko.pureComputed(function () {
+                var map = {};
+                for (var i = 0; i < self.Packages.length; i++) {
+                    var index = Math.floor(i / pageSize);
+                    var item = self.Packages[i];
+                    var pair = map[index];
+                    if (pair) {
+                        pair.push(item);
+                    } else {
+                        pair = [item];
+                    }
+
+                    map[index] = pair;
+                }
+
+                return map;
+            }, this);
+
+            this.CurrentPackagesPage = ko.pureComputed(function () {
+                return self.PagedPackages()[self.VisiblePackagePage()];
+            }, this);
+
+            this.SetPackagePage = function (page) {
+                self.VisiblePackagePage(page);
+            }
+
             this.VisiblePackagesCount = ko.observable();
             this.VisibleDownloadCount = ko.observable();
             this.VisiblePackagesHeading = ko.pureComputed(function () {
@@ -185,6 +213,21 @@
                     ko.unwrap(self.VisiblePackagesCount()),
                     ko.unwrap(self.VisibleDownloadCount()));
             }, this);
+
+            this.VisiblePackagePagesCount = ko.pureComputed(function () {
+                return Math.ceil(self.VisiblePackagesCount() / pageSize);
+            }, this);
+
+            this.PackagePages = ko.pureComputed(function () {
+                var pages = [];
+                for (var i = 0; i < self.VisiblePackagePagesCount(); i++) {
+                    pages.push(i);
+                }
+
+                return pages;
+            }, this);
+
+            this.VisiblePackagePage = ko.observable(0);
 
             this.ManagePackagesViewModel.OwnerFilter.subscribe(function (newOwner) {
                 var packagesCount = 0;
