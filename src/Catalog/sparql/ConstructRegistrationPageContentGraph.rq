@@ -24,7 +24,7 @@ CONSTRUCT
                   nuget:projectUrl ?projectUrl ;
                   nuget:requireLicenseAcceptance ?requireLicenseAcceptance ;
                   nuget:language ?language ;
-				  nuget:authors ?authors ;
+                  nuget:authors ?authors ;
                   nuget:tag ?tag ;
                   nuget:minClientVersion ?minClientVersion .
 
