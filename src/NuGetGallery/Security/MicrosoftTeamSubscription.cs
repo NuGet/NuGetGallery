@@ -61,6 +61,7 @@ namespace NuGetGallery.Security
                     Name,
                     MicrosoftUsername,
                     allowedCopyrightNotices: AllowedCopyrightNotices,
+                    allowedAuthors: new[] { MicrosoftUsername },
                     isLicenseUrlRequired: true,
                     isProjectUrlRequired: true,
                     errorMessageFormat: Strings.SecurityPolicy_RequireMicrosoftPackageMetadataComplianceForPush)

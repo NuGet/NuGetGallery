@@ -1733,6 +1733,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The package metadata defines &apos;{0}&apos; as one of the authors which is not allowed by policy..
+        /// </summary>
+        public static string SecurityPolicy_PackageAuthorNotAllowed {
+            get {
+                return ResourceManager.GetString("SecurityPolicy_PackageAuthorNotAllowed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A package verification key is required to push symbols. Please contact support@nuget.org to get more details..
         /// </summary>
         public static string SecurityPolicy_RequireApiKeyWithPackageVerifyScope {

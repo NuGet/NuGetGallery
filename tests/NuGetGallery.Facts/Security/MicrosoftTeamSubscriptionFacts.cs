@@ -40,6 +40,7 @@ namespace NuGetGallery.Security
                 "\"© Microsoft Corporation. Tutti i diritti sono riservati.\"," +
                 "\"© Корпорация Майкрософт (Microsoft Corporation). Все права защищены.\"" +
                 "]," +
+                "\"authors\":[\"Microsoft\"]," +
                 "\"licUrlReq\":true," +
                 "\"projUrlReq\":true," +
                 "\"error\":\"The package is not compliant with metadata requirements for Microsoft packages on NuGet.org. Go to https://aka.ms/Microsoft-NuGet-Compliance for more information.\\r\\nPolicy violations: {0}\"}", 
