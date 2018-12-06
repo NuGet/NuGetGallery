@@ -21,11 +21,6 @@ namespace Search.GenerateAuxiliaryData
     {
         private const string DefaultContainerName = "ng-search-data";
 
-        private const string ScriptCuratedFeed = "SqlScripts.CuratedFeed.sql";
-        private const string OutputNameCuratedFeed = "curatedfeeds.json";
-        private const string Col0CuratedFeed = "FeedName";
-        private const string Col1CuratedFeed = "Id";
-
         private const string ScriptOwners = "SqlScripts.Owners.sql";
         private const string OutputNameOwners = "owners.json";
         private const string Col0Owners = "Id";
@@ -64,15 +59,6 @@ namespace Search.GenerateAuxiliaryData
                     destinationContainer,
                     ScriptVerifiedPackages,
                     OutputNameVerifiedPackages),
-
-                new NestedJArrayExporter(
-                    LoggerFactory.CreateLogger<NestedJArrayExporter>(),
-                    OpenSqlConnectionAsync<GalleryDbConfiguration>,
-                    destinationContainer,
-                    ScriptCuratedFeed,
-                    OutputNameCuratedFeed,
-                    Col0CuratedFeed,
-                    Col1CuratedFeed),
 
                 new NestedJArrayExporter(
                     LoggerFactory.CreateLogger<NestedJArrayExporter>(),
