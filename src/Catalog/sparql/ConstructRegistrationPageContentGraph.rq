@@ -11,7 +11,7 @@ CONSTRUCT
     ?catalogEntry a nuget:PackageDetails ;
                   nuget:id ?id ;
                   nuget:version ?version ;
-				  nuget:published ?published ;
+                  nuget:published ?published ;
                   nuget:packageContent ?packageContent ;
                   nuget:dependencyGroup ?dependency_group ;
                   nuget:listed ?listed ;
