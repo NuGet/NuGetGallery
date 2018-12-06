@@ -40,6 +40,7 @@ namespace NuGet.Jobs.Montoring.PackageLag
         private ICatalogClient _catalogClient;
         private IServiceProvider _serviceProvider;
         private PackageLagMonitorConfiguration _configuration;
+        private IConfigurationBuilder _builder = null;
 
         public override void Init(IServiceContainer serviceContainer, IDictionary<string, string> jobArgsDictionary)
         {
@@ -60,7 +61,7 @@ namespace NuGet.Jobs.Montoring.PackageLag
             Logger.LogInformation("Using the {ConfigurationFilename} configuration file", configurationFilename);
             var builder = new ConfigurationBuilder()
                 .SetBasePath(Environment.CurrentDirectory)
-                .AddJsonFile(configurationFilename, optional: false, reloadOnChange: true);
+                .AddJsonFile(configurationFilename, optional: false, reloadOnChange: false);
 
             var uninjectedConfiguration = builder.Build();
 
@@ -68,11 +69,11 @@ namespace NuGet.Jobs.Montoring.PackageLag
             var cachingSecretReaderFactory = new CachingSecretReaderFactory(secretReaderFactory, KeyVaultSecretCachingTimeout);
             var secretInjector = cachingSecretReaderFactory.CreateSecretInjector(cachingSecretReaderFactory.CreateSecretReader());
 
-            builder = new ConfigurationBuilder()
+            var injectedBuilder = new ConfigurationBuilder()
                 .SetBasePath(Environment.CurrentDirectory)
                 .AddInjectedJsonFile(configurationFilename, secretInjector);
 
-            return builder.Build();
+            return injectedBuilder.Build();
         }
 
         private IServiceProvider GetServiceProvider(IConfigurationRoot configurationRoot)
