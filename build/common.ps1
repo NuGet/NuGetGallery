@@ -640,6 +640,41 @@ Function New-Package {
     }
 }
 
+Function New-WebAppPackage {
+    [CmdletBinding()]
+    param(
+        [Alias('target')]
+        [string]$TargetFilePath,
+        [string]$TargetProfile,
+        [string]$Configuration,
+        [string]$BuildNumber,
+        [string]$MSBuildVersion = $DefaultMSBuildVersion
+    )
+    Trace-Log "Creating web app package from @""$TargetFilePath"""
+    
+    $MSBuildExe = Get-MSBuildExe $MSBuildVersion
+    
+    $opts = , $TargetFilePath
+    $opts += "/t:build"
+    
+    $opts += "/p:Configuration=$Configuration"
+    $opts += "/p:BuildNumber=$(Format-BuildNumber $BuildNumber)"
+    $opts += "/p:DeployOnBuild=true"
+    $opts += "/p:WebPublishMethod=Package"
+    $opts += "/p:PackageAsSingleFile=true"
+    $opts += "/p:PackageLocation=$Artifacts"
+    
+    if (-not (Test-Path $Artifacts)) {
+        New-Item $Artifacts -Type Directory
+    }
+    
+    Trace-Log "$MsBuildExe $opts"
+    & $MsBuildExe $opts
+    if (-not $?) {
+        Error-Log "Creating web app package failed for @""$TargetFilePath"". Code: ${LASTEXITCODE}"
+    }
+}
+
 Function New-ProjectPackage {
     [CmdletBinding()]
     param(
