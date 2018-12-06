@@ -99,7 +99,7 @@ namespace NuGet.Services.Validation.Orchestrator
 
                 var fromStatus = validatingEntity.Status;
 
-                // Always set the package status to available so that processors can have a change to fix packages
+                // Always set the package status to available so that processors can have a chance to fix packages
                 // that are already available. Processors should no-op when their work is already done, so the
                 // modification of an already available package should be rare. The most common case for this is if
                 // the processor has never been run on a package that was published before the processor was

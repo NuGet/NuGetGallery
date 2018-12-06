@@ -162,6 +162,35 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     Times.Once);
             }
 
+            [Theory]
+            [InlineData(EmbeddedLicenseFileType.Absent, false)]
+            [InlineData(EmbeddedLicenseFileType.PlainText, true)]
+            [InlineData(EmbeddedLicenseFileType.Markdown, true)]
+            public async Task SavesPackageLicenseFileWhenPresent(EmbeddedLicenseFileType licenseFileType, bool expectedSave)
+            {
+                var content = "Hello, world.";
+                var stream = new MemoryStream(Encoding.ASCII.GetBytes(content));
+                Package.EmbeddedLicenseType = licenseFileType;
+                PackageFileServiceMock
+                    .Setup(x => x.DownloadPackageFileToDiskAsync(ValidationSet))
+                    .ReturnsAsync(stream);
+
+                await Target.SetStatusAsync(PackageValidatingEntity, ValidationSet, PackageStatus.Available);
+
+                if (expectedSave)
+                {
+                    CoreLicenseFileServiceMock
+                        .Verify(clfs => clfs.ExtractAndSaveLicenseFileAsync(PackageValidatingEntity.EntityRecord, stream), Times.Once);
+                    CoreLicenseFileServiceMock
+                        .Verify(clfs => clfs.ExtractAndSaveLicenseFileAsync(It.IsAny<Package>(), It.IsAny<Stream>()), Times.Once);
+                }
+                else
+                {
+                    CoreLicenseFileServiceMock
+                        .Verify(clfs => clfs.ExtractAndSaveLicenseFileAsync(It.IsAny<Package>(), It.IsAny<Stream>()), Times.Never);
+                }
+            }
+
             [Fact]
             public async Task AllowsPackageAlreadyInPublicContainerWhenValidationSetPackageDoesNotExist()
             {
@@ -298,6 +327,42 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 PackageFileServiceMock.Verify(
                     x => x.DeletePackageForValidationSetAsync(ValidationSet),
                     Times.Never);
+            }
+
+            [Theory]
+            [InlineData(EmbeddedLicenseFileType.Absent, PackageStatus.Validating, false)]
+            [InlineData(EmbeddedLicenseFileType.Absent, PackageStatus.Available, false)]
+            [InlineData(EmbeddedLicenseFileType.PlainText, PackageStatus.Validating, true)]
+            [InlineData(EmbeddedLicenseFileType.PlainText, PackageStatus.Available, false)]
+            [InlineData(EmbeddedLicenseFileType.Markdown, PackageStatus.Validating, true)]
+            [InlineData(EmbeddedLicenseFileType.Markdown, PackageStatus.Available, false)]
+            public async Task DeletesLicenseFromPublicStorageOnDbUpdateFailure(EmbeddedLicenseFileType licenseFileType, PackageStatus originalStatus, bool expectedDelete)
+            {
+                Package.PackageStatusKey = originalStatus;
+                Package.EmbeddedLicenseType = licenseFileType;
+
+                var expected = new Exception("Everything failed");
+                PackageServiceMock
+                    .Setup(ps => ps.UpdateStatusAsync(Package, PackageStatus.Available, true))
+                    .Throws(expected);
+
+                var actual = await Assert.ThrowsAsync<Exception>(
+                    () => Target.SetStatusAsync(PackageValidatingEntity, ValidationSet, PackageStatus.Available));
+
+                Assert.Same(expected, actual);
+
+                if (expectedDelete)
+                {
+                    CoreLicenseFileServiceMock
+                        .Verify(clfs => clfs.DeleteLicenseFileAsync(Package.Id, Package.NormalizedVersion), Times.Once);
+                    CoreLicenseFileServiceMock
+                        .Verify(clfs => clfs.DeleteLicenseFileAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+                }
+                else
+                {
+                    CoreLicenseFileServiceMock
+                        .Verify(clfs => clfs.DeleteLicenseFileAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+                }
             }
 
             [Fact]
@@ -526,6 +591,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 ValidatorProviderMock = new Mock<IValidatorProvider>();
                 TelemetryServiceMock = new Mock<ITelemetryService>();
                 LoggerMock = new Mock<ILogger<EntityStatusProcessor<Package>>>();
+                CoreLicenseFileServiceMock = new Mock<ICoreLicenseFileService>();
 
                 var streamMetadata = new PackageStreamMetadata()
                 {
@@ -538,12 +604,13 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     .Setup(x => x.UpdatePackageBlobMetadataAsync(It.IsAny<PackageValidationSet>()))
                     .ReturnsAsync(streamMetadata);
 
-                Target = new EntityStatusProcessor<Package>(
+                Target = new PackageStatusProcessor(
                     PackageServiceMock.Object,
                     PackageFileServiceMock.Object,
                     ValidatorProviderMock.Object,
                     TelemetryServiceMock.Object,
-                    LoggerMock.Object);
+                    LoggerMock.Object,
+                    CoreLicenseFileServiceMock.Object);
 
                 PackageValidatingEntity = new PackageValidatingEntity(Package);
             }
@@ -555,6 +622,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             public Mock<IValidatorProvider> ValidatorProviderMock { get; }
             public Mock<ITelemetryService> TelemetryServiceMock { get; }
             public Mock<ILogger<EntityStatusProcessor<Package>>> LoggerMock { get; }
+            public Mock<ICoreLicenseFileService> CoreLicenseFileServiceMock { get; }
             public EntityStatusProcessor<Package> Target { get; }
             public PackageValidatingEntity PackageValidatingEntity { get; }
         }

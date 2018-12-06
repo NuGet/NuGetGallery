@@ -97,6 +97,9 @@
     "AnnouncementsUrl": "https://github.com/NuGet/Announcements/issues",
     "TwitterUrl": "https://twitter.com/nuget"
   },
+  "FlatContainer": {
+    "ConnectionString": ""
+  },
   "PackageDownloadTimeout": "00:10:00",
   "KeyVault_VaultName": "",
   "KeyVault_ClientId": "",
