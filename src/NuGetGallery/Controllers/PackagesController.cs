@@ -677,6 +677,11 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
+            if (!string.IsNullOrWhiteSpace(package.LicenseExpression))
+            {
+                return Redirect(LicenseExpressionRedirectUrlHelper.GetLicenseExpressionRedirectUrl(package.LicenseExpression));
+            }
+
             if (package.EmbeddedLicenseType == EmbeddedLicenseFileType.Absent)
             {
                 return HttpNotFound();
