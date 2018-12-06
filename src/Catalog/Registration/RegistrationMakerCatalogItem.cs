@@ -19,6 +19,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
         private readonly IGraph _catalogItem;
         private Uri _itemAddress;
         private readonly Uri _packageContentBaseAddress;
+        private readonly Uri _galleryBaseAddress;
         private Uri _packageContentAddress;
         private readonly Uri _registrationBaseAddress;
         private Uri _registrationAddress;
@@ -28,11 +29,12 @@ namespace NuGet.Services.Metadata.Catalog.Registration
         // This should be set before class is instantiated
         public static IPackagePathProvider PackagePathProvider = null;
 
-        public RegistrationMakerCatalogItem(Uri catalogUri, IGraph catalogItem, Uri registrationBaseAddress, bool isExistingItem, Uri packageContentBaseAddress = null)
+        public RegistrationMakerCatalogItem(Uri catalogUri, IGraph catalogItem, Uri registrationBaseAddress, bool isExistingItem, Uri packageContentBaseAddress = null, Uri galleryBaseAddress = null)
         {
             _catalogUri = catalogUri;
             _catalogItem = catalogItem;
             _packageContentBaseAddress = packageContentBaseAddress;
+            _galleryBaseAddress = galleryBaseAddress;
             _registrationBaseAddress = registrationBaseAddress;
 
             IsExistingItem = isExistingItem;
@@ -155,6 +157,44 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             return _packageContentAddress;
         }
 
+        private string GetLicenseUrl()
+        {
+            INode subject = _catalogItem.CreateUriNode(_catalogUri);
+
+            string id = _catalogItem.GetTriplesWithSubjectPredicate(subject, _catalogItem.CreateUriNode(Schema.Predicates.Id)).FirstOrDefault().Object.ToString();
+            string version = NuGetVersionUtility.NormalizeVersion(_catalogItem.GetTriplesWithSubjectPredicate(subject, _catalogItem.CreateUriNode(Schema.Predicates.Version)).FirstOrDefault().Object.ToString());
+            Triple licenseExpression = _catalogItem.GetTriplesWithSubjectPredicate(subject, _catalogItem.CreateUriNode(Schema.Predicates.LicenseExpression)).FirstOrDefault();
+            Triple licenseFile = _catalogItem.GetTriplesWithSubjectPredicate(subject, _catalogItem.CreateUriNode(Schema.Predicates.LicenseFile)).FirstOrDefault();
+            Triple licenseUrl = _catalogItem.GetTriplesWithSubjectPredicate(subject, _catalogItem.CreateUriNode(Schema.Predicates.LicenseUrl)).FirstOrDefault();
+
+            if (_galleryBaseAddress != null)
+            {
+                if (licenseExpression != null && !string.IsNullOrWhiteSpace(licenseExpression.Object.ToString()))
+                {
+                    return GetGalleryLicenseUrl(id, version);
+                }
+                if (licenseFile != null && !string.IsNullOrWhiteSpace(licenseFile.Object.ToString()))
+                {
+                    return GetGalleryLicenseUrl(id, version);
+                }
+            }
+
+            if (licenseUrl != null)
+            {
+                return licenseUrl.Object.ToString();
+            }
+
+            return string.Empty;
+        }
+
+        private string GetGalleryLicenseUrl(string id, string version)
+        {
+            var galleryBaseAddress = new Uri(_galleryBaseAddress.AbsoluteUri.TrimEnd('/') + "/");
+            var licenseRelativeUri = string.Join("/", new string[] { "packages", id, version, "license" });
+
+            return new Uri(galleryBaseAddress, licenseRelativeUri).AbsoluteUri;
+        }
+
         public override IGraph CreatePageContent(CatalogContext context)
         {
             try
@@ -173,6 +213,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
                     sparql.SetUri("baseAddress", BaseAddress);
                     sparql.SetUri("packageContent", GetPackageContentAddress());
                     sparql.SetUri("registrationBaseAddress", _registrationBaseAddress);
+                    sparql.SetLiteral("licenseUrl", GetLicenseUrl());
 
                     content = SparqlHelpers.Construct(store, sparql.ToString());
                 }

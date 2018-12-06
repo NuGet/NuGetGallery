@@ -18,6 +18,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             IReadOnlyDictionary<string, IGraph> newItems,
             StorageFactory storageFactory,
             Uri contentBaseAddress,
+            Uri galleryBaseAddress,
             int partitionSize,
             int packageCountThreshold,
             ITelemetryService telemetryService,
@@ -29,6 +30,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
                 (k, u, g) => true,
                 storageFactory,
                 contentBaseAddress,
+                galleryBaseAddress,
                 partitionSize,
                 packageCountThreshold,
                 telemetryService,
@@ -41,6 +43,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             ShouldIncludeRegistrationPackage shouldInclude,
             StorageFactory storageFactory,
             Uri contentBaseAddress,
+            Uri galleryBaseAddress,
             int partitionSize,
             int packageCountThreshold,
             ITelemetryService telemetryService,
@@ -48,7 +51,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
         {
             Trace.TraceInformation("RegistrationMaker.Process: registrationKey = {0} newItems: {1}", registrationKey, newItems.Count);
 
-            IRegistrationPersistence registration = new RegistrationPersistence(storageFactory, registrationKey, partitionSize, packageCountThreshold, contentBaseAddress);
+            IRegistrationPersistence registration = new RegistrationPersistence(storageFactory, registrationKey, partitionSize, packageCountThreshold, contentBaseAddress, galleryBaseAddress);
 
             IDictionary<RegistrationEntryKey, RegistrationCatalogEntry> existing = await registration.Load(cancellationToken);
 
@@ -59,7 +62,8 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             Trace.TraceInformation("RegistrationMaker.Process: delta = {0}", delta.Count);
             telemetryService.TrackMetric(TelemetryConstants.RegistrationDeltaCount, (uint)delta.Count, new Dictionary<string, string>()
             {
-                { TelemetryConstants.ContentBaseAddress, contentBaseAddress.AbsoluteUri }
+                { TelemetryConstants.ContentBaseAddress, contentBaseAddress.AbsoluteUri },
+                { TelemetryConstants.GalleryBaseAddress, galleryBaseAddress.AbsoluteUri }
             });
 
             IDictionary<RegistrationEntryKey, RegistrationCatalogEntry> resulting = Apply(existing, delta);

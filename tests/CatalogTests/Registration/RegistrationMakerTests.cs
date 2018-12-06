@@ -25,6 +25,7 @@ namespace CatalogTests.Registration
         private const int _defaultPackageCountThreshold = 128;
 
         private static readonly Uri _contentBaseAddress = new Uri("https://nuget.test/");
+        private static readonly Uri _galleryBaseAddress = new Uri("https://nuget.org/");
 
         private readonly MemoryStorageFactory _storageFactory = new MemoryStorageFactory(new Uri("https://nuget.test/v3-registration3/"));
         private readonly Mock<ITelemetryService> _telemetryService = new Mock<ITelemetryService>();
@@ -197,6 +198,7 @@ namespace CatalogTests.Registration
                 newItems,
                 _storageFactory,
                 _contentBaseAddress,
+                _galleryBaseAddress,
                 partitionSize,
                 packageCountThreshold,
                 _telemetryService.Object,
