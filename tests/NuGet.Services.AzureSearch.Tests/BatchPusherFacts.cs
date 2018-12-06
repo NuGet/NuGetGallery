@@ -514,8 +514,8 @@ namespace NuGet.Services.AzureSearch
             protected readonly Mock<ISearchIndexClientWrapper> _hijackIndexClientWrapper;
             protected readonly Mock<IDocumentsOperationsWrapper> _hijackDocumentsWrapper;
             protected readonly Mock<IVersionListDataClient> _versionListDataClient;
-            protected readonly AzureSearchConfiguration _config;
-            protected readonly Mock<IOptionsSnapshot<AzureSearchConfiguration>> _options;
+            protected readonly AzureSearchJobConfiguration _config;
+            protected readonly Mock<IOptionsSnapshot<AzureSearchJobConfiguration>> _options;
             protected readonly IndexActions _indexActions;
             protected readonly BatchPusher _target;
 
@@ -540,8 +540,8 @@ namespace NuGet.Services.AzureSearch
                 _hijackIndexClientWrapper = new Mock<ISearchIndexClientWrapper>();
                 _hijackDocumentsWrapper = new Mock<IDocumentsOperationsWrapper>();
                 _versionListDataClient = new Mock<IVersionListDataClient>();
-                _config = new AzureSearchConfiguration();
-                _options = new Mock<IOptionsSnapshot<AzureSearchConfiguration>>();
+                _config = new AzureSearchJobConfiguration();
+                _options = new Mock<IOptionsSnapshot<AzureSearchJobConfiguration>>();
 
                 _searchIndexClientWrapper.Setup(x => x.IndexName).Returns("search");
                 _searchIndexClientWrapper.Setup(x => x.Documents).Returns(() => _searchDocumentsWrapper.Object);

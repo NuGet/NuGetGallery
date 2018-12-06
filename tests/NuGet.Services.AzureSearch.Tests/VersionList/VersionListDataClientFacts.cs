@@ -168,9 +168,9 @@ namespace NuGet.Services.AzureSearch
             protected readonly Mock<IAccessCondition> _accessCondition;
             protected readonly VersionListData _versionList;
             protected readonly Mock<ICoreFileStorageService> _storageService;
-            protected readonly Mock<IOptionsSnapshot<AzureSearchConfiguration>> _options;
+            protected readonly Mock<IOptionsSnapshot<AzureSearchJobConfiguration>> _options;
             protected readonly RecordingLogger<VersionListDataClient> _logger;
-            protected readonly AzureSearchConfiguration _config;
+            protected readonly AzureSearchJobConfiguration _config;
             protected readonly VersionListDataClient _target;
 
             protected readonly List<byte[]> _savedBytes = new List<byte[]>();
@@ -201,9 +201,9 @@ namespace NuGet.Services.AzureSearch
                 });
 
                 _storageService = new Mock<ICoreFileStorageService>();
-                _options = new Mock<IOptionsSnapshot<AzureSearchConfiguration>>();
+                _options = new Mock<IOptionsSnapshot<AzureSearchJobConfiguration>>();
                 _logger = output.GetLogger<VersionListDataClient>();
-                _config = new AzureSearchConfiguration();
+                _config = new AzureSearchJobConfiguration();
 
                 _options
                     .Setup(x => x.Value)

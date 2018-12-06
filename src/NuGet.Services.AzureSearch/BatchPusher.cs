@@ -22,7 +22,7 @@ namespace NuGet.Services.AzureSearch
         private readonly ISearchIndexClientWrapper _searchIndexClient;
         private readonly ISearchIndexClientWrapper _hijackIndexClient;
         private readonly IVersionListDataClient _versionListDataClient;
-        private readonly IOptionsSnapshot<AzureSearchConfiguration> _options;
+        private readonly IOptionsSnapshot<AzureSearchJobConfiguration> _options;
         private readonly ILogger<BatchPusher> _logger;
         internal readonly Dictionary<string, int> _idReferenceCount;
         internal readonly Queue<IdAndValue<IndexAction<KeyedDocument>>> _searchActions;
@@ -33,7 +33,7 @@ namespace NuGet.Services.AzureSearch
             ISearchIndexClientWrapper searchIndexClient,
             ISearchIndexClientWrapper hijackIndexClient,
             IVersionListDataClient versionListDataClient,
-            IOptionsSnapshot<AzureSearchConfiguration> options,
+            IOptionsSnapshot<AzureSearchJobConfiguration> options,
             ILogger<BatchPusher> logger)
         {
             _searchIndexClient = searchIndexClient ?? throw new ArgumentNullException(nameof(searchIndexClient));
@@ -50,7 +50,7 @@ namespace NuGet.Services.AzureSearch
             if (_options.Value.MaxConcurrentVersionListWriters <= 0)
             {
                 throw new ArgumentException(
-                    $"The {nameof(AzureSearchConfiguration.MaxConcurrentVersionListWriters)} must be greater than zero.",
+                    $"The {nameof(AzureSearchJobConfiguration.MaxConcurrentVersionListWriters)} must be greater than zero.",
                     nameof(options));
             }
         }

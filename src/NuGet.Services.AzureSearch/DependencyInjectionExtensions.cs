@@ -33,7 +33,7 @@ namespace NuGet.Services.AzureSearch
                 .Register(c =>
                 {
                     var serviceClient = c.Resolve<ISearchServiceClientWrapper>();
-                    var options = c.Resolve<IOptionsSnapshot<AzureSearchConfiguration>>();
+                    var options = c.Resolve<IOptionsSnapshot<AzureSearchJobConfiguration>>();
                     return serviceClient.Indexes.GetClient(options.Value.SearchIndexName);
                 })
                 .SingleInstance()
@@ -43,7 +43,7 @@ namespace NuGet.Services.AzureSearch
                 .Register(c =>
                 {
                     var serviceClient = c.Resolve<ISearchServiceClientWrapper>();
-                    var options = c.Resolve<IOptionsSnapshot<AzureSearchConfiguration>>();
+                    var options = c.Resolve<IOptionsSnapshot<AzureSearchJobConfiguration>>();
                     return serviceClient.Indexes.GetClient(options.Value.HijackIndexName);
                 })
                 .SingleInstance()
@@ -54,7 +54,7 @@ namespace NuGet.Services.AzureSearch
                     c.ResolveKeyed<ISearchIndexClientWrapper>(SearchIndexKey),
                     c.ResolveKeyed<ISearchIndexClientWrapper>(HijackIndexKey),
                     c.Resolve<IVersionListDataClient>(),
-                    c.Resolve<IOptionsSnapshot<AzureSearchConfiguration>>(),
+                    c.Resolve<IOptionsSnapshot<AzureSearchJobConfiguration>>(),
                     c.Resolve<ILogger<BatchPusher>>()));
 
             return containerBuilder;
@@ -76,14 +76,14 @@ namespace NuGet.Services.AzureSearch
 
             services.AddTransient(p =>
             {
-                var options = p.GetRequiredService<IOptionsSnapshot<AzureSearchConfiguration>>();
+                var options = p.GetRequiredService<IOptionsSnapshot<AzureSearchJobConfiguration>>();
                 return CloudStorageAccount.Parse(options.Value.StorageConnectionString);
             });
 
             services.AddTransient(p =>
             {
                 var account = p.GetRequiredService<CloudStorageAccount>();
-                var options = p.GetRequiredService<IOptionsSnapshot<AzureSearchConfiguration>>();
+                var options = p.GetRequiredService<IOptionsSnapshot<AzureSearchJobConfiguration>>();
                 return (IStorageFactory)new AzureStorageFactory(
                     account,
                     CoreConstants.ContentFolderName,
@@ -98,7 +98,7 @@ namespace NuGet.Services.AzureSearch
 
             services.AddTransient<ISearchServiceClient>(p =>
             {
-                var options = p.GetRequiredService<IOptionsSnapshot<AzureSearchConfiguration>>();
+                var options = p.GetRequiredService<IOptionsSnapshot<AzureSearchJobConfiguration>>();
                 return new SearchServiceClient(
                     options.Value.SearchServiceName,
                     new SearchCredentials(options.Value.SearchServiceApiKey));
@@ -106,7 +106,7 @@ namespace NuGet.Services.AzureSearch
 
             services.AddTransient<ICloudBlobClient, CloudBlobClientWrapper>(p =>
             {
-                var options = p.GetRequiredService<IOptionsSnapshot<AzureSearchConfiguration>>();
+                var options = p.GetRequiredService<IOptionsSnapshot<AzureSearchJobConfiguration>>();
                 return new CloudBlobClientWrapper(
                     options.Value.StorageConnectionString,
                     readAccessGeoRedundant: true);

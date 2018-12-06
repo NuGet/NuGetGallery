@@ -35,6 +35,7 @@ namespace NuGet.Jobs
             services.AddAzureSearch();
 
             services.Configure<Catalog2AzureSearchConfiguration>(configurationRoot.GetSection(ConfigurationSectionName));
+            services.Configure<AzureSearchJobConfiguration>(configurationRoot.GetSection(ConfigurationSectionName));
             services.Configure<AzureSearchConfiguration>(configurationRoot.GetSection(ConfigurationSectionName));
             services.AddTransient<Catalog2AzureSearchCommand>();
         }

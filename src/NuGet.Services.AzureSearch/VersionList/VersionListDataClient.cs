@@ -21,12 +21,12 @@ namespace NuGet.Services.AzureSearch
             Formatting = Formatting.Indented, // Negligable performance impact but much more readable.
         });
         private readonly ICoreFileStorageService _storageService;
-        private readonly IOptionsSnapshot<AzureSearchConfiguration> _options;
+        private readonly IOptionsSnapshot<AzureSearchJobConfiguration> _options;
         private readonly ILogger<VersionListDataClient> _logger;
 
         public VersionListDataClient(
             ICoreFileStorageService storageService,
-            IOptionsSnapshot<AzureSearchConfiguration> options,
+            IOptionsSnapshot<AzureSearchJobConfiguration> options,
             ILogger<VersionListDataClient> logger)
         {
             _storageService = storageService ?? throw new ArgumentNullException(nameof(storageService));

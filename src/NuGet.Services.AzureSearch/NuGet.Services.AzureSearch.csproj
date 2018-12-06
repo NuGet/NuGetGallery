@@ -44,6 +44,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AzureSearchConfiguration.cs" />
+    <Compile Include="AzureSearchJobConfiguration.cs" />
     <Compile Include="Catalog2AzureSearch\AzureSearchCollector.cs" />
     <Compile Include="Catalog2AzureSearch\AzureSearchCollectorLogic.cs" />
     <Compile Include="Catalog2AzureSearch\Catalog2AzureSearchCommand.cs" />

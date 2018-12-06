@@ -3,7 +3,7 @@
 
 namespace NuGet.Services.AzureSearch.Db2AzureSearch
 {
-    public class Db2AzureSearchConfiguration : AzureSearchConfiguration
+    public class Db2AzureSearchConfiguration : AzureSearchJobConfiguration
     {
         public int DatabaseBatchSize { get; set; }
         public bool ReplaceIndexes { get; set; }

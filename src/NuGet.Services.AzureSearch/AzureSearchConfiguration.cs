@@ -5,25 +5,9 @@ namespace NuGet.Services.AzureSearch
 {
     public class AzureSearchConfiguration
     {
-        public int AzureSearchBatchSize { get; set; }
-        public int MaxConcurrentBatches { get; set; }
-        public int MaxConcurrentVersionListWriters { get; set; }
         public string SearchServiceName { get; set; }
         public string SearchServiceApiKey { get; set; }
         public string SearchIndexName { get; set; }
         public string HijackIndexName { get; set; }
-        public string StorageConnectionString { get; set; }
-        public string StoragePath { get; set; }
-
-        public string NormalizeStoragePath()
-        {
-            var storagePath = StoragePath?.Trim('/') ?? string.Empty;
-            if (storagePath.Length > 0)
-            {
-                storagePath = storagePath + "/";
-            }
-
-            return storagePath;
-        }
     }
 }

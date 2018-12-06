@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
 {
-    public class Catalog2AzureSearchConfiguration : AzureSearchConfiguration
+    public class Catalog2AzureSearchConfiguration : AzureSearchJobConfiguration
     {
         public bool CreateIndexes { get; set; }
         public string Source { get; set; }
