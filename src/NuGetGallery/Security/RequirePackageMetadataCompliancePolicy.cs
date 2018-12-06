@@ -122,7 +122,7 @@ namespace NuGetGallery.Security
                 .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
                 .Select(s => s.Trim());
 
-            if (state.AllowedAuthors.Length > 0)
+            if (state.AllowedAuthors?.Length > 0)
             {
                 foreach (var packageAuthor in packageAuthors)
                 {
@@ -162,7 +162,6 @@ namespace NuGetGallery.Security
 
             return !complianceFailures.Any();
         }
-
 
         /// <summary>
         /// Retrieve the policy state.
