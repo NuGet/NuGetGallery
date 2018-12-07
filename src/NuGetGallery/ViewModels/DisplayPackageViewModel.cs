@@ -62,6 +62,8 @@ namespace NuGetGallery
                 ProjectUrl = projectUrl;
             }
 
+            EmbeddedLicenseType = package.EmbeddedLicenseType;
+
             var licenseExpression = package.LicenseExpression;
             if (!string.IsNullOrWhiteSpace(licenseExpression))
             {
@@ -132,6 +134,7 @@ namespace NuGetGallery
         public string ProjectUrl { get; set; }
         public string LicenseUrl { get; set; }
         public IEnumerable<string> LicenseNames { get; set; }
+        public EmbeddedLicenseFileType EmbeddedLicenseType { get; set; }
 
         private IDictionary<User, string> _pushedByCache = new Dictionary<User, string>();
 

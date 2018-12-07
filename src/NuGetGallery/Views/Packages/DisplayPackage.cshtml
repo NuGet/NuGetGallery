@@ -182,6 +182,11 @@
                         validation and indexing may take up to an hour. <a href="https://aka.ms/NuGetPackageValidation">Read more</a>.
                     </text>
                 )
+                @ViewHelpers.AlertWarning(
+                    @<text>
+                        <strong>The license link will become available once package validation has completed successfully.</strong>
+                    </text>
+                )
 
                 if (Model.ValidatingTooLong)
                 {
@@ -276,7 +281,7 @@
                     @ViewHelpers.AlertWarning(
                         @<text>
                             <strong>The symbols for this package have not been indexed yet.</strong> They are not available
-                            for download from the NuGet.org symbol server. Symbols will be available for download after both validation and indexing are complete. 
+                            for download from the NuGet.org symbol server. Symbols will be available for download after both validation and indexing are complete.
                             Symbols validation and indexing may take up to an hour. <a href="https://aka.ms/NuGetSymbolsPackageValidation">Read more</a>.
                         </text>
                      )
@@ -618,19 +623,23 @@
                 }
                 @if (!Model.Deleted && Model.LicenseUrl != null)
                 {
-                    <li>
-                        <i class="ms-Icon ms-Icon--Certificate" aria-hidden="true"></i>
-                        <a href="@Model.LicenseUrl" data-track="outbound-license-url" title="Make sure you agree with the license" rel="nofollow">
-                            @if (Model.LicenseNames.AnySafe())
-                            {
-                                @(string.Join(", ", Model.LicenseNames.Select(x => x + " License")))
-                            }
-                            else
-                            {
-                                @:License Info
-                            }
-                        </a>
-                    </li>
+                    if (Model.EmbeddedLicenseType == EmbeddedLicenseFileType.Absent || !Model.Validating)
+                    {
+                        <li>
+                            <i class="ms-Icon ms-Icon--Certificate" aria-hidden="true"></i>
+                            <a href="@(Model.EmbeddedLicenseType == EmbeddedLicenseFileType.Absent ? Model.LicenseUrl : Url.License(Model.Id, Model.Version))"
+                               data-track="outbound-license-url" title="Make sure you agree with the license" rel="nofollow">
+                                @if (Model.LicenseNames.AnySafe())
+                                {
+                                    @(string.Join(", ", Model.LicenseNames.Select(x => x + " License")))
+                                }
+                                else
+                                {
+                                    @:License Info
+                                }
+                            </a>
+                        </li>
+                    }
                 }
                 <li>
                     <i class="ms-Icon ms-Icon--Mail" aria-hidden="true"></i>

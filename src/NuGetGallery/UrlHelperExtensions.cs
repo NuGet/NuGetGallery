@@ -1267,6 +1267,20 @@ namespace NuGetGallery
                 });
         }
 
+        public static string License(this UrlHelper url, string id, string version, bool relativeUrl = true)
+        {
+            return GetActionLink(
+                url,
+                "License",
+                "Packages",
+                relativeUrl,
+                routeValues: new RouteValueDictionary
+                {
+                    { "id", id },
+                    { "version", version }
+                });
+        }
+
         public static string Terms(this UrlHelper url, bool relativeUrl = true)
         {
             if (!String.IsNullOrEmpty(_configuration.Current.ExternalTermsOfUseUrl))
