@@ -118,29 +118,7 @@ namespace NuGetGallery.Security
             complianceFailures = new List<string>();
 
             // Author validation
-            var packageAuthors = package.FlattenedAuthors
-                .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
-                .Select(s => s.Trim());
-
-            if (state.AllowedAuthors?.Length > 0)
-            {
-                foreach (var packageAuthor in packageAuthors)
-                {
-                    if (!state.AllowedAuthors.Contains(packageAuthor))
-                    {
-                        complianceFailures.Add(string.Format(CultureInfo.CurrentCulture, Strings.SecurityPolicy_PackageAuthorNotAllowed, packageAuthor));
-                    }
-                }
-            }
-            else
-            {
-                // No list of allowed authors is defined for this policy.
-                // We require the required co-owner to be defined as the only package author.
-                if (packageAuthors.Count() > 1 || packageAuthors.Single() != state.RequiredCoOwnerUsername)
-                {
-                    complianceFailures.Add(string.Format(CultureInfo.CurrentCulture, Strings.SecurityPolicy_RequiredAuthorMissing, state.RequiredCoOwnerUsername));
-                }
-            }
+            ValidatePackageAuthors(package, state, complianceFailures);
 
             // Copyright validation
             if (!state.AllowedCopyrightNotices.Contains(package.Copyright))
@@ -161,6 +139,48 @@ namespace NuGetGallery.Security
             }
 
             return !complianceFailures.Any();
+        }
+
+        private static void ValidatePackageAuthors(Package package, State state, IList<string> complianceFailures)
+        {
+            var packageAuthors = package.FlattenedAuthors
+                .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(s => s.Trim())
+                .ToList();
+
+            // Check for duplicate entries
+            var duplicateAuthors = packageAuthors
+                .GroupBy(x => x)
+                .Where(group => group.Count() > 1)
+                .Select(group => group.Key)
+                .ToList();
+
+            if (duplicateAuthors.Any())
+            {
+                complianceFailures.Add(string.Format(CultureInfo.CurrentCulture, Strings.SecurityPolicy_PackageAuthorDuplicatesNotAllowed, string.Join(",", duplicateAuthors)));
+            }
+            else
+            {
+                if (state.AllowedAuthors?.Length > 0)
+                {
+                    foreach (var packageAuthor in packageAuthors)
+                    {
+                        if (!state.AllowedAuthors.Contains(packageAuthor))
+                        {
+                            complianceFailures.Add(string.Format(CultureInfo.CurrentCulture, Strings.SecurityPolicy_PackageAuthorNotAllowed, packageAuthor));
+                        }
+                    }
+                }
+                else
+                {
+                    // No list of allowed authors is defined for this policy.
+                    // We require the required co-owner to be defined as the only package author.
+                    if (packageAuthors.Count() > 1 || packageAuthors.Single() != state.RequiredCoOwnerUsername)
+                    {
+                        complianceFailures.Add(string.Format(CultureInfo.CurrentCulture, Strings.SecurityPolicy_RequiredAuthorMissing, state.RequiredCoOwnerUsername));
+                    }
+                }
+            }
         }
 
         /// <summary>

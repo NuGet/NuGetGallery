@@ -243,6 +243,43 @@ namespace NuGetGallery.Security
         }
 
         [Fact]
+        public async Task Evaluate_DuplicatePackageAuthor_CreatesErrorResult()
+        {
+            // Arrange
+            var nugetUser = new User("NuGet");
+            var newPackageRegistration = new PackageRegistration { Id = "NewPackageId", Owners = new List<User> { nugetUser } };
+            var packageAuthors = new[] { MicrosoftTeamSubscription.MicrosoftUsername, MicrosoftTeamSubscription.MicrosoftUsername };
+            var nonCompliantPackage = Fakes.CreateCompliantPackage("1.0.0", newPackageRegistration, packageAuthors);
+
+            var policy = RequirePackageMetadataCompliancePolicy.CreatePolicy(
+                    MicrosoftTeamSubscription.Name,
+                    MicrosoftTeamSubscription.MicrosoftUsername,
+                    allowedCopyrightNotices: MicrosoftTeamSubscription.AllowedCopyrightNotices,
+                    allowedAuthors: new[] { MicrosoftTeamSubscription.MicrosoftUsername },
+                    isLicenseUrlRequired: true,
+                    isProjectUrlRequired: true,
+                    errorMessageFormat: Strings.SecurityPolicy_RequireMicrosoftPackageMetadataComplianceForPush);
+
+            var policyHandler = new RequirePackageMetadataCompliancePolicy();
+
+            var context = CreateTestContext(
+                true,
+                new[] { policy },
+                nonCompliantPackage,
+                packageRegistrationAlreadyExists: false,
+                sourceAccount: nugetUser,
+                targetAccount: nugetUser);
+
+            // Act
+            var result = await policyHandler.EvaluateAsync(context);
+
+            // Assert
+            Assert.False(result.Success);
+            Assert.Null(newPackageRegistration.Owners.SingleOrDefault(u => u.Username == MicrosoftTeamSubscription.MicrosoftUsername));
+            Assert.False(newPackageRegistration.IsVerified);
+        }
+
+        [Fact]
         public async Task Evaluate_CompliantPackageAuthors_CreatesSuccessResult()
         {
             // Arrange

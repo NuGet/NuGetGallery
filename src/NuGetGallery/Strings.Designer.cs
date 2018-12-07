@@ -1733,6 +1733,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The package metadata defines &apos;{0}&apos; as author more than once, which is not allowed by policy..
+        /// </summary>
+        public static string SecurityPolicy_PackageAuthorDuplicatesNotAllowed {
+            get {
+                return ResourceManager.GetString("SecurityPolicy_PackageAuthorDuplicatesNotAllowed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The package metadata defines &apos;{0}&apos; as one of the authors which is not allowed by policy..
         /// </summary>
         public static string SecurityPolicy_PackageAuthorNotAllowed {
