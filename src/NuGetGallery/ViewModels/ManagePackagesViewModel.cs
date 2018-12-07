@@ -1,10 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using NuGet.Services.Entities;
-using NuGetGallery.ViewModels;
 
 namespace NuGetGallery
 {
@@ -12,12 +10,7 @@ namespace NuGetGallery
     {
         public virtual User User { get; set; }
 
-        public IEnumerable<ListPackageOwnerViewModel> Owners { get; set; }
-
-        internal IEnumerable<ManagePackagesSerializableOwnerViewModel> Select()
-        {
-            throw new NotImplementedException();
-        }
+        public IEnumerable<string> Owners { get; set; }
 
         public IEnumerable<ListPackageItemRequiredSignerViewModel> ListedPackages { get; set; }
 

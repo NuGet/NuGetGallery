@@ -20,8 +20,8 @@
                 </div>
                 <div class="ms-font-xxl">
                     <span>
-                        <select id="ownerFilter" class="form-control hidden" aria-label="Filter on package owner"
-                                data-bind="options: Owners, value: OwnerFilter, optionsText: 'Username'"></select>
+                        <select id="ownerFilter" class="form-control" aria-label="Filter on package owner"
+                                data-bind="visible: Owners.length > 2, options: Owners, value: OwnerFilter"></select>
                     </span>
                 </div>
             </div>
@@ -29,7 +29,7 @@
 
             @ViewHelpers.Section(this, "listed", @<text>Published Packages</text>,
                 @<text>
-                    <span id="listed-data" data-bind="text: ListedPackages.VisiblePackagesHeading()"></span>
+                    <span id="listed-data" data-bind="text: ListedPackages.PackagesHeading()"></span>
                 </text>,
                 @<text>
                     <div class="row user-package-list">
@@ -39,7 +39,7 @@
 
             @ViewHelpers.Section(this, "unlisted", @<text>Unlisted Packages</text>,
                 @<text>
-                    <span id="unlisted-data" data-bind="text: UnlistedPackages.VisiblePackagesHeading()"></span>
+                    <span id="unlisted-data" data-bind="text: UnlistedPackages.PackagesHeading()"></span>
                 </text>,
                 @<text>
                     <div class="row user-package-list">
@@ -95,7 +95,7 @@
 <script type="text/html" id="manage-packages">
     @if (Model.IsCertificatesUIEnabled && !Model.WasMultiFactorAuthenticated && !User.WasAzureActiveDirectoryAccountUsedForSignin())
     {
-    <div data-bind="visible: Packages.length > 0">
+    <div data-bind="visible: PackagesCount() > 0">
         @if (Model.User.EnableMultiFactorAuthentication)
         {
             @ViewHelpers.AlertWarning(@<text>You must log in using two-factor authentication before you can change package signing requirements.</text>)
@@ -108,7 +108,7 @@
     }
     <div class="col-md-12">
         <div class="panel-collapse collapse in" aria-expanded="true">
-            <!-- ko if: VisiblePackagesCount -->
+            <!-- ko if: PackagesCount -->
             <table class="table inner-table">
                 <thead>
                     <tr class="manage-package-headings">
@@ -125,7 +125,7 @@
                     </tr>
                 </thead>
                 <tbody data-bind="foreach: CurrentPackagesPage()">
-                    <tr class="manage-package-listing" data-bind="visible: Visible">
+                    <tr class="manage-package-listing">
                         <td class="align-middle hidden-xs">
                             <img class="package-icon img-responsive" aria-hidden="true"
                                  data-bind="attr: { src: PackageIconUrl, onerror: PackageIconUrlFallback, alt: 'Icon for ' + Id }" />
@@ -198,19 +198,22 @@
                     </tr>
                 </tbody>
             </table>
-            <!-- ko if: VisiblePackagePagesCount() > 1 -->
+            <!-- ko if: PackagePagesCount() > 1 -->
             <div class="text-center" data-bind="foreach: PackagePages">
-                <!-- ko if: $data == $parent.VisiblePackagePageNumber() -->
+                <!-- ko if: $data == $parent.PackagePageNumber() -->
                 <b data-bind="text: $data + 1"></b>
                 <!-- /ko -->
-                <!-- ko ifnot: $data == $parent.VisiblePackagePageNumber() -->
+                <!-- ko ifnot: $data == $parent.PackagePageNumber() -->
                 <a href="#" data-bind="text: $data + 1, click: $parent.SetPackagePage"></a>
                 <!-- /ko -->
             </div>
             <!-- /ko -->
             <!-- /ko -->
-            <!-- ko ifnot: VisiblePackagesCount -->
+            <!-- ko if: PackagesCount() == 0 -->
             <span>There are no packages that fit this criteria.</span>
+            <!-- /ko -->
+            <!-- ko if: PackagesCount() == null -->
+            <span>Loading packages list...</span>
             <!-- /ko -->
         </div>
     </div>
@@ -339,7 +342,7 @@
         var strings_RequiredSigner_Confirm = "@Html.Raw(Strings.RequiredSigner_Confirm)";
 
         var initialData = @Html.Raw(
-            JsonConvert.SerializeObject(
+            Json.Encode(
                 new ManagePackagesSerializableViewModel(
                     Model,
                     Url.UserTemplate(),

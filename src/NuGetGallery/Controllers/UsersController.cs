@@ -482,6 +482,7 @@ namespace NuGetGallery
 
         [HttpGet]
         [UIAuthorize]
+        [OutputCache(Duration = 5 * 60)]
         public virtual JsonResult PackagesPaged(bool listed, int page = 0, string username = null)
         {
             var currentUser = GetCurrentUser();
@@ -529,15 +530,12 @@ namespace NuGetGallery
                 JsonRequestBehavior.AllowGet);
         }
 
-        private IEnumerable<ListPackageOwnerViewModel> GetOwnersForUser(User user)
+        private IEnumerable<string> GetOwnersForUser(User user)
         {
-            return new List<ListPackageOwnerViewModel> {
-                new ListPackageOwnerViewModel
-                {
-                    Username = GalleryConstants.ManagePackagesAllPackagesFilter
-                },
-                new ListPackageOwnerViewModel(user)
-            }.Concat(user.Organizations.Select(o => new ListPackageOwnerViewModel(o.Organization)));
+            return new List<string> {
+                GalleryConstants.ManagePackagesAllPackagesFilter,
+                user.Username,
+            }.Concat(user.Organizations.Select(o => o.Organization.Username));
         }
 
         private IEnumerable<ListPackageItemRequiredSignerViewModel> FilterPackagesForManagePackages(IEnumerable<Package> packages, User currentUser, bool listed)

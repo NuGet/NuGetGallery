@@ -46,7 +46,7 @@ namespace NuGetGallery
                     profileUrlTemplate));
         }
         
-        public IEnumerable<ListPackageOwnerViewModel> Owners { get; }
+        public IEnumerable<string> Owners { get; }
         public IEnumerable<ManagePackagesSerializableReservedNamespaceViewModel> ReservedNamespaces { get; }
         public IEnumerable<ManagePackagesSerializableOwnerRequestViewModel> RequestsReceived { get; }
         public IEnumerable<ManagePackagesSerializableOwnerRequestViewModel> RequestsSent { get; }
