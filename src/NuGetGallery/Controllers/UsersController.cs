@@ -463,62 +463,118 @@ namespace NuGetGallery
         {
             var currentUser = GetCurrentUser();
 
-            var owners = new List<ListPackageOwnerViewModel> {
-                new ListPackageOwnerViewModel
-                {
-                    Username = "All packages"
-                },
-                new ListPackageOwnerViewModel(currentUser)
-            }.Concat(currentUser.Organizations.Select(o => new ListPackageOwnerViewModel(o.Organization)));
-
-            var wasAADLoginOrMultiFactorAuthenticated = User.WasMultiFactorAuthenticated() || User.WasAzureActiveDirectoryAccountUsedForSignin();
-
             var packages = PackageService.FindPackagesByAnyMatchingOwner(currentUser, includeUnlisted: true);
-            var listedPackages = packages
-                .Where(p => p.Listed && p.PackageStatusKey == PackageStatus.Available)
-                .Select(p => new ListPackageItemRequiredSignerViewModel(p, currentUser, SecurityPolicyService, wasAADLoginOrMultiFactorAuthenticated))
-                .OrderBy(p => p.Id)
-                .ToList();
-            var unlistedPackages = packages
-                .Where(p => !p.Listed || p.PackageStatusKey != PackageStatus.Available)
-                .Select(p => new ListPackageItemRequiredSignerViewModel(p, currentUser, SecurityPolicyService, wasAADLoginOrMultiFactorAuthenticated))
-                .OrderBy(p => p.Id)
-                .ToList();
-
-            // find all received ownership requests
-            var userReceived = _packageOwnerRequestService.GetPackageOwnershipRequests(newOwner: currentUser);
-            var orgReceived = currentUser.Organizations
-                .Where(m => ActionsRequiringPermissions.HandlePackageOwnershipRequest.CheckPermissions(currentUser, m.Organization) == PermissionsCheckResult.Allowed)
-                .SelectMany(m => _packageOwnerRequestService.GetPackageOwnershipRequests(newOwner: m.Organization));
-            var received = userReceived.Union(orgReceived);
-
-            // find all sent ownership requests
-            var userSent = _packageOwnerRequestService.GetPackageOwnershipRequests(requestingOwner: currentUser);
-            var orgSent = currentUser.Organizations
-                .Where(m => ActionsRequiringPermissions.HandlePackageOwnershipRequest.CheckPermissions(currentUser, m.Organization) == PermissionsCheckResult.Allowed)
-                .SelectMany(m => _packageOwnerRequestService.GetPackageOwnershipRequests(requestingOwner: m.Organization));
-            var sent = userSent.Union(orgSent);
-
-            var ownerRequests = new OwnerRequestsViewModel(received, sent, currentUser, PackageService);
-
-            var userReservedNamespaces = currentUser.ReservedNamespaces;
-            var organizationsReservedNamespaces = currentUser.Organizations.SelectMany(m => m.Organization.ReservedNamespaces);
-
-            var reservedPrefixes = new ReservedNamespaceListViewModel(userReservedNamespaces.Union(organizationsReservedNamespaces).ToArray());
 
             var model = new ManagePackagesViewModel
             {
                 User = currentUser,
-                Owners = owners,
-                ListedPackages = listedPackages,
-                UnlistedPackages = unlistedPackages,
-                OwnerRequests = ownerRequests,
-                ReservedNamespaces = reservedPrefixes,
+                Owners = GetOwnersForUser(currentUser),
+                ListedPackages = FilterPackagesForManagePackages(packages, currentUser, true).ToList(),
+                UnlistedPackages = FilterPackagesForManagePackages(packages, currentUser, false).ToList(),
+                OwnerRequests = GetOwnerRequestsForUser(currentUser),
+                ReservedNamespaces = GetReservedNamespacesForUser(currentUser),
                 WasMultiFactorAuthenticated = User.WasMultiFactorAuthenticated(),
                 IsCertificatesUIEnabled = ContentObjectService.CertificatesConfiguration?.IsUIEnabledForUser(currentUser) ?? false
             };
 
             return View(model);
+        }
+
+        [HttpGet]
+        [UIAuthorize]
+        public virtual JsonResult PackagesPaged(bool listed, int page = 0, string username = null)
+        {
+            var currentUser = GetCurrentUser();
+            IEnumerable<Package> packages;
+            if (username == null)
+            {
+                packages = PackageService.FindPackagesByAnyMatchingOwner(currentUser, includeUnlisted: true);
+            }
+            else
+            {
+                var user = UserService.FindByUsername(username);
+                packages = PackageService.FindPackagesByOwner(user, includeUnlisted: true);
+            }
+
+            var filteredPackages = FilterPackagesForManagePackages(packages, currentUser, listed);
+
+            var packageCount = filteredPackages.Count();
+            var downloadCount = filteredPackages.Sum(p => p.DownloadCount);
+
+            var packageUrlTemplate = Url.PackageRegistrationTemplate();
+            var editUrlTemplate = Url.EditPackageTemplate();
+            var manageOwnersUrlTemplate = Url.ManagePackageOwnersTemplate();
+            var deleteUrlTemplate = Url.DeletePackageTemplate();
+            var setRequiredSignerUrlTemplate = Url.SetRequiredSignerTemplate();
+            var profileUrlTemplate = Url.UserTemplate();
+            var pagedPackages = filteredPackages
+                .Skip(GalleryConstants.ManagePackagesPagingSize * page)
+                .Take(GalleryConstants.ManagePackagesPagingSize)
+                .Select(p => new ManagePackagesSerializablePackageViewModel(
+                    p,
+                    packageUrlTemplate,
+                    editUrlTemplate,
+                    manageOwnersUrlTemplate,
+                    deleteUrlTemplate,
+                    setRequiredSignerUrlTemplate,
+                    profileUrlTemplate));
+
+            return Json(
+                new
+                {
+                    totalCount = packageCount,
+                    totalDownloadCount = downloadCount,
+                    packages = pagedPackages
+                },
+                JsonRequestBehavior.AllowGet);
+        }
+
+        private IEnumerable<ListPackageOwnerViewModel> GetOwnersForUser(User user)
+        {
+            return new List<ListPackageOwnerViewModel> {
+                new ListPackageOwnerViewModel
+                {
+                    Username = GalleryConstants.ManagePackagesAllPackagesFilter
+                },
+                new ListPackageOwnerViewModel(user)
+            }.Concat(user.Organizations.Select(o => new ListPackageOwnerViewModel(o.Organization)));
+        }
+
+        private IEnumerable<ListPackageItemRequiredSignerViewModel> FilterPackagesForManagePackages(IEnumerable<Package> packages, User currentUser, bool listed)
+        {
+            var wasAADLoginOrMultiFactorAuthenticated = User.WasMultiFactorAuthenticated() || User.WasAzureActiveDirectoryAccountUsedForSignin();
+
+            return packages
+                .Where(p => (p.Listed && p.PackageStatusKey == PackageStatus.Available) == listed)
+                .Select(p => new ListPackageItemRequiredSignerViewModel(p, currentUser, SecurityPolicyService, wasAADLoginOrMultiFactorAuthenticated))
+                .OrderBy(p => p.Id);
+        }
+
+        private OwnerRequestsViewModel GetOwnerRequestsForUser(User user)
+        {
+            // Find all received ownership requests
+            var userReceived = _packageOwnerRequestService.GetPackageOwnershipRequests(newOwner: user);
+            var orgReceived = user.Organizations
+                .Where(m => ActionsRequiringPermissions.HandlePackageOwnershipRequest.CheckPermissions(user, m.Organization) == PermissionsCheckResult.Allowed)
+                .SelectMany(m => _packageOwnerRequestService.GetPackageOwnershipRequests(newOwner: m.Organization));
+            var received = userReceived.Union(orgReceived);
+
+            // Find all sent ownership requests
+            var userSent = _packageOwnerRequestService.GetPackageOwnershipRequests(requestingOwner: user);
+            var orgSent = user.Organizations
+                .Where(m => ActionsRequiringPermissions.HandlePackageOwnershipRequest.CheckPermissions(user, m.Organization) == PermissionsCheckResult.Allowed)
+                .SelectMany(m => _packageOwnerRequestService.GetPackageOwnershipRequests(requestingOwner: m.Organization));
+            var sent = userSent.Union(orgSent);
+
+            return new OwnerRequestsViewModel(received, sent, user, PackageService);
+        }
+
+        private ReservedNamespaceListViewModel GetReservedNamespacesForUser(User user)
+        {
+            var userReservedNamespaces = user.ReservedNamespaces;
+            var organizationsReservedNamespaces = user.Organizations.SelectMany(m => m.Organization.ReservedNamespaces);
+
+            return new ReservedNamespaceListViewModel(userReservedNamespaces.Union(organizationsReservedNamespaces).ToArray());
         }
 
         [HttpGet]

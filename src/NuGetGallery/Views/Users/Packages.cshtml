@@ -200,7 +200,12 @@
             </table>
             <!-- ko if: VisiblePackagePagesCount() > 1 -->
             <div class="text-center" data-bind="foreach: PackagePages">
+                <!-- ko if: $data == $parent.VisiblePackagePageNumber() -->
+                <b data-bind="text: $data + 1"></b>
+                <!-- /ko -->
+                <!-- ko ifnot: $data == $parent.VisiblePackagePageNumber() -->
                 <a href="#" data-bind="text: $data + 1, click: $parent.SetPackagePage"></a>
+                <!-- /ko -->
             </div>
             <!-- /ko -->
             <!-- /ko -->
@@ -315,173 +320,15 @@
     </div>
 </script>
 
-@functions {
-    // Performance: RouteCollection.VirtualPath is expensive, so resolve the path once and save as a template.
-    // Then substitute route values into the template path when rendering links for each package on the page.
-    private RouteUrlTemplate<User> userUrlTemplate;
-
-    private RouteUrlTemplate<IPackageVersionModel> packageUrlTemplate;
-    private RouteUrlTemplate<IPackageVersionModel> editUrlTemplate;
-    private RouteUrlTemplate<IPackageVersionModel> manageOwnersUrlTemplate;
-    private RouteUrlTemplate<IPackageVersionModel> deleteUrlTemplate;
-    private RouteUrlTemplate<IPackageVersionModel> setRequiredSignerUrlTemplate;
-
-    private RouteUrlTemplate<string> searchUrlTemplate;
-
-    private RouteUrlTemplate<OwnerRequestsListItemViewModel> confirmUrlTemplate;
-    private RouteUrlTemplate<OwnerRequestsListItemViewModel> rejectUrlTemplate;
-    private RouteUrlTemplate<OwnerRequestsListItemViewModel> cancelUrlTemplate;
-
-    dynamic GetSerializablePackage(ListPackageItemRequiredSignerViewModel p)
-    {
-        if (packageUrlTemplate == null)
-        {
-            packageUrlTemplate = Url.PackageRegistrationTemplate();
-        }
-
-        if (editUrlTemplate == null)
-        {
-            editUrlTemplate = Url.EditPackageTemplate();
-        }
-
-        if (manageOwnersUrlTemplate == null)
-        {
-            manageOwnersUrlTemplate = Url.ManagePackageOwnersTemplate();
-        }
-
-        if (deleteUrlTemplate == null)
-        {
-            deleteUrlTemplate = Url.DeletePackageTemplate();
-        }
-
-        if (setRequiredSignerUrlTemplate == null)
-        {
-            setRequiredSignerUrlTemplate = Url.SetRequiredSignerTemplate();
-        }
-
-        return new
-        {
-            Id = p.Id.Abbreviate(40),
-            Owners = GetSerializableOwners(p.Owners),
-            p.TotalDownloadCount,
-            LatestVersion = p.FullVersion.Abbreviate(15),
-            RequiredSigner = GetSerializableSigner(p.RequiredSigner),
-            p.RequiredSignerMessage,
-            AllSigners = GetSerializableSigners(p.AllSigners),
-            SetRequiredSignerUrl = setRequiredSignerUrlTemplate.Resolve(p),
-            PackageIconUrl = PackageHelper.ShouldRenderUrl(p.IconUrl) ? p.IconUrl : null,
-            PackageUrl = packageUrlTemplate.Resolve(p),
-            EditUrl = editUrlTemplate.Resolve(p),
-            ManageOwnersUrl = manageOwnersUrlTemplate.Resolve(p),
-            DeleteUrl = deleteUrlTemplate.Resolve(p),
-            CanEdit = p.CanEdit,
-            CanManageOwners = p.CanManageOwners,
-            CanDelete = p.CanUnlistOrRelist,
-            p.CanEditRequiredSigner,
-            p.ShowRequiredSigner,
-            p.ShowTextBox
-        };
-    }
-
-    dynamic GetSerializableNamespace(ReservedNamespaceListItemViewModel n)
-    {
-        if (searchUrlTemplate == null)
-        {
-            searchUrlTemplate = Url.SearchTemplate();
-        }
-
-        return new
-        {
-            Pattern = n.GetPattern(),
-            SearchUrl = searchUrlTemplate.Resolve(n.Value),
-            Owners = GetSerializableOwners(n.Owners),
-            n.IsPublic
-        };
-    }
-
-    dynamic GetSerializableOwnerRequest(OwnerRequestsListItemViewModel r)
-    {
-        if (packageUrlTemplate == null)
-        {
-            packageUrlTemplate = Url.PackageRegistrationTemplate();
-        }
-
-        if (confirmUrlTemplate == null)
-        {
-            confirmUrlTemplate = Url.ConfirmPendingOwnershipRequestTemplate();
-        }
-
-        if (rejectUrlTemplate == null)
-        {
-            rejectUrlTemplate = Url.RejectPendingOwnershipRequestTemplate();
-        }
-
-        if (cancelUrlTemplate == null)
-        {
-            cancelUrlTemplate = Url.CancelPendingOwnershipRequestTemplate();
-        }
-
-        return new
-        {
-            r.Request.PackageRegistration.Id,
-            PackageIconUrl = PackageHelper.ShouldRenderUrl(r.Package.IconUrl) ? r.Package.IconUrl : null,
-            PackageUrl = packageUrlTemplate.Resolve(r.Package),
-            Owners = GetSerializableOwners(r.Package.Owners),
-            Requesting = GetSerializableOwner(r.Request.RequestingOwner),
-            New = GetSerializableOwner(r.Request.NewOwner),
-            CanAccept = r.CanAccept,
-            CanCancel = r.CanCancel,
-            ConfirmUrl = confirmUrlTemplate.Resolve(r),
-            RejectUrl = rejectUrlTemplate.Resolve(r),
-            CancelUrl = cancelUrlTemplate.Resolve(r)
-        };
-    }
-
-    dynamic GetSerializableOwners(IEnumerable<User> owners)
-    {
-        return owners.Select(o => GetSerializableOwner(o));
-    }
-
-    dynamic GetSerializableOwner(User user)
-    {
-        if (userUrlTemplate == null)
-        {
-            userUrlTemplate = Url.UserTemplate();
-        }
-
-        return new
-        {
-            user.Username,
-            TrimmedUsername = user.Username.Abbreviate(15),
-            ProfileUrl = userUrlTemplate.Resolve(user),
-            IsOrganization = user is Organization
-        };
-    }
-
-    dynamic GetSerializableSigners(IEnumerable<SignerViewModel> signers)
-    {
-        return signers.Select(signer => GetSerializableSigner(signer));
-    }
-
-    dynamic GetSerializableSigner(SignerViewModel signer)
-    {
-        if (signer == null)
-        {
-            return null;
-        }
-
-        return new
-        {
-            signer.Username,
-            OptionText = signer.DisplayText,
-            signer.HasCertificate
-        };
-    }
-}
-
 @section BottomScripts {
     <script type="text/javascript">
+        var allPackagesFilter = "@Html.Raw(GalleryConstants.ManagePackagesAllPackagesFilter)";
         var pageSize = @Json.Encode(GalleryConstants.ManagePackagesPagingSize);
+
+        var defaultPackageIconUrl = "@Html.Raw(Url.Absolute("~/Content/gallery/img/default-package-icon.svg"))";
+        var packageIconUrlFallback = "@Html.Raw(Url.Absolute("~/Content/gallery/img/default-package-icon-256x256.png"))";
+
+        var getPagedPackagesUrl = "@Html.Raw(Url.ManageMyPackagesPackages())";
 
         var strings_RequiredSigner_ThisAction = "@Html.Raw(Strings.RequiredSigner_ThisAction)";
         var strings_RequiredSigner_OwnerHasNoCertificate = "@Html.Raw(Strings.RequiredSigner_OwnerHasNoCertificate)";
@@ -491,17 +338,16 @@
         var strings_RequiredSigner_AnyWithSignedResult = "@Html.Raw(Strings.RequiredSigner_AnyWithSignedResult)";
         var strings_RequiredSigner_Confirm = "@Html.Raw(Strings.RequiredSigner_Confirm)";
 
-        var initialData = @Html.Raw(JsonConvert.SerializeObject(new
-                     {
-                         Owners = Model.Owners,
-                         ListedPackages = Model.ListedPackages.Select(GetSerializablePackage),
-                         UnlistedPackages = Model.UnlistedPackages.Select(GetSerializablePackage),
-                         ReservedNamespaces = Model.ReservedNamespaces.ReservedNamespaces.Select(GetSerializableNamespace),
-                         RequestsReceived = Model.OwnerRequests.Received.Requests.Select(GetSerializableOwnerRequest),
-                         RequestsSent = Model.OwnerRequests.Sent.Requests.Select(GetSerializableOwnerRequest),
-                         DefaultPackageIconUrl = Url.Absolute("~/Content/gallery/img/default-package-icon.svg"),
-                         PackageIconUrlFallback = Url.Absolute("~/Content/gallery/img/default-package-icon-256x256.png")
-                     }));
+        var initialData = @Html.Raw(
+            JsonConvert.SerializeObject(
+                new ManagePackagesSerializableViewModel(
+                    Model,
+                    Url.UserTemplate(),
+                    Url.PackageRegistrationTemplate(),
+                    Url.SearchTemplate(),
+                    Url.ConfirmPendingOwnershipRequestTemplate(),
+                    Url.RejectPendingOwnershipRequestTemplate(),
+                    Url.CancelPendingOwnershipRequestTemplate())));
     </script>
     @ViewHelpers.SectionsScript(this)
     @Scripts.Render("~/Scripts/gallery/page-manage-packages.min.js")

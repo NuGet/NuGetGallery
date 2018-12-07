@@ -98,5 +98,6 @@ namespace NuGetGallery
         public const string GetOrganizationCertificate = "GetOrganizationCertificate";
         public const string GetOrganizationCertificates = "GetOrganizationCertificates";
         public const string SetRequiredSigner = "SetRequiredSigner";
+        public const string ManagePackagesPackages = "ManagePackagesPackage";
     }
 }

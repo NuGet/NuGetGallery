@@ -1029,6 +1029,11 @@ namespace NuGetGallery
             return GetActionLink(url, "Packages", "Users", relativeUrl);
         }
 
+        public static string ManageMyPackagesPackages(this UrlHelper url, bool relativeUrl = true)
+        {
+            return GetActionLink(url, "PackagesPaged", "Users", relativeUrl);
+        }
+
         /// <summary>
         /// Initializes a manage package owners link that can be resolved at a later time.
         /// 

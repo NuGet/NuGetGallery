@@ -405,6 +405,12 @@ namespace NuGetGallery
                 new { controller = "Users", action = "Account" });
 
             routes.MapRoute(
+                RouteName.ManagePackagesPackages,
+                "account/Packages/packages",
+                new { controller = "Users", action = nameof(UsersController.PackagesPaged) },
+                new RouteExtensions.ObfuscatedQueryMetadata("username", Obfuscator.DefaultTelemetryUserName));
+
+            routes.MapRoute(
                 RouteName.AddOrganization,
                 "organization/add",
                 new { controller = "Organizations", action = "Add" });

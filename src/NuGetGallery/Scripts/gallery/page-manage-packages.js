@@ -1,12 +1,6 @@
 ﻿(function () {
     'use strict';
 
-    function showInitialPackagesData(dataSelector, packagesList) {
-        var downloadsCount = 0;
-        $.each(packagesList, function () { downloadsCount += this.TotalDownloadCount; });
-        $(dataSelector).text(formatPackagesData(packagesList.length, downloadsCount));
-    }
-
     function formatPackagesData(packagesCount, downloadsCount) {
         return packagesCount.toLocaleString()
             + ' package' + (packagesCount === 1 ? '' : 's')
@@ -26,7 +20,7 @@
             this.LatestVersion = packageItem.LatestVersion;
             this.PackageIconUrl = packageItem.PackageIconUrl
                 ? packageItem.PackageIconUrl
-                : this.PackagesListViewModel.ManagePackagesViewModel.DefaultPackageIconUrl;
+                : defaultPackageIconUrl;
             this.PackageUrl = packageItem.PackageUrl;
             this.EditUrl = packageItem.EditUrl;
             this.SetRequiredSignerUrl = packageItem.SetRequiredSignerUrl;
@@ -92,7 +86,7 @@
             this.Visible = ko.observable(true);
 
             this.UpdateVisibility = function (ownerFilter) {
-                var visible = ownerFilter === "All packages";
+                var visible = ownerFilter === allPackagesFilter;
                 if (!visible) {
                     for (var i in self.Owners) {
                         if (ownerFilter === self.Owners[i].Username) {
@@ -104,7 +98,7 @@
                 this.Visible(visible);
             };
             this.PackageIconUrlFallback = ko.pureComputed(function () {
-                var url = this.PackagesListViewModel.ManagePackagesViewModel.PackageIconUrlFallback;
+                var url = packageIconUrlFallback;
                 return "this.src='" + url + "'; this.onerror = null;";
             }, this);
 
@@ -170,44 +164,21 @@
             };
         }
 
-        function PackagesListViewModel(managePackagesViewModel, type, packages) {
+        function PackagesListViewModel(managePackagesViewModel, type, listed) {
             var self = this;
 
             this.ManagePackagesViewModel = managePackagesViewModel;
             this.Type = type;
+            this.Listed = listed;
 
-            this.Packages = $.map(packages, function (data) {
-                return new PackageListItemViewModel(self, data);
-            });
-
-            this.PagedPackages = ko.pureComputed(function () {
-                var map = {};
-                for (var i = 0; i < self.Packages.length; i++) {
-                    var index = Math.floor(i / pageSize);
-                    var item = self.Packages[i];
-                    var pair = map[index];
-                    if (pair) {
-                        pair.push(item);
-                    } else {
-                        pair = [item];
-                    }
-
-                    map[index] = pair;
-                }
-
-                return map;
-            }, this);
-
-            this.CurrentPackagesPage = ko.pureComputed(function () {
-                return self.PagedPackages()[self.VisiblePackagePage()];
-            }, this);
+            this.CurrentPackagesPage = ko.observable([]);
 
             this.SetPackagePage = function (page) {
-                self.VisiblePackagePage(page);
-            }
+                self.VisiblePackagePageNumber(page);
+            };
 
-            this.VisiblePackagesCount = ko.observable();
-            this.VisibleDownloadCount = ko.observable();
+            this.VisiblePackagesCount = ko.observable(0);
+            this.VisibleDownloadCount = ko.observable(0);
             this.VisiblePackagesHeading = ko.pureComputed(function () {
                 return formatPackagesData(
                     ko.unwrap(self.VisiblePackagesCount()),
@@ -218,6 +189,8 @@
                 return Math.ceil(self.VisiblePackagesCount() / pageSize);
             }, this);
 
+            this.VisiblePackagePageNumber = ko.observable(0);
+
             this.PackagePages = ko.pureComputed(function () {
                 var pages = [];
                 for (var i = 0; i < self.VisiblePackagePagesCount(); i++) {
@@ -227,20 +200,40 @@
                 return pages;
             }, this);
 
-            this.VisiblePackagePage = ko.observable(0);
+            this.VisiblePackagePageIdentity = ko.pureComputed(function () {
+                return {
+                    ownerFilter: self.ManagePackagesViewModel.OwnerFilter().Username,
+                    page: self.VisiblePackagePageNumber()
+                };
+            }, this);
+            this.VisiblePackagePageIdentity.subscribe(function (identity) {
+                self.GetPackagePage(identity.ownerFilter, identity.page);
+            }, this);
 
-            this.ManagePackagesViewModel.OwnerFilter.subscribe(function (newOwner) {
-                var packagesCount = 0;
-                var downloadCount = 0;
-                for (var i in self.Packages) {
-                    self.Packages[i].UpdateVisibility(newOwner.Username);
-                    if (self.Packages[i].Visible()) {
-                        packagesCount++;
-                        downloadCount += self.Packages[i].DownloadCount;
+            this.GetPackagePage = function (ownerFilter, page) {
+                $.ajax({
+                    url: getPagedPackagesUrl + '?page=' + page + '&listed=' + listed + (ownerFilter === allPackagesFilter ? '' : '&username=' + ownerFilter),
+                    dataType: 'json',
+                    success: function (data) {
+                        self.VisiblePackagesCount(data.totalCount);
+                        self.VisibleDownloadCount(data.totalDownloadCount);
+
+                        var packages = $.map(data.packages, function (item) {
+                            return new PackageListItemViewModel(self, item);
+                        });
+
+                        self.CurrentPackagesPage(packages);
+                    },
+                    error: function (jqXhr, textStatus, errorThrown) {
+                        // self.VisiblePackagePageNumber(page);
                     }
-                }
-                this.VisiblePackagesCount(packagesCount);
-                this.VisibleDownloadCount(downloadCount);
+                });
+            };
+
+            this.GetPackagePage(allPackagesFilter, this.VisiblePackagePageNumber());
+
+            this.ManagePackagesViewModel.OwnerFilter.subscribe(function () {
+                self.VisiblePackagePageNumber(0);
             }, this);
         }
 
@@ -264,7 +257,7 @@
             this.Visible = ko.observable(true);
 
             this.UpdateVisibility = function (ownerFilter) {
-                var visible = ownerFilter === "All packages";
+                var visible = ownerFilter === allPackagesFilter;
                 if (!visible) {
                     for (var i in self.Owners) {
                         if (ownerFilter === self.Owners[i].Username) {
@@ -319,7 +312,7 @@
             this.Owners = ownerRequestItem.Owners;
             this.PackageIconUrl = ownerRequestItem.PackageIconUrl
                 ? ownerRequestItem.PackageIconUrl
-                : this.OwnerRequestsListViewModel.ManagePackagesViewModel.DefaultPackageIconUrl;
+                : defaultPackageIconUrl;
             this.PackageUrl = ownerRequestItem.PackageUrl;
             this.CanAccept = ownerRequestItem.CanAccept;
             this.CanCancel = ownerRequestItem.CanCancel;
@@ -332,7 +325,7 @@
             this.Visible = ko.observable(true);
 
             this.UpdateVisibility = function (ownerFilter) {
-                var visible = ownerFilter === "All packages";
+                var visible = ownerFilter === allPackagesFilter;
                 if (!visible) {
                     if (self.ShowReceived && ownerFilter === self.New.Username) {
                         visible = true;
@@ -350,7 +343,7 @@
                 this.Visible(visible);
             };
             this.PackageIconUrlFallback = ko.pureComputed(function () {
-                var url = this.OwnerRequestsListViewModel.ManagePackagesViewModel.PackageIconUrlFallback;
+                var url = packageIconUrlFallback;
                 return "this.src='" + url + "'; this.onerror = null;";
             }, this);
         }
@@ -362,7 +355,7 @@
             this.Requests = $.map(requests, function (data) {
                 return new OwnerRequestsItemViewModel(self, data, showReceived, showSent);
             });
-            this.VisibleRequestsCount = ko.observable();
+            this.VisibleRequestsCount = ko.observable(0);
             this.VisibleRequestsHeading = ko.pureComputed(function () {
                 return formatOwnerRequestsData(ko.unwrap(self.VisibleRequestsCount()));
             }, this);
@@ -383,25 +376,21 @@
             var self = this;
 
             this.Owners = initialData.Owners;
-            this.DefaultPackageIconUrl = initialData.DefaultPackageIconUrl;
-            this.PackageIconUrlFallback = initialData.PackageIconUrlFallback;
 
-            this.OwnerFilter = ko.observable();
+            this.OwnerFilter = ko.observable(this.Owners[0]);
             // More filter entries than 'All' and current user
             if (this.Owners.length > 2) {
                 $("#ownerFilter").removeClass("hidden");
             }
 
-            this.ListedPackages = new PackagesListViewModel(this, "published", initialData.ListedPackages);
-            this.UnlistedPackages = new PackagesListViewModel(this, "unlisted", initialData.UnlistedPackages);
+            this.ListedPackages = new PackagesListViewModel(this, "published", true);
+            this.UnlistedPackages = new PackagesListViewModel(this, "unlisted", false);
             this.ReservedNamespaces = new ReservedNamespaceListViewModel(this, initialData.ReservedNamespaces);
             this.RequestsReceived = new OwnerRequestsListViewModel(this, initialData.RequestsReceived, true, false);
             this.RequestsSent = new OwnerRequestsListViewModel(this, initialData.RequestsSent, false, true);
         }
 
         // Immediately load initial expander data
-        showInitialPackagesData("#listed-data", initialData.ListedPackages);
-        showInitialPackagesData("#unlisted-data", initialData.UnlistedPackages);
         showInitialReservedNamespaceData("#namespaces-data", initialData.ReservedNamespaces);
         showInitialOwnerRequestsData("#requests-received-data", initialData.RequestsReceived);
         showInitialOwnerRequestsData("#requests-sent-data", initialData.RequestsSent);
