@@ -2,13 +2,10 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
-using NuGet.Protocol;
-using NuGet.Protocol.Core.Types;
 using NuGet.Services.Metadata.Catalog.Monitoring.Validation.Test.Exceptions;
 
 namespace NuGet.Services.Metadata.Catalog.Monitoring.Validation.Test.Catalog
@@ -24,10 +21,9 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring.Validation.Test.Catalog
         private readonly ILogger<PackageHasSignatureValidator> _logger;
 
         public PackageHasSignatureValidator(
-            IDictionary<FeedType, SourceRepository> feedToSource,
             ValidatorConfiguration config,
             ILogger<PackageHasSignatureValidator> logger)
-          : base(feedToSource, config, logger)
+            : base(config, logger)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }

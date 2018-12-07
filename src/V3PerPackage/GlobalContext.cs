@@ -10,18 +10,20 @@ namespace NuGet.Services.V3PerPackage
     /// </summary>
     public class GlobalContext
     {
-        public GlobalContext(string storageBaseAddress, string storageAccountName, string storageKeyValue, Uri contentBaseAddress)
+        public GlobalContext(string storageBaseAddress, string storageAccountName, string storageKeyValue, Uri contentBaseAddress, Uri galleryBaseAddress)
         {
             StorageBaseAddress = storageBaseAddress;
             StorageAccountName = storageAccountName;
             StorageKeyValue = storageKeyValue;
             ContentBaseAddress = contentBaseAddress;
+            GalleryBaseAddress = galleryBaseAddress;
         }
 
         public string StorageBaseAddress { get; }
         public string StorageAccountName { get; }
         public string StorageKeyValue { get; }
         public Uri ContentBaseAddress { get; }
+        public Uri GalleryBaseAddress { get; }
 
         public string CatalogContainerName => "v3-catalog";
         public string FlatContainerContainerName => "v3-flatcontainer";

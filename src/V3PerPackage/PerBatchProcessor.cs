@@ -254,6 +254,7 @@ namespace NuGet.Services.V3PerPackage
                 registrationStorageFactories.LegacyStorageFactory,
                 registrationStorageFactories.SemVer2StorageFactory,
                 context.Global.ContentBaseAddress,
+                context.Global.GalleryBaseAddress,
                 serviceProvider.GetRequiredService<ITelemetryService>(),
                 _logger,
                 () => serviceProvider.GetRequiredService<HttpMessageHandler>());

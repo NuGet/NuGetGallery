@@ -15,7 +15,7 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
             IDictionary<FeedType, SourceRepository> feedToSource,
             ValidatorConfiguration config,
             ILogger<RegistrationRequireLicenseAcceptanceValidator> logger)
-            : base(feedToSource, config, logger)
+            : base(config, logger)
         {
         }
 

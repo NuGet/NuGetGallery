@@ -18,7 +18,7 @@ namespace NgTests
         {
             var config = ValidatorTestUtility.CreateValidatorConfig();
 
-            return new RegistrationExistsValidator(feedToSource, config, logger);
+            return new RegistrationExistsValidator(config, logger);
         }
 
         public override IEnumerable<Func<PackageRegistrationIndexMetadata>> CreateIndexes => new Func<PackageRegistrationIndexMetadata>[]

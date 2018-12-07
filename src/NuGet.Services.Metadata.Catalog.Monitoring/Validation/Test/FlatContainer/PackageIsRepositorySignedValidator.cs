@@ -2,13 +2,10 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NuGet.Packaging;
 using NuGet.Packaging.Signing;
-using NuGet.Protocol;
-using NuGet.Protocol.Core.Types;
 
 namespace NuGet.Services.Metadata.Catalog.Monitoring
 {
@@ -18,10 +15,9 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
     public class PackageIsRepositorySignedValidator : FlatContainerValidator
     {
         public PackageIsRepositorySignedValidator(
-            IDictionary<FeedType, SourceRepository> feedToSource,
             ValidatorConfiguration config,
             ILogger<PackageIsRepositorySignedValidator> logger)
-            : base(feedToSource, config, logger)
+            : base(config, logger)
         {
         }
 

@@ -37,6 +37,7 @@ namespace Ng
 
         public const string ConnectionString = "connectionString";
         public const string ContentBaseAddress = "contentBaseAddress";
+        public const string GalleryBaseAddress = "galleryBaseAddress";
         public const string StorageAccountName = "storageAccountName";
         public const string StorageBaseAddress = "storageBaseAddress";
         public const string StorageContainer = "storageContainer";

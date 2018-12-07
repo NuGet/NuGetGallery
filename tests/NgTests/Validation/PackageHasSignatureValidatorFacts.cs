@@ -5,18 +5,15 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using NgTests.Infrastructure;
+using NgTests.Validation;
 using NuGet.Packaging.Core;
-using NuGet.Protocol;
-using NuGet.Protocol.Core.Types;
 using NuGet.Services.Metadata.Catalog;
-using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGet.Services.Metadata.Catalog.Monitoring;
 using NuGet.Services.Metadata.Catalog.Monitoring.Validation.Test.Catalog;
 using NuGet.Services.Metadata.Catalog.Monitoring.Validation.Test.Exceptions;
@@ -29,31 +26,11 @@ namespace NgTests
     {
         public class Constructor
         {
-            private readonly IDictionary<FeedType, SourceRepository> _feedToSource;
             private readonly ValidatorConfiguration _configuration;
 
             public Constructor()
             {
-                var feedToSource = new Mock<IDictionary<FeedType, SourceRepository>>();
-
-                feedToSource.Setup(x => x[It.IsAny<FeedType>()]).Returns(new Mock<SourceRepository>().Object);
-
-                _feedToSource = feedToSource.Object;
                 _configuration = new ValidatorConfiguration(packageBaseAddress: "a", requirePackageSignature: true);
-            }
-
-            [Fact]
-            public void WhenFeedToSourceIsNull_Throws()
-            {
-                IDictionary<FeedType, SourceRepository> feedToSource = null;
-
-                var exception = Assert.Throws<ArgumentNullException>(
-                    () => new PackageHasSignatureValidator(
-                        feedToSource,
-                        _configuration,
-                        Mock.Of<ILogger<PackageHasSignatureValidator>>()));
-
-                Assert.Equal("feedToSource", exception.ParamName);
             }
 
             [Fact]
@@ -61,7 +38,6 @@ namespace NgTests
             {
                 var exception = Assert.Throws<ArgumentNullException>(
                     () => new PackageHasSignatureValidator(
-                        _feedToSource,
                         config: null,
                         logger: Mock.Of<ILogger<PackageHasSignatureValidator>>()));
 
@@ -73,7 +49,6 @@ namespace NgTests
             {
                 var exception = Assert.Throws<ArgumentNullException>(
                     () => new PackageHasSignatureValidator(
-                        _feedToSource,
                         _configuration,
                         logger: null));
 
@@ -306,22 +281,17 @@ namespace NgTests
 
                 var httpClient = new CollectorHttpClient(_mockServer);
 
-                return new ValidationContext(
+                return ValidationContextStub.Create(
                     PackageIdentity,
                     catalogEntries,
-                    new DeletionAuditEntry[0],
-                    httpClient,
-                    CancellationToken.None);
+                    client: httpClient);
             }
 
             protected PackageHasSignatureValidator CreateTarget(bool requirePackageSignature = true)
             {
-                var feedToSource = new Mock<IDictionary<FeedType, SourceRepository>>();
                 var config = ValidatorTestUtility.CreateValidatorConfig(requirePackageSignature: requirePackageSignature);
 
-                feedToSource.Setup(x => x[It.IsAny<FeedType>()]).Returns(new Mock<SourceRepository>().Object);
-
-                return new PackageHasSignatureValidator(feedToSource.Object, config, _logger.Object);
+                return new PackageHasSignatureValidator(config, _logger.Object);
             }
 
             protected void AddCatalogLeaf(string path, CatalogLeaf leaf)
