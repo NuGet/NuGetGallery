@@ -68,11 +68,11 @@ namespace NuGet.Jobs.Montoring.PackageLag
             var cachingSecretReaderFactory = new CachingSecretReaderFactory(secretReaderFactory, KeyVaultSecretCachingTimeout);
             var secretInjector = cachingSecretReaderFactory.CreateSecretInjector(cachingSecretReaderFactory.CreateSecretReader());
 
-            var injectedBuilder = new ConfigurationBuilder()
+            builder = new ConfigurationBuilder()
                 .SetBasePath(Environment.CurrentDirectory)
                 .AddInjectedJsonFile(configurationFilename, secretInjector);
 
-            return injectedBuilder.Build();
+            return builder.Build();
         }
 
         private IServiceProvider GetServiceProvider(IConfigurationRoot configurationRoot)
