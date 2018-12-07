@@ -249,7 +249,7 @@ namespace NuGetGallery.Security
             var nugetUser = new User("NuGet");
             var newPackageRegistration = new PackageRegistration { Id = "NewPackageId", Owners = new List<User> { nugetUser } };
             var packageAuthors = new[] { MicrosoftTeamSubscription.MicrosoftUsername, "The Most-Awesome Package Authors" };
-            var nonCompliantPackage = Fakes.CreateCompliantPackage("1.0.0", newPackageRegistration, packageAuthors);
+            var compliantPackage = Fakes.CreateCompliantPackage("1.0.0", newPackageRegistration, packageAuthors);
 
             var policy = RequirePackageMetadataCompliancePolicy.CreatePolicy(
                     MicrosoftTeamSubscription.Name,
@@ -268,7 +268,7 @@ namespace NuGetGallery.Security
             var context = CreateTestContext(
                 true,
                 new[] { policy },
-                nonCompliantPackage,
+                compliantPackage,
                 packageRegistrationAlreadyExists: false,
                 sourceAccount: nugetUser,
                 targetAccount: nugetUser,
