@@ -212,6 +212,8 @@ namespace NuGetGallery
 
                 if (licenseFileContents != null && licenseFilename != null)
                 {
+                    // enforce directory separators the same way as the client (see PackageArchiveReader.GetStream)
+                    licenseFilename = licenseFilename.Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
                     var licenseEntry = packageArchive.CreateEntry(licenseFilename, CompressionLevel.Fastest);
                     using (var licenseStream = licenseEntry.Open())
                     {

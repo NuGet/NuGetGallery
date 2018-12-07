@@ -72,7 +72,7 @@ namespace NuGetGallery
                     throw new InvalidOperationException("No license file specified in the nuspec");
                 }
 
-                var filename = packageMetadata.LicenseMetadata.License;
+                var filename = FileNameHelper.GetZipEntryPath(packageMetadata.LicenseMetadata.License);
                 var licenseFileEntry = packageArchiveReader.GetEntry(filename); // throws on non-existent file
                 using (var licenseFileStream = licenseFileEntry.Open())
                 {

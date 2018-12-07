@@ -234,18 +234,21 @@ namespace NuGetGallery
 
             if (licenseMetadata.Type == LicenseType.File)
             {
+                // fix the path separator. Client enforces forward slashes in all file paths when packing
+                var licenseFilename = FileNameHelper.GetZipEntryPath(licenseMetadata.License);
+
                 // check if specified file is present in the package
                 var fileList = new HashSet<string>(nuGetPackage.GetFiles());
-                if (!fileList.Contains(licenseMetadata.License))
+                if (!fileList.Contains(licenseFilename))
                 {
                     return PackageValidationResult.Invalid(
                         string.Format(
                             Strings.UploadPackage_LicenseFileDoesNotExist,
-                            licenseMetadata.License));
+                            licenseFilename));
                 }
 
                 // check if specified file has allowed extension
-                var licenseFileExtension = Path.GetExtension(licenseMetadata.License);
+                var licenseFileExtension = Path.GetExtension(licenseFilename);
                 if (!AllowedLicenseFileExtensions.Contains(licenseFileExtension, StringComparer.OrdinalIgnoreCase))
                 {
                     return PackageValidationResult.Invalid(
@@ -255,7 +258,7 @@ namespace NuGetGallery
                             string.Join(", ", AllowedLicenseFileExtensions.Where(x => x != string.Empty).Select(extension => $"'{extension}'"))));
                 }
 
-                var licenseFileEntry = nuGetPackage.GetEntry(licenseMetadata.License);
+                var licenseFileEntry = nuGetPackage.GetEntry(licenseFilename);
                 if (licenseFileEntry.Length > MaxAllowedLicenseLength)
                 {
                     return PackageValidationResult.Invalid(
@@ -264,7 +267,7 @@ namespace NuGetGallery
                             MaxAllowedLicenseLength.ToUserFriendlyBytesLabel()));
                 }
 
-                using (var licenseFileStream = nuGetPackage.GetStream(licenseMetadata.License))
+                using (var licenseFileStream = nuGetPackage.GetStream(licenseFilename))
                 {
                     if (!await IsStreamLengthMatchesReportedAsync(licenseFileStream, licenseFileEntry.Length))
                     {
@@ -273,7 +276,7 @@ namespace NuGetGallery
                 }
 
                 // zip streams do not support seeking, so we'll have to reopen them
-                using (var licenseFileStream = nuGetPackage.GetStream(licenseMetadata.License))
+                using (var licenseFileStream = nuGetPackage.GetStream(licenseFilename))
                 {
                     // check if specified file is a text file
                     if (!await TextHelper.LooksLikeUtf8TextStreamAsync(licenseFileStream))

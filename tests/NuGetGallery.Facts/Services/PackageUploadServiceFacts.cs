@@ -1046,6 +1046,26 @@ namespace NuGetGallery
                 Assert.Empty(result.Warnings);
             }
 
+            [Theory]
+            [InlineData("license/something.txt")]
+            [InlineData("license\\something.txt")]
+            public async Task AcceptsLicenseFileInSubdirectories(string licensePath)
+            {
+                _nuGetPackage = GeneratePackageWithLicense(
+                    licenseFilename: licensePath,
+                    licenseUrl: new Uri(LicenseDeprecationUrl),
+                    licenseFileContents: "some license");
+
+                var result = await _target.ValidateBeforeGeneratePackageAsync(
+                    _nuGetPackage.Object,
+                    GetPackageMetadata(_nuGetPackage));
+
+                Assert.Equal(PackageValidationResultType.Accepted, result.Type);
+                Assert.Null(result.Message);
+                Assert.Empty(result.Warnings);
+            }
+
+
             /// <summary>
             /// A (quite ineffective) method to search for a sequence in an array
             /// </summary>
