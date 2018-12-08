@@ -13,6 +13,16 @@
 
     PackageManagerViewModel[] packageManagers;
 
+    if (!string.IsNullOrWhiteSpace(Model.LicenseExpression))
+    {
+        Model.LicenseUrl = LicenseExpressionRedirectUrlHelper.GetLicenseExpressionRedirectUrl(Model.LicenseExpression);
+    }
+
+    if (Model.EmbeddedLicenseType != EmbeddedLicenseFileType.Absent)
+    {
+        Model.LicenseUrl = Url.License(Model.Id, Model.Version);
+    }
+
     if (Model.IsDotnetToolPackageType)
     {
         packageManagers = new PackageManagerViewModel[]
@@ -186,7 +196,7 @@
                 {
                     @ViewHelpers.AlertWarning(
                         @<text>
-                            <strong>The license link will become available once package validation has completed successfully.</strong>
+                            The license link will become available once package validation has completed successfully.
                         </text>
                     )
                 }
@@ -630,7 +640,7 @@
                     {
                         <li>
                             <i class="ms-Icon ms-Icon--Certificate" aria-hidden="true"></i>
-                            <a href="@(Model.EmbeddedLicenseType == EmbeddedLicenseFileType.Absent ? Model.LicenseUrl : Url.License(Model.Id, Model.Version))"
+                            <a href="@Model.LicenseUrl"
                                data-track="outbound-license-url" title="Make sure you agree with the license" rel="nofollow">
                                 @if (Model.LicenseNames.AnySafe())
                                 {

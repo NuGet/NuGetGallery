@@ -7,7 +7,6 @@ using System.Linq;
 using NuGet.Services.Entities;
 using NuGet.Services.Validation.Issues;
 using NuGet.Versioning;
-using NuGetGallery.Helpers;
 
 namespace NuGetGallery
 {
@@ -63,13 +62,9 @@ namespace NuGetGallery
             }
 
             EmbeddedLicenseType = package.EmbeddedLicenseType;
+            LicenseExpression = package.LicenseExpression;
 
-            var licenseExpression = package.LicenseExpression;
-            if (!string.IsNullOrWhiteSpace(licenseExpression))
-            {
-                LicenseUrl = LicenseExpressionRedirectUrlHelper.GetLicenseExpressionRedirectUrl(licenseExpression);
-            }
-            else if (PackageHelper.TryPrepareUrlForRendering(package.LicenseUrl, out string licenseUrl))
+            if (PackageHelper.TryPrepareUrlForRendering(package.LicenseUrl, out string licenseUrl))
             {
                 LicenseUrl = licenseUrl;
 
@@ -134,6 +129,7 @@ namespace NuGetGallery
         public string ProjectUrl { get; set; }
         public string LicenseUrl { get; set; }
         public IEnumerable<string> LicenseNames { get; set; }
+        public string LicenseExpression { get; set; }
         public EmbeddedLicenseFileType EmbeddedLicenseType { get; set; }
 
         private IDictionary<User, string> _pushedByCache = new Dictionary<User, string>();
