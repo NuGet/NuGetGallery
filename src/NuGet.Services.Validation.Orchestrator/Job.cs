@@ -350,7 +350,6 @@ namespace NuGet.Services.Validation.Orchestrator
                     ConfigurePackageSigningValidators(containerBuilder);
                     ConfigurePackageCertificatesValidator(containerBuilder);
                     ConfigureScanAndSignProcessor(containerBuilder);
-                    ConfigureScanValidator(containerBuilder);
                     ConfigureFlatContainer(containerBuilder);
                     break;
                 case ValidatingType.SymbolPackage:
@@ -492,21 +491,6 @@ namespace NuGet.Services.Validation.Orchestrator
             builder
                 .RegisterType<SymbolScanValidator>()
                 .WithKeyedParameter(typeof(IValidatorStateService), SymbolsScanBindingKey)
-                .AsSelf();
-        }
-
-        private static void ConfigureScanValidator(ContainerBuilder builder)
-        {
-            builder
-                .RegisterType<ValidatorStateService>()
-                .WithParameter(
-                    (pi, ctx) => pi.ParameterType == typeof(string),
-                    (pi, ctx) => ValidatorName.ScanOnly)
-                .Keyed<IValidatorStateService>(ScanBindingKey);
-
-            builder
-                .RegisterType<ScanValidator>()
-                .WithKeyedParameter(typeof(IValidatorStateService), ScanBindingKey)
                 .AsSelf();
         }
 

@@ -61,7 +61,6 @@
     <Compile Include="Symbols\SymbolScanOnlyConfiguration.cs" />
     <Compile Include="Symbols\SymbolCriteriaEvaluator.cs" />
     <Compile Include="Symbols\SymbolScanValidator.cs" />
-    <Compile Include="PackageSigning\Scan\ScanValidator.cs" />
     <Compile Include="Services\IEntityService.cs" />
     <Compile Include="Services\IMessageService.cs" />
     <Compile Include="IPackageStatusProcessor.cs" />
