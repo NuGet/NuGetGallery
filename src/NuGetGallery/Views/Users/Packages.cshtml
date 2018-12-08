@@ -108,7 +108,7 @@
     }
     <div class="col-md-12">
         <div class="panel-collapse collapse in" aria-expanded="true">
-            <!-- ko if: PackagesCount -->
+            <!-- ko if: CurrentPackagesPage -->
             <table class="table inner-table">
                 <thead>
                     <tr class="manage-package-headings">
@@ -198,22 +198,22 @@
                     </tr>
                 </tbody>
             </table>
-            <!-- ko if: PackagePagesCount() > 1 -->
-            <div class="text-center" data-bind="foreach: PackagePages">
-                <!-- ko if: $data == $parent.PackagePageNumber() -->
-                <b data-bind="text: $data + 1"></b>
-                <!-- /ko -->
-                <!-- ko ifnot: $data == $parent.PackagePageNumber() -->
-                <a href="#" data-bind="text: $data + 1, click: $parent.SetPackagePage"></a>
-                <!-- /ko -->
-            </div>
-            <!-- /ko -->
             <!-- /ko -->
             <!-- ko if: PackagesCount() == 0 -->
             <span>There are no packages that fit this criteria.</span>
             <!-- /ko -->
-            <!-- ko if: PackagesCount() == null -->
+            <!-- ko ifnot: CurrentPackagesPage -->
             <span>Loading packages list...</span>
+            <!-- /ko -->
+            <!-- ko if: PackagePagesCount() > 1 -->
+            <div class="text-center packages-paging-list">
+                <span data-bind="visible: NearbyPackagePagesLowerbound() > 0, click: SetPackagePageFirst">First</span>
+                <div data-bind="foreach: NearbyPackagePages">
+                    <b data-bind="visible: $data == $parent.PackagePageNumber(), text: $data + 1"></b>
+                    <a href="#" data-bind="visible: $data != $parent.PackagePageNumber(), text: $data + 1, click: $parent.SetPackagePage"></a>
+                </div>
+                <span data-bind="visible: NearbyPackagePagesUpperbound() < PackagePagesCount(), click: SetPackagePageLast">Last</span>
+            </div>
             <!-- /ko -->
         </div>
     </div>

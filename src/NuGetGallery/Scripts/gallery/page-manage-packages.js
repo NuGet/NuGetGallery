@@ -161,14 +161,135 @@
             this.Type = type;
             this.Listed = listed;
 
-            this.CurrentPackagesPage = ko.observable([]);
+            this.CreatePackagePageIdentity = function (ownerFilter, page) {
+                return {
+                    ownerFilter: ownerFilter,
+                    page: page
+                };
+            };
+
+            this.PackagePageIdentity = ko.pureComputed(function () {
+                return self.CreatePackagePageIdentity(
+                    self.ManagePackagesViewModel.OwnerFilter(),
+                    self.PackagePageNumber());
+            }, this);
+
+            this.GetPackagePageIdentityCacheKey = function (identity) {
+                return JSON.stringify(identity);
+            };
+
+            this.PackagesCache = ko.observable({});
+            this.IsCachingPage = {};
+            this.GetPackagePage = function (identity, callback) {
+                var packageCacheKey = self.GetPackagePageIdentityCacheKey(identity);
+                var cachedPackages = self.PackagesCache()[packageCacheKey];
+                if (cachedPackages) {
+                    callback && callback();
+                    return;
+                }
+                
+                var ownerFilter = identity.ownerFilter;
+                var page = identity.page;
+                var isCaching = self.IsCachingPage[packageCacheKey];
+                if (isCaching) {
+                    // This page is already being loaded.
+                    callback && callback();
+                    return;
+                }
+
+                self.IsCachingPage[packageCacheKey] = true;
+
+                $.ajax({
+                    url: getPagedPackagesUrl + '?page=' + page + '&listed=' + listed + (ownerFilter === allPackagesFilter ? '' : '&username=' + ownerFilter),
+                    dataType: 'json',
+                    success: function (data) {
+                        var cache = self.PackagesCache();
+                        cache[packageCacheKey] = data;
+                        self.PackagesCache(cache);
+                        self.IsCachingPage[packageCacheKey] = false;
+
+                        callback && callback();
+                    },
+                    error: function () {
+                        self.IsCachingPage[packageCacheKey] = false;
+
+                        // Retry again in a couple seconds.
+                        setTimeout(self.GetPackagePage.bind(identity, callback), 5000);
+                    }
+                });
+            };
+
+            this.GetCachedPackagePage = function (identity) {
+                var packageCacheKey = self.GetPackagePageIdentityCacheKey(identity);
+                var cachedPackages = self.PackagesCache()[packageCacheKey];
+                if (cachedPackages) {
+                    return cachedPackages;
+                }
+
+                self.GetPackagePage(identity);
+                return null;
+            };
+
+            this.CachedCurrentPackagePage = ko.pureComputed(function () {
+                var identity = self.PackagePageIdentity();
+                return self.GetCachedPackagePage(identity);
+            }, this);
+
+            this.CachedDefaultPackagePage = ko.pureComputed(function () {
+                var identity = self.CreatePackagePageIdentity(self.ManagePackagesViewModel.OwnerFilter(), self.DefaultPage);
+                return self.GetCachedPackagePage(identity);
+            }, this);
+            
+            this.CurrentPackagesPage = ko.pureComputed(function () {
+                var cachedPackages = self.CachedCurrentPackagePage();
+                if (cachedPackages) {
+                    return $.map(cachedPackages.packages, function (item) {
+                        return new PackageListItemViewModel(self, item);
+                    });
+                }
+                
+                return null; 
+            }, this);
+
+            this.PackagesCount = ko.pureComputed(function () {
+                var cachedPackages = self.CachedCurrentPackagePage();
+                if (!cachedPackages) {
+                    // If the current page isn't cached, try to get the count from the default page.
+                    cachedPackages = self.CachedDefaultPackagePage();
+                }
+
+                if (cachedPackages) {
+                    return cachedPackages.totalCount;
+                }
+                
+                return null;
+            }, this);
+
+            this.DownloadCount = ko.pureComputed(function () {
+                var cachedPackages = self.CachedCurrentPackagePage();
+                if (!cachedPackages) {
+                    // If the current page isn't cached, try to get the count from the default page.
+                    cachedPackages = self.CachedDefaultPackagePage();
+                }
+
+                if (cachedPackages) {
+                    return cachedPackages.totalDownloadCount;
+                }
+
+                return null;
+            }, this);
 
             this.SetPackagePage = function (page) {
                 self.PackagePageNumber(page);
             };
 
-            this.PackagesCount = ko.observable(null);
-            this.DownloadCount = ko.observable(null);
+            this.SetPackagePageFirst = function () {
+                self.PackagePageNumber(0);
+            };
+
+            this.SetPackagePageLast = function () {
+                self.PackagePageNumber(self.PackagePagesCount() - 1);
+            };
             this.PackagesHeading = ko.pureComputed(function () {
                 return formatPackagesData(
                     ko.unwrap(self.PackagesCount()),
@@ -176,57 +297,76 @@
             }, this);
 
             this.PackagePagesCount = ko.pureComputed(function () {
-                return Math.ceil(self.PackagesCount() / pageSize);
+                var packagesCount = self.PackagesCount();
+                if (!packagesCount) {
+                    // The first page always exists.
+                    return 1;
+                }
+
+                return Math.ceil(packagesCount / pageSize);
             }, this);
 
-            this.PackagePageNumber = ko.observable(0);
+            this.DefaultPage = 0;
+            this.PackagePageRange = 10;
+            this.PackagePageNumber = ko.observable(self.DefaultPage);
 
-            this.PackagePages = ko.pureComputed(function () {
+            this.NearbyPackagePagesLowerbound = ko.pureComputed(function () {
+                var result = self.PackagePageNumber() - self.PackagePageRange;
+                return result < 0 ? 0 : result;
+            }, this);
+
+            this.NearbyPackagePagesLowerbound.subscribe(function () {
+                self.PreloadPagesForOwnerFilter();
+            }, this);
+
+            this.NearbyPackagePagesUpperbound = ko.pureComputed(function () {
+                var result = self.PackagePageNumber() + self.PackagePageRange;
+                var maxPages = self.PackagePagesCount();
+                return result > maxPages ? maxPages : result;
+            }, this);
+
+            this.NearbyPackagePagesUpperbound.subscribe(function () {
+                self.PreloadPagesForOwnerFilter();
+            }, this);
+
+            this.NearbyPackagePages = ko.pureComputed(function () {
                 var pages = [];
-                for (var i = 0; i < self.PackagePagesCount(); i++) {
+                for (var i = self.NearbyPackagePagesLowerbound(); i < self.NearbyPackagePagesUpperbound(); i++) {
                     pages.push(i);
                 }
 
                 return pages;
             }, this);
 
-            this.PackagePageIdentity = ko.pureComputed(function () {
-                return {
-                    ownerFilter: self.ManagePackagesViewModel.OwnerFilter(),
-                    page: self.PackagePageNumber()
-                };
-            }, this);
-            this.PackagePageIdentity.subscribe(function (identity) {
-                self.GetPackagePage(identity.ownerFilter, identity.page);
+            this.ManagePackagesViewModel.OwnerFilter.subscribe(function () {
+                self.PackagePageNumber(self.DefaultPage);
+                self.PreloadPagesForOwnerFilter();
             }, this);
 
-            this.GetPackagePage = function (ownerFilter, page) {
-                $.ajax({
-                    url: getPagedPackagesUrl + '?page=' + page + '&listed=' + listed + (ownerFilter === allPackagesFilter ? '' : '&username=' + ownerFilter),
-                    dataType: 'json',
-                    success: function (data) {
-                        self.PackagesCount(data.totalCount);
-                        self.DownloadCount(data.totalDownloadCount);
-
-                        var packages = $.map(data.packages, function (item) {
-                            return new PackageListItemViewModel(self, item);
-                        });
-
-                        self.CurrentPackagesPage(packages);
-                    },
-                    error: function (jqXhr, textStatus, errorThrown) {
-                        // self.VisiblePackagePageNumber(page);
+            this.PreloadPagesForOwnerFilter = function () {
+                var ownerFilter = self.ManagePackagesViewModel.OwnerFilter();
+                var pages = self.NearbyPackagePages();
+                var preloadPageByIndex = function (i) {
+                    if (i < pages.length) {
+                        var identity = self.CreatePackagePageIdentity(ownerFilter, pages[i]);
+                        self.GetPackagePage(identity, preloadPageByIndex.bind(self, i + 1));
                     }
-                });
+                };
+
+                preloadPageByIndex(0);
             };
 
-            this.GetPackagePage(allPackagesFilter, this.PackagePageNumber());
+            this.PreloadPagesForAllOwners = function () {
+                var owners = self.ManagePackagesViewModel.Owners;
+                var preloadDefaultPageForOwnerByIndex = function (i) {
+                    if (i < owners.length) {
+                        var identity = self.CreatePackagePageIdentity(owners[i], self.DefaultPage);
+                        self.GetPackagePage(identity, preloadDefaultPageForOwnerByIndex.bind(self, i + 1));
+                    }
+                };
 
-            this.ManagePackagesViewModel.OwnerFilter.subscribe(function () {
-                self.PackagePageNumber(0);
-                self.PackagesCount(null);
-                self.DownloadCount(null);
-            }, this);
+                preloadDefaultPageForOwnerByIndex(0);
+            };
         }
 
         function formatReservedNamespacesData(namespacesCount) {
@@ -380,6 +520,10 @@
         // Set up the data binding.
         var managePackagesViewModel = new ManagePackagesViewModel(initialData);
         ko.applyBindings(managePackagesViewModel, document.body);
+
+        // Begin loading package pages
+        managePackagesViewModel.ListedPackages.PreloadPagesForAllOwners();
+        managePackagesViewModel.UnlistedPackages.PreloadPagesForAllOwners();
     });
 
 })();

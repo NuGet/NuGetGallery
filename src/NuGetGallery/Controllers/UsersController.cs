@@ -9,6 +9,7 @@ using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using System.Web.UI;
 using NuGet.Services.Entities;
 using NuGet.Services.Messaging.Email;
 using NuGetGallery.Areas.Admin;
@@ -482,7 +483,6 @@ namespace NuGetGallery
 
         [HttpGet]
         [UIAuthorize]
-        [OutputCache(Duration = 5 * 60)]
         public virtual JsonResult PackagesPaged(bool listed, int page = 0, string username = null)
         {
             var currentUser = GetCurrentUser();
@@ -494,7 +494,14 @@ namespace NuGetGallery
             else
             {
                 var user = UserService.FindByUsername(username);
-                packages = PackageService.FindPackagesByOwner(user, includeUnlisted: true);
+                if (user != null)
+                {
+                    packages = PackageService.FindPackagesByOwner(user, includeUnlisted: true);
+                }
+                else
+                {
+                    packages = Enumerable.Empty<Package>();
+                }
             }
 
             var filteredPackages = FilterPackagesForManagePackages(packages, currentUser, listed);

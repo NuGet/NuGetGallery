@@ -1159,6 +1159,9 @@ img.reserved-indicator-icon {
   margin-top: 0;
   margin-bottom: 10px;
 }
+.page-manage-packages .packages-paging-list {
+  margin-top: 15px;
+}
 .page-manage-packages .organizations-empty {
   margin-top: 60px;
 }
