@@ -7,6 +7,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Text;
+using NuGet.Common;
 using NuGet.Packaging;
 using NuGet.Packaging.Core;
 using ClientPackageType = NuGet.Packaging.Core.PackageType;
@@ -213,7 +214,7 @@ namespace NuGetGallery
                 if (licenseFileContents != null && licenseFilename != null)
                 {
                     // enforce directory separators the same way as the client (see PackageArchiveReader.GetStream)
-                    licenseFilename = licenseFilename.Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                    licenseFilename = PathUtility.StripLeadingDirectorySeparators(licenseFilename);
                     var licenseEntry = packageArchive.CreateEntry(licenseFilename, CompressionLevel.Fastest);
                     using (var licenseStream = licenseEntry.Open())
                     {

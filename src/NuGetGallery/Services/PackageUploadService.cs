@@ -15,6 +15,7 @@ using NuGet.Packaging.Licenses;
 using NuGet.Services.Entities;
 using NuGet.Versioning;
 using NuGetGallery.Configuration;
+using NuGetGallery.Diagnostics;
 using NuGetGallery.Helpers;
 using NuGetGallery.Packaging;
 
@@ -58,6 +59,7 @@ namespace NuGetGallery
         private readonly ITyposquattingService _typosquattingService;
         private readonly ITelemetryService _telemetryService;
         private readonly ICoreLicenseFileService _coreLicenseFileService;
+        private readonly IDiagnosticsSource _trace;
 
         public PackageUploadService(
             IPackageService packageService,
@@ -68,7 +70,8 @@ namespace NuGetGallery
             IAppConfiguration config,
             ITyposquattingService typosquattingService,
             ITelemetryService telemetryService,
-            ICoreLicenseFileService coreLicenseFileService)
+            ICoreLicenseFileService coreLicenseFileService,
+            IDiagnosticsService diagnosticsService)
         {
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
             _packageFileService = packageFileService ?? throw new ArgumentNullException(nameof(packageFileService));
@@ -79,6 +82,11 @@ namespace NuGetGallery
             _typosquattingService = typosquattingService ?? throw new ArgumentNullException(nameof(typosquattingService));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _coreLicenseFileService = coreLicenseFileService ?? throw new ArgumentNullException(nameof(coreLicenseFileService));
+            if (diagnosticsService == null)
+            {
+                throw new ArgumentNullException(nameof(diagnosticsService));
+            }
+            _trace = diagnosticsService.GetSource(nameof(PackageUploadService));
         }
 
         public async Task<PackageValidationResult> ValidateBeforeGeneratePackageAsync(PackageArchiveReader nuGetPackage, PackageMetadata packageMetadata)
@@ -236,6 +244,11 @@ namespace NuGetGallery
             {
                 // fix the path separator. Client enforces forward slashes in all file paths when packing
                 var licenseFilename = FileNameHelper.GetZipEntryPath(licenseMetadata.License);
+                if (licenseFilename != licenseMetadata.License)
+                {
+                    var packageIdentity = nuspecReader.GetIdentity();
+                    _trace.Information($"Transformed license file name from `{licenseMetadata.License}` to `{licenseFilename}` for package {packageIdentity.Id} {packageIdentity.Version}");
+                }
 
                 // check if specified file is present in the package
                 var fileList = new HashSet<string>(nuGetPackage.GetFiles());
