@@ -283,26 +283,6 @@ namespace NuGetGallery
                 .ToList();
         }
 
-        /// <summary>
-        /// For a package get the list of owners that are not organizations.
-        /// All the resulted user accounts will be distinct.
-        /// </summary>
-        /// <param name="package">The package.</param>
-        /// <returns>The list of package owners.</returns>
-        public IEnumerable<User> GetPackageUserAccountOwners(Package package)
-        {
-            return package.PackageRegistration.Owners
-                .SelectMany((owner) =>
-                {
-                    if (owner is Organization)
-                    {
-                        return OrganizationExtensions.GetUserAccountMembers((Organization)owner);
-                    }
-                    return new List<User> { owner };
-                })
-                .Distinct();
-        }
-
         public IQueryable<PackageRegistration> FindPackageRegistrationsByOwner(User user)
         {
             return _packageRegistrationRepository.GetAll().Where(p => p.Owners.Any(o => o.Key == user.Key));
@@ -377,6 +357,43 @@ namespace NuGetGallery
             {
                 await _packageRepository.CommitChangesAsync();
             }
+        }
+        
+        public bool WillPackageBeOrphanedIfOwnerRemoved(PackageRegistration package, User ownerToRemove)
+        {
+            return WillPackageBeOrphanedIfOwnerRemovedHelper(package.Owners, ownerToRemove);
+        }
+
+        private bool WillPackageBeOrphanedIfOwnerRemovedHelper(IEnumerable<User> owners, User ownerToRemove)
+        {
+            // Iterate through each owner, attempting to find a user that is not the owner we are removing.
+            foreach (var owner in owners)
+            {
+                if (owner.MatchesUser(ownerToRemove))
+                {
+                    continue;
+                }
+
+                if (owner is Organization organization)
+                {
+                    // The package will still be orphaned if it is owned by an orphaned organization.
+                    // Iterate through the organization owner's members to determine if it has any members that are not the member we are removing.
+                    if (!WillPackageBeOrphanedIfOwnerRemovedHelper(
+                        organization.Members.Select(m => m.Member),
+                        ownerToRemove))
+                    {
+                        return false;
+                    }
+                }
+                else
+                {
+                    // The package will not be orphaned because it is owned by a user that is not the owner we are removing.
+                    return false;
+                }
+            }
+
+            // The package will be orphaned because we did not find an owner that is not the owner we are removing.
+            return true;
         }
 
         public async Task MarkPackageListedAsync(Package package, bool commitChanges = true)

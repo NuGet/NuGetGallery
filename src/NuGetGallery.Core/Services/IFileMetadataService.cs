@@ -11,16 +11,6 @@ namespace NuGetGallery
         string FileFolderName { get; }
 
         /// <summary>
-        /// The name of the public folder where bits of package content can be extracted to.
-        /// </summary>
-        string PackageContentFolderName { get; }
-
-        /// <summary>
-        /// The template for the path to save user content. File name will be appended to it.
-        /// </summary>
-        string PackageContentPathTemplate { get; }
-
-        /// <summary>
         /// The save file path template. For example <see cref="CoreConstants.PackageFileSavePathTemplate"/>
         /// </summary>
         string FileSavePathTemplate { get; }

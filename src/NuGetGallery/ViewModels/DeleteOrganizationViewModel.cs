@@ -13,7 +13,7 @@ namespace NuGetGallery
             Organization organizationToDelete, 
             User currentUser, 
             IPackageService packageService)
-            : base(organizationToDelete, currentUser, packageService, p => p.HasSingleOrganizationOwner)
+            : base(organizationToDelete, currentUser, packageService)
         {
             AdditionalMembers = organizationToDelete.Members
                 .Where(m => !m.Member.MatchesUser(currentUser))

@@ -9,9 +9,6 @@ namespace NuGetGallery
     {
         public string FileFolderName => CoreConstants.Folders.SymbolPackagesFolderName;
 
-        public string PackageContentFolderName => throw new NotImplementedException();
-        public string PackageContentPathTemplate => throw new NotImplementedException();
-
         public string FileSavePathTemplate => CoreConstants.PackageFileSavePathTemplate;
 
         public string FileExtension => CoreConstants.NuGetSymbolPackageFileExtension;

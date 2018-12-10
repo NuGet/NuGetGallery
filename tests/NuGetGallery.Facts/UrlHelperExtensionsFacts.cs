@@ -72,6 +72,30 @@ namespace NuGetGallery
             }
         }
 
+        public class TheLicenseMethod
+            : TestContainer
+        {
+            [Theory]
+            [InlineData("https://nuget.org", "TestPackageId", "1.0.0", "/packages/TestPackageId/1.0.0/License", true)]
+            [InlineData("https://nuget.org", "TestPackageId", "1.0.0", "https://nuget.org/packages/TestPackageId/1.0.0/License", false)]
+            [InlineData("https://localhost:66", "AnotherTestPackageId", "3.0.0", "/packages/AnotherTestPackageId/3.0.0/License", true)]
+            [InlineData("https://localhost:66", "AnotherTestPackageId", "3.0.0", "https://localhost:66/packages/AnotherTestPackageId/3.0.0/License", false)]
+            public void ReturnsCorrectLicenseLink(string siteRoot, string packageId, string packageVersion, string expectedUrl, bool relativeUrl)
+            {
+                // Arrange
+                var configurationService = GetConfigurationService();
+                configurationService.Current.SiteRoot = siteRoot;
+
+                var urlHelper = TestUtility.MockUrlHelper(siteRoot);
+
+                // Act
+                var result = urlHelper.License(packageId, packageVersion, relativeUrl);
+
+                // Assert
+                Assert.Equal(expectedUrl, result);
+            }
+        }
+
         public class ThePackageRegistrationTemplateHelperMethod
             : TestContainer
         {

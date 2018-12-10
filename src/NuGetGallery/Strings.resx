@@ -981,7 +981,7 @@ Click the following link within the next hour to reset your password:
 
 [{0}]({0})
 
-Note that NuGet.org password login is deprecated. Please use Microsoft account to sign into {1}.
+Note that NuGet.org password login is no longer supported. Please use Microsoft account to sign into {1}.
 
 Thanks,
 The {1} Team</value>
@@ -994,7 +994,7 @@ Click the following link within the next hour to set your password:
 
 [{0}]({0})
 
-Note that NuGet.org password login is deprecated. Please use Microsoft account to sign into {1}.
+Note that NuGet.org password login is no longer supported. Please use Microsoft account to sign into {1}.
 
 Thanks,
 The {1} Team</value>
@@ -1076,5 +1076,13 @@ The {1} Team</value>
   </data>
   <data name="UploadPackage_MalformedLicenseUrl" xml:space="preserve">
     <value>The package contains a malformed license URL.</value>
+  </data>
+  <data name="SecurityPolicy_PackageAuthorNotAllowed" xml:space="preserve">
+    <value>The package metadata defines '{0}' as one of the authors which is not allowed by policy.</value>
+    <comment>{0} is the author that is not in the list of allowed authors for this policy.</comment>
+  </data>
+  <data name="SecurityPolicy_PackageAuthorDuplicatesNotAllowed" xml:space="preserve">
+    <value>The package metadata defines '{0}' as author more than once, which is not allowed by policy.</value>
+    <comment>{0} is the list of duplicate package authors</comment>
   </data>
 </root>

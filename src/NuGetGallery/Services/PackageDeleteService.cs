@@ -47,6 +47,7 @@ namespace NuGetGallery
         private readonly ISymbolPackageFileService _symbolPackageFileService;
         private readonly ISymbolPackageService _symbolPackageService;
         private readonly IEntityRepository<SymbolPackage> _symbolPackageRepository;
+        private readonly ICoreLicenseFileService _coreLicenseFileService;
 
         public PackageDeleteService(
             IEntityRepository<Package> packageRepository,
@@ -62,7 +63,8 @@ namespace NuGetGallery
             ITelemetryService telemetryService,
             ISymbolPackageFileService symbolPackageFileService,
             ISymbolPackageService symbolPackageService,
-            IEntityRepository<SymbolPackage> symbolPackageRepository)
+            IEntityRepository<SymbolPackage> symbolPackageRepository,
+            ICoreLicenseFileService coreLicenseFileService)
         {
             _packageRepository = packageRepository ?? throw new ArgumentNullException(nameof(packageRepository));
             _packageRegistrationRepository = packageRegistrationRepository ?? throw new ArgumentNullException(nameof(packageRegistrationRepository));
@@ -78,6 +80,7 @@ namespace NuGetGallery
             _symbolPackageFileService = symbolPackageFileService ?? throw new ArgumentNullException(nameof(symbolPackageFileService));
             _symbolPackageService = symbolPackageService ?? throw new ArgumentNullException(nameof(symbolPackageService));
             _symbolPackageRepository = symbolPackageRepository ?? throw new ArgumentNullException(nameof(symbolPackageRepository));
+            _coreLicenseFileService = coreLicenseFileService ?? throw new ArgumentNullException(nameof(coreLicenseFileService));
 
             if (config.HourLimitWithMaximumDownloads.HasValue
                 && config.StatisticsUpdateFrequencyInHours.HasValue
@@ -462,7 +465,7 @@ namespace NuGetGallery
 
                 await _packageFileService.DeletePackageFileAsync(id, version);
                 // we didn't backup license file before deleting it because it is backed up as part of the package
-                await _packageFileService.DeleteLicenseFileAsync(id, version);
+                await _coreLicenseFileService.DeleteLicenseFileAsync(id, version);
                 await _symbolPackageFileService.DeletePackageFileAsync(id, version);
 
                 await _packageFileService.DeleteValidationPackageFileAsync(id, version);

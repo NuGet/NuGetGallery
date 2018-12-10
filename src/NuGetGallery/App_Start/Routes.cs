@@ -227,6 +227,11 @@ namespace NuGetGallery
                 "account/ConfirmationRequired",
                 new { controller = "Users", action = "ConfirmationRequired" });
 
+            routes.MapRoute(
+                RouteName.License,
+                "packages/{id}/{version}/license",
+                new { controller = "Packages", action = "License" });
+            
             //Redirecting v1 Confirmation Route
             routes.Redirect(
                 r => r.MapRoute(
