@@ -336,13 +336,15 @@
                 // Preload each page.
                 var pages = self.PackagePages();
                 var preloadPageByIndex = function (i) {
-                    // Preload the pages in order, one by one.
+                    // Preload the pages in order, one at a time.
+                    if (ownerFilter !== self.ManagePackagesViewModel.OwnerFilter()) {
+                        // If the owner filter has changed, stop preloading pages.
+                        return;
+                    }
+                    
                     if (i < pages.length) {
                         var identity = self.CreatePackagePageIdentity(ownerFilter, pages[i]);
                         self.GetPackagePage(identity, preloadPageByIndex.bind(self, i + 1));
-                    } else {
-                        // After preloading the pages for the current owner, make sure the default pages for the other owners are loaded.
-                        self.PreloadPagesForAllOwners();
                     }
                 };
 
@@ -514,7 +516,11 @@
         var managePackagesViewModel = new ManagePackagesViewModel(initialData);
         ko.applyBindings(managePackagesViewModel, document.body);
 
-        // Load the remaining packages for the current owner.
+        // Load the remaining pages for the current owner.
+        managePackagesViewModel.ListedPackages.PreloadPagesForOwnerFilter();
+        managePackagesViewModel.UnlistedPackages.PreloadPagesForOwnerFilter();
+
+        // Load the default page for all owners
         managePackagesViewModel.ListedPackages.PreloadPagesForOwnerFilter();
         managePackagesViewModel.UnlistedPackages.PreloadPagesForOwnerFilter();
     });
