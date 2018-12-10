@@ -1077,4 +1077,12 @@ The {1} Team</value>
   <data name="UploadPackage_MalformedLicenseUrl" xml:space="preserve">
     <value>The package contains a malformed license URL.</value>
   </data>
+  <data name="SecurityPolicy_PackageAuthorNotAllowed" xml:space="preserve">
+    <value>The package metadata defines '{0}' as one of the authors which is not allowed by policy.</value>
+    <comment>{0} is the author that is not in the list of allowed authors for this policy.</comment>
+  </data>
+  <data name="SecurityPolicy_PackageAuthorDuplicatesNotAllowed" xml:space="preserve">
+    <value>The package metadata defines '{0}' as author more than once, which is not allowed by policy.</value>
+    <comment>{0} is the list of duplicate package authors</comment>
+  </data>
 </root>
