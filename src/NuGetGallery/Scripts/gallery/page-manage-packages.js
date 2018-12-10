@@ -521,8 +521,8 @@
         managePackagesViewModel.UnlistedPackages.PreloadPagesForOwnerFilter();
 
         // Load the default page for all owners
-        managePackagesViewModel.ListedPackages.PreloadPagesForOwnerFilter();
-        managePackagesViewModel.UnlistedPackages.PreloadPagesForOwnerFilter();
+        managePackagesViewModel.ListedPackages.PreloadPagesForAllOwners();
+        managePackagesViewModel.UnlistedPackages.PreloadPagesForAllOwners();
     });
 
 })();
