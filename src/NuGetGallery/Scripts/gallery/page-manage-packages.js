@@ -154,7 +154,7 @@
             };
         }
 
-        function PackagesListViewModel(managePackagesViewModel, type, listed) {
+        function PackagesListViewModel(managePackagesViewModel, initialPackages, type, listed) {
             var self = this;
 
             this.ManagePackagesViewModel = managePackagesViewModel;
@@ -168,6 +168,10 @@
                 };
             };
 
+            this.DefaultPage = 0;
+            this.PackagePageRange = 10;
+            this.PackagePageNumber = ko.observable(self.DefaultPage);
+
             this.PackagePageIdentity = ko.pureComputed(function () {
                 return self.CreatePackagePageIdentity(
                     self.ManagePackagesViewModel.OwnerFilter(),
@@ -178,12 +182,15 @@
                 return JSON.stringify(identity);
             };
 
-            this.PackagesCache = ko.observable({});
+            var initialPackagesCache = {};
+            initialPackagesCache[self.GetPackagePageIdentityCacheKey(self.PackagePageIdentity())] = initialPackages;
+            this.PackagesCache = ko.observable(initialPackagesCache);
             this.IsCachingPage = {};
             this.GetPackagePage = function (identity, callback) {
                 var packageCacheKey = self.GetPackagePageIdentityCacheKey(identity);
                 var cachedPackages = self.PackagesCache()[packageCacheKey];
                 if (cachedPackages) {
+                    // The page has already been loaded.
                     callback && callback();
                     return;
                 }
@@ -193,6 +200,7 @@
                 var isCaching = self.IsCachingPage[packageCacheKey];
                 if (isCaching) {
                     // This page is already being loaded.
+                    // Don't try to load it again while it's already being loaded.
                     callback && callback();
                     return;
                 }
@@ -226,6 +234,7 @@
                     return cachedPackages;
                 }
 
+                // Make sure we are in the process of loading the page if we haven't loaded it already.
                 self.GetPackagePage(identity);
                 return null;
             };
@@ -287,8 +296,11 @@
                 self.PackagePageNumber(0);
             };
 
+            this.LastPackagePage = ko.pureComputed(function () {
+                return self.PackagePagesCount() - 1;
+            });
             this.SetPackagePageLast = function () {
-                self.PackagePageNumber(self.PackagePagesCount() - 1);
+                self.PackagePageNumber(self.LastPackagePage());
             };
             this.PackagesHeading = ko.pureComputed(function () {
                 return formatPackagesData(
@@ -300,33 +312,27 @@
                 var packagesCount = self.PackagesCount();
                 if (!packagesCount) {
                     // The first page always exists.
+                    // If there are no packages that fit the criteria, the first page will exist, but it will be empty.
                     return 1;
                 }
 
                 return Math.ceil(packagesCount / pageSize);
             }, this);
 
-            this.DefaultPage = 0;
-            this.PackagePageRange = 10;
-            this.PackagePageNumber = ko.observable(self.DefaultPage);
+            this.ManagePackagesViewModel.OwnerFilter.subscribe(function () {
+                self.PackagePageNumber(self.DefaultPage);
+                self.PreloadPagesForOwnerFilter();
+            }, this);
 
             this.NearbyPackagePagesLowerbound = ko.pureComputed(function () {
                 var result = self.PackagePageNumber() - self.PackagePageRange;
                 return result < 0 ? 0 : result;
             }, this);
 
-            this.NearbyPackagePagesLowerbound.subscribe(function () {
-                self.PreloadPagesForOwnerFilter();
-            }, this);
-
             this.NearbyPackagePagesUpperbound = ko.pureComputed(function () {
                 var result = self.PackagePageNumber() + self.PackagePageRange;
                 var maxPages = self.PackagePagesCount();
                 return result > maxPages ? maxPages : result;
-            }, this);
-
-            this.NearbyPackagePagesUpperbound.subscribe(function () {
-                self.PreloadPagesForOwnerFilter();
             }, this);
 
             this.NearbyPackagePages = ko.pureComputed(function () {
@@ -338,27 +344,44 @@
                 return pages;
             }, this);
 
-            this.ManagePackagesViewModel.OwnerFilter.subscribe(function () {
-                self.PackagePageNumber(self.DefaultPage);
-                self.PreloadPagesForOwnerFilter();
-            }, this);
-
             this.PreloadPagesForOwnerFilter = function () {
                 var ownerFilter = self.ManagePackagesViewModel.OwnerFilter();
-                var pages = self.NearbyPackagePages();
+
+                // Preload each nearby page.
+                var pages = self.NearbyPackagePages().slice(0);
+
+                // Make sure to preload the first and last page too.
+                pages.push(0);
+                pages.push(self.LastPackagePage());
+
                 var preloadPageByIndex = function (i) {
+                    // Preload the pages in order, one by one.
                     if (i < pages.length) {
                         var identity = self.CreatePackagePageIdentity(ownerFilter, pages[i]);
                         self.GetPackagePage(identity, preloadPageByIndex.bind(self, i + 1));
+                    } else {
+                        // After preloading the pages for the current owner, make sure the default pages for the other owners are loaded.
+                        self.PreloadPagesForAllOwners();
                     }
                 };
 
                 preloadPageByIndex(0);
             };
 
+            this.NearbyPackagePagesLowerbound.subscribe(function () {
+                // When the pages the user can choose changes, make sure they are all loaded.
+                self.PreloadPagesForOwnerFilter();
+            }, this);
+
+            this.NearbyPackagePagesUpperbound.subscribe(function () {
+                // When the pages the user can choose changes, make sure they are all loaded.
+                self.PreloadPagesForOwnerFilter();
+            }, this);
+
             this.PreloadPagesForAllOwners = function () {
-                var owners = self.ManagePackagesViewModel.Owners;
+                var owners = self.ManagePackagesViewModel.Owners.slice(0);
                 var preloadDefaultPageForOwnerByIndex = function (i) {
+                    // Preload the pages in order, one owner at a time.
                     if (i < owners.length) {
                         var identity = self.CreatePackagePageIdentity(owners[i], self.DefaultPage);
                         self.GetPackagePage(identity, preloadDefaultPageForOwnerByIndex.bind(self, i + 1));
@@ -386,9 +409,8 @@
             this.Owners = namespaceItem.Owners;
             this.IsPublic = namespaceItem.IsPublic;
 
-            this.Visible = ko.observable(true);
-
-            this.UpdateVisibility = function (ownerFilter) {
+            this.Visible = ko.pureComputed(function () {
+                var ownerFilter = self.ReservedNamespaceListViewModel.ManagePackagesViewModel.OwnerFilter();
                 var visible = ownerFilter === allPackagesFilter;
                 if (!visible) {
                     for (var i in self.Owners) {
@@ -398,8 +420,9 @@
                         }
                     }
                 }
-                this.Visible(visible);
-            };
+
+                return visible;
+            }, this);
         }
 
         function ReservedNamespaceListViewModel(managePackagesViewModel, namespaces) {
@@ -409,21 +432,19 @@
             this.Namespaces = $.map(namespaces, function (data) {
                 return new ReservedNamespaceListItemViewModel(self, data);
             });
-            this.VisibleNamespacesCount = ko.observable(null);
-            this.VisibleNamespacesHeading = ko.pureComputed(function () {
-                return formatReservedNamespacesData(ko.unwrap(self.VisibleNamespacesCount()));
-            });
-
-            this.ManagePackagesViewModel.OwnerFilter.subscribe(function (newOwner) {
+            this.VisibleNamespacesCount = ko.pureComputed(function () {
                 var namespacesCount = 0;
                 for (var i in self.Namespaces) {
-                    self.Namespaces[i].UpdateVisibility(newOwner);
                     if (self.Namespaces[i].Visible()) {
                         namespacesCount++;
                     }
                 }
-                this.VisibleNamespacesCount(namespacesCount);
+
+                return namespacesCount;
             }, this);
+            this.VisibleNamespacesHeading = ko.pureComputed(function () {
+                return formatReservedNamespacesData(ko.unwrap(self.VisibleNamespacesCount()));
+            });
         }
 
         function formatOwnerRequestsData(requestsCount) {
@@ -454,9 +475,8 @@
             this.ShowReceived = showReceived;
             this.ShowSent = showSent;
 
-            this.Visible = ko.observable(true);
-
-            this.UpdateVisibility = function (ownerFilter) {
+            this.Visible = ko.pureComputed(function () {ManagePackagesViewModel
+                var ownerFilter = self.OwnerRequestsListViewModel.ManagePackagesViewModel.OwnerFilter();
                 var visible = ownerFilter === allPackagesFilter;
                 if (!visible) {
                     if (self.ShowReceived && ownerFilter === self.New.Username) {
@@ -472,8 +492,10 @@
                         }
                     }
                 }
-                this.Visible(visible);
-            };
+
+                return visible;
+            }, this);
+            
             this.PackageIconUrlFallback = ko.pureComputed(function () {
                 var url = packageIconUrlFallback;
                 return "this.src='" + url + "'; this.onerror = null;";
@@ -487,20 +509,20 @@
             this.Requests = $.map(requests, function (data) {
                 return new OwnerRequestsItemViewModel(self, data, showReceived, showSent);
             });
-            this.VisibleRequestsCount = ko.observable(null);
-            this.VisibleRequestsHeading = ko.pureComputed(function () {
-                return formatOwnerRequestsData(ko.unwrap(self.VisibleRequestsCount()));
-            }, this);
 
-            this.ManagePackagesViewModel.OwnerFilter.subscribe(function (newOwner) {
+            this.VisibleRequestsCount = ko.pureComputed(function () {
                 var requestsCount = 0;
                 for (var i in self.Requests) {
-                    self.Requests[i].UpdateVisibility(newOwner);
                     if (self.Requests[i].Visible()) {
                         requestsCount++;
                     }
                 }
-                this.VisibleRequestsCount(requestsCount);
+
+                return requestsCount;
+            }, this);
+
+            this.VisibleRequestsHeading = ko.pureComputed(function () {
+                return formatOwnerRequestsData(ko.unwrap(self.VisibleRequestsCount()));
             }, this);
         }
 
@@ -508,10 +530,10 @@
             var self = this;
 
             this.Owners = initialData.Owners;
-            this.OwnerFilter = ko.observable();
+            this.OwnerFilter = ko.observable(this.Owners[0]);
 
-            this.ListedPackages = new PackagesListViewModel(this, "published", true);
-            this.UnlistedPackages = new PackagesListViewModel(this, "unlisted", false);
+            this.ListedPackages = new PackagesListViewModel(this, initialData.ListedPackages, "published", true);
+            this.UnlistedPackages = new PackagesListViewModel(this, initialData.UnlistedPackages, "unlisted", false);
             this.ReservedNamespaces = new ReservedNamespaceListViewModel(this, initialData.ReservedNamespaces);
             this.RequestsReceived = new OwnerRequestsListViewModel(this, initialData.RequestsReceived, true, false);
             this.RequestsSent = new OwnerRequestsListViewModel(this, initialData.RequestsSent, false, true);
@@ -521,9 +543,9 @@
         var managePackagesViewModel = new ManagePackagesViewModel(initialData);
         ko.applyBindings(managePackagesViewModel, document.body);
 
-        // Begin loading package pages
-        managePackagesViewModel.ListedPackages.PreloadPagesForAllOwners();
-        managePackagesViewModel.UnlistedPackages.PreloadPagesForAllOwners();
+        // Load the remaining packages for the current owner.
+        managePackagesViewModel.ListedPackages.PreloadPagesForOwnerFilter();
+        managePackagesViewModel.UnlistedPackages.PreloadPagesForOwnerFilter();
     });
 
 })();

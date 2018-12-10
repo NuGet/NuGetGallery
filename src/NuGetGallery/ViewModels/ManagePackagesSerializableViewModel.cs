@@ -21,6 +21,9 @@ namespace NuGetGallery
         {
             Owners = model.Owners;
 
+            ListedPackages = model.ListedPackages;
+            UnlistedPackages = model.UnlistedPackages;
+
             ReservedNamespaces = model.ReservedNamespaces.ReservedNamespaces.Select(
                 n => new ManagePackagesSerializableReservedNamespaceViewModel(
                     n, 
@@ -47,6 +50,8 @@ namespace NuGetGallery
         }
         
         public IEnumerable<string> Owners { get; }
+        public dynamic ListedPackages { get; set; }
+        public dynamic UnlistedPackages { get; set; }
         public IEnumerable<ManagePackagesSerializableReservedNamespaceViewModel> ReservedNamespaces { get; }
         public IEnumerable<ManagePackagesSerializableOwnerRequestViewModel> RequestsReceived { get; }
         public IEnumerable<ManagePackagesSerializableOwnerRequestViewModel> RequestsSent { get; }

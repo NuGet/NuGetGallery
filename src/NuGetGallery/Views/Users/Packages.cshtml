@@ -108,7 +108,7 @@
     }
     <div class="col-md-12">
         <div class="panel-collapse collapse in" aria-expanded="true">
-            <!-- ko if: CurrentPackagesPage -->
+            <!-- ko if: CurrentPackagesPage() != null && PackagesCount() > 0 -->
             <table class="table inner-table">
                 <thead>
                     <tr class="manage-package-headings">
@@ -202,7 +202,7 @@
             <!-- ko if: PackagesCount() == 0 -->
             <span>There are no packages that fit this criteria.</span>
             <!-- /ko -->
-            <!-- ko ifnot: CurrentPackagesPage -->
+            <!-- ko ifnot: CurrentPackagesPage() != null -->
             <span>Loading packages list...</span>
             <!-- /ko -->
             <!-- ko if: PackagePagesCount() > 1 -->

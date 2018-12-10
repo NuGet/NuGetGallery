@@ -12,9 +12,9 @@ namespace NuGetGallery
 
         public IEnumerable<string> Owners { get; set; }
 
-        public IEnumerable<ListPackageItemRequiredSignerViewModel> ListedPackages { get; set; }
+        public dynamic ListedPackages { get; set; }
 
-        public IEnumerable<ListPackageItemRequiredSignerViewModel> UnlistedPackages { get; set; }
+        public dynamic UnlistedPackages { get; set; }
 
         public OwnerRequestsViewModel OwnerRequests { get; set; }
 

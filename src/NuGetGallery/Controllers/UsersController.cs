@@ -463,15 +463,13 @@ namespace NuGetGallery
         public virtual ActionResult Packages()
         {
             var currentUser = GetCurrentUser();
-
-            var packages = PackageService.FindPackagesByAnyMatchingOwner(currentUser, includeUnlisted: true);
-
+            
             var model = new ManagePackagesViewModel
             {
                 User = currentUser,
                 Owners = GetOwnersForUser(currentUser),
-                ListedPackages = FilterPackagesForManagePackages(packages, currentUser, true).ToList(),
-                UnlistedPackages = FilterPackagesForManagePackages(packages, currentUser, false).ToList(),
+                ListedPackages = GetPagedPackagesForManagePackages(true),
+                UnlistedPackages = GetPagedPackagesForManagePackages(false),
                 OwnerRequests = GetOwnerRequestsForUser(currentUser),
                 ReservedNamespaces = GetReservedNamespacesForUser(currentUser),
                 WasMultiFactorAuthenticated = User.WasMultiFactorAuthenticated(),
@@ -484,6 +482,13 @@ namespace NuGetGallery
         [HttpGet]
         [UIAuthorize]
         public virtual JsonResult PackagesPaged(bool listed, int page = 0, string username = null)
+        {
+            return Json(
+                GetPagedPackagesForManagePackages(listed, page, username),
+                JsonRequestBehavior.AllowGet);
+        }
+
+        private dynamic GetPagedPackagesForManagePackages(bool listed, int page = 0, string username = null)
         {
             var currentUser = GetCurrentUser();
             IEnumerable<Package> packages;
@@ -527,14 +532,12 @@ namespace NuGetGallery
                     setRequiredSignerUrlTemplate,
                     profileUrlTemplate));
 
-            return Json(
-                new
-                {
-                    totalCount = packageCount,
-                    totalDownloadCount = downloadCount,
-                    packages = pagedPackages
-                },
-                JsonRequestBehavior.AllowGet);
+            return new
+            {
+                totalCount = packageCount,
+                totalDownloadCount = downloadCount,
+                packages = pagedPackages
+            };
         }
 
         private IEnumerable<string> GetOwnersForUser(User user)
