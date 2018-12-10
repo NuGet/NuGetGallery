@@ -1174,6 +1174,30 @@ namespace NuGetGallery
             return View(model);
         }
 
+        // ToDo: OutputCache ?
+        [HttpGet]
+        public virtual ActionResult RssFeed(string id)
+        {
+            // ToDo: Query https://api.nuget.org/v3/registration3-gz-semver2/newtonsoft.json/index.json 
+            // when Gallery.ServiceDiscoveryUri is set
+            // otherwise hit the EF database
+            var package = _packageService.FindPackageByIdAndVersion(id, string.Empty);
+            if (package == null)
+            {
+                return HttpNotFound();
+            }
+
+            var model = new RssFeedViewModel();
+            model.PackageId = package.Id;
+            model.PackageDescription = package.Description;
+            // ToDo: Maybe map to a neutral PackageHistory object 
+            model.PackageVersions = package.PackageRegistration.Packages
+                      .OrderByDescending(p => new NuGetVersion(p.Version), Comparer<NuGetVersion>.Create((a, b) => a.CompareTo(b)))
+                      .ToList();
+
+            return View(model);
+        }
+
         [HttpGet]
         [UIAuthorize]
         [RequiresAccountConfirmation("delete a package")]

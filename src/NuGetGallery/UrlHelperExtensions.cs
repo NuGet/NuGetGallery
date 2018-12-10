@@ -1052,9 +1052,31 @@ namespace NuGetGallery
             return new RouteUrlTemplate<IPackageVersionModel>(linkGenerator, routesGenerator);
         }
 
+        public static RouteUrlTemplate<IPackageVersionModel> PackageRssFeedTemplate(this UrlHelper url, bool relativeUrl = true)
+        {
+            var routesGenerator = new Dictionary<string, Func<IPackageVersionModel, object>>
+            {
+                { "id", p => p.Id },
+            };
+
+            Func<RouteValueDictionary, string> linkGenerator = rv => GetActionLink(
+                url,
+                "RssFeed",
+                "Packages",
+                relativeUrl,
+                routeValues: rv);
+
+            return new RouteUrlTemplate<IPackageVersionModel>(linkGenerator, routesGenerator);
+        }
+
         public static string ManagePackageOwners(this UrlHelper url, IPackageVersionModel package, bool relativeUrl = true)
         {
             return url.ManagePackageOwnersTemplate(relativeUrl).Resolve(package);
+        }
+
+        public static string PackageRssFeed(this UrlHelper url, IPackageVersionModel package, bool relativeUrl = true)
+        {
+            return url.PackageRssFeedTemplate(relativeUrl).Resolve(package);
         }
 
         public static string GetPackageOwners(this UrlHelper url, bool relativeUrl = true)
