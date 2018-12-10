@@ -494,14 +494,16 @@ namespace NuGetGallery
             IEnumerable<Package> packages;
             if (username == null)
             {
-                packages = PackageService.FindPackagesByAnyMatchingOwner(currentUser, includeUnlisted: true);
+                packages = PackageService.FindPackagesByAnyMatchingOwner(
+                    currentUser, includeUnlisted: true, includeVersions: true);
             }
             else
             {
                 var user = UserService.FindByUsername(username);
                 if (user != null)
                 {
-                    packages = PackageService.FindPackagesByOwner(user, includeUnlisted: true);
+                    packages = PackageService.FindPackagesByOwner(
+                        user, includeUnlisted: true, includeVersions: true);
                 }
                 else
                 {

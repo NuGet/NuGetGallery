@@ -181,15 +181,14 @@
             this.GetPackagePageIdentityCacheKey = function (identity) {
                 return JSON.stringify(identity);
             };
-
-            var initialPackagesCache = {};
-            initialPackagesCache[self.GetPackagePageIdentityCacheKey(self.PackagePageIdentity())] = initialPackages;
-            this.PackagesCache = ko.observable(initialPackagesCache);
+            
+            this.PackagesCache = {};
+            this.PackagesCache[self.GetPackagePageIdentityCacheKey(self.PackagePageIdentity())] = ko.observable(initialPackages);
             this.IsCachingPage = {};
             this.GetPackagePage = function (identity, callback) {
                 var packageCacheKey = self.GetPackagePageIdentityCacheKey(identity);
-                var cachedPackages = self.PackagesCache()[packageCacheKey];
-                if (cachedPackages) {
+                var cachedPage = self.PackagesCache[packageCacheKey];
+                if (cachedPage && cachedPage()) {
                     // The page has already been loaded.
                     callback && callback();
                     return;
@@ -206,14 +205,18 @@
                 }
 
                 self.IsCachingPage[packageCacheKey] = true;
+                var defaultPageValue = null;
+                if (cachedPage) {
+                    self.PackagesCache[packageCacheKey](defaultPageValue);
+                } else {
+                    self.PackagesCache[packageCacheKey] = ko.observable(defaultPageValue);
+                }
 
                 $.ajax({
                     url: getPagedPackagesUrl + '?page=' + page + '&listed=' + listed + (ownerFilter === allPackagesFilter ? '' : '&username=' + ownerFilter),
                     dataType: 'json',
                     success: function (data) {
-                        var cache = self.PackagesCache();
-                        cache[packageCacheKey] = data;
-                        self.PackagesCache(cache);
+                        self.PackagesCache[packageCacheKey](data);
                         self.IsCachingPage[packageCacheKey] = false;
 
                         callback && callback();
@@ -229,14 +232,8 @@
 
             this.GetCachedPackagePage = function (identity) {
                 var packageCacheKey = self.GetPackagePageIdentityCacheKey(identity);
-                var cachedPackages = self.PackagesCache()[packageCacheKey];
-                if (cachedPackages) {
-                    return cachedPackages;
-                }
-
-                // Make sure we are in the process of loading the page if we haven't loaded it already.
                 self.GetPackagePage(identity);
-                return null;
+                return self.PackagesCache[packageCacheKey]();
             };
 
             this.CachedCurrentPackagePage = ko.pureComputed(function () {
@@ -336,13 +333,8 @@
             this.PreloadPagesForOwnerFilter = function () {
                 var ownerFilter = self.ManagePackagesViewModel.OwnerFilter();
 
-                // Preload each nearby page.
-                var pages = self.PackagePages().slice(0);
-
-                // Make sure to preload the first and last page too.
-                pages.push(0);
-                pages.push(self.LastPackagePage());
-
+                // Preload each page.
+                var pages = self.PackagePages();
                 var preloadPageByIndex = function (i) {
                     // Preload the pages in order, one by one.
                     if (i < pages.length) {

@@ -260,6 +260,7 @@ namespace NuGetGallery
                 return packages
                 .Include(p => p.PackageRegistration)
                 .Include(p => p.PackageRegistration.Owners)
+                .Include(p => p.PackageRegistration.RequiredSigners)
                 .ToList();
             }
 

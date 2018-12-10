@@ -367,6 +367,8 @@ namespace NuGetGallery
             }
             return users.Include(u => u.Roles)
                 .Include(u => u.Credentials)
+                .Include(u => u.Organizations)
+                .Include(u => u.SecurityPolicies)
                 .SingleOrDefault(u => u.Username == username);
         }
 
@@ -379,6 +381,8 @@ namespace NuGetGallery
             }
             return users.Include(u => u.Roles)
                 .Include(u => u.Credentials)
+                .Include(u => u.Organizations)
+                .Include(u => u.SecurityPolicies)
                 .SingleOrDefault(u => u.Key == key);
         }
 
