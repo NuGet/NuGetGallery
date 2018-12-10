@@ -619,19 +619,18 @@ namespace NuGetGallery
         }
 
         /// <summary>
-        /// Initializes a package version action route request
+        /// Initializes an edit package link that can be resolved at a later time.
         /// 
         /// Callers should only use this API if they need to generate many links, such as the ManagePackages view
         /// does. This template reduces the calls to RouteCollection.GetVirtualPath which can be expensive. Callers
-        /// that only need a single link should call Url.PackageVersionAction instead.
-        public static RouteUrlTemplate<IPackageVersionModel> PackageVersionActionTemplate(
+        /// that only need a single link should call Url.EditPackage instead.
+        public static RouteUrlTemplate<IPackageVersionModel> EditPackageTemplate(
             this UrlHelper url,
-            string action,
             bool relativeUrl = true)
         {
             var routesGenerator = new Dictionary<string, Func<IPackageVersionModel, object>>
             {
-                { "action", p => action },
+                { "action", p => "Edit" },
                 { "id", p => p.Id },
                 { "version", p => p.Version }
             };
@@ -645,24 +644,24 @@ namespace NuGetGallery
             return new RouteUrlTemplate<IPackageVersionModel>(linkGenerator, routesGenerator);
         }
 
-        public static string PackageVersionAction(
+        public static string EditPackage(
             this UrlHelper url,
-            string action,
             string id,
             string version,
             bool relativeUrl = true)
         {
             if (string.IsNullOrEmpty(version))
             {
-                return GetRouteLink(
-                    url,
-                    RouteName.PackageAction,
-                    relativeUrl,
-                    routeValues: new RouteValueDictionary
-                    {
-                        { "action", action },
-                        { "id", id }
-                    });
+                return EnsureTrailingSlash(
+                    GetRouteLink(
+                        url,
+                        RouteName.PackageAction,
+                        relativeUrl,
+                        routeValues: new RouteValueDictionary
+                        {
+                            { "action", "Edit" },
+                            { "id", id }
+                        }));
             }
 
             return GetRouteLink(
@@ -671,50 +670,10 @@ namespace NuGetGallery
                 relativeUrl,
                 routeValues: new RouteValueDictionary
                 {
-                    { "action", action },
+                    { "action", "Edit" },
                     { "id", id },
                     { "version", version }
                 });
-        }
-
-        public static string PackageVersionAction(
-            this UrlHelper url,
-            string action,
-            IPackageVersionModel package,
-            bool relativeUrl = true)
-        {
-            return url.PackageVersionAction(action, package.Id, package.Version, relativeUrl);
-        }
-
-        /// <summary>
-        /// Initializes a manage package link that can be resolved at a later time.
-        /// 
-        /// Callers should only use this API if they need to generate many links, such as the ManagePackages view
-        /// does. This template reduces the calls to RouteCollection.GetVirtualPath which can be expensive. Callers
-        /// that only need a single link should call Url.ManagePackage instead.
-        public static RouteUrlTemplate<IPackageVersionModel> ManagePackageTemplate(
-            this UrlHelper url,
-            bool relativeUrl = true)
-        {
-            return url.PackageVersionActionTemplate(nameof(PackagesController.Manage), relativeUrl);
-        }
-
-        public static string ManagePackage(
-            this UrlHelper url,
-            IPackageVersionModel package,
-            bool relativeUrl = true)
-        {
-            return url.PackageVersionAction(nameof(PackagesController.Manage), package, relativeUrl);
-        }
-
-        public static string PreviewReadMe(
-            this UrlHelper url,
-            bool relativeUrl = true)
-        {
-            return GetRouteLink(
-                url,
-                RouteName.PreviewReadMe,
-                relativeUrl);
         }
 
         public static string ReflowPackage(
@@ -722,7 +681,52 @@ namespace NuGetGallery
             IPackageVersionModel package,
             bool relativeUrl = true)
         {
-            return url.PackageVersionAction(nameof(PackagesController.Reflow), package, relativeUrl);
+            return GetActionLink(
+                url,
+                nameof(PackagesController.Reflow),
+                "Packages",
+                relativeUrl,
+                routeValues: new RouteValueDictionary
+                {
+                    { "id", package.Id },
+                    { "version", package.Version }
+                });
+        }
+
+        public static string RevalidatePackage(
+            this UrlHelper url,
+            string id,
+            string version,
+            bool relativeUrl = true)
+        {
+            return GetActionLink(
+                url,
+                nameof(PackagesController.Revalidate),
+                "Packages",
+                relativeUrl,
+                routeValues: new RouteValueDictionary
+                {
+                    { "id", id },
+                    { "version", version }
+                });
+        }
+
+        public static string RevalidateSymbolsPackage(
+            this UrlHelper url,
+            string id,
+            string version,
+            bool relativeUrl = true)
+        {
+            return GetActionLink(
+                url,
+                nameof(PackagesController.RevalidateSymbols),
+                "Packages",
+                relativeUrl,
+                routeValues: new RouteValueDictionary
+                {
+                    { "id", id },
+                    { "version", version }
+                });
         }
 
         public static string RevalidatePackage(
@@ -730,7 +734,7 @@ namespace NuGetGallery
             IPackageVersionModel package,
             bool relativeUrl = true)
         {
-            return url.PackageVersionAction(nameof(PackagesController.Revalidate), package, relativeUrl);
+            return url.RevalidatePackage(package.Id, package.Version, relativeUrl);
         }
 
         public static string RevalidateSymbolsPackage(
@@ -738,7 +742,7 @@ namespace NuGetGallery
             IPackageVersionModel package,
             bool relativeUrl = true)
         {
-            return url.PackageVersionAction(nameof(PackagesController.RevalidateSymbols), package, relativeUrl);
+            return url.RevalidateSymbolsPackage(package.Id, package.Version, relativeUrl);
         }
 
         public static string ViewValidations(
@@ -767,12 +771,47 @@ namespace NuGetGallery
             return url.ViewValidations(package.Id, package.Version, relativeUrl);
         }
 
+        /// <summary>
+        /// Initializes a delete package link that can be resolved at a later time.
+        /// 
+        /// Callers should only use this API if they need to generate many links, such as the ManagePackages view
+        /// does. This template reduces the calls to RouteCollection.GetVirtualPath which can be expensive. Callers
+        /// that only need a single link should call Url.DeletePackage instead.
+        public static RouteUrlTemplate<IPackageVersionModel> DeletePackageTemplate(
+            this UrlHelper url,
+            bool relativeUrl = true,
+            string action = "Delete")
+        {
+            var routesGenerator = new Dictionary<string, Func<IPackageVersionModel, object>>
+            {
+                { "id", p => p.Id },
+                { "version", p => p.Version }
+            };
+
+            Func<RouteValueDictionary, string> linkGenerator = rv => GetActionLink(
+                url,
+                action,
+                "Packages",
+                relativeUrl,
+                routeValues: rv);
+
+            return new RouteUrlTemplate<IPackageVersionModel>(linkGenerator, routesGenerator);
+        }
+
+        public static string DeletePackage(
+            this UrlHelper url,
+            IPackageVersionModel package,
+            bool relativeUrl = true)
+        {
+            return url.DeletePackageTemplate(relativeUrl).Resolve(package);
+        }
+
         public static string DeleteSymbolsPackage(
             this UrlHelper url,
             IPackageVersionModel package,
             bool relativeUrl = true)
         {
-            return url.PackageVersionAction(nameof(PackagesController.DeleteSymbols), package, relativeUrl);
+            return url.DeletePackageTemplate(relativeUrl, action: "DeleteSymbols").Resolve(package);
         }
 
         public static string AccountSettings(
@@ -799,26 +838,38 @@ namespace NuGetGallery
 
         public static string ReportPackage(
             this UrlHelper url,
-            IPackageVersionModel package,
+            string id,
+            string version,
             bool relativeUrl = true)
         {
-            return url.PackageVersionAction(nameof(PackagesController.ReportMyPackage), package, relativeUrl);
-        }
-
-        public static string ReportPackage(
-            this UrlHelper url,
-            Package package,
-            bool relativeUrl = true)
-        {
-            return url.PackageVersionAction(nameof(PackagesController.ReportMyPackage), new TrivialPackageVersionModel(package), relativeUrl);
+            return GetActionLink(
+                url,
+                "ReportMyPackage",
+                "Packages",
+                relativeUrl,
+                routeValues: new RouteValueDictionary
+                {
+                    { "id", id },
+                    { "version", version }
+                });
         }
 
         public static string ReportAbuse(
             this UrlHelper url,
-            IPackageVersionModel package,
+            string id,
+            string version,
             bool relativeUrl = true)
         {
-            return url.PackageVersionAction(nameof(PackagesController.ReportAbuse), package, relativeUrl);
+            return GetActionLink(
+                url,
+                "ReportAbuse",
+                "Packages",
+                relativeUrl,
+                routeValues: new RouteValueDictionary
+                {
+                    { "id", id },
+                    { "version", version }
+                });
         }
 
         public static string LinkOrChangeExternalCredential(this UrlHelper url, string returnUrl, bool relativeUrl = true)
@@ -976,6 +1027,56 @@ namespace NuGetGallery
         public static string ManageMyPackages(this UrlHelper url, bool relativeUrl = true)
         {
             return GetActionLink(url, "Packages", "Users", relativeUrl);
+        }
+
+        /// <summary>
+        /// Initializes a manage package owners link that can be resolved at a later time.
+        /// 
+        /// Callers should only use this API if they need to generate many links, such as the ManagePackages view
+        /// does. This template reduces the calls to RouteCollection.GetVirtualPath which can be expensive. Callers
+        /// that only need a single link should call Url.ManagePackageOwners instead.
+        public static RouteUrlTemplate<IPackageVersionModel> ManagePackageOwnersTemplate(this UrlHelper url, bool relativeUrl = true)
+        {
+            var routesGenerator = new Dictionary<string, Func<IPackageVersionModel, object>>
+            {
+                { "id", p => p.Id },
+            };
+
+            Func<RouteValueDictionary, string> linkGenerator = rv => GetActionLink(
+                url,
+                "ManagePackageOwners",
+                "Packages",
+                relativeUrl,
+                routeValues: rv);
+
+            return new RouteUrlTemplate<IPackageVersionModel>(linkGenerator, routesGenerator);
+        }
+
+        public static RouteUrlTemplate<IPackageVersionModel> PackageRssFeedTemplate(this UrlHelper url, bool relativeUrl = true)
+        {
+            var routesGenerator = new Dictionary<string, Func<IPackageVersionModel, object>>
+            {
+                { "id", p => p.Id },
+            };
+
+            Func<RouteValueDictionary, string> linkGenerator = rv => GetActionLink(
+                url,
+                "RssFeed",
+                "Packages",
+                relativeUrl,
+                routeValues: rv);
+
+            return new RouteUrlTemplate<IPackageVersionModel>(linkGenerator, routesGenerator);
+        }
+
+        public static string ManagePackageOwners(this UrlHelper url, IPackageVersionModel package, bool relativeUrl = true)
+        {
+            return url.ManagePackageOwnersTemplate(relativeUrl).Resolve(package);
+        }
+
+        public static string PackageRssFeed(this UrlHelper url, IPackageVersionModel package, bool relativeUrl = true)
+        {
+            return url.PackageRssFeedTemplate(relativeUrl).Resolve(package);
         }
 
         public static string GetPackageOwners(this UrlHelper url, bool relativeUrl = true)
@@ -1174,14 +1275,18 @@ namespace NuGetGallery
             return GetActionLink(url, "Contact", "Pages", relativeUrl);
         }
 
-        public static string ContactOwners(this UrlHelper url, IPackageVersionModel package, bool relativeUrl = true)
+        public static string ContactOwners(this UrlHelper url, string id, string version, bool relativeUrl = true)
         {
-            return url.PackageVersionAction(nameof(PackagesController.ContactOwners), package, relativeUrl);
-        }
-
-        public static string License(this UrlHelper url, IPackageVersionModel package, bool relativeUrl = true)
-        {
-            return url.PackageVersionAction(nameof(PackagesController.License), package, relativeUrl);
+            return GetActionLink(
+                url,
+                "ContactOwners",
+                "Packages",
+                relativeUrl,
+                routeValues: new RouteValueDictionary
+                {
+                    { "id", id },
+                    { "version", version }
+                });
         }
 
         public static string Terms(this UrlHelper url, bool relativeUrl = true)
