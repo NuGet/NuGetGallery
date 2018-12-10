@@ -324,20 +324,9 @@
                 self.PreloadPagesForOwnerFilter();
             }, this);
 
-            this.NearbyPackagePagesLowerbound = ko.pureComputed(function () {
-                var result = self.PackagePageNumber() - self.PackagePageRange;
-                return result < 0 ? 0 : result;
-            }, this);
-
-            this.NearbyPackagePagesUpperbound = ko.pureComputed(function () {
-                var result = self.PackagePageNumber() + self.PackagePageRange;
-                var maxPages = self.PackagePagesCount();
-                return result > maxPages ? maxPages : result;
-            }, this);
-
-            this.NearbyPackagePages = ko.pureComputed(function () {
+            this.PackagePages = ko.pureComputed(function () {
                 var pages = [];
-                for (var i = self.NearbyPackagePagesLowerbound(); i < self.NearbyPackagePagesUpperbound(); i++) {
+                for (var i = 0; i < self.PackagePagesCount(); i++) {
                     pages.push(i);
                 }
 
@@ -348,7 +337,7 @@
                 var ownerFilter = self.ManagePackagesViewModel.OwnerFilter();
 
                 // Preload each nearby page.
-                var pages = self.NearbyPackagePages().slice(0);
+                var pages = self.PackagePages().slice(0);
 
                 // Make sure to preload the first and last page too.
                 pages.push(0);
@@ -367,16 +356,6 @@
 
                 preloadPageByIndex(0);
             };
-
-            this.NearbyPackagePagesLowerbound.subscribe(function () {
-                // When the pages the user can choose changes, make sure they are all loaded.
-                self.PreloadPagesForOwnerFilter();
-            }, this);
-
-            this.NearbyPackagePagesUpperbound.subscribe(function () {
-                // When the pages the user can choose changes, make sure they are all loaded.
-                self.PreloadPagesForOwnerFilter();
-            }, this);
 
             this.PreloadPagesForAllOwners = function () {
                 var owners = self.ManagePackagesViewModel.Owners.slice(0);

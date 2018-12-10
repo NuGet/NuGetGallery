@@ -207,12 +207,11 @@
             <!-- /ko -->
             <!-- ko if: PackagePagesCount() > 1 -->
             <div class="text-center packages-paging-list">
-                <span data-bind="visible: NearbyPackagePagesLowerbound() > 0, click: SetPackagePageFirst">First</span>
-                <div data-bind="foreach: NearbyPackagePages">
-                    <b data-bind="visible: $data == $parent.PackagePageNumber(), text: $data + 1"></b>
-                    <a href="#" data-bind="visible: $data != $parent.PackagePageNumber(), text: $data + 1, click: $parent.SetPackagePage"></a>
-                </div>
-                <span data-bind="visible: NearbyPackagePagesUpperbound() < PackagePagesCount(), click: SetPackagePageLast">Last</span>
+                <span>Page </span>
+                <select id="pageNumber" class="form-control page-selector" aria-label="Choose page of results to show"
+                        data-bind="options: PackagePages, value: PackagePageNumber, optionsText: function (item) { return item + 1; }"></select>
+                <span>of </span>
+                <span data-bind="text: PackagePagesCount()"></span>
             </div>
             <!-- /ko -->
         </div>

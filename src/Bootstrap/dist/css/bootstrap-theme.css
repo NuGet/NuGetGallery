@@ -1162,6 +1162,10 @@ img.reserved-indicator-icon {
 .page-manage-packages .packages-paging-list {
   margin-top: 15px;
 }
+.page-manage-packages .packages-paging-list .page-selector {
+  display: inline-block;
+  width: auto;
+}
 .page-manage-packages .organizations-empty {
   margin-top: 60px;
 }
