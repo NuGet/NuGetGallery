@@ -8,6 +8,10 @@ namespace NuGet.Services.AzureSearch
 {
     public interface ISearchDocumentBuilder
     {
+        SearchDocument.LatestFlags LatestFlagsOrNull(
+            VersionLists versionLists,
+            SearchFilters searchFilters);
+
         KeyedDocument Keyed(
             string packageId,
             SearchFilters searchFilters);
@@ -15,12 +19,16 @@ namespace NuGet.Services.AzureSearch
         SearchDocument.UpdateVersionList UpdateVersionList(
             string packageId,
             SearchFilters searchFilters,
-            string[] versions);
+            string[] versions,
+            bool isLatestStable,
+            bool isLatest);
 
         SearchDocument.Full Full(
             string packageId, 
             SearchFilters searchFilters,
             string[] versions,
+            bool isLatestStable,
+            bool isLatest,
             string fullVersion,
             Package package,
             string[] owners,
@@ -29,6 +37,8 @@ namespace NuGet.Services.AzureSearch
         SearchDocument.UpdateLatest UpdateLatest(
             SearchFilters searchFilters,
             string[] versions,
+            bool isLatestStable,
+            bool isLatest,
             string normalizedVersion,
             string fullVersion,
             PackageDetailsCatalogLeaf leaf);

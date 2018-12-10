@@ -48,6 +48,8 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                         input.PackageId,
                         SearchFilters.IncludePrereleaseAndSemVer2,
                         It.IsAny<string[]>(),
+                        It.IsAny<bool>(),
+                        It.IsAny<bool>(),
                         fullVersion,
                         input.Packages[0],
                         input.Owners,
@@ -63,12 +65,14 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                         It.IsAny<string>(),
                         It.IsAny<SearchFilters>(),
                         It.IsAny<string[]>(),
+                        It.IsAny<bool>(),
+                        It.IsAny<bool>(),
                         It.IsAny<string>(),
                         It.IsAny<Package>(),
                         It.IsAny<string[]>(),
                         It.IsAny<long>()))
-                    .Returns<string, SearchFilters, string[], string, Package, string[], long>(
-                        (i, sf, v, fv, p, o, d) => new SearchDocument.Full { OriginalVersion = p.Version });
+                    .Returns<string, SearchFilters, string[], bool, bool, string, Package, string[], long>(
+                        (i, sf, v, ls, l, fv, p, o, d) => new SearchDocument.Full { OriginalVersion = p.Version });
                 var package1 = new TestPackage("1.0.0") { Description = "This is version 1.0.0." };
                 var package2 = new TestPackage("2.0.0-alpha") { Description = "This is version 2.0.0." };
                 var input = new NewPackageRegistration(
@@ -120,6 +124,8 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                         It.IsAny<string>(),
                         It.IsAny<SearchFilters>(),
                         It.IsAny<string[]>(),
+                        It.IsAny<bool>(),
+                        It.IsAny<bool>(),
                         It.IsAny<string>(),
                         It.IsAny<Package>(),
                         It.IsAny<string[]>(),
@@ -169,6 +175,14 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 _search = new Mock<ISearchDocumentBuilder>();
                 _hijack = new Mock<IHijackDocumentBuilder>();
                 _logger = output.GetLogger<PackageEntityIndexActionBuilder>();
+
+                _search
+                    .Setup(x => x.LatestFlagsOrNull(It.IsAny<VersionLists>(), It.IsAny<SearchFilters>()))
+                    .Returns<VersionLists, SearchFilters>((vl, sf) => new SearchDocument.LatestFlags(
+                        vl.GetLatestVersionInfoOrNull(sf),
+                        isLatestStable: true,
+                        isLatest: true));
+
                 _target = new PackageEntityIndexActionBuilder(
                     _search.Object,
                     _hijack.Object,

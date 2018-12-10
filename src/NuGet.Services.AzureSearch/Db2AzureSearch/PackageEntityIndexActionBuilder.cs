@@ -132,8 +132,8 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                      nameof(changeType));
             }
 
-            var latest = versionLists.GetLatestVersionInfoOrNull(searchFilters);
-            var package = versionToPackage[latest.ParsedVersion];
+            var latestFlags = _search.LatestFlagsOrNull(versionLists, searchFilters);
+            var package = versionToPackage[latestFlags.LatestVersionInfo.ParsedVersion];
             var owners = packageRegistration
                 .Owners
                 .OrderBy(u => u, StringComparer.InvariantCultureIgnoreCase)
@@ -144,8 +144,10 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             return IndexAction.Upload<KeyedDocument>(_search.Full(
                 packageRegistration.PackageId,
                 searchFilters,
-                latest.ListedFullVersions,
-                latest.FullVersion,
+                latestFlags.LatestVersionInfo.ListedFullVersions,
+                latestFlags.IsLatestStable,
+                latestFlags.IsLatest,
+                latestFlags.LatestVersionInfo.FullVersion,
                 package,
                 owners,
                 packageRegistration.TotalDownloadCount));

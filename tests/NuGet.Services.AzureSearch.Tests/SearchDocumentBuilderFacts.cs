@@ -7,12 +7,109 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using NuGet.Services.AzureSearch.Support;
+using NuGet.Versioning;
 using Xunit;
 
 namespace NuGet.Services.AzureSearch
 {
     public class SearchDocumentBuilderFacts
     {
+        public class LatestFlagsOrNull : BaseFacts
+        {
+            [Theory]
+            [InlineData(SearchFilters.Default)]
+            [InlineData(SearchFilters.IncludeSemVer2)]
+            public void ExcludePrereleaseWithOnlyOnePrereleaseVersion(SearchFilters searchFilters)
+            {
+                var versionLists = VersionLists("1.0.0-alpha");
+
+                var actual = _target.LatestFlagsOrNull(versionLists, searchFilters);
+
+                Assert.Null(actual);
+            }
+
+            [Theory]
+            [InlineData(SearchFilters.Default)]
+            [InlineData(SearchFilters.IncludePrerelease)]
+            public void ExcludingSemVer2WithOnlySemVer2(SearchFilters searchFilters)
+            {
+                var versionLists = VersionLists("1.0.0+git", "2.0.0-alpha.1");
+
+                var actual = _target.LatestFlagsOrNull(versionLists, searchFilters);
+
+                Assert.Null(actual);
+            }
+
+            [Theory]
+            [InlineData(SearchFilters.IncludePrerelease)]
+            [InlineData(SearchFilters.IncludePrereleaseAndSemVer2)]
+            public void IncludePrereleaseWithOnlyOnePrereleaseVersion(SearchFilters searchFilters)
+            {
+                var versionLists = VersionLists("1.0.0-alpha");
+
+                var actual = _target.LatestFlagsOrNull(versionLists, searchFilters);
+
+                Assert.Equal("1.0.0-alpha", actual.LatestVersionInfo.FullVersion);
+                Assert.False(actual.IsLatestStable);
+                Assert.True(actual.IsLatest);
+            }
+
+            [Theory]
+            [InlineData(SearchFilters.Default)]
+            [InlineData(SearchFilters.IncludePrerelease)]
+            [InlineData(SearchFilters.IncludeSemVer2)]
+            [InlineData(SearchFilters.IncludePrereleaseAndSemVer2)]
+            public void OnlyOneStableVersion(SearchFilters searchFilters)
+            {
+                var versionLists = VersionLists("1.0.0");
+
+                var actual = _target.LatestFlagsOrNull(versionLists, searchFilters);
+
+                Assert.Equal("1.0.0", actual.LatestVersionInfo.FullVersion);
+                Assert.True(actual.IsLatestStable);
+                Assert.True(actual.IsLatest);
+            }
+
+            [Theory]
+            [InlineData(SearchFilters.Default, "1.0.0", true, false)]
+            [InlineData(SearchFilters.IncludeSemVer2, "1.0.0", true, false)]
+            [InlineData(SearchFilters.IncludePrerelease, "2.0.0-alpha", false, true)]
+            [InlineData(SearchFilters.IncludePrereleaseAndSemVer2, "2.0.0-alpha", false, true)]
+            public void LatestIsPrereleaseWithLowerStable(SearchFilters searchFilters, string latest, bool isLatestStable, bool isLatest)
+            {
+                var versionLists = VersionLists("1.0.0", "2.0.0-alpha");
+
+                var actual = _target.LatestFlagsOrNull(versionLists, searchFilters);
+
+                Assert.Equal(latest, actual.LatestVersionInfo.FullVersion);
+                Assert.Equal(isLatestStable, actual.IsLatestStable);
+                Assert.Equal(isLatest, actual.IsLatest);
+            }
+
+            [Theory]
+            [InlineData(SearchFilters.Default, "1.0.0", true, false)]
+            [InlineData(SearchFilters.IncludePrerelease, "2.0.0-alpha", false, true)]
+            [InlineData(SearchFilters.IncludeSemVer2, "3.0.0+git", true, false)]
+            [InlineData(SearchFilters.IncludePrereleaseAndSemVer2, "4.0.0-beta.1", false, true)]
+            public void AllVersionTypes(SearchFilters searchFilters, string latest, bool isLatestStable, bool isLatest)
+            {
+                var versionLists = VersionLists("1.0.0", "2.0.0-alpha", "3.0.0+git", "4.0.0-beta.1");
+
+                var actual = _target.LatestFlagsOrNull(versionLists, searchFilters);
+
+                Assert.Equal(latest, actual.LatestVersionInfo.FullVersion);
+                Assert.Equal(isLatestStable, actual.IsLatestStable);
+                Assert.Equal(isLatest, actual.IsLatest);
+            }
+
+            private static VersionLists VersionLists(params string[] versions)
+            {
+                return new VersionLists(new VersionListData(versions
+                    .Select(x => NuGetVersion.Parse(x))
+                    .ToDictionary(x => x.ToFullString(), x => new VersionPropertiesData(listed: true, semVer2: x.IsSemVer2))));
+            }
+        }
+
         public class Keyed : BaseFacts
         {
             [Fact]
@@ -34,10 +131,14 @@ namespace NuGet.Services.AzureSearch
 
         public class UpdateVersionList : BaseFacts
         {
-            [Fact]
-            public async Task SetsExpectedProperties()
+            [Theory]
+            [InlineData(false, false)]
+            [InlineData(false, true)]
+            [InlineData(true, false)]
+            [InlineData(true, true)]
+            public async Task SetsExpectedProperties(bool isLatestStable, bool isLatest)
             {
-                var document = _target.UpdateVersionList(Data.PackageId, _searchFilters, _versions);
+                var document = _target.UpdateVersionList(Data.PackageId, _searchFilters, _versions, isLatestStable, isLatest);
 
                 var json = await SerializationUtilities.SerializeToJsonAsync(document);
                 Assert.Equal(@"{
@@ -50,6 +151,8 @@ namespace NuGet.Services.AzureSearch
         ""3.0.0-alpha.1"",
         ""7.1.2-alpha+git""
       ],
+      ""isLatestStable"": " + isLatestStable.ToString().ToLowerInvariant() + @",
+      ""isLatest"": " + isLatest.ToString().ToLowerInvariant() + @",
       ""key"": ""windowsazure_storage-d2luZG93c2F6dXJlLnN0b3JhZ2U1-IncludePrereleaseAndSemVer2""
     }
   ]
@@ -66,9 +169,11 @@ namespace NuGet.Services.AzureSearch
                 var document = _target.UpdateLatest(
                     searchFilters,
                     _versions,
-                    Data.NormalizedVersion,
-                    Data.FullVersion,
-                    Data.Leaf);
+                    isLatestStable: false,
+                    isLatest: true,
+                    normalizedVersion: Data.NormalizedVersion,
+                    fullVersion: Data.FullVersion,
+                    leaf: Data.Leaf);
 
                 var json = await SerializationUtilities.SerializeToJsonAsync(document);
                 Assert.Equal(@"{
@@ -85,6 +190,8 @@ namespace NuGet.Services.AzureSearch
         ""3.0.0-alpha.1"",
         ""7.1.2-alpha+git""
       ],
+      ""isLatestStable"": false,
+      ""isLatest"": true,
       ""semVerLevel"": 2,
       ""authors"": ""Microsoft"",
       ""copyright"": ""© Microsoft Corporation. All rights reserved."",
@@ -135,10 +242,12 @@ namespace NuGet.Services.AzureSearch
                     Data.PackageId,
                     searchFilters,
                     _versions,
-                    Data.FullVersion,
-                    Data.PackageEntity,
-                    _owners,
-                    _totalDownloadCount);
+                    isLatestStable: false,
+                    isLatest: true,
+                    fullVersion: Data.FullVersion,
+                    package: Data.PackageEntity,
+                    owners: _owners,
+                    totalDownloadCount: _totalDownloadCount);
 
                 var json = await SerializationUtilities.SerializeToJsonAsync(document);
                 Assert.Equal(@"{
@@ -160,6 +269,8 @@ namespace NuGet.Services.AzureSearch
         ""3.0.0-alpha.1"",
         ""7.1.2-alpha+git""
       ],
+      ""isLatestStable"": false,
+      ""isLatest"": true,
       ""semVerLevel"": 2,
       ""authors"": ""Microsoft"",
       ""copyright"": ""© Microsoft Corporation. All rights reserved."",
@@ -208,10 +319,12 @@ namespace NuGet.Services.AzureSearch
                     Data.PackageId,
                     _searchFilters,
                     _versions,
-                    Data.FullVersion,
-                    package,
-                    _owners,
-                    _totalDownloadCount);
+                    isLatestStable: false,
+                    isLatest: true,
+                    fullVersion: Data.FullVersion,
+                    package: package,
+                    owners: _owners,
+                    totalDownloadCount: _totalDownloadCount);
 
                 Assert.Equal(new[] { "foo", "BAR", "Baz" }, document.Tags);
             }

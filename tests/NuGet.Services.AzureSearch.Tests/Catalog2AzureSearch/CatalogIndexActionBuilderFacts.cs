@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Azure.Search.Models;
 using Moq;
@@ -609,22 +608,30 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                     new Dictionary<NuGetVersion, PackageDetailsCatalogLeaf>());
 
                 _search
+                    .Setup(x => x.LatestFlagsOrNull(It.IsAny<VersionLists>(), It.IsAny<SearchFilters>()))
+                    .Returns<VersionLists, SearchFilters>((vl, sf) => new SearchDocument.LatestFlags(
+                        vl.GetLatestVersionInfoOrNull(sf),
+                        isLatestStable: true,
+                        isLatest: true));
+                _search
                     .Setup(x => x.Keyed(It.IsAny<string>(), It.IsAny<SearchFilters>()))
                     .Returns<string, SearchFilters>(
                         (i, sf) => new KeyedDocument { Key = sf.ToString() });
                 _search
-                    .Setup(x => x.UpdateVersionList(It.IsAny<string>(), It.IsAny<SearchFilters>(), It.IsAny<string[]>()))
-                    .Returns<string, SearchFilters, string[]>(
-                        (i, sf, v) => new SearchDocument.UpdateVersionList { Key = sf.ToString() });
+                    .Setup(x => x.UpdateVersionList(It.IsAny<string>(), It.IsAny<SearchFilters>(), It.IsAny<string[]>(), It.IsAny<bool>(), It.IsAny<bool>()))
+                    .Returns<string, SearchFilters, string[], bool, bool>(
+                        (i, sf, v, ls, l) => new SearchDocument.UpdateVersionList { Key = sf.ToString() });
                 _search
                     .Setup(x => x.UpdateLatest(
                         It.IsAny<SearchFilters>(),
                         It.IsAny<string[]>(),
+                        It.IsAny<bool>(),
+                        It.IsAny<bool>(),
                         It.IsAny<string>(),
                         It.IsAny<string>(),
                         It.IsAny<PackageDetailsCatalogLeaf>()))
-                    .Returns<SearchFilters, string[], string, string, PackageDetailsCatalogLeaf>(
-                        (sf, vs, nv, fv, l) => new SearchDocument.UpdateLatest { Key = sf.ToString() });
+                    .Returns<SearchFilters, string[], bool, bool, string, string, PackageDetailsCatalogLeaf>(
+                        (sf, v, ls, l, nv, fv, lf) => new SearchDocument.UpdateLatest { Key = sf.ToString() });
 
                 _hijack
                     .Setup(x => x.Keyed(It.IsAny<string>(), It.IsAny<string>()))

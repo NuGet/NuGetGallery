@@ -191,7 +191,10 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
             SearchFilters searchFilters,
             SearchIndexChangeType changeType)
         {
-            var latest = context.VersionLists.GetLatestVersionInfoOrNull(searchFilters);
+            var latestFlags = _search.LatestFlagsOrNull(context.VersionLists, searchFilters);
+            Guard.Assert(
+                changeType == SearchIndexChangeType.Delete || latestFlags != null,
+                "Either the search document is being or there is a latest version.");
 
             switch (changeType)
             {
@@ -204,20 +207,24 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                     return IndexAction.Merge<KeyedDocument>(_search.UpdateVersionList(
                         context.PackageId,
                         searchFilters,
-                        latest.ListedFullVersions));
+                        latestFlags.LatestVersionInfo.ListedFullVersions,
+                        latestFlags.IsLatestStable,
+                        latestFlags.IsLatest));
 
                 case SearchIndexChangeType.AddFirst:
                 case SearchIndexChangeType.UpdateLatest:
                 case SearchIndexChangeType.DowngradeLatest:
                     // TODO: look up owners with AddFirst.
                     // https://github.com/nuget/nugetgallery/issues/6475
-                    var leaf = context.GetLeaf(latest.ParsedVersion);
+                    var leaf = context.GetLeaf(latestFlags.LatestVersionInfo.ParsedVersion);
                     var normalizedVersion = VerifyConsistencyAndNormalizeVersion(context, leaf);
                     return IndexAction.MergeOrUpload<KeyedDocument>(_search.UpdateLatest(
                         searchFilters,
-                        latest.ListedFullVersions,
+                        latestFlags.LatestVersionInfo.ListedFullVersions,
+                        latestFlags.IsLatestStable,
+                        latestFlags.IsLatest,
                         normalizedVersion,
-                        latest.FullVersion,
+                        latestFlags.LatestVersionInfo.FullVersion,
                         leaf));
 
                 default:

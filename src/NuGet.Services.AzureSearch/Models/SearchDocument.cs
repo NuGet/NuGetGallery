@@ -46,6 +46,8 @@ namespace NuGet.Services.AzureSearch
             public DateTimeOffset? LastEdited { get; set; }
             public DateTimeOffset? Published { get; set; }
             public string[] Versions { get; set; }
+            public bool? IsLatestStable { get; set; }
+            public bool? IsLatest { get; set; }
         }
 
         /// <summary>
@@ -55,6 +57,8 @@ namespace NuGet.Services.AzureSearch
         public class UpdateVersionList : KeyedDocument, IVersions
         {
             public string[] Versions { get; set; }
+            public bool? IsLatestStable { get; set; }
+            public bool? IsLatest { get; set; }
         }
 
         /// <summary>
@@ -63,6 +67,28 @@ namespace NuGet.Services.AzureSearch
         public interface IVersions : IKeyedDocument
         {
             string[] Versions { get; set; }
+            bool? IsLatestStable { get; set; }
+            bool? IsLatest { get; set; }
+        }
+
+        /// <summary>
+        /// The data required to populate <see cref="IVersions"/> and other <see cref="SearchDocument"/> classes.
+        /// This information, as with all other types under <see cref="SearchDocument"/>, are specific to a single
+        /// <see cref="SearchFilters"/>. That is, the latest version and its metadata given a filtered set of versions
+        /// per package ID.
+        /// </summary>
+        public class LatestFlags
+        {
+            public LatestFlags(LatestVersionInfo latest, bool isLatestStable, bool isLatest)
+            {
+                LatestVersionInfo = latest;
+                IsLatestStable = isLatestStable;
+                IsLatest = isLatest;
+            }
+
+            public LatestVersionInfo LatestVersionInfo { get; }
+            public bool IsLatestStable { get; }
+            public bool IsLatest { get; }
         }
     }
 }

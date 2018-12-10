@@ -6,8 +6,8 @@ namespace NuGet.Services.AzureSearch
     public enum SearchIndexChangeType
     {
         /// <summary>
-        /// The only change necessary is updating the version list. Some potentially no-op cases also fall into this
-        /// category to support reflowing.
+        /// The only change necessary is updating the version list and "is latest" flags. Some potentially no-op cases
+        /// also fall into this category to support reflowing.
         /// </summary>
         UpdateVersionList,
 
