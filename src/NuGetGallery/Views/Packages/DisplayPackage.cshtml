@@ -748,11 +748,18 @@
                     <i class="ms-Icon ms-Icon--Download" aria-hidden="true"></i>
                     @Model.TotalDownloadCount.ToNuGetNumberString() total @(Model.TotalDownloadCount == 1 ? "download" : "downloads")
                 </li>
-                <li>
-                    <i class="ms-Icon ms-Icon--Giftbox" aria-hidden="true"></i>
-                    @Model.PackageVersions.First().DownloadCount.ToNuGetNumberString() @(Model.PackageVersions.First().DownloadCount == 1 ? "download" : "downloads")
-                    of latest version
-                </li>
+                @{
+                    var latestListedPackage = Model.PackageVersions.FirstOrDefault(p => p.Listed);
+
+                    if (latestListedPackage != null)
+                    {
+                        <li>
+                            <i class="ms-Icon ms-Icon--Giftbox" aria-hidden="true"></i>
+                            @latestListedPackage.DownloadCount.ToNuGetNumberString() @(latestListedPackage.DownloadCount == 1 ? "download" : "downloads")
+                            of latest version
+                        </li>
+                    }
+                }
                 <li>
                     <i class="ms-Icon ms-Icon--Financial" aria-hidden="true"></i>
                     @Model.DownloadsPerDayLabel @(Model.DownloadsPerDayLabel == "1" || Model.DownloadsPerDayLabel == "<1" ? "download" : "downloads")
