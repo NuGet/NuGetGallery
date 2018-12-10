@@ -164,13 +164,15 @@ namespace NuGetGallery.Services
                 Assert.Contains(LicenseFileName, ex.Message); // current implementation of the client does not properly set the FileName property
             }
 
-            [Fact]
-            public async Task SavesLicenseFile()
+            [Theory]
+            [InlineData("license.txt")]
+            [InlineData("foo\\bar.txt")]
+            [InlineData("foo/bar.txt")]
+            public async Task SavesLicenseFile(string licenseFilenName)
             {
                 var fileStorageSvc = new Mock<ICoreFileStorageService>();
                 var service = CreateService(fileStorageSvc);
-                const string LicenseFileName = "license.txt";
-                var packageStream = GeneratePackageAsync(LicenseFileName);
+                var packageStream = GeneratePackageAsync(licenseFilenName);
                 var package = PackageServiceUtility.CreateTestPackage();
                 package.EmbeddedLicenseType = EmbeddedLicenseFileType.PlainText;
                 var savedLicenseBytes = new byte[LicenseFileContents.Length];

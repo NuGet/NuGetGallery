@@ -14,6 +14,7 @@ using NuGet.Packaging;
 using NuGet.Packaging.Core;
 using NuGet.Services.Entities;
 using NuGetGallery.Configuration;
+using NuGetGallery.Diagnostics;
 using NuGetGallery.Packaging;
 using NuGetGallery.TestUtils;
 using Xunit;
@@ -63,6 +64,10 @@ namespace NuGetGallery
 
             validationService = validationService ?? new Mock<IValidationService>();
             config = config ?? new Mock<IAppConfiguration>();
+            var diagnosticsService = new Mock<IDiagnosticsService>();
+            diagnosticsService
+                .Setup(ds => ds.GetSource(It.IsAny<string>()))
+                .Returns(Mock.Of<IDiagnosticsSource>());
 
             var packageUploadService = new Mock<PackageUploadService>(
                 packageService.Object,
@@ -73,7 +78,8 @@ namespace NuGetGallery
                 config.Object,
                 new Mock<ITyposquattingService>().Object,
                 Mock.Of<ITelemetryService>(),
-                Mock.Of<ICoreLicenseFileService>());
+                Mock.Of<ICoreLicenseFileService>(),
+                diagnosticsService.Object);
 
             return packageUploadService.Object;
         }
@@ -1046,6 +1052,28 @@ namespace NuGetGallery
                 Assert.Empty(result.Warnings);
             }
 
+            [Theory]
+            [InlineData("license/something.txt")]
+            [InlineData("license\\anotherthing.txt")]
+            [InlineData(".\\license\\morething.txt")]
+            [InlineData("./license/lessthing.txt")]
+            public async Task AcceptsLicenseFileInSubdirectories(string licensePath)
+            {
+                _nuGetPackage = GeneratePackageWithLicense(
+                    licenseFilename: licensePath,
+                    licenseUrl: new Uri(LicenseDeprecationUrl),
+                    licenseFileContents: "some license");
+
+                var result = await _target.ValidateBeforeGeneratePackageAsync(
+                    _nuGetPackage.Object,
+                    GetPackageMetadata(_nuGetPackage));
+
+                Assert.Equal(PackageValidationResultType.Accepted, result.Type);
+                Assert.Null(result.Message);
+                Assert.Empty(result.Warnings);
+            }
+
+
             /// <summary>
             /// A (quite ineffective) method to search for a sequence in an array
             /// </summary>
@@ -1777,7 +1805,7 @@ namespace NuGetGallery
             protected readonly Mock<ITyposquattingService> _typosquattingService;
             protected readonly Mock<ITelemetryService> _telemetryService;
             protected readonly Mock<ICoreLicenseFileService> _licenseFileService;
-
+            protected readonly Mock<IDiagnosticsService> _diagnosticsService;
             protected Package _package;
             protected Stream _packageFile;
             protected ArgumentException _unexpectedException;
@@ -1812,6 +1840,11 @@ namespace NuGetGallery
                 _conflictException = new FileAlreadyExistsException("Conflict!");
                 _token = CancellationToken.None;
                 _licenseFileService = new Mock<ICoreLicenseFileService>();
+                _diagnosticsService = new Mock<IDiagnosticsService>();
+
+                _diagnosticsService
+                    .Setup(ds => ds.GetSource(It.IsAny<string>()))
+                    .Returns(Mock.Of<IDiagnosticsSource>());
 
                 _target = new PackageUploadService(
                     _packageService.Object,
@@ -1822,7 +1855,8 @@ namespace NuGetGallery
                     _config.Object,
                     _typosquattingService.Object,
                     _telemetryService.Object,
-                    _licenseFileService.Object);
+                    _licenseFileService.Object,
+                    _diagnosticsService.Object);
             }
 
             protected static Mock<TestPackageReader> GeneratePackage(

@@ -3,6 +3,8 @@
 
 using System;
 using System.Globalization;
+using System.IO;
+using NuGet.Common;
 using NuGet.Services.Entities;
 
 namespace NuGetGallery
@@ -56,6 +58,28 @@ namespace NuGetGallery
                 id.ToLowerInvariant(),
                 version.ToLowerInvariant(),
                 extension);
+        }
+
+        /// <summary>
+        /// Enforces the correct file separators for passing paths to work with zip file entries.
+        /// </summary>
+        /// <remarks>
+        /// When client packs the nupkg, it enforces all zip file entries to use forward slashes 
+        /// and relative paths.
+        /// At the same time, paths in nuspec can contain backslashes and start with dot. This
+        /// method fixes the separators so those paths can be used to retrieve files from zip
+        /// archive.
+        /// </remarks>
+        /// <param name="fileName">File name to fix.</param>
+        /// <returns>File path with proper path separators.</returns>
+        public static string GetZipEntryPath(string filePath)
+        {
+            if (filePath == null)
+            {
+                throw new ArgumentNullException(nameof(filePath));
+            }
+
+            return PathUtility.StripLeadingDirectorySeparators(filePath);
         }
     }
 }
