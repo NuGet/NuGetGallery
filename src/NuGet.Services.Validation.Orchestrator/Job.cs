@@ -61,9 +61,9 @@ namespace NuGet.Services.Validation.Orchestrator
         private const string GalleryDbConfigurationSectionName = "GalleryDb";
         private const string ValidationDbConfigurationSectionName = "ValidationDb";
         private const string ServiceBusConfigurationSectionName = "ServiceBus";
-        private const string SmtpConfigurationSectionName = "Smtp";
         private const string EmailConfigurationSectionName = "Email";
         private const string PackageDownloadTimeoutName = "PackageDownloadTimeout";
+        private const string FlatContainerConfigurationSectionName = "FlatContainer";
 
         private const string EmailBindingKey = EmailConfigurationSectionName;
         private const string PackageVerificationTopicClientBindingKey = "PackageVerificationTopicClient";
@@ -74,6 +74,7 @@ namespace NuGet.Services.Validation.Orchestrator
         private const string ScanBindingKey = "Scan";
         private const string ValidationStorageBindingKey = "ValidationStorage";
         private const string OrchestratorBindingKey = "Orchestrator";
+        private const string CoreLicenseFileServiceBindingKey = "CoreLicenseFileService";
 
         private const string SymbolsValidatorSectionName = "SymbolsValidator";
         private const string SymbolsValidationBindingKey = SymbolsValidatorSectionName;
@@ -124,7 +125,7 @@ namespace NuGet.Services.Validation.Orchestrator
             Logger.LogInformation("Using the {ConfigurationFilename} configuration file", configurationFilename);
             var builder = new ConfigurationBuilder()
                 .SetBasePath(Environment.CurrentDirectory)
-                .AddJsonFile(configurationFilename, optional: false, reloadOnChange: true);
+                .AddJsonFile(configurationFilename, optional: false, reloadOnChange: false);
 
             var uninjectedConfiguration = builder.Build();
 
@@ -193,6 +194,7 @@ namespace NuGet.Services.Validation.Orchestrator
             services.Configure<ScanAndSignConfiguration>(configurationRoot.GetSection(ScanAndSignSectionName));
             services.Configure<SymbolScanOnlyConfiguration>(configurationRoot.GetSection(SymbolScanOnlySectionName));
             services.Configure<ScanAndSignEnqueuerConfiguration>(configurationRoot.GetSection(ScanAndSignSectionName));
+            services.Configure<FlatContainerConfiguration>(configurationRoot.GetSection(FlatContainerConfigurationSectionName));
 
             services.Configure<SymbolsValidationConfiguration>(configurationRoot.GetSection(SymbolsValidatorSectionName));
             services.Configure<SymbolsIngesterConfiguration>(configurationRoot.GetSection(SymbolsIngesterSectionName));
@@ -243,7 +245,7 @@ namespace NuGet.Services.Validation.Orchestrator
                 });
             services.AddTransient<ICoreFileStorageService, CloudBlobCoreFileStorageService>();
             services.AddTransient<IFileDownloader, PackageDownloader>();
-            services.AddTransient<IStatusProcessor<Package>, EntityStatusProcessor<Package>>();
+            services.AddTransient<IStatusProcessor<Package>, PackageStatusProcessor>();
             services.AddTransient<IValidationSetProvider<Package>, ValidationSetProvider<Package>>();
             services.AddTransient<IValidationSetProcessor, ValidationSetProcessor>();
             services.AddTransient<IBrokeredMessageSerializer<SignatureValidationMessage>, SignatureValidationMessageSerializer>();
@@ -348,7 +350,7 @@ namespace NuGet.Services.Validation.Orchestrator
                     ConfigurePackageSigningValidators(containerBuilder);
                     ConfigurePackageCertificatesValidator(containerBuilder);
                     ConfigureScanAndSignProcessor(containerBuilder);
-                    ConfigureScanValidator(containerBuilder);
+                    ConfigureFlatContainer(containerBuilder);
                     break;
                 case ValidatingType.SymbolPackage:
                     ConfigureSymbolScanValidator(containerBuilder);
@@ -492,19 +494,31 @@ namespace NuGet.Services.Validation.Orchestrator
                 .AsSelf();
         }
 
-        private static void ConfigureScanValidator(ContainerBuilder builder)
+        private static void ConfigureFlatContainer(ContainerBuilder builder)
         {
             builder
-                .RegisterType<ValidatorStateService>()
-                .WithParameter(
-                    (pi, ctx) => pi.ParameterType == typeof(string),
-                    (pi, ctx) => ValidatorName.ScanOnly)
-                .Keyed<IValidatorStateService>(ScanBindingKey);
+                .Register<CloudBlobClientWrapper>(c =>
+                {
+                    var configurationAccessor = c.Resolve<IOptionsSnapshot<FlatContainerConfiguration>>();
+                    return new CloudBlobClientWrapper(
+                        configurationAccessor.Value.ConnectionString,
+                        readAccessGeoRedundant: false);
+                })
+                .Keyed<ICloudBlobClient>(CoreLicenseFileServiceBindingKey);
 
             builder
-                .RegisterType<ScanValidator>()
-                .WithKeyedParameter(typeof(IValidatorStateService), ScanBindingKey)
-                .AsSelf();
+                .RegisterType<CloudBlobCoreFileStorageService>()
+                .WithKeyedParameter(typeof(ICloudBlobClient), CoreLicenseFileServiceBindingKey)
+                .Keyed<ICoreFileStorageService>(CoreLicenseFileServiceBindingKey);
+
+            builder
+                .RegisterType<OrchestratorContentFileMetadataService>()
+                .As<IContentFileMetadataService>();
+
+            builder
+                .RegisterType<CoreLicenseFileService>()
+                .WithKeyedParameter(typeof(ICoreFileStorageService), CoreLicenseFileServiceBindingKey)
+                .As<ICoreLicenseFileService>();
         }
 
         private static void ConfigureOrchestratorMessageHandler(IServiceCollection services, IConfigurationRoot configurationRoot)

@@ -61,9 +61,6 @@
     <None Include="Settings\*" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="SqlScripts\CuratedFeed.sql" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\NuGet.Jobs.Common\NuGet.Jobs.Common.csproj">
       <Project>{4b4b1efb-8f33-42e6-b79f-54e7f3293d31}</Project>
       <Name>NuGet.Jobs.Common</Name>

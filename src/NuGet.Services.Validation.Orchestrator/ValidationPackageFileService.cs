@@ -47,7 +47,7 @@ namespace NuGet.Services.Validation.Orchestrator
         {
             string id = validationSet.PackageId;
             string version = validationSet.PackageNormalizedVersion;
-            return BuildFileName(id, version, pathTemplate, extension);
+            return FileNameHelper.BuildFileName(id, version, pathTemplate, extension);
         }
 
         public Task<Uri> GetPackageReadUriAsync(PackageValidationSet validationSet)
