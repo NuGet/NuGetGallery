@@ -87,6 +87,7 @@ namespace NuGet.Services.AzureSearch
             string fullVersion)
         {
             PopulateVersions(document, packageId, searchFilters, versions);
+            document.SearchFilters = searchFilters.ToString();
             document.FullVersion = fullVersion;
         }
 

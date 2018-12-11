@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using Microsoft.Azure.Search;
 using Microsoft.Azure.Search.Models;
 
 namespace NuGet.Services.AzureSearch
@@ -38,6 +39,9 @@ namespace NuGet.Services.AzureSearch
         [SerializePropertyNamesAsCamelCase]
         public class UpdateLatest : BaseMetadataDocument, IVersions, IBaseMetadataDocument
         {
+            [IsFilterable]
+            public string SearchFilters { get; set; }
+
             public string FullVersion { get; set; }
             public DateTimeOffset? LastEdited { get; set; }
             public DateTimeOffset? Published { get; set; }

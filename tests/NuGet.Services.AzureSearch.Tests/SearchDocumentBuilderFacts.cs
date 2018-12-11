@@ -1,6 +1,10 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using NuGet.Services.AzureSearch.Support;
 using Xunit;
@@ -55,11 +59,12 @@ namespace NuGet.Services.AzureSearch
 
         public class UpdateLatest : BaseFacts
         {
-            [Fact]
-            public async Task SetsExpectedProperties()
+            [Theory]
+            [MemberData(nameof(AllSearchFilters))]
+            public async Task SetsExpectedProperties(SearchFilters searchFilters, string expected)
             {
                 var document = _target.UpdateLatest(
-                    _searchFilters,
+                    searchFilters,
                     _versions,
                     Data.NormalizedVersion,
                     Data.FullVersion,
@@ -70,6 +75,7 @@ namespace NuGet.Services.AzureSearch
   ""value"": [
     {
       ""@search.action"": ""upload"",
+      ""searchFilters"": """ + expected + @""",
       ""fullVersion"": ""7.1.2-alpha+git"",
       ""lastEdited"": ""2017-01-02T00:00:00+00:00"",
       ""published"": ""2017-01-03T00:00:00+00:00"",
@@ -112,7 +118,7 @@ namespace NuGet.Services.AzureSearch
         ""windowsazureofficial""
       ],
       ""title"": ""Windows Azure Storage"",
-      ""key"": ""windowsazure_storage-d2luZG93c2F6dXJlLnN0b3JhZ2U1-IncludePrereleaseAndSemVer2""
+      ""key"": ""windowsazure_storage-d2luZG93c2F6dXJlLnN0b3JhZ2U1-" + expected + @"""
     }
   ]
 }", json);
@@ -121,12 +127,13 @@ namespace NuGet.Services.AzureSearch
 
         public class Full : BaseFacts
         {
-            [Fact]
-            public async Task SetsExpectedProperties()
+            [Theory]
+            [MemberData(nameof(AllSearchFilters))]
+            public async Task SetsExpectedProperties(SearchFilters searchFilters, string expected)
             {
                 var document = _target.Full(
                     Data.PackageId,
-                    _searchFilters,
+                    searchFilters,
                     _versions,
                     Data.FullVersion,
                     Data.PackageEntity,
@@ -143,6 +150,7 @@ namespace NuGet.Services.AzureSearch
         ""Microsoft"",
         ""azure-sdk""
       ],
+      ""searchFilters"": """ + expected + @""",
       ""fullVersion"": ""7.1.2-alpha+git"",
       ""lastEdited"": ""2017-01-02T00:00:00+00:00"",
       ""published"": ""2017-01-03T00:00:00+00:00"",
@@ -185,7 +193,7 @@ namespace NuGet.Services.AzureSearch
         ""windowsazureofficial""
       ],
       ""title"": ""Windows Azure Storage"",
-      ""key"": ""windowsazure_storage-d2luZG93c2F6dXJlLnN0b3JhZ2U1-IncludePrereleaseAndSemVer2""
+      ""key"": ""windowsazure_storage-d2luZG93c2F6dXJlLnN0b3JhZ2U1-" + expected + @"""
     }
   ]
 }", json);
@@ -216,6 +224,24 @@ namespace NuGet.Services.AzureSearch
             protected readonly string[] _owners;
             protected readonly int _totalDownloadCount;
             protected readonly SearchDocumentBuilder _target;
+
+            public static IEnumerable<object[]> AllSearchFilters => new[]
+            {
+                new object[] { SearchFilters.Default, "Default" },
+                new object[] { SearchFilters.IncludePrerelease, "IncludePrerelease" },
+                new object[] { SearchFilters.IncludeSemVer2, "IncludeSemVer2" },
+                new object[] { SearchFilters.IncludePrereleaseAndSemVer2, "IncludePrereleaseAndSemVer2" },
+            };
+
+            [Fact]
+            public void AllSearchFiltersAreCovered()
+            {
+                var testedSearchFilters = AllSearchFilters.Select(x => (SearchFilters)x[0]).ToList();
+                var allSearchFilters = Enum.GetValues(typeof(SearchFilters)).Cast<SearchFilters>().ToList();
+
+                Assert.Empty(testedSearchFilters.Except(allSearchFilters));
+                Assert.Empty(allSearchFilters.Except(testedSearchFilters));
+            }
 
             public BaseFacts()
             {
