@@ -108,7 +108,7 @@
     }
     <div class="col-md-12">
         <div class="panel-collapse collapse in" aria-expanded="true">
-            <!-- ko if: CurrentPackagesPage() != null && PackagesCount() > 0 -->
+            <!-- ko if: CurrentPackagesPage() != null && !Error() && PackagesCount() > 0 -->
             <table class="table inner-table">
                 <thead>
                     <tr class="manage-package-headings">
@@ -199,6 +199,9 @@
                 </tbody>
             </table>
             <!-- /ko -->
+            <div data-bind="visible: Error()">
+                @ViewHelpers.AlertDanger(@<text><span data-bind="text: Error()"></span></text>)
+            </div>
             <!-- ko if: PackagesCount() == 0 -->
             <span>There are no packages that fit this criteria.</span>
             <!-- /ko -->

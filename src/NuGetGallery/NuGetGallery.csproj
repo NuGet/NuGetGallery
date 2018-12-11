@@ -701,6 +701,7 @@
     <Compile Include="ViewModels\ListPackageItemRequiredSignerViewModel.cs" />
     <Compile Include="ViewModels\ManagePackagesSerializableOwnerRequestViewModel.cs" />
     <Compile Include="ViewModels\ManagePackagesSerializableOwnerViewModel.cs" />
+    <Compile Include="ViewModels\ManagePackagesSerializablePackageListViewModel.cs" />
     <Compile Include="ViewModels\ManagePackagesSerializablePackageViewModel.cs" />
     <Compile Include="ViewModels\ManagePackagesSerializableReservedNamespaceViewModel.cs" />
     <Compile Include="ViewModels\ManagePackagesSerializableSignerViewModel.cs" />

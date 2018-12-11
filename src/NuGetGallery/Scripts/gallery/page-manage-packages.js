@@ -249,7 +249,7 @@
             this.CurrentPackagesPage = ko.pureComputed(function () {
                 var cachedPackages = self.CachedCurrentPackagePage();
                 if (cachedPackages) {
-                    return $.map(cachedPackages.packages, function (item) {
+                    return $.map(cachedPackages.Packages, function (item) {
                         return new PackageListItemViewModel(self, item);
                     });
                 }
@@ -265,7 +265,7 @@
                 }
 
                 if (cachedPackages) {
-                    return cachedPackages.totalCount;
+                    return cachedPackages.TotalCount;
                 }
                 
                 return null;
@@ -279,10 +279,19 @@
                 }
 
                 if (cachedPackages) {
-                    return cachedPackages.totalDownloadCount;
+                    return cachedPackages.TotalDownloadCount;
                 }
 
                 return null;
+            }, this);
+
+            this.Error = ko.pureComputed(function () {
+                var cachedPackages = self.CachedCurrentPackagePage();
+                if (cachedPackages) {
+                    return cachedPackages.Error;
+                }
+
+                return null; 
             }, this);
 
             this.SetPackagePage = function (page) {

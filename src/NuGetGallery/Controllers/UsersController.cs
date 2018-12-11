@@ -468,8 +468,8 @@ namespace NuGetGallery
             {
                 User = currentUser,
                 Owners = GetOwnersForUser(currentUser),
-                ListedPackages = GetPagedPackagesForManagePackages(true),
-                UnlistedPackages = GetPagedPackagesForManagePackages(false),
+                ListedPackages = GetPagedPackagesForManagePackages(true, 0),
+                UnlistedPackages = GetPagedPackagesForManagePackages(false, 0),
                 OwnerRequests = GetOwnerRequestsForUser(currentUser),
                 ReservedNamespaces = GetReservedNamespacesForUser(currentUser),
                 WasMultiFactorAuthenticated = User.WasMultiFactorAuthenticated(),
@@ -481,14 +481,14 @@ namespace NuGetGallery
 
         [HttpGet]
         [UIAuthorize]
-        public virtual JsonResult PackagesPaged(bool listed, int page = 0, string username = null)
+        public virtual JsonResult PackagesPaged(bool listed, int page, string username = null)
         {
             return Json(
                 GetPagedPackagesForManagePackages(listed, page, username),
                 JsonRequestBehavior.AllowGet);
         }
 
-        private dynamic GetPagedPackagesForManagePackages(bool listed, int page = 0, string username = null)
+        private ManagePackagesSerializablePackageListViewModel GetPagedPackagesForManagePackages(bool listed, int page, string username = null)
         {
             var currentUser = GetCurrentUser();
             IEnumerable<Package> packages;
@@ -500,15 +500,18 @@ namespace NuGetGallery
             else
             {
                 var user = UserService.FindByUsername(username);
-                if (user != null)
+                if (user == null)
                 {
-                    packages = PackageService.FindPackagesByOwner(
-                        user, includeUnlisted: true, includeVersions: true);
+                    return new ManagePackagesSerializablePackageListViewModel($"The account '{username}' does not exist.");
                 }
-                else
+
+                if (ActionsRequiringPermissions.ViewAccount.CheckPermissions(currentUser, user) != PermissionsCheckResult.Allowed)
                 {
-                    packages = Enumerable.Empty<Package>();
+                    return new ManagePackagesSerializablePackageListViewModel($"You do not have permissions to view the packages of the account '{username}'.");
                 }
+
+                packages = PackageService.FindPackagesByOwner(
+                    user, includeUnlisted: true, includeVersions: true);
             }
 
             var filteredPackages = FilterPackagesForManagePackages(packages, currentUser, listed);
@@ -534,12 +537,7 @@ namespace NuGetGallery
                     setRequiredSignerUrlTemplate,
                     profileUrlTemplate));
 
-            return new
-            {
-                totalCount = packageCount,
-                totalDownloadCount = downloadCount,
-                packages = pagedPackages
-            };
+            return new ManagePackagesSerializablePackageListViewModel(packageCount, downloadCount, pagedPackages);
         }
 
         private IEnumerable<string> GetOwnersForUser(User user)

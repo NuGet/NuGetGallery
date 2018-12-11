@@ -50,8 +50,8 @@ namespace NuGetGallery
         }
         
         public IEnumerable<string> Owners { get; }
-        public dynamic ListedPackages { get; set; }
-        public dynamic UnlistedPackages { get; set; }
+        public ManagePackagesSerializablePackageListViewModel ListedPackages { get; set; }
+        public ManagePackagesSerializablePackageListViewModel UnlistedPackages { get; set; }
         public IEnumerable<ManagePackagesSerializableReservedNamespaceViewModel> ReservedNamespaces { get; }
         public IEnumerable<ManagePackagesSerializableOwnerRequestViewModel> RequestsReceived { get; }
         public IEnumerable<ManagePackagesSerializableOwnerRequestViewModel> RequestsSent { get; }
