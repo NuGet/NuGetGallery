@@ -29,6 +29,7 @@ namespace NuGet.Services.AzureSearch
         [SerializePropertyNamesAsCamelCase]
         public class AddFirst : UpdateLatest
         {
+            [IsSearchable]
             public string[] Owners { get; set; }
         }
 
@@ -37,14 +38,12 @@ namespace NuGet.Services.AzureSearch
         /// <see cref="SearchIndexChangeType.DowngradeLatest"/>.
         /// </summary>
         [SerializePropertyNamesAsCamelCase]
-        public class UpdateLatest : BaseMetadataDocument, IVersions, IBaseMetadataDocument
+        public class UpdateLatest : BaseMetadataDocument, IVersions
         {
             [IsFilterable]
             public string SearchFilters { get; set; }
 
             public string FullVersion { get; set; }
-            public DateTimeOffset? LastEdited { get; set; }
-            public DateTimeOffset? Published { get; set; }
             public string[] Versions { get; set; }
             public bool? IsLatestStable { get; set; }
             public bool? IsLatest { get; set; }

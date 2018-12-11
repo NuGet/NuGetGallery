@@ -163,6 +163,25 @@ namespace NuGet.Services.AzureSearch
         public class UpdateLatest : BaseFacts
         {
             [Theory]
+            [MemberData(nameof(MissingTitles))]
+            public void UsesIdWhenMissingForSortableTitle(string title)
+            {
+                var leaf = Data.Leaf;
+                leaf.Title = title;
+
+                var document = _target.UpdateLatest(
+                    _searchFilters,
+                    _versions,
+                    isLatestStable: false,
+                    isLatest: true,
+                    normalizedVersion: Data.NormalizedVersion,
+                    fullVersion: Data.FullVersion,
+                    leaf: leaf);
+
+                Assert.Equal(Data.PackageId, document.SortableTitle);
+            }
+
+            [Theory]
             [MemberData(nameof(AllSearchFilters))]
             public async Task SetsExpectedProperties(SearchFilters searchFilters, string expected)
             {
@@ -182,8 +201,6 @@ namespace NuGet.Services.AzureSearch
       ""@search.action"": ""upload"",
       ""searchFilters"": """ + expected + @""",
       ""fullVersion"": ""7.1.2-alpha+git"",
-      ""lastEdited"": ""2017-01-02T00:00:00+00:00"",
-      ""published"": ""2017-01-03T00:00:00+00:00"",
       ""versions"": [
         ""1.0.0"",
         ""2.0.0+git"",
@@ -203,6 +220,7 @@ namespace NuGet.Services.AzureSearch
       ""hashAlgorithm"": ""SHA512"",
       ""iconUrl"": ""http://go.microsoft.com/fwlink/?LinkID=288890"",
       ""language"": ""en-US"",
+      ""lastEdited"": ""2017-01-02T00:00:00+00:00"",
       ""licenseUrl"": ""http://go.microsoft.com/fwlink/?LinkId=331471"",
       ""minClientVersion"": ""2.12"",
       ""normalizedVersion"": ""7.1.2-alpha"",
@@ -210,8 +228,10 @@ namespace NuGet.Services.AzureSearch
       ""packageId"": ""WindowsAzure.Storage"",
       ""prerelease"": true,
       ""projectUrl"": ""https://github.com/Azure/azure-storage-net"",
+      ""published"": ""2017-01-03T00:00:00+00:00"",
       ""releaseNotes"": ""Release notes."",
       ""requiresLicenseAcceptance"": true,
+      ""sortableTitle"": ""Windows Azure Storage"",
       ""summary"": ""Summary."",
       ""tags"": [
         ""Microsoft"",
@@ -230,10 +250,49 @@ namespace NuGet.Services.AzureSearch
   ]
 }", json);
             }
+
+            [Fact]
+            public void DefaultsRequiresLicenseAcceptanceToFalse()
+            {
+                var leaf = Data.Leaf;
+                leaf.RequireLicenseAgreement = null;                
+
+                var document = _target.UpdateLatest(
+                    _searchFilters,
+                    _versions,
+                    isLatestStable: false,
+                    isLatest: true,
+                    normalizedVersion: Data.NormalizedVersion,
+                    fullVersion: Data.FullVersion,
+                    leaf: leaf);
+
+                Assert.False(document.RequiresLicenseAcceptance);
+            }
         }
 
         public class Full : BaseFacts
         {
+            [Theory]
+            [MemberData(nameof(MissingTitles))]
+            public void UsesIdWhenMissingForSortableTitle(string title)
+            {
+                var package = Data.PackageEntity;
+                package.Title = title;
+
+                var document = _target.Full(
+                    Data.PackageId,
+                    _searchFilters,
+                    _versions,
+                    isLatestStable: false,
+                    isLatest: true,
+                    fullVersion: Data.FullVersion,
+                    package: package,
+                    owners: _owners,
+                    totalDownloadCount: _totalDownloadCount);
+
+                Assert.Equal(Data.PackageId, document.SortableTitle);
+            }
+
             [Theory]
             [MemberData(nameof(AllSearchFilters))]
             public async Task SetsExpectedProperties(SearchFilters searchFilters, string expected)
@@ -261,8 +320,6 @@ namespace NuGet.Services.AzureSearch
       ],
       ""searchFilters"": """ + expected + @""",
       ""fullVersion"": ""7.1.2-alpha+git"",
-      ""lastEdited"": ""2017-01-02T00:00:00+00:00"",
-      ""published"": ""2017-01-03T00:00:00+00:00"",
       ""versions"": [
         ""1.0.0"",
         ""2.0.0+git"",
@@ -282,6 +339,7 @@ namespace NuGet.Services.AzureSearch
       ""hashAlgorithm"": ""SHA512"",
       ""iconUrl"": ""http://go.microsoft.com/fwlink/?LinkID=288890"",
       ""language"": ""en-US"",
+      ""lastEdited"": ""2017-01-02T00:00:00+00:00"",
       ""licenseUrl"": ""http://go.microsoft.com/fwlink/?LinkId=331471"",
       ""minClientVersion"": ""2.12"",
       ""normalizedVersion"": ""7.1.2-alpha"",
@@ -289,8 +347,10 @@ namespace NuGet.Services.AzureSearch
       ""packageId"": ""WindowsAzure.Storage"",
       ""prerelease"": true,
       ""projectUrl"": ""https://github.com/Azure/azure-storage-net"",
+      ""published"": ""2017-01-03T00:00:00+00:00"",
       ""releaseNotes"": ""Release notes."",
       ""requiresLicenseAcceptance"": true,
+      ""sortableTitle"": ""Windows Azure Storage"",
       ""summary"": ""Summary."",
       ""tags"": [
         ""Microsoft"",
@@ -337,6 +397,14 @@ namespace NuGet.Services.AzureSearch
             protected readonly string[] _owners;
             protected readonly int _totalDownloadCount;
             protected readonly SearchDocumentBuilder _target;
+
+            public static IEnumerable<object[]> MissingTitles = new[]
+            {
+                new object[] { null },
+                new object[] { string.Empty },
+                new object[] { " " },
+                new object[] { " \t"},
+            };
 
             public static IEnumerable<object[]> AllSearchFilters => new[]
             {

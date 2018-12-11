@@ -28,6 +28,11 @@ namespace NuGet.Services.AzureSearch
             NuGetFramework.UnsupportedFramework
         };
 
+        public static string GetSearchFilterString(SearchFilters searchFilters)
+        {
+            return searchFilters.ToString();
+        }
+
         public static void PopulateMetadata(
             IBaseMetadataDocument document,
             string packageId,
@@ -55,6 +60,7 @@ namespace NuGet.Services.AzureSearch
             document.ReleaseNotes = package.ReleaseNotes;
             document.RequiresLicenseAcceptance = package.RequiresLicenseAcceptance;
             document.SemVerLevel = package.SemVerLevelKey;
+            document.SortableTitle = GetSortableTitle(package.Title, packageId);
             document.Summary = package.Summary;
             document.Tags = Utils.SplitTags(package.Tags ?? string.Empty);
             document.Title = package.Title;
@@ -85,18 +91,29 @@ namespace NuGet.Services.AzureSearch
             document.ProjectUrl = leaf.ProjectUrl;
             document.Published = leaf.Published;
             document.ReleaseNotes = leaf.ReleaseNotes;
-            document.RequiresLicenseAcceptance = leaf.RequireLicenseAgreement;
+            document.RequiresLicenseAcceptance = leaf.RequireLicenseAgreement ?? false;
             document.SemVerLevel = leaf.IsSemVer2() ? 2 : (int?)null;
+            document.SortableTitle = GetSortableTitle(leaf.Title, leaf.PackageId);
             document.Summary = leaf.Summary;
             document.Tags = leaf.Tags == null ? null : leaf.Tags.ToArray();
             document.Title = leaf.Title;
+        }
+
+        private static string GetSortableTitle(string title, string packageId)
+        {
+            if (string.IsNullOrWhiteSpace(title))
+            {
+                return packageId;
+            }
+
+            return title;
         }
 
         public static string GetSearchDocumentKey(string packageId, SearchFilters searchFilters)
         {
             var lowerId = packageId.ToLowerInvariant();
             var encodedId = EncodeKey(lowerId);
-            return $"{encodedId}-{searchFilters}";
+            return $"{encodedId}-{GetSearchFilterString(searchFilters)}";
         }
 
         public static string GetHijackDocumentKey(string packageId, string normalizedVersion)

@@ -19,13 +19,6 @@ namespace NuGet.Services.AzureSearch
         [SerializePropertyNamesAsCamelCase]
         public class Full : BaseMetadataDocument, ILatest, IBaseMetadataDocument
         {
-            [IsSortable]
-            public DateTimeOffset? LastEdited { get; set; }
-            [IsSortable]
-            public DateTimeOffset? Published { get; set; }
-            [IsSortable]
-            public string SortableTitle { get; set; }
-
             public bool? IsLatestStableSemVer1 { get; set; }
             public bool? IsLatestSemVer1 { get; set; }
             public bool? IsLatestStableSemVer2 { get; set; }

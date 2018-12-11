@@ -170,7 +170,7 @@ namespace NuGet.Services.AzureSearch
             string fullVersion)
         {
             PopulateVersions(document, packageId, searchFilters, versions, isLatestStable, isLatest);
-            document.SearchFilters = searchFilters.ToString();
+            document.SearchFilters = DocumentUtilities.GetSearchFilterString(searchFilters);
             document.FullVersion = fullVersion;
         }
 

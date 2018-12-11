@@ -38,7 +38,7 @@ namespace NuGet.Services.AzureSearch
         {
             var document = new HijackDocument.Full();
 
-            PopulateFull(document, leaf.PackageId, normalizedVersion, changes, leaf.Title);
+            PopulateLatest(document, leaf.PackageId, normalizedVersion, changes);
             DocumentUtilities.PopulateMetadata(document, normalizedVersion, leaf);
 
             return document;
@@ -51,21 +51,10 @@ namespace NuGet.Services.AzureSearch
         {
             var document = new HijackDocument.Full();
 
-            PopulateFull(document, packageId, package.NormalizedVersion, changes, package.Title);
+            PopulateLatest(document, packageId, package.NormalizedVersion, changes);
             DocumentUtilities.PopulateMetadata(document, packageId, package);
 
             return document;
-        }
-
-        private static void PopulateFull(
-            HijackDocument.Full document,
-            string packageId,
-            string normalizedVersion,
-            HijackDocumentChanges changes,
-            string title)
-        {
-            PopulateLatest(document, packageId, normalizedVersion, changes);
-            document.SortableTitle = title ?? packageId;
         }
 
         private static void PopulateLatest<T>(
