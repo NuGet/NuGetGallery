@@ -38,6 +38,13 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                     $"The {nameof(AzureSearchJobConfiguration.MaxConcurrentBatches)} must be greater than zero.",
                     nameof(options));
             }
+
+            if (_options.Value.RegistrationsBaseUrl == null)
+            {
+                throw new ArgumentException(
+                    $"The {nameof(Catalog2AzureSearchConfiguration.RegistrationsBaseUrl)} must be set.",
+                    nameof(options));
+            }
         }
 
         public async Task<LatestCatalogLeaves> GetLatestLeavesAsync(

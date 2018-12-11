@@ -53,6 +53,13 @@ namespace NuGet.Services.AzureSearch
                     $"The {nameof(AzureSearchJobConfiguration.MaxConcurrentVersionListWriters)} must be greater than zero.",
                     nameof(options));
             }
+
+            if (_options.Value.AzureSearchBatchSize <= 0)
+            {
+                throw new ArgumentException(
+                    $"The {nameof(AzureSearchJobConfiguration.AzureSearchBatchSize)} must be greater than zero.",
+                    nameof(options));
+            }
         }
 
         public void EnqueueIndexActions(string packageId, IndexActions indexActions)
