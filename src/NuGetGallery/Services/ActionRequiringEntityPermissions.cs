@@ -79,11 +79,9 @@ namespace NuGetGallery
                 possibleAccountsOnBehalfOf.AddRange(currentUser.Organizations.Select(o => o.Organization));
             }
 
-            possibleAccountsOnBehalfOf = possibleAccountsOnBehalfOf.Distinct(new UserEqualityComparer());
-
             var aggregateResult = PermissionsCheckResult.Unknown;
 
-            foreach (var accountOnBehalfOf in possibleAccountsOnBehalfOf)
+            foreach (var accountOnBehalfOf in possibleAccountsOnBehalfOf.Distinct(new UserEqualityComparer()))
             {
                 var result = CheckPermissions(currentUser, accountOnBehalfOf, entity);
                 aggregateResult = ChoosePermissionsCheckResult(aggregateResult, result);
