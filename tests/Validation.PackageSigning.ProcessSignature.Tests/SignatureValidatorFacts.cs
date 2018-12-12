@@ -39,6 +39,8 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             private readonly Mock<ISignatureFormatValidator> _formatValidator;
             private VerifySignaturesResult _minimalVerifyResult;
             private VerifySignaturesResult _fullVerifyResult;
+            private VerifySignaturesResult _authorSignatureVerifyResult;
+            private VerifySignaturesResult _repositorySignatureVerifyResult;
             private readonly Mock<ISignaturePartsExtractor> _signaturePartsExtractor;
             private readonly Mock<ICorePackageService> _corePackageService;
             private readonly ILogger<SignatureValidator> _logger;
@@ -73,6 +75,16 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                     .Setup(x => x.ValidateAllSignaturesAsync(It.IsAny<ISignedPackageReader>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
                     .ReturnsAsync(() => _fullVerifyResult);
 
+                _authorSignatureVerifyResult = new VerifySignaturesResult(isValid: true, isSigned: true);
+                _formatValidator
+                    .Setup(x => x.ValidateAuthorSignatureAsync(It.IsAny<ISignedPackageReader>(), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(() => _authorSignatureVerifyResult);
+
+                _repositorySignatureVerifyResult = new VerifySignaturesResult(isValid: true, isSigned: true);
+                _formatValidator
+                    .Setup(x => x.ValidateRepositorySignatureAsync(It.IsAny<ISignedPackageReader>(), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(() => _repositorySignatureVerifyResult);
+
                 _signaturePartsExtractor = new Mock<ISignaturePartsExtractor>();
                 _corePackageService = new Mock<ICorePackageService>();
                 var loggerFactory = new LoggerFactory().AddXunit(output);
@@ -88,7 +100,8 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 _configuration = new ProcessSignatureConfiguration
                 {
                     AllowedRepositorySigningCertificates = new List<string> { "fake-thumbprint" },
-                    V3ServiceIndexUrl = "http://example/v3/index.json",
+                    V3ServiceIndexUrl = TestResources.V3ServiceIndexUrl,
+                    StripValidRepositorySignatures = false,
                 };
                 _optionsSnapshot.Setup(x => x.Value).Returns(() => _configuration);
 
@@ -491,6 +504,33 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             }
 
             [Fact]
+            public async Task AcceptsRepositorySignedPackage()
+            {
+                // Arrange
+                _configuration.AllowedRepositorySigningCertificates = new List<string> { TestResources.Leaf1Thumbprint };
+                _packageStream = TestResources.GetResourceStream(TestResources.RepoSignedPackageLeaf1);
+
+                TestUtility.RequireUnsignedPackage(_corePackageService, TestResources.RepoSignedPackageLeafId, TestResources.RepoSignedPackageLeaf1Version);
+
+                _message = new SignatureValidationMessage(
+                    TestResources.RepoSignedPackageLeafId,
+                    TestResources.RepoSignedPackageLeaf1Version,
+                    new Uri($"https://unit.test/{TestResources.RepoSignedPackageLeaf1.ToLowerInvariant()}"),
+                    Guid.NewGuid());
+
+                // Act
+                var result = await _target.ValidateAsync(
+                    _packageKey,
+                    _packageStream,
+                    _message,
+                    _cancellationToken);
+
+                // Assert
+                Validate(result, ValidationStatus.Succeeded, PackageSigningStatus.Valid);
+                Assert.Empty(result.Issues);
+            }
+
+            [Fact]
             public async Task WhenRepositorySigningIsRequired_FailsValidationOfSignedPackagesWithNoRepositorySignature()
             {
                 // Arrange
@@ -661,6 +701,124 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                         x => x.ValidateAllSignaturesAsync(It.IsAny<ISignedPackageReader>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()),
                         Times.Never);
                 }
+            }
+
+            [Theory]
+            [InlineData(
+                TestResources.RepoSignedPackageLeaf1,
+                TestResources.RepoSignedPackageLeafId,
+                TestResources.RepoSignedPackageLeaf1Version,
+                PackageSigningStatus.Unsigned)]
+            [InlineData(
+                TestResources.AuthorAndRepoSignedPackageLeaf1,
+                TestResources.AuthorAndRepoSignedPackageLeafId,
+                TestResources.AuthorAndRepoSignedPackageLeaf1Version,
+                PackageSigningStatus.Valid)]
+            public async Task WhenStripsValidRepositorySignature_StripsAndAcceptsRepositorySignatureWhenRepositorySignatureIsNotRequired(
+                string resourceName,
+                string packageId,
+                string packageVersion,
+                PackageSigningStatus expectedSigningStatus)
+            {
+                // Arrange
+                _configuration.StripValidRepositorySignatures = true;
+                _configuration.AllowedRepositorySigningCertificates = new List<string> { TestResources.Leaf1Thumbprint, TestResources.Leaf2Thumbprint };
+
+                _packageStream = TestResources.GetResourceStream(resourceName);
+
+                if (resourceName == TestResources.RepoSignedPackageLeaf1)
+                {
+                    TestUtility.RequireUnsignedPackage(_corePackageService, TestResources.RepoSignedPackageLeafId, TestResources.RepoSignedPackageLeaf1Version);
+                }
+
+                if (resourceName == TestResources.AuthorAndRepoSignedPackageLeaf1)
+                {
+                    TestUtility.RequireSignedPackage(_corePackageService, TestResources.AuthorAndRepoSignedPackageLeafId, TestResources.AuthorAndRepoSignedPackageLeaf1Version, TestResources.Leaf1Thumbprint);
+                }
+
+                _message = new SignatureValidationMessage(
+                    packageId,
+                    packageVersion,
+                    new Uri($"https://unit.test/{resourceName.ToLowerInvariant()}"),
+                    Guid.NewGuid(),
+                    requireRepositorySignature: false);
+
+                Stream uploadedStream = null;
+                _packageFileService
+                    .Setup(x => x.SaveAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<Stream>()))
+                    .Returns(Task.CompletedTask)
+                    .Callback<string, string, Guid, Stream>((_, __, ___, s) => uploadedStream = s);
+
+                // Act
+                var result = await _target.ValidateAsync(
+                    _packageKey,
+                    _packageStream,
+                    _message,
+                    _cancellationToken);
+
+                // Assert
+                Validate(result, ValidationStatus.Succeeded, expectedSigningStatus, _nupkgUri);
+                Assert.Empty(result.Issues);
+                _packageFileService.Verify(
+                    x => x.SaveAsync(_message.PackageId, _message.PackageVersion, _message.ValidationId, It.IsAny<Stream>()),
+                    Times.Once);
+                _packageFileService.Verify(
+                    x => x.GetReadAndDeleteUriAsync(_message.PackageId, _message.PackageVersion, _message.ValidationId),
+                    Times.Once);
+                Assert.IsType<FileStream>(uploadedStream);
+                Assert.Throws<ObjectDisposedException>(() => uploadedStream.Length);
+            }
+
+            [Theory]
+            [InlineData(
+                TestResources.RepoSignedPackageLeaf1,
+                TestResources.RepoSignedPackageLeafId,
+                TestResources.RepoSignedPackageLeaf1Version,
+                PackageSigningStatus.Valid)]
+            [InlineData(
+                TestResources.AuthorAndRepoSignedPackageLeaf1,
+                TestResources.AuthorAndRepoSignedPackageLeafId,
+                TestResources.AuthorAndRepoSignedPackageLeaf1Version,
+                PackageSigningStatus.Valid)]
+            public async Task WhenStripsValidRepositorySignature_AcceptsRepositorySignatureWhenRepositorySignatureIsRequired(
+                string resourceName,
+                string packageId,
+                string packageVersion,
+                PackageSigningStatus expectedSigningStatus)
+            {
+                // Arrange
+                _configuration.StripValidRepositorySignatures = true;
+                _configuration.AllowedRepositorySigningCertificates = new List<string> { TestResources.Leaf1Thumbprint, TestResources.Leaf2Thumbprint };
+
+                _packageStream = TestResources.GetResourceStream(resourceName);
+
+                if (resourceName == TestResources.RepoSignedPackageLeaf1)
+                {
+                    TestUtility.RequireUnsignedPackage(_corePackageService, TestResources.RepoSignedPackageLeafId, TestResources.RepoSignedPackageLeaf1Version);
+                }
+
+                if (resourceName == TestResources.AuthorAndRepoSignedPackageLeaf1)
+                {
+                    TestUtility.RequireSignedPackage(_corePackageService, TestResources.AuthorAndRepoSignedPackageLeafId, TestResources.AuthorAndRepoSignedPackageLeaf1Version, TestResources.Leaf1Thumbprint);
+                }
+
+                _message = new SignatureValidationMessage(
+                    packageId,
+                    packageVersion,
+                    new Uri($"https://unit.test/{resourceName.ToLowerInvariant()}"),
+                    Guid.NewGuid(),
+                    requireRepositorySignature: true);
+
+                // Act
+                var result = await _target.ValidateAsync(
+                    _packageKey,
+                    _packageStream,
+                    _message,
+                    _cancellationToken);
+
+                // Assert
+                Validate(result, ValidationStatus.Succeeded, expectedSigningStatus);
+                Assert.Empty(result.Issues);
             }
 
             [Fact]

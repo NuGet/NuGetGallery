@@ -10,7 +10,7 @@ namespace Validation.PackageSigning.Core.Tests.Support
 {
     public static class DbSetMockFactory
     {
-        public static IDbSet<T> Create<T>(params T[] sourceList) where T : class
+        public static Mock<IDbSet<T>> CreateMock<T>(params T[] sourceList) where T : class
         {
             var list = new List<T>(sourceList);
 
@@ -22,7 +22,12 @@ namespace Validation.PackageSigning.Core.Tests.Support
             dbSet.Setup(m => m.Add(It.IsAny<T>())).Callback<T>(e => list.Add(e));
             dbSet.Setup(m => m.Remove(It.IsAny<T>())).Callback<T>(e => list.Remove(e));
 
-            return dbSet.Object;
+            return dbSet;
+        }
+
+        public static IDbSet<T> Create<T>(params T[] sourceList) where T : class
+        {
+            return CreateMock(sourceList).Object;
         }
     }
 }

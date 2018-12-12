@@ -40,11 +40,23 @@ namespace NuGet.Jobs.Validation.PackageSigning.Storage
             }
 
             // Update the signing state if it already exists, otherwise, create a new record.
-            var signatureState = await _validationContext.PackageSigningStates.FirstOrDefaultAsync(s => s.PackageKey == packageKey);
+            var signatureState = await _validationContext
+                .PackageSigningStates
+                .Include(s => s.PackageSignatures)
+                .FirstOrDefaultAsync(s => s.PackageKey == packageKey);
 
             if (signatureState != null)
             {
                 signatureState.SigningStatus = status;
+
+                // Remove all stored signatures if the package is transitioning to an unsigned state.
+                if (status == PackageSigningStatus.Unsigned)
+                {
+                    foreach (var signature in signatureState.PackageSignatures.ToList())
+                    {
+                        _validationContext.PackageSignatures.Remove(signature);
+                    }
+                }
             }
             else
             {
