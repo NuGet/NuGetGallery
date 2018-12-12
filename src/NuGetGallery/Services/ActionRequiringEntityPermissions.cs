@@ -55,25 +55,31 @@ namespace NuGetGallery
 
         public PermissionsCheckResult CheckPermissionsOnBehalfOfAnyAccount(User currentUser, TEntity entity)
         {
-            return CheckPermissionsOnBehalfOfAnyAccount(currentUser, entity, out var accountsAllowedOnBehalfOf);
+            return CheckPermissionsOnBehalfOfAnyAccount(currentUser, entity, exitEarly: true, accountsAllowedOnBehalfOf: out var _);
         }
 
         public PermissionsCheckResult CheckPermissionsOnBehalfOfAnyAccount(User currentUser, TEntity entity, out IEnumerable<User> accountsAllowedOnBehalfOf)
         {
+            return CheckPermissionsOnBehalfOfAnyAccount(currentUser, entity, exitEarly: false, accountsAllowedOnBehalfOf: out accountsAllowedOnBehalfOf);
+        }
+
+        private PermissionsCheckResult CheckPermissionsOnBehalfOfAnyAccount(User currentUser, TEntity entity, bool exitEarly, out IEnumerable<User> accountsAllowedOnBehalfOf)
+        {
             accountsAllowedOnBehalfOf = new List<User>();
 
-            var possibleAccountsOnBehalfOf =
-                new[] { currentUser }
-                    .Concat(GetOwners(entity));
+            var possibleAccountsOnBehalfOf = new List<User>
+            {
+                currentUser
+            };
+
+            possibleAccountsOnBehalfOf.AddRange(GetOwners(entity));
 
             if (currentUser != null)
             {
-                possibleAccountsOnBehalfOf =
-                    possibleAccountsOnBehalfOf
-                        .Concat(currentUser.Organizations.Select(o => o.Organization));
+                possibleAccountsOnBehalfOf.AddRange(currentUser.Organizations.Select(o => o.Organization));
             }
 
-            possibleAccountsOnBehalfOf = possibleAccountsOnBehalfOf.Distinct(new UserEqualityComparer());
+            possibleAccountsOnBehalfOf = possibleAccountsOnBehalfOf.Distinct(new UserEqualityComparer()).ToList();
 
             var aggregateResult = PermissionsCheckResult.Unknown;
 
@@ -84,6 +90,10 @@ namespace NuGetGallery
                 if (result == PermissionsCheckResult.Allowed)
                 {
                     (accountsAllowedOnBehalfOf as List<User>).Add(accountOnBehalfOf);
+                    if (exitEarly)
+                    {
+                        break;
+                    }
                 }
             }
 

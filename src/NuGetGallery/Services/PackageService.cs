@@ -255,30 +255,28 @@ namespace NuGetGallery
                 packages = packages.Where(p => p.Listed);
             }
 
-            if (includeVersions)
+            if (!includeVersions)
             {
-                return packages
-                .Include(p => p.PackageRegistration)
-                .Include(p => p.PackageRegistration.Owners)
-                .ToList();
+                // Do a best effort of retrieving the latest version. Note that UpdateIsLatest has had concurrency issues
+                // where sometimes packages no rows with IsLatest set. In this case, we'll just select the last inserted
+                // row (descending [Key]) as opposed to reading all rows into memory and sorting on NuGetVersion.
+                packages = packages
+                    .GroupBy(p => p.PackageRegistrationKey)
+                    .Select(g => g
+                        // order booleans desc so that true (1) comes first
+                        .OrderByDescending(p => p.IsLatestStableSemVer2)
+                        .ThenByDescending(p => p.IsLatestStable)
+                        .ThenByDescending(p => p.IsLatestSemVer2)
+                        .ThenByDescending(p => p.IsLatest)
+                        .ThenByDescending(p => p.Listed)
+                        .ThenByDescending(p => p.Key)
+                        .FirstOrDefault());
             }
-
-            // Do a best effort of retrieving the latest version. Note that UpdateIsLatest has had concurrency issues
-            // where sometimes packages no rows with IsLatest set. In this case, we'll just select the last inserted
-            // row (descending [Key]) as opposed to reading all rows into memory and sorting on NuGetVersion.
+            
             return packages
-                .GroupBy(p => p.PackageRegistrationKey)
-                .Select(g => g
-                    // order booleans desc so that true (1) comes first
-                    .OrderByDescending(p => p.IsLatestStableSemVer2)
-                    .ThenByDescending(p => p.IsLatestStable)
-                    .ThenByDescending(p => p.IsLatestSemVer2)
-                    .ThenByDescending(p => p.IsLatest)
-                    .ThenByDescending(p => p.Listed)
-                    .ThenByDescending(p => p.Key)
-                    .FirstOrDefault())
                 .Include(p => p.PackageRegistration)
                 .Include(p => p.PackageRegistration.Owners)
+                .Include(p => p.PackageRegistration.RequiredSigners)
                 .ToList();
         }
 
