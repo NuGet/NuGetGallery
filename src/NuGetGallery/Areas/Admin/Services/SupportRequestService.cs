@@ -303,7 +303,7 @@ namespace NuGetGallery.Areas.Admin
             {
                 accountDeletedIssue.OwnerEmail = "deletedaccount";
                 accountDeletedIssue.CreatedBy = null;
-                accountDeletedIssue.Details = "deletedaccountdetails";
+                accountDeletedIssue.Details = "This support request has been redacted as the customer's account has been deleted.";
                 foreach (var historyEntry in accountDeletedIssue.HistoryEntries)
                 {
                     if (string.Equals(historyEntry.EditedBy, user.Username, StringComparison.InvariantCultureIgnoreCase))
