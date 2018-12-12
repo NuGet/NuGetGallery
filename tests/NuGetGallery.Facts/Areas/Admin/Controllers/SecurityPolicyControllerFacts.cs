@@ -209,7 +209,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                     p.Value = Guid.NewGuid().ToString()));
 
             // Assert.
-            users.ForEach(u => Assert.True(policyService.IsSubscribed(u, subscription)));
+            Assert.All(users, u => Assert.True(policyService.IsSubscribed(u, subscription)));
         }
 
         [Fact]
