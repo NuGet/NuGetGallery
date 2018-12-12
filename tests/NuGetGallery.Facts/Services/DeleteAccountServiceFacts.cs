@@ -682,7 +682,7 @@ namespace NuGetGallery.Services
                 if (_user != null)
                 {
                     var issue = SupportRequests.Where(i => string.Equals(i.CreatedBy, _user.Username)).FirstOrDefault();
-                    supportService.Setup(m => m.DeleteSupportRequestsAsync(_user.Username))
+                    supportService.Setup(m => m.DeleteSupportRequestsAsync(_user))
                                   .Returns(Task.FromResult(true))
                                   .Callback(() => SupportRequests.Remove(issue));
                 }

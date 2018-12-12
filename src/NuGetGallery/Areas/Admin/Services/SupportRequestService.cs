@@ -286,26 +286,27 @@ namespace NuGetGallery.Areas.Admin
             return issue?.Name;
         }
 
-        public async Task DeleteSupportRequestsAsync(string createdBy)
+        public async Task DeleteSupportRequestsAsync(User user)
         {
-            if (createdBy == null)
+            if (user == null)
             {
-                throw new ArgumentNullException(nameof(createdBy));
+                throw new ArgumentNullException(nameof(user));
             }
-            var userCreatedIssues = GetIssues().Where(i => string.Equals(i.CreatedBy, createdBy, StringComparison.InvariantCultureIgnoreCase)).ToList();
+            var userIssues = GetIssues().Where(i => i.UserKey.HasValue && i.UserKey.Value == user.Key).ToList();
             // Delete all the support requests with exception of the delete account request.
             // For the DeleteAccount support request clean the user data.
-            foreach (var issue in userCreatedIssues.Where(i => !string.Equals(i.IssueTitle, Strings.AccountDelete_SupportRequestTitle)))
+            foreach (var issue in userIssues.Where(i => !string.Equals(i.IssueTitle, Strings.AccountDelete_SupportRequestTitle)))
             {
                 _supportRequestDbContext.Issues.Remove(issue);
             }
-            foreach (var accountDeletedIssue in userCreatedIssues.Where(i => string.Equals(i.IssueTitle, Strings.AccountDelete_SupportRequestTitle)))
+            foreach (var accountDeletedIssue in userIssues.Where(i => string.Equals(i.IssueTitle, Strings.AccountDelete_SupportRequestTitle)))
             {
                 accountDeletedIssue.OwnerEmail = "deletedaccount";
                 accountDeletedIssue.CreatedBy = null;
+                accountDeletedIssue.Details = "deletedaccountdetails";
                 foreach (var historyEntry in accountDeletedIssue.HistoryEntries)
                 {
-                    if (string.Equals(historyEntry.EditedBy, createdBy, StringComparison.InvariantCultureIgnoreCase))
+                    if (string.Equals(historyEntry.EditedBy, user.Username, StringComparison.InvariantCultureIgnoreCase))
                     {
                         historyEntry.EditedBy = null;
                     }
