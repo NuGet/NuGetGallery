@@ -22,6 +22,12 @@ namespace NuGet.Jobs.Validation.PackageSigning
         public string V3ServiceIndexUrl { get; set; }
 
         /// <summary>
+        /// If true, revalidating a package will strip its repository signature and then apply a new repository signature,
+        /// even if current repository signature is valid. This mode should be disabled unless absolutely necessary!
+        /// </summary>
+        public bool StripValidRepositorySignatures { get; set; }
+
+        /// <summary>
         /// Whether repository signatures should be persisted to the database. Disable this if repository signing
         /// is in test mode and repository signed packages are not published.
         /// </summary>

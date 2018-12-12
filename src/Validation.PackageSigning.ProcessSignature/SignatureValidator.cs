@@ -495,6 +495,25 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
                 context.Message.PackageVersion,
                 context.Message.ValidationId);
 
+            // If configured, strip valid repository signatures from packages to force a new repository signature to be applied.
+            if (_configuration.Value.StripValidRepositorySignatures)
+            {
+                // Packages' signatures are validated twice: once before the package is repository signed, and once after. We do not
+                // want to strip the newly applied repository signature, so we will only strip in the "before" case. We can detect the
+                // "after" case as it requires the presence of a repository signature.
+                if (!context.Message.RequireRepositorySignature)
+                {
+                    _logger.LogWarning(
+                        $"The {nameof(ProcessSignatureConfiguration.StripValidRepositorySignatures)} configuration is enabled, " +
+                        "stripping the valid repository signature from package {PackageId} {PackageVersion} for validation {ValidationId}.",
+                        context.Message.PackageId,
+                        context.Message.PackageVersion,
+                        context.Message.ValidationId);
+
+                    return false;
+                }
+            }
+
             return true;
         }
 
