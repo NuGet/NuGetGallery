@@ -45,7 +45,6 @@ namespace NuGetGallery.Services
                     Key = 11
                 };
 
-
                 TestSupportRequestDbContext supportRequestContext = new TestSupportRequestDbContext();
                 Issue JoesDeleteAccountRequest = new Issue()
                 {
@@ -54,7 +53,10 @@ namespace NuGetGallery.Services
                     IssueTitle = Strings.AccountDelete_SupportRequestTitle,
                     OwnerEmail = user.EmailAddress,
                     IssueStatusId = IssueStatusKeys.New,
-                    HistoryEntries = new List<History>() { new History() { EditedBy = userName, IssueId = 1, Key = 1, IssueStatusId = IssueStatusKeys.New } },
+                    HistoryEntries = new List<History>()
+                    {
+                        new History() { EditedBy = userName, IssueId = 1, Key = 1, IssueStatusId = IssueStatusKeys.New }
+                    },
                     UserKey = user.Key
                 };
                 Issue JoesOldIssue = new Issue()
@@ -64,20 +66,26 @@ namespace NuGetGallery.Services
                     IssueTitle = "Joe's OldIssue",
                     OwnerEmail = user.EmailAddress,
                     IssueStatusId = IssueStatusKeys.Resolved,
-                    HistoryEntries = new List<History>() { new History() { EditedBy = userName, IssueId = 2, Key = 2, IssueStatusId = IssueStatusKeys.New },
-                                                           new History() { EditedBy = userName, IssueId = 2, Key = 2, IssueStatusId = IssueStatusKeys.Resolved }},
+                    HistoryEntries = new List<History>()
+                    {
+                        new History() { EditedBy = userName, IssueId = 2, Key = 2, IssueStatusId = IssueStatusKeys.New },
+                        new History() { EditedBy = userName, IssueId = 2, Key = 2, IssueStatusId = IssueStatusKeys.Resolved }
+                    },
                     UserKey = user.Key
-            };
-            Issue randomIssue = new Issue()
-            {
-                CreatedBy = $"{user.Username}_second",
-                Key = 3,
-                IssueTitle = "Second",
-                OwnerEmail = "random",
-                IssueStatusId = IssueStatusKeys.New,
-                HistoryEntries = new List<History>() { new History() { EditedBy = $"{userName}_second", IssueId = 3, Key = 3, IssueStatusId = IssueStatusKeys.New } },
-                UserKey = user.Key + 1
-        };
+                };
+                Issue randomIssue = new Issue()
+                {
+                    CreatedBy = $"{user.Username}_second",
+                    Key = 3,
+                    IssueTitle = "Second",
+                    OwnerEmail = "random",
+                    IssueStatusId = IssueStatusKeys.New,
+                    HistoryEntries = new List<History>()
+                    {
+                        new History() { EditedBy = $"{userName}_second", IssueId = 3, Key = 3, IssueStatusId = IssueStatusKeys.New }
+                    },
+                    UserKey = user.Key + 1
+                };
                 supportRequestContext.Issues.Add(JoesDeleteAccountRequest);
                 supportRequestContext.Issues.Add(JoesOldIssue);
                 supportRequestContext.Issues.Add(randomIssue);
