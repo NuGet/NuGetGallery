@@ -79,7 +79,7 @@ namespace NuGetGallery
                 possibleAccountsOnBehalfOf.AddRange(currentUser.Organizations.Select(o => o.Organization));
             }
 
-            possibleAccountsOnBehalfOf = possibleAccountsOnBehalfOf.Distinct(new UserEqualityComparer()).ToList();
+            possibleAccountsOnBehalfOf = possibleAccountsOnBehalfOf.Distinct(new UserEqualityComparer());
 
             var aggregateResult = PermissionsCheckResult.Unknown;
 
