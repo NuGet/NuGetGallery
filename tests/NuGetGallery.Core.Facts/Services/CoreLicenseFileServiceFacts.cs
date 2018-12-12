@@ -93,7 +93,7 @@ namespace NuGetGallery.Services
 
             [Theory]
             [InlineData(EmbeddedLicenseFileType.PlainText, "text/plain")]
-            [InlineData(EmbeddedLicenseFileType.Markdown, "text/markdown")]
+            [InlineData(EmbeddedLicenseFileType.Markdown, "text/plain")]
             public async Task WillUseNormalizedRegularVersionIfNormalizedVersionMissing(EmbeddedLicenseFileType licenseFileType, string expectedContentType)
             {
                 var fileStorageSvc = new Mock<ICoreFileStorageService>();
