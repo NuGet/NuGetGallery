@@ -264,9 +264,11 @@ namespace NuGetGallery
             [Theory]
             [InlineData("# Heading", "<h2>Heading</h2>")]
             [InlineData("- List", "<ul><li>List</li></ul>")]
-            [InlineData("[text](http://www.test.com)", "<p><a href=\"http://www.test.com\" rel=\"nofollow\">text</a></p>")]
+            [InlineData("[text](http://www.test.com)", "<p><a href=\"http://www.test.com/\" rel=\"nofollow\">text</a></p>")]
             [InlineData("[text](javascript:alert('hi'))", "<p><a href=\"\" rel=\"nofollow\">text</a></p>")]
             [InlineData("> <text>Blockquote</text>", "<blockquote><p>&lt;text&gt;Blockquote&lt;/text&gt;</p></blockquote>")]
+            [InlineData("[text](http://www.asp.net)", "<p><a href=\"https://www.asp.net/\" rel=\"nofollow\">text</a></p>")]
+            [InlineData("[text](badurl://www.asp.net)", "<p><a href=\"\" rel=\"nofollow\">text</a></p>")]
             public void ConvertsMarkdownToHtml(string originalMd, string expectedHtml)
             {
                 Assert.Equal(expectedHtml, StripNewLines(ReadMeService.GetReadMeHtml(originalMd)));

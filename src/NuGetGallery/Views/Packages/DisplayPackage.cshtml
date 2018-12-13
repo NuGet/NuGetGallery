@@ -13,6 +13,16 @@
 
     PackageManagerViewModel[] packageManagers;
 
+    if (!string.IsNullOrWhiteSpace(Model.LicenseExpression))
+    {
+        Model.LicenseUrl = LicenseExpressionRedirectUrlHelper.GetLicenseExpressionRedirectUrl(Model.LicenseExpression);
+    }
+
+    if (Model.EmbeddedLicenseType != EmbeddedLicenseFileType.Absent)
+    {
+        Model.LicenseUrl = Url.License(Model.Id, Model.Version);
+    }
+
     if (Model.IsDotnetToolPackageType)
     {
         packageManagers = new PackageManagerViewModel[]
@@ -182,6 +192,14 @@
                         validation and indexing may take up to an hour. <a href="https://aka.ms/NuGetPackageValidation">Read more</a>.
                     </text>
                 )
+                if (Model.EmbeddedLicenseType != EmbeddedLicenseFileType.Absent)
+                {
+                    @ViewHelpers.AlertWarning(
+                        @<text>
+                            The license link will become available once package validation has completed successfully.
+                        </text>
+                    )
+                }
 
                 if (Model.ValidatingTooLong)
                 {
@@ -612,25 +630,29 @@
                         }
 
                         <a href="@Model.RepositoryUrl" data-track="outbound-repository-url" title="View the source code for this package" rel="nofollow">
-                            Source Code
+                            Source repository
                         </a>
                     </li>
                 }
                 @if (!Model.Deleted && Model.LicenseUrl != null)
                 {
-                    <li>
-                        <i class="ms-Icon ms-Icon--Certificate" aria-hidden="true"></i>
-                        <a href="@Model.LicenseUrl" data-track="outbound-license-url" title="Make sure you agree with the license" rel="nofollow">
-                            @if (Model.LicenseNames.AnySafe())
-                            {
-                                @(string.Join(", ", Model.LicenseNames.Select(x => x + " License")))
-                            }
-                            else
-                            {
-                                @:License Info
-                            }
-                        </a>
-                    </li>
+                    if (Model.EmbeddedLicenseType == EmbeddedLicenseFileType.Absent || !Model.Validating)
+                    {
+                        <li>
+                            <i class="ms-Icon ms-Icon--Certificate" aria-hidden="true"></i>
+                            <a href="@Model.LicenseUrl"
+                               data-track="outbound-license-url" title="Make sure you agree with the license" rel="nofollow">
+                                @if (Model.LicenseNames.AnySafe())
+                                {
+                                    @(string.Join(", ", Model.LicenseNames.Select(x => x + " License")))
+                                }
+                                else
+                                {
+                                    @:License Info
+                                }
+                            </a>
+                        </li>
+                    }
                 }
                 <li>
                     <i class="ms-Icon ms-Icon--Mail" aria-hidden="true"></i>
@@ -659,7 +681,7 @@
                 {
                     <li>
                         <i class="ms-Icon ms-Icon--CloudDownload" aria-hidden="true"></i>
-                        <a href="@Url.PackageDownload(2, Model.Id, Model.Version)" data-track="outbound-manual-download" title="Download the raw nupkg file." rel="nofollow">Download Package</a>
+                        <a href="@Url.PackageDownload(2, Model.Id, Model.Version)" data-track="outbound-manual-download" title="Download the raw nupkg file." rel="nofollow">Download package</a>
                         &nbsp;(@Model.PackageFileSize.ToUserFriendlyBytesLabel())
                     </li>
                     if (hasSymbolsPackageAvailable)

@@ -25,6 +25,7 @@ using NuGet.Services.KeyVault;
 using NuGet.Services.Logging;
 using NuGet.Services.Messaging;
 using NuGet.Services.Messaging.Email;
+using NuGet.Services.Search.Client;
 using NuGet.Services.ServiceBus;
 using NuGet.Services.Sql;
 using NuGet.Services.Validation;
@@ -153,16 +154,6 @@ namespace NuGetGallery
                 .As<IEntityRepository<ReservedNamespace>>()
                 .InstancePerLifetimeScope();
 
-            builder.RegisterType<EntityRepository<CuratedFeed>>()
-                .AsSelf()
-                .As<IEntityRepository<CuratedFeed>>()
-                .InstancePerLifetimeScope();
-
-            builder.RegisterType<EntityRepository<CuratedPackage>>()
-                .AsSelf()
-                .As<IEntityRepository<CuratedPackage>>()
-                .InstancePerLifetimeScope();
-
             builder.RegisterType<EntityRepository<PackageRegistration>>()
                 .AsSelf()
                 .As<IEntityRepository<PackageRegistration>>()
@@ -216,11 +207,6 @@ namespace NuGetGallery
             builder.RegisterType<EntityRepository<SymbolPackage>>()
                 .AsSelf()
                 .As<IEntityRepository<SymbolPackage>>()
-                .InstancePerLifetimeScope();
-
-            builder.RegisterType<CuratedFeedService>()
-                .AsSelf()
-                .As<ICuratedFeedService>()
                 .InstancePerLifetimeScope();
 
             var supportDbConnectionFactory = CreateDbConnectionFactory(
@@ -346,6 +332,18 @@ namespace NuGetGallery
                 .AsSelf()
                 .As<ITyposquattingCheckListCacheService>()
                 .SingleInstance();
+
+            builder.RegisterType<FlatContainerService>()
+                .As<IFlatContainerService>()
+                .InstancePerLifetimeScope();
+
+            builder.Register<ServiceDiscoveryClient>(c =>
+                    new ServiceDiscoveryClient(c.Resolve<IAppConfiguration>().ServiceDiscoveryUri))
+                .As<IServiceDiscoveryClient>();
+
+            builder.RegisterType<GalleryContentFileMetadataService>()
+                .As<IContentFileMetadataService>()
+                .InstancePerLifetimeScope();
 
             RegisterMessagingService(builder, configuration);
 
@@ -608,10 +606,6 @@ namespace NuGetGallery
 
             builder.RegisterType<RevalidationAdminService>()
                 .AsSelf()
-                .InstancePerLifetimeScope();
-
-            builder.RegisterType<RevalidationStateService>()
-                .As<IRevalidationStateService>()
                 .InstancePerLifetimeScope();
         }
 

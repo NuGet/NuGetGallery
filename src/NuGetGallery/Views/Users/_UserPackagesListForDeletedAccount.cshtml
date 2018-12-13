@@ -33,7 +33,7 @@
                     {
                         <tr class="manage-package-listing">
                             <td class="align-middle ">
-                                @if (isOrganization ? package.HasSingleOrganizationOwner : package.HasSingleUserOwner)
+                                @if (package.WillBeOrphaned)
                                 {
                                     <i class="ms-Icon ms-Icon--StatusErrorFull red-check" title="@hasSingleOwnerMessage"></i>
                                 }

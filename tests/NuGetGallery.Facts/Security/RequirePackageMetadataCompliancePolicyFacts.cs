@@ -44,7 +44,6 @@ namespace NuGetGallery.Security
             Assert.ThrowsAsync<ArgumentNullException>(() => policyHandler.EvaluateAsync(null));
         }
 
-
         [Fact]
         public async Task Evaluate_DoesNotCommitChangesToEntityContext()
         {
@@ -71,13 +70,13 @@ namespace NuGetGallery.Security
             var telemetryService = new Mock<ITelemetryService>().Object;
 
             var context = new PackageSecurityPolicyEvaluationContext(
-                userService.Object, 
-                packageOwnershipManagementService.Object, 
+                userService.Object,
+                packageOwnershipManagementService.Object,
                 telemetryService,
-                subscription.Policies, 
+                subscription.Policies,
                 newMicrosoftCompliantPackage,
                 sourceAccount: nugetUser,
-                targetAccount: nugetUser, 
+                targetAccount: nugetUser,
                 httpContext: It.IsAny<HttpContextBase>());
 
             // Act
@@ -97,9 +96,9 @@ namespace NuGetGallery.Security
             var policyHandler = new RequirePackageMetadataCompliancePolicy();
             var fakes = new Fakes();
             var context = CreateTestContext(
-                false, 
-                subscription.Policies, 
-                fakes.NewPackageVersion, 
+                false,
+                subscription.Policies,
+                fakes.NewPackageVersion,
                 packageRegistrationAlreadyExists: false,
                 sourceAccount: nugetUser,
                 targetAccount: nugetUser);
@@ -206,6 +205,120 @@ namespace NuGetGallery.Security
             Assert.False(newPackageRegistration.IsVerified);
         }
 
+        [Fact]
+        public async Task Evaluate_NonCompliantPackageAuthor_CreatesErrorResult()
+        {
+            // Arrange
+            var nugetUser = new User("NuGet");
+            var newPackageRegistration = new PackageRegistration { Id = "NewPackageId", Owners = new List<User> { nugetUser } };
+            var packageAuthors = new[] { MicrosoftTeamSubscription.MicrosoftUsername, "The Not-Allowed Package Authors" };
+            var nonCompliantPackage = Fakes.CreateCompliantPackage("1.0.0", newPackageRegistration, packageAuthors);
+
+            var policy = RequirePackageMetadataCompliancePolicy.CreatePolicy(
+                    MicrosoftTeamSubscription.Name,
+                    MicrosoftTeamSubscription.MicrosoftUsername,
+                    allowedCopyrightNotices: MicrosoftTeamSubscription.AllowedCopyrightNotices,
+                    allowedAuthors: new[] { MicrosoftTeamSubscription.MicrosoftUsername },
+                    isLicenseUrlRequired: true,
+                    isProjectUrlRequired: true,
+                    errorMessageFormat: Strings.SecurityPolicy_RequireMicrosoftPackageMetadataComplianceForPush);
+
+            var policyHandler = new RequirePackageMetadataCompliancePolicy();
+
+            var context = CreateTestContext(
+                true,
+                new[] { policy },
+                nonCompliantPackage,
+                packageRegistrationAlreadyExists: false,
+                sourceAccount: nugetUser,
+                targetAccount: nugetUser);
+
+            // Act
+            var result = await policyHandler.EvaluateAsync(context);
+
+            // Assert
+            Assert.False(result.Success);
+            Assert.Null(newPackageRegistration.Owners.SingleOrDefault(u => u.Username == MicrosoftTeamSubscription.MicrosoftUsername));
+            Assert.False(newPackageRegistration.IsVerified);
+        }
+
+        [Fact]
+        public async Task Evaluate_DuplicatePackageAuthor_CreatesErrorResult()
+        {
+            // Arrange
+            var nugetUser = new User("NuGet");
+            var newPackageRegistration = new PackageRegistration { Id = "NewPackageId", Owners = new List<User> { nugetUser } };
+            var packageAuthors = new[] { MicrosoftTeamSubscription.MicrosoftUsername, MicrosoftTeamSubscription.MicrosoftUsername };
+            var nonCompliantPackage = Fakes.CreateCompliantPackage("1.0.0", newPackageRegistration, packageAuthors);
+
+            var policy = RequirePackageMetadataCompliancePolicy.CreatePolicy(
+                    MicrosoftTeamSubscription.Name,
+                    MicrosoftTeamSubscription.MicrosoftUsername,
+                    allowedCopyrightNotices: MicrosoftTeamSubscription.AllowedCopyrightNotices,
+                    allowedAuthors: new[] { MicrosoftTeamSubscription.MicrosoftUsername },
+                    isLicenseUrlRequired: true,
+                    isProjectUrlRequired: true,
+                    errorMessageFormat: Strings.SecurityPolicy_RequireMicrosoftPackageMetadataComplianceForPush);
+
+            var policyHandler = new RequirePackageMetadataCompliancePolicy();
+
+            var context = CreateTestContext(
+                true,
+                new[] { policy },
+                nonCompliantPackage,
+                packageRegistrationAlreadyExists: false,
+                sourceAccount: nugetUser,
+                targetAccount: nugetUser);
+
+            // Act
+            var result = await policyHandler.EvaluateAsync(context);
+
+            // Assert
+            Assert.False(result.Success);
+            Assert.Null(newPackageRegistration.Owners.SingleOrDefault(u => u.Username == MicrosoftTeamSubscription.MicrosoftUsername));
+            Assert.False(newPackageRegistration.IsVerified);
+        }
+
+        [Fact]
+        public async Task Evaluate_CompliantPackageAuthors_CreatesSuccessResult()
+        {
+            // Arrange
+            var nugetUser = new User("NuGet");
+            var newPackageRegistration = new PackageRegistration { Id = "NewPackageId", Owners = new List<User> { nugetUser } };
+            var packageAuthors = new[] { MicrosoftTeamSubscription.MicrosoftUsername, "The Most-Awesome Package Authors" };
+            var compliantPackage = Fakes.CreateCompliantPackage("1.0.0", newPackageRegistration, packageAuthors);
+
+            var policy = RequirePackageMetadataCompliancePolicy.CreatePolicy(
+                    MicrosoftTeamSubscription.Name,
+                    MicrosoftTeamSubscription.MicrosoftUsername,
+                    allowedCopyrightNotices: MicrosoftTeamSubscription.AllowedCopyrightNotices,
+                    allowedAuthors: packageAuthors,
+                    isLicenseUrlRequired: true,
+                    isProjectUrlRequired: true,
+                    errorMessageFormat: Strings.SecurityPolicy_RequireMicrosoftPackageMetadataComplianceForPush);
+
+            var policyHandler = new RequirePackageMetadataCompliancePolicy();
+
+            var packageOwnershipManagementService = new Mock<IPackageOwnershipManagementService>();
+            packageOwnershipManagementService.Setup(m => m.AddPackageOwnerAsync(newPackageRegistration, It.IsAny<User>(), false)).Returns(Task.CompletedTask);
+
+            var context = CreateTestContext(
+                true,
+                new[] { policy },
+                compliantPackage,
+                packageRegistrationAlreadyExists: false,
+                sourceAccount: nugetUser,
+                targetAccount: nugetUser,
+                packageOwnershipManagementService: packageOwnershipManagementService.Object);
+
+            // Act
+            var result = await policyHandler.EvaluateAsync(context);
+
+            // Assert
+            Assert.True(result.Success);
+            packageOwnershipManagementService.Verify(s => s.AddPackageOwnerAsync(newPackageRegistration, Fakes.RequiredCoOwner, false), Times.Once);
+        }
+
         private static PackageSecurityPolicyEvaluationContext CreateTestContext(
             bool microsoftUserExists,
             IEnumerable<UserSecurityPolicy> policies,
@@ -298,7 +411,7 @@ namespace NuGetGallery.Security
                 };
             }
 
-            public static Package CreateCompliantPackage(string version, PackageRegistration packageRegistration)
+            public static Package CreateCompliantPackage(string version, PackageRegistration packageRegistration, string[] allowedAuthors = null)
             {
                 return new Package
                 {
@@ -307,7 +420,7 @@ namespace NuGetGallery.Security
                     Copyright = "(c) Microsoft Corporation. All rights reserved.",
                     ProjectUrl = "https://github.com/NuGet/NuGetGallery",
                     LicenseUrl = "https://github.com/NuGet/NuGetGallery/blob/master/LICENSE.txt",
-                    FlattenedAuthors = "NuGet, Microsoft"
+                    FlattenedAuthors = allowedAuthors == null ? "Microsoft" : string.Join(",", allowedAuthors)
                 };
             }
 
@@ -345,7 +458,7 @@ namespace NuGetGallery.Security
             public User Owner { get; }
 
             public Package NewPackageVersion { get; }
-            
+
             public PackageRegistration ExistingPackageRegistration { get; }
 
             public static User RequiredCoOwner { get; }

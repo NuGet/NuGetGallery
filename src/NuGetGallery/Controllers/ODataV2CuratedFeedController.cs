@@ -25,20 +25,17 @@ namespace NuGetGallery.Controllers
 
         private readonly IGalleryConfigurationService _configurationService;
         private readonly ISearchService _searchService;
-        private readonly ICuratedFeedService _curatedFeedService;
         private readonly IEntityRepository<Package> _packagesRepository;
 
         public ODataV2CuratedFeedController(
             IGalleryConfigurationService configurationService,
             ISearchService searchService,
-            ICuratedFeedService curatedFeedService,
             IEntityRepository<Package> packagesRepository,
             ITelemetryService telemetryService)
             : base(configurationService, telemetryService)
         {
             _configurationService = configurationService;
             _searchService = searchService;
-            _curatedFeedService = curatedFeedService;
             _packagesRepository = packagesRepository;
         }
 
@@ -165,7 +162,6 @@ namespace NuGetGallery.Controllers
                     packages,
                     id,
                     normalizedVersion,
-                    curatedFeed: result.CuratedFeed,
                     semVerLevel: semVerLevel);
 
                 // If intercepted, create a paged queryresult
@@ -286,7 +282,6 @@ namespace NuGetGallery.Controllers
                 searchTerm,
                 targetFramework,
                 includePrerelease,
-                curatedFeed: result.CuratedFeed,
                 semVerLevel: semVerLevel);
 
             // Packages provided by search service (even when not hijacked)
@@ -376,25 +371,14 @@ namespace NuGetGallery.Controllers
 
         private CuratedFeedResult GetCuratedFeedResult(string curatedFeedName)
         {
-            IQueryable<Package> packages;
-            CuratedFeed curatedFeed;
             if (IsCuratedFeedRedirected(curatedFeedName))
             {
-                curatedFeed = null;
-                packages = _packagesRepository.GetAll();
+                return new CuratedFeedResult(_packagesRepository.GetAll());
             }
             else
             {
-                curatedFeed = _curatedFeedService.GetFeedByName(curatedFeedName);
-                if (curatedFeed == null)
-                {
-                    return new CuratedFeedResult(NotFound());
-                }
-
-                packages = _curatedFeedService.GetPackages(curatedFeedName);
+                return new CuratedFeedResult(NotFound());
             }
-
-            return new CuratedFeedResult(packages, curatedFeed);
         }
 
         private class CuratedFeedResult
@@ -404,14 +388,12 @@ namespace NuGetGallery.Controllers
                 ActionResult = actionResult ?? throw new ArgumentNullException(nameof(actionResult));
             }
 
-            public CuratedFeedResult(IQueryable<Package> packages, CuratedFeed curatedFeed)
+            public CuratedFeedResult(IQueryable<Package> packages)
             {
                 Packages = packages ?? throw new ArgumentNullException(nameof(packages));
-                CuratedFeed = curatedFeed;
             }
 
             public IQueryable<Package> Packages { get; }
-            public CuratedFeed CuratedFeed { get; }
             public IHttpActionResult ActionResult { get; }
         }
     }

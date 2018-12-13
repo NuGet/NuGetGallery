@@ -48,8 +48,6 @@ namespace NuGetGallery
         }
 
         public bool ReadOnly { get; private set; }
-        public IDbSet<CuratedFeed> CuratedFeeds { get; set; }
-        public IDbSet<CuratedPackage> CuratedPackages { get; set; }
         public IDbSet<PackageRegistration> PackageRegistrations { get; set; }
         public IDbSet<Credential> Credentials { get; set; }
         public IDbSet<Scope> Scopes { get; set; }
@@ -299,27 +297,6 @@ namespace NuGetGallery
 
             modelBuilder.Entity<PackageFramework>()
                 .HasKey(pf => pf.Key);
-
-            modelBuilder.Entity<CuratedFeed>()
-                .HasKey(cf => cf.Key);
-
-            modelBuilder.Entity<CuratedFeed>()
-                .HasMany<CuratedPackage>(cf => cf.Packages)
-                .WithRequired(cp => cp.CuratedFeed)
-                .HasForeignKey(cp => cp.CuratedFeedKey);
-
-            modelBuilder.Entity<CuratedFeed>()
-                .HasMany<User>(cf => cf.Managers)
-                .WithMany()
-                .Map(c => c.ToTable("CuratedFeedManagers")
-                           .MapLeftKey("CuratedFeedKey")
-                           .MapRightKey("UserKey"));
-
-            modelBuilder.Entity<CuratedPackage>()
-                .HasKey(cp => cp.Key);
-
-            modelBuilder.Entity<CuratedPackage>()
-                .HasRequired(cp => cp.PackageRegistration);
 
             modelBuilder.Entity<PackageDelete>()
                 .HasKey(pd => pd.Key)

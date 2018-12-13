@@ -402,6 +402,10 @@
     <Compile Include="Migrations\201811011725146_LicenseChanges.Designer.cs">
       <DependentUpon>201811011725146_LicenseChanges.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201811291758016_RemoveCuratedFeedEntities.cs" />
+    <Compile Include="Migrations\201811291758016_RemoveCuratedFeedEntities.Designer.cs">
+      <DependentUpon>201811291758016_RemoveCuratedFeedEntities.cs</DependentUpon>
+    </Compile>
     <Compile Include="RequestModels\DeleteAccountRequest.cs" />
     <Compile Include="Migrations\201710301857232_Organizations.cs" />
     <Compile Include="Migrations\201710301857232_Organizations.Designer.cs">
@@ -429,6 +433,7 @@
     <Compile Include="Services\ActionsRequiringPermissions.cs" />
     <Compile Include="Services\AsynchronousPackageValidationInitiator.cs" />
     <Compile Include="Infrastructure\Mail\BackgroundMarkdownMessageService.cs" />
+    <Compile Include="Services\GalleryContentFileMetadataService.cs" />
     <Compile Include="Services\InvalidLicenseUrlValidationMessage.cs" />
     <Compile Include="Services\InvalidUrlEncodingForLicenseUrlValidationMessage.cs" />
     <Compile Include="Services\ISymbolPackageUploadService.cs" />
@@ -439,6 +444,8 @@
     <Compile Include="Services\ITyposquattingService.cs" />
     <Compile Include="Services\IValidationMessage.cs" />
     <Compile Include="Services\JsonValidationMessage.cs" />
+    <Compile Include="Services\IFlatContainerService.cs" />
+    <Compile Include="Services\FlatContainerService.cs" />
     <Compile Include="Services\LicenseUrlDeprecationValidationMessage.cs" />
     <Compile Include="Services\PackageShouldNotBeSignedUserFixableValidationMessage.cs" />
     <Compile Include="Services\PlainTextOnlyValidationMessage.cs" />
@@ -1290,6 +1297,7 @@
     <Content Include="Areas\Admin\DynamicData\PageTemplates\ListDetails.aspx" />
     <Content Include="Content\admin\SupportRequestStyles.css" />
     <Content Include="Content\fabric.css" />
+    <Content Include="Content\gallery\img\logo-og-600x600.png" />
     <Content Include="Content\Images\icons\apiKey.png" />
     <Content Include="Content\Images\icons\apiKeyExpired.png" />
     <Content Include="Content\Images\icons\apiKeyLegacy.png" />
@@ -1299,7 +1307,51 @@
     <Content Include="Content\Images\icons\edit.png" />
     <Content Include="Content\Images\icons\expire.png" />
     <Content Include="Content\Images\icons\regenerate.png" />
-    <Content Include="Content\gallery\**\*" />
+    <Content Include="Content\gallery\css\bootstrap-theme.css" />
+    <Content Include="Content\gallery\css\bootstrap.css" />
+    <Content Include="Content\gallery\css\fabric.css" />
+    <Content Include="Content\gallery\img\api-key-256x256.png" />
+    <Content Include="Content\gallery\img\api-key-expired-256x256.png" />
+    <Content Include="Content\gallery\img\api-key-expired.svg" />
+    <Content Include="Content\gallery\img\api-key-legacy-256x256.png" />
+    <Content Include="Content\gallery\img\api-key-legacy.svg" />
+    <Content Include="Content\gallery\img\api-key-new-256x256.png" />
+    <Content Include="Content\gallery\img\api-key-new.svg" />
+    <Content Include="Content\gallery\img\api-key.svg" />
+    <Content Include="Content\gallery\img\blue-circle-225x225.png" />
+    <Content Include="Content\gallery\img\blue-circle.svg" />
+    <Content Include="Content\gallery\img\circuit-board.svg" />
+    <Content Include="Content\gallery\img\default-package-icon-256x256.png" />
+    <Content Include="Content\gallery\img\default-package-icon.svg" />
+    <Content Include="Content\gallery\img\dotnet-foundation-42x42.png" />
+    <Content Include="Content\gallery\img\dotnet-foundation.svg" />
+    <Content Include="Content\gallery\img\facebook-24x24.png" />
+    <Content Include="Content\gallery\img\facebook.svg" />
+    <Content Include="Content\gallery\img\git-32x32.png" />
+    <Content Include="Content\gallery\img\git.svg" />
+    <Content Include="Content\gallery\img\github-32x32.png" />
+    <Content Include="Content\gallery\img\github.svg" />
+    <Content Include="Content\gallery\img\logo-footer-184x57.png" />
+    <Content Include="Content\gallery\img\logo-footer.svg" />
+    <Content Include="Content\gallery\img\logo-header-94x29.png" />
+    <Content Include="Content\gallery\img\logo-header.svg" />
+    <Content Include="Content\gallery\img\manage-organizations-260x150.png" />
+    <Content Include="Content\gallery\img\manage-organizations.svg" />
+    <Content Include="Content\gallery\img\microsoft-account-24x24.png" />
+    <Content Include="Content\gallery\img\microsoft-account.svg" />
+    <Content Include="Content\gallery\img\orange-circle-225x225.png" />
+    <Content Include="Content\gallery\img\orange-circle.svg" />
+    <Content Include="Content\gallery\img\purple-circle-225x225.png" />
+    <Content Include="Content\gallery\img\purple-circle.svg" />
+    <Content Include="Content\gallery\img\reserved-indicator-20x20.png" />
+    <Content Include="Content\gallery\img\reserved-indicator-256x256.png" />
+    <Content Include="Content\gallery\img\reserved-indicator-25x25.png" />
+    <Content Include="Content\gallery\img\reserved-indicator.svg" />
+    <Content Include="Content\gallery\img\rss-36x36.png" />
+    <Content Include="Content\gallery\img\rss.svg" />
+    <Content Include="Content\gallery\img\twitter-24x24.png" />
+    <Content Include="Content\gallery\img\twitter-36x36.png" />
+    <Content Include="Content\gallery\img\twitter.svg" />
     <Content Include="Content\themes\base\images\animated-overlay.gif" />
     <Content Include="Content\themes\base\images\ui-bg_flat_0_aaaaaa_40x100.png" />
     <Content Include="Content\themes\base\images\ui-bg_flat_75_ffffff_40x100.png" />
@@ -1390,9 +1442,7 @@
     <Compile Include="Services\AppActivatorException.cs" />
     <Compile Include="Services\CloudDownloadCountService.cs" />
     <Compile Include="Services\ConfirmOwnershipResult.cs" />
-    <Compile Include="Services\CuratedFeedService.cs" />
     <Compile Include="Services\DownloadCountObjectMaterializedInterceptor.cs" />
-    <Compile Include="Services\ICuratedFeedService.cs" />
     <Compile Include="Services\ContentService.cs" />
     <Compile Include="Services\IContentService.cs" />
     <Compile Include="Services\IDownloadCountService.cs" />
@@ -1603,6 +1653,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201811011725146_LicenseChanges.resx">
       <DependentUpon>201811011725146_LicenseChanges.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201811291758016_RemoveCuratedFeedEntities.resx">
+      <DependentUpon>201811291758016_RemoveCuratedFeedEntities.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />

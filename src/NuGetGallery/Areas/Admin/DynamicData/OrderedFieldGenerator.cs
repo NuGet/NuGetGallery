@@ -16,7 +16,6 @@ namespace NuGetGallery.Areas.Admin.DynamicData
         private static readonly Dictionary<string, string[]> SortOrders = new Dictionary<string, string[]>()
         {
             {"Users", new [] { "Username", "EmailAddress", "UnconfirmedEmailAddress" } },
-            {"CuratedPackages", new [] { "PackageRegistration", "CuratedFeed", "Notes" } },
             {"EmailMessages", new [] { "Subject", "Body", "FromUser", "ToUser", "Sent" } },
             {"PackageDependencies", new [] { "Package", "Id", "VersionSpec", "TargetFramework" } },
             {"PackageFrameworks", new [] { "Package" } },

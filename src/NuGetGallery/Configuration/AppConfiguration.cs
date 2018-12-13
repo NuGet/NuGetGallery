@@ -59,6 +59,9 @@ namespace NuGetGallery.Configuration
         [DisplayName("AzureStorage.Uploads.ConnectionString")]
         public string AzureStorage_Uploads_ConnectionString { get; set; }
 
+        [DisplayName("AzureStorage.Revalidation.ConnectionString")]
+        public string AzureStorage_Revalidation_ConnectionString { get; set; }
+
         /// <summary>
         /// Gets a setting if Read Access Geo Redundant is enabled in azure storage
         /// </summary>
@@ -344,10 +347,6 @@ namespace NuGetGallery.Configuration
         public bool RejectPackagesWithTooManyPackageEntries { get; set; }
 
         public bool BlockSearchEngineIndexing { get; set; }
-
-        [DefaultValue(null)]
-        [TypeConverter(typeof(StringArrayConverter))]
-        public string[] DisabledCuratedFeeds { get; set; }
 
         [DefaultValue(null)]
         [TypeConverter(typeof(StringArrayConverter))]

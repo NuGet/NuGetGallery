@@ -590,6 +590,54 @@ namespace NuGetGallery.Controllers
 
                     [Theory]
                     [MemberData(nameof(AllCanManagePackageOwnersPairedWithCanBeRemoved_Data))]
+                    public async Task FailsIfAttemptingToRemoveLastOwner(Func<Fakes, User> getCurrentUser, Func<Fakes, User> getUserToRemove)
+                    {
+                        // Arrange
+                        var fakes = Get<Fakes>();
+                        var currentUser = getCurrentUser(fakes);
+                        var userToRemove = getUserToRemove(fakes);
+                        var package = fakes.Package;
+                        var controller = GetController<JsonApiController>();
+                        controller.SetCurrentUser(currentUser);
+
+                        foreach (var owner in package.Owners.Where(o => !o.MatchesUser(userToRemove)).ToList())
+                        {
+                            package.Owners.Remove(owner);
+                        }
+
+                        var packageOwnershipManagementService = GetMock<IPackageOwnershipManagementService>();
+
+                        packageOwnershipManagementService
+                            .Setup(x => x.GetPackageOwnershipRequests(package, null, userToRemove))
+                            .Returns(Enumerable.Empty<PackageOwnerRequest>());
+
+                        // Act
+                        var result = await controller.RemovePackageOwner(package.Id, userToRemove.Username);
+                        dynamic data = result.Data;
+
+                        // Assert
+                        Assert.False(data.success);
+
+                        packageOwnershipManagementService
+                            .Verify(
+                                x => x.RemovePackageOwnerAsync(package, currentUser, userToRemove, It.IsAny<bool>()),
+                                Times.Never());
+
+                        GetMock<IMessageService>()
+                            .Verify(
+                                x => x.SendMessageAsync(
+                                    It.Is<PackageOwnerRemovedMessage>(
+                                        msg =>
+                                        msg.FromUser == currentUser
+                                        && msg.ToUser == userToRemove
+                                        && msg.PackageRegistration == package),
+                                    false,
+                                    false),
+                                Times.Never());
+                    }
+
+                    [Theory]
+                    [MemberData(nameof(AllCanManagePackageOwnersPairedWithCanBeRemoved_Data))]
                     public async Task RemovesExistingOwner(Func<Fakes, User> getCurrentUser, Func<Fakes, User> getUserToRemove)
                     {
                         // Arrange

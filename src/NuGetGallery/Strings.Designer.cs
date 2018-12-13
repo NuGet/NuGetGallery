@@ -856,7 +856,7 @@ namespace NuGetGallery {
         ///
         ///[{0}]({0})
         ///
-        ///Note that NuGet.org password login is deprecated. Please use Microsoft account to sign into {1}.
+        ///Note that NuGet.org password login is no longer supported. Please use Microsoft account to sign into {1}.
         ///
         ///Thanks,
         ///The {1} Team.
@@ -884,7 +884,7 @@ namespace NuGetGallery {
         ///
         ///[{0}]({0})
         ///
-        ///Note that NuGet.org password login is deprecated. Please use Microsoft account to sign into {1}.
+        ///Note that NuGet.org password login is no longer supported. Please use Microsoft account to sign into {1}.
         ///
         ///Thanks,
         ///The {1} Team.
@@ -1729,6 +1729,24 @@ namespace NuGetGallery {
         public static string SecurityPolicy_CopyrightNotCompliant {
             get {
                 return ResourceManager.GetString("SecurityPolicy_CopyrightNotCompliant", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The package metadata defines &apos;{0}&apos; as author more than once, which is not allowed by policy..
+        /// </summary>
+        public static string SecurityPolicy_PackageAuthorDuplicatesNotAllowed {
+            get {
+                return ResourceManager.GetString("SecurityPolicy_PackageAuthorDuplicatesNotAllowed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The package metadata defines &apos;{0}&apos; as one of the authors which is not allowed by policy..
+        /// </summary>
+        public static string SecurityPolicy_PackageAuthorNotAllowed {
+            get {
+                return ResourceManager.GetString("SecurityPolicy_PackageAuthorNotAllowed", resourceCulture);
             }
         }
         

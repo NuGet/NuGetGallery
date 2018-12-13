@@ -94,6 +94,8 @@ namespace NuGetGallery
         private readonly IContentObjectService _contentObjectService;
         private readonly ISymbolPackageUploadService _symbolPackageUploadService;
         private readonly IDiagnosticsSource _trace;
+        private readonly IFlatContainerService _flatContainerService;
+        private readonly ICoreLicenseFileService _coreLicenseFileService;
 
         public PackagesController(
             IPackageService packageService,
@@ -118,7 +120,9 @@ namespace NuGetGallery
             IPackageOwnershipManagementService packageOwnershipManagementService,
             IContentObjectService contentObjectService,
             ISymbolPackageUploadService symbolPackageUploadService,
-            IDiagnosticsService diagnosticsService)
+            IDiagnosticsService diagnosticsService,
+            IFlatContainerService flatContainerService,
+            ICoreLicenseFileService coreLicenseFileService)
         {
             _packageService = packageService;
             _uploadFileService = uploadFileService;
@@ -143,6 +147,8 @@ namespace NuGetGallery
             _contentObjectService = contentObjectService;
             _symbolPackageUploadService = symbolPackageUploadService;
             _trace = diagnosticsService?.SafeGetSource(nameof(PackagesController)) ?? throw new ArgumentNullException(nameof(diagnosticsService));
+            _flatContainerService = flatContainerService;
+            _coreLicenseFileService = coreLicenseFileService ?? throw new ArgumentNullException(nameof(coreLicenseFileService));
         }
 
         [HttpGet]
@@ -661,6 +667,41 @@ namespace NuGetGallery
 
             ViewBag.FacebookAppID = _config.FacebookAppId;
             return View(model);
+        }
+
+        public virtual async Task<ActionResult> License(string id, string version)
+        {
+            var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
+            if (package == null)
+            {
+                return HttpNotFound();
+            }
+
+            if (!string.IsNullOrWhiteSpace(package.LicenseExpression))
+            {
+                return Redirect(LicenseExpressionRedirectUrlHelper.GetLicenseExpressionRedirectUrl(package.LicenseExpression));
+            }
+
+            if (package.EmbeddedLicenseType == EmbeddedLicenseFileType.Absent)
+            {
+                return HttpNotFound();
+            }
+
+            if (!_config.AsynchronousPackageValidationEnabled)
+            {
+                try
+                {
+                    var licenseFileContent = await _coreLicenseFileService.DownloadLicenseFileAsync(package);
+                    return new FileStreamResult(licenseFileContent, "text/plain");
+                }
+                catch (Exception ex)
+                {
+                    _telemetryService.TraceException(ex);
+                    return HttpNotFound();
+                }
+            }
+
+            return Redirect(await _flatContainerService.GetLicenseFileFlatContainerUrlAsync(package.Id, package.NormalizedVersion));
         }
 
         public virtual async Task<ActionResult> ListPackages(PackageListSearchViewModel searchAndListModel)
