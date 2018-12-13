@@ -772,8 +772,8 @@
                 </li>
                 <li>
                     <i class="ms-Icon ms-Icon--Giftbox" aria-hidden="true"></i>
-                    @Model.PackageVersions.First().DownloadCount.ToNuGetNumberString() @(Model.PackageVersions.First().DownloadCount == 1 ? "download" : "downloads")
-                    of latest version
+                    @Model.DownloadCount.ToNuGetNumberString() @(Model.DownloadCount == 1 ? "download" : "downloads")
+                    of current version
                 </li>
                 <li>
                     <i class="ms-Icon ms-Icon--Financial" aria-hidden="true"></i>
