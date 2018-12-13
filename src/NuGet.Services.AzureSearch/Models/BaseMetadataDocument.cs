@@ -3,12 +3,14 @@
 
 using System;
 using Microsoft.Azure.Search;
+using Newtonsoft.Json;
 
 namespace NuGet.Services.AzureSearch
 {
     public abstract class BaseMetadataDocument : CommittedDocument, IBaseMetadataDocument
     {
         [IsFilterable]
+        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
         public int? SemVerLevel { get; set; }
 
         [IsSearchable]

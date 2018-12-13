@@ -6,6 +6,7 @@ using Moq;
 using NuGet.Services.AzureSearch.Support;
 using NuGet.Services.Entities;
 using NuGet.Versioning;
+using NuGetGallery;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -30,7 +31,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                     "NuGet.Versioning",
                     1001,
                     new string[0],
-                    new[] { new TestPackage(version) { SemVerLevelKey = 2 } });
+                    new[] { new TestPackage(version) { SemVerLevelKey = SemVerLevelKey.SemVer2 } });
 
                 var actions = _target.AddNewPackageRegistration(input);
 
@@ -135,7 +136,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                     "NuGet.Versioning",
                     1001,
                     new string[0],
-                    new[] { new TestPackage("1.0.0") { SemVerLevelKey = 2 } });
+                    new[] { new TestPackage("1.0.0") { SemVerLevelKey = SemVerLevelKey.SemVer2 } });
 
                 var actions = _target.AddNewPackageRegistration(input);
 

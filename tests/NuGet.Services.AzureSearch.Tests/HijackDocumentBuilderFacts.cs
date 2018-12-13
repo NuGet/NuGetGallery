@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using NuGet.Services.AzureSearch.Support;
+using NuGetGallery;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -80,6 +81,29 @@ namespace NuGet.Services.AzureSearch
             }
 
             [Fact]
+            public void LeavesNullTagsAsNull()
+            {
+                var package = Data.PackageEntity;
+                package.Tags = null;
+
+                var document = _target.FullFromDb(Data.PackageId, _changes, package);
+
+                Assert.Null(document.Tags);
+            }
+
+            [Fact]
+            public async Task SerializesNullSemVerLevel()
+            {
+                var package = Data.PackageEntity;
+                package.SemVerLevelKey = SemVerLevelKey.Unknown;
+
+                var document = _target.FullFromDb(Data.PackageId, _changes, package);
+
+                var json = await SerializationUtilities.SerializeToJsonAsync(document);
+                Assert.Contains("\"semVerLevel\": null,", json);
+            }
+
+            [Fact]
             public async Task SetsExpectedProperties()
             {
                 var document = _target.FullFromDb(Data.PackageId, _changes, Data.PackageEntity);
@@ -116,7 +140,7 @@ namespace NuGet.Services.AzureSearch
       ""published"": ""2017-01-03T00:00:00+00:00"",
       ""releaseNotes"": ""Release notes."",
       ""requiresLicenseAcceptance"": true,
-      ""sortableTitle"": ""Windows Azure Storage"",
+      ""sortableTitle"": ""windows azure storage"",
       ""summary"": ""Summary."",
       ""tags"": [
         ""Microsoft"",
@@ -150,7 +174,7 @@ namespace NuGet.Services.AzureSearch
 
                 var document = _target.FullFromDb(Data.PackageId, _changes, package);
 
-                Assert.Equal(Data.PackageId, document.SortableTitle);
+                Assert.Equal(Data.PackageId.ToLowerInvariant(), document.SortableTitle);
             }
 
             [Fact]
@@ -177,7 +201,7 @@ namespace NuGet.Services.AzureSearch
 
             [Theory]
             [InlineData(null)]
-            [InlineData(2)]
+            [InlineData(SemVerLevelKey.SemVer2)]
             public void UsesSemVerLevelToIndicateSemVer2(int? semVerLevelKey)
             {
                 var package = Data.PackageEntity;
@@ -248,7 +272,7 @@ namespace NuGet.Services.AzureSearch
       ""published"": ""2017-01-03T00:00:00+00:00"",
       ""releaseNotes"": ""Release notes."",
       ""requiresLicenseAcceptance"": true,
-      ""sortableTitle"": ""Windows Azure Storage"",
+      ""sortableTitle"": ""windows azure storage"",
       ""summary"": ""Summary."",
       ""tags"": [
         ""Microsoft"",
@@ -282,18 +306,29 @@ namespace NuGet.Services.AzureSearch
 
                 var document = _target.FullFromCatalog(Data.NormalizedVersion, _changes, leaf);
 
-                Assert.Equal(Data.PackageId, document.SortableTitle);
+                Assert.Equal(Data.PackageId.ToLowerInvariant(), document.SortableTitle);
             }
 
             [Fact]
-            public void DefaultsRequiresLicenseAcceptanceToFalse()
+            public void LeavesNullRequiresLicenseAcceptanceAsNull()
             {
                 var leaf = Data.Leaf;
                 leaf.RequireLicenseAgreement = null;
 
                 var document = _target.FullFromCatalog(Data.NormalizedVersion, _changes, leaf);
 
-                Assert.False(document.RequiresLicenseAcceptance);
+                Assert.Null(document.RequiresLicenseAcceptance);
+            }
+
+            [Fact]
+            public void LeavesNullVerbatimVersionAsNull()
+            {
+                var leaf = Data.Leaf;
+                leaf.VerbatimVersion = null;
+
+                var document = _target.FullFromCatalog(Data.NormalizedVersion, _changes, leaf);
+
+                Assert.Null(document.OriginalVersion);
             }
         }
 

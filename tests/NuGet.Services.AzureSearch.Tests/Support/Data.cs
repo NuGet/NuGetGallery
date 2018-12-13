@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using NuGet.Protocol.Catalog;
 using NuGet.Services.Entities;
+using NuGetGallery;
 using Xunit.Abstractions;
 using PackageDependency = NuGet.Protocol.Catalog.PackageDependency;
 
@@ -50,7 +51,7 @@ namespace NuGet.Services.AzureSearch.Support
             Published = new DateTime(2017, 1, 3),
             ReleaseNotes = "Release notes.",
             RequiresLicenseAcceptance = true,
-            SemVerLevelKey = 2,
+            SemVerLevelKey = SemVerLevelKey.SemVer2,
             Summary = "Summary.",
             Tags = "Microsoft Azure Storage Table Blob File Queue Scalable windowsazureofficial",
             Title = "Windows Azure Storage",

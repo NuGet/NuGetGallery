@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using NuGet.Services.AzureSearch.Support;
 using NuGet.Versioning;
+using NuGetGallery;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -207,7 +208,7 @@ namespace NuGet.Services.AzureSearch
                     fullVersion: Data.FullVersion,
                     leaf: leaf);
 
-                Assert.Equal(Data.PackageId, document.SortableTitle);
+                Assert.Equal(Data.PackageId.ToLowerInvariant(), document.SortableTitle);
             }
 
             [Theory]
@@ -261,7 +262,7 @@ namespace NuGet.Services.AzureSearch
       ""published"": ""2017-01-03T00:00:00+00:00"",
       ""releaseNotes"": ""Release notes."",
       ""requiresLicenseAcceptance"": true,
-      ""sortableTitle"": ""Windows Azure Storage"",
+      ""sortableTitle"": ""windows azure storage"",
       ""summary"": ""Summary."",
       ""tags"": [
         ""Microsoft"",
@@ -287,7 +288,7 @@ namespace NuGet.Services.AzureSearch
             }
 
             [Fact]
-            public void DefaultsRequiresLicenseAcceptanceToFalse()
+            public void LeavesNullRequiresLicenseAcceptanceAsNull()
             {
                 var leaf = Data.Leaf;
                 leaf.RequireLicenseAgreement = null;                
@@ -301,7 +302,7 @@ namespace NuGet.Services.AzureSearch
                     fullVersion: Data.FullVersion,
                     leaf: leaf);
 
-                Assert.False(document.RequiresLicenseAcceptance);
+                Assert.Null(document.RequiresLicenseAcceptance);
             }
         }
 
@@ -309,6 +310,26 @@ namespace NuGet.Services.AzureSearch
         {
             public FullFromDb(ITestOutputHelper output) : base(output)
             {
+            }
+
+            [Fact]
+            public void NormalizesSortableTitle()
+            {
+                var package = Data.PackageEntity;
+                package.Title = "  Some Title ";
+
+                var document = _target.FullFromDb(
+                    Data.PackageId,
+                    _searchFilters,
+                    _versions,
+                    isLatestStable: false,
+                    isLatest: true,
+                    fullVersion: Data.FullVersion,
+                    package: package,
+                    owners: _owners,
+                    totalDownloadCount: _totalDownloadCount);
+
+                Assert.Equal("some title", document.SortableTitle);
             }
 
             [Theory]
@@ -329,7 +350,28 @@ namespace NuGet.Services.AzureSearch
                     owners: _owners,
                     totalDownloadCount: _totalDownloadCount);
 
-                Assert.Equal(Data.PackageId, document.SortableTitle);
+                Assert.Equal(Data.PackageId.ToLowerInvariant(), document.SortableTitle);
+            }
+
+            [Fact]
+            public async Task SerializesNullSemVerLevel()
+            {
+                var package = Data.PackageEntity;
+                package.SemVerLevelKey = SemVerLevelKey.Unknown;
+
+                var document = _target.FullFromDb(
+                    Data.PackageId,
+                    _searchFilters,
+                    _versions,
+                    isLatestStable: false,
+                    isLatest: true,
+                    fullVersion: Data.FullVersion,
+                    package: package,
+                    owners: _owners,
+                    totalDownloadCount: _totalDownloadCount);
+
+                var json = await SerializationUtilities.SerializeToJsonAsync(document);
+                Assert.Contains("\"semVerLevel\": null,", json);
             }
 
             [Theory]
@@ -390,7 +432,7 @@ namespace NuGet.Services.AzureSearch
       ""published"": ""2017-01-03T00:00:00+00:00"",
       ""releaseNotes"": ""Release notes."",
       ""requiresLicenseAcceptance"": true,
-      ""sortableTitle"": ""Windows Azure Storage"",
+      ""sortableTitle"": ""windows azure storage"",
       ""summary"": ""Summary."",
       ""tags"": [
         ""Microsoft"",

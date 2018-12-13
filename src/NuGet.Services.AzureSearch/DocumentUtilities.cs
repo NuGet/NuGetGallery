@@ -12,6 +12,7 @@ using NuGet.Protocol.Catalog;
 using NuGet.Services.Entities;
 using NuGet.Services.Metadata.Catalog;
 using NuGet.Versioning;
+using NuGetGallery;
 using PackageDependency = NuGet.Protocol.Catalog.PackageDependency;
 
 namespace NuGet.Services.AzureSearch
@@ -100,7 +101,7 @@ namespace NuGet.Services.AzureSearch
             document.SemVerLevel = package.SemVerLevelKey;
             document.SortableTitle = GetSortableTitle(package.Title, packageId);
             document.Summary = package.Summary;
-            document.Tags = Utils.SplitTags(package.Tags ?? string.Empty);
+            document.Tags = package.Tags == null ? null : Utils.SplitTags(package.Tags);
             document.Title = package.Title;
         }
 
@@ -123,14 +124,14 @@ namespace NuGet.Services.AzureSearch
             document.LicenseUrl = leaf.LicenseUrl;
             document.MinClientVersion = leaf.MinClientVersion;
             document.NormalizedVersion = normalizedVersion;
-            document.OriginalVersion = leaf.VerbatimVersion ?? leaf.PackageVersion;
+            document.OriginalVersion = leaf.VerbatimVersion;
             document.PackageId = leaf.PackageId;
             document.Prerelease = leaf.IsPrerelease;
             document.ProjectUrl = leaf.ProjectUrl;
             document.Published = leaf.Published;
             document.ReleaseNotes = leaf.ReleaseNotes;
-            document.RequiresLicenseAcceptance = leaf.RequireLicenseAgreement ?? false;
-            document.SemVerLevel = leaf.IsSemVer2() ? 2 : (int?)null;
+            document.RequiresLicenseAcceptance = leaf.RequireLicenseAgreement;
+            document.SemVerLevel = leaf.IsSemVer2() ? SemVerLevelKey.SemVer2 : SemVerLevelKey.Unknown;
             document.SortableTitle = GetSortableTitle(leaf.Title, leaf.PackageId);
             document.Summary = leaf.Summary;
             document.Tags = leaf.Tags == null ? null : leaf.Tags.ToArray();
@@ -139,12 +140,8 @@ namespace NuGet.Services.AzureSearch
 
         private static string GetSortableTitle(string title, string packageId)
         {
-            if (string.IsNullOrWhiteSpace(title))
-            {
-                return packageId;
-            }
-
-            return title;
+            var output = string.IsNullOrWhiteSpace(title) ? packageId : title;
+            return output.Trim().ToLowerInvariant();
         }
 
         public static string GetSearchDocumentKey(string packageId, SearchFilters searchFilters)

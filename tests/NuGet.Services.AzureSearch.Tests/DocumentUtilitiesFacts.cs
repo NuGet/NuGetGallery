@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NuGet.Protocol.Catalog;
+using NuGet.Services.AzureSearch.Support;
 using Xunit;
 
 namespace NuGet.Services.AzureSearch
@@ -75,6 +76,7 @@ namespace NuGet.Services.AzureSearch
             {
                 var leaf = new PackageDetailsCatalogLeaf
                 {
+                    PackageId = Data.PackageId,
                     PackageVersion = NormalizedVersion,
                     DependencyGroups = new List<PackageDependencyGroup>
                     {
@@ -113,6 +115,7 @@ namespace NuGet.Services.AzureSearch
             {
                 var leaf = new PackageDetailsCatalogLeaf
                 {
+                    PackageId = Data.PackageId,
                     PackageVersion = NormalizedVersion,
                     DependencyGroups = new List<PackageDependencyGroup>
                     {
@@ -134,6 +137,7 @@ namespace NuGet.Services.AzureSearch
             {
                 var leaf = new PackageDetailsCatalogLeaf
                 {
+                    PackageId = Data.PackageId,
                     PackageVersion = NormalizedVersion,
                     DependencyGroups = new List<PackageDependencyGroup>
                     {
@@ -169,6 +173,7 @@ namespace NuGet.Services.AzureSearch
             {
                 var leaf = new PackageDetailsCatalogLeaf
                 {
+                    PackageId = Data.PackageId,
                     PackageVersion = NormalizedVersion,
                     DependencyGroups = new List<PackageDependencyGroup>
                     {
@@ -198,6 +203,7 @@ namespace NuGet.Services.AzureSearch
             {
                 var leaf = new PackageDetailsCatalogLeaf
                 {
+                    PackageId = Data.PackageId,
                     PackageVersion = NormalizedVersion,
                     DependencyGroups = null
                 };
