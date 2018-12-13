@@ -77,7 +77,10 @@
     <Compile Include="Db2AzureSearch\IPackageEntityIndexActionBuilder.cs" />
     <Compile Include="IndexBuilder.cs" />
     <Compile Include="ISearchDocumentBuilder.cs" />
+    <Compile Include="Models\CommittedDocument.cs" />
+    <Compile Include="Models\CurrentTimestamp.cs" />
     <Compile Include="Models\IBaseMetadataDocument.cs" />
+    <Compile Include="Models\ICommittedDocument.cs" />
     <Compile Include="Models\KeyedDocument.cs" />
     <Compile Include="Models\BaseMetadataDocument.cs" />
     <Compile Include="Models\HijackDocument.cs" />
@@ -133,7 +136,7 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.Azure.Search">
-      <Version>5.0.2</Version>
+      <Version>5.0.3</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Validation.Common.Job">
       <Version>4.1.0-master-2197886</Version>

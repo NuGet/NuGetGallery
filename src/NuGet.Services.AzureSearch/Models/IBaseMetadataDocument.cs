@@ -8,7 +8,7 @@ namespace NuGet.Services.AzureSearch
     /// <summary>
     /// The fields shared between the search index and hijack index.
     /// </summary>
-    public interface IBaseMetadataDocument
+    public interface IBaseMetadataDocument : ICommittedDocument
     {
         string Authors { get; set; }
         string Copyright { get; set; }

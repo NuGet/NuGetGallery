@@ -28,6 +28,20 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
             }
 
             [Fact]
+            public async Task ThrowsWithNoEntries()
+            {
+                _latestEntries.Clear();
+
+                var ex = await Assert.ThrowsAsync<ArgumentException>(() => _target.AddCatalogEntriesAsync(
+                    _packageId,
+                    _versionListDataResult,
+                    _latestEntries,
+                    _entryToLeaf));
+                Assert.Contains("There must be at least one catalog item to process.", ex.Message);
+                Assert.Equal("latestEntries", ex.ParamName);
+            }
+
+            [Fact]
             public async Task AddFirstVersion()
             {
                 var indexActions = await _target.AddCatalogEntriesAsync(
@@ -618,11 +632,18 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                     .Returns<string, SearchFilters>(
                         (i, sf) => new KeyedDocument { Key = sf.ToString() });
                 _search
-                    .Setup(x => x.UpdateVersionList(It.IsAny<string>(), It.IsAny<SearchFilters>(), It.IsAny<string[]>(), It.IsAny<bool>(), It.IsAny<bool>()))
-                    .Returns<string, SearchFilters, string[], bool, bool>(
-                        (i, sf, v, ls, l) => new SearchDocument.UpdateVersionList { Key = sf.ToString() });
+                    .Setup(x => x.UpdateVersionListFromCatalog(
+                        It.IsAny<string>(),
+                        It.IsAny<SearchFilters>(),
+                        It.IsAny<DateTimeOffset>(),
+                        It.IsAny<string>(),
+                        It.IsAny<string[]>(),
+                        It.IsAny<bool>(),
+                        It.IsAny<bool>()))
+                    .Returns<string, SearchFilters, DateTimeOffset, string, string[], bool, bool>(
+                        (i, ct, ci, sf, v, ls, l) => new SearchDocument.UpdateVersionList { Key = sf.ToString() });
                 _search
-                    .Setup(x => x.UpdateLatest(
+                    .Setup(x => x.UpdateLatestFromCatalog(
                         It.IsAny<SearchFilters>(),
                         It.IsAny<string[]>(),
                         It.IsAny<bool>(),
@@ -638,11 +659,16 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                     .Returns<string, string>(
                         (i, v) => new KeyedDocument { Key = v });
                 _hijack
-                    .Setup(x => x.Latest(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<HijackDocumentChanges>()))
-                    .Returns<string, string, HijackDocumentChanges>(
-                        (i, v, c) => new HijackDocument.Latest { Key = v });
+                    .Setup(x => x.LatestFromCatalog(
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<DateTimeOffset>(),
+                        It.IsAny<string>(),
+                        It.IsAny<HijackDocumentChanges>()))
+                    .Returns<string, string, DateTimeOffset, string, HijackDocumentChanges>(
+                        (i, v, ct, ci, c) => new HijackDocument.Latest { Key = v });
                 _hijack
-                    .Setup(x => x.Full(It.IsAny<string>(), It.IsAny<HijackDocumentChanges>(), It.IsAny<PackageDetailsCatalogLeaf>()))
+                    .Setup(x => x.FullFromCatalog(It.IsAny<string>(), It.IsAny<HijackDocumentChanges>(), It.IsAny<PackageDetailsCatalogLeaf>()))
                     .Returns<string, HijackDocumentChanges, PackageDetailsCatalogLeaf>(
                         (v, c, l) => new HijackDocument.Full { Key = v });
 

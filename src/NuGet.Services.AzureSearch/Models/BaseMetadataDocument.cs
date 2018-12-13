@@ -6,7 +6,7 @@ using Microsoft.Azure.Search;
 
 namespace NuGet.Services.AzureSearch
 {
-    public abstract class BaseMetadataDocument : KeyedDocument, IBaseMetadataDocument
+    public abstract class BaseMetadataDocument : CommittedDocument, IBaseMetadataDocument
     {
         [IsFilterable]
         public int? SemVerLevel { get; set; }

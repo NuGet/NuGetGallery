@@ -2,13 +2,13 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using NuGet.Services.AzureSearch.Support;
 using NuGet.Versioning;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace NuGet.Services.AzureSearch
 {
@@ -16,6 +16,10 @@ namespace NuGet.Services.AzureSearch
     {
         public class LatestFlagsOrNull : BaseFacts
         {
+            public LatestFlagsOrNull(ITestOutputHelper output) : base(output)
+            {
+            }
+
             [Theory]
             [InlineData(SearchFilters.Default)]
             [InlineData(SearchFilters.IncludeSemVer2)]
@@ -112,6 +116,10 @@ namespace NuGet.Services.AzureSearch
 
         public class Keyed : BaseFacts
         {
+            public Keyed(ITestOutputHelper output) : base(output)
+            {
+            }
+
             [Fact]
             public async Task SetsExpectedProperties()
             {
@@ -129,8 +137,12 @@ namespace NuGet.Services.AzureSearch
             }
         }
 
-        public class UpdateVersionList : BaseFacts
+        public class UpdateVersionListFromCatalog : BaseFacts
         {
+            public UpdateVersionListFromCatalog(ITestOutputHelper output) : base(output)
+            {
+            }
+
             [Theory]
             [InlineData(false, false)]
             [InlineData(false, true)]
@@ -138,8 +150,16 @@ namespace NuGet.Services.AzureSearch
             [InlineData(true, true)]
             public async Task SetsExpectedProperties(bool isLatestStable, bool isLatest)
             {
-                var document = _target.UpdateVersionList(Data.PackageId, _searchFilters, _versions, isLatestStable, isLatest);
+                var document = _target.UpdateVersionListFromCatalog(
+                    Data.PackageId,
+                    _searchFilters,
+                    Data.CommitTimestamp,
+                    Data.CommitId,
+                    _versions,
+                    isLatestStable,
+                    isLatest);
 
+                SetDocumentLastUpdated(document);
                 var json = await SerializationUtilities.SerializeToJsonAsync(document);
                 Assert.Equal(@"{
   ""value"": [
@@ -153,6 +173,11 @@ namespace NuGet.Services.AzureSearch
       ],
       ""isLatestStable"": " + isLatestStable.ToString().ToLowerInvariant() + @",
       ""isLatest"": " + isLatest.ToString().ToLowerInvariant() + @",
+      ""lastUpdatedDocument"": ""2018-12-14T09:30:00+00:00"",
+      ""lastDocumentType"": ""NuGet.Services.AzureSearch.SearchDocument+UpdateVersionList"",
+      ""lastUpdatedFromCatalog"": true,
+      ""lastCommitTimestamp"": ""2018-12-13T12:30:00+00:00"",
+      ""lastCommitId"": ""6b9b24dd-7aec-48ae-afc1-2a117e3d50d1"",
       ""key"": ""windowsazure_storage-d2luZG93c2F6dXJlLnN0b3JhZ2U1-IncludePrereleaseAndSemVer2""
     }
   ]
@@ -160,8 +185,12 @@ namespace NuGet.Services.AzureSearch
             }
         }
 
-        public class UpdateLatest : BaseFacts
+        public class UpdateLatestFromCatalog : BaseFacts
         {
+            public UpdateLatestFromCatalog(ITestOutputHelper output) : base(output)
+            {
+            }
+
             [Theory]
             [MemberData(nameof(MissingTitles))]
             public void UsesIdWhenMissingForSortableTitle(string title)
@@ -169,7 +198,7 @@ namespace NuGet.Services.AzureSearch
                 var leaf = Data.Leaf;
                 leaf.Title = title;
 
-                var document = _target.UpdateLatest(
+                var document = _target.UpdateLatestFromCatalog(
                     _searchFilters,
                     _versions,
                     isLatestStable: false,
@@ -185,7 +214,7 @@ namespace NuGet.Services.AzureSearch
             [MemberData(nameof(AllSearchFilters))]
             public async Task SetsExpectedProperties(SearchFilters searchFilters, string expected)
             {
-                var document = _target.UpdateLatest(
+                var document = _target.UpdateLatestFromCatalog(
                     searchFilters,
                     _versions,
                     isLatestStable: false,
@@ -194,6 +223,7 @@ namespace NuGet.Services.AzureSearch
                     fullVersion: Data.FullVersion,
                     leaf: Data.Leaf);
 
+                SetDocumentLastUpdated(document);
                 var json = await SerializationUtilities.SerializeToJsonAsync(document);
                 Assert.Equal(@"{
   ""value"": [
@@ -245,6 +275,11 @@ namespace NuGet.Services.AzureSearch
         ""windowsazureofficial""
       ],
       ""title"": ""Windows Azure Storage"",
+      ""lastUpdatedDocument"": ""2018-12-14T09:30:00+00:00"",
+      ""lastDocumentType"": ""NuGet.Services.AzureSearch.SearchDocument+UpdateLatest"",
+      ""lastUpdatedFromCatalog"": true,
+      ""lastCommitTimestamp"": ""2018-12-13T12:30:00+00:00"",
+      ""lastCommitId"": ""6b9b24dd-7aec-48ae-afc1-2a117e3d50d1"",
       ""key"": ""windowsazure_storage-d2luZG93c2F6dXJlLnN0b3JhZ2U1-" + expected + @"""
     }
   ]
@@ -257,7 +292,7 @@ namespace NuGet.Services.AzureSearch
                 var leaf = Data.Leaf;
                 leaf.RequireLicenseAgreement = null;                
 
-                var document = _target.UpdateLatest(
+                var document = _target.UpdateLatestFromCatalog(
                     _searchFilters,
                     _versions,
                     isLatestStable: false,
@@ -270,8 +305,12 @@ namespace NuGet.Services.AzureSearch
             }
         }
 
-        public class Full : BaseFacts
+        public class FullFromDb : BaseFacts
         {
+            public FullFromDb(ITestOutputHelper output) : base(output)
+            {
+            }
+
             [Theory]
             [MemberData(nameof(MissingTitles))]
             public void UsesIdWhenMissingForSortableTitle(string title)
@@ -279,7 +318,7 @@ namespace NuGet.Services.AzureSearch
                 var package = Data.PackageEntity;
                 package.Title = title;
 
-                var document = _target.Full(
+                var document = _target.FullFromDb(
                     Data.PackageId,
                     _searchFilters,
                     _versions,
@@ -297,7 +336,7 @@ namespace NuGet.Services.AzureSearch
             [MemberData(nameof(AllSearchFilters))]
             public async Task SetsExpectedProperties(SearchFilters searchFilters, string expected)
             {
-                var document = _target.Full(
+                var document = _target.FullFromDb(
                     Data.PackageId,
                     searchFilters,
                     _versions,
@@ -308,6 +347,7 @@ namespace NuGet.Services.AzureSearch
                     owners: _owners,
                     totalDownloadCount: _totalDownloadCount);
 
+                SetDocumentLastUpdated(document);
                 var json = await SerializationUtilities.SerializeToJsonAsync(document);
                 Assert.Equal(@"{
   ""value"": [
@@ -364,6 +404,11 @@ namespace NuGet.Services.AzureSearch
         ""windowsazureofficial""
       ],
       ""title"": ""Windows Azure Storage"",
+      ""lastUpdatedDocument"": ""2018-12-14T09:30:00+00:00"",
+      ""lastDocumentType"": ""NuGet.Services.AzureSearch.SearchDocument+Full"",
+      ""lastUpdatedFromCatalog"": false,
+      ""lastCommitTimestamp"": null,
+      ""lastCommitId"": null,
       ""key"": ""windowsazure_storage-d2luZG93c2F6dXJlLnN0b3JhZ2U1-" + expected + @"""
     }
   ]
@@ -375,7 +420,7 @@ namespace NuGet.Services.AzureSearch
             {
                 var package = Data.PackageEntity;
                 package.Tags = "foo; BAR |     Baz";
-                var document = _target.Full(
+                var document = _target.FullFromDb(
                     Data.PackageId,
                     _searchFilters,
                     _versions,
@@ -392,6 +437,7 @@ namespace NuGet.Services.AzureSearch
 
         public abstract class BaseFacts
         {
+            protected readonly ITestOutputHelper _output;
             protected readonly SearchFilters _searchFilters;
             protected readonly string[] _versions;
             protected readonly string[] _owners;
@@ -424,8 +470,14 @@ namespace NuGet.Services.AzureSearch
                 Assert.Empty(allSearchFilters.Except(testedSearchFilters));
             }
 
-            public BaseFacts()
+            public void SetDocumentLastUpdated(ICommittedDocument document)
             {
+                Data.SetDocumentLastUpdated(document, _output);
+            }
+
+            public BaseFacts(ITestOutputHelper output)
+            {
+                _output = output;
                 _searchFilters = SearchFilters.IncludePrereleaseAndSemVer2;
                 _versions = new[] { "1.0.0", "2.0.0+git", "3.0.0-alpha.1", Data.FullVersion };
                 _owners = new[] { "Microsoft", "azure-sdk" };

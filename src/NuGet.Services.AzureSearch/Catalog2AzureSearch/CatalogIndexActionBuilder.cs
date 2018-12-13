@@ -40,6 +40,11 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
             IReadOnlyList<CatalogCommitItem> latestEntries,
             IReadOnlyDictionary<CatalogCommitItem, PackageDetailsCatalogLeaf> entryToLeaf)
         {
+            if (latestEntries.Count == 0)
+            {
+                throw new ArgumentException("There must be at least one catalog item to process.", nameof(latestEntries));
+            }
+
             var context = new Context(
                 packageId,
                 versionListDataResult,
@@ -204,12 +209,14 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                         searchFilters));
 
                 case SearchIndexChangeType.UpdateVersionList:
-                    return IndexAction.Merge<KeyedDocument>(_search.UpdateVersionList(
+                    return IndexAction.Merge<KeyedDocument>(_search.UpdateVersionListFromCatalog(
                         context.PackageId,
                         searchFilters,
-                        latestFlags.LatestVersionInfo.ListedFullVersions,
-                        latestFlags.IsLatestStable,
-                        latestFlags.IsLatest));
+                        lastCommitTimestamp: context.LatestCommitTimestamp,
+                        lastCommitId: context.LatestCommitId,
+                        versions: latestFlags.LatestVersionInfo.ListedFullVersions,
+                        isLatestStable: latestFlags.IsLatestStable,
+                        isLatest: latestFlags.IsLatest));
 
                 case SearchIndexChangeType.AddFirst:
                 case SearchIndexChangeType.UpdateLatest:
@@ -218,7 +225,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                     // https://github.com/nuget/nugetgallery/issues/6475
                     var leaf = context.GetLeaf(latestFlags.LatestVersionInfo.ParsedVersion);
                     var normalizedVersion = VerifyConsistencyAndNormalizeVersion(context, leaf);
-                    return IndexAction.MergeOrUpload<KeyedDocument>(_search.UpdateLatest(
+                    return IndexAction.MergeOrUpload<KeyedDocument>(_search.UpdateLatestFromCatalog(
                         searchFilters,
                         latestFlags.LatestVersionInfo.ListedFullVersions,
                         latestFlags.IsLatestStable,
@@ -246,16 +253,18 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
 
             if (!changes.UpdateMetadata)
             {
-                return IndexAction.Merge<KeyedDocument>(_hijack.Latest(
+                return IndexAction.Merge<KeyedDocument>(_hijack.LatestFromCatalog(
                     context.PackageId,
                     version.ToNormalizedString(),
-                    changes));
+                    lastCommitTimestamp: context.LatestCommitTimestamp,
+                    lastCommitId: context.LatestCommitId,
+                    changes: changes));
             }
 
             var leaf = context.GetLeaf(version);
             var normalizedVersion = VerifyConsistencyAndNormalizeVersion(context, leaf);
 
-            return IndexAction.MergeOrUpload<KeyedDocument>(_hijack.Full(
+            return IndexAction.MergeOrUpload<KeyedDocument>(_hijack.FullFromCatalog(
                 normalizedVersion,
                 changes,
                 leaf));
@@ -351,6 +360,14 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                     x => x.Key,
                     x => x.Value,
                     ReferenceEqualityComparer<CatalogCommitItem>.Default);
+
+                var latestCommit = latestEntries
+                    .GroupBy(x => new { x.CommitTimeStamp, x.CommitId })
+                    .Select(x => x.Key)
+                    .OrderByDescending(x => x.CommitTimeStamp)
+                    .First();
+                LatestCommitTimestamp = new DateTimeOffset(latestCommit.CommitTimeStamp.ToUniversalTime());
+                LatestCommitId = latestCommit.CommitId;
             }
 
             public string PackageId { get; }
@@ -358,7 +375,9 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
             public Dictionary<NuGetVersion, CatalogCommitItem> VersionToEntry { get; }
             public Dictionary<CatalogCommitItem, PackageDetailsCatalogLeaf> EntryToLeaf { get; }
             public VersionLists VersionLists { get; set; }
-            
+            public DateTimeOffset LatestCommitTimestamp { get; }
+            public string LatestCommitId { get; }
+
             public PackageDetailsCatalogLeaf GetLeaf(NuGetVersion version)
             {
                 var entry = VersionToEntry[version];

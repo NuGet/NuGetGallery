@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using NuGet.Protocol.Catalog;
 using NuGet.Services.Entities;
 
@@ -19,39 +20,62 @@ namespace NuGet.Services.AzureSearch
             return document;
         }
 
-        public HijackDocument.Latest Latest(
+        public HijackDocument.Latest LatestFromCatalog(
             string packageId,
             string normalizedVersion,
+            DateTimeOffset lastCommitTimestamp,
+            string lastCommitId,
             HijackDocumentChanges changes)
         {
             var document = new HijackDocument.Latest();
 
-            PopulateLatest(document, packageId, normalizedVersion, changes);
+            PopulateLatest(
+                document,
+                packageId,
+                normalizedVersion,
+                lastUpdatedFromCatalog: true,
+                lastCommitTimestamp: lastCommitTimestamp,
+                lastCommitId: lastCommitId,
+                changes: changes);
 
             return document;
         }
 
-        public HijackDocument.Full Full(
+        public HijackDocument.Full FullFromCatalog(
             string normalizedVersion,
             HijackDocumentChanges changes,
             PackageDetailsCatalogLeaf leaf)
         {
             var document = new HijackDocument.Full();
 
-            PopulateLatest(document, leaf.PackageId, normalizedVersion, changes);
+            PopulateLatest(
+                document,
+                leaf.PackageId,
+                normalizedVersion,
+                lastUpdatedFromCatalog: true,
+                lastCommitTimestamp: leaf.CommitTimestamp,
+                lastCommitId: leaf.CommitId,
+                changes: changes);
             DocumentUtilities.PopulateMetadata(document, normalizedVersion, leaf);
 
             return document;
         }
 
-        public HijackDocument.Full Full(
+        public HijackDocument.Full FullFromDb(
             string packageId,
             HijackDocumentChanges changes,
             Package package)
         {
             var document = new HijackDocument.Full();
 
-            PopulateLatest(document, packageId, package.NormalizedVersion, changes);
+            PopulateLatest(
+                document,
+                packageId,
+                lastUpdatedFromCatalog: false,
+                lastCommitTimestamp: null,
+                lastCommitId: null,
+                normalizedVersion: package.NormalizedVersion,
+                changes: changes);
             DocumentUtilities.PopulateMetadata(document, packageId, package);
 
             return document;
@@ -61,9 +85,13 @@ namespace NuGet.Services.AzureSearch
             T document,
             string packageId,
             string normalizedVersion,
+            bool lastUpdatedFromCatalog,
+            DateTimeOffset? lastCommitTimestamp,
+            string lastCommitId,
             HijackDocumentChanges changes) where T : KeyedDocument, HijackDocument.ILatest
         {
             PopulateKey(document, packageId, normalizedVersion);
+            DocumentUtilities.PopulateCommitted(document, lastUpdatedFromCatalog, lastCommitTimestamp, lastCommitId);
             document.IsLatestStableSemVer1 = changes.LatestStableSemVer1;
             document.IsLatestSemVer1 = changes.LatestSemVer1;
             document.IsLatestStableSemVer2 = changes.LatestStableSemVer2;

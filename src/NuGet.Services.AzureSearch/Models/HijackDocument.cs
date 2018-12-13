@@ -28,7 +28,7 @@ namespace NuGet.Services.AzureSearch
         /// and <see cref="HijackDocumentChanges.Delete"/> is <c>false</c>.
         /// </summary>
         [SerializePropertyNamesAsCamelCase]
-        public class Latest : KeyedDocument, ILatest
+        public class Latest : CommittedDocument, ILatest
         {
             public bool? IsLatestStableSemVer1 { get; set; }
             public bool? IsLatestSemVer1 { get; set; }
@@ -39,7 +39,7 @@ namespace NuGet.Services.AzureSearch
         /// <summary>
         /// Allows index updating code to update the latest booleans.
         /// </summary>
-        public interface ILatest : IKeyedDocument
+        public interface ILatest : ICommittedDocument
         {
             bool? IsLatestStableSemVer1 { get; set; }
             bool? IsLatestSemVer1 { get; set; }

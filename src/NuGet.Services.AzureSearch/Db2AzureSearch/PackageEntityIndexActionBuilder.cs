@@ -141,7 +141,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
 
             VerifyConsistency(packageRegistration.PackageId, package);
 
-            return IndexAction.Upload<KeyedDocument>(_search.Full(
+            return IndexAction.Upload<KeyedDocument>(_search.FullFromDb(
                 packageRegistration.PackageId,
                 searchFilters,
                 latestFlags.LatestVersionInfo.ListedFullVersions,
@@ -167,7 +167,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
 
             VerifyConsistency(packageId, package);
 
-            return IndexAction.Upload<KeyedDocument>(_hijack.Full(
+            return IndexAction.Upload<KeyedDocument>(_hijack.FullFromDb(
                 packageId,
                 changes,
                 package));

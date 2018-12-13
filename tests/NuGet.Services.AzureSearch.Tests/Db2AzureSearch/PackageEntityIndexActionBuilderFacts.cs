@@ -44,7 +44,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                     x => x.Keyed(input.PackageId, SearchFilters.IncludeSemVer2),
                     Times.Once);
                 _search.Verify(
-                    x => x.Full(
+                    x => x.FullFromDb(
                         input.PackageId,
                         SearchFilters.IncludePrereleaseAndSemVer2,
                         It.IsAny<string[]>(),
@@ -61,7 +61,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             public void UsesLatestVersionMetadataForSearchIndex()
             {
                 _search
-                    .Setup(x => x.Full(
+                    .Setup(x => x.FullFromDb(
                         It.IsAny<string>(),
                         It.IsAny<SearchFilters>(),
                         It.IsAny<string[]>(),
@@ -120,7 +120,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             public void UsesSemVerLevelToIndicateSemVer2()
             {
                 _search
-                    .Setup(x => x.Full(
+                    .Setup(x => x.FullFromDb(
                         It.IsAny<string>(),
                         It.IsAny<SearchFilters>(),
                         It.IsAny<string[]>(),

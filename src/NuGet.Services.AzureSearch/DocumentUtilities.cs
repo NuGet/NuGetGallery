@@ -33,6 +33,44 @@ namespace NuGet.Services.AzureSearch
             return searchFilters.ToString();
         }
 
+        public static void PopulateCommitted(
+            ICommittedDocument document,
+            bool lastUpdatedFromCatalog,
+            DateTimeOffset? lastCommitTimestamp,
+            string lastCommitId)
+        {
+            if (lastUpdatedFromCatalog)
+            {
+                if (lastCommitTimestamp == null)
+                {
+                    throw new ArgumentNullException(nameof(lastCommitTimestamp));
+                }
+
+                if (lastCommitId == null)
+                {
+                    throw new ArgumentNullException(nameof(lastCommitId));
+                }
+            }
+            else
+            {
+                if (lastCommitTimestamp != null)
+                {
+                    throw new ArgumentException("The last commit timestamp must be null when not updated from the catalog", nameof(lastCommitTimestamp));
+                }
+
+                if (lastCommitId != null)
+                {
+                    throw new ArgumentException("The last commit ID must be null when not updated from the catalog", nameof(lastCommitId));
+                }
+            }
+
+            document.SetLastUpdatedDocumentOnNextRead();
+            document.LastDocumentType = document.GetType().FullName;
+            document.LastUpdatedFromCatalog = lastUpdatedFromCatalog;
+            document.LastCommitTimestamp = lastCommitTimestamp;
+            document.LastCommitId = lastCommitId;
+        }
+
         public static void PopulateMetadata(
             IBaseMetadataDocument document,
             string packageId,

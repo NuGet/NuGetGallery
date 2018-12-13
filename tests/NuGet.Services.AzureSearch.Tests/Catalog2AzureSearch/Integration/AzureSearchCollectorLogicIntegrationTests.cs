@@ -100,17 +100,22 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
             // Step #1 - add a version
             {
                 // Arrange
+                var commitTimestamp = new DateTimeOffset(2018, 12, 10, 0, 0, 0, TimeSpan.Zero);
+                var commitId = "3998eda6-3931-4d0f-9975-d9893648d89c";
                 var leafUrl = "https://example/catalog/0/nuget.versioning.1.0.0-alpha.json";
-                _catalogClient.PackageDetailsLeaves[leafUrl] = CreateLeaf(leafUrl, identity1, listed: true);
+                _catalogClient.PackageDetailsLeaves[leafUrl] = CreatePackageDetailsLeaf(
+                    commitTimestamp,
+                    commitId,
+                    leafUrl,
+                    identity1,
+                    listed: true);
                 var items = new[]
                 {
-                    new CatalogCommitItem(
-                        uri: new Uri(leafUrl),
-                        commitId: null,
-                        commitTimeStamp: new DateTime(2018, 12, 10, 0, 0, 0),
-                        types: new List<string>(),
-                        typeUris: new List<Uri> { Schema.DataTypes.PackageDetails },
-                        packageIdentity: identity1)
+                    CreatePackageDetailsItem(
+                        commitTimestamp,
+                        commitId,
+                        leafUrl,
+                        identity1)
                 };
 
                 // Act
@@ -154,17 +159,22 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
             // Step #2 - add another version
             {
                 // Arrange
+                var commitTimestamp = new DateTimeOffset(2018, 12, 11, 0, 0, 0, TimeSpan.Zero);
+                var commitId = "00c01b51-ffd4-4f55-b212-0c10d2a06dbc";
                 var leafUrl = "https://example/catalog/0/nuget.versioning.2.0.0.json";
-                _catalogClient.PackageDetailsLeaves[leafUrl] = CreateLeaf(leafUrl, identity2, listed: true);
+                _catalogClient.PackageDetailsLeaves[leafUrl] = CreatePackageDetailsLeaf(
+                    commitTimestamp,
+                    commitId,
+                    leafUrl,
+                    identity2,
+                    listed: true);
                 var items = new[]
                 {
-                    new CatalogCommitItem(
-                        uri: new Uri(leafUrl),
-                        commitId: null,
-                        commitTimeStamp: new DateTime(2018, 12, 11, 0, 0, 0),
-                        types: new List<string>(),
-                        typeUris: new List<Uri> { Schema.DataTypes.PackageDetails },
-                        packageIdentity: identity2)
+                    CreatePackageDetailsItem(
+                        commitTimestamp,
+                        commitId,
+                        leafUrl,
+                        identity2)
                 };
 
                 // Act
@@ -218,17 +228,22 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
             // Step #3 - unlist the first version
             {
                 // Arrange
+                var commitTimestamp = new DateTimeOffset(2018, 12, 12, 0, 0, 0, TimeSpan.Zero);
+                var commitId = "bd9599c7-4512-4094-817e-dacef6674924";
                 var leafUrl = "https://example/catalog/2/nuget.versioning.1.0.0-alpha.json";
-                _catalogClient.PackageDetailsLeaves[leafUrl] = CreateLeaf(leafUrl, identity1, listed: false);
+                _catalogClient.PackageDetailsLeaves[leafUrl] = CreatePackageDetailsLeaf(
+                    commitTimestamp,
+                    commitId,
+                    leafUrl, 
+                    identity1, 
+                    listed: false);
                 var items = new[]
                 {
-                    new CatalogCommitItem(
-                        uri: new Uri(leafUrl),
-                        commitId: null,
-                        commitTimeStamp: new DateTime(2018, 12, 12, 0, 0, 0),
-                        types: new List<string>(),
-                        typeUris: new List<Uri> { Schema.DataTypes.PackageDetails },
-                        packageIdentity: identity1)
+                    CreatePackageDetailsItem(
+                        commitTimestamp,
+                        commitId,
+                        leafUrl,
+                        identity1),
                 };
 
                 // Act
@@ -292,25 +307,25 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
             // Step #1 - add two versions
             {
                 // Arrange
+                var commitTimestamp = new DateTimeOffset(2018, 12, 10, 0, 0, 0, TimeSpan.Zero);
+                var commitId = "76d0014c-60f8-427f-8eac-3dfbf8369296";
                 var leafUrl2 = "https://example/catalog/0/nuget.versioning.2.0.0-alpha.json";
-                _catalogClient.PackageDetailsLeaves[leafUrl1] = CreateLeaf(leafUrl1, identity1, listed: true);
-                _catalogClient.PackageDetailsLeaves[leafUrl2] = CreateLeaf(leafUrl2, identity2, listed: true);
+                _catalogClient.PackageDetailsLeaves[leafUrl1] = CreatePackageDetailsLeaf(
+                    commitTimestamp,
+                    commitId,
+                    leafUrl1, 
+                    identity1,
+                    listed: true);
+                _catalogClient.PackageDetailsLeaves[leafUrl2] = CreatePackageDetailsLeaf(
+                    commitTimestamp,
+                    commitId,
+                    leafUrl2,
+                    identity2,
+                    listed: true);
                 var items = new[]
                 {
-                    new CatalogCommitItem(
-                        uri: new Uri(leafUrl1),
-                        commitId: null,
-                        commitTimeStamp: new DateTime(2018, 12, 10, 0, 0, 0),
-                        types: new List<string>(),
-                        typeUris: new List<Uri> { Schema.DataTypes.PackageDetails },
-                        packageIdentity: identity1),
-                    new CatalogCommitItem(
-                        uri: new Uri(leafUrl2),
-                        commitId: null,
-                        commitTimeStamp: new DateTime(2018, 12, 10, 0, 0, 0),
-                        types: new List<string>(),
-                        typeUris: new List<Uri> { Schema.DataTypes.PackageDetails },
-                        packageIdentity: identity2),
+                    CreatePackageDetailsItem(commitTimestamp, commitId, leafUrl1, identity1),
+                    CreatePackageDetailsItem(commitTimestamp, commitId, leafUrl2, identity2),
                 };
 
                 // Act
@@ -363,16 +378,16 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
             // Step #2 - delete the latest version
             {
                 // Arrange
+                var commitTimestamp = new DateTimeOffset(2018, 12, 11, 0, 0, 0, TimeSpan.Zero);
+                var commitId = "68131297-699f-4d68-952e-c0a4eacbd6da";
                 var leafUrl = "https://example/catalog/1/nuget.versioning.2.0.0-alpha.json";
                 var items = new[]
                 {
-                    new CatalogCommitItem(
-                        uri: new Uri(leafUrl),
-                        commitId: null,
-                        commitTimeStamp: new DateTime(2018, 12, 11, 0, 0, 0),
-                        types: new List<string>(),
-                        typeUris: new List<Uri> { Schema.DataTypes.PackageDelete },
-                        packageIdentity: identity2),
+                    CreatePackageDeleteItem(
+                        commitTimestamp,
+                        commitId,
+                        leafUrl,
+                        identity2),
                 };
                 var registrationIndexUrl = "https://example/registrations/nuget.versioning/index.json";
                 var registrationPageUrl = "https://example/registrations/nuget.versioning/page/0.json";
@@ -446,10 +461,61 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
             }
         }
 
-        private static PackageDetailsCatalogLeaf CreateLeaf(string url, PackageIdentity identity, bool listed)
+        private static CatalogCommitItem CreatePackageDetailsItem(
+            DateTimeOffset commitTimestamp,
+            string commitId,
+            string leafUrl,
+            PackageIdentity identity)
+        {
+            return CreateItem(
+                commitTimestamp,
+                commitId,
+                leafUrl,
+                identity,
+                Schema.DataTypes.PackageDetails);
+        }
+
+        private static CatalogCommitItem CreatePackageDeleteItem(
+            DateTimeOffset commitTimestamp,
+            string commitId,
+            string leafUrl,
+            PackageIdentity identity)
+        {
+            return CreateItem(
+                commitTimestamp,
+                commitId,
+                leafUrl,
+                identity,
+                Schema.DataTypes.PackageDelete);
+        }
+
+        private static CatalogCommitItem CreateItem(
+            DateTimeOffset commitTimestamp,
+            string commitId,
+            string leafUrl,
+            PackageIdentity identity,
+            Uri type)
+        {
+            return new CatalogCommitItem(
+                uri: new Uri(leafUrl),
+                commitId: commitId,
+                commitTimeStamp: commitTimestamp.UtcDateTime,
+                types: new List<string>(),
+                typeUris: new List<Uri> { type },
+                packageIdentity: identity);
+        }
+
+        private static PackageDetailsCatalogLeaf CreatePackageDetailsLeaf(
+            DateTimeOffset commitTimestamp,
+            string commitId,
+            string url,
+            PackageIdentity identity,
+            bool listed)
         {
             return new PackageDetailsCatalogLeaf
             {
+                CommitTimestamp = commitTimestamp,
+                CommitId = commitId,
                 Url = url,
                 PackageId = identity.Id,
                 PackageVersion = identity.Version.ToFullString(),

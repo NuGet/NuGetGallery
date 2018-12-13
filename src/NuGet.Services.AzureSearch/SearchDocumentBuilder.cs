@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using NuGet.Protocol.Catalog;
 using NuGet.Services.Entities;
 
@@ -90,21 +91,32 @@ namespace NuGet.Services.AzureSearch
             return document;
         }
 
-        public SearchDocument.UpdateVersionList UpdateVersionList(
+        public SearchDocument.UpdateVersionList UpdateVersionListFromCatalog(
             string packageId,
             SearchFilters searchFilters,
+            DateTimeOffset lastCommitTimestamp,
+            string lastCommitId,
             string[] versions,
             bool isLatestStable,
             bool isLatest)
         {
             var document = new SearchDocument.UpdateVersionList();
 
-            PopulateVersions(document, packageId, searchFilters, versions, isLatestStable, isLatest);
+            PopulateVersions(
+                document,
+                packageId,
+                searchFilters,
+                lastUpdatedFromCatalog: true,
+                lastCommitTimestamp: lastCommitTimestamp,
+                lastCommitId: lastCommitId,
+                versions: versions,
+                isLatestStable: isLatestStable,
+                isLatest: isLatest);
 
             return document;
         }
 
-        public SearchDocument.UpdateLatest UpdateLatest(
+        public SearchDocument.UpdateLatest UpdateLatestFromCatalog(
             SearchFilters searchFilters,
             string[] versions,
             bool isLatestStable,
@@ -115,13 +127,23 @@ namespace NuGet.Services.AzureSearch
         {
             var document = new SearchDocument.UpdateLatest();
 
-            PopulateUpdateLatest(document, leaf.PackageId, searchFilters, versions, isLatestStable, isLatest, fullVersion);
+            PopulateUpdateLatest(
+                document,
+                leaf.PackageId,
+                searchFilters,
+                lastUpdatedFromCatalog: true,
+                lastCommitTimestamp: leaf.CommitTimestamp,
+                lastCommitId: leaf.CommitId,
+                versions: versions,
+                isLatestStable: isLatestStable,
+                isLatest: isLatest,
+                fullVersion: fullVersion);
             DocumentUtilities.PopulateMetadata(document, normalizedVersion, leaf);
 
             return document;
         }
 
-        public SearchDocument.Full Full(
+        public SearchDocument.Full FullFromDb(
             string packageId,
             SearchFilters searchFilters,
             string[] versions,
@@ -134,7 +156,18 @@ namespace NuGet.Services.AzureSearch
         {
             var document = new SearchDocument.Full();
 
-            PopulateAddFirst(document, packageId, searchFilters, versions, isLatestStable, isLatest, fullVersion, owners);
+            PopulateAddFirst(
+                document,
+                packageId,
+                searchFilters,
+                lastUpdatedFromCatalog: false,
+                lastCommitTimestamp: null,
+                lastCommitId: null,
+                versions: versions,
+                isLatestStable: isLatestStable,
+                isLatest: isLatest,
+                fullVersion: fullVersion,
+                owners: owners);
             DocumentUtilities.PopulateMetadata(document, packageId, package);
             document.TotalDownloadCount = totalDownloadCount;
 
@@ -145,11 +178,15 @@ namespace NuGet.Services.AzureSearch
             T document,
             string packageId,
             SearchFilters searchFilters,
+            bool lastUpdatedFromCatalog,
+            DateTimeOffset? lastCommitTimestamp,
+            string lastCommitId,
             string[] versions,
             bool isLatestStable,
             bool isLatest) where T : KeyedDocument, SearchDocument.IVersions
         {
             PopulateKey(document, packageId, searchFilters);
+            DocumentUtilities.PopulateCommitted(document, lastUpdatedFromCatalog, lastCommitTimestamp, lastCommitId);
             document.Versions = versions;
             document.IsLatestStable = isLatestStable;
             document.IsLatest = isLatest;
@@ -164,12 +201,24 @@ namespace NuGet.Services.AzureSearch
             SearchDocument.UpdateLatest document,
             string packageId,
             SearchFilters searchFilters,
+            bool lastUpdatedFromCatalog,
+            DateTimeOffset? lastCommitTimestamp,
+            string lastCommitId,
             string[] versions,
             bool isLatestStable,
             bool isLatest,
             string fullVersion)
         {
-            PopulateVersions(document, packageId, searchFilters, versions, isLatestStable, isLatest);
+            PopulateVersions(
+                document,
+                packageId,
+                searchFilters,
+                lastUpdatedFromCatalog,
+                lastCommitTimestamp,
+                lastCommitId,
+                versions,
+                isLatestStable,
+                isLatest);
             document.SearchFilters = DocumentUtilities.GetSearchFilterString(searchFilters);
             document.FullVersion = fullVersion;
         }
@@ -178,13 +227,26 @@ namespace NuGet.Services.AzureSearch
             SearchDocument.AddFirst document,
             string packageId,
             SearchFilters searchFilters,
+            bool lastUpdatedFromCatalog,
+            DateTimeOffset? lastCommitTimestamp,
+            string lastCommitId,
             string[] versions,
             bool isLatestStable,
             bool isLatest,
             string fullVersion,
             string[] owners)
         {
-            PopulateUpdateLatest(document, packageId, searchFilters, versions, isLatestStable, isLatest, fullVersion);
+            PopulateUpdateLatest(
+                document,
+                packageId,
+                searchFilters,
+                lastUpdatedFromCatalog,
+                lastCommitTimestamp,
+                lastCommitId,
+                versions,
+                isLatestStable,
+                isLatest,
+                fullVersion);
             document.Owners = owners;
         }
     }
