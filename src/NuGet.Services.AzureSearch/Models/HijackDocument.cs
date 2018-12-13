@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using Microsoft.Azure.Search;
 using Microsoft.Azure.Search.Models;
 
 namespace NuGet.Services.AzureSearch
@@ -17,6 +18,9 @@ namespace NuGet.Services.AzureSearch
         [SerializePropertyNamesAsCamelCase]
         public class Full : BaseMetadataDocument, ILatest, IBaseMetadataDocument
         {
+            [IsFilterable]
+            public bool? Listed { get; set; }
+
             public bool? IsLatestStableSemVer1 { get; set; }
             public bool? IsLatestSemVer1 { get; set; }
             public bool? IsLatestStableSemVer2 { get; set; }

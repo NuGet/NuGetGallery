@@ -43,7 +43,9 @@ namespace NuGet.Services.AzureSearch
         [IsSearchable]
         public string PackageId { get; set; }
 
+        [IsFilterable]
         public bool? Prerelease { get; set; }
+
         public string ProjectUrl { get; set; }
 
         [IsSortable]

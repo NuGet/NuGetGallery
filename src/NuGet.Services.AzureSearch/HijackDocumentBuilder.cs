@@ -57,6 +57,7 @@ namespace NuGet.Services.AzureSearch
                 lastCommitId: leaf.CommitId,
                 changes: changes);
             DocumentUtilities.PopulateMetadata(document, normalizedVersion, leaf);
+            document.Listed = leaf.IsListed();
 
             return document;
         }
@@ -77,6 +78,7 @@ namespace NuGet.Services.AzureSearch
                 normalizedVersion: package.NormalizedVersion,
                 changes: changes);
             DocumentUtilities.PopulateMetadata(document, packageId, package);
+            document.Listed = package.Listed;
 
             return document;
         }

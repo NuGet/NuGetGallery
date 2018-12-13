@@ -114,6 +114,7 @@ namespace NuGet.Services.AzureSearch
   ""value"": [
     {
       ""@search.action"": ""upload"",
+      ""listed"": true,
       ""isLatestStableSemVer1"": false,
       ""isLatestSemVer1"": true,
       ""isLatestStableSemVer2"": false,
@@ -246,6 +247,7 @@ namespace NuGet.Services.AzureSearch
   ""value"": [
     {
       ""@search.action"": ""upload"",
+      ""listed"": true,
       ""isLatestStableSemVer1"": false,
       ""isLatestSemVer1"": true,
       ""isLatestStableSemVer2"": false,
@@ -295,6 +297,18 @@ namespace NuGet.Services.AzureSearch
     }
   ]
 }", json);
+            }
+
+            [Fact]
+            public void ConsidersPublished1900AsUnlisted()
+            {
+                var leaf = Data.Leaf;
+                leaf.Listed = null;
+                leaf.Published = DateTimeOffset.Parse("1900-01-01Z");
+
+                var document = _target.FullFromCatalog(Data.NormalizedVersion, _changes, leaf);
+
+                Assert.False(document.Listed);
             }
 
             [Theory]
