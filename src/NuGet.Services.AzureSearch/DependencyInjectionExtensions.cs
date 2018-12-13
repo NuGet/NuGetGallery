@@ -86,7 +86,7 @@ namespace NuGet.Services.AzureSearch
                 var options = p.GetRequiredService<IOptionsSnapshot<AzureSearchJobConfiguration>>();
                 return (IStorageFactory)new AzureStorageFactory(
                     account,
-                    CoreConstants.ContentFolderName,
+                    CoreConstants.Folders.ContentFolderName,
                     maxExecutionTime: AzureStorage.DefaultMaxExecutionTime,
                     serverTimeout: AzureStorage.DefaultServerTimeout,
                     path: options.Value.NormalizeStoragePath(),

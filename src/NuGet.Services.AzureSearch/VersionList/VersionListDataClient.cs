@@ -37,7 +37,7 @@ namespace NuGet.Services.AzureSearch
         public async Task<ResultAndAccessCondition<VersionListData>> ReadAsync(string id)
         {
             var fileReference = await _storageService.GetFileReferenceAsync(
-                CoreConstants.ContentFolderName,
+                CoreConstants.Folders.ContentFolderName,
                 GetFileName(id));
 
             _logger.LogInformation("Reading the version list for package ID {PackageId}.", id);
@@ -83,7 +83,7 @@ namespace NuGet.Services.AzureSearch
                 _logger.LogInformation("Replacing the version list for package ID {PackageId}.", id);
 
                 await _storageService.SaveFileAsync(
-                    CoreConstants.ContentFolderName,
+                    CoreConstants.Folders.ContentFolderName,
                     GetFileName(id),
                     stream,
                     accessCondition);

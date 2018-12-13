@@ -56,6 +56,7 @@
     <Compile Include="HijackDocumentBuilderFacts.cs" />
     <Compile Include="IndexBuilderFacts.cs" />
     <Compile Include="Models\CommittedDocumentFacts.cs" />
+    <Compile Include="Registration\RegistrationUrlBuilderFacts.cs" />
     <Compile Include="SearchDocumentBuilderFacts.cs" />
     <Compile Include="Registration\RegistrationClientFacts.cs" />
     <Compile Include="Support\Cursor.cs" />

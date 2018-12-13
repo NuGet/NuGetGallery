@@ -70,7 +70,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
             var fetched = new Dictionary<NuGetVersion, PackageDetailsCatalogLeaf>();
             var unlisted = new Dictionary<NuGetVersion, string>();
 
-            var registrationIndexUrl = GetRegistrationIndexUrl(packageId);
+            var registrationIndexUrl = RegistrationUrlBuilder.GetIndexUrl(_options.Value.RegistrationsBaseUrl, packageId);
             var registrationIndex = await _registrationClient.GetIndexOrNullAsync(registrationIndexUrl);
             if (registrationIndex == null)
             {
@@ -262,12 +262,6 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                 "No catalog leaves matchings leaves found for {PackageId}. Versions tried: {Versions}",
                 packageId,
                 descendingVersions);
-        }
-
-        private string GetRegistrationIndexUrl(string id)
-        {
-            var baseUrl = _options.Value.RegistrationsBaseUrl.TrimEnd('/');
-            return $"{baseUrl}/{id.ToLowerInvariant()}/index.json";
         }
 
         private RegistrationPageInfo GetPageInfo(

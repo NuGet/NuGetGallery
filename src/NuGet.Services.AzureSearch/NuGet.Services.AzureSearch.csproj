@@ -94,6 +94,7 @@
     <Compile Include="Registration\Models\RegistrationPage.cs" />
     <Compile Include="Registration\RegistrationClient.cs" />
     <Compile Include="Registration\Models\RegistrationLeaf.cs" />
+    <Compile Include="Registration\RegistrationUrlBuilder.cs" />
     <Compile Include="SearchDocumentBuilder.cs" />
     <Compile Include="SearchService\Models\DebugInformation.cs" />
     <Compile Include="SearchService\Models\SearchRequest.cs" />
@@ -152,7 +153,7 @@
       <Version>5.0.3</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Validation.Common.Job">
-      <Version>4.1.0-master-2197886</Version>
+      <Version>4.1.0-dev-2280009</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Build.Tasks.Pack">
       <Version>4.8.0</Version>
