@@ -51,12 +51,12 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
         private const string RepositoryCounterCertificateRevocationUnknownMessage = "NU3018: The repository countersignature found a chain building issue: " +
             "The revocation function was unable to check revocation for the certificate.";
 
-        // Should be NU3028 => TODO: https://github.com/NuGet/Engineering/issues/1891
+        // NU3028
         private const string AuthorPrimaryTimestampCertificateUntrustedMessage = "The author primary signature's timestamp found a chain building issue: " +
             "A certificate chain processed, but terminated in a root certificate which is not trusted by the trust provider.";
-        private const string AuthorPrimaryTimestampCertificateRevocationUnknownMessage = "NU3018: The author primary signature's timestamp found a chain building issue: " +
+        private const string AuthorPrimaryTimestampCertificateRevocationUnknownMessage = "NU3028: The author primary signature's timestamp found a chain building issue: " +
             "The revocation function was unable to check revocation for the certificate.";
-        private const string AuthorPrimaryTimestampCertificateRevocationOfflineMessage = "NU3018: The author primary signature's timestamp found a chain building issue: " +
+        private const string AuthorPrimaryTimestampCertificateRevocationOfflineMessage = "NU3028: The author primary signature's timestamp found a chain building issue: " +
             "The revocation function was unable to check revocation because the revocation server could not be reached.";
 
         private readonly CertificateIntegrationTestFixture _fixture;
@@ -307,7 +307,6 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
         }
 
         [Fact]
-        // TODO: https://github.com/NuGet/Engineering/issues/1891
         public async Task AcceptsTrustedTimestampingCertificateWithUnavailableRevocation()
         {
             // Arrange
@@ -361,7 +360,6 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
         }
 
         [Fact]
-        // TODO: https://github.com/NuGet/Engineering/issues/1891
         public async Task AcceptsTrustedSigningCertificateWithUnavailableRevocation()
         {
             // Arrange
@@ -1451,7 +1449,6 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
         }
 
         [Fact]
-        // TODO: https://github.com/NuGet/Engineering/issues/1891
         public async Task WhenRepositoryCounterSigned_AcceptsTrustedTimestampingCertificateWithUnavailableRevocation()
         {
             // Arrange
@@ -1511,7 +1508,6 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
         }
 
         [Fact]
-        // TODO: https://github.com/NuGet/Engineering/issues/1891
         public async Task WhenRepositoryCounterSigned_AcceptsTrustedSigningCertificateWithUnavailableRevocation()
         {
             // Arrange
