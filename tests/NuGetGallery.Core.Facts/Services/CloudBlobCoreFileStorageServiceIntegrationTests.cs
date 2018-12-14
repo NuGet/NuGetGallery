@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.IO;
+using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -56,6 +57,129 @@ namespace NuGetGallery
 
             _targetA = new CloudBlobCoreFileStorageService(_clientA, Mock.Of<IDiagnosticsService>());
             _targetB = new CloudBlobCoreFileStorageService(_clientB, Mock.Of<IDiagnosticsService>());
+        }
+
+        [BlobStorageFact]
+        public async Task OpenReadAsyncReturnsReadableStreamWhenBlobExistsAndPopulatesProperties()
+        {
+            // Arrange
+            var folderName = CoreConstants.Folders.ValidationFolderName;
+            var fileName = _prefixA;
+            var expectedContent = "Hello, world.";
+
+            await _targetA.SaveFileAsync(
+                folderName,
+                fileName,
+                new MemoryStream(Encoding.ASCII.GetBytes(expectedContent)),
+                overwrite: false);
+
+            var container = _clientA.GetContainerReference(folderName);
+            var file = container.GetBlobReference(fileName);
+
+            // Act
+            using (var stream = await file.OpenReadAsync(accessCondition: null))
+            using (var streamReader = new StreamReader(stream))
+            {
+                var actualContent = await streamReader.ReadToEndAsync();
+
+                // Assert
+                Assert.Equal(expectedContent, actualContent);
+                Assert.Equal(expectedContent.Length, file.Properties.Length);
+                Assert.NotNull(file.ETag);
+            }
+        }
+
+        [BlobStorageFact]
+        public async Task OpenReadAsyncThrowsNotFoundWhenBlobDoesNotExist()
+        {
+            // Arrange
+            var folderName = CoreConstants.Folders.ValidationFolderName;
+            var fileName = _prefixA;
+            var exists = await _targetA.FileExistsAsync(folderName, fileName);
+            var container = _clientA.GetContainerReference(folderName);
+            var file = container.GetBlobReference(fileName);
+
+            // Act & Assert
+            Assert.False(exists);
+            var ex = await Assert.ThrowsAsync<StorageException>(
+                () => file.OpenReadAsync(accessCondition: null));
+            Assert.Equal(HttpStatusCode.NotFound, (HttpStatusCode)ex.RequestInformation.HttpStatusCode);
+        }
+
+        [BlobStorageFact]
+        public async Task OpenReadAsyncThrowsPreconditionFailedWhenIfMatchFails()
+        {
+            // Arrange
+            var folderName = CoreConstants.Folders.ValidationFolderName;
+            var fileName = _prefixA;
+
+            await _targetA.SaveFileAsync(
+                folderName,
+                fileName,
+                new MemoryStream(Encoding.ASCII.GetBytes("Hello, world.")),
+                overwrite: false);
+
+            var container = _clientA.GetContainerReference(folderName);
+            var file = container.GetBlobReference(fileName);
+            await file.FetchAttributesAsync();
+
+            // Act & Assert
+            var ex = await Assert.ThrowsAsync<StorageException>(
+                () => file.OpenReadAsync(accessCondition: AccessCondition.GenerateIfMatchCondition("WON'T MATCH")));
+            Assert.Equal(HttpStatusCode.PreconditionFailed, (HttpStatusCode)ex.RequestInformation.HttpStatusCode);
+        }
+
+        [BlobStorageFact]
+        public async Task OpenReadAsyncThrowsNotModifiedWhenIfNoneMatchFails()
+        {
+            // Arrange
+            var folderName = CoreConstants.Folders.ValidationFolderName;
+            var fileName = _prefixA;
+
+            await _targetA.SaveFileAsync(
+                folderName,
+                fileName,
+                new MemoryStream(Encoding.ASCII.GetBytes("Hello, world.")),
+                overwrite: false);
+
+            var container = _clientA.GetContainerReference(folderName);
+            var file = container.GetBlobReference(fileName);
+            await file.FetchAttributesAsync();
+
+            // Act & Assert
+            var ex = await Assert.ThrowsAsync<StorageException>(
+                () => file.OpenReadAsync(accessCondition: AccessCondition.GenerateIfNoneMatchCondition(file.ETag)));
+            Assert.Equal(HttpStatusCode.NotModified, (HttpStatusCode)ex.RequestInformation.HttpStatusCode);
+        }
+
+        [BlobStorageFact]
+        public async Task OpenReadAsyncReturnsContentWhenIfNoneMatchSucceeds()
+        {
+            // Arrange
+            var folderName = CoreConstants.Folders.ValidationFolderName;
+            var fileName = _prefixA;
+            var expectedContent = "Hello, world.";
+
+            await _targetA.SaveFileAsync(
+                folderName,
+                fileName,
+                new MemoryStream(Encoding.ASCII.GetBytes(expectedContent)),
+                overwrite: false);
+
+            var container = _clientA.GetContainerReference(folderName);
+            var file = container.GetBlobReference(fileName);
+
+            // Act
+            using (var stream = await file.OpenReadAsync(accessCondition: AccessCondition.GenerateIfNoneMatchCondition("WON'T MATCH")))
+            using (var streamReader = new StreamReader(stream))
+            {
+                var actualContent = await streamReader.ReadToEndAsync();
+
+                // Assert
+                Assert.Equal(expectedContent, actualContent);
+                Assert.Equal(expectedContent.Length, file.Properties.Length);
+                Assert.NotNull(file.ETag);
+            }
         }
 
         [BlobStorageFact]
