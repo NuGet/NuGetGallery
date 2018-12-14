@@ -839,6 +839,76 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 VerifyStoredCertificates(AuthorAndRepoSignedCertificates);
             }
 
+            [Fact]
+            public async Task DeletesRepositorySignatureIfRepositorySignatureIsStrippedFromAuthorAndRepositorySignedPackage()
+            {
+                // Arrange
+                var signature = await TestResources.LoadPrimarySignatureAsync(TestResources.SignedPackageLeaf1);
+
+                var existingAuthorTrustedTimestamp = new TrustedTimestamp
+                {
+                    Key = 1,
+                    Value = Leaf1TimestampValue,
+                    EndCertificate = new EndCertificate
+                    {
+                        Thumbprint = TestResources.Leaf1TimestampThumbprint,
+                    },
+                };
+                var existingRepositoryTrustedTimestamp = new TrustedTimestamp
+                {
+                    Key = 2,
+                    Value = AuthorAndRepoSignedCounterTimestampValue,
+                    EndCertificate = new EndCertificate
+                    {
+                        Thumbprint = AuthorAndRepoSignedCertificates.Countersignature.TimestampEndCertificate.Thumbprint,
+                    },
+                };
+                var existingPackageAuthorSignature = new PackageSignature
+                {
+                    Key = 1,
+                    PackageKey = _packageKey,
+                    EndCertificate = new EndCertificate
+                    {
+                        Thumbprint = AuthorAndRepoSignedCertificates.PrimarySignature.SignatureEndCertificate.Thumbprint,
+                    },
+                    Type = PackageSignatureType.Author,
+                    TrustedTimestamps = new List<TrustedTimestamp>
+                    {
+                        existingAuthorTrustedTimestamp
+                    },
+                };
+                var existingPackageRepositorySignature = new PackageSignature
+                {
+                    Key = 2,
+                    PackageKey = _packageKey,
+                    EndCertificate = new EndCertificate
+                    {
+                        Thumbprint = AuthorAndRepoSignedCertificates.Countersignature.SignatureEndCertificate.Thumbprint,
+                    },
+                    Type = PackageSignatureType.Repository,
+                    TrustedTimestamps = new List<TrustedTimestamp>
+                    {
+                        existingRepositoryTrustedTimestamp
+                    },
+                };
+
+                var packageSignaturesMock = DbSetMockFactory.CreateMock(existingPackageAuthorSignature, existingPackageRepositorySignature);
+                var trustedTimestampsMock = DbSetMockFactory.CreateMock(existingAuthorTrustedTimestamp, existingRepositoryTrustedTimestamp);
+
+                _validationEntitiesContext
+                    .Setup(x => x.PackageSignatures)
+                    .Returns(packageSignaturesMock.Object);
+                _validationEntitiesContext
+                    .Setup(x => x.TrustedTimestamps)
+                    .Returns(trustedTimestampsMock.Object);
+
+                // Act
+                await _target.ExtractAsync(_packageKey, signature, _token);
+
+                // Assert
+                packageSignaturesMock.Setup(m => m.Remove(existingPackageRepositorySignature));
+            }
+
             private void AssignIds()
             {
                 var endCertificates = _validationEntitiesContext.Object.EndCertificates.AsQueryable().ToList();
