@@ -32,6 +32,11 @@ namespace NuGetGallery
 
         public static CloudBlobWrapper FromUri(Uri uri)
         {
+            if (uri == null)
+            {
+                throw new ArgumentNullException(nameof(uri));
+            }
+
             if (!IsBlobStorageUri(uri))
             {
                 throw new ArgumentException($"{nameof(uri)} must point to blob storage", nameof(uri));
