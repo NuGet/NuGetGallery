@@ -42,13 +42,7 @@ namespace NuGetGallery
 
             var fileName = BuildLicenseFileName(package);
 
-            // Gallery will generally ignore the content type on license files and will use the value from the DB,
-            // but we'll be nice and try to specify correct content type for them.
-            var contentType = package.EmbeddedLicenseType == EmbeddedLicenseFileType.Markdown
-                ? CoreConstants.MarkdownContentType
-                : CoreConstants.TextContentType;
-
-            return _fileStorageService.SaveFileAsync(_metadata.PackageContentFolderName, fileName, contentType, licenseFile, overwrite: true);
+            return _fileStorageService.SaveFileAsync(_metadata.PackageContentFolderName, fileName, CoreConstants.TextContentType, licenseFile, overwrite: true);
         }
 
         public async Task ExtractAndSaveLicenseFileAsync(Package package, Stream packageStream)
