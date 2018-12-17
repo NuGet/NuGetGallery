@@ -31,6 +31,13 @@ namespace NuGetGallery
                 ifMatchETag: AccessCondition.GenerateIfMatchCondition(etag).IfMatchETag);
         }
 
+        public static IAccessCondition GenerateIfNoneMatchCondition(string etag)
+        {
+            return new AccessConditionWrapper(
+                ifNoneMatchETag: AccessCondition.GenerateIfNoneMatchCondition(etag).IfNoneMatchETag,
+                ifMatchETag: null);
+        }
+
         public static IAccessCondition GenerateIfNotExistsCondition()
         {
             return new AccessConditionWrapper(
