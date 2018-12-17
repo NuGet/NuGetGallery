@@ -43,6 +43,9 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="SearchService\AuxiliaryDataCache.cs" />
+    <Compile Include="SearchService\AuxiliaryFileClient.cs" />
+    <Compile Include="SearchService\AuxiliaryFileReloader.cs" />
     <Compile Include="AzureSearchConfiguration.cs" />
     <Compile Include="AzureSearchJobConfiguration.cs" />
     <Compile Include="Catalog2AzureSearch\AzureSearchCollector.cs" />
@@ -96,6 +99,14 @@
     <Compile Include="Registration\Models\RegistrationLeaf.cs" />
     <Compile Include="Registration\RegistrationUrlBuilder.cs" />
     <Compile Include="SearchDocumentBuilder.cs" />
+    <Compile Include="SearchService\AuxiliaryData.cs" />
+    <Compile Include="SearchService\AuxiliaryFileResult.cs" />
+    <Compile Include="SearchService\IAuxiliaryDataCache.cs" />
+    <Compile Include="SearchService\IAuxiliaryFileClient.cs" />
+    <Compile Include="SearchService\IAuxiliaryFileReloader.cs" />
+    <Compile Include="SearchService\Models\AuxiliaryFileMetadata.cs" />
+    <Compile Include="SearchService\Models\AuxiliaryFilesMetadata.cs" />
+    <Compile Include="SearchService\IAuxiliaryData.cs" />
     <Compile Include="SearchService\Models\DebugInformation.cs" />
     <Compile Include="SearchService\Models\SearchRequest.cs" />
     <Compile Include="SearchService\Models\V2SearchDependency.cs" />
@@ -142,6 +153,7 @@
     <Compile Include="Wrappers\ISearchServiceClientWrapper.cs" />
     <Compile Include="Wrappers\SearchIndexClientWrapper.cs" />
     <Compile Include="Wrappers\SearchServiceClientWrapper.cs" />
+    <Compile Include="SearchService\SearchServiceConfiguration.cs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="MicroBuild.Core">
@@ -165,6 +177,10 @@
     <ProjectReference Include="..\Catalog\NuGet.Services.Metadata.Catalog.csproj">
       <Project>{e97f23b8-ecb0-4afa-b00c-015c39395fef}</Project>
       <Name>NuGet.Services.Metadata.Catalog</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NuGet.Indexing\NuGet.Indexing.csproj">
+      <Project>{DDB34145-870F-42C3-9663-A9390CEE1E35}</Project>
+      <Name>NuGet.Indexing</Name>
     </ProjectReference>
     <ProjectReference Include="..\NuGet.Protocol.Catalog\NuGet.Protocol.Catalog.csproj">
       <Project>{D44C2E89-2D98-44BD-8712-8CCBE4E67C9C}</Project>

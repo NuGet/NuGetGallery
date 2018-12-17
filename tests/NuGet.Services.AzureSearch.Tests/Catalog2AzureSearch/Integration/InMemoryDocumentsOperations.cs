@@ -33,5 +33,10 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
 
             return Task.FromResult(new DocumentIndexResult(new List<IndexingResult>()));
         }
+
+        public Task<DocumentSearchResult<T>> SearchAsync<T>(string searchText, SearchParameters searchParameters) where T : class
+        {
+            throw new NotImplementedException();
+        }
     }
 }

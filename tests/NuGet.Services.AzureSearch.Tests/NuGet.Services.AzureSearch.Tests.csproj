@@ -59,6 +59,10 @@
     <Compile Include="Registration\RegistrationUrlBuilderFacts.cs" />
     <Compile Include="SearchDocumentBuilderFacts.cs" />
     <Compile Include="Registration\RegistrationClientFacts.cs" />
+    <Compile Include="SearchService\AuxiliaryDataCacheFacts.cs" />
+    <Compile Include="SearchService\AuxiliaryDataFacts.cs" />
+    <Compile Include="SearchService\AuxiliaryFileClientFacts.cs" />
+    <Compile Include="SearchService\AuxiliaryFileReloaderFacts.cs" />
     <Compile Include="Support\Cursor.cs" />
     <Compile Include="Support\Data.cs" />
     <Compile Include="Support\SerializationUtilities.cs" />
@@ -85,6 +89,10 @@
     <ProjectReference Include="..\..\src\Catalog\NuGet.Services.Metadata.Catalog.csproj">
       <Project>{E97F23B8-ECB0-4AFA-B00C-015C39395FEF}</Project>
       <Name>NuGet.Services.Metadata.Catalog</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\src\NuGet.Indexing\NuGet.Indexing.csproj">
+      <Project>{DDB34145-870F-42C3-9663-A9390CEE1E35}</Project>
+      <Name>NuGet.Indexing</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\src\NuGet.Protocol.Catalog\NuGet.Protocol.Catalog.csproj">
       <Project>{D44C2E89-2D98-44BD-8712-8CCBE4E67C9C}</Project>
