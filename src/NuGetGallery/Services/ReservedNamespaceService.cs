@@ -53,7 +53,7 @@ namespace NuGetGallery
             }
             catch (ArgumentException ex)
             {
-                throw new InvalidOperationException(ex.Message);
+                throw new InvalidOperationException(ex.Message, ex);
             }
 
             var matchingReservedNamespaces = FindAllReservedNamespacesForPrefix(prefix: newNamespace.Value, getExactMatches: !newNamespace.IsPrefix);

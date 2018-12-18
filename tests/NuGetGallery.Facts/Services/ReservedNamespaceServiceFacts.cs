@@ -982,6 +982,8 @@ namespace NuGetGallery.Services
             [InlineData("123_Name.space.")]
             [InlineData("123-Namespace.")]
             [InlineData("123-Namespace-endswith-hyphen-")]
+            [InlineData("123_Namespace_endswith_Underscores_")]
+            [InlineData("Multiple_Sequential__Underscores")]
             public void ValidNamespacesDontThrowException(string value)
             {
                 var ex = Record.Exception(() => ReservedNamespaceService.ValidateNamespace(value));

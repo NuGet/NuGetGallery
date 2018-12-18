@@ -2509,7 +2509,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The symbols package (snupkg) upload is not allowed using older NuGet clients. Please use the latest (v4.9.1 or above) nuget client version to upload the symbols package..
+        ///   Looks up a localized string similar to Snupkg upload failed. Please use latest NuGet clients (v 4.9.0 or above) and a V3 endpoint to push Symbol packages. For details, refer https://docs.microsoft.com/nuget/create-packages/symbol-packages-snupkg.
         /// </summary>
         public static string UploadPackage_SymbolsPackageNotAllowed {
             get {
