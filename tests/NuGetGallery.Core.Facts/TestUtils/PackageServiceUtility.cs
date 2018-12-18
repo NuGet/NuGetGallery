@@ -190,5 +190,15 @@ namespace NuGetGallery.TestUtils
                 licenseFilename: licenseFilename,
                 licenseFileContents: licenseFileContents);
         }
+
+        public static PackageArchiveReader CreateArchiveReader(Stream stream)
+        {
+            if (stream == null)
+            {
+                stream = TestPackage.CreateTestPackageStream("theId", "1.0.42");
+            }
+
+            return new PackageArchiveReader(stream, leaveStreamOpen: true);
+        }
     }
 }

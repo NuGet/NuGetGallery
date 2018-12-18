@@ -19,7 +19,7 @@ namespace NuGetGallery {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     public class Strings {
@@ -1535,7 +1535,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The namespace &apos;{0}&apos; contains invalid characters. Examples of valid namespaces include &apos;MyNamespace&apos; and &apos;MyNamespace.&apos;..
+        ///   Looks up a localized string similar to The namespace &apos;{0}&apos; contains invalid characters. Examples of valid namespaces include &apos;MyNamespace&apos;, &apos;MyNamespace.&apos; or &apos;MyNamespace-&apos; etc..
         /// </summary>
         public static string ReservedNamespace_InvalidCharactersInNamespace {
             get {
@@ -2505,6 +2505,15 @@ namespace NuGetGallery {
         public static string UploadPackage_SignedToUnsignedTransition {
             get {
                 return ResourceManager.GetString("UploadPackage_SignedToUnsignedTransition", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The symbols package (snupkg) upload is not allowed using older NuGet clients. Please use the latest (v4.9.1 or above) nuget client version to upload the symbols package..
+        /// </summary>
+        public static string UploadPackage_SymbolsPackageNotAllowed {
+            get {
+                return ResourceManager.GetString("UploadPackage_SymbolsPackageNotAllowed", resourceCulture);
             }
         }
         
