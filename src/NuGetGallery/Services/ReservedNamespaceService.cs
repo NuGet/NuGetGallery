@@ -15,7 +15,7 @@ namespace NuGetGallery
 {
     public class ReservedNamespaceService : IReservedNamespaceService
     {
-        private static readonly Regex NamespaceRegex = new Regex(@"^\w+([_.-]\w+)*[.]?$", RegexOptions.Compiled | RegexOptions.ExplicitCapture);
+        private static readonly Regex NamespaceRegex = new Regex(@"^\w+([_.-]\w+)*[.-]?$", RegexOptions.Compiled | RegexOptions.ExplicitCapture);
 
         public IEntitiesContext EntitiesContext { get; protected set; }
         public IEntityRepository<ReservedNamespace> ReservedNamespaceRepository { get; protected set; }
@@ -47,7 +47,14 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(newNamespace));
             }
 
-            ValidateNamespace(newNamespace.Value);
+            try
+            {
+                ValidateNamespace(newNamespace.Value);
+            }
+            catch (ArgumentException ex)
+            {
+                throw new InvalidOperationException(ex.Message, ex);
+            }
 
             var matchingReservedNamespaces = FindAllReservedNamespacesForPrefix(prefix: newNamespace.Value, getExactMatches: !newNamespace.IsPrefix);
             if (matchingReservedNamespaces.Any())
@@ -348,12 +355,12 @@ namespace NuGetGallery
                 throw new ArgumentException(Strings.ReservedNamespace_InvalidNamespace);
             }
 
-            if (value.Length > NuGet.Services.Entities.Constants.MaxPackageIdLength)
+            if (value.Length > Constants.MaxPackageIdLength)
             {
                 throw new ArgumentException(string.Format(
                     CultureInfo.CurrentCulture,
                     Strings.ReservedNamespace_NamespaceExceedsLength,
-                    NuGet.Services.Entities.Constants.MaxPackageIdLength));
+                    Constants.MaxPackageIdLength));
             }
 
             if (!NamespaceRegex.IsMatch(value))

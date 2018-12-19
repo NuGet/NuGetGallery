@@ -56,6 +56,11 @@ namespace NuGetGallery
                     packageArchiveReader.GetNuspecReader(),
                     strict: true);
 
+                if (packageMetadata.IsSymbolsPackage())
+                {
+                    throw new InvalidPackageException(Strings.UploadPackage_SymbolsPackageNotAllowed);
+                }
+
                 PackageHelper.ValidateNuGetPackageMetadata(packageMetadata);
 
                 var supportedFrameworks = GetSupportedFrameworks(packageArchiveReader).Select(fn => fn.ToShortNameOrNull()).ToArray();

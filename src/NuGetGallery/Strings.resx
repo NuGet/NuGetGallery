@@ -491,7 +491,7 @@ For more information, please contact '{2}'.</value>
     <value>This package will only be available to download with SemVer 2.0.0 compatible NuGet clients, such as Visual Studio 2017 (version 15.3) and above or NuGet client 4.3 and above. For more information, see https://go.microsoft.com/fwlink/?linkid=852248.</value>
   </data>
   <data name="ReservedNamespace_InvalidCharactersInNamespace" xml:space="preserve">
-    <value>The namespace '{0}' contains invalid characters. Examples of valid namespaces include 'MyNamespace' and 'MyNamespace.'.</value>
+    <value>The namespace '{0}' contains invalid characters. Examples of valid namespaces include 'MyNamespace', 'MyNamespace.' or 'MyNamespace-' etc.</value>
   </data>
   <data name="ReservedNamespace_InvalidNamespace" xml:space="preserve">
     <value>Invalid namespace specified</value>
@@ -1084,5 +1084,8 @@ The {1} Team</value>
   <data name="SecurityPolicy_PackageAuthorDuplicatesNotAllowed" xml:space="preserve">
     <value>The package metadata defines '{0}' as author more than once, which is not allowed by policy.</value>
     <comment>{0} is the list of duplicate package authors</comment>
+  </data>
+  <data name="UploadPackage_SymbolsPackageNotAllowed" xml:space="preserve">
+    <value>Snupkg upload failed. Please use latest NuGet clients (v 4.9.0 or above) and a V3 endpoint to push Symbol packages. For details, refer https://docs.microsoft.com/nuget/create-packages/symbol-packages-snupkg</value>
   </data>
 </root>
