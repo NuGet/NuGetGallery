@@ -20,16 +20,16 @@ namespace Stats.CreateAzureCdnWarehouseReports
                     (SELECT COUNT(DISTINCT [PackageRegistrationKey]) FROM Packages p WITH (NOLOCK)
                             WHERE p.Listed = 1 AND p.Deleted = 0) AS UniquePackages,
                     (SELECT COUNT([Key]) FROM Packages WITH (NOLOCK) WHERE Listed = 1 AND Deleted = 0) AS TotalPackages";
-        internal const string ReportName = "stats-totals.json";
 
         public GalleryTotalsReport(
             ILogger<GalleryTotalsReport> logger,
             CloudStorageAccount cloudStorageAccount,
             string statisticsContainerName,
             Func<Task<SqlConnection>> openStatisticsSqlConnectionAsync,
-            Func<Task<SqlConnection>> openGallerySqlConnectionAsync)
+            Func<Task<SqlConnection>> openGallerySqlConnectionAsync,
+            int commandTimeoutSeconds)
             : base(logger, new[] { new StorageContainerTarget(cloudStorageAccount, statisticsContainerName) },
-                  openStatisticsSqlConnectionAsync, openGallerySqlConnectionAsync)
+                  openStatisticsSqlConnectionAsync, openGallerySqlConnectionAsync, commandTimeoutSeconds)
         {
         }
 
@@ -61,7 +61,7 @@ namespace Stats.CreateAzureCdnWarehouseReports
                 totalsData.Downloads = (await connection.ExecuteScalarWithRetryAsync<long>(
                     WarehouseStoredProcedureName,
                     commandType: CommandType.StoredProcedure,
-                    commandTimeout: TimeSpan.FromMinutes(5),
+                    commandTimeout: CommandTimeoutSeconds,
                     transaction: transaction));
             }
 
@@ -77,7 +77,7 @@ namespace Stats.CreateAzureCdnWarehouseReports
                 try
                 {
                     var targetBlobContainer = await GetBlobContainer(storageContainerTarget);
-                    var blob = targetBlobContainer.GetBlockBlobReference(ReportName);
+                    var blob = targetBlobContainer.GetBlockBlobReference(ReportNames.GalleryTotals + ReportNames.Extension);
                     _logger.LogInformation("Writing report to {ReportUri}", blob.Uri.AbsoluteUri);
                     blob.Properties.ContentType = "application/json";
                     await blob.UploadTextAsync(reportText);

@@ -56,6 +56,7 @@
     <Compile Include="ReportBase.cs" />
     <Compile Include="ReportBuilder.cs" />
     <Compile Include="ReportDataCollector.cs" />
+    <Compile Include="ReportNames.cs" />
     <Compile Include="ReportWriter.cs" />
     <Compile Include="StorageContainerTarget.cs" />
     <Compile Include="ToolDownloadCountData.cs" />

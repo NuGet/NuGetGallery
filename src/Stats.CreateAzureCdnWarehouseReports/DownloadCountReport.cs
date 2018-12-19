@@ -18,15 +18,14 @@ namespace Stats.CreateAzureCdnWarehouseReports
         : ReportBase
     {
         private const string _storedProcedureName = "[dbo].[SelectTotalDownloadCountsPerPackageVersion]";
-        private readonly TimeSpan _defaultCommandTimeout = TimeSpan.FromMinutes(30);
-        internal const string ReportName = "downloads.v1.json";
 
         public DownloadCountReport(
             ILogger<DownloadCountReport> logger,
             IEnumerable<StorageContainerTarget> targets,
             Func<Task<SqlConnection>> openStatisticsSqlConnectionAsync,
-            Func<Task<SqlConnection>> openGallerySqlConnectionAsync)
-            : base(logger, targets, openStatisticsSqlConnectionAsync, openGallerySqlConnectionAsync)
+            Func<Task<SqlConnection>> openGallerySqlConnectionAsync,
+            int commandTimeoutSeconds)
+            : base(logger, targets, openStatisticsSqlConnectionAsync, openGallerySqlConnectionAsync, commandTimeoutSeconds)
         {
         }
 
@@ -42,7 +41,7 @@ namespace Stats.CreateAzureCdnWarehouseReports
                     connection.DataSource, connection.Database);
 
                 downloadData = (await connection.QueryWithRetryAsync<DownloadCountData>(
-                    _storedProcedureName, commandType: CommandType.StoredProcedure, transaction: transaction, commandTimeout: _defaultCommandTimeout)).ToList();
+                    _storedProcedureName, commandType: CommandType.StoredProcedure, transaction: transaction, commandTimeout: CommandTimeoutSeconds)).ToList();
             }
 
             _logger.LogInformation("Gathered {DownloadedRowsCount} rows of data.", downloadData.Count);
@@ -78,7 +77,7 @@ namespace Stats.CreateAzureCdnWarehouseReports
                     try
                     {
                         var targetBlobContainer = await GetBlobContainer(storageContainerTarget);
-                        var blob = targetBlobContainer.GetBlockBlobReference(ReportName);
+                        var blob = targetBlobContainer.GetBlockBlobReference(ReportNames.DownloadCount + ReportNames.Extension);
                         _logger.LogInformation("Writing report to {ReportUri}", blob.Uri.AbsoluteUri);
                         blob.Properties.ContentType = "application/json";
                         await blob.UploadTextAsync(reportText);

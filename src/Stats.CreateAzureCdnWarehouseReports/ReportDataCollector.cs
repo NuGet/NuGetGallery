@@ -23,12 +23,12 @@ namespace Stats.CreateAzureCdnWarehouseReports
             ILogger<ReportDataCollector> logger,
             string procedureName,
             Func<Task<SqlConnection>> openGallerySqlConnectionAsync,
-            int timeout)
+            int commandTimeoutSeconds)
         {
             _logger = logger;
             _procedureName = procedureName;
             _openGallerySqlConnectionAsync = openGallerySqlConnectionAsync;
-            _commandTimeoutSeconds = timeout;
+            _commandTimeoutSeconds = commandTimeoutSeconds;
         }
 
         public async Task<DataTable> CollectAsync(DateTime reportGenerationTime, params Tuple<string, int, string>[] parameters)
