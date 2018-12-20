@@ -44,7 +44,7 @@ namespace NuGetGallery.FunctionalTests
             }
 
             Directory.CreateDirectory(packageDir);
-            
+
             var commandlineHelper = new CommandlineHelper(TestOutputHelper);
             await commandlineHelper.SpecPackageAsync(packageName, packageDir);
 
@@ -78,6 +78,18 @@ namespace NuGetGallery.FunctionalTests
                 UpdateNuspecFile(filePath, "</dependencies>", $"{dependencies}</dependencies>");
             }
             return filePath;
+        }
+
+        public static void AddLicense(string nuspecFilePath, string licenseExpression, string licenseFile)
+        {
+            if (licenseExpression != null)
+            {
+                UpdateNuspecFile(nuspecFilePath, "</metadata>", $"<license type='expression'>{licenseExpression}</license></metadata>");
+            }
+            if (licenseFile != null)
+            {
+                UpdateNuspecFile(nuspecFilePath, "</metadata>", $"<license type='file'>{licenseFile}</license></metadata>");
+            }
         }
 
         /// <summary>

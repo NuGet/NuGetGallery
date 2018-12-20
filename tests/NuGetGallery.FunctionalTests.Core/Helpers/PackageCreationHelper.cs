@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CSharp;
 using Xunit.Abstractions;
+using NuGet;
 
 namespace NuGetGallery.FunctionalTests
 {
@@ -27,7 +28,7 @@ namespace NuGetGallery.FunctionalTests
             : base(testOutputHelper)
         {
         }
-
+        
         /// <summary>
         /// Creates a package given the package name and version.
         /// </summary>
@@ -39,6 +40,19 @@ namespace NuGetGallery.FunctionalTests
             return path;
         }
 
+        /// <summary>
+        /// Creates a package with the license expression/file.
+        /// </summary>
+        /// <returns></returns>
+        public async Task<string> CreatePackageWithLicense(string packageName, string packageVersion = "1.0.0", string licenseUrl = null, string licenseExpression = null, string licenseFile = null,
+                                                           string licenseFileName = null, string licenseFileContents = null, byte[] licenseFileBinaryContents = null)
+        {
+            var nuspecHelper = new NuspecHelper(TestOutputHelper);
+            var nuspecFileFullPath = await nuspecHelper.CreateDefaultNuspecFile(packageName, packageVersion, licenseUrl: licenseUrl);
+
+            return await CreatePackageWithLicenseInternal(nuspecFileFullPath, packageName, licenseExpression, licenseFile, licenseFileName, licenseFileContents, licenseFileBinaryContents);
+        }
+        
         /// <summary>
         /// Creates a package with the specified minclient version.
         /// </summary>
@@ -67,7 +81,7 @@ namespace NuGetGallery.FunctionalTests
             string nuspecFileFullPath = await nuspecHelper.CreateDefaultNuspecFile(packageName, packageVersion);
             return await CreatePackageWithTargetFrameworkInternal(nuspecFileFullPath, frameworkVersion);
         }
-
+        
         /// <summary>
         /// Creates a package which will grow up to a huge size when extracted.
         /// </summary>
@@ -140,6 +154,51 @@ namespace NuGetGallery.FunctionalTests
             string source = "using System; namespace CodeDom { public class B {public static int k=7;}}";
             provider.CompileAssemblyFromSource(parameters, source);
         }
+        
+        /// <summary>
+        /// Get the file path given base directory and filename.
+        /// </summary>
+        /// <param name="baseDir"></param>
+        /// <param name="filename"></param>
+        internal static string GetFilePath(string baseDir, string fileName)
+        {
+            var filePath = Path.Combine(baseDir, @fileName);
+            var fileDir = Path.GetDirectoryName(filePath);
+            if (!Directory.Exists(fileDir))
+            {
+                Directory.CreateDirectory(fileDir);
+            }
+
+            return filePath;
+        }
+
+        /// <summary>
+        /// Adds the file in the filePath location.
+        /// </summary>
+        /// <param name="filePath"></param>
+        /// <param name="fileContents"></param>
+        internal static void AddTextFile(string filePath, string fileContents)
+        {
+            using (var streamWriter = new StreamWriter(filePath))
+            {
+                streamWriter.Write(fileContents);
+                streamWriter.Close();
+            }
+        }
+        
+        /// <summary>
+        /// Adds the binaryfile in the filePath location.
+        /// </summary>
+        /// <param name="filePath"></param>
+        /// <param name="fileContents"></param>
+        internal static void AddBinaryFile(string filePath, byte[] fileContents)
+        {
+            using (var fileStream = File.Open(filePath, FileMode.OpenOrCreate))
+            {
+                fileStream.Write(fileContents, 0, fileContents.Length);
+                fileStream.Close();
+            }
+        }
 
         private async Task<string> CreatePackageInternal(string nuspecFileFullPath)
         {
@@ -165,6 +224,47 @@ namespace NuGetGallery.FunctionalTests
 
             string[] nupkgFiles = Directory.GetFiles(nuspecDir, "*.nupkg").ToArray();
             return nupkgFiles.Length == 0 ? null : nupkgFiles[0];
+        }
+
+        public async Task<string> CreatePackageWithLicenseInternal(string nuspecFileFullPath, string packageName, string licenseExpression = null, string licenseFile = null,
+                                                                   string licenseFileName = null, string licenseFileContents = null, byte[] licenseBinaryFileContents = null)
+        {
+            var nuspecDir = Path.GetDirectoryName(nuspecFileFullPath);
+
+            if (licenseFileName != null && (licenseFileContents != null || licenseBinaryFileContents != null))
+            {
+                var licenseFilePath = GetFilePath(nuspecDir, licenseFileName);
+
+                if (licenseFileContents != null)
+                {
+                    AddTextFile(licenseFilePath, licenseFileContents);
+                }
+                if (licenseBinaryFileContents != null)
+                {
+                    AddBinaryFile(licenseFilePath, licenseBinaryFileContents);
+                }
+            }
+
+            var nupkgFileFullPath = await CreatePackageInternal(nuspecFileFullPath);
+            var nuspecFileName = packageName + ".nuspec";
+
+            // Update nuspec with license expression/file.
+            if (licenseExpression != null || licenseFile != null)
+            {
+                NuspecHelper.AddLicense(nuspecFileFullPath, licenseExpression, licenseFile);
+
+                using (var packageArchive = ZipFile.Open(nupkgFileFullPath, ZipArchiveMode.Update))
+                {
+                    var nuspecEntry = packageArchive.GetEntry(nuspecFileName);
+                    if (nuspecEntry != null)
+                    {
+                        nuspecEntry.Delete();
+                    }
+                    packageArchive.CreateEntryFromFile(nuspecFileFullPath, nuspecFileName);
+                }
+            }
+
+            return nupkgFileFullPath;
         }
 
         private static void WeaponizePackage(string packageFullPath)
