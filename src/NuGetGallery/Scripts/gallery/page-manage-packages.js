@@ -92,7 +92,7 @@
             this.Visible = ko.observable(true);
 
             this.UpdateVisibility = function (ownerFilter) {
-                var visible = ownerFilter === "All packages";
+                var visible = ownerFilter === strings_AllPackagesFilter;
                 if (!visible) {
                     for (var i in self.Owners) {
                         if (ownerFilter === self.Owners[i].Username) {
@@ -221,7 +221,7 @@
             this.Visible = ko.observable(true);
 
             this.UpdateVisibility = function (ownerFilter) {
-                var visible = ownerFilter === "All packages";
+                var visible = ownerFilter === strings_AllPackagesFilter;
                 if (!visible) {
                     for (var i in self.Owners) {
                         if (ownerFilter === self.Owners[i].Username) {
@@ -289,7 +289,7 @@
             this.Visible = ko.observable(true);
 
             this.UpdateVisibility = function (ownerFilter) {
-                var visible = ownerFilter === "All packages";
+                var visible = ownerFilter === strings_AllPackagesFilter;
                 if (!visible) {
                     if (self.ShowReceived && ownerFilter === self.New.Username) {
                         visible = true;

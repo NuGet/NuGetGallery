@@ -108,6 +108,8 @@ namespace NuGetGallery
 
         public const string GitRepository = "git";
 
+        public const string ManagePackagesPageAllPackagesFilter = "All packages";
+
         public const string LicenseDeprecationUrl = "https://aka.ms/deprecateLicenseUrl";
 
         public static class ContentNames

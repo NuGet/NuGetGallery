@@ -466,7 +466,7 @@ namespace NuGetGallery
             var owners = new List<ListPackageOwnerViewModel> {
                 new ListPackageOwnerViewModel
                 {
-                    Username = "All packages"
+                    Username = GalleryConstants.ManagePackagesPageAllPackagesFilter
                 },
                 new ListPackageOwnerViewModel(currentUser)
             }.Concat(currentUser.Organizations.Select(o => new ListPackageOwnerViewModel(o.Organization)));
