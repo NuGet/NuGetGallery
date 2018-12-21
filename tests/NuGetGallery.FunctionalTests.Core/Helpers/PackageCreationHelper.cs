@@ -9,7 +9,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CSharp;
 using Xunit.Abstractions;
-using NuGet;
 
 namespace NuGetGallery.FunctionalTests
 {
