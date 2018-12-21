@@ -89,20 +89,21 @@
                 }
             });
 
-            this.Visible = ko.observable(true);
+            this.Visible = ko.pureComputed(function () {
+                var ownerFilter = self.PackagesListViewModel.ManagePackagesViewModel.OwnerFilter().Username;
+                if (ownerFilter === strings_AllPackagesFilter) {
+                    return true;
+                }
 
-            this.UpdateVisibility = function (ownerFilter) {
-                var visible = ownerFilter === strings_AllPackagesFilter;
-                if (!visible) {
-                    for (var i in self.Owners) {
-                        if (ownerFilter === self.Owners[i].Username) {
-                            visible = true;
-                            break;
-                        }
+                for (var i in self.Owners) {
+                    if (ownerFilter === self.Owners[i].Username) {
+                        return true;
                     }
                 }
-                this.Visible(visible);
-            };
+
+                return false;
+            }, this);
+            
             this.PackageIconUrlFallback = ko.pureComputed(function () {
                 var url = this.PackagesListViewModel.ManagePackagesViewModel.PackageIconUrlFallback;
                 return "this.src='" + url + "'; this.onerror = null;";
@@ -178,26 +179,33 @@
             this.Packages = $.map(packages, function (data) {
                 return new PackageListItemViewModel(self, data);
             });
-            this.VisiblePackagesCount = ko.observable();
-            this.VisibleDownloadCount = ko.observable();
+            
+            this.VisiblePackagesCount = ko.pureComputed(function () {
+                var packagesCount = 0;
+                for (var i in self.Packages) {
+                    if (self.Packages[i].Visible()) {
+                        packagesCount++;
+                    }
+                }
+
+                return packagesCount;
+            }, this);
+
+            this.VisibleDownloadCount = ko.pureComputed(function () {
+                var downloadCount = 0;
+                for (var i in self.Packages) {
+                    if (self.Packages[i].Visible()) {
+                        downloadCount += self.Packages[i].DownloadCount;
+                    }
+                }
+
+                return downloadCount;
+            }, this);
+
             this.VisiblePackagesHeading = ko.pureComputed(function () {
                 return formatPackagesData(
                     ko.unwrap(self.VisiblePackagesCount()),
                     ko.unwrap(self.VisibleDownloadCount()));
-            }, this);
-
-            this.ManagePackagesViewModel.OwnerFilter.subscribe(function (newOwner) {
-                var packagesCount = 0;
-                var downloadCount = 0;
-                for (var i in self.Packages) {
-                    self.Packages[i].UpdateVisibility(newOwner.Username);
-                    if (self.Packages[i].Visible()) {
-                        packagesCount++;
-                        downloadCount += self.Packages[i].DownloadCount;
-                    }
-                }
-                this.VisiblePackagesCount(packagesCount);
-                this.VisibleDownloadCount(downloadCount);
             }, this);
         }
 
@@ -218,20 +226,20 @@
             this.Owners = namespaceItem.Owners;
             this.IsPublic = namespaceItem.IsPublic;
 
-            this.Visible = ko.observable(true);
+            this.Visible = ko.pureComputed(function () {
+                var ownerFilter = self.ReservedNamespaceListViewModel.ManagePackagesViewModel.OwnerFilter().Username;
+                if (ownerFilter === strings_AllPackagesFilter) {
+                    return true;
+                }
 
-            this.UpdateVisibility = function (ownerFilter) {
-                var visible = ownerFilter === strings_AllPackagesFilter;
-                if (!visible) {
-                    for (var i in self.Owners) {
-                        if (ownerFilter === self.Owners[i].Username) {
-                            visible = true;
-                            break;
-                        }
+                for (var i in self.Owners) {
+                    if (ownerFilter === self.Owners[i].Username) {
+                        return true;
                     }
                 }
-                this.Visible(visible);
-            };
+
+                return false;
+            }, this);
         }
 
         function ReservedNamespaceListViewModel(managePackagesViewModel, namespaces) {
@@ -241,21 +249,20 @@
             this.Namespaces = $.map(namespaces, function (data) {
                 return new ReservedNamespaceListItemViewModel(self, data);
             });
-            this.VisibleNamespacesCount = ko.observable();
-            this.VisibleNamespacesHeading = ko.pureComputed(function () {
-                return formatReservedNamespacesData(ko.unwrap(self.VisibleNamespacesCount()));
-            });
-
-            this.ManagePackagesViewModel.OwnerFilter.subscribe(function (newOwner) {
+            this.VisibleNamespacesCount = ko.pureComputed(function () {
                 var namespacesCount = 0;
                 for (var i in self.Namespaces) {
-                    self.Namespaces[i].UpdateVisibility(newOwner.Username);
                     if (self.Namespaces[i].Visible()) {
                         namespacesCount++;
                     }
                 }
-                this.VisibleNamespacesCount(namespacesCount);
+
+                return namespacesCount;
             }, this);
+
+            this.VisibleNamespacesHeading = ko.pureComputed(function () {
+                return formatReservedNamespacesData(ko.unwrap(self.VisibleNamespacesCount()));
+            });
         }
 
         function showInitialOwnerRequestsData(dataSelector, requestsList) {
@@ -286,26 +293,25 @@
             this.ShowReceived = showReceived;
             this.ShowSent = showSent;
 
-            this.Visible = ko.observable(true);
+            this.Visible = ko.pureComputed(function () {
+                var ownerFilter = self.OwnerRequestsListViewModel.ManagePackagesViewModel.OwnerFilter().Username;
+                if (ownerFilter === strings_AllPackagesFilter) {
+                    return true;
+                }
 
-            this.UpdateVisibility = function (ownerFilter) {
-                var visible = ownerFilter === strings_AllPackagesFilter;
-                if (!visible) {
-                    if (self.ShowReceived && ownerFilter === self.New.Username) {
-                        visible = true;
-                    }
-
-                    if (self.ShowSent) {
-                        for (var i in self.Owners) {
-                            if (ownerFilter === self.Owners[i].Username) {
-                                visible = true;
-                                break;
-                            }
+                if (self.ShowReceived && ownerFilter === self.New.Username) {
+                    return true;
+                } else if (self.ShowSent) {
+                    for (var i in self.Owners) {
+                        if (ownerFilter === self.Owners[i].Username) {
+                            return true;
                         }
                     }
                 }
-                this.Visible(visible);
-            };
+
+                return false;
+            }, this);
+            
             this.PackageIconUrlFallback = ko.pureComputed(function () {
                 var url = this.OwnerRequestsListViewModel.ManagePackagesViewModel.PackageIconUrlFallback;
                 return "this.src='" + url + "'; this.onerror = null;";
@@ -319,20 +325,20 @@
             this.Requests = $.map(requests, function (data) {
                 return new OwnerRequestsItemViewModel(self, data, showReceived, showSent);
             });
-            this.VisibleRequestsCount = ko.observable();
-            this.VisibleRequestsHeading = ko.pureComputed(function () {
-                return formatOwnerRequestsData(ko.unwrap(self.VisibleRequestsCount()));
-            }, this);
 
-            this.ManagePackagesViewModel.OwnerFilter.subscribe(function (newOwner) {
+            this.VisibleRequestsCount = ko.pureComputed(function () {
                 var requestsCount = 0;
                 for (var i in self.Requests) {
-                    self.Requests[i].UpdateVisibility(newOwner.Username);
                     if (self.Requests[i].Visible()) {
                         requestsCount++;
                     }
                 }
-                this.VisibleRequestsCount(requestsCount);
+
+                return requestsCount;
+            }, this);
+
+            this.VisibleRequestsHeading = ko.pureComputed(function () {
+                return formatOwnerRequestsData(ko.unwrap(self.VisibleRequestsCount()));
             }, this);
         }
 
