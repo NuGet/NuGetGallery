@@ -32,7 +32,7 @@ namespace NuGetGallery.FunctionalTests.License
         [InlineData("https://aka.ms/deprecateLicenseUrl", null, "licensefolder\\license.txt", "license.txt", "It's a license", null, "does not exist in the package")]
         [InlineData("https://aka.ms/deprecateLicenseUrl", null, "license.txt", "licensefolder\\license.txt", "It's a license", null, "does not exist in the package")]
         [InlineData("https://aka.ms/deprecateLicenseUrl", null, "license.txt", "license.txt", null, new byte[] { 1,2,3,4,5}, "The license file must be plain text using UTF-8 encoding")]
-        public async Task UploadValidLicensePackage(string licenseUrl, string licenseExpression, string licenseFile, string licenseFileName, string licenseFileContents, byte[] licenseBinaryFileContents, string expectedErrorMessage)
+        public async Task UploadInValidLicensePackage(string licenseUrl, string licenseExpression, string licenseFile, string licenseFileName, string licenseFileContents, byte[] licenseBinaryFileContents, string expectedErrorMessage)
         {
             var packageName = $"TestPackageWithLicense.{DateTime.UtcNow.Ticks}";
             string packageVersion = "1.0.0";

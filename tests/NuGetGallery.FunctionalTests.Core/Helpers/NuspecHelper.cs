@@ -79,23 +79,25 @@ namespace NuGetGallery.FunctionalTests
             }
             return filePath;
         }
-
+        
         /// <summary>
-        /// Given a nupsec file path, add the license attribute.
+        /// Given a nupsec file path, add the license expression attribute.
         /// </summary>
         /// <param name="nuspecFilePath"></param>
         /// <param name="licenseExpression"></param>
-        /// <param name="licenseFile"></param>
-        public static void AddLicense(string nuspecFilePath, string licenseExpression, string licenseFile)
+        public static void AddLicenseExpression(string nuspecFilePath, string licenseExpression)
         {
-            if (licenseExpression != null)
-            {
-                UpdateNuspecFile(nuspecFilePath, "</metadata>", $"<license type='expression'>{licenseExpression}</license></metadata>");
-            }
-            if (licenseFile != null)
-            {
-                UpdateNuspecFile(nuspecFilePath, "</metadata>", $"<license type='file'>{licenseFile}</license></metadata>");
-            }
+            UpdateNuspecFile(nuspecFilePath, "</metadata>", $"<license type='expression'>{licenseExpression}</license></metadata>");
+        }
+
+        /// <summary>
+        /// Given a nupsec file path, add the license file attribute.
+        /// </summary>
+        /// <param name="nuspecFilePath"></param>
+        /// <param name="licenseFile"></param>
+        public static void AddLicenseFile(string nuspecFilePath, string licenseFile)
+        {
+            UpdateNuspecFile(nuspecFilePath, "</metadata>", $"<license type='file'>{licenseFile}</license></metadata>");
         }
         
         /// <summary>

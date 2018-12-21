@@ -250,7 +250,14 @@ namespace NuGetGallery.FunctionalTests
             // Update nuspec with license expression/file.
             if (licenseExpression != null || licenseFile != null)
             {
-                NuspecHelper.AddLicense(nuspecFileFullPath, licenseExpression, licenseFile);
+                if (licenseExpression != null)
+                {
+                    NuspecHelper.AddLicenseExpression(nuspecFileFullPath, licenseExpression);
+                }
+                if (licenseFile != null)
+                {
+                    NuspecHelper.AddLicenseFile(nuspecFileFullPath, licenseFile);
+                }
 
                 using (var packageArchive = ZipFile.Open(nupkgFileFullPath, ZipArchiveMode.Update))
                 {
