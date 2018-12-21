@@ -5,7 +5,7 @@ using System;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
-using NuGetGallery.FunctionalTests.XunitExtensions;
+using System.ComponentModel;
 
 namespace NuGetGallery.FunctionalTests.License
 {
@@ -19,24 +19,41 @@ namespace NuGetGallery.FunctionalTests.License
             _packageCreationHelper = new PackageCreationHelper(testOutputHelper);
         }
 
+        [Fact]
+        [Description("Push an invalidp package with license expression and verify uploading is blocked")]
+        [Priority(2)]
+        [Category("P2Tests")]
+        public async Task UploadInValidPackageWithLicenseExpression()
+        {
+            // Arrange
+            var packageName = $"TestPackageWithLicense.{DateTime.UtcNow.Ticks}";
+            var packageVersion = "1.0.0";
+            
+            var licenseUrl = "https://testNugetLicenseUrl";
+            var licenseExpression = "MIT";
+            var expectedErrorMessage = "when a license expression is specified, <licenseUrl> must be set to";
+
+            // Act
+            string packageFullPath = await _packageCreationHelper.CreatePackageWithLicenseExpression(packageName, packageVersion, licenseUrl, licenseExpression);
+
+            var processResult = await _commandlineHelper.UploadPackageAsync(packageFullPath, UrlHelper.V2FeedPushSourceUrl);
+
+            // Assert
+            Assert.True(processResult.ExitCode == 1, Constants.UploadFailureMessage);
+            Assert.Contains(expectedErrorMessage, processResult.StandardError);
+        }
+
         [Theory]
-        [InlineData(null, "MIT", null, null, null, null, "when a license expression is specified, <licenseUrl> must be set to ")]
-        [InlineData(null, null, "license.txt", "license.txt", "It's a license", null, "when a license file is packaged, <licenseUrl> must be set to ")]
-        [InlineData("https://aka.ms/deprecateLicenseUrl", null, null, null, null, null, "The license deprecation URL must be used in conjunction with specifying the license in the package")]
-        [InlineData("https://testNugetLicenseUrl", "MIT", null, null, null, null, "when a license expression is specified, <licenseUrl> must be set to ")]
-        [InlineData("https://testNugetLicenseUrl", null, "license.txt", "license.txt", "It's a license", null, "when a license file is packaged, <licenseUrl> must be set to ")]
-        [InlineData(null, "MIT", "license.txt", "license.txt", "It's a license", null, "The package manifest contains duplicate metadata elements: 'license'")]
-        [InlineData("https://aka.ms/deprecateLicenseUrl", "MIT", "license.txt", "license.txt", "It's a license", null, "The package manifest contains duplicate metadata elements: 'license'")]
-        [InlineData("https://testNugetLicenseUrl", "MIT", "license.txt", "license.txt", "It's a license", null, "The package manifest contains duplicate metadata elements: 'license'")]
-        [InlineData("https://aka.ms/deprecateLicenseUrl", null, "license", "licenses.txt", "It's a license", null, "does not exist in the package")]
-        [InlineData("https://aka.ms/deprecateLicenseUrl", null, "licensefolder\\license.txt", "license.txt", "It's a license", null, "does not exist in the package")]
-        [InlineData("https://aka.ms/deprecateLicenseUrl", null, "license.txt", "licensefolder\\license.txt", "It's a license", null, "does not exist in the package")]
-        [InlineData("https://aka.ms/deprecateLicenseUrl", null, "license.txt", "license.txt", null, new byte[] { 1,2,3,4,5}, "The license file must be plain text using UTF-8 encoding")]
-        public async Task UploadInValidLicensePackage(string licenseUrl, string licenseExpression, string licenseFile, string licenseFileName, string licenseFileContents, byte[] licenseBinaryFileContents, string expectedErrorMessage)
+        [Description("Push an invalidp package with license file and verify uploading is blocked")]
+        [Priority(2)]
+        [Category("P2Tests")]
+        [InlineData("https://testNugetLicenseUrl", "license.txt", "license.txt", "It's a license", "when a license file is packaged, <licenseUrl> must be set to ")]
+        [InlineData("https://aka.ms/deprecateLicenseUrl", "licensefolder\\license.txt", "license.txt", "It's a license", "does not exist in the package")]
+        public async Task UploadInValidPackageWithLicenseFIle(string licenseUrl, string licenseFile, string licenseFileName, string licenseFileContents, string expectedErrorMessage)
         {
             var packageName = $"TestPackageWithLicense.{DateTime.UtcNow.Ticks}";
             string packageVersion = "1.0.0";
-            string packageFullPath = await _packageCreationHelper.CreatePackageWithLicense(packageName, packageVersion, licenseUrl, licenseExpression, licenseFile, licenseFileName, licenseFileContents, licenseBinaryFileContents);
+            string packageFullPath = await _packageCreationHelper.CreatePackageWithLicenseFile(packageName, packageVersion, licenseUrl, licenseFile, licenseFileName, licenseFileContents);
 
             var processResult = await _commandlineHelper.UploadPackageAsync(packageFullPath, UrlHelper.V2FeedPushSourceUrl);
 

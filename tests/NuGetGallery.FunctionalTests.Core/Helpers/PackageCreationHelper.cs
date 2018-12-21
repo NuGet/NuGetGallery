@@ -38,19 +38,6 @@ namespace NuGetGallery.FunctionalTests
             var path = await CreatePackageInternal(nuspecFileFullPath);
             return path;
         }
-
-        /// <summary>
-        /// Creates a package with the license expression/file.
-        /// </summary>
-        /// <returns></returns>
-        public async Task<string> CreatePackageWithLicense(string packageName, string packageVersion = "1.0.0", string licenseUrl = null, string licenseExpression = null, string licenseFile = null,
-                                                           string licenseFileName = null, string licenseFileContents = null, byte[] licenseFileBinaryContents = null)
-        {
-            var nuspecHelper = new NuspecHelper(TestOutputHelper);
-            var nuspecFileFullPath = await nuspecHelper.CreateDefaultNuspecFile(packageName, packageVersion, licenseUrl: licenseUrl);
-
-            return await CreatePackageWithLicenseInternal(nuspecFileFullPath, packageName, licenseExpression, licenseFile, licenseFileName, licenseFileContents, licenseFileBinaryContents);
-        }
         
         /// <summary>
         /// Creates a package with the specified minclient version.
@@ -79,6 +66,47 @@ namespace NuGetGallery.FunctionalTests
             var nuspecHelper = new NuspecHelper(TestOutputHelper);
             string nuspecFileFullPath = await nuspecHelper.CreateDefaultNuspecFile(packageName, packageVersion);
             return await CreatePackageWithTargetFrameworkInternal(nuspecFileFullPath, frameworkVersion);
+        }
+
+        /// <summary>
+        /// Creates a package with the license expression.
+        /// </summary>
+        /// <returns></returns>
+        public async Task<string> CreatePackageWithLicenseExpression(string packageName, string packageVersion, string licenseUrl, string licenseExpression)
+        {
+            var nuspecHelper = new NuspecHelper(TestOutputHelper);
+            var nuspecFileFullPath = await nuspecHelper.CreateDefaultNuspecFile(packageName, packageVersion, licenseUrl: licenseUrl);
+            var nuspecDir = Path.GetDirectoryName(nuspecFileFullPath);
+
+            var nupkgFileFullPath = await CreatePackageInternal(nuspecFileFullPath);
+            var nuspecFileName = packageName + ".nuspec";
+
+            NuspecHelper.AddLicenseExpression(nuspecFileFullPath, licenseExpression);
+            ReplaceNuspecFileInNupkg(nupkgFileFullPath, nuspecFileFullPath, nuspecFileName);
+
+            return nupkgFileFullPath;
+        }
+        
+        /// <summary>
+        /// Creates a package with the license file.
+        /// </summary>
+        /// <returns></returns>
+        public async Task<string> CreatePackageWithLicenseFile(string packageName, string packageVersion, string licenseUrl, string licenseFile, string licenseFileName, string licenseFileContents)
+        {
+            var nuspecHelper = new NuspecHelper(TestOutputHelper);
+            var nuspecFileFullPath = await nuspecHelper.CreateDefaultNuspecFile(packageName, packageVersion, licenseUrl: licenseUrl);
+            var nuspecDir = Path.GetDirectoryName(nuspecFileFullPath);
+
+            var licenseFilePath = GetFilePath(nuspecDir, licenseFileName);
+            AddFile(licenseFilePath, licenseFileContents);
+
+            var nupkgFileFullPath = await CreatePackageInternal(nuspecFileFullPath);
+            var nuspecFileName = packageName + ".nuspec";
+
+            NuspecHelper.AddLicenseFile(nuspecFileFullPath, licenseFile);
+            ReplaceNuspecFileInNupkg(nupkgFileFullPath, nuspecFileFullPath, nuspecFileName);
+
+            return nupkgFileFullPath;
         }
         
         /// <summary>
@@ -170,13 +198,13 @@ namespace NuGetGallery.FunctionalTests
 
             return filePath;
         }
-
+        
         /// <summary>
         /// Adds the file in the filePath location.
         /// </summary>
         /// <param name="filePath"></param>
         /// <param name="fileContents"></param>
-        internal static void AddTextFile(string filePath, string fileContents)
+        internal static void AddFile(string filePath, string fileContents)
         {
             using (var streamWriter = new StreamWriter(filePath))
             {
@@ -186,16 +214,21 @@ namespace NuGetGallery.FunctionalTests
         }
         
         /// <summary>
-        /// Adds the binaryfile in the filePath location.
+        /// Replace the nuspec file in nupkg.
         /// </summary>
-        /// <param name="filePath"></param>
-        /// <param name="fileContents"></param>
-        internal static void AddBinaryFile(string filePath, byte[] fileContents)
+        /// <param name="nupkgFileFullPath"></param>
+        /// <param name="nuspecFileFullPath"></param>
+        /// <param name="nuspecFileName"></param>
+        internal static void ReplaceNuspecFileInNupkg(string nupkgFileFullPath, string nuspecFileFullPath, string nuspecFileName)
         {
-            using (var fileStream = File.Open(filePath, FileMode.OpenOrCreate))
+            using (var packageArchive = ZipFile.Open(nupkgFileFullPath, ZipArchiveMode.Update))
             {
-                fileStream.Write(fileContents, 0, fileContents.Length);
-                fileStream.Close();
+                var nuspecEntry = packageArchive.GetEntry(nuspecFileName);
+                if (nuspecEntry != null)
+                {
+                    nuspecEntry.Delete();
+                }
+                packageArchive.CreateEntryFromFile(nuspecFileFullPath, nuspecFileName);
             }
         }
 
@@ -223,54 +256,6 @@ namespace NuGetGallery.FunctionalTests
 
             string[] nupkgFiles = Directory.GetFiles(nuspecDir, "*.nupkg").ToArray();
             return nupkgFiles.Length == 0 ? null : nupkgFiles[0];
-        }
-
-        public async Task<string> CreatePackageWithLicenseInternal(string nuspecFileFullPath, string packageName, string licenseExpression = null, string licenseFile = null,
-                                                                   string licenseFileName = null, string licenseFileContents = null, byte[] licenseBinaryFileContents = null)
-        {
-            var nuspecDir = Path.GetDirectoryName(nuspecFileFullPath);
-
-            if (licenseFileName != null && (licenseFileContents != null || licenseBinaryFileContents != null))
-            {
-                var licenseFilePath = GetFilePath(nuspecDir, licenseFileName);
-
-                if (licenseFileContents != null)
-                {
-                    AddTextFile(licenseFilePath, licenseFileContents);
-                }
-                if (licenseBinaryFileContents != null)
-                {
-                    AddBinaryFile(licenseFilePath, licenseBinaryFileContents);
-                }
-            }
-
-            var nupkgFileFullPath = await CreatePackageInternal(nuspecFileFullPath);
-            var nuspecFileName = packageName + ".nuspec";
-
-            // Update nuspec with license expression/file.
-            if (licenseExpression != null || licenseFile != null)
-            {
-                if (licenseExpression != null)
-                {
-                    NuspecHelper.AddLicenseExpression(nuspecFileFullPath, licenseExpression);
-                }
-                if (licenseFile != null)
-                {
-                    NuspecHelper.AddLicenseFile(nuspecFileFullPath, licenseFile);
-                }
-
-                using (var packageArchive = ZipFile.Open(nupkgFileFullPath, ZipArchiveMode.Update))
-                {
-                    var nuspecEntry = packageArchive.GetEntry(nuspecFileName);
-                    if (nuspecEntry != null)
-                    {
-                        nuspecEntry.Delete();
-                    }
-                    packageArchive.CreateEntryFromFile(nuspecFileFullPath, nuspecFileName);
-                }
-            }
-
-            return nupkgFileFullPath;
         }
 
         private static void WeaponizePackage(string packageFullPath)
