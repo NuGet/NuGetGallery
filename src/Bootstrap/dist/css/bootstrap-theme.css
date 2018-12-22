@@ -534,9 +534,12 @@ img.reserved-indicator-icon {
   margin-top: 75px;
   margin-bottom: 0;
 }
-.user-package-list .manage-package-listing .package-icon {
+.user-package-list .manage-package-listing .package-icon-container {
+  width: 2em;
+  height: 2em;
+}
+.user-package-list .manage-package-listing .package-icon-container .package-icon {
   min-width: 20px;
-  max-height: 2em;
 }
 .user-package-list .manage-package-listing .reserved-indicator-icon {
   min-width: 20px;

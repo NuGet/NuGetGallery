@@ -1,6 +1,8 @@
 ﻿(function () {
     'use strict';
 
+    ko.options.deferUpdates = true;
+
     function showInitialPackagesData(dataSelector, packagesList) {
         var downloadsCount = 0;
         $.each(packagesList, function () { downloadsCount += this.TotalDownloadCount; });

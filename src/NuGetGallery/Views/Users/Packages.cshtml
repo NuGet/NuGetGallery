@@ -127,8 +127,10 @@
                 <tbody data-bind="foreach: Packages">
                     <tr class="manage-package-listing" data-bind="visible: Visible">
                         <td class="align-middle hidden-xs">
-                            <img class="package-icon img-responsive" aria-hidden="true"
-                                 data-bind="attr: { src: PackageIconUrl, onerror: PackageIconUrlFallback, alt: 'Icon for ' + Id }" />
+                            <div class="package-icon-container">
+                                <img class="package-icon img-responsive" aria-hidden="true"
+                                     data-bind="attr: { src: PackageIconUrl, onerror: PackageIconUrlFallback, alt: 'Icon for ' + Id }" />
+                            </div>
                         </td>
                         <td class="align-middle package-id text-nowrap">
                             <a title="View Package" data-bind="attr: { href: PackageUrl }">
@@ -266,8 +268,10 @@
                 <tbody data-bind="foreach: Requests">
                     <tr class="manage-package-listing" data-bind="visible: Visible">
                         <td class="align-middle hidden-xs">
-                            <img class="package-icon img-responsive" aria-hidden="true"
-                                 data-bind="attr: { src: PackageIconUrl, onerror: PackageIconUrlFallback, alt: 'Icon for ' + Id }" />
+                            <div class="package-icon-container">
+                                <img class="package-icon img-responsive" aria-hidden="true"
+                                     data-bind="attr: { src: PackageIconUrl, onerror: PackageIconUrlFallback, alt: 'Icon for ' + Id }" />
+                            </div>
                         </td>
                         <td class="align-middle package-id">
                             <a title="View Package" data-bind="attr: { href: PackageUrl }">
