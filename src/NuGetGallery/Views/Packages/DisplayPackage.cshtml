@@ -155,9 +155,9 @@
     </div>
 }
 
-@helper MakeLicenseLink(CompositeLicenseExpressionSegment segment) {<a href="@segment.Value">@segment.Value</a>}
+@* The following two helpers must be on a single line each so no extra whitespace is introduced in the expression when rendered. *@
+@helper MakeLicenseLink(CompositeLicenseExpressionSegment segment) {<a href="@LicenseExpressionRedirectUrlHelper.GetLicenseExpressionRedirectUrl(segment.Value)">@segment.Value</a>}
 @helper MakeLicenseSpan(CompositeLicenseExpressionSegment segment) {<span>@segment.Value</span>}
-
 
 <section role="main" class="container main-container page-package-details">
     <div class="row">
