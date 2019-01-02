@@ -124,7 +124,7 @@ namespace NuGet.Services.AzureSearch
             [Fact]
             public async Task SetsExpectedProperties()
             {
-                var document = _target.Keyed(Data.PackageId, _searchFilters);
+                var document = _target.Keyed(Data.PackageId, Data.SearchFilters);
 
                 var json = await SerializationUtilities.SerializeToJsonAsync(document);
                 Assert.Equal(@"{
@@ -153,10 +153,10 @@ namespace NuGet.Services.AzureSearch
             {
                 var document = _target.UpdateVersionListFromCatalog(
                     Data.PackageId,
-                    _searchFilters,
+                    Data.SearchFilters,
                     Data.CommitTimestamp,
                     Data.CommitId,
-                    _versions,
+                    Data.Versions,
                     isLatestStable,
                     isLatest);
 
@@ -200,8 +200,8 @@ namespace NuGet.Services.AzureSearch
                 leaf.Title = title;
 
                 var document = _target.UpdateLatestFromCatalog(
-                    _searchFilters,
-                    _versions,
+                    Data.SearchFilters,
+                    Data.Versions,
                     isLatestStable: false,
                     isLatest: true,
                     normalizedVersion: Data.NormalizedVersion,
@@ -217,7 +217,7 @@ namespace NuGet.Services.AzureSearch
             {
                 var document = _target.UpdateLatestFromCatalog(
                     searchFilters,
-                    _versions,
+                    Data.Versions,
                     isLatestStable: false,
                     isLatest: true,
                     normalizedVersion: Data.NormalizedVersion,
@@ -294,8 +294,8 @@ namespace NuGet.Services.AzureSearch
                 leaf.RequireLicenseAgreement = null;                
 
                 var document = _target.UpdateLatestFromCatalog(
-                    _searchFilters,
-                    _versions,
+                    Data.SearchFilters,
+                    Data.Versions,
                     isLatestStable: false,
                     isLatest: true,
                     normalizedVersion: Data.NormalizedVersion,
@@ -320,14 +320,14 @@ namespace NuGet.Services.AzureSearch
 
                 var document = _target.FullFromDb(
                     Data.PackageId,
-                    _searchFilters,
-                    _versions,
+                    Data.SearchFilters,
+                    Data.Versions,
                     isLatestStable: false,
                     isLatest: true,
                     fullVersion: Data.FullVersion,
                     package: package,
-                    owners: _owners,
-                    totalDownloadCount: _totalDownloadCount);
+                    owners: Data.Owners,
+                    totalDownloadCount: Data.TotalDownloadCount);
 
                 Assert.Equal("some title", document.SortableTitle);
             }
@@ -341,14 +341,14 @@ namespace NuGet.Services.AzureSearch
 
                 var document = _target.FullFromDb(
                     Data.PackageId,
-                    _searchFilters,
-                    _versions,
+                    Data.SearchFilters,
+                    Data.Versions,
                     isLatestStable: false,
                     isLatest: true,
                     fullVersion: Data.FullVersion,
                     package: package,
-                    owners: _owners,
-                    totalDownloadCount: _totalDownloadCount);
+                    owners: Data.Owners,
+                    totalDownloadCount: Data.TotalDownloadCount);
 
                 Assert.Equal(Data.PackageId.ToLowerInvariant(), document.SortableTitle);
             }
@@ -361,14 +361,14 @@ namespace NuGet.Services.AzureSearch
 
                 var document = _target.FullFromDb(
                     Data.PackageId,
-                    _searchFilters,
-                    _versions,
+                    Data.SearchFilters,
+                    Data.Versions,
                     isLatestStable: false,
                     isLatest: true,
                     fullVersion: Data.FullVersion,
                     package: package,
-                    owners: _owners,
-                    totalDownloadCount: _totalDownloadCount);
+                    owners: Data.Owners,
+                    totalDownloadCount: Data.TotalDownloadCount);
 
                 var json = await SerializationUtilities.SerializeToJsonAsync(document);
                 Assert.Contains("\"semVerLevel\": null,", json);
@@ -381,13 +381,13 @@ namespace NuGet.Services.AzureSearch
                 var document = _target.FullFromDb(
                     Data.PackageId,
                     searchFilters,
-                    _versions,
+                    Data.Versions,
                     isLatestStable: false,
                     isLatest: true,
                     fullVersion: Data.FullVersion,
                     package: Data.PackageEntity,
-                    owners: _owners,
-                    totalDownloadCount: _totalDownloadCount);
+                    owners: Data.Owners,
+                    totalDownloadCount: Data.TotalDownloadCount);
 
                 SetDocumentLastUpdated(document);
                 var json = await SerializationUtilities.SerializeToJsonAsync(document);
@@ -464,14 +464,14 @@ namespace NuGet.Services.AzureSearch
                 package.Tags = "foo; BAR |     Baz";
                 var document = _target.FullFromDb(
                     Data.PackageId,
-                    _searchFilters,
-                    _versions,
+                    Data.SearchFilters,
+                    Data.Versions,
                     isLatestStable: false,
                     isLatest: true,
                     fullVersion: Data.FullVersion,
                     package: package,
-                    owners: _owners,
-                    totalDownloadCount: _totalDownloadCount);
+                    owners: Data.Owners,
+                    totalDownloadCount: Data.TotalDownloadCount);
 
                 Assert.Equal(new[] { "foo", "BAR", "Baz" }, document.Tags);
             }
@@ -480,10 +480,6 @@ namespace NuGet.Services.AzureSearch
         public abstract class BaseFacts
         {
             protected readonly ITestOutputHelper _output;
-            protected readonly SearchFilters _searchFilters;
-            protected readonly string[] _versions;
-            protected readonly string[] _owners;
-            protected readonly int _totalDownloadCount;
             protected readonly SearchDocumentBuilder _target;
 
             public static IEnumerable<object[]> MissingTitles = new[]
@@ -520,10 +516,6 @@ namespace NuGet.Services.AzureSearch
             public BaseFacts(ITestOutputHelper output)
             {
                 _output = output;
-                _searchFilters = SearchFilters.IncludePrereleaseAndSemVer2;
-                _versions = new[] { "1.0.0", "2.0.0+git", "3.0.0-alpha.1", Data.FullVersion };
-                _owners = new[] { "Microsoft", "azure-sdk" };
-                _totalDownloadCount = 1001;
 
                 _target = new SearchDocumentBuilder();
             }

@@ -14,6 +14,7 @@ namespace NuGet.Services.AzureSearch.SearchService
         public string SearchText { get; set; }
         public object DocumentSearchResult { get; set; }
         public TimeSpan QueryDuration { get; set; }
+        public AuxiliaryFilesMetadata AuxiliaryFilesMetadata { get; set; }
 
         public static DebugInformation CreateOrNull<T>(
             SearchRequest request,
@@ -21,7 +22,8 @@ namespace NuGet.Services.AzureSearch.SearchService
             SearchParameters parameters,
             string text,
             DocumentSearchResult<T> result,
-            TimeSpan duration) where T : class
+            TimeSpan duration,
+            AuxiliaryFilesMetadata auxiliaryFilesMetadata) where T : class
         {
             if (!request.ShowDebug)
             {
@@ -36,6 +38,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                 IndexName = indexName,
                 DocumentSearchResult = result,
                 QueryDuration = duration,
+                AuxiliaryFilesMetadata = auxiliaryFilesMetadata,
             };
         }
     }

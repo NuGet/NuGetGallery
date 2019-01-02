@@ -50,7 +50,7 @@ namespace NuGet.Services.AzureSearch
                     Data.NormalizedVersion,
                     Data.CommitTimestamp,
                     Data.CommitId,
-                    _changes);
+                    Data.HijackDocumentChanges);
 
                 SetDocumentLastUpdated(document);
                 var json = await SerializationUtilities.SerializeToJsonAsync(document);
@@ -86,7 +86,7 @@ namespace NuGet.Services.AzureSearch
                 var package = Data.PackageEntity;
                 package.Tags = null;
 
-                var document = _target.FullFromDb(Data.PackageId, _changes, package);
+                var document = _target.FullFromDb(Data.PackageId, Data.HijackDocumentChanges, package);
 
                 Assert.Null(document.Tags);
             }
@@ -97,7 +97,7 @@ namespace NuGet.Services.AzureSearch
                 var package = Data.PackageEntity;
                 package.SemVerLevelKey = SemVerLevelKey.Unknown;
 
-                var document = _target.FullFromDb(Data.PackageId, _changes, package);
+                var document = _target.FullFromDb(Data.PackageId, Data.HijackDocumentChanges, package);
 
                 var json = await SerializationUtilities.SerializeToJsonAsync(document);
                 Assert.Contains("\"semVerLevel\": null,", json);
@@ -106,7 +106,7 @@ namespace NuGet.Services.AzureSearch
             [Fact]
             public async Task SetsExpectedProperties()
             {
-                var document = _target.FullFromDb(Data.PackageId, _changes, Data.PackageEntity);
+                var document = _target.FullFromDb(Data.PackageId, Data.HijackDocumentChanges, Data.PackageEntity);
 
                 SetDocumentLastUpdated(document);
                 var json = await SerializationUtilities.SerializeToJsonAsync(document);
@@ -173,7 +173,7 @@ namespace NuGet.Services.AzureSearch
                 var package = Data.PackageEntity;
                 package.Title = title;
 
-                var document = _target.FullFromDb(Data.PackageId, _changes, package);
+                var document = _target.FullFromDb(Data.PackageId, Data.HijackDocumentChanges, package);
 
                 Assert.Equal(Data.PackageId.ToLowerInvariant(), document.SortableTitle);
             }
@@ -184,7 +184,7 @@ namespace NuGet.Services.AzureSearch
                 var package = Data.PackageEntity;
                 package.Listed = false;
 
-                var document = _target.FullFromDb(Data.PackageId, _changes, package);
+                var document = _target.FullFromDb(Data.PackageId, Data.HijackDocumentChanges, package);
 
                 Assert.Equal(DateTimeOffset.Parse("1900-01-01Z"), document.Published);
             }
@@ -195,7 +195,7 @@ namespace NuGet.Services.AzureSearch
                 var package = Data.PackageEntity;
                 package.Tags = "foo; BAR |     Baz";
 
-                var document = _target.FullFromDb(Data.PackageId, _changes, package);
+                var document = _target.FullFromDb(Data.PackageId, Data.HijackDocumentChanges, package);
 
                 Assert.Equal(new[] { "foo", "BAR", "Baz" }, document.Tags);
             }
@@ -208,7 +208,7 @@ namespace NuGet.Services.AzureSearch
                 var package = Data.PackageEntity;
                 package.SemVerLevelKey = semVerLevelKey;
 
-                var document = _target.FullFromDb(Data.PackageId, _changes, package);
+                var document = _target.FullFromDb(Data.PackageId, Data.HijackDocumentChanges, package);
 
                 Assert.Equal(semVerLevelKey, document.SemVerLevel);
             }
@@ -224,7 +224,7 @@ namespace NuGet.Services.AzureSearch
                 package.Version = "2.0.0-alpha";
                 package.NormalizedVersion = "2.0.0-alpha";
 
-                var document = _target.FullFromDb(Data.PackageId, _changes, package);
+                var document = _target.FullFromDb(Data.PackageId, Data.HijackDocumentChanges, package);
 
                 Assert.False(document.Prerelease);
             }
@@ -239,7 +239,7 @@ namespace NuGet.Services.AzureSearch
             [Fact]
             public async Task SetsExpectedProperties()
             {
-                var document = _target.FullFromCatalog(Data.NormalizedVersion, _changes, Data.Leaf);
+                var document = _target.FullFromCatalog(Data.NormalizedVersion, Data.HijackDocumentChanges, Data.Leaf);
 
                 SetDocumentLastUpdated(document);
                 var json = await SerializationUtilities.SerializeToJsonAsync(document);
@@ -306,7 +306,7 @@ namespace NuGet.Services.AzureSearch
                 leaf.Listed = null;
                 leaf.Published = DateTimeOffset.Parse("1900-01-01Z");
 
-                var document = _target.FullFromCatalog(Data.NormalizedVersion, _changes, leaf);
+                var document = _target.FullFromCatalog(Data.NormalizedVersion, Data.HijackDocumentChanges, leaf);
 
                 Assert.False(document.Listed);
             }
@@ -318,7 +318,7 @@ namespace NuGet.Services.AzureSearch
                 var leaf = Data.Leaf;
                 leaf.Title = title;
 
-                var document = _target.FullFromCatalog(Data.NormalizedVersion, _changes, leaf);
+                var document = _target.FullFromCatalog(Data.NormalizedVersion, Data.HijackDocumentChanges, leaf);
 
                 Assert.Equal(Data.PackageId.ToLowerInvariant(), document.SortableTitle);
             }
@@ -329,7 +329,7 @@ namespace NuGet.Services.AzureSearch
                 var leaf = Data.Leaf;
                 leaf.RequireLicenseAgreement = null;
 
-                var document = _target.FullFromCatalog(Data.NormalizedVersion, _changes, leaf);
+                var document = _target.FullFromCatalog(Data.NormalizedVersion, Data.HijackDocumentChanges, leaf);
 
                 Assert.Null(document.RequiresLicenseAcceptance);
             }
@@ -340,7 +340,7 @@ namespace NuGet.Services.AzureSearch
                 var leaf = Data.Leaf;
                 leaf.VerbatimVersion = null;
 
-                var document = _target.FullFromCatalog(Data.NormalizedVersion, _changes, leaf);
+                var document = _target.FullFromCatalog(Data.NormalizedVersion, Data.HijackDocumentChanges, leaf);
 
                 Assert.Null(document.OriginalVersion);
             }
@@ -349,9 +349,7 @@ namespace NuGet.Services.AzureSearch
         public abstract class BaseFacts
         {
             protected readonly ITestOutputHelper _output;
-            protected readonly HijackDocumentChanges _changes;
             protected readonly HijackDocumentBuilder _target;
-
 
             public static IEnumerable<object[]> MissingTitles = new[]
             {
@@ -369,13 +367,6 @@ namespace NuGet.Services.AzureSearch
             public BaseFacts(ITestOutputHelper output)
             {
                 _output = output;
-                _changes = new HijackDocumentChanges(
-                    delete: false,
-                    updateMetadata: true,
-                    latestStableSemVer1: false,
-                    latestSemVer1: true,
-                    latestStableSemVer2: false,
-                    latestSemVer2: true);
 
                 _target = new HijackDocumentBuilder();
             }

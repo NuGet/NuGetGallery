@@ -109,6 +109,7 @@
     <Compile Include="SearchService\IAuxiliaryData.cs" />
     <Compile Include="SearchService\IndexFields.cs" />
     <Compile Include="SearchService\ISearchParametersBuilder.cs" />
+    <Compile Include="SearchService\ISearchResponseBuilder.cs" />
     <Compile Include="SearchService\Models\DebugInformation.cs" />
     <Compile Include="SearchService\Models\SearchRequest.cs" />
     <Compile Include="SearchService\Models\V2SearchDependency.cs" />
@@ -123,6 +124,7 @@
     <Compile Include="SearchService\Models\V3SearchVersion.cs" />
     <Compile Include="SearchService\SearchParametersBuilder.cs" />
     <Compile Include="SearchService\Models\V2SortBy.cs" />
+    <Compile Include="SearchService\SearchResponseBuilder.cs" />
     <Compile Include="VersionList\Guard.cs" />
     <Compile Include="VersionList\HijackIndexChange.cs" />
     <Compile Include="VersionList\HijackIndexChangeType.cs" />

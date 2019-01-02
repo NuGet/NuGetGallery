@@ -64,6 +64,7 @@
     <Compile Include="SearchService\AuxiliaryFileClientFacts.cs" />
     <Compile Include="SearchService\AuxiliaryFileReloaderFacts.cs" />
     <Compile Include="SearchService\SearchParametersBuilderFacts.cs" />
+    <Compile Include="SearchService\SearchResponseBuilderFacts.cs" />
     <Compile Include="Support\Cursor.cs" />
     <Compile Include="Support\Data.cs" />
     <Compile Include="Support\SerializationUtilities.cs" />

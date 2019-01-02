@@ -58,6 +58,48 @@ namespace NuGet.Services.AzureSearch.Support
             Version = "7.1.2.0-alpha+git",
         };
 
+        public static string[] Versions => new[]
+        {
+            "1.0.0",
+            "2.0.0+git",
+            "3.0.0-alpha.1",
+            FullVersion
+        };
+
+        public static string[] Owners => new[]
+        {
+            "Microsoft",
+            "azure-sdk",
+        };
+
+        public const int TotalDownloadCount = 1001;
+
+        public static readonly SearchFilters SearchFilters = SearchFilters.IncludePrereleaseAndSemVer2;
+
+        public static SearchDocument.Full SearchDocument => new SearchDocumentBuilder().FullFromDb(
+            PackageId,
+            SearchFilters.IncludePrereleaseAndSemVer2,
+            Versions,
+            isLatestStable: false,
+            isLatest: true,
+            fullVersion: FullVersion,
+            package: PackageEntity,
+            owners: Owners,
+            totalDownloadCount: TotalDownloadCount);
+
+        public static HijackDocumentChanges HijackDocumentChanges => new HijackDocumentChanges(
+            delete: false,
+            updateMetadata: true,
+            latestStableSemVer1: false,
+            latestSemVer1: true,
+            latestStableSemVer2: false,
+            latestSemVer2: true);
+
+        public static HijackDocument.Full HijackDocument => new HijackDocumentBuilder().FullFromDb(
+            PackageId,
+            HijackDocumentChanges,
+            PackageEntity);
+
         public static PackageDetailsCatalogLeaf Leaf => new PackageDetailsCatalogLeaf
         {
             Authors = "Microsoft",
