@@ -3,6 +3,8 @@
 
 using System;
 using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Web.Hosting;
 using System.Web.Http;
 using System.Web.Http.Dependencies;
@@ -14,7 +16,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using NuGet.Services.AzureSearch;
+using NuGet.Services.AzureSearch.SearchService;
 using NuGet.Services.Configuration;
 using NuGet.Services.KeyVault;
 using NuGet.Services.SearchService.Controllers;
@@ -23,6 +27,7 @@ namespace NuGet.Services.SearchService
 {
     public static class WebApiConfig
     {
+        private const string ControllerSuffix = "Controller";
         private const string ConfigurationSectionName = "SearchService";
         private static readonly TimeSpan KeyVaultSecretCachingTimeout = TimeSpan.FromDays(1);
 
@@ -30,8 +35,10 @@ namespace NuGet.Services.SearchService
         {
             config.Formatters.Remove(config.Formatters.XmlFormatter);
             config.Formatters.JsonFormatter.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
+            config.Formatters.JsonFormatter.SerializerSettings.Converters.Add(new StringEnumConverter());
 
-            config.DependencyResolver = GetDependencyResolver(config);
+            var dependencyResolver = GetDependencyResolver(config);
+            config.DependencyResolver = dependencyResolver;
 
             config.MapHttpAttributeRoutes();
 
@@ -40,11 +47,28 @@ namespace NuGet.Services.SearchService
                 routeTemplate: "search/query",
                 defaults: new
                 {
-                    controller = "Search",
+                    controller = GetControllerName<SearchController>(),
                     action = nameof(SearchController.V2SearchAsync),
                 });
 
+            config.Routes.MapHttpRoute(
+                name: "V3Search",
+                routeTemplate: "query",
+                defaults: new
+                {
+                    controller = GetControllerName<SearchController>(),
+                    action = nameof(SearchController.V3SearchAsync),
+                });
+
             config.EnsureInitialized();
+
+            HostingEnvironment.QueueBackgroundWorkItem(token => ReloadAuxiliaryFilesAsync(dependencyResolver, token));
+        }
+
+        private static async Task ReloadAuxiliaryFilesAsync(IDependencyResolver dependencyResolver, CancellationToken token)
+        {
+            var loader = (IAuxiliaryFileReloader)dependencyResolver.GetService(typeof(IAuxiliaryFileReloader));
+            await loader.ReloadContinuouslyAsync(token);
         }
 
         private static IDependencyResolver GetDependencyResolver(HttpConfiguration config)
@@ -55,6 +79,7 @@ namespace NuGet.Services.SearchService
             services.AddSingleton(secretInjector);
             services.Add(ServiceDescriptor.Scoped(typeof(IOptionsSnapshot<>), typeof(NonCachingOptionsSnapshot<>)));
             services.Configure<AzureSearchConfiguration>(configurationRoot.GetSection(ConfigurationSectionName));
+            services.Configure<SearchServiceConfiguration>(configurationRoot.GetSection(ConfigurationSectionName));
             services.AddLogging();
             services.AddAzureSearch();
 
@@ -88,6 +113,17 @@ namespace NuGet.Services.SearchService
                 .AddInjectedJsonFile(configurationFilename, secretInjector);
 
             return builder.Build();
+        }
+
+        private static string GetControllerName<T>() where T : ApiController
+        {
+            var typeName = typeof(T).Name;
+            if (typeName.EndsWith(ControllerSuffix, StringComparison.Ordinal))
+            {
+                return typeName.Substring(0, typeName.Length - ControllerSuffix.Length);
+            }
+
+            throw new ArgumentException($"The controller type name must end with '{ControllerSuffix}'.");
         }
     }
 }

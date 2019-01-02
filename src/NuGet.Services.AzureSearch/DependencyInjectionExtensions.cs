@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Net;
 using System.Net.Http;
 using Autofac;
@@ -14,6 +15,7 @@ using NuGet.Protocol.Catalog;
 using NuGet.Protocol.Registration;
 using NuGet.Services.AzureSearch.Catalog2AzureSearch;
 using NuGet.Services.AzureSearch.Db2AzureSearch;
+using NuGet.Services.AzureSearch.SearchService;
 using NuGet.Services.AzureSearch.Wrappers;
 using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Persistence;
@@ -24,10 +26,21 @@ namespace NuGet.Services.AzureSearch
 {
     public static class DependencyInjectionExtensions
     {
-        private const string SearchIndexKey = "SearchIndex";
-        private const string HijackIndexKey = "HijackIndex";
-
         public static ContainerBuilder AddAzureSearch(this ContainerBuilder containerBuilder)
+        {
+            /// Here, we register services that depend on an interface that there are multiple implementations.
+            
+            /// There are multiple implementations of <see cref="ISearchServiceClientWrapper"/>.
+            RegisterIndexServices(containerBuilder, "SearchIndex", "HijackIndex");
+
+            /// There are multiple implementations of storage, in particulare <see cref="ICloudBlobClient"/>.
+            RegisterAzureSearchJobStorageServices(containerBuilder, "AzureSearchJobStorage");
+            RegisterAuxiliaryDataStorageServices(containerBuilder, "AuxiliaryDataStorage");
+
+            return containerBuilder;
+        }
+
+        private static void RegisterIndexServices(ContainerBuilder containerBuilder, string searchIndexKey, string hijackIndexKey)
         {
             containerBuilder
                 .Register(c =>
@@ -37,7 +50,7 @@ namespace NuGet.Services.AzureSearch
                     return serviceClient.Indexes.GetClient(options.Value.SearchIndexName);
                 })
                 .SingleInstance()
-                .Keyed<ISearchIndexClientWrapper>(SearchIndexKey);
+                .Keyed<ISearchIndexClientWrapper>(searchIndexKey);
 
             containerBuilder
                 .Register(c =>
@@ -47,80 +60,150 @@ namespace NuGet.Services.AzureSearch
                     return serviceClient.Indexes.GetClient(options.Value.HijackIndexName);
                 })
                 .SingleInstance()
-                .Keyed<ISearchIndexClientWrapper>(HijackIndexKey);
+                .Keyed<ISearchIndexClientWrapper>(hijackIndexKey);
 
             containerBuilder
                 .Register<IBatchPusher>(c => new BatchPusher(
-                    c.ResolveKeyed<ISearchIndexClientWrapper>(SearchIndexKey),
-                    c.ResolveKeyed<ISearchIndexClientWrapper>(HijackIndexKey),
+                    c.ResolveKeyed<ISearchIndexClientWrapper>(searchIndexKey),
+                    c.ResolveKeyed<ISearchIndexClientWrapper>(hijackIndexKey),
                     c.Resolve<IVersionListDataClient>(),
                     c.Resolve<IOptionsSnapshot<AzureSearchJobConfiguration>>(),
                     c.Resolve<ILogger<BatchPusher>>()));
 
-            return containerBuilder;
+            containerBuilder
+                .Register<ISearchService>(c => new AzureSearchService(
+                    c.Resolve<ISearchParametersBuilder>(),
+                    c.ResolveKeyed<ISearchIndexClientWrapper>(searchIndexKey),
+                    c.ResolveKeyed<ISearchIndexClientWrapper>(hijackIndexKey),
+                    c.Resolve<ISearchResponseBuilder>()));
+        }
+
+        private static void RegisterAzureSearchJobStorageServices(ContainerBuilder containerBuilder, string key)
+        {
+            containerBuilder
+                .Register<ICloudBlobClient>(c =>
+                {
+                    var options = c.Resolve<IOptionsSnapshot<AzureSearchJobConfiguration>>();
+                    return new CloudBlobClientWrapper(
+                        options.Value.StorageConnectionString,
+                        readAccessGeoRedundant: true);
+                })
+                .Keyed<ICloudBlobClient>(key);
+
+            containerBuilder
+                .Register<ICoreFileStorageService>(c => new CloudBlobCoreFileStorageService(
+                    c.ResolveKeyed<ICloudBlobClient>(key),
+                    c.Resolve<IDiagnosticsService>()))
+                .Keyed<ICoreFileStorageService>(key);
+
+            containerBuilder
+                .Register<IVersionListDataClient>(c => new VersionListDataClient(
+                    c.ResolveKeyed<ICoreFileStorageService>(key),
+                    c.Resolve<IOptionsSnapshot<AzureSearchJobConfiguration>>(),
+                    c.Resolve<ILogger<VersionListDataClient>>()));
+
+            containerBuilder
+                .Register(c =>
+                {
+                    var options = c.Resolve<IOptionsSnapshot<AzureSearchJobConfiguration>>();
+                    return CloudStorageAccount.Parse(options.Value.StorageConnectionString);
+                })
+                .Keyed<CloudStorageAccount>(key);
+
+            containerBuilder
+                .Register<IStorageFactory>(c =>
+                {
+                    var options = c.Resolve<IOptionsSnapshot<AzureSearchJobConfiguration>>();
+                    return new AzureStorageFactory(
+                        c.ResolveKeyed<CloudStorageAccount>(key),
+                        CoreConstants.Folders.ContentFolderName,
+                        maxExecutionTime: AzureStorage.DefaultMaxExecutionTime,
+                        serverTimeout: AzureStorage.DefaultServerTimeout,
+                        path: options.Value.NormalizeStoragePath(),
+                        baseAddress: null,
+                        useServerSideCopy: true,
+                        compressContent: false,
+                        verbose: true);
+                })
+                .Keyed<IStorageFactory>(key);
+
+            containerBuilder
+                .Register(c => new Catalog2AzureSearchCommand(
+                    c.Resolve<ICollector>(),
+                    c.ResolveKeyed<IStorageFactory>(key),
+                    c.Resolve<Func<HttpMessageHandler>>(),
+                    c.Resolve<IIndexBuilder>(),
+                    c.Resolve<IOptionsSnapshot<Catalog2AzureSearchConfiguration>>(),
+                    c.Resolve<ILogger<Catalog2AzureSearchCommand>>()));
+
+            containerBuilder
+                .Register(c => new Db2AzureSearchCommand(
+                    c.Resolve<INewPackageRegistrationProducer>(),
+                    c.Resolve<IPackageEntityIndexActionBuilder>(),
+                    c.Resolve<IIndexBuilder>(),
+                    c.Resolve<Func<IBatchPusher>>(),
+                    c.Resolve<ICatalogClient>(),
+                    c.ResolveKeyed<IStorageFactory>(key),
+                    c.Resolve<IOptionsSnapshot<Db2AzureSearchConfiguration>>(),
+                    c.Resolve<ILogger<Db2AzureSearchCommand>>()));
+        }
+
+        private static void RegisterAuxiliaryDataStorageServices(ContainerBuilder containerBuilder, string key)
+        {
+            containerBuilder
+                .Register<ICloudBlobClient>(c =>
+                {
+                    var options = c.Resolve<IOptionsSnapshot<SearchServiceConfiguration>>();
+                    return new CloudBlobClientWrapper(
+                        options.Value.AuxiliaryDataStorageConnectionString,
+                        readAccessGeoRedundant: true);
+                })
+                .Keyed<ICloudBlobClient>(key);
+
+            containerBuilder
+                .Register<IAuxiliaryFileClient>(c => new AuxiliaryFileClient(
+                    c.ResolveKeyed<ICloudBlobClient>(key),
+                    c.Resolve<IOptionsSnapshot<SearchServiceConfiguration>>(),
+                    c.Resolve<ILogger<AuxiliaryFileClient>>()));
         }
 
         public static IServiceCollection AddAzureSearch(this IServiceCollection services)
         {
-            services.AddTransient(p => new HttpClientHandler
-            {
-                AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
-            });
+            services
+                .AddTransient(p => new HttpClientHandler
+                {
+                    AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
+                });
 
-            services.AddTransient(p => (HttpMessageHandler)new TelemetryHandler(
-                p.GetRequiredService<ITelemetryService>(),
-                p.GetRequiredService<HttpClientHandler>()));
+            services
+                .AddTransient(p => (HttpMessageHandler)new TelemetryHandler(
+                    p.GetRequiredService<ITelemetryService>(),
+                    p.GetRequiredService<HttpClientHandler>()));
 
-            services.AddSingleton(p => new HttpClient(
-                p.GetRequiredService<HttpMessageHandler>()));
+            services.AddSingleton(p => new HttpClient(p.GetRequiredService<HttpMessageHandler>()));
 
-            services.AddTransient(p =>
-            {
-                var options = p.GetRequiredService<IOptionsSnapshot<AzureSearchJobConfiguration>>();
-                return CloudStorageAccount.Parse(options.Value.StorageConnectionString);
-            });
+            services
+                .AddTransient<ISearchServiceClient>(p =>
+                {
+                    var options = p.GetRequiredService<IOptionsSnapshot<AzureSearchConfiguration>>();
+                    return new SearchServiceClient(
+                        options.Value.SearchServiceName,
+                        new SearchCredentials(options.Value.SearchServiceApiKey));
+                });
 
-            services.AddTransient(p =>
-            {
-                var account = p.GetRequiredService<CloudStorageAccount>();
-                var options = p.GetRequiredService<IOptionsSnapshot<AzureSearchJobConfiguration>>();
-                return (IStorageFactory)new AzureStorageFactory(
-                    account,
-                    CoreConstants.Folders.ContentFolderName,
-                    maxExecutionTime: AzureStorage.DefaultMaxExecutionTime,
-                    serverTimeout: AzureStorage.DefaultServerTimeout,
-                    path: options.Value.NormalizeStoragePath(),
-                    baseAddress: null,
-                    useServerSideCopy: true,
-                    compressContent: false,
-                    verbose: true);
-            });
+            services
+                .AddTransient<ICatalogClient, CatalogClient>(p => new CatalogClient(
+                    p.GetRequiredService<ISimpleHttpClient>(),
+                    p.GetRequiredService<ILogger<CatalogClient>>()));
 
-            services.AddTransient<ISearchServiceClient>(p =>
-            {
-                var options = p.GetRequiredService<IOptionsSnapshot<AzureSearchConfiguration>>();
-                return new SearchServiceClient(
-                    options.Value.SearchServiceName,
-                    new SearchCredentials(options.Value.SearchServiceApiKey));
-            });
+            services.AddSingleton<IAuxiliaryDataCache, AuxiliaryDataCache>();
+            services.AddScoped(p => p.GetRequiredService<IAuxiliaryDataCache>().Get());
 
-            services.AddTransient<ICloudBlobClient, CloudBlobClientWrapper>(p =>
-            {
-                var options = p.GetRequiredService<IOptionsSnapshot<AzureSearchJobConfiguration>>();
-                return new CloudBlobClientWrapper(
-                    options.Value.StorageConnectionString,
-                    readAccessGeoRedundant: true);
-            });
-
-            services.AddTransient<ICatalogClient, CatalogClient>(p => new CatalogClient(
-                p.GetRequiredService<ISimpleHttpClient>(),
-                p.GetRequiredService<ILogger<CatalogClient>>()));
-
+            services.AddSingleton<IAuxiliaryFileReloader, AuxiliaryFileReloader>();
             services.AddTransient<ICatalogIndexActionBuilder, CatalogIndexActionBuilder>();
             services.AddTransient<ICatalogLeafFetcher, CatalogLeafFetcher>();
             services.AddTransient<ICollector, AzureSearchCollector>();
             services.AddTransient<ICommitCollectorLogic, AzureSearchCollectorLogic>();
-            services.AddTransient<ICoreFileStorageService, CloudBlobCoreFileStorageService>();
             services.AddTransient<IDiagnosticsService, LoggerDiagnosticsService>();
             services.AddTransient<IEntitiesContextFactory, EntitiesContextFactory>();
             services.AddTransient<IHijackDocumentBuilder, HijackDocumentBuilder>();
@@ -129,10 +212,11 @@ namespace NuGet.Services.AzureSearch
             services.AddTransient<IPackageEntityIndexActionBuilder, PackageEntityIndexActionBuilder>();
             services.AddTransient<IRegistrationClient, RegistrationClient>();
             services.AddTransient<ISearchDocumentBuilder, SearchDocumentBuilder>();
+            services.AddTransient<ISearchParametersBuilder, SearchParametersBuilder>();
+            services.AddTransient<ISearchResponseBuilder, SearchResponseBuilder>();
             services.AddTransient<ISearchServiceClientWrapper, SearchServiceClientWrapper>();
             services.AddTransient<ISimpleHttpClient, SimpleHttpClient>();
             services.AddTransient<ITelemetryService, TelemetryService>();
-            services.AddTransient<IVersionListDataClient, VersionListDataClient>();
 
             return services;
         }

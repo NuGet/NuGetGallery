@@ -37,7 +37,6 @@ namespace NuGet.Jobs
             services.Configure<Db2AzureSearchConfiguration>(configurationRoot.GetSection(ConfigurationSectionName));
             services.Configure<AzureSearchJobConfiguration>(configurationRoot.GetSection(ConfigurationSectionName));
             services.Configure<AzureSearchConfiguration>(configurationRoot.GetSection(ConfigurationSectionName));
-            services.AddTransient<Db2AzureSearchCommand>();
         }
     }
 }
