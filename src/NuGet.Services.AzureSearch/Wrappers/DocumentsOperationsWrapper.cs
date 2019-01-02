@@ -21,5 +21,10 @@ namespace NuGet.Services.AzureSearch.Wrappers
         {
             return await _inner.IndexAsync(batch);
         }
+
+        public async Task<DocumentSearchResult<T>> SearchAsync<T>(string searchText, SearchParameters searchParameters) where T : class
+        {
+            return await _inner.SearchAsync<T>(searchText, searchParameters);
+        }
     }
 }
