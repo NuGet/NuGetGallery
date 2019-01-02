@@ -1,0 +1,234 @@
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using Moq;
+using NuGet.Services.AzureSearch.SearchService;
+using Xunit;
+
+namespace NuGet.Services.SearchService.Controllers
+{
+    public class SearchControllerFacts
+    {
+        public class V2SearchAsync : BaseFacts
+        {
+            [Fact]
+            public async Task InitializesAuxiliaryDataCache()
+            {
+                await _target.V2SearchAsync();
+
+                _auxiliaryDataCache.Verify(x => x.InitializeAsync(), Times.Once);
+            }
+
+            [Fact]
+            public async Task HasDefaultParameters()
+            {
+                V2SearchRequest lastRequest = null;
+                _searchService
+                    .Setup(x => x.V2SearchAsync(It.IsAny<V2SearchRequest>()))
+                    .ReturnsAsync(() => _v2SearchResponse)
+                    .Callback<V2SearchRequest>(x => lastRequest = x);
+
+                await _target.V2SearchAsync();
+
+                _searchService.Verify(x => x.V2SearchAsync(It.IsAny<V2SearchRequest>()), Times.Once);
+                Assert.NotNull(lastRequest);
+                Assert.Equal(0, lastRequest.Skip);
+                Assert.Equal(20, lastRequest.Take);
+                Assert.False(lastRequest.IgnoreFilter);
+                Assert.False(lastRequest.CountOnly);
+                Assert.False(lastRequest.IncludePrerelease);
+                Assert.False(lastRequest.IncludeSemVer2);
+                Assert.Null(lastRequest.Query);
+                Assert.False(lastRequest.LuceneQuery);
+                Assert.False(lastRequest.ShowDebug);
+            }
+
+            [Fact]
+            public async Task UsesProvidedParameters()
+            {
+                V2SearchRequest lastRequest = null;
+                _searchService
+                    .Setup(x => x.V2SearchAsync(It.IsAny<V2SearchRequest>()))
+                    .ReturnsAsync(() => _v2SearchResponse)
+                    .Callback<V2SearchRequest>(x => lastRequest = x);
+
+                await _target.V2SearchAsync(
+                    skip: -20,
+                    take: 30000,
+                    ignoreFilter: true,
+                    countOnly: true,
+                    prerelease: true,
+                    semVerLevel: "2.0.0",
+                    q: "windows azure storage",
+                    sortBy: "lastEdited",
+                    luceneQuery: true,
+                    debug: true);
+
+                _searchService.Verify(x => x.V2SearchAsync(It.IsAny<V2SearchRequest>()), Times.Once);
+                Assert.NotNull(lastRequest);
+                Assert.Equal(-20, lastRequest.Skip);
+                Assert.Equal(30000, lastRequest.Take);
+                Assert.True(lastRequest.IgnoreFilter);
+                Assert.True(lastRequest.CountOnly);
+                Assert.True(lastRequest.IncludePrerelease);
+                Assert.True(lastRequest.IncludeSemVer2);
+                Assert.Equal("windows azure storage", lastRequest.Query);
+                Assert.True(lastRequest.LuceneQuery);
+                Assert.True(lastRequest.ShowDebug);
+            }
+
+            [Theory]
+            [InlineData("", V2SortBy.Popularity)]
+            [InlineData(null, V2SortBy.Popularity)]
+            [InlineData("  ", V2SortBy.Popularity)]
+            [InlineData("not-real", V2SortBy.Popularity)]
+            [InlineData("popularity", V2SortBy.Popularity)]
+            [InlineData("POPULARITY", V2SortBy.Popularity)]
+            [InlineData(" lastEdited ", V2SortBy.Popularity)]
+            [InlineData("lastEdited", V2SortBy.LastEditedDescending)]
+            [InlineData("LASTEDITED", V2SortBy.LastEditedDescending)]
+            [InlineData("published", V2SortBy.PublishedDescending)]
+            [InlineData("puBLISHed", V2SortBy.PublishedDescending)]
+            [InlineData("title-asc", V2SortBy.SortableTitleAsc)]
+            [InlineData("TITLE-asc", V2SortBy.SortableTitleAsc)]
+            [InlineData("title-desc", V2SortBy.SortableTitleDesc)]
+            [InlineData("title-DESC", V2SortBy.SortableTitleDesc)]
+            public async Task ParsesSortBy(string sortBy, V2SortBy expected)
+            {
+                await _target.V2SearchAsync(sortBy: sortBy);
+
+                _searchService.Verify(
+                    x => x.V2SearchAsync(It.Is<V2SearchRequest>(r => r.SortBy == expected)),
+                    Times.Once);
+            }
+
+            [Theory]
+            [MemberData(nameof(SemVerLevels))]
+            public async Task ParsesSemVerLevel(string semVerLevel, bool includeSemVer2)
+            {
+                await _target.V2SearchAsync(semVerLevel: semVerLevel);
+
+                _searchService.Verify(
+                    x => x.V2SearchAsync(It.Is<V2SearchRequest>(r => r.IncludeSemVer2 == includeSemVer2)),
+                    Times.Once);
+            }
+        }
+
+        public class V3SearchAsync : BaseFacts
+        {
+            [Fact]
+            public async Task InitializesAuxiliaryDataCache()
+            {
+                await _target.V3SearchAsync();
+
+                _auxiliaryDataCache.Verify(x => x.InitializeAsync(), Times.Once);
+            }
+
+            [Fact]
+            public async Task HasDefaultParameters()
+            {
+                V3SearchRequest lastRequest = null;
+                _searchService
+                    .Setup(x => x.V3SearchAsync(It.IsAny<V3SearchRequest>()))
+                    .ReturnsAsync(() => _v3SearchResponse)
+                    .Callback<V3SearchRequest>(x => lastRequest = x);
+
+                await _target.V3SearchAsync();
+
+                _searchService.Verify(x => x.V3SearchAsync(It.IsAny<V3SearchRequest>()), Times.Once);
+                Assert.NotNull(lastRequest);
+                Assert.Equal(0, lastRequest.Skip);
+                Assert.Equal(20, lastRequest.Take);
+                Assert.False(lastRequest.IncludePrerelease);
+                Assert.False(lastRequest.IncludeSemVer2);
+                Assert.Null(lastRequest.Query);
+                Assert.False(lastRequest.ShowDebug);
+            }
+
+            [Fact]
+            public async Task UsesProvidedParameters()
+            {
+                V3SearchRequest lastRequest = null;
+                _searchService
+                    .Setup(x => x.V3SearchAsync(It.IsAny<V3SearchRequest>()))
+                    .ReturnsAsync(() => _v3SearchResponse)
+                    .Callback<V3SearchRequest>(x => lastRequest = x);
+
+                await _target.V3SearchAsync(
+                    skip: -20,
+                    take: 30000,
+                    prerelease: true,
+                    semVerLevel: "2.0.0",
+                    q: "windows azure storage",
+                    debug: true);
+
+                _searchService.Verify(x => x.V3SearchAsync(It.IsAny<V3SearchRequest>()), Times.Once);
+                Assert.NotNull(lastRequest);
+                Assert.Equal(-20, lastRequest.Skip);
+                Assert.Equal(30000, lastRequest.Take);
+                Assert.True(lastRequest.IncludePrerelease);
+                Assert.True(lastRequest.IncludeSemVer2);
+                Assert.Equal("windows azure storage", lastRequest.Query);
+                Assert.True(lastRequest.ShowDebug);
+            }
+
+            [Theory]
+            [MemberData(nameof(SemVerLevels))]
+            public async Task ParsesSemVerLevel(string semVerLevel, bool includeSemVer2)
+            {
+                await _target.V3SearchAsync(semVerLevel: semVerLevel);
+
+                _searchService.Verify(
+                    x => x.V3SearchAsync(It.Is<V3SearchRequest>(r => r.IncludeSemVer2 == includeSemVer2)),
+                    Times.Once);
+            }
+        }
+
+        public abstract class BaseFacts
+        {
+            protected readonly Mock<IAuxiliaryDataCache> _auxiliaryDataCache;
+            protected readonly Mock<ISearchService> _searchService;
+            protected readonly V2SearchResponse _v2SearchResponse;
+            protected readonly V3SearchResponse _v3SearchResponse;
+            protected readonly SearchController _target;
+
+            public static IEnumerable<object[]> SemVerLevels => new[]
+            {
+                new object[] { null, false },
+                new object[] { string.Empty, false },
+                new object[] { " ", false },
+                new object[] { "something-else", false },
+                new object[] { "1", false },
+                new object[] { "1.0.0", false },
+                new object[] { " 1.0.0 ", false },
+                new object[] { "2", true },
+                new object[] { "2.0.0", true },
+                new object[] { "  2.0.0  ", true },
+                new object[] { "3", true },
+                new object[] { "3.0.0-beta", true },
+            };
+
+            public BaseFacts()
+            {
+                _auxiliaryDataCache = new Mock<IAuxiliaryDataCache>();
+                _searchService = new Mock<ISearchService>();
+
+                _v2SearchResponse = new V2SearchResponse();
+                _v3SearchResponse = new V3SearchResponse();
+
+                _searchService
+                    .Setup(x => x.V2SearchAsync(It.IsAny<V2SearchRequest>()))
+                    .ReturnsAsync(() => _v2SearchResponse);
+                _searchService
+                    .Setup(x => x.V3SearchAsync(It.IsAny<V3SearchRequest>()))
+                    .ReturnsAsync(() => _v3SearchResponse);
+
+                _target = new SearchController(
+                    _auxiliaryDataCache.Object,
+                    _searchService.Object);
+            }
+        }
+    }
+}

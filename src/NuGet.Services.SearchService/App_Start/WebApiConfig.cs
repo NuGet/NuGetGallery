@@ -40,10 +40,9 @@ namespace NuGet.Services.SearchService
                 routeTemplate: "search/query",
                 defaults: new
                 {
-                    controller = SearchController.Name,
-                    action = nameof(SearchController.V2Search),
-                }
-            );
+                    controller = "Search",
+                    action = nameof(SearchController.V2SearchAsync),
+                });
 
             config.EnsureInitialized();
         }

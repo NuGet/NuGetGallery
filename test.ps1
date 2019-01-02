@@ -31,7 +31,8 @@ Function Run-Tests {
         "tests\CatalogTests\bin\$Configuration\CatalogTests.dll", `
         "tests\CatalogMetadataTests\bin\$Configuration\CatalogMetadataTests.dll", `
         "tests\NuGet.Protocol.Catalog.Tests\bin\$Configuration\NuGet.Protocol.Catalog.Tests.dll", `
-        "tests\NuGet.Services.AzureSearch.Tests\bin\$Configuration\NuGet.Services.AzureSearch.Tests.dll"
+        "tests\NuGet.Services.AzureSearch.Tests\bin\$Configuration\NuGet.Services.AzureSearch.Tests.dll", `
+        "tests\NuGet.Services.SearchService.Tests\bin\$Configuration\NuGet.Services.SearchService.Tests.dll"
     
     $TestCount = 0
     
