@@ -16,6 +16,7 @@ using System.Web.Routing;
 using Moq;
 using NuGet.Packaging;
 using NuGet.Services.Entities;
+using NuGet.Services.Licenses;
 using NuGet.Services.Messaging.Email;
 using NuGet.Services.Validation;
 using NuGet.Services.Validation.Issues;
@@ -67,7 +68,8 @@ namespace NuGetGallery
             Mock<IContentObjectService> contentObjectService = null,
             Mock<ISymbolPackageUploadService> symbolPackageUploadService = null,
             Mock<IFlatContainerService> flatContainerService = null,
-            Mock<ICoreLicenseFileService> coreLicenseFileService = null)
+            Mock<ICoreLicenseFileService> coreLicenseFileService = null,
+            Mock<ILicenseExpressionSplitter> licenseExpressionSplitter = null)
         {
             packageService = packageService ?? new Mock<IPackageService>();
             if (uploadFileService == null)
@@ -185,6 +187,8 @@ namespace NuGetGallery
                     .ReturnsAsync(() => new MemoryStream());
             }
 
+            licenseExpressionSplitter = licenseExpressionSplitter ?? new Mock<ILicenseExpressionSplitter>();
+
             var diagnosticsService = new Mock<IDiagnosticsService>();
             var controller = new Mock<PackagesController>(
                 packageService.Object,
@@ -211,7 +215,8 @@ namespace NuGetGallery
                 symbolPackageUploadService.Object,
                 diagnosticsService.Object,
                 flatContainerService.Object,
-                coreLicenseFileService.Object);
+                coreLicenseFileService.Object,
+                licenseExpressionSplitter.Object);
 
             controller.CallBase = true;
             controller.Object.SetOwinContextOverride(Fakes.CreateOwinContext());
