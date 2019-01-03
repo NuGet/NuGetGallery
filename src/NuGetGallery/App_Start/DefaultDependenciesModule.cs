@@ -21,6 +21,7 @@ using Elmah;
 using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.ServiceRuntime;
 using NuGet.Services.Entities;
+using NuGet.Services.FeatureFlags;
 using NuGet.Services.KeyVault;
 using NuGet.Services.Licenses;
 using NuGet.Services.Logging;
@@ -38,6 +39,7 @@ using NuGetGallery.Authentication;
 using NuGetGallery.Configuration;
 using NuGetGallery.Cookies;
 using NuGetGallery.Diagnostics;
+using NuGetGallery.Features;
 using NuGetGallery.Infrastructure;
 using NuGetGallery.Infrastructure.Authentication;
 using NuGetGallery.Infrastructure.Lucene;
@@ -358,6 +360,7 @@ namespace NuGetGallery
                 .As<ILicenseExpressionSegmentator>()
                 .InstancePerLifetimeScope();
 
+            RegisterFeatureFlagsService(builder, configuration);
             RegisterMessagingService(builder, configuration);
 
             builder.Register(c => HttpContext.Current.User)
@@ -404,6 +407,38 @@ namespace NuGetGallery
             }
 
             ConfigureAutocomplete(builder, configuration);
+        }
+
+        private static void RegisterFeatureFlagsService(ContainerBuilder builder, ConfigurationService configuration)
+        {
+            builder
+                .Register(context => new FeatureFlagOptions
+                {
+                    RefreshInterval = configuration.Current.FeatureFlagsRefreshInterval,
+                    MaximumStaleness = configuration.Current.FeatureFlagsMaximumStaleness,
+                })
+                .AsSelf()
+                .SingleInstance();
+
+            builder
+                .RegisterType<FeatureFlagRefreshService>()
+                .As<IFeatureFlagRefreshService>()
+                .SingleInstance();
+
+            builder
+                .RegisterType<FeatureFlagClient>()
+                .As<IFeatureFlagClient>()
+                .InstancePerDependency();
+
+            builder
+                .RegisterType<FlightClient>()
+                .As<IFlightClient>()
+                .InstancePerDependency();
+
+            builder
+                .RegisterType<FeatureFlagService>()
+                .As<IFeatureFlagService>()
+                .InstancePerDependency();
         }
 
         private static void RegisterMessagingService(ContainerBuilder builder, ConfigurationService configuration)

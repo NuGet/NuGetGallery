@@ -41,6 +41,7 @@ namespace NuGetGallery
             public const string SymbolPackagesFolderName = "symbol-packages";
             public const string SymbolPackageBackupsFolderName = "symbol-package-backups";
             public const string FlatContainerFolderName = "v3-flatcontainer";
+            public const string FeatureFlagsContainerFolderName ="feature-flags";
         }
 
         public const string NuGetSymbolPackageFileExtension = ".snupkg";
@@ -48,5 +49,7 @@ namespace NuGetGallery
         public const string UploadTracingKeyHeaderName = "upload-id";
 
         public const string LicenseFileName = "license";
+
+        public const string FeatureFlagsFileName = "flags.json";
     }
 }

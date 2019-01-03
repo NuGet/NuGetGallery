@@ -4,7 +4,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using NuGet.Services.FeatureFlags;
 using NuGetGallery.Configuration;
+using NuGetGallery.Features;
 
 namespace NuGetGallery
 {
@@ -91,6 +93,7 @@ namespace NuGetGallery
                 Create<UploadFileService, IUploadFileService>(configuration.AzureStorage_Uploads_ConnectionString, isSingleInstance: false),
                 Create<CoreLicenseFileService, ICoreLicenseFileService>(configuration.AzureStorage_Packages_ConnectionString, isSingleInstance: false),
                 Create<RevalidationStateService, IRevalidationStateService>(configuration.AzureStorage_Revalidation_ConnectionString, isSingleInstance: false),
+                Create<FeatureFlagFileStorageService, IFeatureFlagStorageService>(configuration.AzureStorage_FeatureFlags_ConnectionString, isSingleInstance: true)
             };
 
             var connectionStringToBindingKey = dependents

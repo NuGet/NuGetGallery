@@ -45,6 +45,7 @@ namespace NuGetGallery
             CoreConstants.Folders.RevalidationFolderName,
             CoreConstants.Folders.StatusFolderName,
             CoreConstants.Folders.PackagesContentFolderName,
+            CoreConstants.Folders.FeatureFlagsContainerFolderName,
         };
 
         protected readonly ICloudBlobClient _client;
@@ -633,6 +634,7 @@ namespace NuGetGallery
                 case CoreConstants.Folders.ContentFolderName:
                 case CoreConstants.Folders.RevalidationFolderName:
                 case CoreConstants.Folders.StatusFolderName:
+                case CoreConstants.Folders.FeatureFlagsContainerFolderName:
                     return CoreConstants.JsonContentType;
 
                 case CoreConstants.Folders.UserCertificatesFolderName:
@@ -667,6 +669,7 @@ namespace NuGetGallery
                 case CoreConstants.Folders.UserCertificatesFolderName:
                 case CoreConstants.Folders.PackagesContentFolderName:
                 case CoreConstants.Folders.FlatContainerFolderName:
+                case CoreConstants.Folders.FeatureFlagsContainerFolderName:
                     return null;
 
                 default:
