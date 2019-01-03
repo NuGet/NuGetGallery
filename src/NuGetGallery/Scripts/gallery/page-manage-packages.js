@@ -3,6 +3,47 @@
 
     ko.options.deferUpdates = true;
 
+    var inviewBindings = [];
+    ko.bindingHandlers.inview = {
+        init: function (element, valueAccessor) {
+            var binding = {
+                'element': element,
+                'model': valueAccessor()
+            };
+
+            inviewBindings.push(binding);
+        }
+    };
+
+    function updateInViewBindings() {
+        var $window = $(window);
+        var windowHeight = $window.height();
+        var viewportTopActual = $window.scrollTop();
+
+        // Load the elements within 1 page of the true visible page (so unloaded elements aren't visible unless the user scrolls really fast).
+        var viewportTop = viewportTopActual - windowHeight;
+        var viewportBottom = viewportTopActual + 2 * windowHeight;
+
+        for (var i in inviewBindings) {
+            var binding = inviewBindings[i];
+            var $element = $(binding.element);
+            var elementTop = $element.offset().top;
+            var elementBottom = elementTop + $element.outerHeight();
+
+            var isInView = false;
+            // If the element top and bottom are both zero, the element is hidden.
+            if (elementTop !== 0 && elementBottom !== 0) {
+                isInView = elementBottom > viewportTop && elementTop < viewportBottom;
+            }
+
+            binding.model.InView(isInView);
+        }
+    }
+
+    $(window).scroll(function () {
+        updateInViewBindings();
+    });
+
     function showInitialPackagesData(dataSelector, packagesList) {
         var downloadsCount = 0;
         $.each(packagesList, function () { downloadsCount += this.TotalDownloadCount; });
@@ -91,7 +132,7 @@
                 }
             });
 
-            this.Visible = ko.pureComputed(function () {
+            this.Filtered = ko.pureComputed(function () {
                 var ownerFilter = self.PackagesListViewModel.ManagePackagesViewModel.OwnerFilter().Username;
                 if (ownerFilter === strings_AllPackagesFilter) {
                     return true;
@@ -105,6 +146,8 @@
 
                 return false;
             }, this);
+
+            this.InView = ko.observable(false);
             
             this.PackageIconUrlFallback = ko.pureComputed(function () {
                 var url = this.PackagesListViewModel.ManagePackagesViewModel.PackageIconUrlFallback;
@@ -185,7 +228,7 @@
             this.VisiblePackagesCount = ko.pureComputed(function () {
                 var packagesCount = 0;
                 for (var i in self.Packages) {
-                    if (self.Packages[i].Visible()) {
+                    if (self.Packages[i].Filtered()) {
                         packagesCount++;
                     }
                 }
@@ -196,7 +239,7 @@
             this.VisibleDownloadCount = ko.pureComputed(function () {
                 var downloadCount = 0;
                 for (var i in self.Packages) {
-                    if (self.Packages[i].Visible()) {
+                    if (self.Packages[i].Filtered()) {
                         downloadCount += self.Packages[i].DownloadCount;
                     }
                 }
@@ -228,7 +271,7 @@
             this.Owners = namespaceItem.Owners;
             this.IsPublic = namespaceItem.IsPublic;
 
-            this.Visible = ko.pureComputed(function () {
+            this.Filtered = ko.pureComputed(function () {
                 var ownerFilter = self.ReservedNamespaceListViewModel.ManagePackagesViewModel.OwnerFilter().Username;
                 if (ownerFilter === strings_AllPackagesFilter) {
                     return true;
@@ -242,6 +285,8 @@
 
                 return false;
             }, this);
+
+            this.InView = ko.observable(false);
         }
 
         function ReservedNamespaceListViewModel(managePackagesViewModel, namespaces) {
@@ -254,7 +299,7 @@
             this.VisibleNamespacesCount = ko.pureComputed(function () {
                 var namespacesCount = 0;
                 for (var i in self.Namespaces) {
-                    if (self.Namespaces[i].Visible()) {
+                    if (self.Namespaces[i].Filtered()) {
                         namespacesCount++;
                     }
                 }
@@ -295,7 +340,7 @@
             this.ShowReceived = showReceived;
             this.ShowSent = showSent;
 
-            this.Visible = ko.pureComputed(function () {
+            this.Filtered = ko.pureComputed(function () {
                 var ownerFilter = self.OwnerRequestsListViewModel.ManagePackagesViewModel.OwnerFilter().Username;
                 if (ownerFilter === strings_AllPackagesFilter) {
                     return true;
@@ -313,6 +358,8 @@
 
                 return false;
             }, this);
+
+            this.InView = ko.observable(false);
             
             this.PackageIconUrlFallback = ko.pureComputed(function () {
                 var url = this.OwnerRequestsListViewModel.ManagePackagesViewModel.PackageIconUrlFallback;
@@ -331,7 +378,7 @@
             this.VisibleRequestsCount = ko.pureComputed(function () {
                 var requestsCount = 0;
                 for (var i in self.Requests) {
-                    if (self.Requests[i].Visible()) {
+                    if (self.Requests[i].Filtered()) {
                         requestsCount++;
                     }
                 }
@@ -374,6 +421,9 @@
         // Set up the data binding.
         var managePackagesViewModel = new ManagePackagesViewModel(initialData);
         ko.applyBindings(managePackagesViewModel, document.body);
+
+        // Initiate a window scroll event so that visible elements are loaded initially.
+        $(window).scroll();
     });
 
 })();

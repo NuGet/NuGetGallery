@@ -125,7 +125,8 @@
                     </tr>
                 </thead>
                 <tbody data-bind="foreach: Packages">
-                    <tr class="manage-package-listing" data-bind="visible: Visible">
+                    <tr class="manage-package-listing" data-bind="inview: $data, visible: Filtered">
+                        <!-- ko if: $index() < 20 || InView() -->
                         <td class="align-middle hidden-xs">
                             <div class="package-icon-container">
                                 <img class="package-icon img-responsive" aria-hidden="true"
@@ -148,16 +149,16 @@
                                 <!-- /ko -->
                             </span>
                         </td>
-                    @if (Model.IsCertificatesUIEnabled)
-                    {
-                        <td class="align-middle">
-                            <!-- ko if: $data.ShowTextBox -->
-                            <span data-bind="text: RequiredSigner" />
-                            <!-- /ko -->
-                            <!-- ko ifnot: $data.ShowTextBox -->
-                            <select class="form-control required-signer"
-                                    aria-label="Select the signing owner"
-                                    data-bind="options: AllSigners,
+                        @if (Model.IsCertificatesUIEnabled)
+                        {
+                            <td class="align-middle">
+                                <!-- ko if: $data.ShowTextBox -->
+                                <span data-bind="text: RequiredSigner" />
+                                <!-- /ko -->
+                                <!-- ko ifnot: $data.ShowTextBox -->
+                                <select class="form-control required-signer"
+                                        aria-label="Select the signing owner"
+                                        data-bind="options: AllSigners,
                                     optionsText: 'OptionText',
                                     optionsValue: 'Username',
                                     enable: CanEditRequiredSigner,
@@ -165,9 +166,9 @@
                                     value: RequiredSigner,
                                     event: { change: $data.OnRequiredSignerChange },
                                     attr: { title: RequiredSignerMessage }"></select>
-                            <!-- /ko -->
-                        </td>
-                    }
+                                <!-- /ko -->
+                            </td>
+                        }
                         <td class="align-middle text-nowrap">
                             <span data-bind="text: FormattedDownloadCount"></span>
                         </td>
@@ -197,6 +198,10 @@
                                 </a>
                             </span>
                         </td>
+                        <!-- /ko -->
+                        <!-- ko ifnot: $index() < 20 || InView() -->
+                        <td align="center" colspan="6">…</td>
+                        <!-- /ko -->
                     </tr>
                 </tbody>
             </table>
@@ -222,7 +227,8 @@
                     </tr>
                 </thead>
                 <tbody data-bind="foreach: Namespaces">
-                    <tr class="manage-package-listing" data-bind="visible: Visible">
+                    <tr class="manage-package-listing" data-bind="inview: $data, visible: Filtered">
+                        <!-- ko if: $index() < 20 || InView() -->
                         <td class="align-middle hidden-xs">
                             <img class="reserved-indicator-icon img-responsive"
                                  src="~/Content/gallery/img/reserved-indicator.svg"
@@ -240,6 +246,10 @@
                             </span>
                         </td>
                         <td class="align-middle" data-bind="text: IsPublic ? 'Any NuGet.org Account' : 'Prefix or ID Owners Only' "></td>
+                        <!-- /ko -->
+                        <!-- ko ifnot: $index() < 20 || InView() -->
+                        <td align="center" colspan="4">…</td>
+                        <!-- /ko -->
                     </tr>
                 </tbody>
             </table>
@@ -266,7 +276,8 @@
                     </tr>
                 </thead>
                 <tbody data-bind="foreach: Requests">
-                    <tr class="manage-package-listing" data-bind="visible: Visible">
+                    <tr class="manage-package-listing" data-bind="inview: $data, visible: Filtered">
+                        <!-- ko if: $index() < 20 || InView() -->
                         <td class="align-middle hidden-xs">
                             <div class="package-icon-container">
                                 <img class="package-icon img-responsive" aria-hidden="true"
@@ -303,6 +314,10 @@
                             </a>
                             <!-- /ko -->
                         </td>
+                        <!-- /ko -->
+                        <!-- ko ifnot: $index() < 20 || InView() -->
+                        <td align="center" colspan="5">…</td>
+                        <!-- /ko -->
                     </tr>
                 </tbody>
             </table>
