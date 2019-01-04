@@ -27,7 +27,7 @@ namespace NuGetGallery.FunctionalTests
             : base(testOutputHelper)
         {
         }
-        
+
         /// <summary>
         /// Creates a package given the package name and version.
         /// </summary>
@@ -38,7 +38,7 @@ namespace NuGetGallery.FunctionalTests
             var path = await CreatePackageInternal(nuspecFileFullPath);
             return path;
         }
-        
+
         /// <summary>
         /// Creates a package with the specified minclient version.
         /// </summary>
