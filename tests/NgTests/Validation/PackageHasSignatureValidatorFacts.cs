@@ -15,8 +15,6 @@ using NgTests.Validation;
 using NuGet.Packaging.Core;
 using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Monitoring;
-using NuGet.Services.Metadata.Catalog.Monitoring.Validation.Test.Catalog;
-using NuGet.Services.Metadata.Catalog.Monitoring.Validation.Test.Exceptions;
 using NuGet.Versioning;
 using Xunit;
 
@@ -58,19 +56,23 @@ namespace NgTests
 
         public class ShouldRunValidator : FactsBase
         {
-            [Fact]
-            public void SkipsIfNoEntries()
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public void SkipsIfNoEntries(bool requirePackageSignature)
             {
-                var target = CreateTarget();
+                var target = CreateTarget(requirePackageSignature);
                 var context = CreateValidationContext(catalogEntries: new CatalogIndexEntry[0]);
 
                 Assert.False(target.ShouldRunValidator(context));
             }
 
-            [Fact]
-            public void SkipsIfLatestEntryIsDelete()
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public void SkipsIfLatestEntryIsDelete(bool requirePackageSignature)
             {
-                var target = CreateTarget();
+                var target = CreateTarget(requirePackageSignature);
                 var uri = new Uri($"https://nuget.test/{PackageIdentity.Id}");
                 var context = CreateValidationContext(
                     catalogEntries: new[]
@@ -93,11 +95,25 @@ namespace NgTests
             }
 
             [Fact]
-            public void RunsIfLatestEntryIsntDelete()
+            public void SkipsIfLatestEntryIsntDeleteAndPackageSignatureNotRequired()
+            {
+                var target = CreateTarget(requirePackageSignature: false);
+                var context = CreateValidationContextWithLatestEntryWithDetails();
+                Assert.False(target.ShouldRunValidator(context));
+            }
+
+            [Fact]
+            public void RunsIfLatestEntryIsntDeleteAndPackageSignatureRequired()
             {
                 var target = CreateTarget();
+                var context = CreateValidationContextWithLatestEntryWithDetails();
+                Assert.True(target.ShouldRunValidator(context));
+            }
+
+            private ValidationContext CreateValidationContextWithLatestEntryWithDetails()
+            {
                 var uri = new Uri($"https://nuget.test/{PackageIdentity.Id}");
-                var context = CreateValidationContext(
+                return CreateValidationContext(
                     catalogEntries: new[]
                     {
                         new CatalogIndexEntry(
@@ -113,8 +129,6 @@ namespace NgTests
                             commitTs: DateTime.MinValue.AddDays(1),
                             packageIdentity: PackageIdentity),
                     });
-
-                Assert.True(target.ShouldRunValidator(context));
             }
         }
 

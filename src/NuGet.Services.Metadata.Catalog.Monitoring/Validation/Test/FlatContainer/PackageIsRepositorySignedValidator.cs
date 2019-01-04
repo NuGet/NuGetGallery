@@ -21,6 +21,16 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
         {
         }
 
+        protected async override Task<bool> ShouldRunAsync(ValidationContext context)
+        {
+            if (!Config.RequirePackageSignature)
+            {
+                return false;
+            }
+
+            return await base.ShouldRunAsync(context);
+        }
+
         protected async override Task RunInternalAsync(ValidationContext context)
         {
             // Get the package's signature, if any.

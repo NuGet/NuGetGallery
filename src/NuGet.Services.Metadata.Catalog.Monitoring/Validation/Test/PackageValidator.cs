@@ -8,8 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NuGet.Packaging.Core;
-using NuGet.Protocol;
-using NuGet.Protocol.Core.Types;
 using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using NuGet.Versioning;
@@ -23,7 +21,7 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
     {
         public IEnumerable<IAggregateValidator> AggregateValidators { get; }
 
-        private readonly IReadOnlyDictionary<FeedType, SourceRepository> _feedToSource;
+        private readonly ValidationSourceRepositories _sourceRepositories;
         private readonly ILogger<PackageValidator> _logger;
         private readonly ILogger<ValidationContext> _contextLogger;
         private readonly StorageFactory _auditingStorageFactory;
@@ -31,7 +29,7 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
         public PackageValidator(
             IEnumerable<IAggregateValidator> aggregateValidators,
             StorageFactory auditingStorageFactory,
-            IReadOnlyDictionary<FeedType, SourceRepository> feedToSource,
+            ValidationSourceRepositories sourceRepositories,
             ILogger<PackageValidator> logger,
             ILogger<ValidationContext> contextLogger)
         {
@@ -44,7 +42,7 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
 
             AggregateValidators = validators;
             _auditingStorageFactory = auditingStorageFactory ?? throw new ArgumentNullException(nameof(auditingStorageFactory));
-            _feedToSource = feedToSource ?? throw new ArgumentNullException(nameof(feedToSource));
+            _sourceRepositories = sourceRepositories ?? throw new ArgumentNullException(nameof(sourceRepositories));
             _logger = logger;
             _contextLogger = contextLogger ?? throw new ArgumentNullException(nameof(contextLogger));
         }
@@ -79,7 +77,7 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
                 package,
                 context.CatalogEntries,
                 deletionAuditEntries,
-                _feedToSource,
+                _sourceRepositories,
                 client,
                 cancellationToken,
                 _contextLogger);

@@ -6,16 +6,15 @@ using System.Net.Http;
 
 namespace NuGet.Services.Metadata.Catalog.Monitoring
 {
-    /// <summary>
-    /// Represents the flat-container blobs endpoint, which stores nupkgs for packages and a directory of versions.
-    /// </summary>
-    public class FlatContainerEndpoint : Endpoint
+    public abstract class Endpoint : IEndpoint
     {
-        public FlatContainerEndpoint(
-            EndpointConfiguration config,
+        public Endpoint(
+            Uri cursorUri,
             Func<HttpMessageHandler> messageHandlerFactory)
-            : base(config.FlatContainerCursorUri, messageHandlerFactory)
         {
+            Cursor = new HttpReadCursor(cursorUri, messageHandlerFactory);
         }
+        
+        public ReadCursor Cursor { get; }
     }
 }

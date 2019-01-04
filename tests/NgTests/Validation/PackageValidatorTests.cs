@@ -10,7 +10,6 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using NgTests.Infrastructure;
 using NuGet.Packaging.Core;
-using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
 using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Helpers;
@@ -26,7 +25,7 @@ namespace NgTests.Validation
         private readonly List<ValidationResult> _validationResults;
         private readonly DummyAggregateValidator _aggregateValidator;
         private readonly IEnumerable<IAggregateValidator> _aggregateValidators;
-        private readonly IReadOnlyDictionary<FeedType, SourceRepository> _feedToSource;
+        private readonly ValidationSourceRepositories _sourceRepositories;
         private readonly TestStorageFactory _storageFactory = new TestStorageFactory();
         private readonly ILogger<PackageValidator> _logger = Mock.Of<ILogger<PackageValidator>>();
         private readonly ILogger<ValidationContext> _contextLogger = Mock.Of<ILogger<ValidationContext>>();
@@ -37,11 +36,9 @@ namespace NgTests.Validation
             _aggregateValidator = new DummyAggregateValidator(_validationResults);
             _aggregateValidators = new[] { _aggregateValidator };
 
-            _feedToSource = new Dictionary<FeedType, SourceRepository>()
-            {
-                { FeedType.HttpV2, Mock.Of<SourceRepository>() },
-                { FeedType.HttpV3, Mock.Of<SourceRepository>() }
-            };
+            _sourceRepositories = new ValidationSourceRepositories(
+                Mock.Of<SourceRepository>(), 
+                Mock.Of<SourceRepository>());
         }
 
         [Fact]
@@ -53,7 +50,7 @@ namespace NgTests.Validation
                 () => new PackageValidator(
                     aggregateValidators,
                     _storageFactory,
-                    _feedToSource,
+                    _sourceRepositories,
                     _logger,
                     _contextLogger));
 
@@ -69,7 +66,7 @@ namespace NgTests.Validation
                 () => new PackageValidator(
                     aggregateValidators,
                     _storageFactory,
-                    _feedToSource,
+                    _sourceRepositories,
                     _logger,
                     _contextLogger));
 
@@ -85,7 +82,7 @@ namespace NgTests.Validation
                 () => new PackageValidator(
                     _aggregateValidators,
                     storageFactory,
-                    _feedToSource,
+                    _sourceRepositories,
                     _logger,
                     _contextLogger));
 
@@ -95,17 +92,17 @@ namespace NgTests.Validation
         [Fact]
         public void Constructor_WhenFeedToSourceIsNull_Throws()
         {
-            const IReadOnlyDictionary<FeedType, SourceRepository> feedToSource = null;
+            const ValidationSourceRepositories sourceRepositories = null;
 
             var exception = Assert.Throws<ArgumentNullException>(
                 () => new PackageValidator(
                     _aggregateValidators,
                     _storageFactory,
-                    feedToSource,
+                    sourceRepositories,
                     _logger,
                     _contextLogger));
 
-            Assert.Equal("feedToSource", exception.ParamName);
+            Assert.Equal("sourceRepositories", exception.ParamName);
         }
 
         [Fact]
@@ -117,7 +114,7 @@ namespace NgTests.Validation
                 () => new PackageValidator(
                     _aggregateValidators,
                     _storageFactory,
-                    _feedToSource,
+                    _sourceRepositories,
                     _logger,
                     contextLogger));
 
@@ -130,7 +127,7 @@ namespace NgTests.Validation
             var validator = new PackageValidator(
                 _aggregateValidators,
                 _storageFactory,
-                _feedToSource,
+                _sourceRepositories,
                 _logger,
                 _contextLogger);
 
@@ -143,7 +140,7 @@ namespace NgTests.Validation
             var validator = new PackageValidator(
                 _aggregateValidators,
                 _storageFactory,
-                _feedToSource,
+                _sourceRepositories,
                 _logger,
                 _contextLogger);
 
@@ -164,7 +161,7 @@ namespace NgTests.Validation
             var validator = new PackageValidator(
                 _aggregateValidators,
                 _storageFactory,
-                _feedToSource,
+                _sourceRepositories,
                 _logger,
                 _contextLogger);
 
@@ -185,7 +182,7 @@ namespace NgTests.Validation
             var validator = new PackageValidator(
                 _aggregateValidators,
                 _storageFactory,
-                _feedToSource,
+                _sourceRepositories,
                 _logger,
                 _contextLogger);
 
@@ -206,7 +203,7 @@ namespace NgTests.Validation
             var validator = new PackageValidator(
                 _aggregateValidators,
                 _storageFactory,
-                _feedToSource,
+                _sourceRepositories,
                 _logger,
                 _contextLogger);
 

@@ -8,8 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NuGet.Packaging.Core;
-using NuGet.Protocol;
-using NuGet.Protocol.Core.Types;
 using NuGet.Services.Metadata.Catalog.Helpers;
 
 namespace NuGet.Services.Metadata.Catalog.Monitoring
@@ -19,13 +17,13 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
     /// </summary>
     public class ValidationContext
     {
-        private readonly IPackageRegistrationMetadataResource _v2Resource;
-        private readonly IPackageRegistrationMetadataResource _v3Resource;
+        private readonly IPackageRegistrationMetadataResource _v2PackageRegistrationMetadataResource;
+        private readonly IPackageRegistrationMetadataResource _v3PackageRegistrationMetadataResource;
         private readonly Lazy<Task<PackageRegistrationIndexMetadata>> _v2Index;
         private readonly Lazy<Task<PackageRegistrationIndexMetadata>> _v3Index;
         private readonly Lazy<Task<PackageRegistrationLeafMetadata>> _v2Leaf;
         private readonly Lazy<Task<PackageRegistrationLeafMetadata>> _v3Leaf;
-        private readonly IPackageTimestampMetadataResource _timestampMetadataResourceV2;
+        private readonly IPackageTimestampMetadataResource _v2timestampMetadataResource;
         private readonly Lazy<Task<PackageTimestampMetadata>> _timestampMetadataV2;
 
         /// <summary>
@@ -57,7 +55,7 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
             PackageIdentity package,
             IEnumerable<CatalogIndexEntry> entries,
             IEnumerable<DeletionAuditEntry> deletionAuditEntries,
-            IReadOnlyDictionary<FeedType, SourceRepository> feedToSource,
+            ValidationSourceRepositories sourceRepositories,
             CollectorHttpClient client,
             CancellationToken token,
             ILogger<ValidationContext> logger)
@@ -72,9 +70,9 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
                 throw new ArgumentNullException(nameof(deletionAuditEntries));
             }
 
-            if (feedToSource == null)
+            if (sourceRepositories == null)
             {
-                throw new ArgumentNullException(nameof(feedToSource));
+                throw new ArgumentNullException(nameof(sourceRepositories));
             }
 
             if (logger == null)
@@ -88,24 +86,24 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
             Client = client ?? throw new ArgumentNullException(nameof(client));
             CancellationToken = token;
 
-            _timestampMetadataResourceV2 = feedToSource[FeedType.HttpV2].GetResource<IPackageTimestampMetadataResource>();
-            _v2Resource = feedToSource[FeedType.HttpV2].GetResource<IPackageRegistrationMetadataResource>();
-            _v3Resource = feedToSource[FeedType.HttpV3].GetResource<IPackageRegistrationMetadataResource>();
+            _v2timestampMetadataResource = sourceRepositories.V2.GetResource<IPackageTimestampMetadataResource>();
+            _v2PackageRegistrationMetadataResource = sourceRepositories.V2.GetResource<IPackageRegistrationMetadataResource>();
+            _v3PackageRegistrationMetadataResource = sourceRepositories.V3.GetResource<IPackageRegistrationMetadataResource>();
 
             var commonLogger = logger.AsCommon();
 
             _v2Index = new Lazy<Task<PackageRegistrationIndexMetadata>>(
-                () => _v2Resource.GetIndexAsync(Package, commonLogger, CancellationToken));
+                () => _v2PackageRegistrationMetadataResource.GetIndexAsync(Package, commonLogger, CancellationToken));
             _v3Index = new Lazy<Task<PackageRegistrationIndexMetadata>>(
-                () => _v3Resource.GetIndexAsync(Package, commonLogger, CancellationToken));
+                () => _v3PackageRegistrationMetadataResource.GetIndexAsync(Package, commonLogger, CancellationToken));
 
             _v2Leaf = new Lazy<Task<PackageRegistrationLeafMetadata>>(
-                () => _v2Resource.GetLeafAsync(Package, commonLogger, CancellationToken));
+                () => _v2PackageRegistrationMetadataResource.GetLeafAsync(Package, commonLogger, CancellationToken));
             _v3Leaf = new Lazy<Task<PackageRegistrationLeafMetadata>>(
-                () => _v3Resource.GetLeafAsync(Package, commonLogger, CancellationToken));
+                () => _v3PackageRegistrationMetadataResource.GetLeafAsync(Package, commonLogger, CancellationToken));
 
             _timestampMetadataV2 = new Lazy<Task<PackageTimestampMetadata>>(
-                () => _timestampMetadataResourceV2.GetAsync(this));
+                () => _v2timestampMetadataResource.GetAsync(this));
         }
 
         public Task<PackageRegistrationIndexMetadata> GetIndexV2Async() => _v2Index.Value;

@@ -57,6 +57,25 @@ namespace NgTests
 
         public class ValidateAsync : FactsBase
         {
+            [Theory]
+            [InlineData((string)null)]
+            [InlineData(UnsignedPackageResource)]
+            [InlineData(AuthorSignedPackageResource)]
+            [InlineData(RepoSignedPackageResource)]
+            [InlineData(AuthorAndRepoSignedPackageResource)]
+            public async Task SkipsIfConfigNotRequirePackageSignature(string packageResource)
+            {
+                // Arrange
+                var target = CreateTarget(requirePackageSignature: false);
+                var context = CreateValidationContext(packageResource);
+
+                // Act
+                var result = await target.ValidateAsync(context);
+
+                // Assert
+                Assert.Equal(TestResult.Skip, result.Result);
+            }
+
             [Fact]
             public async Task FailsIfPackageIsMissing()
             {

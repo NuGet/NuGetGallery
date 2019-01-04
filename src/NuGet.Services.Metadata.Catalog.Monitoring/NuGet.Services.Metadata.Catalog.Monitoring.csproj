@@ -83,21 +83,24 @@
       <DependentUpon>Strings.resx</DependentUpon>
     </Compile>
     <Compile Include="Utility\CommonLogger.cs" />
+    <Compile Include="Utility\ContainerBuilderExtensions.cs" />
     <Compile Include="Utility\ILoggerExtensions.cs" />
     <Compile Include="Utility\JsonSerializerUtility.cs" />
     <Compile Include="Utility\NullableNuGetVersionConverter.cs" />
     <Compile Include="Utility\LogEvents.cs" />
     <Compile Include="Utility\ILoggerFactoryExtensions.cs" />
     <Compile Include="Utility\SafeExceptionConverter.cs" />
-    <Compile Include="ValidationCollector.cs" />
-    <Compile Include="ValidationCollectorFactory.cs" />
+    <Compile Include="Validation\Test\Endpoint\AggregateEndpointCursor.cs" />
+    <Compile Include="Validation\ValidationCollector.cs" />
     <Compile Include="Validation\Result\AggregateValidationResult.cs" />
     <Compile Include="Validation\Result\PackageValidationResult.cs" />
     <Compile Include="Validation\Result\TestResult.cs" />
     <Compile Include="Validation\Result\ValidationResult.cs" />
-    <Compile Include="Validation\Test\Catalog\CatalogAggregateValidator.cs" />
+    <Compile Include="Validation\Test\Endpoint\CatalogEndpoint.cs" />
+    <Compile Include="Validation\Test\Endpoint\Endpoint.cs" />
+    <Compile Include="Validation\Test\Endpoint\EndpointConfiguration.cs" />
     <Compile Include="Validation\Test\Endpoint\EndpointValidator.cs" />
-    <Compile Include="Validation\Test\Endpoint\EndpointFactory.cs" />
+    <Compile Include="Validation\Test\Endpoint\IEndpoint.cs" />
     <Compile Include="Validation\Test\AggregateValidator.cs" />
     <Compile Include="Validation\Test\Endpoint\FlatContainerEndpoint.cs" />
     <Compile Include="Validation\Test\Exceptions\MetadataFieldInconsistencyException.cs" />
@@ -114,7 +117,7 @@
     <Compile Include="Validation\Test\PackageValidator.cs" />
     <Compile Include="Validation\Test\Endpoint\RegistrationEndpoint.cs" />
     <Compile Include="Validation\Test\PackageValidatorContext.cs" />
-    <Compile Include="Validation\Test\PackageValidatorFactory.cs" />
+    <Compile Include="Validation\Test\PackageValidatorContextEnqueuer.cs" />
     <Compile Include="Validation\Test\Catalog\PackageHasSignatureValidator.cs" />
     <Compile Include="Validation\Test\Registration\RegistrationExistsValidator.cs" />
     <Compile Include="Validation\Test\Registration\RegistrationIndexValidator.cs" />
@@ -125,10 +128,12 @@
     <Compile Include="Validation\Test\Registration\RegistrationRequireLicenseAcceptanceValidator.cs" />
     <Compile Include="Validation\Test\Registration\RegistrationLeafValidator.cs" />
     <Compile Include="Validation\Test\ValidationContext.cs" />
+    <Compile Include="Validation\Test\ValidationSourceRepositories.cs" />
+    <Compile Include="Validation\Test\ValidationSourceRepository.cs" />
     <Compile Include="Validation\Test\Validator.cs" />
-    <Compile Include="Validation\Test\ValidatorFactory.cs" />
     <Compile Include="Validation\Test\ValidatorIdentity.cs" />
     <Compile Include="Validation\Test\ValidatorConfiguration.cs" />
+    <Compile Include="Validation\ValidationFactory.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Catalog\NuGet.Services.Metadata.Catalog.csproj">
@@ -137,10 +142,16 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Autofac.Extensions.DependencyInjection">
+      <Version>4.2.0</Version>
+    </PackageReference>
     <PackageReference Include="MicroBuild.Core">
       <Version>0.3.0</Version>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection">
+      <Version>1.1.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Build.Tasks.Pack">
       <Version>4.8.0</Version>

@@ -24,11 +24,11 @@ namespace NgTests.Validation
             PackageIdentity package,
             IEnumerable<CatalogIndexEntry> entries,
             IEnumerable<DeletionAuditEntry> deletionAuditEntries,
-            IReadOnlyDictionary<FeedType, SourceRepository> feedToSource,
+            ValidationSourceRepositories sourceRepositories,
             CollectorHttpClient client,
             CancellationToken token,
             ILogger<ValidationContext> logger)
-            : base(package, entries, deletionAuditEntries, feedToSource, client, token, logger)
+            : base(package, entries, deletionAuditEntries, sourceRepositories, client, token, logger)
         {
         }
 
@@ -64,11 +64,15 @@ namespace NgTests.Validation
                     .Returns(v3Resource ?? Mock.Of<IPackageRegistrationMetadataResource>());
             }
 
+            var sourceRepositories = new ValidationSourceRepositories(
+                feedToSource[FeedType.HttpV2],
+                feedToSource[FeedType.HttpV3]);
+
             return new ValidationContextStub(
                 package ?? _packageIdentity,
                 entries ?? Enumerable.Empty<CatalogIndexEntry>(),
                 deletionAuditEntries ?? Enumerable.Empty<DeletionAuditEntry>(),
-                feedToSource,
+                sourceRepositories,
                 client ?? new CollectorHttpClient(),
                 token ?? CancellationToken.None,
                 logger ?? Mock.Of<ILogger<ValidationContext>>());
