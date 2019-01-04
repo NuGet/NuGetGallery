@@ -534,6 +534,7 @@ namespace NuGetGallery
             bool hasExistingSymbolsPackageAvailable)
         {
             IReadOnlyList<IValidationMessage> warnings = new List<IValidationMessage>();
+            string licenseFileContents = null;
             using (Stream uploadedFile = await _uploadFileService.GetUploadFileAsync(currentUser.Key))
             {
                 if (uploadedFile == null)
@@ -571,12 +572,32 @@ namespace NuGetGallery
 
                     warnings = validationResult.Warnings;
                 }
+
+                if (packageMetadata.LicenseMetadata?.Type == LicenseType.File)
+                {
+                    try
+                    {
+                        var licenseFilename = FileNameHelper.GetZipEntryPath(packageMetadata.LicenseMetadata?.License);
+                        using (var licenseFileStream = packageArchiveReader.GetStream(licenseFilename))
+                        using (var streamReader = new StreamReader(licenseFileStream, Encoding.UTF8))
+                        {
+                            licenseFileContents = await streamReader.ReadToEndAsync();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _telemetryService.TraceException(ex);
+
+                        return Json(HttpStatusCode.BadRequest, new[] { new JsonValidationMessage(ex.GetUserSafeMessage()) });
+                    }
+                }
             }
 
             var model = new VerifyPackageRequest(packageMetadata, accountsAllowedOnBehalfOf, existingPackageRegistration);
             model.IsSymbolsPackage = isSymbolsPackageUpload;
             model.HasExistingAvailableSymbols = hasExistingSymbolsPackageAvailable;
             model.Warnings.AddRange(warnings.Select(w => new JsonValidationMessage(w)));
+            model.LicenseFileContents = licenseFileContents;
             return Json(model);
         }
 
