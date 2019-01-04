@@ -44,7 +44,7 @@ namespace NuGetGallery.FunctionalTests.License
         }
 
         [Theory]
-        [Description("Push an invalidp package with license file and verify uploading is blocked")]
+        [Description("Push an invalid package with license file and verify uploading is blocked")]
         [Priority(2)]
         [Category("P2Tests")]
         [InlineData("https://testNugetLicenseUrl", "license.txt", "license.txt", "It's a license", "when a license file is packaged, <licenseUrl> must be set to ")]

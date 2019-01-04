@@ -97,7 +97,7 @@ namespace NuGetGallery.FunctionalTests
             var nuspecFileFullPath = await nuspecHelper.CreateDefaultNuspecFile(packageName, packageVersion, licenseUrl: licenseUrl);
             var nuspecDir = Path.GetDirectoryName(nuspecFileFullPath);
 
-            var licenseFilePath = GetFilePath(nuspecDir, licenseFileName);
+            var licenseFilePath = GetOrCreateFilePath(nuspecDir, licenseFileName);
             AddFile(licenseFilePath, licenseFileContents);
 
             var nupkgFileFullPath = await CreatePackageInternal(nuspecFileFullPath);
@@ -187,7 +187,7 @@ namespace NuGetGallery.FunctionalTests
         /// </summary>
         /// <param name="baseDir"></param>
         /// <param name="filename"></param>
-        internal static string GetFilePath(string baseDir, string fileName)
+        internal static string GetOrCreateFilePath(string baseDir, string fileName)
         {
             var filePath = Path.Combine(baseDir, @fileName);
             var fileDir = Path.GetDirectoryName(filePath);
