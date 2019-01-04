@@ -36,6 +36,7 @@ namespace NuGetGallery
             Description = packageMetadata.Description;
             IconUrl = packageMetadata.IconUrl.ToEncodedUrlStringOrNull();
             LicenseUrl = packageMetadata.LicenseUrl.ToEncodedUrlStringOrNull();
+            LicenseExpression = packageMetadata.LicenseMetadata?.Type == LicenseType.Expression ? packageMetadata.LicenseMetadata?.License : null;
             ProjectUrl = packageMetadata.ProjectUrl.ToEncodedUrlStringOrNull();
             RepositoryUrl = packageMetadata.RepositoryUrl.ToEncodedUrlStringOrNull();
             RepositoryType = packageMetadata.RepositoryType;
@@ -108,6 +109,8 @@ namespace NuGetGallery
         public string IconUrl { get; set; }
         public string Language { get; set; }
         public string LicenseUrl { get; set; }
+        public string LicenseExpression { get; set; }
+        public string LicenseFileContents { get; set; }
         public string MinClientVersionDisplay { get; set; }
         public string ProjectUrl { get; set; }
         public string RepositoryUrl { get; set; }
