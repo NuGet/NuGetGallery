@@ -13,7 +13,8 @@ start /w .\Ng.exe monitoringprocessor ^
     -index #{Jobs.common.v3.index} ^
     -gallery #{Jobs.common.v3.f2c.Gallery} ^
     -contentBaseAddress #{Jobs.endpointmonitoring.ContentBaseAddress} ^
-    -endpointsToTest "#{Jobs.endpointmonitoring.EndpointsToTest}" ^
+    -registrationCursorUri "#{Jobs.endpointmonitoring.RegistrationCursorUri}" ^
+    -flatContainerCursorUri "#{Jobs.endpointmonitoring.FlatContainerCursorUri}" ^
     -statusFolder #{Jobs.endpointmonitoring.StatusFolder} ^
     -storageType azure ^
     -storageAccountName #{Jobs.common.v3.c2r.StorageAccountName} ^

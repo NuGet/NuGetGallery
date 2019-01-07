@@ -17,6 +17,7 @@ namespace NuGet.Services.Metadata.Catalog
         public const string PackageAlreadyHasHash = "PackageAlreadyHasHash";
         public const string PackageHashFixed = "PackageHashFixed";
         public const string ContentBaseAddress = "ContentBaseAddress";
+        public const string GalleryBaseAddress = "GalleryBaseAddress";
         public const string ContentLength = "ContentLength";
         public const string CreatedPackagesCount = "CreatedPackagesCount";
         public const string CreatedPackagesSeconds = "CreatedPackagesSeconds";

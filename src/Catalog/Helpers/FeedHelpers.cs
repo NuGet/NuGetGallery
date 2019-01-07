@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
@@ -11,7 +10,6 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Xml.Linq;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json.Linq;
 using NuGet.Services.Metadata.Catalog.Persistence;
 
 namespace NuGet.Services.Metadata.Catalog.Helpers
@@ -28,69 +26,6 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
         {
             var handler = (handlerFunc != null) ? handlerFunc() : new WebRequestHandler { AllowPipelining = true };
             return new HttpClient(handler);
-        }
-
-        /// <summary>
-        /// Asynchronously reads and returns top-level <see cref="DateTime" /> metadata from the catalog's index.json.
-        /// </summary>
-        /// <remarks>The metadata values include "nuget:lastCreated", "nuget:lastDeleted", and "nuget:lastEdited",
-        /// which are the timestamps of the catalog cursor.</remarks>
-        /// <param name="storage"></param>
-        /// <param name="cancellationToken"></param>
-        /// <param name="telemetryService"></param>
-        /// <returns>A task that represents the asynchronous operation.
-        /// The task result (<see cref="Task{TResult}.Result" />) returns a <see cref="CatalogProperties" />.</returns>
-        /// <exception cref="ArgumentNullException">Thrown if <paramref name="storage" /> is <c>null</c>.</exception>
-        /// <exception cref="OperationCanceledException">Thrown if <paramref name="cancellationToken" />
-        /// is cancelled.</exception>
-        public static async Task<CatalogProperties> GetCatalogPropertiesAsync(
-            IStorage storage,
-            ITelemetryService telemetryService,
-            CancellationToken cancellationToken)
-        {
-            if (storage == null)
-            {
-                throw new ArgumentNullException(nameof(storage));
-            }
-
-            if (telemetryService == null)
-            {
-                throw new ArgumentNullException(nameof(telemetryService));
-            }
-
-            cancellationToken.ThrowIfCancellationRequested();
-
-            DateTime? lastCreated = null;
-            DateTime? lastDeleted = null;
-            DateTime? lastEdited = null;
-
-            var stopwatch = Stopwatch.StartNew();
-            var indexUri = storage.ResolveUri("index.json");
-            var json = await storage.LoadStringAsync(indexUri, cancellationToken);
-
-            if (json != null)
-            {
-                var obj = JObject.Parse(json);
-                telemetryService.TrackCatalogIndexReadDuration(stopwatch.Elapsed, indexUri);
-                JToken token;
-
-                if (obj.TryGetValue("nuget:lastCreated", out token))
-                {
-                    lastCreated = token.ToObject<DateTime>().ToUniversalTime();
-                }
-
-                if (obj.TryGetValue("nuget:lastDeleted", out token))
-                {
-                    lastDeleted = token.ToObject<DateTime>().ToUniversalTime();
-                }
-
-                if (obj.TryGetValue("nuget:lastEdited", out token))
-                {
-                    lastEdited = token.ToObject<DateTime>().ToUniversalTime();
-                }
-            }
-
-            return new CatalogProperties(lastCreated, lastDeleted, lastEdited);
         }
 
         /// <summary>

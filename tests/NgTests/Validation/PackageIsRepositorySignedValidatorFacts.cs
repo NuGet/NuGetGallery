@@ -6,18 +6,15 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Http;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using NgTests.Infrastructure;
+using NgTests.Validation;
 using NuGet.Packaging.Core;
-using NuGet.Protocol;
-using NuGet.Protocol.Core.Types;
 using NuGet.Services.Metadata.Catalog;
-using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGet.Services.Metadata.Catalog.Monitoring;
 using NuGet.Versioning;
 using Xunit;
@@ -28,31 +25,11 @@ namespace NgTests
     {
         public class Constructor
         {
-            private readonly IDictionary<FeedType, SourceRepository> _feedToSource;
             private readonly ValidatorConfiguration _configuration;
 
             public Constructor()
             {
-                var feedToSource = new Mock<IDictionary<FeedType, SourceRepository>>();
-
-                feedToSource.Setup(x => x[It.IsAny<FeedType>()]).Returns(new Mock<SourceRepository>().Object);
-
-                _feedToSource = feedToSource.Object;
                 _configuration = new ValidatorConfiguration(packageBaseAddress: "a", requirePackageSignature: true);
-            }
-
-            [Fact]
-            public void WhenFeedToSourceIsNull_Throws()
-            {
-                IDictionary<FeedType, SourceRepository> feedToSource = null;
-
-                var exception = Assert.Throws<ArgumentNullException>(
-                    () => new PackageIsRepositorySignedValidator(
-                        feedToSource,
-                        _configuration,
-                        Mock.Of<ILogger<PackageIsRepositorySignedValidator>>()));
-
-                Assert.Equal("feedToSource", exception.ParamName);
             }
 
             [Fact]
@@ -60,7 +37,6 @@ namespace NgTests
             {
                 var exception = Assert.Throws<ArgumentNullException>(
                     () => new PackageIsRepositorySignedValidator(
-                        _feedToSource,
                         config: null,
                         logger: Mock.Of<ILogger<PackageIsRepositorySignedValidator>>()));
 
@@ -72,7 +48,6 @@ namespace NgTests
             {
                 var exception = Assert.Throws<ArgumentNullException>(
                     () => new PackageIsRepositorySignedValidator(
-                        _feedToSource,
                         _configuration,
                         logger: null));
 
@@ -82,6 +57,25 @@ namespace NgTests
 
         public class ValidateAsync : FactsBase
         {
+            [Theory]
+            [InlineData((string)null)]
+            [InlineData(UnsignedPackageResource)]
+            [InlineData(AuthorSignedPackageResource)]
+            [InlineData(RepoSignedPackageResource)]
+            [InlineData(AuthorAndRepoSignedPackageResource)]
+            public async Task SkipsIfConfigNotRequirePackageSignature(string packageResource)
+            {
+                // Arrange
+                var target = CreateTarget(requirePackageSignature: false);
+                var context = CreateValidationContext(packageResource);
+
+                // Act
+                var result = await target.ValidateAsync(context);
+
+                // Assert
+                Assert.Equal(TestResult.Skip, result.Result);
+            }
+
             [Fact]
             public async Task FailsIfPackageIsMissing()
             {
@@ -124,7 +118,7 @@ namespace NgTests
             {
                 // Arrange
                 var target = CreateTarget();
-                var context = CreateValidationContext(packageResource: AuthorSignedPackageResource);
+                var context = CreateValidationContext(AuthorSignedPackageResource);
 
                 // Act
                 var result = await target.ValidateAsync(context);
@@ -182,17 +176,10 @@ namespace NgTests
             public static readonly DateTime PackageCreationTime = DateTime.UtcNow;
 
             private readonly IEnumerable<CatalogIndexEntry> _catalogEntries;
-
-            private readonly Mock<SourceRepository> _source;
             private readonly MockServerHttpClientHandler _mockServer;
-
-            protected readonly PackageIsRepositorySignedValidator _target;
 
             public FactsBase()
             {
-                var timestampResource = new Mock<IPackageTimestampMetadataResource>();
-
-                _source = new Mock<SourceRepository>();
                 _mockServer = new MockServerHttpClientHandler();
 
                 // Mock a catalog entry and leaf for the package we are validating.
@@ -209,25 +196,16 @@ namespace NgTests
                 AddCatalogLeafToMockServer("/catalog/leaf.json", new CatalogLeaf
                 {
                     Created = PackageCreationTime,
-                    LastEdited = PackageCreationTime,
+                    LastEdited = PackageCreationTime
                 });
-
-                // Mock V2 feed response for the package's Created/LastEdited timestamps. These timestamps must match
-                // the mocked catalog entry's timestamps.
-                var timestamp = PackageTimestampMetadata.CreateForPackageExistingOnFeed(created: PackageCreationTime, lastEdited: PackageCreationTime);
-                timestampResource.Setup(t => t.GetAsync(It.IsAny<ValidationContext>())).ReturnsAsync(timestamp);
-                _source.Setup(s => s.GetResource<IPackageTimestampMetadataResource>()).Returns(timestampResource.Object);
             }
 
             protected PackageIsRepositorySignedValidator CreateTarget(bool requirePackageSignature = true)
             {
-                var feedToSource = new Mock<IDictionary<FeedType, SourceRepository>>();
                 var logger = Mock.Of<ILogger<PackageIsRepositorySignedValidator>>();
                 var config = ValidatorTestUtility.CreateValidatorConfig(requirePackageSignature: requirePackageSignature);
 
-                feedToSource.Setup(x => x[It.IsAny<FeedType>()]).Returns(_source.Object);
-
-                return new PackageIsRepositorySignedValidator(feedToSource.Object, config, logger);
+                return new PackageIsRepositorySignedValidator(config, logger);
             }
 
             protected ValidationContext CreateValidationContext(string packageResource = null)
@@ -245,15 +223,21 @@ namespace NgTests
                         }));
                 }
 
-                // Create the validation context.
                 var httpClient = new CollectorHttpClient(_mockServer);
 
-                return new ValidationContext(
+                // Mock V2 feed response for the package's Created/LastEdited timestamps. These timestamps must match
+                // the mocked catalog entry's timestamps.
+                var timestamp = PackageTimestampMetadata.CreateForPackageExistingOnFeed(created: PackageCreationTime, lastEdited: PackageCreationTime);
+                var timestampMetadataResource = new Mock<IPackageTimestampMetadataResource>();
+
+                timestampMetadataResource.Setup(t => t.GetAsync(It.IsAny<ValidationContext>()))
+                    .ReturnsAsync(timestamp);
+
+                return ValidationContextStub.Create(
                     PackageIdentity,
                     _catalogEntries,
-                    new DeletionAuditEntry[0],
-                    httpClient,
-                    CancellationToken.None);
+                    client: httpClient,
+                    timestampMetadataResource: timestampMetadataResource.Object);
             }
 
             private void AddCatalogLeafToMockServer(string path, CatalogLeaf leaf)
@@ -272,7 +256,7 @@ namespace NgTests
                 });
             }
 
-            public class CatalogLeaf
+            private class CatalogLeaf
             {
                 public DateTimeOffset Created { get; set; }
                 public DateTimeOffset LastEdited { get; set; }

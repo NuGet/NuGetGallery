@@ -33,7 +33,8 @@ start /w ng.exe catalog2registration ^
     -semVer2StorageContainer #{Jobs.catalog2registrationv3reg3.StorageContainerSemVer2} ^
     -contentIsFlatContainer #{Jobs.catalog2registrationv3reg3.IsContentFlatContainer} ^
     -cursorUri #{Jobs.catalog2registrationv3reg3.CursorUri} ^
-    -flatContainerName #{Jobs.catalog2registrationv3reg3.FlatContainerName}
+    -flatContainerName #{Jobs.catalog2registrationv3reg3.FlatContainerName} ^
+    -galleryBaseAddress #{Jobs.catalog2registrationv3reg3.GalleryBaseAddress}
 
 echo "Finished #{Jobs.catalog2registrationv3reg3.Title}"
 

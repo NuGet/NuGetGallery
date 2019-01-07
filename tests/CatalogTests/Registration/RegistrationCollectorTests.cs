@@ -56,7 +56,7 @@ namespace CatalogTests.Registration
         private MemoryStorage _semVer2Storage;
         private TestStorageFactory _semVer2StorageFactory;
 
-        private void SharedInit(bool useLegacy, bool useSemVer2, Uri baseUri = null, Uri indexUri = null, Uri contentBaseUri = null)
+        private void SharedInit(bool useLegacy, bool useSemVer2, Uri baseUri = null, Uri indexUri = null, Uri contentBaseUri = null, Uri galleryBaseUri = null)
         {
             if (useLegacy)
             {
@@ -78,6 +78,7 @@ namespace CatalogTests.Registration
                 _legacyStorageFactory,
                 _semVer2StorageFactory,
                 contentBaseUri ?? new Uri("http://tempuri.org/packages"),
+                galleryBaseUri ?? new Uri("http://tempuri.org/gallery"),
                 Mock.Of<ITelemetryService>(),
                 Mock.Of<ILogger>(),
                 handlerFunc: () => _mockServer,
@@ -98,6 +99,7 @@ namespace CatalogTests.Registration
                     _baseUri,
                     storageFactory,
                     storageFactory,
+                    _baseUri,
                     _baseUri,
                     Mock.Of<ITelemetryService>(),
                     Mock.Of<ILogger>(),

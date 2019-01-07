@@ -11,7 +11,8 @@ start /w .\Ng.exe catalog2monitoring ^
     -source #{Jobs.common.v3.Source} ^
     -index #{Jobs.common.v3.index} ^
     -gallery #{Jobs.common.v3.f2c.Gallery} ^
-    -endpointsToTest "#{Jobs.endpointmonitoring.EndpointsToTest}" ^
+    -registrationCursorUri "#{Jobs.endpointmonitoring.RegistrationCursorUri}" ^
+    -flatContainerCursorUri "#{Jobs.endpointmonitoring.FlatContainerCursorUri}" ^
     -statusFolder #{Jobs.endpointmonitoring.StatusFolder} ^
     -storageType azure ^
     -storageAccountName #{Jobs.common.v3.c2r.StorageAccountName} ^

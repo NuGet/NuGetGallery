@@ -3,18 +3,13 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Moq;
-using NuGet.Packaging.Core;
+using NgTests.Validation;
 using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
-using NuGet.Services.Metadata.Catalog;
-using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGet.Services.Metadata.Catalog.Monitoring;
-using NuGet.Versioning;
 using Xunit;
 
 namespace NgTests
@@ -85,12 +80,7 @@ namespace NgTests
 
         private static ValidationContext CreateContext()
         {
-            return new ValidationContext(
-                new PackageIdentity("A", new NuGetVersion(1, 0, 0)),
-                Enumerable.Empty<CatalogIndexEntry>(),
-                Enumerable.Empty<DeletionAuditEntry>(),
-                new CollectorHttpClient(),
-                CancellationToken.None);
+            return ValidationContextStub.Create();
         }
     }
 
@@ -121,7 +111,7 @@ namespace NgTests
         }
 
         public TestableValidator(Func<bool> shouldRun, Action runInternal)
-            : base(_feedToSource, _validatorConfiguration, _logger)
+            : base(_validatorConfiguration, _logger)
         {
             _shouldRun = shouldRun;
             _runInternal = runInternal;

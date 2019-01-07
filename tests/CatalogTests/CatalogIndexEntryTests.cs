@@ -251,15 +251,12 @@ namespace CatalogTests
             Assert.False(entry.IsDelete);
         }
 
-        [Theory]
-        [InlineData(CatalogConstants.NuGetPackageDelete)]
-        [InlineData(CatalogConstants.PackageDelete)]
-        [InlineData("http://schema.nuget.org/schema#PackageDelete")]
-        public void IsDelete_WhenTypeIsPackageDelete_ReturnsTrue(string type)
+        [Fact]
+        public void IsDelete_WhenTypeIsPackageDelete_ReturnsTrue()
         {
             var entry = new CatalogIndexEntry(
                 _uri,
-                type,
+                CatalogConstants.NuGetPackageDelete,
                 _commitId,
                 _commitTimeStamp,
                 _packageIdentity);
@@ -323,19 +320,16 @@ namespace CatalogTests
             Assert.Equal(_packageVersion, entry.Version);
         }
 
-        [Theory]
-        [InlineData(CatalogConstants.NuGetPackageDelete)]
-        [InlineData(CatalogConstants.PackageDelete)]
-        [InlineData("http://schema.nuget.org/schema#PackageDelete")]
-        public void JsonDeserialization_WhenTypeIsPackageDelete_ReturnsCorrectObject(string type)
+        [Fact]
+        public void JsonDeserialization_WhenTypeIsPackageDelete_ReturnsCorrectObject()
         {
-            var jObject = CreateCatalogIndexJObject(type);
+            var jObject = CreateCatalogIndexJObject(CatalogConstants.NuGetPackageDelete);
             var json = jObject.ToString(Formatting.None, _settings.Converters.ToArray());
 
             var entry = JsonConvert.DeserializeObject<CatalogIndexEntry>(json, _settings);
 
             Assert.Equal(_uri.AbsoluteUri, entry.Uri.AbsoluteUri);
-            Assert.Equal(type, entry.Types.Single());
+            Assert.Equal(CatalogConstants.NuGetPackageDelete, entry.Types.Single());
             Assert.True(entry.IsDelete);
             Assert.Equal(_commitId, entry.CommitId);
             Assert.Equal(_commitTimeStamp, entry.CommitTimeStamp);

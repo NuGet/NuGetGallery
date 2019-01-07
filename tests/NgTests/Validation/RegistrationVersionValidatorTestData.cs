@@ -4,8 +4,6 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
-using NuGet.Protocol;
-using NuGet.Protocol.Core.Types;
 using NuGet.Services.Metadata.Catalog.Monitoring;
 using NuGet.Versioning;
 
@@ -14,12 +12,11 @@ namespace NgTests
     public class RegistrationVersionValidatorTestData : RegistrationIndexValidatorTestData<RegistrationVersionValidator>
     {
         protected override RegistrationVersionValidator CreateValidator(
-            IDictionary<FeedType, SourceRepository> feedToSource,
             ILogger<RegistrationVersionValidator> logger)
         {
             var config = ValidatorTestUtility.CreateValidatorConfig();
 
-            return new RegistrationVersionValidator(feedToSource, config, logger);
+            return new RegistrationVersionValidator(config, logger);
         }
 
         public override IEnumerable<Func<PackageRegistrationIndexMetadata>> CreateIndexes => new Func<PackageRegistrationIndexMetadata>[]

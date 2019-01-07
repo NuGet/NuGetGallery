@@ -180,7 +180,8 @@ namespace NuGet.Services.V3PerPackage
                     settings.Value.StorageBaseAddress,
                     settings.Value.StorageAccountName,
                     settings.Value.StorageKeyValue,
-                    settings.Value.ContentBaseAddress);
+                    settings.Value.ContentBaseAddress,
+                    settings.Value.GalleryBaseAddress);
             });
 
             serviceCollection.AddSingleton(new TelemetryClient());

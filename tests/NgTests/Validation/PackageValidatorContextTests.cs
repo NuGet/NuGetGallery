@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using NuGet.Packaging.Core;
 using NuGet.Services.Metadata.Catalog;
@@ -14,7 +15,8 @@ namespace NgTests.Validation
 {
     public class PackageValidatorContextTests
     {
-        private static readonly FeedPackageIdentity _package = new FeedPackageIdentity(id: "a", version: "1.0.0");
+        private static readonly PackageIdentity _packageIdentity = new PackageIdentity(id: "a", version: new NuGetVersion("1.0.0"));
+        private static readonly FeedPackageIdentity _feedPackageIdentity = new FeedPackageIdentity(_packageIdentity);
 
         [Fact]
         public void Constructor_WhenPackageIsNull_Throws()
@@ -27,32 +29,33 @@ namespace NgTests.Validation
             Assert.Equal("package", exception.ParamName);
         }
 
-        [Fact]
-        public void Constructor_WhenCatalogEntriesIsNull_Throws()
+        public static IEnumerable<object[]> Constructor_WhenArgumentsAreValid_InitializesInstance_Data
         {
-            var exception = Assert.Throws<ArgumentNullException>(
-                () => new PackageValidatorContext(
-                    _package,
-                    catalogEntries: null));
+            get
+            {
+                yield return new object[] { null };
 
-            Assert.Equal("catalogEntries", exception.ParamName);
+                yield return new object[] {
+                    new[]
+                    {
+                        new CatalogIndexEntry(
+                            new Uri("https://nuget.test/a"),
+                            CatalogConstants.NuGetPackageDetails,
+                            Guid.NewGuid().ToString(),
+                            DateTime.UtcNow,
+                            _packageIdentity)
+                    }
+                };
+            }
         }
 
-        [Fact]
-        public void Constructor_WhenArgumentsAreValid_InitializesInstance()
+        [Theory]
+        [MemberData(nameof(Constructor_WhenArgumentsAreValid_InitializesInstance_Data))]
+        public void Constructor_WhenArgumentsAreValid_InitializesInstance(CatalogIndexEntry[] catalogEntries)
         {
-            var catalogEntries = new[]
-            {
-                new CatalogIndexEntry(
-                    new Uri("https://nuget.test/a"),
-                    CatalogConstants.NuGetPackageDetails,
-                    Guid.NewGuid().ToString(),
-                    DateTime.UtcNow,
-                    new PackageIdentity(id: "a", version: new NuGetVersion("1.0.0")))
-            };
-            var context = new PackageValidatorContext(_package, catalogEntries);
+            var context = new PackageValidatorContext(_feedPackageIdentity, catalogEntries);
 
-            Assert.Same(_package, context.Package);
+            Assert.Same(_feedPackageIdentity, context.Package);
             Assert.Same(catalogEntries, context.CatalogEntries);
         }
     }

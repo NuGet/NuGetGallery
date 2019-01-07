@@ -26,13 +26,21 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
         /// <summary>
         /// The catalog entries that initiated this request to run validations.
         /// </summary>
+        /// <remarks>
+        /// If null, the latest catalog index entry for the package will be validated against.
+        /// </remarks>
         public IEnumerable<CatalogIndexEntry> CatalogEntries { get; }
 
         [JsonConstructor]
         public PackageValidatorContext(FeedPackageIdentity package, IEnumerable<CatalogIndexEntry> catalogEntries)
         {
             Package = package ?? throw new ArgumentNullException(nameof(package));
-            CatalogEntries = catalogEntries ?? throw new ArgumentNullException(nameof(catalogEntries));
+            CatalogEntries = catalogEntries;
+        }
+
+        public PackageValidatorContext(PackageMonitoringStatus status)
+            : this(status.Package, status.ValidationResult?.CatalogEntries)
+        {
         }
     }
 }

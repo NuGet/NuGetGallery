@@ -2,32 +2,27 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
-using NuGet.Protocol;
-using NuGet.Protocol.Core.Types;
-using NuGet.Services.Metadata.Catalog.Monitoring.Validation.Test.Exceptions;
 
-namespace NuGet.Services.Metadata.Catalog.Monitoring.Validation.Test.Catalog
+namespace NuGet.Services.Metadata.Catalog.Monitoring
 {
     /// <summary>
     /// Validates that the package is signed by verifying the presence of the "package signature file"
     /// in the nupkg. See: https://github.com/NuGet/Home/wiki/Package-Signatures-Technical-Details#-the-package-signature-file
     /// </summary>
-    public sealed class PackageHasSignatureValidator : Validator
+    public sealed class PackageHasSignatureValidator : Validator<CatalogEndpoint>
     {
         private const string NupkgSignatureFile = ".signature.p7s";
 
         private readonly ILogger<PackageHasSignatureValidator> _logger;
 
         public PackageHasSignatureValidator(
-            IDictionary<FeedType, SourceRepository> feedToSource,
             ValidatorConfiguration config,
             ILogger<PackageHasSignatureValidator> logger)
-          : base(feedToSource, config, logger)
+            : base(config, logger)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
@@ -49,6 +44,11 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring.Validation.Test.Catalog
 
         public bool ShouldRunValidator(ValidationContext context)
         {
+            if (!Config.RequirePackageSignature)
+            {
+                return false;
+            }
+
             var latest = context.Entries
                 .OrderByDescending(e => e.CommitTimeStamp)
                 .FirstOrDefault();

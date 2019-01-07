@@ -2,50 +2,30 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using NuGet.Protocol;
-using NuGet.Protocol.Core.Types;
 
 namespace NuGet.Services.Metadata.Catalog.Monitoring
 {
     public abstract class RegistrationIndexValidator : RegistrationValidator
     {
-        public RegistrationIndexValidator(
-            IDictionary<FeedType, SourceRepository> feedToSource,
-            ValidatorConfiguration config,
-            ILogger<RegistrationIndexValidator> logger)
-            : base(feedToSource, config, logger)
+        public RegistrationIndexValidator(ValidatorConfiguration config, ILogger<RegistrationIndexValidator> logger)
+            : base(config, logger)
         {
         }
 
         protected override async Task<bool> ShouldRunAsync(ValidationContext context)
         {
-            var shouldRunTask = context.GetCachedResultAsync(
-                Keys.ShouldRunAsync,
-                new Lazy<Task<bool>>(() => base.ShouldRunAsync(context)));
-            var v2Index = await context.GetCachedResultAsync(
-                Keys.GetIndexAsyncV2,
-                new Lazy<Task<PackageRegistrationIndexMetadata>>(() => GetIndexAsync(V2Resource, context)));
-            var v3Index = await context.GetCachedResultAsync(
-                Keys.GetIndexAsyncV3,
-                new Lazy<Task<PackageRegistrationIndexMetadata>>(() => GetIndexAsync(V3Resource, context)));
-            var shouldRunIndexTask = context.GetCachedResultAsync(
-                Keys.ShouldRunIndexAsync,
-                new Lazy<Task<bool>>(() => ShouldRunIndexAsync(context, v2Index, v3Index)));
+            var v2Index = await context.GetIndexV2Async();
+            var v3Index = await context.GetIndexV3Async();
 
-            return await shouldRunTask && await shouldRunIndexTask;
+            return await base.ShouldRunAsync(context) && await ShouldRunIndexAsync(context, v2Index, v3Index);
         }
 
         protected override async Task RunInternalAsync(ValidationContext context)
         {
-            var v2Index = await context.GetCachedResultAsync(
-                Keys.GetIndexAsyncV2,
-                new Lazy<Task<PackageRegistrationIndexMetadata>>(() => GetIndexAsync(V2Resource, context)));
-            var v3Index = await context.GetCachedResultAsync(
-                Keys.GetIndexAsyncV3,
-                new Lazy<Task<PackageRegistrationIndexMetadata>>(() => GetIndexAsync(V3Resource, context)));
+            var v2Index = await context.GetIndexV2Async();
+            var v3Index = await context.GetIndexV3Async();
 
             try
             {

@@ -15,14 +15,9 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
     /// </summary>
     public abstract class AggregateValidator : IAggregateValidator
     {
-        /// <summary>
-        /// Returns an <see cref="IEnumerable{IValidationTest}"/> representing all <see cref="IValidator"/>s that should be run.
-        /// </summary>
-        protected abstract IEnumerable<IValidator> GetValidators(ValidatorFactory factory);
+        protected readonly IEnumerable<IValidator> Validators;
 
-        protected ILogger Logger;
-
-        private IEnumerable<IValidator> _validators;
+        protected readonly ILogger<AggregateValidator> Logger;
 
         [JsonProperty("name")]
         public virtual string Name
@@ -33,10 +28,10 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
             }
         }
 
-        public AggregateValidator(ValidatorFactory factory, ILogger<AggregateValidator> logger)
+        public AggregateValidator(IEnumerable<IValidator> validators, ILogger<AggregateValidator> logger)
         {
+            Validators = validators ?? throw new ArgumentNullException(nameof(validators));
             Logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _validators = GetValidators(factory);
         }
 
         /// <summary>
@@ -48,7 +43,7 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
         {
             return new AggregateValidationResult(
                 this, 
-                await Task.WhenAll(_validators.Select(v => v.ValidateAsync(context))));
+                await Task.WhenAll(Validators.Select(v => v.ValidateAsync(context))));
         }
     }
 }

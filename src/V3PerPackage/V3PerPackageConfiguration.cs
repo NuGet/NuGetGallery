@@ -12,6 +12,7 @@ namespace NuGet.Services.V3PerPackage
         public string StorageAccountName { get; set; }
         public string StorageKeyValue { get; set; }
         public Uri ContentBaseAddress { get; set; }
+        public Uri GalleryBaseAddress { get; set; }
         public string InstrumentationKey { get; set; }
     }
 }

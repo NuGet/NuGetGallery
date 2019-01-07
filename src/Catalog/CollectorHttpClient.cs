@@ -60,7 +60,7 @@ namespace NuGet.Services.Metadata.Catalog
             }
         }
 
-        private JObject ParseJObject(string json)
+        private static JObject ParseJObject(string json)
         {
             using (var reader = new JsonTextReader(new StringReader(json)))
             {

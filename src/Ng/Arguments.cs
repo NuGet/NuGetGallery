@@ -37,6 +37,7 @@ namespace Ng
 
         public const string ConnectionString = "connectionString";
         public const string ContentBaseAddress = "contentBaseAddress";
+        public const string GalleryBaseAddress = "galleryBaseAddress";
         public const string StorageAccountName = "storageAccountName";
         public const string StorageBaseAddress = "storageBaseAddress";
         public const string StorageContainer = "storageContainer";
@@ -125,16 +126,14 @@ namespace Ng
         public const string Index = "index";
 
         /// <summary>
-        /// A semicolon-delimited list of <see cref="EndpointValidator"/> implementation names.
-        /// E.g. "<see cref="RegistrationEndpoint"/>;<see cref="FlatContainerEndpoint"/>".
+        /// The url of the cursor for <see cref="RegistrationEndpoint"/>.
         /// </summary>
-        public const string EndpointsToTest = "endpointsToTest";
+        public const string RegistrationCursorUri = "registrationCursorUri";
 
         /// <summary>
-        /// A prefix to combine with the name of an endpoint to specify the address of the cursor of an endpoint.
-        /// E.g. "endpointCursor<see cref="RegistrationEndpoint"/>".
+        /// The url of the cursor for <see cref="FlatContainerEndpoint"/>.
         /// </summary>
-        public const string EndpointCursorPrefix = "endpointCursor";
+        public const string FlatContainerCursorUri = "flatContainerCursorUri";
 
         /// <summary>
         /// The folder in which <see cref="PackageMonitoringStatus"/>es are saved by the <see cref="PackageMonitoringStatusService"/>.

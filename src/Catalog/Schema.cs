@@ -148,6 +148,9 @@ namespace NuGet.Services.Metadata.Catalog
             public static readonly Uri Surname = new Uri(Prefixes.NuGet + "surname");
             public static readonly Uri Email = new Uri(Prefixes.NuGet + "email");
             public static readonly Uri Iss = new Uri(Prefixes.NuGet + "iss");
+
+            public static readonly Uri LicenseExpression = new Uri(Prefixes.NuGet + "licenseExpression");
+            public static readonly Uri LicenseFile = new Uri(Prefixes.NuGet + "licenseFile");
         }
     }
 }

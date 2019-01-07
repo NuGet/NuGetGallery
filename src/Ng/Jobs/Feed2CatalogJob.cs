@@ -134,7 +134,7 @@ namespace Ng.Jobs
                     packagesEdited = 0;
 
                     // baseline timestamps
-                    var catalogProperties = await FeedHelpers.GetCatalogPropertiesAsync(CatalogStorage, TelemetryService, cancellationToken);
+                    var catalogProperties = await CatalogProperties.ReadAsync(CatalogStorage, TelemetryService, cancellationToken);
                     var lastCreated = catalogProperties.LastCreated ?? (StartDate ?? Constants.DateTimeMinValueUtc);
                     var lastEdited = catalogProperties.LastEdited ?? lastCreated;
                     var lastDeleted = catalogProperties.LastDeleted ?? lastCreated;
