@@ -98,12 +98,6 @@ Invoke-BuildStep 'Building solution' {
     } `
     -ev +BuildErrors
 
-Invoke-BuildStep 'Building Search Service web app package' { 
-        $ProjectPath = Join-Path $PSScriptRoot "src\NuGet.Services.SearchService\NuGet.Services.SearchService.csproj"
-        New-WebAppPackage $ProjectPath -Configuration $Configuration -BuildNumber $BuildNumber `
-    } `
-    -ev +BuildErrors
-
 Invoke-BuildStep 'Creating artifacts' {
         $csprojPackages = `
             "src\NuGet.Indexing\NuGet.Indexing.csproj", `
