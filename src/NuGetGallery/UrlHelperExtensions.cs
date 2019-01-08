@@ -684,6 +684,24 @@ namespace NuGetGallery
             return url.ManagePackage(package.Id, package.Version, relativeUrl);
         }
 
+        public static string EditPackage(
+            this UrlHelper url,
+            string id,
+            string version,
+            bool relativeUrl = true)
+        {
+            return GetRouteLink(
+                url,
+                RouteName.PackageVersionAction,
+                relativeUrl,
+                routeValues: new RouteValueDictionary
+                {
+                    { "action", "Edit" },
+                    { "id", id },
+                    { "version", version }
+                });
+        }
+
         public static string ReflowPackage(
             this UrlHelper url,
             IPackageVersionModel package,
