@@ -4,6 +4,7 @@
 using System;
 using System.IO;
 using System.Collections.Generic;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -161,6 +162,41 @@ namespace Validation.Symbols.Tests
                 List<string> orphanSymbols;
                 Assert.Throws<ArgumentNullException>(()=>SymbolsValidatorService.SymbolsHaveMatchingPEFiles(null, pes, out orphanSymbols));
                 Assert.Throws<ArgumentNullException>(() => SymbolsValidatorService.SymbolsHaveMatchingPEFiles(symbols, null, out orphanSymbols));
+            }
+        }
+
+        public class TheIsPortableMethod
+        {
+            [Theory]
+            [InlineData("BSJB", true)]
+            [InlineData("CBSJB", false)]
+            public void IsPortableValidation(string data, bool expectedResult)
+            {
+                // Arrange + Act
+                bool result = false;
+                using (MemoryStream memStream = new MemoryStream(Encoding.ASCII.GetBytes(data)))
+                {
+                    result = SymbolsValidatorService.IsPortable(memStream);
+                }
+
+                // Assert
+                Assert.Equal(result, expectedResult);
+            }
+        }
+
+        public class TheGetSymbolPathMethod
+        {
+            [Theory]
+            [InlineData(@"C:\A\BB\CC.dll", @"C:\A\BB\CC.pdb")]
+            [InlineData(@"C:\A\BB\cc.dll", @"C:\A\BB\cc.pdb")]
+            [InlineData(@"C:\A\BB\CC.exe", @"C:\A\BB\CC.pdb")]
+            public void IsGetSymbolPathValidation(string input, string expectedResult)
+            {
+                // Act 
+                string result = SymbolsValidatorService.GetSymbolPath(input);
+
+                // Assert
+                Assert.Equal(result, expectedResult);
             }
         }
 

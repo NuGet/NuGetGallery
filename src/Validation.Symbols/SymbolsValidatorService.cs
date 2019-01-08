@@ -156,6 +156,12 @@ namespace Validation.Symbols
                 foreach (string peFile in Directory.GetFiles(targetDirectory, extension, SearchOption.AllDirectories))
                 {
                     IValidationResult validationResult;
+
+                    if(!IsPortable(GetSymbolPath(peFile)))
+                    {
+                        _telemetryService.TrackSymbolsValidationResultEvent(packageId, packageNormalizedVersion, ValidationStatus.Failed);
+                        return ValidationResult.FailedWithIssues(ValidationIssue.SymbolErrorCode_PdbIsNotPortable);
+                    }
                     if (!IsChecksumMatch(peFile, packageId, packageNormalizedVersion, out validationResult))
                     {
                         _telemetryService.TrackSymbolsValidationResultEvent(packageId, packageNormalizedVersion, ValidationStatus.Failed);
@@ -234,6 +240,40 @@ namespace Validation.Symbols
             _telemetryService.TrackSymbolsAssemblyValidationResultEvent(packageId, packageNormalizedVersion, ValidationStatus.Failed, nameof(ValidationIssue.SymbolErrorCode_PdbIsNotPortable), assemblyName: Path.GetFileName(peFilePath));
             validationResult = ValidationResult.FailedWithIssues(ValidationIssue.SymbolErrorCode_PdbIsNotPortable);
             return false;
+        }
+
+        /// <summary>
+        /// Verifies if the pdb is portable.
+        /// </summary>
+        /// <param name="pdbPath">The pdb path.</param>
+        /// <returns>True if the pdb is portable.</returns>
+        public static bool IsPortable(string pdbPath)
+        {
+            using (var pdbStream = File.OpenRead(pdbPath))
+            {
+                return IsPortable(pdbStream);
+            }
+        }
+
+        /// <summary>
+        /// Verifies if the pdb is portable.
+        /// It does not dispose the stream.
+        /// </summary>
+        /// <param name="pdbStream">The pdbStream.</param>
+        /// <returns>True if the pdb is portable.</returns>
+        public static bool IsPortable(Stream pdbStream)
+        {
+            // Portable pdbs have the first four bytes "B", "S", "J", "B"
+            var portableStamp = new byte[4] { 66, 83, 74, 66 };
+
+            var currentPDBStamp = new byte[4];
+            pdbStream.Read(currentPDBStamp, 0, 4);
+            return currentPDBStamp.SequenceEqual(portableStamp);
+        }
+
+        public static string GetSymbolPath(string pePath)
+        {
+            return $"{Path.GetDirectoryName(pePath)}\\{Path.GetFileNameWithoutExtension(pePath)}.pdb";
         }
 
         /// <summary>
