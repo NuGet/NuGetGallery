@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.IO;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -73,10 +74,9 @@ namespace NuGet.Services.SearchService
 
         private static IDependencyResolver GetDependencyResolver(HttpConfiguration config)
         {
-            var configurationRoot = GetConfigurationRoot(@"Settings\dev.json", out var secretInjector);
+            var configurationRoot = GetConfigurationRoot();
 
             var services = new ServiceCollection();
-            services.AddSingleton(secretInjector);
             services.Add(ServiceDescriptor.Scoped(typeof(IOptionsSnapshot<>), typeof(NonCachingOptionsSnapshot<>)));
             services.Configure<AzureSearchConfiguration>(configurationRoot.GetSection(ConfigurationSectionName));
             services.Configure<SearchServiceConfiguration>(configurationRoot.GetSection(ConfigurationSectionName));
@@ -94,25 +94,30 @@ namespace NuGet.Services.SearchService
             return new AutofacWebApiDependencyResolver(container);
         }
 
-        private static IConfigurationRoot GetConfigurationRoot(string configurationFilename, out ISecretInjector secretInjector)
+        private static IConfigurationRoot GetConfigurationRoot()
         {
-            var basePath = HostingEnvironment.MapPath("~/");
+            const string prefix = "APPSETTING_";
+            var jsonFile = Path.Combine(HostingEnvironment.MapPath("~/"), @"Settings\local.json");
 
-            var builder = new ConfigurationBuilder()
-                .SetBasePath(basePath)
-                .AddJsonFile(configurationFilename, optional: false, reloadOnChange: false);
+            // Load the configuration without injection. This allows us to read KeyVault configuration.
+            var uninjectedBuilder = new ConfigurationBuilder()
+                .AddJsonFile(jsonFile) // The JSON file is useful for local development.
+                .AddEnvironmentVariables(prefix); // Environment variables take precedence.
+            var uninjectedConfiguration = uninjectedBuilder.Build();
 
-            var uninjectedConfiguration = builder.Build();
-
+            // Initialize KeyVault integration.
             var secretReaderFactory = new ConfigurationRootSecretReaderFactory(uninjectedConfiguration);
             var cachingSecretReaderFactory = new CachingSecretReaderFactory(secretReaderFactory, KeyVaultSecretCachingTimeout);
-            secretInjector = cachingSecretReaderFactory.CreateSecretInjector(cachingSecretReaderFactory.CreateSecretReader());
+            var secretReader = cachingSecretReaderFactory.CreateSecretReader();
+            var secretInjector = cachingSecretReaderFactory.CreateSecretInjector(secretReader);
 
-            builder = new ConfigurationBuilder()
-                .SetBasePath(basePath)
-                .AddInjectedJsonFile(configurationFilename, secretInjector);
+            // Reload the configuration with secret injection enabled. This is was is used by the application.
+            var injectedBuilder = new ConfigurationBuilder()
+                .AddInjectedJsonFile(jsonFile, secretInjector)
+                .AddInjectedEnvironmentVariables(prefix, secretInjector);
+            var injectedConfiguration = injectedBuilder.Build();
 
-            return builder.Build();
+            return injectedConfiguration;
         }
 
         private static string GetControllerName<T>() where T : ApiController

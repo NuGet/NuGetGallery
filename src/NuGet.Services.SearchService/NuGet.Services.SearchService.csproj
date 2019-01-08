@@ -61,7 +61,7 @@
     <Compile Include="Properties\AssemblyInfo.*.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Settings\dev.json" />
+    <Content Include="Settings\local.json" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
@@ -78,6 +78,9 @@
     </PackageReference>
     <PackageReference Include="Microsoft.CodeDom.Providers.DotNetCompilerPlatform">
       <Version>2.0.1</Version>
+    </PackageReference>
+    <PackageReference Include="NuGet.Services.Configuration">
+      <Version>2.41.0</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
