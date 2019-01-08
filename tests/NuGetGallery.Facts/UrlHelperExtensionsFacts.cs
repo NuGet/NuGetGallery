@@ -143,14 +143,14 @@ namespace NuGetGallery
                 var packageVM = new ListPackageItemViewModel(package, currentUser: null);
 
                 // Act
-                var result = urlHelper.EditPackageTemplate().Resolve(packageVM);
+                var result = urlHelper.ManagePackageTemplate().Resolve(packageVM);
 
                 // Assert
-                Assert.Equal(urlHelper.EditPackage(packageVM.Id, packageVM.Version), result);
+                Assert.Equal(urlHelper.ManagePackage(packageVM.Id, packageVM.Version), result);
             }
         }
 
-        public class TheDeletePackageTemplateHelperMethod
+        public class TheDeleteSymbolsPackageTemplateHelperMethod
             : TestContainer
         {
             [Fact]
@@ -170,37 +170,10 @@ namespace NuGetGallery
                 var packageVM = new ListPackageItemViewModel(package, currentUser: null);
 
                 // Act
-                var result = urlHelper.DeletePackageTemplate().Resolve(packageVM);
+                var result = urlHelper.DeleteSymbolsPackageTemplate().Resolve(packageVM);
 
                 // Assert
-                Assert.Equal(urlHelper.DeletePackage(packageVM), result);
-            }
-        }
-
-        public class TheManagePackageOwnersTemplateHelperMethod
-            : TestContainer
-        {
-            [Fact]
-            public void ResolvePathIsCorrect()
-            {
-                // Arrange
-                var package = new Package
-                {
-                    PackageRegistration = new PackageRegistration
-                    {
-                        Id = "TestPackageId"
-                    },
-                    Version = "1.0.0"
-                };
-
-                var urlHelper = TestUtility.MockUrlHelper();
-                var packageVM = new ListPackageItemViewModel(package, currentUser: null);
-
-                // Act
-                var result = urlHelper.ManagePackageOwnersTemplate().Resolve(packageVM);
-
-                // Assert
-                Assert.Equal(urlHelper.ManagePackageOwners(packageVM), result);
+                Assert.Equal(urlHelper.DeleteSymbolsPackage(packageVM), result);
             }
         }
 

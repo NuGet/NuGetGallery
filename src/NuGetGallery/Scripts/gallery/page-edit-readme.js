@@ -90,7 +90,7 @@
         }
 
         function displayErrors(errors) {
-            if (errors == null || errors.length < 1) {
+            if (errors === null || errors.length < 1) {
                 return;
             }
 
@@ -131,7 +131,7 @@
 
         function bindData(model) {
 
-            if (model == null) {
+            if (model === null) {
                 return;
             }
 
@@ -167,9 +167,8 @@ var bindReadMeData = (function () {
 
     function bindReadMeData(model) {
         $("#import-readme-block").remove();
-        $("#readme-collapser-container").addClass("hidden");
 
-        if (model == null)
+        if (model === null)
         {
             return;
         }
@@ -187,10 +186,6 @@ var bindReadMeData = (function () {
         $(readMeContainerElement).attr("data-bind", "template: { name: 'import-readme-template', data: data }");
         $("#import-readme-container").append(readMeContainerElement);
         ko.applyBindings({ data: model }, readMeContainerElement);
-
-        $("#readme-collapser-container").removeClass("hidden");
-
-        window.nuget.configureExpanderHeading("readme-package-form");
 
         $("#ReadMeUrlInput").on("change blur", function () {
             clearReadMeError();
@@ -241,15 +236,15 @@ var bindReadMeData = (function () {
         var formData = new FormData();
         formData.append("SourceType", readMeType);
 
-        if (readMeType == "written") {
+        if (readMeType === "written") {
             var readMeWritten = $("#ReadMeTextInput").val();
             formData.append("SourceText", readMeWritten);
         }
-        else if (readMeType == "url") {
+        else if (readMeType === "url") {
             var readMeUrl = $("#ReadMeUrlInput").val();
             formData.append("SourceUrl", readMeUrl);
         }
-        else if (readMeType == "file") {
+        else if (readMeType === "file") {
             var readMeFileInput = $("#ReadMeFileInput");
             var readMeFileName = readMeFileInput && readMeFileInput[0] ? window.nuget.getFileName(readMeFileInput.val()) : null;
             var readMeFile = readMeFileName ? readMeFileInput[0].files[0] : null;
@@ -268,7 +263,7 @@ var bindReadMeData = (function () {
             },
             error: function (jqXHR, exception) {
                 var message = "";
-                if (jqXHR.status == 400) {
+                if (jqXHR.status === 400) {
                     try {
                         message = JSON.parse(jqXHR.responseText);
                     } catch (err) {

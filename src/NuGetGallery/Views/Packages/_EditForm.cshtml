@@ -1,16 +1,6 @@
 ﻿<form aria-label="Edit your package" id="edit-readme-form">
     @Html.AntiForgeryToken()
         
-    <div id="readme-collapser-container" class="hidden">
-        <h2>
-            <a href="#" role="button" data-toggle="collapse" data-target="#readme-package-form"
-               aria-expanded="true" aria-controls="readme-package-form" id="show-readme-package-form">
-                <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
-                <span>Import Documentation</span>
-            </a>
-        </h2>
-    </div>
-
     <div id="import-readme-container">
     </div>
     @Html.Partial("_ImportReadMe")

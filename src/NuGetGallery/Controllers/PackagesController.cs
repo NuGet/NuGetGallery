@@ -1194,52 +1194,29 @@ namespace NuGetGallery
                     version
                 });
         }
-
-        [HttpGet]
-        [UIAuthorize]
-        public virtual ActionResult ManagePackageOwners(string id)
-        {
-            var package = _packageService.FindPackageByIdAndVersion(id, string.Empty);
-            if (package == null)
-            {
-                return HttpNotFound();
-            }
-
-            if (ActionsRequiringPermissions.ManagePackageOwnership.CheckPermissionsOnBehalfOfAnyAccount(GetCurrentUser(), package) != PermissionsCheckResult.Allowed)
-            {
-                return HttpForbidden();
-            }
-
-            var model = new ManagePackageOwnersViewModel(package, GetCurrentUser());
-
-            return View(model);
-        }
-
+        
         [HttpGet]
         [UIAuthorize]
         [RequiresAccountConfirmation("delete a package")]
-        public virtual ActionResult Delete(string id, string version)
+        public virtual async Task<ActionResult> Manage(string id, string version = null)
         {
             var package = _packageService.FindPackageByIdAndVersion(id, version);
             if (package == null)
             {
                 return HttpNotFound();
             }
-            if (ActionsRequiringPermissions.UnlistOrRelistPackage.CheckPermissionsOnBehalfOfAnyAccount(GetCurrentUser(), package) != PermissionsCheckResult.Allowed)
+
+            var model = new ManagePackageViewModel(
+                package, 
+                GetCurrentUser(), 
+                ReportMyPackageReasons, 
+                Url, 
+                await _readMeService.GetReadMeMdAsync(package));
+
+            if (!model.CanEdit && !model.CanManageOwners && !model.CanUnlistOrRelist)
             {
                 return HttpForbidden();
             }
-
-            var model = new DeletePackageViewModel(package, GetCurrentUser(), ReportMyPackageReasons);
-
-            model.VersionSelectList = new SelectList(
-                model.PackageVersions
-                .Where(p => !p.Deleted)
-                .Select(p => new
-                {
-                    text = p.NuGetVersion.ToFullString() + (p.LatestVersionSemVer2 ? " (Latest)" : string.Empty),
-                    url = Url.DeletePackage(p)
-                }), "url", "text", Url.DeletePackage(model));
 
             return View(model);
         }
@@ -1455,7 +1432,7 @@ namespace NuGetGallery
             }
 
             var firstPackage = packagesToDelete.First();
-            return Delete(firstPackage.PackageRegistration.Id, firstPackage.Version);
+            return await Manage(firstPackage.PackageRegistration.Id, firstPackage.Version);
         }
 
         [UIAuthorize]
@@ -1527,58 +1504,6 @@ namespace NuGetGallery
         {
             // Edit does exactly the same thing that Delete used to do... REUSE ALL THE CODE!
             return await Edit(id, version, listed, Url.Package);
-        }
-
-        [HttpGet]
-        [UIAuthorize]
-        [RequiresAccountConfirmation("edit a package")]
-        public virtual async Task<ActionResult> Edit(string id, string version)
-        {
-            var package = _packageService.FindPackageByIdAndVersion(id, version);
-            if (package == null)
-            {
-                return HttpNotFound();
-            }
-
-            if (ActionsRequiringPermissions.EditPackage.CheckPermissionsOnBehalfOfAnyAccount(GetCurrentUser(), package) != PermissionsCheckResult.Allowed)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.Forbidden, Strings.Unauthorized);
-            }
-
-            // Create model from the package.
-            var model = new EditPackageRequest
-            {
-                PackageId = package.PackageRegistration.Id,
-                PackageTitle = package.Title,
-                Version = package.NormalizedVersion,
-                PackageRegistration = package.PackageRegistration,
-                IsLocked = package.PackageRegistration.IsLocked,
-            };
-
-            if (!model.IsLocked)
-            {
-                model.PackageVersions = package.PackageRegistration.Packages
-                      .OrderByDescending(p => new NuGetVersion(p.Version), Comparer<NuGetVersion>.Create((a, b) => a.CompareTo(b)))
-                      .ToList();
-
-                // Create version selection.
-                model.VersionSelectList = new SelectList(model.PackageVersions.Select(e => new
-                {
-                    text = NuGetVersion.Parse(e.Version).ToFullString() + (e.IsLatestSemVer2 ? " (Latest)" : string.Empty),
-                    url = UrlHelperExtensions.EditPackage(Url, model.PackageId, e.NormalizedVersion)
-                }), "url", "text", UrlHelperExtensions.EditPackage(Url, model.PackageId, model.Version));
-
-                model.Edit = new EditPackageVersionReadMeRequest();
-
-                // Update edit model with the readme.md data.
-                if (package.HasReadMe)
-                {
-                    model.Edit.ReadMe.SourceType = ReadMeService.TypeWritten;
-                    model.Edit.ReadMe.SourceText = await _readMeService.GetReadMeMdAsync(package);
-                }
-            }
-
-            return View(model);
         }
 
         [UIAuthorize]

@@ -1,20 +1,6 @@
 ﻿$(function () {
     'use strict';
 
-    window.nuget.configureExpander(
-        "package-owners",
-        "ChevronRight",
-        "Current Owners",
-        "ChevronDown",
-        "Current Owners");
-
-    window.nuget.configureExpander(
-        "add-owner",
-        "ChevronRight",
-        "Add Owner",
-        "ChevronDown",
-        "Add Owner");
-
     var failHandler = function (jqXHR, textStatus, errorThrown) {
         viewModel.message(window.nuget.formatString(errorThrown));
     };
@@ -188,7 +174,7 @@
         }
     };
 
-    ko.applyBindings(viewModel);
+    ko.applyBindings(viewModel, $(".page-manage-owners")[0]);
 
     // Load initial owners.
     $.ajax({

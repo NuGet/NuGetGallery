@@ -331,7 +331,7 @@
                         @<text>
                             This package is unlisted and hidden from package listings.
                             You can see the package because you are one of its owners. To list the package again,
-                            <a href="@Url.DeletePackage(Model)">change its listing setting</a>.
+                            <a href="@Url.ManagePackage(Model)">change its listing setting</a>.
                         </text>
                     )
                 }
@@ -544,7 +544,7 @@
                                             packageStatusSummary == PackageStatusSummary.Unlisted)
                                         {
                                             <td>
-                                                <a href="@Url.DeletePackage(packageVersion)">@NuGetGallery.Helpers.EnumHelper.GetDescription(packageStatusSummary)</a>
+                                                <a href="@Url.ManagePackage(packageVersion)">@NuGetGallery.Helpers.EnumHelper.GetDescription(packageStatusSummary)</a>
                                             </td>
                                         }
                                         else
@@ -698,25 +698,13 @@
                     </li>
                 }
 
-                @if ((Model.Available || Model.Validating) && Model.CanEdit)
+                @if (((Model.Available || Model.Validating) && Model.CanEdit)
+                    || Model.CanManageOwners
+                    || (!Model.Deleted && Model.CanUnlistOrRelist))
                 {
                     <li>
                         <i class="ms-Icon ms-Icon--Edit" aria-hidden="true"></i>
-                        <a href="@Url.EditPackage(Model.Id, Model.Version)">Edit package</a>
-                    </li>
-                }
-                @if (Model.CanManageOwners)
-                {
-                    <li>
-                        <i class="ms-Icon ms-Icon--People" aria-hidden="true"></i>
-                        <a href="@Url.ManagePackageOwners(Model)">Manage owners</a>
-                    </li>
-                }
-                @if (!Model.Deleted && Model.CanUnlistOrRelist)
-                {
-                    <li>
-                        <i class="ms-Icon ms-Icon--Delete" aria-hidden="true"></i>
-                        <a href="@Url.DeletePackage(Model)" class="delete">Delete package</a>
+                        <a href="@Url.ManagePackage(Model.Id, Model.Version)">Edit package</a>
                     </li>
                 }
                 @if (!Model.Deleted && hasSymbolsPackageAvailable && Model.CanDeleteSymbolsPackage)

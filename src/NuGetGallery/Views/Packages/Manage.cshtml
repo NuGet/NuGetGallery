@@ -1,0 +1,112 @@
+﻿@model ManagePackageViewModel
+@{
+    ViewBag.Title = "Manage Package for " + Model.Id;
+    ViewBag.Tab = "Packages";
+    ViewBag.MdPageColumns = GalleryConstants.ColumnsFormMd;
+}
+
+<section role="main" class="container main-container">
+    @ViewHelpers.AjaxAntiForgeryToken(Html)
+    <div class="row">
+        <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
+            @Html.Partial(
+                "_PackageHeading",
+                new PackageHeadingModel(
+                    Model,
+                    "Manage",
+                    linkIdOnly: true))
+
+            @ViewHelpers.AlertPackageEditRecommendation()
+
+            @if (Model.CanManageOwners)
+            {
+                @ViewHelpers.Section(
+                    this,
+                    "Owners",
+                    "Owners",
+                    @<text>@Html.Partial("_Owners", Model)</text>,
+                    expanded: false)
+            }
+
+            @if (Model.CanUnlistOrRelist)
+            {
+                @ViewHelpers.Section(
+                    this,
+                    "Listing",
+                    "Listing",
+                    @<text>@Html.Partial("_Delete", Model)</text>,
+                    expanded: false)
+            }
+
+            @if (Model.CanEdit)
+            {
+                @ViewHelpers.Section(
+                    this,
+                    "Documentation",
+                    "Documentation",
+                    @<text>@Html.Partial("_ReadMe", Model)</text>,
+                    expanded: false)
+            }
+        </div>
+    </div>
+</section>
+
+@section BottomScripts {
+    <script type="text/javascript">
+        // Setup owners
+        var packageId = "@Model.Id";
+        var isUserAnAdmin = "@Model.IsCurrentUserAnAdmin";
+        var packageUrl = "@Url.Package(Model.Id)";
+        var getPackageOwnersUrl = "@Url.GetPackageOwners()";
+        var addPackageOwnerUrl = "@Url.AddPackageOwner()";
+        var removePackageOwnerUrl = "@Url.RemovePackageOwner()";
+
+        // Owners strings
+        var strings_Error = "@Html.Raw(Strings.ManagePackageOwners_Error)";
+        var strings_InvalidUsername = "@Html.Raw(Strings.ManagePackageOwners_InvalidUsername)";
+        var strings_AlreadyPending = "@Html.Raw(Strings.ManagePackageOwners_AlreadyPending)";
+        var strings_RemovingOwnership = "@Html.Raw(Strings.ManagePackageOwners_RemovingOwnership)";
+        var strings_RemovingOrganization = "@Html.Raw(Strings.ManagePackageOwners_RemovingOrganization)";
+        var strings_RemovingSelf = "@Html.Raw(Strings.ManagePackageOwners_RemovingSelf)";
+
+        $(function () {
+            // Setup delete
+            window.nuget.configureExpanderHeading("select-version");
+
+            if (!!document.referrer) {
+                var referrer = document.referrer.toLowerCase();
+
+                if (referrer.endsWith("/delete") && referrer.indexOf("@Model.Id".toLowerCase()) != -1) {
+                    $(".page-delete-package #input-select-version").focus();
+                }
+            }
+
+            $('.page-delete-package #input-select-version').change(function () {
+                window.location.href = this.value;
+            });
+
+            // Setup readme
+            var readMeModel = {
+                "Id": '@Model.Id',
+                "Version": '@Model.Version',
+                "Edit": @Html.Raw(Json.Encode(Model.ReadMe))
+            };
+
+            EditReadmeManager.init(
+                readMeModel,
+                '@Url.ManagePackage(Model.Id, Model.Version)',
+                '@Url.Package(Model.Id, Model.Version)');
+
+            if (document.referrer != null
+                && document.referrer.toLocaleLowerCase().endsWith("edit")
+                && document.referrer.indexOf('@Model.Id') > -1) {
+
+                $(".page-edit-package #input-select-version").focus();
+            }
+        });
+    </script>
+    @ViewHelpers.SectionsScript(this)
+    @Scripts.Render("~/Scripts/gallery/page-manage-owners.min.js")
+    @Scripts.Render("~/Scripts/gallery/page-delete-package.js")
+    @Scripts.Render("~/Scripts/gallery/page-edit-readme.js")
+}
