@@ -9,11 +9,26 @@ namespace NuGet.Services.Configuration
 {
     public static class ConfigurationBuilderExtensions
     {
-        public static IConfigurationBuilder AddInjectedJsonFile(this IConfigurationBuilder configurationBuilder, string path, ISecretInjector secretInjector)
+        public static IConfigurationBuilder AddInjectedJsonFile(
+            this IConfigurationBuilder configurationBuilder,
+            string path,
+            ISecretInjector secretInjector)
         {
             configurationBuilder = configurationBuilder ?? throw new ArgumentNullException(nameof(configurationBuilder));
 
             configurationBuilder.Add(new KeyVaultJsonInjectingConfigurationSource(path, secretInjector));
+
+            return configurationBuilder;
+        }
+
+        public static IConfigurationBuilder AddInjectedEnvironmentVariables(
+            this IConfigurationBuilder configurationBuilder,
+            string prefix,
+            ISecretInjector secretInjector)
+        {
+            configurationBuilder = configurationBuilder ?? throw new ArgumentNullException(nameof(configurationBuilder));
+
+            configurationBuilder.Add(new KeyVaultEnvironmentVariableInjectingConfigurationSource(prefix, secretInjector));
 
             return configurationBuilder;
         }

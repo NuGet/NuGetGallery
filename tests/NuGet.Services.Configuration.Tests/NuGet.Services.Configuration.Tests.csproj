@@ -41,6 +41,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ConfigurationAttributeFacts.cs" />
+    <Compile Include="ConfigurationBuilderExtensionsFacts.cs" />
     <Compile Include="ConfigurationFactoryFacts.cs" />
     <Compile Include="ConfigurationProviderFacts.cs" />
     <Compile Include="ConfigurationUtilityFacts.cs" />
