@@ -282,7 +282,7 @@ namespace NuGetGallery
 
         private async Task RemoveSupportRequests(User user)
         {
-            await _supportRequestService.DeleteSupportRequestsAsync(user.Username);
+            await _supportRequestService.DeleteSupportRequestsAsync(user);
         }
 
         private async Task RemoveUser(User user)

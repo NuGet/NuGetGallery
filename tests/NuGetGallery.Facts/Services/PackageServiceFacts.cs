@@ -2059,6 +2059,21 @@ namespace NuGetGallery
             }
         }
 
+        public class TheEnsureValidMethod
+        {
+            [Fact]
+            public async Task EnsureValidThrowsForSymbolsPackage()
+            {
+                // Arrange
+                var service = CreateService();
+                var packageStream = TestPackage.CreateTestSymbolPackageStream();
+                var packageArchiveReader = PackageServiceUtility.CreateArchiveReader(packageStream);
+
+                // Act and Assert
+                await Assert.ThrowsAsync<InvalidPackageException>(async () => await service.EnsureValid(packageArchiveReader));
+            }
+        }
+
         public class TheRemovePackageOwnerMethod
         {
             [Fact]

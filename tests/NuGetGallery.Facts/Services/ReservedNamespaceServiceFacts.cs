@@ -99,7 +99,7 @@ namespace NuGetGallery.Services
             {
                 var service = new TestableReservedNamespaceService();
                 var addNamespace = new ReservedNamespace(value, isSharedNamespace: false, isPrefix: true);
-                await Assert.ThrowsAsync<ArgumentException>(async () => await service.AddReservedNamespaceAsync(addNamespace));
+                await Assert.ThrowsAsync<InvalidOperationException>(async () => await service.AddReservedNamespaceAsync(addNamespace));
             }
 
             [Theory]
@@ -110,7 +110,7 @@ namespace NuGetGallery.Services
             {
                 var service = new TestableReservedNamespaceService();
                 var addNamespace = new ReservedNamespace(value, isSharedNamespace: false, isPrefix: true);
-                await Assert.ThrowsAsync<ArgumentException>(async () => await service.AddReservedNamespaceAsync(addNamespace));
+                await Assert.ThrowsAsync<InvalidOperationException>(async () => await service.AddReservedNamespaceAsync(addNamespace));
             }
 
             [Fact]
@@ -969,6 +969,7 @@ namespace NuGetGallery.Services
             [InlineData("Cont@ins$pecia|C#aracters")]
             [InlineData("Endswithperods..")]
             [InlineData("Multiple.Sequential..Periods.")]
+            [InlineData("Multiple-Sequential--hyphens")]
             public void InvalidNamespacesThrowsException(string value)
             {
                 Assert.Throws<ArgumentException>(() => ReservedNamespaceService.ValidateNamespace(value));
@@ -980,6 +981,9 @@ namespace NuGetGallery.Services
             [InlineData("Name.Space.")]
             [InlineData("123_Name.space.")]
             [InlineData("123-Namespace.")]
+            [InlineData("123-Namespace-endswith-hyphen-")]
+            [InlineData("123_Namespace_endswith_Underscores_")]
+            [InlineData("Multiple_Sequential__Underscores")]
             public void ValidNamespacesDontThrowException(string value)
             {
                 var ex = Record.Exception(() => ReservedNamespaceService.ValidateNamespace(value));
