@@ -6,15 +6,13 @@
         var _viewModel;
         var _changedState;
         var _submitUrl;
-        var _cancelUrl;
         var _submitting;
         var _submitted = true;
 
-        this.init = function (model, submitUrl, cancelUrl) {
+        this.init = function (model, submitUrl) {
             _submitting = false;
             _submitted = false;
             _submitUrl = submitUrl;
-            _cancelUrl = cancelUrl;
             _viewModel = model;
             _changedState = {};
             bindData(_viewModel);
@@ -81,10 +79,6 @@
             }
         }
 
-        function cancelEdit() {
-            navigateToPage({ location: _cancelUrl });
-        }
-
         function navigateToPage(editReadmeResponse) {
             document.location = editReadmeResponse.location;
         }
@@ -143,12 +137,7 @@
             $("#submit-package-container").append(submitContainerElement);
             ko.applyBindings({ data: model }, submitContainerElement);
 
-            $('#verify-cancel-button').on('click', function () {
-                cancelEdit();
-            });
-
             $('#verify-submit-button').on('click', function () {
-                $('#verify-cancel-button').attr('disabled', 'disabled');
                 $('#verify-submit-button').attr('disabled', 'disabled');
                 $('#verify-submit-button').attr('value', 'Submitting');
                 $('#verify-submit-button').addClass('.loading');
