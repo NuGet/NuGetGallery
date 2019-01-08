@@ -22,6 +22,7 @@ namespace Stats.AggregateCdnDownloadsInGallery
 {
     public class AggregateCdnDownloadsJob : JsonConfigurationJob
     {
+        private const int _defaultCommandTimeoutSeconds = 1800; // 30 minutes
         private const int _defaultBatchSize = 5000;
         private const int _defaultBatchSleepSeconds = 10;
         private const string _tempTableName = "#AggregateCdnDownloadsInGallery";
@@ -59,12 +60,14 @@ namespace Stats.AggregateCdnDownloadsInGallery
         private const string _storedProcedureName = "[dbo].[SelectTotalDownloadCountsPerPackageVersion]";
 
         private AggregateCdnDownloadsConfiguration _configuration;
+        private int _commandTimeoutSeconds;
 
         public override void Init(IServiceContainer serviceContainer, IDictionary<string, string> jobArgsDictionary)
         {
             base.Init(serviceContainer, jobArgsDictionary);
 
             _configuration = _serviceProvider.GetRequiredService<IOptionsSnapshot<AggregateCdnDownloadsConfiguration>>().Value;
+            _commandTimeoutSeconds = _configuration.CommandTimeoutSeconds ?? _defaultCommandTimeoutSeconds;
         }
 
         public override async Task Run()
@@ -87,11 +90,12 @@ namespace Stats.AggregateCdnDownloadsInGallery
                         _storedProcedureName,
                         transaction: transaction,
                         commandType: CommandType.StoredProcedure,
-                        commandTimeout: TimeSpan.FromMinutes(30),
+                        commandTimeout: TimeSpan.FromSeconds(_commandTimeoutSeconds),
                         maxRetries: 3))
                     .ToList();
             }
 
+            stopwatch.Stop();
             Logger.LogInformation(
                 "Gathered {RecordCount} rows of data (took {DurationSeconds} seconds).",
                 downloadData.Count,
@@ -138,6 +142,7 @@ namespace Stats.AggregateCdnDownloadsInGallery
                     }
                 }
 
+                stopwatch.Stop();
                 Logger.LogInformation(
                     "It took {DurationSeconds} seconds to update all download counts.",
                     stopwatch.Elapsed.TotalSeconds);
@@ -161,7 +166,7 @@ namespace Stats.AggregateCdnDownloadsInGallery
             var aggregateCdnDownloadsInGalleryTable = new DataTable();
             var command = new SqlCommand("SELECT * FROM " + _tempTableName, destinationDatabase);
             command.CommandType = CommandType.Text;
-            command.CommandTimeout = (int)TimeSpan.FromMinutes(10).TotalSeconds;
+            command.CommandTimeout = _commandTimeoutSeconds;
             var reader = await command.ExecuteReaderAsync();
             aggregateCdnDownloadsInGalleryTable.Load(reader);
             aggregateCdnDownloadsInGalleryTable.Rows.Clear();
@@ -188,6 +193,7 @@ namespace Stats.AggregateCdnDownloadsInGallery
                 }
             }
 
+            stopwatch.Stop();
             Logger.LogInformation(
                 "Populated temporary table in memory with {RecordCount} rows (took {DurationSeconds} seconds).",
                 aggregateCdnDownloadsInGalleryTable.Rows.Count,
@@ -205,6 +211,7 @@ namespace Stats.AggregateCdnDownloadsInGallery
                 bulkcopy.Close();
             }
 
+            stopwatch.Stop();
             Logger.LogInformation(
                 "Populated temporary table in database (took {DurationSeconds} seconds).",
                 stopwatch.Elapsed.TotalSeconds);
@@ -217,11 +224,12 @@ namespace Stats.AggregateCdnDownloadsInGallery
             {
                 cmd.CommandText = _updateFromTempTable;
                 cmd.CommandType = CommandType.Text;
-                cmd.CommandTimeout = (int)TimeSpan.FromMinutes(30).TotalSeconds;
+                cmd.CommandTimeout = _commandTimeoutSeconds;
 
                 await cmd.ExecuteNonQueryAsync();
             }
 
+            stopwatch.Stop();
             Logger.LogInformation(
                 "Updated destination database Download Counts (took {DurationSeconds} seconds).",
                 stopwatch.Elapsed.TotalSeconds);
@@ -275,7 +283,7 @@ namespace Stats.AggregateCdnDownloadsInGallery
             // Ensure results are sorted deterministically.
             var packageRegistrationData = (await sqlConnection.QueryWithRetryAsync<PackageRegistrationData>(
                     "SELECT [Key], LOWER([Id]) AS LowercasedId, [Id] AS OriginalId FROM [dbo].[PackageRegistrations] (NOLOCK) ORDER BY [Id] ASC",
-                    commandTimeout: TimeSpan.FromMinutes(10),
+                    commandTimeout: TimeSpan.FromSeconds(_commandTimeoutSeconds),
                     maxRetries: 5)).ToList();
 
             // We are not using .ToDictionary() and instead explicitly looping through these items to be able to detect
@@ -308,6 +316,7 @@ namespace Stats.AggregateCdnDownloadsInGallery
                 }
             }
 
+            stopwatch.Stop();
             Logger.LogInformation(
                 "Retrieved {Count} package registrations (took {DurationSeconds} seconds).",
                 packageRegistrationData.Count,

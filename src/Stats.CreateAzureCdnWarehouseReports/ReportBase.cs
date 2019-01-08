@@ -22,16 +22,20 @@ namespace Stats.CreateAzureCdnWarehouseReports
 
         protected Func<Task<SqlConnection>> OpenGallerySqlConnectionAsync;
 
+        protected readonly TimeSpan CommandTimeoutSeconds;
+
         protected ReportBase(
             ILogger<ReportBase> logger,
             IEnumerable<StorageContainerTarget> targets,
             Func<Task<SqlConnection>> openStatisticsSqlConnectionAsync,
-            Func<Task<SqlConnection>> openGallerySqlConnectionAsync)
+            Func<Task<SqlConnection>> openGallerySqlConnectionAsync,
+            int commandTimeoutSeconds)
         {
             _logger = logger;
             Targets = targets.ToList().AsReadOnly();
             OpenStatisticsSqlConnectionAsync = openStatisticsSqlConnectionAsync;
             OpenGallerySqlConnectionAsync = openGallerySqlConnectionAsync;
+            CommandTimeoutSeconds = TimeSpan.FromSeconds(commandTimeoutSeconds);
         }
 
         protected async Task<CloudBlobContainer> GetBlobContainer(StorageContainerTarget target)

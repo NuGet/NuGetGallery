@@ -1,7 +1,8 @@
 {
   "Initialization": {
     "BatchSize": 5000,
-    "BatchSleepSeconds": 10
+    "BatchSleepSeconds": 10,
+    "CommandTimeoutSeconds": 1800
   },
 
   "GalleryDb": {

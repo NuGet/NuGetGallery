@@ -8,5 +8,7 @@ namespace Stats.AggregateCdnDownloadsInGallery
         public int BatchSize { get; set; }
 
         public int BatchSleepSeconds { get; set; }
+
+        public int? CommandTimeoutSeconds { get; set; }
     }
 }

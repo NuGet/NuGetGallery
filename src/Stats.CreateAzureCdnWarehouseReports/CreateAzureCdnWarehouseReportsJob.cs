@@ -28,7 +28,7 @@ namespace Stats.CreateAzureCdnWarehouseReports
         private CloudStorageAccount _cloudStorageAccount;
         private CloudStorageAccount _dataStorageAccount;
         private string _statisticsContainerName;
-        private string _reportName;
+        private string _reportNameConfig;
         private string[] _dataContainerNames;
         private int _sqlCommandTimeoutSeconds = DefaultSqlCommandTimeoutSeconds;
         private int _perPackageReportDegreeOfParallelism = DefaultPerPackageReportDegreeOfParallelism;
@@ -71,7 +71,7 @@ namespace Stats.CreateAzureCdnWarehouseReports
                 configuration.DataStorageAccount,
                 nameof(configuration.DataStorageAccount));
 
-            _reportName = ValidateReportName(
+            _reportNameConfig = ValidateReportName(
                 configuration.ReportName,
                 nameof(configuration.ReportName));
 
@@ -83,6 +83,32 @@ namespace Stats.CreateAzureCdnWarehouseReports
             }
 
             _dataContainerNames = containerNames;
+        }
+
+        private bool ShouldGenerateReport(string reportName, string reportNameConfig)
+        {
+            return string.IsNullOrEmpty(reportNameConfig) || reportNameConfig.Equals(reportName);
+        }
+
+        private async Task GenerateStandardReport(
+            string reportName,
+            DateTime reportGenerationTime,
+            CloudBlobContainer destinationContainer,
+            ILogger<ReportBuilder> reportBuilderLogger,
+            ILogger<ReportDataCollector> reportCollectorLogger)
+        {
+            var stopwatch = Stopwatch.StartNew();
+
+            var reportBuilder = new ReportBuilder(reportBuilderLogger, reportName);
+            var reportDataCollector = new ReportDataCollector(reportCollectorLogger, _storedProcedures[reportName], OpenSqlConnectionAsync<StatisticsDbConfiguration>, _sqlCommandTimeoutSeconds);
+
+            await ProcessReport(LoggerFactory, destinationContainer, reportBuilder, reportDataCollector, reportGenerationTime);
+
+            stopwatch.Stop();
+
+            var reportMetricName = reportName + " report";
+            ApplicationInsightsHelper.TrackMetric(reportMetricName + " Generation Time (ms)", stopwatch.ElapsedMilliseconds);
+            ApplicationInsightsHelper.TrackReportProcessed(reportMetricName);
         }
 
         public override async Task Run()
@@ -98,112 +124,99 @@ namespace Stats.CreateAzureCdnWarehouseReports
             var reportBuilderLogger = LoggerFactory.CreateLogger<ReportBuilder>();
             var reportCollectorLogger = LoggerFactory.CreateLogger<ReportDataCollector>();
 
-            if (string.IsNullOrEmpty(_reportName))
+            if (string.IsNullOrEmpty(_reportNameConfig))
             {
                 // generate all reports
-                var reportGenerators = new Dictionary<ReportBuilder, ReportDataCollector>
+                foreach (var reportName in ReportNames.StandardReports)
                 {
-                    {
-                        new ReportBuilder(reportBuilderLogger, ReportNames.NuGetClientVersion),
-                        new ReportDataCollector(reportCollectorLogger, _storedProcedures[ReportNames.NuGetClientVersion], OpenSqlConnectionAsync<StatisticsDbConfiguration>, _sqlCommandTimeoutSeconds)
-                    },
-
-                    {
-                        new ReportBuilder(reportBuilderLogger, ReportNames.Last6Weeks),
-                        new ReportDataCollector(reportCollectorLogger, _storedProcedures[ReportNames.Last6Weeks], OpenSqlConnectionAsync<StatisticsDbConfiguration>, _sqlCommandTimeoutSeconds)
-                    },
-
-                    {
-                        new ReportBuilder(reportBuilderLogger, ReportNames.RecentCommunityPopularity),
-                        new ReportDataCollector(reportCollectorLogger, _storedProcedures[ReportNames.RecentCommunityPopularity], OpenSqlConnectionAsync<StatisticsDbConfiguration>, _sqlCommandTimeoutSeconds)
-                    },
-
-                    {
-                        new ReportBuilder(reportBuilderLogger, ReportNames.RecentCommunityPopularityDetail),
-                        new ReportDataCollector(reportCollectorLogger, _storedProcedures[ReportNames.RecentCommunityPopularityDetail], OpenSqlConnectionAsync<StatisticsDbConfiguration>, _sqlCommandTimeoutSeconds)
-                    },
-
-                    {
-                        new ReportBuilder(reportBuilderLogger, ReportNames.RecentPopularity),
-                        new ReportDataCollector(reportCollectorLogger, _storedProcedures[ReportNames.RecentPopularity], OpenSqlConnectionAsync<StatisticsDbConfiguration>, _sqlCommandTimeoutSeconds)
-                    },
-
-                    {
-                        new ReportBuilder(reportBuilderLogger, ReportNames.RecentPopularityDetail),
-                        new ReportDataCollector(reportCollectorLogger, _storedProcedures[ReportNames.RecentPopularityDetail], OpenSqlConnectionAsync<StatisticsDbConfiguration>, _sqlCommandTimeoutSeconds) }
-                    };
-
-                foreach (var reportGenerator in reportGenerators)
-                {
-                    await ProcessReport(LoggerFactory, destinationContainer, reportGenerator.Key, reportGenerator.Value, reportGenerationTime);
-                    ApplicationInsightsHelper.TrackReportProcessed(reportGenerator.Key.ReportName + " report");
+                    await GenerateStandardReport(reportName, reportGenerationTime, destinationContainer, reportBuilderLogger, reportCollectorLogger);
                 }
 
                 await RebuildPackageReports(destinationContainer, reportGenerationTime);
                 await CleanInactiveRecentPopularityDetailByPackageReports(destinationContainer, reportGenerationTime);
             }
-            else
+            else if (ReportNames.StandardReports.Contains(_reportNameConfig))
             {
-                // generate only the specific report
-                var reportBuilder = new ReportBuilder(reportBuilderLogger, _reportName);
-                var reportDataCollector = new ReportDataCollector(reportCollectorLogger, _storedProcedures[_reportName], OpenSqlConnectionAsync<StatisticsDbConfiguration>, _sqlCommandTimeoutSeconds);
-
-                await ProcessReport(LoggerFactory, destinationContainer, reportBuilder, reportDataCollector, reportGenerationTime);
+                // generate only the specific standard report
+                await GenerateStandardReport(_reportNameConfig, reportGenerationTime, destinationContainer, reportBuilderLogger, reportCollectorLogger);
+            }
+            else if (ShouldGenerateReport(ReportNames.RecentPopularityDetailByPackageId, _reportNameConfig))
+            {
+                await RebuildPackageReports(destinationContainer, reportGenerationTime);
+                await CleanInactiveRecentPopularityDetailByPackageReports(destinationContainer, reportGenerationTime);
             }
 
             Logger.LogInformation("Generated reports from {DataSource}/{InitialCatalog} and saving to {AccountName}/{Container}",
                 statisticsDatabase.DataSource, statisticsDatabase.InitialCatalog, _cloudStorageAccount.Credentials.AccountName, destinationContainer.Name);
 
             // totals reports
-            var stopwatch = Stopwatch.StartNew();
+            Stopwatch stopwatch;
 
             // build downloads.v1.json
-            var targets = new List<StorageContainerTarget>();
-            targets.Add(new StorageContainerTarget(_cloudStorageAccount, _statisticsContainerName));
-            foreach (var dataContainerName in _dataContainerNames)
+            if (ShouldGenerateReport(ReportNames.DownloadCount, _reportNameConfig))
             {
-                targets.Add(new StorageContainerTarget(_dataStorageAccount, dataContainerName));
+                stopwatch = Stopwatch.StartNew();
+
+                var targets = new List<StorageContainerTarget>();
+                targets.Add(new StorageContainerTarget(_cloudStorageAccount, _statisticsContainerName));
+                foreach (var dataContainerName in _dataContainerNames)
+                {
+                    targets.Add(new StorageContainerTarget(_dataStorageAccount, dataContainerName));
+                }
+
+                var downloadCountReport = new DownloadCountReport(
+                    LoggerFactory.CreateLogger<DownloadCountReport>(),
+                    targets,
+                    OpenSqlConnectionAsync<StatisticsDbConfiguration>,
+                    OpenSqlConnectionAsync<GalleryDbConfiguration>,
+                    _sqlCommandTimeoutSeconds);
+                await downloadCountReport.Run();
+
+                stopwatch.Stop();
+                var reportMetricName = ReportNames.DownloadCount + ReportNames.Extension;
+                ApplicationInsightsHelper.TrackMetric(reportMetricName + " Generation Time (ms)", stopwatch.ElapsedMilliseconds);
+                ApplicationInsightsHelper.TrackReportProcessed(reportMetricName);
             }
 
-            var downloadCountReport = new DownloadCountReport(
-                LoggerFactory.CreateLogger<DownloadCountReport>(),
-                targets,
-                OpenSqlConnectionAsync<StatisticsDbConfiguration>,
-                OpenSqlConnectionAsync<GalleryDbConfiguration>);
-            await downloadCountReport.Run();
-
-            stopwatch.Stop();
-            ApplicationInsightsHelper.TrackMetric(DownloadCountReport.ReportName + " Generation Time (ms)", stopwatch.ElapsedMilliseconds);
-            ApplicationInsightsHelper.TrackReportProcessed(DownloadCountReport.ReportName);
-            stopwatch.Restart();
-
             // build stats-totals.json
-            var galleryTotalsReport = new GalleryTotalsReport(
-                LoggerFactory.CreateLogger<GalleryTotalsReport>(),
-                _cloudStorageAccount,
-                _statisticsContainerName,
-                OpenSqlConnectionAsync<StatisticsDbConfiguration>,
-                OpenSqlConnectionAsync<GalleryDbConfiguration>);
-            await galleryTotalsReport.Run();
+            if (ShouldGenerateReport(ReportNames.GalleryTotals, _reportNameConfig))
+            {
+                stopwatch = Stopwatch.StartNew();
 
-            stopwatch.Stop();
-            ApplicationInsightsHelper.TrackMetric(GalleryTotalsReport.ReportName + " Generation Time (ms)", stopwatch.ElapsedMilliseconds);
-            ApplicationInsightsHelper.TrackReportProcessed(GalleryTotalsReport.ReportName);
+                var galleryTotalsReport = new GalleryTotalsReport(
+                    LoggerFactory.CreateLogger<GalleryTotalsReport>(),
+                    _cloudStorageAccount,
+                    _statisticsContainerName,
+                    OpenSqlConnectionAsync<StatisticsDbConfiguration>,
+                    OpenSqlConnectionAsync<GalleryDbConfiguration>,
+                    commandTimeoutSeconds: _sqlCommandTimeoutSeconds);
+                await galleryTotalsReport.Run();
 
+                stopwatch.Stop();
+                var reportMetricName = ReportNames.GalleryTotals + ReportNames.Extension;
+                ApplicationInsightsHelper.TrackMetric(reportMetricName + " Generation Time (ms)", stopwatch.ElapsedMilliseconds);
+                ApplicationInsightsHelper.TrackReportProcessed(reportMetricName);
+            }
 
             // build tools.v1.json
-            var toolsReport = new DownloadsPerToolVersionReport(
-                LoggerFactory.CreateLogger<DownloadsPerToolVersionReport>(),
-                _cloudStorageAccount,
-                _statisticsContainerName,
-                OpenSqlConnectionAsync<StatisticsDbConfiguration>,
-                OpenSqlConnectionAsync<GalleryDbConfiguration>);
-            await toolsReport.Run();
+            if (ShouldGenerateReport(ReportNames.DownloadsPerToolVersion, _reportNameConfig))
+            {
+                stopwatch = Stopwatch.StartNew();
 
-            stopwatch.Stop();
-            ApplicationInsightsHelper.TrackMetric(DownloadsPerToolVersionReport.ReportName + " Generation Time (ms)", stopwatch.ElapsedMilliseconds);
-            ApplicationInsightsHelper.TrackReportProcessed(DownloadsPerToolVersionReport.ReportName);
-            stopwatch.Restart();
+                var toolsReport = new DownloadsPerToolVersionReport(
+                    LoggerFactory.CreateLogger<DownloadsPerToolVersionReport>(),
+                    _cloudStorageAccount,
+                    _statisticsContainerName,
+                    OpenSqlConnectionAsync<StatisticsDbConfiguration>,
+                    OpenSqlConnectionAsync<GalleryDbConfiguration>,
+                    _sqlCommandTimeoutSeconds);
+                await toolsReport.Run();
+
+                stopwatch.Stop();
+                var reportMetricName = ReportNames.DownloadsPerToolVersion + ReportNames.Extension;
+                ApplicationInsightsHelper.TrackMetric(reportMetricName + " Generation Time (ms)", stopwatch.ElapsedMilliseconds);
+                ApplicationInsightsHelper.TrackReportProcessed(reportMetricName);
+            }
         }
 
         private static async Task ProcessReport(ILoggerFactory loggerFactory, CloudBlobContainer destinationContainer, ReportBuilder reportBuilder,
@@ -319,7 +332,7 @@ namespace Stats.CreateAzureCdnWarehouseReports
             Parallel.ForEach(packageIds, new ParallelOptions { MaxDegreeOfParallelism = 8 }, async id =>
              {
                  string reportName = _recentPopularityDetailByPackageReportBaseName + id;
-                 string blobName = subContainer + reportName + ".json";
+                 string blobName = subContainer + reportName + ReportNames.Extension;
                  if (reportSet.Contains(blobName))
                  {
                      var blob = destinationContainer.GetBlockBlobReference(blobName);
@@ -365,12 +378,13 @@ namespace Stats.CreateAzureCdnWarehouseReports
                 return null;
             }
 
-            if (!_storedProcedures.ContainsKey(reportName.ToLowerInvariant()))
+            var normalizedReportName = reportName.ToLowerInvariant();
+            if (!ReportNames.AllReports.Contains(normalizedReportName))
             {
                 throw new ArgumentException($"Job configuration {configurationName} contains unknown report name.");
             }
 
-            return reportName;
+            return normalizedReportName;
         }
 
         protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder)
@@ -380,17 +394,6 @@ namespace Stats.CreateAzureCdnWarehouseReports
         protected override void ConfigureJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
         {
             ConfigureInitializationSection<CreateAzureCdnWarehouseReportsConfiguration>(services, configurationRoot);
-        }
-
-        private static class ReportNames
-        {
-            public const string NuGetClientVersion = "nugetclientversion";
-            public const string Last6Weeks = "last6weeks";
-            public const string RecentCommunityPopularity = "recentcommunitypopularity";
-            public const string RecentCommunityPopularityDetail = "recentcommunitypopularitydetail";
-            public const string RecentPopularity = "recentpopularity";
-            public const string RecentPopularityDetail = "recentpopularitydetail";
-            public const string RecentPopularityDetailByPackageId = "recentpopularitydetailbypackageid";
         }
     }
 }

@@ -256,7 +256,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
 
             // Initialize the package signature for the author signature. If the record is already in the database,
             // verify that nothing has changed.
-            await InitializePackageSignatureAndTrustedTimestampAsync(
+            await PreparePackageSignatureAndTrustedTimestampAsync(
                 context.PackageKey,
                 PackageSignatureType.Author,
                 context.Author,
@@ -264,8 +264,9 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
                 allowSignatureChanges: false);
 
             // Initialize the package signature for the repository signature. If the record is already in the database
-            // and different than the current repository signature, replace the old one with the new one.
-            await InitializePackageSignatureAndTrustedTimestampAsync(
+            // and different than the current repository signature, replace the old one with the new one. This will remove
+            // the record from the database if the repository signature has been stripped from the package.
+            await PreparePackageSignatureAndTrustedTimestampAsync(
                 context.PackageKey,
                 PackageSignatureType.Repository,
                 context.Repository,
@@ -296,7 +297,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
                 thumbprintToParentCertificate);
         }
 
-        private async Task InitializePackageSignatureAndTrustedTimestampAsync(
+        private async Task PreparePackageSignatureAndTrustedTimestampAsync(
             int packageKey,
             PackageSignatureType type,
             SignatureAndCertificates signatureAndCertificates,
@@ -305,6 +306,11 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
         {
             if (signatureAndCertificates == null)
             {
+                if (type == PackageSignatureType.Repository)
+                {
+                    await RemovePackageRepositorySignatureIfExistsAsync(packageKey);
+                }
+
                 return;
             }
 
@@ -436,6 +442,35 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
             _validationEntitiesContext.PackageSignatures.Add(packageSignature);
 
             return packageSignature;
+        }
+
+        private async Task RemovePackageRepositorySignatureIfExistsAsync(int packageKey)
+        {
+            var packageSignatures = await _validationEntitiesContext
+                .PackageSignatures
+                .Where(x => x.PackageKey == packageKey && x.Type == PackageSignatureType.Repository)
+                .Include(x => x.TrustedTimestamps)
+                .ToListAsync();
+
+            if (packageSignatures.Count > 1)
+            {
+                _logger.LogError(
+                    "There are {Count} package repository signatures for package key {PackageKey}. There should be either zero or one.",
+                    packageSignatures.Count,
+                    packageKey);
+
+                throw new InvalidOperationException("There should never be more than one package signature per package and signature type.");
+            }
+
+            _logger.LogInformation(
+                "Removing {SignatureCount} repository signatures from package {PackageKey}",
+                packageSignatures.Count,
+                packageKey);
+
+            foreach (var packageSignature in packageSignatures)
+            {
+                _validationEntitiesContext.PackageSignatures.Remove(packageSignature);
+            }
         }
 
         private void InitializeTrustedTimestamp(
