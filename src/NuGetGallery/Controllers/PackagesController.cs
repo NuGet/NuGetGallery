@@ -1197,7 +1197,7 @@ namespace NuGetGallery
         
         [HttpGet]
         [UIAuthorize]
-        [RequiresAccountConfirmation("delete a package")]
+        [RequiresAccountConfirmation("manage a package")]
         public virtual async Task<ActionResult> Manage(string id, string version = null)
         {
             var package = _packageService.FindPackageByIdAndVersion(id, version);
