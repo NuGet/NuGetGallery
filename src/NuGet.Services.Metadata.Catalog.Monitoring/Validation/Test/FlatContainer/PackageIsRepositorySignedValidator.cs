@@ -23,7 +23,7 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
 
         protected async override Task<bool> ShouldRunAsync(ValidationContext context)
         {
-            if (!Config.RequirePackageSignature)
+            if (!Config.RequireRepositorySignature)
             {
                 return false;
             }
@@ -39,7 +39,7 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
             if (signature == null)
             {
                 throw new MissingRepositorySignatureException(
-                    $"Package {context.Package.Id} {context.Package.Version} is unsigned",
+                    $"Package {context.Package.Id} {context.Package.Version} is unsigned.",
                     MissingRepositorySignatureReason.Unsigned);
             }
 
@@ -58,7 +58,7 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
                     if (repositorySignature == null)
                     {
                         throw new MissingRepositorySignatureException(
-                            $"Package {context.Package.Id} {context.Package.Version} is author signed but not repository signed",
+                            $"Package {context.Package.Id} {context.Package.Version} is author signed but not repository signed.",
                             MissingRepositorySignatureReason.AuthorSignedNoRepositoryCountersignature);
                     }
 
@@ -67,12 +67,12 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
                 default:
                 case SignatureType.Unknown:
                     throw new MissingRepositorySignatureException(
-                        $"Package {context.Package.Id} {context.Package.Version} has an unknown signature type '{signature.Type}'",
+                        $"Package {context.Package.Id} {context.Package.Version} has an unknown signature type '{signature.Type}'.",
                         MissingRepositorySignatureReason.UnknownSignature);
             }
 
             Logger.LogInformation(
-                "Package {PackageId} {PackageVersion} has a repository signature with service index {ServiceIndex} and owners {Owners}",
+                "Package {PackageId} {PackageVersion} has a repository signature with service index {ServiceIndex} and owners {Owners}.",
                 context.Package.Id,
                 context.Package.Version,
                 repositorySignature.V3ServiceIndexUrl,
@@ -88,7 +88,7 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
             {
                 if (packageStream == null)
                 {
-                    throw new InvalidOperationException($"Package {context.Package.Id} {context.Package.Version} couldn't be downloaded at {uri}");
+                    throw new InvalidOperationException($"Package {context.Package.Id} {context.Package.Version} couldn't be downloaded at {uri.AbsoluteUri}.");
                 }
 
                 using (var package = new PackageArchiveReader(packageStream))

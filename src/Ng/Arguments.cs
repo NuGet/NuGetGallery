@@ -154,7 +154,7 @@ namespace Ng
         /// <summary>
         /// If true, packages are expected to have at least a repository signature.
         /// </summary>
-        public const string RequireSignature = "requireSignature";
+        public const string RequireRepositorySignature = "requireRepositorySignature";
         #endregion
 
         #region KeyVault

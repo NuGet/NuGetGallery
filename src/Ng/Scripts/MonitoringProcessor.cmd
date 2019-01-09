@@ -9,7 +9,7 @@ title #{Jobs.monitoringprocessor.Title}
 
 start /w .\Ng.exe monitoringprocessor ^
     -source #{Jobs.common.v3.Source} ^
-    -requireSignature #{Jobs.endpointmonitoring.RequireSignature} ^
+    -requireRepositorySignature #{Jobs.endpointmonitoring.RequireRepositorySignature} ^
     -index #{Jobs.common.v3.index} ^
     -gallery #{Jobs.common.v3.f2c.Gallery} ^
     -contentBaseAddress #{Jobs.endpointmonitoring.ContentBaseAddress} ^

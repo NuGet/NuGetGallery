@@ -102,6 +102,7 @@
       <DependentUpon>TestCatalogEntries.resx</DependentUpon>
     </Compile>
     <Compile Include="Data\Catalogs.cs" />
+    <Compile Include="Validation\CatalogLeaf.cs" />
     <Compile Include="Validation\DummyAggregateValidator.cs" />
     <Compile Include="Validation\DummyValidator.cs" />
     <Compile Include="Validation\PackageHasSignatureValidatorFacts.cs" />

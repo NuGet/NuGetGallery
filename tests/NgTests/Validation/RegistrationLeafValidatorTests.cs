@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using NuGet.Services.Metadata.Catalog.Monitoring;
 using Xunit;
 
-namespace NgTests
+namespace NgTests.Validation
 {
     public class RegistrationLeafValidatorTests
     {

@@ -6,13 +6,12 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Moq;
-using NgTests.Validation;
 using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
 using NuGet.Services.Metadata.Catalog.Monitoring;
 using Xunit;
 
-namespace NgTests
+namespace NgTests.Validation
 {
     public class ValidatorTests
     {
@@ -106,7 +105,7 @@ namespace NgTests
             feedToSource.Setup(x => x[It.IsAny<FeedType>()]).Returns(sourceRepository.Object);
 
             _feedToSource = feedToSource.Object;
-            _validatorConfiguration = new ValidatorConfiguration(packageBaseAddress: "a", requirePackageSignature: true);
+            _validatorConfiguration = new ValidatorConfiguration(packageBaseAddress: "a", requireRepositorySignature: true);
             _logger = Mock.Of<ILogger<Validator>>();
         }
 

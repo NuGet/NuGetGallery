@@ -15,7 +15,7 @@ namespace NgTests.Validation
         public void Constructor_WhenPackageBaseAddressIsNullOrEmpty_Throws(string packageBaseAddress)
         {
             var exception = Assert.Throws<ArgumentException>(
-                () => new ValidatorConfiguration(packageBaseAddress, requirePackageSignature: true));
+                () => new ValidatorConfiguration(packageBaseAddress, requireRepositorySignature: true));
 
             Assert.Equal("packageBaseAddress", exception.ParamName);
         }
@@ -25,12 +25,12 @@ namespace NgTests.Validation
         [InlineData("b", false)]
         public void Constructor_WhenArgumentsAreValid_InitializesInstance(
             string packageBaseAddress,
-            bool requirePackageSignature)
+            bool requireRepositorySignature)
         {
-            var configuration = new ValidatorConfiguration(packageBaseAddress, requirePackageSignature);
+            var configuration = new ValidatorConfiguration(packageBaseAddress, requireRepositorySignature);
 
             Assert.Equal(packageBaseAddress, configuration.PackageBaseAddress);
-            Assert.Equal(requirePackageSignature, configuration.RequirePackageSignature);
+            Assert.Equal(requireRepositorySignature, configuration.RequireRepositorySignature);
         }
     }
 }

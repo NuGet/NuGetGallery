@@ -9,17 +9,14 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 using NgTests.Infrastructure;
-using NgTests.Validation;
 using NuGet.Packaging.Core;
 using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Monitoring;
 using NuGet.Versioning;
 using Xunit;
 
-namespace NgTests
+namespace NgTests.Validation
 {
     public class PackageIsRepositorySignedValidatorFacts
     {
@@ -29,7 +26,7 @@ namespace NgTests
 
             public Constructor()
             {
-                _configuration = new ValidatorConfiguration(packageBaseAddress: "a", requirePackageSignature: true);
+                _configuration = new ValidatorConfiguration(packageBaseAddress: "a", requireRepositorySignature: true);
             }
 
             [Fact]
@@ -63,10 +60,10 @@ namespace NgTests
             [InlineData(AuthorSignedPackageResource)]
             [InlineData(RepoSignedPackageResource)]
             [InlineData(AuthorAndRepoSignedPackageResource)]
-            public async Task SkipsIfConfigNotRequirePackageSignature(string packageResource)
+            public async Task SkipsIfConfigDoesNotRequireRepositorySignature(string packageResource)
             {
                 // Arrange
-                var target = CreateTarget(requirePackageSignature: false);
+                var target = CreateTarget(requireRepositorySignature: false);
                 var context = CreateValidationContext(packageResource);
 
                 // Act
@@ -90,7 +87,7 @@ namespace NgTests
                 // Assert
                 Assert.Equal(TestResult.Fail, result.Result);
                 Assert.NotNull(result.Exception);
-                Assert.Contains("Package TestPackage 1.0.0 couldn't be downloaded at https://nuget.test/packages/testpackage/1.0.0/testpackage.1.0.0.nupkg", result.Exception.Message);
+                Assert.StartsWith("Package TestPackage 1.0.0 couldn't be downloaded at https://nuget.test/packages/testpackage/1.0.0/testpackage.1.0.0.nupkg.", result.Exception.Message);
             }
 
             [Fact]
@@ -110,7 +107,7 @@ namespace NgTests
                 Assert.NotNull(exception);
 
                 Assert.Equal(MissingRepositorySignatureReason.Unsigned, exception.Reason);
-                Assert.Contains("Package TestPackage 1.0.0 is unsigned", exception.Message);
+                Assert.StartsWith("Package TestPackage 1.0.0 is unsigned.", exception.Message);
             }
 
             [Fact]
@@ -130,7 +127,7 @@ namespace NgTests
                 Assert.NotNull(exception);
 
                 Assert.Equal(MissingRepositorySignatureReason.AuthorSignedNoRepositoryCountersignature, exception.Reason);
-                Assert.Contains("Package TestPackage 1.0.0 is author signed but not repository signed", exception.Message);
+                Assert.StartsWith("Package TestPackage 1.0.0 is author signed but not repository signed.", exception.Message);
             }
 
             [Fact]
@@ -193,17 +190,17 @@ namespace NgTests
                         PackageIdentity)
                 };
 
-                AddCatalogLeafToMockServer("/catalog/leaf.json", new CatalogLeaf
+                ValidatorTestUtility.AddCatalogLeafToMockServer(_mockServer, new Uri("/catalog/leaf.json", UriKind.Relative), new CatalogLeaf
                 {
                     Created = PackageCreationTime,
                     LastEdited = PackageCreationTime
                 });
             }
 
-            protected PackageIsRepositorySignedValidator CreateTarget(bool requirePackageSignature = true)
+            protected PackageIsRepositorySignedValidator CreateTarget(bool requireRepositorySignature = true)
             {
                 var logger = Mock.Of<ILogger<PackageIsRepositorySignedValidator>>();
-                var config = ValidatorTestUtility.CreateValidatorConfig(requirePackageSignature: requirePackageSignature);
+                var config = ValidatorTestUtility.CreateValidatorConfig(requireRepositorySignature: requireRepositorySignature);
 
                 return new PackageIsRepositorySignedValidator(config, logger);
             }
@@ -238,30 +235,6 @@ namespace NgTests
                     _catalogEntries,
                     client: httpClient,
                     timestampMetadataResource: timestampMetadataResource.Object);
-            }
-
-            private void AddCatalogLeafToMockServer(string path, CatalogLeaf leaf)
-            {
-                var jsonSettings = new JsonSerializerSettings
-                {
-                    ContractResolver = new CamelCasePropertyNamesContractResolver()
-                };
-
-                _mockServer.SetAction(path, request =>
-                {
-                    return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
-                    {
-                        Content = new StringContent(JsonConvert.SerializeObject(leaf, jsonSettings))
-                    });
-                });
-            }
-
-            private class CatalogLeaf
-            {
-                public DateTimeOffset Created { get; set; }
-                public DateTimeOffset LastEdited { get; set; }
-
-                public IEnumerable<PackageEntry> PackageEntries { get; set; }
             }
         }
     }

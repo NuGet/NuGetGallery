@@ -10,7 +10,7 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
     /// </summary>
     public sealed class ValidatorConfiguration
     {
-        public ValidatorConfiguration(string packageBaseAddress, bool requirePackageSignature)
+        public ValidatorConfiguration(string packageBaseAddress, bool requireRepositorySignature)
         {
             if (string.IsNullOrEmpty(packageBaseAddress))
             {
@@ -18,7 +18,7 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
             }
 
             PackageBaseAddress = packageBaseAddress.TrimEnd('/');
-            RequirePackageSignature = requirePackageSignature;
+            RequireRepositorySignature = requireRepositorySignature;
         }
 
         /// <summary>
@@ -28,8 +28,8 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
         public string PackageBaseAddress { get; }
 
         /// <summary>
-        /// Whether signature validations are required.
+        /// Whether repository signature validations are required.
         /// </summary>
-        public bool RequirePackageSignature { get; }
+        public bool RequireRepositorySignature { get; }
     }
 }
