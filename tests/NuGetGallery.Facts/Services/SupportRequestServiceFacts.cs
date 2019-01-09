@@ -102,7 +102,7 @@ namespace NuGetGallery.Services
                 Assert.False(supportRequestContext.Issues.Any(issue => string.Equals(issue.IssueTitle, "Joe's OldIssue")));
                 var deleteRequestIssue = supportRequestContext.Issues.Where(issue => issue.Key == 1).FirstOrDefault();
                 Assert.NotNull(deleteRequestIssue);
-                Assert.Null(deleteRequestIssue.CreatedBy);
+                Assert.Equal(deleteRequestIssue.CreatedBy, "deletedaccount");
                 Assert.Null(deleteRequestIssue.HistoryEntries.ElementAt(0).EditedBy);
             }
 
