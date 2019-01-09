@@ -302,7 +302,11 @@ namespace NuGetGallery.Areas.Admin
             foreach (var accountDeletedIssue in userIssues.Where(i => string.Equals(i.IssueTitle, Strings.AccountDelete_SupportRequestTitle)))
             {
                 accountDeletedIssue.OwnerEmail = "deletedaccount";
-                accountDeletedIssue.CreatedBy = null;
+                // Issues created by the _NuGetDSR will remain intact.
+                if(accountDeletedIssue.CreatedBy.Equals(user.Username))
+                {
+                    accountDeletedIssue.CreatedBy = "deletedaccount";
+                }
                 accountDeletedIssue.Details = "This support request has been redacted as the customer's account has been deleted.";
                 foreach (var historyEntry in accountDeletedIssue.HistoryEntries)
                 {
