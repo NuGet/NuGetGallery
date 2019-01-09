@@ -646,11 +646,11 @@ namespace NuGetGallery
         }
 
         /// <summary>
-        /// Initializes an edit package link that can be resolved at a later time.
+        /// Initializes a manage package link that can be resolved at a later time.
         /// 
         /// Callers should only use this API if they need to generate many links, such as the ManagePackages view
         /// does. This template reduces the calls to RouteCollection.GetVirtualPath which can be expensive. Callers
-        /// that only need a single link should call Url.EditPackage instead.
+        /// that only need a single link should call Url.ManagePackage instead.
         public static RouteUrlTemplate<IPackageVersionModel> ManagePackageTemplate(
             this UrlHelper url,
             bool relativeUrl = true)
