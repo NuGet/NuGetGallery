@@ -127,7 +127,7 @@
             <!-- ko if: $data.LicenseFileContents -->
             <div class="verify-package-field">
                 <label class="verify-package-field-heading">License expression</label>
-                <div class="license-file-contents" data-bind="template: { name: 'display-data-or-default', data: { DisplayText: $data.LicenseFileContents }}"></div>
+                <pre class="license-file-contents" data-bind="text: $data.LicenseFileContents"></pre>
             </div>
             <!-- /ko -->
 
