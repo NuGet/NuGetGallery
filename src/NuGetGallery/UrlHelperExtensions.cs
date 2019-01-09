@@ -619,18 +619,19 @@ namespace NuGetGallery
         }
 
         /// <summary>
-        /// Initializes an edit package link that can be resolved at a later time.
+        /// Initializes a package version action route request
         /// 
         /// Callers should only use this API if they need to generate many links, such as the ManagePackages view
         /// does. This template reduces the calls to RouteCollection.GetVirtualPath which can be expensive. Callers
         /// that only need a single link should call Url.EditPackage instead.
-        public static RouteUrlTemplate<IPackageVersionModel> ManagePackageTemplate(
+        public static RouteUrlTemplate<IPackageVersionModel> PackageVersionActionTemplate(
             this UrlHelper url,
+            string action,
             bool relativeUrl = true)
         {
             var routesGenerator = new Dictionary<string, Func<IPackageVersionModel, object>>
             {
-                { "action", p => "Manage" },
+                { "action", p => action },
                 { "id", p => p.Id },
                 { "version", p => p.Version }
             };
@@ -642,6 +643,19 @@ namespace NuGetGallery
                 routeValues: rv);
 
             return new RouteUrlTemplate<IPackageVersionModel>(linkGenerator, routesGenerator);
+        }
+
+        /// <summary>
+        /// Initializes an edit package link that can be resolved at a later time.
+        /// 
+        /// Callers should only use this API if they need to generate many links, such as the ManagePackages view
+        /// does. This template reduces the calls to RouteCollection.GetVirtualPath which can be expensive. Callers
+        /// that only need a single link should call Url.EditPackage instead.
+        public static RouteUrlTemplate<IPackageVersionModel> ManagePackageTemplate(
+            this UrlHelper url,
+            bool relativeUrl = true)
+        {
+            return url.PackageVersionActionTemplate("Manage", relativeUrl);
         }
 
         public static string ManagePackage(
@@ -700,6 +714,16 @@ namespace NuGetGallery
                     { "id", id },
                     { "version", version }
                 });
+        }
+
+        public static string PreviewReadMe(
+            this UrlHelper url,
+            bool relativeUrl = true)
+        {
+            return GetRouteLink(
+                url,
+                RouteName.PreviewReadMe,
+                relativeUrl);
         }
 
         public static string ReflowPackage(

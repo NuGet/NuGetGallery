@@ -2310,6 +2310,35 @@ namespace NuGetGallery
         }
 
         [UIAuthorize]
+        [HttpGet]
+        public virtual async Task<JsonResult> GetReadMe(string id, string version)
+        {
+            var package = _packageService.FindPackageByIdAndVersion(id, version);
+            if (package == null)
+            {
+                return Json(HttpStatusCode.NotFound, null, JsonRequestBehavior.AllowGet);
+            }
+
+            if (ActionsRequiringPermissions.EditPackage.CheckPermissionsOnBehalfOfAnyAccount(GetCurrentUser(), package) != PermissionsCheckResult.Allowed)
+            {
+                return Json(HttpStatusCode.Forbidden, null, JsonRequestBehavior.AllowGet);
+            }
+            
+            var request = new EditPackageVersionReadMeRequest();
+            if (package.HasReadMe)
+            {
+                var readMe = await _readMeService.GetReadMeMdAsync(package);
+                if (package.HasReadMe)
+                {
+                    request.ReadMe.SourceType = ReadMeService.TypeWritten;
+                    request.ReadMe.SourceText = readMe;
+                }
+            }
+
+            return Json(request, JsonRequestBehavior.AllowGet);
+        }
+
+        [UIAuthorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public virtual async Task<ActionResult> SetLicenseReportVisibility(string id, string version, bool visible)

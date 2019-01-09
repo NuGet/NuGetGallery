@@ -49,17 +49,16 @@
                     @ViewHelpers.AlertInfo(
                         @<text>
                             You can control how your packages are listed using the checkbox below. As per <a href="https://docs.microsoft.com/en-us/nuget/policies/deleting-packages">policy</a>, permanent deletion is not supported as it would break every project depending on the availability of the package. For more assistance, <a href="@Url.ReportAbuse(Model.Id, Model.Version)" title="Contact Support">Contact Support</a>.
-                        </text>
-                            )
+                        </text>)
                 }
 
                 @using (Html.BeginForm("UpdateListed", "Packages"))
                 {
                     @Html.AntiForgeryToken()
-                    @Html.Hidden("version", @Model.Version)
+                    @Html.Hidden("version", @Model.Version, new { id = "input-list-package" })
                     <div class="form-group @Html.HasErrorFor(package => package.Listed)">
                         @Html.ShowCheckboxFor(package => package.Listed)
-                        @Html.ShowLabelFor(package => package.Listed, "List " + Model.Id + " " + Model.Version + " in search results.")
+                        @Html.ShowLabelFor(package => package.Listed, "List in search results.")
                         @Html.ShowValidationMessagesFor(package => package.Listed)
 
                         <p>Unlisted packages cannot be installed directly and do not show up in search results.</p>
@@ -92,7 +91,7 @@
             {
                 foreach (var p in Model.DeletePackagesRequest.Packages)
                 {
-                    <input type="hidden" name="Packages[]" value="@p" />
+                    <input id="input-delete-package" type="hidden" name="Packages[]" value="@p" />
                 }
 
                 @Html.Partial("_DeletePackage", Model.DeletePackagesRequest)

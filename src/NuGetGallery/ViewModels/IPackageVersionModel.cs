@@ -6,6 +6,5 @@ namespace NuGetGallery
     {
         string Id { get; }
         string Version { get; set; }
-        string Title { get; }
     }
 }

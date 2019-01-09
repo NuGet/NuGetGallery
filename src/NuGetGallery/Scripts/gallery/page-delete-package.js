@@ -20,4 +20,15 @@
             e.preventDefault();
         }
     });
+
+    $('.page-delete-package #input-select-version').change(function () {
+        // Make sure the forms now reference the selected version of the package.
+        var version = $(this).val();
+        $('#input-list-package').val(version);
+        $('#input-delete-package').val(packageId + '|' + version);
+
+        // Update the listed checkbox to match the state of the package.
+        var listed = versionListedState[version];
+        $(".page-delete-package input#Listed")[0].checked = listed;
+    });
 });

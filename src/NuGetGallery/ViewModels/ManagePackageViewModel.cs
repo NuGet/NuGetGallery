@@ -38,13 +38,15 @@ namespace NuGetGallery
             IsLocked = package.PackageRegistration.IsLocked;
 
             var versionSelectPackages = PackageVersions.Where(p => !p.Deleted);
-            var manageTemplate = url.ManagePackageTemplate();
-            VersionSelectList = new SelectList(PackageVersions.Where(p => !p.Deleted).Select(p => new
-            {
-                value = p.Version,
-                text = p.FullVersion + (p.LatestVersionSemVer2 ? " (Latest)" : string.Empty),
-                url = manageTemplate.Resolve(p)
-            }), "url", "text", manageTemplate.Resolve(this));
+            VersionSelectList = new SelectList(
+                PackageVersions.Where(p => !p.Deleted).Select(p => new SelectListItem
+                {
+                    Text = p.FullVersion + (p.LatestVersionSemVer2 ? " (Latest)" : string.Empty),
+                    Value = p.Version
+                }),
+                "Value",
+                "Text",
+                Version);
 
             // Update edit model with the readme.md data.
             ReadMe = new EditPackageVersionReadMeRequest();

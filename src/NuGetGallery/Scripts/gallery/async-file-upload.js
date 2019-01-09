@@ -16,13 +16,15 @@
         var _uploadStartTime;
         var _uploadId;
 
-        this.init = function (pingUrl, formId, jQueryUrl, actionUrl, cancelUrl, submitVerifyUrl, uploadTracingKey) {
+        this.init = function (pingUrl, formId, jQueryUrl, actionUrl, cancelUrl, submitVerifyUrl, uploadTracingKey, previewUrl) {
             _uploadId = uploadTracingKey;
             _pingUrl = pingUrl;
             _uploadFormId = formId;
             _actionUrl = actionUrl;
             _cancelUrl = cancelUrl;
             _submitVerifyUrl = submitVerifyUrl;
+
+            BindReadMeDataManager.init(previewUrl);
 
             $('#file-select-feedback').on('dragenter', function (e) {
                 e.preventDefault();
@@ -298,7 +300,7 @@
             }
 
             if (model === null || !model.IsSymbolsPackage) {
-                bindReadMeData(model);
+                BindReadMeDataManager.bindReadMeData(model);
             }
 
             document.getElementById("validation-failure-container").scrollIntoView();
