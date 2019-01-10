@@ -16,6 +16,7 @@ using System.Web.Caching;
 using System.Web.Mvc;
 using NuGet.Packaging;
 using NuGet.Services.Entities;
+using NuGet.Services.Licenses;
 using NuGet.Services.Messaging.Email;
 using NuGet.Versioning;
 using NuGetGallery.Areas.Admin;
@@ -96,6 +97,7 @@ namespace NuGetGallery
         private readonly IDiagnosticsSource _trace;
         private readonly IFlatContainerService _flatContainerService;
         private readonly ICoreLicenseFileService _coreLicenseFileService;
+        private readonly ILicenseExpressionSplitter _licenseExpressionSplitter;
 
         public PackagesController(
             IPackageService packageService,
@@ -122,7 +124,8 @@ namespace NuGetGallery
             ISymbolPackageUploadService symbolPackageUploadService,
             IDiagnosticsService diagnosticsService,
             IFlatContainerService flatContainerService,
-            ICoreLicenseFileService coreLicenseFileService)
+            ICoreLicenseFileService coreLicenseFileService,
+            ILicenseExpressionSplitter licenseExpressionSplitter)
         {
             _packageService = packageService;
             _uploadFileService = uploadFileService;
@@ -149,6 +152,7 @@ namespace NuGetGallery
             _trace = diagnosticsService?.SafeGetSource(nameof(PackagesController)) ?? throw new ArgumentNullException(nameof(diagnosticsService));
             _flatContainerService = flatContainerService;
             _coreLicenseFileService = coreLicenseFileService ?? throw new ArgumentNullException(nameof(coreLicenseFileService));
+            _licenseExpressionSplitter = licenseExpressionSplitter ?? throw new ArgumentNullException(nameof(licenseExpressionSplitter));
         }
 
         [HttpGet]
@@ -659,6 +663,21 @@ namespace NuGetGallery
             model.IsCertificatesUIEnabled = _contentObjectService.CertificatesConfiguration?.IsUIEnabledForUser(currentUser) ?? false;
 
             model.ReadMeHtml = await _readMeService.GetReadMeHtmlAsync(package);
+
+            if (!string.IsNullOrWhiteSpace(package.LicenseExpression))
+            {
+                try
+                {
+                    model.LicenseExpressionSegments = _licenseExpressionSplitter.SplitExpression(package.LicenseExpression);
+                }
+                catch (Exception ex)
+                {
+                    // Any exception thrown while trying to render license expression beautifully
+                    // is not severe enough to break the client experience, view will fall back to
+                    // display license url.
+                    _telemetryService.TraceException(ex);
+                }
+            }
 
             var externalSearchService = _searchService as ExternalSearchService;
             if (_searchService.ContainsAllVersions && externalSearchService != null)
