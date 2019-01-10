@@ -604,7 +604,7 @@ namespace NuGetGallery
                     new { controller = "Packages", action = "ContactOwners" },
                     // This next bit looks bad, but it's not. It will never change because
                     // it's mapping the legacy routes to the new better routes.
-                    new { action = "ContactOwners|ManagePackageOwners" }),
+                    new { action = "ContactOwners|Manage" }),
                 permanent: true).To(packageActionRoute);
 
             routes.Redirect(

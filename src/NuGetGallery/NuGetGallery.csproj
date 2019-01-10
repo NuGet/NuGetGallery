@@ -1267,7 +1267,6 @@
     <Compile Include="ViewModels\DeleteAccountViewModel.cs" />
     <Compile Include="ViewModels\ApiKeyOwnerViewModel.cs" />
     <Compile Include="ViewModels\PackageOwnersResultViewModel.cs" />
-    <Compile Include="ViewModels\ManagePackagesListViewModel.cs" />
     <Compile Include="ViewModels\ApiKeyListViewModel.cs" />
     <Compile Include="ViewModels\ApiKeyViewModel.cs" />
     <Compile Include="ViewModels\OwnerRequestsListItemViewModel.cs" />
