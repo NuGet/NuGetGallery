@@ -11,7 +11,8 @@
     "AuxiliaryDataStorageDownloadsPath": "downloads.v1.json",
     "AuxiliaryDataStorageVerifiedPackagesPath": "verifiedPackages.json",
     "AuxiliaryDataReloadFrequency": "01:00:00",
-    "AuxiliaryDataReloadFailureRetryFrequency": "00:00:30"
+    "AuxiliaryDataReloadFailureRetryFrequency": "00:00:30",
+    "DeploymentLabel": "1.0.0-zlocal"
   },
 
   "KeyVault_VaultName": "",

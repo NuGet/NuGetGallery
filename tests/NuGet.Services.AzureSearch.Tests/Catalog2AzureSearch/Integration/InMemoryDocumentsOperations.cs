@@ -22,6 +22,11 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
             }
         }
 
+        public Task<long> CountAsync()
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<DocumentIndexResult> IndexAsync<T>(IndexBatch<T> batch) where T : class
         {
             if (typeof(T) != typeof(KeyedDocument))
@@ -35,6 +40,11 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
         }
 
         public Task<DocumentSearchResult<T>> SearchAsync<T>(string searchText, SearchParameters searchParameters) where T : class
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<DocumentSearchResult> SearchAsync(string searchText, SearchParameters searchParameters)
         {
             throw new NotImplementedException();
         }

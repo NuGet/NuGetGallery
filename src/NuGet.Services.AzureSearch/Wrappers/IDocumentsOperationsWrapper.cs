@@ -9,8 +9,12 @@ namespace NuGet.Services.AzureSearch.Wrappers
     public interface IDocumentsOperationsWrapper
     {
         Task<DocumentIndexResult> IndexAsync<T>(IndexBatch<T> batch) where T : class;
+        Task<DocumentSearchResult> SearchAsync(
+            string searchText,
+            SearchParameters searchParameters);
         Task<DocumentSearchResult<T>> SearchAsync<T>(
             string searchText,
             SearchParameters searchParameters) where T : class;
+        Task<long> CountAsync();
     }
 }

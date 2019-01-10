@@ -3,8 +3,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web.Http;
+using System.Web.Http.Description;
 using NuGet.Indexing;
 using NuGet.Services.AzureSearch.SearchService;
 using NuGet.Versioning;
@@ -26,13 +29,26 @@ namespace NuGet.Services.SearchService.Controllers
 
         private readonly IAuxiliaryDataCache _auxiliaryDataCache;
         private readonly ISearchService _searchService;
+        private readonly ISearchStatusService _statusService;
 
         public SearchController(
             IAuxiliaryDataCache auxiliaryDataCache,
-            ISearchService searchService)
+            ISearchService searchService,
+            ISearchStatusService statusService)
         {
             _auxiliaryDataCache = auxiliaryDataCache ?? throw new ArgumentNullException(nameof(auxiliaryDataCache));
             _searchService = searchService ?? throw new ArgumentNullException(nameof(searchService));
+            _statusService = statusService ?? throw new ArgumentNullException(nameof(statusService));
+        }
+
+        [HttpGet]
+        [ResponseType(typeof(SearchStatusResponse))]
+        public async Task<HttpResponseMessage> GetStatusAsync(HttpRequestMessage request)
+        {
+            var assemblyForMetadata = typeof(SearchController).Assembly;
+            var result = await _statusService.GetStatusAsync(assemblyForMetadata);
+            var statusCode = result.Success ? HttpStatusCode.OK : HttpStatusCode.InternalServerError;
+            return request.CreateResponse(statusCode, result);
         }
 
         [HttpGet]

@@ -43,6 +43,8 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Measure.cs" />
+    <Compile Include="DurationMeasurement.cs" />
     <Compile Include="SearchService\AuxiliaryDataCache.cs" />
     <Compile Include="SearchService\AuxiliaryFileClient.cs" />
     <Compile Include="SearchService\AuxiliaryFileReloader.cs" />
@@ -104,6 +106,7 @@
     <Compile Include="SearchService\IAuxiliaryDataCache.cs" />
     <Compile Include="SearchService\IAuxiliaryFileClient.cs" />
     <Compile Include="SearchService\IAuxiliaryFileReloader.cs" />
+    <Compile Include="SearchService\ISearchStatusService.cs" />
     <Compile Include="SearchService\Models\AuxiliaryFileMetadata.cs" />
     <Compile Include="SearchService\Models\AuxiliaryFilesMetadata.cs" />
     <Compile Include="SearchService\AzureSearchService.cs" />
@@ -113,7 +116,10 @@
     <Compile Include="SearchService\ISearchResponseBuilder.cs" />
     <Compile Include="SearchService\ISearchService.cs" />
     <Compile Include="SearchService\Models\DebugInformation.cs" />
+    <Compile Include="SearchService\Models\IndexStatus.cs" />
     <Compile Include="SearchService\Models\SearchRequest.cs" />
+    <Compile Include="SearchService\Models\ServerInformation.cs" />
+    <Compile Include="SearchService\Models\SearchStatusResponse.cs" />
     <Compile Include="SearchService\Models\V2SearchDependency.cs" />
     <Compile Include="SearchService\Models\V2SearchPackage.cs" />
     <Compile Include="SearchService\Models\V2SearchPackageRegistration.cs" />
@@ -127,6 +133,7 @@
     <Compile Include="SearchService\SearchParametersBuilder.cs" />
     <Compile Include="SearchService\Models\V2SortBy.cs" />
     <Compile Include="SearchService\SearchResponseBuilder.cs" />
+    <Compile Include="SearchService\SearchStatusService.cs" />
     <Compile Include="VersionList\Guard.cs" />
     <Compile Include="VersionList\HijackIndexChange.cs" />
     <Compile Include="VersionList\HijackIndexChangeType.cs" />

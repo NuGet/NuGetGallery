@@ -15,5 +15,6 @@ namespace NuGet.Services.AzureSearch.SearchService
         public string AuxiliaryDataStorageVerifiedPackagesPath { get; set; }
         public TimeSpan AuxiliaryDataReloadFrequency { get; set; }
         public TimeSpan AuxiliaryDataReloadFailureRetryFrequency { get; set; }
+        public string DeploymentLabel { get; set; }
     }
 }

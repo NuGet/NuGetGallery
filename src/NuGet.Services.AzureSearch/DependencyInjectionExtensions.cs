@@ -76,6 +76,14 @@ namespace NuGet.Services.AzureSearch
                     c.ResolveKeyed<ISearchIndexClientWrapper>(searchIndexKey),
                     c.ResolveKeyed<ISearchIndexClientWrapper>(hijackIndexKey),
                     c.Resolve<ISearchResponseBuilder>()));
+
+            containerBuilder
+                .Register<ISearchStatusService>(c => new SearchStatusService(
+                    c.ResolveKeyed<ISearchIndexClientWrapper>(searchIndexKey),
+                    c.ResolveKeyed<ISearchIndexClientWrapper>(hijackIndexKey),
+                    c.Resolve<IAuxiliaryDataCache>(),
+                    c.Resolve<IOptionsSnapshot<SearchServiceConfiguration>>(),
+                    c.Resolve<ILogger<SearchStatusService>>()));
         }
 
         private static void RegisterAzureSearchJobStorageServices(ContainerBuilder containerBuilder, string key)

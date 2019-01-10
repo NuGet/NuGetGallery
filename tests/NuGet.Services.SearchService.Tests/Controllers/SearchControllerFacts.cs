@@ -2,7 +2,11 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Net;
+using System.Net.Http;
+using System.Reflection;
 using System.Threading.Tasks;
+using System.Web.Http;
 using Moq;
 using NuGet.Services.AzureSearch.SearchService;
 using Xunit;
@@ -11,6 +15,53 @@ namespace NuGet.Services.SearchService.Controllers
 {
     public class SearchControllerFacts
     {
+        public class GetStatusAsync : BaseFacts
+        {
+            private readonly HttpRequestMessage _request;
+            private readonly SearchStatusResponse _status;
+
+            public GetStatusAsync()
+            {
+                _request = new HttpRequestMessage();
+                _request.SetConfiguration(new HttpConfiguration());
+
+                _status = new SearchStatusResponse { Success = true };
+
+                _statusService
+                    .Setup(x => x.GetStatusAsync(It.IsAny<Assembly>()))
+                    .ReturnsAsync(() => _status);
+            }
+
+            [Fact]
+            public async Task DoesNotInitializeAuxiliaryDataCache()
+            {
+                await _target.GetStatusAsync(_request);
+
+                _auxiliaryDataCache.Verify(x => x.InitializeAsync(), Times.Never);
+            }
+
+            [Fact]
+            public async Task PassesControllersAssembly()
+            {
+                await _target.GetStatusAsync(_request);
+
+                _statusService.Verify(x => x.GetStatusAsync(_target.GetType().Assembly), Times.Once);
+                _statusService.Verify(x => x.GetStatusAsync(It.IsAny<Assembly>()), Times.Once);
+            }
+
+            [Theory]
+            [InlineData(false, HttpStatusCode.InternalServerError)]
+            [InlineData(true, HttpStatusCode.OK)]
+            public async Task ReturnsProperStatusCode(bool success, HttpStatusCode expected)
+            {
+                _status.Success = success;
+
+                var response = await _target.GetStatusAsync(_request);
+
+                Assert.Equal(expected, response.StatusCode);
+            }
+        }
+
         public class V2SearchAsync : BaseFacts
         {
             [Fact]
@@ -190,6 +241,7 @@ namespace NuGet.Services.SearchService.Controllers
         {
             protected readonly Mock<IAuxiliaryDataCache> _auxiliaryDataCache;
             protected readonly Mock<ISearchService> _searchService;
+            protected readonly Mock<ISearchStatusService> _statusService;
             protected readonly V2SearchResponse _v2SearchResponse;
             protected readonly V3SearchResponse _v3SearchResponse;
             protected readonly SearchController _target;
@@ -214,6 +266,7 @@ namespace NuGet.Services.SearchService.Controllers
             {
                 _auxiliaryDataCache = new Mock<IAuxiliaryDataCache>();
                 _searchService = new Mock<ISearchService>();
+                _statusService = new Mock<ISearchStatusService>();
 
                 _v2SearchResponse = new V2SearchResponse();
                 _v3SearchResponse = new V3SearchResponse();
@@ -227,7 +280,8 @@ namespace NuGet.Services.SearchService.Controllers
 
                 _target = new SearchController(
                     _auxiliaryDataCache.Object,
-                    _searchService.Object);
+                    _searchService.Object,
+                    _statusService.Object);
             }
         }
     }

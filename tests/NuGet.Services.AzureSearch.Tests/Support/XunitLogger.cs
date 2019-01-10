@@ -30,7 +30,12 @@ namespace Microsoft.Extensions.Logging
                 return;
             }
             var firstLinePrefix = $"| {_category} {logLevel}: ";
-            var lines = formatter(state, exception).Split('\n');
+            var formattedMessage = formatter(state, exception);
+            if (exception != null)
+            {
+                formattedMessage += Environment.NewLine + exception.ToString();
+            }
+            var lines = formattedMessage.Split('\n');
             _output.WriteLine(firstLinePrefix + lines.First().TrimEnd(NewLineChars));
 
             var additionalLinePrefix = "|" + new string(' ', firstLinePrefix.Length - 1);
