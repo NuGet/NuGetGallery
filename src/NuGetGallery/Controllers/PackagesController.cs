@@ -603,17 +603,17 @@ namespace NuGetGallery
 
         private static async Task<string> GetLicenseFileContentsAsync(PackageMetadata packageMetadata, PackageArchiveReader packageArchiveReader)
         {
-            if (packageMetadata.LicenseMetadata?.Type == LicenseType.File)
+            if (packageMetadata.LicenseMetadata?.Type != LicenseType.File)
             {
-                var licenseFilename = FileNameHelper.GetZipEntryPath(packageMetadata.LicenseMetadata?.License);
-                using (var licenseFileStream = packageArchiveReader.GetStream(licenseFilename))
-                using (var streamReader = new StreamReader(licenseFileStream, Encoding.UTF8))
-                {
-                    return await streamReader.ReadToEndAsync();
-                }
+                return null;
             }
 
-            return null;
+            var licenseFilename = FileNameHelper.GetZipEntryPath(packageMetadata.LicenseMetadata?.License);
+            using (var licenseFileStream = packageArchiveReader.GetStream(licenseFilename))
+            using (var streamReader = new StreamReader(licenseFileStream, Encoding.UTF8))
+            {
+                return await streamReader.ReadToEndAsync();
+            }
         }
 
         public virtual async Task<ActionResult> DisplayPackage(string id, string version)
