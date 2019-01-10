@@ -652,6 +652,19 @@ namespace NuGetGallery
             string version,
             bool relativeUrl = true)
         {
+            if (string.IsNullOrEmpty(version))
+            {
+                return GetRouteLink(
+                    url,
+                    RouteName.PackageAction,
+                    relativeUrl,
+                    routeValues: new RouteValueDictionary
+                    {
+                        { "action", action },
+                        { "id", id }
+                    });
+            }
+
             return GetRouteLink(
                 url,
                 RouteName.PackageVersionAction,

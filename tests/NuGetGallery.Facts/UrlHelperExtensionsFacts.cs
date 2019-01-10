@@ -205,26 +205,24 @@ namespace NuGetGallery
                 };
 
                 var urlHelper = TestUtility.MockUrlHelper();
-
-                var template = urlHelper.PackageVersionActionTemplate(action);
+                
                 var idModel = new TrivialPackageVersionModel(packageId, version: null);
                 var versionModel = new ListPackageItemViewModel(package, currentUser: null);
 
                 // Act
-                var idResult = template.Resolve(idModel);
-                var versionResult = template.Resolve(versionModel);
+                var idResult = urlHelper.PackageVersionAction(action, idModel);
+                var versionResult = urlHelper.PackageVersionAction(action, versionModel);
 
                 // Assert
                 // Id
                 Assert.Equal("/packages/" + packageId + "/" + action, idResult);
-                Assert.Equal(urlHelper.PackageVersionAction(action, packageId, null), idResult);
-                Assert.Equal(urlHelper.PackageVersionAction(action, idModel), idResult);
+                Assert.Equal(urlHelper.PackageVersionAction(action, packageId, version: null), idResult);
                 Assert.Equal(caller(urlHelper, idModel), idResult);
 
                 // Id and version
                 Assert.Equal("/packages/" + packageId + "/" + package.Version + "/" + action, versionResult);
                 Assert.Equal(urlHelper.PackageVersionAction(action, packageId, package.Version), versionResult);
-                Assert.Equal(urlHelper.PackageVersionAction(action, versionModel), versionResult);
+                Assert.Equal(urlHelper.PackageVersionActionTemplate(action).Resolve(versionModel), versionResult);
                 Assert.Equal(caller(urlHelper, versionModel), versionResult);
             }
         }
