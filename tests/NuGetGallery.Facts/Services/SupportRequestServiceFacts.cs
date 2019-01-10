@@ -103,6 +103,7 @@ namespace NuGetGallery.Services
                 var deleteRequestIssue = supportRequestContext.Issues.Where(issue => issue.Key == 1).FirstOrDefault();
                 Assert.NotNull(deleteRequestIssue);
                 Assert.Equal(deleteRequestIssue.CreatedBy, "_deletedaccount");
+                Assert.Equal(deleteRequestIssue.IssueStatusId, IssueStatusKeys.Resolved);
                 Assert.Null(deleteRequestIssue.HistoryEntries.ElementAt(0).EditedBy);
             }
 
