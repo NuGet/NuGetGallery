@@ -2279,7 +2279,7 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.IsType<RedirectResult>(result);
-                Assert.Equal($"/?id={package.Id}&version={package.NormalizedVersion}", ((RedirectResult)result).Url);
+                Assert.Equal($"/packages/{package.Id}/{package.NormalizedVersion}", ((RedirectResult)result).Url);
                 Assert.True(auditingService.WroteRecord<PackageAuditRecord>(ar =>
                     ar.Action == AuditedPackageAction.SymbolsDelete
                     && ar.Id == package.PackageRegistration.Id
@@ -5764,7 +5764,7 @@ namespace NuGetGallery
                     Assert.NotNull(result);
                     Assert.NotNull(result.Data);
                     Assert.Equal(
-                        "{ location = /?id=" + PackageId + " }",
+                        "{ location = /packages/" + PackageId + "/ }",
                         result.Data.ToString());
                 }
             }
@@ -6490,7 +6490,7 @@ namespace NuGetGallery
 
                 // Assert
                 var redirect = Assert.IsType<SafeRedirectResult>(result);
-                Assert.Equal($"/?id={_package.PackageRegistration.Id}&version={_package.Version}", redirect.Url);
+                Assert.Equal($"/packages/{_package.PackageRegistration.Id}/{_package.Version}", redirect.Url);
                 Assert.Equal("/", redirect.SafeUrl);
             }
 
@@ -6586,7 +6586,7 @@ namespace NuGetGallery
 
                 // Assert
                 var redirect = Assert.IsType<SafeRedirectResult>(result);
-                Assert.Equal($"/?id={_package.PackageRegistration.Id}&version={_package.Version}", redirect.Url);
+                Assert.Equal($"/packages/{_package.Id}/{_package.Version}", redirect.Url);
                 Assert.Equal("/", redirect.SafeUrl);
             }
 

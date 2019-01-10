@@ -689,6 +689,11 @@ namespace NuGetGallery
             string version,
             bool relativeUrl = true)
         {
+            if (string.IsNullOrEmpty(version))
+            {
+                return url.PackageAction(action, id, relativeUrl);
+            }
+
             return GetRouteLink(
                 url,
                 RouteName.PackageVersionAction,
@@ -720,11 +725,6 @@ namespace NuGetGallery
             string version,
             bool relativeUrl = true)
         {
-            if (string.IsNullOrEmpty(version))
-            {
-                return url.PackageAction(nameof(PackagesController.Manage), id, relativeUrl);
-            }
-
             return url.PackageVersionAction(nameof(PackagesController.Manage), id, version, relativeUrl);
         }
 
