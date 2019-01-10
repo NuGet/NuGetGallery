@@ -85,7 +85,7 @@
 
             var readMeModel = {
                 "Versions": @Html.Raw(Json.Encode(Model.VersionSelectList.ToDictionary(v => v.Value, v => {
-                           var pvmodel = new TrivialPackageVersionModel { Id = Model.Id, Version = v.Value };
+                           var pvmodel = new TrivialPackageVersionModel(Model.Id, v.Value);
                            return new
                            {
                                submit = editTemplate.Resolve(pvmodel),

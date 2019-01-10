@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Web.Mvc;
 using System.Web.Routing;
 using NuGet.Services.Entities;
 using NuGetGallery.Framework;
@@ -123,57 +124,127 @@ namespace NuGetGallery
             }
         }
 
-        public class TheEditPackageTemplateHelperMethod
+        public class ThePackageActionTemplate
             : TestContainer
         {
             [Fact]
-            public void ResolvePathIsCorrect()
+            public void ResolveManagePathIsCorrect()
             {
                 // Arrange
-                var package = new Package
-                {
-                    PackageRegistration = new PackageRegistration
-                    {
-                        Id = "TestPackageId"
-                    },
-                    Version = "1.0.0"
-                };
+                var action = nameof(PackagesController.Manage);
+                var packageId = "TestPackageId";
 
                 var urlHelper = TestUtility.MockUrlHelper();
-                var packageVM = new ListPackageItemViewModel(package, currentUser: null);
 
                 // Act
-                var result = urlHelper.ManagePackageTemplate().Resolve(packageVM);
+                var result = urlHelper.PackageActionTemplate(action).Resolve(packageId);
 
                 // Assert
-                Assert.Equal(urlHelper.ManagePackage(packageVM.Id, packageVM.Version), result);
+                Assert.Equal("/packages/" + packageId + "/" + action, result);
+                Assert.Equal(urlHelper.PackageAction(action, packageId), result);
+                Assert.Equal(urlHelper.ManagePackage(packageId, null), result);
+                Assert.Equal(urlHelper.ManagePackage(packageId, string.Empty), result);
             }
         }
 
-        public class TheDeleteSymbolsPackageTemplateHelperMethod
+        public class ThePackageVersionActionTemplate
             : TestContainer
         {
-            [Fact]
-            public void ResolvePathIsCorrect()
+            public static IEnumerable<object[]> ResolvePathIsCorrect_Data
+            {
+                get
+                {
+                    yield return new object[]
+                    {
+                        nameof(PackagesController.Manage),
+                        new Func<UrlHelper, string, string, string>(
+                            (url, id, version) => url.ManagePackage(id, version))
+                    };
+
+                    yield return new object[]
+                    {
+                        nameof(PackagesController.Edit),
+                        new Func<UrlHelper, string, string, string>(
+                            (url, id, version) => url.EditPackage(id, version))
+                    };
+
+                    yield return new object[]
+                    {
+                        nameof(PackagesController.Reflow),
+                        new Func<UrlHelper, string, string, string>(
+                            (url, id, version) => url.ReflowPackage(new TrivialPackageVersionModel(id, version)))
+                    };
+
+                    yield return new object[]
+                    {
+                        nameof(PackagesController.Revalidate),
+                        new Func<UrlHelper, string, string, string>(
+                            (url, id, version) => url.RevalidatePackage(id, version))
+                    };
+
+                    yield return new object[]
+                    {
+                        nameof(PackagesController.RevalidateSymbols),
+                        new Func<UrlHelper, string, string, string>(
+                            (url, id, version) => url.RevalidateSymbolsPackage(id, version))
+                    };
+
+                    yield return new object[]
+                    {
+                        nameof(PackagesController.DeleteSymbols),
+                        new Func<UrlHelper, string, string, string>(
+                            (url, id, version) => url.DeleteSymbolsPackage(new TrivialPackageVersionModel(id, version)))
+                    };
+
+                    yield return new object[]
+                    {
+                        nameof(PackagesController.ReportMyPackage),
+                        new Func<UrlHelper, string, string, string>(
+                            (url, id, version) => url.ReportPackage(id, version))
+                    };
+
+                    yield return new object[]
+                    {
+                        nameof(PackagesController.ContactOwners),
+                        new Func<UrlHelper, string, string, string>(
+                            (url, id, version) => url.ContactOwners(id, version))
+                    };
+
+                    yield return new object[]
+                    {
+                        nameof(PackagesController.License),
+                        new Func<UrlHelper, string, string, string>(
+                            (url, id, version) => url.License(id, version))
+                    };
+                }
+            }
+
+            [Theory]
+            [MemberData(nameof(ResolvePathIsCorrect_Data))]
+            public void ResolvePathIsCorrect(string action, Func<UrlHelper, string, string, string> caller)
             {
                 // Arrange
+                var packageId = "TestPackageId";
                 var package = new Package
                 {
                     PackageRegistration = new PackageRegistration
                     {
-                        Id = "TestPackageId"
+                        Id = packageId
                     },
                     Version = "1.0.0"
                 };
 
                 var urlHelper = TestUtility.MockUrlHelper();
-                var packageVM = new ListPackageItemViewModel(package, currentUser: null);
 
                 // Act
-                var result = urlHelper.DeleteSymbolsPackageTemplate().Resolve(packageVM);
+                var result = urlHelper
+                    .PackageVersionActionTemplate(action)
+                    .Resolve(new ListPackageItemViewModel(package, currentUser: null));
 
                 // Assert
-                Assert.Equal(urlHelper.DeleteSymbolsPackage(packageVM), result);
+                Assert.Equal("/packages/" + packageId + "/" + package.Version + "/" + action, result);
+                Assert.Equal(urlHelper.PackageVersionAction(action, packageId, package.Version), result);
+                Assert.Equal(caller(urlHelper, packageId, package.Version), result);
             }
         }
 
