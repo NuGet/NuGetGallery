@@ -28,7 +28,7 @@
                 ? packageItem.PackageIconUrl
                 : this.PackagesListViewModel.ManagePackagesViewModel.DefaultPackageIconUrl;
             this.PackageUrl = packageItem.PackageUrl;
-            this.EditUrl = packageItem.EditUrl;
+            this.ManageUrl = packageItem.ManageUrl;
             this.SetRequiredSignerUrl = packageItem.SetRequiredSignerUrl;
             this.RequiredSignerMessage = packageItem.RequiredSignerMessage;
             this.AllSigners = packageItem.AllSigners;
