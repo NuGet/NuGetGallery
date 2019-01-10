@@ -288,7 +288,15 @@ namespace NuGetGallery
             var verifyRequest = new VerifyPackageRequest(packageMetadata, accountsAllowedOnBehalfOf, existingPackageRegistration);
             verifyRequest.Warnings.AddRange(validationResult.Warnings.Select(w => new JsonValidationMessage(w)));
             verifyRequest.IsSymbolsPackage = false;
-
+            try
+            {
+                verifyRequest.LicenseFileContents = await GetLicenseFileContentsAsync(packageMetadata, packageArchiveReader);
+            }
+            catch (Exception ex)
+            {
+                _telemetryService.TraceException(ex);
+                return View(model);
+            }
             model.InProgressUpload = verifyRequest;
             return View(model);
         }
@@ -573,23 +581,15 @@ namespace NuGetGallery
                     warnings = validationResult.Warnings;
                 }
 
-                if (packageMetadata.LicenseMetadata?.Type == LicenseType.File)
+                try
                 {
-                    try
-                    {
-                        var licenseFilename = FileNameHelper.GetZipEntryPath(packageMetadata.LicenseMetadata?.License);
-                        using (var licenseFileStream = packageArchiveReader.GetStream(licenseFilename))
-                        using (var streamReader = new StreamReader(licenseFileStream, Encoding.UTF8))
-                        {
-                            licenseFileContents = await streamReader.ReadToEndAsync();
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        _telemetryService.TraceException(ex);
+                    licenseFileContents = await GetLicenseFileContentsAsync(packageMetadata, packageArchiveReader);
+                }
+                catch (Exception ex)
+                {
+                    _telemetryService.TraceException(ex);
 
-                        return Json(HttpStatusCode.BadRequest, new[] { new JsonValidationMessage(ex.GetUserSafeMessage()) });
-                    }
+                    return Json(HttpStatusCode.BadRequest, new[] { new JsonValidationMessage(ex.GetUserSafeMessage()) });
                 }
             }
 
@@ -599,6 +599,21 @@ namespace NuGetGallery
             model.Warnings.AddRange(warnings.Select(w => new JsonValidationMessage(w)));
             model.LicenseFileContents = licenseFileContents;
             return Json(model);
+        }
+
+        private static async Task<string> GetLicenseFileContentsAsync(PackageMetadata packageMetadata, PackageArchiveReader packageArchiveReader)
+        {
+            if (packageMetadata.LicenseMetadata?.Type == LicenseType.File)
+            {
+                var licenseFilename = FileNameHelper.GetZipEntryPath(packageMetadata.LicenseMetadata?.License);
+                using (var licenseFileStream = packageArchiveReader.GetStream(licenseFilename))
+                using (var streamReader = new StreamReader(licenseFileStream, Encoding.UTF8))
+                {
+                    return await streamReader.ReadToEndAsync();
+                }
+            }
+
+            return null;
         }
 
         public virtual async Task<ActionResult> DisplayPackage(string id, string version)
