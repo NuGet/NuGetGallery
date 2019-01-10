@@ -618,43 +618,6 @@ namespace NuGetGallery
                 });
         }
 
-        public static RouteUrlTemplate<string> PackageActionTemplate(
-            this UrlHelper url,
-            string action,
-            bool relativeUrl = true)
-        {
-            var routesGenerator = new Dictionary<string, Func<string, object>>
-            {
-                { "action", id => action },
-                { "id", id => id }
-            };
-
-            Func<RouteValueDictionary, string> linkGenerator = rv => GetRouteLink(
-                url,
-                RouteName.PackageAction,
-                relativeUrl,
-                routeValues: rv);
-
-            return new RouteUrlTemplate<string>(linkGenerator, routesGenerator);
-        }
-
-        public static string PackageAction(
-            this UrlHelper url,
-            string action,
-            string id,
-            bool relativeUrl = true)
-        {
-            return GetRouteLink(
-                url,
-                RouteName.PackageAction,
-                relativeUrl,
-                routeValues: new RouteValueDictionary
-                {
-                        { "action", action },
-                        { "id", id }
-                });
-        }
-
         /// <summary>
         /// Initializes a package version action route request
         /// 
@@ -689,11 +652,6 @@ namespace NuGetGallery
             string version,
             bool relativeUrl = true)
         {
-            if (string.IsNullOrEmpty(version))
-            {
-                return url.PackageAction(action, id, relativeUrl);
-            }
-
             return GetRouteLink(
                 url,
                 RouteName.PackageVersionAction,
@@ -704,6 +662,15 @@ namespace NuGetGallery
                     { "id", id },
                     { "version", version }
                 });
+        }
+
+        public static string PackageVersionAction(
+            this UrlHelper url,
+            string action,
+            IPackageVersionModel package,
+            bool relativeUrl = true)
+        {
+            return url.PackageVersionAction(action, package.Id, package.Version, relativeUrl);
         }
 
         /// <summary>
@@ -721,28 +688,10 @@ namespace NuGetGallery
 
         public static string ManagePackage(
             this UrlHelper url,
-            string id,
-            string version,
-            bool relativeUrl = true)
-        {
-            return url.PackageVersionAction(nameof(PackagesController.Manage), id, version, relativeUrl);
-        }
-
-        public static string ManagePackage(
-            this UrlHelper url,
             IPackageVersionModel package,
             bool relativeUrl = true)
         {
-            return url.ManagePackage(package.Id, package.Version, relativeUrl);
-        }
-
-        public static string EditPackage(
-            this UrlHelper url,
-            string id,
-            string version,
-            bool relativeUrl = true)
-        {
-            return url.PackageVersionAction(nameof(PackagesController.Edit), id, version, relativeUrl);
+            return url.PackageVersionAction(nameof(PackagesController.Manage), package, relativeUrl);
         }
 
         public static string PreviewReadMe(
@@ -760,25 +709,7 @@ namespace NuGetGallery
             IPackageVersionModel package,
             bool relativeUrl = true)
         {
-            return url.PackageVersionAction(nameof(PackagesController.Reflow), package.Id, package.Version, relativeUrl);
-        }
-
-        public static string RevalidatePackage(
-            this UrlHelper url,
-            string id,
-            string version,
-            bool relativeUrl = true)
-        {
-            return url.PackageVersionAction(nameof(PackagesController.Revalidate), id, version, relativeUrl);
-        }
-
-        public static string RevalidateSymbolsPackage(
-            this UrlHelper url,
-            string id,
-            string version,
-            bool relativeUrl = true)
-        {
-            return url.PackageVersionAction(nameof(PackagesController.RevalidateSymbols), id, version, relativeUrl);
+            return url.PackageVersionAction(nameof(PackagesController.Reflow), package, relativeUrl);
         }
 
         public static string RevalidatePackage(
@@ -786,7 +717,7 @@ namespace NuGetGallery
             IPackageVersionModel package,
             bool relativeUrl = true)
         {
-            return url.RevalidatePackage(package.Id, package.Version, relativeUrl);
+            return url.PackageVersionAction(nameof(PackagesController.Revalidate), package, relativeUrl);
         }
 
         public static string RevalidateSymbolsPackage(
@@ -794,7 +725,7 @@ namespace NuGetGallery
             IPackageVersionModel package,
             bool relativeUrl = true)
         {
-            return url.RevalidateSymbolsPackage(package.Id, package.Version, relativeUrl);
+            return url.PackageVersionAction(nameof(PackagesController.RevalidateSymbols), package, relativeUrl);
         }
 
         public static string ViewValidations(
@@ -841,7 +772,7 @@ namespace NuGetGallery
             IPackageVersionModel package,
             bool relativeUrl = true)
         {
-            return url.PackageVersionAction(nameof(PackagesController.DeleteSymbols), package.Id, package.Version, relativeUrl);
+            return url.PackageVersionAction(nameof(PackagesController.DeleteSymbols), package, relativeUrl);
         }
 
         public static string AccountSettings(
@@ -868,20 +799,26 @@ namespace NuGetGallery
 
         public static string ReportPackage(
             this UrlHelper url,
-            string id,
-            string version,
+            IPackageVersionModel package,
             bool relativeUrl = true)
         {
-            return url.PackageVersionAction(nameof(PackagesController.ReportMyPackage), id, version, relativeUrl);
+            return url.PackageVersionAction(nameof(PackagesController.ReportMyPackage), package, relativeUrl);
+        }
+
+        public static string ReportPackage(
+            this UrlHelper url,
+            Package package,
+            bool relativeUrl = true)
+        {
+            return url.PackageVersionAction(nameof(PackagesController.ReportMyPackage), new TrivialPackageVersionModel(package), relativeUrl);
         }
 
         public static string ReportAbuse(
             this UrlHelper url,
-            string id,
-            string version,
+            IPackageVersionModel package,
             bool relativeUrl = true)
         {
-            return url.PackageVersionAction(nameof(PackagesController.ReportAbuse), id, version, relativeUrl);
+            return url.PackageVersionAction(nameof(PackagesController.ReportAbuse), package, relativeUrl);
         }
 
         public static string LinkOrChangeExternalCredential(this UrlHelper url, string returnUrl, bool relativeUrl = true)
@@ -1237,14 +1174,14 @@ namespace NuGetGallery
             return GetActionLink(url, "Contact", "Pages", relativeUrl);
         }
 
-        public static string ContactOwners(this UrlHelper url, string id, string version, bool relativeUrl = true)
+        public static string ContactOwners(this UrlHelper url, IPackageVersionModel package, bool relativeUrl = true)
         {
-            return url.PackageVersionAction(nameof(PackagesController.ContactOwners), id, version, relativeUrl);
+            return url.PackageVersionAction(nameof(PackagesController.ContactOwners), package, relativeUrl);
         }
 
-        public static string License(this UrlHelper url, string id, string version, bool relativeUrl = true)
+        public static string License(this UrlHelper url, IPackageVersionModel package, bool relativeUrl = true)
         {
-            return url.PackageVersionAction(nameof(PackagesController.License), id, version, relativeUrl);
+            return url.PackageVersionAction(nameof(PackagesController.License), package, relativeUrl);
         }
 
         public static string Terms(this UrlHelper url, bool relativeUrl = true)

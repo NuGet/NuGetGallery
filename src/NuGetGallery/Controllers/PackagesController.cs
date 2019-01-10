@@ -1119,7 +1119,7 @@ namespace NuGetGallery
                     _config,
                     package,
                     Url.Package(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
-                    Url.ReportPackage(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false));
+                    Url.ReportPackage(package, relativeUrl: false));
                 await _messageService.SendMessageAsync(emailMessage);
 
                 TempData["Message"] = Strings.UserPackageDeleteCompleteTransientMessage;
@@ -2135,7 +2135,7 @@ namespace NuGetGallery
                             _config,
                             package,
                             Url.Package(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
-                            Url.ReportPackage(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
+                            Url.ReportPackage(package, relativeUrl: false),
                             Url.AccountSettings(relativeUrl: false),
                             warningMessages: null);
 

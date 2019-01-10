@@ -64,17 +64,17 @@
                 {
                     if (package.ValidatingType == ValidatingType.Package)
                     {
-                        <a href="@Url.RevalidatePackage(package.Id, package.NormalizedVersion)">Revalidate Package</a><br />
+                        <a href="@Url.RevalidatePackage(package)">Revalidate Package</a><br />
                     }
                     else if (package.ValidatingType == ValidatingType.SymbolPackage)
                     {
-                        <a href="@Url.RevalidateSymbolsPackage(package.Id, package.NormalizedVersion)">Revalidate Symbols</a><br />
+                        <a href="@Url.RevalidateSymbolsPackage(package)">Revalidate Symbols</a><br />
                     }
                 }
 
                 @if (package.DeletedStatus != PackageDeletedStatus.Unknown)
                 {
-                    <a href="@Url.Package(package.Id, package.NormalizedVersion)">Package Details</a>
+                    <a href="@Url.Package(package)">Package Details</a>
                 }
             </p>
 

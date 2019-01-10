@@ -37,7 +37,7 @@
 
                     @if (Model.CanEdit || Model.CanManageOwners || Model.CanUnlistOrRelist)
                     {
-                        <a href="@Url.ManagePackage(Model.Id, Model.Version)" class="icon-link edit-button" title="Manage package">
+                        <a href="@Url.ManagePackage(Model)" class="icon-link edit-button" title="Manage package">
                             <i class="ms-Icon ms-Icon--Edit" aria-hidden="true"></i>
                         </a>
                     }

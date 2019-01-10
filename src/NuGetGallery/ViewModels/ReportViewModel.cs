@@ -7,7 +7,7 @@ using NuGetGallery.Infrastructure;
 
 namespace NuGetGallery
 {
-    public abstract class ReportViewModel
+    public abstract class ReportViewModel : IPackageVersionModel
     {
         public string PackageId { get; set; }
 
@@ -24,5 +24,8 @@ namespace NuGetGallery
         public bool ConfirmedUser { get; set; }
 
         public IReadOnlyList<ReportPackageReason> ReasonChoices { get; set; }
+
+        public string Id => PackageId;
+        public string Version => PackageVersion;
     }
 }

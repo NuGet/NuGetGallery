@@ -90,7 +90,7 @@ namespace NuGetGallery
                 var urlHelper = TestUtility.MockUrlHelper(siteRoot);
 
                 // Act
-                var result = urlHelper.License(packageId, packageVersion, relativeUrl);
+                var result = urlHelper.License(new TrivialPackageVersionModel(packageId, packageVersion), relativeUrl);
 
                 // Assert
                 Assert.Equal(expectedUrl, result);
@@ -124,29 +124,6 @@ namespace NuGetGallery
             }
         }
 
-        public class ThePackageActionTemplate
-            : TestContainer
-        {
-            [Fact]
-            public void ResolveManagePathIsCorrect()
-            {
-                // Arrange
-                var action = nameof(PackagesController.Manage);
-                var packageId = "TestPackageId";
-
-                var urlHelper = TestUtility.MockUrlHelper();
-
-                // Act
-                var result = urlHelper.PackageActionTemplate(action).Resolve(packageId);
-
-                // Assert
-                Assert.Equal("/packages/" + packageId + "/" + action, result);
-                Assert.Equal(urlHelper.PackageAction(action, packageId), result);
-                Assert.Equal(urlHelper.ManagePackage(packageId, null), result);
-                Assert.Equal(urlHelper.ManagePackage(packageId, string.Empty), result);
-            }
-        }
-
         public class ThePackageVersionActionTemplate
             : TestContainer
         {
@@ -157,71 +134,64 @@ namespace NuGetGallery
                     yield return new object[]
                     {
                         nameof(PackagesController.Manage),
-                        new Func<UrlHelper, string, string, string>(
-                            (url, id, version) => url.ManagePackage(id, version))
-                    };
-
-                    yield return new object[]
-                    {
-                        nameof(PackagesController.Edit),
-                        new Func<UrlHelper, string, string, string>(
-                            (url, id, version) => url.EditPackage(id, version))
+                        new Func<UrlHelper, IPackageVersionModel, string>(
+                            (url, package) => url.ManagePackage(package))
                     };
 
                     yield return new object[]
                     {
                         nameof(PackagesController.Reflow),
-                        new Func<UrlHelper, string, string, string>(
-                            (url, id, version) => url.ReflowPackage(new TrivialPackageVersionModel(id, version)))
+                        new Func<UrlHelper, IPackageVersionModel, string>(
+                            (url, package) => url.ReflowPackage(package))
                     };
 
                     yield return new object[]
                     {
                         nameof(PackagesController.Revalidate),
-                        new Func<UrlHelper, string, string, string>(
-                            (url, id, version) => url.RevalidatePackage(id, version))
+                        new Func<UrlHelper, IPackageVersionModel, string>(
+                            (url, package) => url.RevalidatePackage(package))
                     };
 
                     yield return new object[]
                     {
                         nameof(PackagesController.RevalidateSymbols),
-                        new Func<UrlHelper, string, string, string>(
-                            (url, id, version) => url.RevalidateSymbolsPackage(id, version))
+                        new Func<UrlHelper, IPackageVersionModel, string>(
+                            (url, package) => url.RevalidateSymbolsPackage(package))
                     };
 
                     yield return new object[]
                     {
                         nameof(PackagesController.DeleteSymbols),
-                        new Func<UrlHelper, string, string, string>(
-                            (url, id, version) => url.DeleteSymbolsPackage(new TrivialPackageVersionModel(id, version)))
+                        new Func<UrlHelper, IPackageVersionModel, string>(
+                            (url, package) => url.DeleteSymbolsPackage(package))
                     };
 
                     yield return new object[]
                     {
                         nameof(PackagesController.ReportMyPackage),
-                        new Func<UrlHelper, string, string, string>(
-                            (url, id, version) => url.ReportPackage(id, version))
+                        new Func<UrlHelper, IPackageVersionModel, string>(
+                            (url, package) => url.ReportPackage(package))
                     };
 
                     yield return new object[]
                     {
                         nameof(PackagesController.ContactOwners),
-                        new Func<UrlHelper, string, string, string>(
-                            (url, id, version) => url.ContactOwners(id, version))
+                        new Func<UrlHelper, IPackageVersionModel, string>(
+                            (url, package) => url.ContactOwners(package))
                     };
 
                     yield return new object[]
                     {
                         nameof(PackagesController.License),
-                        new Func<UrlHelper, string, string, string>(
-                            (url, id, version) => url.License(id, version))
+                        new Func<UrlHelper, IPackageVersionModel, string>(
+                            (url, package) => url.License(package))
                     };
                 }
             }
 
             [Theory]
             [MemberData(nameof(ResolvePathIsCorrect_Data))]
-            public void ResolvePathIsCorrect(string action, Func<UrlHelper, string, string, string> caller)
+            public void ResolvePathIsCorrect(string action, Func<UrlHelper, IPackageVersionModel, string> caller)
             {
                 // Arrange
                 var packageId = "TestPackageId";
@@ -236,15 +206,26 @@ namespace NuGetGallery
 
                 var urlHelper = TestUtility.MockUrlHelper();
 
+                var template = urlHelper.PackageVersionActionTemplate(action);
+                var idModel = new TrivialPackageVersionModel(packageId, version: null);
+                var versionModel = new ListPackageItemViewModel(package, currentUser: null);
+
                 // Act
-                var result = urlHelper
-                    .PackageVersionActionTemplate(action)
-                    .Resolve(new ListPackageItemViewModel(package, currentUser: null));
+                var idResult = template.Resolve(idModel);
+                var versionResult = template.Resolve(versionModel);
 
                 // Assert
-                Assert.Equal("/packages/" + packageId + "/" + package.Version + "/" + action, result);
-                Assert.Equal(urlHelper.PackageVersionAction(action, packageId, package.Version), result);
-                Assert.Equal(caller(urlHelper, packageId, package.Version), result);
+                // Id
+                Assert.Equal("/packages/" + packageId + "/" + action, idResult);
+                Assert.Equal(urlHelper.PackageVersionAction(action, packageId, null), idResult);
+                Assert.Equal(urlHelper.PackageVersionAction(action, idModel), idResult);
+                Assert.Equal(caller(urlHelper, idModel), idResult);
+
+                // Id and version
+                Assert.Equal("/packages/" + packageId + "/" + package.Version + "/" + action, versionResult);
+                Assert.Equal(urlHelper.PackageVersionAction(action, packageId, package.Version), versionResult);
+                Assert.Equal(urlHelper.PackageVersionAction(action, versionModel), versionResult);
+                Assert.Equal(caller(urlHelper, versionModel), versionResult);
             }
         }
 
