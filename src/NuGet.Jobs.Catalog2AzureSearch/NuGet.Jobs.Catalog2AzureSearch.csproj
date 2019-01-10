@@ -50,7 +50,7 @@
     <None Include="Scripts\PostDeploy.ps1" />
     <None Include="Scripts\PreDeploy.ps1" />
     <None Include="Scripts\RunE2ETests.ps1" />
-    <None Include="Settings\dev.json" />
+    <None Include="Settings\octopus.json" />
     <None Include="Scripts\nssm.exe" />
   </ItemGroup>
   <ItemGroup>

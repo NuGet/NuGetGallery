@@ -9,6 +9,7 @@ namespace NuGet.Services.AzureSearch
         public int MaxConcurrentBatches { get; set; }
         public int MaxConcurrentVersionListWriters { get; set; }
         public string StorageConnectionString { get; set; }
+        public string StorageContainer { get; set; }
         public string StoragePath { get; set; }
 
         public string NormalizeStoragePath()

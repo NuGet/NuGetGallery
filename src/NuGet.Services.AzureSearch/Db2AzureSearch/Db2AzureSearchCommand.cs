@@ -3,15 +3,19 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Linq;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.WindowsAzure.Storage;
 using NuGet.Protocol.Catalog;
 using NuGet.Services.AzureSearch.Catalog2AzureSearch;
 using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Persistence;
+using NuGetGallery;
 
 namespace NuGet.Services.AzureSearch.Db2AzureSearch
 {
@@ -19,6 +23,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
     {
         private readonly INewPackageRegistrationProducer _producer;
         private readonly IPackageEntityIndexActionBuilder _indexActionBuilder;
+        private readonly ICloudBlobClient _cloudBlobClient;
         private readonly IIndexBuilder _indexBuilder;
         private readonly Func<IBatchPusher> _batchPusherFactory;
         private readonly ICatalogClient _catalogClient;
@@ -29,6 +34,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
         public Db2AzureSearchCommand(
             INewPackageRegistrationProducer producer,
             IPackageEntityIndexActionBuilder indexActionBuilder,
+            ICloudBlobClient cloudBlobClient,
             IIndexBuilder indexBuilder,
             Func<IBatchPusher> batchPusherFactory,
             ICatalogClient catalogClient,
@@ -38,6 +44,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
         {
             _producer = producer ?? throw new ArgumentNullException(nameof(producer));
             _indexActionBuilder = indexActionBuilder ?? throw new ArgumentNullException(nameof(indexActionBuilder));
+            _cloudBlobClient = cloudBlobClient ?? throw new ArgumentNullException(nameof(cloudBlobClient));
             _indexBuilder = indexBuilder ?? throw new ArgumentNullException(nameof(indexBuilder));
             _batchPusherFactory = batchPusherFactory ?? throw new ArgumentNullException(nameof(batchPusherFactory));
             _catalogClient = catalogClient ?? throw new ArgumentNullException(nameof(catalogClient));
@@ -64,7 +71,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             using (var cancelledCts = new CancellationTokenSource())
             using (var produceWorkCts = new CancellationTokenSource())
             {
-                // Initialize the indexes.
+                // Initialize the indexes and container.
                 await InitializeAsync();
 
                 // Here, we fetch the current catalog timestamp to use as the initial cursor value for
@@ -118,11 +125,49 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
 
         private async Task InitializeAsync()
         {
-            if (_options.Value.ReplaceIndexes)
+            var container = _cloudBlobClient.GetContainerReference(_options.Value.StorageContainer);
+            var containerDeleted = false;
+            if (_options.Value.ReplaceContainersAndIndexes)
             {
+                _logger.LogWarning("Attempting to delete blob container {ContainerName}.", _options.Value.StorageContainer);
+                containerDeleted = await container.DeleteIfExistsAsync();
+                if (containerDeleted)
+                {
+                    _logger.LogWarning("Done deleting blob container {ContainerName}.", _options.Value.StorageContainer);
+                }
+                else
+                {
+                    _logger.LogInformation("Blob container {ContainerName} was not deleted since it does not exist.", _options.Value.StorageContainer);
+                }
+
                 await _indexBuilder.DeleteSearchIndexIfExistsAsync();
                 await _indexBuilder.DeleteHijackIndexIfExistsAsync();
             }
+
+            _logger.LogInformation("Creating blob container {ContainerName}.", _options.Value.StorageContainer);
+            var containerCreated = false;
+            var waitStopwatch = Stopwatch.StartNew();
+            while (!containerCreated)
+            {
+                try
+                {
+                    await container.CreateAsync();
+                    containerCreated = true;
+                }
+                catch (StorageException ex) when (containerDeleted && ex.RequestInformation.HttpStatusCode == (int)HttpStatusCode.Conflict)
+                {
+                    if (waitStopwatch.Elapsed < TimeSpan.FromMinutes(5))
+                    {
+                        _logger.LogInformation("The blob container is still being deleted. Attempting creation again in 10 seconds.");
+                        await Task.Delay(TimeSpan.FromSeconds(10));
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+            }
+            _logger.LogInformation("Done creating blob container {ContainerName}.", _options.Value.StorageContainer);
 
             await _indexBuilder.CreateSearchIndexAsync();
             await _indexBuilder.CreateHijackIndexAsync();

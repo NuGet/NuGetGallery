@@ -8,8 +8,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.WindowsAzure.Storage;
 using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Persistence;
+using NuGetGallery;
 
 namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
 {
@@ -20,6 +22,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
         private readonly ICollector _collector;
         private readonly IStorageFactory _storageFactory;
         private readonly Func<HttpMessageHandler> _handlerFunc;
+        private readonly ICloudBlobClient _cloudBlobClient;
         private readonly IIndexBuilder _indexBuilder;
         private readonly IOptionsSnapshot<Catalog2AzureSearchConfiguration> _options;
         private readonly ILogger<Catalog2AzureSearchCommand> _logger;
@@ -28,6 +31,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
             ICollector collector,
             IStorageFactory storageFactory,
             Func<HttpMessageHandler> handlerFunc,
+            ICloudBlobClient cloudBlobClient,
             IIndexBuilder indexBuilder,
             IOptionsSnapshot<Catalog2AzureSearchConfiguration> options,
             ILogger<Catalog2AzureSearchCommand> logger)
@@ -35,6 +39,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
             _collector = collector ?? throw new ArgumentNullException(nameof(collector));
             _storageFactory = storageFactory ?? throw new ArgumentNullException(nameof(storageFactory));
             _handlerFunc = handlerFunc ?? throw new ArgumentNullException(nameof(handlerFunc));
+            _cloudBlobClient = cloudBlobClient ?? throw new ArgumentNullException(nameof(cloudBlobClient));
             _indexBuilder = indexBuilder ?? throw new ArgumentNullException(nameof(indexBuilder));
             _options = options ?? throw new ArgumentNullException(nameof(options));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -47,31 +52,57 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
 
         private async Task ExecuteAsync(CancellationToken token)
         {
-            // Optionally create the indexes.
-            if (_options.Value.CreateIndexes)
-            {
-                await _indexBuilder.CreateSearchIndexIfNotExistsAsync();
-                await _indexBuilder.CreateHijackIndexIfNotExistsAsync();
-            }
-
             // Initialize the cursors.
-            var frontCursorStorage = _storageFactory.Create();
-            var frontCursor = new DurableCursor(
-                frontCursorStorage.ResolveUri(CursorRelativeUri),
-                frontCursorStorage,
-                DateTime.MinValue);
-
             ReadCursor backCursor;
             if (_options.Value.DependencyCursorUrls != null
                 && _options.Value.DependencyCursorUrls.Any())
             {
+                _logger.LogInformation("Depending on cursors:{DependencyCursorUrls}", _options.Value.DependencyCursorUrls);
                 backCursor = new AggregateCursor(_options
                     .Value
                     .DependencyCursorUrls.Select(r => new HttpReadCursor(new Uri(r), _handlerFunc)));
             }
             else
             {
+                _logger.LogInformation("Depending on no cursors, meaning the job will process up to the latest catalog information.");
                 backCursor = MemoryCursor.CreateMax();
+            }
+
+            var frontCursorStorage = _storageFactory.Create();
+            var frontCursorUri = frontCursorStorage.ResolveUri(CursorRelativeUri);
+            var frontCursor = new DurableCursor(frontCursorUri, frontCursorStorage, DateTime.MinValue);
+
+            // Log information about where state will be kept.
+            _logger.LogInformation(
+                "Using storage URL: {ContainerUrl}/{StoragePath}",
+                CloudStorageAccount.Parse(_options.Value.StorageConnectionString)
+                    .CreateCloudBlobClient()
+                    .GetContainerReference(_options.Value.StorageContainer)
+                    .Uri
+                    .AbsoluteUri,
+                _options.Value.NormalizeStoragePath());
+            _logger.LogInformation("Using cursor: {CursurUrl}", frontCursorUri.AbsoluteUri);
+            _logger.LogInformation("Using search service: {SearchServiceName}", _options.Value.SearchServiceName);
+            _logger.LogInformation("Using search index: {IndexName}", _options.Value.SearchIndexName);
+            _logger.LogInformation("Using hijack index: {IndexName}", _options.Value.HijackIndexName);
+
+            // Optionally create the indexes.
+            if (_options.Value.CreateContainersAndIndexes)
+            {
+                var container = _cloudBlobClient.GetContainerReference(_options.Value.StorageContainer);
+                if (await container.ExistsAsync())
+                {
+                    _logger.LogInformation("Skipping creation of blob container {ContainerName} since it already exists.", _options.Value.StorageContainer);
+                }
+                else
+                {
+                    _logger.LogInformation("Creating blob container {ContainerName}.", _options.Value.StorageContainer);
+                    await container.CreateAsync();
+                    _logger.LogInformation("Done creating blob container {ContainerName}.", _options.Value.StorageContainer);
+                }
+
+                await _indexBuilder.CreateSearchIndexIfNotExistsAsync();
+                await _indexBuilder.CreateHijackIndexIfNotExistsAsync();
             }
 
             await frontCursor.LoadAsync(token);

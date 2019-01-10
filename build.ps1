@@ -104,6 +104,7 @@ Invoke-BuildStep 'Creating artifacts' {
             "src\Catalog\NuGet.Services.Metadata.Catalog.csproj", `
             "src\NuGet.ApplicationInsights.Owin\NuGet.ApplicationInsights.Owin.csproj", `
             "src\NuGet.Services.Metadata.Catalog.Monitoring\NuGet.Services.Metadata.Catalog.Monitoring.csproj", `
+            "src\NuGet.Protocol.Catalog\NuGet.Protocol.Catalog.csproj", `
             "src\NuGet.Services.AzureSearch\NuGet.Services.AzureSearch.csproj"
 
         $csprojPackages | ForEach-Object {

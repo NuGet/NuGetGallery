@@ -1,12 +1,16 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
+using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Blob;
 using Moq;
 using NuGet.Services.AzureSearch.Support;
 using NuGetGallery;
@@ -45,11 +49,11 @@ namespace NuGet.Services.AzureSearch
 
                 await _target.ReadAsync(_id);
 
-                _storageService.Verify(
-                    x => x.GetFileReferenceAsync(
-                        "content",
-                        expected,
-                        It.IsAny<string>()),
+                _cloudBlobClient.Verify(
+                    x => x.GetContainerReference(_config.StorageContainer),
+                    Times.Once);
+                _cloudBlobContainer.Verify(
+                    x => x.GetBlobReference(expected),
                     Times.Once);
             }
 
@@ -68,16 +72,12 @@ namespace NuGet.Services.AzureSearch
   }
 }");
                 var etag = "\"some-etag\"";
-                var fileReference = new Mock<IFileReference>();
-                fileReference
-                    .Setup(x => x.OpenRead())
-                    .Returns(() => new MemoryStream(versionList));
-                fileReference
-                    .Setup(x => x.ContentId)
+                _cloudBlob
+                    .Setup(x => x.ETag)
                     .Returns(etag);
-                _storageService
-                    .Setup(x => x.GetFileReferenceAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
-                    .ReturnsAsync(() => fileReference.Object);
+                _cloudBlob
+                    .Setup(x => x.OpenReadAsync(It.IsAny<AccessCondition>()))
+                    .ReturnsAsync(() => new MemoryStream(versionList));
 
                 var output = await _target.ReadAsync(_id);
 
@@ -111,12 +111,16 @@ namespace NuGet.Services.AzureSearch
 
                 await _target.ReplaceAsync(_id, _versionList, _accessCondition.Object);
 
-                _storageService.Verify(
-                    x => x.SaveFileAsync(
-                        "content",
-                        expected,
+                _cloudBlobClient.Verify(
+                    x => x.GetContainerReference(_config.StorageContainer),
+                    Times.Once);
+                _cloudBlobContainer.Verify(
+                    x => x.GetBlobReference(expected),
+                    Times.Once);
+                _cloudBlob.Verify(
+                    x => x.UploadFromStreamAsync(
                         It.IsAny<Stream>(),
-                        _accessCondition.Object),
+                        It.IsAny<AccessCondition>()),
                     Times.Once);
             }
 
@@ -127,6 +131,14 @@ namespace NuGet.Services.AzureSearch
 
                 var bytes = Assert.Single(_savedBytes);
                 Assert.Equal((byte)'{', bytes[0]);
+            }
+
+            [Fact]
+            public async Task SetsContentType()
+            {
+                await _target.ReplaceAsync(_id, _versionList, _accessCondition.Object);
+
+                Assert.Equal("application/json", _cloudBlob.Object.Properties.ContentType);
             }
 
             [Fact]
@@ -167,7 +179,9 @@ namespace NuGet.Services.AzureSearch
             protected readonly string _id;
             protected readonly Mock<IAccessCondition> _accessCondition;
             protected readonly VersionListData _versionList;
-            protected readonly Mock<ICoreFileStorageService> _storageService;
+            protected readonly Mock<ICloudBlobClient> _cloudBlobClient;
+            protected readonly Mock<ICloudBlobContainer> _cloudBlobContainer;
+            protected readonly Mock<ISimpleCloudBlob> _cloudBlob;
             protected readonly Mock<IOptionsSnapshot<AzureSearchJobConfiguration>> _options;
             protected readonly RecordingLogger<VersionListDataClient> _logger;
             protected readonly AzureSearchJobConfiguration _config;
@@ -200,18 +214,29 @@ namespace NuGet.Services.AzureSearch
                     { "2.0.0", new VersionPropertiesData(listed: true, semVer2: false) },
                 });
 
-                _storageService = new Mock<ICoreFileStorageService>();
+                _cloudBlobClient = new Mock<ICloudBlobClient>();
+                _cloudBlobContainer = new Mock<ICloudBlobContainer>();
+                _cloudBlob = new Mock<ISimpleCloudBlob>();
                 _options = new Mock<IOptionsSnapshot<AzureSearchJobConfiguration>>();
                 _logger = output.GetLogger<VersionListDataClient>();
-                _config = new AzureSearchJobConfiguration();
+                _config = new AzureSearchJobConfiguration
+                {
+                    StorageContainer = "unit-test-container",
+                };
 
                 _options
                     .Setup(x => x.Value)
                     .Returns(() => _config);
-                _storageService
-                    .Setup(x => x.SaveFileAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Stream>(), It.IsAny<IAccessCondition>()))
+                _cloudBlobClient
+                    .Setup(x => x.GetContainerReference(It.IsAny<string>()))
+                    .Returns(() => _cloudBlobContainer.Object);
+                _cloudBlobContainer
+                    .Setup(x => x.GetBlobReference(It.IsAny<string>()))
+                    .Returns(() => _cloudBlob.Object);
+                _cloudBlob
+                    .Setup(x => x.UploadFromStreamAsync(It.IsAny<Stream>(), It.IsAny<AccessCondition>()))
                     .Returns(Task.CompletedTask)
-                    .Callback<string, string, Stream, IAccessCondition>((_, __, s, ___) =>
+                    .Callback<Stream, AccessCondition>((s, _) =>
                     {
                         using (s)
                         using (var buffer = new MemoryStream())
@@ -222,9 +247,21 @@ namespace NuGet.Services.AzureSearch
                             _savedStrings.Add(Encoding.UTF8.GetString(bytes));
                         }
                     });
+                _cloudBlob
+                    .Setup(x => x.OpenReadAsync(It.IsAny<AccessCondition>()))
+                    .ThrowsAsync(new StorageException(
+                        new RequestResult
+                        {
+                            HttpStatusCode = (int)HttpStatusCode.NotFound,
+                        },
+                        message: "Not found.",
+                        inner: null));
+                _cloudBlob
+                    .Setup(x => x.Properties)
+                    .Returns(new CloudBlockBlob(new Uri("https://example/blob")).Properties);
 
                 _target = new VersionListDataClient(
-                    _storageService.Object,
+                    _cloudBlobClient.Object,
                     _options.Object,
                     _logger);
             }

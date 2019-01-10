@@ -29,7 +29,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
         private SearchDocumentBuilder _search;
         private HijackDocumentBuilder _hijack;
         private CatalogIndexActionBuilder _builder;
-        private InMemoryCoreFileStorageService _coreFileStorageService;
+        private InMemoryCloudBlobClient _cloudBlobClient;
         private VersionListDataClient _versionListDataClient;
         private Mock<ISearchIndexClientWrapper> _searchIndex;
         private InMemoryDocumentsOperations _searchDocuments;
@@ -44,7 +44,8 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
                 MaxConcurrentBatches = 1,
                 MaxConcurrentVersionListWriters = 1,
                 AzureSearchBatchSize = 1000,
-                StoragePath = "integration-tests",
+                StorageContainer = "integration-tests-container",
+                StoragePath = "integration-tests-path",
                 RegistrationsBaseUrl = "https://example/registrations/",
             };
             _options = new Mock<IOptionsSnapshot<Catalog2AzureSearchConfiguration>>();
@@ -64,9 +65,9 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
                 _search,
                 _hijack,
                 output.GetLogger<CatalogIndexActionBuilder>());
-            _coreFileStorageService = new InMemoryCoreFileStorageService();
+            _cloudBlobClient = new InMemoryCloudBlobClient();
             _versionListDataClient = new VersionListDataClient(
-                _coreFileStorageService,
+                _cloudBlobClient,
                 _options.Object,
                 output.GetLogger<VersionListDataClient>());
 
@@ -142,16 +143,17 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
                     exIncludePrereleaseAndSemVer2: IndexActionType.MergeOrUpload);
 
                 // Version list
-                var pair = Assert.Single(_coreFileStorageService.Files);
-                Assert.Equal("content/integration-tests/version-lists/nuget.versioning.json", pair.Key);
-                var inMemoryFile = Assert.IsType<InMemoryFileReference>(pair.Value);
+                var containerPair = Assert.Single(_cloudBlobClient.Containers);
+                Assert.Equal("integration-tests-container", containerPair.Key);
+                var blobPair = Assert.Single(containerPair.Value.Blobs);
+                Assert.Equal("integration-tests-path/version-lists/nuget.versioning.json", blobPair.Key);
                 Assert.Equal(@"{
   ""VersionProperties"": {
     ""1.0.0-alpha"": {
       ""Listed"": true
     }
   }
-}", inMemoryFile.AsString);
+}", blobPair.Value.AsString);
             }
 
             ClearBatches();
@@ -207,9 +209,10 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
                     exIncludePrereleaseAndSemVer2: IndexActionType.MergeOrUpload);
 
                 // Version list
-                var pair = Assert.Single(_coreFileStorageService.Files);
-                Assert.Equal("content/integration-tests/version-lists/nuget.versioning.json", pair.Key);
-                var inMemoryFile = Assert.IsType<InMemoryFileReference>(pair.Value);
+                var containerPair = Assert.Single(_cloudBlobClient.Containers);
+                Assert.Equal("integration-tests-container", containerPair.Key);
+                var blobPair = Assert.Single(containerPair.Value.Blobs);
+                Assert.Equal("integration-tests-path/version-lists/nuget.versioning.json", blobPair.Key);
                 Assert.Equal(@"{
   ""VersionProperties"": {
     ""1.0.0-alpha"": {
@@ -220,7 +223,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
       ""SemVer2"": true
     }
   }
-}", inMemoryFile.AsString);
+}", blobPair.Value.AsString);
             }
 
             ClearBatches();
@@ -276,9 +279,10 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
                     exIncludePrereleaseAndSemVer2: IndexActionType.Merge);
 
                 // Version list
-                var pair = Assert.Single(_coreFileStorageService.Files);
-                Assert.Equal("content/integration-tests/version-lists/nuget.versioning.json", pair.Key);
-                var inMemoryFile = Assert.IsType<InMemoryFileReference>(pair.Value);
+                var containerPair = Assert.Single(_cloudBlobClient.Containers);
+                Assert.Equal("integration-tests-container", containerPair.Key);
+                var blobPair = Assert.Single(containerPair.Value.Blobs);
+                Assert.Equal("integration-tests-path/version-lists/nuget.versioning.json", blobPair.Key);
                 Assert.Equal(@"{
   ""VersionProperties"": {
     ""1.0.0-alpha"": {},
@@ -287,7 +291,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
       ""SemVer2"": true
     }
   }
-}", inMemoryFile.AsString);
+}", blobPair.Value.AsString);
             }
         }
 
@@ -358,9 +362,10 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
                     exIncludePrereleaseAndSemVer2: IndexActionType.MergeOrUpload);
 
                 // Version list
-                var pair = Assert.Single(_coreFileStorageService.Files);
-                Assert.Equal("content/integration-tests/version-lists/nuget.versioning.json", pair.Key);
-                var inMemoryFile = Assert.IsType<InMemoryFileReference>(pair.Value);
+                var containerPair = Assert.Single(_cloudBlobClient.Containers);
+                Assert.Equal("integration-tests-container", containerPair.Key);
+                var blobPair = Assert.Single(containerPair.Value.Blobs);
+                Assert.Equal("integration-tests-path/version-lists/nuget.versioning.json", blobPair.Key);
                 Assert.Equal(@"{
   ""VersionProperties"": {
     ""1.0.0"": {
@@ -370,7 +375,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
       ""Listed"": true
     }
   }
-}", inMemoryFile.AsString);
+}", blobPair.Value.AsString);
             }
 
             ClearBatches();
@@ -448,16 +453,17 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
                     exIncludePrereleaseAndSemVer2: IndexActionType.MergeOrUpload);
 
                 // Version list
-                var pair = Assert.Single(_coreFileStorageService.Files);
-                Assert.Equal("content/integration-tests/version-lists/nuget.versioning.json", pair.Key);
-                var inMemoryFile = Assert.IsType<InMemoryFileReference>(pair.Value);
+                var containerPair = Assert.Single(_cloudBlobClient.Containers);
+                Assert.Equal("integration-tests-container", containerPair.Key);
+                var blobPair = Assert.Single(containerPair.Value.Blobs);
+                Assert.Equal("integration-tests-path/version-lists/nuget.versioning.json", blobPair.Key);
                 Assert.Equal(@"{
   ""VersionProperties"": {
     ""1.0.0"": {
       ""Listed"": true
     }
   }
-}", inMemoryFile.AsString);
+}", blobPair.Value.AsString);
             }
         }
 

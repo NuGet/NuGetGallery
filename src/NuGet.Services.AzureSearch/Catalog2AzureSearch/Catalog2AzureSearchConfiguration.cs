@@ -8,7 +8,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
 {
     public class Catalog2AzureSearchConfiguration : AzureSearchJobConfiguration
     {
-        public bool CreateIndexes { get; set; }
+        public bool CreateContainersAndIndexes { get; set; }
         public string Source { get; set; }
         public TimeSpan HttpClientTimeout { get; set; }
         public List<string> DependencyCursorUrls { get; set; }

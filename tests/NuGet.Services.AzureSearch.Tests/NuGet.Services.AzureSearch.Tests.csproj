@@ -44,7 +44,9 @@
     <Compile Include="Catalog2AzureSearch\CatalogIndexActionBuilderFacts.cs" />
     <Compile Include="Catalog2AzureSearch\CatalogLeafFetcherFacts.cs" />
     <Compile Include="Catalog2AzureSearch\Integration\InMemoryCatalogClient.cs" />
-    <Compile Include="Catalog2AzureSearch\Integration\InMemoryCoreFileStorageService.cs" />
+    <Compile Include="Catalog2AzureSearch\Integration\InMemoryCloudBlob.cs" />
+    <Compile Include="Catalog2AzureSearch\Integration\InMemoryCloudBlobClient.cs" />
+    <Compile Include="Catalog2AzureSearch\Integration\InMemoryCloudBlobContainer.cs" />
     <Compile Include="Catalog2AzureSearch\Integration\InMemoryDocumentsOperations.cs" />
     <Compile Include="Catalog2AzureSearch\Integration\InMemoryFileReference.cs" />
     <Compile Include="Catalog2AzureSearch\Integration\InMemoryRegistrationClient.cs" />

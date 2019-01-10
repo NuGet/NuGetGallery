@@ -99,14 +99,8 @@ namespace NuGet.Services.AzureSearch
                 .Keyed<ICloudBlobClient>(key);
 
             containerBuilder
-                .Register<ICoreFileStorageService>(c => new CloudBlobCoreFileStorageService(
-                    c.ResolveKeyed<ICloudBlobClient>(key),
-                    c.Resolve<IDiagnosticsService>()))
-                .Keyed<ICoreFileStorageService>(key);
-
-            containerBuilder
                 .Register<IVersionListDataClient>(c => new VersionListDataClient(
-                    c.ResolveKeyed<ICoreFileStorageService>(key),
+                    c.ResolveKeyed<ICloudBlobClient>(key),
                     c.Resolve<IOptionsSnapshot<AzureSearchJobConfiguration>>(),
                     c.Resolve<ILogger<VersionListDataClient>>()));
 
@@ -124,7 +118,7 @@ namespace NuGet.Services.AzureSearch
                     var options = c.Resolve<IOptionsSnapshot<AzureSearchJobConfiguration>>();
                     return new AzureStorageFactory(
                         c.ResolveKeyed<CloudStorageAccount>(key),
-                        CoreConstants.Folders.ContentFolderName,
+                        options.Value.StorageContainer,
                         maxExecutionTime: AzureStorage.DefaultMaxExecutionTime,
                         serverTimeout: AzureStorage.DefaultServerTimeout,
                         path: options.Value.NormalizeStoragePath(),
@@ -140,6 +134,7 @@ namespace NuGet.Services.AzureSearch
                     c.Resolve<ICollector>(),
                     c.ResolveKeyed<IStorageFactory>(key),
                     c.Resolve<Func<HttpMessageHandler>>(),
+                    c.ResolveKeyed<ICloudBlobClient>(key),
                     c.Resolve<IIndexBuilder>(),
                     c.Resolve<IOptionsSnapshot<Catalog2AzureSearchConfiguration>>(),
                     c.Resolve<ILogger<Catalog2AzureSearchCommand>>()));
@@ -148,6 +143,7 @@ namespace NuGet.Services.AzureSearch
                 .Register(c => new Db2AzureSearchCommand(
                     c.Resolve<INewPackageRegistrationProducer>(),
                     c.Resolve<IPackageEntityIndexActionBuilder>(),
+                    c.ResolveKeyed<ICloudBlobClient>(key),
                     c.Resolve<IIndexBuilder>(),
                     c.Resolve<Func<IBatchPusher>>(),
                     c.Resolve<ICatalogClient>(),
