@@ -830,7 +830,7 @@ namespace NuGetGallery
                 }
             }
 
-            ViewData[GalleryConstants.ReturnUrlViewDataKey] = Url.ReportPackage(id, version);
+            ViewData[GalleryConstants.ReturnUrlViewDataKey] = Url.ReportPackage(package);
             return View(model);
         }
 
