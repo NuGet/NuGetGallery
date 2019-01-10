@@ -1,4 +1,5 @@
-@using NuGet.Services.Validation;
+@using NuGet.Services.Validation
+@using NuGet.Services.Licenses
 
 @model DisplayPackageViewModel
 @{
@@ -66,6 +67,14 @@
                 InstallPackageCommand = string.Format("paket add {0} --version {1}", Model.Id, Model.Version),
             }
         };
+    }
+}
+
+@functions
+{
+    static bool IsLicenseOrException(CompositeLicenseExpressionSegment segment)
+    {
+        return segment.Type == CompositeLicenseExpressionSegmentType.LicenseIdentifier || segment.Type == CompositeLicenseExpressionSegmentType.ExceptionIdentifier;
     }
 }
 
@@ -145,6 +154,11 @@
         }
     </div>
 }
+
+@* The following two helpers must be on a single line each so no extra whitespace is introduced in the expression when rendered. *@
+@* Helpers themselves are needed not to introduce that extra whitespce, which happens if they are inlined. *@
+@helper MakeLicenseLink(CompositeLicenseExpressionSegment segment) {<a href="@LicenseExpressionRedirectUrlHelper.GetLicenseExpressionRedirectUrl(segment.Value)">@segment.Value</a>}
+@helper MakeLicenseSpan(CompositeLicenseExpressionSegment segment) {<span>@segment.Value</span>}
 
 <section role="main" class="container main-container page-package-details">
     <div class="row">
@@ -638,8 +652,25 @@
                 {
                     if (Model.EmbeddedLicenseType == EmbeddedLicenseFileType.Absent || !Model.Validating)
                     {
-                        <li>
-                            <i class="ms-Icon ms-Icon--Certificate" aria-hidden="true"></i>
+                    <li>
+                        <i class="ms-Icon ms-Icon--Certificate" aria-hidden="true"></i>
+                        @if (Model.LicenseExpressionSegments.AnySafe())
+                        {
+                            @:License:
+                            foreach (var segment in Model.LicenseExpressionSegments)
+                            {
+                                if (IsLicenseOrException(segment))
+                                {
+                                    @MakeLicenseLink(segment);
+                                }
+                                else
+                                {
+                                    @MakeLicenseSpan(segment);
+                                }
+                            }
+                        }
+                        else
+                        {
                             <a href="@Model.LicenseUrl"
                                data-track="outbound-license-url" title="Make sure you agree with the license" rel="nofollow">
                                 @if (Model.LicenseNames.AnySafe())
@@ -651,7 +682,8 @@
                                     @:License Info
                                 }
                             </a>
-                        </li>
+                        }
+                    </li>
                     }
                 }
                 <li>
