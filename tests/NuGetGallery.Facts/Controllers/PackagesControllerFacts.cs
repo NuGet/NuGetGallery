@@ -6886,7 +6886,7 @@ namespace NuGetGallery
                 // Arrange
                 var packageService = new Mock<IPackageService>();
                 packageService
-                    .Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), null, true))
+                    .Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>()))
                     .Returns((Package)null);
 
                 var controller = CreateController(
@@ -6939,7 +6939,7 @@ namespace NuGetGallery
 
                 var packageService = new Mock<IPackageService>();
                 packageService
-                    .Setup(x => x.FindPackageByIdAndVersion(packageRegistration.Id, package.Version, null, true))
+                    .Setup(x => x.FindPackageByIdAndVersionStrict(packageRegistration.Id, package.Version))
                     .Returns(package);
 
                 var controller = CreateController(
@@ -7005,7 +7005,7 @@ namespace NuGetGallery
 
                 var packageService = new Mock<IPackageService>();
                 packageService
-                    .Setup(x => x.FindPackageByIdAndVersion(packageRegistration.Id, package.Version, null, true))
+                    .Setup(x => x.FindPackageByIdAndVersionStrict(packageRegistration.Id, package.Version))
                     .Returns(package);
 
                 var controller = CreateController(
@@ -7043,7 +7043,7 @@ namespace NuGetGallery
 
                 var packageService = new Mock<IPackageService>();
                 packageService
-                    .Setup(x => x.FindPackageByIdAndVersion(packageRegistration.Id, package.Version, null, true))
+                    .Setup(x => x.FindPackageByIdAndVersionStrict(packageRegistration.Id, package.Version))
                     .Returns(package);
 
                 var readMe = "readMe";

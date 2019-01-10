@@ -2313,7 +2313,7 @@ namespace NuGetGallery
         [HttpGet]
         public virtual async Task<JsonResult> GetReadMe(string id, string version)
         {
-            var package = _packageService.FindPackageByIdAndVersion(id, version);
+            var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
             if (package == null)
             {
                 return Json(HttpStatusCode.NotFound, null, JsonRequestBehavior.AllowGet);
