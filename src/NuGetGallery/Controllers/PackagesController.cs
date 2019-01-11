@@ -294,7 +294,7 @@ namespace NuGetGallery
             verifyRequest.IsSymbolsPackage = false;
             try
             {
-                verifyRequest.LicenseFileContents = await GetLicenseFileContentsAsync(packageMetadata, packageArchiveReader);
+                verifyRequest.LicenseFileContents = await GetLicenseFileContentsOrNullAsync(packageMetadata, packageArchiveReader);
             }
             catch (Exception ex)
             {
@@ -587,7 +587,7 @@ namespace NuGetGallery
 
                 try
                 {
-                    licenseFileContents = await GetLicenseFileContentsAsync(packageMetadata, packageArchiveReader);
+                    licenseFileContents = await GetLicenseFileContentsOrNullAsync(packageMetadata, packageArchiveReader);
                 }
                 catch (Exception ex)
                 {
@@ -605,14 +605,14 @@ namespace NuGetGallery
             return Json(model);
         }
 
-        private static async Task<string> GetLicenseFileContentsAsync(PackageMetadata packageMetadata, PackageArchiveReader packageArchiveReader)
+        private static async Task<string> GetLicenseFileContentsOrNullAsync(PackageMetadata packageMetadata, PackageArchiveReader packageArchiveReader)
         {
             if (packageMetadata.LicenseMetadata?.Type != LicenseType.File)
             {
                 return null;
             }
 
-            var licenseFilename = FileNameHelper.GetZipEntryPath(packageMetadata.LicenseMetadata?.License);
+            var licenseFilename = FileNameHelper.GetZipEntryPath(packageMetadata.LicenseMetadata.License);
             using (var licenseFileStream = packageArchiveReader.GetStream(licenseFilename))
             using (var streamReader = new StreamReader(licenseFileStream, Encoding.UTF8))
             {
