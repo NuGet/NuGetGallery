@@ -2311,7 +2311,7 @@ namespace NuGetGallery
 
         [UIAuthorize]
         [HttpGet]
-        public virtual async Task<JsonResult> GetReadMe(string id, string version)
+        public virtual async Task<JsonResult> GetReadMeMd(string id, string version)
         {
             var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
             if (package == null)
