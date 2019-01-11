@@ -6894,7 +6894,7 @@ namespace NuGetGallery
                     packageService: packageService);
 
                 // Act
-                var result = await controller.GetReadMe("a", "1.9.2019");
+                var result = await controller.GetReadMeMd("a", "1.9.2019");
 
                 // Assert
                 Assert.Equal((int)HttpStatusCode.NotFound, controller.Response.StatusCode);
@@ -6948,7 +6948,7 @@ namespace NuGetGallery
                 controller.SetCurrentUser(currentUser);
 
                 // Act
-                var result = await controller.GetReadMe(packageId, package.Version);
+                var result = await controller.GetReadMeMd(packageId, package.Version);
 
                 // Assert
                 Assert.Equal((int)HttpStatusCode.Forbidden, controller.Response.StatusCode);
@@ -7014,7 +7014,7 @@ namespace NuGetGallery
                 controller.SetCurrentUser(currentUser);
 
                 // Act
-                var result = await controller.GetReadMe(packageId, package.Version);
+                var result = await controller.GetReadMeMd(packageId, package.Version);
 
                 // Assert
                 var request = Assert.IsType<EditPackageVersionReadMeRequest>(result.Data);
@@ -7059,7 +7059,7 @@ namespace NuGetGallery
                 controller.SetCurrentUser(currentUser);
 
                 // Act
-                var result = await controller.GetReadMe(packageId, package.Version);
+                var result = await controller.GetReadMeMd(packageId, package.Version);
 
                 // Assert
                 var request = Assert.IsType<EditPackageVersionReadMeRequest>(result.Data);
