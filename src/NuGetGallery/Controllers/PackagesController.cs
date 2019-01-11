@@ -293,16 +293,8 @@ namespace NuGetGallery
             var verifyRequest = new VerifyPackageRequest(packageMetadata, accountsAllowedOnBehalfOf, existingPackageRegistration);
             verifyRequest.Warnings.AddRange(validationResult.Warnings.Select(w => new JsonValidationMessage(w)));
             verifyRequest.IsSymbolsPackage = false;
-            try
-            {
-                verifyRequest.LicenseFileContents = await GetLicenseFileContentsOrNullAsync(packageMetadata, packageArchiveReader);
-                verifyRequest.LicenseExpressionSegments = GetLicenseExpressionSegmentsOrNull(packageMetadata.LicenseMetadata);
-            }
-            catch (Exception ex)
-            {
-                _telemetryService.TraceException(ex);
-                return View(model);
-            }
+            verifyRequest.LicenseFileContents = await GetLicenseFileContentsOrNullAsync(packageMetadata, packageArchiveReader);
+            verifyRequest.LicenseExpressionSegments = GetLicenseExpressionSegmentsOrNull(packageMetadata.LicenseMetadata);
             model.InProgressUpload = verifyRequest;
             return View(model);
         }
