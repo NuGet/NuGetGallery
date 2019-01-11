@@ -33,6 +33,7 @@ using NuGetGallery.Infrastructure.Mail.Requests;
 using NuGetGallery.OData;
 using NuGetGallery.Packaging;
 using NuGetGallery.Security;
+using NuGetGallery.ViewModels;
 
 namespace NuGetGallery
 {
@@ -292,7 +293,8 @@ namespace NuGetGallery
             var verifyRequest = new VerifyPackageRequest(packageMetadata, accountsAllowedOnBehalfOf, existingPackageRegistration);
             verifyRequest.Warnings.AddRange(validationResult.Warnings.Select(w => new JsonValidationMessage(w)));
             verifyRequest.IsSymbolsPackage = false;
-
+            verifyRequest.LicenseFileContents = await GetLicenseFileContentsOrNullAsync(packageMetadata, packageArchiveReader);
+            verifyRequest.LicenseExpressionSegments = GetLicenseExpressionSegmentsOrNull(packageMetadata.LicenseMetadata);
             model.InProgressUpload = verifyRequest;
             return View(model);
         }
@@ -538,6 +540,8 @@ namespace NuGetGallery
             bool hasExistingSymbolsPackageAvailable)
         {
             IReadOnlyList<IValidationMessage> warnings = new List<IValidationMessage>();
+            string licenseFileContents = null;
+            IReadOnlyCollection<CompositeLicenseExpressionSegmentViewModel> licenseExpressionSegments = null;
             using (Stream uploadedFile = await _uploadFileService.GetUploadFileAsync(currentUser.Key))
             {
                 if (uploadedFile == null)
@@ -575,13 +579,55 @@ namespace NuGetGallery
 
                     warnings = validationResult.Warnings;
                 }
+
+                try
+                {
+                    licenseFileContents = await GetLicenseFileContentsOrNullAsync(packageMetadata, packageArchiveReader);
+                    licenseExpressionSegments = GetLicenseExpressionSegmentsOrNull(packageMetadata.LicenseMetadata);
+                }
+                catch (Exception ex)
+                {
+                    _telemetryService.TraceException(ex);
+
+                    return Json(HttpStatusCode.BadRequest, new[] { new JsonValidationMessage(ex.GetUserSafeMessage()) });
+                }
             }
 
             var model = new VerifyPackageRequest(packageMetadata, accountsAllowedOnBehalfOf, existingPackageRegistration);
             model.IsSymbolsPackage = isSymbolsPackageUpload;
             model.HasExistingAvailableSymbols = hasExistingSymbolsPackageAvailable;
             model.Warnings.AddRange(warnings.Select(w => new JsonValidationMessage(w)));
+            model.LicenseFileContents = licenseFileContents;
+            model.LicenseExpressionSegments = licenseExpressionSegments;
             return Json(model);
+        }
+
+        private IReadOnlyCollection<CompositeLicenseExpressionSegmentViewModel> GetLicenseExpressionSegmentsOrNull(LicenseMetadata licenseMetadata)
+        {
+            if (licenseMetadata?.Type != LicenseType.Expression)
+            {
+                return null;
+            }
+
+            return _licenseExpressionSplitter
+                .SplitExpression(licenseMetadata.License)
+                .Select(s => new CompositeLicenseExpressionSegmentViewModel(s))
+                .ToList();
+        }
+
+        private static async Task<string> GetLicenseFileContentsOrNullAsync(PackageMetadata packageMetadata, PackageArchiveReader packageArchiveReader)
+        {
+            if (packageMetadata.LicenseMetadata?.Type != LicenseType.File)
+            {
+                return null;
+            }
+
+            var licenseFilename = FileNameHelper.GetZipEntryPath(packageMetadata.LicenseMetadata.License);
+            using (var licenseFileStream = packageArchiveReader.GetStream(licenseFilename))
+            using (var streamReader = new StreamReader(licenseFileStream, Encoding.UTF8))
+            {
+                return await streamReader.ReadToEndAsync();
+            }
         }
 
         public virtual async Task<ActionResult> DisplayPackage(string id, string version)
