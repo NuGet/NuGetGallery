@@ -120,7 +120,7 @@
             <!-- ko if: $data.LicenseExpressionSegments -->
             <div class="verify-package-field">
                 <label class="verify-package-field-heading">License expression</label>
-                <div data-bind="foreach: $data.LicenseExpressionSegments" class="custom-license-container"><!-- ko if: IsLicenseOrException --><a data-bind="attr: { href: LicenseUrl }, text: Value"></a><!-- /ko--><!-- ko if: !IsLicenseOrException --><span data-bind="text: Value"></span><!-- /ko--></div>
+                <p data-bind="foreach: $data.LicenseExpressionSegments"><!-- ko if: IsLicenseOrException --><a data-bind="attr: { href: LicenseUrl }, text: Value"></a><!-- /ko--><!-- ko if: !IsLicenseOrException --><span data-bind="text: Value"></span><!-- /ko--></p>
             </div>
             <!-- /ko -->
 
