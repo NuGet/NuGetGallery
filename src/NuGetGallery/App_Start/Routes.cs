@@ -217,6 +217,11 @@ namespace NuGetGallery
                 "packages/{id}/{action}",
                 new { controller = "Packages" });
 
+            var packageDeleteRoute = routes.MapRoute(
+                RouteName.PackageDeleteAction,
+                "packages/manage/delete",
+                new { controller = "Packages", action = "Delete" });
+
             var confirmationRequiredRoute = routes.MapRoute(
                 "ConfirmationRequired",
                 "account/ConfirmationRequired",
