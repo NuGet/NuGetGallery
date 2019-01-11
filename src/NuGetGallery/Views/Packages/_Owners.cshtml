@@ -1,5 +1,11 @@
 ﻿@model ManagePackageViewModel
 
+@if (!Model.CanManageOwners)
+{
+    @ViewHelpers.AlertWarning(@<text>You do not have permission to manage owners of this package.</text>)
+    return;
+}
+
 <div class="page-manage-owners">
 
     <div style="display: none" id="manage-owners-alert" data-bind="visible: message">

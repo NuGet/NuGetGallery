@@ -27,8 +27,13 @@
         $('#input-list-package').val(version);
         $('#input-delete-package').val(packageId + '|' + version);
 
+        // Update the form to show the correct version.
+        var state = versionListedState[version];
         // Update the listed checkbox to match the state of the package.
-        var listed = versionListedState[version];
+        var listed = state.Listed;
         $(".page-delete-package input#Listed")[0].checked = listed;
+        // Update the text stating the download count on the delete form.
+        var downloadCount = state.DownloadCount;
+        $(".page-delete-package #downloadCount").text(downloadCount);
     });
 });

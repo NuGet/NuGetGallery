@@ -767,19 +767,6 @@ namespace NuGetGallery
             return url.ViewValidations(package.Id, package.Version, relativeUrl);
         }
 
-        /// <summary>
-        /// Initializes a delete symbols package link that can be resolved at a later time.
-        /// 
-        /// Callers should only use this API if they need to generate many links, such as the ManagePackages view
-        /// does. This template reduces the calls to RouteCollection.GetVirtualPath which can be expensive. Callers
-        /// that only need a single link should call Url.DeletePackage instead.
-        public static RouteUrlTemplate<IPackageVersionModel> DeleteSymbolsPackageTemplate(
-            this UrlHelper url,
-            bool relativeUrl = true)
-        {
-            return url.PackageVersionActionTemplate(nameof(PackagesController.DeleteSymbols), relativeUrl);
-        }
-
         public static string DeleteSymbolsPackage(
             this UrlHelper url,
             IPackageVersionModel package,

@@ -12,8 +12,6 @@ namespace NuGetGallery
 {
     public class ManagePackageViewModel : DisplayPackageViewModel
     {
-        public bool IsCurrentUserAnAdmin;
-
         public ManagePackageViewModel(Package package, User currentUser, IReadOnlyList<ReportPackageReason> reasons, UrlHelper url, string readMe)
             : base(
                   package, 
@@ -39,11 +37,13 @@ namespace NuGetGallery
 
             var versionSelectPackages = PackageVersions.Where(p => !p.Deleted);
             VersionSelectList = new SelectList(
-                PackageVersions.Where(p => !p.Deleted).Select(p => new SelectListItem
-                {
-                    Text = p.FullVersion + (p.LatestVersionSemVer2 ? " (Latest)" : string.Empty),
-                    Value = p.Version
-                }),
+                PackageVersions
+                    .Where(p => !p.Deleted && !p.FailedValidation)
+                    .Select(p => new SelectListItem
+                    {
+                        Text = p.FullVersion + (p.LatestVersionSemVer2 ? " (Latest)" : string.Empty),
+                        Value = p.Version
+                    }),
                 "Value",
                 "Text",
                 Version);
@@ -58,6 +58,8 @@ namespace NuGetGallery
         }
 
         public SelectList VersionSelectList { get; set; }
+
+        public bool IsCurrentUserAnAdmin { get; }
 
         public DeletePackagesRequest DeletePackagesRequest { get; set; }
 

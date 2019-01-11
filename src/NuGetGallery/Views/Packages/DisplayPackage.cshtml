@@ -698,9 +698,7 @@
                     </li>
                 }
 
-                @if (((Model.Available || Model.Validating) && Model.CanEdit)
-                    || Model.CanManageOwners
-                    || (!Model.Deleted && Model.CanUnlistOrRelist))
+                @if (Model.CanEdit || Model.CanManageOwners || Model.CanUnlistOrRelist)
                 {
                     <li>
                         <i class="ms-Icon ms-Icon--Edit" aria-hidden="true"></i>

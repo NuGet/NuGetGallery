@@ -1241,7 +1241,6 @@
     <Compile Include="Queries\IAutoCompletePackageVersionsQuery.cs" />
     <Compile Include="Queries\AutoCompleteDatabasePackageVersionsQuery.cs" />
     <Compile Include="Queries\AutoCompleteDatabasePackageIdsQuery.cs" />
-    <Compile Include="RequestModels\EditPackageRequest.cs" />
     <Compile Include="RequestModels\DeletePackagesRequest.cs" />
     <Compile Include="RequestModels\EditPackageVersionRequest.cs" />
     <Compile Include="RequestModels\VerifyPackageRequest.cs" />

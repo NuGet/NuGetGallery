@@ -18,35 +18,26 @@
 
             @ViewHelpers.AlertPackageEditRecommendation()
 
-            @if (Model.CanManageOwners)
-            {
-                @ViewHelpers.Section(
-                    this,
-                    "Owners",
-                    "Owners",
-                    @<text>@Html.Partial("_Owners", Model)</text>,
-                    expanded: false)
-            }
+            @ViewHelpers.Section(
+                this,
+                "Owners",
+                "Owners",
+                            @<text>@Html.Partial("_Owners", Model)</text>,
+                               expanded: false)
 
-            @if (Model.CanUnlistOrRelist)
-            {
-                @ViewHelpers.Section(
-                    this,
-                    "Listing",
-                    "Listing",
-                    @<text>@Html.Partial("_Delete", Model)</text>,
-                    expanded: false)
-            }
+            @ViewHelpers.Section(
+                this,
+                "Listing",
+                "Listing",
+                            @<text>@Html.Partial("_Delete", Model)</text>,
+                               expanded: false)
 
-            @if (Model.CanEdit)
-            {
-                @ViewHelpers.Section(
-                    this,
-                    "Documentation",
-                    "Documentation",
-                    @<text>@Html.Partial("_ReadMe", Model)</text>,
-                    expanded: false)
-            }
+            @ViewHelpers.Section(
+                this,
+                "Documentation",
+                "Documentation",
+                            @<text>@Html.Partial("_ReadMe", Model)</text>,
+                               expanded: false)
         </div>
     </div>
 </section>
@@ -73,8 +64,16 @@
         var versionListedState = @Html.Raw(
            Json.Encode(
                Model.VersionSelectList.ToDictionary(
-                   v => v.Value, 
-                   v => Model.PackageVersions.Single(p => p.Version == v.Value).Listed)));
+                   v => v.Value,
+                   v =>
+                   {
+                       var version = Model.PackageVersions.Single(p => p.Version == v.Value);
+                       return new
+                       {
+                           version.Listed,
+                           version.DownloadCount
+                       };
+                   })));
 
         // Set up documentation section
         $(function () {
@@ -102,6 +101,6 @@
     </script>
     @ViewHelpers.SectionsScript(this)
     @Scripts.Render("~/Scripts/gallery/page-manage-owners.min.js")
-    @Scripts.Render("~/Scripts/gallery/page-delete-package.js")
-    @Scripts.Render("~/Scripts/gallery/page-edit-readme.js")
+    @Scripts.Render("~/Scripts/gallery/page-delete-package.min.js")
+    @Scripts.Render("~/Scripts/gallery/page-edit-readme.min.js")
 }
