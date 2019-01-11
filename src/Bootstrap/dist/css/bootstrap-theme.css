@@ -1619,6 +1619,9 @@ img.reserved-indicator-icon {
   word-break: normal;
   white-space: pre-wrap;
 }
+.page-upload .custom-license-container {
+  margin-bottom: 24px;
+}
 .warning-icon {
   color: #ea7918;
   vertical-align: bottom;

@@ -33,6 +33,7 @@ using NuGetGallery.Infrastructure.Mail.Requests;
 using NuGetGallery.OData;
 using NuGetGallery.Packaging;
 using NuGetGallery.Security;
+using NuGetGallery.ViewModels;
 
 namespace NuGetGallery
 {
@@ -295,6 +296,7 @@ namespace NuGetGallery
             try
             {
                 verifyRequest.LicenseFileContents = await GetLicenseFileContentsOrNullAsync(packageMetadata, packageArchiveReader);
+                verifyRequest.LicenseExpressionSegments = GetLicenseExpressionSegmentsOrNull(packageMetadata.LicenseMetadata);
             }
             catch (Exception ex)
             {
@@ -547,6 +549,7 @@ namespace NuGetGallery
         {
             IReadOnlyList<IValidationMessage> warnings = new List<IValidationMessage>();
             string licenseFileContents = null;
+            IReadOnlyCollection<CompositeLicenseExpressionSegmentViewModel> licenseExpressionSegments = null;
             using (Stream uploadedFile = await _uploadFileService.GetUploadFileAsync(currentUser.Key))
             {
                 if (uploadedFile == null)
@@ -588,6 +591,7 @@ namespace NuGetGallery
                 try
                 {
                     licenseFileContents = await GetLicenseFileContentsOrNullAsync(packageMetadata, packageArchiveReader);
+                    licenseExpressionSegments = GetLicenseExpressionSegmentsOrNull(packageMetadata.LicenseMetadata);
                 }
                 catch (Exception ex)
                 {
@@ -602,7 +606,21 @@ namespace NuGetGallery
             model.HasExistingAvailableSymbols = hasExistingSymbolsPackageAvailable;
             model.Warnings.AddRange(warnings.Select(w => new JsonValidationMessage(w)));
             model.LicenseFileContents = licenseFileContents;
+            model.LicenseExpressionSegments = licenseExpressionSegments;
             return Json(model);
+        }
+
+        private IReadOnlyCollection<CompositeLicenseExpressionSegmentViewModel> GetLicenseExpressionSegmentsOrNull(LicenseMetadata licenseMetadata)
+        {
+            if (licenseMetadata?.Type != LicenseType.Expression)
+            {
+                return null;
+            }
+
+            return _licenseExpressionSplitter
+                .SplitExpression(licenseMetadata.License)
+                .Select(s => new CompositeLicenseExpressionSegmentViewModel(s))
+                .ToList();
         }
 
         private static async Task<string> GetLicenseFileContentsOrNullAsync(PackageMetadata packageMetadata, PackageArchiveReader packageArchiveReader)

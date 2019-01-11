@@ -59,24 +59,24 @@
         <div data-bind="if: $data">
             <!-- ko if: $data.Warnings && $data.Warnings.length > 0 -->
             @ViewHelpers.AlertWarning(
-                                @<span>
-                                    We found the following issue(s):
-                                    <ul data-bind="foreach: $data.Warnings">
-                                        <!-- ko if: typeof($data) === "string" -->
-                                        <li><span data-bind="text: $data"></span></li>
-                                        <!-- /ko -->
-                                        <!-- ko if: typeof($data) === "object" -->
-                                        <!-- ko if: $data.PlainTextMessage -->
-                                        <li><span data-bind="text: $data.PlainTextMessage"></span></li>
-                                        <!-- /ko -->
-                                        <!-- ko ifnot: $data.PlainTextMessage -->
-                                        <li><span data-bind="html: $data.RawHtmlMessage"></span></li>
-                                        <!-- /ko -->
-                                        <!-- /ko -->
-                                    </ul>
-                                    We recommend that you fix these issues and upload a new package.
-                                    <a href="https://docs.microsoft.com/en-us/nuget/policies/nuget-faq#managing-packages-on-nugetorg" alt="Read more">Read more</a><br />
-                                </span>)
+                                            @<span>
+                                                We found the following issue(s):
+                                                <ul data-bind="foreach: $data.Warnings">
+                                                    <!-- ko if: typeof($data) === "string" -->
+                                                    <li><span data-bind="text: $data"></span></li>
+                                                    <!-- /ko -->
+                                                    <!-- ko if: typeof($data) === "object" -->
+                                                    <!-- ko if: $data.PlainTextMessage -->
+                                                    <li><span data-bind="text: $data.PlainTextMessage"></span></li>
+                                                    <!-- /ko -->
+                                                    <!-- ko ifnot: $data.PlainTextMessage -->
+                                                    <li><span data-bind="html: $data.RawHtmlMessage"></span></li>
+                                                    <!-- /ko -->
+                                                    <!-- /ko -->
+                                                </ul>
+                                                We recommend that you fix these issues and upload a new package.
+                                                <a href="https://docs.microsoft.com/en-us/nuget/policies/nuget-faq#managing-packages-on-nugetorg" alt="Read more">Read more</a><br />
+                                            </span>)
             <!-- /ko -->
 
             <div class="verify-package-field">
@@ -117,7 +117,14 @@
                 <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: $data.MinClientVersionDisplay }}"></div>
             </div>
 
-            <!-- ko if: $data.LicenseExpression -->
+            <!-- ko if: $data.LicenseExpressionSegments -->
+            <div class="verify-package-field">
+                <label class="verify-package-field-heading">License expression</label>
+                <div data-bind="foreach: $data.LicenseExpressionSegments" class="custom-license-container"><!-- ko if: IsLicenseOrException --><a data-bind="attr: { href: LicenseUrl }, text: Value"></a><!-- /ko--><!-- ko if: !IsLicenseOrException --><span data-bind="text: Value"></span><!-- /ko--></div>
+            </div>
+            <!-- /ko -->
+
+            <!-- ko if: $data.LicenseExpression && !$data.LicenseExpressionSegments -->
             <div class="verify-package-field">
                 <label class="verify-package-field-heading">License expression</label>
                 <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: $data.LicenseExpression }}"></div>
@@ -127,11 +134,11 @@
             <!-- ko if: $data.LicenseFileContents -->
             <div class="verify-package-field">
                 <label class="verify-package-field-heading">License file</label>
-                <pre class="license-file-contents" data-bind="text: $data.LicenseFileContents"></pre>
+                <pre class="license-file-contents custom-license-container" data-bind="text: $data.LicenseFileContents"></pre>
             </div>
             <!-- /ko -->
 
-            <!-- ko if: !$data.LicenseExpression && !$data.LicenseFileContents -->
+            <!-- ko if: !$data.LicenseExpression && !$data.LicenseFileContents && !$data.LicenseExpressionSegments -->
             <div class="verify-package-field">
                 <label class="verify-package-field-heading">License URL</label>
                 <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: $data.LicenseUrl, Link: true }}"></div>

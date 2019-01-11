@@ -6,6 +6,7 @@ using System.Linq;
 using NuGet.Packaging;
 using NuGet.Services.Entities;
 using NuGetGallery.Packaging;
+using NuGetGallery.ViewModels;
 
 namespace NuGetGallery
 {
@@ -110,6 +111,7 @@ namespace NuGetGallery
         public string Language { get; set; }
         public string LicenseUrl { get; set; }
         public string LicenseExpression { get; set; }
+        public IReadOnlyCollection<CompositeLicenseExpressionSegmentViewModel> LicenseExpressionSegments { get; set; }
         public string LicenseFileContents { get; set; }
         public string MinClientVersionDisplay { get; set; }
         public string ProjectUrl { get; set; }
