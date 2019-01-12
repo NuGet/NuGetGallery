@@ -23,32 +23,40 @@
             _selectVersion = $('.page-edit-package #input-select-version');
             var defaultVersion = _selectVersion.val();
             _selectVersion.on('change', function () {
-                var url = _viewModel.Versions[$(this).val()].getReadMe;
-                $.ajax({
-                    url: url,
-                    type: 'GET',
-                    statusCode: {
-                        200: function (data) {
-                            _viewModel.Edit = data;
-                            bindData(_viewModel);
+                var version = _viewModel.Versions[$(this).val()];
+                var cachedReadMe = version.readMe;
+                if (cachedReadMe === null) {
+                    var url = version.getReadMe;
+                    $.ajax({
+                        url: url,
+                        type: 'GET',
+                        statusCode: {
+                            200: function (data) {
+                                version.readMe = data;
+                                _viewModel.Edit = data;
+                                bindData(_viewModel);
+                            },
+
+                            403: function () {
+                                displayErrors(['You do not have permission to edit the documentation of this package.']);
+                                $(this).val(defaultVersion);
+                            },
+
+                            404: function () {
+                                displayErrors(['The selected package does not exist.']);
+                                $(this).val(defaultVersion);
+                            }
                         },
 
-                        403: function () {
-                            displayErrors(['You do not have permission to edit the documentation of this package.']);
-                            $(this).val(defaultVersion);
-                        },
-
-                        404: function () {
-                            displayErrors(['The selected package does not exist.']);
+                        error: function () {
+                            displayErrors(['An unknown error occured.']);
                             $(this).val(defaultVersion);
                         }
-                    },
-
-                    error: function () {
-                        displayErrors(['An unknown error occured.']);
-                        $(this).val(defaultVersion);
-                    }
-                });
+                    });
+                } else {
+                    _viewModel.Edit = cachedReadMe;
+                    bindData(_viewModel);
+                }
             });
         };
 

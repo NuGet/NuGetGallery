@@ -86,11 +86,14 @@
                            return new
                            {
                                submit = editTemplate.Resolve(pvmodel),
-                               getReadMe = getReadMeTemplate.Resolve(pvmodel)
+                               getReadMe = getReadMeTemplate.Resolve(pvmodel),
+                               readMe = (EditPackageVersionReadMeRequest)null
                            };
                        }))),
                 "Edit": @Html.Raw(Json.Encode(Model.ReadMe))
             };
+
+            readMeModel.Versions['@Model.Version'].readMe = @Html.Raw(Json.Encode(Model.ReadMe));
 
             EditReadMeManager.init(
                 readMeModel,
