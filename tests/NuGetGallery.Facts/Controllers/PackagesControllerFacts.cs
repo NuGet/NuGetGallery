@@ -7243,5 +7243,52 @@ namespace NuGetGallery
                         Times.Once);
             }
         }
+
+        public class TheManagePackageOwnersMethod : TestContainer
+        {
+            [Fact]
+            public void RedirectsToManageAction()
+            {
+                var id = "packageId";
+                var controller = CreateController(GetConfigurationService());
+                var result = controller.ManagePackageOwners(id);
+                ResultAssert.IsRedirectToRoute(
+                    result,
+                    new { action = "Manage" },
+                    true);
+            }
+        }
+
+        public class TheDeleteMethod : TestContainer
+        {
+            [Fact]
+            public void RedirectsToManageAction()
+            {
+                var id = "packageId";
+                var version = "packageVersion";
+                var controller = CreateController(GetConfigurationService());
+                var result = controller.Delete(id, version);
+                ResultAssert.IsRedirectToRoute(
+                    result,
+                    new { action = "Manage" },
+                    true);
+            }
+        }
+
+        public class TheEditMethod : TestContainer
+        {
+            [Fact]
+            public void RedirectsToManageAction()
+            {
+                var id = "packageId";
+                var version = "packageVersion";
+                var controller = CreateController(GetConfigurationService());
+                var result = controller.Edit(id, version);
+                ResultAssert.IsRedirectToRoute(
+                    result,
+                    new { action = "Manage" },
+                    true);
+            }
+        }
     }
 }
