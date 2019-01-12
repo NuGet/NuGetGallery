@@ -1194,7 +1194,18 @@ namespace NuGetGallery
                     version
                 });
         }
-        
+
+        /// <summary>
+        /// This is a redirect for a legacy route.
+        /// The <see cref="ManagePackageOwners(string)"/> page was merged with <see cref="Delete(string, string)"/> and <see cref="Edit(string, string)"/> and is now a part of the <see cref="Manage(string, string)"/> page.
+        /// </summary>
+        [HttpGet]
+        [UIAuthorize]
+        public virtual ActionResult ManagePackageOwners(string id)
+        {
+            return RedirectToActionPermanent(nameof(Manage));
+        }
+
         [HttpGet]
         [UIAuthorize]
         [RequiresAccountConfirmation("manage a package")]
@@ -1380,6 +1391,18 @@ namespace NuGetGallery
             return SafeRedirect(Url.Package(id, version));
         }
 
+        /// <summary>
+        /// This is a redirect for a legacy route.
+        /// The <see cref="Delete(string, string)"/> page was merged with <see cref="Edit(string, string)"/> and <see cref="ManagePackageOwners(string)"/> and is now a part of the <see cref="Manage(string, string)"/> page.
+        /// </summary>
+        [HttpGet]
+        [UIAuthorize]
+        [RequiresAccountConfirmation("delete a package")]
+        public virtual ActionResult Delete(string id, string version)
+        {
+            return RedirectToActionPermanent(nameof(Manage));
+        }
+
         [UIAuthorize(Roles = "Admins")]
         [HttpPost]
         [RequiresAccountConfirmation("delete a package")]
@@ -1494,6 +1517,18 @@ namespace NuGetGallery
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest,
                     string.Format(Strings.SymbolsPackage_PackageNotAvailable, id, version));
             }
+        }
+
+        /// <summary>
+        /// This is a redirect for a legacy route.
+        /// The <see cref="Edit(string, string)"/> page was merged with <see cref="Delete(string, string)"/> and <see cref="ManagePackageOwners(string)"/> and is now a part of the <see cref="Manage(string, string)"/> page.
+        /// </summary>
+        [HttpGet]
+        [UIAuthorize]
+        [RequiresAccountConfirmation("edit a package")]
+        public virtual ActionResult Edit(string id, string version)
+        {
+            return RedirectToActionPermanent(nameof(Manage));
         }
 
         [UIAuthorize]
