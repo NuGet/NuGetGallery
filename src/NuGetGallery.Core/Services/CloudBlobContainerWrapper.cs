@@ -1,5 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage.Blob;
 
@@ -36,6 +37,16 @@ namespace NuGetGallery
         public Task<bool> ExistsAsync()
         {
             return _blobContainer.ExistsAsync();
+        }
+
+        public async Task<bool> DeleteIfExistsAsync()
+        {
+            return await _blobContainer.DeleteIfExistsAsync();
+        }
+
+        public async Task CreateAsync()
+        {
+            await _blobContainer.CreateAsync();
         }
     }
 }

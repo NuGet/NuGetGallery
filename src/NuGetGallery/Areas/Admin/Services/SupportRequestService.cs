@@ -20,6 +20,8 @@ namespace NuGetGallery.Areas.Admin
         private IAuditingService _auditingService;
         private readonly string _siteRoot;
         private const string _unassignedAdmin = "unassigned";
+        private const string _deletedAccount = "_deletedaccount";
+        private const string _NuGetDSRAccount = "_NuGetDSR";
 
         public SupportRequestService(
             ISupportRequestDbContext supportRequestDbContext,
@@ -302,7 +304,11 @@ namespace NuGetGallery.Areas.Admin
             foreach (var accountDeletedIssue in userIssues.Where(i => string.Equals(i.IssueTitle, Strings.AccountDelete_SupportRequestTitle)))
             {
                 accountDeletedIssue.OwnerEmail = "deletedaccount";
-                accountDeletedIssue.CreatedBy = null;
+                if(!accountDeletedIssue.CreatedBy.Equals(_NuGetDSRAccount, StringComparison.OrdinalIgnoreCase))
+                {
+                    accountDeletedIssue.CreatedBy = _deletedAccount;
+                }
+                accountDeletedIssue.IssueStatusId = IssueStatusKeys.Resolved;
                 accountDeletedIssue.Details = "This support request has been redacted as the customer's account has been deleted.";
                 foreach (var historyEntry in accountDeletedIssue.HistoryEntries)
                 {

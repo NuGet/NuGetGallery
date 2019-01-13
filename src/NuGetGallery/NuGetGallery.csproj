@@ -693,6 +693,7 @@
     <Compile Include="Telemetry\UserPackageDeleteOutcome.cs" />
     <Compile Include="UrlHelperExtensions.cs" />
     <Compile Include="ViewModels\AddOrganizationViewModel.cs" />
+    <Compile Include="ViewModels\CompositeLicenseExpressionSegmentViewModel.cs" />
     <Compile Include="ViewModels\DeleteOrganizationViewModel.cs" />
     <Compile Include="ViewModels\DeleteUserViewModel.cs" />
     <Compile Include="ViewModels\ListCertificateItemViewModel.cs" />
@@ -2048,6 +2049,9 @@
   <ItemGroup>
     <PackageReference Include="Markdig.Signed">
       <Version>0.15.4</Version>
+    </PackageReference>
+    <PackageReference Include="NuGet.Services.Licenses">
+      <Version>2.41.0-agr-licenses-2294033</Version>
     </PackageReference>
     <PackageReference Include="NuGet.StrongName.AnglicanGeek.MarkdownMailer">
       <Version>1.2.0</Version>
