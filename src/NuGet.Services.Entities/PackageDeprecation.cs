@@ -23,6 +23,15 @@ namespace NuGet.Services.Entities
         /// </summary>
         [Required]
         public virtual Package DeprecatedPackage { get; set; }
+
+        /// <summary>
+        /// Gets or sets the status of this deprecation.
+        /// </summary>
+        /// <remarks>
+        /// A <see cref="PackageDeprecation"/> with a <see cref="PackageDeprecationStatus"/> of <see cref="PackageDeprecationStatus.NotDeprecated"/> is meaningless, so <see cref="Status"/> must be at least <c>1</c>.
+        /// </remarks>
+        [Range(1, int.MaxValue)]
+        public PackageDeprecationStatus Status { get; set; }
         
         /// <summary>
         /// Gets or sets the alternate package registration entity.
