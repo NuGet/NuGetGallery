@@ -61,10 +61,6 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\NuGet.Services.Entities\NuGet.Services.Entities.csproj">
-      <Project>{6262F4FC-29BE-4226-B676-DB391C89D396}</Project>
-      <Name>NuGet.Services.Entities</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\src\NuGet.Services.FeatureFlags\NuGet.Services.FeatureFlags.csproj">
       <Project>{a8cbd319-72b4-4c07-832b-5355accee83a}</Project>
       <Name>NuGet.Services.FeatureFlags</Name>

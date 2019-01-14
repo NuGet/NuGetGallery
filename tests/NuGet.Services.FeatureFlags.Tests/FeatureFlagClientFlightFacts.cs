@@ -4,7 +4,6 @@
 using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
 using Moq;
-using NuGet.Services.Entities;
 using Xunit;
 
 namespace NuGet.Services.FeatureFlags.Tests

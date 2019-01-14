@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27004.2006
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28503.212
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{8415FED7-1BED-4227-8B4F-BB7C24E041CD}"
 EndProject
@@ -81,10 +81,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.Messaging.Email", "src\NuGet.Services.Messaging.Email\NuGet.Services.Messaging.Email.csproj", "{7B663D13-49EF-4C14-AA1E-FCA66B602EEC}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.Messaging.Email.Tests", "tests\NuGet.Services.Messaging.Email.Tests\NuGet.Services.Messaging.Email.Tests.csproj", "{C0CD076E-3216-42D3-BE65-84A394BBD2DC}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.Entities", "src\NuGet.Services.Entities\NuGet.Services.Entities.csproj", "{6262F4FC-29BE-4226-B676-DB391C89D396}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.Entities.Tests", "tests\NuGet.Services.Entities.Tests\NuGet.Services.Entities.Tests.csproj", "{79C831E9-7C88-4B98-B084-4DE940C73FC7}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.FeatureFlags", "src\NuGet.Services.FeatureFlags\NuGet.Services.FeatureFlags.csproj", "{A8CBD319-72B4-4C07-832B-5355ACCEE83A}"
 EndProject
@@ -232,14 +228,6 @@ Global
 		{C0CD076E-3216-42D3-BE65-84A394BBD2DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C0CD076E-3216-42D3-BE65-84A394BBD2DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C0CD076E-3216-42D3-BE65-84A394BBD2DC}.Release|Any CPU.Build.0 = Release|Any CPU
-		{6262F4FC-29BE-4226-B676-DB391C89D396}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6262F4FC-29BE-4226-B676-DB391C89D396}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6262F4FC-29BE-4226-B676-DB391C89D396}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6262F4FC-29BE-4226-B676-DB391C89D396}.Release|Any CPU.Build.0 = Release|Any CPU
-		{79C831E9-7C88-4B98-B084-4DE940C73FC7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{79C831E9-7C88-4B98-B084-4DE940C73FC7}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{79C831E9-7C88-4B98-B084-4DE940C73FC7}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{79C831E9-7C88-4B98-B084-4DE940C73FC7}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A8CBD319-72B4-4C07-832B-5355ACCEE83A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{A8CBD319-72B4-4C07-832B-5355ACCEE83A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A8CBD319-72B4-4C07-832B-5355ACCEE83A}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -287,8 +275,6 @@ Global
 		{6B3A29C9-A26A-4B60-9D8E-46BCD5B32EF3} = {7783A106-0F4C-4055-9AB4-413FB2C7B8F0}
 		{7B663D13-49EF-4C14-AA1E-FCA66B602EEC} = {8415FED7-1BED-4227-8B4F-BB7C24E041CD}
 		{C0CD076E-3216-42D3-BE65-84A394BBD2DC} = {7783A106-0F4C-4055-9AB4-413FB2C7B8F0}
-		{6262F4FC-29BE-4226-B676-DB391C89D396} = {8415FED7-1BED-4227-8B4F-BB7C24E041CD}
-		{79C831E9-7C88-4B98-B084-4DE940C73FC7} = {7783A106-0F4C-4055-9AB4-413FB2C7B8F0}
 		{A8CBD319-72B4-4C07-832B-5355ACCEE83A} = {8415FED7-1BED-4227-8B4F-BB7C24E041CD}
 		{20D89F39-6E71-4F14-B845-64F5C395954B} = {7783A106-0F4C-4055-9AB4-413FB2C7B8F0}
 	EndGlobalSection
