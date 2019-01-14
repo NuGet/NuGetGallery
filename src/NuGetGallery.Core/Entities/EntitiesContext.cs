@@ -367,6 +367,35 @@ namespace NuGetGallery
             modelBuilder.Entity<SymbolPackage>()
                 .Property(s => s.RowVersion)
                 .IsRowVersion();
+
+            modelBuilder.Entity<PackageVulnerability>()
+                .HasKey(v => v.Key);
+
+            modelBuilder.Entity<PackageDeprecation>()
+                .HasKey(d => d.Key)
+                .HasRequired(d => d.DeprecatedPackage)
+                .WithRequiredDependent()
+                .WillCascadeOnDelete();
+
+            modelBuilder.Entity<PackageDeprecation>()
+                .HasOptional(d => d.AlternatePackageRegistration)
+                .WithOptionalDependent()
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<PackageDeprecation>()
+                .HasOptional(d => d.AlternatePackage)
+                .WithOptionalDependent()
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<PackageDeprecation>()
+                .HasOptional(d => d.DeprecatedBy)
+                .WithOptionalDependent()
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<PackageDeprecation>()
+                .HasOptional(d => d.PackageVulnerability)
+                .WithOptionalDependent()
+                .WillCascadeOnDelete(false);
         }
 #pragma warning restore 618
     }
