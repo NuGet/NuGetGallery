@@ -8,17 +8,6 @@ namespace NuGetGallery.Migrations
         public override void Up()
         {
             CreateTable(
-                "dbo.PackageVulnerabilities",
-                c => new
-                    {
-                        Key = c.Int(nullable: false, identity: true),
-                        CVSSRating = c.Int(),
-                        CVEIds = c.String(),
-                        CWEIds = c.String(),
-                    })
-                .PrimaryKey(t => t.Key);
-            
-            CreateTable(
                 "dbo.PackageDeprecations",
                 c => new
                     {
@@ -42,6 +31,17 @@ namespace NuGetGallery.Migrations
                 .Index(t => t.DeprecatedBy_Key)
                 .Index(t => t.PackageVulnerability_Key);
             
+            CreateTable(
+                "dbo.PackageVulnerabilities",
+                c => new
+                    {
+                        Key = c.Int(nullable: false, identity: true),
+                        CVSSRating = c.Int(),
+                        CVEIds = c.String(),
+                        CWEIds = c.String(),
+                    })
+                .PrimaryKey(t => t.Key);
+            
         }
         
         public override void Down()
@@ -56,8 +56,8 @@ namespace NuGetGallery.Migrations
             DropIndex("dbo.PackageDeprecations", new[] { "AlternatePackageRegistration_Key" });
             DropIndex("dbo.PackageDeprecations", new[] { "AlternatePackage_Key" });
             DropIndex("dbo.PackageDeprecations", new[] { "Key" });
-            DropTable("dbo.PackageDeprecations");
             DropTable("dbo.PackageVulnerabilities");
+            DropTable("dbo.PackageDeprecations");
         }
     }
 }
