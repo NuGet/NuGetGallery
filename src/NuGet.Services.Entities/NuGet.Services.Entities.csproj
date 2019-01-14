@@ -67,6 +67,8 @@
     <Compile Include="PackageAuthor.cs" />
     <Compile Include="PackageDelete.cs" />
     <Compile Include="PackageDependency.cs" />
+    <Compile Include="PackageDeprecation.cs" />
+    <Compile Include="PackageDeprecationStatus.cs" />
     <Compile Include="PackageEditReadMeState.cs" />
     <Compile Include="PackageFramework.cs" />
     <Compile Include="PackageHistory.cs" />
@@ -76,6 +78,7 @@
     <Compile Include="PackageRegistration.cs" />
     <Compile Include="PackageStatus.cs" />
     <Compile Include="PackageType.cs" />
+    <Compile Include="PackageVulnerability.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ReservedNamespace.cs" />
     <Compile Include="Role.cs" />
