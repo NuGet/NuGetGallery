@@ -22,8 +22,15 @@
 
             _selectVersion = $('.page-edit-package #input-select-version');
             var defaultVersion = _selectVersion.val();
+            
             _selectVersion.change(function () {
-                var version = _viewModel.Versions[$(this).val()];
+                var selectedVersion = $(this).val();
+                if (!selectedVersion) {
+                    // No version is selected. This usually indicates that there are no versions of this package that can have their ReadMe edited.
+                    return;
+                }
+
+                var version = _viewModel.Versions[selectedVersion];
                 var cachedReadMe = version.readMe;
                 if (cachedReadMe === null) {
                     var url = version.getReadMe;
@@ -76,7 +83,13 @@
         function submitAsync(callback, error) {
             if (!_submitting) {
                 _submitting = true;
-                var url = _viewModel.Versions[_selectVersion.val()].submit;
+                var selectedVersion = _selectVersion.val();
+                if (!selectedVersion) {
+                    // No version is selected. This usually indicates that there are no versions of this package that can have their ReadMe edited.
+                    return;
+                }
+
+                var url = _viewModel.Versions[selectedVersion].submit;
                 $.ajax({
                     url: url,
                     type: 'POST',

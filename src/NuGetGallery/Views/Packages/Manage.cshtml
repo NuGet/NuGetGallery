@@ -94,7 +94,7 @@
             };
 
             var readMeModelVersion = readMeModel.Versions['@Model.Version'];
-            if (readMeModelVersion !== null) {
+            if (readMeModelVersion) {
                 readMeModelVersion.readMe = @Html.Raw(Json.Encode(Model.ReadMe));
             }
 
