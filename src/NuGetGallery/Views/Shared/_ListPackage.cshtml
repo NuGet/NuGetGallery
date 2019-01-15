@@ -24,8 +24,8 @@
         </div>
         <div class="col-sm-11">
             <div class="package-header">
-                <div>
-                    <a class="package-title" href="@Url.Package(Model.Id, Model.UseVersion ? Model.Version : null)">@Html.BreakWord(Model.Id)</a>
+                <div class="package-title-container">
+                    <a class="package-title" href="@Url.Package(Model.Id, Model.UseVersion ? Model.Version : null)">@Model.Id</a>
 
                     @if (Model.IsVerified.HasValue && Model.IsVerified.Value)
                     {
@@ -42,7 +42,7 @@
                         </a>
                     }
                 </div>
-                <div class="hidden-xs">
+                <div class="package-by-container hidden-xs">
                     @OwnersHeader()
                 </div>
             </div>
