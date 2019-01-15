@@ -49,37 +49,40 @@
                 id = "input-select-version"
             })
 
-        <b>
-            List or unlist version
-        </b>
+        if (!Model.IsLocked)
+        {
+            <b>
+                List or unlist version
+            </b>
 
-        <div>
+            <div>
 
-            @if (!User.IsAdministrator())
-            {
-                @ViewHelpers.AlertInfo(
-                    @<text>
-                        You can control how your packages are listed using the checkbox below. As per <a href="https://docs.microsoft.com/en-us/nuget/policies/deleting-packages">policy</a>, permanent deletion is not supported as it would break every project depending on the availability of the package. For more assistance, <a href="@Url.ReportAbuse(Model)" title="Contact Support">Contact Support</a>.
-                    </text>)
-            }
+                @if (!User.IsAdministrator())
+                {
+                    @ViewHelpers.AlertInfo(
+                        @<text>
+                            You can control how your packages are listed using the checkbox below. As per <a href="https://docs.microsoft.com/en-us/nuget/policies/deleting-packages">policy</a>, permanent deletion is not supported as it would break every project depending on the availability of the package. For more assistance, <a href="@Url.ReportAbuse(Model)" title="Contact Support">Contact Support</a>.
+                        </text>)
+                }
 
-            @using (Html.BeginForm("UpdateListed", "Packages"))
-            {
-                @Html.AntiForgeryToken()
-                @Html.Hidden("version", @Model.Version, new { id = "input-list-package" })
-                <div class="form-group @Html.HasErrorFor(package => package.Listed)">
-                    @Html.ShowCheckboxFor(package => package.Listed)
-                    @Html.ShowLabelFor(package => package.Listed, "List in search results.")
-                    @Html.ShowValidationMessagesFor(package => package.Listed)
+                @using (Html.BeginForm("UpdateListed", "Packages"))
+                {
+                    @Html.AntiForgeryToken()
+                    @Html.Hidden("version", @Model.Version, new { id = "input-list-package" })
+                    <div class="form-group @Html.HasErrorFor(package => package.Listed)">
+                        @Html.ShowCheckboxFor(package => package.Listed)
+                        @Html.ShowLabelFor(package => package.Listed, "List in search results.")
+                        @Html.ShowValidationMessagesFor(package => package.Listed)
 
-                    <p>Unlisted packages cannot be installed directly and do not show up in search results.</p>
-                </div>
+                        <p>Unlisted packages cannot be installed directly and do not show up in search results.</p>
+                    </div>
 
-                <div class="form-group">
-                    <input type="submit" class="btn btn-primary form-control" value="Save" />
-                </div>
-            }
-        </div>
+                    <div class="form-group">
+                        <input type="submit" class="btn btn-primary form-control" value="Save" />
+                    </div>
+                }
+            </div>
+        }
 
         if (User.IsAdministrator())
         {
