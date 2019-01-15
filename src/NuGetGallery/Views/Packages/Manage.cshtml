@@ -93,14 +93,18 @@
                 "Edit": @Html.Raw(Json.Encode(Model.ReadMe))
             };
 
-            readMeModel.Versions['@Model.Version'].readMe = @Html.Raw(Json.Encode(Model.ReadMe));
+            var readMeModelVersion = readMeModel.Versions['@Model.Version'];
+            if (readMeModelVersion !== null) {
+                readMeModelVersion.readMe = @Html.Raw(Json.Encode(Model.ReadMe));
+            }
 
             EditReadMeManager.init(
                 readMeModel,
                 '@Url.PreviewReadMe()');
 
             // Set up delete section
-            $('.page-delete-package #input-select-version').change(function () {
+            var deleteVersionSelect = $('.page-delete-package #input-select-version');
+            deleteVersionSelect.change(function () {
                 // Make sure the forms now reference the selected version of the package.
                 var version = $(this).val();
                 $('#input-list-package').val(version);
@@ -115,6 +119,8 @@
                 var downloadCount = state.DownloadCount;
                 $(".page-delete-package #downloadCount").text(downloadCount);
             });
+
+            deleteVersionSelect.change();
         });
     </script>
     @ViewHelpers.SectionsScript(this)

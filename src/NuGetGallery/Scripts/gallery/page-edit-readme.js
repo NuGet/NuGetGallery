@@ -22,7 +22,7 @@
 
             _selectVersion = $('.page-edit-package #input-select-version');
             var defaultVersion = _selectVersion.val();
-            _selectVersion.on('change', function () {
+            _selectVersion.change(function () {
                 var version = _viewModel.Versions[$(this).val()];
                 var cachedReadMe = version.readMe;
                 if (cachedReadMe === null) {
@@ -58,6 +58,8 @@
                     bindData(_viewModel);
                 }
             });
+
+            _selectVersion.change();
         };
 
         function confirmLeave() {
