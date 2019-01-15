@@ -36,6 +36,7 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="PackageDeprecationStatusFacts.cs" />
     <Compile Include="PackageFacts.cs" />
     <Compile Include="PackageRegistrationExtensionsFacts.cs" />
     <Compile Include="PackageStatusFacts.cs" />

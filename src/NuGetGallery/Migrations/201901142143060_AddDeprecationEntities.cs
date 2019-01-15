@@ -12,7 +12,11 @@ namespace NuGetGallery.Migrations
                 c => new
                     {
                         Key = c.Int(nullable: false),
+                        DeprecatedPackageKey = c.Int(nullable: false),
                         Status = c.Int(nullable: false),
+                        AlternatePackageRegistrationKey = c.Int(),
+                        AlternatePackageKey = c.Int(),
+                        DeprecatedByKey = c.Int(),
                         DeprecatedOn = c.DateTime(nullable: false),
                         CustomMessage = c.String(),
                         AlternatePackage_Key = c.Int(),
