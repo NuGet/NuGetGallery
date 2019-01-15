@@ -17,7 +17,7 @@ namespace NuGetGallery.Migrations
                         AlternatePackageRegistrationKey = c.Int(),
                         AlternatePackageKey = c.Int(),
                         DeprecatedByKey = c.Int(),
-                        DeprecatedOn = c.DateTime(nullable: false),
+                        DeprecatedOn = c.DateTime(nullable: false, defaultValueSql: "GETUTCDATE()"),
                         CustomMessage = c.String(),
                         AlternatePackage_Key = c.Int(),
                         AlternatePackageRegistration_Key = c.Int(),
