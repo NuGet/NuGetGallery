@@ -25,6 +25,11 @@ namespace NuGet.Services.Entities
         public virtual Package DeprecatedPackage { get; set; }
 
         /// <summary>
+        /// Gets or sets the deprecated package entity key.
+        /// </summary>
+        public virtual int DeprecatedPackageKey { get; set; }
+
+        /// <summary>
         /// Gets or sets the status of this deprecation.
         /// </summary>
         /// <remarks>
@@ -32,26 +37,41 @@ namespace NuGet.Services.Entities
         /// </remarks>
         [Range(1, int.MaxValue)]
         public PackageDeprecationStatus Status { get; set; }
-        
+
         /// <summary>
         /// Gets or sets the alternate package registration entity.
         /// </summary>
         public virtual PackageRegistration AlternatePackageRegistration { get; set; }
-        
+
+        /// <summary>
+        /// Gets or sets the alternate package registration entity key.
+        /// </summary>
+        public virtual int? AlternatePackageRegistrationKey { get; set; }
+
         /// <summary>
         /// Gets or sets the alternate package entity.
         /// </summary>
         public virtual Package AlternatePackage { get; set; }
-        
+
+        /// <summary>
+        /// Gets or sets the alternate package entity key.
+        /// </summary>
+        public virtual int? AlternatePackageKey { get; set; }
+
         /// <summary>
         /// Gets or sets the user that executed the package deprecation.
         /// </summary>
         public virtual User DeprecatedBy { get; set; }
 
         /// <summary>
+        /// Gets or sets the key of the user that executed the package deprecation.
+        /// </summary>
+        public virtual int? DeprecatedByKey { get; set; }
+
+        /// <summary>
         /// The date when the package was deprecated.
         /// </summary>
-        [Required]
+        [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
         public DateTime DeprecatedOn { get; set; }
 
         /// <summary>

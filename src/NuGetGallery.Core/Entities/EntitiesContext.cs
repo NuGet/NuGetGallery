@@ -374,7 +374,7 @@ namespace NuGetGallery
             modelBuilder.Entity<PackageDeprecation>()
                 .HasKey(d => d.Key)
                 .HasRequired(d => d.DeprecatedPackage)
-                .WithRequiredDependent(p => p.Deprecation)
+                .WithOptional(p => p.Deprecation)
                 .WillCascadeOnDelete();
 
             modelBuilder.Entity<PackageDeprecation>()

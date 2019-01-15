@@ -24,11 +24,11 @@ namespace NuGet.Services.Entities
         /// <summary>
         /// The package is deprecated because it is legacy and no longer maintained.
         /// </summary>
-        IsLegacy = 2,
+        Legacy = 2,
 
         /// <summary>
         /// The package is deprecated because it is vulnerable.
         /// </summary>
-        IsVulnerable = 4
+        Vulnerable = 4
     }
 }
