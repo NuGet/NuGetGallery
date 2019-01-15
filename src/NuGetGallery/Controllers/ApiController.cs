@@ -30,9 +30,11 @@ using NuGetGallery.Packaging;
 using NuGetGallery.Security;
 using PackageIdValidator = NuGetGallery.Packaging.PackageIdValidator;
 
+using HttpResponseException = System.Web.Http.HttpResponseException;
+
 namespace NuGetGallery
 {
-    public partial class ApiController
+    public class ApiController
         : AppController
     {
         private const string NuGetExeUrl = "https://dist.nuget.org/win-x86-commandline/v2.8.6/nuget.exe";
@@ -327,6 +329,48 @@ namespace NuGetGallery
             TelemetryService.TrackVerifyPackageKeyEvent(id, version, user, User.Identity, result?.StatusCode ?? 200);
 
             return (ActionResult)result ?? new EmptyResult();
+        }
+
+        [HttpGet]
+        [ActionName("Fail400")]
+        public ActionResult Fail400()
+        {
+            return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, "Test fail 400");
+        }
+
+        [HttpGet]
+        [ActionName("Exception400")]
+        public ActionResult Exception400()
+        {
+            throw new HttpException(400, "Exception fail 400");
+        }
+
+        [HttpGet]
+        [ActionName("AspException400")]
+        public ActionResult AspException400()
+        {
+            throw new HttpResponseException(HttpStatusCode.BadRequest);
+        }
+
+        [HttpGet]
+        [ActionName("Fail500")]
+        public ActionResult Fail500()
+        {
+            return new HttpStatusCodeWithBodyResult(HttpStatusCode.InternalServerError, "Test fail 500");
+        }
+
+        [HttpGet]
+        [ActionName("Exception500")]
+        public ActionResult Exception500()
+        {
+            throw new HttpException(500, "Exception fail 500");
+        }
+
+        [HttpGet]
+        [ActionName("AspException500")]
+        public ActionResult AspException500()
+        {
+            throw new HttpResponseException(HttpStatusCode.InternalServerError);
         }
 
         private async Task<HttpStatusCodeWithBodyResult> VerifyPackageKeyInternalAsync(User user, Credential credential, string id, string version)

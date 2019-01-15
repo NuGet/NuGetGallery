@@ -35,6 +35,36 @@ namespace NuGetGallery
                 new { controller = "Pages", action = "Home" }); // T4MVC doesn't work with Async Action
 
             routes.MapRoute(
+                "HTest400",
+                "fail400",
+                new { controller = "Pages", action = "Fail400" });
+
+            routes.MapRoute(
+                "HException400",
+                "ex400",
+                new { controller = "Pages", action = "Exception400" });
+
+            routes.MapRoute(
+                "HAException400",
+                "aspex400",
+                new { controller = "Pages", action = "AspException400" });
+
+            routes.MapRoute(
+                "HTest500",
+                "fail500",
+                new { controller = "Pages", action = "Fail500" });
+
+            routes.MapRoute(
+                "HException500",
+                "ex500",
+                new { controller = "Pages", action = "Exception500" });
+
+            routes.MapRoute(
+                "HAException500",
+                "aspex500",
+                new { controller = "Pages", action = "AspException500" });
+
+            routes.MapRoute(
                 RouteName.ErrorReadOnly,
                 "errors/readonly",
                 new { controller = "Errors", action = "ReadOnlyMode" });
@@ -747,6 +777,36 @@ namespace NuGetGallery
                 RouteName.DownloadNuGetExe,
                 "nuget.exe",
                 new { controller = "Api", action = "GetNuGetExeApi" });
+
+            routes.MapRoute(
+                "Test400",
+                "api/fail400",
+                new { controller = "Api", action = "Fail400" });
+
+            routes.MapRoute(
+                "Exception400",
+                "api/ex400",
+                new { controller = "Api", action = "Exception400" });
+
+            routes.MapRoute(
+                "AException400",
+                "api/aspex400",
+                new { controller = "Api", action = "AspException400" });
+
+            routes.MapRoute(
+               "Test500",
+               "api/fail500",
+               new { controller = "Api", action = "Fail500" });
+
+            routes.MapRoute(
+                "Exception500",
+                "api/ex500",
+                new { controller = "Api", action = "Exception500" });
+
+            routes.MapRoute(
+                "AException500",
+                "api/aspex500",
+                new { controller = "Api", action = "AspException500" });
         }
     }
 }
