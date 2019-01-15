@@ -13,6 +13,10 @@
 </script>
 
 <div class="page-edit-package">
+    @{ 
+        var hideForm = true;
+    }
+
     @if (!Model.VersionSelectList.Any())
     {
         @ViewHelpers.AlertInfo(
@@ -34,6 +38,10 @@
     }
     else
     {
+        hideForm = false;
+    }
+
+    <div class="@(hideForm ? "hidden" : "")">
         <div id="select-package-version-container">
             <form aria-hidden="true" id="cancel-form">
                 @Html.AntiForgeryToken()
@@ -46,12 +54,12 @@
                     <label for="input-select-version" id="package-version-label" class="col-xs-12">
                         <span>Select version</span>
                         @Html.DropDownList("version-selection", Model.VersionSelectList,
-                                        new
-                                        {
-                                            @class = "form-control selectpicker show-tick show-menu-arrow btn-block",
-                                            @title = "Select a version",
-                                            @id = "input-select-version"
-                                        })
+                            new
+                            {
+                                @class = "form-control selectpicker show-tick show-menu-arrow btn-block",
+                                @title = "Select a version",
+                                @id = "input-select-version"
+                            })
                     </label>
                 </div>
             </form>
@@ -60,6 +68,6 @@
         </div>
 
         @Html.Partial("_EditForm")
-    }
+    </div>
 
 </div>
