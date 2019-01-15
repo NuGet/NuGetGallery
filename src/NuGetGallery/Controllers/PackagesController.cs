@@ -16,6 +16,7 @@ using System.Web.Caching;
 using System.Web.Mvc;
 using NuGet.Packaging;
 using NuGet.Services.Entities;
+using NuGet.Services.Licenses;
 using NuGet.Services.Messaging.Email;
 using NuGet.Versioning;
 using NuGetGallery.Areas.Admin;
@@ -32,6 +33,7 @@ using NuGetGallery.Infrastructure.Mail.Requests;
 using NuGetGallery.OData;
 using NuGetGallery.Packaging;
 using NuGetGallery.Security;
+using NuGetGallery.ViewModels;
 
 namespace NuGetGallery
 {
@@ -96,6 +98,7 @@ namespace NuGetGallery
         private readonly IDiagnosticsSource _trace;
         private readonly IFlatContainerService _flatContainerService;
         private readonly ICoreLicenseFileService _coreLicenseFileService;
+        private readonly ILicenseExpressionSplitter _licenseExpressionSplitter;
 
         public PackagesController(
             IPackageService packageService,
@@ -122,7 +125,8 @@ namespace NuGetGallery
             ISymbolPackageUploadService symbolPackageUploadService,
             IDiagnosticsService diagnosticsService,
             IFlatContainerService flatContainerService,
-            ICoreLicenseFileService coreLicenseFileService)
+            ICoreLicenseFileService coreLicenseFileService,
+            ILicenseExpressionSplitter licenseExpressionSplitter)
         {
             _packageService = packageService;
             _uploadFileService = uploadFileService;
@@ -149,6 +153,7 @@ namespace NuGetGallery
             _trace = diagnosticsService?.SafeGetSource(nameof(PackagesController)) ?? throw new ArgumentNullException(nameof(diagnosticsService));
             _flatContainerService = flatContainerService;
             _coreLicenseFileService = coreLicenseFileService ?? throw new ArgumentNullException(nameof(coreLicenseFileService));
+            _licenseExpressionSplitter = licenseExpressionSplitter ?? throw new ArgumentNullException(nameof(licenseExpressionSplitter));
         }
 
         [HttpGet]
@@ -288,7 +293,8 @@ namespace NuGetGallery
             var verifyRequest = new VerifyPackageRequest(packageMetadata, accountsAllowedOnBehalfOf, existingPackageRegistration);
             verifyRequest.Warnings.AddRange(validationResult.Warnings.Select(w => new JsonValidationMessage(w)));
             verifyRequest.IsSymbolsPackage = false;
-
+            verifyRequest.LicenseFileContents = await GetLicenseFileContentsOrNullAsync(packageMetadata, packageArchiveReader);
+            verifyRequest.LicenseExpressionSegments = GetLicenseExpressionSegmentsOrNull(packageMetadata.LicenseMetadata);
             model.InProgressUpload = verifyRequest;
             return View(model);
         }
@@ -534,6 +540,8 @@ namespace NuGetGallery
             bool hasExistingSymbolsPackageAvailable)
         {
             IReadOnlyList<IValidationMessage> warnings = new List<IValidationMessage>();
+            string licenseFileContents = null;
+            IReadOnlyCollection<CompositeLicenseExpressionSegmentViewModel> licenseExpressionSegments = null;
             using (Stream uploadedFile = await _uploadFileService.GetUploadFileAsync(currentUser.Key))
             {
                 if (uploadedFile == null)
@@ -571,13 +579,55 @@ namespace NuGetGallery
 
                     warnings = validationResult.Warnings;
                 }
+
+                try
+                {
+                    licenseFileContents = await GetLicenseFileContentsOrNullAsync(packageMetadata, packageArchiveReader);
+                    licenseExpressionSegments = GetLicenseExpressionSegmentsOrNull(packageMetadata.LicenseMetadata);
+                }
+                catch (Exception ex)
+                {
+                    _telemetryService.TraceException(ex);
+
+                    return Json(HttpStatusCode.BadRequest, new[] { new JsonValidationMessage(ex.GetUserSafeMessage()) });
+                }
             }
 
             var model = new VerifyPackageRequest(packageMetadata, accountsAllowedOnBehalfOf, existingPackageRegistration);
             model.IsSymbolsPackage = isSymbolsPackageUpload;
             model.HasExistingAvailableSymbols = hasExistingSymbolsPackageAvailable;
             model.Warnings.AddRange(warnings.Select(w => new JsonValidationMessage(w)));
+            model.LicenseFileContents = licenseFileContents;
+            model.LicenseExpressionSegments = licenseExpressionSegments;
             return Json(model);
+        }
+
+        private IReadOnlyCollection<CompositeLicenseExpressionSegmentViewModel> GetLicenseExpressionSegmentsOrNull(LicenseMetadata licenseMetadata)
+        {
+            if (licenseMetadata?.Type != LicenseType.Expression)
+            {
+                return null;
+            }
+
+            return _licenseExpressionSplitter
+                .SplitExpression(licenseMetadata.License)
+                .Select(s => new CompositeLicenseExpressionSegmentViewModel(s))
+                .ToList();
+        }
+
+        private static async Task<string> GetLicenseFileContentsOrNullAsync(PackageMetadata packageMetadata, PackageArchiveReader packageArchiveReader)
+        {
+            if (packageMetadata.LicenseMetadata?.Type != LicenseType.File)
+            {
+                return null;
+            }
+
+            var licenseFilename = FileNameHelper.GetZipEntryPath(packageMetadata.LicenseMetadata.License);
+            using (var licenseFileStream = packageArchiveReader.GetStream(licenseFilename))
+            using (var streamReader = new StreamReader(licenseFileStream, Encoding.UTF8))
+            {
+                return await streamReader.ReadToEndAsync();
+            }
         }
 
         public virtual async Task<ActionResult> DisplayPackage(string id, string version)
@@ -623,6 +673,21 @@ namespace NuGetGallery
             model.IsCertificatesUIEnabled = _contentObjectService.CertificatesConfiguration?.IsUIEnabledForUser(currentUser) ?? false;
 
             model.ReadMeHtml = await _readMeService.GetReadMeHtmlAsync(package);
+
+            if (!string.IsNullOrWhiteSpace(package.LicenseExpression))
+            {
+                try
+                {
+                    model.LicenseExpressionSegments = _licenseExpressionSplitter.SplitExpression(package.LicenseExpression);
+                }
+                catch (Exception ex)
+                {
+                    // Any exception thrown while trying to render license expression beautifully
+                    // is not severe enough to break the client experience, view will fall back to
+                    // display license url.
+                    _telemetryService.TraceException(ex);
+                }
+            }
 
             var externalSearchService = _searchService as ExternalSearchService;
             if (_searchService.ContainsAllVersions && externalSearchService != null)

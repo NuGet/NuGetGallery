@@ -22,6 +22,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.ServiceRuntime;
 using NuGet.Services.Entities;
 using NuGet.Services.KeyVault;
+using NuGet.Services.Licenses;
 using NuGet.Services.Logging;
 using NuGet.Services.Messaging;
 using NuGet.Services.Messaging.Email;
@@ -343,6 +344,18 @@ namespace NuGetGallery
 
             builder.RegisterType<GalleryContentFileMetadataService>()
                 .As<IContentFileMetadataService>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<LicenseExpressionSplitter>()
+                .As<ILicenseExpressionSplitter>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<LicenseExpressionParser>()
+                .As<ILicenseExpressionParser>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<LicenseExpressionSegmentator>()
+                .As<ILicenseExpressionSegmentator>()
                 .InstancePerLifetimeScope();
 
             RegisterMessagingService(builder, configuration);

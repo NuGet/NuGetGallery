@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NuGet.Services.Entities;
+using NuGet.Services.Licenses;
 using NuGet.Services.Validation.Issues;
 using NuGet.Versioning;
 
@@ -130,6 +131,7 @@ namespace NuGetGallery
         public string LicenseUrl { get; set; }
         public IEnumerable<string> LicenseNames { get; set; }
         public string LicenseExpression { get; set; }
+        public IReadOnlyCollection<CompositeLicenseExpressionSegment> LicenseExpressionSegments { get; set; }
         public EmbeddedLicenseFileType EmbeddedLicenseType { get; set; }
 
         private IDictionary<User, string> _pushedByCache = new Dictionary<User, string>();

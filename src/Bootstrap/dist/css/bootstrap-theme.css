@@ -1615,6 +1615,13 @@ img.reserved-indicator-icon {
 .page-upload #browse-for-package-button {
   margin: 0;
 }
+.page-upload pre.license-file-contents {
+  word-break: normal;
+  white-space: pre-wrap;
+}
+.page-upload .custom-license-container {
+  margin-bottom: 24px;
+}
 .warning-icon {
   color: #ea7918;
   vertical-align: bottom;

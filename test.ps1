@@ -24,7 +24,9 @@ Function Run-Tests {
     
     $xUnitExe = (Join-Path $PSScriptRoot "packages\xunit.runner.console\tools\xunit.console.exe")
     
-    $TestAssemblies = "tests\NuGetGallery.Core.Facts\bin\$Configuration\NuGetGallery.Core.Facts.dll", "tests\NuGetGallery.Facts\bin\$Configuration\NuGetGallery.Facts.dll"
+    $TestAssemblies = "tests\NuGetGallery.Core.Facts\bin\$Configuration\NuGetGallery.Core.Facts.dll", `
+        "tests\NuGetGallery.Facts\bin\$Configuration\NuGetGallery.Facts.dll", `
+        "tests\NuGet.Services.Entities.Tests\bin\$Configuration\NuGet.Services.Entities.Tests.dll"
     
     $TestCount = 0
     

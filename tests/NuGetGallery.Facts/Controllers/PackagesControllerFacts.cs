@@ -16,6 +16,7 @@ using System.Web.Routing;
 using Moq;
 using NuGet.Packaging;
 using NuGet.Services.Entities;
+using NuGet.Services.Licenses;
 using NuGet.Services.Messaging.Email;
 using NuGet.Services.Validation;
 using NuGet.Services.Validation.Issues;
@@ -67,7 +68,8 @@ namespace NuGetGallery
             Mock<IContentObjectService> contentObjectService = null,
             Mock<ISymbolPackageUploadService> symbolPackageUploadService = null,
             Mock<IFlatContainerService> flatContainerService = null,
-            Mock<ICoreLicenseFileService> coreLicenseFileService = null)
+            Mock<ICoreLicenseFileService> coreLicenseFileService = null,
+            Mock<ILicenseExpressionSplitter> licenseExpressionSplitter = null)
         {
             packageService = packageService ?? new Mock<IPackageService>();
             if (uploadFileService == null)
@@ -185,6 +187,8 @@ namespace NuGetGallery
                     .ReturnsAsync(() => new MemoryStream());
             }
 
+            licenseExpressionSplitter = licenseExpressionSplitter ?? new Mock<ILicenseExpressionSplitter>();
+
             var diagnosticsService = new Mock<IDiagnosticsService>();
             var controller = new Mock<PackagesController>(
                 packageService.Object,
@@ -211,7 +215,8 @@ namespace NuGetGallery
                 symbolPackageUploadService.Object,
                 diagnosticsService.Object,
                 flatContainerService.Object,
-                coreLicenseFileService.Object);
+                coreLicenseFileService.Object,
+                licenseExpressionSplitter.Object);
 
             controller.CallBase = true;
             controller.Object.SetOwinContextOverride(Fakes.CreateOwinContext());
@@ -836,6 +841,58 @@ namespace NuGetGallery
                 // Assert
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
                 Assert.Equal(model.PackageValidationIssues, expectedIssues);
+            }
+
+            [Fact]
+            public async Task SplitsLicenseExpressionWhenProvided()
+            {
+                const string expression = "some expression";
+                var splitterMock = new Mock<ILicenseExpressionSplitter>();
+                var packageService = new Mock<IPackageService>();
+                var indexingService = new Mock<IIndexingService>();
+
+                var segments = new List<CompositeLicenseExpressionSegment>();
+                splitterMock
+                    .Setup(les => les.SplitExpression(expression))
+                    .Returns(segments);
+
+                var package = new Package()
+                {
+                    PackageRegistration = new PackageRegistration()
+                    {
+                        Id = "Foo",
+                        Owners = new List<User>()
+                    },
+                    Version = "01.1.01",
+                    NormalizedVersion = "1.1.1",
+                    Title = "A test package!",
+                    LicenseExpression = expression,
+                };
+
+                packageService.Setup(p => p.FindPackageByIdAndVersion(
+                                                It.Is<string>(s => s == "Foo"),
+                                                It.Is<string>(s => s == null),
+                                                It.Is<int>(i => i == SemVerLevelKey.SemVer2),
+                                                It.Is<bool>(b => b == true)))
+                    .Returns(package);
+
+                indexingService.Setup(i => i.GetLastWriteTime()).Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
+
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService,
+                    indexingService: indexingService,
+                    licenseExpressionSplitter: splitterMock);
+
+                var result = await controller.DisplayPackage(id: "Foo", version: null);
+
+                splitterMock
+                    .Verify(les => les.SplitExpression(expression), Times.Once);
+                splitterMock
+                    .Verify(les => les.SplitExpression(It.IsAny<string>()), Times.Once);
+
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
+                Assert.Same(segments, model.LicenseExpressionSegments);
             }
 
             private class TestIssue : ValidationIssue
