@@ -93,6 +93,16 @@ namespace NuGetGallery.Configuration
         public string AutocompleteServiceResourceType { get; set; }
 
         /// <summary>
+        /// Gets the @type for the Search endpoint
+        /// </summary>
+        public string SearchServiceResourceType2 { get; set; }
+
+        /// <summary>
+        /// Gets the @type for the Autocomplete endpoint
+        /// </summary>
+        public string AutocompleteServiceResourceType2 { get; set; }
+
+        /// <summary>
         /// Gets a boolean indicating if the site requires that email addresses be confirmed
         /// </summary>
         [DefaultValue(true)]

@@ -12,6 +12,7 @@ namespace NuGetGallery
         ICertificatesConfiguration CertificatesConfiguration { get; }
         ISymbolsConfiguration SymbolsConfiguration { get; }
         ITyposquattingConfiguration TyposquattingConfiguration { get; }
+        ISearchTMConfiguration SearchTMConfiguration { get; }
         Task Refresh();
     }
 }

@@ -11,8 +11,8 @@ namespace NuGetGallery
     public class AutoCompleteServicePackageIdsQuery 
         : AutoCompleteServiceQuery, IAutoCompletePackageIdsQuery
     {
-        public AutoCompleteServicePackageIdsQuery(IAppConfiguration configuration)
-            : base(configuration)
+        public AutoCompleteServicePackageIdsQuery(IAppConfiguration configuration, IContentObjectService contentObjectService)
+            : base(configuration, contentObjectService)
         {
         }
 

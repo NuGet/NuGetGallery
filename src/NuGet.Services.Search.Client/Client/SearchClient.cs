@@ -14,10 +14,10 @@ namespace NuGet.Services.Search.Client
 {
     public class SearchClient
     {
-        private readonly RetryingHttpClientWrapper _retryingHttpClientWrapper;
+        private readonly IHttpClientWrapper _retryingHttpClientWrapper;
         private readonly ServiceDiscoveryClient _discoveryClient;
         private readonly string _resourceType;
-        private readonly HttpClient _httpClient;
+        //private readonly HttpClient _httpClient;
 
         /// <summary>
         /// Create a search service client from the specified base uri and credentials.
@@ -55,10 +55,25 @@ namespace NuGet.Services.Search.Client
                 handler = providedHandler;
             }
 
-            _httpClient = new HttpClient(handler, disposeHandler: true);
+            var httpClient = new HttpClient(handler, disposeHandler: true);
 
-            _retryingHttpClientWrapper = new RetryingHttpClientWrapper(_httpClient, healthIndicatorStore, onException);
-            _discoveryClient = new ServiceDiscoveryClient(_httpClient, baseUri);
+            _retryingHttpClientWrapper = new RetryingHttpClientWrapper(httpClient, healthIndicatorStore, onException);
+            _discoveryClient = new ServiceDiscoveryClient(httpClient, baseUri);
+        }
+
+        /// <summary>
+        /// Create a search service client from the specified base uri and credentials.
+        /// </summary>
+        /// <param name="baseUri">The URL to the root of the service</param>
+        /// <param name="resourceType">Resource type to query against</param>
+        /// <param name="credentials">The credentials to connect to the service with</param>
+        /// <param name="healthIndicatorStore">Health indicator store</param>
+        /// <param name="handlers">Handlers to apply to the request in order from first to last</param>
+        public SearchClient(Uri baseUri, string resourceType, ICredentials credentials, Action<Exception> onException, params DelegatingHandler[] handlers)
+        {
+            _resourceType = resourceType;
+            _retryingHttpClientWrapper = new HttpClientWrapper(credentials, onException, handlers);
+            _discoveryClient = new ServiceDiscoveryClient(_retryingHttpClientWrapper.Client, baseUri);
         }
 
         private static readonly Dictionary<SortOrder, string> SortNames = new Dictionary<SortOrder, string>

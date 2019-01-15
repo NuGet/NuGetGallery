@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web;
 using Newtonsoft.Json.Linq;
@@ -23,8 +24,11 @@ namespace NuGetGallery.Infrastructure.Lucene
 
         private static IEndpointHealthIndicatorStore _healthIndicatorStore;
         private static SearchClient _client;
-
+        private static SearchClient _clientTM;
         private JObject _diagCache;
+        private readonly IContentObjectService _contentObjectService;
+
+        //private bool _useTrafficManager = false;
 
         public Uri ServiceUri { get; private set; }
 
@@ -53,19 +57,20 @@ namespace NuGetGallery.Infrastructure.Lucene
             if (_client == null)
             {
                 _client = new SearchClient(
-                    ServiceUri, 
-                    "SearchGalleryQueryService/3.0.0-rc", 
-                    null, 
-                    _healthIndicatorStore, 
-                    QuietLog.LogHandledException, 
-                    new TracingHttpHandler(Trace), 
-                    new CorrelatingHttpClientHandler());
+                        ServiceUri,
+                        "SearchGalleryQueryService/3.0.0-rc",
+                        null,
+                        _healthIndicatorStore,
+                        QuietLog.LogHandledException,
+                        new TracingHttpHandler(Trace),
+                        new CorrelatingHttpClientHandler());
             }
         }
 
-        public ExternalSearchService(IAppConfiguration config, IDiagnosticsService diagnostics)
+        public ExternalSearchService(IAppConfiguration config, IDiagnosticsService diagnostics, IContentObjectService contentObjectService)
         {
-            ServiceUri = config.ServiceDiscoveryUri;
+            _contentObjectService = contentObjectService ?? throw new ArgumentNullException(nameof(contentObjectService));
+            ServiceUri = config?.ServiceDiscoveryUri ?? throw new ArgumentNullException(nameof(config));
 
             Trace = diagnostics.SafeGetSource("ExternalSearchService");
 
@@ -98,13 +103,24 @@ namespace NuGetGallery.Infrastructure.Lucene
             if (_client == null)
             {
                 _client = new SearchClient(
-                    ServiceUri, 
-                    config.SearchServiceResourceType, 
-                    credentials, 
+                    ServiceUri,
+                    config.SearchServiceResourceType,
+                    credentials,
                     _healthIndicatorStore,
                     QuietLog.LogHandledException,
-                    new TracingHttpHandler(Trace), 
+                    new TracingHttpHandler(Trace),
                     new CorrelatingHttpClientHandler());
+            }
+            if (_clientTM == null)
+            {
+                _clientTM = new SearchClient(
+                   ServiceUri,
+                   //contentObjectService.SearchTMConfiguration.SearchGalleryQueryServiceType,
+                   config.SearchServiceResourceType2,
+                   credentials,
+                   QuietLog.LogHandledException,
+                   new TracingHttpHandler(Trace),
+                   new CorrelatingHttpClientHandler());
             }
         }
 
@@ -129,7 +145,7 @@ namespace NuGetGallery.Infrastructure.Lucene
             // Query!
             var sw = new Stopwatch();
             sw.Start();
-            var result = await _client.Search(
+            var result = await SearchClient().Search(
                 filter.SearchTerm,
                 projectTypeFilter: null,
                 includePrerelease: filter.IncludePrerelease,
@@ -190,6 +206,10 @@ namespace NuGetGallery.Infrastructure.Lucene
             return results;
         }
 
+        private SearchClient SearchClient()
+        {
+            return _contentObjectService.SearchTMConfiguration.IsSearchTMEnabled ? _clientTM : _client;
+        }
         private static string TryGetUrl()
         {
             return HttpContext.Current != null ?
@@ -238,7 +258,7 @@ namespace NuGetGallery.Infrastructure.Lucene
         {
             if (_diagCache == null)
             {
-                var resp = await _client.GetDiagnostics();
+                var resp = await SearchClient().GetDiagnostics();
                 if (!resp.IsSuccessStatusCode)
                 {
                     Trace.Error("HTTP Error when retrieving diagnostics: " + ((int)resp.StatusCode).ToString());

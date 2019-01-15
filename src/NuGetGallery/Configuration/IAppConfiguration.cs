@@ -128,6 +128,16 @@ namespace NuGetGallery.Configuration
         /// <summary>
         /// Gets the @type for the Autocomplete endpoint
         /// </summary>
+        string AutocompleteServiceResourceType2 { get; set; }
+
+        /// <summary>
+        /// Gets the @type for the Search endpoint
+        /// </summary>
+        string SearchServiceResourceType2 { get; set; }
+
+        /// <summary>
+        /// Gets the @type for the Autocomplete endpoint
+        /// </summary>
         string AutocompleteServiceResourceType { get; set; }
 
         /// <summary>

@@ -20,10 +20,15 @@ namespace NuGetGallery
             return mockConfiguration.Object;
         }
 
+        private IContentObjectService GetContent()
+        {
+           return new ContentObjectService(new Mock<IContentService>().Object);
+        }
+
         [Fact]
         public async Task ExecuteReturns30ResultsForEmptyQuery()
         {
-            var query = new AutoCompleteServicePackageIdsQuery(GetConfiguration());
+            var query = new AutoCompleteServicePackageIdsQuery(GetConfiguration(), GetContent());
             var result = await query.Execute("", false);
             Assert.True(result.Count() == 30);
         }
@@ -31,7 +36,7 @@ namespace NuGetGallery
         [Fact]
         public async Task ExecuteReturns30ResultsForNullQuery()
         {
-            var query = new AutoCompleteServicePackageIdsQuery(GetConfiguration());
+            var query = new AutoCompleteServicePackageIdsQuery(GetConfiguration(), GetContent());
             var result = await query.Execute(null, false);
             Assert.True(result.Count() == 30);
         }
@@ -39,7 +44,7 @@ namespace NuGetGallery
         [Fact]
         public async Task ExecuteReturnsResultsForSpecificQuery()
         {
-            var query = new AutoCompleteServicePackageIdsQuery(GetConfiguration());
+            var query = new AutoCompleteServicePackageIdsQuery(GetConfiguration(), GetContent());
             var result = await query.Execute("jquery", false);
             Assert.Contains("jquery", result, StringComparer.OrdinalIgnoreCase);
         }
@@ -52,7 +57,7 @@ namespace NuGetGallery
         public void PackageIdQueryBuildsCorrectQueryString(bool includePrerelease, string semVerLevel, string expectedQueryString)
         {
             // Arrange
-            var query = new AutoCompleteServicePackageIdsQuery(GetConfiguration());
+            var query = new AutoCompleteServicePackageIdsQuery(GetConfiguration(), GetContent());
 
             // Act
             var actualQueryString = query.BuildQueryString("take=30&q=Json", includePrerelease, semVerLevel);

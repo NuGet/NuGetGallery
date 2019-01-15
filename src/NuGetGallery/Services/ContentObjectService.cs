@@ -22,12 +22,14 @@ namespace NuGetGallery
             CertificatesConfiguration = new CertificatesConfiguration();
             SymbolsConfiguration = new SymbolsConfiguration();
             TyposquattingConfiguration = new TyposquattingConfiguration();
+            SearchTMConfiguration = new SearchTMConfiguration();
         }
 
         public ILoginDiscontinuationConfiguration LoginDiscontinuationConfiguration { get; set; }
         public ICertificatesConfiguration CertificatesConfiguration { get; set; }
         public ISymbolsConfiguration SymbolsConfiguration { get; set; }
         public ITyposquattingConfiguration TyposquattingConfiguration { get; set; }
+        public ISearchTMConfiguration SearchTMConfiguration { get; set; }
 
         public async Task Refresh()
         {
@@ -46,6 +48,10 @@ namespace NuGetGallery
             TyposquattingConfiguration =
                await Refresh<TyposquattingConfiguration>(GalleryConstants.ContentNames.TyposquattingConfiguration) ??
                new TyposquattingConfiguration();
+
+            SearchTMConfiguration =
+               await Refresh<SearchTMConfiguration>(GalleryConstants.ContentNames.SearchTMConfiguration) ??
+               new SearchTMConfiguration();
         }
 
         private async Task<T> Refresh<T>(string contentName) 

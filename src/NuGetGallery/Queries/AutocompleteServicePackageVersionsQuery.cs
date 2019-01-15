@@ -11,8 +11,8 @@ namespace NuGetGallery
     public class AutoCompleteServicePackageVersionsQuery
         : AutoCompleteServiceQuery, IAutoCompletePackageVersionsQuery
     {
-        public AutoCompleteServicePackageVersionsQuery(IAppConfiguration configuration)
-            : base(configuration)
+        public AutoCompleteServicePackageVersionsQuery(IAppConfiguration configuration, IContentObjectService contentObjectService)
+            : base(configuration, contentObjectService)
         {
         }
 

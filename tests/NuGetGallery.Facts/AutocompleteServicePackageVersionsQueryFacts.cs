@@ -20,17 +20,22 @@ namespace NuGetGallery
             return mockConfiguration.Object;
         }
 
+        private IContentObjectService GetContent()
+        {
+            return new ContentObjectService(new Mock<IContentService>().Object);
+        }
+
         [Fact]
         public async Task ExecuteThrowsForEmptyId()
         {
-            var query = new AutoCompleteServicePackageVersionsQuery(GetConfiguration());
+            var query = new AutoCompleteServicePackageVersionsQuery(GetConfiguration(), GetContent());
             await Assert.ThrowsAsync<ArgumentNullException>(async () => await query.Execute(string.Empty, false));
         }
 
         [Fact]
         public async Task ExecuteReturnsResultsForSpecificQuery()
         {
-            var query = new AutoCompleteServicePackageVersionsQuery(GetConfiguration());
+            var query = new AutoCompleteServicePackageVersionsQuery(GetConfiguration(), GetContent());
             var result = await query.Execute("newtonsoft.json", false);
             Assert.True(result.Any());
         }
@@ -43,7 +48,7 @@ namespace NuGetGallery
         public void PackageVersionsQueryBuildsCorrectQueryString(bool includePrerelease, string semVerLevel, string expectedQueryString)
         {
             // Arrange
-            var query = new AutoCompleteServicePackageVersionsQuery(GetConfiguration());
+            var query = new AutoCompleteServicePackageVersionsQuery(GetConfiguration(), GetContent());
 
             // Act
             var actualQueryString = query.BuildQueryString("id=Newtonsoft.Json", includePrerelease, semVerLevel);

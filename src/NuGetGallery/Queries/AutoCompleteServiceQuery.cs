@@ -17,18 +17,31 @@ namespace NuGetGallery
     {
         private readonly ServiceDiscoveryClient _serviceDiscoveryClient;
         private readonly string _autocompleteServiceResourceType;
-        private readonly RetryingHttpClientWrapper _httpClient;
+        private readonly IHttpClientWrapper _httpClient;
+        //private bool _useTrafficManager = false;
+        private readonly IContentObjectService _contentObjectService;
 
-        public AutoCompleteServiceQuery(IAppConfiguration configuration)
+        public AutoCompleteServiceQuery(IAppConfiguration configuration, IContentObjectService contentObjectService)
         {
             if (configuration == null)
             {
                 throw new ArgumentNullException(nameof(configuration));
             }
+            _contentObjectService = contentObjectService ?? throw new ArgumentNullException(nameof(contentObjectService));
 
             _serviceDiscoveryClient = new ServiceDiscoveryClient(configuration.ServiceDiscoveryUri);
-            _autocompleteServiceResourceType = configuration.AutocompleteServiceResourceType;
-            _httpClient = new RetryingHttpClientWrapper(new HttpClient(), QuietLog.LogHandledException);
+            
+            if(contentObjectService.SearchTMConfiguration.IsSearchTMEnabled)
+            {
+                _autocompleteServiceResourceType = configuration.AutocompleteServiceResourceType2;
+                    //contentObjectService.SearchTMConfiguration.SearchGalleryAutocompleteServiceType;
+                _httpClient = new HttpClientWrapper(new HttpClient(), QuietLog.LogHandledException);
+            }
+            else
+            {
+                _autocompleteServiceResourceType = configuration.AutocompleteServiceResourceType;
+                _httpClient = new RetryingHttpClientWrapper(new HttpClient(), QuietLog.LogHandledException);
+            }
         }
 
         public async Task<IEnumerable<string>> RunServiceQuery(

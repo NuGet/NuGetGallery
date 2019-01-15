@@ -436,6 +436,7 @@
     <Compile Include="Services\GalleryContentFileMetadataService.cs" />
     <Compile Include="Services\InvalidLicenseUrlValidationMessage.cs" />
     <Compile Include="Services\InvalidUrlEncodingForLicenseUrlValidationMessage.cs" />
+    <Compile Include="Services\ISearchTMConfiguration.cs" />
     <Compile Include="Services\ISymbolPackageUploadService.cs" />
     <Compile Include="Services\ISymbolPackageFileService.cs" />
     <Compile Include="Services\ITyposquattingCheckListCacheService.cs" />
@@ -449,6 +450,7 @@
     <Compile Include="Services\LicenseUrlDeprecationValidationMessage.cs" />
     <Compile Include="Services\PackageShouldNotBeSignedUserFixableValidationMessage.cs" />
     <Compile Include="Services\PlainTextOnlyValidationMessage.cs" />
+    <Compile Include="Services\SearchTMConfiguration.cs" />
     <Compile Include="Services\SymbolPackageValidationResult.cs" />
     <Compile Include="Infrastructure\Mail\MarkdownMessageService.cs" />
     <Compile Include="Services\SymbolPackageUploadService.cs" />
