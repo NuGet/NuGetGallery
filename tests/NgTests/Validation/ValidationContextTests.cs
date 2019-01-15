@@ -17,12 +17,13 @@ using NuGet.Services.Metadata.Catalog.Monitoring;
 using NuGet.Versioning;
 using Xunit;
 
-namespace NgTests.Validators
+namespace NgTests.Validation
 {
     public class ValidationContextTests
     {
         private static readonly PackageIdentity _packageIdentity = new PackageIdentity("A", new NuGetVersion(1, 0, 0));
-        private static readonly IReadOnlyDictionary<FeedType, SourceRepository> _emptyFeedToSource = new Dictionary<FeedType, SourceRepository>();
+        private static readonly ValidationSourceRepositories _mockValidationSourceRepositories =
+            new ValidationSourceRepositories(Mock.Of<SourceRepository>(), Mock.Of<SourceRepository>());
 
         [Fact]
         public void Constructor_WhenPackageIdentityIsNull_Throws()
@@ -34,7 +35,7 @@ namespace NgTests.Validators
                     packageIdentity,
                     Enumerable.Empty<CatalogIndexEntry>(),
                     Enumerable.Empty<DeletionAuditEntry>(),
-                    _emptyFeedToSource,
+                    _mockValidationSourceRepositories,
                     new CollectorHttpClient(),
                     CancellationToken.None,
                     Mock.Of<ILogger<ValidationContext>>()));
@@ -52,7 +53,7 @@ namespace NgTests.Validators
                     _packageIdentity,
                     entries,
                     Enumerable.Empty<DeletionAuditEntry>(),
-                    _emptyFeedToSource,
+                    _mockValidationSourceRepositories,
                     new CollectorHttpClient(),
                     CancellationToken.None,
                     Mock.Of<ILogger<ValidationContext>>()));
@@ -70,7 +71,7 @@ namespace NgTests.Validators
                     _packageIdentity,
                     Enumerable.Empty<CatalogIndexEntry>(),
                     deletionAuditEntries,
-                    _emptyFeedToSource,
+                    _mockValidationSourceRepositories,
                     new CollectorHttpClient(),
                     CancellationToken.None,
                     Mock.Of<ILogger<ValidationContext>>()));
@@ -81,19 +82,19 @@ namespace NgTests.Validators
         [Fact]
         public void Constructor_WhenFeedToSourceIsNull_Throws()
         {
-            IReadOnlyDictionary<FeedType, SourceRepository> feedToSource = null;
+            ValidationSourceRepositories sourceRepositories = null;
 
             var exception = Assert.Throws<ArgumentNullException>(
                 () => new ValidationContext(
                     _packageIdentity,
                     Enumerable.Empty<CatalogIndexEntry>(),
                     Enumerable.Empty<DeletionAuditEntry>(),
-                    feedToSource,
+                    sourceRepositories,
                     new CollectorHttpClient(),
                     CancellationToken.None,
                     Mock.Of<ILogger<ValidationContext>>()));
 
-            Assert.Equal("feedToSource", exception.ParamName);
+            Assert.Equal("sourceRepositories", exception.ParamName);
         }
 
         [Fact]
@@ -106,7 +107,7 @@ namespace NgTests.Validators
                     _packageIdentity,
                     Enumerable.Empty<CatalogIndexEntry>(),
                     Enumerable.Empty<DeletionAuditEntry>(),
-                    _emptyFeedToSource,
+                    _mockValidationSourceRepositories,
                     client,
                     CancellationToken.None,
                     Mock.Of<ILogger<ValidationContext>>()));
@@ -122,7 +123,7 @@ namespace NgTests.Validators
                     _packageIdentity,
                     Enumerable.Empty<CatalogIndexEntry>(),
                     Enumerable.Empty<DeletionAuditEntry>(),
-                    _emptyFeedToSource,
+                    _mockValidationSourceRepositories,
                     new CollectorHttpClient(),
                     CancellationToken.None,
                     logger: null));
@@ -356,11 +357,15 @@ namespace NgTests.Validators
                     .Returns(v3Resource ?? Mock.Of<IPackageRegistrationMetadataResource>());
             }
 
+            var sourceRepositories = new ValidationSourceRepositories(
+                feedToSource[FeedType.HttpV2],
+                feedToSource[FeedType.HttpV3]);
+
             return new ValidationContext(
                 package ?? _packageIdentity,
                 entries ?? Enumerable.Empty<CatalogIndexEntry>(),
                 deletionAuditEntries ?? Enumerable.Empty<DeletionAuditEntry>(),
-                feedToSource,
+                sourceRepositories,
                 client ?? new CollectorHttpClient(),
                 token ?? CancellationToken.None,
                 logger ?? Mock.Of<ILogger<ValidationContext>>());

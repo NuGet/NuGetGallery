@@ -21,7 +21,7 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
     /// Performs a validation test on a package on a <see cref="EndpointValidator"/>.
     /// </summary>
     /// <typeparam name="T">The <see cref="EndpointValidator"/> to be validated.</typeparam>
-    public interface IValidator<T> : IValidator where T : EndpointValidator
+    public interface IValidator<T> : IValidator where T : IEndpoint
     {
     }
 }

@@ -6,8 +6,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Extensions.Logging;
 using Moq;
-using NuGet.Protocol;
-using NuGet.Protocol.Core.Types;
 using NuGet.Services.Metadata.Catalog.Monitoring;
 
 namespace NgTests
@@ -73,15 +71,10 @@ namespace NgTests
     {
         public RegistrationLeafValidator CreateValidator()
         {
-            var mockDictionary = new Mock<IDictionary<FeedType, SourceRepository>>();
-            mockDictionary.Setup(x => x[It.IsAny<FeedType>()]).Returns(new Mock<SourceRepository>().Object);
-
-            var logger = new Mock<ILogger<T>>();
-
-            return CreateValidator(mockDictionary.Object, logger.Object);
+            return CreateValidator(Mock.Of<ILogger<T>>());
         }
 
-        protected abstract T CreateValidator(IDictionary<FeedType, SourceRepository> feedToSource, ILogger<T> logger);
+        protected abstract T CreateValidator(ILogger<T> logger);
 
         public abstract IEnumerable<Func<PackageRegistrationIndexMetadata>> CreateIndexes { get; }
 

@@ -2,10 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using NuGet.Services.Metadata.Catalog.Monitoring;
 using Xunit;
 
@@ -19,7 +15,7 @@ namespace NgTests.Validation
         public void Constructor_WhenPackageBaseAddressIsNullOrEmpty_Throws(string packageBaseAddress)
         {
             var exception = Assert.Throws<ArgumentException>(
-                () => new ValidatorConfiguration(packageBaseAddress, requirePackageSignature: true));
+                () => new ValidatorConfiguration(packageBaseAddress, requireRepositorySignature: true));
 
             Assert.Equal("packageBaseAddress", exception.ParamName);
         }
@@ -29,12 +25,12 @@ namespace NgTests.Validation
         [InlineData("b", false)]
         public void Constructor_WhenArgumentsAreValid_InitializesInstance(
             string packageBaseAddress,
-            bool requirePackageSignature)
+            bool requireRepositorySignature)
         {
-            var configuration = new ValidatorConfiguration(packageBaseAddress, requirePackageSignature);
+            var configuration = new ValidatorConfiguration(packageBaseAddress, requireRepositorySignature);
 
             Assert.Equal(packageBaseAddress, configuration.PackageBaseAddress);
-            Assert.Equal(requirePackageSignature, configuration.RequirePackageSignature);
+            Assert.Equal(requireRepositorySignature, configuration.RequireRepositorySignature);
         }
     }
 }

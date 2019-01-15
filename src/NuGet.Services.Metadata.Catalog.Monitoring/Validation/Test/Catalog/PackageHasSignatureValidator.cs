@@ -6,18 +6,16 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
-using NuGet.Services.Metadata.Catalog.Monitoring.Validation.Test.Exceptions;
+using NuGet.Packaging.Signing;
 
-namespace NuGet.Services.Metadata.Catalog.Monitoring.Validation.Test.Catalog
+namespace NuGet.Services.Metadata.Catalog.Monitoring
 {
     /// <summary>
     /// Validates that the package is signed by verifying the presence of the "package signature file"
     /// in the nupkg. See: https://github.com/NuGet/Home/wiki/Package-Signatures-Technical-Details#-the-package-signature-file
     /// </summary>
-    public sealed class PackageHasSignatureValidator : Validator
+    public sealed class PackageHasSignatureValidator : Validator<CatalogEndpoint>
     {
-        private const string NupkgSignatureFile = ".signature.p7s";
-
         private readonly ILogger<PackageHasSignatureValidator> _logger;
 
         public PackageHasSignatureValidator(
@@ -45,6 +43,11 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring.Validation.Test.Catalog
 
         public bool ShouldRunValidator(ValidationContext context)
         {
+            if (!Config.RequireRepositorySignature)
+            {
+                return false;
+            }
+
             var latest = context.Entries
                 .OrderByDescending(e => e.CommitTimeStamp)
                 .FirstOrDefault();
@@ -87,41 +90,43 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring.Validation.Test.Catalog
 
             var leaf = await context.Client.GetJObjectAsync(latest.Uri, context.CancellationToken);
 
-            if (!LeafHasSignatureFile(leaf))
+            if (!HasSignatureFile(leaf, latest.Uri))
             {
                 _logger.LogWarning(
-                    "Catalog entry {CatalogEntry} for package {PackageId} {PackageVersion} is missing a package signature file",
+                    "Catalog entry {CatalogEntry} for package {PackageId} {PackageVersion} is missing a package signature file.",
                     latest.Uri,
                     context.Package.Id,
                     context.Package.Version);
 
                 throw new MissingPackageSignatureFileException(
                     latest.Uri,
-                    $"Catalog entry {latest.Uri} for package {context.Package.Id} {context.Package.Version} is missing a package signature file");
+                    $"Catalog entry {latest.Uri} for package {context.Package.Id} {context.Package.Version} is missing a package signature file.");
             }
 
             _logger.LogInformation(
-                "Validated that catalog entry {CatalogEntry} for package {PackageId} {PackageVersion} has a package signature",
+                "Validated that catalog entry {CatalogEntry} for package {PackageId} {PackageVersion} has a package signature.",
                 latest.Uri,
                 context.Package.Id,
                 context.Package.Version);
         }
 
-        private bool LeafHasSignatureFile(JObject leaf)
+        private bool HasSignatureFile(JObject leaf, Uri uri)
         {
-            var packageEntries = leaf["packageEntries"];
+            const string propertyName = "packageEntries";
+
+            var packageEntries = leaf[propertyName];
 
             if (packageEntries == null)
             {
-                throw new InvalidOperationException("Catalog leaf is missing the 'packageEntries' property");
+                throw new InvalidOperationException($"The catalog leaf at {uri.AbsoluteUri} is missing the '{propertyName}' property.");
             }
 
             if (!(packageEntries is JArray files))
             {
-                throw new InvalidOperationException("Catalog leaf's 'packageEntries' property is malformed");
+                throw new InvalidOperationException($"The catalog leaf at {uri.AbsoluteUri} has a malformed '{propertyName}' property.");
             }
 
-            return files.Any(file => (string)file["fullName"] == NupkgSignatureFile);
+            return files.Any(file => (string)file["fullName"] == SigningSpecifications.V1.SignaturePath);
         }
     }
 }

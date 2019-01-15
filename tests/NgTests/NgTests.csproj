@@ -102,12 +102,11 @@
       <DependentUpon>TestCatalogEntries.resx</DependentUpon>
     </Compile>
     <Compile Include="Data\Catalogs.cs" />
-    <Compile Include="Validation\CatalogAggregateValidatorFacts.cs" />
+    <Compile Include="Validation\CatalogLeaf.cs" />
     <Compile Include="Validation\DummyAggregateValidator.cs" />
     <Compile Include="Validation\DummyValidator.cs" />
     <Compile Include="Validation\PackageHasSignatureValidatorFacts.cs" />
     <Compile Include="Validation\PackageIsRepositorySignedValidatorFacts.cs" />
-    <Compile Include="Validation\PackageValidatorFactoryTests.cs" />
     <Compile Include="Validation\PackageValidatorTests.cs" />
     <Compile Include="Validation\PackageValidatorContextTests.cs" />
     <Compile Include="Validation\RegistrationIndexValidatorTestData.cs" />
@@ -122,7 +121,6 @@
     <Compile Include="Validation\ValidationContextStub.cs" />
     <Compile Include="Validation\ValidationContextTests.cs" />
     <Compile Include="Validation\ValidatorConfigurationTests.cs" />
-    <Compile Include="Validation\ValidatorFactoryTests.cs" />
     <Compile Include="Validation\ValidatorTests.cs" />
     <Compile Include="Validation\ValidatorTestUtility.cs" />
   </ItemGroup>

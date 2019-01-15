@@ -5,6 +5,8 @@
     <Target Name="EnumerateThirdPartyBinariesToSign" AfterTargets="AfterBuild" Condition="'$(SignType)' != 'none'">
         <ItemGroup>
             <ThirdPartyBinaries Include="AnglicanGeek.MarkdownMailer.dll" />
+            <ThirdPartyBinaries Include="Autofac.dll" />
+            <ThirdPartyBinaries Include="Autofac.Extensions.DependencyInjection.dll" />
             <ThirdPartyBinaries Include="dotNetRDF.dll" />
             <ThirdPartyBinaries Include="Elmah.dll" />
             <ThirdPartyBinaries Include="HtmlAgilityPack.dll" />

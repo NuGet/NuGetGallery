@@ -1,18 +1,14 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using NuGet.Protocol;
-using NuGet.Protocol.Core.Types;
 
 namespace NuGet.Services.Metadata.Catalog.Monitoring
 {
     public class RegistrationRequireLicenseAcceptanceValidator : RegistrationIndexValidator
     {
         public RegistrationRequireLicenseAcceptanceValidator(
-            IDictionary<FeedType, SourceRepository> feedToSource,
             ValidatorConfiguration config,
             ILogger<RegistrationRequireLicenseAcceptanceValidator> logger)
             : base(config, logger)

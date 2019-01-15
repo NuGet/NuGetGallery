@@ -4,8 +4,6 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
-using NuGet.Protocol;
-using NuGet.Protocol.Core.Types;
 using NuGet.Services.Metadata.Catalog.Monitoring;
 
 namespace NgTests
@@ -13,12 +11,11 @@ namespace NgTests
     public class RegistrationRequireLicenseAcceptanceValidatorTestData : RegistrationIndexValidatorTestData<RegistrationRequireLicenseAcceptanceValidator>
     {
         protected override RegistrationRequireLicenseAcceptanceValidator CreateValidator(
-            IDictionary<FeedType, SourceRepository> feedToSource,
             ILogger<RegistrationRequireLicenseAcceptanceValidator> logger)
         {
-            var config = new ValidatorConfiguration("https://nuget.test/packages", requirePackageSignature: false);
+            var config = new ValidatorConfiguration("https://nuget.test/packages", requireRepositorySignature: false);
 
-            return new RegistrationRequireLicenseAcceptanceValidator(feedToSource, config, logger);
+            return new RegistrationRequireLicenseAcceptanceValidator(config, logger);
         }
 
         public override IEnumerable<Func<PackageRegistrationIndexMetadata>> CreateIndexes => new Func<PackageRegistrationIndexMetadata>[]

@@ -4,8 +4,6 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
-using NuGet.Protocol;
-using NuGet.Protocol.Core.Types;
 using NuGet.Services.Metadata.Catalog.Monitoring;
 
 namespace NgTests
@@ -13,7 +11,6 @@ namespace NgTests
     public class RegistrationExistsValidatorTestData : RegistrationLeafValidatorTestData<RegistrationExistsValidator>
     {
         protected override RegistrationExistsValidator CreateValidator(
-            IDictionary<FeedType, SourceRepository> feedToSource,
             ILogger<RegistrationExistsValidator> logger)
         {
             var config = ValidatorTestUtility.CreateValidatorConfig();

@@ -99,7 +99,7 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
     /// <summary>
     /// Abstract class with the shared functionality between all <see cref="IValidator{T}"/> implementations.
     /// </summary>
-    public abstract class Validator<T> : Validator, IValidator<T> where T : EndpointValidator
+    public abstract class Validator<T> : Validator, IValidator<T> where T : IEndpoint
     {
         protected Validator(ValidatorConfiguration config, ILogger<Validator> logger)
             : base(config, logger)

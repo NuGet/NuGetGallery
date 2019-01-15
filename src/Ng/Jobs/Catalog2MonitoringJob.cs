@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -18,15 +17,11 @@ namespace Ng.Jobs
     /// </summary>
     public class Catalog2MonitoringJob : LoopingNgJob
     {
-        private ValidationCollectorFactory _collectorFactory;
-        private ValidationCollector _collector;
-        private ReadWriteCursor _front;
-        private ReadCursor _back;
+        private PackageValidatorContextEnqueuer _enqueuer; 
 
         public Catalog2MonitoringJob(ITelemetryService telemetryService, ILoggerFactory loggerFactory)
             : base(telemetryService, loggerFactory)
         {
-            _collectorFactory = new ValidationCollectorFactory(LoggerFactory);
         }
 
         protected override void Init(IDictionary<string, string> arguments, CancellationToken cancellationToken)
@@ -40,7 +35,7 @@ namespace Ng.Jobs
 
             var monitoringStorageFactory = CommandHelpers.CreateStorageFactory(arguments, verbose);
 
-            var endpointInputs = CommandHelpers.GetEndpointFactoryInputs(arguments);
+            var endpointConfiguration = CommandHelpers.GetEndpointConfiguration(arguments);
 
             var messageHandlerFactory = CommandHelpers.GetHttpMessageHandlerFactory(TelemetryService, verbose);
 
@@ -49,30 +44,22 @@ namespace Ng.Jobs
             var queue = CommandHelpers.CreateStorageQueue<PackageValidatorContext>(arguments, PackageValidatorContext.Version);
 
             Logger.LogInformation(
-                "CONFIG gallery: {Gallery} index: {Index} storage: {Storage} endpoints: {Endpoints}",
-                gallery, index, monitoringStorageFactory, string.Join(", ", endpointInputs.Select(e => e.Name)));
+                "CONFIG gallery: {Gallery} index: {Index} storage: {Storage} registration cursor uri: {RegistrationCursorUri} flat-container cursor uri: {FlatContainerCursorUri}",
+                gallery, index, monitoringStorageFactory, endpointConfiguration.RegistrationCursorUri, endpointConfiguration.FlatContainerCursorUri);
 
-            var context = _collectorFactory.Create(
+            _enqueuer = ValidationFactory.CreatePackageValidatorContextEnqueuer(
                 queue,
                 source,
                 monitoringStorageFactory,
-                endpointInputs,
+                endpointConfiguration,
                 TelemetryService,
-                messageHandlerFactory);
-
-            _collector = context.Collector;
-            _front = context.Front;
-            _back = context.Back;
+                messageHandlerFactory,
+                LoggerFactory);
         }
 
         protected override async Task RunInternalAsync(CancellationToken cancellationToken)
         {
-            bool run;
-            do
-            {
-                run = await _collector.RunAsync(_front, _back, cancellationToken);
-            }
-            while (run);
+            await _enqueuer.EnqueuePackageValidatorContexts(cancellationToken);
         }
     }
 }

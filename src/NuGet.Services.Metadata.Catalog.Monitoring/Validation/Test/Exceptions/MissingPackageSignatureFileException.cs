@@ -3,7 +3,7 @@
 
 using System;
 
-namespace NuGet.Services.Metadata.Catalog.Monitoring.Validation.Test.Exceptions
+namespace NuGet.Services.Metadata.Catalog.Monitoring
 {
     /// <summary>
     /// The exception thrown when a catalog entry is missing a package signature file.

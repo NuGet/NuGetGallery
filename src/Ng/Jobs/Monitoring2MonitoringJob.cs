@@ -65,7 +65,7 @@ namespace Ng.Jobs
                         invalidPackage.Package.Id, invalidPackage.Package.Version);
 
                     return _queue.AddAsync(
-                        new PackageValidatorContext(invalidPackage.Package, invalidPackage.ValidationResult?.CatalogEntries),
+                        new PackageValidatorContext(invalidPackage),
                         cancellationToken);
                 }
                 catch (Exception e)

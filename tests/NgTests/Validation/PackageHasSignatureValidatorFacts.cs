@@ -8,19 +8,14 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 using NgTests.Infrastructure;
-using NgTests.Validation;
 using NuGet.Packaging.Core;
 using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Monitoring;
-using NuGet.Services.Metadata.Catalog.Monitoring.Validation.Test.Catalog;
-using NuGet.Services.Metadata.Catalog.Monitoring.Validation.Test.Exceptions;
 using NuGet.Versioning;
 using Xunit;
 
-namespace NgTests
+namespace NgTests.Validation
 {
     public class PackageHasSignatureValidatorFacts
     {
@@ -30,7 +25,7 @@ namespace NgTests
 
             public Constructor()
             {
-                _configuration = new ValidatorConfiguration(packageBaseAddress: "a", requirePackageSignature: true);
+                _configuration = new ValidatorConfiguration(packageBaseAddress: "a", requireRepositorySignature: true);
             }
 
             [Fact]
@@ -58,19 +53,23 @@ namespace NgTests
 
         public class ShouldRunValidator : FactsBase
         {
-            [Fact]
-            public void SkipsIfNoEntries()
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public void SkipsIfNoEntries(bool requirePackageSignature)
             {
-                var target = CreateTarget();
+                var target = CreateTarget(requirePackageSignature);
                 var context = CreateValidationContext(catalogEntries: new CatalogIndexEntry[0]);
 
                 Assert.False(target.ShouldRunValidator(context));
             }
 
-            [Fact]
-            public void SkipsIfLatestEntryIsDelete()
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public void SkipsIfLatestEntryIsDelete(bool requirePackageSignature)
             {
-                var target = CreateTarget();
+                var target = CreateTarget(requirePackageSignature);
                 var uri = new Uri($"https://nuget.test/{PackageIdentity.Id}");
                 var context = CreateValidationContext(
                     catalogEntries: new[]
@@ -93,11 +92,26 @@ namespace NgTests
             }
 
             [Fact]
-            public void RunsIfLatestEntryIsntDelete()
+            public void SkipsIfLatestEntryIsNotDeleteAndPackageSignatureIsNotRequired()
+            {
+                var target = CreateTarget(requireRepositorySignature: false);
+                var context = CreateValidationContextWithLatestEntryWithDetails();
+                Assert.False(target.ShouldRunValidator(context));
+            }
+
+            [Fact]
+            public void RunsIfLatestEntryIsNotDeleteAndPackageSignatureIsRequired()
             {
                 var target = CreateTarget();
+                var context = CreateValidationContextWithLatestEntryWithDetails();
+                Assert.True(target.ShouldRunValidator(context));
+            }
+
+            private ValidationContext CreateValidationContextWithLatestEntryWithDetails()
+            {
                 var uri = new Uri($"https://nuget.test/{PackageIdentity.Id}");
-                var context = CreateValidationContext(
+
+                return CreateValidationContext(
                     catalogEntries: new[]
                     {
                         new CatalogIndexEntry(
@@ -113,8 +127,6 @@ namespace NgTests
                             commitTs: DateTime.MinValue.AddDays(1),
                             packageIdentity: PackageIdentity),
                     });
-
-                Assert.True(target.ShouldRunValidator(context));
             }
         }
 
@@ -213,15 +225,15 @@ namespace NgTests
             public async Task ThrowsIfLeafPackageEntriesIsMissing()
             {
                 // Arrange
-                var malformedUri = new Uri("https://nuget.test/a.json");
+                var uri = new Uri("https://nuget.test/a.json");
 
                 var target = CreateTarget();
                 var context = CreateValidationContext(
                     catalogEntries: new[]
                     {
                         new CatalogIndexEntry(
-                            uri: malformedUri,
-                            type: CatalogConstants.NuGetPackageDetails,
+                            uri,
+                            CatalogConstants.NuGetPackageDetails,
                             commitId: Guid.NewGuid().ToString(),
                             commitTs: DateTime.MinValue,
                             packageIdentity: PackageIdentity),
@@ -232,33 +244,33 @@ namespace NgTests
                 // Act & Assert
                 var e = await Assert.ThrowsAsync<InvalidOperationException>(() => target.RunValidatorAsync(context));
 
-                Assert.Equal("Catalog leaf is missing the 'packageEntries' property", e.Message);
+                Assert.Equal($"The catalog leaf at {uri.AbsoluteUri} is missing the 'packageEntries' property.", e.Message);
             }
 
             [Fact]
             public async Task ThrowsIfLeafPackageEntriesIsMalformed()
             {
                 // Arrange
-                var malformedUri = new Uri("https://nuget.test/a.json");
+                var uri = new Uri("https://nuget.test/a.json");
 
                 var target = CreateTarget();
                 var context = CreateValidationContext(
                     catalogEntries: new[]
                     {
                         new CatalogIndexEntry(
-                            uri: malformedUri,
-                            type: CatalogConstants.NuGetPackageDetails,
+                            uri,
+                            CatalogConstants.NuGetPackageDetails,
                             commitId: Guid.NewGuid().ToString(),
                             commitTs: DateTime.MinValue,
                             packageIdentity: PackageIdentity),
                     });
 
-                AddCatalogLeaf("/a.json", "{ 'packageEntries': 'malformed'}");
+                AddCatalogLeaf("/a.json", "{ 'packageEntries': 'malformed' }");
 
                 // Act & Assert
                 var e = await Assert.ThrowsAsync<InvalidOperationException>(() => target.RunValidatorAsync(context));
 
-                Assert.Equal("Catalog leaf's 'packageEntries' property is malformed", e.Message);
+                Assert.Equal($"The catalog leaf at {uri.AbsoluteUri} has a malformed 'packageEntries' property.", e.Message);
             }
         }
 
@@ -287,21 +299,16 @@ namespace NgTests
                     client: httpClient);
             }
 
-            protected PackageHasSignatureValidator CreateTarget(bool requirePackageSignature = true)
+            protected PackageHasSignatureValidator CreateTarget(bool requireRepositorySignature = true)
             {
-                var config = ValidatorTestUtility.CreateValidatorConfig(requirePackageSignature: requirePackageSignature);
+                var config = ValidatorTestUtility.CreateValidatorConfig(requireRepositorySignature: requireRepositorySignature);
 
                 return new PackageHasSignatureValidator(config, _logger.Object);
             }
 
             protected void AddCatalogLeaf(string path, CatalogLeaf leaf)
             {
-                var jsonSettings = new JsonSerializerSettings
-                {
-                    ContractResolver = new CamelCasePropertyNamesContractResolver()
-                };
-
-                AddCatalogLeaf(path, JsonConvert.SerializeObject(leaf, jsonSettings));
+                ValidatorTestUtility.AddCatalogLeafToMockServer(_mockServer, new Uri(path, UriKind.Relative), leaf);
             }
 
             protected void AddCatalogLeaf(string path, string leafContent)
@@ -313,11 +320,6 @@ namespace NgTests
                         Content = new StringContent(leafContent)
                     });
                 });
-            }
-
-            public class CatalogLeaf
-            {
-                public IEnumerable<PackageEntry> PackageEntries { get; set; }
             }
         }
     }

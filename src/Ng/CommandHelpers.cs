@@ -428,21 +428,11 @@ namespace Ng
             return handlerFunc;
         }
 
-        public static IEnumerable<EndpointFactory.Input> GetEndpointFactoryInputs(IDictionary<string, string> arguments)
+        public static EndpointConfiguration GetEndpointConfiguration(IDictionary<string, string> arguments)
         {
-            return arguments.GetOrThrow<string>(Arguments.EndpointsToTest).Split(';').Select(e =>
-            {
-                var endpointParts = e.Split('|');
-
-                if (endpointParts.Count() < 2)
-                {
-                    throw new ArgumentException(
-                        $"\"{e}\" is not a valid endpoint! Each endpoint must follow this format: " +
-                        $"<endpoint-to-test-name>|<endpoint-to-test-cursor>.");
-                }
-
-                return new EndpointFactory.Input(endpointParts[0], new Uri(endpointParts[1]));
-            });
+            var registrationCursorUri = arguments.GetOrThrow<Uri>(Arguments.RegistrationCursorUri);
+            var flatContainerCursorUri = arguments.GetOrThrow<Uri>(Arguments.FlatContainerCursorUri);
+            return new EndpointConfiguration(registrationCursorUri, flatContainerCursorUri);
         }
 
         public static IPackageMonitoringStatusService GetPackageMonitoringStatusService(IDictionary<string, string> arguments, ICatalogStorageFactory storageFactory, ILoggerFactory loggerFactory)

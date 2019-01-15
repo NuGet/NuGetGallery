@@ -29,13 +29,11 @@ namespace Ng.Jobs
         private IPackageMonitoringStatusService _statusService;
         private IMonitoringNotificationService _notificationService;
         private RegistrationResourceV3 _regResource;
-        private NuGet.Common.ILogger CommonLogger;
         private CollectorHttpClient _client;
 
         public MonitoringProcessorJob(ITelemetryService telemetryService, ILoggerFactory loggerFactory)
             : base(telemetryService, loggerFactory)
         {
-            CommonLogger = Logger.AsCommon();
         }
 
         protected override void Init(IDictionary<string, string> arguments, CancellationToken cancellationToken)
@@ -44,7 +42,7 @@ namespace Ng.Jobs
             var index = arguments.GetOrThrow<string>(Arguments.Index);
             var packageBaseAddress = arguments.GetOrThrow<string>(Arguments.ContentBaseAddress);
             var source = arguments.GetOrThrow<string>(Arguments.Source);
-            var requireSignature = arguments.GetOrDefault(Arguments.RequireSignature, false);
+            var requireRepositorySignature = arguments.GetOrDefault(Arguments.RequireRepositorySignature, false);
             var verbose = arguments.GetOrDefault(Arguments.Verbose, false);
 
             CommandHelpers.AssertAzureStorage(arguments);
@@ -52,19 +50,25 @@ namespace Ng.Jobs
             var monitoringStorageFactory = CommandHelpers.CreateStorageFactory(arguments, verbose);
             var auditingStorageFactory = CommandHelpers.CreateSuffixedStorageFactory("Auditing", arguments, verbose);
 
-            var endpointInputs = CommandHelpers.GetEndpointFactoryInputs(arguments);
+            var endpointConfiguration = CommandHelpers.GetEndpointConfiguration(arguments);
             var messageHandlerFactory = CommandHelpers.GetHttpMessageHandlerFactory(TelemetryService, verbose);
 
             Logger.LogInformation(
-                "CONFIG gallery: {Gallery} index: {Index} storage: {Storage} auditingStorage: {AuditingStorage} endpoints: {Endpoints}",
-                gallery, index, monitoringStorageFactory, auditingStorageFactory, string.Join(", ", endpointInputs.Select(e => e.Name)));
+                "CONFIG gallery: {Gallery} index: {Index} storage: {Storage} auditingStorage: {AuditingStorage} registration cursor uri: {RegistrationCursorUri} flat-container cursor uri: {FlatContainerCursorUri}",
+                gallery, index, monitoringStorageFactory, auditingStorageFactory, endpointConfiguration.RegistrationCursorUri, endpointConfiguration.FlatContainerCursorUri);
 
             var validatorConfig = new ValidatorConfiguration(
                 packageBaseAddress,
-                requireSignature);
+                requireRepositorySignature);
 
-            _packageValidator = new PackageValidatorFactory(LoggerFactory)
-                .Create(gallery, index, auditingStorageFactory, endpointInputs, messageHandlerFactory, validatorConfig, verbose);
+            _packageValidator = ValidationFactory.CreatePackageValidator(
+                gallery, 
+                index, 
+                auditingStorageFactory,
+                validatorConfig,
+                endpointConfiguration, 
+                messageHandlerFactory, 
+                LoggerFactory);
 
             _queue = CommandHelpers.CreateStorageQueue<PackageValidatorContext>(arguments, PackageValidatorContext.Version);
 

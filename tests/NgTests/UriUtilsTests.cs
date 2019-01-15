@@ -5,8 +5,6 @@ using NuGet.Services.Metadata.Catalog.Helpers;
 using System;
 using Xunit;
 using NuGet.Versioning;
-using System.Threading.Tasks;
-using System.Net.Http;
 
 namespace NgTests
 {
