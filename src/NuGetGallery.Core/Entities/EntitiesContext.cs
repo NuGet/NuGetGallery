@@ -379,22 +379,26 @@ namespace NuGetGallery
 
             modelBuilder.Entity<PackageDeprecation>()
                 .HasOptional(d => d.AlternatePackageRegistration)
-                .WithOptionalDependent()
+                .WithMany()
+                .HasForeignKey(d => d.AlternatePackageRegistrationKey)
                 .WillCascadeOnDelete(false);
 
             modelBuilder.Entity<PackageDeprecation>()
                 .HasOptional(d => d.AlternatePackage)
-                .WithOptionalDependent()
+                .WithMany()
+                .HasForeignKey(d => d.AlternatePackageKey)
                 .WillCascadeOnDelete(false);
 
             modelBuilder.Entity<PackageDeprecation>()
                 .HasOptional(d => d.DeprecatedBy)
-                .WithOptionalDependent()
+                .WithMany()
+                .HasForeignKey(d => d.DeprecatedByKey)
                 .WillCascadeOnDelete(false);
 
             modelBuilder.Entity<PackageDeprecation>()
                 .HasOptional(d => d.PackageVulnerability)
-                .WithOptionalDependent()
+                .WithMany()
+                .HasForeignKey(d => d.PackageVulnerabilityKey)
                 .WillCascadeOnDelete(false);
         }
 #pragma warning restore 618

@@ -27,7 +27,7 @@ namespace NuGet.Services.Entities
         /// <summary>
         /// Gets or sets the deprecated package entity key.
         /// </summary>
-        public virtual int DeprecatedPackageKey { get; set; }
+        public int DeprecatedPackageKey { get; set; }
 
         /// <summary>
         /// Gets or sets the status of this deprecation.
@@ -46,7 +46,7 @@ namespace NuGet.Services.Entities
         /// <summary>
         /// Gets or sets the alternate package registration entity key.
         /// </summary>
-        public virtual int? AlternatePackageRegistrationKey { get; set; }
+        public int? AlternatePackageRegistrationKey { get; set; }
 
         /// <summary>
         /// Gets or sets the alternate package entity.
@@ -56,7 +56,7 @@ namespace NuGet.Services.Entities
         /// <summary>
         /// Gets or sets the alternate package entity key.
         /// </summary>
-        public virtual int? AlternatePackageKey { get; set; }
+        public int? AlternatePackageKey { get; set; }
 
         /// <summary>
         /// Gets or sets the user that executed the package deprecation.
@@ -66,7 +66,7 @@ namespace NuGet.Services.Entities
         /// <summary>
         /// Gets or sets the key of the user that executed the package deprecation.
         /// </summary>
-        public virtual int? DeprecatedByKey { get; set; }
+        public int? DeprecatedByKey { get; set; }
 
         /// <summary>
         /// The date when the package was deprecated.
@@ -83,5 +83,10 @@ namespace NuGet.Services.Entities
         /// Gets or sets the package vulnerability linked to this package deprecation.
         /// </summary>
         public virtual PackageVulnerability PackageVulnerability { get; set; }
+
+        /// <summary>
+        /// Gets or sets the key of the package vulnerability linked to this package deprecation.
+        /// </summary>
+        public int? PackageVulnerabilityKey { get; set; }
     }
 }

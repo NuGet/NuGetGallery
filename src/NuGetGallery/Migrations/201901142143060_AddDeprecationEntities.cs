@@ -19,22 +19,19 @@ namespace NuGetGallery.Migrations
                         DeprecatedByKey = c.Int(),
                         DeprecatedOn = c.DateTime(nullable: false, defaultValueSql: "GETUTCDATE()"),
                         CustomMessage = c.String(),
-                        AlternatePackage_Key = c.Int(),
-                        AlternatePackageRegistration_Key = c.Int(),
-                        DeprecatedBy_Key = c.Int(),
-                        PackageVulnerability_Key = c.Int(),
+                        PackageVulnerabilityKey = c.Int(),
                     })
                 .PrimaryKey(t => t.Key)
-                .ForeignKey("dbo.Packages", t => t.AlternatePackage_Key)
-                .ForeignKey("dbo.PackageRegistrations", t => t.AlternatePackageRegistration_Key)
-                .ForeignKey("dbo.Users", t => t.DeprecatedBy_Key)
+                .ForeignKey("dbo.Packages", t => t.AlternatePackageKey)
+                .ForeignKey("dbo.PackageRegistrations", t => t.AlternatePackageRegistrationKey)
+                .ForeignKey("dbo.Users", t => t.DeprecatedByKey)
                 .ForeignKey("dbo.Packages", t => t.Key, cascadeDelete: true)
-                .ForeignKey("dbo.PackageVulnerabilities", t => t.PackageVulnerability_Key)
+                .ForeignKey("dbo.PackageVulnerabilities", t => t.PackageVulnerabilityKey)
                 .Index(t => t.Key)
-                .Index(t => t.AlternatePackage_Key)
-                .Index(t => t.AlternatePackageRegistration_Key)
-                .Index(t => t.DeprecatedBy_Key)
-                .Index(t => t.PackageVulnerability_Key);
+                .Index(t => t.AlternatePackageRegistrationKey)
+                .Index(t => t.AlternatePackageKey)
+                .Index(t => t.DeprecatedByKey)
+                .Index(t => t.PackageVulnerabilityKey);
             
             CreateTable(
                 "dbo.PackageVulnerabilities",
@@ -51,15 +48,15 @@ namespace NuGetGallery.Migrations
         
         public override void Down()
         {
-            DropForeignKey("dbo.PackageDeprecations", "PackageVulnerability_Key", "dbo.PackageVulnerabilities");
+            DropForeignKey("dbo.PackageDeprecations", "PackageVulnerabilityKey", "dbo.PackageVulnerabilities");
             DropForeignKey("dbo.PackageDeprecations", "Key", "dbo.Packages");
-            DropForeignKey("dbo.PackageDeprecations", "DeprecatedBy_Key", "dbo.Users");
-            DropForeignKey("dbo.PackageDeprecations", "AlternatePackageRegistration_Key", "dbo.PackageRegistrations");
-            DropForeignKey("dbo.PackageDeprecations", "AlternatePackage_Key", "dbo.Packages");
-            DropIndex("dbo.PackageDeprecations", new[] { "PackageVulnerability_Key" });
-            DropIndex("dbo.PackageDeprecations", new[] { "DeprecatedBy_Key" });
-            DropIndex("dbo.PackageDeprecations", new[] { "AlternatePackageRegistration_Key" });
-            DropIndex("dbo.PackageDeprecations", new[] { "AlternatePackage_Key" });
+            DropForeignKey("dbo.PackageDeprecations", "DeprecatedByKey", "dbo.Users");
+            DropForeignKey("dbo.PackageDeprecations", "AlternatePackageRegistrationKey", "dbo.PackageRegistrations");
+            DropForeignKey("dbo.PackageDeprecations", "AlternatePackageKey", "dbo.Packages");
+            DropIndex("dbo.PackageDeprecations", new[] { "PackageVulnerabilityKey" });
+            DropIndex("dbo.PackageDeprecations", new[] { "DeprecatedByKey" });
+            DropIndex("dbo.PackageDeprecations", new[] { "AlternatePackageKey" });
+            DropIndex("dbo.PackageDeprecations", new[] { "AlternatePackageRegistrationKey" });
             DropIndex("dbo.PackageDeprecations", new[] { "Key" });
             DropTable("dbo.PackageVulnerabilities");
             DropTable("dbo.PackageDeprecations");
