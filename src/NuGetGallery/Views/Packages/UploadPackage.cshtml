@@ -14,6 +14,7 @@
 <section role="main" class="container main-container page-upload">
     <div class="row">
         <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
+            @ViewHelpers.AjaxAntiForgeryToken(Html)
             @ViewHelpers.PackagesBreadcrumb(Url, CurrentUser, true, @<text>Upload</text>)
             <div class="text-left">
                 <p class="message">Your package file will be uploaded and hosted on the @(Config.Current.Brand) server (@(Config.Current.SiteRoot)).</p>

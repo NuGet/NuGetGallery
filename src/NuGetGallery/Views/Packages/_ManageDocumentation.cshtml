@@ -51,14 +51,14 @@
 
                 @Html.ValidationSummary(true)
                 <div class="row">
-                    <label for="input-select-version" id="package-version-label" class="col-xs-12">
+                    <label for="input-select-readme" id="readme-version-label" class="col-xs-12">
                         <span>Select version</span>
                         @Html.DropDownList("version-selection", Model.VersionSelectList,
                             new
                             {
                                 @class = "form-control selectpicker show-tick show-menu-arrow btn-block",
                                 @title = "Select a version",
-                                @id = "input-select-version"
+                                @id = "input-select-readme"
                             })
                     </label>
                 </div>

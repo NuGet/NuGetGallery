@@ -20,7 +20,7 @@
 
             $(window).on('beforeunload', confirmLeave);
 
-            _selectVersion = $('.page-edit-package #input-select-version');
+            _selectVersion = $('.page-edit-package #input-select-readme');
             var defaultVersion = _selectVersion.val();
             
             _selectVersion.change(function () {
