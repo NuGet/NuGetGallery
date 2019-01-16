@@ -16,6 +16,9 @@ namespace NuGet.Services.Entities
         /// <summary>
         /// Gets or sets the primary key for the entity.
         /// </summary>
+        /// <remarks>
+        /// Since packages can only have a single deprecation, and every deprecation must be associated with a package, a deprecation's primary key is equal to its deprecated package entity key.
+        /// </remarks>
         public int Key { get; set; }
         
         /// <summary>
@@ -23,11 +26,6 @@ namespace NuGet.Services.Entities
         /// </summary>
         [Required]
         public virtual Package DeprecatedPackage { get; set; }
-
-        /// <summary>
-        /// Gets or sets the deprecated package entity key.
-        /// </summary>
-        public int DeprecatedPackageKey { get; set; }
 
         /// <summary>
         /// Gets or sets the status of this deprecation.
