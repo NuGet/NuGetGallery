@@ -21,11 +21,11 @@ namespace NuGetGallery.Migrations
                         PackageVulnerabilityKey = c.Int(),
                     })
                 .PrimaryKey(t => t.Key)
+                .ForeignKey("dbo.Users", t => t.DeprecatedByKey)
+                .ForeignKey("dbo.PackageVulnerabilities", t => t.PackageVulnerabilityKey)
+                .ForeignKey("dbo.Packages", t => t.Key, cascadeDelete: true)
                 .ForeignKey("dbo.Packages", t => t.AlternatePackageKey)
                 .ForeignKey("dbo.PackageRegistrations", t => t.AlternatePackageRegistrationKey)
-                .ForeignKey("dbo.Users", t => t.DeprecatedByKey)
-                .ForeignKey("dbo.Packages", t => t.Key, cascadeDelete: true)
-                .ForeignKey("dbo.PackageVulnerabilities", t => t.PackageVulnerabilityKey)
                 .Index(t => t.Key)
                 .Index(t => t.AlternatePackageRegistrationKey)
                 .Index(t => t.AlternatePackageKey)
@@ -47,11 +47,11 @@ namespace NuGetGallery.Migrations
         
         public override void Down()
         {
-            DropForeignKey("dbo.PackageDeprecations", "PackageVulnerabilityKey", "dbo.PackageVulnerabilities");
-            DropForeignKey("dbo.PackageDeprecations", "Key", "dbo.Packages");
-            DropForeignKey("dbo.PackageDeprecations", "DeprecatedByKey", "dbo.Users");
             DropForeignKey("dbo.PackageDeprecations", "AlternatePackageRegistrationKey", "dbo.PackageRegistrations");
             DropForeignKey("dbo.PackageDeprecations", "AlternatePackageKey", "dbo.Packages");
+            DropForeignKey("dbo.PackageDeprecations", "Key", "dbo.Packages");
+            DropForeignKey("dbo.PackageDeprecations", "PackageVulnerabilityKey", "dbo.PackageVulnerabilities");
+            DropForeignKey("dbo.PackageDeprecations", "DeprecatedByKey", "dbo.Users");
             DropIndex("dbo.PackageDeprecations", new[] { "PackageVulnerabilityKey" });
             DropIndex("dbo.PackageDeprecations", new[] { "DeprecatedByKey" });
             DropIndex("dbo.PackageDeprecations", new[] { "AlternatePackageKey" });

@@ -372,21 +372,23 @@ namespace NuGetGallery
                 .HasKey(v => v.Key);
 
             modelBuilder.Entity<PackageDeprecation>()
-                .HasKey(d => d.Key)
-                .HasRequired(d => d.Package)
-                .WithOptional(p => p.Deprecation)
+                .HasKey(d => d.Key);
+
+            modelBuilder.Entity<Package>()
+                .HasOptional(p => p.Deprecation)
+                .WithRequired(d => d.Package)
                 .WillCascadeOnDelete();
 
-            modelBuilder.Entity<PackageDeprecation>()
-                .HasOptional(d => d.AlternatePackageRegistration)
-                .WithMany(pr => pr.RecommendedByDeprecations)
-                .HasForeignKey(d => d.AlternatePackageRegistrationKey)
+            modelBuilder.Entity<Package>()
+                .HasMany(p => p.RecommendedByDeprecations)
+                .WithOptional(d => d.AlternatePackage)
+                .HasForeignKey(d => d.AlternatePackageKey)
                 .WillCascadeOnDelete(false);
 
-            modelBuilder.Entity<PackageDeprecation>()
-                .HasOptional(d => d.AlternatePackage)
-                .WithMany(p => p.RecommendedByDeprecations)
-                .HasForeignKey(d => d.AlternatePackageKey)
+            modelBuilder.Entity<PackageRegistration>()
+                .HasMany(p => p.RecommendedByDeprecations)
+                .WithOptional(d => d.AlternatePackageRegistration)
+                .HasForeignKey(d => d.AlternatePackageRegistrationKey)
                 .WillCascadeOnDelete(false);
 
             modelBuilder.Entity<PackageDeprecation>()
@@ -395,9 +397,9 @@ namespace NuGetGallery
                 .HasForeignKey(d => d.DeprecatedByKey)
                 .WillCascadeOnDelete(false);
 
-            modelBuilder.Entity<PackageDeprecation>()
-                .HasOptional(d => d.PackageVulnerability)
-                .WithMany(v => v.VulnerableDeprecations)
+            modelBuilder.Entity<PackageVulnerability>()
+                .HasMany(v => v.VulnerableDeprecations)
+                .WithOptional(d => d.PackageVulnerability)
                 .HasForeignKey(d => d.PackageVulnerabilityKey)
                 .WillCascadeOnDelete(false);
         }
