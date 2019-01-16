@@ -15,6 +15,7 @@ namespace NuGet.Services.Entities
             Packages = new HashSet<Package>();
             ReservedNamespaces = new HashSet<ReservedNamespace>();
             RequiredSigners = new HashSet<User>();
+            RecommendedByDeprecations = new HashSet<PackageDeprecation>();
         }
 
         [StringLength(Constants.MaxPackageIdLength)]
