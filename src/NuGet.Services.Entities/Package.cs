@@ -253,5 +253,7 @@ namespace NuGet.Services.Entities
         public string LicenseExpression { get; set; }
 
         public virtual PackageDeprecation Deprecation { get; set; }
+
+        public virtual ICollection<PackageDeprecation> RecommendedByDeprecations { get; set; }
     }
 }

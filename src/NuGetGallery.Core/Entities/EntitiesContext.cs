@@ -379,13 +379,13 @@ namespace NuGetGallery
 
             modelBuilder.Entity<PackageDeprecation>()
                 .HasOptional(d => d.AlternatePackageRegistration)
-                .WithMany()
+                .WithMany(pr => pr.RecommendedByDeprecations)
                 .HasForeignKey(d => d.AlternatePackageRegistrationKey)
                 .WillCascadeOnDelete(false);
 
             modelBuilder.Entity<PackageDeprecation>()
                 .HasOptional(d => d.AlternatePackage)
-                .WithMany()
+                .WithMany(p => p.RecommendedByDeprecations)
                 .HasForeignKey(d => d.AlternatePackageKey)
                 .WillCascadeOnDelete(false);
 
@@ -397,7 +397,7 @@ namespace NuGetGallery
 
             modelBuilder.Entity<PackageDeprecation>()
                 .HasOptional(d => d.PackageVulnerability)
-                .WithMany()
+                .WithMany(v => v.VulnerableDeprecations)
                 .HasForeignKey(d => d.PackageVulnerabilityKey)
                 .WillCascadeOnDelete(false);
         }

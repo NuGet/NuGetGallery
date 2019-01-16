@@ -37,5 +37,7 @@ namespace NuGet.Services.Entities
         public virtual ICollection<User> RequiredSigners { get; set; }
 
         public int Key { get; set; }
+
+        public virtual ICollection<PackageDeprecation> RecommendedByDeprecations { get; set; }
     }
 }
