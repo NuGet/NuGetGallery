@@ -29,6 +29,10 @@ namespace NuGetGallery
                 DELETE pro FROM PackageRegistrationOwners AS pro
                 WHERE pro.[PackageRegistrationKey] = @key
 
+                UPDATE PackageDeprecations
+                SET AlternatePackageRegistrationKey = NULL
+                WHERE AlternatePackageRegistrationKey = @key
+
                 DELETE pr FROM PackageRegistrations AS pr
                 WHERE pr.[Key] = @key
             END";
@@ -280,6 +284,8 @@ namespace NuGetGallery
                         PackageStatus.Deleted,
                         commitChanges: false);
 
+                    UnlinkPackageDeprecations(package);
+
                     // Mark all associated symbol packages for deletion.
                     foreach (var symbolPackage in package.SymbolPackages)
                     {
@@ -327,6 +333,8 @@ namespace NuGetGallery
                 // Remove the package and related entities from the database
                 foreach (var package in packages)
                 {
+                    UnlinkPackageDeprecations(package);
+
                     await ExecuteSqlCommandAsync(_entitiesContext.GetDatabase(),
                         "DELETE pa FROM PackageAuthors pa JOIN Packages p ON p.[Key] = pa.PackageKey WHERE p.[Key] = @key",
                         new SqlParameter("@key", package.Key));
@@ -508,6 +516,15 @@ namespace NuGetGallery
                 await _packageFileService.DeleteReadMeMdFileAsync(package);
             }
             catch (StorageException) { }
+        }
+
+        private void UnlinkPackageDeprecations(Package package)
+        {
+            foreach (var deprecation in package.RecommendedByDeprecations.ToList())
+            {
+                package.RecommendedByDeprecations.Remove(deprecation);
+                deprecation.AlternatePackage = null;
+            }
         }
 
         private void UpdateSearchIndex()
