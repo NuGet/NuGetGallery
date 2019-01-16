@@ -22,10 +22,10 @@ namespace NuGet.Services.Entities
         public int Key { get; set; }
         
         /// <summary>
-        /// Gets or sets the deprecated package entity.
+        /// Gets or sets the package affected by this deprecation.
         /// </summary>
         [Required]
-        public virtual Package DeprecatedPackage { get; set; }
+        public virtual Package Package { get; set; }
 
         /// <summary>
         /// Gets or sets the status of this deprecation.
