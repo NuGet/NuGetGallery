@@ -4,9 +4,12 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.WindowsAzure.Storage;
 using Moq;
+using Stats.AzureCdnLogs.Common.Collect;
+using Stats.AzureCdnLogs.Common;
 using Stats.CollectAzureChinaCDNLogs;
 using Xunit;
 
@@ -82,6 +85,9 @@ namespace Tests.Stats.CollectAzureChinaCDNLogs
         private static IServiceProvider GetMockServiceProvider(CollectAzureChinaCdnLogsConfiguration configuration)
         {
             var mockOptionsSnapshot = new Mock<IOptionsSnapshot<CollectAzureChinaCdnLogsConfiguration>>();
+            var logger_AzureBlobLeaseManager = new Mock<ILogger<AzureBlobLeaseManager>>();
+            var logger_AzureStatsLogSource = new Mock<ILogger<AzureStatsLogSource>>();
+            var logger_AzureStatsLogDestination = new Mock<ILogger<AzureStatsLogDestination>>();
 
             mockOptionsSnapshot
                 .Setup(x => x.Value)
@@ -97,7 +103,19 @@ namespace Tests.Stats.CollectAzureChinaCDNLogs
                     {
                         return mockOptionsSnapshot.Object;
                     }
-                    else
+                    else if (serviceType == typeof(ILogger<AzureBlobLeaseManager>))
+                    {
+                        return logger_AzureBlobLeaseManager.Object;
+                    }
+                    else if (serviceType == typeof(ILogger<AzureStatsLogSource>))
+                    {
+                        return logger_AzureStatsLogSource.Object;
+                    }
+                    else if (serviceType == typeof(ILogger<AzureStatsLogDestination>))
+                    {
+                        return logger_AzureStatsLogDestination.Object;
+                    }
+                    else 
                     {
                         throw new InvalidOperationException($"Unexpected service lookup: {serviceType.Name}");
                     }

@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using ICSharpCode.SharpZipLib.GZip;
@@ -27,22 +28,28 @@ namespace Stats.AzureCdnLogs.Common.Collect
         private CloudBlobContainer _container;
         private CloudBlobClient _blobClient;
         private BlobRequestOptions _blobRequestOptions;
+        private readonly ILogger<AzureStatsLogSource> _logger;
 
         /// <summary>
         /// .ctor for the AzureStatsLogSource
         /// </summary>
         /// <param name="connectionString">The connection string for the Azure account.</param>
         /// <param name="containerName">The container name.</param>
-        public AzureStatsLogSource(CloudStorageAccount storageAccount, string containerName, int azureServerTimeoutInSeconds)
+        public AzureStatsLogSource(CloudStorageAccount storageAccount,
+            string containerName,
+            int azureServerTimeoutInSeconds,
+            AzureBlobLeaseManager blobLeaseManager,
+            ILogger<AzureStatsLogSource> logger)
         {
             _azureAccount = storageAccount;
             _blobClient = _azureAccount.CreateCloudBlobClient();
             _container = _blobClient.GetContainerReference(containerName);
             _blobRequestOptions = new BlobRequestOptions();
             _blobRequestOptions.ServerTimeout = TimeSpan.FromSeconds(azureServerTimeoutInSeconds);
-            _blobLeaseManager = new AzureBlobLeaseManager();
+            _blobLeaseManager = blobLeaseManager ?? throw new ArgumentNullException(nameof(blobLeaseManager));
             _deadletterContainerName = $"{containerName}-deadletter";
             _archiveContainerName = $"{containerName}-archive";
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         /// <summary>
@@ -96,11 +103,13 @@ namespace Stats.AzureCdnLogs.Common.Collect
         {
             if(token.IsCancellationRequested)
             {
+                _logger.LogInformation("OpenReadAsync: The operation was cancelled.");
                 return null;
             }
             var blob = await GetBlobAsync(blobUri);
             if(blob == null)
             {
+                _logger.LogInformation("OpenReadAsync: The blob was not found. Blob {BlobUri}", blobUri.AbsoluteUri);
                 return null;
             }
             var inputRawStream = await blob.OpenReadAsync();
@@ -148,7 +157,9 @@ namespace Stats.AzureCdnLogs.Common.Collect
             var blob = await GetBlobAsync(blobUri);
             if (blob != null)
             {
-                return _blobLeaseManager.TryReleaseLease(blob);
+                bool tryReleaseLease = _blobLeaseManager.TryReleaseLease(blob);
+                _logger.LogInformation("ReleaseLockAsync: ReleaseLeaseStatus: {LeaseReleased} on the {BlobUri}.", tryReleaseLease, blobUri.AbsoluteUri);
+                return tryReleaseLease;
             }
             return true;
         }
@@ -163,24 +174,32 @@ namespace Stats.AzureCdnLogs.Common.Collect
         /// <returns>True is the cleanup was sucessful. If the blob does not exist the return value is false.</returns>
         public async Task<bool> CleanAsync(Uri blobUri, bool onError, CancellationToken token)
         {
-            if(token.IsCancellationRequested)
+            _logger.LogInformation("CleanAsync:Start cleanup for {Blob}", blobUri.AbsoluteUri);
+            if (token.IsCancellationRequested)
             {
+                _logger.LogInformation("CleanAsync: The operation was cancelled.");
                 return false;
             }
 
             var sourceBlob = await GetBlobAsync(blobUri);
             if(sourceBlob == null)
             {
+                _logger.LogError("CleanAsync: The blob {Blob} was not found.", blobUri.AbsoluteUri);
                 return false;
             }
             string archiveTargetContainerName = onError ? _deadletterContainerName : _archiveContainerName;
+            _logger.LogInformation("CleanAsync: Blob {Blob} will be copied to container {Container}", blobUri.AbsoluteUri, archiveTargetContainerName);
             var archiveTargetContainer = await CreateContainerAsync(archiveTargetContainerName);
             if (await CopyBlobToContainerAsync(blobUri, archiveTargetContainer))
             {
-                string leaseId;
+                _logger.LogInformation("CleanAsync: Blob {Blob} was copied to container {Container}", blobUri.AbsoluteUri, archiveTargetContainerName);
+                string leaseId = string.Empty;
                 AccessCondition acc = _blobLeaseManager.HasLease(sourceBlob, out leaseId) ? new AccessCondition() { LeaseId = leaseId } : null;
-                return await sourceBlob.DeleteIfExistsAsync(deleteSnapshotsOption: DeleteSnapshotsOption.IncludeSnapshots, accessCondition: acc, options: _blobRequestOptions, operationContext: null);
+                bool deleteResult = await sourceBlob.DeleteIfExistsAsync(deleteSnapshotsOption: DeleteSnapshotsOption.IncludeSnapshots, accessCondition: acc, options: _blobRequestOptions, operationContext: null);
+                _logger.LogInformation("CleanAsync: Blob {Blob} was deleted {DeletedResult}. The leaseId: {LeaseId}", blobUri.AbsoluteUri, deleteResult, leaseId);
+                return deleteResult;
             }
+            _logger.LogWarning("CleanAsync: Blob {Blob} failed to be copied to container {Container}", blobUri.AbsoluteUri, archiveTargetContainerName);
             return false;
         }
 

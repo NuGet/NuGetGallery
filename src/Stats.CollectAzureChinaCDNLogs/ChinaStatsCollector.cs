@@ -8,6 +8,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Stats.AzureCdnLogs.Common.Collect;
+using Microsoft.Extensions.Logging;
 
 namespace Stats.CollectAzureChinaCDNLogs
 {
@@ -34,7 +35,7 @@ namespace Stats.CollectAzureChinaCDNLogs
             sip = 11
         }
 
-        public ChinaStatsCollector(ILogSource source, ILogDestination destination) : base(source, destination)
+        public ChinaStatsCollector(ILogSource source, ILogDestination destination, ILogger<ChinaStatsCollector> logger) : base(source, destination, logger)
         {}
 
         public ChinaStatsCollector()

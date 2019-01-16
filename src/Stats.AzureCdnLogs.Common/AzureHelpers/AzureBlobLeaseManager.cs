@@ -5,6 +5,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 
@@ -17,12 +18,16 @@ namespace Stats.AzureCdnLogs.Common
     public class AzureBlobLeaseManager
     {
         private const int MaxRenewPeriodInSeconds = 60;
+        // The lease will be renewed with a short interval before the the lease expires
+        private const int OverlapRenewPeriodInSeconds = 10;
         private ConcurrentDictionary<Uri, string> _leasedBlobs = new ConcurrentDictionary<Uri, string>();
         private BlobRequestOptions _blobRequestOptions;
+        private readonly ILogger<AzureBlobLeaseManager> _logger;
 
-        public AzureBlobLeaseManager(BlobRequestOptions blobRequestOptions=null)
+        public AzureBlobLeaseManager(ILogger<AzureBlobLeaseManager> logger, BlobRequestOptions blobRequestOptions = null)
         {
             _blobRequestOptions = blobRequestOptions;
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         /// <summary>
@@ -40,6 +45,10 @@ namespace Stats.AzureCdnLogs.Common
             blob.FetchAttributes();
             if (token.IsCancellationRequested || blob.Properties.LeaseStatus == LeaseStatus.Locked)
             {
+                _logger.LogInformation("AcquireLease: The operation was cancelled or the blob lease is already taken. Blob {BlobUri}, Cancellation status {IsCancellationRequested}, BlobLeaseStatus {BlobLeaseStatus}.",
+                    blob.Uri.AbsoluteUri,
+                    token.IsCancellationRequested,
+                    blob.Properties.LeaseStatus);
                 return false;
             }
             var proposedLeaseId = Guid.NewGuid().ToString();
@@ -52,24 +61,31 @@ namespace Stats.AzureCdnLogs.Common
             renewStatusTask = 
                 Task.Run(() =>
                 {
-                    if(!token.IsCancellationRequested)
+                    _logger.LogInformation("RenewLeaseTask: Start for BlobUri {BlobUri}. ThreadId {ThreadId}. IsCancellationRequested {IsCancellationRequested}.", 
+                        blob.Uri.AbsoluteUri,
+                        Thread.CurrentThread.ManagedThreadId,
+                        token.IsCancellationRequested);
+
+                    int sleepBeforeRenewInSeconds = MaxRenewPeriodInSeconds - OverlapRenewPeriodInSeconds < 0 ? MaxRenewPeriodInSeconds : MaxRenewPeriodInSeconds - OverlapRenewPeriodInSeconds;
+                    if (!token.IsCancellationRequested)
                     {
                         //if the token was cancelled just try to release the lease as soon as possible
                         using (token.Register(() => { TryReleaseLease(blob); }))
                         {
                             while (!token.IsCancellationRequested)
                             {
+                                Thread.Sleep(sleepBeforeRenewInSeconds * 1000);
                                 string blobLeaseId = string.Empty;
-                                //it will renew the lease only if the lease was not explicitelly released 
+                                //it will renew the lease only if the lease was not explicitly released 
                                 if (_leasedBlobs.TryGetValue(blob.Uri, out blobLeaseId) && blobLeaseId == leaseId)
                                 {
-                                    int sleepBeforeRenewInSeconds = MaxRenewPeriodInSeconds - 5 < 0 ? MaxRenewPeriodInSeconds : MaxRenewPeriodInSeconds - 5;
-                                    Thread.Sleep(sleepBeforeRenewInSeconds * 1000);
                                     AccessCondition acc = new AccessCondition() { LeaseId = leaseId };
                                     blob.RenewLease(accessCondition: acc, options: _blobRequestOptions, operationContext: null);
+                                    _logger.LogInformation("RenewLeaseTask: Lease was renewed for BlobUri {BlobUri} and LeaseId {LeaseId}.", blob.Uri.AbsoluteUri, blobLeaseId);
                                 }
                                 else
                                 {
+                                    _logger.LogInformation("RenewLeaseTask: The Lease could not be renewed for BlobUri {BlobUri}. ", blob.Uri.AbsoluteUri);
                                     break;
                                 }
                             }
