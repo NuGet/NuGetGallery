@@ -74,7 +74,7 @@ namespace NgTests.Validation
             }
 
             [Fact]
-            public async Task FailsIfPackageIsMissing()
+            public async Task SkipsIfPackageIsMissing()
             {
                 // Arrange - modify the package ID on the validation context so that the
                 // nupkg can no longer be found.
@@ -85,9 +85,8 @@ namespace NgTests.Validation
                 var result = await target.ValidateAsync(context);
 
                 // Assert
-                Assert.Equal(TestResult.Fail, result.Result);
-                Assert.NotNull(result.Exception);
-                Assert.StartsWith("Package TestPackage 1.0.0 couldn't be downloaded at https://nuget.test/packages/testpackage/1.0.0/testpackage.1.0.0.nupkg.", result.Exception.Message);
+                Assert.Equal(TestResult.Skip, result.Result);
+                Assert.Null(result.Exception);
             }
 
             [Fact]
@@ -210,13 +209,16 @@ namespace NgTests.Validation
                 // Add the package
                 if (packageResource != null)
                 {
-                    var resourceStream = File.OpenRead(packageResource);
+                    var packageId = PackageIdentity.Id.ToLowerInvariant();
+                    var packageVersion = PackageIdentity.Version.ToNormalizedString().ToLowerInvariant();
+                    var relativeUrl = $"/packages/{packageId}/{packageVersion}/{packageId}.{packageVersion}.nupkg";
+                    var bytes = File.ReadAllBytes(packageResource);
 
                     _mockServer.SetAction(
-                        $"/packages/testpackage/1.0.0/testpackage.1.0.0.nupkg",
+                        relativeUrl,
                         request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
                         {
-                            Content = new StreamContent(resourceStream)
+                            Content = new ByteArrayContent(bytes)
                         }));
                 }
 

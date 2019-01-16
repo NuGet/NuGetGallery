@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NuGet.Packaging;
@@ -28,7 +29,7 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
                 return false;
             }
 
-            return await base.ShouldRunAsync(context);
+            return await base.ShouldRunAsync(context) && await PackageExistsAsync(context);
         }
 
         protected async override Task RunInternalAsync(ValidationContext context)
@@ -95,6 +96,17 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
                 {
                     return await package.GetPrimarySignatureAsync(context.CancellationToken);
                 }
+            }
+        }
+
+        private async Task<bool> PackageExistsAsync(ValidationContext context)
+        {
+            var uri = GetV3PackageUri(context);
+
+            using (var request = new HttpRequestMessage(HttpMethod.Head, uri))
+            using (var response = await context.Client.SendAsync(request))
+            {
+                return response.IsSuccessStatusCode;
             }
         }
     }
