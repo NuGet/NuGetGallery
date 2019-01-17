@@ -22,7 +22,7 @@ namespace NuGet.Services.Entities
             PackageTypes = new HashSet<PackageType>();
             SupportedFrameworks = new HashSet<PackageFramework>();
             SymbolPackages = new HashSet<SymbolPackage>();
-            RecommendedByDeprecations = new HashSet<PackageDeprecation>();
+            AlternativeOf = new HashSet<PackageDeprecation>();
             Listed = true;
         }
 #pragma warning restore 618
@@ -255,6 +255,6 @@ namespace NuGet.Services.Entities
 
         public virtual PackageDeprecation Deprecation { get; set; }
 
-        public virtual ICollection<PackageDeprecation> RecommendedByDeprecations { get; set; }
+        public virtual ICollection<PackageDeprecation> AlternativeOf { get; set; }
     }
 }

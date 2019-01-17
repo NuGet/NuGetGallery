@@ -649,13 +649,13 @@ namespace NuGetGallery
 
                 var deprecation = new PackageDeprecation { Package = deprecatedPackage, AlternatePackage = package };
                 deprecatedPackage.Deprecation = deprecation;
-                package.RecommendedByDeprecations.Add(deprecation);
+                package.AlternativeOf.Add(deprecation);
 
                 var user = new User("test");
 
                 await service.SoftDeletePackagesAsync(new[] { package }, user, string.Empty, string.Empty);
 
-                Assert.Empty(package.RecommendedByDeprecations);
+                Assert.Empty(package.AlternativeOf);
                 Assert.Null(deprecation.AlternatePackage);
             }
 
@@ -1019,13 +1019,13 @@ namespace NuGetGallery
 
                 var deprecation = new PackageDeprecation { Package = deprecatedPackage, AlternatePackage = package };
                 deprecatedPackage.Deprecation = deprecation;
-                package.RecommendedByDeprecations.Add(deprecation);
+                package.AlternativeOf.Add(deprecation);
 
                 var user = new User("test");
 
                 await service.HardDeletePackagesAsync(new[] { package }, user, string.Empty, string.Empty, false);
 
-                Assert.Empty(package.RecommendedByDeprecations);
+                Assert.Empty(package.AlternativeOf);
                 Assert.Null(deprecation.AlternatePackage);
             }
 

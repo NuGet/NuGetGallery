@@ -520,9 +520,9 @@ namespace NuGetGallery
 
         private void UnlinkPackageDeprecations(Package package)
         {
-            foreach (var deprecation in package.RecommendedByDeprecations.ToList())
+            foreach (var deprecation in package.AlternativeOf.ToList())
             {
-                package.RecommendedByDeprecations.Remove(deprecation);
+                package.AlternativeOf.Remove(deprecation);
                 deprecation.AlternatePackage = null;
             }
         }

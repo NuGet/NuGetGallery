@@ -15,7 +15,7 @@ namespace NuGet.Services.Entities
             Packages = new HashSet<Package>();
             ReservedNamespaces = new HashSet<ReservedNamespace>();
             RequiredSigners = new HashSet<User>();
-            RecommendedByDeprecations = new HashSet<PackageDeprecation>();
+            AlternativeOf = new HashSet<PackageDeprecation>();
         }
 
         [StringLength(Constants.MaxPackageIdLength)]
@@ -39,6 +39,6 @@ namespace NuGet.Services.Entities
 
         public int Key { get; set; }
 
-        public virtual ICollection<PackageDeprecation> RecommendedByDeprecations { get; set; }
+        public virtual ICollection<PackageDeprecation> AlternativeOf { get; set; }
     }
 }

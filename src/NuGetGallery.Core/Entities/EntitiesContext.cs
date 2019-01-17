@@ -380,13 +380,13 @@ namespace NuGetGallery
                 .WillCascadeOnDelete();
 
             modelBuilder.Entity<Package>()
-                .HasMany(p => p.RecommendedByDeprecations)
+                .HasMany(p => p.AlternativeOf)
                 .WithOptional(d => d.AlternatePackage)
                 .HasForeignKey(d => d.AlternatePackageKey)
                 .WillCascadeOnDelete(false);
 
             modelBuilder.Entity<PackageRegistration>()
-                .HasMany(p => p.RecommendedByDeprecations)
+                .HasMany(p => p.AlternativeOf)
                 .WithOptional(d => d.AlternatePackageRegistration)
                 .HasForeignKey(d => d.AlternatePackageRegistrationKey)
                 .WillCascadeOnDelete(false);
