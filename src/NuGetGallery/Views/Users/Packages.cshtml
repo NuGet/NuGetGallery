@@ -173,25 +173,11 @@
                             <span data-bind="text: LatestVersion"></span>
                         </td>
                         <td class="text-right align-middle package-controls">
-                            <span data-bind="visible: CanEdit">
-                                <a class="btn" title="Edit Package" data-bind="attr: { href: EditUrl,
-                        'aria-label': 'Edit Package ' + Id + ' Version ' + LatestVersion }">
+                            <span data-bind="visible: CanEdit || CanManageOwners || CanDelete">
+                                <a class="btn" title="Manage Package" data-bind="attr: { href: ManageUrl,
+                        'aria-label': 'Manage Package ' + Id + ' Version ' + LatestVersion }">
 
                                     <i class="ms-Icon ms-Icon--Edit" aria-hidden="true"></i>
-                                </a>
-                            </span>
-                            <span data-bind="visible: CanManageOwners">
-                                <a class="btn" title="Manage Owners" data-bind="attr: { href: ManageOwnersUrl,
-                        'aria-label': 'Manage Owners for Package ' + Id }">
-
-                                    <i class="ms-Icon ms-Icon--People" aria-hidden="true"></i>
-                                </a>
-                            </span>
-                            <span data-bind="visible: CanDelete">
-                                <a class="btn" title="Delete Package" data-bind="attr: { href: DeleteUrl,
-                        'aria-label': 'Delete Package ' + Id + ' Version ' + LatestVersion }">
-
-                                    <i class="ms-Icon ms-Icon--Delete" aria-hidden="true"></i>
                                 </a>
                             </span>
                         </td>
@@ -316,9 +302,7 @@
     private RouteUrlTemplate<User> userUrlTemplate;
 
     private RouteUrlTemplate<IPackageVersionModel> packageUrlTemplate;
-    private RouteUrlTemplate<IPackageVersionModel> editUrlTemplate;
-    private RouteUrlTemplate<IPackageVersionModel> manageOwnersUrlTemplate;
-    private RouteUrlTemplate<IPackageVersionModel> deleteUrlTemplate;
+    private RouteUrlTemplate<IPackageVersionModel> manageUrlTemplate;
     private RouteUrlTemplate<IPackageVersionModel> setRequiredSignerUrlTemplate;
 
     private RouteUrlTemplate<string> searchUrlTemplate;
@@ -334,19 +318,9 @@
             packageUrlTemplate = Url.PackageRegistrationTemplate();
         }
 
-        if (editUrlTemplate == null)
+        if (manageUrlTemplate == null)
         {
-            editUrlTemplate = Url.EditPackageTemplate();
-        }
-
-        if (manageOwnersUrlTemplate == null)
-        {
-            manageOwnersUrlTemplate = Url.ManagePackageOwnersTemplate();
-        }
-
-        if (deleteUrlTemplate == null)
-        {
-            deleteUrlTemplate = Url.DeletePackageTemplate();
+            manageUrlTemplate = Url.ManagePackageTemplate();
         }
 
         if (setRequiredSignerUrlTemplate == null)
@@ -366,9 +340,7 @@
             SetRequiredSignerUrl = setRequiredSignerUrlTemplate.Resolve(p),
             PackageIconUrl = PackageHelper.ShouldRenderUrl(p.IconUrl) ? p.IconUrl : null,
             PackageUrl = packageUrlTemplate.Resolve(p),
-            EditUrl = editUrlTemplate.Resolve(p),
-            ManageOwnersUrl = manageOwnersUrlTemplate.Resolve(p),
-            DeleteUrl = deleteUrlTemplate.Resolve(p),
+            ManageUrl = manageUrlTemplate.Resolve(p),
             CanEdit = p.CanEdit,
             CanManageOwners = p.CanManageOwners,
             CanDelete = p.CanUnlistOrRelist,

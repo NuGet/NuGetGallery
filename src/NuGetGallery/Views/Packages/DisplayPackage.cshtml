@@ -21,7 +21,7 @@
 
     if (Model.EmbeddedLicenseType != EmbeddedLicenseFileType.Absent)
     {
-        Model.LicenseUrl = Url.License(Model.Id, Model.Version);
+        Model.LicenseUrl = Url.License(Model);
     }
 
     if (Model.IsDotnetToolPackageType)
@@ -345,7 +345,7 @@
                         @<text>
                             This package is unlisted and hidden from package listings.
                             You can see the package because you are one of its owners. To list the package again,
-                            <a href="@Url.DeletePackage(Model)">change its listing setting</a>.
+                            <a href="@Url.ManagePackage(Model)">change its listing setting</a>.
                         </text>
                     )
                 }
@@ -558,7 +558,7 @@
                                             packageStatusSummary == PackageStatusSummary.Unlisted)
                                         {
                                             <td>
-                                                <a href="@Url.DeletePackage(packageVersion)">@NuGetGallery.Helpers.EnumHelper.GetDescription(packageStatusSummary)</a>
+                                                <a href="@Url.ManagePackage(packageVersion)">@NuGetGallery.Helpers.EnumHelper.GetDescription(packageStatusSummary)</a>
                                             </td>
                                         }
                                         else
@@ -688,13 +688,13 @@
                 }
                 <li>
                     <i class="ms-Icon ms-Icon--Mail" aria-hidden="true"></i>
-                    <a href="@Url.ContactOwners(Model.Id, Model.Version)" title="Ask the package owners a question">Contact owners</a>
+                    <a href="@Url.ContactOwners(Model)" title="Ask the package owners a question">Contact owners</a>
                 </li>
                 @if (Model.CanReportAsOwner)
                 {
                     <li>
                         <i class="ms-Icon ms-Icon--Help" aria-hidden="true"></i>
-                        <a href="@Url.ReportPackage(Model.Id, Model.Version)" title="Contact the NuGet team for help with your package">
+                        <a href="@Url.ReportPackage(Model)" title="Contact the NuGet team for help with your package">
                             Contact support
                         </a>
                     </li>
@@ -703,7 +703,7 @@
                 {
                     <li>
                         <i class="ms-Icon ms-Icon--Flag" aria-hidden="true"></i>
-                        <a href="@Url.ReportAbuse(Model.Id, Model.Version)" title="Report the package as abusive">
+                        <a href="@Url.ReportAbuse(Model)" title="Report the package as abusive">
                             Report
                         </a>
                     </li>
@@ -730,25 +730,11 @@
                     </li>
                 }
 
-                @if ((Model.Available || Model.Validating) && Model.CanEdit)
+                @if (Model.CanEdit || Model.CanManageOwners || Model.CanUnlistOrRelist)
                 {
                     <li>
                         <i class="ms-Icon ms-Icon--Edit" aria-hidden="true"></i>
-                        <a href="@Url.EditPackage(Model.Id, Model.Version)">Edit package</a>
-                    </li>
-                }
-                @if (Model.CanManageOwners)
-                {
-                    <li>
-                        <i class="ms-Icon ms-Icon--People" aria-hidden="true"></i>
-                        <a href="@Url.ManagePackageOwners(Model)">Manage owners</a>
-                    </li>
-                }
-                @if (!Model.Deleted && Model.CanUnlistOrRelist)
-                {
-                    <li>
-                        <i class="ms-Icon ms-Icon--Delete" aria-hidden="true"></i>
-                        <a href="@Url.DeletePackage(Model)" class="delete">Delete package</a>
+                        <a href="@Url.ManagePackage(Model)">Manage package</a>
                     </li>
                 }
                 @if (!Model.Deleted && hasSymbolsPackageAvailable && Model.CanDeleteSymbolsPackage)

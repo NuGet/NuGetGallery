@@ -689,7 +689,7 @@ namespace NuGetGallery
                                     ConfigurationService.Current,
                                     package,
                                     Url.Package(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
-                                    Url.ReportPackage(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
+                                    Url.ReportPackage(package, relativeUrl: false),
                                     Url.AccountSettings(relativeUrl: false),
                                     packagePolicyResult.WarningMessages);
 
@@ -703,7 +703,7 @@ namespace NuGetGallery
                                     ConfigurationService.Current,
                                     package,
                                     Url.Package(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
-                                    Url.ReportPackage(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
+                                    Url.ReportPackage(package, relativeUrl: false),
                                     packagePolicyResult.WarningMessages);
 
                                 await MessageService.SendMessageAsync(packageAddedWithWarningsMessage);

@@ -1,0 +1,73 @@
+﻿@model ManagePackageViewModel
+
+@if (!Model.CanEdit)
+{
+    @ViewHelpers.AlertWarning(@<text>You do not have permission to change the documentation of this package.</text>)
+    return;
+}
+
+<script type="text/html" id="validation-errors">
+    <div data-bind="foreach:$data" class="validation-error-message-list">
+        @ViewHelpers.AlertDanger(@<text><span data-bind="text:$data"></span></text>)
+    </div>
+</script>
+
+<div class="page-edit-package">
+    @{ 
+        var hideForm = true;
+    }
+
+    @if (!Model.VersionSelectList.Any())
+    {
+        @ViewHelpers.AlertInfo(
+            @<text>
+                <span>There are no versions that can have their documentation edited.</span>
+            </text>)
+    }
+    else if (Model.IsLocked)
+    {
+        <div class="validation-error-message-list">
+            @ViewHelpers.AlertDanger(
+                @<text>
+                    <span>
+                        Package '@Model.Id' has been locked. This means you cannot publish a new version or change the listing status of a published package version. Please contact
+                        <a href="mailto:support@nuget.org?subject=@HttpUtility.UrlPathEncode(string.Format("Requesting support for a locked package - '{0}'", Model.Id))">support@nuget.org</a>.
+                    </span>
+                </text>)
+        </div>
+    }
+    else
+    {
+        hideForm = false;
+    }
+
+    <div class="@(hideForm ? "hidden" : "")">
+        <div id="select-package-version-container">
+            <form aria-hidden="true" id="cancel-form">
+                @Html.AntiForgeryToken()
+            </form>
+            <form aria-label="Select package version to edit" id="select-version-form" enctype="multipart/form-data">
+                @Html.AntiForgeryToken()
+
+                @Html.ValidationSummary(true)
+                <div class="row">
+                    <label for="input-select-readme" id="readme-version-label" class="col-xs-12">
+                        <span>Select version</span>
+                        @Html.DropDownList("version-selection", Model.VersionSelectList,
+                            new
+                            {
+                                @class = "form-control selectpicker show-tick show-menu-arrow btn-block",
+                                @title = "Select a version",
+                                @id = "input-select-readme"
+                            })
+                    </label>
+                </div>
+            </form>
+            <div id="validation-failure-container">
+            </div>
+        </div>
+
+        @Html.Partial("_EditForm")
+    </div>
+
+</div>

@@ -1,20 +1,9 @@
-﻿@model ManagePackageOwnersViewModel
-@{
-    ViewBag.Title = "Manage Owners for Package " + Model.Id;
-    ViewBag.Tab = "Packages";
-}
+﻿@model ManagePackageViewModel
 
-<section role="main" class="container main-container page-manage-owners">
-    @ViewHelpers.AjaxAntiForgeryToken(Html)
+<div class="page-manage-owners">
 
-    <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
-        @Html.Partial(
-            "_PackageHeading", 
-            new PackageHeadingModel(
-                Model, 
-                "Manage owners",
-                linkIdOnly: true))
-
+    @if (Model.CanManageOwners)
+        {
         <div style="display: none" id="manage-owners-alert" data-bind="visible: message">
             @ViewHelpers.AlertDanger(
                 @<text>
@@ -22,15 +11,11 @@
                 </text>)
         </div>
 
-        <h2>
-            <a href="#" role="button" data-toggle="collapse" data-target="#package-owners"
-                   aria-expanded="true" aria-controls="package-owners" id="show-package-owners">
-                <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
-                <span>Current Owners</span>
-            </a>
-        </h2>
+        <b>
+            Current owners
+        </b>
 
-        <div class="package-owners panel-collapse collapse in" aria-expanded="true" id="package-owners">
+        <div class="package-owners">
             <div data-bind="foreach: owners" role="list">
                 <div class="row current-owner ms-font-xl" role="listitem">
                     <div class="col-md-1">
@@ -50,9 +35,9 @@
                     </div>
                     <!-- ko if: $parent.IsAllowedToRemove($data) -->
                     <div class="col-md-3 text-right remove-owner">
-                        <a class="icon-link" 
-                           href="#" 
-                           title="Remove as owner of @Model.Id" 
+                        <a class="icon-link"
+                           href="#"
+                           title="Remove as owner of @Model.Id"
                            data-bind="click: $root.removeOwner">
                             <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
                             <span>Remove</span>
@@ -72,21 +57,17 @@
             </div>
         </div>
 
-        <h2>
-            <a href="#" role="button" data-toggle="collapse" data-target="#add-owner"
-                aria-expanded="true" aria-controls="add-owner" id="show-add-owner">
-                <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
-                <span>Add Owner</span>
-            </a>
-        </h2>
+        <b>
+            Add owner
+        </b>
 
-        <div class="package-owners panel-collapse collapse in" aria-expanded="true" id="add-owner">
+        <div class="package-owners">
             @using (Html.BeginForm())
             {
                 @Html.AntiForgeryToken()
 
                 <div data-bind="visible: !confirmation()">
-                    <p class="ms-font-xl">Enter a username to add them as a package owner.</p>
+                    <p>Enter a username to add them as a package owner.</p>
 
                     @ViewHelpers.AlertInfo(
                         @<text>
@@ -101,7 +82,7 @@
 
                     <div class="form-group">
                         <label for="newOwnerMessage">Message</label>
-                        <textarea id="newOwnerMessage" name="newOwnerMessage" data-bind="value: newOwnerMessage" aria-required="true" class="form-control" cols="50" rows="10"></textarea>
+                        <textarea id="newOwnerMessage" name="newOwnerMessage" data-bind="value: newOwnerMessage" aria-required="true" class="form-control" cols="50" rows="2"></textarea>
                     </div>
 
                     <div class="form-group">
@@ -110,26 +91,9 @@
                 </div>
             }
         </div>
-    </div>
-</section>
-
-@section bottomScripts {
-    <script type="text/javascript">
-        var packageId = "@Model.Id";
-        var isUserAnAdmin = "@Model.IsCurrentUserAnAdmin";
-        var packageUrl = "@Url.Package(Model.Id)";
-        var getPackageOwnersUrl = "@Url.GetPackageOwners()";
-        var addPackageOwnerUrl = "@Url.AddPackageOwner()";
-        var removePackageOwnerUrl = "@Url.RemovePackageOwner()";
-
-        // Strings
-        var strings_Error = "@Html.Raw(Strings.ManagePackageOwners_Error)";
-        var strings_InvalidUsername = "@Html.Raw(Strings.ManagePackageOwners_InvalidUsername)";
-        var strings_AlreadyPending = "@Html.Raw(Strings.ManagePackageOwners_AlreadyPending)";
-        var strings_RemovingOwnership = "@Html.Raw(Strings.ManagePackageOwners_RemovingOwnership)";
-        var strings_RemovingOrganization = "@Html.Raw(Strings.ManagePackageOwners_RemovingOrganization)";
-        var strings_RemovingSelf = "@Html.Raw(Strings.ManagePackageOwners_RemovingSelf)";
-    </script>
-
-    @Scripts.Render("~/Scripts/gallery/page-manage-owners.min.js")
-}
+    }
+    else
+    {
+        @ViewHelpers.AlertWarning(@<text>You do not have permission to manage the owners of this package.</text>)
+    }
+</div>

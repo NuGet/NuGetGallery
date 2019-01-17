@@ -1,5 +1,19 @@
 ﻿@model ListPackageItemViewModel
 
+@helper OwnersHeader()
+{
+    if (Model.Owners != null && Model.Owners.Any())
+    {
+        <span class="package-by">
+            by:
+            @foreach (var owner in Model.Owners)
+            {
+                <a href="@Url.User(owner)" title="View @owner.Username's profile">@owner.Username</a>
+            }
+        </span>
+    }
+}
+
 <article class="package" role="listitem">
 
     <div class="row">
@@ -10,26 +24,31 @@
         </div>
         <div class="col-sm-11">
             <div class="package-header">
-                <a class="package-title" href="@Url.Package(Model.Id, Model.UseVersion ? Model.Version : null)">@Html.BreakWord(Model.Id)</a>
+                <div class="package-title-container">
+                    <a class="package-title" href="@Url.Package(Model.Id, Model.UseVersion ? Model.Version : null)">@Model.Id</a>
 
-                @if (Model.IsVerified.HasValue && Model.IsVerified.Value)
-                {
-                    <img class="reserved-indicator" 
-                         src="~/Content/gallery/img/reserved-indicator.svg" 
-                         @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/reserved-indicator-20x20.png"))
-                         title="@Strings.ReservedNamespace_ReservedIndicatorTooltip"/>
-                }
+                    @if (Model.IsVerified.HasValue && Model.IsVerified.Value)
+                    {
+                        <img class="reserved-indicator"
+                             src="~/Content/gallery/img/reserved-indicator.svg"
+                             @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/reserved-indicator-20x20.png"))
+                             title="@Strings.ReservedNamespace_ReservedIndicatorTooltip" />
+                    }
 
-                @if (Model.Owners != null && Model.Owners.Any())
-                {
-                    <span class="package-by">
-                        by:
-                        @foreach (var owner in Model.Owners)
-                        {
-                            <a href="@Url.User(owner)" title="View @owner.Username's profile">@owner.Username</a>
-                        }
-                    </span>
-                }           
+                    @if (Model.CanEdit || Model.CanManageOwners || Model.CanUnlistOrRelist)
+                    {
+                        <a href="@Url.ManagePackage(Model)" class="icon-link edit-button" title="Manage package">
+                            <i class="ms-Icon ms-Icon--Edit" aria-hidden="true"></i>
+                        </a>
+                    }
+                </div>
+                <div class="package-by-container hidden-xs">
+                    @OwnersHeader()
+                </div>
+            </div>
+
+            <div class="hidden-sm hidden-md hidden-lg">
+                @OwnersHeader()
             </div>
 
             @if (!StringComparer.OrdinalIgnoreCase.Equals(Model.Id, Model.Title))
@@ -79,41 +98,6 @@
                     @Html.RouteLink("More information", RouteName.DisplayPackage, new { Model.Id, Model.Version })
                 }
             </div>
-            
-            @if (Model.CanEdit ||
-                Model.CanManageOwners ||
-                Model.CanUnlistOrRelist)
-            {
-                <ul class="package-list manage-package">
-                    @if (Model.CanEdit)
-                    {
-                        <li>
-                            <a href="@Url.EditPackage(Model.Id, Model.Version)" class="icon-link">
-                                <i class="ms-Icon ms-Icon--Edit" aria-hidden="true"></i>
-                                <span>Edit Package</span>
-                            </a>
-                        </li>
-                    }
-                    @if (Model.CanManageOwners)
-                    {
-                        <li>
-                            <a href="@Url.ManagePackageOwners(Model)" class="icon-link">
-                                <i class="ms-Icon ms-Icon--People" aria-hidden="true"></i>
-                                <span>Manage Owners</span>
-                            </a>
-                        </li>
-                    }
-                    @if (Model.CanUnlistOrRelist)
-                    {
-                        <li>
-                            <a href="@Url.DeletePackage(Model)" class="icon-link">
-                                <i class="ms-Icon ms-Icon--Delete" aria-hidden="true"></i>
-                                <span>Delete Package</span>
-                            </a>
-                        </li>
-                    }
-                </ul>
-            }
         </div>
     </div>
 </article>

@@ -698,6 +698,7 @@
     <Compile Include="ViewModels\GalleryHomeViewModel.cs" />
     <Compile Include="ViewModels\HandleOrganizationMembershipRequestModel.cs" />
     <Compile Include="ViewModels\ListPackageItemRequiredSignerViewModel.cs" />
+    <Compile Include="ViewModels\ManagePackageViewModel.cs" />
     <Compile Include="ViewModels\SignerViewModel.cs" />
     <Compile Include="WebRole.cs" />
     <Compile Include="Areas\Admin\AdminAreaRegistration.cs" />
@@ -1239,7 +1240,6 @@
     <Compile Include="Queries\IAutoCompletePackageVersionsQuery.cs" />
     <Compile Include="Queries\AutoCompleteDatabasePackageVersionsQuery.cs" />
     <Compile Include="Queries\AutoCompleteDatabasePackageIdsQuery.cs" />
-    <Compile Include="RequestModels\EditPackageRequest.cs" />
     <Compile Include="RequestModels\DeletePackagesRequest.cs" />
     <Compile Include="RequestModels\EditPackageVersionRequest.cs" />
     <Compile Include="RequestModels\VerifyPackageRequest.cs" />
@@ -1265,7 +1265,6 @@
     <Compile Include="ViewModels\DeleteAccountViewModel.cs" />
     <Compile Include="ViewModels\ApiKeyOwnerViewModel.cs" />
     <Compile Include="ViewModels\PackageOwnersResultViewModel.cs" />
-    <Compile Include="ViewModels\ManagePackagesListViewModel.cs" />
     <Compile Include="ViewModels\ApiKeyListViewModel.cs" />
     <Compile Include="ViewModels\ApiKeyViewModel.cs" />
     <Compile Include="ViewModels\OwnerRequestsListItemViewModel.cs" />
@@ -1501,7 +1500,6 @@
     <Compile Include="Services\SearchExtensionMethods.cs" />
     <Compile Include="ViewModels\ContactOwnersViewModel.cs" />
     <Compile Include="ViewModels\PasswordResetViewModel.cs" />
-    <Compile Include="ViewModels\ManagePackageOwnersViewModel.cs" />
     <Compile Include="ViewModels\IPackageVersionModel.cs" />
     <Compile Include="ViewModels\IPageableEnumerable.cs" />
     <Compile Include="App_Start\Routes.cs" />
@@ -1706,7 +1704,6 @@
     <Content Include="Views\Authentication\_Register.cshtml" />
     <Content Include="Views\Shared\_PackageHeading.cshtml" />
     <Content Include="Views\Packages\_ImportReadMe.cshtml" />
-    <Content Include="Views\Packages\_SubmitPackage.cshtml" />
     <Content Include="Views\Packages\_EditForm.cshtml" />
     <Content Include="Areas\Admin\Views\DeleteAccount\DeleteUserAccount.cshtml" />
     <Content Include="Views\Users\_UserPackagesListForDeletedAccount.cshtml" />
@@ -1864,15 +1861,16 @@
     <Content Include="Views\Users\Account.cshtml" />
     <Content Include="Views\Packages\ConfirmOwner.cshtml" />
     <Content Include="Views\Errors\NotFound.cshtml" />
-    <Content Include="Views\Packages\Delete.cshtml" />
-    <Content Include="Views\Packages\Edit.cshtml" />
-    <Content Include="Views\Packages\ManagePackageOwners.cshtml" />
+    <Content Include="Views\Packages\_ManageListing.cshtml" />
+    <Content Include="Views\Packages\_ManageDocumentation.cshtml" />
+    <Content Include="Views\Packages\_ManageOwners.cshtml" />
     <Content Include="api\Web.config" />
     <Compile Include="Infrastructure\Lucene\LuceneSearchService.cs" />
     <Content Include="Views\Shared\ConfirmationRequired.cshtml" />
     <Content Include="Views\Pages\Contact.cshtml" />
     <Content Include="Views\Shared\_DeletePackage.cshtml" />
     <Content Include="Views\Packages\DeleteSymbols.cshtml" />
+    <Content Include="Views\Packages\Manage.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />

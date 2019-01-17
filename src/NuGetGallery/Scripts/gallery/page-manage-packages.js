@@ -28,15 +28,13 @@
                 ? packageItem.PackageIconUrl
                 : this.PackagesListViewModel.ManagePackagesViewModel.DefaultPackageIconUrl;
             this.PackageUrl = packageItem.PackageUrl;
-            this.EditUrl = packageItem.EditUrl;
+            this.ManageUrl = packageItem.ManageUrl;
             this.SetRequiredSignerUrl = packageItem.SetRequiredSignerUrl;
-            this.ManageOwnersUrl = packageItem.ManageOwnersUrl;
             this.RequiredSignerMessage = packageItem.RequiredSignerMessage;
             this.AllSigners = packageItem.AllSigners;
             this.ShowRequiredSigner = packageItem.ShowRequiredSigner;
             this.ShowTextBox = packageItem.ShowTextBox;
             this.CanEditRequiredSigner = packageItem.CanEditRequiredSigner;
-            this.DeleteUrl = packageItem.DeleteUrl;
             this.CanEdit = packageItem.CanEdit;
             this.CanManageOwners = packageItem.CanManageOwners;
             this.CanDelete = packageItem.CanDelete;
@@ -113,8 +111,9 @@
                 var signerIsAny = !newSignerUsername;
                 var message;
 
-                for (var index in packageItem.AllSigners) {
-                    var signer = packageItem.AllSigners[index];
+                var index, signer;
+                for (index in packageItem.AllSigners) {
+                    signer = packageItem.AllSigners[index];
 
                     if (signer.Username === newSignerUsername) {
                         signerHasCertificate = signer.HasCertificate;
@@ -126,8 +125,8 @@
                     var anySignerWithNoCertificate = false;
                     var anySignerWithCertificate = false;
 
-                    for (var index in packageItem.AllSigners) {
-                        var signer = packageItem.AllSigners[index];
+                    for (index in packageItem.AllSigners) {
+                        signer = packageItem.AllSigners[index];
 
                         if (signer.HasCertificate) {
                             anySignerWithCertificate = true;
