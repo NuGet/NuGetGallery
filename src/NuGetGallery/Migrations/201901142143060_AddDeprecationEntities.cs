@@ -37,7 +37,7 @@ namespace NuGetGallery.Migrations
                 c => new
                     {
                         Key = c.Int(nullable: false, identity: true),
-                        CVSSRating = c.Int(),
+                        CVSSRating = c.Single(),
                         CVEIds = c.String(),
                         CWEIds = c.String(),
                     })
