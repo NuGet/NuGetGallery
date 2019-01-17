@@ -37,7 +37,7 @@ namespace NuGetGallery.Migrations
                 c => new
                     {
                         Key = c.Int(nullable: false, identity: true),
-                        CVSSRating = c.Single(),
+                        CVSSRating = c.Decimal(precision: 3, scale: 1),
                         CVEIds = c.String(),
                         CWEIds = c.String(),
                     })

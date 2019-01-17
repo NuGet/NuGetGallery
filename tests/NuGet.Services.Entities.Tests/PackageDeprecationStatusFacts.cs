@@ -12,7 +12,7 @@ namespace NuGet.Services.Entities.Tests
     {
         /// <summary>
         /// These values are immutable since they are persisted to the database. This dictionary should only ever be
-        /// appended to as new <see cref="PackageStatus"/> values are added.
+        /// appended to as new <see cref="PackageDeprecationStatus"/> values are added.
         /// </summary>
         private static readonly IReadOnlyDictionary<PackageDeprecationStatus, int> ImmutablePackageDeprecationStatusValues = new Dictionary<PackageDeprecationStatus, int>
         {

@@ -368,9 +368,6 @@ namespace NuGetGallery
                 .Property(s => s.RowVersion)
                 .IsRowVersion();
 
-            modelBuilder.Entity<PackageVulnerability>()
-                .HasKey(v => v.Key);
-
             modelBuilder.Entity<PackageDeprecation>()
                 .HasKey(d => d.Key);
 
@@ -396,6 +393,11 @@ namespace NuGetGallery
                 .WithMany()
                 .HasForeignKey(d => d.DeprecatedByKey)
                 .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<PackageVulnerability>()
+                .HasKey(v => v.Key)
+                .Property(v => v.CVSSRating)
+                .HasPrecision(3, 1);
 
             modelBuilder.Entity<PackageVulnerability>()
                 .HasMany(v => v.VulnerableDeprecations)
