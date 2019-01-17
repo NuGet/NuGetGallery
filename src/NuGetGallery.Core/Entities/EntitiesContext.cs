@@ -372,9 +372,10 @@ namespace NuGetGallery
                 .HasKey(d => d.Key);
 
             modelBuilder.Entity<Package>()
-                .HasOptional(p => p.Deprecation)
+                .HasMany(p => p.Deprecations)
                 .WithRequired(d => d.Package)
-                .WillCascadeOnDelete();
+                .HasForeignKey(d => d.PackageKey)
+                .WillCascadeOnDelete(true);
 
             modelBuilder.Entity<Package>()
                 .HasMany(p => p.AlternativeOf)
@@ -394,16 +395,9 @@ namespace NuGetGallery
                 .HasForeignKey(d => d.DeprecatedByKey)
                 .WillCascadeOnDelete(false);
 
-            modelBuilder.Entity<PackageVulnerability>()
-                .HasKey(v => v.Key)
+            modelBuilder.Entity<PackageDeprecation>()
                 .Property(v => v.CVSSRating)
                 .HasPrecision(3, 1);
-
-            modelBuilder.Entity<PackageVulnerability>()
-                .HasMany(v => v.VulnerableDeprecations)
-                .WithOptional(d => d.PackageVulnerability)
-                .HasForeignKey(d => d.PackageVulnerabilityKey)
-                .WillCascadeOnDelete(false);
         }
 #pragma warning restore 618
     }

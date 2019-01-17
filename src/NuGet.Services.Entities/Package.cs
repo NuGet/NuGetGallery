@@ -22,6 +22,7 @@ namespace NuGet.Services.Entities
             PackageTypes = new HashSet<PackageType>();
             SupportedFrameworks = new HashSet<PackageFramework>();
             SymbolPackages = new HashSet<SymbolPackage>();
+            Deprecations = new HashSet<PackageDeprecation>();
             AlternativeOf = new HashSet<PackageDeprecation>();
             Listed = true;
         }
@@ -253,7 +254,7 @@ namespace NuGet.Services.Entities
         [StringLength(500)]
         public string LicenseExpression { get; set; }
 
-        public virtual PackageDeprecation Deprecation { get; set; }
+        public virtual ICollection<PackageDeprecation> Deprecations { get; set; }
 
         public virtual ICollection<PackageDeprecation> AlternativeOf { get; set; }
     }

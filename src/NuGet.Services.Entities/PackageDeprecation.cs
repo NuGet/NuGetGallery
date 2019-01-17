@@ -16,16 +16,18 @@ namespace NuGet.Services.Entities
         /// <summary>
         /// Gets or sets the primary key for the entity.
         /// </summary>
-        /// <remarks>
-        /// Since packages can only have a single deprecation, and every deprecation must be associated with a package, a deprecation's primary key is equal to its deprecated package entity key.
-        /// </remarks>
         public int Key { get; set; }
         
         /// <summary>
         /// Gets or sets the package affected by this deprecation.
         /// </summary>
-        [Required]
         public virtual Package Package { get; set; }
+
+        /// <summary>
+        /// Gets or sets the key of the package affected by this deprecation.
+        /// </summary>
+        [Index(IsUnique = true)]
+        public int PackageKey { get; set; }
 
         /// <summary>
         /// Gets or sets the status of this deprecation.
@@ -76,15 +78,22 @@ namespace NuGet.Services.Entities
         /// Gets or sets the user-provided custom message for this package deprecation.
         /// </summary>
         public string CustomMessage { get; set; }
-        
-        /// <summary>
-        /// Gets or sets the package vulnerability linked to this package deprecation.
-        /// </summary>
-        public virtual PackageVulnerability PackageVulnerability { get; set; }
 
         /// <summary>
-        /// Gets or sets the key of the package vulnerability linked to this package deprecation.
+        /// Gets or sets the CVSS rating for this deprecation.
         /// </summary>
-        public int? PackageVulnerabilityKey { get; set; }
+        public decimal? CVSSRating { get; set; }
+
+        /// <summary>
+        /// Gets or sets the JSON object containing an array of CVE ID's related to this deprecation.
+        /// The JSON object should have a version property that defines the version of its schema.
+        /// </summary>
+        public string CVEIds { get; set; }
+
+        /// <summary>
+        /// Gets or sets the JSON object containing an array of CWE ID's related to this deprecation.
+        /// The JSON object should have a version property that defines the version of its schema.
+        /// </summary>
+        public string CWEIds { get; set; }
     }
 }
