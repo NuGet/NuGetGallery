@@ -12,9 +12,11 @@ using System.Web.Http.Dependencies;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using Autofac.Integration.WebApi;
+using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
@@ -22,6 +24,7 @@ using NuGet.Services.AzureSearch;
 using NuGet.Services.AzureSearch.SearchService;
 using NuGet.Services.Configuration;
 using NuGet.Services.KeyVault;
+using NuGet.Services.Logging;
 using NuGet.Services.SearchService.Controllers;
 
 namespace NuGet.Services.SearchService
@@ -85,11 +88,16 @@ namespace NuGet.Services.SearchService
         {
             var configurationRoot = GetConfigurationRoot();
 
+            var instrumentationKey = configurationRoot.GetValue<string>("ApplicationInsights_InstrumentationKey");
+            if (!string.IsNullOrWhiteSpace(instrumentationKey))
+            {
+                TelemetryConfiguration.Active.InstrumentationKey = instrumentationKey;
+            }
+
             var services = new ServiceCollection();
             services.Add(ServiceDescriptor.Scoped(typeof(IOptionsSnapshot<>), typeof(NonCachingOptionsSnapshot<>)));
             services.Configure<AzureSearchConfiguration>(configurationRoot.GetSection(ConfigurationSectionName));
             services.Configure<SearchServiceConfiguration>(configurationRoot.GetSection(ConfigurationSectionName));
-            services.AddLogging();
             services.AddAzureSearch();
 
             var builder = new ContainerBuilder();
@@ -98,6 +106,11 @@ namespace NuGet.Services.SearchService
             builder.RegisterWebApiModelBinderProvider();
             builder.Populate(services);
             builder.AddAzureSearch();
+
+            var loggerConfiguration = LoggingSetup.CreateDefaultLoggerConfiguration(withConsoleLogger: false);
+            var loggerFactory = LoggingSetup.CreateLoggerFactory(loggerConfiguration);
+            builder.RegisterInstance(loggerFactory).As<ILoggerFactory>();
+            builder.RegisterGeneric(typeof(Logger<>)).As(typeof(ILogger<>));
 
             var container = builder.Build();
             return new AutofacWebApiDependencyResolver(container);
