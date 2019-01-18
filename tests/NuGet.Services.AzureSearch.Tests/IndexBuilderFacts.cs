@@ -1,17 +1,195 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
+using System.Net;
 using System.Threading.Tasks;
 using Microsoft.Azure.Search.Models;
 using Microsoft.Extensions.Options;
+using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Blob;
 using Moq;
 using NuGet.Services.AzureSearch.Support;
 using NuGet.Services.AzureSearch.Wrappers;
+using NuGetGallery;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace NuGet.Services.AzureSearch
 {
+    public class BlobContainerBuilderFacts
+    {
+        public class CreateAsync : BaseFacts
+        {
+            public CreateAsync(ITestOutputHelper output) : base(output)
+            {
+            }
+
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public async Task CreatesIndex(bool retryOnConflict)
+            {
+                await _target.CreateAsync(retryOnConflict);
+
+                VerifyGetContainer();
+                _cloudBlobContainer.Verify(x => x.CreateAsync(), Times.Once);
+                _cloudBlobContainer.Verify(x => x.CreateIfNotExistAsync(), Times.Never);
+                _cloudBlobContainer.Verify(x => x.DeleteIfExistsAsync(), Times.Never);
+                VerifySetPermissions();
+            }
+
+            [Fact]
+            public async Task CanRetryOnConflict()
+            {
+                EnableConflict();
+
+                var sw = Stopwatch.StartNew();
+                await _target.CreateAsync(retryOnConflict: true);
+                sw.Stop();
+
+                _cloudBlobContainer.Verify(x => x.CreateAsync(), Times.Exactly(2));
+                VerifySetPermissions();
+                Assert.InRange(sw.Elapsed, _retryDuration, TimeSpan.MaxValue);
+            }
+
+            [Fact]
+            public async Task CanFailOnConflict()
+            {
+                EnableConflict();
+
+                await Assert.ThrowsAsync<StorageException>(() => _target.CreateAsync(retryOnConflict: false));
+            }
+        }
+
+        public class CreateIfNotExistsAsync : BaseFacts
+        {
+            public CreateIfNotExistsAsync(ITestOutputHelper output) : base(output)
+            {
+            }
+
+            [Fact]
+            public async Task CreatesIndexIfNotExists()
+            {
+                _cloudBlobContainer.Setup(x => x.ExistsAsync()).ReturnsAsync(false);
+
+                await _target.CreateIfNotExistsAsync();
+
+                VerifyGetContainer();
+                _cloudBlobContainer.Verify(x => x.CreateAsync(), Times.Once);
+                _cloudBlobContainer.Verify(x => x.CreateIfNotExistAsync(), Times.Never);
+                _cloudBlobContainer.Verify(x => x.DeleteIfExistsAsync(), Times.Never);
+                VerifySetPermissions();
+            }
+
+            [Fact]
+            public async Task DoesNotCreateIndexIfExists()
+            {
+                _cloudBlobContainer.Setup(x => x.ExistsAsync()).ReturnsAsync(true);
+
+                await _target.CreateIfNotExistsAsync();
+
+                _cloudBlobContainer.Verify(x => x.CreateAsync(), Times.Never);
+                _cloudBlobContainer.Verify(x => x.CreateIfNotExistAsync(), Times.Never);
+                _cloudBlobContainer.Verify(x => x.SetPermissionsAsync(It.IsAny<BlobContainerPermissions>()), Times.Never);
+            }
+
+            [Fact]
+            public async Task DoesNotRetryOnConflict()
+            {
+                EnableConflict();
+                _cloudBlobContainer.Setup(x => x.ExistsAsync()).ReturnsAsync(false);
+
+                await Assert.ThrowsAsync<StorageException>(() => _target.CreateIfNotExistsAsync());
+            }
+        }
+
+        public class DeleteIfExistsAsync : BaseFacts
+        {
+            public DeleteIfExistsAsync(ITestOutputHelper output) : base(output)
+            {
+            }
+
+            [Fact]
+            public async Task Deletes()
+            {
+                await _target.DeleteIfExistsAsync();
+
+                VerifyGetContainer();
+                _cloudBlobContainer.Verify(x => x.DeleteIfExistsAsync(), Times.Once);
+                _cloudBlobContainer.Verify(x => x.CreateAsync(), Times.Never);
+                _cloudBlobContainer.Verify(x => x.CreateIfNotExistAsync(), Times.Never);
+                _cloudBlobContainer.Verify(x => x.SetPermissionsAsync(It.IsAny<BlobContainerPermissions>()), Times.Never);
+            }
+        }
+
+        public abstract class BaseFacts
+        {
+            protected readonly Mock<ICloudBlobClient> _cloudBlobClient;
+            protected readonly Mock<ICloudBlobContainer> _cloudBlobContainer;
+            protected readonly Mock<IOptionsSnapshot<AzureSearchJobConfiguration>> _options;
+            protected readonly AzureSearchJobConfiguration _config;
+            protected readonly RecordingLogger<BlobContainerBuilder> _logger;
+            protected readonly TimeSpan _retryDuration;
+            protected readonly BlobContainerBuilder _target;
+
+            public BaseFacts(ITestOutputHelper output)
+            {
+                _cloudBlobClient = new Mock<ICloudBlobClient>();
+                _cloudBlobContainer = new Mock<ICloudBlobContainer>();
+                _options = new Mock<IOptionsSnapshot<AzureSearchJobConfiguration>>();
+                _config = new AzureSearchJobConfiguration
+                {
+                    StorageContainer = "container-name",
+                };
+                _logger = output.GetLogger<BlobContainerBuilder>();
+                _retryDuration = TimeSpan.FromMilliseconds(10);
+
+                _options
+                    .Setup(x => x.Value)
+                    .Returns(() => _config);
+                _cloudBlobClient
+                    .Setup(x => x.GetContainerReference(It.IsAny<string>()))
+                    .Returns(() => _cloudBlobContainer.Object);
+
+                _target = new BlobContainerBuilder(
+                    _cloudBlobClient.Object,
+                    _options.Object,
+                    _logger,
+                    _retryDuration);
+            }
+            
+            protected void EnableConflict()
+            {
+                _cloudBlobContainer
+                    .SetupSequence(x => x.CreateAsync())
+                    .Throws(new StorageException(
+                        new RequestResult
+                        {
+                            HttpStatusCode = (int)HttpStatusCode.Conflict,
+                        },
+                        "Conflict.",
+                        inner: null))
+                    .Returns(Task.CompletedTask);
+            }
+
+            protected void VerifySetPermissions()
+            {
+                _cloudBlobContainer.Verify(
+                    x => x.SetPermissionsAsync(It.Is<BlobContainerPermissions>(p => p.PublicAccess == BlobContainerPublicAccessType.Blob)),
+                    Times.Once);
+                _cloudBlobContainer.Verify(x => x.SetPermissionsAsync(It.IsAny<BlobContainerPermissions>()), Times.Once);
+            }
+
+            protected void VerifyGetContainer()
+            {
+                _cloudBlobClient.Verify(x => x.GetContainerReference(_config.StorageContainer), Times.Once);
+                _cloudBlobClient.Verify(x => x.GetContainerReference(It.IsAny<string>()), Times.Once);
+            }
+        }
+    }
+
     public class IndexBuilderFacts
     {
         public class CreateSearchIndexAsync : BaseFacts

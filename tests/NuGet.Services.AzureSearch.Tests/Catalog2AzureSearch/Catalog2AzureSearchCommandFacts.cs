@@ -13,7 +13,6 @@ using Newtonsoft.Json;
 using NuGet.Services.AzureSearch.Support;
 using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Persistence;
-using NuGetGallery;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -34,17 +33,13 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
             [InlineData(true, true)]
             public async Task ObservesCreateContainersAndIndexesOption(bool shouldCreate, bool containerExists)
             {
-                _cloudBlobContainer.Setup(x => x.ExistsAsync()).ReturnsAsync(containerExists);
                 _config.CreateContainersAndIndexes = shouldCreate;
                 var createIfExistsTimes = shouldCreate ? Times.Once() : Times.Never();
                 var createTimes = shouldCreate && !containerExists ? Times.Once() : Times.Never();
 
                 await _target.ExecuteAsync();
 
-                _cloudBlobClient.Verify(x => x.GetContainerReference(_config.StorageContainer), createIfExistsTimes);
-                _cloudBlobClient.Verify(x => x.GetContainerReference(It.IsAny<string>()), createIfExistsTimes);
-                _cloudBlobContainer.Verify(x => x.ExistsAsync(), createIfExistsTimes);
-                _cloudBlobContainer.Verify(x => x.CreateAsync(), createTimes);
+                _blobContainerBuilder.Verify(x => x.CreateIfNotExistsAsync(), createIfExistsTimes);
                 _indexBuilder.Verify(x => x.CreateSearchIndexIfNotExistsAsync(), createIfExistsTimes);
                 _indexBuilder.Verify(x => x.CreateHijackIndexIfNotExistsAsync(), createIfExistsTimes);
             }
@@ -121,8 +116,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
             protected readonly Mock<ICollector> _collector;
             protected readonly Mock<IStorageFactory> _storageFactory;
             protected readonly Mock<TestHttpMessageHandler> _httpMessageHandler;
-            protected readonly Mock<ICloudBlobClient> _cloudBlobClient;
-            protected readonly Mock<ICloudBlobContainer> _cloudBlobContainer;
+            protected readonly Mock<IBlobContainerBuilder> _blobContainerBuilder;
             protected readonly Mock<IIndexBuilder> _indexBuilder;
             protected readonly Mock<IOptionsSnapshot<Catalog2AzureSearchConfiguration>> _options;
             protected readonly Catalog2AzureSearchConfiguration _config;
@@ -135,8 +129,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                 _collector = new Mock<ICollector>();
                 _storageFactory = new Mock<IStorageFactory>();
                 _httpMessageHandler = new Mock<TestHttpMessageHandler>() { CallBase = true };
-                _cloudBlobClient = new Mock<ICloudBlobClient>();
-                _cloudBlobContainer = new Mock<ICloudBlobContainer>();
+                _blobContainerBuilder = new Mock<IBlobContainerBuilder>();
                 _indexBuilder = new Mock<IIndexBuilder>();
                 _options = new Mock<IOptionsSnapshot<Catalog2AzureSearchConfiguration>>();
                 _logger = output.GetLogger<Catalog2AzureSearchCommand>();
@@ -150,15 +143,12 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
 
                 _options.Setup(x => x.Value).Returns(() => _config);
                 _storageFactory.Setup(x => x.Create(It.IsAny<string>())).Returns(() => _storage);
-                _cloudBlobClient
-                    .Setup(x => x.GetContainerReference(It.IsAny<string>()))
-                    .Returns(() => _cloudBlobContainer.Object);
 
                 _target = new Catalog2AzureSearchCommand(
                     _collector.Object,
                     _storageFactory.Object,
                     () => _httpMessageHandler.Object,
-                    _cloudBlobClient.Object,
+                    _blobContainerBuilder.Object,
                     _indexBuilder.Object,
                     _options.Object,
                     _logger);

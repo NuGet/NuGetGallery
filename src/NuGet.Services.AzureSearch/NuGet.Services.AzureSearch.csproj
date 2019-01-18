@@ -43,6 +43,8 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BlobContainerBuilder.cs" />
+    <Compile Include="IBlobContainerBuilder.cs" />
     <Compile Include="Measure.cs" />
     <Compile Include="DurationMeasurement.cs" />
     <Compile Include="SearchService\AuxiliaryDataCache.cs" />

@@ -11,7 +11,6 @@ using Microsoft.Extensions.Options;
 using Microsoft.WindowsAzure.Storage;
 using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Persistence;
-using NuGetGallery;
 
 namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
 {
@@ -22,7 +21,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
         private readonly ICollector _collector;
         private readonly IStorageFactory _storageFactory;
         private readonly Func<HttpMessageHandler> _handlerFunc;
-        private readonly ICloudBlobClient _cloudBlobClient;
+        private readonly IBlobContainerBuilder _blobContainerBuilder;
         private readonly IIndexBuilder _indexBuilder;
         private readonly IOptionsSnapshot<Catalog2AzureSearchConfiguration> _options;
         private readonly ILogger<Catalog2AzureSearchCommand> _logger;
@@ -31,7 +30,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
             ICollector collector,
             IStorageFactory storageFactory,
             Func<HttpMessageHandler> handlerFunc,
-            ICloudBlobClient cloudBlobClient,
+            IBlobContainerBuilder blobContainerBuilder,
             IIndexBuilder indexBuilder,
             IOptionsSnapshot<Catalog2AzureSearchConfiguration> options,
             ILogger<Catalog2AzureSearchCommand> logger)
@@ -39,7 +38,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
             _collector = collector ?? throw new ArgumentNullException(nameof(collector));
             _storageFactory = storageFactory ?? throw new ArgumentNullException(nameof(storageFactory));
             _handlerFunc = handlerFunc ?? throw new ArgumentNullException(nameof(handlerFunc));
-            _cloudBlobClient = cloudBlobClient ?? throw new ArgumentNullException(nameof(cloudBlobClient));
+            _blobContainerBuilder = blobContainerBuilder ?? throw new ArgumentNullException(nameof(blobContainerBuilder));
             _indexBuilder = indexBuilder ?? throw new ArgumentNullException(nameof(indexBuilder));
             _options = options ?? throw new ArgumentNullException(nameof(options));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -89,18 +88,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
             // Optionally create the indexes.
             if (_options.Value.CreateContainersAndIndexes)
             {
-                var container = _cloudBlobClient.GetContainerReference(_options.Value.StorageContainer);
-                if (await container.ExistsAsync())
-                {
-                    _logger.LogInformation("Skipping creation of blob container {ContainerName} since it already exists.", _options.Value.StorageContainer);
-                }
-                else
-                {
-                    _logger.LogInformation("Creating blob container {ContainerName}.", _options.Value.StorageContainer);
-                    await container.CreateAsync();
-                    _logger.LogInformation("Done creating blob container {ContainerName}.", _options.Value.StorageContainer);
-                }
-
+                await _blobContainerBuilder.CreateIfNotExistsAsync();
                 await _indexBuilder.CreateSearchIndexIfNotExistsAsync();
                 await _indexBuilder.CreateHijackIndexIfNotExistsAsync();
             }

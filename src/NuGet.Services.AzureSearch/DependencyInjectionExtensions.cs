@@ -125,16 +125,23 @@ namespace NuGet.Services.AzureSearch
                         baseAddress: null,
                         useServerSideCopy: true,
                         compressContent: false,
-                        verbose: true);
+                        verbose: true,
+                        initializeContainer: false);
                 })
                 .Keyed<IStorageFactory>(key);
+
+            containerBuilder
+                .Register<IBlobContainerBuilder>(c => new BlobContainerBuilder(
+                    c.ResolveKeyed<ICloudBlobClient>(key),
+                    c.Resolve<IOptionsSnapshot<AzureSearchJobConfiguration>>(),
+                    c.Resolve<ILogger<BlobContainerBuilder>>()));
 
             containerBuilder
                 .Register(c => new Catalog2AzureSearchCommand(
                     c.Resolve<ICollector>(),
                     c.ResolveKeyed<IStorageFactory>(key),
                     c.Resolve<Func<HttpMessageHandler>>(),
-                    c.ResolveKeyed<ICloudBlobClient>(key),
+                    c.Resolve<IBlobContainerBuilder>(),
                     c.Resolve<IIndexBuilder>(),
                     c.Resolve<IOptionsSnapshot<Catalog2AzureSearchConfiguration>>(),
                     c.Resolve<ILogger<Catalog2AzureSearchCommand>>()));
@@ -143,7 +150,7 @@ namespace NuGet.Services.AzureSearch
                 .Register(c => new Db2AzureSearchCommand(
                     c.Resolve<INewPackageRegistrationProducer>(),
                     c.Resolve<IPackageEntityIndexActionBuilder>(),
-                    c.ResolveKeyed<ICloudBlobClient>(key),
+                    c.Resolve<IBlobContainerBuilder>(),
                     c.Resolve<IIndexBuilder>(),
                     c.Resolve<Func<IBatchPusher>>(),
                     c.Resolve<ICatalogClient>(),

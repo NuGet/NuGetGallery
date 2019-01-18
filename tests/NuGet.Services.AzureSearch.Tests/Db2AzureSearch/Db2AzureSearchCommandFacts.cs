@@ -24,8 +24,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
     {
         private readonly Mock<INewPackageRegistrationProducer> _producer;
         private readonly Mock<IPackageEntityIndexActionBuilder> _builder;
-        private readonly Mock<ICloudBlobClient> _cloudBlobClient;
-        private readonly Mock<ICloudBlobContainer> _cloudBlobContainer;
+        private readonly Mock<IBlobContainerBuilder> _blobContainerBuilder;
         private readonly Mock<IIndexBuilder> _indexBuilder;
         private readonly Mock<IBatchPusher> _batchPusher;
         private readonly Mock<ICatalogClient> _catalogClient;
@@ -40,8 +39,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
         {
             _producer = new Mock<INewPackageRegistrationProducer>();
             _builder = new Mock<IPackageEntityIndexActionBuilder>();
-            _cloudBlobClient = new Mock<ICloudBlobClient>();
-            _cloudBlobContainer = new Mock<ICloudBlobContainer>();
+            _blobContainerBuilder = new Mock<IBlobContainerBuilder>();
             _indexBuilder = new Mock<IIndexBuilder>();
             _batchPusher = new Mock<IBatchPusher>();
             _catalogClient = new Mock<ICatalogClient>();
@@ -67,20 +65,20 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                     new ResultAndAccessCondition<VersionListData>(
                         new VersionListData(new Dictionary<string, VersionPropertiesData>()),
                         AccessConditionWrapper.GenerateEmptyCondition())));
-            _cloudBlobClient
-                .Setup(x => x.GetContainerReference(It.IsAny<string>()))
-                .Returns(() => _cloudBlobContainer.Object);
             _catalogClient
                 .Setup(x => x.GetIndexAsync(It.IsAny<string>()))
                 .ReturnsAsync(new CatalogIndex());
             _storageFactory
                 .Setup(x => x.Create(It.IsAny<string>()))
                 .Returns(() => _storage);
+            _blobContainerBuilder
+                .Setup(x => x.DeleteIfExistsAsync())
+                .ReturnsAsync(true);
 
             _target = new Db2AzureSearchCommand(
                 _producer.Object,
                 _builder.Object,
-                _cloudBlobClient.Object,
+                _blobContainerBuilder.Object,
                 _indexBuilder.Object,
                 () => _batchPusher.Object,
                 _catalogClient.Object,
@@ -109,15 +107,14 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
         {
             _config.ReplaceContainersAndIndexes = replace;
             var replaceTimes = replace ? Times.Once() : Times.Never();
+            var retryOnConflict = replace;
 
             await _target.ExecuteAsync();
 
-            _cloudBlobClient.Verify(x => x.GetContainerReference(_config.StorageContainer), Times.Once);
-            _cloudBlobClient.Verify(x => x.GetContainerReference(It.IsAny<string>()), Times.Once);
-            _cloudBlobContainer.Verify(x => x.DeleteIfExistsAsync(), replaceTimes);
+            _blobContainerBuilder.Verify(x => x.DeleteIfExistsAsync(), replaceTimes);
             _indexBuilder.Verify(x => x.DeleteSearchIndexIfExistsAsync(), replaceTimes);
             _indexBuilder.Verify(x => x.DeleteHijackIndexIfExistsAsync(), replaceTimes);
-            _cloudBlobContainer.Verify(x => x.CreateAsync(), Times.Once);
+            _blobContainerBuilder.Verify(x => x.CreateAsync(retryOnConflict), Times.Once);
             _indexBuilder.Verify(x => x.CreateSearchIndexAsync(), Times.Once);
             _indexBuilder.Verify(x => x.CreateHijackIndexAsync(), Times.Once);
         }
