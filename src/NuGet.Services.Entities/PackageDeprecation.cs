@@ -86,6 +86,10 @@ namespace NuGet.Services.Entities
         /// <summary>
         /// Gets or sets the CVSS rating for this deprecation.
         /// </summary>
+        /// <remarks>
+        /// CVSS ratings are from 0.0 to 10.0 and have a single point of precision.
+        /// </remarks>
+        [Range(0, 10)]
         public decimal? CVSSRating { get; set; }
 
         /// <summary>
