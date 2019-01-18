@@ -648,7 +648,7 @@ namespace NuGetGallery
                 packageRegistration.Packages.Add(package);
 
                 var deprecation = new PackageDeprecation { Package = deprecatedPackage, AlternatePackage = package };
-                deprecatedPackage.Deprecations.Add(deprecation);
+                deprecatedPackage.Deprecation = deprecation;
                 package.AlternativeOf.Add(deprecation);
 
                 var user = new User("test");
@@ -1018,7 +1018,7 @@ namespace NuGetGallery
                 packageRegistration.Packages.Add(package);
 
                 var deprecation = new PackageDeprecation { Package = deprecatedPackage, AlternatePackage = package };
-                deprecatedPackage.Deprecations.Add(deprecation);
+                deprecatedPackage.Deprecation = deprecation;
                 package.AlternativeOf.Add(deprecation);
 
                 var user = new User("test");

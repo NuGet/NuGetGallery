@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq;
 
 namespace NuGet.Services.Entities
 {
@@ -254,7 +255,33 @@ namespace NuGet.Services.Entities
         [StringLength(500)]
         public string LicenseExpression { get; set; }
 
+        /// <summary>
+        /// Gets and sets the deprecations associated with this package.
+        /// </summary>
+        /// <remarks>
+        /// In the future, a package may have multiple deprecations associated with it, one visible and others hidden.
+        /// The visible deprecation will be the deprecation shown in the UI to users.
+        /// The hidden deprecations will consist of information about the package that we recommend package owners apply to their package.
+        /// For now, we only support a single deprecation per package (the visible deprecation).
+        /// </remarks>
+        [Obsolete("A package can only have a single deprecation. Use the " + nameof(Deprecation) + " property instead.")]
         public virtual ICollection<PackageDeprecation> Deprecations { get; set; }
+        
+        /// <summary>
+        /// Gets and sets the deprecation associated with this package.
+        /// </summary>
+#pragma warning disable 0618
+        public PackageDeprecation Deprecation
+        {
+            get => Deprecations.SingleOrDefault();
+
+            set
+            {
+                Deprecations.Clear();
+                Deprecations.Add(value);
+            }
+        }
+#pragma warning restore 0618
 
         public virtual ICollection<PackageDeprecation> AlternativeOf { get; set; }
     }
