@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json.Linq;
@@ -18,7 +19,7 @@ namespace NuGet.IndexingTests.Extraction
             var catalogEntryJObject = CatalogEntry(catalogEntry);
 
             // Act
-            var metadata = CatalogPackageMetadataExtraction.MakePackageMetadata(catalogEntryJObject);
+            var metadata = CatalogPackageMetadataExtraction.MakePackageMetadata(catalogEntryJObject, null);
 
             // Assert
             Assert.Contains(MetadataConstants.ListedPropertyName, metadata.Keys);
@@ -32,7 +33,7 @@ namespace NuGet.IndexingTests.Extraction
             var catalogEntryJObject = CatalogEntry(catalogEntry);
 
             // Act
-            var metadata = CatalogPackageMetadataExtraction.MakePackageMetadata(catalogEntryJObject);
+            var metadata = CatalogPackageMetadataExtraction.MakePackageMetadata(catalogEntryJObject, null);
 
 
             // Assert
@@ -50,7 +51,7 @@ namespace NuGet.IndexingTests.Extraction
             var catalogEntryJObject = CatalogEntry(catalogEntry);
 
             // Act
-            var metadata = CatalogPackageMetadataExtraction.MakePackageMetadata(catalogEntryJObject);
+            var metadata = CatalogPackageMetadataExtraction.MakePackageMetadata(catalogEntryJObject, null);
 
             // Assert
             if (expected != null)
@@ -71,7 +72,7 @@ namespace NuGet.IndexingTests.Extraction
             var catalogEntryJObject = CatalogEntry(catalogEntry);
 
             // Act
-            var metadata = CatalogPackageMetadataExtraction.MakePackageMetadata(catalogEntryJObject);
+            var metadata = CatalogPackageMetadataExtraction.MakePackageMetadata(catalogEntryJObject, null);
 
             // Assert
             Assert.Contains(MetadataConstants.FlattenedDependenciesPropertyName, metadata.Keys);
@@ -96,11 +97,46 @@ namespace NuGet.IndexingTests.Extraction
             });
 
             // Act
-            var metadata = CatalogPackageMetadataExtraction.MakePackageMetadata(catalogEntryJObject);
+            var metadata = CatalogPackageMetadataExtraction.MakePackageMetadata(catalogEntryJObject, null);
 
             // Assert
             Assert.Equal(new[] { "id", "listed", "version" }, metadata.Keys.OrderBy(x => x));
             Assert.Equal("4.6.0", metadata["version"]);
+        }
+
+        [Theory, MemberData(nameof(AddsLicensesData))]
+        public void AddsLicensesUrl(object catalogEntry, Uri galleryBaseAddress, string expectedLicenseurl)
+        {
+            // Arrange
+            var catalogEntryJObject = CatalogEntry(catalogEntry);
+
+            // Act
+            var metadata = CatalogPackageMetadataExtraction.MakePackageMetadata(catalogEntryJObject, galleryBaseAddress);
+
+            // Assert
+            Assert.Contains(MetadataConstants.LicenseUrlPropertyName, metadata.Keys);
+            Assert.Equal(expectedLicenseurl, metadata[MetadataConstants.LicenseUrlPropertyName]);
+        }
+
+        [Theory]
+        [InlineData("testPackage", "1.0.0", null, null, null)]
+        [InlineData("testPackage", "1.0.0", null, null, "https://testnuget/")]
+        [InlineData("testPackage", "1.0.0", "MIT", null, null)]
+        [InlineData("testPackage", "1.0.0", null, "license.txt", null)]
+        [InlineData(null, "1.0.0", "MIT", null, "https://testnuget/")]
+        [InlineData("testPackage", null, "MIT", null, "https://testnuget/")]
+        [InlineData(null, "1.0.0", null, "license.txt", "https://testnuget/")]
+        [InlineData("testPackage", null, null, "license.txt", "https://testnuget/")]
+        public void AddsNoLicensesUrl(string packageId, string packageVersion, string licenseExpression, string licenseFile, string galleryBaseAddress)
+        {
+            // Arrange
+            var catalogEntryJObject = CatalogEntry(new { id = packageId, version = packageVersion, licenseExpression, licenseFile });
+
+            // Act
+            var metadata = CatalogPackageMetadataExtraction.MakePackageMetadata(catalogEntryJObject, galleryBaseAddress == null ? null : new Uri(galleryBaseAddress));
+
+            // Assert
+            Assert.False(metadata.ContainsKey(MetadataConstants.LicenseUrlPropertyName));
         }
 
         public static IEnumerable<object[]> AddsListedData
@@ -564,6 +600,41 @@ namespace NuGet.IndexingTests.Extraction
                     },
                     "Newtonsoft.Json:4.5.11"
                 };
+            }
+        }
+
+        public static IEnumerable<object[]> AddsLicensesData
+        {
+            get
+            {     // licenseExpression      licenseFile     licenseUrl
+                yield return new object[] {
+                    new { id = "testPackage", version = "1.0.0", licenseExpression = "MIT", licenseUrl = "https://testlicenseurl"},
+                    new Uri("https://testnuget"),
+                    "https://testnuget/packages/testPackage/1.0.0/license" };
+                yield return new object[] {
+                    new { id = "testPackage", version = "1.0.0", licenseFile = "license.txt", licenseUrl = "https://testlicenseurl"},
+                    new Uri("https://testnuget"),
+                    "https://testnuget/packages/testPackage/1.0.0/license" };
+                yield return new object[] {
+                    new { id = "testPackage", version = "1.0.0", licenseUrl = "https://testlicenseurl"},
+                    new Uri("https://testnuget"),
+                    "https://testlicenseurl" };
+                yield return new object[] {
+                    new { id = "testPackage", version = "1.0.0", licenseExpression = "MIT", licenseUrl = "https://testlicenseurl"},
+                    null,
+                    "https://testlicenseurl" };
+                yield return new object[] {
+                    new { id = "testPackage", version = "1.0.0", licenseFile = "license.txt", licenseUrl = "https://testlicenseurl"},
+                    null,
+                    "https://testlicenseurl" };
+                yield return new object[] {
+                    new { id = "testPackage", version = "1.0.0", licenseExpression = "MIT"},
+                    new Uri("https://testnuget"),
+                    "https://testnuget/packages/testPackage/1.0.0/license" };
+                yield return new object[] {
+                    new { id = "testPackage", version = "1.0.0", licenseFile = "license.txt"},
+                    new Uri("https://testnuget"),
+                    "https://testnuget/packages/testPackage/1.0.0/license" };
             }
         }
 
