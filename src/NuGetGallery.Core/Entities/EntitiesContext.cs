@@ -390,9 +390,9 @@ namespace NuGetGallery
                 .WillCascadeOnDelete(false);
 
             modelBuilder.Entity<PackageDeprecation>()
-                .HasOptional(d => d.DeprecatedBy)
+                .HasOptional(d => d.DeprecatedByUser)
                 .WithMany()
-                .HasForeignKey(d => d.DeprecatedByKey)
+                .HasForeignKey(d => d.DeprecatedByUserKey)
                 .WillCascadeOnDelete(false);
 
             modelBuilder.Entity<PackageDeprecation>()

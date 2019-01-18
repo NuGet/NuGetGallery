@@ -40,33 +40,37 @@ namespace NuGet.Services.Entities
 
         /// <summary>
         /// Gets or sets the alternate package registration entity.
+        /// It is recommended that users use this package registration instead of the deprecated package.
         /// </summary>
         public virtual PackageRegistration AlternatePackageRegistration { get; set; }
 
         /// <summary>
         /// Gets or sets the alternate package registration entity key.
+        /// It is recommended that users use this package registration instead of the deprecated package.
         /// </summary>
         public int? AlternatePackageRegistrationKey { get; set; }
 
         /// <summary>
         /// Gets or sets the alternate package entity.
+        /// It is recommended that users use this package instead of the deprecated package.
         /// </summary>
         public virtual Package AlternatePackage { get; set; }
 
         /// <summary>
         /// Gets or sets the alternate package entity key.
+        /// It is recommended that users use this package instead of the deprecated package.
         /// </summary>
         public int? AlternatePackageKey { get; set; }
 
         /// <summary>
         /// Gets or sets the user that executed the package deprecation.
         /// </summary>
-        public virtual User DeprecatedBy { get; set; }
+        public virtual User DeprecatedByUser { get; set; }
 
         /// <summary>
         /// Gets or sets the key of the user that executed the package deprecation.
         /// </summary>
-        public int? DeprecatedByKey { get; set; }
+        public int? DeprecatedByUserKey { get; set; }
 
         /// <summary>
         /// The date when the package was deprecated.
@@ -85,13 +89,13 @@ namespace NuGet.Services.Entities
         public decimal? CVSSRating { get; set; }
 
         /// <summary>
-        /// Gets or sets the JSON object containing an array of CVE ID's related to this deprecation.
+        /// Gets or sets the serialized JSON object containing an array of CVE ID's related to this deprecation.
         /// The JSON object should have a version property that defines the version of its schema.
         /// </summary>
         public string CVEIds { get; set; }
 
         /// <summary>
-        /// Gets or sets the JSON object containing an array of CWE ID's related to this deprecation.
+        /// Gets or sets the serialized JSON object containing an array of CWE ID's related to this deprecation.
         /// The JSON object should have a version property that defines the version of its schema.
         /// </summary>
         public string CWEIds { get; set; }

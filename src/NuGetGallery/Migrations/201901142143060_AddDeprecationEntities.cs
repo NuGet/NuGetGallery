@@ -16,8 +16,8 @@ namespace NuGetGallery.Migrations
                         Status = c.Int(nullable: false),
                         AlternatePackageRegistrationKey = c.Int(),
                         AlternatePackageKey = c.Int(),
-                        DeprecatedByKey = c.Int(),
-                        DeprecatedOn = c.DateTime(nullable: false),
+                        DeprecatedByUserKey = c.Int(),
+                        DeprecatedOn = c.DateTime(nullable: false, defaultValueSql: "GETUTCDATE()"),
                         CustomMessage = c.String(),
                         CVSSRating = c.Decimal(precision: 3, scale: 1),
                         CVEIds = c.String(),
@@ -26,22 +26,22 @@ namespace NuGetGallery.Migrations
                 .PrimaryKey(t => t.Key)
                 .ForeignKey("dbo.Packages", t => t.AlternatePackageKey)
                 .ForeignKey("dbo.Packages", t => t.PackageKey, cascadeDelete: true)
-                .ForeignKey("dbo.Users", t => t.DeprecatedByKey)
+                .ForeignKey("dbo.Users", t => t.DeprecatedByUserKey)
                 .ForeignKey("dbo.PackageRegistrations", t => t.AlternatePackageRegistrationKey)
                 .Index(t => t.PackageKey, unique: true)
                 .Index(t => t.AlternatePackageRegistrationKey)
                 .Index(t => t.AlternatePackageKey)
-                .Index(t => t.DeprecatedByKey);
+                .Index(t => t.DeprecatedByUserKey);
             
         }
         
         public override void Down()
         {
             DropForeignKey("dbo.PackageDeprecations", "AlternatePackageRegistrationKey", "dbo.PackageRegistrations");
-            DropForeignKey("dbo.PackageDeprecations", "DeprecatedByKey", "dbo.Users");
+            DropForeignKey("dbo.PackageDeprecations", "DeprecatedByUserKey", "dbo.Users");
             DropForeignKey("dbo.PackageDeprecations", "PackageKey", "dbo.Packages");
             DropForeignKey("dbo.PackageDeprecations", "AlternatePackageKey", "dbo.Packages");
-            DropIndex("dbo.PackageDeprecations", new[] { "DeprecatedByKey" });
+            DropIndex("dbo.PackageDeprecations", new[] { "DeprecatedByUserKey" });
             DropIndex("dbo.PackageDeprecations", new[] { "AlternatePackageKey" });
             DropIndex("dbo.PackageDeprecations", new[] { "AlternatePackageRegistrationKey" });
             DropIndex("dbo.PackageDeprecations", new[] { "PackageKey" });

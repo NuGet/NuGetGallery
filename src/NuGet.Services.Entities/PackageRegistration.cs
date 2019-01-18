@@ -39,6 +39,10 @@ namespace NuGet.Services.Entities
 
         public int Key { get; set; }
 
+        /// <summary>
+        /// Gets and sets the list of deprecations that recommend this package registration as an alternative.
+        /// See <see cref="PackageDeprecation.AlternatePackageRegistration"/>.
+        /// </summary>
         public virtual ICollection<PackageDeprecation> AlternativeOf { get; set; }
     }
 }

@@ -264,25 +264,12 @@ namespace NuGet.Services.Entities
         /// The hidden deprecations will consist of information about the package that we recommend package owners apply to their package.
         /// For now, we only support a single deprecation per package (the visible deprecation).
         /// </remarks>
-        [Obsolete("A package can only have a single deprecation. Use the " + nameof(Deprecation) + " property instead.")]
         public virtual ICollection<PackageDeprecation> Deprecations { get; set; }
-        
+
         /// <summary>
-        /// Gets and sets the deprecation associated with this package.
+        /// Gets and sets the list of deprecations that recommend this package as an alternative.
+        /// See <see cref="PackageDeprecation.AlternatePackage"/>.
         /// </summary>
-#pragma warning disable 0618
-        public PackageDeprecation Deprecation
-        {
-            get => Deprecations.SingleOrDefault();
-
-            set
-            {
-                Deprecations.Clear();
-                Deprecations.Add(value);
-            }
-        }
-#pragma warning restore 0618
-
         public virtual ICollection<PackageDeprecation> AlternativeOf { get; set; }
     }
 }
