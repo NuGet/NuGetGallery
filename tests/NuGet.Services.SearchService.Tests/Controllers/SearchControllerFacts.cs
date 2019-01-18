@@ -37,7 +37,7 @@ namespace NuGet.Services.SearchService.Controllers
             {
                 await _target.GetStatusAsync(_request);
 
-                _auxiliaryDataCache.Verify(x => x.InitializeAsync(), Times.Never);
+                _auxiliaryDataCache.Verify(x => x.EnsureInitializedAsync(), Times.Never);
             }
 
             [Fact]
@@ -69,7 +69,7 @@ namespace NuGet.Services.SearchService.Controllers
             {
                 await _target.V2SearchAsync();
 
-                _auxiliaryDataCache.Verify(x => x.InitializeAsync(), Times.Once);
+                _auxiliaryDataCache.Verify(x => x.EnsureInitializedAsync(), Times.Once);
             }
 
             [Fact]
@@ -174,7 +174,7 @@ namespace NuGet.Services.SearchService.Controllers
             {
                 await _target.V3SearchAsync();
 
-                _auxiliaryDataCache.Verify(x => x.InitializeAsync(), Times.Once);
+                _auxiliaryDataCache.Verify(x => x.EnsureInitializedAsync(), Times.Once);
             }
 
             [Fact]

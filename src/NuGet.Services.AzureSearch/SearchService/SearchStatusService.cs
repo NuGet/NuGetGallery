@@ -118,7 +118,7 @@ namespace NuGet.Services.AzureSearch.SearchService
 
         private async Task<AuxiliaryFilesMetadata> GetAuxiliaryFilesMetadataAsync()
         {
-            await _auxiliaryDataCache.InitializeAsync();
+            await _auxiliaryDataCache.EnsureInitializedAsync();
             return _auxiliaryDataCache.Get().Metadata;
         }
 

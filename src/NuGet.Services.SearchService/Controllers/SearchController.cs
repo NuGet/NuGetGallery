@@ -112,7 +112,7 @@ namespace NuGet.Services.SearchService.Controllers
             /// Ensure the auxiliary data is loaded before processing a request. This is necessary because the response
             /// builder depends on <see cref="IAuxiliaryDataCache.Get" />, which requires that the auxiliary files have
             /// been loaded at least once.
-            await _auxiliaryDataCache.InitializeAsync();
+            await _auxiliaryDataCache.EnsureInitializedAsync();
         }
 
         private static V2SortBy GetSortBy(string sortBy)

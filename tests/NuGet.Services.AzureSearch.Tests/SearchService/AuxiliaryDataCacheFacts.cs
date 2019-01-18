@@ -16,9 +16,9 @@ namespace NuGet.Services.AzureSearch.SearchService
 {
     public class AuxiliaryDataCacheFacts
     {
-        public class Initialized : BaseFacts
+        public class EnsureInitialized : BaseFacts
         {
-            public Initialized(ITestOutputHelper output) : base(output)
+            public EnsureInitialized(ITestOutputHelper output) : base(output)
             {
             }
 
@@ -38,7 +38,7 @@ namespace NuGet.Services.AzureSearch.SearchService
             [Fact]
             public async Task InitializesWhenUninitialized()
             {
-                await _target.InitializeAsync();
+                await _target.EnsureInitializedAsync();
 
                 Assert.True(_target.Initialized);
                 _client.Verify(x => x.LoadDownloadsAsync(null), Times.Once);
@@ -54,16 +54,43 @@ namespace NuGet.Services.AzureSearch.SearchService
             public async Task DoesNotInitializeAgainWhenAlreadyInitialized()
             {
                 // Arrange
-                await _target.InitializeAsync();
+                await _target.EnsureInitializedAsync();
                 _client.ResetCalls();
 
                 // Act
-                await _target.InitializeAsync();
+                await _target.EnsureInitializedAsync();
 
                 // Assert
                 Assert.True(_target.Initialized);
                 _client.Verify(x => x.LoadDownloadsAsync(It.IsAny<string>()), Times.Never);
                 _client.Verify(x => x.LoadVerifiedPackagesAsync(It.IsAny<string>()), Times.Never);
+            }
+
+            [Fact]
+            public async Task DoesNotInitializeAgainWhenCalledDuringInitialize()
+            {
+                // Arrange
+                var downloadsTcs = new TaskCompletionSource<AuxiliaryFileResult<Downloads>>();
+                var startedDownloadTcs = new TaskCompletionSource<bool>();
+                _client
+                    .Setup(x => x.LoadDownloadsAsync(It.IsAny<string>()))
+                    .Returns(async () =>
+                    {
+                        startedDownloadTcs.TrySetResult(true);
+                        return await downloadsTcs.Task;
+                    });
+                var otherTask = _target.EnsureInitializedAsync();
+
+                // Act
+                var thisTask = _target.EnsureInitializedAsync();
+                await startedDownloadTcs.Task;
+                downloadsTcs.TrySetResult(_downloads);
+                await thisTask;
+
+                // Assert
+                Assert.True(_target.Initialized);
+                _client.Verify(x => x.LoadDownloadsAsync(It.IsAny<string>()), Times.Once);
+                _client.Verify(x => x.LoadVerifiedPackagesAsync(It.IsAny<string>()), Times.Once);
             }
         }
 
@@ -121,7 +148,7 @@ namespace NuGet.Services.AzureSearch.SearchService
             [Fact]
             public async Task ReturnsDataWhenInitialized()
             {
-                await _target.InitializeAsync();
+                await _target.EnsureInitializedAsync();
                 
                 var value = _target.Get();
 

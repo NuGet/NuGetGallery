@@ -111,7 +111,7 @@ namespace NuGet.Services.AzureSearch.SearchService
             public async Task HandlesFailedAuxiliaryData()
             {
                 _auxiliaryDataCache
-                    .Setup(x => x.InitializeAsync())
+                    .Setup(x => x.EnsureInitializedAsync())
                     .Throws(new InvalidOperationException("Could not initialize the auxiliary data."));
 
                 var status = await _target.GetStatusAsync(_assembly);

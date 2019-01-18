@@ -27,20 +27,20 @@ namespace NuGet.Services.AzureSearch.SearchService
 
         public bool Initialized => _data != null;
 
-        public async Task InitializeAsync()
+        public async Task EnsureInitializedAsync()
         {
             if (!Initialized)
             {
-                await LoadAsync(Timeout.InfiniteTimeSpan, CancellationToken.None);
+                await LoadAsync(Timeout.InfiniteTimeSpan, shouldReload: false, token: CancellationToken.None);
             }
         }
 
         public async Task TryLoadAsync(CancellationToken token)
         {
-            await LoadAsync(TimeSpan.Zero, token);
+            await LoadAsync(TimeSpan.Zero, shouldReload: true, token: token);
         }
 
-        private async Task LoadAsync(TimeSpan timeout, CancellationToken token)
+        private async Task LoadAsync(TimeSpan timeout, bool shouldReload, CancellationToken token)
         {
             var acquired = false;
             try
@@ -52,6 +52,11 @@ namespace NuGet.Services.AzureSearch.SearchService
                 }
                 else
                 {
+                    if (!shouldReload && Initialized)
+                    {
+                        return;
+                    }
+
                     _logger.LogInformation("Starting the reload of auxiliary data.");
 
                     var stopwatch = Stopwatch.StartNew();
