@@ -79,7 +79,7 @@ namespace NuGetGallery
 
         public static bool MatchesUser(this User self, User user)
         {
-            return self?.Key == user?.Key;
+            return self?.Key == user?.Key || self?.Username == user?.Username;
         }
 
         public static bool HasCredential(this User user, Credential credential)
