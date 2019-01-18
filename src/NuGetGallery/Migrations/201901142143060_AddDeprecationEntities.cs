@@ -33,6 +33,8 @@ namespace NuGetGallery.Migrations
                 .Index(t => t.AlternatePackageKey)
                 .Index(t => t.DeprecatedByUserKey);
             
+            Sql("ALTER TABLE [dbo].[PackageDeprecations] ADD CONSTRAINT [dbo.PackageDeprecations_CVSSRating] CHECK ([CVSSRating] >= 0 AND [CVSSRating] <= 10)");
+
         }
         
         public override void Down()
