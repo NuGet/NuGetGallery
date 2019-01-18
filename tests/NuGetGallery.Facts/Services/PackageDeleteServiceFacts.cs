@@ -636,6 +636,30 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public async Task WillUnlinkDeprecationsThatRecommendThePackage()
+            {
+                var service = CreateService();
+                var deprecatedPackageRegistration = new PackageRegistration();
+                var deprecatedPackage = new Package { PackageRegistration = deprecatedPackageRegistration, Version = "1.0.0" };
+                deprecatedPackageRegistration.Packages.Add(deprecatedPackage);
+
+                var packageRegistration = new PackageRegistration();
+                var package = new Package { PackageRegistration = packageRegistration, Version = "1.0.0", Hash = _packageHashForTests };
+                packageRegistration.Packages.Add(package);
+
+                var deprecation = new PackageDeprecation { Package = deprecatedPackage, AlternatePackage = package };
+                deprecatedPackage.Deprecations.Add(deprecation);
+                package.AlternativeOf.Add(deprecation);
+
+                var user = new User("test");
+
+                await service.SoftDeletePackagesAsync(new[] { package }, user, string.Empty, string.Empty);
+
+                Assert.Empty(package.AlternativeOf);
+                Assert.Null(deprecation.AlternatePackage);
+            }
+
+            [Fact]
             public async Task WillBackupAndDeleteJustThePublicPackageFile()
             {
                 var packageFileService = new Mock<IPackageFileService>();
@@ -979,6 +1003,30 @@ namespace NuGetGallery
                 await service.HardDeletePackagesAsync(new[] { package }, user, string.Empty, string.Empty, false);
 
                 indexingService.Verify(x => x.UpdateIndex(true));
+            }
+
+            [Fact]
+            public async Task WillUnlinkDeprecationsThatRecommendThePackage()
+            {
+                var service = CreateService();
+                var deprecatedPackageRegistration = new PackageRegistration();
+                var deprecatedPackage = new Package { PackageRegistration = deprecatedPackageRegistration, Version = "1.0.0" };
+                deprecatedPackageRegistration.Packages.Add(deprecatedPackage);
+
+                var packageRegistration = new PackageRegistration();
+                var package = new Package { PackageRegistration = packageRegistration, Version = "1.0.0", Hash = _packageHashForTests };
+                packageRegistration.Packages.Add(package);
+
+                var deprecation = new PackageDeprecation { Package = deprecatedPackage, AlternatePackage = package };
+                deprecatedPackage.Deprecations.Add(deprecation);
+                package.AlternativeOf.Add(deprecation);
+
+                var user = new User("test");
+
+                await service.HardDeletePackagesAsync(new[] { package }, user, string.Empty, string.Empty, false);
+
+                Assert.Empty(package.AlternativeOf);
+                Assert.Null(deprecation.AlternatePackage);
             }
 
             [Fact]

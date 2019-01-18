@@ -15,6 +15,7 @@ namespace NuGet.Services.Entities
             Packages = new HashSet<Package>();
             ReservedNamespaces = new HashSet<ReservedNamespace>();
             RequiredSigners = new HashSet<User>();
+            AlternativeOf = new HashSet<PackageDeprecation>();
         }
 
         [StringLength(Constants.MaxPackageIdLength)]
@@ -37,5 +38,11 @@ namespace NuGet.Services.Entities
         public virtual ICollection<User> RequiredSigners { get; set; }
 
         public int Key { get; set; }
+
+        /// <summary>
+        /// Gets and sets the list of deprecations that recommend this package registration as an alternative.
+        /// See <see cref="PackageDeprecation.AlternatePackageRegistration"/>.
+        /// </summary>
+        public virtual ICollection<PackageDeprecation> AlternativeOf { get; set; }
     }
 }

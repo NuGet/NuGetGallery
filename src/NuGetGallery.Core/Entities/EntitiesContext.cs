@@ -367,6 +367,37 @@ namespace NuGetGallery
             modelBuilder.Entity<SymbolPackage>()
                 .Property(s => s.RowVersion)
                 .IsRowVersion();
+
+            modelBuilder.Entity<PackageDeprecation>()
+                .HasKey(d => d.Key);
+
+            modelBuilder.Entity<Package>()
+                .HasMany(p => p.Deprecations)
+                .WithRequired(d => d.Package)
+                .HasForeignKey(d => d.PackageKey)
+                .WillCascadeOnDelete(true);
+
+            modelBuilder.Entity<Package>()
+                .HasMany(p => p.AlternativeOf)
+                .WithOptional(d => d.AlternatePackage)
+                .HasForeignKey(d => d.AlternatePackageKey)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<PackageRegistration>()
+                .HasMany(p => p.AlternativeOf)
+                .WithOptional(d => d.AlternatePackageRegistration)
+                .HasForeignKey(d => d.AlternatePackageRegistrationKey)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<PackageDeprecation>()
+                .HasOptional(d => d.DeprecatedByUser)
+                .WithMany()
+                .HasForeignKey(d => d.DeprecatedByUserKey)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<PackageDeprecation>()
+                .Property(v => v.CVSSRating)
+                .HasPrecision(3, 1);
         }
 #pragma warning restore 618
     }

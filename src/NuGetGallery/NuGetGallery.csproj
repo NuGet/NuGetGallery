@@ -404,6 +404,10 @@
     <Compile Include="Migrations\201811291758016_RemoveCuratedFeedEntities.Designer.cs">
       <DependentUpon>201811291758016_RemoveCuratedFeedEntities.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201901142143060_AddDeprecationEntities.cs" />
+    <Compile Include="Migrations\201901142143060_AddDeprecationEntities.Designer.cs">
+      <DependentUpon>201901142143060_AddDeprecationEntities.cs</DependentUpon>
+    </Compile>
     <Compile Include="RequestModels\DeleteAccountRequest.cs" />
     <Compile Include="Migrations\201710301857232_Organizations.cs" />
     <Compile Include="Migrations\201710301857232_Organizations.Designer.cs">
@@ -1653,6 +1657,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201811291758016_RemoveCuratedFeedEntities.resx">
       <DependentUpon>201811291758016_RemoveCuratedFeedEntities.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201901142143060_AddDeprecationEntities.resx">
+      <DependentUpon>201901142143060_AddDeprecationEntities.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
