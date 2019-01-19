@@ -12,6 +12,7 @@ namespace NuGet.Services.Search.Client
 {
     public class RetryingHttpClientWrapper2 : IHttpClientWrapper
     {
+        private const int RetryCount = 3;
         private readonly Action<Exception> _onException;
 
         public HttpClient Client { get; }
@@ -30,7 +31,7 @@ namespace NuGet.Services.Search.Client
                 Credentials = credentials,
                 AllowAutoRedirect = true,
                 UseDefaultCredentials = credentials == null
-            }, onException);
+            }, onException, RetryCount);
 
             foreach (var providedHandler in handlers.Reverse())
             {
