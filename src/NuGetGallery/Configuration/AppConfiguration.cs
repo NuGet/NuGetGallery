@@ -362,5 +362,15 @@ namespace NuGetGallery.Configuration
 
         [DefaultValue(true)]
         public bool AllowLicenselessPackages { get; set; }
+
+        /// <summary>
+        /// Gets the Uri for the Search endpoint
+        /// </summary>
+        public Uri SearchServiceUri { get; set; }
+
+        /// <summary>
+        /// Gets the Uri for the Autocomplete endpoint
+        /// </summary>
+        public Uri AutocompleteSearchServiceUri { get; set; }
     }
 }

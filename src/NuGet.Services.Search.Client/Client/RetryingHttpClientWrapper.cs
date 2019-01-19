@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace NuGet.Services.Search.Client
 {
-    public sealed class RetryingHttpClientWrapper
+    public sealed class RetryingHttpClientWrapper : IHttpClientWrapper
     {
         private readonly HttpClient _httpClient;
         private readonly IEndpointHealthIndicatorStore _endpointHealthIndicatorStore;
@@ -35,6 +35,14 @@ namespace NuGet.Services.Search.Client
             _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
             _endpointHealthIndicatorStore = endpointHealthIndicatorStore ?? throw new ArgumentNullException(nameof(endpointHealthIndicatorStore));
             _onException = onException ?? throw new ArgumentNullException(nameof(onException));
+        }
+
+        public HttpClient Client
+        {
+            get
+            {
+                return _httpClient;
+            }
         }
 
         public async Task<string> GetStringAsync(IEnumerable<Uri> endpoints)

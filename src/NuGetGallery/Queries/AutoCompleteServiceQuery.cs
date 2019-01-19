@@ -17,7 +17,9 @@ namespace NuGetGallery
     {
         private readonly ServiceDiscoveryClient _serviceDiscoveryClient;
         private readonly string _autocompleteServiceResourceType;
-        private readonly RetryingHttpClientWrapper _httpClient;
+        private readonly IHttpClientWrapper _httpClient;
+        private readonly IHttpClientWrapper _httpClientTM;
+        private readonly Uri _autocompleteSearchServiceUri;
 
         public AutoCompleteServiceQuery(IAppConfiguration configuration)
         {
@@ -29,6 +31,9 @@ namespace NuGetGallery
             _serviceDiscoveryClient = new ServiceDiscoveryClient(configuration.ServiceDiscoveryUri);
             _autocompleteServiceResourceType = configuration.AutocompleteServiceResourceType;
             _httpClient = new RetryingHttpClientWrapper(new HttpClient(), QuietLog.LogHandledException);
+
+            _autocompleteSearchServiceUri = configuration.AutocompleteSearchServiceUri;
+            _httpClientTM = new RetryingHttpClientWrapper2(credentials: null, onException: QuietLog.LogHandledException);
         }
 
         public async Task<IEnumerable<string>> RunServiceQuery(

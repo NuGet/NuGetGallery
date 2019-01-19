@@ -23,10 +23,16 @@ namespace NuGetGallery.Infrastructure.Lucene
 
         private static IEndpointHealthIndicatorStore _healthIndicatorStore;
         private static SearchClient _client;
+        private static SearchClient _clientTM;
 
         private JObject _diagCache;
 
         public Uri ServiceUri { get; private set; }
+
+        /// <summary>
+        /// The SearchService Uri as set in the web.config.
+        /// </summary>
+        private Uri SearchServiceUri { get; set; }
 
         protected IDiagnosticsSource Trace { get; private set; }
 
@@ -65,29 +71,17 @@ namespace NuGetGallery.Infrastructure.Lucene
 
         public ExternalSearchService(IAppConfiguration config, IDiagnosticsService diagnostics)
         {
-            ServiceUri = config.ServiceDiscoveryUri;
+            var serviceUri = config.ServiceDiscoveryUri;
+            var searchServiceUri = config.SearchServiceUri;
 
             Trace = diagnostics.SafeGetSource("ExternalSearchService");
 
             // Extract credentials
-            var userInfo = ServiceUri.UserInfo;
-            ICredentials credentials = null;
-            if (!String.IsNullOrEmpty(userInfo))
-            {
-                var split = userInfo.Split(':');
-                if (split.Length != 2)
-                {
-                    throw new FormatException("Invalid user info in SearchServiceUri!");
-                }
+            ICredentials serviceUriCredentials = ExtractCredentialsFromUri(ref serviceUri);
+            ServiceUri = serviceUri;
 
-                // Split the credentials out
-                credentials = new NetworkCredential(split[0], split[1]);
-                ServiceUri = new UriBuilder(ServiceUri)
-                {
-                    UserName = null,
-                    Password = null
-                }.Uri;
-            }
+            ICredentials searchServiceUriCredentials = ExtractCredentialsFromUri(ref searchServiceUri);
+            SearchServiceUri = searchServiceUri;
 
             // note: intentionally not locking the next two assignments to avoid blocking calls
             if (_healthIndicatorStore == null)
@@ -99,16 +93,51 @@ namespace NuGetGallery.Infrastructure.Lucene
             {
                 _client = new SearchClient(
                     ServiceUri, 
-                    config.SearchServiceResourceType, 
-                    credentials, 
+                    config.SearchServiceResourceType,
+                    serviceUriCredentials, 
                     _healthIndicatorStore,
                     QuietLog.LogHandledException,
                     new TracingHttpHandler(Trace), 
                     new CorrelatingHttpClientHandler());
             }
+
+            if (_clientTM == null)
+            {
+                _clientTM = new GallerySearchClient(
+                    SearchServiceUri,
+                    searchServiceUriCredentials,
+                    QuietLog.LogHandledException,
+                    new TracingHttpHandler(Trace),
+                    new CorrelatingHttpClientHandler());
+            }
         }
 
         private static readonly Task<bool> _exists = Task.FromResult(true);
+
+        public ICredentials ExtractCredentialsFromUri(ref Uri uri)
+        {
+            var userInfo = uri.UserInfo;
+            ICredentials credentials = null;
+            if (!String.IsNullOrEmpty(userInfo))
+            {
+                var split = userInfo.Split(':');
+                if (split.Length != 2)
+                {
+                    throw new FormatException("Invalid user info in SearchServiceUri!");
+                }
+
+                // Split the credentials out
+                credentials = new NetworkCredential(split[0], split[1]);
+                uri = new UriBuilder(ServiceUri)
+                {
+                    UserName = null,
+                    Password = null
+                }.Uri;
+            }
+
+            return credentials;
+        }
+
         public Task<bool> Exists()
         {
             return _exists;

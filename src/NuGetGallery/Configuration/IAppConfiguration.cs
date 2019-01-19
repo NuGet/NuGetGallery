@@ -380,5 +380,15 @@ namespace NuGetGallery.Configuration
         /// no embedded license) are allowed into Gallery.
         /// </summary>
         bool AllowLicenselessPackages { get; set; }
+
+        /// <summary>
+        /// Gets the Uri for the Search endpoint
+        /// </summary>
+        Uri SearchServiceUri { get; set; }
+
+        /// <summary>
+        /// Gets the Uri for the Autocomplete endpoint
+        /// </summary>
+        Uri AutocompleteSearchServiceUri { get; set; }
     }
 }
