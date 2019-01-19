@@ -23,11 +23,11 @@ namespace NuGet.Services.AzureSearch.SearchService
                 var response = await _target.V2SearchAsync(_v2Request);
 
                 Assert.Same(_v2Response, response);
-                _parametersBuilder.Verify(
-                    x => x.GetSearchTextForV2Search(_v2Request),
+                _textBuilder.Verify(
+                    x => x.V2Search(_v2Request),
                     Times.Once);
                 _parametersBuilder.Verify(
-                    x => x.GetSearchParametersForV2Search(_v2Request),
+                    x => x.V2Search(_v2Request),
                     Times.Once);
                 _searchOperations.Verify(
                     x => x.SearchAsync<SearchDocument.Full>(_v2Text, _v2Parameters),
@@ -45,11 +45,11 @@ namespace NuGet.Services.AzureSearch.SearchService
                 var response = await _target.V2SearchAsync(_v2Request);
 
                 Assert.Same(_v2Response, response);
-                _parametersBuilder.Verify(
-                    x => x.GetSearchTextForV2Search(_v2Request),
+                _textBuilder.Verify(
+                    x => x.V2Search(_v2Request),
                     Times.Once);
                 _parametersBuilder.Verify(
-                    x => x.GetSearchParametersForV2Search(_v2Request),
+                    x => x.V2Search(_v2Request),
                     Times.Once);
                 _hijackOperations.Verify(
                     x => x.SearchAsync<HijackDocument.Full>(_v2Text, _v2Parameters),
@@ -68,11 +68,11 @@ namespace NuGet.Services.AzureSearch.SearchService
                 var response = await _target.V3SearchAsync(_v3Request);
 
                 Assert.Same(_v3Response, response);
-                _parametersBuilder.Verify(
-                    x => x.GetSearchTextForV3Search(_v3Request),
+                _textBuilder.Verify(
+                    x => x.V3Search(_v3Request),
                     Times.Once);
                 _parametersBuilder.Verify(
-                    x => x.GetSearchParametersForV3Search(_v3Request),
+                    x => x.V3Search(_v3Request),
                     Times.Once);
                 _searchOperations.Verify(
                     x => x.SearchAsync<SearchDocument.Full>(_v3Text, _v3Parameters),
@@ -85,6 +85,7 @@ namespace NuGet.Services.AzureSearch.SearchService
 
         public abstract class BaseFacts
         {
+            protected readonly Mock<ISearchTextBuilder> _textBuilder;
             protected readonly Mock<ISearchParametersBuilder> _parametersBuilder;
             protected readonly Mock<ISearchIndexClientWrapper> _searchIndex;
             protected readonly Mock<IDocumentsOperationsWrapper> _searchOperations;
@@ -105,6 +106,7 @@ namespace NuGet.Services.AzureSearch.SearchService
 
             public BaseFacts()
             {
+                _textBuilder = new Mock<ISearchTextBuilder>();
                 _parametersBuilder = new Mock<ISearchParametersBuilder>();
                 _searchIndex = new Mock<ISearchIndexClientWrapper>();
                 _searchOperations = new Mock<IDocumentsOperationsWrapper>();
@@ -123,17 +125,17 @@ namespace NuGet.Services.AzureSearch.SearchService
                 _v2Response = new V2SearchResponse();
                 _v3Response = new V3SearchResponse();
 
-                _parametersBuilder
-                    .Setup(x => x.GetSearchTextForV2Search(It.IsAny<V2SearchRequest>()))
+                _textBuilder
+                    .Setup(x => x.V2Search(It.IsAny<V2SearchRequest>()))
                     .Returns(() => _v2Text);
-                _parametersBuilder
-                    .Setup(x => x.GetSearchTextForV3Search(It.IsAny<V3SearchRequest>()))
+                _textBuilder
+                    .Setup(x => x.V3Search(It.IsAny<V3SearchRequest>()))
                     .Returns(() => _v3Text);
                 _parametersBuilder
-                    .Setup(x => x.GetSearchParametersForV2Search(It.IsAny<V2SearchRequest>()))
+                    .Setup(x => x.V2Search(It.IsAny<V2SearchRequest>()))
                     .Returns(() => _v2Parameters);
                 _parametersBuilder
-                    .Setup(x => x.GetSearchParametersForV3Search(It.IsAny<V3SearchRequest>()))
+                    .Setup(x => x.V3Search(It.IsAny<V3SearchRequest>()))
                     .Returns(() => _v3Parameters);
 
                 // Set up the search to take at least one millisecond. This allows us to test the measured duration.
@@ -176,6 +178,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                 _hijackIndex.Setup(x => x.Documents).Returns(() => _hijackOperations.Object);
 
                 _target = new AzureSearchService(
+                    _textBuilder.Object,
                     _parametersBuilder.Object,
                     _searchIndex.Object,
                     _hijackIndex.Object,

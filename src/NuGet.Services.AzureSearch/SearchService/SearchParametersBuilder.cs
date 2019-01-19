@@ -20,7 +20,7 @@ namespace NuGet.Services.AzureSearch.SearchService
         private static readonly List<string> SortableTitleAscending = new List<string> { IndexFields.SortableTitle + Ascending };
         private static readonly List<string> SortableTitleDescending = new List<string> { IndexFields.SortableTitle + Descending };
 
-        public SearchParameters GetSearchParametersForV2Search(V2SearchRequest request)
+        public SearchParameters V2Search(V2SearchRequest request)
         {
             var searchParameters = NewSearchParameters();
 
@@ -53,7 +53,7 @@ namespace NuGet.Services.AzureSearch.SearchService
             return searchParameters;
         }
 
-        public SearchParameters GetSearchParametersForV3Search(V3SearchRequest request)
+        public SearchParameters V3Search(V3SearchRequest request)
         {
             var searchParameters = NewSearchParameters();
 
@@ -93,29 +93,6 @@ namespace NuGet.Services.AzureSearch.SearchService
             }
 
             searchParameters.Filter = $"{IndexFields.Search.SearchFilters} eq '{DocumentUtilities.GetSearchFilterString(searchFilters)}'";
-        }
-
-        public string GetSearchTextForV2Search(V2SearchRequest request)
-        {
-            var query = request.Query;
-
-            if (request.LuceneQuery)
-            {
-                // TODO: convert a leading "id:" to "packageid:"
-            }
-
-            return GetLuceneQuery(query);
-        }
-
-        public string GetSearchTextForV3Search(V3SearchRequest request)
-        {
-            return GetLuceneQuery(request.Query);
-        }
-
-        private static string GetLuceneQuery(string query)
-        {
-            // TODO: query parsing
-            return query ?? "*";
         }
 
         private static IList<string> GetOrderBy(V2SortBy sortBy)

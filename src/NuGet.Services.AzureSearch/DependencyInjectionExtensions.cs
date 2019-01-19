@@ -72,6 +72,7 @@ namespace NuGet.Services.AzureSearch
 
             containerBuilder
                 .Register<ISearchService>(c => new AzureSearchService(
+                    c.Resolve<ISearchTextBuilder>(),
                     c.Resolve<ISearchParametersBuilder>(),
                     c.ResolveKeyed<ISearchIndexClientWrapper>(searchIndexKey),
                     c.ResolveKeyed<ISearchIndexClientWrapper>(hijackIndexKey),
@@ -226,6 +227,7 @@ namespace NuGet.Services.AzureSearch
             services.AddTransient<ISearchParametersBuilder, SearchParametersBuilder>();
             services.AddTransient<ISearchResponseBuilder, SearchResponseBuilder>();
             services.AddTransient<ISearchServiceClientWrapper, SearchServiceClientWrapper>();
+            services.AddTransient<ISearchTextBuilder, SearchTextBuilder>();
             services.AddTransient<ISimpleHttpClient, SimpleHttpClient>();
             services.AddTransient<ITelemetryService, TelemetryService>();
 

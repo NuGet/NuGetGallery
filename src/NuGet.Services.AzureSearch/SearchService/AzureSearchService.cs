@@ -9,17 +9,20 @@ namespace NuGet.Services.AzureSearch.SearchService
 {
     public class AzureSearchService : ISearchService
     {
+        private readonly ISearchTextBuilder _textBuilder;
         private readonly ISearchParametersBuilder _parametersBuilder;
         private readonly ISearchIndexClientWrapper _searchIndex;
         private readonly ISearchIndexClientWrapper _hijackIndex;
         private readonly ISearchResponseBuilder _responseBuilder;
 
         public AzureSearchService(
+            ISearchTextBuilder textBuilder,
             ISearchParametersBuilder parametersBuilder,
             ISearchIndexClientWrapper searchIndex,
             ISearchIndexClientWrapper hijackIndex,
             ISearchResponseBuilder responseBuilder)
         {
+            _textBuilder = textBuilder ?? throw new ArgumentNullException(nameof(textBuilder));
             _parametersBuilder = parametersBuilder ?? throw new ArgumentNullException(nameof(parametersBuilder));
             _searchIndex = searchIndex ?? throw new ArgumentNullException(nameof(searchIndex));
             _hijackIndex = hijackIndex ?? throw new ArgumentNullException(nameof(hijackIndex));
@@ -40,8 +43,8 @@ namespace NuGet.Services.AzureSearch.SearchService
 
         public async Task<V3SearchResponse> V3SearchAsync(V3SearchRequest request)
         {
-            var text = _parametersBuilder.GetSearchTextForV3Search(request);
-            var parameters = _parametersBuilder.GetSearchParametersForV3Search(request);
+            var text = _textBuilder.V3Search(request);
+            var parameters = _parametersBuilder.V3Search(request);
 
             var result = await Measure.DurationWithValueAsync(() => _searchIndex.Documents.SearchAsync<SearchDocument.Full>(
                 text,
@@ -57,8 +60,8 @@ namespace NuGet.Services.AzureSearch.SearchService
 
         private async Task<V2SearchResponse> UseHijackIndexAsync(V2SearchRequest request)
         {
-            var parameters = _parametersBuilder.GetSearchParametersForV2Search(request);
-            var text = _parametersBuilder.GetSearchTextForV2Search(request);
+            var text = _textBuilder.V2Search(request);
+            var parameters = _parametersBuilder.V2Search(request);
 
             var result = await Measure.DurationWithValueAsync(() => _hijackIndex.Documents.SearchAsync<HijackDocument.Full>(
                 text,
@@ -74,8 +77,8 @@ namespace NuGet.Services.AzureSearch.SearchService
 
         private async Task<V2SearchResponse> UseSearchIndexAsync(V2SearchRequest request)
         {
-            var parameters = _parametersBuilder.GetSearchParametersForV2Search(request);
-            var text = _parametersBuilder.GetSearchTextForV2Search(request);
+            var text = _textBuilder.V2Search(request);
+            var parameters = _parametersBuilder.V2Search(request);
 
             var result = await Measure.DurationWithValueAsync(() => _searchIndex.Documents.SearchAsync<SearchDocument.Full>(
                 text,

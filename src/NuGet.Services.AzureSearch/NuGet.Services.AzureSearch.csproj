@@ -109,6 +109,7 @@
     <Compile Include="SearchService\IAuxiliaryFileClient.cs" />
     <Compile Include="SearchService\IAuxiliaryFileReloader.cs" />
     <Compile Include="SearchService\ISearchStatusService.cs" />
+    <Compile Include="SearchService\ISearchTextBuilder.cs" />
     <Compile Include="SearchService\Models\AuxiliaryFileMetadata.cs" />
     <Compile Include="SearchService\Models\AuxiliaryFilesMetadata.cs" />
     <Compile Include="SearchService\AzureSearchService.cs" />
@@ -136,6 +137,7 @@
     <Compile Include="SearchService\Models\V2SortBy.cs" />
     <Compile Include="SearchService\SearchResponseBuilder.cs" />
     <Compile Include="SearchService\SearchStatusService.cs" />
+    <Compile Include="SearchService\SearchTextBuilder.cs" />
     <Compile Include="VersionList\Guard.cs" />
     <Compile Include="VersionList\HijackIndexChange.cs" />
     <Compile Include="VersionList\HijackIndexChangeType.cs" />
