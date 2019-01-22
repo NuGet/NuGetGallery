@@ -25,7 +25,6 @@ namespace NuGetGallery
         private readonly IPackageService _packageService;
         private readonly IUserService _userService;
         private readonly IAppConfiguration _appConfiguration;
-        private readonly ISecurityPolicyService _policyService;
         private readonly IPackageOwnershipManagementService _packageOwnershipManagementService;
 
         public JsonApiController(
@@ -33,14 +32,12 @@ namespace NuGetGallery
             IUserService userService,
             IMessageService messageService,
             IAppConfiguration appConfiguration,
-            ISecurityPolicyService policyService,
             IPackageOwnershipManagementService packageOwnershipManagementService)
         {
             _packageService = packageService;
             _userService = userService;
             _messageService = messageService;
             _appConfiguration = appConfiguration;
-            _policyService = policyService;
             _packageOwnershipManagementService = packageOwnershipManagementService;
         }
 
