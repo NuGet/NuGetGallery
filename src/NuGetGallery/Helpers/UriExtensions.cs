@@ -53,6 +53,7 @@ namespace NuGetGallery
                    string.Equals(uri.Authority, "microsoft.com", StringComparison.OrdinalIgnoreCase) ||
                    string.Equals(uri.Authority, "www.asp.net", StringComparison.OrdinalIgnoreCase) ||
                    string.Equals(uri.Authority, "asp.net", StringComparison.OrdinalIgnoreCase) ||
+                   uri.Authority.EndsWith(".asp.net", StringComparison.OrdinalIgnoreCase) ||
                    uri.Authority.EndsWith(".msdn.com", StringComparison.OrdinalIgnoreCase) ||
                    string.Equals(uri.Authority, "msdn.com", StringComparison.OrdinalIgnoreCase);
         }

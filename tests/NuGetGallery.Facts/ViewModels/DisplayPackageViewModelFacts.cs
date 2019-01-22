@@ -80,6 +80,7 @@ namespace NuGetGallery.ViewModels
         [InlineData("http://microsoft.com:80/", "https://microsoft.com/")]
         [InlineData("http://githubpages.github.io/my.page", "https://githubpages.github.io/my.page")]
         [InlineData("http://githubpages.github.com", "https://githubpages.github.com/")]
+        [InlineData("http://weblogs.asp.net/jdanforth/fontawesome-portable", "https://weblogs.asp.net/jdanforth/fontawesome-portable/")]
         public void ItInitializesProjectUrl(string projectUrl, string expected)
         {
             var package = new Package
