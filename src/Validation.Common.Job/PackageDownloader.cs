@@ -9,6 +9,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace NuGet.Jobs.Validation
 {
@@ -16,20 +17,41 @@ namespace NuGet.Jobs.Validation
     {
         private readonly HttpClient _httpClient;
         private readonly ICommonTelemetryService _telemetryService;
+        private readonly PackageDownloaderConfiguration _configuration;
         private readonly ILogger<PackageDownloader> _logger;
 
         public PackageDownloader(
             HttpClient httpClient,
             ICommonTelemetryService telemetryService,
+            IOptionsSnapshot<PackageDownloaderConfiguration> downloaderConfigurationAccessor,
             ILogger<PackageDownloader> logger)
         {
             _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
+            if (downloaderConfigurationAccessor == null)
+            {
+                throw new ArgumentNullException(nameof(downloaderConfigurationAccessor));
+            }
+            if (downloaderConfigurationAccessor.Value.BufferSize <= 0)
+            {
+                throw new ArgumentException($"{nameof(downloaderConfigurationAccessor.Value.BufferSize)} cannot be less than 1", nameof(downloaderConfigurationAccessor));
+            }
+            _configuration = downloaderConfigurationAccessor.Value;
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         public async Task<Stream> DownloadAsync(Uri packageUri, CancellationToken cancellationToken)
         {
+            if (packageUri == null)
+            {
+                throw new ArgumentNullException(nameof(packageUri));
+            }
+
+            if (cancellationToken == null)
+            {
+                throw new ArgumentNullException(nameof(cancellationToken));
+            }
+
             _logger.LogInformation("Attempting to download package from {PackageUri}...", packageUri);
 
             Stream packageStream = null;
@@ -56,7 +78,7 @@ namespace NuGet.Jobs.Validation
                     {
                         packageStream = FileStreamUtility.GetTemporaryFile();
 
-                        await networkStream.CopyToAsync(packageStream, FileStreamUtility.BufferSize, cancellationToken);
+                        await networkStream.CopyToAsync(packageStream, _configuration.BufferSize, cancellationToken);
                     }
                 }
 
