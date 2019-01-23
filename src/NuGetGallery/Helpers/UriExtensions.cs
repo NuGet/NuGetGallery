@@ -26,13 +26,19 @@ namespace NuGetGallery
 
         public static bool IsDomainWithHttpsSupport(this Uri uri)
         {
-            return IsGitHubUri(uri) || IsCodeplexUri(uri) || IsMicrosoftUri(uri);
+            return IsGitHubUri(uri) || IsGitHubPagerUri(uri) || IsCodeplexUri(uri) || IsMicrosoftUri(uri);
         }
 
         public static bool IsGitHubUri(this Uri uri)
         {
-            return uri.IsInDomain("github.com") ||
-                   uri.Host.EndsWith(".github.io", StringComparison.OrdinalIgnoreCase);
+            return string.Equals(uri.Host, "www.github.com", StringComparison.OrdinalIgnoreCase) ||
+                   string.Equals(uri.Host, "github.com", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool IsGitHubPagerUri(this Uri uri)
+        {
+            return uri.Authority.EndsWith(".github.com", StringComparison.OrdinalIgnoreCase) ||
+                   uri.Authority.EndsWith(".github.io", StringComparison.OrdinalIgnoreCase);
         }
 
         private static bool IsCodeplexUri(this Uri uri)
@@ -49,8 +55,8 @@ namespace NuGetGallery
 
         private static bool IsInDomain(this Uri uri, string domain)
         {
-            return uri.Host.EndsWith("." + domain, StringComparison.OrdinalIgnoreCase) ||
-                   string.Equals(uri.Host, domain, StringComparison.OrdinalIgnoreCase);
+            return uri.Authority.EndsWith("." + domain, StringComparison.OrdinalIgnoreCase) ||
+                   string.Equals(uri.Authority, domain, StringComparison.OrdinalIgnoreCase);
         }
 
         public static Uri ToHttps(this Uri uri)
