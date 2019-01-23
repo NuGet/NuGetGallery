@@ -20,7 +20,8 @@ start /w ng.exe catalog2lucene ^
     -clientId #{Deployment.Azure.KeyVault.ClientId} ^
     -certificateThumbprint #{Deployment.Azure.KeyVault.CertificateThumbprint} ^
     -verbose true ^
-    -interval #{Jobs.common.v3.Interval}
+    -interval #{Jobs.common.v3.Interval} ^
+    -galleryBaseAddress #{Jobs.common.v3.GalleryBaseAddress}
 
 echo "Finished #{Jobs.catalog2lucenev3reg2.Title}"
 

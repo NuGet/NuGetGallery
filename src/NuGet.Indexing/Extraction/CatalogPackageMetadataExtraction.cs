@@ -11,15 +11,16 @@ using NuGet.Frameworks;
 using NuGet.Packaging;
 using NuGet.Packaging.Core;
 using NuGet.Versioning;
+using NuGet.Services.Metadata.Catalog;
 
 namespace NuGet.Indexing
 {
     public static class CatalogPackageMetadataExtraction
     {
-        public static IDictionary<string, string> MakePackageMetadata(JObject catalogItem)
+        public static IDictionary<string, string> MakePackageMetadata(JObject catalogItem, Uri galleryBaseAddress)
         {
             var extractor = new Extractor();
-            return extractor.Extract(catalogItem);
+            return extractor.Extract(catalogItem, galleryBaseAddress);
         }
 
         private class Extractor
@@ -27,12 +28,14 @@ namespace NuGet.Indexing
             private JObject _catalog;
             private CatalogPackageReader _reader;
             private Dictionary<string, string> _metadata;
+            private Uri _galleryBaseAddress;
 
-            public IDictionary<string, string> Extract(JObject catalog)
+            public IDictionary<string, string> Extract(JObject catalog, Uri galleryBaseAddress)
             {
                 _catalog = catalog;
                 _reader = new CatalogPackageReader(_catalog);
                 _metadata = new Dictionary<string, string>();
+                _galleryBaseAddress = galleryBaseAddress;
 
                 AddString(MetadataConstants.IdPropertyName);
                 AddString(MetadataConstants.NormalizedVersionPropertyName);
@@ -55,16 +58,35 @@ namespace NuGet.Indexing
                 AddString(MetadataConstants.ReleaseNotesPropertyName);
                 AddString(MetadataConstants.CopyrightPropertyName);
                 AddString(MetadataConstants.LanguagePropertyName);
-                AddString(MetadataConstants.LicenseUrlPropertyName);
                 AddString(MetadataConstants.PackageHashPropertyName);
                 AddString(MetadataConstants.PackageHashAlgorithmPropertyName);
                 AddString(MetadataConstants.PackageSizePropertyName);
                 AddString(MetadataConstants.CatalogMetadata.RequiresLicenseAcceptancePropertyName, MetadataConstants.RequiresLicenseAcceptancePropertyName);
 
+                AddLicenseUrl();
                 AddFlattenedDependencies();
                 AddSupportedFrameworks();
 
                 return _metadata;
+            }
+
+            private void AddLicenseUrl()
+            {
+                var packageId = JTokenToString(_catalog[MetadataConstants.IdPropertyName]);
+                var packageVersion = JTokenToString(_catalog[MetadataConstants.NormalizedVersionPropertyName]);
+
+                if (_galleryBaseAddress != null &&
+                    !string.IsNullOrWhiteSpace(packageId) &&
+                    !string.IsNullOrWhiteSpace(packageVersion) &&
+                    (_catalog.Value<string>(MetadataConstants.LicenseExpressionPropertyName) != null ||
+                      _catalog.Value<string>(MetadataConstants.LicenseFilePropertyName) != null))
+                {
+                    _metadata[MetadataConstants.LicenseUrlPropertyName] = LicenseHelper.GetGalleryLicenseUrl(packageId, packageVersion, _galleryBaseAddress);
+                }
+                else
+                {
+                    AddString(MetadataConstants.LicenseUrlPropertyName);
+                }
             }
 
             private void AddString(string source, string destination = null)
