@@ -10,6 +10,6 @@ namespace Stats.AzureCdnLogs.Common.Collect
 {
     public interface ILogDestination
     {
-        Task WriteAsync(Stream inputStream, Action<Stream, Stream> writeAction, string destinationFileName, ContentType destinationContentType, CancellationToken token);
+        Task<bool> WriteAsync(Stream inputStream, Action<Stream, Stream> writeAction, string destinationFileName, ContentType destinationContentType, CancellationToken token);
     }
 }

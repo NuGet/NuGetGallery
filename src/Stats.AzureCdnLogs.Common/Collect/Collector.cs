@@ -9,6 +9,8 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Microsoft.WindowsAzure.Storage;
 
 namespace Stats.AzureCdnLogs.Common.Collect
 {
@@ -22,7 +24,11 @@ namespace Stats.AzureCdnLogs.Common.Collect
         private static readonly DateTime _unixTimestamp = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
         protected ILogSource _source;
         protected ILogDestination _destination;
-        
+        protected readonly ILogger<Collector> _logger;
+
+        /// <summary>
+        /// Used by UnitTests
+        /// </summary>
         public Collector()
         { }
 
@@ -31,10 +37,12 @@ namespace Stats.AzureCdnLogs.Common.Collect
         /// </summary>
         /// <param name="source">The source of the Collector.</param>
         /// <param name="destination">The destination for the collector.</param>
-        public Collector(ILogSource source, ILogDestination destination)
+        /// <param name="logger">The logger.</param>
+        public Collector(ILogSource source, ILogDestination destination, ILogger<Collector> logger)
         {
             _source = source;
             _destination = destination;
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         /// <summary>
@@ -55,8 +63,10 @@ namespace Stats.AzureCdnLogs.Common.Collect
                 var files = await _source.GetFilesAsync(maxFileCount, token);
                 var parallelResult = Parallel.ForEach(files, (file) =>
                 {
-                    if(token.IsCancellationRequested)
+                    _logger.LogInformation("TryProcessAsync: {File} ", file.AbsoluteUri);
+                    if (token.IsCancellationRequested)
                     {
+                        _logger.LogInformation("TryProcessAsync: The operation was cancelled.");
                         return;
                     }
                     var lockResult = _source.TakeLockAsync(file, token).Result;
@@ -72,21 +82,21 @@ namespace Stats.AzureCdnLogs.Common.Collect
                                 {
                                     throw new ApplicationException($"File {file} failed validation.");
                                 }
-                                _destination.WriteAsync(inputStream, ProcessLogStream, fileNameTransform(file.Segments.Last()), destinationContentType, token).Wait();
+                                return _destination.WriteAsync(inputStream, ProcessLogStream, fileNameTransform(file.Segments.Last()), destinationContentType, token).Result;
                             }).
                             ContinueWith(t =>
                             {
-                                AddException(exceptions, t.Exception);
+                                AddException(exceptions, t.Exception, $"Method:WriteAsync File:{file.AbsoluteUri}");
                                 return _source.CleanAsync(file, onError: t.IsFaulted, token: token).Result;
                             }).
                             ContinueWith(t =>
                             {
-                                AddException(exceptions, t.Exception);
+                                AddException(exceptions, t.Exception, $"Method:CleanAsync File:{file.AbsoluteUri}");
                                 return _source.ReleaseLockAsync(file, token).Result;
                             }).
                             ContinueWith(t =>
                             {
-                                AddException(exceptions, t.Exception);
+                                AddException(exceptions, t.Exception, $"Method:ReleaseLockAsync File:{file.AbsoluteUri}");
                                 return t.Result;
                             }).Result;
                         }
@@ -95,7 +105,7 @@ namespace Stats.AzureCdnLogs.Common.Collect
                     //if the task is still running at this moment any future failure would not matter 
                     if(lockResult.Item2 != null && lockResult.Item2.IsFaulted)
                     {
-                        AddException(exceptions, lockResult.Item2.Exception);
+                        AddException(exceptions, lockResult.Item2.Exception, $"Method:AcquireLease File:{file.AbsoluteUri}");
                     }
                 });
             }
@@ -106,7 +116,7 @@ namespace Stats.AzureCdnLogs.Common.Collect
             return exceptions.Count() > 0 ? new AggregateException(exceptions.ToArray()) : null;
         }
 
-        private void AddException(ConcurrentBag<Exception> exceptions, Exception e)
+        private void AddException(ConcurrentBag<Exception> exceptions, Exception e, string fileUri = "")
         {
             if(e == null)
             {
@@ -116,12 +126,12 @@ namespace Stats.AzureCdnLogs.Common.Collect
             {
                 foreach (Exception innerEx in ((AggregateException)e).Flatten().InnerExceptions)
                 {
-                    exceptions.Add(innerEx);
+                    exceptions.Add(new CDNLogException(fileUri, innerEx));
                 }
             }
             else
             {
-                exceptions.Add(e);
+                exceptions.Add(new CDNLogException(fileUri, e));
             }
         }
 
@@ -141,24 +151,34 @@ namespace Stats.AzureCdnLogs.Common.Collect
       
         protected void ProcessLogStream(Stream sourceStream, Stream targetStream)
         {
-            using (var sourceStreamReader = new StreamReader(sourceStream))
-            using (var targetStreamWriter = new StreamWriter(targetStream))
+            try
             {
-                targetStreamWriter.WriteLine(OutputLogLine.Header);
-                var lineNumber = 0;
-                while (!sourceStreamReader.EndOfStream)
+                using (var sourceStreamReader = new StreamReader(sourceStream))
+                using (var targetStreamWriter = new StreamWriter(targetStream))
                 {
-                    var rawLogLine = TransformRawLogLine(sourceStreamReader.ReadLine());
-                    if (rawLogLine != null)
+                    targetStreamWriter.WriteLine(OutputLogLine.Header);
+                    var lineNumber = 0;
+                    while (!sourceStreamReader.EndOfStream)
                     {
-                        lineNumber++;
-                        var logLine = GetParsedModifiedLogEntry(lineNumber, rawLogLine.ToString());
-                        if (!string.IsNullOrEmpty(logLine))
+                        var rawLogLine = TransformRawLogLine(sourceStreamReader.ReadLine());
+                        if (rawLogLine != null)
                         {
-                            targetStreamWriter.Write(logLine);
+                            lineNumber++;
+                            var logLine = GetParsedModifiedLogEntry(lineNumber, rawLogLine.ToString());
+                            if (!string.IsNullOrEmpty(logLine))
+                            {
+                                targetStreamWriter.Write(logLine);
+                            }
                         }
-                    }
-                };
+                    };
+                    _logger.LogInformation("ProcessLogStream: Finished writting to the destination stream.");
+                }
+            }
+            // It should not happen, but if it does log it for better diagnostics.
+            catch (StorageException ex)
+            {
+                _logger.LogCritical("ProcessLogStream: An exception while processing the stream {Exception}.", ex);
+                throw ex;
             }
         }
 
@@ -258,6 +278,7 @@ namespace Stats.AzureCdnLogs.Common.Collect
         {
             if(token.IsCancellationRequested)
             {
+                _logger.LogInformation("VerifyStreamInternalAsync: The operation was cancelled.");
                 return false;
             }
             using (var stream = await _source.OpenReadAsync(file, contentType, token))

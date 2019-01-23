@@ -13,6 +13,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.WindowsAzure.Storage;
 using NuGet.Jobs;
+using Stats.AzureCdnLogs.Common;
 using Stats.AzureCdnLogs.Common.Collect;
 
 namespace Stats.CollectAzureChinaCDNLogs
@@ -38,16 +39,21 @@ namespace Stats.CollectAzureChinaCDNLogs
             _configuration = serviceProvider.GetRequiredService<IOptionsSnapshot<CollectAzureChinaCdnLogsConfiguration>>().Value;
             _executionTimeoutInSeconds = _configuration.ExecutionTimeoutInSeconds ?? DefaultExecutionTimeoutInSeconds;
 
+            var blobLeaseManager = new AzureBlobLeaseManager(serviceProvider.GetRequiredService<ILogger<AzureBlobLeaseManager>>());
+
             var source = new AzureStatsLogSource(
                 ValidateAzureCloudStorageAccount(_configuration.AzureAccountConnectionStringSource),
                 _configuration.AzureContainerNameSource,
-                _executionTimeoutInSeconds / MaxFilesToProcess);
+                _executionTimeoutInSeconds / MaxFilesToProcess,
+                blobLeaseManager,
+                serviceProvider.GetRequiredService<ILogger<AzureStatsLogSource>>());
 
             var dest = new AzureStatsLogDestination(
                 ValidateAzureCloudStorageAccount(_configuration.AzureAccountConnectionStringDestination),
-                _configuration.AzureContainerNameDestination);
+                _configuration.AzureContainerNameDestination,
+                serviceProvider.GetRequiredService<ILogger<AzureStatsLogDestination>>());
 
-            _chinaCollector = new ChinaStatsCollector(source, dest);
+            _chinaCollector = new ChinaStatsCollector(source, dest, serviceProvider.GetRequiredService<ILogger<ChinaStatsCollector>>());
         }
 
         public override async Task Run()

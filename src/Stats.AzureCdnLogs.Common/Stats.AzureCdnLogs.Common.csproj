@@ -71,6 +71,7 @@
     <Compile Include="NuGetCustomHeaders.cs" />
     <Compile Include="PackageStatistics.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="CDNLogException.cs" />
     <Compile Include="ToolStatistics.cs" />
     <Compile Include="UnknownAzureCdnPlatformException.cs" />
     <Compile Include="W3CParseUtils.cs" />

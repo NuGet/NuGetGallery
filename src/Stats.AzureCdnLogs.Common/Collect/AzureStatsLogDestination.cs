@@ -6,6 +6,7 @@ using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using ICSharpCode.SharpZipLib.GZip;
@@ -23,13 +24,15 @@ namespace Stats.AzureCdnLogs.Common.Collect
         private CloudStorageAccount _azureAccount;
         private CloudBlobClient _cloudBlobClient;
         private CloudBlobContainer _cloudBlobContainer;
+        private readonly ILogger<AzureStatsLogDestination> _logger;
 
-        public AzureStatsLogDestination(CloudStorageAccount storageAccount, string containerName)
+        public AzureStatsLogDestination(CloudStorageAccount storageAccount, string containerName, ILogger<AzureStatsLogDestination> logger)
         {
             _azureAccount = storageAccount;
             _cloudBlobClient = _azureAccount.CreateCloudBlobClient();
             _cloudBlobContainer = _cloudBlobClient.GetContainerReference(containerName);
             _cloudBlobContainer.CreateIfNotExists();
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         /// <summary>
@@ -41,30 +44,47 @@ namespace Stats.AzureCdnLogs.Common.Collect
         /// <param name="destinationFileName">The destination file name.</param>
         /// <param name="destinationContentType">The destination content type.</param>
         /// <param name="token">A token to cancel the operation.</param>
-        /// <returns></returns>
-        public async Task WriteAsync(Stream inputStream, Action<Stream,Stream> writeAction, string destinationFileName, ContentType destinationContentType, CancellationToken token)
+        /// <returns>Returns true if the action to write the destination file was successful. If the destination file was already present, the operation will return false without any action taken.</returns>
+        public async Task<bool> WriteAsync(Stream inputStream, Action<Stream, Stream> writeAction, string destinationFileName, ContentType destinationContentType, CancellationToken token)
         {
-            if(token.IsCancellationRequested)
+            _logger.LogInformation("WriteAsync: Start to write to {DestinationFileName}. ContentType is {ContentType}.", 
+                $"{_cloudBlobContainer.StorageUri}{_cloudBlobContainer.Name}{destinationFileName}",
+                destinationContentType);
+            if (token.IsCancellationRequested)
             {
-                return;
+                _logger.LogInformation("WriteAsync: The operation was cancelled.");
+                return false;
             }
             var blob = _cloudBlobContainer.GetBlockBlobReference(destinationFileName);
             blob.Properties.ContentType = GetContentType(destinationContentType);
-            var resultStream = await blob.OpenWriteAsync();
-            if (destinationContentType == ContentType.GZip)
+
+            // If the blob was written already to the destination do not do anything.
+            // This should not happen if the renew task was correctly scheduled. Add the check just in case that the renew task was not scheduled in time and a different process already processed the file.
+            if (!(await blob.ExistsAsync()))
             {
-                using (var resultGzipStream = new GZipOutputStream(resultStream))
+                var resultStream = await blob.OpenWriteAsync();
+                if (destinationContentType == ContentType.GZip)
                 {
-                    resultGzipStream.IsStreamOwner = false;
-                    writeAction(inputStream, resultGzipStream);
-                    await resultGzipStream.FlushAsync();
+                    using (var resultGzipStream = new GZipOutputStream(resultStream))
+                    {
+                        resultGzipStream.IsStreamOwner = false;
+                        writeAction(inputStream, resultGzipStream);
+                        await resultGzipStream.FlushAsync();
+                    }
+                }
+                else
+                {
+                    writeAction(inputStream, resultStream);
+                }
+                if (!(await blob.ExistsAsync()))
+                {
+                    resultStream.Commit();
+                    _logger.LogInformation("WriteAsync: End write to {DestinationFileName}", destinationFileName);
+                    return true;
                 }
             }
-            else
-            {
-                writeAction(inputStream, resultStream);
-            }
-            resultStream.Commit();
+            _logger.LogInformation("WriteAsync: The destination file {DestinationFileName}, was already present.", destinationFileName);
+            return false;
         }
 
         private string GetContentType(ContentType contentType)
