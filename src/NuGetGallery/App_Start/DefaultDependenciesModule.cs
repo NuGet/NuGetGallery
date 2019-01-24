@@ -655,10 +655,10 @@ namespace NuGetGallery
                     .AddHttpMessageHandler<TracingHttpHandler>()
                     .AddHttpMessageHandler<CorrelatingHttpClientHandler>()
                     .AddHttpMessageHandler<HttpRetryMessageHandler>();
-                // To use Polly replace the .AddHttpMessageHandler<HttpRetryMessageHandler>() 
-                // with .AddPolicyHandler(() => HttpPolicyExtensions
-                //        .HandleTransientHttpError(),
-                //         .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(retryAttempt))
+                    // To use Polly replace the .AddHttpMessageHandler<HttpRetryMessageHandler>()
+                    // with .AddPolicyHandler(() => HttpPolicyExtensions
+                    //        .HandleTransientHttpError(),
+                    //         .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(retryAttempt))
 
                 builder.RegisterType<ExternalSearchService>()
                     .AsSelf()
@@ -673,7 +673,7 @@ namespace NuGetGallery
             if (configuration.Current.ServiceDiscoveryUri != null &&
                 !string.IsNullOrEmpty(configuration.Current.AutocompleteServiceResourceType))
             {
-                services.AddHttpClient<AutoCompleteSearchClient>(c => c.BaseAddress = DependencyResolver.Current.GetService<IAppConfiguration>().AutocompleteSearchServiceUri)
+                services.AddHttpClient<AutoCompleteSearchClient>(c => c.BaseAddress = DependencyResolver.Current.GetService<IAppConfiguration>().SearchServiceUri)
                     .AddHttpMessageHandler<HttpRetryMessageHandler>();
 
                 builder.RegisterType<AutoCompleteServicePackageIdsQuery>()

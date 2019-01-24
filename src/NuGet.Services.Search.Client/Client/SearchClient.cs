@@ -14,7 +14,7 @@ namespace NuGet.Services.Search.Client
 {
     public class SearchClient : ISearchClient
     {
-        private readonly IHttpClientWrapper _retryingHttpClientWrapper;
+        private readonly RetryingHttpClientWrapper _retryingHttpClientWrapper;
         private readonly ServiceDiscoveryClient _discoveryClient;
         private readonly string _resourceType;
         private readonly HttpClient _httpClient;

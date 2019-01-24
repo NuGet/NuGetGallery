@@ -385,10 +385,5 @@ namespace NuGetGallery.Configuration
         /// Gets the Uri for the Search endpoint
         /// </summary>
         Uri SearchServiceUri { get; set; }
-
-        /// <summary>
-        /// Gets the Uri for the Autocomplete endpoint
-        /// </summary>
-        Uri AutocompleteSearchServiceUri { get; set; }
     }
 }

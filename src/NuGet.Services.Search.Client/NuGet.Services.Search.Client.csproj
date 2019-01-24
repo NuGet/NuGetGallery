@@ -48,7 +48,6 @@
     <Compile Include="Client\BaseUrlHealthIndicatorStore.cs" />
     <Compile Include="Client\IEndpointHealthIndicatorStore.cs" />
     <Compile Include="Client\IHealthIndicatorLogger.cs" />
-    <Compile Include="Client\IHttpClientWrapper.cs" />
     <Compile Include="Client\ISearchClient.cs" />
     <Compile Include="Client\IServiceDiscoveryClient.cs" />
     <Compile Include="Client\NullHealthIndicatorLogger.cs" />

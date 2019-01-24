@@ -22,8 +22,10 @@ namespace NuGetGallery.Infrastructure.Lucene
         public static readonly string SearchRoundtripTimePerfCounter = "SearchRoundtripTime";
 
         private static IEndpointHealthIndicatorStore _healthIndicatorStore;
-        private static ISearchClient _deprecatedClient;
-        private static ISearchClient _client;
+        // Search client that will be deprecated. It is still needed to allow the feature flag until the search that uses traffic manager is enabled.
+        private static ISearchClient _deprecatedSearchClient;
+        // Search client that will use the traffic manager end point.
+        private ISearchClient _searchClient;
 
         private JObject _diagCache;
 
@@ -56,9 +58,9 @@ namespace NuGetGallery.Infrastructure.Lucene
                 _healthIndicatorStore = new BaseUrlHealthIndicatorStore(new NullHealthIndicatorLogger());
             }
 
-            if (_deprecatedClient == null)
+            if (_deprecatedSearchClient == null)
             {
-                _deprecatedClient = new SearchClient(
+                _deprecatedSearchClient = new SearchClient(
                     ServiceUri, 
                     "SearchGalleryQueryService/3.0.0-rc", 
                     null, 
@@ -72,7 +74,7 @@ namespace NuGetGallery.Infrastructure.Lucene
         public ExternalSearchService(IAppConfiguration config, IDiagnosticsService diagnostics, ISearchClient searchClient)
         {
             var serviceUri = config.ServiceDiscoveryUri;
-            _client = searchClient ?? throw new ArgumentNullException(nameof(searchClient));
+            _searchClient = searchClient ?? throw new ArgumentNullException(nameof(searchClient));
 
             Trace = diagnostics.SafeGetSource("ExternalSearchService");
 
@@ -86,9 +88,9 @@ namespace NuGetGallery.Infrastructure.Lucene
                 _healthIndicatorStore = new BaseUrlHealthIndicatorStore(new AppInsightsHealthIndicatorLogger());
             }
 
-            if (_deprecatedClient == null)
+            if (_deprecatedSearchClient == null)
             {
-                _deprecatedClient = new SearchClient(
+                _deprecatedSearchClient = new SearchClient(
                     ServiceUri, 
                     config.SearchServiceResourceType,
                     serviceUriCredentials, 
@@ -349,7 +351,7 @@ namespace NuGetGallery.Infrastructure.Lucene
         /// It will return the client to use based on the feature flag.
         /// </summary>
         /// <returns></returns>
-        public ISearchClient GetClient(){ return _deprecatedClient; }
+        public ISearchClient GetClient(){ return _deprecatedSearchClient; }
 
         // Bunch of no-ops to disable indexing because an external search service is doing that.
         public void UpdateIndex()
