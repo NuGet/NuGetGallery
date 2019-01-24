@@ -3,9 +3,11 @@
 
 using System;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Moq;
 using NuGetGallery.Configuration;
+using NuGet.Services.Search.Client;
 using Xunit;
 
 namespace NuGetGallery
@@ -20,10 +22,17 @@ namespace NuGetGallery
             return mockConfiguration.Object;
         }
 
+        private AutoCompleteSearchClient GetAutoCompleteSearchClient()
+        {
+            var c = new HttpClient();
+            c.BaseAddress = new Uri("https://api-v2v3search-0.nuget.org");
+            return new AutoCompleteSearchClient(c);
+        }
+
         [Fact]
         public async Task ExecuteReturns30ResultsForEmptyQuery()
         {
-            var query = new AutoCompleteServicePackageIdsQuery(GetConfiguration());
+            var query = new AutoCompleteServicePackageIdsQuery(GetConfiguration(), GetAutoCompleteSearchClient());
             var result = await query.Execute("", false);
             Assert.True(result.Count() == 30);
         }
@@ -31,7 +40,7 @@ namespace NuGetGallery
         [Fact]
         public async Task ExecuteReturns30ResultsForNullQuery()
         {
-            var query = new AutoCompleteServicePackageIdsQuery(GetConfiguration());
+            var query = new AutoCompleteServicePackageIdsQuery(GetConfiguration(), GetAutoCompleteSearchClient());
             var result = await query.Execute(null, false);
             Assert.True(result.Count() == 30);
         }
@@ -39,7 +48,7 @@ namespace NuGetGallery
         [Fact]
         public async Task ExecuteReturnsResultsForSpecificQuery()
         {
-            var query = new AutoCompleteServicePackageIdsQuery(GetConfiguration());
+            var query = new AutoCompleteServicePackageIdsQuery(GetConfiguration(), GetAutoCompleteSearchClient());
             var result = await query.Execute("jquery", false);
             Assert.Contains("jquery", result, StringComparer.OrdinalIgnoreCase);
         }
@@ -52,7 +61,7 @@ namespace NuGetGallery
         public void PackageIdQueryBuildsCorrectQueryString(bool includePrerelease, string semVerLevel, string expectedQueryString)
         {
             // Arrange
-            var query = new AutoCompleteServicePackageIdsQuery(GetConfiguration());
+            var query = new AutoCompleteServicePackageIdsQuery(GetConfiguration(), GetAutoCompleteSearchClient());
 
             // Act
             var actualQueryString = query.BuildQueryString("take=30&q=Json", includePrerelease, semVerLevel);

@@ -3,9 +3,11 @@
 
 using System;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
-using Moq;
 using NuGetGallery.Configuration;
+using NuGet.Services.Search.Client;
+using Moq;
 using Xunit;
 
 namespace NuGetGallery
@@ -20,17 +22,24 @@ namespace NuGetGallery
             return mockConfiguration.Object;
         }
 
+        private AutoCompleteSearchClient GetAutoCompleteSearchClient()
+        {
+            var c = new HttpClient();
+            c.BaseAddress = new Uri("https://api-v2v3search-0.nuget.org");
+            return new AutoCompleteSearchClient(c);
+        }
+
         [Fact]
         public async Task ExecuteThrowsForEmptyId()
         {
-            var query = new AutoCompleteServicePackageVersionsQuery(GetConfiguration());
+            var query = new AutoCompleteServicePackageVersionsQuery(GetConfiguration(), GetAutoCompleteSearchClient());
             await Assert.ThrowsAsync<ArgumentNullException>(async () => await query.Execute(string.Empty, false));
         }
 
         [Fact]
         public async Task ExecuteReturnsResultsForSpecificQuery()
         {
-            var query = new AutoCompleteServicePackageVersionsQuery(GetConfiguration());
+            var query = new AutoCompleteServicePackageVersionsQuery(GetConfiguration(), GetAutoCompleteSearchClient());
             var result = await query.Execute("newtonsoft.json", false);
             Assert.True(result.Any());
         }
@@ -43,7 +52,7 @@ namespace NuGetGallery
         public void PackageVersionsQueryBuildsCorrectQueryString(bool includePrerelease, string semVerLevel, string expectedQueryString)
         {
             // Arrange
-            var query = new AutoCompleteServicePackageVersionsQuery(GetConfiguration());
+            var query = new AutoCompleteServicePackageVersionsQuery(GetConfiguration(), GetAutoCompleteSearchClient());
 
             // Act
             var actualQueryString = query.BuildQueryString("id=Newtonsoft.Json", includePrerelease, semVerLevel);

@@ -79,5 +79,16 @@ namespace NuGetGallery
             builder.Query = query.ToString();
             return builder.Uri.PathAndQuery;
         }
+
+        public static Uri AppendPathToUri(this Uri uri, string pathToAppend, string queryString = null)
+        {
+            var builder = new UriBuilder(uri);
+            builder.Path = builder.Path.TrimEnd('/') + "/" + pathToAppend.TrimStart('/');
+            if (!string.IsNullOrEmpty(queryString))
+            {
+                builder.Query = queryString;
+            }
+            return builder.Uri;
+        }
     }
 }

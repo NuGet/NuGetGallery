@@ -13,19 +13,20 @@ namespace NuGet.Services.Search.Client
     public class HttpRetryMessageHandler : DelegatingHandler
     {
         private readonly Action<Exception> _onException;
+        private const int DefaultRetryCount = 3;
         private readonly int _retryCount = 0;
 
-        public HttpRetryMessageHandler(HttpClientHandler handler, Action<Exception> onException) : this(handler, onException, 0)
+        public HttpRetryMessageHandler(Action<Exception> onException) : this(onException, DefaultRetryCount)
         {
         }
 
-        public HttpRetryMessageHandler(HttpClientHandler handler, Action<Exception> onException, int retryCount) : this(handler, onException, retryCount, null)
+        public HttpRetryMessageHandler(Action<Exception> onException, int retryCount) : this(onException, retryCount, null)
         {
         }
 
-        public HttpRetryMessageHandler(HttpClientHandler handler, Action<Exception> onException, int retryCount, IEnumerable<HttpStatusCode> additionalHttpStatusCodesWorthRetrying) : base(handler)
+        public HttpRetryMessageHandler( Action<Exception> onException, int retryCount, IEnumerable<HttpStatusCode> additionalHttpStatusCodesWorthRetrying) 
         {
-            _onException = onException ?? throw new ArgumentNullException(nameof(onException));
+            _onException = onException;
             _retryCount = retryCount;
             if (additionalHttpStatusCodesWorthRetrying != null)
             {
@@ -34,12 +35,11 @@ namespace NuGet.Services.Search.Client
         }
 
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken) =>
-            RetryPolicy<HttpResponseMessage>.
-            HandleExceptionAndResult( (ex) => { _onException(ex); return false; }, r => GetRetryingCodes.Contains(r.StatusCode)).
-            ExecuteWithWaitAndRetryAsync(_retryCount, retryAttempt => TimeSpan.FromSeconds(retryAttempt),
-                () =>  
-                base.SendAsync(request, cancellationToken) 
-                );
+            RetryPolicy<HttpResponseMessage>
+            .HandleExceptionAndResult( (ex) => { _onException?.Invoke(ex); return false; }, r => GetRetryingCodes.Contains(r.StatusCode))
+            .ExecuteWithWaitAndRetryAsync(_retryCount,
+                retryAttempt => TimeSpan.FromSeconds(Math.Pow(2,retryAttempt)),
+                () => base.SendAsync(request, cancellationToken) );
 
         public List<HttpStatusCode> GetRetryingCodes { get; } = new List<HttpStatusCode>{
                 HttpStatusCode.RequestTimeout, // 408

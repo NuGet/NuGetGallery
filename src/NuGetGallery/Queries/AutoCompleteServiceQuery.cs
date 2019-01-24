@@ -17,11 +17,10 @@ namespace NuGetGallery
     {
         private readonly ServiceDiscoveryClient _serviceDiscoveryClient;
         private readonly string _autocompleteServiceResourceType;
-        private readonly IHttpClientWrapper _httpClient;
-        private readonly IHttpClientWrapper _httpClientTM;
-        private readonly Uri _autocompleteSearchServiceUri;
+        private readonly RetryingHttpClientWrapper _httpClientToDeprecate;
+        private readonly AutoCompleteSearchClient _autocompleteSearchClient;
 
-        public AutoCompleteServiceQuery(IAppConfiguration configuration)
+        public AutoCompleteServiceQuery(IAppConfiguration configuration, AutoCompleteSearchClient autocompleteSearchClient)
         {
             if (configuration == null)
             {
@@ -30,10 +29,8 @@ namespace NuGetGallery
 
             _serviceDiscoveryClient = new ServiceDiscoveryClient(configuration.ServiceDiscoveryUri);
             _autocompleteServiceResourceType = configuration.AutocompleteServiceResourceType;
-            _httpClient = new RetryingHttpClientWrapper(new HttpClient(), QuietLog.LogHandledException);
-
-            _autocompleteSearchServiceUri = configuration.AutocompleteSearchServiceUri;
-            _httpClientTM = new RetryingHttpClientWrapper2(credentials: null, onException: QuietLog.LogHandledException);
+            _httpClientToDeprecate = new RetryingHttpClientWrapper(new HttpClient(), QuietLog.LogHandledException);
+            _autocompleteSearchClient = autocompleteSearchClient;
         }
 
         public async Task<IEnumerable<string>> RunServiceQuery(
@@ -42,14 +39,23 @@ namespace NuGetGallery
             string semVerLevel = null)
         {
             queryString = BuildQueryString(queryString, includePrerelease, semVerLevel);
-
-            var endpoints = await _serviceDiscoveryClient.GetEndpointsForResourceType(_autocompleteServiceResourceType);
-            endpoints = endpoints.Select(e => new Uri(e + queryString)).AsEnumerable();
-
-            var result = await _httpClient.GetStringAsync(endpoints);
+            var result = await DeprecatedExecuteQuery(queryString);
             var resultObject = JObject.Parse(result);
 
             return resultObject["data"].Select(entry => entry.ToString());
+        }
+
+        private async Task<string> DeprecatedExecuteQuery(string queryString)
+        {
+            var endpoints = await _serviceDiscoveryClient.GetEndpointsForResourceType(_autocompleteServiceResourceType);
+            endpoints = endpoints.Select(e => new Uri(e + queryString)).AsEnumerable();
+
+            return await _httpClientToDeprecate.GetStringAsync(endpoints);
+        }
+
+        private async Task<string> ExecuteQuery(string queryString)
+        {
+            return await _autocompleteSearchClient.GetStringAsync(queryString);
         }
 
         internal string BuildQueryString(string queryString, bool? includePrerelease, string semVerLevel = null)

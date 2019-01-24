@@ -12,11 +12,12 @@ using NuGet.Services.Search.Models;
 
 namespace NuGet.Services.Search.Client
 {
-    public class SearchClient
+    public class SearchClient : ISearchClient
     {
-        protected readonly IHttpClientWrapper _retryingHttpClientWrapper;
+        private readonly IHttpClientWrapper _retryingHttpClientWrapper;
         private readonly ServiceDiscoveryClient _discoveryClient;
         private readonly string _resourceType;
+        private readonly HttpClient _httpClient;
 
         /// <summary>
         /// Create a search service client from the specified base uri and credentials.
@@ -54,23 +55,10 @@ namespace NuGet.Services.Search.Client
                 handler = providedHandler;
             }
 
-            var httpClient = new HttpClient(handler, disposeHandler: true);
+            _httpClient = new HttpClient(handler, disposeHandler: true);
 
-            _retryingHttpClientWrapper = new RetryingHttpClientWrapper(httpClient, healthIndicatorStore, onException);
-            _discoveryClient = new ServiceDiscoveryClient(httpClient, baseUri);
-        }
-
-        /// <summary>
-        /// Create a search service client from the specified base uri and credentials.
-        /// </summary>
-        /// <param name="baseUri">The URL to the search service.</param>
-        /// <param name="resourceType">Resource type to query against</param>
-        /// <param name="credentials">The credentials to connect to the service with</param>
-        /// <param name="healthIndicatorStore">Health indicator store</param>
-        /// <param name="handlers">Handlers to apply to the request in order from first to last</param>
-        protected SearchClient(Uri baseUri, ICredentials credentials, Action<Exception> onException, params DelegatingHandler[] handlers)
-        {
-            _retryingHttpClientWrapper = new RetryingHttpClientWrapper2(credentials, onException, handlers);
+            _retryingHttpClientWrapper = new RetryingHttpClientWrapper(_httpClient, healthIndicatorStore, onException);
+            _discoveryClient = new ServiceDiscoveryClient(_httpClient, baseUri);
         }
 
         private static readonly Dictionary<SortOrder, string> SortNames = new Dictionary<SortOrder, string>
@@ -145,14 +133,14 @@ namespace NuGet.Services.Search.Client
             var qs = new FormUrlEncodedContent(nameValue);
             var queryString = await qs.ReadAsStringAsync();
 
-            var endpoints = await GetEndpoints();
+            var endpoints = await _discoveryClient.GetEndpointsForResourceType(_resourceType);
             var requestEndpoints = endpoints.Select(e => AppendPathToUri(e, "search/query", queryString));
 
             var httpResponseMessage = await _retryingHttpClientWrapper.GetAsync(requestEndpoints);
             return new ServiceResponse<SearchResults>(httpResponseMessage);
         }
 
-        protected static Uri AppendPathToUri(Uri uri, string pathToAppend, string queryString = null)
+        private static Uri AppendPathToUri(Uri uri, string pathToAppend, string queryString = null)
         {
             var builder = new UriBuilder(uri);
             builder.Path = builder.Path.TrimEnd('/') + "/" + pathToAppend.TrimStart('/');
@@ -185,18 +173,13 @@ namespace NuGet.Services.Search.Client
                 await _retryingHttpClientWrapper.GetAsync(requestEndpoints));
         }
 
-        public virtual async Task<ServiceResponse<JObject>> GetDiagnostics()
+        public async Task<ServiceResponse<JObject>> GetDiagnostics()
         {
             var endpoints = await _discoveryClient.GetEndpointsForResourceType(_resourceType);
             var requestEndpoints = endpoints.Select(e => AppendPathToUri(e, "search/diag"));
 
             return new ServiceResponse<JObject>(
                 await _retryingHttpClientWrapper.GetAsync(requestEndpoints));
-        }
-
-        public virtual async Task<IEnumerable<Uri>> GetEndpoints()
-        {
-            return await _discoveryClient.GetEndpointsForResourceType(_resourceType);
         }
     }
 }

@@ -22,8 +22,8 @@ namespace NuGetGallery.Infrastructure.Lucene
         public static readonly string SearchRoundtripTimePerfCounter = "SearchRoundtripTime";
 
         private static IEndpointHealthIndicatorStore _healthIndicatorStore;
-        private static SearchClient _client;
-        private static SearchClient _clientTM;
+        private static ISearchClient _deprecatedClient;
+        private static ISearchClient _client;
 
         private JObject _diagCache;
 
@@ -56,9 +56,9 @@ namespace NuGetGallery.Infrastructure.Lucene
                 _healthIndicatorStore = new BaseUrlHealthIndicatorStore(new NullHealthIndicatorLogger());
             }
 
-            if (_client == null)
+            if (_deprecatedClient == null)
             {
-                _client = new SearchClient(
+                _deprecatedClient = new SearchClient(
                     ServiceUri, 
                     "SearchGalleryQueryService/3.0.0-rc", 
                     null, 
@@ -69,10 +69,10 @@ namespace NuGetGallery.Infrastructure.Lucene
             }
         }
 
-        public ExternalSearchService(IAppConfiguration config, IDiagnosticsService diagnostics)
+        public ExternalSearchService(IAppConfiguration config, IDiagnosticsService diagnostics, ISearchClient searchClient)
         {
             var serviceUri = config.ServiceDiscoveryUri;
-            var searchServiceUri = config.SearchServiceUri;
+            _client = searchClient ?? throw new ArgumentNullException(nameof(searchClient));
 
             Trace = diagnostics.SafeGetSource("ExternalSearchService");
 
@@ -80,34 +80,21 @@ namespace NuGetGallery.Infrastructure.Lucene
             ICredentials serviceUriCredentials = ExtractCredentialsFromUri(ref serviceUri);
             ServiceUri = serviceUri;
 
-            ICredentials searchServiceUriCredentials = ExtractCredentialsFromUri(ref searchServiceUri);
-            SearchServiceUri = searchServiceUri;
-
             // note: intentionally not locking the next two assignments to avoid blocking calls
             if (_healthIndicatorStore == null)
             {
                 _healthIndicatorStore = new BaseUrlHealthIndicatorStore(new AppInsightsHealthIndicatorLogger());
             }
 
-            if (_client == null)
+            if (_deprecatedClient == null)
             {
-                _client = new SearchClient(
+                _deprecatedClient = new SearchClient(
                     ServiceUri, 
                     config.SearchServiceResourceType,
                     serviceUriCredentials, 
                     _healthIndicatorStore,
                     QuietLog.LogHandledException,
                     new TracingHttpHandler(Trace), 
-                    new CorrelatingHttpClientHandler());
-            }
-
-            if (_clientTM == null)
-            {
-                _clientTM = new GallerySearchClient(
-                    SearchServiceUri,
-                    searchServiceUriCredentials,
-                    QuietLog.LogHandledException,
-                    new TracingHttpHandler(Trace),
                     new CorrelatingHttpClientHandler());
             }
         }
@@ -158,7 +145,7 @@ namespace NuGetGallery.Infrastructure.Lucene
             // Query!
             var sw = new Stopwatch();
             sw.Start();
-            var result = await _client.Search(
+            var result = await GetClient().Search(
                 filter.SearchTerm,
                 projectTypeFilter: null,
                 includePrerelease: filter.IncludePrerelease,
@@ -267,7 +254,7 @@ namespace NuGetGallery.Infrastructure.Lucene
         {
             if (_diagCache == null)
             {
-                var resp = await _client.GetDiagnostics();
+                var resp = await GetClient().GetDiagnostics();
                 if (!resp.IsSuccessStatusCode)
                 {
                     Trace.Error("HTTP Error when retrieving diagnostics: " + ((int)resp.StatusCode).ToString());
@@ -357,6 +344,12 @@ namespace NuGetGallery.Infrastructure.Lucene
                 Listed = doc.Value<bool>("Listed")
             };
         }
+
+        /// <summary>
+        /// It will return the client to use based on the feature flag.
+        /// </summary>
+        /// <returns></returns>
+        public ISearchClient GetClient(){ return _deprecatedClient; }
 
         // Bunch of no-ops to disable indexing because an external search service is doing that.
         public void UpdateIndex()

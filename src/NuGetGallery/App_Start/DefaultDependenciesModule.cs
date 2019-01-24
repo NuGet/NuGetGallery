@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Mail;
+using System.Net.Http;
 using System.Security.Principal;
 using System.Threading.Tasks;
 using System.Web;
@@ -16,9 +17,11 @@ using System.Web.Hosting;
 using System.Web.Mvc;
 using AnglicanGeek.MarkdownMailer;
 using Autofac;
+using Autofac.Extensions.DependencyInjection;
 using Autofac.Core;
 using Elmah;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.WindowsAzure.ServiceRuntime;
 using NuGet.Services.Entities;
 using NuGet.Services.KeyVault;
@@ -27,6 +30,7 @@ using NuGet.Services.Logging;
 using NuGet.Services.Messaging;
 using NuGet.Services.Messaging.Email;
 using NuGet.Services.Search.Client;
+using NuGet.Services.Search.Client.Correlation;
 using NuGet.Services.ServiceBus;
 using NuGet.Services.Sql;
 using NuGet.Services.Validation;
@@ -62,6 +66,7 @@ namespace NuGetGallery
         {
             var loggerConfiguration = LoggingSetup.CreateDefaultLoggerConfiguration(withConsoleLogger: false);
             var loggerFactory = LoggingSetup.CreateLoggerFactory(loggerConfiguration);
+            var services = new ServiceCollection();
             builder.RegisterInstance(loggerFactory)
                 .AsSelf()
                 .As<ILoggerFactory>();
@@ -119,7 +124,9 @@ namespace NuGetGallery
                 .As<Lucene.Net.Store.Directory>()
                 .SingleInstance();
 
-            ConfigureSearch(builder, configuration);
+            // it will be used by the Autocomplete as well
+            services.AddTransient((s) => new HttpRetryMessageHandler(ex => QuietLog.LogHandledException(ex)));
+            ConfigureSearch(builder, configuration, services);
 
             builder.RegisterType<DateTimeProvider>().AsSelf().As<IDateTimeProvider>().SingleInstance();
 
@@ -403,7 +410,8 @@ namespace NuGetGallery
                     .InstancePerLifetimeScope();
             }
 
-            ConfigureAutocomplete(builder, configuration);
+            ConfigureAutocomplete(builder, configuration, services);
+            builder.Populate(services);
         }
 
         private static void RegisterMessagingService(ContainerBuilder builder, ConfigurationService configuration)
@@ -622,7 +630,7 @@ namespace NuGetGallery
                 .InstancePerLifetimeScope();
         }
 
-        private static void ConfigureSearch(ContainerBuilder builder, IGalleryConfigurationService configuration)
+        private static void ConfigureSearch(ContainerBuilder builder, IGalleryConfigurationService configuration, ServiceCollection services)
         {
             if (configuration.Current.ServiceDiscoveryUri == null)
             {
@@ -637,6 +645,21 @@ namespace NuGetGallery
             }
             else
             {
+                services.AddTransient<CorrelatingHttpClientHandler>();
+                services.AddTransient((s) => new TracingHttpHandler(DependencyResolver.Current.GetService<IDiagnosticsService>().SafeGetSource("ExternalSearchService")));
+
+                services.AddHttpClient<ISearchClient, GallerySearchClient>(c =>
+                    c.BaseAddress = DependencyResolver.Current.GetService<IAppConfiguration>().SearchServiceUri
+                    )
+                    .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler() { AllowAutoRedirect = false })
+                    .AddHttpMessageHandler<TracingHttpHandler>()
+                    .AddHttpMessageHandler<CorrelatingHttpClientHandler>()
+                    .AddHttpMessageHandler<HttpRetryMessageHandler>();
+                // To use Polly replace the .AddHttpMessageHandler<HttpRetryMessageHandler>() 
+                // with .AddPolicyHandler(() => HttpPolicyExtensions
+                //        .HandleTransientHttpError(),
+                //         .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(retryAttempt))
+
                 builder.RegisterType<ExternalSearchService>()
                     .AsSelf()
                     .As<ISearchService>()
@@ -645,11 +668,14 @@ namespace NuGetGallery
             }
         }
 
-        private static void ConfigureAutocomplete(ContainerBuilder builder, IGalleryConfigurationService configuration)
+        private static void ConfigureAutocomplete(ContainerBuilder builder, IGalleryConfigurationService configuration, ServiceCollection services)
         {
             if (configuration.Current.ServiceDiscoveryUri != null &&
                 !string.IsNullOrEmpty(configuration.Current.AutocompleteServiceResourceType))
             {
+                services.AddHttpClient<AutoCompleteSearchClient>(c => c.BaseAddress = DependencyResolver.Current.GetService<IAppConfiguration>().AutocompleteSearchServiceUri)
+                    .AddHttpMessageHandler<HttpRetryMessageHandler>();
+
                 builder.RegisterType<AutoCompleteServicePackageIdsQuery>()
                     .AsSelf()
                     .As<IAutoCompletePackageIdsQuery>()

@@ -1,13 +1,59 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
+using System.Net.Http;
 using Newtonsoft.Json.Linq;
+using NuGetGallery.Configuration;
+using NuGetGallery.Diagnostics;
+using NuGet.Services.Search.Client;
+using Moq;
 using Xunit;
 
 namespace NuGetGallery.Infrastructure.Lucene
 {
     public class ExternalSearchServiceFacts
     {
+        public class TheGetClientMethod
+        {
+            private IAppConfiguration GetConfiguration()
+            {
+                var mockConfiguration = new Mock<IAppConfiguration>();
+                mockConfiguration.SetupGet(c => c.ServiceDiscoveryUri).Returns(new Uri("https://api.nuget.org/v3/index.json"));
+                mockConfiguration.SetupGet(c => c.SearchServiceResourceType).Returns("SearchGalleryQueryService/3.0.0-rc");
+                return mockConfiguration.Object;
+            }
+
+            private IDiagnosticsService GetDiagnosticsService()
+            {
+                var mockConfiguration = new Mock<IDiagnosticsService>();
+                mockConfiguration.Setup(ds => ds.GetSource(It.IsAny<string>()))
+                    .Returns(Mock.Of<IDiagnosticsSource>());
+                return mockConfiguration.Object;
+            }
+
+            private ISearchClient GetSearchClient(string baseUriAddress)
+            {
+                var c = new HttpClient();
+                c.BaseAddress = new Uri(baseUriAddress);
+                return new GallerySearchClient(c);
+            }
+
+            [Fact]
+            public void ReturnsTheExpectedClient()
+            {
+                // Arrange
+                var gallerySearchClientBaseAddress = "https://nuget-dev-v2v3search.nugettest.org";
+                var service = new ExternalSearchService(GetConfiguration(), GetDiagnosticsService(), GetSearchClient(gallerySearchClientBaseAddress));
+
+                // Act
+                var client = service.GetClient();
+                var clientType = client.GetType();
+
+                Assert.Equal("NuGet.Services.Search.Client.SearchClient", clientType.FullName);
+            }
+        }
+
         public class TheReadPackageMethod
         {
             [Fact]

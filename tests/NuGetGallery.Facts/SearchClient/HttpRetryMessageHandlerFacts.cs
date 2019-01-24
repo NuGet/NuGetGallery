@@ -26,7 +26,7 @@ namespace NuGetGallery.SearchClient
         public void VerifyDefaults()
         {
             // Arrange + Act
-            var handler = new HttpRetryMessageHandler(new HttpClientHandler(), (ex) => { });
+            var handler = new HttpRetryMessageHandler((ex) => { });
             var codes = handler.GetRetryingCodes;
 
             // Assert
@@ -41,7 +41,7 @@ namespace NuGetGallery.SearchClient
         public void VerifyNewCodes()
         {
             // Arrange + Act
-            var handler = new HttpRetryMessageHandler(new HttpClientHandler(), (ex) => { }, 1, new List<HttpStatusCode> { HttpStatusCode.NotFound });
+            var handler = new HttpRetryMessageHandler((ex) => { }, 1, new List<HttpStatusCode> { HttpStatusCode.NotFound });
             var codes = handler.GetRetryingCodes;
 
             // Assert
@@ -57,7 +57,7 @@ namespace NuGetGallery.SearchClient
             // Arrange 
             Uri InvalidUriWith404 = new Uri("http://www.nuget.org/thisshouldreturna404page");
             var trackingHandler = new RequestInspectingHandler();
-            var retryHandler = new HttpRetryMessageHandler(new HttpClientHandler(), (ex) => { }, retryCount, new List<HttpStatusCode> { HttpStatusCode.NotFound });
+            var retryHandler = new HttpRetryMessageHandler((ex) => { }, retryCount, new List<HttpStatusCode> { HttpStatusCode.NotFound });
 
             retryHandler.InnerHandler = trackingHandler;
             HttpClient client = new HttpClient(retryHandler);
