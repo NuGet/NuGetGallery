@@ -34,6 +34,11 @@ namespace NuGet.Services.Search.Client
             return _httpClient.BaseAddress.AppendPathToUri("search/diag");
         }
 
+        public Uri GetSearchUri(string queryString)
+        {
+            return _httpClient.BaseAddress.AppendPathToUri("search/query", queryString);
+        }
+
         // This code is copied from the SearchClient 
         private static readonly Dictionary<SearchModels.SortOrder, string> SortNames = new Dictionary<SearchModels.SortOrder, string>
         {
@@ -108,9 +113,9 @@ namespace NuGet.Services.Search.Client
             var qs = new FormUrlEncodedContent(nameValue);
             var queryString = await qs.ReadAsStringAsync();
 
-            var requestEndpoints =  _httpClient.BaseAddress.AppendPathToUri("search/query", queryString);
+            var requestEndpoint = GetSearchUri(queryString);
 
-            var httpResponseMessage = await _httpClient.GetAsync(requestEndpoints);
+            var httpResponseMessage = await _httpClient.GetAsync(requestEndpoint);
             return new ServiceResponse<SearchModels.SearchResults>(httpResponseMessage);
         }
     }

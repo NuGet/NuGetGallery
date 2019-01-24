@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace NuGet.Services.Search.Client
 {
-    public sealed class RetryingHttpClientWrapper 
+    public sealed class RetryingHttpClientWrapper
     {
         private readonly HttpClient _httpClient;
         private readonly IEndpointHealthIndicatorStore _endpointHealthIndicatorStore;
