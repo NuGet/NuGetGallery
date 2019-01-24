@@ -40,6 +40,8 @@ namespace NuGetGallery
     public partial class PackagesController
         : AppController
     {
+        private const long MaxAllowedLicenseLength = 1024 * 1024;
+
         private static readonly IReadOnlyList<ReportPackageReason> ReportAbuseReasons = new[]
         {
             ReportPackageReason.ViolatesALicenseIOwn,
@@ -96,7 +98,6 @@ namespace NuGetGallery
         private readonly IContentObjectService _contentObjectService;
         private readonly ISymbolPackageUploadService _symbolPackageUploadService;
         private readonly IDiagnosticsSource _trace;
-        private readonly IFlatContainerService _flatContainerService;
         private readonly ICoreLicenseFileService _coreLicenseFileService;
         private readonly ILicenseExpressionSplitter _licenseExpressionSplitter;
 
@@ -124,7 +125,6 @@ namespace NuGetGallery
             IContentObjectService contentObjectService,
             ISymbolPackageUploadService symbolPackageUploadService,
             IDiagnosticsService diagnosticsService,
-            IFlatContainerService flatContainerService,
             ICoreLicenseFileService coreLicenseFileService,
             ILicenseExpressionSplitter licenseExpressionSplitter)
         {
@@ -151,7 +151,6 @@ namespace NuGetGallery
             _contentObjectService = contentObjectService;
             _symbolPackageUploadService = symbolPackageUploadService;
             _trace = diagnosticsService?.SafeGetSource(nameof(PackagesController)) ?? throw new ArgumentNullException(nameof(diagnosticsService));
-            _flatContainerService = flatContainerService;
             _coreLicenseFileService = coreLicenseFileService ?? throw new ArgumentNullException(nameof(coreLicenseFileService));
             _licenseExpressionSplitter = licenseExpressionSplitter ?? throw new ArgumentNullException(nameof(licenseExpressionSplitter));
         }
@@ -734,30 +733,39 @@ namespace NuGetGallery
             return View(model);
         }
 
+        [HttpGet]
+        [UIAuthorize]
         public virtual async Task<ActionResult> License(string id, string version)
         {
             var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
-            if (package == null)
+            if (package == null || package.PackageRegistration == null)
             {
                 return HttpNotFound();
             }
 
+            DisplayLicenseViewModel model = new DisplayLicenseViewModel(package);
             if (!string.IsNullOrWhiteSpace(package.LicenseExpression))
-            {
-                return Redirect(LicenseExpressionRedirectUrlHelper.GetLicenseExpressionRedirectUrl(package.LicenseExpression));
-            }
-
-            if (package.EmbeddedLicenseType == EmbeddedLicenseFileType.Absent)
-            {
-                return HttpNotFound();
-            }
-
-            if (!_config.AsynchronousPackageValidationEnabled)
             {
                 try
                 {
-                    var licenseFileContent = await _coreLicenseFileService.DownloadLicenseFileAsync(package);
-                    return new FileStreamResult(licenseFileContent, "text/plain");
+                    model.LicenseExpressionSegments = _licenseExpressionSplitter.SplitExpression(package.LicenseExpression);
+                }
+                catch (Exception ex)
+                {
+                    // Any exception thrown while trying to render license expression beautifully
+                    // is not severe enough to break the client experience, view will fall back to
+                    // display license url.
+                    _telemetryService.TraceException(ex);
+                    return HttpNotFound();
+                }
+            }
+
+            if (package.EmbeddedLicenseType != EmbeddedLicenseFileType.Absent)
+            {
+                try
+                {
+                    var licenseFileStream = await _coreLicenseFileService.DownloadLicenseFileAsync(package);
+                    model.LicenseFileContents = await StreamHelper.ReadMaxAsync(licenseFileStream, MaxAllowedLicenseLength);
                 }
                 catch (Exception ex)
                 {
@@ -766,7 +774,7 @@ namespace NuGetGallery
                 }
             }
 
-            return Redirect(await _flatContainerService.GetLicenseFileFlatContainerUrlAsync(package.Id, package.NormalizedVersion));
+            return View(model);
         }
 
         public virtual async Task<ActionResult> ListPackages(PackageListSearchViewModel searchAndListModel)

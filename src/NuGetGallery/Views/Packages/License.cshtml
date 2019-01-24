@@ -1,0 +1,103 @@
+@using NuGet.Services.Licenses
+
+@model DisplayLicenseViewModel
+@{
+    ViewBag.Title = "License of " + Model.Id + " " + Model.Version;
+    ViewBag.Tab = "Licenses";
+    ViewBag.MdPageColumns = GalleryConstants.ColumnsFormMd;
+}
+
+@* The following two helpers must be on a single line each so no extra whitespace is introduced in the expression when rendered. *@
+@* Helpers themselves are needed not to introduce that extra whitespce, which happens if they are inlined. *@
+@helper MakeLicenseLink(CompositeLicenseExpressionSegment segment)
+{<a href="@LicenseExpressionRedirectUrlHelper.GetLicenseExpressionRedirectUrl(segment.Value)">@segment.Value</a>}
+@helper MakeLicenseSpan(CompositeLicenseExpressionSegment segment)
+{<span>@segment.Value</span>}
+
+@functions
+{
+    static bool IsLicenseOrException(CompositeLicenseExpressionSegment segment)
+    {
+        return segment.Type == CompositeLicenseExpressionSegmentType.LicenseIdentifier || segment.Type == CompositeLicenseExpressionSegmentType.ExceptionIdentifier;
+    }
+}
+
+<section role="main" class="container main-container page-licenses">
+    <div class="row">
+        <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
+            @Html.Partial(
+                "_PackageHeading",
+                new PackageHeadingModel(
+                    Model.Id,
+                    Model.Version,
+                    "Licenses"))
+
+            <h3>@Model.Id @Model.Version</h3>
+            @if (!string.IsNullOrWhiteSpace(Model.LicenseExpression))
+            {
+                <label>License expression:</label>
+                <div>
+                    @if (Model.LicenseExpressionSegments.AnySafe())
+                    {
+                        foreach (var segment in Model.LicenseExpressionSegments)
+                        {
+                            if (IsLicenseOrException(segment))
+                            {
+                                @MakeLicenseLink(segment);
+                            }
+                            else
+                            {
+                                @MakeLicenseSpan(segment);
+                            }
+                        }
+                    }
+                </div>
+            }
+            else if (Model.EmbeddedLicenseType != EmbeddedLicenseFileType.Absent)
+            {
+
+                if (Model.Validating)
+                {
+                    @ViewHelpers.AlertWarning(
+                        @<text>
+                            The license file will become available once package validation has completed successfully.
+                        </text>
+                    )
+                }
+                else
+                {
+                    <label>License text:</label>
+                    <div>
+                        <pre class="license-file-contents custom-license-container">@Model.LicenseFileContents</pre>
+                    </div>
+                }
+            }
+            else if (Model.LicenseUrl != null)
+            {
+                <label>License Url:</label>
+                <div>
+                    <a href="@Model.LicenseUrl">
+                        @if (Model.LicenseNames.AnySafe())
+                        {
+                            @(string.Join(", ", Model.LicenseNames.Select(x => x + " License")))
+                        }
+                        else
+                        {
+                            @Model.LicenseUrl
+                        }
+                    </a>
+                </div>
+            }
+            else
+            {
+                <div>
+                    @ViewHelpers.AlertWarning(
+                        @<text>
+                            This package contains no license info.
+                        </text>
+                    )
+                </div>
+            }
+        </div>
+    </div>
+</section>

@@ -1851,6 +1851,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The stream must be less than {0} bytes..
+        /// </summary>
+        public static string StreamMaxLengthExceeded {
+            get {
+                return ResourceManager.GetString("StreamMaxLengthExceeded", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to You successfully uploaded {0} {1}..
         /// </summary>
         public static string SuccessfullyUploadedPackage {
