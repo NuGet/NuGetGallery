@@ -105,6 +105,11 @@ namespace NuGetGallery
                 new { controller = "Pages", action = "Contributors" });
 
             routes.MapRoute(
+                RouteName.PagesSimulateError,
+                "pages/simulate-error",
+                new { controller = "Pages", action = nameof(PagesController.SimulateError) });
+
+            routes.MapRoute(
                 RouteName.Policies,
                 "policies/{action}",
                 new { controller = "Pages" });
@@ -737,6 +742,11 @@ namespace NuGetGallery
                 RouteName.DownloadNuGetExe,
                 "nuget.exe",
                 new { controller = "Api", action = "GetNuGetExeApi" });
+
+            routes.MapRoute(
+                RouteName.ApiSimulateError,
+                "api/simulate-error",
+                new { controller = "Api", action = nameof(ApiController.SimulateError) });
         }
     }
 }

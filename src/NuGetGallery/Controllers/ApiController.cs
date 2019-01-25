@@ -275,6 +275,12 @@ namespace NuGetGallery
             return new HttpStatusCodeWithBodyResult(HttpStatusCode.OK, "Gallery is Available");
         }
 
+        [HttpGet]
+        public virtual ActionResult SimulateError(SimulatedErrorType type = SimulatedErrorType.Exception)
+        {
+            return type.MapToMvcResult();
+        }
+
         [HttpPost]
         [ApiAuthorize]
         [ApiScopeRequired(NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion)]

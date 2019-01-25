@@ -3,6 +3,7 @@
 
 using System;
 using System.Linq;
+using System.Net.Http;
 using System.Web.Http;
 using System.Web.Http.OData.Batch;
 using System.Web.Http.OData.Builder;
@@ -11,6 +12,7 @@ using System.Web.Http.OData.Routing.Conventions;
 using Microsoft.Data.Edm;
 using Microsoft.Data.Edm.Csdl;
 using Microsoft.Data.OData;
+using NuGetGallery.Controllers;
 using NuGetGallery.OData;
 using NuGetGallery.OData.Conventions;
 using NuGetGallery.OData.Routing;
@@ -67,6 +69,9 @@ namespace NuGetGallery
             var findPackagesAction = builder.Action("FindPackagesById");
             findPackagesAction.Parameter<string>("id");
             findPackagesAction.ReturnsCollectionFromEntitySet<V2FeedPackage>("Packages");
+
+            var simulateErrorAction = builder.Action(nameof(ODataV2CuratedFeedController.SimulateError));
+            simulateErrorAction.Parameter<string>("type");
 
             var model = builder.GetEdmModel();
             model.SetEdmVersion(new Version(1, 0));
