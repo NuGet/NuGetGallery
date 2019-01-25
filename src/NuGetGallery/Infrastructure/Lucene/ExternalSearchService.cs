@@ -351,7 +351,7 @@ namespace NuGetGallery.Infrastructure.Lucene
         /// It will return the client to use based on the feature flag.
         /// </summary>
         /// <returns></returns>
-        public ISearchClient GetClient(){ return _deprecatedSearchClient; }
+        public ISearchClient GetClient(){ return _searchClient; }
 
         // Bunch of no-ops to disable indexing because an external search service is doing that.
         public void UpdateIndex()

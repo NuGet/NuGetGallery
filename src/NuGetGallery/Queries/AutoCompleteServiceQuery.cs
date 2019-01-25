@@ -39,7 +39,7 @@ namespace NuGetGallery
             string semVerLevel = null)
         {
             queryString = BuildQueryString(queryString, includePrerelease, semVerLevel);
-            var result = await DeprecatedExecuteQuery(queryString);
+            var result = await ExecuteQuery(queryString);
             var resultObject = JObject.Parse(result);
 
             return resultObject["data"].Select(entry => entry.ToString());
