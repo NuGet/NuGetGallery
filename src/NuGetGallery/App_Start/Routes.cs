@@ -227,6 +227,11 @@ namespace NuGetGallery
                 "packages/manage/delete",
                 new { controller = "Packages", action = "Delete" });
 
+            var packageDeprecateRoute = routes.MapRoute(
+                RouteName.PackageDeprecateAction,
+                "packages/manage/deprecate",
+                new { controller = "Packages", action = nameof(PackagesController.Deprecate) });
+
             var confirmationRequiredRoute = routes.MapRoute(
                 "ConfirmationRequired",
                 "account/ConfirmationRequired",

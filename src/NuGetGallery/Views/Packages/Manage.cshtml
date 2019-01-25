@@ -25,6 +25,13 @@
 
             @ViewHelpers.Section(
                 this,
+                "Deprecation",
+                "Deprecation",
+                @<text>@Html.Partial("_ManageDeprecation", Model)</text>,
+                expanded: false)
+
+            @ViewHelpers.Section(
+                this,
                 "Listing",
                 "Listing",
                 @<text>@Html.Partial("_ManageListing", Model)</text>,
@@ -72,6 +79,29 @@
                            version.DownloadCount
                        };
                    })));
+
+        // Set up deprecation section
+        var strings_AnyVersion = "Any version";
+        var versionDeprecatedState = @Html.Raw(
+            Json.Encode(
+                Model.VersionSelectList.ToDictionary(
+                    v => v.Value,
+                    v =>
+                    {
+                        var version = Model.PackageVersions.Single(p => p.Version == v.Value);
+                        return new
+                        {
+                            IsVulnerable = version.DeprecationStatus &= PackageDeprecationStatus.Vulnerable,
+                            IsLegacy = version.DeprecationStatus &= PackageDeprecationStatus.Legacy,
+                            IsOther = version.DeprecationStatus &= PackageDeprecationStatus.Other,
+                            version.CVEIds,
+                            version.CVSSRating,
+                            version.CWEIds,
+                            AlternatePackageId = version.AlternatePackage == null ? version.AlternatePackageRegistrationId : version.AlternatePackage.Id,
+                            AlternatePackageVersion = version.AlternatePackage == null ? null : version.AlternatePackage.Version,
+                            version.CustomMessage
+                        };
+                    })));
 
         $(function () {
             // Set up documentation section
@@ -121,10 +151,19 @@
             });
 
             deleteVersionSelect.change();
+
+            // Set up deprecation section
+            var deprecationViewModel = new ManageDeprecationViewModel(
+                '@Model.Id',
+                versionDeprecatedState,
+                '@Model.Version',
+                '@Url.DeprecatePackage()',
+                packageUrl);
         });
     </script>
     @ViewHelpers.SectionsScript(this)
     @Scripts.Render("~/Scripts/gallery/page-manage-owners.min.js")
+    @Scripts.Render("~/Scripts/gallery/page-manage-deprecation.min.js")
     @Scripts.Render("~/Scripts/gallery/page-delete-package.min.js")
     @Scripts.Render("~/Scripts/gallery/page-edit-readme.min.js")
 }

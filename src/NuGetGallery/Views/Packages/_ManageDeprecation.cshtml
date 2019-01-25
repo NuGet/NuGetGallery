@@ -1,0 +1,123 @@
+﻿@model ManagePackageViewModel
+
+<div class="page-manage-deprecation">
+    <span>Deprecating a package will warn all consumers of the package who use it in their projects.</span>
+
+    @if (!Model.VersionSelectList.Any())
+    {
+        @ViewHelpers.AlertInfo(
+            @<text>
+                <span>There are no versions that can be deprecated.</span>
+            </text>)
+    }
+    else if (!Model.CanDeprecate)
+    {
+        @ViewHelpers.AlertWarning(@<text>You do not have permission to deprecate this package.</text>)
+    }
+    else
+    {
+        <div data-bind="template: { name: 'add-deprecation-template' }"></div>
+    }
+</div>
+
+<script type="text/html" id="add-deprecation-template">
+    <div class="deprecation-section form-group">
+        <label for="versions" class="deprecation-section-header">Select version(s)</label>
+        <select name="versions" class="full-line" data-bind="options: versions, selectedOptions: chosenVersions, attr: { size: versions.length }" multiple></select>
+    </div>
+
+    <div class="deprecation-section">
+        <div class="deprecation-section-header">
+            <b>Select reason(s)</b>
+        </div>
+        <div class="form-group">
+            <input name="isVulnerable" type="checkbox" value="true" data-bind="checked: isVulnerable" />
+            <label for="isVulnerable">This package has <b>security vulnerabilities</b></label>
+        </div>
+        <div class="form-group">
+            <input name="isLegacy" type="checkbox" value="true" data-bind="checked: isLegacy" />
+            <label for="isLegacy">This package is <b>legacy</b> and is no longer maintained</label>
+        </div>
+        <div class="form-group">
+            <input name="isOther" type="checkbox" value="true" data-bind="checked: isOther" />
+            <label for="isOther">Other (not listed)</label>
+        </div>
+    </div>
+
+    <div class="deprecation-section" data-bind="visible: isVulnerable">
+        <div class="deprecation-section-header">
+            <b>Provide additional security details</b>
+        </div>
+        <div class="security-detail panel panel-default">
+            <div>
+                <input name="hasCveIds" type="checkbox" value="true" data-bind="checked: hasCveIds" />
+                <label for="hasCveIds">CVE ID(s)</label>
+                <label class="security-detail-input-label" for="addCveId">You can provide a list of CVEs.</label>
+            </div>
+            <div class="security-detail-input" data-bind="visible: hasCveIds">
+                <input name="addCveId" type="text" data-bind="textInput: addCveId" />
+                <button data-bind="click: addCve">Add</button>
+            </div>
+            <div data-bind="template: { name: 'deprecation-security-detail-list-template', data: cveIds }"></div>
+        </div>
+        <div class="security-detail panel panel-default">
+            <div>
+                <input name="hasCvss" type="checkbox" value="true" data-bind="checked: hasCvss" />
+                <label for="hasCvss">CVSS Quality Severity Rating</label>
+                <label class="security-detail-input-label" for="selectedCvssRating">You can add the vulnerability rating (0-10) applicable to the vulnerabilities.</label>
+            </div>
+            <div class="security-detail-input" data-bind="visible: hasCvss">
+                <input name="selectedCvssRating" type="text" data-bind="textInput: selectedCvssRating" />
+            </div>
+        </div>
+        <div class="security-detail panel panel-default">
+            <div>
+                <input name="hasCweIds" type="checkbox" value="true" data-bind="checked: hasCweIds" />
+                <label for="hasCweIds">CWE(s)</label>
+                <label class="security-detail-input-label" for="addCweId">You can add one or more CWE(s) applicable to the vulnerability.</label>
+            </div>
+            <div class="security-detail-input" data-bind="visible: hasCweIds">
+                <input name="addCweId" type="text" data-bind="textInput: addCweId" />
+                <button data-bind="click: addCwe">Add</button>
+            </div>
+            <div data-bind="template: { name: 'deprecation-security-detail-list-template', data: cweIds }"></div>
+        </div>
+    </div>
+
+    <div class="deprecation-section row" data-bind="visible: isLegacy">
+        <div class="col-md-10">
+            <label for="alternatePackageId" class="deprecation-section-header">Alternate package</label>
+            <input name="alternatePackageId" class="full-line" type="text" data-bind="textInput: alternatePackageId" />
+        </div>
+        <div class="col-md-2">
+            <label for="alternatePackageVersion" class="deprecation-section-header">Version</label>
+            <select name="alternatePackageVersion" class="full-line" data-bind="options: alternatePackageVersions, value: chosenAlternatePackageVersion, enable: hasAlternatePackageVersions" size="1"></select>
+        </div>
+    </div>
+
+    <div class="deprecation-section form-group">
+        <label for="customMessage" class="deprecation-section-header">Provide custom message</label>
+        <textarea name="customMessage" class="full-line" data-bind="textInput: customMessage" rows="2"></textarea>
+    </div>
+
+    <div class="deprecation-section form-group">
+        <input name="shouldUnlist" type="checkbox" value="true" data-bind="checked: shouldUnlist" />
+        <label for="shouldUnlist">Unlist this package from search results</label>
+    </div>
+
+    <div data-bind="visible: error">
+        @ViewHelpers.AlertDanger(@<text><span data-bind="text: error"></span></text>)
+    </div>
+
+    <div class="deprecation-section form-group">
+        <button class="btn full-line" type="submit" data-bind="click: submit">Save</button>
+    </div>
+</script>
+
+<script type="text/html" id="deprecation-security-detail-list-template">
+    <div class="security-detail-list" data-bind="visible: $data, foreach: $data">
+        <div class="security-detail-list-item panel panel-default">
+            <span data-bind="text: $data"></span>
+        </div>
+    </div>
+</script>

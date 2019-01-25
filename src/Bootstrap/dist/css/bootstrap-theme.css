@@ -1063,6 +1063,49 @@ img.reserved-indicator-icon {
     white-space: nowrap;
   }
 }
+.page-manage-deprecation .full-line {
+  display: block;
+  width: 100%;
+}
+.page-manage-deprecation .deprecation-section {
+  margin-top: 40px;
+}
+.page-manage-deprecation .deprecation-section .deprecation-section-header {
+  margin-bottom: 15px;
+}
+.page-manage-deprecation .deprecation-section .security-detail {
+  padding: 15px;
+}
+.page-manage-deprecation .deprecation-section .security-detail .security-detail-input-label {
+  display: block;
+  margin-top: 15px;
+  font-weight: normal;
+}
+.page-manage-deprecation .deprecation-section .security-detail .security-detail-input {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display:         flex;
+  margin-top: 15px;
+
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+  -ms-flex-pack: justify;
+          justify-content: space-between;
+}
+.page-manage-deprecation .deprecation-section .security-detail .security-detail-input input {
+  width: 100%;
+}
+.page-manage-deprecation .deprecation-section .security-detail .security-detail-input button {
+  margin-left: 15px;
+}
+.page-manage-deprecation .deprecation-section .security-detail .security-detail-list {
+  margin-top: 15px;
+}
+.page-manage-deprecation .deprecation-section .security-detail .security-detail-list .security-detail-list-item {
+  padding: 15px;
+  margin-top: 15px;
+}
 .page-manage-organizations h1 {
   margin-bottom: 0;
 }

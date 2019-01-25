@@ -81,6 +81,23 @@ namespace NuGetGallery
                     LicenseNames = licenseNames.Split(',').Select(l => l.Trim());
                 }
             }
+
+            if (DeprecationStatus != PackageDeprecationStatus.NotDeprecated)
+            {
+                var deprecation = package.Deprecations.Single();
+                CVEIds = deprecation.GetCVEIds();
+                CVSSRating = deprecation.CVSSRating;
+                CWEIds = deprecation.GetCWEIds();
+                AlternatePackageRegistrationId = deprecation.AlternatePackageRegistration?.Id;
+
+                var alternatePackage = deprecation.AlternatePackage;
+                if (alternatePackage != null)
+                {
+                    AlternatePackage = new DisplayPackageViewModel(alternatePackage, currentUser, GetPushedBy(alternatePackage, currentUser));
+                }
+
+                CustomMessage = deprecation.CustomMessage;
+            }
         }
 
         public bool ValidatingTooLong { get; set; }
@@ -139,6 +156,13 @@ namespace NuGetGallery
         public string LicenseExpression { get; set; }
         public IReadOnlyCollection<CompositeLicenseExpressionSegment> LicenseExpressionSegments { get; set; }
         public EmbeddedLicenseFileType EmbeddedLicenseType { get; set; }
+
+        public IEnumerable<string> CVEIds { get; set; }
+        public decimal? CVSSRating { get; set; }
+        public IEnumerable<string> CWEIds { get; set; }
+        public string AlternatePackageRegistrationId { get; set; }
+        public DisplayPackageViewModel AlternatePackage { get; set; }
+        public string CustomMessage { get; set; }
 
         private IDictionary<User, string> _pushedByCache = new Dictionary<User, string>();
 

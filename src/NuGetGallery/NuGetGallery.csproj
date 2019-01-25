@@ -272,6 +272,7 @@
     <Compile Include="Controllers\PagesController.cs" />
     <Compile Include="Extensions\HttpExceptionExtensions.cs" />
     <Compile Include="Extensions\OrganizationExtensions.cs" />
+    <Compile Include="Extensions\PackageDeprecationExtensions.cs" />
     <Compile Include="Extensions\PrincipalExtensions.cs" />
     <Compile Include="Extensions\RouteExtensions.cs" />
     <Compile Include="Extensions\ScopeExtensions.cs" />
@@ -1896,6 +1897,7 @@
     <Content Include="Views\Packages\DeleteSymbols.cshtml" />
     <Content Include="Views\Packages\Manage.cshtml" />
     <Content Include="Views\Packages\License.cshtml" />
+    <Content Include="Views\Packages\_ManageDeprecation.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />

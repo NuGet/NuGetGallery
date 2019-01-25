@@ -1312,6 +1312,154 @@ namespace NuGetGallery
 
             return View(model);
         }
+        
+        [HttpPost]
+        [RequiresAccountConfirmation("delete a package")]
+        [ValidateAntiForgeryToken]
+        public virtual async Task<JsonResult> Deprecate(
+            string id, 
+            IEnumerable<string> versions, 
+            bool isVulnerable,
+            bool isLegacy,
+            bool isOther,
+            IEnumerable<string> cveIds,
+            decimal? cvssRating,
+            IEnumerable<string> cweIds,
+            string alternatePackageId,
+            string alternatePackageVersion,
+            string customMessage,
+            bool shouldUnlist)
+        {
+            if (versions == null || !versions.Any())
+            {
+                return DeprecateErrorResponse(HttpStatusCode.BadRequest, "You must select at least one version to deprecate!");
+            }
+
+            var registration = _packageService.FindPackageRegistrationById(id);
+            if (registration == null)
+            {
+                return DeprecateErrorResponse(HttpStatusCode.NotFound, $"Package '{id}' does not exist.");
+            }
+
+            PackageRegistration alternatePackageRegistration = null;
+            Package alternatePackage = null;
+            if (!string.IsNullOrEmpty(alternatePackageId))
+            {
+                if (!string.IsNullOrEmpty(alternatePackageVersion))
+                {
+                    alternatePackage = _packageService.FindPackageByIdAndVersionStrict(alternatePackageId, alternatePackageVersion);
+                    if (alternatePackage == null)
+                    {
+                        return DeprecateErrorResponse(HttpStatusCode.NotFound, $"Alternate package '{alternatePackageId} {alternatePackageVersion}' does not exist.");
+                    }
+                }
+                else
+                {
+                    alternatePackageRegistration = _packageService.FindPackageRegistrationById(alternatePackageId);
+                    if (alternatePackageRegistration == null)
+                    {
+                        return DeprecateErrorResponse(HttpStatusCode.NotFound, $"Alternate package '{alternatePackageId}' does not exist.");
+                    }
+                }
+            }
+
+            var missingVersions = new List<string>();
+            var foundPackageVersions = new List<Package>();
+            foreach (var version in versions)
+            {
+                var package = registration.Packages.SingleOrDefault(v => v.NormalizedVersion == NuGetVersionFormatter.Normalize(version));
+                if (package == null)
+                {
+                    missingVersions.Add(version);
+                }
+                else
+                {
+                    foundPackageVersions.Add(package);
+                }
+            }
+
+            foreach (var package in foundPackageVersions)
+            {
+                if (shouldUnlist)
+                {
+                    package.Listed = false;
+                }
+
+                var deprecation = package.Deprecations.SingleOrDefault();
+                if (isVulnerable || isLegacy || isOther)
+                {
+                    if (deprecation == null)
+                    {
+                        deprecation = new PackageDeprecation();
+                        deprecation.Package = package;
+                        package.Deprecations.Add(deprecation);
+                        _entitiesContext.Set<PackageDeprecation>().Add(deprecation);
+                    }
+
+                    if (isVulnerable)
+                    {
+                        deprecation.Status |= PackageDeprecationStatus.Vulnerable;
+                    }
+
+                    if (isLegacy)
+                    {
+                        deprecation.Status |= PackageDeprecationStatus.Legacy;
+                    }
+
+                    if (isOther)
+                    {
+                        deprecation.Status |= PackageDeprecationStatus.Other;
+                    }
+
+                    if (cveIds != null && cveIds.Any())
+                    {
+                        var existingCveIds = deprecation.GetCVEIds() ?? new string[0];
+                        var combinedCveIds = existingCveIds.Concat(cveIds).Distinct();
+                        deprecation.SetCVEIds(combinedCveIds);
+                    }
+
+                    if (cvssRating != null)
+                    {
+                        deprecation.CVSSRating = cvssRating;
+                    }
+
+                    if (cweIds != null && cweIds.Any())
+                    {
+                        var existingCweIds = deprecation.GetCWEIds() ?? new string[0];
+                        var combinedCweIds = existingCweIds.Concat(cweIds).Distinct();
+                        deprecation.SetCWEIds(combinedCweIds);
+                    }
+
+                    if (alternatePackageRegistration != null)
+                    {
+                        deprecation.AlternatePackageRegistration = alternatePackageRegistration;
+                    }
+
+                    if (alternatePackage != null)
+                    {
+                        deprecation.AlternatePackage = alternatePackage;
+                    }
+
+                    if (string.IsNullOrEmpty(customMessage))
+                    {
+                        deprecation.CustomMessage = customMessage;
+                    }
+                }
+                else if (deprecation != null)
+                {
+                    package.Deprecations.Remove(deprecation);
+                    _entitiesContext.DeleteOnCommit(deprecation);
+                }
+            }
+
+            await _entitiesContext.SaveChangesAsync();
+            return Json(HttpStatusCode.OK);
+        }
+
+        private JsonResult DeprecateErrorResponse(HttpStatusCode code, string error)
+        {
+            return Json(HttpStatusCode.BadRequest, new { error });
+        }
 
         [HttpGet]
         [UIAuthorize]

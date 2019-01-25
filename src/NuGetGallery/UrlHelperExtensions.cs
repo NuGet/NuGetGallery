@@ -741,6 +741,11 @@ namespace NuGetGallery
             return url.PackageVersionAction(nameof(PackagesController.RevalidateSymbols), package, relativeUrl);
         }
 
+        public static string DeprecatePackage(this UrlHelper url, bool relativeUrl = true)
+        {
+            return GetRouteLink(url, RouteName.PackageDeprecateAction, relativeUrl);
+        }
+
         public static string ViewValidations(
             this UrlHelper url,
             string id,

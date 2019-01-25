@@ -34,6 +34,8 @@ namespace NuGetGallery
             ShortDescription = Description.TruncateAtWordBoundary(_descriptionLengthLimit, _omissionString, out wasTruncated);
             IsDescriptionTruncated = wasTruncated;
 
+            DeprecationStatus = package.Deprecations.SingleOrDefault()?.Status ?? PackageDeprecationStatus.NotDeprecated;
+
             CanDisplayPrivateMetadata = CanPerformAction(currentUser, package, ActionsRequiringPermissions.DisplayPrivatePackageMetadata);
             CanEdit = CanPerformAction(currentUser, package, ActionsRequiringPermissions.EditPackage);
             CanUnlistOrRelist = CanPerformAction(currentUser, package, ActionsRequiringPermissions.UnlistOrRelistPackage);
@@ -41,6 +43,7 @@ namespace NuGetGallery
             CanReportAsOwner = CanPerformAction(currentUser, package, ActionsRequiringPermissions.ReportPackageAsOwner);
             CanSeeBreadcrumbWithProfile = CanPerformAction(currentUser, package, ActionsRequiringPermissions.ShowProfileBreadcrumb);
             CanDeleteSymbolsPackage = CanPerformAction(currentUser, package, ActionsRequiringPermissions.DeleteSymbolPackage);
+            CanDeprecate = CanPerformAction(currentUser, package, ActionsRequiringPermissions.DeprecatePackage);
         }
 
         public string Authors { get; set; }
@@ -63,6 +66,8 @@ namespace NuGetGallery
             }
         }
 
+        public PackageDeprecationStatus DeprecationStatus { get; set; }
+
         public bool UseVersion
         {
             get
@@ -81,6 +86,7 @@ namespace NuGetGallery
         public bool CanReportAsOwner { get; set; }
         public bool CanSeeBreadcrumbWithProfile { get; set; }
         public bool CanDeleteSymbolsPackage { get; set; }
+        public bool CanDeprecate { get; set; }
 
         private static bool CanPerformAction(User currentUser, Package package, ActionRequiringPackagePermissions action)
         {
