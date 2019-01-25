@@ -91,15 +91,16 @@
                         var version = Model.PackageVersions.Single(p => p.Version == v.Value);
                         return new
                         {
-                            IsVulnerable = version.DeprecationStatus &= PackageDeprecationStatus.Vulnerable,
-                            IsLegacy = version.DeprecationStatus &= PackageDeprecationStatus.Legacy,
-                            IsOther = version.DeprecationStatus &= PackageDeprecationStatus.Other,
+                            IsVulnerable = (version.DeprecationStatus & PackageDeprecationStatus.Vulnerable) > PackageDeprecationStatus.NotDeprecated,
+                            IsLegacy = (version.DeprecationStatus & PackageDeprecationStatus.Legacy) > PackageDeprecationStatus.NotDeprecated,
+                            IsOther = (version.DeprecationStatus & PackageDeprecationStatus.Other) > PackageDeprecationStatus.NotDeprecated,
                             version.CVEIds,
                             version.CVSSRating,
                             version.CWEIds,
                             AlternatePackageId = version.AlternatePackage == null ? version.AlternatePackageRegistrationId : version.AlternatePackage.Id,
                             AlternatePackageVersion = version.AlternatePackage == null ? null : version.AlternatePackage.Version,
-                            version.CustomMessage
+                            version.CustomMessage,
+                            ShouldUnlist = !(version.DeprecationStatus != PackageDeprecationStatus.NotDeprecated && version.Listed)
                         };
                     })));
 

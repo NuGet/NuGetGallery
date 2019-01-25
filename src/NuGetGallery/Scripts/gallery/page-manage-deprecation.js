@@ -95,7 +95,7 @@ function ManageDeprecationViewModel(id, versionsDictionary, defaultVersion, subm
                 window.location.href = packageUrl;
             },
             error: function (jqXHR) {
-                var newError = jqXHR.responseJSON === null ? "An unknown error occurred." : jqXHR.responseJSON.error;
+                var newError = jqXHR && jqXHR.responseJSON ? jqXHR.responseJSON.error : "An unknown error occurred.";
                 self.error(newError);
             }
         });
@@ -113,13 +113,14 @@ function ManageDeprecationViewModel(id, versionsDictionary, defaultVersion, subm
 
         version.IsVulnerable = self.isVulnerable();
         version.IsLegacy = self.isLegacy();
-        version.isOther = self.isOther();
+        version.IsOther = self.isOther();
         version.CVEIds = self.cveIds();
         version.CVSSRating = self.cvssRating();
         version.CWEIds = self.cweIds();
         version.AlternatePackageId = self.alternatePackageId();
         version.AlternatePackageVersion = self.alternatePackageVersion();
         version.CustomMessage = self.customMessage();
+        version.ShouldUnlist = self.shouldUnlist();
     }, this, "beforeChange");
     this.chosenVersions.subscribe(function (newVersions) {
         self.alternatePackageVersionsCached([]);
@@ -135,7 +136,7 @@ function ManageDeprecationViewModel(id, versionsDictionary, defaultVersion, subm
 
         self.isVulnerable(version.IsVulnerable);
         self.isLegacy(version.IsLegacy);
-        self.isOther(version.isOther);
+        self.isOther(version.IsOther);
 
         self.hasCveIds(version.CVEIds !== null && version.CVEIds.length);
         self.addedCveIds(version.CVEIds);
@@ -153,6 +154,7 @@ function ManageDeprecationViewModel(id, versionsDictionary, defaultVersion, subm
         }
 
         self.customMessage(version.CustomMessage);
+        self.shouldUnlist(version.ShouldUnlist);
     }, this);
     if (versionsDictionary[defaultVersion]) {
         this.chosenVersions([defaultVersion]);
