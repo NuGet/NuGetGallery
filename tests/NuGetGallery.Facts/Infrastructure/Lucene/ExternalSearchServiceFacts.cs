@@ -50,7 +50,8 @@ namespace NuGetGallery.Infrastructure.Lucene
                 var client = service.GetClient();
                 var clientType = client.GetType();
 
-                Assert.Equal("NuGet.Services.Search.Client.SearchClient", clientType.FullName);
+                Assert.Equal("NuGet.Services.Search.Client.GallerySearchClient", clientType.FullName);
+                //Assert.Equal("NuGet.Services.Search.Client.SearchClient", clientType.FullName);
             }
         }
 
