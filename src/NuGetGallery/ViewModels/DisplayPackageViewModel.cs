@@ -13,7 +13,7 @@ namespace NuGetGallery
 {
     public class DisplayPackageViewModel : ListPackageItemViewModel
     {
-        public DisplayPackageViewModel(Package package, User currentUser, IOrderedEnumerable<Package> packageHistory)
+        public DisplayPackageViewModel(Package package, User currentUser)
             : this(package, currentUser, (string)null)
         {
             HasSemVer2Version = NuGetVersion.IsSemVer2;
@@ -23,7 +23,13 @@ namespace NuGetGallery
                 .Any(p => (p.HasUpperBound && p.MaxVersion.IsSemVer2) || (p.HasLowerBound && p.MinVersion.IsSemVer2));
 
             Dependencies = new DependencySetsViewModel(package.Dependencies);
-            PackageVersions = packageHistory.Select(p => new DisplayPackageViewModel(p, currentUser, GetPushedBy(p, currentUser)));
+
+            var packageHistory = package
+                .PackageRegistration
+                .Packages
+                .OrderByDescending(p => new NuGetVersion(p.Version))
+                .ToList();
+            PackageVersions = packageHistory.Select(p => new DisplayPackageViewModel(p, currentUser, GetPushedBy(p, currentUser))).ToList();
 
             PushedBy = GetPushedBy(package, currentUser);
             PackageFileSize = package.PackageFileSize;
@@ -42,7 +48,7 @@ namespace NuGetGallery
             }
         }
 
-        public DisplayPackageViewModel(Package package, User currentUser, string pushedBy)
+        private DisplayPackageViewModel(Package package, User currentUser, string pushedBy)
             : base(package, currentUser)
         {
             Copyright = package.Copyright;
