@@ -50,6 +50,11 @@ namespace NuGetGallery.ViewModels
                 Version = "1.0.0",
                 RepositoryUrl = repoUrl,
                 RepositoryType = repoType,
+                PackageRegistration = new PackageRegistration
+                {
+                    Owners = Enumerable.Empty<User>().ToList(),
+                    Packages = Enumerable.Empty<Package>().ToList()
+                }
             };
 
             var model = new DisplayPackageViewModel(package, null);
@@ -86,7 +91,12 @@ namespace NuGetGallery.ViewModels
             var package = new Package
             {
                 Version = "1.0.0",
-                ProjectUrl = projectUrl
+                ProjectUrl = projectUrl,
+                PackageRegistration = new PackageRegistration
+                {
+                    Owners = Enumerable.Empty<User>().ToList(),
+                    Packages = Enumerable.Empty<Package>().ToList()
+                }
             };
 
             var model = new DisplayPackageViewModel(package, null);
@@ -109,7 +119,12 @@ namespace NuGetGallery.ViewModels
             var package = new Package
             {
                 Version = "1.0.0",
-                LicenseUrl = licenseUrl
+                LicenseUrl = licenseUrl,
+                PackageRegistration = new PackageRegistration
+                {
+                    Owners = Enumerable.Empty<User>().ToList(),
+                    Packages = Enumerable.Empty<Package>().ToList()
+                }
             };
 
             var model = new DisplayPackageViewModel(package, null);
@@ -124,6 +139,11 @@ namespace NuGetGallery.ViewModels
                 LicenseUrl = "https://mylicense.com",
                 Version = "1.0.0",
                 LicenseNames = "l1,l2, l3 ,l4  ,  l5 ",
+                PackageRegistration = new PackageRegistration
+                {
+                    Owners = Enumerable.Empty<User>().ToList(),
+                    Packages = Enumerable.Empty<Package>().ToList()
+                }
             };
 
             var packageViewModel = new DisplayPackageViewModel(package, currentUser: null);
