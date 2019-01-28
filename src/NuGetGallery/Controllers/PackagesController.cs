@@ -658,14 +658,8 @@ namespace NuGetGallery
             {
                 return HttpNotFound();
             }
-
-            var packageHistory = package
-                .PackageRegistration
-                .Packages
-                .ToList()
-                .OrderByDescending(p => new NuGetVersion(p.Version));
-
-            var model = new DisplayPackageViewModel(package, currentUser, packageHistory);
+            
+            var model = new DisplayPackageViewModel(package, currentUser);
 
             model.ValidatingTooLong = _validationService.IsValidatingTooLong(package);
             model.PackageValidationIssues = _validationService.GetLatestPackageValidationIssues(package);

@@ -50,9 +50,14 @@ namespace NuGetGallery.ViewModels
                 Version = "1.0.0",
                 RepositoryUrl = repoUrl,
                 RepositoryType = repoType,
+                PackageRegistration = new PackageRegistration
+                {
+                    Owners = Enumerable.Empty<User>().ToList(),
+                    Packages = Enumerable.Empty<Package>().ToList()
+                }
             };
 
-            var model = new DisplayPackageViewModel(package, null, "test");
+            var model = new DisplayPackageViewModel(package, null);
             Assert.Equal(expectedKind, model.RepositoryType);
             Assert.Equal(expectedUrl, model.RepositoryUrl);
         }
@@ -86,10 +91,15 @@ namespace NuGetGallery.ViewModels
             var package = new Package
             {
                 Version = "1.0.0",
-                ProjectUrl = projectUrl
+                ProjectUrl = projectUrl,
+                PackageRegistration = new PackageRegistration
+                {
+                    Owners = Enumerable.Empty<User>().ToList(),
+                    Packages = Enumerable.Empty<Package>().ToList()
+                }
             };
 
-            var model = new DisplayPackageViewModel(package, null, "test");
+            var model = new DisplayPackageViewModel(package, null);
             Assert.Equal(expected, model.ProjectUrl);
         }
 
@@ -109,10 +119,15 @@ namespace NuGetGallery.ViewModels
             var package = new Package
             {
                 Version = "1.0.0",
-                LicenseUrl = licenseUrl
+                LicenseUrl = licenseUrl,
+                PackageRegistration = new PackageRegistration
+                {
+                    Owners = Enumerable.Empty<User>().ToList(),
+                    Packages = Enumerable.Empty<Package>().ToList()
+                }
             };
 
-            var model = new DisplayPackageViewModel(package, null, "test");
+            var model = new DisplayPackageViewModel(package, null);
             Assert.Equal(expected, model.LicenseUrl);
         }
 
@@ -124,9 +139,14 @@ namespace NuGetGallery.ViewModels
                 LicenseUrl = "https://mylicense.com",
                 Version = "1.0.0",
                 LicenseNames = "l1,l2, l3 ,l4  ,  l5 ",
+                PackageRegistration = new PackageRegistration
+                {
+                    Owners = Enumerable.Empty<User>().ToList(),
+                    Packages = Enumerable.Empty<Package>().ToList()
+                }
             };
 
-            var packageViewModel = new DisplayPackageViewModel(package, currentUser: null, pushedBy: "test");
+            var packageViewModel = new DisplayPackageViewModel(package, currentUser: null);
             Assert.Equal(new string[] { "l1", "l2", "l3", "l4", "l5" }, packageViewModel.LicenseNames);
         }
 
@@ -155,7 +175,7 @@ namespace NuGetGallery.ViewModels
                     new Package { Version = "1.0.10", PackageRegistration = package.PackageRegistration }
                 };
 
-            var packageVersions = new DisplayPackageViewModel(package, null, package.PackageRegistration.Packages.OrderByDescending(p => new NuGetVersion(p.Version)))
+            var packageVersions = new DisplayPackageViewModel(package, null)
                 .PackageVersions.ToList();
 
             // Descending
@@ -207,7 +227,7 @@ namespace NuGetGallery.ViewModels
                 });
             }
 
-            var viewModel = new DisplayPackageViewModel(package, null, package.PackageRegistration.Packages.OrderByDescending(p => new NuGetVersion(p.Version)));
+            var viewModel = new DisplayPackageViewModel(package, null);
 
             // Descending
             Assert.NotNull(viewModel.LatestSymbolsPackage);
@@ -245,7 +265,7 @@ namespace NuGetGallery.ViewModels
 
             package.SymbolPackages = symbolPackageList;
 
-            var viewModel = new DisplayPackageViewModel(package, null, packageHistory: Enumerable.Empty<Package>().OrderBy(x => 1));
+            var viewModel = new DisplayPackageViewModel(package, null);
 
             Assert.Equal(symbolPackageList[0], viewModel.LatestSymbolsPackage);
         }
@@ -282,10 +302,8 @@ namespace NuGetGallery.ViewModels
                     new Package { Version = "2.0.1", PackageRegistration = packageRegistration, DownloadCount = 140, Created = utcNow.AddDays(-3) }
                 };
 
-            var packageHistory = packageRegistration.Packages.OrderByDescending(p => new NuGetVersion(p.Version));
-
             // Act
-            var viewModel = new DisplayPackageViewModel(package, null, packageHistory);
+            var viewModel = new DisplayPackageViewModel(package, null);
 
             // Assert
             Assert.Equal(daysSinceFirstPackageCreated, viewModel.TotalDaysSinceCreated);
@@ -314,7 +332,7 @@ namespace NuGetGallery.ViewModels
 
             package.PackageRegistration.Packages = new[] { package };
 
-            var viewModel = new DisplayPackageViewModel(package, null, package.PackageRegistration.Packages.OrderByDescending(p => new NuGetVersion(p.Version)));
+            var viewModel = new DisplayPackageViewModel(package, null);
 
             // Act
             var label = viewModel.DownloadsPerDayLabel;
@@ -346,7 +364,7 @@ namespace NuGetGallery.ViewModels
 
             package.PackageRegistration.Packages = new[] { package };
 
-            var viewModel = new DisplayPackageViewModel(package, null, package.PackageRegistration.Packages.OrderByDescending(p => new NuGetVersion(p.Version)));
+            var viewModel = new DisplayPackageViewModel(package, null);
 
             // Act
             var label = viewModel.DownloadsPerDayLabel;
@@ -394,7 +412,7 @@ namespace NuGetGallery.ViewModels
 
             package.PackageRegistration.Packages = new[] { package, otherPackage };
 
-            var viewModel = new DisplayPackageViewModel(package, null, package.PackageRegistration.Packages.OrderByDescending(p => new NuGetVersion(p.Version)));
+            var viewModel = new DisplayPackageViewModel(package, null);
 
             // Act
             var hasNewerPrerelease = viewModel.HasNewerPrerelease;
@@ -441,7 +459,7 @@ namespace NuGetGallery.ViewModels
 
             package.PackageRegistration.Packages = new[] { package, otherPackage };
 
-            var viewModel = new DisplayPackageViewModel(package, null, package.PackageRegistration.Packages.OrderByDescending(p => new NuGetVersion(p.Version)));
+            var viewModel = new DisplayPackageViewModel(package, null);
 
             // Act
             var hasNewerRelease = viewModel.HasNewerRelease;
@@ -480,7 +498,7 @@ namespace NuGetGallery.ViewModels
 
             package.PackageRegistration.Packages = new[] { package, otherPackage };
 
-            var viewModel = new DisplayPackageViewModel(package, null, package.PackageRegistration.Packages.OrderByDescending(p => new NuGetVersion(p.Version)));
+            var viewModel = new DisplayPackageViewModel(package, null);
 
             // Act
             var hasNewerPrerelease = viewModel.HasNewerPrerelease;
@@ -520,7 +538,7 @@ namespace NuGetGallery.ViewModels
 
             package.PackageRegistration.Packages = new[] { package, otherPackage };
 
-            var viewModel = new DisplayPackageViewModel(package, null, package.PackageRegistration.Packages.OrderByDescending(p => new NuGetVersion(p.Version)));
+            var viewModel = new DisplayPackageViewModel(package, null);
 
             // Act
             var hasNewerRelease = viewModel.HasNewerRelease;
@@ -536,10 +554,9 @@ namespace NuGetGallery.ViewModels
         {
             // Arrange
             var package = CreateTestPackage("1.0.0", dependencyVersion: versionSpec);
-            var history = package.PackageRegistration.Packages.OrderByDescending(p => p.Version);
 
             // Act
-            var viewModel = new DisplayPackageViewModel(package, null, history);
+            var viewModel = new DisplayPackageViewModel(package, null);
 
             // Assert
             Assert.False(viewModel.HasSemVer2Dependency);
@@ -553,10 +570,9 @@ namespace NuGetGallery.ViewModels
         {
             // Arrange
             var package = CreateTestPackage("1.0.0", dependencyVersion: versionSpec);
-            var history = package.PackageRegistration.Packages.OrderByDescending(p => p.Version);
 
             // Act
-            var viewModel = new DisplayPackageViewModel(package, null, history);
+            var viewModel = new DisplayPackageViewModel(package, null);
 
             // Assert
             Assert.True(viewModel.HasSemVer2Dependency);
@@ -570,10 +586,9 @@ namespace NuGetGallery.ViewModels
         {
             // Arrange
             var package = CreateTestPackage("1.0.0", dependencyVersion: versionSpec);
-            var history = package.PackageRegistration.Packages.OrderByDescending(p => p.Version);
 
             // Act
-            var viewModel = new DisplayPackageViewModel(package, null, history);
+            var viewModel = new DisplayPackageViewModel(package, null);
 
             // Assert
             Assert.False(viewModel.HasSemVer2Dependency);
@@ -587,10 +602,9 @@ namespace NuGetGallery.ViewModels
         {
             // Arrange
             var package = CreateTestPackage(version);
-            var history = package.PackageRegistration.Packages.OrderByDescending(p => p.Version);
 
             // Act
-            var viewModel = new DisplayPackageViewModel(package, null, history);
+            var viewModel = new DisplayPackageViewModel(package, null);
 
             // Assert
             Assert.False(viewModel.HasSemVer2Version);
@@ -604,10 +618,9 @@ namespace NuGetGallery.ViewModels
         {
             // Arrange
             var package = CreateTestPackage(version);
-            var history = package.PackageRegistration.Packages.OrderByDescending(p => p.Version);
 
             // Act
-            var viewModel = new DisplayPackageViewModel(package, null, history);
+            var viewModel = new DisplayPackageViewModel(package, null);
 
             // Assert
             Assert.True(viewModel.HasSemVer2Version);
@@ -717,7 +730,7 @@ namespace NuGetGallery.ViewModels
             [MemberData(nameof(Data))]
             public void ReturnsExpectedUser(Package package, User currentUser, string expected)
             {
-                var model = new DisplayPackageViewModel(package, currentUser, new[] { package }.OrderByDescending(p => new NuGetVersion(p.Version)));
+                var model = new DisplayPackageViewModel(package, currentUser);
 
                 Assert.Equal(expected, model.PushedBy);
             }

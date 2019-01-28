@@ -13,10 +13,7 @@ namespace NuGetGallery
     public class ManagePackageViewModel : DisplayPackageViewModel
     {
         public ManagePackageViewModel(Package package, User currentUser, IReadOnlyList<ReportPackageReason> reasons, UrlHelper url, string readMe)
-            : base(
-                  package, 
-                  currentUser, 
-                  package.PackageRegistration.Packages.OrderByDescending(p => new NuGetVersion(p.Version)))
+            : base(package, currentUser)
         {
             IsCurrentUserAnAdmin = currentUser != null && currentUser.IsAdministrator;
             
