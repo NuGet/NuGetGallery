@@ -11,6 +11,7 @@ namespace NuGetGallery.FunctionalTests
     /// Base class for all the gallery test classes.
     /// Has the common functions which individual test classes would use.
     /// </summary>
+    [Collection(GalleryTestCollection.Definition)]
     public abstract class GalleryTestBase
     {
         protected GalleryTestBase(ITestOutputHelper testOutputHelper)

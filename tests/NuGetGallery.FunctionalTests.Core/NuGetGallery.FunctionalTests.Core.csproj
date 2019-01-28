@@ -84,6 +84,7 @@
     <Compile Include="XunitExtensions\DefaultSecurityPoliciesEnforcedFactAttribute.cs" />
     <Compile Include="XunitExtensions\DefaultSecurityPoliciesEnforcedTheoryAttribute.cs" />
     <Compile Include="XunitExtensions\GalleryTestBase.cs" />
+    <Compile Include="XunitExtensions\GalleryTestCollection.cs" />
     <Compile Include="XunitExtensions\GalleryTestFixture.cs" />
     <Compile Include="Helpers\ClientSdkHelper.cs" />
     <Compile Include="Helpers\CommandlineHelper.cs" />
