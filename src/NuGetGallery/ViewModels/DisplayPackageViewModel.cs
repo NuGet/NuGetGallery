@@ -87,7 +87,7 @@ namespace NuGetGallery
         public IReadOnlyList<ValidationIssue> PackageValidationIssues { get; set; }
         public IReadOnlyList<ValidationIssue> SymbolsPackageValidationIssues { get; set; }
         public DependencySetsViewModel Dependencies { get; set; }
-        public IEnumerable<DisplayPackageViewModel> PackageVersions { get; set; }
+        public IReadOnlyList<DisplayPackageViewModel> PackageVersions { get; set; }
         public string Copyright { get; set; }
         public string ReadMeHtml { get; set; }
         public DateTime? LastEdited { get; set; }
