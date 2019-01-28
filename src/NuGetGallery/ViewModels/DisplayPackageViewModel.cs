@@ -5,15 +5,15 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NuGet.Services.Entities;
+using NuGet.Services.Licenses;
 using NuGet.Services.Validation.Issues;
 using NuGet.Versioning;
-using NuGetGallery.Helpers;
 
 namespace NuGetGallery
 {
     public class DisplayPackageViewModel : ListPackageItemViewModel
     {
-        public DisplayPackageViewModel(Package package, User currentUser, IOrderedEnumerable<Package> packageHistory)
+        public DisplayPackageViewModel(Package package, User currentUser)
             : this(package, currentUser, (string)null)
         {
             HasSemVer2Version = NuGetVersion.IsSemVer2;
@@ -23,7 +23,13 @@ namespace NuGetGallery
                 .Any(p => (p.HasUpperBound && p.MaxVersion.IsSemVer2) || (p.HasLowerBound && p.MinVersion.IsSemVer2));
 
             Dependencies = new DependencySetsViewModel(package.Dependencies);
-            PackageVersions = packageHistory.Select(p => new DisplayPackageViewModel(p, currentUser, GetPushedBy(p, currentUser)));
+
+            var packageHistory = package
+                .PackageRegistration
+                .Packages
+                .OrderByDescending(p => new NuGetVersion(p.Version))
+                .ToList();
+            PackageVersions = packageHistory.Select(p => new DisplayPackageViewModel(p, currentUser, GetPushedBy(p, currentUser))).ToList();
 
             PushedBy = GetPushedBy(package, currentUser);
             PackageFileSize = package.PackageFileSize;
@@ -42,7 +48,7 @@ namespace NuGetGallery
             }
         }
 
-        public DisplayPackageViewModel(Package package, User currentUser, string pushedBy)
+        private DisplayPackageViewModel(Package package, User currentUser, string pushedBy)
             : base(package, currentUser)
         {
             Copyright = package.Copyright;
@@ -62,12 +68,10 @@ namespace NuGetGallery
                 ProjectUrl = projectUrl;
             }
 
-            var licenseExpression = package.LicenseExpression;
-            if (!string.IsNullOrWhiteSpace(licenseExpression))
-            {
-                LicenseUrl = LicenseExpressionRedirectUrlHelper.GetLicenseExpressionRedirectUrl(licenseExpression);
-            }
-            else if (PackageHelper.TryPrepareUrlForRendering(package.LicenseUrl, out string licenseUrl))
+            EmbeddedLicenseType = package.EmbeddedLicenseType;
+            LicenseExpression = package.LicenseExpression;
+
+            if (PackageHelper.TryPrepareUrlForRendering(package.LicenseUrl, out string licenseUrl))
             {
                 LicenseUrl = licenseUrl;
 
@@ -83,7 +87,7 @@ namespace NuGetGallery
         public IReadOnlyList<ValidationIssue> PackageValidationIssues { get; set; }
         public IReadOnlyList<ValidationIssue> SymbolsPackageValidationIssues { get; set; }
         public DependencySetsViewModel Dependencies { get; set; }
-        public IEnumerable<DisplayPackageViewModel> PackageVersions { get; set; }
+        public IReadOnlyList<DisplayPackageViewModel> PackageVersions { get; set; }
         public string Copyright { get; set; }
         public string ReadMeHtml { get; set; }
         public DateTime? LastEdited { get; set; }
@@ -132,6 +136,9 @@ namespace NuGetGallery
         public string ProjectUrl { get; set; }
         public string LicenseUrl { get; set; }
         public IEnumerable<string> LicenseNames { get; set; }
+        public string LicenseExpression { get; set; }
+        public IReadOnlyCollection<CompositeLicenseExpressionSegment> LicenseExpressionSegments { get; set; }
+        public EmbeddedLicenseFileType EmbeddedLicenseType { get; set; }
 
         private IDictionary<User, string> _pushedByCache = new Dictionary<User, string>();
 

@@ -25,6 +25,7 @@ using NuGetGallery.Authentication;
 using NuGetGallery.Configuration;
 using NuGetGallery.Filters;
 using NuGetGallery.Infrastructure.Authentication;
+using NuGetGallery.Infrastructure.Mail.Messages;
 using NuGetGallery.Packaging;
 using NuGetGallery.Security;
 using PackageIdValidator = NuGetGallery.Packaging.PackageIdValidator;
@@ -688,7 +689,7 @@ namespace NuGetGallery
                                     ConfigurationService.Current,
                                     package,
                                     Url.Package(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
-                                    Url.ReportPackage(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
+                                    Url.ReportPackage(package, relativeUrl: false),
                                     Url.AccountSettings(relativeUrl: false),
                                     packagePolicyResult.WarningMessages);
 
@@ -702,7 +703,7 @@ namespace NuGetGallery
                                     ConfigurationService.Current,
                                     package,
                                     Url.Package(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
-                                    Url.ReportPackage(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
+                                    Url.ReportPackage(package, relativeUrl: false),
                                     packagePolicyResult.WarningMessages);
 
                                 await MessageService.SendMessageAsync(packageAddedWithWarningsMessage);

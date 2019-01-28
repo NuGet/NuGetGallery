@@ -34,7 +34,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
         public override IEmailRecipients GetRecipients()
         {
             return new EmailRecipients(
-                to: EmailRecipients.GetAllOwners(
+                to: EmailRecipientsHelper.GetAllOwners(
                     Package.PackageRegistration,
                     requireEmailAllowed: false));
         }

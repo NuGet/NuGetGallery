@@ -27,6 +27,7 @@ using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
 using NuGetGallery.Framework;
 using NuGetGallery.Infrastructure.Authentication;
+using NuGetGallery.Infrastructure.Mail.Messages;
 using NuGetGallery.Packaging;
 using NuGetGallery.Security;
 using NuGetGallery.TestUtils;
@@ -1390,7 +1391,7 @@ namespace NuGetGallery
                         _packageId,
                         "1.0.0",
                         isSigned: true,
-                        authors: $"{_user.Username},{_requiredCoOwner.Username}",
+                        authors: $"{_requiredCoOwner.Username}",
                         licenseUrl: new Uri("https://github.com/NuGet/NuGetGallery/blob/master/LICENSE.txt"),
                         projectUrl: new Uri("https://www.nuget.org"));
 

@@ -48,8 +48,6 @@ namespace NuGetGallery
         }
 
         public bool ReadOnly { get; private set; }
-        public IDbSet<CuratedFeed> CuratedFeeds { get; set; }
-        public IDbSet<CuratedPackage> CuratedPackages { get; set; }
         public IDbSet<PackageRegistration> PackageRegistrations { get; set; }
         public IDbSet<Credential> Credentials { get; set; }
         public IDbSet<Scope> Scopes { get; set; }
@@ -300,27 +298,6 @@ namespace NuGetGallery
             modelBuilder.Entity<PackageFramework>()
                 .HasKey(pf => pf.Key);
 
-            modelBuilder.Entity<CuratedFeed>()
-                .HasKey(cf => cf.Key);
-
-            modelBuilder.Entity<CuratedFeed>()
-                .HasMany<CuratedPackage>(cf => cf.Packages)
-                .WithRequired(cp => cp.CuratedFeed)
-                .HasForeignKey(cp => cp.CuratedFeedKey);
-
-            modelBuilder.Entity<CuratedFeed>()
-                .HasMany<User>(cf => cf.Managers)
-                .WithMany()
-                .Map(c => c.ToTable("CuratedFeedManagers")
-                           .MapLeftKey("CuratedFeedKey")
-                           .MapRightKey("UserKey"));
-
-            modelBuilder.Entity<CuratedPackage>()
-                .HasKey(cp => cp.Key);
-
-            modelBuilder.Entity<CuratedPackage>()
-                .HasRequired(cp => cp.PackageRegistration);
-
             modelBuilder.Entity<PackageDelete>()
                 .HasKey(pd => pd.Key)
                 .HasMany(pd => pd.Packages)
@@ -390,6 +367,37 @@ namespace NuGetGallery
             modelBuilder.Entity<SymbolPackage>()
                 .Property(s => s.RowVersion)
                 .IsRowVersion();
+
+            modelBuilder.Entity<PackageDeprecation>()
+                .HasKey(d => d.Key);
+
+            modelBuilder.Entity<Package>()
+                .HasMany(p => p.Deprecations)
+                .WithRequired(d => d.Package)
+                .HasForeignKey(d => d.PackageKey)
+                .WillCascadeOnDelete(true);
+
+            modelBuilder.Entity<Package>()
+                .HasMany(p => p.AlternativeOf)
+                .WithOptional(d => d.AlternatePackage)
+                .HasForeignKey(d => d.AlternatePackageKey)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<PackageRegistration>()
+                .HasMany(p => p.AlternativeOf)
+                .WithOptional(d => d.AlternatePackageRegistration)
+                .HasForeignKey(d => d.AlternatePackageRegistrationKey)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<PackageDeprecation>()
+                .HasOptional(d => d.DeprecatedByUser)
+                .WithMany()
+                .HasForeignKey(d => d.DeprecatedByUserKey)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<PackageDeprecation>()
+                .Property(v => v.CVSSRating)
+                .HasPrecision(3, 1);
         }
 #pragma warning restore 618
     }

@@ -56,6 +56,11 @@ namespace NuGetGallery
                     packageArchiveReader.GetNuspecReader(),
                     strict: true);
 
+                if (packageMetadata.IsSymbolsPackage())
+                {
+                    throw new InvalidPackageException(Strings.UploadPackage_SymbolsPackageNotAllowed);
+                }
+
                 PackageHelper.ValidateNuGetPackageMetadata(packageMetadata);
 
                 var supportedFrameworks = GetSupportedFrameworks(packageArchiveReader).Select(fn => fn.ToShortNameOrNull()).ToArray();
@@ -255,51 +260,29 @@ namespace NuGetGallery
                 packages = packages.Where(p => p.Listed);
             }
 
-            if (includeVersions)
+            if (!includeVersions)
             {
-                return packages
-                .Include(p => p.PackageRegistration)
-                .Include(p => p.PackageRegistration.Owners)
-                .ToList();
+                // Do a best effort of retrieving the latest version. Note that UpdateIsLatest has had concurrency issues
+                // where sometimes packages no rows with IsLatest set. In this case, we'll just select the last inserted
+                // row (descending [Key]) as opposed to reading all rows into memory and sorting on NuGetVersion.
+                packages = packages
+                    .GroupBy(p => p.PackageRegistrationKey)
+                    .Select(g => g
+                        // order booleans desc so that true (1) comes first
+                        .OrderByDescending(p => p.IsLatestStableSemVer2)
+                        .ThenByDescending(p => p.IsLatestStable)
+                        .ThenByDescending(p => p.IsLatestSemVer2)
+                        .ThenByDescending(p => p.IsLatest)
+                        .ThenByDescending(p => p.Listed)
+                        .ThenByDescending(p => p.Key)
+                        .FirstOrDefault());
             }
-
-            // Do a best effort of retrieving the latest version. Note that UpdateIsLatest has had concurrency issues
-            // where sometimes packages no rows with IsLatest set. In this case, we'll just select the last inserted
-            // row (descending [Key]) as opposed to reading all rows into memory and sorting on NuGetVersion.
+            
             return packages
-                .GroupBy(p => p.PackageRegistrationKey)
-                .Select(g => g
-                    // order booleans desc so that true (1) comes first
-                    .OrderByDescending(p => p.IsLatestStableSemVer2)
-                    .ThenByDescending(p => p.IsLatestStable)
-                    .ThenByDescending(p => p.IsLatestSemVer2)
-                    .ThenByDescending(p => p.IsLatest)
-                    .ThenByDescending(p => p.Listed)
-                    .ThenByDescending(p => p.Key)
-                    .FirstOrDefault())
                 .Include(p => p.PackageRegistration)
                 .Include(p => p.PackageRegistration.Owners)
+                .Include(p => p.PackageRegistration.RequiredSigners)
                 .ToList();
-        }
-
-        /// <summary>
-        /// For a package get the list of owners that are not organizations.
-        /// All the resulted user accounts will be distinct.
-        /// </summary>
-        /// <param name="package">The package.</param>
-        /// <returns>The list of package owners.</returns>
-        public IEnumerable<User> GetPackageUserAccountOwners(Package package)
-        {
-            return package.PackageRegistration.Owners
-                .SelectMany((owner) =>
-                {
-                    if (owner is Organization)
-                    {
-                        return OrganizationExtensions.GetUserAccountMembers((Organization)owner);
-                    }
-                    return new List<User> { owner };
-                })
-                .Distinct();
         }
 
         public IQueryable<PackageRegistration> FindPackageRegistrationsByOwner(User user)
@@ -376,6 +359,43 @@ namespace NuGetGallery
             {
                 await _packageRepository.CommitChangesAsync();
             }
+        }
+        
+        public bool WillPackageBeOrphanedIfOwnerRemoved(PackageRegistration package, User ownerToRemove)
+        {
+            return WillPackageBeOrphanedIfOwnerRemovedHelper(package.Owners, ownerToRemove);
+        }
+
+        private bool WillPackageBeOrphanedIfOwnerRemovedHelper(IEnumerable<User> owners, User ownerToRemove)
+        {
+            // Iterate through each owner, attempting to find a user that is not the owner we are removing.
+            foreach (var owner in owners)
+            {
+                if (owner.MatchesUser(ownerToRemove))
+                {
+                    continue;
+                }
+
+                if (owner is Organization organization)
+                {
+                    // The package will still be orphaned if it is owned by an orphaned organization.
+                    // Iterate through the organization owner's members to determine if it has any members that are not the member we are removing.
+                    if (!WillPackageBeOrphanedIfOwnerRemovedHelper(
+                        organization.Members.Select(m => m.Member),
+                        ownerToRemove))
+                    {
+                        return false;
+                    }
+                }
+                else
+                {
+                    // The package will not be orphaned because it is owned by a user that is not the owner we are removing.
+                    return false;
+                }
+            }
+
+            // The package will be orphaned because we did not find an owner that is not the owner we are removing.
+            return true;
         }
 
         public async Task MarkPackageListedAsync(Package package, bool commitChanges = true)

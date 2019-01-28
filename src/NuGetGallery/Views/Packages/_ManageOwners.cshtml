@@ -1,0 +1,99 @@
+﻿@model ManagePackageViewModel
+
+<div class="page-manage-owners">
+
+    @if (Model.CanManageOwners)
+        {
+        <div style="display: none" id="manage-owners-alert" data-bind="visible: message">
+            @ViewHelpers.AlertDanger(
+                @<text>
+                    <span id="manage-owners-message" role="alert" aria-live="assertive" data-bind="text: message"></span>
+                </text>)
+        </div>
+
+        <b>
+            Current owners
+        </b>
+
+        <div class="package-owners">
+            <div data-bind="foreach: owners" role="list">
+                <div class="row current-owner ms-font-xl" role="listitem">
+                    <div class="col-md-1">
+                        <img width="@GalleryConstants.GravatarElementSize"
+                             height="@GalleryConstants.GravatarElementSize"
+                             data-bind="attr: { src: imageUrl, 'aria-label': 'Profile picture for ' + name() }" />
+                    </div>
+                    <div class="col-md-8 ms-font-xl">
+                        <span>
+                            <a data-bind="attr: {href: profileUrl, title: name}, text: name"></a>
+                        </span>
+                        <span style="font-style:italic">
+                            <span data-bind="visible: grantsCurrentUserAccess && !isCurrentUserAdminOfOrganization">(that's you)</span>
+                            <span data-bind="visible: isCurrentUserAdminOfOrganization">(your organization)</span>
+                            <span data-bind="visible: pending">(pending approval)</span>
+                        </span>
+                    </div>
+                    <!-- ko if: $parent.IsAllowedToRemove($data) -->
+                    <div class="col-md-3 text-right remove-owner">
+                        <a class="icon-link"
+                           href="#"
+                           title="Remove as owner of @Model.Id"
+                           data-bind="click: $root.removeOwner">
+                            <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
+                            <span>Remove</span>
+                        </a>
+                    </div>
+                    <!-- /ko -->
+                    <!-- ko ifnot: $parent.IsAllowedToRemove($data) -->
+                    <div class="col-md-3 text-right remove-owner-disabled">
+                        <a class="icon-link"
+                           title="Cannot remove the only owner or reserved namespace restrictions apply.">
+                            <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
+                            <span>Remove</span>
+                        </a>
+                    </div>
+                    <!-- /ko -->
+                </div>
+            </div>
+        </div>
+
+        <b>
+            Add owner
+        </b>
+
+        <div class="package-owners">
+            @using (Html.BeginForm())
+            {
+                @Html.AntiForgeryToken()
+
+                <div data-bind="visible: !confirmation()">
+                    <p>Enter a username to add them as a package owner.</p>
+
+                    @ViewHelpers.AlertInfo(
+                        @<text>
+                            Note: All package owners have full control over their packages,
+                            including the ability to remove other users as owners.
+                        </text>)
+
+                    <div class="form-group">
+                        <label for="newOwnerUserName">Username</label>
+                        <input type="text" id="newOwnerUserName" name="newOwnerUserName" data-bind="value: newOwnerUsername" aria-required="true" class="form-control" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="newOwnerMessage">Message</label>
+                        <textarea id="newOwnerMessage" name="newOwnerMessage" data-bind="value: newOwnerMessage" aria-required="true" class="form-control" cols="50" rows="2"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <input type="submit" class="btn btn-primary form-control" value="Add" title="Add the user as an owner to @Model.Id" data-bind="click: addOwner" />
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        @ViewHelpers.AlertWarning(@<text>You do not have permission to manage the owners of this package.</text>)
+    }
+</div>

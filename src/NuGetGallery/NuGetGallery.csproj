@@ -101,9 +101,7 @@
     <Reference Include="MonAgentListener, Version=33.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.IdentityModel" />
-    <Reference Include="System.IO.Compression" />
     <Reference Include="System.Net" />
-    <Reference Include="System.Net.Http" />
     <Reference Include="System.Net.Http.WebRequest" />
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.ServiceModel" />
@@ -228,7 +226,6 @@
     <Compile Include="Configuration\IPackageDeleteConfiguration.cs" />
     <Compile Include="Configuration\IServiceBusConfiguration.cs" />
     <Compile Include="Configuration\PackageDeleteConfiguration.cs" />
-    <Compile Include="Configuration\SecretReader\CachingSecretReader.cs" />
     <Compile Include="Configuration\SecretReader\EmptySecretReaderFactory.cs" />
     <Compile Include="Configuration\SecretReader\SecretReaderFactory.cs" />
     <Compile Include="Configuration\ServiceBusConfiguration.cs" />
@@ -296,10 +293,12 @@
     <Compile Include="Infrastructure\Authentication\ApiKeyV3.cs" />
     <Compile Include="Infrastructure\Authentication\ApiKeyV4.cs" />
     <Compile Include="Infrastructure\Authentication\Base32Encoder.cs" />
+    <Compile Include="Infrastructure\Mail\ConfirmationEmailBuilder.cs" />
     <Compile Include="Infrastructure\Mail\EmailMessageFooter.cs" />
     <Compile Include="Infrastructure\Mail\GalleryEmailRecipientsUtility.cs" />
     <Compile Include="Infrastructure\Mail\Messages\AccountDeleteNoticeMessage.cs" />
     <Compile Include="Infrastructure\Mail\Messages\ContactOwnersMessage.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\ContactSupportMessage.cs" />
     <Compile Include="Infrastructure\Mail\Messages\CredentialAddedMessage.cs" />
     <Compile Include="Infrastructure\Mail\Messages\CredentialRemovedMessage.cs" />
     <Compile Include="Infrastructure\Mail\Messages\EmailChangeConfirmationMessage.cs" />
@@ -315,6 +314,7 @@
     <Compile Include="Infrastructure\Mail\Messages\OrganizationTransformInitiatedMessage.cs" />
     <Compile Include="Infrastructure\Mail\Messages\OrganizationTransformRejectedMessage.cs" />
     <Compile Include="Infrastructure\Mail\Messages\OrganizationTransformRequestMessage.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\PackageAddedWithWarningsMessage.cs" />
     <Compile Include="Infrastructure\Mail\Messages\PackageDeletedNoticeMessage.cs" />
     <Compile Include="Infrastructure\Mail\Messages\PackageOwnerAddedMessage.cs" />
     <Compile Include="Infrastructure\Mail\Messages\PackageOwnerRemovedMessage.cs" />
@@ -400,6 +400,14 @@
     <Compile Include="Migrations\201811011725146_LicenseChanges.Designer.cs">
       <DependentUpon>201811011725146_LicenseChanges.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201811291758016_RemoveCuratedFeedEntities.cs" />
+    <Compile Include="Migrations\201811291758016_RemoveCuratedFeedEntities.Designer.cs">
+      <DependentUpon>201811291758016_RemoveCuratedFeedEntities.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201901142143060_AddDeprecationEntities.cs" />
+    <Compile Include="Migrations\201901142143060_AddDeprecationEntities.Designer.cs">
+      <DependentUpon>201901142143060_AddDeprecationEntities.cs</DependentUpon>
+    </Compile>
     <Compile Include="RequestModels\DeleteAccountRequest.cs" />
     <Compile Include="Migrations\201710301857232_Organizations.cs" />
     <Compile Include="Migrations\201710301857232_Organizations.Designer.cs">
@@ -427,6 +435,9 @@
     <Compile Include="Services\ActionsRequiringPermissions.cs" />
     <Compile Include="Services\AsynchronousPackageValidationInitiator.cs" />
     <Compile Include="Infrastructure\Mail\BackgroundMarkdownMessageService.cs" />
+    <Compile Include="Services\GalleryContentFileMetadataService.cs" />
+    <Compile Include="Services\InvalidLicenseUrlValidationMessage.cs" />
+    <Compile Include="Services\InvalidUrlEncodingForLicenseUrlValidationMessage.cs" />
     <Compile Include="Services\ISymbolPackageUploadService.cs" />
     <Compile Include="Services\ISymbolPackageFileService.cs" />
     <Compile Include="Services\ITyposquattingCheckListCacheService.cs" />
@@ -435,6 +446,8 @@
     <Compile Include="Services\ITyposquattingService.cs" />
     <Compile Include="Services\IValidationMessage.cs" />
     <Compile Include="Services\JsonValidationMessage.cs" />
+    <Compile Include="Services\IFlatContainerService.cs" />
+    <Compile Include="Services\FlatContainerService.cs" />
     <Compile Include="Services\LicenseUrlDeprecationValidationMessage.cs" />
     <Compile Include="Services\PackageShouldNotBeSignedUserFixableValidationMessage.cs" />
     <Compile Include="Services\PlainTextOnlyValidationMessage.cs" />
@@ -682,12 +695,14 @@
     <Compile Include="Telemetry\UserPackageDeleteOutcome.cs" />
     <Compile Include="UrlHelperExtensions.cs" />
     <Compile Include="ViewModels\AddOrganizationViewModel.cs" />
+    <Compile Include="ViewModels\CompositeLicenseExpressionSegmentViewModel.cs" />
     <Compile Include="ViewModels\DeleteOrganizationViewModel.cs" />
     <Compile Include="ViewModels\DeleteUserViewModel.cs" />
     <Compile Include="ViewModels\ListCertificateItemViewModel.cs" />
     <Compile Include="ViewModels\GalleryHomeViewModel.cs" />
     <Compile Include="ViewModels\HandleOrganizationMembershipRequestModel.cs" />
     <Compile Include="ViewModels\ListPackageItemRequiredSignerViewModel.cs" />
+    <Compile Include="ViewModels\ManagePackageViewModel.cs" />
     <Compile Include="ViewModels\SignerViewModel.cs" />
     <Compile Include="WebRole.cs" />
     <Compile Include="Areas\Admin\AdminAreaRegistration.cs" />
@@ -1229,7 +1244,6 @@
     <Compile Include="Queries\IAutoCompletePackageVersionsQuery.cs" />
     <Compile Include="Queries\AutoCompleteDatabasePackageVersionsQuery.cs" />
     <Compile Include="Queries\AutoCompleteDatabasePackageIdsQuery.cs" />
-    <Compile Include="RequestModels\EditPackageRequest.cs" />
     <Compile Include="RequestModels\DeletePackagesRequest.cs" />
     <Compile Include="RequestModels\EditPackageVersionRequest.cs" />
     <Compile Include="RequestModels\VerifyPackageRequest.cs" />
@@ -1255,7 +1269,6 @@
     <Compile Include="ViewModels\DeleteAccountViewModel.cs" />
     <Compile Include="ViewModels\ApiKeyOwnerViewModel.cs" />
     <Compile Include="ViewModels\PackageOwnersResultViewModel.cs" />
-    <Compile Include="ViewModels\ManagePackagesListViewModel.cs" />
     <Compile Include="ViewModels\ApiKeyListViewModel.cs" />
     <Compile Include="ViewModels\ApiKeyViewModel.cs" />
     <Compile Include="ViewModels\OwnerRequestsListItemViewModel.cs" />
@@ -1286,6 +1299,7 @@
     <Content Include="Areas\Admin\DynamicData\PageTemplates\ListDetails.aspx" />
     <Content Include="Content\admin\SupportRequestStyles.css" />
     <Content Include="Content\fabric.css" />
+    <Content Include="Content\gallery\img\logo-og-600x600.png" />
     <Content Include="Content\Images\icons\apiKey.png" />
     <Content Include="Content\Images\icons\apiKeyExpired.png" />
     <Content Include="Content\Images\icons\apiKeyLegacy.png" />
@@ -1295,7 +1309,51 @@
     <Content Include="Content\Images\icons\edit.png" />
     <Content Include="Content\Images\icons\expire.png" />
     <Content Include="Content\Images\icons\regenerate.png" />
-    <Content Include="Content\gallery\**\*" />
+    <Content Include="Content\gallery\css\bootstrap-theme.css" />
+    <Content Include="Content\gallery\css\bootstrap.css" />
+    <Content Include="Content\gallery\css\fabric.css" />
+    <Content Include="Content\gallery\img\api-key-256x256.png" />
+    <Content Include="Content\gallery\img\api-key-expired-256x256.png" />
+    <Content Include="Content\gallery\img\api-key-expired.svg" />
+    <Content Include="Content\gallery\img\api-key-legacy-256x256.png" />
+    <Content Include="Content\gallery\img\api-key-legacy.svg" />
+    <Content Include="Content\gallery\img\api-key-new-256x256.png" />
+    <Content Include="Content\gallery\img\api-key-new.svg" />
+    <Content Include="Content\gallery\img\api-key.svg" />
+    <Content Include="Content\gallery\img\blue-circle-225x225.png" />
+    <Content Include="Content\gallery\img\blue-circle.svg" />
+    <Content Include="Content\gallery\img\circuit-board.svg" />
+    <Content Include="Content\gallery\img\default-package-icon-256x256.png" />
+    <Content Include="Content\gallery\img\default-package-icon.svg" />
+    <Content Include="Content\gallery\img\dotnet-foundation-42x42.png" />
+    <Content Include="Content\gallery\img\dotnet-foundation.svg" />
+    <Content Include="Content\gallery\img\facebook-24x24.png" />
+    <Content Include="Content\gallery\img\facebook.svg" />
+    <Content Include="Content\gallery\img\git-32x32.png" />
+    <Content Include="Content\gallery\img\git.svg" />
+    <Content Include="Content\gallery\img\github-32x32.png" />
+    <Content Include="Content\gallery\img\github.svg" />
+    <Content Include="Content\gallery\img\logo-footer-184x57.png" />
+    <Content Include="Content\gallery\img\logo-footer.svg" />
+    <Content Include="Content\gallery\img\logo-header-94x29.png" />
+    <Content Include="Content\gallery\img\logo-header.svg" />
+    <Content Include="Content\gallery\img\manage-organizations-260x150.png" />
+    <Content Include="Content\gallery\img\manage-organizations.svg" />
+    <Content Include="Content\gallery\img\microsoft-account-24x24.png" />
+    <Content Include="Content\gallery\img\microsoft-account.svg" />
+    <Content Include="Content\gallery\img\orange-circle-225x225.png" />
+    <Content Include="Content\gallery\img\orange-circle.svg" />
+    <Content Include="Content\gallery\img\purple-circle-225x225.png" />
+    <Content Include="Content\gallery\img\purple-circle.svg" />
+    <Content Include="Content\gallery\img\reserved-indicator-20x20.png" />
+    <Content Include="Content\gallery\img\reserved-indicator-256x256.png" />
+    <Content Include="Content\gallery\img\reserved-indicator-25x25.png" />
+    <Content Include="Content\gallery\img\reserved-indicator.svg" />
+    <Content Include="Content\gallery\img\rss-36x36.png" />
+    <Content Include="Content\gallery\img\rss.svg" />
+    <Content Include="Content\gallery\img\twitter-24x24.png" />
+    <Content Include="Content\gallery\img\twitter-36x36.png" />
+    <Content Include="Content\gallery\img\twitter.svg" />
     <Content Include="Content\themes\base\images\animated-overlay.gif" />
     <Content Include="Content\themes\base\images\ui-bg_flat_0_aaaaaa_40x100.png" />
     <Content Include="Content\themes\base\images\ui-bg_flat_75_ffffff_40x100.png" />
@@ -1386,9 +1444,7 @@
     <Compile Include="Services\AppActivatorException.cs" />
     <Compile Include="Services\CloudDownloadCountService.cs" />
     <Compile Include="Services\ConfirmOwnershipResult.cs" />
-    <Compile Include="Services\CuratedFeedService.cs" />
     <Compile Include="Services\DownloadCountObjectMaterializedInterceptor.cs" />
-    <Compile Include="Services\ICuratedFeedService.cs" />
     <Compile Include="Services\ContentService.cs" />
     <Compile Include="Services\IContentService.cs" />
     <Compile Include="Services\IDownloadCountService.cs" />
@@ -1448,7 +1504,6 @@
     <Compile Include="Services\SearchExtensionMethods.cs" />
     <Compile Include="ViewModels\ContactOwnersViewModel.cs" />
     <Compile Include="ViewModels\PasswordResetViewModel.cs" />
-    <Compile Include="ViewModels\ManagePackageOwnersViewModel.cs" />
     <Compile Include="ViewModels\IPackageVersionModel.cs" />
     <Compile Include="ViewModels\IPageableEnumerable.cs" />
     <Compile Include="App_Start\Routes.cs" />
@@ -1600,6 +1655,12 @@
     <EmbeddedResource Include="Migrations\201811011725146_LicenseChanges.resx">
       <DependentUpon>201811011725146_LicenseChanges.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201811291758016_RemoveCuratedFeedEntities.resx">
+      <DependentUpon>201811291758016_RemoveCuratedFeedEntities.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201901142143060_AddDeprecationEntities.resx">
+      <DependentUpon>201901142143060_AddDeprecationEntities.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv2getupdates.json" />
@@ -1650,7 +1711,6 @@
     <Content Include="Views\Authentication\_Register.cshtml" />
     <Content Include="Views\Shared\_PackageHeading.cshtml" />
     <Content Include="Views\Packages\_ImportReadMe.cshtml" />
-    <Content Include="Views\Packages\_SubmitPackage.cshtml" />
     <Content Include="Views\Packages\_EditForm.cshtml" />
     <Content Include="Areas\Admin\Views\DeleteAccount\DeleteUserAccount.cshtml" />
     <Content Include="Views\Users\_UserPackagesListForDeletedAccount.cshtml" />
@@ -1808,15 +1868,16 @@
     <Content Include="Views\Users\Account.cshtml" />
     <Content Include="Views\Packages\ConfirmOwner.cshtml" />
     <Content Include="Views\Errors\NotFound.cshtml" />
-    <Content Include="Views\Packages\Delete.cshtml" />
-    <Content Include="Views\Packages\Edit.cshtml" />
-    <Content Include="Views\Packages\ManagePackageOwners.cshtml" />
+    <Content Include="Views\Packages\_ManageListing.cshtml" />
+    <Content Include="Views\Packages\_ManageDocumentation.cshtml" />
+    <Content Include="Views\Packages\_ManageOwners.cshtml" />
     <Content Include="api\Web.config" />
     <Compile Include="Infrastructure\Lucene\LuceneSearchService.cs" />
     <Content Include="Views\Shared\ConfirmationRequired.cshtml" />
     <Content Include="Views\Pages\Contact.cshtml" />
     <Content Include="Views\Shared\_DeletePackage.cshtml" />
     <Content Include="Views\Packages\DeleteSymbols.cshtml" />
+    <Content Include="Views\Packages\Manage.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
@@ -1983,6 +2044,10 @@
       <Project>{6931c2ee-e081-4518-9798-d34d83b35bf6}</Project>
       <Name>NuGet.Services.Search.Client</Name>
     </ProjectReference>
+    <ProjectReference Include="..\NuGet.Services.Entities\NuGet.Services.Entities.csproj">
+      <Project>{6262f4fc-29be-4226-b676-db391c89d396}</Project>
+      <Name>NuGet.Services.Entities</Name>
+    </ProjectReference>
     <ProjectReference Include="..\NuGetGallery.Core\NuGetGallery.Core.csproj">
       <Project>{097b2cdd-9623-4c34-93c2-d373d51f5b4e}</Project>
       <Name>NuGetGallery.Core</Name>
@@ -1991,6 +2056,9 @@
   <ItemGroup>
     <PackageReference Include="Markdig.Signed">
       <Version>0.15.4</Version>
+    </PackageReference>
+    <PackageReference Include="NuGet.Services.Licenses">
+      <Version>2.41.0-agr-licenses-2294033</Version>
     </PackageReference>
     <PackageReference Include="NuGet.StrongName.AnglicanGeek.MarkdownMailer">
       <Version>1.2.0</Version>
@@ -2030,9 +2098,6 @@
     </PackageReference>
     <PackageReference Include="EntityFramework">
       <Version>6.1.3</Version>
-    </PackageReference>
-    <PackageReference Include="FontAwesome">
-      <Version>3.0.2.3</Version>
     </PackageReference>
     <PackageReference Include="jQuery">
       <Version>1.11.0</Version>
@@ -2217,16 +2282,16 @@
       <Version>5.0.0-preview1.5665</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.KeyVault">
-      <Version>2.31.0</Version>
+      <Version>2.40.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Logging">
-      <Version>2.31.0</Version>
+      <Version>2.40.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Owin">
-      <Version>2.31.0</Version>
+      <Version>2.40.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Sql">
-      <Version>2.31.0</Version>
+      <Version>2.40.0</Version>
     </PackageReference>
     <PackageReference Include="Owin">
       <Version>1.0.0</Version>

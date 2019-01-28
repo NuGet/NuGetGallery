@@ -33,7 +33,6 @@ namespace NuGetGallery.Controllers
             private readonly Mock<IGalleryConfigurationService> _config;
             private readonly Mock<IAppConfiguration> _appConfig;
             private readonly Mock<ISearchService> _searchService;
-            private readonly Mock<ICuratedFeedService> _curatedFeedService;
             private readonly Mock<IEntityRepository<Package>> _packages;
             private readonly Mock<ITelemetryService> _telemetryService;
             private readonly ODataV2CuratedFeedController _target;
@@ -62,7 +61,6 @@ namespace NuGetGallery.Controllers
 
                 _config = new Mock<IGalleryConfigurationService>();
                 _searchService = new Mock<ISearchService>();
-                _curatedFeedService = new Mock<ICuratedFeedService>();
                 _packages = new Mock<IEntityRepository<Package>>();
                 _telemetryService = new Mock<ITelemetryService>();
 
@@ -75,12 +73,6 @@ namespace NuGetGallery.Controllers
                 _config
                     .Setup(x => x.GetSiteRoot(It.IsAny<bool>()))
                     .Returns(() => _siteRoot);
-                _curatedFeedService
-                    .Setup(x => x.GetFeedByName(_curatedFeedName))
-                    .Returns(() => _curatedFeed);
-                _curatedFeedService
-                    .Setup(x => x.GetPackages(_curatedFeedName))
-                    .Returns(() => new[] { _curatedFeedPackage }.AsQueryable());
                 _packages
                     .Setup(x => x.GetAll())
                     .Returns(() => new[] { _mainFeedPackage }.AsQueryable());
@@ -88,7 +80,6 @@ namespace NuGetGallery.Controllers
                 _target = new ODataV2CuratedFeedController(
                     _config.Object,
                     _searchService.Object,
-                    _curatedFeedService.Object,
                     _packages.Object,
                     _telemetryService.Object);
 
@@ -109,8 +100,6 @@ namespace NuGetGallery.Controllers
                 var list = await GetPackageListAsync(actionResult);
                 var package = Assert.Single(list);
                 Assert.Equal(_mainFeedPackage.PackageRegistration.Id, package.Id);
-                _curatedFeedService.Verify(x => x.GetFeedByName(_curatedFeedName), Times.Never);
-                _curatedFeedService.Verify(x => x.GetPackages(It.IsAny<string>()), Times.Never);
                 _packages.Verify(x => x.GetAll(), Times.Once);
             }
 
@@ -120,45 +109,21 @@ namespace NuGetGallery.Controllers
                 _appConfig
                     .Setup(x => x.RedirectedCuratedFeeds)
                     .Returns(() => new[] { _curatedFeedName });
-                _curatedFeedService
-                    .Setup(x => x.GetFeedByName(It.IsAny<string>()))
-                    .Returns<CuratedFeed>(null);
 
                 var actionResult = _target.Get(_options, _curatedFeedName);
 
                 var list = await GetPackageListAsync(actionResult);
                 var package = Assert.Single(list);
                 Assert.Equal(_mainFeedPackage.PackageRegistration.Id, package.Id);
-                _curatedFeedService.Verify(x => x.GetFeedByName(_curatedFeedName), Times.Never);
-                _curatedFeedService.Verify(x => x.GetPackages(It.IsAny<string>()), Times.Never);
                 _packages.Verify(x => x.GetAll(), Times.Once);
             }
 
             [Fact]
-            public void MissingCuratedFeedReturnsNotFound()
+            public void NonRedirectCuratedFeedReturnsNotFound()
             {
-                _curatedFeedService
-                    .Setup(x => x.GetFeedByName(It.IsAny<string>()))
-                    .Returns<CuratedFeed>(null);
-
                 var actionResult = _target.Get(_options, _curatedFeedName);
 
                 Assert.IsType<NotFoundResult>(actionResult);
-                _curatedFeedService.Verify(x => x.GetFeedByName(_curatedFeedName), Times.Once);
-                _curatedFeedService.Verify(x => x.GetPackages(It.IsAny<string>()), Times.Never);
-                _packages.Verify(x => x.GetAll(), Times.Never);
-            }
-
-            [Fact]
-            public async Task NonRedirectCuratedFeedQueriesCuratedPackages()
-            {
-                var actionResult = _target.Get(_options, _curatedFeedName);
-
-                var list = await GetPackageListAsync(actionResult);
-                var package = Assert.Single(list);
-                Assert.Equal(_curatedFeedPackage.PackageRegistration.Id, package.Id);
-                _curatedFeedService.Verify(x => x.GetFeedByName(_curatedFeedName), Times.Once);
-                _curatedFeedService.Verify(x => x.GetPackages(It.IsAny<string>()), Times.Once);
                 _packages.Verify(x => x.GetAll(), Times.Never);
             }
 
@@ -481,16 +446,11 @@ namespace NuGetGallery.Controllers
             ISearchService searchService,
             ITelemetryService telemetryService)
         {
-            var curatedFeed = new CuratedFeed { Name = _curatedFeedName };
-
-            var curatedFeedServiceMock = new Mock<ICuratedFeedService>(MockBehavior.Strict);
-            curatedFeedServiceMock.Setup(m => m.GetPackages(_curatedFeedName)).Returns(AllPackages);
-            curatedFeedServiceMock.Setup(m => m.GetFeedByName(_curatedFeedName)).Returns(curatedFeed);
+            configurationService.Current.RedirectedCuratedFeeds = new[] { _curatedFeedName };
 
             return new ODataV2CuratedFeedController(
                 configurationService,
                 searchService,
-                curatedFeedServiceMock.Object,
                 packagesRepository,
                 telemetryService);
         }

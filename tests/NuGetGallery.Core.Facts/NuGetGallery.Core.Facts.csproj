@@ -45,7 +45,6 @@
     <Reference Include="System.Core" />
     <Reference Include="System.Data" />
     <Reference Include="System.Data.Services.Client" />
-    <Reference Include="System.IO.Compression" />
     <Reference Include="System.ServiceModel" />
     <Reference Include="System.Web" />
     <Reference Include="System.Xml.Linq" />
@@ -82,6 +81,14 @@
     <Compile Include="Cookies\CookieComplianceServiceBaseFacts.cs" />
     <Compile Include="Infrastructure\ElmahExceptionFacts.cs" />
     <Compile Include="Extensions\UserExtensionsCoreFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\MarkdownMessageBuilderFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\PackageAddedMessageFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\PackageValidationFailedMessageFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\PackageValidationTakingTooLongMessageFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\SymbolPackageAddedMessageFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\SymbolPackageValidationFailedMessageFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\SymbolPackageValidationTakingTooLongMessageFacts.cs" />
+    <Compile Include="Infrastructure\Mail\TestMessageServiceConfiguration.cs" />
     <Compile Include="Packaging\ManifestValidatorFacts.cs" />
     <Compile Include="Packaging\PackageIdValidatorTest.cs" />
     <Compile Include="Packaging\PackageMetadataFacts.cs" />
@@ -89,6 +96,7 @@
     <Compile Include="Packaging\NupkgRewriterFacts.cs" />
     <Compile Include="SemVerLevelKeyFacts.cs" />
     <Compile Include="Services\AccessConditionWrapperFacts.cs" />
+    <Compile Include="Services\CoreLicenseFileServiceFacts.cs" />
     <Compile Include="Services\CoreSymbolPackageServiceFacts.cs" />
     <Compile Include="Services\FileUriPermissionsFacts.cs" />
     <Compile Include="Services\RevalidationStateServiceFacts.cs" />
@@ -101,9 +109,16 @@
     <Compile Include="Services\CorePackageFileServiceFacts.cs" />
     <Compile Include="Services\CorePackageServiceFacts.cs" />
     <Compile Include="TestUtils\CoreMockExtensions.cs" />
+    <Compile Include="TestUtils\PackageServiceUtility.cs" />
+    <Compile Include="TestUtils\TestPackage.cs" />
+    <Compile Include="TestUtils\TestPackageReader.cs" />
     <Compile Include="Utilities\TestDirectory.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\src\NuGet.Services.Entities\NuGet.Services.Entities.csproj">
+      <Project>{6262f4fc-29be-4226-b676-db391c89d396}</Project>
+      <Name>NuGet.Services.Entities</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\src\NuGetGallery.Core\NuGetGallery.Core.csproj">
       <Project>{097b2cdd-9623-4c34-93c2-d373d51f5b4e}</Project>
       <Name>NuGetGallery.Core</Name>

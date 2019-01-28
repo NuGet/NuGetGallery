@@ -17,7 +17,7 @@ namespace NuGetGallery
         public const int ColumnsAuthenticationMd = 4;
         public const int ColumnsWideAuthenticationSm = 8;
         public const int ColumnsWideAuthenticationMd = 6;
-        public const int ColumnsFormMd = 10;
+        public const int ColumnsFormMd = 12;
 
         public const int VisibleVersions = 5;
 
@@ -59,6 +59,8 @@ namespace NuGetGallery
 
         public const string UrlValidationRegEx = @"(https?):\/\/[^ ""]+$";
         public const string UrlValidationErrorMessage = "This doesn't appear to be a valid HTTP/HTTPS URL";
+
+        public const string PackageBaseAddress = "PackageBaseAddress/3.0.0";
 
         // Note: regexes must be tested to work in JavaScript
         // We do NOT follow strictly the RFCs at this time, and we choose not to support many obscure email address variants.

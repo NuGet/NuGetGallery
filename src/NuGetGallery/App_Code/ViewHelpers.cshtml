@@ -98,24 +98,11 @@
     }
 }
 
-@helper AlertPackageEditRecommendation()
-{
-    @AlertWarning(
-    @<text>
-        Editing package metadata is not supported.<br/>
-        <em>
-            To make edits to the package metadata, we recommend uploading a new version of the package created using the updated nuspec.
-            <a href="https://docs.microsoft.com/en-us/nuget/policies/nuget-faq#managing-packages-on-nugetorg" alt="Read more">Read more</a><br />
-        </em>
-    </text>
-        )
-}
-
 @helper AlertPasswordDeprecation()
 {
     @AlertWarning(
     @<text>
-        NuGet.org password login is deprecated. Please use a Microsoft account to sign into NuGet gallery.
+        NuGet.org password login is no longer supported. Please use a Microsoft account to sign into NuGet gallery.
     </text>
     )
 }

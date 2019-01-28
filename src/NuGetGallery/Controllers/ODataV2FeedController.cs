@@ -75,8 +75,7 @@ namespace NuGetGallery.Controllers
                         GetTraditionalHttpContext().Request, 
                         packages,
                         hijackableQueryParameters.Id, 
-                        hijackableQueryParameters.Version, 
-                        curatedFeed: null,
+                        hijackableQueryParameters.Version,
                         semVerLevel: semVerLevel);
 
                     // If intercepted, create a paged queryresult
@@ -245,7 +244,6 @@ namespace NuGetGallery.Controllers
                     packages, 
                     id, 
                     version, 
-                    curatedFeed: null,
                     semVerLevel: semVerLevel);
 
                 // If intercepted, create a paged queryresult
@@ -364,7 +362,6 @@ namespace NuGetGallery.Controllers
                 searchTerm, 
                 targetFramework, 
                 includePrerelease, 
-                curatedFeed: null,
                 semVerLevel: semVerLevel);
 
             // Packages provided by search service (even when not hijacked)

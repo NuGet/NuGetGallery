@@ -74,7 +74,6 @@ namespace NuGet.Services.Search.Client
             string query,
             string projectTypeFilter = null,
             bool includePrerelease = false,
-            string curatedFeed = null,
             SortOrder sortBy = SortOrder.Relevance,
             int skip = 0,
             int take = 10,
@@ -109,11 +108,6 @@ namespace NuGet.Services.Search.Client
             if (includePrerelease)
             {
                 nameValue.Add("prerelease", "true");
-            }
-
-            if (!String.IsNullOrEmpty(curatedFeed))
-            {
-                nameValue.Add("feed", curatedFeed);
             }
 
             if (!isLuceneQuery)

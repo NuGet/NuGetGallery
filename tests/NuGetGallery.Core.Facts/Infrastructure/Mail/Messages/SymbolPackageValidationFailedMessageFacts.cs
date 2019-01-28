@@ -3,6 +3,8 @@
 
 using System;
 using System.Collections.Generic;
+using NuGet.Services.Entities;
+using NuGet.Services.Messaging.Email;
 using NuGet.Services.Validation;
 using Xunit;
 

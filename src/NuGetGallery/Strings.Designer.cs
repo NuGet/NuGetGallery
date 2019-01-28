@@ -856,7 +856,7 @@ namespace NuGetGallery {
         ///
         ///[{0}]({0})
         ///
-        ///Note that NuGet.org password login is deprecated. Please use Microsoft account to sign into {1}.
+        ///Note that NuGet.org password login is no longer supported. Please use Microsoft account to sign into {1}.
         ///
         ///Thanks,
         ///The {1} Team.
@@ -884,7 +884,7 @@ namespace NuGetGallery {
         ///
         ///[{0}]({0})
         ///
-        ///Note that NuGet.org password login is deprecated. Please use Microsoft account to sign into {1}.
+        ///Note that NuGet.org password login is no longer supported. Please use Microsoft account to sign into {1}.
         ///
         ///Thanks,
         ///The {1} Team.
@@ -1535,7 +1535,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The namespace &apos;{0}&apos; contains invalid characters. Examples of valid namespaces include &apos;MyNamespace&apos; and &apos;MyNamespace.&apos;..
+        ///   Looks up a localized string similar to The namespace &apos;{0}&apos; contains invalid characters. Examples of valid namespaces include &apos;MyNamespace&apos;, &apos;MyNamespace.&apos; or &apos;MyNamespace-&apos; etc..
         /// </summary>
         public static string ReservedNamespace_InvalidCharactersInNamespace {
             get {
@@ -1729,6 +1729,24 @@ namespace NuGetGallery {
         public static string SecurityPolicy_CopyrightNotCompliant {
             get {
                 return ResourceManager.GetString("SecurityPolicy_CopyrightNotCompliant", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The package metadata defines &apos;{0}&apos; as author more than once, which is not allowed by policy..
+        /// </summary>
+        public static string SecurityPolicy_PackageAuthorDuplicatesNotAllowed {
+            get {
+                return ResourceManager.GetString("SecurityPolicy_PackageAuthorDuplicatesNotAllowed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The package metadata defines &apos;{0}&apos; as one of the authors which is not allowed by policy..
+        /// </summary>
+        public static string SecurityPolicy_PackageAuthorNotAllowed {
+            get {
+                return ResourceManager.GetString("SecurityPolicy_PackageAuthorNotAllowed", resourceCulture);
             }
         }
         
@@ -2202,20 +2220,20 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to To provide better experience for older clients when a license expression is specified, &lt;licenseUrl&gt; should be set to &apos;{0}&apos;..
+        ///   Looks up a localized string similar to To provide a better experience for older clients when a license expression is specified, &lt;licenseUrl&gt; must be set to &apos;{0}&apos;..
         /// </summary>
-        public static string UploadPackage_DeprecationUrlSuggestedForLicenseExpressions {
+        public static string UploadPackage_DeprecationUrlRequiredForLicenseExpressions {
             get {
-                return ResourceManager.GetString("UploadPackage_DeprecationUrlSuggestedForLicenseExpressions", resourceCulture);
+                return ResourceManager.GetString("UploadPackage_DeprecationUrlRequiredForLicenseExpressions", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to To provide better experience for older clients when a license file is packaged, &lt;licenseUrl&gt; should be set to &apos;{0}&apos;..
+        ///   Looks up a localized string similar to To provide a better experience for older clients when a license file is packaged, &lt;licenseUrl&gt; must be set to &apos;{0}&apos;..
         /// </summary>
-        public static string UploadPackage_DeprecationUrlSuggestedForLicenseFiles {
+        public static string UploadPackage_DeprecationUrlRequiredForLicenseFiles {
             get {
-                return ResourceManager.GetString("UploadPackage_DeprecationUrlSuggestedForLicenseFiles", resourceCulture);
+                return ResourceManager.GetString("UploadPackage_DeprecationUrlRequiredForLicenseFiles", resourceCulture);
             }
         }
         
@@ -2373,6 +2391,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The package contains a malformed license URL..
+        /// </summary>
+        public static string UploadPackage_MalformedLicenseUrl {
+            get {
+                return ResourceManager.GetString("UploadPackage_MalformedLicenseUrl", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to This package requires version &apos;{0}&apos; of NuGet, which this gallery does not currently support. Please contact us if you have questions..
         /// </summary>
         public static string UploadPackage_MinClientVersionOutOfRange {
@@ -2478,6 +2505,15 @@ namespace NuGetGallery {
         public static string UploadPackage_SignedToUnsignedTransition {
             get {
                 return ResourceManager.GetString("UploadPackage_SignedToUnsignedTransition", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Snupkg upload failed. Please use latest NuGet clients (v 4.9.0 or above) and a V3 endpoint to push Symbol packages. For details, refer https://docs.microsoft.com/nuget/create-packages/symbol-packages-snupkg.
+        /// </summary>
+        public static string UploadPackage_SymbolsPackageNotAllowed {
+            get {
+                return ResourceManager.GetString("UploadPackage_SymbolsPackageNotAllowed", resourceCulture);
             }
         }
         

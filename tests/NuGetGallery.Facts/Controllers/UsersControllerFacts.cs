@@ -2306,9 +2306,11 @@ namespace NuGetGallery
         public class TheDeleteAccountRequestAction : TestContainer
         {
             [Theory]
-            [InlineData(false)]
-            [InlineData(true)]
-            public void ShowsViewWithCorrectData(bool withPendingIssues)
+            [InlineData(false, false)]
+            [InlineData(false, true)]
+            [InlineData(true, false)]
+            [InlineData(true, true)]
+            public void ShowsViewWithCorrectData(bool isPackageOrphaned, bool withPendingIssues)
             {
                 // Arrange
                 var controller = GetController<UsersController>();
@@ -2348,6 +2350,9 @@ namespace NuGetGallery
                 GetMock<IPackageService>()
                     .Setup(stub => stub.FindPackagesByAnyMatchingOwner(testUser, It.IsAny<bool>(), false))
                     .Returns(userPackages);
+                GetMock<IPackageService>()
+                    .Setup(stub => stub.WillPackageBeOrphanedIfOwnerRemoved(packageRegistration, testUser))
+                    .Returns(isPackageOrphaned);
                 GetMock<ISupportRequestService>()
                    .Setup(stub => stub.GetIssues(null, null, null, null))
                    .Returns(issues);
@@ -2359,7 +2364,7 @@ namespace NuGetGallery
                 // Assert
                 Assert.Equal(testUser.Username, model.AccountName);
                 Assert.Single(model.Packages);
-                Assert.True(model.HasOrphanPackages);
+                Assert.Equal(isPackageOrphaned, model.HasPackagesThatWillBeOrphaned);
                 Assert.Equal(withPendingIssues, model.HasPendingRequests);
             }
         }

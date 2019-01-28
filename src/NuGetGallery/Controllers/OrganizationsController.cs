@@ -353,7 +353,7 @@ namespace NuGetGallery
 
             var model = GetDeleteOrganizationViewModel(account);
 
-            if (model.HasOrphanPackages)
+            if (model.HasPackagesThatWillBeOrphaned)
             {
                 TempData["ErrorMessage"] = "You cannot delete your organization unless you transfer ownership of all of its packages to another account.";
 

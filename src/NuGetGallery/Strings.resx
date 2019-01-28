@@ -491,7 +491,7 @@ For more information, please contact '{2}'.</value>
     <value>This package will only be available to download with SemVer 2.0.0 compatible NuGet clients, such as Visual Studio 2017 (version 15.3) and above or NuGet client 4.3 and above. For more information, see https://go.microsoft.com/fwlink/?linkid=852248.</value>
   </data>
   <data name="ReservedNamespace_InvalidCharactersInNamespace" xml:space="preserve">
-    <value>The namespace '{0}' contains invalid characters. Examples of valid namespaces include 'MyNamespace' and 'MyNamespace.'.</value>
+    <value>The namespace '{0}' contains invalid characters. Examples of valid namespaces include 'MyNamespace', 'MyNamespace.' or 'MyNamespace-' etc.</value>
   </data>
   <data name="ReservedNamespace_InvalidNamespace" xml:space="preserve">
     <value>Invalid namespace specified</value>
@@ -981,7 +981,7 @@ Click the following link within the next hour to reset your password:
 
 [{0}]({0})
 
-Note that NuGet.org password login is deprecated. Please use Microsoft account to sign into {1}.
+Note that NuGet.org password login is no longer supported. Please use Microsoft account to sign into {1}.
 
 Thanks,
 The {1} Team</value>
@@ -994,7 +994,7 @@ Click the following link within the next hour to set your password:
 
 [{0}]({0})
 
-Note that NuGet.org password login is deprecated. Please use Microsoft account to sign into {1}.
+Note that NuGet.org password login is no longer supported. Please use Microsoft account to sign into {1}.
 
 Thanks,
 The {1} Team</value>
@@ -1056,12 +1056,12 @@ The {1} Team</value>
   <data name="UploadPackage_LicenseFilesAreNotAllowed" xml:space="preserve">
     <value>License files are not yet supported.</value>
   </data>
-  <data name="UploadPackage_DeprecationUrlSuggestedForLicenseExpressions" xml:space="preserve">
-    <value>To provide better experience for older clients when a license expression is specified, &lt;licenseUrl&gt; should be set to '{0}'.</value>
+  <data name="UploadPackage_DeprecationUrlRequiredForLicenseExpressions" xml:space="preserve">
+    <value>To provide a better experience for older clients when a license expression is specified, &lt;licenseUrl&gt; must be set to '{0}'.</value>
     <comment>{0} is the licenses.nuget.org link with license expression</comment>
   </data>
-  <data name="UploadPackage_DeprecationUrlSuggestedForLicenseFiles" xml:space="preserve">
-    <value>To provide better experience for older clients when a license file is packaged, &lt;licenseUrl&gt; should be set to '{0}'.</value>
+  <data name="UploadPackage_DeprecationUrlRequiredForLicenseFiles" xml:space="preserve">
+    <value>To provide a better experience for older clients when a license file is packaged, &lt;licenseUrl&gt; must be set to '{0}'.</value>
     <comment>{0} is the deprecation page URL</comment>
   </data>
   <data name="UploadPackage_LearnMore" xml:space="preserve">
@@ -1073,5 +1073,19 @@ The {1} Team</value>
   <data name="UploadPackage_NonFsfOrOsiLicense" xml:space="preserve">
     <value>License expression must only contain licenses that are approved by Open Source Initiative or Free Software Foundation. Unsupported licenses: {0}.</value>
     <comment>{0} is list of the package license ids that are neither OSI nor FSF approved</comment>
+  </data>
+  <data name="UploadPackage_MalformedLicenseUrl" xml:space="preserve">
+    <value>The package contains a malformed license URL.</value>
+  </data>
+  <data name="SecurityPolicy_PackageAuthorNotAllowed" xml:space="preserve">
+    <value>The package metadata defines '{0}' as one of the authors which is not allowed by policy.</value>
+    <comment>{0} is the author that is not in the list of allowed authors for this policy.</comment>
+  </data>
+  <data name="SecurityPolicy_PackageAuthorDuplicatesNotAllowed" xml:space="preserve">
+    <value>The package metadata defines '{0}' as author more than once, which is not allowed by policy.</value>
+    <comment>{0} is the list of duplicate package authors</comment>
+  </data>
+  <data name="UploadPackage_SymbolsPackageNotAllowed" xml:space="preserve">
+    <value>Snupkg upload failed. Please use latest NuGet clients (v 4.9.0 or above) and a V3 endpoint to push Symbol packages. For details, refer https://docs.microsoft.com/nuget/create-packages/symbol-packages-snupkg</value>
   </data>
 </root>

@@ -3,6 +3,8 @@
 
 using System;
 using System.Collections.Generic;
+using NuGet.Services.Entities;
+using NuGet.Services.Messaging.Email;
 using Xunit;
 
 namespace NuGetGallery.Infrastructure.Mail.Messages
@@ -125,7 +127,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
 We are looking into it and there is no action on you at this time. We’ll send you an email notification when your package has been published.
 
 Thank you for your patience.";
-        
+
         private const string _expectedPlainTextBody =
             @"It is taking longer than expected for your package PackageId 1.0.0 (packageUrl) to get published.
 

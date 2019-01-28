@@ -96,7 +96,6 @@ namespace NuGetGallery.OData
                    IQueryable<Package> packages,
                    string id,
                    string version,
-                   CuratedFeed curatedFeed,
                    string semVerLevel)
         {
             SearchFilter searchFilter;
@@ -118,7 +117,6 @@ namespace NuGetGallery.OData
                 searchFilter.SearchTerm = searchTerm;
                 searchFilter.SemVerLevel = semVerLevel;
                 searchFilter.IncludePrerelease = true;
-                searchFilter.CuratedFeed = curatedFeed;
                 searchFilter.SupportedFramework = null;
                 searchFilter.IncludeAllVersions = true;
 
@@ -137,7 +135,6 @@ namespace NuGetGallery.OData
             string searchTerm, 
             string targetFramework, 
             bool includePrerelease,
-            CuratedFeed curatedFeed,
             string semVerLevel)
         {
             SearchFilter searchFilter;
@@ -148,7 +145,6 @@ namespace NuGetGallery.OData
             {
                 searchFilter.SearchTerm = searchTerm;
                 searchFilter.IncludePrerelease = includePrerelease;
-                searchFilter.CuratedFeed = curatedFeed;
                 searchFilter.SupportedFramework = targetFramework;
                 searchFilter.SemVerLevel = semVerLevel;
 

@@ -35,7 +35,7 @@ namespace NuGetGallery
                    string.Equals(uri.Host, "github.com", StringComparison.OrdinalIgnoreCase);
         }
 
-        public static bool IsGitHubPagerUri(this Uri uri)
+        private static bool IsGitHubPagerUri(this Uri uri)
         {
             return uri.Authority.EndsWith(".github.com", StringComparison.OrdinalIgnoreCase) ||
                    uri.Authority.EndsWith(".github.io", StringComparison.OrdinalIgnoreCase);
@@ -43,18 +43,20 @@ namespace NuGetGallery
 
         private static bool IsCodeplexUri(this Uri uri)
         {
-            return uri.Authority.EndsWith(".codeplex.com", StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(uri.Authority, "codeplex.com", StringComparison.OrdinalIgnoreCase);
+            return uri.IsInDomain("codeplex.com");
         }
 
         private static bool IsMicrosoftUri(this Uri uri)
         {
-            return uri.Authority.EndsWith(".microsoft.com", StringComparison.OrdinalIgnoreCase) ||
-                   string.Equals(uri.Authority, "microsoft.com", StringComparison.OrdinalIgnoreCase) ||
-                   string.Equals(uri.Authority, "www.asp.net", StringComparison.OrdinalIgnoreCase) ||
-                   string.Equals(uri.Authority, "asp.net", StringComparison.OrdinalIgnoreCase) ||
-                   uri.Authority.EndsWith(".msdn.com", StringComparison.OrdinalIgnoreCase) ||
-                   string.Equals(uri.Authority, "msdn.com", StringComparison.OrdinalIgnoreCase);
+            return uri.IsInDomain("microsoft.com") ||
+                   uri.IsInDomain("asp.net") || 
+                   uri.IsInDomain("msdn.com");
+        }
+
+        private static bool IsInDomain(this Uri uri, string domain)
+        {
+            return uri.Authority.EndsWith("." + domain, StringComparison.OrdinalIgnoreCase) ||
+                   string.Equals(uri.Authority, domain, StringComparison.OrdinalIgnoreCase);
         }
 
         public static Uri ToHttps(this Uri uri)

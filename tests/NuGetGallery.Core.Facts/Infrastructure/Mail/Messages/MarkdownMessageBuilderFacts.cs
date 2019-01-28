@@ -4,6 +4,8 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Mail;
+using NuGet.Services.Entities;
+using NuGet.Services.Messaging.Email;
 using NuGet.Services.Validation;
 using NuGetGallery.Authentication;
 
@@ -120,16 +122,15 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
             public const string TwitterUrl = "twitterUrl";
 
             public static readonly CredentialTypeInfo ApiKeyCredentialTypeInfo
-                = new CredentialTypeInfo(
-                    type: "ApiKey",
-                    isApiKey: true,
-                    description: "Api Key description");
-
+               = new CredentialTypeInfo(
+                   type: "ApiKey",
+                   isApiKey: true,
+                   description: "Api Key description");
             public static readonly CredentialTypeInfo NonApiKeyCredentialTypeInfo
-                = new CredentialTypeInfo(
-                    type: "MS Authentication",
-                    isApiKey: false,
-                    description: "Microsoft Account");
+               = new CredentialTypeInfo(
+                   type: "MS Authentication",
+                   isApiKey: false,
+                   description: "Microsoft Account");
         }
     }
 }

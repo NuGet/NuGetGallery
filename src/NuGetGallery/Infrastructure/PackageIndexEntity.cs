@@ -15,8 +15,6 @@ namespace NuGetGallery
 
         public Package Package { get; set; }
 
-        public IEnumerable<int> CuratedFeedKeys { get; set; }
-
         public PackageIndexEntity() { }
 
         public PackageIndexEntity(Package package)
@@ -35,14 +33,6 @@ namespace NuGetGallery
                     Field.Index.NOT_ANALYZED));
 
             document.Add(new Field("Key", Package.Key.ToString(CultureInfo.InvariantCulture), Field.Store.YES, Field.Index.NOT_ANALYZED));
-
-            if (CuratedFeedKeys != null)
-            {
-                foreach (var feedKey in CuratedFeedKeys)
-                {
-                    document.Add(new Field("CuratedFeedKey", feedKey.ToString(CultureInfo.InvariantCulture), Field.Store.NO, Field.Index.NOT_ANALYZED));
-                }
-            }
 
             var field = new Field("Id-Exact", Package.PackageRegistration.Id.ToLowerInvariant(), Field.Store.NO, Field.Index.NOT_ANALYZED);
 

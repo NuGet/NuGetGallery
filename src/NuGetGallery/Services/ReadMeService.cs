@@ -212,12 +212,14 @@ namespace NuGetGallery
                     var inline = node.Inline;
                     if (inline != null && inline.Tag == InlineTag.Link)
                     {
-                        // Allow only http or https links in markdown.
-                        Uri targetUri;
-                        if (!(Uri.TryCreate(inline.TargetUrl, UriKind.Absolute, out targetUri)
-                            && (targetUri.Scheme == Uri.UriSchemeHttp || targetUri.Scheme == Uri.UriSchemeHttps)))
+                        // Allow only http or https links in markdown. Transform link to https for known domains.
+                        if (!PackageHelper.TryPrepareUrlForRendering(inline.TargetUrl, out string readyUriString))
                         {
                             inline.TargetUrl = string.Empty;
+                        }
+                        else
+                        {
+                            inline.TargetUrl = readyUriString;
                         }
                     }
                 }

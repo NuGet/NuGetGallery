@@ -227,6 +227,11 @@ namespace NuGetGallery
                 "account/ConfirmationRequired",
                 new { controller = "Users", action = "ConfirmationRequired" });
 
+            routes.MapRoute(
+                RouteName.License,
+                "packages/{id}/{version}/license",
+                new { controller = "Packages", action = "License" });
+            
             //Redirecting v1 Confirmation Route
             routes.Redirect(
                 r => r.MapRoute(
@@ -596,16 +601,6 @@ namespace NuGetGallery
                     "Package/ReportAbuse/{id}/{version}",
                     new { controller = "Packages", action = "ReportAbuse" }),
                 permanent: true).To(packageVersionActionRoute);
-
-            routes.Redirect(
-                r => r.MapRoute(
-                    "PackageActions",
-                    "Package/{action}/{id}/{version}",
-                    new { controller = "Packages", action = "ContactOwners" },
-                    // This next bit looks bad, but it's not. It will never change because
-                    // it's mapping the legacy routes to the new better routes.
-                    new { action = "ContactOwners|ManagePackageOwners" }),
-                permanent: true).To(packageActionRoute);
 
             routes.Redirect(
                 r => r.MapRoute(

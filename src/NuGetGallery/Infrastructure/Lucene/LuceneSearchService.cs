@@ -80,15 +80,6 @@ namespace NuGetGallery
             }
 
             Query filterQuery = new TermQuery(new Term(filterTerm, Boolean.TrueString));
-            if (searchFilter.CuratedFeed != null)
-            {
-                var feedFilterQuery = new TermQuery(new Term("CuratedFeedKey", searchFilter.CuratedFeed.Key.ToString(CultureInfo.InvariantCulture)));
-                BooleanQuery conjunctionQuery = new BooleanQuery();
-                conjunctionQuery.Add(filterQuery, Occur.MUST);
-                conjunctionQuery.Add(feedFilterQuery, Occur.MUST);
-                filterQuery = conjunctionQuery;
-            }
-
             Filter filter = new QueryWrapperFilter(filterQuery);
             var results = searcher.Search(query, filter: filter, n: numRecords, sort: new Sort(GetSortField(searchFilter)));
 

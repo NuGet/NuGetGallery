@@ -74,32 +74,6 @@ namespace NuGetGallery
             }
         }
 
-        public bool HasSingleUserOwner
-        {
-            get
-            {
-                var userAccountOwners = Owners.Where(o => !(o is Organization)).Distinct().ToList();
-                if (userAccountOwners.Count() > 1)
-                {
-                    return false;
-                }
-
-                var organizationAccountOwners = Owners.Where(o => o is Organization).ToList();
-                foreach (var o in organizationAccountOwners)
-                {
-                    userAccountOwners = userAccountOwners.Union(OrganizationExtensions.GetUserAccountMembers((Organization)o)).ToList();
-                    if (userAccountOwners.Count() > 1)
-                    {
-                        return false;
-                    }
-                }
-
-                return userAccountOwners.Any();
-            }
-        }
-
-        public bool HasSingleOrganizationOwner => Owners.Distinct().Count() < 2;
-
         public bool CanDisplayPrivateMetadata { get; set; }
         public bool CanEdit { get; set; }
         public bool CanUnlistOrRelist { get; set; }

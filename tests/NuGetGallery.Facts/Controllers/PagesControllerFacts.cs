@@ -8,6 +8,7 @@ using NuGet.Services.Entities;
 using NuGet.Services.Messaging.Email;
 using NuGetGallery.Areas.Admin;
 using NuGetGallery.Framework;
+using NuGetGallery.Infrastructure.Mail.Messages;
 using NuGetGallery.ViewModels;
 using Xunit;
 

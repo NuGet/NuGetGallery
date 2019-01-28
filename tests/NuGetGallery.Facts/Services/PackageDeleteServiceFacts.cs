@@ -34,6 +34,7 @@ namespace NuGetGallery
             Mock<ISymbolPackageFileService> symbolPackageFileService = null,
             Mock<ISymbolPackageService> symbolPackageService = null,
             Mock<IEntityRepository<SymbolPackage>> symbolPackageRepository = null,
+            Mock<ICoreLicenseFileService> coreLicenseFileService = null,
             Action<Mock<TestPackageDeleteService>> setup = null,
             bool useRealConstructor = false)
         {
@@ -61,6 +62,7 @@ namespace NuGetGallery
             symbolPackageFileService = symbolPackageFileService ?? new Mock<ISymbolPackageFileService>();
             symbolPackageService = symbolPackageService ?? new Mock<ISymbolPackageService>();
             symbolPackageRepository = symbolPackageRepository ?? new Mock<IEntityRepository<SymbolPackage>>();
+            coreLicenseFileService = coreLicenseFileService ?? new Mock<ICoreLicenseFileService>();
 
             if (useRealConstructor)
             {
@@ -78,7 +80,8 @@ namespace NuGetGallery
                     telemetryService.Object,
                     symbolPackageFileService.Object,
                     symbolPackageService.Object,
-                    symbolPackageRepository.Object);
+                    symbolPackageRepository.Object,
+                    coreLicenseFileService.Object);
             }
             else
             {
@@ -96,7 +99,8 @@ namespace NuGetGallery
                     telemetryService.Object,
                     symbolPackageFileService.Object,
                     symbolPackageService.Object,
-                    symbolPackageRepository.Object);
+                    symbolPackageRepository.Object,
+                    coreLicenseFileService.Object);
 
                 packageDeleteService.CallBase = true;
 
@@ -128,7 +132,8 @@ namespace NuGetGallery
                 ITelemetryService telemetryService,
                 ISymbolPackageFileService symbolPackageFileService,
                 ISymbolPackageService symbolPackageService,
-                IEntityRepository<SymbolPackage> symbolPackageRepository) : base(
+                IEntityRepository<SymbolPackage> symbolPackageRepository,
+                ICoreLicenseFileService coreLicenseFileService) : base(
                     packageRepository,
                     packageRegistrationRepository,
                     packageDeletesRepository,
@@ -142,7 +147,8 @@ namespace NuGetGallery
                     telemetryService,
                     symbolPackageFileService,
                     symbolPackageService,
-                    symbolPackageRepository)
+                    symbolPackageRepository,
+                    coreLicenseFileService)
             {
             }
 
@@ -630,6 +636,30 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public async Task WillUnlinkDeprecationsThatRecommendThePackage()
+            {
+                var service = CreateService();
+                var deprecatedPackageRegistration = new PackageRegistration();
+                var deprecatedPackage = new Package { PackageRegistration = deprecatedPackageRegistration, Version = "1.0.0" };
+                deprecatedPackageRegistration.Packages.Add(deprecatedPackage);
+
+                var packageRegistration = new PackageRegistration();
+                var package = new Package { PackageRegistration = packageRegistration, Version = "1.0.0", Hash = _packageHashForTests };
+                packageRegistration.Packages.Add(package);
+
+                var deprecation = new PackageDeprecation { Package = deprecatedPackage, AlternatePackage = package };
+                deprecatedPackage.Deprecations.Add(deprecation);
+                package.AlternativeOf.Add(deprecation);
+
+                var user = new User("test");
+
+                await service.SoftDeletePackagesAsync(new[] { package }, user, string.Empty, string.Empty);
+
+                Assert.Empty(package.AlternativeOf);
+                Assert.Null(deprecation.AlternatePackage);
+            }
+
+            [Fact]
             public async Task WillBackupAndDeleteJustThePublicPackageFile()
             {
                 var packageFileService = new Mock<IPackageFileService>();
@@ -973,6 +1003,30 @@ namespace NuGetGallery
                 await service.HardDeletePackagesAsync(new[] { package }, user, string.Empty, string.Empty, false);
 
                 indexingService.Verify(x => x.UpdateIndex(true));
+            }
+
+            [Fact]
+            public async Task WillUnlinkDeprecationsThatRecommendThePackage()
+            {
+                var service = CreateService();
+                var deprecatedPackageRegistration = new PackageRegistration();
+                var deprecatedPackage = new Package { PackageRegistration = deprecatedPackageRegistration, Version = "1.0.0" };
+                deprecatedPackageRegistration.Packages.Add(deprecatedPackage);
+
+                var packageRegistration = new PackageRegistration();
+                var package = new Package { PackageRegistration = packageRegistration, Version = "1.0.0", Hash = _packageHashForTests };
+                packageRegistration.Packages.Add(package);
+
+                var deprecation = new PackageDeprecation { Package = deprecatedPackage, AlternatePackage = package };
+                deprecatedPackage.Deprecations.Add(deprecation);
+                package.AlternativeOf.Add(deprecation);
+
+                var user = new User("test");
+
+                await service.HardDeletePackagesAsync(new[] { package }, user, string.Empty, string.Empty, false);
+
+                Assert.Empty(package.AlternativeOf);
+                Assert.Null(deprecation.AlternatePackage);
             }
 
             [Fact]

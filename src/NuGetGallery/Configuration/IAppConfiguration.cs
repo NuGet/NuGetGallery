@@ -76,6 +76,11 @@ namespace NuGetGallery.Configuration
         string AzureStorage_Uploads_ConnectionString { get; set; }
 
         /// <summary>
+        /// The Azure storage connection string used for RevalidateCertificate job admin panel.
+        /// </summary>
+        string AzureStorage_Revalidation_ConnectionString { get; set; }
+
+        /// <summary>
         /// Gets a setting if Read Access Geo Redundant is enabled in azure storage
         /// </summary>
         bool AzureStorageReadAccessGeoRedundant { get; set; }
@@ -349,12 +354,6 @@ namespace NuGetGallery.Configuration
         /// Whether or not to block search engines from indexing the web pages using the "noindex" meta tag.
         /// </summary>
         bool BlockSearchEngineIndexing { get; set; }
-
-        /// <summary>
-        /// The name of zero or more curated feeds that are disabled. If a curated feed is disabled, it appears as if
-        /// it doesn't exist.
-        /// </summary>
-        string[] DisabledCuratedFeeds { get; set; }
 
         /// <summary>
         /// The name of zero or more curated feeds that are redirected to the main feed.

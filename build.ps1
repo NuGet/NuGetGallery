@@ -76,27 +76,28 @@ Invoke-BuildStep 'Restoring solution packages' { `
     -ev +BuildErrors
     
 Invoke-BuildStep 'Set version metadata in AssemblyInfo.cs' {
-        $Paths = `
-            (Join-Path $PSScriptRoot "src\NuGetGallery\Properties\AssemblyInfo.g.cs"), `
-            (Join-Path $PSScriptRoot "src\NuGetGallery.Core\Properties\AssemblyInfo.g.cs")
+    $Paths = `
+        (Join-Path $PSScriptRoot "src\NuGetGallery\Properties\AssemblyInfo.g.cs"), `
+        (Join-Path $PSScriptRoot "src\NuGetGallery.Core\Properties\AssemblyInfo.g.cs"), `
+        (Join-Path $PSScriptRoot "src\NuGet.Services.Entities\Properties\AssemblyInfo.g.cs")
 
-        Foreach ($Path in $Paths) {
-            Set-VersionInfo -Path $Path -Version $SimpleVersion -Branch $Branch -Commit $CommitSHA
-        }
-    } `
-    -ev +BuildErrors
+    Foreach ($Path in $Paths) {
+        Set-VersionInfo -Path $Path -Version $SimpleVersion -Branch $Branch -Commit $CommitSHA
+    }
+} `
+-ev +BuildErrors
 
 Invoke-BuildStep 'Building solution' { 
-        $SolutionPath = Join-Path $PSScriptRoot "NuGetGallery.sln"
-        Build-Solution $Configuration $BuildNumber -MSBuildVersion "15" $SolutionPath -SkipRestore:$SkipRestore -MSBuildProperties "/p:MvcBuildViews=true" `
-    } `
-    -ev +BuildErrors
-
-Invoke-BuildStep 'Creating artifacts' {
-    $packageId = 'NuGetGallery.Core'+$PackageSuffix 
-    New-ProjectPackage (Join-Path $PSScriptRoot "src\NuGetGallery.Core\NuGetGallery.Core.csproj") -Configuration $Configuration -Symbols -BuildNumber $BuildNumber -Version $SemanticVersion -PackageId $packageId `
-    -ev +BuildErrors
-}
+    $SolutionPath = Join-Path $PSScriptRoot "NuGetGallery.sln"
+    Build-Solution $Configuration $BuildNumber -MSBuildVersion "15" $SolutionPath -SkipRestore:$SkipRestore -MSBuildProperties "/p:MvcBuildViews=true" `
+} `
+-ev +BuildErrors
+    
+Invoke-BuildStep 'Creating artifacts' { `
+    New-ProjectPackage (Join-Path $PSScriptRoot "src\NuGetGallery.Core\NuGetGallery.Core.csproj") -Configuration $Configuration -Symbols -BuildNumber $BuildNumber -Version $SemanticVersion -PackageId "NuGetGallery.Core$PackageSuffix"
+    New-ProjectPackage (Join-Path $PSScriptRoot "src\NuGet.Services.Entities\NuGet.Services.Entities.csproj") -Configuration $Configuration -Symbols -BuildNumber $BuildNumber -Version $SemanticVersion
+} `
+-ev +BuildErrors
 
 Trace-Log ('-' * 60)
 

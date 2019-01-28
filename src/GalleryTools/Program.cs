@@ -18,6 +18,7 @@ namespace GalleryTools
             commandLineApplication.Command("reflow", ReflowCommand.Configure);
             commandLineApplication.Command("fillrepodata", BackfillRepositoryMetadataCommand.Configure);
             commandLineApplication.Command("verifyapikey", VerifyApiKeyCommand.Configure);
+            commandLineApplication.Command("updateIsLatest", UpdateIsLatestCommand.Configure);
 
             try
             {

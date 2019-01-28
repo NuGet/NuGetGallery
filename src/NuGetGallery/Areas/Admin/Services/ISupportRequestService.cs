@@ -57,7 +57,7 @@ namespace NuGetGallery.Areas.Admin
 
         Task AddAdminAsync(string galleryUsername);
 
-        Task DeleteSupportRequestsAsync(string createdBy);
+        Task DeleteSupportRequestsAsync(User user);
 
         Task<bool> TryAddDeleteSupportRequestAsync(User user);
     }

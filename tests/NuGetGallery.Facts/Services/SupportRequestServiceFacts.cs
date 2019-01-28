@@ -38,35 +38,53 @@ namespace NuGetGallery.Services
                 // Arrange
                 string userName = "Joe";
                 string emailAddress = "Joe@coldmail.com";
+                User user = new User()
+                {
+                    Username = userName,
+                    EmailAddress = emailAddress,
+                    Key = 11
+                };
 
                 TestSupportRequestDbContext supportRequestContext = new TestSupportRequestDbContext();
                 Issue JoesDeleteAccountRequest = new Issue()
                 {
-                    CreatedBy = userName,
+                    CreatedBy = user.Username,
                     Key = 1,
                     IssueTitle = Strings.AccountDelete_SupportRequestTitle,
-                    OwnerEmail = emailAddress,
+                    OwnerEmail = user.EmailAddress,
                     IssueStatusId = IssueStatusKeys.New,
-                    HistoryEntries = new List<History>() { new History() { EditedBy = userName, IssueId = 1, Key = 1, IssueStatusId = IssueStatusKeys.New } }
+                    HistoryEntries = new List<History>()
+                    {
+                        new History() { EditedBy = userName, IssueId = 1, Key = 1, IssueStatusId = IssueStatusKeys.New }
+                    },
+                    UserKey = user.Key
                 };
                 Issue JoesOldIssue = new Issue()
                 {
-                    CreatedBy = userName,
+                    CreatedBy = user.Username,
                     Key = 2,
                     IssueTitle = "Joe's OldIssue",
-                    OwnerEmail = emailAddress,
+                    OwnerEmail = user.EmailAddress,
                     IssueStatusId = IssueStatusKeys.Resolved,
-                    HistoryEntries = new List<History>() { new History() { EditedBy = userName, IssueId = 2, Key = 2, IssueStatusId = IssueStatusKeys.New },
-                                                           new History() { EditedBy = userName, IssueId = 2, Key = 2, IssueStatusId = IssueStatusKeys.Resolved }}
+                    HistoryEntries = new List<History>()
+                    {
+                        new History() { EditedBy = userName, IssueId = 2, Key = 2, IssueStatusId = IssueStatusKeys.New },
+                        new History() { EditedBy = userName, IssueId = 2, Key = 2, IssueStatusId = IssueStatusKeys.Resolved }
+                    },
+                    UserKey = user.Key
                 };
                 Issue randomIssue = new Issue()
                 {
-                    CreatedBy = $"{userName}_second",
+                    CreatedBy = $"{user.Username}_second",
                     Key = 3,
                     IssueTitle = "Second",
                     OwnerEmail = "random",
                     IssueStatusId = IssueStatusKeys.New,
-                    HistoryEntries = new List<History>() { new History() { EditedBy = $"{userName}_second", IssueId = 3, Key = 3, IssueStatusId = IssueStatusKeys.New } }
+                    HistoryEntries = new List<History>()
+                    {
+                        new History() { EditedBy = $"{userName}_second", IssueId = 3, Key = 3, IssueStatusId = IssueStatusKeys.New }
+                    },
+                    UserKey = user.Key + 1
                 };
                 supportRequestContext.Issues.Add(JoesDeleteAccountRequest);
                 supportRequestContext.Issues.Add(JoesOldIssue);
@@ -76,7 +94,7 @@ namespace NuGetGallery.Services
                 SupportRequestService supportRequestService = new SupportRequestService(supportRequestContext, GetAppConfig(),auditingService.Object);
 
                 // Act
-                await supportRequestService.DeleteSupportRequestsAsync(userName);
+                await supportRequestService.DeleteSupportRequestsAsync(user);
 
                 //Assert
                 Assert.Equal<int>(2, supportRequestContext.Issues.Count());
@@ -84,7 +102,8 @@ namespace NuGetGallery.Services
                 Assert.False(supportRequestContext.Issues.Any(issue => string.Equals(issue.IssueTitle, "Joe's OldIssue")));
                 var deleteRequestIssue = supportRequestContext.Issues.Where(issue => issue.Key == 1).FirstOrDefault();
                 Assert.NotNull(deleteRequestIssue);
-                Assert.Null(deleteRequestIssue.CreatedBy);
+                Assert.Equal(deleteRequestIssue.CreatedBy, "_deletedaccount");
+                Assert.Equal(deleteRequestIssue.IssueStatusId, IssueStatusKeys.Resolved);
                 Assert.Null(deleteRequestIssue.HistoryEntries.ElementAt(0).EditedBy);
             }
 

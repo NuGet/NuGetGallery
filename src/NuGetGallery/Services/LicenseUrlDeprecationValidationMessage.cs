@@ -12,7 +12,7 @@ namespace NuGetGallery
     /// </summary>
     public class LicenseUrlDeprecationValidationMessage : IValidationMessage
     {
-        private string DeprecationLink => $"<a href=\"{GalleryConstants.LicenseDeprecationUrl}\">{Strings.UploadPackage_LearnMore}.</a>";
+        private string DeprecationLink => $"<a href=\"{GalleryConstants.LicenseDeprecationUrl}\">{Strings.UploadPackage_LearnMore}</a>.";
 
         private readonly string _baseMessage;
         

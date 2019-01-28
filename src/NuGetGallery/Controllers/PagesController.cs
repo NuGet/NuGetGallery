@@ -11,6 +11,7 @@ using System.Web.Mvc;
 using NuGet.Services.Messaging.Email;
 using NuGetGallery.Areas.Admin;
 using NuGetGallery.Filters;
+using NuGetGallery.Infrastructure.Mail.Messages;
 using NuGetGallery.ViewModels;
 
 namespace NuGetGallery

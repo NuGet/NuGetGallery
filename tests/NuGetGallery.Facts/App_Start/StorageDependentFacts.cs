@@ -17,27 +17,40 @@ namespace NuGetGallery
         {
             // Arrange
             var config = GetConfiguration();
+            var allGalleryTypes = typeof(DefaultDependenciesModule).Assembly.GetTypes();
+            var allGalleryAndCoreTypes = allGalleryTypes.Concat(typeof(ICoreFileStorageService).Assembly.GetTypes());
+
+            Assert.True(typeof(ICoreFileStorageService).IsAssignableFrom(typeof(IFileStorageService)));
+
+            // classes in Gallery and Gallery.Core that depend on ICoreFileStorageService (or,
+            // transitively, on IFileStorageService since the latter implements the former)
+            var fileStorageDependents = new HashSet<Type>(allGalleryAndCoreTypes
+                    .Where(gct => gct
+                        .GetConstructors()
+                        .Any(c => c
+                            .GetParameters()
+                            .Any(pi => typeof(ICoreFileStorageService).IsAssignableFrom(pi.ParameterType)))));
+
+            var fileStorageDependentsInterfaces = new HashSet<Type>(fileStorageDependents.SelectMany(t => t.GetInterfaces()));
+
+            // file storage dependents that are actually used by Gallery types.
+            var fileStorageDependentsInterfacesUsedByGallery = new HashSet<Type>(allGalleryTypes
+                    .SelectMany(gt => gt
+                        .GetConstructors()
+                        .SelectMany(c => c
+                            .GetParameters()
+                            .Where(pi => fileStorageDependentsInterfaces.Contains(pi.ParameterType))
+                            .Select(pi => pi.ParameterType))));
+
+            var expected = new HashSet<Type>(fileStorageDependents
+                .Where(t => fileStorageDependentsInterfacesUsedByGallery.Any(i => i.IsAssignableFrom(t))));
 
             // Act
             var dependents = StorageDependent.GetAll(config);
 
             // Assert
             var actual = new HashSet<Type>(dependents.Select(x => x.ImplementationType));
-            var allTypes = typeof(DefaultDependenciesModule).Assembly.GetTypes();
-            var expected = new HashSet<Type>();
-            foreach (var type in allTypes)
-            {
-                var constructors = type.GetConstructors();
-                foreach (var constructor in constructors)
-                {
-                    var parameters = constructor.GetParameters();
-                    if (parameters.Any(p => p.ParameterType == typeof(IFileStorageService)))
-                    {
-                        expected.Add(type);
-                    }
-                }
-            }
-            
+
             Assert.Subset(expected, actual);
             Assert.Subset(actual, expected);
         }
@@ -58,12 +71,16 @@ namespace NuGetGallery
             Assert.Contains(typeof(PackageFileService), implementationToInterface.Keys);
             Assert.Contains(typeof(SymbolPackageFileService), implementationToInterface.Keys);
             Assert.Contains(typeof(UploadFileService), implementationToInterface.Keys);
-            Assert.Equal(5, implementationToInterface.Count);
+            Assert.Contains(typeof(CoreLicenseFileService), implementationToInterface.Keys);
+            Assert.Contains(typeof(RevalidationStateService), implementationToInterface.Keys);
+            Assert.Equal(7, implementationToInterface.Count);
             Assert.Equal(typeof(ICertificateService), implementationToInterface[typeof(CertificateService)]);
             Assert.Equal(typeof(IContentService), implementationToInterface[typeof(ContentService)]);
             Assert.Equal(typeof(IPackageFileService), implementationToInterface[typeof(PackageFileService)]);
             Assert.Equal(typeof(ISymbolPackageFileService), implementationToInterface[typeof(SymbolPackageFileService)]);
             Assert.Equal(typeof(IUploadFileService), implementationToInterface[typeof(UploadFileService)]);
+            Assert.Equal(typeof(ICoreLicenseFileService), implementationToInterface[typeof(CoreLicenseFileService)]);
+            Assert.Equal(typeof(IRevalidationStateService), implementationToInterface[typeof(RevalidationStateService)]);
         }
 
         [Fact]

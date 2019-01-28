@@ -40,13 +40,13 @@
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Commands\BackfillRepositoryMetadataCommand.cs" />
     <Compile Include="Commands\HashCommand.cs" />
     <Compile Include="Commands\ReflowCommand.cs" />
+    <Compile Include="Commands\UpdateIsLatestCommand.cs" />
     <Compile Include="Commands\VerifyApiKeyCommand.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -58,6 +58,10 @@
     <ProjectReference Include="..\NuGet.Services.Search.Client\NuGet.Services.Search.Client.csproj">
       <Project>{6931C2EE-E081-4518-9798-D34D83B35BF6}</Project>
       <Name>NuGet.Services.Search.Client</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NuGet.Services.Entities\NuGet.Services.Entities.csproj">
+      <Project>{6262f4fc-29be-4226-b676-db391c89d396}</Project>
+      <Name>NuGet.Services.Entities</Name>
     </ProjectReference>
     <ProjectReference Include="..\NuGetGallery.Core\NuGetGallery.Core.csproj">
       <Project>{097b2cdd-9623-4c34-93c2-d373d51f5b4e}</Project>

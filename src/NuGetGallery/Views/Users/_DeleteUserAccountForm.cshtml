@@ -14,7 +14,7 @@
                 @Html.ValidationMessageFor(m => m.Signature)
             </div>
 
-            @if (Model.HasOrphanPackages)
+            @if (Model.HasPackagesThatWillBeOrphaned)
             {
                 <div class="form-group">
                     @Html.EditorFor(m => m.ShouldUnlist)

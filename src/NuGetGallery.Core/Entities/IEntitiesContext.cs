@@ -10,8 +10,6 @@ namespace NuGetGallery
     public interface IEntitiesContext
     {
         IDbSet<Certificate> Certificates { get; set; }
-        IDbSet<CuratedFeed> CuratedFeeds { get; set; }
-        IDbSet<CuratedPackage> CuratedPackages { get; set; }
         IDbSet<PackageRegistration> PackageRegistrations { get; set; }
         IDbSet<Credential> Credentials { get; set; }
         IDbSet<Scope> Scopes { get; set; }

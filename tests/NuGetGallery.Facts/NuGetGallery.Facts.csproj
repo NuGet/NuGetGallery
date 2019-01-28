@@ -81,9 +81,9 @@
     <Compile Include="Controllers\AccountsControllerFacts.cs" />
     <Compile Include="Controllers\OrganizationsControllerFacts.cs" />
     <Compile Include="Controllers\SupportControllerFacts.cs" />
+    <Compile Include="UsernameValidationRegex.cs" />
     <Compile Include="Extensions\NumberExtensionsFacts.cs" />
     <Compile Include="Extensions\RouteExtensionsFacts.cs" />
-    <Compile Include="Extensions\OrganizationExtensionsFacts.cs" />
     <Compile Include="Filters\UIAuthorizeAttributeFacts.cs" />
     <Compile Include="Framework\MemberDataHelper.cs" />
     <Compile Include="Helpers\ObfuscationHelperFacts.cs" />
@@ -96,7 +96,6 @@
     <Compile Include="AutocompleteServicePackageIdsQueryFacts.cs" />
     <Compile Include="AutocompleteServicePackageVersionsQueryFacts.cs" />
     <Compile Include="App_Start\ConfigurationServiceFacts.cs" />
-    <Compile Include="App_Start\CachingSecretReaderFacts.cs" />
     <Compile Include="Controllers\AppControllerFacts.cs" />
     <Compile Include="Controllers\AuthenticationControllerFacts.cs" />
     <Compile Include="Controllers\ApiControllerFacts.cs" />
@@ -120,7 +119,8 @@
     <Compile Include="Infrastructure\Authentication\Base32EncoderTests.cs" />
     <Compile Include="Infrastructure\HttpStatusCodeWithBodyResultFacts.cs" />
     <Compile Include="Infrastructure\Lucene\ExternalSearchServiceFacts.cs" />
-    <Compile Include="Infrastructure\Mail\Messages\MarkdownMessageBuilderFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\ContactSupportMessageFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\PackageAddedWithWarningsMessageFacts.cs" />
     <Compile Include="Infrastructure\Mail\Messages\SigninAssistanceMessageFacts.cs" />
     <Compile Include="Infrastructure\Mail\Messages\ReportMyPackageMessageFacts.cs" />
     <Compile Include="Infrastructure\Mail\Messages\ReportAbuseMessageFacts.cs" />
@@ -148,6 +148,8 @@
     <Compile Include="Infrastructure\Mail\Messages\OrganizationTransformRejectedMessageFacts.cs" />
     <Compile Include="Infrastructure\Mail\Messages\OrganizationTransformAcceptedMessageFacts.cs" />
     <Compile Include="Infrastructure\Mail\Messages\OrganizationMemberUpdatedMessageFacts.cs" />
+    <Compile Include="Infrastructure\Mail\TestableMarkdownMessageService.cs" />
+    <Compile Include="Infrastructure\Mail\TestMailSender.cs" />
     <Compile Include="Infrastructure\Mail\TestMessageServiceConfiguration.cs" />
     <Compile Include="Security\ControlRequiredSignerPolicyFacts.cs" />
     <Compile Include="Security\AutomaticallyOverwriteRequiredSignerPolicyFacts.cs" />
@@ -157,7 +159,7 @@
     <Compile Include="Security\RequirePackageMetadataCompliancePolicyFacts.cs" />
     <Compile Include="Services\ActionRequiringEntityPermissionsFacts.cs" />
     <Compile Include="Services\CertificatesConfigurationFacts.cs" />
-    <Compile Include="Services\CuratedFeedServiceFacts.cs" />
+    <Compile Include="Infrastructure\Mail\MarkdownMessageServiceFacts.cs" />
     <Compile Include="Services\TyposquattingCheckListCacheServiceFacts.cs" />
     <Compile Include="Services\TyposquattingServiceFacts.cs" />
     <Compile Include="Services\CloudDownloadCountServiceFacts.cs" />
@@ -174,6 +176,7 @@
     <Compile Include="Services\SymbolPackageServiceFacts.cs" />
     <Compile Include="Services\PermissionsHelpersFacts.cs" />
     <Compile Include="Services\ReadMeServiceFacts.cs" />
+    <Compile Include="Services\FlatContainerServiceFacts.cs" />
     <Compile Include="Infrastructure\UserAuditRecordFacts.cs" />
     <Compile Include="OData\Filter\ODataFilterFacts.cs" />
     <Compile Include="OData\SearchService\SearchHijackerFacts.cs" />
@@ -205,6 +208,7 @@
     <Compile Include="Telemetry\ClientTelemetryPIIProcessorTests.cs" />
     <Compile Include="Telemetry\ObfuscatorFacts.cs" />
     <Compile Include="Telemetry\QuietLogFacts.cs" />
+    <Compile Include="TestUtils\TestServiceUtility.cs" />
     <Compile Include="TestUtils\Infrastructure\TestableV1Feed.cs" />
     <Compile Include="TestUtils\Infrastructure\TestableV2Feed.cs" />
     <Compile Include="TestUtils\Infrastructure\TestDependencyResolver.cs" />
@@ -217,7 +221,6 @@
     <Compile Include="ExtensionMethodsFacts.cs" />
     <Compile Include="Filters\ApiAuthorizeAttributeFacts.cs" />
     <Compile Include="Filters\RequiresAccountConfirmationAttributeFacts.cs" />
-    <Compile Include="TestPackage.cs" />
     <Compile Include="Framework\AssertEx.cs" />
     <Compile Include="Framework\Fakes.cs" />
     <Compile Include="Framework\LooseMocksRegistrationSource.cs" />
@@ -241,7 +244,6 @@
     <Compile Include="Services\ContentServiceFacts.cs" />
     <Compile Include="TestUtils\Infrastructure\FeedServiceHelpers.cs" />
     <Compile Include="Services\FileSystemFileStorageServiceFacts.cs" />
-    <Compile Include="Services\MessageServiceFacts.cs" />
     <Compile Include="Services\ODataRemoveSorterFacts.cs" />
     <Compile Include="Services\PackageFileServiceFacts.cs" />
     <Compile Include="Services\PackageDeleteServiceFacts.cs" />
@@ -250,7 +252,6 @@
     <Compile Include="Services\UploadFileServiceFacts.cs" />
     <Compile Include="Services\UserServiceFacts.cs" />
     <Compile Include="Services\FeedServiceFacts.cs" />
-    <Compile Include="TestPackageReader.cs" />
     <Compile Include="TestUtils\ContractAssert.cs" />
     <Compile Include="TestUtils\FakeDbSet.cs" />
     <Compile Include="TestUtils\FakeEntitiesContext.cs" />
@@ -262,7 +263,6 @@
     <Compile Include="TestUtils\OwinTestExtensions.cs" />
     <Compile Include="TestUtils\ResultAssert.cs" />
     <Compile Include="TestUtils\StubHttpPostedFile.cs" />
-    <Compile Include="TestUtils\TestServiceUtility.cs" />
     <Compile Include="TestUtils\TestDataUtility.cs" />
     <Compile Include="TestUtils\TestUtility.cs" />
     <Compile Include="UriExtensionsFacts.cs" />
@@ -292,6 +292,10 @@
     <ProjectReference Include="..\..\src\NuGet.Services.Search.Client\NuGet.Services.Search.Client.csproj">
       <Project>{6931c2ee-e081-4518-9798-d34d83b35bf6}</Project>
       <Name>NuGet.Services.Search.Client</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\src\NuGet.Services.Entities\NuGet.Services.Entities.csproj">
+      <Project>{6262f4fc-29be-4226-b676-db391c89d396}</Project>
+      <Name>NuGet.Services.Entities</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\src\NuGetGallery.Core\NuGetGallery.Core.csproj">
       <Project>{097b2cdd-9623-4c34-93c2-d373d51f5b4e}</Project>
