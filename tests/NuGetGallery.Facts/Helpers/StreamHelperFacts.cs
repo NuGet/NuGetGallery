@@ -17,28 +17,24 @@ namespace NuGetGallery.Helpers
         [InlineData("测试内容")]
         public async Task ReadValidStreamToString(string inputContent)
         {
-            // Arrange
-            var stream = new MemoryStream(Encoding.UTF8.GetBytes(inputContent));
+            using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(inputContent)))
+            {
+                var content = await StreamHelper.ReadMaxAsync(stream, 1000);
 
-            // Act
-            var content = await StreamHelper.ReadMaxAsync(stream, 1000);
-
-            // Assert
-            Assert.Equal(content, inputContent);
+                Assert.Equal(content, inputContent);
+            }
         }
 
         [Fact]
         public async Task ReadInvalidStreamToString()
         {
-            // Arrange
             var maxSize = 1000;
-            var stream = new MemoryStream(new byte[maxSize + 1]);
+            using (var stream = new MemoryStream(new byte[maxSize + 1]))
+            {
+                var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => StreamHelper.ReadMaxAsync(stream, maxSize));
 
-            // Act
-            var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => StreamHelper.ReadMaxAsync(stream, maxSize));
-
-            // Assert
-            Assert.Contains(exception.Message, string.Format(CultureInfo.CurrentCulture, Strings.StreamMaxLengthExceeded, maxSize));
+                Assert.Contains(exception.Message, string.Format(CultureInfo.CurrentCulture, Strings.StreamMaxLengthExceeded, maxSize));
+            }
         }
     }
 }

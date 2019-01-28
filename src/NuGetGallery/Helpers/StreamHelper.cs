@@ -12,14 +12,14 @@ namespace NuGetGallery.Helpers
     public class StreamHelper
     {
         /// <summary>
-        /// Trandform the stream to string given maximum size.
+        /// Transform the stream to string given maximum size.
         /// </summary>
         /// <param name="stream">stream to be read.</param>
         /// <param name="maxSize">maximum size.</param>
         /// <returns>string format of the stream.</returns>
         public static async Task<string> ReadMaxAsync(Stream stream, long maxSize)
         {
-            return await ReadMaxAsync(stream, maxSize, null);
+            return await ReadMaxAsync(stream, maxSize, encoding: null);
         }
 
         /// <summary>

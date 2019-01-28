@@ -30,9 +30,16 @@
                 new PackageHeadingModel(
                     Model.Id,
                     Model.Version,
-                    "Licenses"))
+                    "License Info"))
 
-            <h3>@Model.Id @Model.Version</h3>
+            <div class="package-title">
+                <h1>
+                    @Html.BreakWord(Model.Id)
+                    <small class="text-nowrap">@Model.FullVersion</small>
+                </h1>
+            </div>
+
+
             @if (!string.IsNullOrWhiteSpace(Model.LicenseExpression))
             {
                 <label>License expression:</label>
@@ -93,7 +100,7 @@
                 <div>
                     @ViewHelpers.AlertWarning(
                         @<text>
-                            This package contains no license info.
+                            This package contains no license information.
                         </text>
                     )
                 </div>

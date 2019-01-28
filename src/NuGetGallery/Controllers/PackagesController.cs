@@ -40,8 +40,6 @@ namespace NuGetGallery
     public partial class PackagesController
         : AppController
     {
-        private const long MaxAllowedLicenseLength = 1024 * 1024;
-
         private static readonly IReadOnlyList<ReportPackageReason> ReportAbuseReasons = new[]
         {
             ReportPackageReason.ViolatesALicenseIOwn,
@@ -738,7 +736,7 @@ namespace NuGetGallery
         public virtual async Task<ActionResult> License(string id, string version)
         {
             var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
-            if (package == null || package.PackageRegistration == null)
+            if (package?.PackageRegistration == null)
             {
                 return HttpNotFound();
             }
@@ -765,7 +763,9 @@ namespace NuGetGallery
                 try
                 {
                     var licenseFileStream = await _coreLicenseFileService.DownloadLicenseFileAsync(package);
-                    model.LicenseFileContents = await StreamHelper.ReadMaxAsync(licenseFileStream, MaxAllowedLicenseLength);
+                    model.LicenseFileContents = await StreamHelper.ReadMaxAsync(licenseFileStream, CoreLicenseFileService.MaxAllowedLicenseSizeInBytes);
+
+                    licenseFileStream.Dispose();
                 }
                 catch (Exception ex)
                 {
