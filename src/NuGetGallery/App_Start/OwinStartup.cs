@@ -75,7 +75,7 @@ namespace NuGetGallery
                 }
             });
 
-            // Ensure feature flags are loaded.
+            // Ensure feature flags are loaded once at startup, and then refresh them in the background.
             var featureFlags = DependencyResolver.Current.GetService<IFeatureFlagCacheService>();
             if (featureFlags != null)
             {
