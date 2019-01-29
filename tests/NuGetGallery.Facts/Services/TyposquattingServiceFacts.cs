@@ -58,12 +58,6 @@ namespace NuGetGallery
                     .Setup(x => x.TyposquattingConfiguration.PackageIdChecklistLength)
                     .Returns(20000);
                 contentObjectService
-                .Setup(x => x.TyposquattingConfiguration.IsCheckEnabled)
-                .Returns(true);
-                contentObjectService
-                    .Setup(x => x.TyposquattingConfiguration.IsBlockUsersEnabled)
-                    .Returns(true);
-                contentObjectService
                     .Setup(x => x.TyposquattingConfiguration.PackageIdChecklistCacheExpireTimeInHours)
                     .Returns(24);
             }
@@ -365,12 +359,6 @@ namespace NuGetGallery
             mockContentObjectService
                 .Setup(x => x.TyposquattingConfiguration.PackageIdChecklistLength)
                 .Returns(20000);
-            mockContentObjectService
-                .Setup(x => x.TyposquattingConfiguration.IsCheckEnabled)
-                .Returns(false);
-            mockContentObjectService
-                .Setup(x => x.TyposquattingConfiguration.IsBlockUsersEnabled)
-                .Returns(false);
 
             var newService = CreateService(contentObjectService: mockContentObjectService);
             
