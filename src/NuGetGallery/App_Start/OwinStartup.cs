@@ -17,6 +17,7 @@ using Microsoft.Owin;
 using Microsoft.Owin.Logging;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Cookies;
+using NuGet.Services.FeatureFlags;
 using NuGet.Services.Logging;
 using NuGetGallery.Authentication;
 using NuGetGallery.Authentication.Providers;
@@ -73,7 +74,15 @@ namespace NuGetGallery
                     await Task.Delay(ContentObjectService.RefreshInterval, token);
                 }
             });
-            
+
+            // Ensure feature flags are loaded.
+            var featureFlags = DependencyResolver.Current.GetService<IFeatureFlagCacheService>();
+            if (featureFlags != null)
+            {
+                featureFlags.RefreshAsync().Wait();
+                HostingEnvironment.QueueBackgroundWorkItem(featureFlags.RunAsync);
+            }
+
             // Setup telemetry
             var instrumentationKey = config.Current.AppInsightsInstrumentationKey;
             if (!string.IsNullOrEmpty(instrumentationKey))

@@ -17,12 +17,10 @@ using System.Web.UI;
 using Elmah;
 using Microsoft.WindowsAzure.Diagnostics;
 using Microsoft.WindowsAzure.ServiceRuntime;
-using NuGet.Services.FeatureFlags;
 using NuGet.Services.Search.Client.Correlation;
 using NuGetGallery;
 using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
-using NuGetGallery.Features;
 using NuGetGallery.Infrastructure;
 using NuGetGallery.Infrastructure.Jobs;
 using WebActivatorEx;
@@ -271,13 +269,6 @@ namespace NuGetGallery
                     HostingEnvironment.QueueBackgroundWorkItem(cancellationToken => cloudDownloadCountService.Refresh());
                     jobs.Add(new CloudDownloadCountServiceRefreshJob(TimeSpan.FromMinutes(15), cloudDownloadCountService));
                 }
-            }
-
-            var featureFlags = DependencyResolver.Current.GetService<IFeatureFlagCacheService>();
-            if (featureFlags != null)
-            {
-                // TODO: Run once?
-                HostingEnvironment.QueueBackgroundWorkItem(featureFlags.RunAsync);
             }
 
             if (jobs.AnySafe())
