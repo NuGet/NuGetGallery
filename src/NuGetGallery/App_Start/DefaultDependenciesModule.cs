@@ -431,12 +431,12 @@ namespace NuGetGallery
             builder
                 .RegisterType<FeatureFlagClient>()
                 .As<IFeatureFlagClient>()
-                .InstancePerDependency();
+                .SingleInstance();
 
             builder
                 .RegisterType<FeatureFlagService>()
                 .As<IFeatureFlagService>()
-                .InstancePerDependency();
+                .SingleInstance();
         }
 
         private static void RegisterMessagingService(ContainerBuilder builder, ConfigurationService configuration)
