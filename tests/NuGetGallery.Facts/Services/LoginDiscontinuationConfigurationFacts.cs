@@ -4,6 +4,7 @@
 using NuGet.Services.Entities;
 using NuGetGallery.Authentication;
 using NuGetGallery.Framework;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;
@@ -198,27 +199,23 @@ namespace NuGetGallery.Services
                 MemberDataHelper.AsData(
                     new WhitelistMethodData(data)));
 
-        public abstract class WhitelistBaseMethod
+        public abstract class WhitelistBaseMethod<TParameter>
         {
-            protected virtual User GetUser(WhitelistMethodData data)
-            {
-                return new User("test") { EmailAddress = _email };
-            }
+            protected static User _user = new User("test") { EmailAddress = _email };
 
-            protected abstract bool GetWhitelistValue(ILoginDiscontinuationConfiguration config, User user);
+            protected abstract bool GetWhitelistValue(ILoginDiscontinuationConfiguration config, TParameter parameter);
 
             public abstract bool GetExpectedValueForNonNull(WhitelistMethodData data);
 
             [Theory]
             [MemberData("ReturnsAsExpectedWhenNonNull_Data")]
-            public void ReturnsExpectedWhenNonNull(WhitelistMethodData data)
+            public void ReturnsExpectedWhenNonNull(WhitelistMethodData data, TParameter parameter)
             {
                 // Arrange
-                var user = GetUser(data);
                 var config = GetConfiguration(data);
 
                 // Act
-                var whitelistValue = GetWhitelistValue(config, user);
+                var whitelistValue = GetWhitelistValue(config, parameter);
 
                 // Assert
                 Assert.Equal(GetExpectedValueForNonNull(data), whitelistValue);
@@ -228,13 +225,13 @@ namespace NuGetGallery.Services
 
             [Theory]
             [MemberData("ReturnsFalseWhenNull_Data")]
-            public void ReturnsExpectedWhenNull(WhitelistMethodData data)
+            public void ReturnsExpectedWhenNull(WhitelistMethodData data, TParameter parameter)
             {
                 // Arrange
                 var config = GetConfiguration(data);
 
                 // Act
-                var whitelistValue = GetWhitelistValue(config, null);
+                var whitelistValue = GetWhitelistValue(config, parameter);
 
                 // Assert
                 Assert.Equal(GetExpectedValueForNull(data), whitelistValue);
@@ -246,16 +243,22 @@ namespace NuGetGallery.Services
             }
         }
 
-        public class TheIsUserOnWhitelistMethod : WhitelistBaseMethod
+        public class TheIsUserOnWhitelistMethod : WhitelistBaseMethod<User>
         {
-            public static IEnumerable<object[]> ReturnsAsExpectedWhenNonNull_Data => WhitelistBaseMethodReturnsExpected_Data;
+            public static IEnumerable<object[]> ReturnsAsExpectedWhenNonNull_Data => 
+                MemberDataHelper.Combine(
+                    WhitelistBaseMethodReturnsExpected_Data, 
+                    MemberDataHelper.AsDataSet(MemberDataHelper.AsData(_user)));
 
             public override bool GetExpectedValueForNonNull(WhitelistMethodData data)
             {
                 return data.IsOnWhiteList || data.IsOnDomainList;
             }
 
-            public static IEnumerable<object[]> ReturnsFalseWhenNull_Data => WhitelistBaseMethodReturnsExpected_Data;
+            public static IEnumerable<object[]> ReturnsFalseWhenNull_Data =>
+                MemberDataHelper.Combine(
+                    WhitelistBaseMethodReturnsExpected_Data,
+                    MemberDataHelper.AsDataSet(new object[] { null }));
 
             public override bool GetExpectedValueForNull(WhitelistMethodData data)
             {
@@ -268,16 +271,22 @@ namespace NuGetGallery.Services
             }
         }
 
-        public class TheShouldUserTransformIntoOrganizationMethod : WhitelistBaseMethod
+        public class TheShouldUserTransformIntoOrganizationMethod : WhitelistBaseMethod<User>
         {
-            public static IEnumerable<object[]> ReturnsAsExpectedWhenNonNull_Data => WhitelistBaseMethodReturnsExpected_Data;
+            public static IEnumerable<object[]> ReturnsAsExpectedWhenNonNull_Data =>
+                MemberDataHelper.Combine(
+                    WhitelistBaseMethodReturnsExpected_Data,
+                    MemberDataHelper.AsDataSet(MemberDataHelper.AsData(_user)));
 
             public override bool GetExpectedValueForNonNull(WhitelistMethodData data)
             {
                 return data.IsOnTransformList;
             }
-
-            public static IEnumerable<object[]> ReturnsFalseWhenNull_Data => WhitelistBaseMethodReturnsExpected_Data;
+            
+            public static IEnumerable<object[]> ReturnsFalseWhenNull_Data =>
+                MemberDataHelper.Combine(
+                    WhitelistBaseMethodReturnsExpected_Data,
+                    MemberDataHelper.AsDataSet(new object[] { null }));
 
             public override bool GetExpectedValueForNull(WhitelistMethodData data)
             {
@@ -287,6 +296,37 @@ namespace NuGetGallery.Services
             protected override bool GetWhitelistValue(ILoginDiscontinuationConfiguration config, User user)
             {
                 return config.ShouldUserTransformIntoOrganization(user);
+            }
+        }
+
+        public class TheIsTenantIdPolicySupportedForOrganizationMethod : WhitelistBaseMethod<Tuple<string, string>>
+        {
+            public static IEnumerable<object[]> ReturnsAsExpectedWhenNonNull_Data =>
+                MemberDataHelper.Combine(
+                    WhitelistBaseMethodReturnsExpected_Data,
+                    MemberDataHelper.AsDataSet(MemberDataHelper.AsData(Tuple.Create(_email, _tenant))));
+
+            public override bool GetExpectedValueForNonNull(WhitelistMethodData data)
+            {
+                return data.IsOnTenantPairList;
+            }
+
+            public static IEnumerable<object[]> ReturnsFalseWhenNull_Data =>
+                MemberDataHelper.Combine(
+                    WhitelistBaseMethodReturnsExpected_Data,
+                    MemberDataHelper.AsDataSet(
+                        new Tuple<string, string>(null, null),
+                        new Tuple<string, string>(_email, null),
+                        new Tuple<string, string>(null, _tenant)));
+
+            public override bool GetExpectedValueForNull(WhitelistMethodData data)
+            {
+                return false;
+            }
+
+            protected override bool GetWhitelistValue(ILoginDiscontinuationConfiguration config, Tuple<string, string> tuple)
+            {
+                return config.IsTenantIdPolicySupportedForOrganization(tuple.Item1, tuple.Item2);
             }
         }
     }

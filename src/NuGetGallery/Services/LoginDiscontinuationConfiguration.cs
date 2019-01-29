@@ -43,7 +43,7 @@ namespace NuGetGallery
             DiscontinuedForDomains = new HashSet<string>(discontinuedForDomains, StringComparer.OrdinalIgnoreCase);
             ExceptionsForEmailAddresses = new HashSet<string>(exceptionsForEmailAddresses, StringComparer.OrdinalIgnoreCase);
             ForceTransformationToOrganizationForEmailAddresses = new HashSet<string>(forceTransformationToOrganizationForEmailAddresses, StringComparer.OrdinalIgnoreCase);
-            EnabledOrganizationAadTenants = new HashSet<OrganizationTenantPair>(enabledOrganizationAadTenants, new OrganizationTenantPairComparer());
+            EnabledOrganizationAadTenants = new HashSet<OrganizationTenantPair>(enabledOrganizationAadTenants);
             IsPasswordDiscontinuedForAll = isPasswordDiscontinuedForAll;
         }
 
@@ -87,6 +87,16 @@ namespace NuGetGallery
 
         public bool IsTenantIdPolicySupportedForOrganization(string emailAddress, string tenantId)
         {
+            if (string.IsNullOrEmpty(emailAddress))
+            {
+                return false;
+            }
+
+            if (string.IsNullOrEmpty(tenantId))
+            {
+                return false;
+            }
+
             return EnabledOrganizationAadTenants.Contains(new OrganizationTenantPair(new MailAddress(emailAddress).Host, tenantId));
         }
 
@@ -105,7 +115,7 @@ namespace NuGetGallery
         bool IsTenantIdPolicySupportedForOrganization(string emailAddress, string tenantId);
     }
 
-    public class OrganizationTenantPair
+    public class OrganizationTenantPair : IEquatable<OrganizationTenantPair>
     {
         public string EmailDomain { get; }
         public string TenantId { get; }
@@ -116,25 +126,25 @@ namespace NuGetGallery
             EmailDomain = emailDomain ?? throw new ArgumentNullException(nameof(emailDomain));
             TenantId = tenantId ?? throw new ArgumentNullException(nameof(tenantId));
         }
-    }
 
-    public class OrganizationTenantPairComparer : IEqualityComparer<OrganizationTenantPair>
-    {
-        public bool Equals(OrganizationTenantPair x, OrganizationTenantPair y)
+        public override bool Equals(object obj)
         {
-            if (x == null || y == null)
-            {
-                return x == null && y == null;
-            }
-
-            return
-                string.Equals(x.EmailDomain, y.EmailDomain, StringComparison.OrdinalIgnoreCase) &&
-                string.Equals(x.TenantId, y.TenantId, StringComparison.OrdinalIgnoreCase);
+            return Equals(obj as OrganizationTenantPair);
         }
 
-        public int GetHashCode(OrganizationTenantPair obj)
+        public bool Equals(OrganizationTenantPair other)
         {
-            return obj.EmailDomain.GetHashCode() ^ obj.TenantId.GetHashCode();
+            return other != null &&
+                string.Equals(EmailDomain, other.EmailDomain, StringComparison.OrdinalIgnoreCase) &&
+                string.Equals(TenantId, other.TenantId, StringComparison.OrdinalIgnoreCase);
+        }
+
+        public override int GetHashCode()
+        {
+            var hashCode = -1334890813;
+            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(EmailDomain.ToLowerInvariant());
+            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(TenantId.ToLowerInvariant());
+            return hashCode;
         }
     }
 }
