@@ -24,7 +24,7 @@ namespace NuGetGallery.Features
 
         public async Task<FeatureFlags> GetAsync()
         {
-            using (var stream = await _storage.GetFileAsync(CoreConstants.Folders.FeatureFlagsContainerFolderName, CoreConstants.FeatureFlagsFileName))
+            using (var stream = await _storage.GetFileAsync(CoreConstants.Folders.ContentFolderName, CoreConstants.FeatureFlagsFileName))
             using (var streamReader = new StreamReader(stream))
             using (var reader = new JsonTextReader(streamReader))
             {

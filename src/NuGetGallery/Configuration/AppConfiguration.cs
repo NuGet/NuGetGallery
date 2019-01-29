@@ -62,9 +62,6 @@ namespace NuGetGallery.Configuration
         [DisplayName("AzureStorage.Revalidation.ConnectionString")]
         public string AzureStorage_Revalidation_ConnectionString { get; set; }
 
-        [DisplayName("AzureStorage.FeatureFlags.ConnectionString")]
-        public string AzureStorage_FeatureFlags_ConnectionString { get; set; }
-
         /// <summary>
         /// Gets a setting if Read Access Geo Redundant is enabled in azure storage
         /// </summary>

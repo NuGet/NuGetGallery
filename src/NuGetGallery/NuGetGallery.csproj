@@ -1549,7 +1549,6 @@
     <Content Include="App_Data\Files\Content\ReadOnly.md" />
     <Content Include="App_Data\Files\Content\Team.json" />
     <Content Include="App_Data\Files\Content\Terms-Of-Use.md" />
-    <Content Include="App_Data\Files\feature-flags\flags.json" />
     <Content Include="Branding\Views\web.config" />
     <Compile Include="Views\NuGetViewBase.cs" />
     <Content Include="Scripts\d3\d3.js" />
@@ -1837,6 +1836,7 @@
     <EmbeddedResource Include="Infrastructure\AddPackageLicenseReport.sql" />
     <Content Include="Public\robots.txt" />
     <Content Include="App_Data\Files\Content\Typosquatting-Configuration.json" />
+    <Content Include="App_Data\Files\Content\flags.json" />
     <None Include="Properties\PublishProfiles\nuget-staging-frontend.pubxml" />
     <Content Include="Scripts\gallery\**\*" />
     <Content Include="Web.config">

@@ -81,11 +81,6 @@ namespace NuGetGallery.Configuration
         string AzureStorage_Revalidation_ConnectionString { get; set; }
 
         /// <summary>
-        /// The Azure storage connection string used for feature flags.
-        /// </summary>
-        string AzureStorage_FeatureFlags_ConnectionString { get; set; }
-
-        /// <summary>
         /// Gets a setting if Read Access Geo Redundant is enabled in azure storage
         /// </summary>
         bool AzureStorageReadAccessGeoRedundant { get; set; }
