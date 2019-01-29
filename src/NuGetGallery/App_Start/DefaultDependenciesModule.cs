@@ -113,7 +113,11 @@ namespace NuGetGallery
             builder.Register(c => configuration.PackageDelete)
                 .As<IPackageDeleteConfiguration>();
 
-            builder.RegisterType<TelemetryService>().As<ITelemetryService>().SingleInstance();
+            builder.RegisterType<TelemetryService>()
+                .As<ITelemetryService>()
+                .As<IFeatureFlagTelemetryService>()
+                .SingleInstance();
+
             builder.RegisterType<CredentialBuilder>().As<ICredentialBuilder>().SingleInstance();
             builder.RegisterType<CredentialValidator>().As<ICredentialValidator>().SingleInstance();
 
@@ -415,24 +419,18 @@ namespace NuGetGallery
                 .Register(context => new FeatureFlagOptions
                 {
                     RefreshInterval = configuration.Current.FeatureFlagsRefreshInterval,
-                    MaximumStaleness = configuration.Current.FeatureFlagsMaximumStaleness,
                 })
                 .AsSelf()
                 .SingleInstance();
 
             builder
-                .RegisterType<FeatureFlagRefreshService>()
-                .As<IFeatureFlagRefreshService>()
+                .RegisterType<FeatureFlagCacheService>()
+                .As<IFeatureFlagCacheService>()
                 .SingleInstance();
 
             builder
                 .RegisterType<FeatureFlagClient>()
                 .As<IFeatureFlagClient>()
-                .InstancePerDependency();
-
-            builder
-                .RegisterType<FlightClient>()
-                .As<IFlightClient>()
                 .InstancePerDependency();
 
             builder

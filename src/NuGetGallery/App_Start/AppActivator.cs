@@ -273,9 +273,10 @@ namespace NuGetGallery
                 }
             }
 
-            var featureFlags = DependencyResolver.Current.GetService<IFeatureFlagRefreshService>();
+            var featureFlags = DependencyResolver.Current.GetService<IFeatureFlagCacheService>();
             if (featureFlags != null)
             {
+                // TODO: Run once?
                 HostingEnvironment.QueueBackgroundWorkItem(featureFlags.RunAsync);
             }
 

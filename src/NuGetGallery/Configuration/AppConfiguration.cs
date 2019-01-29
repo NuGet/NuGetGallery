@@ -72,8 +72,6 @@ namespace NuGetGallery.Configuration
 
         public TimeSpan FeatureFlagsRefreshInterval { get; set; }
 
-        public TimeSpan FeatureFlagsMaximumStaleness { get; set; }
-
         public bool AsynchronousPackageValidationEnabled { get; set; }
 
         public bool BlockingAsynchronousPackageValidationEnabled { get; set; }

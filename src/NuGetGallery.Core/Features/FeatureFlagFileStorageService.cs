@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
 using System.IO;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
@@ -19,13 +22,13 @@ namespace NuGetGallery.Features
             _serializer = new JsonSerializer();
         }
 
-        public async Task<FeatureFlagsState> GetAsync()
+        public async Task<FeatureFlags> GetAsync()
         {
             using (var stream = await _storage.GetFileAsync(CoreConstants.Folders.FeatureFlagsContainerFolderName, CoreConstants.FeatureFlagsFileName))
             using (var streamReader = new StreamReader(stream))
             using (var reader = new JsonTextReader(streamReader))
             {
-                return _serializer.Deserialize<FeatureFlagsState>(reader);
+                return _serializer.Deserialize<FeatureFlags>(reader);
             }
         }
     }

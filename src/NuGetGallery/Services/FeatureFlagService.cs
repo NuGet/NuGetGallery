@@ -4,6 +4,7 @@
 using System;
 using NuGet.Services.Entities;
 using NuGet.Services.FeatureFlags;
+using NuGetGallery.Features;
 
 namespace NuGetGallery
 {
@@ -15,23 +16,26 @@ namespace NuGetGallery
         private const string TyposquattingFeatureName = GalleryPrefix + "Typosquatting";
         private const string TyposquattingFlightName = GalleryPrefix + "TyposquattingFlight";
 
-        private readonly IFeatureFlagClient _featureFlagClient;
-        private readonly IFlightClient _flightClient;
+        private readonly IFeatureFlagClient _client;
 
-        public FeatureFlagService(IFeatureFlagClient featureFlagClient, IFlightClient flightClient)
+        public FeatureFlagService(IFeatureFlagClient client)
         {
-            _featureFlagClient = featureFlagClient ?? throw new ArgumentNullException(nameof(featureFlagClient));
-            _flightClient = flightClient ?? throw new ArgumentNullException(nameof(flightClient));
+            _client = client ?? throw new ArgumentNullException(nameof(client));
         }
 
         public bool IsTyposquattingEnabled()
         {
-            return _featureFlagClient.IsEnabled(TyposquattingFeatureName, @default: false);
+            return _client.IsEnabled(TyposquattingFeatureName, defaultValue: false);
         }
 
         public bool IsTyposquattingEnabled(User user)
         {
-            return _flightClient.IsEnabled(TyposquattingFlightName, user, @default: false);
+            return _client.IsEnabled(TyposquattingFlightName, user, defaultValue: false);
+        }
+
+        private bool IsEnabled(string flight, User user, bool defaultValue)
+        {
+            return _client.IsEnabled(flight, user, defaultValue);
         }
     }
 }
