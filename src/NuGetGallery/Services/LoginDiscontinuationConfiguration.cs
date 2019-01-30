@@ -89,12 +89,12 @@ namespace NuGetGallery
         {
             if (string.IsNullOrEmpty(emailAddress))
             {
-                return false;
+                throw new ArgumentException(nameof(emailAddress));
             }
 
             if (string.IsNullOrEmpty(tenantId))
             {
-                return false;
+                throw new ArgumentException(nameof(tenantId));
             }
 
             return EnabledOrganizationAadTenants.Contains(new OrganizationTenantPair(new MailAddress(emailAddress).Host, tenantId));
