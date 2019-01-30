@@ -8,9 +8,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Autofac;
 using Microsoft.Extensions.CommandLineUtils;
-using NuGet.Packaging.Core;
 using NuGet.Services.Entities;
-using NuGet.Versioning;
 using NuGetGallery;
 using NuGetGallery.Security;
 
@@ -88,9 +86,10 @@ namespace GalleryTools.Commands
                     continue;
                 }
 
-                Console.WriteLine($"");
+                Console.WriteLine($"Applying AAD tenant policy to organization with name {username}");
                 var tenantPolicy = RequireOrganizationTenantPolicy.Create(tenantId);
                 await securityPolicyService.SubscribeAsync(organization, tenantPolicy);
+                Console.WriteLine($"Successfully applied AAD tenant policy to organization with name {username}");
             }
 
             return 0;
