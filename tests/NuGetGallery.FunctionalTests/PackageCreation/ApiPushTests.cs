@@ -30,82 +30,75 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
         [Description("Pushes many packages of the same ID and version. Verifies exactly one push succeeds and the rest fail with a conflict.")]
         [Priority(2)]
         [Category("P2Tests")]
-        public void DuplicatePushesAreRejectedAndNotDeleted()
+        public async Task DuplicatePushesAreRejectedAndNotDeleted()
         {
             // Arrange
             var packageId = $"{nameof(DuplicatePushesAreRejectedAndNotDeleted)}.{DateTime.UtcNow.Ticks}";
 
-            // Hold the test output in memory since we are running the code below in parallel and TestOutputHelper
-            // is not thread safe and then synchronously write to `TestOutputHelper`
             int pushVersionCount = 10;
-            List<InMemoryTestOutputHelper> testOutputHelpers = new List<InMemoryTestOutputHelper>();
-            for (var i = 0; i < pushVersionCount; i++)
+            var duplicatePushTasks = new List<Task>();
+            for (var duplicateTaskIndex = 0; duplicateTaskIndex < pushVersionCount; duplicateTaskIndex++)
             {
-                testOutputHelpers.Add(InMemoryTestOutputHelper.New);
+                duplicatePushTasks.Add(PushDuplicates(packageId, $"1.0.{duplicateTaskIndex}", duplicateTaskIndex == 0));
             }
 
-            Parallel.For(0, pushVersionCount, async (i) =>
+            await Task.WhenAll(duplicatePushTasks);
+        }
+
+        private async Task PushDuplicates(string packageId, string packageVersion, bool isFirstTask)
+        {
+            using (var client = new HttpClient())
             {
-                using (var client = new HttpClient())
+                var packageCreationHelper = new PackageCreationHelper(TestOutputHelper);
+                if (!isFirstTask)
                 {
-                    var inMemoryOutputHelper = testOutputHelpers[i];
-                    var packageCreationHelper = new PackageCreationHelper(inMemoryOutputHelper);
-                    if (i > 0)
-                    {
-                        inMemoryOutputHelper.WriteLine(string.Empty);
-                        inMemoryOutputHelper.WriteLine(new string('=', 80));
-                        inMemoryOutputHelper.WriteLine(string.Empty);
-                    }
-
-                    var packageVersion = $"1.0.{i}";
-                    inMemoryOutputHelper.WriteLine($"Starting package {packageId} {packageVersion}...");
-
-                    var packagePath = await packageCreationHelper.CreatePackage(packageId, packageVersion);
-
-                    var tasks = new List<Task<HttpStatusCode>>();
-                    var barrier = new Barrier(TaskCount);
-
-                    // Act
-                    for (var taskIndex = 0; taskIndex < TaskCount; taskIndex++)
-                    {
-                        tasks.Add(PushAsync(client, packagePath, barrier));
-                    }
-
-                    var statusCodes = await Task.WhenAll(tasks);
-
-                    // Assert
-                    for (var taskIndex = 1; taskIndex <= statusCodes.Length; taskIndex++)
-                    {
-                        inMemoryOutputHelper.WriteLine($"Task {taskIndex:D2} push:     HTTP {(int)statusCodes[taskIndex - 1]}");
-                    }
-
-                    //Wait for the packages to be available in V2(due to async validation)
-                   await _clientSdkHelper.VerifyPackageExistsInV2Async(packageId, packageVersion);
-
-                    var downloadUrl = $"{UrlHelper.V2FeedRootUrl}package/{packageId}/{packageVersion}";
-                    using (var response = await client.GetAsync(downloadUrl))
-                    {
-                        inMemoryOutputHelper.WriteLine($"Package download: HTTP {(int)response.StatusCode}");
-
-                        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-
-                        var actualPackageBytes = await response.Content.ReadAsByteArrayAsync();
-                        using (var stream = new MemoryStream(actualPackageBytes))
-                        using (var packageReader = new PackageArchiveReader(stream))
-                        {
-                            Assert.Equal(packageId, packageReader.NuspecReader.GetId());
-                            Assert.Equal(packageVersion, packageReader.NuspecReader.GetVersion().ToNormalizedString());
-                        }
-                    }
-
-                    Assert.Equal(1, statusCodes.Count(x => x == HttpStatusCode.Created));
-                    Assert.Equal(TaskCount - 1, statusCodes.Count(x => x == HttpStatusCode.Conflict));
+                    TestOutputHelper.WriteLine(string.Empty);
+                    TestOutputHelper.WriteLine(new string('=', 80));
+                    TestOutputHelper.WriteLine(string.Empty);
                 }
-            });
 
-            foreach(var testOutputHelper in testOutputHelpers)
-            {
-                TestOutputHelper.WriteLine(testOutputHelper.GetOutput());
+                TestOutputHelper.WriteLine($"Starting package {packageId} {packageVersion}...");
+
+                var packagePath = await packageCreationHelper.CreatePackage(packageId, packageVersion);
+
+                var tasks = new List<Task<HttpStatusCode>>();
+                var barrier = new Barrier(TaskCount);
+
+                // Act
+                for (var taskIndex = 0; taskIndex < TaskCount; taskIndex++)
+                {
+                    tasks.Add(PushAsync(client, packagePath, barrier));
+                }
+
+                var statusCodes = await Task.WhenAll(tasks);
+
+                // Assert
+                for (var taskIndex = 1; taskIndex <= statusCodes.Length; taskIndex++)
+                {
+                    TestOutputHelper.WriteLine($"Task {taskIndex:D2} push:     HTTP {(int)statusCodes[taskIndex - 1]}");
+                }
+
+                //Wait for the packages to be available in V2(due to async validation)
+                await _clientSdkHelper.VerifyPackageExistsInV2Async(packageId, packageVersion);
+
+                var downloadUrl = $"{UrlHelper.V2FeedRootUrl}package/{packageId}/{packageVersion}";
+                using (var response = await client.GetAsync(downloadUrl))
+                {
+                    TestOutputHelper.WriteLine($"Package download: HTTP {(int)response.StatusCode}");
+
+                    Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+                    var actualPackageBytes = await response.Content.ReadAsByteArrayAsync();
+                    using (var stream = new MemoryStream(actualPackageBytes))
+                    using (var packageReader = new PackageArchiveReader(stream))
+                    {
+                        Assert.Equal(packageId, packageReader.NuspecReader.GetId());
+                        Assert.Equal(packageVersion, packageReader.NuspecReader.GetVersion().ToNormalizedString());
+                    }
+                }
+
+                Assert.Equal(1, statusCodes.Count(x => x == HttpStatusCode.Created));
+                Assert.Equal(TaskCount - 1, statusCodes.Count(x => x == HttpStatusCode.Conflict));
             }
         }
 

@@ -79,7 +79,6 @@
     <Compile Include="XunitExtensions\ClearMachineCacheFixture.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="EnvironmentSettings.cs" />
-    <Compile Include="XunitExtensions\InMemoryTestOutputHelper.cs" />
     <Compile Include="XunitExtensions\ConsoleTestOutputHelper.cs" />
     <Compile Include="XunitExtensions\DefaultSecurityPoliciesEnforcedDataAttribute.cs" />
     <Compile Include="XunitExtensions\DefaultSecurityPoliciesEnforcedFactAttribute.cs" />
