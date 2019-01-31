@@ -437,7 +437,9 @@
     <Compile Include="Services\ActionsRequiringPermissions.cs" />
     <Compile Include="Services\AsynchronousPackageValidationInitiator.cs" />
     <Compile Include="Infrastructure\Mail\BackgroundMarkdownMessageService.cs" />
+    <Compile Include="Services\FeatureFlagService.cs" />
     <Compile Include="Services\GalleryContentFileMetadataService.cs" />
+    <Compile Include="Services\IFeatureFlagService.cs" />
     <Compile Include="Services\InvalidLicenseUrlValidationMessage.cs" />
     <Compile Include="Services\InvalidUrlEncodingForLicenseUrlValidationMessage.cs" />
     <Compile Include="Services\ISymbolPackageUploadService.cs" />
@@ -1836,6 +1838,7 @@
     <EmbeddedResource Include="Infrastructure\AddPackageLicenseReport.sql" />
     <Content Include="Public\robots.txt" />
     <Content Include="App_Data\Files\Content\Typosquatting-Configuration.json" />
+    <Content Include="App_Data\Files\Content\flags.json" />
     <None Include="Properties\PublishProfiles\nuget-staging-frontend.pubxml" />
     <Content Include="Scripts\gallery\**\*" />
     <Content Include="Web.config">
@@ -2060,7 +2063,7 @@
       <Version>0.15.4</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Licenses">
-      <Version>2.41.0-agr-licenses-2294033</Version>
+      <Version>2.42.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.StrongName.AnglicanGeek.MarkdownMailer">
       <Version>1.2.0</Version>
@@ -2284,16 +2287,16 @@
       <Version>5.0.0-preview1.5665</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.KeyVault">
-      <Version>2.40.0</Version>
+      <Version>2.42.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Logging">
-      <Version>2.40.0</Version>
+      <Version>2.42.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Owin">
-      <Version>2.40.0</Version>
+      <Version>2.42.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Sql">
-      <Version>2.40.0</Version>
+      <Version>2.42.0</Version>
     </PackageReference>
     <PackageReference Include="Owin">
       <Version>1.0.0</Version>

@@ -67,6 +67,8 @@ namespace NuGetGallery.Configuration
         /// </summary>
         public bool AzureStorageReadAccessGeoRedundant { get; set; }
 
+        public TimeSpan FeatureFlagsRefreshInterval { get; set; }
+
         public bool AsynchronousPackageValidationEnabled { get; set; }
 
         public bool BlockingAsynchronousPackageValidationEnabled { get; set; }

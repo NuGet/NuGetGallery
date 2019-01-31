@@ -17,6 +17,7 @@ using Microsoft.Owin;
 using Microsoft.Owin.Logging;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Cookies;
+using NuGet.Services.FeatureFlags;
 using NuGet.Services.Logging;
 using NuGetGallery.Authentication;
 using NuGetGallery.Authentication.Providers;
@@ -73,7 +74,7 @@ namespace NuGetGallery
                     await Task.Delay(ContentObjectService.RefreshInterval, token);
                 }
             });
-            
+
             // Setup telemetry
             var instrumentationKey = config.Current.AppInsightsInstrumentationKey;
             if (!string.IsNullOrEmpty(instrumentationKey))
@@ -163,6 +164,14 @@ namespace NuGetGallery
             foreach (var auther in nonCookieAuthers)
             {
                 auther.Startup(config, app).Wait();
+            }
+
+            // Ensure feature flags are loaded once at startup, and then refresh them in the background.
+            var featureFlags = DependencyResolver.Current.GetService<IFeatureFlagCacheService>();
+            if (featureFlags != null)
+            {
+                featureFlags.RefreshAsync().Wait();
+                HostingEnvironment.QueueBackgroundWorkItem(featureFlags.RunAsync);
             }
 
             // Catch unobserved exceptions from threads before they cause IIS to crash:
