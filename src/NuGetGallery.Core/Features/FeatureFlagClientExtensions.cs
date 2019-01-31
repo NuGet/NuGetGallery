@@ -7,7 +7,7 @@ using NuGet.Services.FeatureFlags;
 
 namespace NuGetGallery.Features
 {
-    public static class IFeatureFlagClientExtensions
+    public static class FeatureFlagClientExtensions
     {
         public static bool IsEnabled(
             this IFeatureFlagClient client,

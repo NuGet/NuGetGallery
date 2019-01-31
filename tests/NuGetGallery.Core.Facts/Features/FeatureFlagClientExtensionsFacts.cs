@@ -9,7 +9,7 @@ using Xunit;
 
 namespace NuGetGallery.Features
 {
-    public class IFeatureFlagClientExtensionsFacts
+    public class FeatureFlagClientExtensionsFacts
     {
         [Fact]
         public void ConvertsUser()
@@ -35,8 +35,8 @@ namespace NuGetGallery.Features
             };
 
             // Act
-            IFeatureFlagClientExtensions.IsEnabled(client.Object, "flightA", user, defaultValue: true);
-            IFeatureFlagClientExtensions.IsEnabled(client.Object, "flightB", admin, defaultValue: true);
+            FeatureFlagClientExtensions.IsEnabled(client.Object, "flightA", user, defaultValue: true);
+            FeatureFlagClientExtensions.IsEnabled(client.Object, "flightB", admin, defaultValue: true);
 
             // Assert
             client.Verify(
