@@ -741,7 +741,7 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            DisplayLicenseViewModel model = new DisplayLicenseViewModel(package);
+            var model = new DisplayLicenseViewModel(package);
             if (!string.IsNullOrWhiteSpace(package.LicenseExpression))
             {
                 try
@@ -762,10 +762,10 @@ namespace NuGetGallery
             {
                 try
                 {
-                    var licenseFileStream = await _coreLicenseFileService.DownloadLicenseFileAsync(package);
-                    model.LicenseFileContents = await StreamHelper.ReadMaxAsync(licenseFileStream, CoreLicenseFileService.MaxAllowedLicenseSizeInBytes);
-
-                    licenseFileStream.Dispose();
+                    using (var licenseFileStream = await _coreLicenseFileService.DownloadLicenseFileAsync(package))
+                    {
+                        model.LicenseFileContents = await StreamHelper.ReadMaxAsync(licenseFileStream, CoreLicenseFileService.MaxAllowedLicenseSizeInBytes);
+                    }
                 }
                 catch (Exception ex)
                 {
