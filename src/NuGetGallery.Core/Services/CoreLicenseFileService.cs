@@ -12,7 +12,6 @@ namespace NuGetGallery
 {
     public class CoreLicenseFileService : ICoreLicenseFileService
     {
-        public const long MaxAllowedLicenseSizeInBytes = 1024 * 1024; // 1Kb
         private const string LicenseFileName = "license";
 
         private readonly ICoreFileStorageService _fileStorageService;

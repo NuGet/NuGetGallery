@@ -70,14 +70,6 @@
     }
 }
 
-@functions
-{
-    static bool IsLicenseOrException(CompositeLicenseExpressionSegment segment)
-    {
-        return segment.Type == CompositeLicenseExpressionSegmentType.LicenseIdentifier || segment.Type == CompositeLicenseExpressionSegmentType.ExceptionIdentifier;
-    }
-}
-
 @section SocialMeta {
     @if (!String.IsNullOrWhiteSpace(ViewBag.FacebookAppID))
     {
@@ -659,7 +651,7 @@
                             @:License:
                             foreach (var segment in Model.LicenseExpressionSegments)
                             {
-                                if (IsLicenseOrException(segment))
+                                if (@ViewHelpers.IsLicenseOrException(segment))
                                 {
                                     @MakeLicenseLink(segment);
                                 }
