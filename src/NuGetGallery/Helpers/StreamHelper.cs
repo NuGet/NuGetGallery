@@ -11,6 +11,8 @@ namespace NuGetGallery.Helpers
 {
     public class StreamHelper
     {
+        private const long BufferSize = 80 * 1024;  // 80 KB
+
         /// <summary>
         /// Transform the stream to string given maximum size.
         /// </summary>
@@ -36,22 +38,25 @@ namespace NuGetGallery.Helpers
                 encoding = Encoding.UTF8;
             }
 
-            int bytesRead;
-            var offset = 0;
-            var buffer = new byte[maxSize + 1];
-
-            while ((bytesRead = await stream.ReadAsync(buffer, offset, buffer.Length - offset)) > 0)
+            using (var memoryStream = new MemoryStream())
             {
-                offset += bytesRead;
-
-                if (offset == buffer.Length)
+                int bytesRead;
+                var totalBytesRead = 0;
+                var buffer = new byte[BufferSize];
+                while ((bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length)) > 0)
                 {
-                    throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture,
-                        Strings.StreamMaxLengthExceeded, maxSize));
-                }
-            }
+                    totalBytesRead += bytesRead;
+                    if (totalBytesRead > maxSize)
+                    {
+                        throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture,
+                            Strings.StreamMaxLengthExceeded, maxSize));
+                    }
 
-            return encoding.GetString(buffer).Trim('\0');
+                    await memoryStream.WriteAsync(buffer, 0, bytesRead);
+                }
+
+                return encoding.GetString(memoryStream.ToArray());
+            }
         }
     }
 }
