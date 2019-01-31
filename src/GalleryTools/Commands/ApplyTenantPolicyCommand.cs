@@ -16,8 +16,8 @@ namespace GalleryTools.Commands
 {
     public static class ApplyTenantPolicyCommand
     {
-        private const string UserListShortOption = "-p";
-        private const string TenantIdShortOption = "-t";
+        private const string UserListOption = "--path";
+        private const string TenantIdOption = "--tenant";
 
         public static void Configure(CommandLineApplication config)
         {
@@ -25,12 +25,12 @@ namespace GalleryTools.Commands
             config.HelpOption("-? | -h | --help");
 
             var userListOption = config.Option(
-                $"{UserListShortOption} | --path",
+                $"-p | {UserListOption}",
                 "A path to a list of organizations, one username per line.",
                 CommandOptionType.SingleValue);
 
             var tenantIdOption = config.Option(
-                $"{TenantIdShortOption} | --tenant",
+                $"-t | {TenantIdOption}",
                 "The tenant ID to restrict membership of each organization on the list to.",
                 CommandOptionType.SingleValue);
 
@@ -46,13 +46,13 @@ namespace GalleryTools.Commands
         {
             if (!userListOption.HasValue())
             {
-                Console.WriteLine($"The '{UserListShortOption}' parameter is required.");
+                Console.WriteLine($"The '{UserListOption}' parameter is required.");
                 return 1;
             }
 
             if (!tenantIdOption.HasValue())
             {
-                Console.WriteLine($"The '{TenantIdShortOption}' parameter is required.");
+                Console.WriteLine($"The '{TenantIdOption}' parameter is required.");
                 return 1;
             }
 
@@ -75,7 +75,7 @@ namespace GalleryTools.Commands
                 var user = userService.FindByUsername(username);
                 if (user == null)
                 {
-                    Console.WriteLine($"Could not find user with name {username}...skipping");
+                    Console.WriteLine($"Could not find user with name {username}... skipping");
                     continue;
                 }
 
@@ -88,8 +88,14 @@ namespace GalleryTools.Commands
 
                 Console.WriteLine($"Applying AAD tenant policy to organization with name {username}");
                 var tenantPolicy = RequireOrganizationTenantPolicy.Create(tenantId);
-                await securityPolicyService.SubscribeAsync(organization, tenantPolicy);
-                Console.WriteLine($"Successfully applied AAD tenant policy to organization with name {username}");
+                if (await securityPolicyService.SubscribeAsync(organization, tenantPolicy))
+                {
+                    Console.WriteLine($"Successfully applied AAD tenant policy to organization with name {username}");
+                }
+                else
+                {
+                    Console.WriteLine($"Organization with name {username} already has AAD tenant policy.");
+                }
             }
 
             return 0;
@@ -104,11 +110,13 @@ namespace GalleryTools.Commands
                 string line;
                 while ((line = reader.ReadLine()) != null)
                 {
-                    usernames.Add(line);
+                    if (usernames.Add(line))
+                    {
+                        // Each username in the list should be distinct, but we should also respect the ordering of the file.
+                        yield return line;
+                    }
                 }
             }
-
-            return usernames;
         }
     }
 }
