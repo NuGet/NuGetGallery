@@ -88,13 +88,20 @@ namespace GalleryTools.Commands
 
                 Console.WriteLine($"Applying AAD tenant policy to organization with name {username}");
                 var tenantPolicy = RequireOrganizationTenantPolicy.Create(tenantId);
-                if (await securityPolicyService.SubscribeAsync(organization, tenantPolicy))
+                try
                 {
-                    Console.WriteLine($"Successfully applied AAD tenant policy to organization with name {username}");
+                    if (await securityPolicyService.SubscribeAsync(organization, tenantPolicy))
+                    {
+                        Console.WriteLine($"Successfully applied AAD tenant policy to organization with name {username}");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Organization with name {username} already has AAD tenant policy.");
+                    }
                 }
-                else
+                catch (Exception e)
                 {
-                    Console.WriteLine($"Organization with name {username} already has AAD tenant policy.");
+                    Console.WriteLine($"Failed to apply AAD tenant policy to organization with name {username}: {e}");
                 }
             }
 
