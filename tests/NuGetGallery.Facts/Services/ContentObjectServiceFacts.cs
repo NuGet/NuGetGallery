@@ -113,10 +113,10 @@ namespace NuGetGallery.Services
                 typosquattingConfiguration = service.TyposquattingConfiguration as TyposquattingConfiguration;
 
                 // Assert
-                Assert.True(loginDiscontinuationConfiguration.DiscontinuedForEmailAddresses.SequenceEqual(emails));
-                Assert.True(loginDiscontinuationConfiguration.DiscontinuedForDomains.SequenceEqual(domains));
-                Assert.True(loginDiscontinuationConfiguration.ExceptionsForEmailAddresses.SequenceEqual(exceptions));
-                Assert.True(loginDiscontinuationConfiguration.EnabledOrganizationAadTenants.SequenceEqual(orgTenantPairs, new OrganizationTenantPairComparer()));
+                Assert.Equal(emails, loginDiscontinuationConfiguration.DiscontinuedForEmailAddresses);
+                Assert.Equal(domains, loginDiscontinuationConfiguration.DiscontinuedForDomains);
+                Assert.Equal(exceptions, loginDiscontinuationConfiguration.ExceptionsForEmailAddresses);
+                Assert.Equal(orgTenantPairs, loginDiscontinuationConfiguration.EnabledOrganizationAadTenants);
 
                 Assert.True(certificatesConfiguration.IsUIEnabledByDefault);
                 Assert.Equal(alwaysEnabledForDomains, certificatesConfiguration.AlwaysEnabledForDomains);
