@@ -87,9 +87,9 @@ namespace GalleryTools.Commands
                 }
 
                 Console.WriteLine($"Applying AAD tenant policy to organization with name {username}");
-                var tenantPolicy = RequireOrganizationTenantPolicy.Create(tenantId);
                 try
                 {
+                    var tenantPolicy = RequireOrganizationTenantPolicy.Create(tenantId);
                     if (await securityPolicyService.SubscribeAsync(organization, tenantPolicy))
                     {
                         Console.WriteLine($"Successfully applied AAD tenant policy to organization with name {username}");
