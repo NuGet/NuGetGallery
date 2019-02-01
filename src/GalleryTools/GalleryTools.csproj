@@ -45,6 +45,7 @@
   <ItemGroup>
     <Compile Include="Commands\BackfillRepositoryMetadataCommand.cs" />
     <Compile Include="Commands\HashCommand.cs" />
+    <Compile Include="Commands\ApplyTenantPolicyCommand.cs" />
     <Compile Include="Commands\ReflowCommand.cs" />
     <Compile Include="Commands\UpdateIsLatestCommand.cs" />
     <Compile Include="Commands\VerifyApiKeyCommand.cs" />

@@ -1,0 +1,11 @@
+{
+  "Features": {
+    "NuGetGallery.Typosquatting": "Enabled"
+  },
+
+  "Flights": {
+    "NuGetGallery.TyposquattingFlight": {
+      "All": true
+    }
+  }
+}

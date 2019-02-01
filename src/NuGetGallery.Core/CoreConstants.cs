@@ -48,5 +48,7 @@ namespace NuGetGallery
         public const string UploadTracingKeyHeaderName = "upload-id";
 
         public const string LicenseFileName = "license";
+
+        public const string FeatureFlagsFileName = "flags.json";
     }
 }
