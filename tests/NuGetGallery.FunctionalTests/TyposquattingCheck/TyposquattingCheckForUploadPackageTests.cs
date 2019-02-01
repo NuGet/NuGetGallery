@@ -21,8 +21,8 @@ namespace NuGetGallery.FunctionalTests.TyposquattingCheck
 
         [TyposquattingTestFact]
         [Description("Push a package with a typosquatting Id and verify uploading is blocked")]
-        [Priority(2)]
-        [Category("P2Tests")]
+        [Priority(1)]
+        [Category("P1Tests")]
         public async Task UploadTyposquattingPackageAndBlockUser()
         {
             var packageId = "newtonsoft-json";
