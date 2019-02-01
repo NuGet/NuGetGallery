@@ -18,7 +18,7 @@ namespace GalleryTools.Commands
     {
         private const int DefaultBatch = 1;
         private const int DefaultSleepMultiplier = 60;
-        private const string PackageListShortOption = "-p";
+        private const string PackageListOption = "--path";
 
         public static void Configure(CommandLineApplication config)
         {
@@ -26,7 +26,7 @@ namespace GalleryTools.Commands
             config.HelpOption("-? | -h | --help");
 
             var packageListOption = config.Option(
-                $"{PackageListShortOption} | --path",
+                $"-p | {PackageListOption}",
                 "A path to a list of packages, one ID and version per line with a space in between.",
                 CommandOptionType.SingleValue);
 
@@ -53,7 +53,7 @@ namespace GalleryTools.Commands
         {
             if (!packageListOption.HasValue())
             {
-                Console.WriteLine($"The '{PackageListShortOption}' parameter is required.");
+                Console.WriteLine($"The '{PackageListOption}' parameter is required.");
                 return 1;
             }
 
