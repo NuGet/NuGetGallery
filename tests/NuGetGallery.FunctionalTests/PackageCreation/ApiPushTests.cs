@@ -28,8 +28,8 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
 
         [Fact]
         [Description("Pushes many packages of the same ID and version. Verifies exactly one push succeeds and the rest fail with a conflict.")]
-        [Priority(2)]
-        [Category("P2Tests")]
+        [Priority(1)]
+        [Category("P1Tests")]
         public async Task DuplicatePushesAreRejectedAndNotDeleted()
         {
             // Arrange

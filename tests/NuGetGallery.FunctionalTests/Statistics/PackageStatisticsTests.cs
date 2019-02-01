@@ -53,8 +53,8 @@ namespace NuGetGallery.FunctionalTests.Statistics
         /// </summary>
         [Fact]
         [Description("Verify the webresponse for stats/downloads/last6weeks/ contains the right amount of packages")]
-        [Priority(2)]
-        [Category("P2Tests")]
+        [Priority(1)]
+        [Category("P1Tests")]
         public async Task PackageFeedCountParameterTest()
         {
             var request = WebRequest.Create(UrlHelper.V2FeedRootUrl + @"stats/downloads/last6weeks/");

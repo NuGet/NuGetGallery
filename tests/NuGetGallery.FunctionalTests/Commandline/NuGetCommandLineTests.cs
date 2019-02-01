@@ -137,8 +137,8 @@ namespace NuGetGallery.FunctionalTests.Commandline
 
         [PackageLockFact]
         [Description("Verifies push version, and delete are not allowed on a locked package")]
-        [Priority(2)]
-        [Category("P2Tests")]
+        [Priority(1)]
+        [Category("P1Tests")]
         public async Task LockedPackageCannotBeModified()
         {
             // Arrange
