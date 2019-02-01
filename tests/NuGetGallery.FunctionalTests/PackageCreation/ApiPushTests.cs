@@ -75,7 +75,7 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
                 // Assert
                 for (var taskIndex = 1; taskIndex <= statusCodes.Length; taskIndex++)
                 {
-                    TestOutputHelper.WriteLine($"Task {taskIndex:D2} push:     HTTP {(int)statusCodes[taskIndex - 1]}");
+                    TestOutputHelper.WriteLine($"{packageId}/{packageVersion} Task {taskIndex:D2} push:     HTTP {(int)statusCodes[taskIndex - 1]}");
                 }
 
                 //Wait for the packages to be available in V2(due to async validation)
@@ -84,7 +84,7 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
                 var downloadUrl = $"{UrlHelper.V2FeedRootUrl}package/{packageId}/{packageVersion}";
                 using (var response = await client.GetAsync(downloadUrl))
                 {
-                    TestOutputHelper.WriteLine($"Package download: HTTP {(int)response.StatusCode}");
+                    TestOutputHelper.WriteLine($"Package {packageId}/{packageVersion}  download: HTTP {(int)response.StatusCode}");
 
                     Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
