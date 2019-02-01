@@ -12,6 +12,7 @@ using Microsoft.Extensions.Logging;
 using NuGet.Services.Entities;
 using NuGetGallery.Auditing;
 using NuGetGallery.Configuration;
+using NuGetGallery.Diagnostics;
 using NuGetGallery.Infrastructure.Authentication;
 using NuGetGallery.Security;
 using Crypto = NuGetGallery.CryptographyService;
@@ -40,7 +41,7 @@ namespace NuGetGallery
 
         public ITelemetryService TelemetryService { get; protected set; }
 
-        public ILogger<UserService> Logger { get; protected set; }
+        public IDiagnosticsSource DiagnosticsSource { get; protected set; }
 
         protected UserService() { }
 
@@ -56,7 +57,7 @@ namespace NuGetGallery
             IDateTimeProvider dateTimeProvider,
             ICredentialBuilder credentialBuilder,
             ITelemetryService telemetryService,
-            ILogger<UserService> logger)
+            IDiagnosticsService diagnosticsService)
             : this()
         {
             Config = config;
@@ -69,7 +70,7 @@ namespace NuGetGallery
             SecurityPolicyService = securityPolicyService;
             DateTimeProvider = dateTimeProvider;
             TelemetryService = telemetryService;
-            Logger = logger;
+            DiagnosticsSource = diagnosticsService.SafeGetSource(nameof(UserService));
         }
 
         public async Task<MembershipRequest> AddMembershipRequestAsync(Organization organization, string memberName, bool isAdmin)
@@ -598,7 +599,7 @@ namespace NuGetGallery
             var tenantId = adminUser.Credentials.GetAzureActiveDirectoryCredential()?.TenantId;
             if (string.IsNullOrEmpty(tenantId))
             {
-                Logger.LogInformation("Will not apply tenant policy to organization because admin user does not have an AAD credential.");
+                DiagnosticsSource.LogInformation("Will not apply tenant policy to organization because admin user does not have an AAD credential.");
                 return;
             }
 
@@ -606,11 +607,11 @@ namespace NuGetGallery
                 organization.EmailAddress ?? organization.UnconfirmedEmailAddress, 
                 tenantId))
             {
-                Logger.LogInformation("Will not apply tenant policy to organization because policy is not supported for email-tenant pair.");
+                DiagnosticsSource.LogInformation("Will not apply tenant policy to organization because policy is not supported for email-tenant pair.");
                 return;
             }
 
-            Logger.LogInformation("Applying tenant policy to organization.");
+            DiagnosticsSource.LogInformation("Applying tenant policy to organization.");
             var tenantPolicy = RequireOrganizationTenantPolicy.Create(tenantId);
             await SecurityPolicyService.SubscribeAsync(organization, tenantPolicy, commitChanges);
         }
