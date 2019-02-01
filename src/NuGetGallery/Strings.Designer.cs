@@ -1851,7 +1851,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The stream must be less than {0} bytes..
+        ///   Looks up a localized string similar to Stream size exceeded {0} bytes..
         /// </summary>
         public static string StreamMaxLengthExceeded {
             get {

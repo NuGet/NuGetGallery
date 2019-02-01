@@ -35,7 +35,7 @@ namespace NuGetGallery.ViewModels
         public void LicenseNamesAreParsedByCommas()
         {
             // arrange
-            var licenseUrl = "https://mylicense.com/";
+            var licenseUrl = "https://mylicense/";
             var package = new Package
             {
                 LicenseUrl = licenseUrl,

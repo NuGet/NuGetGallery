@@ -750,11 +750,8 @@ namespace NuGetGallery
                 }
                 catch (Exception ex)
                 {
-                    // Any exception thrown while trying to render license expression beautifully
-                    // is not severe enough to break the client experience, view will fall back to
-                    // display license url.
                     _telemetryService.TraceException(ex);
-                    return HttpNotFound();
+                    throw;
                 }
             }
 

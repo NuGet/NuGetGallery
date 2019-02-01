@@ -1089,6 +1089,6 @@ The {1} Team</value>
     <value>Snupkg upload failed. Please use latest NuGet clients (v 4.9.0 or above) and a V3 endpoint to push Symbol packages. For details, refer https://docs.microsoft.com/nuget/create-packages/symbol-packages-snupkg</value>
   </data>
   <data name="StreamMaxLengthExceeded" xml:space="preserve">
-    <value>The stream must be less than {0} bytes.</value>
+    <value>Stream size exceeded {0} bytes.</value>
   </data>
 </root>

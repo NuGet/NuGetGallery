@@ -33,6 +33,16 @@ namespace NuGetGallery.Helpers
         /// <returns>string format of the stream.</returns>
         public static async Task<string> ReadMaxAsync(Stream stream, long maxSize, Encoding encoding)
         {
+            if (stream == null)
+            {
+                throw new ArgumentNullException(nameof(stream));
+            }
+
+            if (maxSize <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(maxSize), $"{nameof(maxSize)} must be greater than 0");
+            }
+
             if (encoding == null)
             {
                 encoding = Encoding.UTF8;
