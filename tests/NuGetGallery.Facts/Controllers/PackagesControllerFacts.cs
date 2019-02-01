@@ -7254,7 +7254,7 @@ namespace NuGetGallery
             [Theory]
             [InlineData(EmbeddedLicenseFileType.Markdown)]
             [InlineData(EmbeddedLicenseFileType.PlainText)]
-            public async Task GivenValidPackageInfoButInvalidLicenseFileReturns404(EmbeddedLicenseFileType embeddedLicenseFileType)
+            public async Task GivenValidPackageInfoButInvalidLicenseFileThrowException(EmbeddedLicenseFileType embeddedLicenseFileType)
             {
                 // Arrange
                 var package = new Package
@@ -7264,18 +7264,17 @@ namespace NuGetGallery
                 };
                 package.EmbeddedLicenseType = embeddedLicenseFileType;
 
+                var expectedExceptionMessage = "Downloading license file fails!";
                 _packageService.Setup(p => p.FindPackageByIdAndVersionStrict(_packageId, _packageVersion)).Returns(package);
-                _coreLicenseFileService.Setup(p => p.DownloadLicenseFileAsync(package)).Throws(new ArgumentException());
+                _coreLicenseFileService.Setup(p => p.DownloadLicenseFileAsync(package)).Throws(new Exception(expectedExceptionMessage));
                 var controller = CreateController(
                     GetConfigurationService(),
                     packageService: _packageService,
                     coreLicenseFileService: _coreLicenseFileService);
 
-                // Act
-                var result = await controller.License(_packageId, _packageVersion);
-
-                // Assert
-                Assert.IsType<HttpNotFoundResult>(result);
+                // Act & Assert
+                var exception = await Assert.ThrowsAnyAsync<Exception>(() => controller.License(_packageId, _packageVersion));
+                Assert.Equal(expectedExceptionMessage, exception.Message);
             }
 
             [Fact]

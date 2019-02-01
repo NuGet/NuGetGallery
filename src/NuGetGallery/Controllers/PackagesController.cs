@@ -770,7 +770,7 @@ namespace NuGetGallery
                 catch (Exception ex)
                 {
                     _telemetryService.TraceException(ex);
-                    return HttpNotFound();
+                    throw;
                 }
             }
 
