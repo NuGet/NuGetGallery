@@ -12,8 +12,8 @@
   <files>
     <file src="bin\$configuration$\*.*" target="bin"/>
 	
-    <file src="Scripts\OnCallDailyNotification.cmd" />
-    <file src="Scripts\WeeklySummaryNotification.cmd" />
+    <file src="Scripts\*.cmd" />
+    <file src="Scripts\*.ps1" />
 
     <file src="Settings\*.json" target="bin" />
   </files>
