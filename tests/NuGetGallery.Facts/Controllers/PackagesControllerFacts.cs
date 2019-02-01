@@ -7189,7 +7189,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task GivenValidPackageButInvalidLicenseExpressionReturns404()
+            public async Task GivenValidPackageButInvalidLicenseExpressionThrowException()
             {
                 // arrange
                 var package = new Package
@@ -7199,8 +7199,9 @@ namespace NuGetGallery
                     LicenseExpression = "some invalid expression"
                 };
 
+                var expectedExceptionMessage = "Splitting license expression fails!";
                 var splitterMock = new Mock<ILicenseExpressionSplitter>();
-                splitterMock.Setup(les => les.SplitExpression(It.IsAny<string>())).Throws(new ArgumentException());
+                splitterMock.Setup(les => les.SplitExpression(It.IsAny<string>())).Throws(new Exception(expectedExceptionMessage));
 
                 _packageService.Setup(p => p.FindPackageByIdAndVersionStrict(_packageId, _packageVersion)).Returns(package);
                 var controller = CreateController(
@@ -7208,11 +7209,9 @@ namespace NuGetGallery
                     packageService: _packageService,
                     licenseExpressionSplitter: splitterMock);
 
-                // act
-                var result = await controller.License(_packageId, _packageVersion);
-
-                // Assert
-                Assert.IsType<HttpNotFoundResult>(result);
+                // act & Assert
+                var exception = await Assert.ThrowsAnyAsync<Exception>(() => controller.License(_packageId, _packageVersion));
+                Assert.Equal(expectedExceptionMessage, exception.Message);
             }
 
             [Theory]
