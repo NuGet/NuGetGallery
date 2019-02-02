@@ -135,6 +135,7 @@
     <Compile Include="Extensions\ValidationIssueExtensions.cs" />
     <Compile Include="Features\FeatureFlagFileStorageService.cs" />
     <Compile Include="Features\FeatureFlagClientExtensions.cs" />
+    <Compile Include="ICloudBlobFolderDescription.cs" />
     <Compile Include="ICloudStorageStatusDependency.cs" />
     <Compile Include="Infrastructure\AzureEntityList.cs" />
     <Compile Include="Infrastructure\ElmahException.cs" />

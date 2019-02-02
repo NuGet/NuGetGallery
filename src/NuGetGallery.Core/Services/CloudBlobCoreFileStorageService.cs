@@ -27,34 +27,19 @@ namespace NuGetGallery
         private static readonly TimeSpan MaxCopyDuration = TimeSpan.FromMinutes(10);
         private static readonly TimeSpan CopyPollFrequency = TimeSpan.FromMilliseconds(500);
 
-        private static readonly HashSet<string> KnownPublicFolders = new HashSet<string> {
-            CoreConstants.Folders.PackagesFolderName,
-            CoreConstants.Folders.PackageBackupsFolderName,
-            CoreConstants.Folders.DownloadsFolderName,
-            CoreConstants.Folders.SymbolPackagesFolderName,
-            CoreConstants.Folders.SymbolPackageBackupsFolderName,
-            CoreConstants.Folders.FlatContainerFolderName,
-        };
-
-        private static readonly HashSet<string> KnownPrivateFolders = new HashSet<string> {
-            CoreConstants.Folders.ContentFolderName,
-            CoreConstants.Folders.UploadsFolderName,
-            CoreConstants.Folders.PackageReadMesFolderName,
-            CoreConstants.Folders.ValidationFolderName,
-            CoreConstants.Folders.UserCertificatesFolderName,
-            CoreConstants.Folders.RevalidationFolderName,
-            CoreConstants.Folders.StatusFolderName,
-            CoreConstants.Folders.PackagesContentFolderName,
-        };
-
         protected readonly ICloudBlobClient _client;
         protected readonly IDiagnosticsSource _trace;
+        private readonly ICloudBlobFolderDescription _folderDescription;
         protected readonly ConcurrentDictionary<string, ICloudBlobContainer> _containers = new ConcurrentDictionary<string, ICloudBlobContainer>();
 
-        public CloudBlobCoreFileStorageService(ICloudBlobClient client, IDiagnosticsService diagnosticsService)
+        public CloudBlobCoreFileStorageService(
+            ICloudBlobClient client,
+            IDiagnosticsService diagnosticsService,
+            ICloudBlobFolderDescription folderDescription)
         {
             _client = client ?? throw new ArgumentNullException(nameof(client));
             _trace = diagnosticsService?.SafeGetSource(nameof(CloudBlobCoreFileStorageService)) ?? throw new ArgumentNullException(nameof(diagnosticsService));
+            _folderDescription = folderDescription ?? throw new ArgumentNullException(nameof(folderDescription));
         }
 
         public async Task DeleteFileAsync(string folderName, string fileName)
@@ -297,7 +282,7 @@ namespace NuGetGallery
 
         public Task SaveFileAsync(string folderName, string fileName, Stream file, bool overwrite = true)
         {
-            var contentType = GetContentType(folderName);
+            var contentType = _folderDescription.GetContentType(folderName);
             return SaveFileAsync(folderName, fileName, contentType, file, overwrite);
         }
 
@@ -327,7 +312,7 @@ namespace NuGetGallery
             }
 
             blob.Properties.ContentType = contentType;
-            blob.Properties.CacheControl = GetCacheControl(folderName);
+            blob.Properties.CacheControl = _folderDescription.GetCacheControl(folderName);
             await blob.SetPropertiesAsync();
         }
 
@@ -359,7 +344,7 @@ namespace NuGetGallery
                     ex);
             }
 
-            blob.Properties.ContentType = GetContentType(folderName);
+            blob.Properties.ContentType = _folderDescription.GetContentType(folderName);
             await blob.SetPropertiesAsync();
         }
 
@@ -380,7 +365,7 @@ namespace NuGetGallery
         {
             var blob = await GetBlobForUriAsync(folderName, fileName, endOfAccess);
 
-            if (IsPublicContainer(folderName))
+            if (_folderDescription.IsPublicContainer(folderName))
             {
                 return blob.Uri;
             }
@@ -523,7 +508,7 @@ namespace NuGetGallery
                 throw new ArgumentOutOfRangeException(nameof(endOfAccess), $"{nameof(endOfAccess)} is in the past");
             }
 
-            if (!IsPublicContainer(folderName) && endOfAccess == null)
+            if (!_folderDescription.IsPublicContainer(folderName) && endOfAccess == null)
             {
                 throw new ArgumentNullException(nameof(endOfAccess), $"{nameof(endOfAccess)} must not be null for non-public containers");
             }
@@ -541,25 +526,9 @@ namespace NuGetGallery
                 return container;
             }
 
-            container = await PrepareContainer(folderName, IsPublicContainer(folderName));
+            container = await PrepareContainer(folderName, _folderDescription.IsPublicContainer(folderName));
             _containers[folderName] = container;
             return container;
-        }
-
-        private bool IsPublicContainer(string folderName)
-        {
-            if (KnownPublicFolders.Contains(folderName))
-            {
-                return true;
-            }
-
-            if (KnownPrivateFolders.Contains(folderName))
-            {
-                return false;
-            }
-
-            throw new InvalidOperationException(
-                string.Format(CultureInfo.CurrentCulture, "The folder name {0} is not supported.", folderName));
         }
 
         private async Task<StorageResult> GetBlobContentAsync(string folderName, string fileName, string ifNoneMatch = null)
@@ -609,70 +578,6 @@ namespace NuGetGallery
 
             stream.Position = 0;
             return new StorageResult(HttpStatusCode.OK, stream, blob.ETag);
-        }
-
-        private static string GetContentType(string folderName)
-        {
-            switch (folderName)
-            {
-                case CoreConstants.Folders.PackagesFolderName:
-                case CoreConstants.Folders.PackageBackupsFolderName:
-                case CoreConstants.Folders.UploadsFolderName:
-                case CoreConstants.Folders.ValidationFolderName:
-                case CoreConstants.Folders.SymbolPackagesFolderName:
-                case CoreConstants.Folders.SymbolPackageBackupsFolderName:
-                case CoreConstants.Folders.FlatContainerFolderName:
-                    return CoreConstants.PackageContentType;
-
-                case CoreConstants.Folders.DownloadsFolderName:
-                    return CoreConstants.OctetStreamContentType;
-
-                case CoreConstants.Folders.PackageReadMesFolderName:
-                    return CoreConstants.TextContentType;
-
-                case CoreConstants.Folders.ContentFolderName:
-                case CoreConstants.Folders.RevalidationFolderName:
-                case CoreConstants.Folders.StatusFolderName:
-                    return CoreConstants.JsonContentType;
-
-                case CoreConstants.Folders.UserCertificatesFolderName:
-                    return CoreConstants.CertificateContentType;
-
-                case CoreConstants.Folders.PackagesContentFolderName:
-                    return CoreConstants.OctetStreamContentType;
-
-                default:
-                    throw new InvalidOperationException(
-                        string.Format(CultureInfo.CurrentCulture, "The folder name {0} is not supported.", folderName));
-            }
-        }
-
-        private static string GetCacheControl(string folderName)
-        {
-            switch (folderName)
-            {
-                case CoreConstants.Folders.PackagesFolderName:
-                case CoreConstants.Folders.SymbolPackagesFolderName:
-                case CoreConstants.Folders.ValidationFolderName:
-                    return CoreConstants.DefaultCacheControl;
-
-                case CoreConstants.Folders.PackageBackupsFolderName:
-                case CoreConstants.Folders.UploadsFolderName:
-                case CoreConstants.Folders.SymbolPackageBackupsFolderName:
-                case CoreConstants.Folders.DownloadsFolderName:
-                case CoreConstants.Folders.PackageReadMesFolderName:
-                case CoreConstants.Folders.ContentFolderName:
-                case CoreConstants.Folders.RevalidationFolderName:
-                case CoreConstants.Folders.StatusFolderName:
-                case CoreConstants.Folders.UserCertificatesFolderName:
-                case CoreConstants.Folders.PackagesContentFolderName:
-                case CoreConstants.Folders.FlatContainerFolderName:
-                    return null;
-
-                default:
-                    throw new InvalidOperationException(
-                        string.Format(CultureInfo.CurrentCulture, "The folder name {0} is not supported.", folderName));
-            }
         }
 
         private async Task<ICloudBlobContainer> PrepareContainer(string folderName, bool isPublic)

@@ -43,7 +43,8 @@ namespace NuGetGallery
                 fakeBlobClient.Object,
                 Mock.Of<IAppConfiguration>(),
                 redirectPolicy.Object,
-                Mock.Of<IDiagnosticsService>());
+                Mock.Of<IDiagnosticsService>(),
+                Mock.Of<ICloudBlobFolderDescription>());
         }
 
         private class FolderNamesDataAttribute : DataAttribute
