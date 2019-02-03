@@ -717,7 +717,7 @@ namespace NuGetGallery
 
             builder.RegisterType<GalleryContentFileMetadataService>()
                 .As<IContentFileMetadataService>()
-                .InstancePerLifetimeScope();
+                .SingleInstance();
         }
 
         private static IAuditingService GetAuditingServiceForLocalFileSystem(IGalleryConfigurationService configuration)
@@ -813,7 +813,7 @@ namespace NuGetGallery
 
             builder.RegisterType<FlatContainerContentFileMetadataService>()
                 .As<IContentFileMetadataService>()
-                .InstancePerLifetimeScope();
+                .SingleInstance();
         }
 
         private static IAuditingService GetAuditingServiceForAzureStorage(ContainerBuilder builder, IGalleryConfigurationService configuration)

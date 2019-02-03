@@ -736,39 +736,32 @@ namespace NuGetGallery
         public virtual async Task<ActionResult> License(string id, string version)
         {
             var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
-            if (package?.PackageRegistration == null)
+            if (package == null)
             {
                 return HttpNotFound();
             }
 
             var model = new DisplayLicenseViewModel(package);
-            if (!string.IsNullOrWhiteSpace(package.LicenseExpression))
+            try
             {
-                try
+                if (!string.IsNullOrWhiteSpace(package.LicenseExpression))
                 {
                     model.LicenseExpressionSegments = _licenseExpressionSplitter.SplitExpression(package.LicenseExpression);
                 }
-                catch (Exception ex)
-                {
-                    _telemetryService.TraceException(ex);
-                    throw;
-                }
-            }
 
-            if (package.EmbeddedLicenseType != EmbeddedLicenseFileType.Absent)
-            {
-                try
+                if (package.EmbeddedLicenseType != EmbeddedLicenseFileType.Absent)
                 {
                     using (var licenseFileStream = await _coreLicenseFileService.DownloadLicenseFileAsync(package))
                     {
                         model.LicenseFileContents = await StreamHelper.ReadMaxAsync(licenseFileStream, PackageUploadService.MaxAllowedLicenseLength);
                     }
+
                 }
-                catch (Exception ex)
-                {
-                    _telemetryService.TraceException(ex);
-                    throw;
-                }
+            }
+            catch (Exception ex)
+            {
+                _telemetryService.TraceException(ex);
+                throw;
             }
 
             return View(model);
