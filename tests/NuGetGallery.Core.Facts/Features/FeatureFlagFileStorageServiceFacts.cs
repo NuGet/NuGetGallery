@@ -17,22 +17,6 @@ namespace NuGetGallery.Features
 {
     public class FeatureFlagFileStorageServiceFacts
     {
-        public const string SampleFlagsJson = @"
-{
-  ""Features"": {
-    ""NuGetGallery.Typosquatting"": ""Enabled""
-  },
-
-  ""Flights"": {
-    ""NuGetGallery.TyposquattingFlight"": {
-      ""All"": true,
-      ""SiteAdmins"": true,
-      ""Accounts"": [""a""],
-      ""Domains"": [""b""]
-    }
-  }
-}";
-
         public class GetAsync : FactsBase
         {
             [Fact]
@@ -41,7 +25,7 @@ namespace NuGetGallery.Features
                 // Arrange
                 _storage
                     .Setup(s => s.GetFileAsync(CoreConstants.Folders.ContentFolderName, CoreConstants.FeatureFlagsFileName))
-                    .ReturnsAsync(BuildStream(SampleFlagsJson));
+                    .ReturnsAsync(BuildStream(FeatureFlagJsonHelper.FullJson));
 
                 // Act
                 var result = await _target.GetAsync();
@@ -135,7 +119,7 @@ namespace NuGetGallery.Features
                     .ThrowsAsync(preconditionException);
 
                 // Act
-                var result = await _target.TrySaveAsync(SampleFlagsJson, "123");
+                var result = await _target.TrySaveAsync(FeatureFlagJsonHelper.FullJson, "123");
 
                 // Assert
                 Assert.Equal(FeatureFlagSaveResult.Conflict, result);
@@ -153,7 +137,7 @@ namespace NuGetGallery.Features
             public async Task ReturnsOk()
             {
                 // Act
-                var result = await _target.TrySaveAsync(SampleFlagsJson, "123");
+                var result = await _target.TrySaveAsync(FeatureFlagJsonHelper.FullJson, "123");
 
                 // Assert
                 Assert.Equal(FeatureFlagSaveResult.Ok, result);
