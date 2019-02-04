@@ -10,7 +10,7 @@ namespace NuGetGallery
 {
     public class DisplayLicenseViewModel : PackageViewModel
     {
-        public DisplayLicenseViewModel(Package package)
+        public DisplayLicenseViewModel(Package package, IReadOnlyCollection<CompositeLicenseExpressionSegment> licenseExpressionSegments, string licenseFileContents)
             : base(package)
         {
             EmbeddedLicenseType = package.EmbeddedLicenseType;
@@ -25,6 +25,8 @@ namespace NuGetGallery
                     LicenseNames = licenseNames.Split(',').Select(l => l.Trim());
                 }
             }
+            LicenseExpressionSegments = licenseExpressionSegments;
+            LicenseFileContents = licenseFileContents;
         }
 
         public EmbeddedLicenseFileType EmbeddedLicenseType { get; }

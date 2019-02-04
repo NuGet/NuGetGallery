@@ -741,19 +741,20 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            var model = new DisplayLicenseViewModel(package);
+            IReadOnlyCollection<CompositeLicenseExpressionSegment> licenseExpressionSegments = null;
+            string licenseFileContents = null;
             try
             {
                 if (!string.IsNullOrWhiteSpace(package.LicenseExpression))
                 {
-                    model.LicenseExpressionSegments = _licenseExpressionSplitter.SplitExpression(package.LicenseExpression);
+                    licenseExpressionSegments = _licenseExpressionSplitter.SplitExpression(package.LicenseExpression);
                 }
 
                 if (package.EmbeddedLicenseType != EmbeddedLicenseFileType.Absent)
                 {
                     using (var licenseFileStream = await _coreLicenseFileService.DownloadLicenseFileAsync(package))
                     {
-                        model.LicenseFileContents = await StreamHelper.ReadMaxAsync(licenseFileStream, PackageUploadService.MaxAllowedLicenseLength);
+                        licenseFileContents = await StreamHelper.ReadMaxAsync(licenseFileStream, PackageUploadService.MaxAllowedLicenseLength);
                     }
                 }
             }
@@ -762,6 +763,8 @@ namespace NuGetGallery
                 _telemetryService.TraceException(ex);
                 throw;
             }
+
+            var model = new DisplayLicenseViewModel(package, licenseExpressionSegments, licenseFileContents);
 
             return View(model);
         }

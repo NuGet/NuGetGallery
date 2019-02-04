@@ -2,6 +2,8 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using NuGet.Services.Entities;
+using NuGet.Services.Licenses;
+using System.Collections.Generic;
 using Xunit;
 
 namespace NuGetGallery.ViewModels
@@ -24,7 +26,7 @@ namespace NuGetGallery.ViewModels
             };
 
             // act
-            var model = new DisplayLicenseViewModel(package);
+            var model = new DisplayLicenseViewModel(package, licenseExpressionSegments: null, licenseFileContents: null);
 
             // assert
             Assert.Equal(embeddedLicenseType, model.EmbeddedLicenseType);
@@ -44,7 +46,7 @@ namespace NuGetGallery.ViewModels
             };
 
             // act
-            var model = new DisplayLicenseViewModel(package);
+            var model = new DisplayLicenseViewModel(package, licenseExpressionSegments: null, licenseFileContents: null);
 
             // assert
             Assert.Equal(new string[] { "l1", "l2", "l3", "l4", "l5" }, model.LicenseNames);
@@ -71,10 +73,44 @@ namespace NuGetGallery.ViewModels
             };
 
             // act
-            var model = new DisplayLicenseViewModel(package);
+            var model = new DisplayLicenseViewModel(package, licenseExpressionSegments: null, licenseFileContents: null);
 
             // assert
             Assert.Equal(expected, model.LicenseUrl);
+        }
+
+        [Fact]
+        public void ItInitializesLicenseExpressionSegments()
+        {
+            // arrange
+            var package = new Package
+            {
+                Version = "1.0.0",
+            };
+            var segments = new List<CompositeLicenseExpressionSegment>();
+
+            // act
+            var model = new DisplayLicenseViewModel(package, licenseExpressionSegments: segments, licenseFileContents: null);
+
+            // assert
+            Assert.Equal(segments, model.LicenseExpressionSegments);
+        }
+
+        [Fact]
+        public void ItInitializesLicenseFileContents()
+        {
+            // arrange
+            var package = new Package
+            {
+                Version = "1.0.0",
+            };
+            var licenseFileContents = "It's a license";
+
+            // act
+            var model = new DisplayLicenseViewModel(package, licenseExpressionSegments: null, licenseFileContents: licenseFileContents);
+
+            // assert
+            Assert.Equal(licenseFileContents, model.LicenseFileContents);
         }
     }
 }
