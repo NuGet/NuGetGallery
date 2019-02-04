@@ -21,9 +21,11 @@ namespace NuGetGallery
 
         public static void SetCVEIds(this PackageDeprecation deprecation, IEnumerable<string> cveIds)
         {
-            var list = new CVEIdList(cveIds);
-            var serialized = JsonConvert.SerializeObject(list);
-            deprecation.CVEIds = serialized;
+            SetIds(
+                deprecation,
+                cveIds,
+                (ids) => new CVEIdList(ids),
+                (d, s) => d.CVEIds = s);
         }
 
         private class CVEIdList : IIdList
@@ -55,9 +57,11 @@ namespace NuGetGallery
 
         public static void SetCWEIds(this PackageDeprecation deprecation, IEnumerable<string> cweIds)
         {
-            var list = new CWEIdList(cweIds);
-            var serialized = JsonConvert.SerializeObject(list);
-            deprecation.CWEIds = serialized;
+            SetIds(
+                deprecation,
+                cweIds,
+                (ids) => new CWEIdList(ids),
+                (d, s) => d.CWEIds = s);
         }
 
         private class CWEIdList : IIdList
@@ -104,6 +108,26 @@ namespace NuGetGallery
             }
 
             return getReturn(list);
+        }
+
+        private static void SetIds<TDeserializedIdList, TInput>(
+            PackageDeprecation deprecation,
+            TInput input,
+            Func<TInput, TDeserializedIdList> getDeserialized,
+            Action<PackageDeprecation, string> setSerialized)
+        {
+            string serialized;
+            if (input != null)
+            {
+                var list = getDeserialized(input);
+                serialized = JsonConvert.SerializeObject(list);
+            }
+            else
+            {
+                serialized = null;
+            }
+
+            setSerialized(deprecation, serialized);
         }
     }
 }

@@ -1378,81 +1378,19 @@ namespace NuGetGallery
                 }
             }
 
-            foreach (var package in foundPackageVersions)
-            {
-                if (shouldUnlist)
-                {
-                    package.Listed = false;
-                }
+            await _packageService.UpdateDeprecation(
+                foundPackageVersions, 
+                isVulnerable, 
+                isLegacy, 
+                isOther, 
+                cveIds, 
+                cvssRating, 
+                cweIds, 
+                alternatePackageRegistration, 
+                alternatePackage, 
+                customMessage, 
+                shouldUnlist);
 
-                var deprecation = package.Deprecations.SingleOrDefault();
-                if (isVulnerable || isLegacy || isOther)
-                {
-                    if (deprecation == null)
-                    {
-                        deprecation = new PackageDeprecation();
-                        deprecation.Package = package;
-                        package.Deprecations.Add(deprecation);
-                        _entitiesContext.Set<PackageDeprecation>().Add(deprecation);
-                    }
-
-                    if (isVulnerable)
-                    {
-                        deprecation.Status |= PackageDeprecationStatus.Vulnerable;
-                    }
-
-                    if (isLegacy)
-                    {
-                        deprecation.Status |= PackageDeprecationStatus.Legacy;
-                    }
-
-                    if (isOther)
-                    {
-                        deprecation.Status |= PackageDeprecationStatus.Other;
-                    }
-
-                    if (cveIds != null && cveIds.Any())
-                    {
-                        var existingCveIds = deprecation.GetCVEIds() ?? new string[0];
-                        var combinedCveIds = existingCveIds.Concat(cveIds).Distinct();
-                        deprecation.SetCVEIds(combinedCveIds);
-                    }
-
-                    if (cvssRating != null)
-                    {
-                        deprecation.CVSSRating = cvssRating;
-                    }
-
-                    if (cweIds != null && cweIds.Any())
-                    {
-                        var existingCweIds = deprecation.GetCWEIds() ?? new string[0];
-                        var combinedCweIds = existingCweIds.Concat(cweIds).Distinct();
-                        deprecation.SetCWEIds(combinedCweIds);
-                    }
-
-                    if (alternatePackageRegistration != null)
-                    {
-                        deprecation.AlternatePackageRegistration = alternatePackageRegistration;
-                    }
-
-                    if (alternatePackage != null)
-                    {
-                        deprecation.AlternatePackage = alternatePackage;
-                    }
-
-                    if (string.IsNullOrEmpty(customMessage))
-                    {
-                        deprecation.CustomMessage = customMessage;
-                    }
-                }
-                else if (deprecation != null)
-                {
-                    package.Deprecations.Remove(deprecation);
-                    _entitiesContext.DeleteOnCommit(deprecation);
-                }
-            }
-
-            await _entitiesContext.SaveChangesAsync();
             return Json(HttpStatusCode.OK);
         }
 

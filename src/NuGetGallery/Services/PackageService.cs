@@ -21,6 +21,7 @@ namespace NuGetGallery
 {
     public class PackageService : CorePackageService, IPackageService
     {
+        private readonly IEntityRepository<PackageDeprecation> _deprecationRepository;
         private readonly IAuditingService _auditingService;
         private readonly ITelemetryService _telemetryService;
         private readonly ISecurityPolicyService _securityPolicyService;
@@ -29,11 +30,13 @@ namespace NuGetGallery
             IEntityRepository<PackageRegistration> packageRegistrationRepository,
             IEntityRepository<Package> packageRepository,
             IEntityRepository<Certificate> certificateRepository,
+            IEntityRepository<PackageDeprecation> deprecationRepository,
             IAuditingService auditingService,
             ITelemetryService telemetryService,
             ISecurityPolicyService securityPolicyService)
             : base(packageRepository, packageRegistrationRepository, certificateRepository)
         {
+            _deprecationRepository = deprecationRepository ?? throw new ArgumentNullException(nameof(deprecationRepository));
             _auditingService = auditingService ?? throw new ArgumentNullException(nameof(auditingService));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _securityPolicyService = securityPolicyService ?? throw new ArgumentNullException(nameof(securityPolicyService));
@@ -825,6 +828,195 @@ namespace NuGetGallery
                 await _auditingService.SaveAuditRecordAsync(auditRecord);
 
                 _telemetryService.TrackRequiredSignerSet(registration.Id);
+            }
+        }
+
+        public async Task UpdateDeprecation(
+            IEnumerable<Package> packages, 
+            bool isVulnerable, 
+            bool isLegacy, 
+            bool isOther, 
+            IEnumerable<string> cveIds, 
+            decimal? cvssRating, 
+            IEnumerable<string> cweIds,
+            PackageRegistration alternatePackageRegistration,
+            Package alternatePackage,
+            string customMessage, 
+            bool shouldUnlist)
+        {
+            Action<Package, bool, bool, bool, IEnumerable<string>, decimal?, IEnumerable<string>, PackageRegistration, Package, string, bool> deprecatePackage;
+            if (packages.Count() == 1)
+            {
+                // Updating a single package's deprecation does a replace.
+                deprecatePackage = ReplaceDeprecation;
+            }
+            else
+            {
+                // Updating multiple packages combines the new state with the existing state for each package.
+                deprecatePackage = UpdateDeprecation;
+            }
+
+            foreach (var package in packages)
+            {
+                deprecatePackage(
+                    package,
+                    isVulnerable,
+                    isLegacy,
+                    isOther,
+                    cveIds,
+                    cvssRating,
+                    cweIds,
+                    alternatePackageRegistration,
+                    alternatePackage,
+                    customMessage,
+                    shouldUnlist);
+            }
+
+            await _packageRepository.CommitChangesAsync();
+        }
+
+        private void UpdateDeprecation(
+            Package package,
+            bool isVulnerable,
+            bool isLegacy,
+            bool isOther,
+            IEnumerable<string> cveIds,
+            decimal? cvssRating,
+            IEnumerable<string> cweIds,
+            PackageRegistration alternatePackageRegistration,
+            Package alternatePackage,
+            string customMessage,
+            bool shouldUnlist)
+        {
+            if (shouldUnlist)
+            {
+                package.Listed = false;
+            }
+
+            var deprecation = package.Deprecations.SingleOrDefault();
+            if (isVulnerable || isLegacy || isOther)
+            {
+                if (deprecation == null)
+                {
+                    deprecation = new PackageDeprecation
+                    {
+                        Package = package
+                    };
+                    package.Deprecations.Add(deprecation);
+                }
+
+                if (isVulnerable)
+                {
+                    deprecation.Status |= PackageDeprecationStatus.Vulnerable;
+                }
+
+                if (isLegacy)
+                {
+                    deprecation.Status |= PackageDeprecationStatus.Legacy;
+                }
+
+                if (isOther)
+                {
+                    deprecation.Status |= PackageDeprecationStatus.Other;
+                }
+
+                if (cveIds != null && cveIds.Any())
+                {
+                    var existingCveIds = deprecation.GetCVEIds() ?? new string[0];
+                    var combinedCveIds = existingCveIds.Concat(cveIds).Distinct();
+                    deprecation.SetCVEIds(combinedCveIds);
+                }
+
+                if (cvssRating != null)
+                {
+                    deprecation.CVSSRating = cvssRating;
+                }
+
+                if (cweIds != null && cweIds.Any())
+                {
+                    var existingCweIds = deprecation.GetCWEIds() ?? new string[0];
+                    var combinedCweIds = existingCweIds.Concat(cweIds).Distinct();
+                    deprecation.SetCWEIds(combinedCweIds);
+                }
+
+                if (alternatePackageRegistration != null)
+                {
+                    deprecation.AlternatePackageRegistration = alternatePackageRegistration;
+                }
+
+                if (alternatePackage != null)
+                {
+                    deprecation.AlternatePackage = alternatePackage;
+                }
+
+                if (string.IsNullOrEmpty(customMessage))
+                {
+                    deprecation.CustomMessage = customMessage;
+                }
+            }
+            else if (deprecation != null)
+            {
+                package.Deprecations.Remove(deprecation);
+            }
+        }
+
+        private void ReplaceDeprecation(
+            Package package,
+            bool isVulnerable,
+            bool isLegacy,
+            bool isOther,
+            IEnumerable<string> cveIds,
+            decimal? cvssRating,
+            IEnumerable<string> cweIds,
+            PackageRegistration alternatePackageRegistration,
+            Package alternatePackage,
+            string customMessage,
+            bool shouldUnlist)
+        {
+            if (shouldUnlist)
+            {
+                package.Listed = false;
+            }
+
+            var status = PackageDeprecationStatus.NotDeprecated;
+            if (isVulnerable)
+            {
+                status |= PackageDeprecationStatus.Vulnerable;
+            }
+
+            if (isLegacy)
+            {
+                status |= PackageDeprecationStatus.Legacy;
+            }
+
+            if (isOther)
+            {
+                status |= PackageDeprecationStatus.Other;
+            }
+
+            var deprecation = package.Deprecations.SingleOrDefault();
+            if (status != PackageDeprecationStatus.NotDeprecated)
+            {
+                if (deprecation == null)
+                {
+                    deprecation = new PackageDeprecation
+                    {
+                        Package = package
+                    };
+                    package.Deprecations.Add(deprecation);
+                }
+
+                deprecation.Status = status;
+                deprecation.SetCVEIds(cveIds);
+                deprecation.CVSSRating = cvssRating;
+                deprecation.SetCWEIds(cweIds);
+                deprecation.AlternatePackageRegistration = alternatePackageRegistration;
+                deprecation.AlternatePackage = alternatePackage;
+                deprecation.CustomMessage = customMessage;
+            }
+            else if (deprecation != null)
+            {
+                package.Deprecations.Remove(deprecation);
             }
         }
     }

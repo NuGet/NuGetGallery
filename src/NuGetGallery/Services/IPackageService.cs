@@ -104,5 +104,24 @@ namespace NuGetGallery
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="registration" />
         /// is <c>null</c>.</exception>
         Task SetRequiredSignerAsync(PackageRegistration registration, User signer, bool commitChanges = true);
+
+        /// <summary>
+        /// Updates the deprecation of many packages.
+        /// If any packages have an existing deprecation, it combines the existing state with the new state.
+        /// If only a single package is provided, the existing deprecation is entirely replaced.
+        /// Commits changes when finished.
+        /// </summary>
+        Task UpdateDeprecation(
+            IEnumerable<Package> packages,
+            bool isVulnerable,
+            bool isLegacy,
+            bool isOther,
+            IEnumerable<string> cveIds,
+            decimal? cvssRating,
+            IEnumerable<string> cweIds,
+            PackageRegistration alternatePackageRegistration,
+            Package alternatePackage,
+            string customMessage,
+            bool shouldUnlist);
     }
 }

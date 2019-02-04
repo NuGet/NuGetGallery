@@ -216,6 +216,11 @@ namespace NuGetGallery
                 .As<IEntityRepository<SymbolPackage>>()
                 .InstancePerLifetimeScope();
 
+            builder.RegisterType<EntityRepository<PackageDeprecation>>()
+                .AsSelf()
+                .As<IEntityRepository<PackageDeprecation>>()
+                .InstancePerLifetimeScope();
+
             var supportDbConnectionFactory = CreateDbConnectionFactory(
                 diagnosticsService,
                 nameof(SupportRequestDbContext),
