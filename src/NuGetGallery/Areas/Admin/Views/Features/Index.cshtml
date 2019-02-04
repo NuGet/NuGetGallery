@@ -1,4 +1,5 @@
-﻿@model FeatureFlagsViewModel
+﻿@using NuGetGallery
+@model FeatureFlagsViewModel
 @{
     ViewBag.Title = "Feature Flags";
 }
@@ -10,15 +11,15 @@
 
             <div class="form-group danger-zone">
                 <text>
-                    @using (Html.BeginForm("Update", "Features", FormMethod.Post))
+                    @using (Html.BeginForm("Index", "Features", FormMethod.Post))
                     {
                         @Html.AntiForgeryToken()
+                        @Html.Hidden("ContentId", Model.ContentId)
 
-                        <input type="hidden" name="contentId" value="@Model.ContentId" />
-
-                        <div class="form-group">
-                            <label for="Flags">JSON</label>
-                            <textarea aria-labelledby="flags-label" aria-required="true" class="form-control" cols="50" rows="30" name="Flags">@Model.Flags</textarea>
+                        <div class="form-group @Html.HasErrorFor(m => m.Flags)">
+                            @Html.ShowLabelFor(m => m.Flags)
+                            @Html.ShowTextAreaFor(m => m.Flags, rows: 30, columns: 50)
+                            @Html.ShowValidationMessagesFor(m => m.Flags)
                         </div>
 
                         <div class="form-group">

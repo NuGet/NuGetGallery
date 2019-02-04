@@ -23,14 +23,23 @@ namespace NuGetGallery.Areas.Admin.Controllers
         {
             var reference = await _storage.GetReferenceAsync();
 
-            return View(nameof(Index), new FeatureFlagsViewModel(reference.Flags, reference.ContentId));
+            return View(nameof(Index), new FeatureFlagsViewModel
+            {
+                Flags = reference.Flags,
+                ContentId = reference.ContentId
+            });
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Update(string flags, string contentId)
+        public async Task<ActionResult> Index(FeatureFlagsViewModel model)
         {
-            var result = await _storage.TrySaveAsync(flags, contentId);
+            if (!ModelState.IsValid)
+            {
+                return View(nameof(Index), model);
+            }
+
+            var result = await _storage.TrySaveAsync(model.Flags, model.ContentId);
 
             switch (result)
             {
@@ -39,6 +48,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                     break;
 
                 case FeatureFlagSaveResult.Invalid:
+                    // This case shouldn't happen as the ModelState should be invalid.
                     TempData["ErrorMessage"] = "Could not save feature flags as they were malformed.";
                     break;
 

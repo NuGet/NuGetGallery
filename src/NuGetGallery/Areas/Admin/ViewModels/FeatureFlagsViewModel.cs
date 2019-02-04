@@ -1,29 +1,17 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace NuGetGallery.Areas.Admin.ViewModels
 {
     public class FeatureFlagsViewModel
     {
-        public FeatureFlagsViewModel(string flags, string contentId)
-        {
-            if (string.IsNullOrEmpty(flags))
-            {
-                throw new ArgumentException(nameof(flags));
-            }
+        [Required]
+        [FeatureFlagsJsonValidation]
+        public string Flags { get; set; }
 
-            if (string.IsNullOrEmpty(contentId))
-            {
-                throw new ArgumentException(nameof(contentId));
-            }
-
-            Flags = flags;
-            ContentId = contentId;
-        }
-
-        public string Flags { get; }
-        public string ContentId { get; }
+        [Required]
+        public string ContentId { get; set; }
     }
 }

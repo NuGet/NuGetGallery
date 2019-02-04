@@ -72,7 +72,7 @@ namespace NuGetGallery.Features
             }
         }
 
-        private bool IsValidFlagsJson(string flags)
+        public static bool IsValidFlagsJson(string flags)
         {
             try
             {
