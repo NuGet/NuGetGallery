@@ -88,7 +88,7 @@
     </div>
 
     <div class="deprecation-section form-group">
-        <button class="btn full-line" type="submit" data-bind="click: submit">Save</button>
+        <button class="btn btn-primary full-line" type="submit" data-bind="click: submit">Save</button>
     </div>
 </script>
 
@@ -101,10 +101,10 @@
         </div>
         <div class="security-detail-input" data-bind="visible: hasIds">
             <input class="form-control" name="addId" type="text" data-bind="textInput: addId" />
-            <button data-bind="click: add">Add</button>
+            <button class="btn btn-primary" data-bind="click: add">Add</button>
         </div>
         <div class="security-detail-list" data-bind="visible: $data, foreach: ids">
-            <div class="security-detail-list-item panel panel-default">
+            <div class="security-detail-list-item alert-info">
                 <span data-bind="text: $data"></span>
                 <a class="icon-link"
                    href="#"
