@@ -1074,11 +1074,11 @@ img.reserved-indicator-icon {
   margin-bottom: 15px;
 }
 .page-manage-deprecation .deprecation-section .security-detail {
-  padding: 15px;
+  padding: 10px;
 }
 .page-manage-deprecation .deprecation-section .security-detail .security-detail-input-label {
   display: block;
-  margin-top: 15px;
+  margin-bottom: 0;
   font-weight: normal;
 }
 .page-manage-deprecation .deprecation-section .security-detail .security-detail-input {
@@ -1086,7 +1086,7 @@ img.reserved-indicator-icon {
   display: -webkit-flex;
   display: -ms-flexbox;
   display:         flex;
-  margin-top: 15px;
+  margin-top: 10px;
 
   -webkit-box-pack: justify;
   -webkit-justify-content: space-between;
@@ -1100,11 +1100,11 @@ img.reserved-indicator-icon {
   margin-left: 15px;
 }
 .page-manage-deprecation .deprecation-section .security-detail .security-detail-list {
-  margin-top: 15px;
+  margin-top: 10px;
 }
 .page-manage-deprecation .deprecation-section .security-detail .security-detail-list .security-detail-list-item {
-  padding: 15px;
-  margin-top: 15px;
+  padding: 10px;
+  margin-top: 10px;
 }
 .page-manage-organizations h1 {
   margin-bottom: 0;

@@ -23,7 +23,7 @@
 <script type="text/html" id="add-deprecation-template">
     <div class="deprecation-section form-group">
         <label for="versions" class="deprecation-section-header">Select version(s)</label>
-        <select name="versions" class="full-line" data-bind="options: versions, selectedOptions: chosenVersions, attr: { size: versions.length }" multiple></select>
+        <select class="form-control full-line" name="versions" data-bind="options: versions, selectedOptions: chosenVersions, attr: { size: versions.length }" multiple></select>
     </div>
 
     <div class="deprecation-section">
@@ -55,7 +55,7 @@
                 <label class="security-detail-input-label" for="addCveId">You can provide a list of CVEs.</label>
             </div>
             <div class="security-detail-input" data-bind="visible: hasCveIds">
-                <input name="addCveId" type="text" data-bind="textInput: addCveId" />
+                <input class="form-control" name="addCveId" type="text" data-bind="textInput: addCveId" />
                 <button data-bind="click: addCve">Add</button>
             </div>
             <div data-bind="template: { name: 'deprecation-security-detail-list-template', data: cveIds }"></div>
@@ -67,7 +67,7 @@
                 <label class="security-detail-input-label" for="selectedCvssRating">You can add the vulnerability rating (0-10) applicable to the vulnerabilities.</label>
             </div>
             <div class="security-detail-input" data-bind="visible: hasCvss">
-                <input name="selectedCvssRating" type="text" data-bind="textInput: selectedCvssRating" />
+                <input class="form-control" name="selectedCvssRating" type="text" data-bind="textInput: selectedCvssRating" />
             </div>
         </div>
         <div class="security-detail panel panel-default">
@@ -77,7 +77,7 @@
                 <label class="security-detail-input-label" for="addCweId">You can add one or more CWE(s) applicable to the vulnerability.</label>
             </div>
             <div class="security-detail-input" data-bind="visible: hasCweIds">
-                <input name="addCweId" type="text" data-bind="textInput: addCweId" />
+                <input class="form-control" name="addCweId" type="text" data-bind="textInput: addCweId" />
                 <button data-bind="click: addCwe">Add</button>
             </div>
             <div data-bind="template: { name: 'deprecation-security-detail-list-template', data: cweIds }"></div>
@@ -91,13 +91,13 @@
         </div>
         <div class="col-md-2">
             <label for="alternatePackageVersion" class="deprecation-section-header">Version</label>
-            <select name="alternatePackageVersion" class="full-line" data-bind="options: alternatePackageVersions, value: chosenAlternatePackageVersion, enable: hasAlternatePackageVersions" size="1"></select>
+            <select class="form-control full-line" name="alternatePackageVersion" data-bind="options: alternatePackageVersions, value: chosenAlternatePackageVersion, enable: hasAlternatePackageVersions" size="1"></select>
         </div>
     </div>
 
     <div class="deprecation-section form-group">
         <label for="customMessage" class="deprecation-section-header">Provide custom message</label>
-        <textarea name="customMessage" class="full-line" data-bind="textInput: customMessage" rows="2"></textarea>
+        <textarea name="customMessage" class="form-control full-line" data-bind="textInput: customMessage" rows="2"></textarea>
     </div>
 
     <div class="deprecation-section form-group">

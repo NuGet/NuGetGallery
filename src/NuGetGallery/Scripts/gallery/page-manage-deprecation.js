@@ -139,13 +139,21 @@ function ManageDeprecationViewModel(id, versionsDictionary, defaultVersion, subm
         self.isOther(version.IsOther);
 
         self.hasCveIds(version.CVEIds !== null && version.CVEIds.length);
-        self.addedCveIds(version.CVEIds);
+        if (version.CVEIds) {
+            self.addedCveIds(version.CVEIds);
+        } else {
+            self.addedCveIds.removeAll();
+        }
 
         self.hasCvss(version.CVSSRating);
         self.selectedCvssRating(version.CVSSRating);
 
         self.hasCweIds(version.CWEIds !== null && version.CWEIds.length);
-        self.addedCweIds(version.CWEIds);
+        if (version.CWEIds) {
+            self.addedCweIds(version.CWEIds);
+        } else {
+            self.addedCweIds.removeAll();
+        }
 
         self.alternatePackageId(version.AlternatePackageId);
         if (version.AlternatePackageVersion) {
