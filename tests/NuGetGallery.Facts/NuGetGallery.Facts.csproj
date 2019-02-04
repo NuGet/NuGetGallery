@@ -70,6 +70,7 @@
     <Compile Include="Areas\Admin\HelperFacts.cs" />
     <Compile Include="Areas\Admin\Services\RevalidationAdminServiceFacts.cs" />
     <Compile Include="Areas\Admin\Services\ValidationAdminServiceFacts.cs" />
+    <Compile Include="Areas\Admin\ViewModels\FeatureFlagsJsonValidationAttributeFacts.cs" />
     <Compile Include="Authentication\ApiScopeEvaluationResultFacts.cs" />
     <Compile Include="Authentication\ApiScopeEvaluatorFacts.cs" />
     <Compile Include="Authentication\AuthenticatorFacts.cs" />
