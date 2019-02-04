@@ -134,6 +134,7 @@
     <Compile Include="App_Start\AutofacConfig.cs" />
     <Compile Include="Areas\Admin\Controllers\DeleteAccountController.cs" />
     <Compile Include="Areas\Admin\Controllers\DeleteController.cs" />
+    <Compile Include="Areas\Admin\Controllers\FeaturesController.cs" />
     <Compile Include="Areas\Admin\Controllers\LockPackageController.cs" />
     <Compile Include="Areas\Admin\Controllers\ReservedNamespaceController.cs" />
     <Compile Include="Areas\Admin\Controllers\RevalidationController.cs" />
@@ -180,6 +181,7 @@
     <Compile Include="Areas\Admin\Services\ValidationAdminService.cs" />
     <Compile Include="Areas\Admin\ViewModels\DeleteAccountAsAdminViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\DeleteAccountStatus.cs" />
+    <Compile Include="Areas\Admin\ViewModels\FeatureFlagsViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\HardDeleteReflowBulkRequestConfirmation.cs" />
     <Compile Include="Areas\Admin\ViewModels\HardDeleteReflowBulkRequest.cs" />
     <Compile Include="Areas\Admin\ViewModels\HardDeleteReflowRequest.cs" />
@@ -1839,6 +1841,7 @@
     <Content Include="Public\robots.txt" />
     <Content Include="App_Data\Files\Content\Typosquatting-Configuration.json" />
     <Content Include="App_Data\Files\Content\flags.json" />
+    <Content Include="Areas\Admin\Views\Features\Index.cshtml" />
     <None Include="Properties\PublishProfiles\nuget-staging-frontend.pubxml" />
     <Content Include="Scripts\gallery\**\*" />
     <Content Include="Web.config">

@@ -166,12 +166,10 @@ namespace NuGetGallery
                 auther.Startup(config, app).Wait();
             }
 
-            // Ensure feature flags are loaded once at startup, and then refresh them in the background.
             var featureFlags = DependencyResolver.Current.GetService<IFeatureFlagCacheService>();
             if (featureFlags != null)
             {
-                featureFlags.RefreshAsync().Wait();
-                HostingEnvironment.QueueBackgroundWorkItem(featureFlags.RunAsync);
+                StartFeatureFlags(featureFlags);
             }
 
             // Catch unobserved exceptions from threads before they cause IIS to crash:
@@ -213,6 +211,21 @@ namespace NuGetGallery
             };
 
             HasRun = true;
+        }
+
+        private static void StartFeatureFlags(IFeatureFlagCacheService featureFlags)
+        {
+            // Try to load the feature flags once at startup.
+            try
+            {
+                featureFlags.RefreshAsync().Wait();
+            }
+            catch (Exception)
+            {
+            }
+
+            // Continuously refresh the feature flags in the background.
+            HostingEnvironment.QueueBackgroundWorkItem(featureFlags.RunAsync);
         }
     }
 }
