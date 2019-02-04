@@ -103,14 +103,15 @@
             <input class="form-control" name="addId" type="text" data-bind="textInput: addId" />
             <button data-bind="click: add">Add</button>
         </div>
-        <div data-bind="template: { name: 'deprecation-security-detail-list-template', data: ids }"></div>
-    </div>
-</script>
-
-<script type="text/html" id="deprecation-security-detail-list-template">
-    <div class="security-detail-list" data-bind="visible: $data, foreach: $data">
-        <div class="security-detail-list-item panel panel-default">
-            <span data-bind="text: $data"></span>
+        <div class="security-detail-list" data-bind="visible: $data, foreach: ids">
+            <div class="security-detail-list-item panel panel-default">
+                <span data-bind="text: $data"></span>
+                <a class="icon-link"
+                   href="#"
+                   data-bind="click: $parent.remove.bind($data)">
+                    <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
+                </a>
+            </div>
         </div>
     </div>
 </script>

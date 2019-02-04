@@ -21,6 +21,10 @@ function ManageDeprecationSecurityDetailListViewModel(title, label) {
         self.addId('');
     };
 
+    this.remove = function (id) {
+        self.addedIds.remove(id);
+    };
+
     this.import = function (ids) {
         var hasIds = ids !== null && ids.length;
         self.hasIds(hasIds);
