@@ -1,5 +1,41 @@
 ﻿'use strict';
 
+function ManageDeprecationSecurityDetailListViewModel(title, label) {
+    var self = this;
+
+    this.title = ko.observable(title);
+    this.label = ko.observable(label);
+
+    this.hasIds = ko.observable(false);
+    this.addedIds = ko.observableArray();
+    this.ids = ko.pureComputed(function () {
+        if (self.hasIds()) {
+            return self.addedIds();
+        } else {
+            return [];
+        }
+    }, this);
+    this.addId = ko.observable('');
+    this.add = function () {
+        self.addedIds.push(self.addId());
+        self.addId('');
+    };
+
+    this.import = function (ids) {
+        var hasIds = ids !== null && ids.length;
+        self.hasIds(hasIds);
+        if (hasIds) {
+            self.addedIds(ids);
+        } else {
+            self.addedIds.removeAll();
+        }
+    };
+
+    this.export = function () {
+        return self.ids().slice(0);
+    };
+}
+
 function ManageDeprecationViewModel(id, versionsDictionary, defaultVersion, submitUrl, packageUrl) {
     var self = this;
 
@@ -10,20 +46,9 @@ function ManageDeprecationViewModel(id, versionsDictionary, defaultVersion, subm
     this.isLegacy = ko.observable(false);
     this.isOther = ko.observable(false);
 
-    this.hasCveIds = ko.observable(false);
-    this.addedCveIds = ko.observableArray();
-    this.cveIds = ko.pureComputed(function () {
-        if (self.hasCveIds()) {
-            return self.addedCveIds();
-        } else {
-            return [];
-        }
-    }, this);
-    this.addCveId = ko.observable('');
-    this.addCve = function () {
-        self.addedCveIds.push(self.addCveId());
-        self.addCveId('');
-    };
+    this.cves = new ManageDeprecationSecurityDetailListViewModel(
+        "CVE ID(s)",
+        "You can provide a list of CVEs.");
 
     this.hasCvss = ko.observable(false);
     this.selectedCvssRating = ko.observable(0);
@@ -35,20 +60,9 @@ function ManageDeprecationViewModel(id, versionsDictionary, defaultVersion, subm
         }
     }, this);
 
-    this.hasCweIds = ko.observable(false);
-    this.addedCweIds = ko.observableArray();
-    this.cweIds = ko.pureComputed(function () {
-        if (self.hasCweIds()) {
-            return self.addedCweIds();
-        } else {
-            return [];
-        }
-    }, this);
-    this.addCweId = ko.observable('');
-    this.addCwe = function () {
-        self.addedCweIds.push(self.addCweId());
-        self.addCweId('');
-    };
+    this.cwes = new ManageDeprecationSecurityDetailListViewModel(
+        "CWE(s)",
+        "You can add one or more CWE(s) applicable to the vulnerability.");
 
     this.alternatePackageId = ko.observable('');
     this.alternatePackageVersionsCached = ko.observableArray();
@@ -83,9 +97,9 @@ function ManageDeprecationViewModel(id, versionsDictionary, defaultVersion, subm
                 isVulnerable: self.isVulnerable(),
                 isLegacy: self.isLegacy(),
                 isOther: self.isOther(),
-                cveIds: self.cveIds(),
+                cveIds: self.cves.export(),
                 cvssRating: self.cvssRating(),
-                cweIds: self.cweIds(),
+                cweIds: self.cwes.export(),
                 alternatePackageId: self.alternatePackageId(),
                 alternatePackageVersion: self.alternatePackageVersion(),
                 customMessage: self.customMessage(),
@@ -114,9 +128,9 @@ function ManageDeprecationViewModel(id, versionsDictionary, defaultVersion, subm
         version.IsVulnerable = self.isVulnerable();
         version.IsLegacy = self.isLegacy();
         version.IsOther = self.isOther();
-        version.CVEIds = self.cveIds();
+        version.CVEIds = self.cves.export();
         version.CVSSRating = self.cvssRating();
-        version.CWEIds = self.cweIds();
+        version.CWEIds = self.cwes.export();
         version.AlternatePackageId = self.alternatePackageId();
         version.AlternatePackageVersion = self.alternatePackageVersion();
         version.CustomMessage = self.customMessage();
@@ -138,22 +152,12 @@ function ManageDeprecationViewModel(id, versionsDictionary, defaultVersion, subm
         self.isLegacy(version.IsLegacy);
         self.isOther(version.IsOther);
 
-        self.hasCveIds(version.CVEIds !== null && version.CVEIds.length);
-        if (version.CVEIds) {
-            self.addedCveIds(version.CVEIds);
-        } else {
-            self.addedCveIds.removeAll();
-        }
+        self.cves.import(version.CVEIds);
 
         self.hasCvss(version.CVSSRating);
         self.selectedCvssRating(version.CVSSRating);
 
-        self.hasCweIds(version.CWEIds !== null && version.CWEIds.length);
-        if (version.CWEIds) {
-            self.addedCweIds(version.CWEIds);
-        } else {
-            self.addedCweIds.removeAll();
-        }
+        self.cwes.import(version.CWEIds);
 
         self.alternatePackageId(version.AlternatePackageId);
         if (version.AlternatePackageVersion) {
