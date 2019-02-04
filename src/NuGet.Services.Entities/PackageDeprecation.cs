@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -93,15 +94,13 @@ namespace NuGet.Services.Entities
         public decimal? CVSSRating { get; set; }
 
         /// <summary>
-        /// Gets or sets the serialized JSON object containing an array of CVE ID's related to this deprecation.
-        /// The JSON object should have a version property that defines the version of its schema.
+        /// Gets or sets the collection of CVE's related to this deprecation.
         /// </summary>
-        public string CVEIds { get; set; }
+        public virtual ICollection<CVE> CVEs { get; set; }
 
         /// <summary>
-        /// Gets or sets the serialized JSON object containing an array of CWE ID's related to this deprecation.
-        /// The JSON object should have a version property that defines the version of its schema.
+        /// Gets or sets the collection of CWE's related to this deprecation.
         /// </summary>
-        public string CWEIds { get; set; }
+        public virtual ICollection<CWE> CWEs { get; set; }
     }
 }

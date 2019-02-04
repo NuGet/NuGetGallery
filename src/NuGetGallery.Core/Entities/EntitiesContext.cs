@@ -371,6 +371,12 @@ namespace NuGetGallery
             modelBuilder.Entity<PackageDeprecation>()
                 .HasKey(d => d.Key);
 
+            modelBuilder.Entity<CVE>()
+                .HasKey(d => d.Key);
+
+            modelBuilder.Entity<CWE>()
+                .HasKey(d => d.Key);
+
             modelBuilder.Entity<Package>()
                 .HasMany(p => p.Deprecations)
                 .WithRequired(d => d.Package)
@@ -398,6 +404,14 @@ namespace NuGetGallery
             modelBuilder.Entity<PackageDeprecation>()
                 .Property(v => v.CVSSRating)
                 .HasPrecision(3, 1);
+
+            modelBuilder.Entity<PackageDeprecation>()
+                .HasMany(p => p.CVEs)
+                .WithMany(c => c.PackageDeprecations);
+
+            modelBuilder.Entity<PackageDeprecation>()
+                .HasMany(p => p.CWEs)
+                .WithMany(c => c.PackageDeprecations);
         }
 #pragma warning restore 618
     }
