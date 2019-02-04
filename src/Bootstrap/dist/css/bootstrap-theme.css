@@ -1115,6 +1115,11 @@ img.reserved-indicator-icon {
   -ms-flex-pack: justify;
           justify-content: space-between;
 }
+@media (max-width: 768px) {
+  .page-manage-deprecation .deprecation-section .alternate-package-container {
+    margin-top: 40px;
+  }
+}
 .page-manage-organizations h1 {
   margin-bottom: 0;
 }

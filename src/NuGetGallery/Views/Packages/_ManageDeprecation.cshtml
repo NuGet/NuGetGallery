@@ -63,11 +63,11 @@
     </div>
 
     <div class="deprecation-section row" data-bind="visible: isLegacy">
-        <div class="col-md-10">
+        <div class="col-sm-7 alternate-package-registration-container">
             <label for="alternatePackageId" class="deprecation-section-header">Alternate package</label>
             <input name="alternatePackageId" class="full-line" type="text" data-bind="textInput: alternatePackageId" />
         </div>
-        <div class="col-md-2">
+        <div class="col-sm-5 alternate-package-container">
             <label for="alternatePackageVersion" class="deprecation-section-header">Version</label>
             <select class="form-control full-line" name="alternatePackageVersion" data-bind="options: alternatePackageVersions, value: chosenAlternatePackageVersion, enable: hasAlternatePackageVersions" size="1"></select>
         </div>
