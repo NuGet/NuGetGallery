@@ -32,6 +32,8 @@ function ManageDeprecationSecurityDetailListViewModel(title, label) {
     };
 
     this.export = function () {
+        // Copy the array. 
+        // Otherwise, the value returned by this function will change based on the UI.
         return self.ids().slice(0);
     };
 }
