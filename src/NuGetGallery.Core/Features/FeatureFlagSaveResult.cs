@@ -3,10 +3,24 @@
 
 namespace NuGetGallery.Features
 {
+    /// <summary>
+    /// The result of calling <see cref="FeatureFlagFileStorageService.TrySaveAsync(string, string)"/>.
+    /// </summary>
     public enum FeatureFlagSaveResult
     {
+        /// <summary>
+        /// The flags were saved successfully.
+        /// </summary>
         Ok,
+
+        /// <summary>
+        /// The flags are malformed.
+        /// </summary>
         Invalid,
+
+        /// <summary>
+        /// The flags were modified by someone else.
+        /// </summary>
         Conflict,
     }
 }

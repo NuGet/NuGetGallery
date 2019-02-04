@@ -5,6 +5,9 @@ using System;
 
 namespace NuGetGallery.Features
 {
+    /// <summary>
+    /// A snapshot of the flags' content and ETag.
+    /// </summary>
     public class FeatureFlagReference
     {
         public FeatureFlagReference(string flags, string contentId)
@@ -23,7 +26,14 @@ namespace NuGetGallery.Features
             ContentId = contentId;
         }
 
+        /// <summary>
+        /// The feature flag's content, serialized as JSON.
+        /// </summary>
         public string Flags { get; }
+
+        /// <summary>
+        /// The feature flag's ETag.
+        /// </summary>
         public string ContentId { get; }
     }
 }
