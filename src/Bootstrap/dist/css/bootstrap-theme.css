@@ -1073,6 +1073,9 @@ img.reserved-indicator-icon {
 .page-manage-deprecation .deprecation-section .deprecation-section-header {
   margin-bottom: 15px;
 }
+.page-manage-deprecation .deprecation-section .reason label {
+  font-weight: normal;
+}
 .page-manage-deprecation .deprecation-section .security-detail {
   padding: 10px;
 }
