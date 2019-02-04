@@ -36,7 +36,7 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
         [Fact]
         [Description("Upload two packages and then issue the FindPackagesById request, expect to return both versions")]
         [Priority(1)]
-        [Category("P0Tests")]
+        [Category("P1Tests")]
         public async Task FindPackagesByIdTest()
         {
             var packageInfo = await _clientSdkHelper.UploadPackageVersion();

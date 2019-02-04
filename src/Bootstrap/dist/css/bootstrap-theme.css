@@ -497,6 +497,10 @@ img.reserved-indicator-icon {
   margin-left: 3px;
   vertical-align: top;
 }
+.list-packages .package .package-header .edit-button {
+  margin-left: 10px;
+  vertical-align: text-bottom;
+}
 .list-packages .package .package-header .package-by {
   margin-left: 10px;
   color: #000;
@@ -909,6 +913,9 @@ img.reserved-indicator-icon {
 .page-downloads .list-tools li {
   margin-top: 20px;
 }
+.page-edit-package .readme-tabs {
+  margin-top: 40px;
+}
 .page-edit-package .readonly {
   display: none;
 }
@@ -1108,17 +1115,13 @@ img.reserved-indicator-icon {
   display: table-cell;
   vertical-align: middle;
 }
-.page-manage-owners h2 .ms-Icon {
-  position: relative;
-  top: -2px;
-  font-size: .6em;
+.page-manage-owners b {
+  display: inline-block;
+  margin-top: 40px;
+  margin-bottom: 15px;
 }
-.page-manage-owners h2 a {
-  color: #000;
-  text-decoration: none;
-}
-.page-manage-owners h2 a:hover {
-  text-decoration: none;
+.page-manage-owners b:first-of-type {
+  margin-top: 0;
 }
 .page-manage-owners .current-owner {
   margin-bottom: 10px;
@@ -1196,8 +1199,10 @@ img.reserved-indicator-icon {
   width: 100%;
   max-width: 90%;
 }
-.page-delete-package h1 {
-  margin-bottom: 0;
+.page-delete-package b {
+  display: inline-block;
+  margin-top: 40px;
+  margin-bottom: 15px;
 }
 .page-delete-package #show-delete-package {
   color: #df001e;

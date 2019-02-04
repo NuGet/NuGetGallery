@@ -53,6 +53,7 @@ namespace NuGetGallery
         public const string NewSubmission = "NewSubmission";
         public const string VerifyPackage = "VerifyPackage";
         public const string PreviewReadMe = "PreviewReadMe";
+        public const string GetReadMeMd = "GetReadMeMd";
         public const string CreatePackageVerificationKey = "CreatePackageVerificationKey";
         public const string VerifyPackageKey = "VerifyPackageKey";
         public const string CancelUpload = "CancelUpload";
@@ -99,5 +100,8 @@ namespace NuGetGallery
         public const string GetOrganizationCertificates = "GetOrganizationCertificates";
         public const string SetRequiredSigner = "SetRequiredSigner";
         public const string License = "License";
+        public const string ApiV2CuratedSimulateError = "api-v2curated-simulate-error";
+        public const string PagesSimulateError = "PagesSimulateError";
+        public const string ApiSimulateError = "ApiSimulateError";
     }
 }

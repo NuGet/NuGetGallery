@@ -275,6 +275,12 @@ namespace NuGetGallery
             return new HttpStatusCodeWithBodyResult(HttpStatusCode.OK, "Gallery is Available");
         }
 
+        [HttpGet]
+        public virtual ActionResult SimulateError(SimulatedErrorType type = SimulatedErrorType.Exception)
+        {
+            return type.MapToMvcResult();
+        }
+
         [HttpPost]
         [ApiAuthorize]
         [ApiScopeRequired(NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion)]
@@ -689,7 +695,7 @@ namespace NuGetGallery
                                     ConfigurationService.Current,
                                     package,
                                     Url.Package(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
-                                    Url.ReportPackage(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
+                                    Url.ReportPackage(package, relativeUrl: false),
                                     Url.AccountSettings(relativeUrl: false),
                                     packagePolicyResult.WarningMessages);
 
@@ -703,7 +709,7 @@ namespace NuGetGallery
                                     ConfigurationService.Current,
                                     package,
                                     Url.Package(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
-                                    Url.ReportPackage(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
+                                    Url.ReportPackage(package, relativeUrl: false),
                                     packagePolicyResult.WarningMessages);
 
                                 await MessageService.SendMessageAsync(packageAddedWithWarningsMessage);
