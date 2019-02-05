@@ -1083,15 +1083,18 @@ img.reserved-indicator-icon {
 .page-manage-deprecation .deprecation-section .unbolded-label label {
   font-weight: normal;
 }
-.page-manage-deprecation .deprecation-section .security-detail {
+.page-manage-deprecation .deprecation-section .deprecation-subsection {
+  margin: 25px;
+}
+.page-manage-deprecation .deprecation-section .deprecation-subsection .security-detail {
   padding: 10px;
 }
-.page-manage-deprecation .deprecation-section .security-detail .security-detail-input-label {
+.page-manage-deprecation .deprecation-section .deprecation-subsection .security-detail .security-detail-input-label {
   display: block;
   margin-bottom: 0;
   font-weight: normal;
 }
-.page-manage-deprecation .deprecation-section .security-detail .security-detail-input {
+.page-manage-deprecation .deprecation-section .deprecation-subsection .security-detail .security-detail-input {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -1103,16 +1106,16 @@ img.reserved-indicator-icon {
   -ms-flex-pack: justify;
           justify-content: space-between;
 }
-.page-manage-deprecation .deprecation-section .security-detail .security-detail-input input {
+.page-manage-deprecation .deprecation-section .deprecation-subsection .security-detail .security-detail-input input {
   width: 100%;
 }
-.page-manage-deprecation .deprecation-section .security-detail .security-detail-input button {
+.page-manage-deprecation .deprecation-section .deprecation-subsection .security-detail .security-detail-input button {
   margin-left: 15px;
 }
-.page-manage-deprecation .deprecation-section .security-detail .security-detail-list {
+.page-manage-deprecation .deprecation-section .deprecation-subsection .security-detail .security-detail-list {
   margin-top: 10px;
 }
-.page-manage-deprecation .deprecation-section .security-detail .security-detail-list .security-detail-list-item {
+.page-manage-deprecation .deprecation-section .deprecation-subsection .security-detail .security-detail-list .security-detail-list-item {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -1126,7 +1129,7 @@ img.reserved-indicator-icon {
           justify-content: space-between;
 }
 @media (max-width: 768px) {
-  .page-manage-deprecation .deprecation-section .alternate-package-container {
+  .page-manage-deprecation .deprecation-section .deprecation-subsection .alternate-package-container {
     margin-top: 40px;
   }
 }

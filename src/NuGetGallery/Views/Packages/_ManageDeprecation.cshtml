@@ -56,11 +56,42 @@
                 This package has <b>security vulnerabilities</b>
             </label>
         </div>
+        <div class="deprecation-subsection" data-bind="visible: isVulnerable">
+            <div class="deprecation-section-header">
+                <b>Provide additional security details</b>
+            </div>
+            <div data-bind="template: { name: 'deprecation-security-detail-list-input-template', data: cves }"></div>
+            <div class="security-detail panel panel-default">
+                <div>
+                    <label>
+                        <input name="hasCvss" type="checkbox" value="true" data-bind="checked: hasCvss" />
+                        CVSS Quality Severity Rating
+                    </label>
+                    <label class="security-detail-input-label" for="selectedCvssRating">You can add the vulnerability rating (0-10) applicable to the vulnerabilities.</label>
+                </div>
+                <div class="security-detail-input" data-bind="visible: hasCvss">
+                    <input class="form-control" name="selectedCvssRating" type="text" data-bind="textInput: selectedCvssRating" />
+                </div>
+            </div>
+            <div data-bind="template: { name: 'deprecation-security-detail-list-input-template', data: cwes }"></div>
+        </div>
         <div class="form-group unbolded-label">
             <label>
                 <input name="isLegacy" type="checkbox" value="true" data-bind="checked: isLegacy" />
                 This package is <b>legacy</b> and is no longer maintained
             </label>
+        </div>
+        <div class="deprecation-subsection" data-bind="visible: isLegacy">
+            <div class="row">
+                <div class="col-sm-7 alternate-package-registration-container">
+                    <label for="alternatePackageId" class="deprecation-section-header">Alternate package</label>
+                    <input name="alternatePackageId" class="form-control full-line" type="text" data-bind="textInput: alternatePackageId" />
+                </div>
+                <div class="col-sm-5 alternate-package-container">
+                    <label for="alternatePackageVersion" class="deprecation-section-header">Version</label>
+                    <select class="form-control full-line" name="alternatePackageVersion" data-bind="options: alternatePackageVersions, value: chosenAlternatePackageVersion, enable: hasAlternatePackageVersions" size="1"></select>
+                </div>
+            </div>
         </div>
         <div class="form-group unbolded-label">
             <label>
@@ -70,38 +101,7 @@
         </div>
     </div>
 
-    <div class="deprecation-section" data-bind="visible: isVulnerable">
-        <div class="deprecation-section-header">
-            <b>Provide additional security details</b>
-        </div>
-        <div data-bind="template: { name: 'deprecation-security-detail-list-input-template', data: cves }"></div>
-        <div class="security-detail panel panel-default">
-            <div>
-                <label>
-                    <input name="hasCvss" type="checkbox" value="true" data-bind="checked: hasCvss" />
-                    CVSS Quality Severity Rating
-                </label>
-                <label class="security-detail-input-label" for="selectedCvssRating">You can add the vulnerability rating (0-10) applicable to the vulnerabilities.</label>
-            </div>
-            <div class="security-detail-input" data-bind="visible: hasCvss">
-                <input class="form-control" name="selectedCvssRating" type="text" data-bind="textInput: selectedCvssRating" />
-            </div>
-        </div>
-        <div data-bind="template: { name: 'deprecation-security-detail-list-input-template', data: cwes }"></div>
-    </div>
-
-    <div class="deprecation-section row" data-bind="visible: isLegacy">
-        <div class="col-sm-7 alternate-package-registration-container">
-            <label for="alternatePackageId" class="deprecation-section-header">Alternate package</label>
-            <input name="alternatePackageId" class="form-control full-line" type="text" data-bind="textInput: alternatePackageId" />
-        </div>
-        <div class="col-sm-5 alternate-package-container">
-            <label for="alternatePackageVersion" class="deprecation-section-header">Version</label>
-            <select class="form-control full-line" name="alternatePackageVersion" data-bind="options: alternatePackageVersions, value: chosenAlternatePackageVersion, enable: hasAlternatePackageVersions" size="1"></select>
-        </div>
-    </div>
-
-    <div class="deprecation-section form-group">
+    <div class="deprecation-section form-group" data-bind="visible: isVulnerable() || isLegacy() || isOther()">
         <label for="customMessage" class="deprecation-section-header">Provide custom message</label>
         <textarea name="customMessage" class="form-control full-line" data-bind="textInput: customMessage" rows="2"></textarea>
     </div>
