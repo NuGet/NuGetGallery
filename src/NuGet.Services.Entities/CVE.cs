@@ -19,14 +19,20 @@ namespace NuGet.Services.Entities
         public int Key { get; set; }
 
         /// <summary>
-        /// Gets or sets the unique CVE-ID.
+        /// Gets or sets the unique CVE ID.
+        /// The CVE ID number has four or more digits in the sequence number portion of the ID (e.g., "CVE-1999-0067", "CVE-2014-12345", "CVE-2016-7654321").
         /// </summary>
+        // sources:
+        //  * https://cve.mitre.org/cve/identifiers/syntaxchange.html
+        //  * https://cve.mitre.org/about/faqs.html#what_is_cve_id
         [Index(IsUnique = true)]
         [Required]
+        [MaxLength(20)]
         public string CVEId { get; set; }
 
         /// <summary>
-        /// Gets or sets the description of the CWE.
+        /// Gets or sets the description of the CVE.
+        /// The description is a plain language field that describes the vulnerability with sufficient detail as to demonstrate that the vulnerability is unique.
         /// </summary>
         [MaxLength(4000)]
         [Required]

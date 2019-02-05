@@ -372,10 +372,33 @@ namespace NuGetGallery
                 .HasKey(d => d.Key);
 
             modelBuilder.Entity<CVE>()
-                .HasKey(d => d.Key);
+                .HasKey(d => d.Key)
+                .Property(e => e.CVEId)
+                .HasColumnType("varchar")
+                .HasMaxLength(20)
+                .IsRequired();
+
+            modelBuilder.Entity<CVE>()
+                .Property(e => e.Description)
+                .HasMaxLength(4000)
+                .IsRequired();
 
             modelBuilder.Entity<CWE>()
-                .HasKey(d => d.Key);
+                .HasKey(d => d.Key)
+                .Property(e => e.CWEId)
+                .HasColumnType("varchar")
+                .HasMaxLength(20)
+                .IsRequired();
+
+            modelBuilder.Entity<CWE>()
+                .Property(e => e.Name)
+                .HasMaxLength(200)
+                .IsRequired();
+
+            modelBuilder.Entity<CWE>()
+                .Property(e => e.Description)
+                .HasMaxLength(600)
+                .IsRequired();
 
             modelBuilder.Entity<Package>()
                 .HasMany(p => p.Deprecations)

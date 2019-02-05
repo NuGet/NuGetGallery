@@ -23,6 +23,7 @@ namespace NuGet.Services.Entities
         /// </summary>
         [Index(IsUnique = true)]
         [Required]
+        [MaxLength(20)]
         public string CWEId { get; set; }
 
         /// <summary>

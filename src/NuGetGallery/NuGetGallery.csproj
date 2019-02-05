@@ -409,10 +409,6 @@
     <Compile Include="Migrations\201901142143060_AddDeprecationEntities.Designer.cs">
       <DependentUpon>201901142143060_AddDeprecationEntities.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\201902051256107_AddVulnerabilityEntities.cs" />
-    <Compile Include="Migrations\201902051256107_AddVulnerabilityEntities.Designer.cs">
-      <DependentUpon>201902051256107_AddVulnerabilityEntities.cs</DependentUpon>
-    </Compile>
     <Compile Include="RequestModels\DeleteAccountRequest.cs" />
     <Compile Include="Migrations\201710301857232_Organizations.cs" />
     <Compile Include="Migrations\201710301857232_Organizations.Designer.cs">
@@ -1668,9 +1664,6 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201901142143060_AddDeprecationEntities.resx">
       <DependentUpon>201901142143060_AddDeprecationEntities.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201902051256107_AddVulnerabilityEntities.resx">
-      <DependentUpon>201902051256107_AddVulnerabilityEntities.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
