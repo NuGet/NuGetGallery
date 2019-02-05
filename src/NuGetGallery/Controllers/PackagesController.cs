@@ -754,7 +754,7 @@ namespace NuGetGallery
                 {
                     using (var licenseFileStream = await _coreLicenseFileService.DownloadLicenseFileAsync(package))
                     {
-                        licenseFileContents = await StreamHelper.ReadMaxAsync(licenseFileStream, PackageUploadService.MaxAllowedLicenseLength);
+                        licenseFileContents = await StreamHelper.GetStringOrThrowIfTooLongAsync(licenseFileStream, PackageUploadService.MaxAllowedLicenseLength);
                     }
                 }
             }

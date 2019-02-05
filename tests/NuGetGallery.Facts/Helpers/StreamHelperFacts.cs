@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,11 +12,13 @@ namespace NuGetGallery.Helpers
 {
     public class StreamHelperFacts
     {
+        private const int MaxSize = 100;
+
         [Fact]
         public async Task ReadNullStreamThrowException()
         {
             Stream stream = null;
-            var exception = await Assert.ThrowsAsync<ArgumentNullException>(() => StreamHelper.ReadMaxAsync(stream, maxSize: 100));
+            var exception = await Assert.ThrowsAsync<ArgumentNullException>(() => StreamHelper.GetStringOrThrowIfTooLongAsync(stream, MaxSize));
             Assert.Equal(nameof(stream), exception.ParamName);
         }
 
@@ -26,7 +29,7 @@ namespace NuGetGallery.Helpers
         {
             using (var stream = new MemoryStream())
             {
-                var exception = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => StreamHelper.ReadMaxAsync(stream, maxSize));
+                var exception = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => StreamHelper.GetStringOrThrowIfTooLongAsync(stream, maxSize));
                 Assert.Equal(nameof(maxSize), exception.ParamName);
             }
         }
@@ -38,34 +41,40 @@ namespace NuGetGallery.Helpers
         {
             using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(inputContent)))
             {
-                var content = await StreamHelper.ReadMaxAsync(stream, maxSize: 100);
+                var content = await StreamHelper.GetStringOrThrowIfTooLongAsync(stream, MaxSize);
                 Assert.Equal(inputContent, content);
             }
         }
 
-        [Theory]
-        [InlineData(1, 0, -1)]
-        [InlineData(1, 0, 1)]
-        [InlineData(1, 0, 0)]
-        [InlineData(1, -1, -1)]
-        [InlineData(1, -1, 1)]
-        [InlineData(1, -1, 0)]
-        [InlineData(2, 0, -1)]
-        [InlineData(2, 0, 1)]
-        [InlineData(2, 0, 0)]
-        public async Task CheckContentSizeWithDifferentParameters(int maxSizeMultiplier, int maxSizeOffset, int bytesContentSizeOffset)
+        [Fact]
+        public async Task ReadStreamWithLessThanMaxSize()
         {
-            long maxSize = StreamHelper.BufferSize * maxSizeMultiplier + maxSizeOffset;
-            Assert.True(maxSize < long.MaxValue);
-            var bytesContentSize = maxSize + bytesContentSizeOffset;
-            Assert.True(bytesContentSize < int.MaxValue);
-            var bytesContent = new byte[bytesContentSize];
-            var expectedContentSize = Math.Min(bytesContentSize, maxSize);
-
-            using (var stream = new MemoryStream(bytesContent))
+            var byteContent = new byte[MaxSize - 1];
+            using (var stream = new MemoryStream(byteContent))
             {
-                var content = await StreamHelper.ReadMaxAsync(stream, maxSize);
-                Assert.Equal(expectedContentSize, Encoding.UTF8.GetBytes(content).Length);
+                var content = await StreamHelper.GetStringOrThrowIfTooLongAsync(stream, MaxSize);
+                Assert.Equal(byteContent.Length, Encoding.UTF8.GetBytes(content).Length);
+            }
+        }
+
+        [Fact]
+        public async Task ReadStreamWithEqualToMaxSize()
+        {
+            var byteContent = new byte[MaxSize];
+            using (var stream = new MemoryStream(byteContent))
+            {
+                var content = await StreamHelper.GetStringOrThrowIfTooLongAsync(stream, MaxSize);
+                Assert.Equal(byteContent.Length, Encoding.UTF8.GetBytes(content).Length);
+            }
+        }
+
+        [Fact]
+        public async Task ReadStreamWithLargerThanMaxSizeThrowException()
+        {
+            using (var stream = new MemoryStream(new byte[MaxSize + 1]))
+            {
+                var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => StreamHelper.GetStringOrThrowIfTooLongAsync(stream, MaxSize));
+                Assert.Contains(exception.Message, string.Format(CultureInfo.CurrentCulture, Strings.StreamMaxLengthExceeded, MaxSize));
             }
         }
     }

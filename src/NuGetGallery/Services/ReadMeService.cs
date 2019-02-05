@@ -287,7 +287,7 @@ namespace NuGetGallery
 
             using (var readMeMdStream = readMeMdPostedFile.InputStream)
             {
-                return await ReadMaxAsync(readMeMdStream, MaxMdLengthBytes, encoding);
+                return await StreamHelper.GetStringOrThrowIfTooLongAsync(readMeMdStream, MaxMdLengthBytes, encoding);
             }
         }
 
@@ -307,34 +307,9 @@ namespace NuGetGallery
             {
                 using (var httpStream = await client.GetStreamAsync(readMeMdUrl))
                 {
-                    return await ReadMaxAsync(httpStream, MaxMdLengthBytes, encoding);
+                    return await StreamHelper.GetStringOrThrowIfTooLongAsync(httpStream, MaxMdLengthBytes, encoding);
                 }
             }
-        }
-
-        private static async Task<string> ReadMaxAsync(Stream stream, int maxSize, Encoding encoding)
-        {
-            if (encoding == null)
-            {
-                encoding = Encoding.UTF8;
-            }
-
-            int bytesRead;
-            var offset = 0;
-            var buffer = new byte[maxSize + 1];
-
-            while ((bytesRead = await stream.ReadAsync(buffer, offset, buffer.Length - offset)) > 0)
-            {
-                offset += bytesRead;
-
-                if (offset == buffer.Length)
-                {
-                    throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture,
-                        Strings.ReadMeMaxLengthExceeded, maxSize));
-                }
-            }
-
-            return encoding.GetString(buffer).Trim('\0');
         }
 
         private static readonly Regex NewLineRegex = new Regex(@"\n|\r\n");
