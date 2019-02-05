@@ -1095,21 +1095,25 @@ img.reserved-indicator-icon {
   font-weight: normal;
 }
 .page-manage-deprecation .deprecation-section .deprecation-subsection .security-detail .security-detail-input {
+  margin-top: 10px;
+}
+.page-manage-deprecation .deprecation-section .deprecation-subsection .security-detail .security-detail-input .cvss-input {
+  display: inline-block;
+  width: 65px;
+  margin-right: 15px;
+}
+.page-manage-deprecation .deprecation-section .deprecation-subsection .security-detail .security-detail-list-input {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
   display:         flex;
-  margin-top: 10px;
 
   -webkit-box-pack: justify;
   -webkit-justify-content: space-between;
   -ms-flex-pack: justify;
           justify-content: space-between;
 }
-.page-manage-deprecation .deprecation-section .deprecation-subsection .security-detail .security-detail-input input {
-  width: 100%;
-}
-.page-manage-deprecation .deprecation-section .deprecation-subsection .security-detail .security-detail-input button {
+.page-manage-deprecation .deprecation-section .deprecation-subsection .security-detail .security-detail-list-input button {
   margin-left: 15px;
 }
 .page-manage-deprecation .deprecation-section .deprecation-subsection .security-detail .security-detail-list {

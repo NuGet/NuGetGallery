@@ -105,6 +105,31 @@ function ManageDeprecationViewModel(id, versionsDictionary, defaultVersion, subm
 
     this.hasCvss = ko.observable(false);
     this.selectedCvssRating = ko.observable(0);
+    this.cvssRatingLabel = ko.pureComputed(function () {
+        var rating = self.selectedCvssRating();
+        if (!rating) {
+            return '';
+        }
+
+        var ratingFloat = parseFloat(rating);
+        if (isNaN(ratingFloat) || ratingFloat < 0 || ratingFloat > 10) {
+            return 'Invalid CVSS rating!';
+        }
+
+        if (ratingFloat < 4) {
+            return 'Low';
+        }
+
+        if (ratingFloat < 7) {
+            return 'Medium';
+        }
+
+        if (ratingFloat < 9) {
+            return 'High';
+        }
+
+        return 'Critical';
+    }, this);
     this.cvssRating = ko.pureComputed(function () {
         if (self.hasCvss()) {
             return self.selectedCvssRating();

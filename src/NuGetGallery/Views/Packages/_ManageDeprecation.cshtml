@@ -69,8 +69,9 @@
                     </label>
                     <label class="security-detail-input-label" for="selectedCvssRating">You can add the vulnerability rating (0-10) applicable to the vulnerabilities.</label>
                 </div>
-                <div class="security-detail-input" data-bind="visible: hasCvss">
-                    <input class="form-control" name="selectedCvssRating" type="text" data-bind="textInput: selectedCvssRating" />
+                <div class="security-detail-input">
+                    <input class="form-control cvss-input" name="selectedCvssRating" type="text" size="4" maxlength="4" data-bind="textInput: selectedCvssRating, disable: !hasCvss()" />
+                    <span data-bind="text: cvssRatingLabel"></span>
                 </div>
             </div>
             <div data-bind="template: { name: 'deprecation-security-detail-list-input-template', data: cwes }"></div>
@@ -131,9 +132,9 @@
             </label>
             <label class="security-detail-input-label" for="addId" data-bind="text: label"></label>
         </div>
-        <div class="security-detail-input" data-bind="visible: hasIds">
-            <input class="form-control" name="addId" type="text" data-bind="textInput: addId" />
-            <button class="btn btn-primary" data-bind="click: add">Add</button>
+        <div class="security-detail-input security-detail-list-input">
+            <input class="form-control" name="addId" type="text" data-bind="textInput: addId, disable: !hasIds()" />
+            <button class="btn btn-primary" data-bind="click: add, disable: !hasIds()">Add</button>
         </div>
         <div class="security-detail-list" data-bind="visible: $data, foreach: ids">
             <div class="security-detail-list-item alert-info">

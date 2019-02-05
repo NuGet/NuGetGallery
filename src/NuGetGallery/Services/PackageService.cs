@@ -902,7 +902,9 @@ namespace NuGetGallery
                     {
                         Package = package
                     };
+
                     package.Deprecations.Add(deprecation);
+                    _deprecationRepository.InsertOnCommit(deprecation);
                 }
 
                 if (isVulnerable)
@@ -957,6 +959,7 @@ namespace NuGetGallery
             else if (deprecation != null)
             {
                 package.Deprecations.Remove(deprecation);
+                _deprecationRepository.DeleteOnCommit(deprecation);
             }
         }
 
@@ -1003,7 +1006,9 @@ namespace NuGetGallery
                     {
                         Package = package
                     };
+
                     package.Deprecations.Add(deprecation);
+                    _deprecationRepository.InsertOnCommit(deprecation);
                 }
 
                 deprecation.Status = status;
@@ -1017,6 +1022,7 @@ namespace NuGetGallery
             else if (deprecation != null)
             {
                 package.Deprecations.Remove(deprecation);
+                _deprecationRepository.DeleteOnCommit(deprecation);
             }
         }
     }
