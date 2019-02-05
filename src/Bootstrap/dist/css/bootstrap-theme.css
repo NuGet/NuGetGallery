@@ -1073,7 +1073,14 @@ img.reserved-indicator-icon {
 .page-manage-deprecation .deprecation-section .deprecation-section-header {
   margin-bottom: 15px;
 }
-.page-manage-deprecation .deprecation-section .reason label {
+.page-manage-deprecation .deprecation-section .version-selector {
+  height: 300px;
+  overflow: auto;
+}
+.page-manage-deprecation .deprecation-section .version-selector .version-filter {
+  margin-bottom: 20px;
+}
+.page-manage-deprecation .deprecation-section .unbolded-label label {
   font-weight: normal;
 }
 .page-manage-deprecation .deprecation-section .security-detail {

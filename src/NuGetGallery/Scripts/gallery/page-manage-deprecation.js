@@ -45,8 +45,55 @@ function ManageDeprecationSecurityDetailListViewModel(title, label) {
 function ManageDeprecationViewModel(id, versionsDictionary, defaultVersion, submitUrl, packageUrl) {
     var self = this;
 
-    this.versions = Object.keys(versionsDictionary);
-    this.chosenVersions = ko.observableArray();
+    this.versionFilter = ko.observable('');
+    this.versions = Object.keys(versionsDictionary).map(function (version) {
+        var checked = ko.observable(false);
+        var visible = ko.pureComputed(function () {
+            return version.startsWith(self.versionFilter());
+        });
+
+        return {
+            version: version,
+            checked: checked,
+            visible: visible,
+            selected: ko.pureComputed(function () {
+                return checked() && visible();
+            })
+        };
+    });
+    this.chosenVersions = ko.pureComputed(function () {
+        var selected = [];
+        for (var index in self.versions) {
+            var version = self.versions[index];
+            if (version.selected()) {
+                selected.push(version.version);
+            }
+        }
+
+        return selected;
+    }, this);
+
+    this.versionSelectAllChecked = ko.pureComputed(function () {
+        for (var index in self.versions) {
+            var version = self.versions[index];
+            if (version.visible() && !version.checked()) {
+                return false;
+            }
+        }
+
+        return true;
+    }, this);
+    this.toggleVersionSelectAll = function () {
+        var checked = !self.versionSelectAllChecked();
+        for (var index in self.versions) {
+            var version = self.versions[index];
+            if (version.visible()) {
+                version.checked(checked);
+            }
+        }
+
+        return true;
+    };
 
     this.isVulnerable = ko.observable(false);
     this.isLegacy = ko.observable(false);
@@ -175,7 +222,14 @@ function ManageDeprecationViewModel(id, versionsDictionary, defaultVersion, subm
         self.shouldUnlist(version.ShouldUnlist);
     }, this);
     if (versionsDictionary[defaultVersion]) {
-        this.chosenVersions([defaultVersion]);
+        for (var index in self.versions) {
+            var version = self.versions[index];
+            if (version.version === defaultVersion) {
+                version.checked(true);
+            } else {
+                version.checked(false);
+            }
+        }
     }
 
     ko.applyBindings(this, $(".page-manage-deprecation")[0]);
