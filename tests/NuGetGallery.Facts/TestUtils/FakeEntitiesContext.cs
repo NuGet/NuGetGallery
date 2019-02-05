@@ -147,6 +147,29 @@ namespace NuGetGallery
             }
         }
 
+        public IDbSet<CVE> CVEs
+        {
+            get
+            {
+                return Set<CVE>();
+            }
+            set
+            {
+                throw new NotSupportedException();
+            }
+        }
+        public IDbSet<CWE> CWEs
+        {
+            get
+            {
+                return Set<CWE>();
+            }
+            set
+            {
+                throw new NotSupportedException();
+            }
+        }
+
         public Task<int> SaveChangesAsync()
         {
             _areChangesSaved = true;

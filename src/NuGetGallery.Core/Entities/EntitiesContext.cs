@@ -61,6 +61,8 @@ namespace NuGetGallery
         /// User or organization accounts.
         /// </summary>
         public IDbSet<User> Users { get; set; }
+        public IDbSet<CVE> CVEs { get; set; }
+        public IDbSet<CWE> CWEs { get; set; }
 
         IDbSet<T> IEntitiesContext.Set<T>()
         {
