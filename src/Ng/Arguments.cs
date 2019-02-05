@@ -18,6 +18,7 @@ namespace Ng
         public const string Path = "path";
         public const string Source = "source";
         public const string Verbose = "verbose";
+        public const string InstanceName = "instanceName";
 
         public const int DefaultInterval = 3; // seconds
         public const string Interval = "interval";

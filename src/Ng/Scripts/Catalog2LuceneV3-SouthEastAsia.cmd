@@ -8,6 +8,7 @@ echo "Starting job - #{Jobs.catalog2lucenev3reg2southeastasia.Title}"
 title #{Jobs.catalog2lucenev3reg2southeastasia.Title}
 
 start /w Ng.exe catalog2lucene ^
+    -instanceName catalog2lucene-sea ^
     -source #{Jobs.common.v3.Source} ^
     -luceneDirectoryType azure ^
     -luceneStorageAccountName #{Jobs.SouthEastAsia.v3.Storage.Name} ^

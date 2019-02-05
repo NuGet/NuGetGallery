@@ -54,7 +54,8 @@ namespace Ng
                 }
 
                 var jobName = args[0];
-                TelemetryConfiguration.Active.TelemetryInitializers.Add(new JobNameTelemetryInitializer(jobName));
+                var instanceName = arguments.GetOrDefault(Arguments.InstanceName, jobName);
+                TelemetryConfiguration.Active.TelemetryInitializers.Add(new JobNameTelemetryInitializer(jobName, instanceName));
 
                 // Configure ApplicationInsights
                 ApplicationInsights.Initialize(arguments.GetOrDefault<string>(Arguments.InstrumentationKey));

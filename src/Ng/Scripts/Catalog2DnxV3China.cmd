@@ -8,6 +8,7 @@ echo "Starting job - #{Jobs.ngcatalog2dnxChina.Title}"
 title #{Jobs.ngcatalog2dnxChina.Title}
 
 start /w Ng.exe catalog2dnx ^
+    -instanceName catalog2dnx-china ^
     -source #{Jobs.ngcatalog2dnx.Catalog.Source} ^
     -contentBaseAddress #{Jobs.China.ngcatalog2dnx.ContentBaseAddress} ^
     -storageBaseAddress #{Jobs.China.ngcatalog2dnx.StorageBaseAddress} ^
