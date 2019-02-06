@@ -105,12 +105,14 @@ namespace Stats.AzureCdnLogs.Common
             // small margin of error caused by non-200 HTTP status codes.
             if (entry.CacheStatusCode != null)
             {
-                // Format: cache status + "/" + HTTP status code
-                // Example: "TCP_MISS/504"
+                // Previously, we were not correctly converting logs from China CDN to the format used by Global CDN, so we must support both formats.
+                // Global format: cache status + "/" + HTTP status code
+                // Global example: "TCP_MISS/504"
+                // China format: HTTP status code
+                // China example: "504"
                 var slashIndex = entry.CacheStatusCode.LastIndexOf('/');
                 uint httpStatusCode;
-                if (slashIndex >= 0
-                    && slashIndex + 1 < entry.CacheStatusCode.Length
+                if (slashIndex + 1 < entry.CacheStatusCode.Length
                     && uint.TryParse(entry.CacheStatusCode.Substring(slashIndex + 1), out httpStatusCode)
                     && (httpStatusCode < 200 || httpStatusCode >= 300))
                 {
