@@ -713,7 +713,7 @@ namespace NuGetGallery
         {
             return GetRouteLink(
                 url,
-                RouteName.GetDeprecationAlternatePackageVersions,
+                RouteName.PackageDeprecationGetAlternatePackageVersionsAction,
                 relativeUrl);
         }
 

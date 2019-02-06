@@ -46,7 +46,7 @@
             </div>
         </div>
         <div class="has-error">
-            <span aria-live="assertive" class="help-block field-validation-error" role="alert" data-bind="visible: !hasVersions()">
+            <span aria-live="assertive" class="help-block field-validation-error" role="alert" data-bind="visible: chosenVersionsCount() == 0">
                 At least one version must be selected.
             </span>
         </div>

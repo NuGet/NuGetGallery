@@ -212,7 +212,7 @@ namespace NuGetGallery
                 new { version = new VersionRouteConstraint() });
 
             routes.MapRoute(
-                RouteName.GetDeprecationAlternatePackageVersions,
+                RouteName.PackageDeprecationGetAlternatePackageVersionsAction,
                 "packages/manage/get-alternate-package-versions",
                 new { controller = "Packages", action = nameof(PackagesController.GetDeprecationAlternatePackageVersions) });
 
