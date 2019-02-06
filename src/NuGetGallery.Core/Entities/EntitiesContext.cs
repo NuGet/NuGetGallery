@@ -427,7 +427,7 @@ namespace NuGetGallery
                 .WillCascadeOnDelete(false);
 
             modelBuilder.Entity<PackageDeprecation>()
-                .Property(v => v.CVSSRating)
+                .Property(v => v.CvssRating)
                 .HasPrecision(3, 1);
 
             modelBuilder.Entity<PackageDeprecation>()
