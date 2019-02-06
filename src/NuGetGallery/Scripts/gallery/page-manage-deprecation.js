@@ -1,10 +1,11 @@
 ﻿'use strict';
 
-function ManageDeprecationSecurityDetailListViewModel(title, label) {
+function ManageDeprecationSecurityDetailListViewModel(title, label, placeholder) {
     var self = this;
 
     this.title = ko.observable(title);
     this.label = ko.observable(label);
+    this.placeholder = ko.observable(placeholder);
 
     this.hasIds = ko.observable(false);
     this.addedIds = ko.observableArray();
@@ -101,7 +102,8 @@ function ManageDeprecationViewModel(id, versionsDictionary, defaultVersion, subm
 
     this.cves = new ManageDeprecationSecurityDetailListViewModel(
         "CVE ID(s)",
-        "You can provide a list of CVEs.");
+        "You can provide a list of CVEs applicable to the vulnerability.",
+        "Add CVE by ID e.g. CVE-2014-999999, CVE-2015-888888");
 
     this.hasCvss = ko.observable(false);
     this.selectedCvssRating = ko.observable(0);
@@ -140,33 +142,11 @@ function ManageDeprecationViewModel(id, versionsDictionary, defaultVersion, subm
 
     this.cwes = new ManageDeprecationSecurityDetailListViewModel(
         "CWE(s)",
-        "You can add one or more CWE(s) applicable to the vulnerability.");
-
-    this.alternatePackageId = ko.observable('');
-    this.alternatePackageId.subscribe(function () {
-        $.ajax({
-            url: getAlternatePackageVersions,
-            dataType: 'json',
-            type: 'GET',
-            data: {
-                id: self.alternatePackageId()
-            },
-
-            statusCode: {
-                200: function (data) {
-                    self.alternatePackageVersionsCached(data);
-                },
-
-                404: function () {
-                    self.alternatePackageVersionsCached.removeAll();
-                }
-            },
-
-            error: function () {
-                self.alternatePackageVersionsCached.removeAll();
-            }
-        });
-    }, this);
+        "You can add one or more CWEs applicable to the vulnerability.",
+        "Add CWE by ID or title");
+    
+    this.chosenAlternatePackageId = ko.observable('');
+    this.chosenAlternatePackageVersion = ko.observable();
     this.alternatePackageVersionsCached = ko.observableArray();
     this.alternatePackageVersions = ko.pureComputed(function () {
         return [strings_AnyVersion].concat(self.alternatePackageVersionsCached());
@@ -174,21 +154,81 @@ function ManageDeprecationViewModel(id, versionsDictionary, defaultVersion, subm
     this.hasAlternatePackageVersions = ko.pureComputed(function () {
         return self.alternatePackageVersionsCached().length > 0;
     }, this);
-    this.chosenAlternatePackageVersion = ko.observable();
-    this.alternatePackageVersion = ko.pureComputed(function () {
-        if (!self.hasAlternatePackageVersions() || self.chosenAlternatePackageVersion() === strings_AnyVersion) {
-            return null;
-        } else {
-            return self.chosenAlternatePackageVersion();
+
+    this.chosenAlternatePackageIdError = ko.observable();
+    this.chosenAlternatePackageId.subscribe(function (id) {
+        if (!id) {
+            // If the user hasn't input an ID, don't query the server.
+            self.chosenAlternatePackageIdError(null);
+            return;
         }
+
+        $.ajax({
+            url: getAlternatePackageVersions,
+            dataType: 'json',
+            type: 'GET',
+            data: {
+                id: id
+            },
+
+            statusCode: {
+                200: function (data) {
+                    if (self.alternatePackageId() === id) {
+                        self.alternatePackageVersionsCached(data);
+                        self.chosenAlternatePackageIdError(null);
+                    }
+                },
+
+                404: function () {
+                    if (self.alternatePackageId() === id) {
+                        self.alternatePackageVersionsCached.removeAll();
+                        self.chosenAlternatePackageIdError("Could not find alternate package '" + id + "'.");
+                    }
+                }
+            },
+
+            error: function () {
+                if (self.alternatePackageId() === id) {
+                    self.alternatePackageVersionsCached.removeAll();
+                    self.chosenAlternatePackageIdError("An unknown occurred when searching for alternate package '" + id + "'.");
+                }
+            }
+        });
+    }, this);
+
+    this.alternatePackageId = ko.pureComputed(function () {
+        if (self.isLegacy()) {
+            return self.chosenAlternatePackageId();
+        } else {
+            return null;
+        }
+    }, this);
+    this.alternatePackageVersion = ko.pureComputed(function () {
+        if (self.alternatePackageId()) {
+            var version = self.chosenAlternatePackageVersion();
+            if (version !== strings_AnyVersion) {
+                return version;
+            }
+        }
+
+        return null;
     }, this);
 
     this.customMessage = ko.observable('');
     this.shouldUnlist = ko.observable(true);
 
-    this.error = ko.observable();
+    this.submitError = ko.observable();
+    this.submitDisable = ko.pureComputed(function () {
+        if (self.alternatePackageId() && !self.hasAlternatePackageVersions()) {
+            // Block the submit button if there is an error with the alternate package ID
+            return true;
+        }
+
+        return false;
+    }, this);
 
     this.submit = function () {
+        self.submitError(null);
         $.ajax({
             url: submitUrl,
             dataType: 'json',
@@ -211,8 +251,8 @@ function ManageDeprecationViewModel(id, versionsDictionary, defaultVersion, subm
                 window.location.href = packageUrl;
             },
             error: function (jqXHR) {
-                var newError = jqXHR && jqXHR.responseJSON ? jqXHR.responseJSON.error : "An unknown error occurred.";
-                self.error(newError);
+                var newError = jqXHR && jqXHR.responseJSON ? jqXHR.responseJSON.error : "An unknown error occurred when submitting the form.";
+                self.submitError(newError);
             }
         });
     };
@@ -261,7 +301,7 @@ function ManageDeprecationViewModel(id, versionsDictionary, defaultVersion, subm
 
         self.cwes.import(version.CWEIds);
 
-        self.alternatePackageId(version.AlternatePackageId);
+        self.chosenAlternatePackageId(version.AlternatePackageId);
         if (version.AlternatePackageVersion) {
             self.alternatePackageVersionsCached([version.AlternatePackageVersion]);
             self.chosenAlternatePackageVersion(version.AlternatePackageVersion);
