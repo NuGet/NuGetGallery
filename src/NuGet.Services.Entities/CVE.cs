@@ -10,7 +10,7 @@ namespace NuGet.Services.Entities
     /// <summary>
     /// Represents a Common Vulnerability and Exposure (CVE).
     /// </summary>
-    public class CVE
+    public class Cve
         : IEntity
     {
         /// <summary>
@@ -28,7 +28,7 @@ namespace NuGet.Services.Entities
         [Index(IsUnique = true)]
         [Required]
         [MaxLength(20)]
-        public string CVEId { get; set; }
+        public string CveId { get; set; }
 
         /// <summary>
         /// Gets or sets the description of the CVE.

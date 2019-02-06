@@ -147,22 +147,22 @@ namespace NuGetGallery
             }
         }
 
-        public IDbSet<CVE> CVEs
+        public IDbSet<Cve> Cves
         {
             get
             {
-                return Set<CVE>();
+                return Set<Cve>();
             }
             set
             {
                 throw new NotSupportedException();
             }
         }
-        public IDbSet<CWE> CWEs
+        public IDbSet<Cwe> Cwes
         {
             get
             {
-                return Set<CWE>();
+                return Set<Cwe>();
             }
             set
             {

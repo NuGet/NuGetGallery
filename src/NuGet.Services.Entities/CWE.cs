@@ -10,7 +10,7 @@ namespace NuGet.Services.Entities
     /// <summary>
     /// Represents a Common Weakness Enumeration (CWE).
     /// </summary>
-    public class CWE
+    public class Cwe
         : IEntity
     {
         /// <summary>
@@ -24,7 +24,7 @@ namespace NuGet.Services.Entities
         [Index(IsUnique = true)]
         [Required]
         [MaxLength(20)]
-        public string CWEId { get; set; }
+        public string CweId { get; set; }
 
         /// <summary>
         /// Gets or sets the name of the CWE.

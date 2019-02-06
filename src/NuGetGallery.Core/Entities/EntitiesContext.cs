@@ -61,8 +61,8 @@ namespace NuGetGallery
         /// User or organization accounts.
         /// </summary>
         public IDbSet<User> Users { get; set; }
-        public IDbSet<CVE> CVEs { get; set; }
-        public IDbSet<CWE> CWEs { get; set; }
+        public IDbSet<Cve> Cves { get; set; }
+        public IDbSet<Cwe> Cwes { get; set; }
 
         IDbSet<T> IEntitiesContext.Set<T>()
         {
@@ -373,31 +373,31 @@ namespace NuGetGallery
             modelBuilder.Entity<PackageDeprecation>()
                 .HasKey(d => d.Key);
 
-            modelBuilder.Entity<CVE>()
+            modelBuilder.Entity<Cve>()
                 .HasKey(d => d.Key)
-                .Property(e => e.CVEId)
+                .Property(e => e.CveId)
                 .HasColumnType("varchar")
                 .HasMaxLength(20)
                 .IsRequired();
 
-            modelBuilder.Entity<CVE>()
+            modelBuilder.Entity<Cve>()
                 .Property(e => e.Description)
                 .HasMaxLength(4000)
                 .IsRequired();
 
-            modelBuilder.Entity<CWE>()
+            modelBuilder.Entity<Cwe>()
                 .HasKey(d => d.Key)
-                .Property(e => e.CWEId)
+                .Property(e => e.CweId)
                 .HasColumnType("varchar")
                 .HasMaxLength(20)
                 .IsRequired();
 
-            modelBuilder.Entity<CWE>()
+            modelBuilder.Entity<Cwe>()
                 .Property(e => e.Name)
                 .HasMaxLength(200)
                 .IsRequired();
 
-            modelBuilder.Entity<CWE>()
+            modelBuilder.Entity<Cwe>()
                 .Property(e => e.Description)
                 .HasMaxLength(600)
                 .IsRequired();
@@ -431,11 +431,11 @@ namespace NuGetGallery
                 .HasPrecision(3, 1);
 
             modelBuilder.Entity<PackageDeprecation>()
-                .HasMany(p => p.CVEs)
+                .HasMany(p => p.Cves)
                 .WithMany(c => c.PackageDeprecations);
 
             modelBuilder.Entity<PackageDeprecation>()
-                .HasMany(p => p.CWEs)
+                .HasMany(p => p.Cwes)
                 .WithMany(c => c.PackageDeprecations);
         }
 #pragma warning restore 618

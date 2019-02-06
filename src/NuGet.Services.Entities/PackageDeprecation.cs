@@ -96,11 +96,11 @@ namespace NuGet.Services.Entities
         /// <summary>
         /// Gets or sets the collection of CVE's related to this deprecation.
         /// </summary>
-        public virtual ICollection<CVE> CVEs { get; set; }
+        public virtual ICollection<Cve> Cves { get; set; }
 
         /// <summary>
         /// Gets or sets the collection of CWE's related to this deprecation.
         /// </summary>
-        public virtual ICollection<CWE> CWEs { get; set; }
+        public virtual ICollection<Cwe> Cwes { get; set; }
     }
 }

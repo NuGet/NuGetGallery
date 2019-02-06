@@ -52,8 +52,8 @@
     <Compile Include="Credential.cs" />
     <Compile Include="CuratedFeed.cs" />
     <Compile Include="CuratedPackage.cs" />
-    <Compile Include="CVE.cs" />
-    <Compile Include="CWE.cs" />
+    <Compile Include="Cve.cs" />
+    <Compile Include="Cwe.cs" />
     <Compile Include="EmailMessage.cs" />
     <Compile Include="EmbeddedLicenseFileType.cs" />
     <Compile Include="EntityException.cs" />
