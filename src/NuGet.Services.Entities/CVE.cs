@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -37,6 +38,16 @@ namespace NuGet.Services.Entities
         [MaxLength(4000)]
         [Required]
         public string Description { get; set; }
+
+        /// <summary>
+        /// Gets or sets the last-modified date for the entity.
+        /// </summary>
+        public DateTime LastModifiedDate { get; set; }
+
+        /// <summary>
+        /// Gets or sets the date this CVE entity was first published.
+        /// </summary>
+        public DateTime PublishedDate { get; set; }
 
         public virtual ICollection<PackageDeprecation> PackageDeprecations { get; set; }
     }
