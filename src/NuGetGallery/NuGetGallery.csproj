@@ -329,6 +329,7 @@
     <Compile Include="Infrastructure\Mail\Messages\ReportPackageMessageBase.cs" />
     <Compile Include="Infrastructure\Mail\Messages\SigninAssistanceMessage.cs" />
     <Compile Include="Infrastructure\Mail\Requests\ReportPackageRequest.cs" />
+    <Compile Include="Infrastructure\SyndicationAtomFeedResult.cs" />
     <Compile Include="Migrations\201711082145351_AddAccountDelete.cs" />
     <Compile Include="Migrations\201711082145351_AddAccountDelete.Designer.cs">
       <DependentUpon>201711082145351_AddAccountDelete.cs</DependentUpon>

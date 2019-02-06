@@ -200,6 +200,15 @@ namespace NuGetGallery
                 new { version = new VersionRouteConstraint() });
 
             routes.MapRoute(
+                RouteName.DisplayPackageFeed,
+                "packages/{id}/atom.xml",
+                new
+                {
+                    controller = "packages",
+                    action = "AtomFeed"
+                });
+
+            routes.MapRoute(
                 RouteName.PackageEnableLicenseReport,
                 "packages/{id}/{version}/EnableLicenseReport",
                 new { controller = "Packages", action = "SetLicenseReportVisibility", visible = true },

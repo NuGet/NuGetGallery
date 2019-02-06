@@ -868,20 +868,14 @@
                              src="@Url.Absolute("~/Content/gallery/img/twitter.svg")"
                              @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/twitter-24x24.png")) />
                     </a>
-                </p>
-            }
-
-            @if (Model.Available)
-            {
-                <h2>Feed</h2>
-                <p class="share-buttons">
-                    <a href="@Url.PackageRssFeed(Model)" target="_blank">
-                        <img width="36" height="36" alt="RSS Feed"
+                    <a href="@Url.PackageAtomFeed(Model.Id)" target="_blank">
+                        <img width="24" height="24" alt="Use the Atom feed to subscribe to new versions of @Model.Id"
                              src="@Url.Absolute("~/Content/gallery/img/rss.svg")"
                              @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/rss-36x36.png")) />
                     </a>
                 </p>
             }
+
         </aside>
     </div>
 </section>

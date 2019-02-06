@@ -1052,7 +1052,7 @@ namespace NuGetGallery
             return new RouteUrlTemplate<IPackageVersionModel>(linkGenerator, routesGenerator);
         }
 
-        public static RouteUrlTemplate<IPackageVersionModel> PackageRssFeedTemplate(this UrlHelper url, bool relativeUrl = true)
+        public static RouteUrlTemplate<IPackageVersionModel> PackageAtomFeedTemplate(this UrlHelper url, bool relativeUrl = true)
         {
             var routesGenerator = new Dictionary<string, Func<IPackageVersionModel, object>>
             {
@@ -1061,7 +1061,7 @@ namespace NuGetGallery
 
             Func<RouteValueDictionary, string> linkGenerator = rv => GetActionLink(
                 url,
-                "RssFeed",
+                "AtomFeed",
                 "Packages",
                 relativeUrl,
                 routeValues: rv);
@@ -1074,9 +1074,21 @@ namespace NuGetGallery
             return url.ManagePackageOwnersTemplate(relativeUrl).Resolve(package);
         }
 
-        public static string PackageRssFeed(this UrlHelper url, IPackageVersionModel package, bool relativeUrl = true)
+        public static string PackageAtomFeed(
+            this UrlHelper url,
+            string id,
+            bool relativeUrl = true)
         {
-            return url.PackageRssFeedTemplate(relativeUrl).Resolve(package);
+            string result = GetRouteLink(
+                url,
+                RouteName.DisplayPackageFeed,
+                relativeUrl,
+                routeValues: new RouteValueDictionary
+                {
+                    { "id", id },
+                });
+
+            return result;
         }
 
         public static string GetPackageOwners(this UrlHelper url, bool relativeUrl = true)
