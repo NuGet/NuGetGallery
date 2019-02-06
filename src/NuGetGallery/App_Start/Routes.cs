@@ -140,9 +140,9 @@ namespace NuGetGallery
                 new { controller = "Packages", action = "VerifyPackage" });
 
             routes.MapRoute(
-                 RouteName.PreviewReadMe,
-                 "packages/manage/preview-readme",
-                 new { controller = "Packages", action = "PreviewReadMe" });
+                RouteName.PreviewReadMe,
+                "packages/manage/preview-readme",
+                new { controller = "Packages", action = "PreviewReadMe" });
 
             routes.MapRoute(
                 RouteName.CancelUpload,
@@ -210,6 +210,11 @@ namespace NuGetGallery
                 "packages/{id}/{version}/DisableLicenseReport",
                 new { controller = "Packages", action = "SetLicenseReportVisibility", visible = false },
                 new { version = new VersionRouteConstraint() });
+
+            routes.MapRoute(
+                RouteName.GetDeprecationAlternatePackageVersions,
+                "packages/manage/get-alternate-package-versions",
+                new { controller = "Packages", action = nameof(PackagesController.GetDeprecationAlternatePackageVersions) });
 
             var packageVersionActionRoute = routes.MapRoute(
                 RouteName.PackageVersionAction,

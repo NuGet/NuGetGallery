@@ -707,6 +707,16 @@ namespace NuGetGallery
             return url.PackageVersionAction(nameof(PackagesController.Manage), package, relativeUrl);
         }
 
+        public static string GetDeprecationAlternatePackageVersions(
+            this UrlHelper url,
+            bool relativeUrl = true)
+        {
+            return GetRouteLink(
+                url,
+                RouteName.GetDeprecationAlternatePackageVersions,
+                relativeUrl);
+        }
+
         public static string PreviewReadMe(
             this UrlHelper url,
             bool relativeUrl = true)

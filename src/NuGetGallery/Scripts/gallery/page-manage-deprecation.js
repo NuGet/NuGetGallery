@@ -42,7 +42,7 @@ function ManageDeprecationSecurityDetailListViewModel(title, label) {
     };
 }
 
-function ManageDeprecationViewModel(id, versionsDictionary, defaultVersion, submitUrl, packageUrl) {
+function ManageDeprecationViewModel(id, versionsDictionary, defaultVersion, submitUrl, packageUrl, getAlternatePackageVersions) {
     var self = this;
 
     this.versionFilter = ko.observable('');
@@ -143,6 +143,30 @@ function ManageDeprecationViewModel(id, versionsDictionary, defaultVersion, subm
         "You can add one or more CWE(s) applicable to the vulnerability.");
 
     this.alternatePackageId = ko.observable('');
+    this.alternatePackageId.subscribe(function () {
+        $.ajax({
+            url: getAlternatePackageVersions,
+            dataType: 'json',
+            type: 'GET',
+            data: {
+                id: self.alternatePackageId()
+            },
+
+            statusCode: {
+                200: function (data) {
+                    self.alternatePackageVersionsCached(data);
+                },
+
+                404: function () {
+                    self.alternatePackageVersionsCached.removeAll();
+                }
+            },
+
+            error: function () {
+                self.alternatePackageVersionsCached.removeAll();
+            }
+        });
+    }, this);
     this.alternatePackageVersionsCached = ko.observableArray();
     this.alternatePackageVersions = ko.pureComputed(function () {
         return [strings_AnyVersion].concat(self.alternatePackageVersionsCached());
