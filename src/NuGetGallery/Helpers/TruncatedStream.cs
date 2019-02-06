@@ -8,12 +8,17 @@ namespace NuGetGallery.Helpers
 {
     public class TruncatedStream : IDisposable
     {
-        public bool ExceedMaxSize { get; }
+        public bool IsTruncated { get; }
         public MemoryStream Stream { get; }
-        public TruncatedStream(MemoryStream stream, bool exceedMaxSize)
+        public TruncatedStream(MemoryStream stream, bool isTruncated)
         {
+            if (stream == null)
+            {
+                throw new ArgumentNullException(nameof(stream));
+            }
+
             Stream = stream;
-            ExceedMaxSize = exceedMaxSize;
+            IsTruncated = isTruncated;
         }
 
         public void Dispose()

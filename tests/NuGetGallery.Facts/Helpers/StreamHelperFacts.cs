@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -51,7 +50,7 @@ namespace NuGetGallery.Helpers
                 using (var memoryStream = new MemoryStream())
                 {
                     var truncatedMemoryStream = await stream.GetTruncatedStreamWithMaxSizeAsync(MaxSize);
-                    Assert.False(truncatedMemoryStream.ExceedMaxSize);
+                    Assert.False(truncatedMemoryStream.IsTruncated);
                     Assert.Equal(MaxSize - 1, (int)truncatedMemoryStream.Stream.Length);
                     Assert.Equal(expectedStringContent, Encoding.UTF8.GetString(truncatedMemoryStream.Stream.ToArray()));
                 }
@@ -68,7 +67,7 @@ namespace NuGetGallery.Helpers
                 using (var memoryStream = new MemoryStream())
                 {
                     var truncatedMemoryStream = await stream.GetTruncatedStreamWithMaxSizeAsync(MaxSize);
-                    Assert.False(truncatedMemoryStream.ExceedMaxSize);
+                    Assert.False(truncatedMemoryStream.IsTruncated);
                     Assert.Equal(MaxSize, (int)truncatedMemoryStream.Stream.Length);
                     Assert.Equal(expectedStringContent, Encoding.UTF8.GetString(truncatedMemoryStream.Stream.ToArray()));
                 }
@@ -85,7 +84,7 @@ namespace NuGetGallery.Helpers
                 using (var memoryStream = new MemoryStream())
                 {
                     var truncatedMemoryStream = await stream.GetTruncatedStreamWithMaxSizeAsync(MaxSize);
-                    Assert.True(truncatedMemoryStream.ExceedMaxSize);
+                    Assert.True(truncatedMemoryStream.IsTruncated);
                     Assert.Equal(MaxSize, (int)truncatedMemoryStream.Stream.Length);
                     Assert.Equal(expectedStringContent, Encoding.UTF8.GetString(truncatedMemoryStream.Stream.ToArray()));
                 }

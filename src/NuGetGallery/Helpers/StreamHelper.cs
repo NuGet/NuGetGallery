@@ -41,12 +41,12 @@ namespace NuGetGallery.Helpers
                     if (totalBytesRead > maxSize)
                     {
                         await memoryStream.WriteAsync(buffer, 0, bytesRead - 1);
-                        return new TruncatedStream(memoryStream, exceedMaxSize: true);
+                        return new TruncatedStream(memoryStream, isTruncated: true);
                     }
                     await memoryStream.WriteAsync(buffer, 0, bytesRead);
                 }
 
-                return new TruncatedStream(memoryStream, exceedMaxSize: false);
+                return new TruncatedStream(memoryStream, isTruncated: false);
             }
             catch
             {

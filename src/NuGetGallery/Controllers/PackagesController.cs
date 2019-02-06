@@ -44,10 +44,10 @@ namespace NuGetGallery
         /// The upper limit on allowed license file size for displaying in gallery.
         /// </summary>
         /// <remarks>
-        /// Warning: This limit should never be decreased!
+        /// Warning: This limit should never be decreased! And this limit must be less than int.MaxValue!
         /// <see cref="MaxAllowedLicenseLengthForUploading"/> in <see cref="PackageUploadService"/> is used to limit the license file size during uploading.
         /// </remarks>
-        private const int MaxAllowedLicenseLengthForDisplaying = 1024 * 1024; // 1 MB
+        internal const int MaxAllowedLicenseLengthForDisplaying = 1024 * 1024; // 1 MB
 
         private static readonly IReadOnlyList<ReportPackageReason> ReportAbuseReasons = new[]
         {
@@ -761,18 +761,21 @@ namespace NuGetGallery
 
                 if (package.EmbeddedLicenseType != EmbeddedLicenseFileType.Absent)
                 {
+                    /// <remarks>
+                    /// The "licenseFileStream" below is already in memory, as called low level method <see cref="GetFileAsync"/> in <see cref="CloudBlobCoreFileStorageService"/> reads the stream from blob storage into memory.
+                    /// There is a need to consider refactoring <see cref="CoreLicenseFileService"/> and provide a "GetUnBufferedFileAsync" method in <see cref="CloudBlobCoreFileStorageService"/>.
+                    /// In this way, we could read very large stream from blob storage with max size restriction.
+                    /// </remarks>
                     using (var licenseFileStream = await _coreLicenseFileService.DownloadLicenseFileAsync(package))
+                    using (var licenseFileTrucatedStream = await licenseFileStream.GetTruncatedStreamWithMaxSizeAsync(MaxAllowedLicenseLengthForDisplaying))
                     {
-                        using (var licenseFileTrucatedStream = await licenseFileStream.GetTruncatedStreamWithMaxSizeAsync(MaxAllowedLicenseLengthForDisplaying))
+                        if (licenseFileTrucatedStream.IsTruncated)
                         {
-                            if (licenseFileTrucatedStream.ExceedMaxSize)
-                            {
-                                throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, "The license file exceeds the max limit of {0} to display in Gallery", MaxAllowedLicenseLengthForDisplaying));
-                            }
-                            else
-                            {
-                                licenseFileContents = Encoding.UTF8.GetString(licenseFileTrucatedStream.Stream.GetBuffer(), 0, (int)licenseFileTrucatedStream.Stream.Length);
-                            }
+                            throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, "The license file exceeds the max limit of {0} to display in Gallery", MaxAllowedLicenseLengthForDisplaying));
+                        }
+                        else
+                        {
+                            licenseFileContents = Encoding.UTF8.GetString(licenseFileTrucatedStream.Stream.GetBuffer(), 0, (int)licenseFileTrucatedStream.Stream.Length);
                         }
                     }
                 }
