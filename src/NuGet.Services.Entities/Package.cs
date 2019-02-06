@@ -29,7 +29,7 @@ namespace NuGet.Services.Entities
         }
 #pragma warning restore 618
 
-        public PackageRegistration PackageRegistration { get; set; }
+        public virtual PackageRegistration PackageRegistration { get; set; }
         public int PackageRegistrationKey { get; set; }
 
         [Obsolete("Will be removed in a future iteration, for now is write-only")]
@@ -220,7 +220,7 @@ namespace NuGet.Services.Entities
         /// The logged in user when this package version was created.
         /// NULL for older packages.
         /// </summary>
-        public User User { get; set; }
+        public virtual User User { get; set; }
         public int? UserKey { get; set; }
 
         /// <summary>
