@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Mail;
+using System.ServiceModel.Syndication;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
@@ -26,6 +27,7 @@ using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
 using NuGetGallery.Filters;
 using NuGetGallery.Helpers;
+using NuGetGallery.Infrastructure;
 using NuGetGallery.Infrastructure.Lucene;
 using NuGetGallery.Infrastructure.Mail.Messages;
 using NuGetGallery.Infrastructure.Mail.Requests;
@@ -1174,28 +1176,56 @@ namespace NuGetGallery
             return View(model);
         }
 
-        // ToDo: OutputCache ?
         [HttpGet]
-        public virtual ActionResult RssFeed(string id)
+        public virtual ActionResult AtomFeed(string id, bool allowPrerelease = false)
         {
-            // ToDo: Query https://api.nuget.org/v3/registration3-gz-semver2/newtonsoft.json/index.json 
-            // when Gallery.ServiceDiscoveryUri is set
-            // otherwise hit the EF database
-            var package = _packageService.FindPackageByIdAndVersion(id, string.Empty);
+            var package = _packageService.FindPackageByIdAndVersion(id, string.Empty, null, allowPrerelease);
             if (package == null)
             {
                 return HttpNotFound();
             }
 
-            var model = new RssFeedViewModel();
-            model.PackageId = package.Id;
-            model.PackageDescription = package.Description;
-            // ToDo: Maybe map to a neutral PackageHistory object 
-            model.PackageVersions = package.PackageRegistration.Packages
-                      .OrderByDescending(p => new NuGetVersion(p.Version), Comparer<NuGetVersion>.Create((a, b) => a.CompareTo(b)))
-                      .ToList();
+            SyndicationFeed feed = new SyndicationFeed()
+            {
+                Id = Url.Package(package.PackageRegistration.Id, version: null, relativeUrl: false),
+                Title = SyndicationContent.CreatePlaintextContent($"NuGet.org: {package.Id}"),
+                Description = SyndicationContent.CreatePlaintextContent(package.Summary),
+                LastUpdatedTime = DateTimeOffset.Now,
+            };
 
-            return View(model);
+            if(!string.IsNullOrWhiteSpace(package.IconUrl))
+            {
+                feed.ImageUrl = new Uri(package.IconUrl);
+            }
+
+            var packageVersions  = package.PackageRegistration.Packages
+                                   .OrderByDescending(p => new NuGetVersion(p.Version), Comparer<NuGetVersion>.Create((a, b) => a.CompareTo(b)))
+                                   .ToList();
+
+            List<SyndicationItem> feedItems = new List<SyndicationItem>();
+
+            foreach(var packageVersion in packageVersions)
+            {
+                SyndicationItem syndicationItem = new SyndicationItem($"{packageVersion.Title}: {package.Version}", 
+                                                                      package.Description,
+                                                                      new Uri(Url.Package(package.PackageRegistration.Id, version: packageVersion.Version, relativeUrl: false)));
+                syndicationItem.Id = Url.Package(package.PackageRegistration.Id, version: packageVersion.Version, relativeUrl: false);
+                syndicationItem.LastUpdatedTime = packageVersion.LastUpdated;
+                syndicationItem.Authors.Add(new SyndicationPerson() { Name = packageVersion.FlattenedAuthors });
+                feedItems.Add(syndicationItem);
+            }
+
+            feed.Items = feedItems;
+
+            feed.Links.Add(SyndicationLink.CreateSelfLink(
+                new Uri(Url.PackageAtomFeed(package.PackageRegistration.Id, relativeUrl: false)),
+                "application/atom+xml"));
+
+            feed.Links.Add(SyndicationLink.CreateAlternateLink(
+                new Uri(Url.Package(package.PackageRegistration.Id, version: null, relativeUrl: false)),
+                "text/html"));
+
+            return new SyndicationAtomActionResult(feed);
         }
 
         [HttpGet]

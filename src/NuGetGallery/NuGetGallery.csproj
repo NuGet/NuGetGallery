@@ -330,6 +330,7 @@
     <Compile Include="Infrastructure\Mail\Messages\ReportPackageMessageBase.cs" />
     <Compile Include="Infrastructure\Mail\Messages\SigninAssistanceMessage.cs" />
     <Compile Include="Infrastructure\Mail\Requests\ReportPackageRequest.cs" />
+    <Compile Include="Infrastructure\SyndicationAtomFeedResult.cs" />
     <Compile Include="Migrations\201711082145351_AddAccountDelete.cs" />
     <Compile Include="Migrations\201711082145351_AddAccountDelete.Designer.cs">
       <DependentUpon>201711082145351_AddAccountDelete.cs</DependentUpon>
@@ -692,7 +693,6 @@
     <Compile Include="ViewModels\GalleryHomeViewModel.cs" />
     <Compile Include="ViewModels\HandleOrganizationMembershipRequestModel.cs" />
     <Compile Include="ViewModels\ListPackageItemRequiredSignerViewModel.cs" />
-    <Compile Include="ViewModels\RssFeedViewModel.cs" />
     <Compile Include="ViewModels\SignerViewModel.cs" />
     <Compile Include="WebRole.cs" />
     <Compile Include="Areas\Admin\AdminAreaRegistration.cs" />
@@ -1822,7 +1822,6 @@
     <Content Include="Views\Pages\Contact.cshtml" />
     <Content Include="Views\Shared\_DeletePackage.cshtml" />
     <Content Include="Views\Packages\DeleteSymbols.cshtml" />
-    <Content Include="Views\Packages\RssFeed.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
