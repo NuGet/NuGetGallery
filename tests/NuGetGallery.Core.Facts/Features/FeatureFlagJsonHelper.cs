@@ -13,7 +13,8 @@ namespace NuGetGallery.Features
         {
             EmptyJson,
             EmptyFlight,
-            FullJson
+            FormattedFullJson,
+            UnformattedFullJson
         };
 
         public const string EmptyJson = "{}";
@@ -25,7 +26,25 @@ namespace NuGetGallery.Features
 }
 ";
 
-        public const string FullJson = @"
+        public const string FormattedFullJson = @"{
+  ""Features"": {
+    ""NuGetGallery.Typosquatting"": ""Enabled""
+  },
+  ""Flights"": {
+    ""NuGetGallery.TyposquattingFlight"": {
+      ""All"": true,
+      ""SiteAdmins"": true,
+      ""Accounts"": [
+        ""a""
+      ],
+      ""Domains"": [
+        ""b""
+      ]
+    }
+  }
+}";
+
+        public const string UnformattedFullJson = @"
 {
   ""Features"": {
     ""NuGetGallery.Typosquatting"": ""Enabled""

@@ -68,7 +68,7 @@ namespace NuGetGallery.Features
                 using (var stream = new MemoryStream())
                 using (var writer = new StreamWriter(stream))
                 {
-                    writer.Write(flags);
+                    writer.Write(PrettifyJson(flags));
                     writer.Flush();
                     stream.Position = 0;
 

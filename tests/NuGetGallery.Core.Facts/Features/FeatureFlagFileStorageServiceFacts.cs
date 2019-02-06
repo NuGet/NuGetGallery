@@ -25,7 +25,7 @@ namespace NuGetGallery.Features
                 // Arrange
                 _storage
                     .Setup(s => s.GetFileAsync(CoreConstants.Folders.ContentFolderName, CoreConstants.FeatureFlagsFileName))
-                    .ReturnsAsync(BuildStream(FeatureFlagJsonHelper.FullJson));
+                    .ReturnsAsync(BuildStream(FeatureFlagJsonHelper.FormattedFullJson));
 
                 // Act
                 var result = await _target.GetAsync();
@@ -56,19 +56,21 @@ namespace NuGetGallery.Features
 
         public class GetReferenceAsync : FactsBase
         {
-            [Fact]
-            public async Task GetsFlags()
+            [Theory]
+            [InlineData(FeatureFlagJsonHelper.UnformattedFullJson)]
+            [InlineData(FeatureFlagJsonHelper.FormattedFullJson)]
+            public async Task GetsAndFormatsFlags(string content)
             {
                 // Arrange
                 _storage
                     .Setup(s => s.GetFileReferenceAsync(CoreConstants.Folders.ContentFolderName, CoreConstants.FeatureFlagsFileName, null))
-                    .ReturnsAsync(BuildFileReference("foo", "bar"));
+                    .ReturnsAsync(BuildFileReference(content, "bar"));
 
                 // Act
                 var result = await _target.GetReferenceAsync();
 
-                // Assert - this method does not enforce valid JSON
-                Assert.Equal("foo", result.Flags);
+                // Assert - the flags should be formatted
+                Assert.Equal(FeatureFlagJsonHelper.FormattedFullJson, result.Flags);
                 Assert.Equal("bar", result.ContentId);
 
                 _storage
@@ -76,26 +78,80 @@ namespace NuGetGallery.Features
                         s => s.GetFileReferenceAsync(CoreConstants.Folders.ContentFolderName, CoreConstants.FeatureFlagsFileName, null),
                         Times.Once);
             }
+
+            [Fact]
+            public async Task ThrowsOnInvalidFlags()
+            {
+                // Arrange
+                _storage
+                    .Setup(s => s.GetFileReferenceAsync(CoreConstants.Folders.ContentFolderName, CoreConstants.FeatureFlagsFileName, null))
+                    .ReturnsAsync(BuildFileReference("bad content", "bar"));
+
+                // Act & Assert
+                await Assert.ThrowsAsync<JsonReaderException>(() => _target.GetReferenceAsync());
+            }
         }
     
         public class TrySaveAsync : FactsBase
         {
-            [Fact]
-            public async Task ReturnsInvalid()
+            [Theory]
+            [MemberData(nameof(ReturnsOkData))]
+            public async Task ReturnsOk(string content)
             {
                 // Act
-                var result = await _target.TrySaveAsync("bad", "123");
+                var result = await _target.TrySaveAsync(content, "123");
 
-                // Assert
-                Assert.Equal(FeatureFlagSaveResultType.Invalid, result.Type);
+                // Assert - the saved JSON should be formatted
+                Assert.Equal(FeatureFlagSaveResult.Ok, result);
 
                 _storage.Verify(
                     s => s.SaveFileAsync(
-                        It.IsAny<string>(),
-                        It.IsAny<string>(),
+                        CoreConstants.Folders.ContentFolderName,
+                        CoreConstants.FeatureFlagsFileName,
                         It.IsAny<Stream>(),
-                        It.IsAny<IAccessCondition>()),
-                    Times.Never);
+                        It.Is<IAccessCondition>(c => c.IfNoneMatchETag == null && c.IfMatchETag != null)),
+                    Times.Once);
+            }
+
+            public static IEnumerable<object[]> ReturnsOkData()
+            {
+                foreach (var json in FeatureFlagJsonHelper.ValidJson)
+                {
+                    yield return new object[] { json };
+                }
+            }
+
+            [Fact]
+            public async Task FormatsSavedJson()
+            {
+                // Arrange
+                string json = null;
+                _storage.Setup(
+                    s => s.SaveFileAsync(
+                        CoreConstants.Folders.ContentFolderName,
+                        CoreConstants.FeatureFlagsFileName,
+                        It.IsAny<Stream>(),
+                        It.Is<IAccessCondition>(c => c.IfNoneMatchETag == null && c.IfMatchETag != null)))
+                    .Callback((string folder, string file, Stream content, IAccessCondition condition) =>
+                    {
+                        json = new StreamReader(content).ReadToEnd();
+                    })
+                    .Returns(Task.CompletedTask);
+
+                // Act
+                var result = await _target.TrySaveAsync(FeatureFlagJsonHelper.UnformattedFullJson, "123");
+
+                // Assert - the saved JSON should be formatted
+                Assert.Equal(FeatureFlagSaveResult.Ok, result);
+                Assert.Equal(FeatureFlagJsonHelper.FormattedFullJson, json);
+
+                _storage.Verify(
+                    s => s.SaveFileAsync(
+                        CoreConstants.Folders.ContentFolderName,
+                        CoreConstants.FeatureFlagsFileName,
+                        It.IsAny<Stream>(),
+                        It.Is<IAccessCondition>(c => c.IfNoneMatchETag == null && c.IfMatchETag != null)),
+                    Times.Once);
             }
 
             [Fact]
@@ -119,7 +175,7 @@ namespace NuGetGallery.Features
                     .ThrowsAsync(preconditionException);
 
                 // Act
-                var result = await _target.TrySaveAsync(FeatureFlagJsonHelper.FullJson, "123");
+                var result = await _target.TrySaveAsync(FeatureFlagJsonHelper.FormattedFullJson, "123");
 
                 // Assert
                 Assert.Equal(FeatureFlagSaveResult.Conflict, result);
@@ -133,22 +189,81 @@ namespace NuGetGallery.Features
                     Times.Once);
             }
 
-            [Fact]
-            public async Task ReturnsOk()
+            [Theory]
+            [MemberData(nameof(ReturnsInvalidData))]
+            public async Task ReturnsInvalid(string badJson, string errorMessage)
             {
                 // Act
-                var result = await _target.TrySaveAsync(FeatureFlagJsonHelper.FullJson, "123");
+                var result = await _target.TrySaveAsync(badJson, "123");
 
                 // Assert
-                Assert.Equal(FeatureFlagSaveResult.Ok, result);
+                Assert.Equal(FeatureFlagSaveResultType.Invalid, result.Type);
+                Assert.Contains(errorMessage, result.Message);
 
                 _storage.Verify(
                     s => s.SaveFileAsync(
-                        CoreConstants.Folders.ContentFolderName,
-                        CoreConstants.FeatureFlagsFileName,
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
                         It.IsAny<Stream>(),
-                        It.Is<IAccessCondition>(c => c.IfNoneMatchETag == null && c.IfMatchETag != null)),
-                    Times.Once);
+                        It.IsAny<IAccessCondition>()),
+                    Times.Never);
+            }
+
+            public static IEnumerable<object[]> ReturnsInvalidData()
+            {
+                yield return new object[]
+                {
+                    "bad",
+                    "Unexpected character encountered while parsing value: b"
+                };
+
+                yield return new object[]
+                {
+                    "[]",
+                    "Cannot deserialize the current JSON array (e.g. [1,2,3]) into type 'NuGet.Services.FeatureFlags.FeatureFlags'"
+                };
+
+                yield return new object[]
+                {
+                    @"{""Bad"": {}}",
+                    "Could not find member 'Bad' on object of type 'FeatureFlags'"
+                };
+
+                yield return new object[]
+                {
+                    @"{""Features"": []}",
+                    "Cannot deserialize the current JSON array (e.g. [1,2,3]) into type 'System.Collections.Generic.IReadOnlyDictionary`2[System.String,NuGet.Services.FeatureFlags.FeatureStatus]'"
+                };
+
+                yield return new object[]
+                {
+                    @"{""Features"": {""A"": ""bad""}}",
+                    @"Error converting value ""bad"" to type 'NuGet.Services.FeatureFlags.FeatureStatus'"
+                };
+
+                yield return new object[]
+                {
+                    @"{""Flights"": []}",
+                    "Cannot deserialize the current JSON array (e.g. [1,2,3]) into type 'System.Collections.Generic.IReadOnlyDictionary`2[System.String,NuGet.Services.FeatureFlags.Flight]'"
+                };
+
+                yield return new object[]
+                {
+                    @"{""Flights"": {""A"": []}}",
+                    "Cannot deserialize the current JSON array (e.g. [1,2,3]) into type 'NuGet.Services.FeatureFlags.Flight'"
+                };
+
+                yield return new object[]
+                {
+                    @"{""Flights"": {""A"": {""bad"": 1}}}",
+                    "Could not find member 'bad' on object of type 'Flight'"
+                };
+
+                yield return new object[]
+                {
+                    @"{""Flights"": {""A"": {""All"": ""bad""}}}",
+                    "Could not convert string to boolean: bad"
+                };
             }
         }
 
