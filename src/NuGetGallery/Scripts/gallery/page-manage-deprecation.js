@@ -73,6 +73,17 @@ function ManageDeprecationViewModel(id, versionsDictionary, defaultVersion, subm
 
         return selected;
     }, this);
+    this.chosenVersionsCount = ko.pureComputed(function () {
+        var versions = self.chosenVersions();
+        if (!versions) {
+            return 0;
+        }
+
+        return versions.length;
+    }, this);
+    this.hasVersions = ko.pureComputed(function () {
+        return self.chosenVersionsCount() > 0;
+    }, this);
 
     this.versionSelectAllChecked = ko.pureComputed(function () {
         for (var index in self.versions) {
@@ -218,15 +229,6 @@ function ManageDeprecationViewModel(id, versionsDictionary, defaultVersion, subm
     this.shouldUnlist = ko.observable(true);
 
     this.submitError = ko.observable();
-    this.submitDisable = ko.pureComputed(function () {
-        if (self.alternatePackageId() && !self.hasAlternatePackageVersions()) {
-            // Block the submit button if there is an error with the alternate package ID
-            return true;
-        }
-
-        return false;
-    }, this);
-
     this.submit = function () {
         self.submitError(null);
         $.ajax({

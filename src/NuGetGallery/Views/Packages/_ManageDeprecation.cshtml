@@ -22,7 +22,8 @@
 
 <script type="text/html" id="add-deprecation-template">
     <div class="deprecation-section form-group">
-        <label for="versions" class="deprecation-section-header">Select version(s)</label>
+        <label class="deprecation-section-header">Select version(s)</label>
+        <p data-bind="text: chosenVersionsCount() + ' version selected out of ' + versions.length"></p>
         <div class="panel panel-default">
             <div class="panel-body version-selector">
                 <div class="form-group unbolded-label">
@@ -43,6 +44,11 @@
                     </div>
                 </div>
             </div>
+        </div>
+        <div class="has-error">
+            <span aria-live="assertive" class="help-block field-validation-error" role="alert" data-bind="visible: !hasVersions()">
+                At least one version must be selected.
+            </span>
         </div>
     </div>
 
@@ -118,7 +124,7 @@
     </div>
 
     <div class="deprecation-section form-group">
-        <button class="btn btn-primary full-line" type="submit" data-bind="click: submit, disable: submitDisable">Save</button>
+        <button class="btn btn-primary full-line" type="submit" data-bind="click: submit">Save</button>
     </div>
 </script>
 
