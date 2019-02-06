@@ -81,6 +81,11 @@ function ManageDeprecationViewModel(id, versionsDictionary, defaultVersion, subm
 
         return versions.length;
     }, this);
+    this.chosenVersionsCountString = ko.pureComputed(function () {
+        var versionsCount = self.chosenVersionsCount();
+        var pluralString = versionsCount !== 1 ? "s" : "";
+        return versionsCount + " version" + pluralString + " selected out of " + self.versions.length;
+    }, this);
     this.hasVersions = ko.pureComputed(function () {
         return self.chosenVersionsCount() > 0;
     }, this);

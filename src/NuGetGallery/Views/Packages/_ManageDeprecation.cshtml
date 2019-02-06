@@ -23,7 +23,7 @@
 <script type="text/html" id="add-deprecation-template">
     <div class="deprecation-section form-group">
         <label class="deprecation-section-header">Select version(s)</label>
-        <p data-bind="text: chosenVersionsCount() + ' version selected out of ' + versions.length"></p>
+        <p data-bind="text: chosenVersionsCountString"></p>
         <div class="panel panel-default">
             <div class="panel-body version-selector">
                 <div class="form-group unbolded-label">
@@ -107,16 +107,17 @@
         </div>
     </div>
 
-    <div class="deprecation-section form-group" data-bind="visible: isVulnerable() || isLegacy() || isOther()">
-        <label for="customMessage" class="deprecation-section-header">Provide custom message</label>
-        <textarea name="customMessage" class="form-control full-line" data-bind="textInput: customMessage" rows="2"></textarea>
-    </div>
-
-    <div class="deprecation-section form-group">
-        <label>
-            <input type="checkbox" value="true" data-bind="checked: shouldUnlist" />
-            Unlist this package from search results
-        </label>
+    <div data-bind="visible: isVulnerable() || isLegacy() || isOther()">
+        <div class="deprecation-section form-group">
+            <label for="customMessage" class="deprecation-section-header">Provide custom message</label>
+            <textarea name="customMessage" class="form-control full-line" data-bind="textInput: customMessage" rows="2"></textarea>
+        </div>
+        <div class="deprecation-section form-group">
+            <label>
+                <input type="checkbox" value="true" data-bind="checked: shouldUnlist" />
+                Unlist this package from search results
+            </label>
+        </div>
     </div>
 
     <div data-bind="visible: submitError">

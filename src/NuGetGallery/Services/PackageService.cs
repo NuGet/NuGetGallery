@@ -888,11 +888,6 @@ namespace NuGetGallery
             string customMessage,
             bool shouldUnlist)
         {
-            if (shouldUnlist)
-            {
-                package.Listed = false;
-            }
-
             var deprecation = package.Deprecations.SingleOrDefault();
             if (isVulnerable || isLegacy || isOther)
             {
@@ -955,6 +950,12 @@ namespace NuGetGallery
                 {
                     deprecation.CustomMessage = customMessage;
                 }
+
+                if (shouldUnlist)
+                {
+                    package.Listed = false;
+                }
+
             }
             else if (deprecation != null)
             {
@@ -976,11 +977,6 @@ namespace NuGetGallery
             string customMessage,
             bool shouldUnlist)
         {
-            if (shouldUnlist)
-            {
-                package.Listed = false;
-            }
-
             var status = PackageDeprecationStatus.NotDeprecated;
             if (isVulnerable)
             {
@@ -1018,6 +1014,11 @@ namespace NuGetGallery
                 deprecation.AlternatePackageRegistration = alternatePackageRegistration;
                 deprecation.AlternatePackage = alternatePackage;
                 deprecation.CustomMessage = customMessage;
+
+                if (shouldUnlist)
+                {
+                    package.Listed = false;
+                }
             }
             else if (deprecation != null)
             {
