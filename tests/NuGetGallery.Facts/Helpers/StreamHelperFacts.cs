@@ -12,70 +12,97 @@ namespace NuGetGallery.Helpers
 {
     public class StreamHelperFacts
     {
-        private const int MaxSize = 100;
+        private const int MaxSize = 30;
 
         [Fact]
         public async Task ReadNullStreamThrowException()
         {
             Stream stream = null;
-            var exception = await Assert.ThrowsAsync<ArgumentNullException>(() => StreamHelper.GetStringOrThrowIfTooLongAsync(stream, MaxSize));
-            Assert.Equal(nameof(stream), exception.ParamName);
+            using (var memoryStream = new MemoryStream())
+            {
+                var exception = await Assert.ThrowsAsync<ArgumentNullException>(() => stream.GetTruncatedStreamWithMaxSizeAsync(MaxSize));
+                Assert.Equal(nameof(stream), exception.ParamName);
+            }
         }
 
         [Theory]
         [InlineData(-1)]
         [InlineData(0)]
+        [InlineData(int.MaxValue)]
         public async Task ReadStreamWithInvalidMaxSizeThrowException(int maxSize)
         {
             using (var stream = new MemoryStream())
             {
-                var exception = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => StreamHelper.GetStringOrThrowIfTooLongAsync(stream, maxSize));
-                Assert.Equal(nameof(maxSize), exception.ParamName);
-            }
-        }
-
-        [Theory]
-        [InlineData("test content")]
-        [InlineData("测试内容")]
-        public async Task CheckContentWhenReadValidStream(string inputContent)
-        {
-            using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(inputContent)))
-            {
-                var content = await StreamHelper.GetStringOrThrowIfTooLongAsync(stream, MaxSize);
-                Assert.Equal(inputContent, content);
+                using (var memoryStream = new MemoryStream())
+                {
+                    var exception = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => stream.GetTruncatedStreamWithMaxSizeAsync(maxSize));
+                    Assert.Equal(nameof(maxSize), exception.ParamName);
+                }
             }
         }
 
         [Fact]
         public async Task ReadStreamWithLessThanMaxSize()
         {
-            var byteContent = new byte[MaxSize - 1];
-            using (var stream = new MemoryStream(byteContent))
+            var stringContent = GenerateRandomString(MaxSize - 1);
+            var expectedStringContent = stringContent;
+            using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(expectedStringContent)))
             {
-                var content = await StreamHelper.GetStringOrThrowIfTooLongAsync(stream, MaxSize);
-                Assert.Equal(byteContent.Length, Encoding.UTF8.GetBytes(content).Length);
+                using (var memoryStream = new MemoryStream())
+                {
+                    var truncatedMemoryStream = await stream.GetTruncatedStreamWithMaxSizeAsync(MaxSize);
+                    Assert.False(truncatedMemoryStream.ExceedMaxSize);
+                    Assert.Equal(MaxSize - 1, (int)truncatedMemoryStream.Stream.Length);
+                    Assert.Equal(expectedStringContent, Encoding.UTF8.GetString(truncatedMemoryStream.Stream.ToArray()));
+                }
             }
         }
 
         [Fact]
         public async Task ReadStreamWithEqualToMaxSize()
         {
-            var byteContent = new byte[MaxSize];
-            using (var stream = new MemoryStream(byteContent))
+            var stringContent = GenerateRandomString(MaxSize);
+            var expectedStringContent = stringContent;
+            using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(stringContent)))
             {
-                var content = await StreamHelper.GetStringOrThrowIfTooLongAsync(stream, MaxSize);
-                Assert.Equal(byteContent.Length, Encoding.UTF8.GetBytes(content).Length);
+                using (var memoryStream = new MemoryStream())
+                {
+                    var truncatedMemoryStream = await stream.GetTruncatedStreamWithMaxSizeAsync(MaxSize);
+                    Assert.False(truncatedMemoryStream.ExceedMaxSize);
+                    Assert.Equal(MaxSize, (int)truncatedMemoryStream.Stream.Length);
+                    Assert.Equal(expectedStringContent, Encoding.UTF8.GetString(truncatedMemoryStream.Stream.ToArray()));
+                }
             }
         }
 
         [Fact]
-        public async Task ReadStreamWithLargerThanMaxSizeThrowException()
+        public async Task ReadStreamWithLargerThanMaxSize()
         {
-            using (var stream = new MemoryStream(new byte[MaxSize + 1]))
+            var stringContent = GenerateRandomString(MaxSize + 1);
+            var expectedStringContent = stringContent.Substring(0, MaxSize);
+            using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(stringContent)))
             {
-                var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => StreamHelper.GetStringOrThrowIfTooLongAsync(stream, MaxSize));
-                Assert.Contains(exception.Message, string.Format(CultureInfo.CurrentCulture, Strings.StreamMaxLengthExceeded, MaxSize));
+                using (var memoryStream = new MemoryStream())
+                {
+                    var truncatedMemoryStream = await stream.GetTruncatedStreamWithMaxSizeAsync(MaxSize);
+                    Assert.True(truncatedMemoryStream.ExceedMaxSize);
+                    Assert.Equal(MaxSize, (int)truncatedMemoryStream.Stream.Length);
+                    Assert.Equal(expectedStringContent, Encoding.UTF8.GetString(truncatedMemoryStream.Stream.ToArray()));
+                }
             }
+        }
+
+        private string GenerateRandomString(int length)
+        {
+            var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+            var stringBuilder = new StringBuilder();
+            var random = new Random();
+            for (int i = 0; i < length; i++)
+            {
+                stringBuilder.Append(chars[random.Next(chars.Length)]);
+            }
+
+            return stringBuilder.ToString();
         }
     }
 }

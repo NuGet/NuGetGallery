@@ -40,6 +40,15 @@ namespace NuGetGallery
     public partial class PackagesController
         : AppController
     {
+        /// <summary>
+        /// The upper limit on allowed license file size for displaying in gallery.
+        /// </summary>
+        /// <remarks>
+        /// Warning: This limit should never be decreased!
+        /// <see cref="MaxAllowedLicenseLengthForUploading"/> in <see cref="PackageUploadService"/> is used to limit the license file size during uploading.
+        /// </remarks>
+        private const int MaxAllowedLicenseLengthForDisplaying = 1024 * 1024; // 1 MB
+
         private static readonly IReadOnlyList<ReportPackageReason> ReportAbuseReasons = new[]
         {
             ReportPackageReason.ViolatesALicenseIOwn,
@@ -754,7 +763,17 @@ namespace NuGetGallery
                 {
                     using (var licenseFileStream = await _coreLicenseFileService.DownloadLicenseFileAsync(package))
                     {
-                        licenseFileContents = await StreamHelper.GetStringOrThrowIfTooLongAsync(licenseFileStream, PackageUploadService.MaxAllowedLicenseLength);
+                        using (var licenseFileTrucatedStream = await licenseFileStream.GetTruncatedStreamWithMaxSizeAsync(MaxAllowedLicenseLengthForDisplaying))
+                        {
+                            if (licenseFileTrucatedStream.ExceedMaxSize)
+                            {
+                                throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, "The license file exceeds the max limit of {0} to display in Gallery", MaxAllowedLicenseLengthForDisplaying));
+                            }
+                            else
+                            {
+                                licenseFileContents = Encoding.UTF8.GetString(licenseFileTrucatedStream.Stream.GetBuffer(), 0, (int)licenseFileTrucatedStream.Stream.Length);
+                            }
+                        }
                     }
                 }
             }
