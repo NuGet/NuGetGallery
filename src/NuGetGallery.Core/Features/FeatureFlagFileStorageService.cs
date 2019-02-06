@@ -6,6 +6,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using NuGet.Services.FeatureFlags;
 
 namespace NuGetGallery.Features
@@ -18,7 +19,11 @@ namespace NuGetGallery.Features
         public FeatureFlagFileStorageService(ICoreFileStorageService storage)
         {
             _storage = storage ?? throw new ArgumentNullException(nameof(storage));
-            _serializer = new JsonSerializer();
+            _serializer = JsonSerializer.Create(new JsonSerializerSettings
+            {
+                Formatting = Formatting.Indented,
+                MissingMemberHandling = MissingMemberHandling.Error
+            });
         }
 
         public async Task<FeatureFlags> GetAsync()
@@ -35,19 +40,25 @@ namespace NuGetGallery.Features
         {
             var reference = await _storage.GetFileReferenceAsync(CoreConstants.Folders.ContentFolderName, CoreConstants.FeatureFlagsFileName);
 
+            string json;
             using (var stream = reference.OpenRead())
             using (var streamReader = new StreamReader(stream))
             {
-                return new FeatureFlagReference(streamReader.ReadToEnd(), reference.ContentId);
+                json = streamReader.ReadToEnd();
             }
+
+            return new FeatureFlagReference(
+                PrettifyJson(json),
+                reference.ContentId);
         }
 
         public async Task<FeatureFlagSaveResult> TrySaveAsync(string flags, string contentId)
         {
             // Ensure the feature flags are valid before saving them.
-            if (!IsValidFlagsJson(flags))
+            var validationResult = ValidateFlagsOrNull(flags);
+            if (validationResult != null)
             {
-                return FeatureFlagSaveResult.Invalid;
+                return validationResult;
             }
 
             var accessCondition = AccessConditionWrapper.GenerateIfMatchCondition(contentId);
@@ -72,17 +83,26 @@ namespace NuGetGallery.Features
             }
         }
 
-        public static bool IsValidFlagsJson(string flags)
+        private FeatureFlagSaveResult ValidateFlagsOrNull(string flags)
         {
             try
             {
-                JsonConvert.DeserializeObject<FeatureFlags>(flags);
-                return true;
+                using (var reader = new StringReader(flags))
+                using (var jsonReader = new JsonTextReader(reader))
+                {
+                    _serializer.Deserialize<FeatureFlags>(jsonReader);
+                    return null;
+                }
             }
-            catch (JsonException)
+            catch (JsonException e)
             {
-                return false;
+                return FeatureFlagSaveResult.Invalid(e.Message);
             }
+        }
+
+        private string PrettifyJson(string json)
+        {
+            return JToken.Parse(json).ToString(Formatting.Indented);
         }
     }
 }

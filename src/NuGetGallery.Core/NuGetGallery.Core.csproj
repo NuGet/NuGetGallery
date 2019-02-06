@@ -137,6 +137,7 @@
     <Compile Include="Features\FeatureFlagClientExtensions.cs" />
     <Compile Include="Features\FeatureFlagReference.cs" />
     <Compile Include="Features\FeatureFlagSaveResult.cs" />
+    <Compile Include="Features\FeatureFlagSaveResultType.cs" />
     <Compile Include="Features\IMutableFeatureFlagStorageService.cs" />
     <Compile Include="ICloudStorageStatusDependency.cs" />
     <Compile Include="Infrastructure\AzureEntityList.cs" />

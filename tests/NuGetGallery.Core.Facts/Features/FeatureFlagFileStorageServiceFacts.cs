@@ -87,7 +87,7 @@ namespace NuGetGallery.Features
                 var result = await _target.TrySaveAsync("bad", "123");
 
                 // Assert
-                Assert.Equal(FeatureFlagSaveResult.Invalid, result);
+                Assert.Equal(FeatureFlagSaveResultType.Invalid, result.Type);
 
                 _storage.Verify(
                     s => s.SaveFileAsync(
@@ -149,29 +149,6 @@ namespace NuGetGallery.Features
                         It.IsAny<Stream>(),
                         It.Is<IAccessCondition>(c => c.IfNoneMatchETag == null && c.IfMatchETag != null)),
                     Times.Once);
-            }
-        }
-
-        public class IsValidFlagsJson
-        {
-            [Theory]
-            [MemberData(nameof(ValidatesJsonData))]
-            public void ValidatesJson(string input, bool valid)
-            {
-                Assert.Equal(valid, FeatureFlagFileStorageService.IsValidFlagsJson(input));
-            }
-
-            public static IEnumerable<object[]> ValidatesJsonData()
-            {
-                foreach (var json in FeatureFlagJsonHelper.ValidJson)
-                {
-                    yield return new object[] { json, true };
-                }
-
-                foreach (var json in FeatureFlagJsonHelper.InvalidJson)
-                {
-                    yield return new object[] { json, false };
-                }
             }
         }
 

@@ -6,21 +6,30 @@ namespace NuGetGallery.Features
     /// <summary>
     /// The result of calling <see cref="FeatureFlagFileStorageService.TrySaveAsync(string, string)"/>.
     /// </summary>
-    public enum FeatureFlagSaveResult
+    public class FeatureFlagSaveResult
     {
-        /// <summary>
-        /// The flags were saved successfully.
-        /// </summary>
-        Ok,
+        private FeatureFlagSaveResult(FeatureFlagSaveResultType type, string message = null)
+        {
+            Type = type;
+            Message = message ?? string.Empty;
+        }
+
+        public static readonly FeatureFlagSaveResult Ok = new FeatureFlagSaveResult(FeatureFlagSaveResultType.Ok);
+        public static readonly FeatureFlagSaveResult Conflict = new FeatureFlagSaveResult(FeatureFlagSaveResultType.Conflict);
+
+        public static FeatureFlagSaveResult Invalid(string message)
+        {
+            return new FeatureFlagSaveResult(FeatureFlagSaveResultType.Invalid, message);
+        }
 
         /// <summary>
-        /// The flags are malformed.
+        /// An error code explaining whether the save operation succeeded.
         /// </summary>
-        Invalid,
+        public FeatureFlagSaveResultType Type { get; }
 
         /// <summary>
-        /// The flags were modified by someone else.
+        /// A non-null string explaining the result. Empty unless <see cref="Type"/> is <see cref="FeatureFlagSaveResultType.Invalid"/>.
         /// </summary>
-        Conflict,
+        public string Message { get; }
     }
 }

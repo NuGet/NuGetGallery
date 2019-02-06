@@ -23,7 +23,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
         {
             var reference = await _storage.GetReferenceAsync();
 
-            return View(nameof(Index), new FeatureFlagsViewModel
+            return View(new FeatureFlagsViewModel
             {
                 Flags = reference.Flags,
                 ContentId = reference.ContentId
@@ -34,34 +34,31 @@ namespace NuGetGallery.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Index(FeatureFlagsViewModel model)
         {
-            if (!ModelState.IsValid)
+            if (ModelState.IsValid)
             {
-                return View(nameof(Index), model);
+                var result = await _storage.TrySaveAsync(model.Flags, model.ContentId);
+
+                switch (result.Type)
+                {
+                    case FeatureFlagSaveResultType.Ok:
+                        TempData["Message"] = "Your feature flags have been saved!";
+                        return Redirect(Url.Action(actionName: "Index", controllerName: "Features"));
+
+                    case FeatureFlagSaveResultType.Conflict:
+                        TempData["ErrorMessage"] = "The feature flags were modified by someone else. Please reload the page and try again.";
+                        break;
+
+                    case FeatureFlagSaveResultType.Invalid:
+                        ModelState.AddModelError(nameof(model.Flags), $"Invalid flags: {result.Message}");
+                        break;
+
+                    default:
+                        TempData["ErrorMessage"] = $"Unknown save result '{result}': {result.Message}.";
+                        break;
+                }
             }
 
-            var result = await _storage.TrySaveAsync(model.Flags, model.ContentId);
-
-            switch (result)
-            {
-                case FeatureFlagSaveResult.Ok:
-                    TempData["Message"] = "Your feature flags have been saved";
-                    break;
-
-                case FeatureFlagSaveResult.Invalid:
-                    // This case shouldn't happen as the ModelState should be invalid.
-                    TempData["ErrorMessage"] = "Could not save feature flags as they were malformed.";
-                    break;
-
-                case FeatureFlagSaveResult.Conflict:
-                    TempData["ErrorMessage"] = "The feature flags were modified by someone else. Please try again.";
-                    break;
-
-                default:
-                    TempData["ErrorMessage"] = $"Unknown save result '{result}'.";
-                    break;
-            }
-
-            return Redirect(Url.Action(actionName: "Index", controllerName: "Features"));
+            return View(model);
         }
     }
 }

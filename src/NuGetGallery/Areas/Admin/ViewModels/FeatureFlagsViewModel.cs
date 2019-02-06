@@ -8,7 +8,6 @@ namespace NuGetGallery.Areas.Admin.ViewModels
     public class FeatureFlagsViewModel
     {
         [Required]
-        [FeatureFlagsJsonValidation]
         public string Flags { get; set; }
 
         [Required]

@@ -181,7 +181,6 @@
     <Compile Include="Areas\Admin\Services\ValidationAdminService.cs" />
     <Compile Include="Areas\Admin\ViewModels\DeleteAccountAsAdminViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\DeleteAccountStatus.cs" />
-    <Compile Include="Areas\Admin\ViewModels\FeatureFlagsJsonValidationAttribute.cs" />
     <Compile Include="Areas\Admin\ViewModels\FeatureFlagsViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\HardDeleteReflowBulkRequestConfirmation.cs" />
     <Compile Include="Areas\Admin\ViewModels\HardDeleteReflowBulkRequest.cs" />
