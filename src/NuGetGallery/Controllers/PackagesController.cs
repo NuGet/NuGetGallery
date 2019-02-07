@@ -1406,6 +1406,7 @@ namespace NuGetGallery
         }
 
         [HttpGet]
+        [UIAuthorize]
         public virtual JsonResult GetDeprecationAlternatePackageVersions(string id)
         {
             var registration = _packageService.FindPackageRegistrationById(id);
