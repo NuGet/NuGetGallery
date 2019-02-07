@@ -1292,7 +1292,7 @@ namespace NuGetGallery
         [RequiresAccountConfirmation("manage a package")]
         public virtual async Task<ActionResult> Manage(string id, string version = null)
         {
-            var package = _packageService.FindPackageByIdAndVersion(id, version);
+            var package = _packageService.FindPackageByIdAndVersion(id, version, SemVerLevelKey.SemVer2);
             if (package == null)
             {
                 return HttpNotFound();
@@ -1318,7 +1318,7 @@ namespace NuGetGallery
         [RequiresAccountConfirmation("delete a symbols package")]
         public virtual ActionResult DeleteSymbols(string id, string version)
         {
-            var package = _packageService.FindPackageByIdAndVersion(id, version);
+            var package = _packageService.FindPackageByIdAndVersion(id, version, SemVerLevelKey.SemVer2);
             if (package == null)
             {
                 return HttpNotFound();
@@ -1360,7 +1360,7 @@ namespace NuGetGallery
         [RequiresAccountConfirmation("reflow a package")]
         public virtual async Task<ActionResult> Reflow(string id, string version)
         {
-            var package = _packageService.FindPackageByIdAndVersion(id, version);
+            var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
 
             if (package == null)
             {
@@ -1395,7 +1395,7 @@ namespace NuGetGallery
         [RequiresAccountConfirmation("revalidate a package")]
         public virtual async Task<ActionResult> Revalidate(string id, string version)
         {
-            var package = _packageService.FindPackageByIdAndVersion(id, version);
+            var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
 
             if (package == null)
             {
@@ -1423,7 +1423,7 @@ namespace NuGetGallery
         [RequiresAccountConfirmation("revalidate a symbols package")]
         public virtual async Task<ActionResult> RevalidateSymbols(string id, string version)
         {
-            var package = _packageService.FindPackageByIdAndVersion(id, version);
+            var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
 
             if (package == null)
             {
@@ -1629,7 +1629,7 @@ namespace NuGetGallery
         [RequiresAccountConfirmation("edit a package")]
         public virtual async Task<JsonResult> Edit(string id, string version, VerifyPackageRequest formData, string returnUrl)
         {
-            var package = _packageService.FindPackageByIdAndVersion(id, version);
+            var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
             if (package == null)
             {
                 return Json(HttpStatusCode.NotFound, new[] { new JsonValidationMessage(string.Format(Strings.PackageWithIdAndVersionNotFound, id, version)) });
