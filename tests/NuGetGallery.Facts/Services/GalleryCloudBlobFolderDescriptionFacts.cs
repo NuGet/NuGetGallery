@@ -30,11 +30,11 @@ namespace NuGetGallery.Services
             new object[] { CoreConstants.Folders.PackagesContentFolderName, false, CoreConstants.OctetStreamContentType, null },
             new object[] { CoreConstants.Folders.RevalidationFolderName, false, CoreConstants.JsonContentType, null },
             new object[] { CoreConstants.Folders.StatusFolderName, false, CoreConstants.JsonContentType, null },
-            new object[] { CoreConstants.Folders.FlatContainerFolderName, false, CoreConstants.PackageContentType, null },
+            new object[] { CoreConstants.Folders.FlatContainerFolderName, true, CoreConstants.PackageContentType, null },
         };
 
         [Fact]
-        public void FolderNameDataContainsAllFolders()
+        public void FolderDataContainsAllFolders()
         {
             var folderNameFields = typeof(CoreConstants.Folders)
                 .GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy)
@@ -51,7 +51,7 @@ namespace NuGetGallery.Services
             }
         }
 
-        [Fact]
+        [Theory]
         [MemberData(nameof(FolderData))]
         public void ProducesExpectedOutput(string folderName, bool isPublic, string contentType, string cacheControl)
         {
