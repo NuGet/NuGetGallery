@@ -1314,17 +1314,17 @@ namespace NuGetGallery
         }
         
         [HttpPost]
-        [RequiresAccountConfirmation("delete a package")]
+        [RequiresAccountConfirmation("deprecate a package")]
         [ValidateAntiForgeryToken]
         public virtual async Task<JsonResult> Deprecate(
-            string id, 
-            IEnumerable<string> versions, 
+            string id,
+            IReadOnlyCollection<string> versions, 
             bool isVulnerable,
             bool isLegacy,
             bool isOther,
-            IEnumerable<string> cveIds,
+            IReadOnlyCollection<string> cveIds,
             decimal? cvssRating,
-            IEnumerable<string> cweIds,
+            IReadOnlyCollection<string> cweIds,
             string alternatePackageId,
             string alternatePackageVersion,
             string customMessage,
@@ -1363,14 +1363,14 @@ namespace NuGetGallery
                 }
             }
 
-            var missingVersions = new List<string>();
             var foundPackageVersions = new List<Package>();
             foreach (var version in versions)
             {
                 var package = registration.Packages.SingleOrDefault(v => v.NormalizedVersion == NuGetVersionFormatter.Normalize(version));
                 if (package == null)
                 {
-                    missingVersions.Add(version);
+                    // This should only happen if someone hacks the form or if a version of the package is deleted while the user is filling out the form.
+                    return DeprecateErrorResponse(HttpStatusCode.NotFound, $"Package '{id} {version}' does not exist. Please refresh the page and try again.");
                 }
                 else
                 {

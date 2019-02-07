@@ -157,9 +157,9 @@ namespace NuGetGallery
         public IReadOnlyCollection<CompositeLicenseExpressionSegment> LicenseExpressionSegments { get; set; }
         public EmbeddedLicenseFileType EmbeddedLicenseType { get; set; }
 
-        public IEnumerable<string> CVEIds { get; set; }
+        public IReadOnlyCollection<string> CVEIds { get; set; }
         public decimal? CVSSRating { get; set; }
-        public IEnumerable<string> CWEIds { get; set; }
+        public IReadOnlyCollection<string> CWEIds { get; set; }
         public string AlternatePackageRegistrationId { get; set; }
         public DisplayPackageViewModel AlternatePackage { get; set; }
         public string CustomMessage { get; set; }

@@ -832,19 +832,19 @@ namespace NuGetGallery
         }
 
         public async Task UpdateDeprecation(
-            IEnumerable<Package> packages, 
+            IReadOnlyCollection<Package> packages, 
             bool isVulnerable, 
             bool isLegacy, 
-            bool isOther, 
-            IEnumerable<string> cveIds, 
-            decimal? cvssRating, 
-            IEnumerable<string> cweIds,
+            bool isOther,
+            IReadOnlyCollection<string> cveIds, 
+            decimal? cvssRating,
+            IReadOnlyCollection<string> cweIds,
             PackageRegistration alternatePackageRegistration,
             Package alternatePackage,
             string customMessage, 
             bool shouldUnlist)
         {
-            Action<Package, bool, bool, bool, IEnumerable<string>, decimal?, IEnumerable<string>, PackageRegistration, Package, string, bool> deprecatePackage;
+            UpdatePackageDeprecation deprecatePackage;
             if (packages.Count() == 1)
             {
                 // Updating a single package's deprecation does a replace.
@@ -853,7 +853,7 @@ namespace NuGetGallery
             else
             {
                 // Updating multiple packages combines the new state with the existing state for each package.
-                deprecatePackage = UpdateDeprecation;
+                deprecatePackage = CombineDeprecation;
             }
 
             foreach (var package in packages)
@@ -875,14 +875,27 @@ namespace NuGetGallery
             await _packageRepository.CommitChangesAsync();
         }
 
-        private void UpdateDeprecation(
+        private delegate void UpdatePackageDeprecation(
             Package package,
             bool isVulnerable,
             bool isLegacy,
             bool isOther,
-            IEnumerable<string> cveIds,
+            IReadOnlyCollection<string> cveIds,
             decimal? cvssRating,
-            IEnumerable<string> cweIds,
+            IReadOnlyCollection<string> cweIds,
+            PackageRegistration alternatePackageRegistration,
+            Package alternatePackage,
+            string customMessage,
+            bool shouldUnlist);
+
+        private void CombineDeprecation(
+            Package package,
+            bool isVulnerable,
+            bool isLegacy,
+            bool isOther,
+            IReadOnlyCollection<string> cveIds,
+            decimal? cvssRating,
+            IReadOnlyCollection<string> cweIds,
             PackageRegistration alternatePackageRegistration,
             Package alternatePackage,
             string customMessage,
@@ -920,7 +933,7 @@ namespace NuGetGallery
                 if (cveIds != null && cveIds.Any())
                 {
                     var existingCveIds = deprecation.GetCVEIds() ?? new string[0];
-                    var combinedCveIds = existingCveIds.Concat(cveIds).Distinct();
+                    var combinedCveIds = existingCveIds.Concat(cveIds).Distinct().ToList();
                     deprecation.SetCVEIds(combinedCveIds);
                 }
 
@@ -932,7 +945,7 @@ namespace NuGetGallery
                 if (cweIds != null && cweIds.Any())
                 {
                     var existingCweIds = deprecation.GetCWEIds() ?? new string[0];
-                    var combinedCweIds = existingCweIds.Concat(cweIds).Distinct();
+                    var combinedCweIds = existingCweIds.Concat(cweIds).Distinct().ToList();
                     deprecation.SetCWEIds(combinedCweIds);
                 }
 
@@ -955,7 +968,6 @@ namespace NuGetGallery
                 {
                     package.Listed = false;
                 }
-
             }
             else if (deprecation != null)
             {
@@ -969,9 +981,9 @@ namespace NuGetGallery
             bool isVulnerable,
             bool isLegacy,
             bool isOther,
-            IEnumerable<string> cveIds,
+            IReadOnlyCollection<string> cveIds,
             decimal? cvssRating,
-            IEnumerable<string> cweIds,
+            IReadOnlyCollection<string> cweIds,
             PackageRegistration alternatePackageRegistration,
             Package alternatePackage,
             string customMessage,

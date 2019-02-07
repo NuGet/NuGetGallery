@@ -109,16 +109,17 @@ namespace NuGetGallery
         /// Updates the deprecation of many packages.
         /// If any packages have an existing deprecation, it combines the existing state with the new state.
         /// If only a single package is provided, the existing deprecation is entirely replaced.
+        /// If the deprecation supplied is not vulnerable, not legacy, and not other, the deprecations of the packages will be removed.
         /// Commits changes when finished.
         /// </summary>
         Task UpdateDeprecation(
-            IEnumerable<Package> packages,
+            IReadOnlyCollection<Package> packages,
             bool isVulnerable,
             bool isLegacy,
             bool isOther,
-            IEnumerable<string> cveIds,
+            IReadOnlyCollection<string> cveIds,
             decimal? cvssRating,
-            IEnumerable<string> cweIds,
+            IReadOnlyCollection<string> cweIds,
             PackageRegistration alternatePackageRegistration,
             Package alternatePackage,
             string customMessage,
