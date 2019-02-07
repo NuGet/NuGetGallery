@@ -1758,7 +1758,7 @@ namespace NuGetGallery
                 _packageRegistration.Owners.Add(owner);
 
                 var packageService = new Mock<IPackageService>(MockBehavior.Strict);
-                packageService.Setup(svc => svc.FindPackageByIdAndVersion(_packageId, _package.Version, SemVerLevelKey.Unknown, true))
+                packageService.Setup(svc => svc.FindPackageByIdAndVersion(_packageId, _package.Version, SemVerLevelKey.SemVer2, true))
                     .Returns(_package).Verifiable();
 
                 var controller = CreateController(
@@ -1816,7 +1816,7 @@ namespace NuGetGallery
                 _packageRegistration.Owners.Add(owner);
 
                 var packageService = new Mock<IPackageService>(MockBehavior.Strict);
-                packageService.Setup(svc => svc.FindPackageByIdAndVersion(_packageId, _package.Version, SemVerLevelKey.Unknown, true))
+                packageService.Setup(svc => svc.FindPackageByIdAndVersion(_packageId, _package.Version, SemVerLevelKey.SemVer2, true))
                     .Returns(_package).Verifiable();
 
                 var controller = CreateController(
@@ -1864,7 +1864,7 @@ namespace NuGetGallery
                 _packageRegistration.IsLocked = true;
 
                 var packageService = new Mock<IPackageService>(MockBehavior.Strict);
-                packageService.Setup(svc => svc.FindPackageByIdAndVersion(_packageId, _package.Version, SemVerLevelKey.Unknown, true))
+                packageService.Setup(svc => svc.FindPackageByIdAndVersion(_packageId, _package.Version, SemVerLevelKey.SemVer2, true))
                     .Returns(_package).Verifiable();
 
                 var controller = CreateController(
@@ -1894,7 +1894,7 @@ namespace NuGetGallery
                 _package.HasReadMe = true;
 
                 var packageService = new Mock<IPackageService>(MockBehavior.Strict);
-                packageService.Setup(svc => svc.FindPackageByIdAndVersion(_packageId, _package.Version, SemVerLevelKey.Unknown, true))
+                packageService.Setup(svc => svc.FindPackageByIdAndVersion(_packageId, _package.Version, SemVerLevelKey.SemVer2, true))
                     .Returns(_package).Verifiable();
 
                 var readMe = "markdown";
@@ -1933,7 +1933,7 @@ namespace NuGetGallery
                 _package.HasReadMe = false;
 
                 var packageService = new Mock<IPackageService>(MockBehavior.Strict);
-                packageService.Setup(svc => svc.FindPackageByIdAndVersion(_packageId, _package.Version, SemVerLevelKey.Unknown, true))
+                packageService.Setup(svc => svc.FindPackageByIdAndVersion(_packageId, _package.Version, SemVerLevelKey.SemVer2, true))
                     .Returns(_package).Verifiable();
                 
                 var readMeService = new Mock<IReadMeService>(MockBehavior.Strict);
@@ -2112,7 +2112,7 @@ namespace NuGetGallery
                 };
 
                 var packageService = new Mock<IPackageService>(MockBehavior.Strict);
-                packageService.Setup(svc => svc.FindPackageByIdAndVersion("Foo", "1.0.0", SemVerLevelKey.Unknown, true))
+                packageService.Setup(svc => svc.FindPackageByIdAndVersion("Foo", "1.0.0", SemVerLevelKey.SemVer2, true))
                     .Returns(package);
 
                 var controller = CreateController(GetConfigurationService(), packageService: packageService);
@@ -2132,7 +2132,7 @@ namespace NuGetGallery
 
                 var packageService = new Mock<IPackageService>(MockBehavior.Strict);
                 packageService
-                    .Setup(svc => svc.FindPackageByIdAndVersion(_packageId, _package.Version, SemVerLevelKey.Unknown, true))
+                    .Setup(svc => svc.FindPackageByIdAndVersion(_packageId, _package.Version, SemVerLevelKey.SemVer2, true))
                     .Returns(_package).Verifiable();
 
                 controller = CreateController(
@@ -2626,7 +2626,7 @@ namespace NuGetGallery
                 package.PackageRegistration.Owners.Add(owner);
 
                 var packageService = new Mock<IPackageService>();
-                packageService.Setup(s => s.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int?>(), It.IsAny<bool>()))
+                packageService.Setup(s => s.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>()))
                     .Returns(package);
                 packageService.Setup(s => s.FindPackageRegistrationById(It.IsAny<string>()))
                     .Returns(package.PackageRegistration);
@@ -6496,11 +6496,9 @@ namespace NuGetGallery
 
                 _packageService = new Mock<IPackageService>();
                 _packageService
-                    .Setup(svc => svc.FindPackageByIdAndVersion(
+                    .Setup(svc => svc.FindPackageByIdAndVersionStrict(
                         It.IsAny<string>(),
-                        It.IsAny<string>(),
-                        It.IsAny<int?>(),
-                        It.IsAny<bool>()))
+                        It.IsAny<string>()))
                     .Returns(_package);
 
                 _validationService = new Mock<IValidationService>();
@@ -6546,11 +6544,9 @@ namespace NuGetGallery
             {
                 // Arrange
                 _packageService
-                    .Setup(svc => svc.FindPackageByIdAndVersion(
+                    .Setup(svc => svc.FindPackageByIdAndVersionStrict(
                         It.IsAny<string>(),
-                        It.IsAny<string>(),
-                        It.IsAny<int?>(),
-                        It.IsAny<bool>()))
+                        It.IsAny<string>()))
                     .Returns<Package>(null);
 
                 // Act
@@ -6588,11 +6584,9 @@ namespace NuGetGallery
 
                 _packageService = new Mock<IPackageService>();
                 _packageService
-                    .Setup(svc => svc.FindPackageByIdAndVersion(
+                    .Setup(svc => svc.FindPackageByIdAndVersionStrict(
                         It.IsAny<string>(),
-                        It.IsAny<string>(),
-                        It.IsAny<int?>(),
-                        It.IsAny<bool>()))
+                        It.IsAny<string>()))
                     .Returns(_package);
 
                 _validationService = new Mock<IValidationService>();
@@ -6642,11 +6636,9 @@ namespace NuGetGallery
             {
                 // Arrange
                 _packageService
-                    .Setup(svc => svc.FindPackageByIdAndVersion(
+                    .Setup(svc => svc.FindPackageByIdAndVersionStrict(
                         It.IsAny<string>(),
-                        It.IsAny<string>(),
-                        It.IsAny<int?>(),
-                        It.IsAny<bool>()))
+                        It.IsAny<string>()))
                     .Returns<Package>(null);
 
                 // Act
