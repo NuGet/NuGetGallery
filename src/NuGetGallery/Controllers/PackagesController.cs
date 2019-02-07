@@ -1332,13 +1332,13 @@ namespace NuGetGallery
         {
             if (versions == null || !versions.Any())
             {
-                return DeprecateErrorResponse(HttpStatusCode.BadRequest, "You must select at least one version to deprecate!");
+                return DeprecateErrorResponse(HttpStatusCode.BadRequest, Strings.DeprecatePackage_NoVersions);
             }
 
             var registration = _packageService.FindPackageRegistrationById(id);
             if (registration == null)
             {
-                return DeprecateErrorResponse(HttpStatusCode.NotFound, $"Package '{id}' does not exist.");
+                return DeprecateErrorResponse(HttpStatusCode.NotFound, string.Format(Strings.DeprecatePackage_NoRegistration, id));
             }
 
             PackageRegistration alternatePackageRegistration = null;
@@ -1350,7 +1350,9 @@ namespace NuGetGallery
                     alternatePackage = _packageService.FindPackageByIdAndVersionStrict(alternatePackageId, alternatePackageVersion);
                     if (alternatePackage == null)
                     {
-                        return DeprecateErrorResponse(HttpStatusCode.NotFound, $"Alternate package '{alternatePackageId} {alternatePackageVersion}' does not exist.");
+                        return DeprecateErrorResponse(
+                            HttpStatusCode.NotFound, 
+                            string.Format(Strings.DeprecatePackage_NoAlternatePackage, alternatePackageId, alternatePackageVersion));
                     }
                 }
                 else
@@ -1358,28 +1360,32 @@ namespace NuGetGallery
                     alternatePackageRegistration = _packageService.FindPackageRegistrationById(alternatePackageId);
                     if (alternatePackageRegistration == null)
                     {
-                        return DeprecateErrorResponse(HttpStatusCode.NotFound, $"Alternate package '{alternatePackageId}' does not exist.");
+                        return DeprecateErrorResponse(
+                            HttpStatusCode.NotFound,
+                            string.Format(Strings.DeprecatePackage_NoAlternatePackageRegistration, alternatePackageId));
                     }
                 }
             }
 
-            var foundPackageVersions = new List<Package>();
+            var packageVersions = new List<Package>();
             foreach (var version in versions)
             {
                 var package = registration.Packages.SingleOrDefault(v => v.NormalizedVersion == NuGetVersionFormatter.Normalize(version));
                 if (package == null)
                 {
                     // This should only happen if someone hacks the form or if a version of the package is deleted while the user is filling out the form.
-                    return DeprecateErrorResponse(HttpStatusCode.NotFound, $"Package '{id} {version}' does not exist. Please refresh the page and try again.");
+                    return DeprecateErrorResponse(
+                        HttpStatusCode.NotFound, 
+                        string.Format(Strings.DeprecatePackage_MissingVersion, id, version));
                 }
                 else
                 {
-                    foundPackageVersions.Add(package);
+                    packageVersions.Add(package);
                 }
             }
 
             await _packageService.UpdateDeprecation(
-                foundPackageVersions, 
+                packageVersions, 
                 isVulnerable, 
                 isLegacy, 
                 isOther, 

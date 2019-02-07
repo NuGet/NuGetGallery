@@ -19,7 +19,7 @@ namespace NuGetGallery {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     public class Strings {
@@ -763,6 +763,51 @@ namespace NuGetGallery {
         public static string DeleteMember_Success {
             get {
                 return ResourceManager.GetString("DeleteMember_Success", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Package &apos;{0} {1}&apos; does not exist. Please refresh the page and try again..
+        /// </summary>
+        public static string DeprecatePackage_MissingVersion {
+            get {
+                return ResourceManager.GetString("DeprecatePackage_MissingVersion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Alternate package &apos;{0} {1}&apos; does not exist..
+        /// </summary>
+        public static string DeprecatePackage_NoAlternatePackage {
+            get {
+                return ResourceManager.GetString("DeprecatePackage_NoAlternatePackage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Alternate package &apos;{0}&apos; does not exist..
+        /// </summary>
+        public static string DeprecatePackage_NoAlternatePackageRegistration {
+            get {
+                return ResourceManager.GetString("DeprecatePackage_NoAlternatePackageRegistration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Package &apos;{0}&apos; does not exist..
+        /// </summary>
+        public static string DeprecatePackage_NoRegistration {
+            get {
+                return ResourceManager.GetString("DeprecatePackage_NoRegistration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You must select at least one version to deprecate!.
+        /// </summary>
+        public static string DeprecatePackage_NoVersions {
+            get {
+                return ResourceManager.GetString("DeprecatePackage_NoVersions", resourceCulture);
             }
         }
         
