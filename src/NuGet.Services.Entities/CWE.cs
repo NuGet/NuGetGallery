@@ -13,6 +13,11 @@ namespace NuGet.Services.Entities
     public class Cwe
         : IEntity
     {
+        public Cwe()
+        {
+            PackageDeprecations = new HashSet<PackageDeprecation>();
+        }
+
         /// <summary>
         /// Gets or sets the primary key for the entity.
         /// </summary>

@@ -14,6 +14,12 @@ namespace NuGet.Services.Entities
     public class PackageDeprecation
         : IEntity
     {
+        public PackageDeprecation()
+        {
+            Cves = new HashSet<Cve>();
+            Cwes = new HashSet<Cwe>();
+        }
+
         /// <summary>
         /// Gets or sets the primary key for the entity.
         /// </summary>
