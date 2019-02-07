@@ -55,6 +55,12 @@ namespace NuGet.Services.Entities
         /// </summary>
         public bool Listed { get; set; }
 
+        /// <summary>
+        /// Gets or sets the status of the <see cref="Cwe"/>.
+        /// </summary>
+        [Required]
+        public CweStatus Status { get; set; }
+
         public virtual ICollection<PackageDeprecation> PackageDeprecations { get; set; }
     }
 }

@@ -53,7 +53,9 @@
     <Compile Include="CuratedFeed.cs" />
     <Compile Include="CuratedPackage.cs" />
     <Compile Include="Cve.cs" />
+    <Compile Include="CveStatus.cs" />
     <Compile Include="Cwe.cs" />
+    <Compile Include="CweStatus.cs" />
     <Compile Include="EmailMessage.cs" />
     <Compile Include="EmbeddedLicenseFileType.cs" />
     <Compile Include="EntityException.cs" />
