@@ -199,8 +199,8 @@ namespace NuGetGallery
                 "packages/{id}/atom.xml",
                 new
                 {
-                    controller = "packages",
-                    action = "AtomFeed"
+                    controller = "Packages",
+                    action = nameof(PackagesController.AtomFeed)
                 });
 
             routes.MapRoute(
