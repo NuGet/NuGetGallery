@@ -12,7 +12,7 @@ namespace NuGetGallery
 {
     public class FakeEntitiesContext : IEntitiesContext
     {
-        private readonly Dictionary<Type, object> dbSets = new Dictionary<Type,object>();
+        private readonly Dictionary<Type, object> dbSets = new Dictionary<Type, object>();
         private bool _areChangesSaved;
 
         public IDbSet<PackageRegistration> PackageRegistrations
@@ -158,6 +158,7 @@ namespace NuGetGallery
                 throw new NotSupportedException();
             }
         }
+
         public IDbSet<Cwe> Cwes
         {
             get
