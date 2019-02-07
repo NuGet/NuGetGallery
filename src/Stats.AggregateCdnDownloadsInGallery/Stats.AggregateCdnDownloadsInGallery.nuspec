@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package >
   <metadata>
-    <id>Stats.AggregateCdnDownloadsInGallery.$branch$</id>
+    <id>Stats.AggregateCdnDownloadsInGallery</id>
     <version>$version$</version>
     <title>Stats.AggregateCdnDownloadsInGallery</title>
     <authors>.NET Foundation</authors>

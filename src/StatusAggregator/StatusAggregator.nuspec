@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package >
   <metadata>
-    <id>StatusAggregator.$branch$</id>
+    <id>StatusAggregator</id>
     <version>$version$</version>
     <title>ArchivePackages</title>
     <authors>.NET Foundation</authors>

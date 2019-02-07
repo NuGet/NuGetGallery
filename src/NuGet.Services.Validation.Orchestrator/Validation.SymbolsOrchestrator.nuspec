@@ -1,24 +1,22 @@
 <?xml version="1.0"?>
 <package >
   <metadata>
-    <id>Stats.ImportAzureCdnStatistics</id>
+    <id>Validation.Orchestrator</id>
     <version>$version$</version>
-    <title>Stats.ImportAzureCdnStatistics</title>
+    <title>Validation.Orchestrator</title>
     <authors>.NET Foundation</authors>
     <owners>.NET Foundation</owners>
-    <description>Stats.ImportAzureCdnStatistics</description>
+    <description>Validation.Orchestrator</description>
     <copyright>Copyright .NET Foundation</copyright>
   </metadata>
   <files>
     <file src="bin\$configuration$\*.*" target="bin"/>
 	
-    <file src="Scripts\Stats.ImportAzureCdnStatistics.cmd" />
-	
+    <file src="Scripts\Validation.Orchestrator.cmd" />
     <file src="Scripts\Functions.ps1" />
     <file src="Scripts\PreDeploy.ps1" />
     <file src="Scripts\PostDeploy.ps1" />
+    <file src="Scripts\RunE2ETests.ps1" />
     <file src="Scripts\nssm.exe" />
-
-    <file src="Settings\*.json" target="bin" />
   </files>
 </package>

@@ -9,12 +9,10 @@ $currentDirectory = [string](Get-Location)
 $jobsToInstall.Split("{;}") | %{
 	$serviceName = $_
 	$serviceTitle = $OctopusParameters["Jobs.$serviceName.Title"]
-	$serviceUsername = $OctopusParameters["Jobs.$serviceName.Username"]
-	$servicePassword = $OctopusParameters["Jobs.$serviceName.Password"]
 	$scriptToRun = $OctopusParameters["Jobs.$serviceName.Script"]
 	$scriptToRun = "$currentDirectory\$scriptToRun"
 
-	Install-NuGetService -ServiceName $serviceName -ServiceTitle $serviceTitle -ScriptToRun $scriptToRun -Username $serviceUsername -Password $servicePassword
+	Install-NuGetService -ServiceName $serviceName -ServiceTitle $serviceTitle -ScriptToRun $scriptToRun
 }
 
 Write-Host Installed services.

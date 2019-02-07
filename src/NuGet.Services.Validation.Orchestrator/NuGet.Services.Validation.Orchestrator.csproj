@@ -126,12 +126,20 @@
     <None Include="App.config">
       <SubType>Designer</SubType>
     </None>
+    <None Include="Scripts\Functions.ps1" />
+    <None Include="Scripts\PostDeploy.ps1" />
+    <None Include="Scripts\PreDeploy.ps1" />
+    <None Include="Scripts\RunE2ETests.ps1" />
+    <None Include="Scripts\Validation.Orchestrator.cmd" />
     <None Include="symbolsettings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="settings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="Validation.Orchestrator.nuspec" />
+    <None Include="Validation.SymbolsOrchestrator.nuspec" />
+    <None Include="Scripts\nssm.exe" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NuGet.Jobs.Common\NuGet.Jobs.Common.csproj">

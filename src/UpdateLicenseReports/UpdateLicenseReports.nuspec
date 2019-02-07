@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package >
   <metadata>
-    <id>UpdateLicenseReports.$branch$</id>
+    <id>UpdateLicenseReports</id>
     <version>$version$</version>
     <title>UpdateLicenseReports</title>
     <authors>.NET Foundation</authors>

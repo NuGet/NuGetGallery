@@ -1,12 +1,12 @@
 <?xml version="1.0"?>
 <package >
   <metadata>
-    <id>Validation.Orchestrator.$branch$</id>
+    <id>Validation.SymbolsOrchestrator</id>
     <version>$version$</version>
-    <title>Validation.Orchestrator</title>
+    <title>Validation.SymbolsOrchestrator</title>
     <authors>.NET Foundation</authors>
     <owners>.NET Foundation</owners>
-    <description>Validation.Orchestrator</description>
+    <description>Validation.SymbolsOrchestrator</description>
     <copyright>Copyright .NET Foundation</copyright>
   </metadata>
   <files>

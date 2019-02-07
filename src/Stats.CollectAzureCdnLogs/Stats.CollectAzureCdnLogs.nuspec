@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package >
   <metadata>
-    <id>Stats.CollectAzureCdnLogs.$branch$</id>
+    <id>Stats.CollectAzureCdnLogs</id>
     <version>$version$</version>
     <title>Stats.CollectAzureCdnLogs</title>
     <authors>.NET Foundation</authors>
