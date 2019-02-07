@@ -10,16 +10,16 @@ namespace NuGetGallery
 {
     public static class PackageDeprecationExtensions
     {
-        public static IEnumerable<string> GetCVEIds(this PackageDeprecation deprecation)
+        public static IReadOnlyCollection<string> GetCVEIds(this PackageDeprecation deprecation)
         {
-            return GetIds<CVEIdList, IEnumerable<string>>(
+            return GetIds<CVEIdList, IReadOnlyCollection<string>>(
                 deprecation,
                 CVEIdList.SchemaVersion,
                 d => d.CVEIds,
                 l => l.CVEIds);
         }
 
-        public static void SetCVEIds(this PackageDeprecation deprecation, IEnumerable<string> cveIds)
+        public static void SetCVEIds(this PackageDeprecation deprecation, IReadOnlyCollection<string> cveIds)
         {
             SetIds(
                 deprecation,
@@ -36,26 +36,26 @@ namespace NuGetGallery
             {
             }
 
-            public CVEIdList(IEnumerable<string> cveIds)
+            public CVEIdList(IReadOnlyCollection<string> cveIds)
             {
                 Version = SchemaVersion;
                 CVEIds = cveIds;
             }
 
             public int Version { get; set; }
-            public IEnumerable<string> CVEIds { get; set; }
+            public IReadOnlyCollection<string> CVEIds { get; set; }
         }
 
-        public static IEnumerable<string> GetCWEIds(this PackageDeprecation deprecation)
+        public static IReadOnlyCollection<string> GetCWEIds(this PackageDeprecation deprecation)
         {
-            return GetIds<CWEIdList, IEnumerable<string>>(
+            return GetIds<CWEIdList, IReadOnlyCollection<string>>(
                 deprecation,
                 CWEIdList.SchemaVersion,
                 d => d.CWEIds,
                 l => l.CWEIds);
         }
 
-        public static void SetCWEIds(this PackageDeprecation deprecation, IEnumerable<string> cweIds)
+        public static void SetCWEIds(this PackageDeprecation deprecation, IReadOnlyCollection<string> cweIds)
         {
             SetIds(
                 deprecation,
@@ -72,14 +72,14 @@ namespace NuGetGallery
             {
             }
 
-            public CWEIdList(IEnumerable<string> cweIds)
+            public CWEIdList(IReadOnlyCollection<string> cweIds)
             {
                 Version = SchemaVersion;
                 CWEIds = cweIds;
             }
 
             public int Version { get; set; }
-            public IEnumerable<string> CWEIds { get; set; }
+            public IReadOnlyCollection<string> CWEIds { get; set; }
         }
 
         private interface IIdList
