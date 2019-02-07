@@ -9,7 +9,12 @@ cd bin
 
     title #{Jobs.Asia.search.generateauxiliarydata.Title}
 
-    start /w search.generateauxiliarydata.exe -Configuration "#{Jobs.Asia.search.generateauxiliarydata.Configuration}" -verbose true -Sleep #{Jobs.search.generateauxiliarydata.Sleep} -InstrumentationKey "#{Jobs.search.generateauxiliarydata.ApplicationInsightsInstrumentationKey}"
+    start /w search.generateauxiliarydata.exe ^
+        -Configuration "#{Jobs.Asia.search.generateauxiliarydata.Configuration}" ^
+        -InstanceName Search.GenerateAuxillaryData-ea ^
+        -verbose true ^
+        -Sleep #{Jobs.search.generateauxiliarydata.Sleep} ^
+        -InstrumentationKey "#{Jobs.search.generateauxiliarydata.ApplicationInsightsInstrumentationKey}"
 
     echo "Finished #{Jobs.Asia.search.generateauxiliarydata.Title}"
 

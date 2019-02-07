@@ -23,10 +23,9 @@ namespace NuGet.Jobs
         /// Expects the string[] to be set of pairs of argumentName and argumentValue, where, argumentName start with a hyphen
         /// </summary>
         /// <param name="commandLineArgs">Arguments passed to the job via commandline or environment variable settings</param>
-        /// <param name="jobName">Jobname to be used to infer environment variable settings</param>
         /// <param name="secretReaderFactory">Creates a secret reader.</param>
         /// <returns>Returns a dictionary of arguments</returns>
-        public static IDictionary<string, string> GetJobArgsDictionary(IServiceContainer serviceContainer, ILogger logger, string[] commandLineArgs, string jobName)
+        public static IDictionary<string, string> GetJobArgsDictionary(IServiceContainer serviceContainer, ILogger logger, string[] commandLineArgs)
         {
             if (serviceContainer == null)
             {
