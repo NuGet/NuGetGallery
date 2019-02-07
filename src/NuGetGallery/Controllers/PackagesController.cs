@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -1318,13 +1319,13 @@ namespace NuGetGallery
         [ValidateAntiForgeryToken]
         public virtual async Task<JsonResult> Deprecate(
             string id,
-            IReadOnlyCollection<string> versions, 
+            IEnumerable<string> versions, 
             bool isVulnerable,
             bool isLegacy,
             bool isOther,
-            IReadOnlyCollection<string> cveIds,
+            IEnumerable<string> cveIds,
             decimal? cvssRating,
-            IReadOnlyCollection<string> cweIds,
+            IEnumerable<string> cweIds,
             string alternatePackageId,
             string alternatePackageVersion,
             string customMessage,
@@ -1389,9 +1390,9 @@ namespace NuGetGallery
                 isVulnerable, 
                 isLegacy, 
                 isOther, 
-                cveIds, 
+                cveIds?.ToList(), 
                 cvssRating, 
-                cweIds, 
+                cweIds?.ToList(), 
                 alternatePackageRegistration, 
                 alternatePackage, 
                 customMessage, 
