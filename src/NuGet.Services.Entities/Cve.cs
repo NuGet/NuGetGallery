@@ -57,6 +57,13 @@ namespace NuGet.Services.Entities
         /// </summary>
         public DateTime PublishedDate { get; set; }
 
+        /// <summary>
+        /// Gets or sets whether the status of this CVE is "REJECTED".
+        /// A rejected CVE is no longer available for reference.
+        /// Any <see cref="PackageDeprecation"/>s referencing this CVE will maintain existing references.
+        /// </summary>
+        public bool Rejected { get; set; }
+
         public virtual ICollection<PackageDeprecation> PackageDeprecations { get; set; }
     }
 }
