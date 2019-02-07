@@ -67,7 +67,6 @@ namespace NuGetGallery
             IReadMeService readMeService = null,
             Mock<IContentObjectService> contentObjectService = null,
             Mock<ISymbolPackageUploadService> symbolPackageUploadService = null,
-            Mock<IFlatContainerService> flatContainerService = null,
             Mock<ICoreLicenseFileService> coreLicenseFileService = null,
             Mock<ILicenseExpressionSplitter> licenseExpressionSplitter = null)
         {
@@ -171,14 +170,6 @@ namespace NuGetGallery
                     .Completes();
             }
 
-            if (flatContainerService == null)
-            {
-                flatContainerService = new Mock<IFlatContainerService>();
-                flatContainerService
-                    .Setup(x => x.GetLicenseFileFlatContainerUrlAsync(It.IsAny<string>(), It.IsAny<string>()))
-                    .ReturnsAsync("");
-            }
-
             if (coreLicenseFileService == null)
             {
                 coreLicenseFileService = new Mock<ICoreLicenseFileService>();
@@ -214,7 +205,6 @@ namespace NuGetGallery
                 contentObjectService.Object,
                 symbolPackageUploadService.Object,
                 diagnosticsService.Object,
-                flatContainerService.Object,
                 coreLicenseFileService.Object,
                 licenseExpressionSplitter.Object);
 
@@ -7128,7 +7118,6 @@ namespace NuGetGallery
         public class LicenseMethod : TestContainer
         {
             private readonly Mock<IPackageService> _packageService;
-            private readonly Mock<IFlatContainerService> _flatContainerService;
             private readonly Mock<IPackageFileService> _packageFileService;
             private readonly Mock<ICoreLicenseFileService> _coreLicenseFileService;
             private string _packageId = "packageId";
@@ -7137,7 +7126,6 @@ namespace NuGetGallery
             public LicenseMethod()
             {
                 _packageService = new Mock<IPackageService>();
-                _flatContainerService = new Mock<IFlatContainerService>();
                 _packageFileService = new Mock<IPackageFileService>();
                 _coreLicenseFileService = new Mock<ICoreLicenseFileService>();
             }
@@ -7159,9 +7147,10 @@ namespace NuGetGallery
             }
 
             [Theory]
-            [InlineData("MIT", "https://licenses.nuget.org/MIT")]
-            [InlineData("TestLicenseExpression", "https://licenses.nuget.org/TestLicenseExpression")]
-            public async Task GivenValidPackageWithLicenseExpressionRedirectToLicenseUrl(string licenseExpression, string expectedRedirectUrl)
+            [InlineData("MIT")]
+            [InlineData("some expression")]
+            [InlineData("(MIT OR GPL-3.0-only)")]
+            public async Task GivenValidPackageSplitExpressionAndSetSegmentsWhenLicenseExpressionExists(string licenseExpression)
             {
                 // arrange
                 var package = new Package
@@ -7171,133 +7160,173 @@ namespace NuGetGallery
                     LicenseExpression = licenseExpression
                 };
 
+                var splitterMock = new Mock<ILicenseExpressionSplitter>();
+                var segments = new List<CompositeLicenseExpressionSegment>();
+                splitterMock
+                    .Setup(les => les.SplitExpression(licenseExpression))
+                    .Returns(segments);
+
                 _packageService.Setup(p => p.FindPackageByIdAndVersionStrict(_packageId, _packageVersion)).Returns(package);
                 var controller = CreateController(
                     GetConfigurationService(),
-                    packageService: _packageService);
+                    packageService: _packageService,
+                    licenseExpressionSplitter: splitterMock);
 
                 // act
                 var result = await controller.License(_packageId, _packageVersion);
 
                 // assert
-                ResultAssert.IsRedirectTo(result, expectedRedirectUrl);
+                splitterMock
+                    .Verify(les => les.SplitExpression(licenseExpression), Times.Once);
+                splitterMock
+                    .Verify(les => les.SplitExpression(It.IsAny<string>()), Times.Once);
+
+                var model = ResultAssert.IsView<DisplayLicenseViewModel>(result);
+                Assert.Equal(_packageId, model.Id);
+                Assert.Equal(_packageVersion, model.Version);
+                Assert.Equal(licenseExpression, model.LicenseExpression);
+                Assert.Equal(segments, model.LicenseExpressionSegments);
             }
 
             [Fact]
-            public async Task GivenPackageWithoutLicenseFileReturns404()
+            public async Task GivenValidPackageButInvalidLicenseExpressionThrowException()
             {
                 // arrange
                 var package = new Package
                 {
                     PackageRegistration = new PackageRegistration { Id = _packageId },
                     Version = _packageVersion,
+                    LicenseExpression = "some invalid expression"
                 };
-                package.EmbeddedLicenseType = EmbeddedLicenseFileType.Absent;
+
+                var expectedExceptionMessage = "Splitting license expression fails!";
+                var splitterMock = new Mock<ILicenseExpressionSplitter>();
+                splitterMock.Setup(les => les.SplitExpression(It.IsAny<string>())).Throws(new Exception(expectedExceptionMessage));
+
+                _packageService.Setup(p => p.FindPackageByIdAndVersionStrict(_packageId, _packageVersion)).Returns(package);
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: _packageService,
+                    licenseExpressionSplitter: splitterMock);
+
+                // act & Assert
+                var exception = await Assert.ThrowsAnyAsync<Exception>(() => controller.License(_packageId, _packageVersion));
+                Assert.Equal(expectedExceptionMessage, exception.Message);
+            }
+
+            [Theory]
+            [InlineData(EmbeddedLicenseFileType.Markdown)]
+            [InlineData(EmbeddedLicenseFileType.PlainText)]
+            public async Task GivenValidPackageInfoSetLicenseFileContentsWhenLicenseFileExists(EmbeddedLicenseFileType embeddedLicenseFileType)
+            {
+                // Arrange
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration { Id = _packageId },
+                    Version = _packageVersion,
+                };
+                package.EmbeddedLicenseType = embeddedLicenseFileType;
+
+                _packageService.Setup(p => p.FindPackageByIdAndVersionStrict(_packageId, _packageVersion)).Returns(package);
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: _packageService,
+                    coreLicenseFileService: _coreLicenseFileService);
+
+                var licenseFileContents = "This is a license file";
+                var fakeFileStream = new MemoryStream(Encoding.UTF8.GetBytes(licenseFileContents));
+                _coreLicenseFileService
+                    .Setup(p => p.DownloadLicenseFileAsync(package))
+                    .Returns(Task.FromResult<Stream>(fakeFileStream));
+
+                // Act
+                var result = await controller.License(_packageId, _packageVersion);
+
+                // Assert
+                _coreLicenseFileService
+                    .Verify(p => p.DownloadLicenseFileAsync(package),
+                        Times.Once);
+                var model = ResultAssert.IsView<DisplayLicenseViewModel>(result);
+                Assert.Equal(licenseFileContents, model.LicenseFileContents);
+            }
+
+            [Theory]
+            [InlineData(EmbeddedLicenseFileType.Markdown)]
+            [InlineData(EmbeddedLicenseFileType.PlainText)]
+            public async Task GivenValidPackageInfoButTooLargeLicenseFileThrowException(EmbeddedLicenseFileType embeddedLicenseFileType)
+            {
+                // Arrange
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration { Id = _packageId },
+                    Version = _packageVersion,
+                };
+                package.EmbeddedLicenseType = embeddedLicenseFileType;
+
+                _packageService.Setup(p => p.FindPackageByIdAndVersionStrict(_packageId, _packageVersion)).Returns(package);
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: _packageService,
+                    coreLicenseFileService: _coreLicenseFileService);
+
+                var fakeFileStream = new MemoryStream(new byte[PackagesController.MaxAllowedLicenseLengthForDisplaying + 1]);
+                _coreLicenseFileService
+                    .Setup(p => p.DownloadLicenseFileAsync(package))
+                    .Returns(Task.FromResult<Stream>(fakeFileStream));
+
+                // Act & Assert
+                await Assert.ThrowsAsync<InvalidOperationException>(() => controller.License(_packageId, _packageVersion));
+            }
+
+            [Theory]
+            [InlineData(EmbeddedLicenseFileType.Markdown)]
+            [InlineData(EmbeddedLicenseFileType.PlainText)]
+            public async Task GivenValidPackageInfoButInvalidLicenseFileThrowException(EmbeddedLicenseFileType embeddedLicenseFileType)
+            {
+                // Arrange
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration { Id = _packageId },
+                    Version = _packageVersion,
+                };
+                package.EmbeddedLicenseType = embeddedLicenseFileType;
+
+                var expectedExceptionMessage = "Downloading license file fails!";
+                _packageService.Setup(p => p.FindPackageByIdAndVersionStrict(_packageId, _packageVersion)).Returns(package);
+                _coreLicenseFileService.Setup(p => p.DownloadLicenseFileAsync(package)).Throws(new Exception(expectedExceptionMessage));
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: _packageService,
+                    coreLicenseFileService: _coreLicenseFileService);
+
+                // Act & Assert
+                var exception = await Assert.ThrowsAnyAsync<Exception>(() => controller.License(_packageId, _packageVersion));
+                Assert.Equal(expectedExceptionMessage, exception.Message);
+            }
+
+            [Fact]
+            public async Task GivenValidPackageInfoSetLicenseUrlWhenLicenseUrlExists()
+            {
+                // Arrange
+                var licenseUrl = "https://testlicenseurl/";
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration { Id = _packageId },
+                    Version = _packageVersion,
+                    LicenseUrl = licenseUrl
+                };
 
                 _packageService.Setup(p => p.FindPackageByIdAndVersionStrict(_packageId, _packageVersion)).Returns(package);
                 var controller = CreateController(
                     GetConfigurationService(),
                     packageService: _packageService);
 
-                // act
-                var result = await controller.License(_packageId, _packageVersion);
-
-                // assert
-                Assert.IsType<HttpNotFoundResult>(result);
-            }
-
-            [Theory]
-            [InlineData(EmbeddedLicenseFileType.Markdown)]
-            [InlineData(EmbeddedLicenseFileType.PlainText)]
-            public async Task GivenValidPackageInfoRedirectToLicenseFileUrlWhenUsingFlatContainer(EmbeddedLicenseFileType embeddedLicenseFileType)
-            {
-                // Arrange
-                var package = new Package
-                {
-                    PackageRegistration = new PackageRegistration { Id = _packageId },
-                    Version = _packageVersion,
-                };
-                package.EmbeddedLicenseType = embeddedLicenseFileType;
-                var configurationService = GetConfigurationService();
-                configurationService.Current.AsynchronousPackageValidationEnabled = true;
-
-                _packageService.Setup(p => p.FindPackageByIdAndVersionStrict(_packageId, _packageVersion)).Returns(package);
-                _flatContainerService.Setup(p => p.GetLicenseFileFlatContainerUrlAsync(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync("theReturnUrl");
-                var controller = CreateController(
-                    configurationService,
-                    packageService: _packageService,
-                    flatContainerService: _flatContainerService);
-
                 // Act
                 var result = await controller.License(_packageId, _packageVersion);
 
                 // Assert
-                ResultAssert.IsRedirectTo(result, "theReturnUrl");
-            }
-
-            [Theory]
-            [InlineData(EmbeddedLicenseFileType.Markdown)]
-            [InlineData(EmbeddedLicenseFileType.PlainText)]
-            public async Task GivenValidPackageInfoButInvalidLicenseFileReturns404(EmbeddedLicenseFileType embeddedLicenseFileType)
-            {
-                // Arrange
-                var package = new Package
-                {
-                    PackageRegistration = new PackageRegistration { Id = null },
-                    Version = _packageVersion,
-                };
-                package.EmbeddedLicenseType = embeddedLicenseFileType;
-                var configurationService = GetConfigurationService();
-                configurationService.Current.AsynchronousPackageValidationEnabled = false;
-
-                _packageService.Setup(p => p.FindPackageByIdAndVersionStrict(_packageId, _packageVersion)).Returns(package);
-                _coreLicenseFileService.Setup(p => p.DownloadLicenseFileAsync(package)).Throws(new ArgumentException());
-                var controller = CreateController(
-                    configurationService,
-                    packageService: _packageService,
-                    coreLicenseFileService: _coreLicenseFileService);
-
-                // Act
-                var result = await controller.License(_packageId, _packageVersion);
-
-                // Assert
-                Assert.IsType<HttpNotFoundResult>(result);
-            }
-
-            [Theory]
-            [InlineData(EmbeddedLicenseFileType.Markdown)]
-            [InlineData(EmbeddedLicenseFileType.PlainText)]
-            public async Task GivenValidPackageInfoAndLicenseFileReturnsLicenseContentWhenUsingFiles(EmbeddedLicenseFileType embeddedLicenseFileType)
-            {
-                // Arrange
-                var package = new Package
-                {
-                    PackageRegistration = new PackageRegistration { Id = _packageId },
-                    Version = _packageVersion,
-                };
-                package.EmbeddedLicenseType = embeddedLicenseFileType;
-                var configurationService = GetConfigurationService();
-                configurationService.Current.AsynchronousPackageValidationEnabled = false;
-
-                _packageService.Setup(p => p.FindPackageByIdAndVersionStrict(_packageId, _packageVersion)).Returns(package);
-                var controller = CreateController(
-                    configurationService,
-                    packageService: _packageService,
-                    coreLicenseFileService: _coreLicenseFileService);
-
-                var fakeFileStream = new MemoryStream();
-                _coreLicenseFileService
-                    .Setup(p => p.DownloadLicenseFileAsync(package))
-                    .Returns(Task.FromResult<Stream>(fakeFileStream));
-
-                // Act
-                var licenseFile = await controller.License(_packageId, _packageVersion);
-
-                // Assert
-                Assert.IsType<FileStreamResult>(licenseFile);
-                _coreLicenseFileService
-                    .Verify(p => p.DownloadLicenseFileAsync(package),
-                        Times.Once);
+                var model = ResultAssert.IsView<DisplayLicenseViewModel>(result);
+                Assert.Equal(licenseUrl, model.LicenseUrl);
             }
         }
 

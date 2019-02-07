@@ -40,6 +40,15 @@ namespace NuGetGallery
     public partial class PackagesController
         : AppController
     {
+        /// <summary>
+        /// The upper limit on allowed license file size for displaying in gallery.
+        /// </summary>
+        /// <remarks>
+        /// Warning: This limit should never be decreased! And this limit must be less than int.MaxValue!
+        /// <see cref="MaxAllowedLicenseLengthForUploading"/> in <see cref="PackageUploadService"/> is used to limit the license file size during uploading.
+        /// </remarks>
+        internal const int MaxAllowedLicenseLengthForDisplaying = 1024 * 1024; // 1 MB
+
         private static readonly IReadOnlyList<ReportPackageReason> ReportAbuseReasons = new[]
         {
             ReportPackageReason.ViolatesALicenseIOwn,
@@ -96,7 +105,6 @@ namespace NuGetGallery
         private readonly IContentObjectService _contentObjectService;
         private readonly ISymbolPackageUploadService _symbolPackageUploadService;
         private readonly IDiagnosticsSource _trace;
-        private readonly IFlatContainerService _flatContainerService;
         private readonly ICoreLicenseFileService _coreLicenseFileService;
         private readonly ILicenseExpressionSplitter _licenseExpressionSplitter;
 
@@ -124,7 +132,6 @@ namespace NuGetGallery
             IContentObjectService contentObjectService,
             ISymbolPackageUploadService symbolPackageUploadService,
             IDiagnosticsService diagnosticsService,
-            IFlatContainerService flatContainerService,
             ICoreLicenseFileService coreLicenseFileService,
             ILicenseExpressionSplitter licenseExpressionSplitter)
         {
@@ -151,7 +158,6 @@ namespace NuGetGallery
             _contentObjectService = contentObjectService;
             _symbolPackageUploadService = symbolPackageUploadService;
             _trace = diagnosticsService?.SafeGetSource(nameof(PackagesController)) ?? throw new ArgumentNullException(nameof(diagnosticsService));
-            _flatContainerService = flatContainerService;
             _coreLicenseFileService = coreLicenseFileService ?? throw new ArgumentNullException(nameof(coreLicenseFileService));
             _licenseExpressionSplitter = licenseExpressionSplitter ?? throw new ArgumentNullException(nameof(licenseExpressionSplitter));
         }
@@ -728,6 +734,8 @@ namespace NuGetGallery
             return View(model);
         }
 
+        [HttpGet]
+        [UIAuthorize]
         public virtual async Task<ActionResult> License(string id, string version)
         {
             var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
@@ -736,31 +744,45 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            if (!string.IsNullOrWhiteSpace(package.LicenseExpression))
+            IReadOnlyCollection<CompositeLicenseExpressionSegment> licenseExpressionSegments = null;
+            string licenseFileContents = null;
+            try
             {
-                return Redirect(LicenseExpressionRedirectUrlHelper.GetLicenseExpressionRedirectUrl(package.LicenseExpression));
-            }
-
-            if (package.EmbeddedLicenseType == EmbeddedLicenseFileType.Absent)
-            {
-                return HttpNotFound();
-            }
-
-            if (!_config.AsynchronousPackageValidationEnabled)
-            {
-                try
+                if (!string.IsNullOrWhiteSpace(package.LicenseExpression))
                 {
-                    var licenseFileContent = await _coreLicenseFileService.DownloadLicenseFileAsync(package);
-                    return new FileStreamResult(licenseFileContent, "text/plain");
+                    licenseExpressionSegments = _licenseExpressionSplitter.SplitExpression(package.LicenseExpression);
                 }
-                catch (Exception ex)
+
+                if (package.EmbeddedLicenseType != EmbeddedLicenseFileType.Absent)
                 {
-                    _telemetryService.TraceException(ex);
-                    return HttpNotFound();
+                    /// <remarks>
+                    /// The "licenseFileStream" below is already in memory, since low level method <see cref="GetFileAsync"/> in <see cref="CloudBlobCoreFileStorageService"/> reads the whole stream from blob storage into memory.
+                    /// There is a need to consider refactoring <see cref="CoreLicenseFileService"/> and provide a "GetUnBufferedFileAsync" method in <see cref="CloudBlobCoreFileStorageService"/>.
+                    /// In this way, we could read very large stream from blob storage with max size restriction.
+                    /// </remarks>
+                    using (var licenseFileStream = await _coreLicenseFileService.DownloadLicenseFileAsync(package))
+                    using (var licenseFileTrucatedStream = await licenseFileStream.GetTruncatedStreamWithMaxSizeAsync(MaxAllowedLicenseLengthForDisplaying))
+                    {
+                        if (licenseFileTrucatedStream.IsTruncated)
+                        {
+                            throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, "The license file exceeds the max limit of {0} to display in Gallery", MaxAllowedLicenseLengthForDisplaying));
+                        }
+                        else
+                        {
+                            licenseFileContents = Encoding.UTF8.GetString(licenseFileTrucatedStream.Stream.GetBuffer(), 0, (int)licenseFileTrucatedStream.Stream.Length);
+                        }
+                    }
                 }
             }
+            catch (Exception ex)
+            {
+                _telemetryService.TraceException(ex);
+                throw;
+            }
 
-            return Redirect(await _flatContainerService.GetLicenseFileFlatContainerUrlAsync(package.Id, package.NormalizedVersion));
+            var model = new DisplayLicenseViewModel(package, licenseExpressionSegments, licenseFileContents);
+
+            return View(model);
         }
 
         public virtual async Task<ActionResult> ListPackages(PackageListSearchViewModel searchAndListModel)

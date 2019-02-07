@@ -340,17 +340,9 @@ namespace NuGetGallery
                 .As<ITyposquattingCheckListCacheService>()
                 .SingleInstance();
 
-            builder.RegisterType<FlatContainerService>()
-                .As<IFlatContainerService>()
-                .InstancePerLifetimeScope();
-
             builder.Register<ServiceDiscoveryClient>(c =>
                     new ServiceDiscoveryClient(c.Resolve<IAppConfiguration>().ServiceDiscoveryUri))
                 .As<IServiceDiscoveryClient>();
-
-            builder.RegisterType<GalleryContentFileMetadataService>()
-                .As<IContentFileMetadataService>()
-                .InstancePerLifetimeScope();
 
             builder.RegisterType<LicenseExpressionSplitter>()
                 .As<ILicenseExpressionSplitter>()
@@ -755,6 +747,10 @@ namespace NuGetGallery
             builder.RegisterInstance(new SqlErrorLog(configuration.Current.SqlConnectionString))
                 .As<ErrorLog>()
                 .SingleInstance();
+
+            builder.RegisterType<GalleryContentFileMetadataService>()
+                .As<IContentFileMetadataService>()
+                .SingleInstance();
         }
 
         private static IAuditingService GetAuditingServiceForLocalFileSystem(IGalleryConfigurationService configuration)
@@ -846,6 +842,10 @@ namespace NuGetGallery
 
             builder.RegisterInstance(new TableErrorLog(configuration.Current.AzureStorage_Errors_ConnectionString, configuration.Current.AzureStorageReadAccessGeoRedundant))
                 .As<ErrorLog>()
+                .SingleInstance();
+
+            builder.RegisterType<FlatContainerContentFileMetadataService>()
+                .As<IContentFileMetadataService>()
                 .SingleInstance();
         }
 

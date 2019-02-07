@@ -281,9 +281,11 @@
     <Compile Include="Filters\ValidateRecaptchaResponseAttribute.cs" />
     <Compile Include="GalleryConstants.cs" />
     <Compile Include="GlobalSuppressions.cs" />
+    <Compile Include="Helpers\TruncatedStream.cs" />
     <Compile Include="Helpers\GravatarHelper.cs" />
     <Compile Include="Helpers\LicenseExpressionRedirectUrlHelper.cs" />
     <Compile Include="Helpers\ObfuscationHelper.cs" />
+    <Compile Include="Helpers\StreamHelper.cs" />
     <Compile Include="Helpers\TextHelper.cs" />
     <Compile Include="Helpers\ZipArchiveHelpers.cs" />
     <Compile Include="Helpers\PermissionsHelpers.cs" />
@@ -450,12 +452,11 @@
     <Compile Include="Services\ITyposquattingService.cs" />
     <Compile Include="Services\IValidationMessage.cs" />
     <Compile Include="Services\JsonValidationMessage.cs" />
-    <Compile Include="Services\IFlatContainerService.cs" />
-    <Compile Include="Services\FlatContainerService.cs" />
     <Compile Include="Services\LicenseUrlDeprecationValidationMessage.cs" />
     <Compile Include="Services\PackageShouldNotBeSignedUserFixableValidationMessage.cs" />
     <Compile Include="Services\PlainTextOnlyValidationMessage.cs" />
     <Compile Include="Services\SymbolPackageValidationResult.cs" />
+    <Compile Include="Services\FlatContainerContentFileMetadataService.cs" />
     <Compile Include="Infrastructure\Mail\MarkdownMessageService.cs" />
     <Compile Include="Services\SymbolPackageUploadService.cs" />
     <Compile Include="Services\SymbolPackageFileService.cs" />
@@ -702,6 +703,7 @@
     <Compile Include="ViewModels\CompositeLicenseExpressionSegmentViewModel.cs" />
     <Compile Include="ViewModels\DeleteOrganizationViewModel.cs" />
     <Compile Include="ViewModels\DeleteUserViewModel.cs" />
+    <Compile Include="ViewModels\DisplayLicenseViewModel.cs" />
     <Compile Include="ViewModels\ListCertificateItemViewModel.cs" />
     <Compile Include="ViewModels\GalleryHomeViewModel.cs" />
     <Compile Include="ViewModels\HandleOrganizationMembershipRequestModel.cs" />
@@ -1883,6 +1885,7 @@
     <Content Include="Views\Shared\_DeletePackage.cshtml" />
     <Content Include="Views\Packages\DeleteSymbols.cshtml" />
     <Content Include="Views\Packages\Manage.cshtml" />
+    <Content Include="Views\Packages\License.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />

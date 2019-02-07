@@ -36,9 +36,6 @@ namespace NuGetGallery
             LicenseType.Expression.ToString()
         };
 
-        private const string LicenseNodeName = "license";
-        private const string AllowedLicenseVersion = "1.0.0";
-        private const string Unlicensed = "UNLICENSED";
         /// <summary>
         /// The upper limit on allowed license file size.
         /// </summary>
@@ -47,8 +44,11 @@ namespace NuGetGallery
         /// in plain text and small enough to not cause issues with scanning through such file a few times
         /// during the package validation.
         /// </remarks>
-        private const long MaxAllowedLicenseLength = 1024 * 1024;
+        private const long MaxAllowedLicenseLengthForUploading = 1024 * 1024; // 1 MB
         private const int MaxAllowedLicenseNodeValueLength = 500;
+        private const string LicenseNodeName = "license";
+        private const string AllowedLicenseVersion = "1.0.0";
+        private const string Unlicensed = "UNLICENSED";
 
         private readonly IPackageService _packageService;
         private readonly IPackageFileService _packageFileService;
@@ -272,12 +272,12 @@ namespace NuGetGallery
                 }
 
                 var licenseFileEntry = nuGetPackage.GetEntry(licenseFilename);
-                if (licenseFileEntry.Length > MaxAllowedLicenseLength)
+                if (licenseFileEntry.Length > MaxAllowedLicenseLengthForUploading)
                 {
                     return PackageValidationResult.Invalid(
                         string.Format(
                             Strings.UploadPackage_LicenseFileTooLong,
-                            MaxAllowedLicenseLength.ToUserFriendlyBytesLabel()));
+                            MaxAllowedLicenseLengthForUploading.ToUserFriendlyBytesLabel()));
                 }
 
                 using (var licenseFileStream = nuGetPackage.GetStream(licenseFilename))

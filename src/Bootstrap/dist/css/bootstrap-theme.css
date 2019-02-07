@@ -476,6 +476,13 @@ img.reserved-indicator-icon {
     border-bottom: 1px solid windowText;
   }
 }
+.common-licenses pre.license-file-contents {
+  word-break: normal;
+  white-space: pre-wrap;
+}
+.common-licenses .custom-license-container {
+  margin-bottom: 24px;
+}
 .list-packages .package {
   padding-top: 15px;
   padding-bottom: 15px;
@@ -1619,13 +1626,6 @@ img.reserved-indicator-icon {
 }
 .page-upload #browse-for-package-button {
   margin: 0;
-}
-.page-upload pre.license-file-contents {
-  word-break: normal;
-  white-space: pre-wrap;
-}
-.page-upload .custom-license-container {
-  margin-bottom: 24px;
 }
 .warning-icon {
   color: #ea7918;
