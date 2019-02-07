@@ -6,7 +6,7 @@ using NuGet.Services.FeatureFlags;
 
 namespace NuGetGallery.Features
 {
-    public interface IMutableFeatureFlagStorageService : IFeatureFlagStorageService
+    public interface IEditableFeatureFlagStorageService : IFeatureFlagStorageService
     {
         /// <summary>
         /// Get a reference to the feature flag's raw content.  This should be used

@@ -11,9 +11,9 @@ namespace NuGetGallery.Areas.Admin.Controllers
 {
     public class FeaturesController : AdminControllerBase
     {
-        private readonly IMutableFeatureFlagStorageService _storage;
+        private readonly IEditableFeatureFlagStorageService _storage;
 
-        public FeaturesController(IMutableFeatureFlagStorageService storage)
+        public FeaturesController(IEditableFeatureFlagStorageService storage)
         {
             _storage = storage ?? throw new ArgumentNullException(nameof(storage));
         }

@@ -11,7 +11,7 @@ using NuGet.Services.FeatureFlags;
 
 namespace NuGetGallery.Features
 {
-    public class FeatureFlagFileStorageService : IMutableFeatureFlagStorageService
+    public class FeatureFlagFileStorageService : IEditableFeatureFlagStorageService
     {
         private readonly ICoreFileStorageService _storage;
         private readonly JsonSerializer _serializer;
