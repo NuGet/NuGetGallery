@@ -48,6 +48,13 @@ namespace NuGet.Services.Entities
         [Required]
         public string Description { get; set; }
 
+        /// <summary>
+        /// Gets or sets whether the <see cref="Cwe"/> is publicly listed.
+        /// An unlisted CWE is no longer available for reference.
+        /// Any <see cref="PackageDeprecation"/>s referencing an unlisted CWE will maintain existing references.
+        /// </summary>
+        public bool Listed { get; set; }
+
         public virtual ICollection<PackageDeprecation> PackageDeprecations { get; set; }
     }
 }
