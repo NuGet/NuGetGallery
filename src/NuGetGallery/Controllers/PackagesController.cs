@@ -1407,30 +1407,6 @@ namespace NuGetGallery
 
         [HttpGet]
         [UIAuthorize]
-        public virtual JsonResult GetDeprecationAlternatePackageVersions(string id)
-        {
-            var registration = _packageService.FindPackageRegistrationById(id);
-            if (registration == null)
-            {
-                return Json(HttpStatusCode.NotFound, null, JsonRequestBehavior.AllowGet);
-            }
-
-            var packageVersions = registration.Packages
-                .Where(p => p.PackageStatusKey == PackageStatus.Available)
-                .ToList()
-                .OrderByDescending(p => NuGetVersion.Parse(p.Version))
-                .Select(p => NuGetVersionFormatter.ToFullStringOrFallback(p.Version, p.Version));
-
-            if (!packageVersions.Any())
-            {
-                return Json(HttpStatusCode.NotFound, null, JsonRequestBehavior.AllowGet);
-            }
-
-            return Json(HttpStatusCode.OK, packageVersions.ToList(), JsonRequestBehavior.AllowGet);
-        }
-
-        [HttpGet]
-        [UIAuthorize]
         [RequiresAccountConfirmation("delete a symbols package")]
         public virtual ActionResult DeleteSymbols(string id, string version)
         {

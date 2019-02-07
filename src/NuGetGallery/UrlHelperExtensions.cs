@@ -707,16 +707,6 @@ namespace NuGetGallery
             return url.PackageVersionAction(nameof(PackagesController.Manage), package, relativeUrl);
         }
 
-        public static string GetDeprecationAlternatePackageVersions(
-            this UrlHelper url,
-            bool relativeUrl = true)
-        {
-            return GetRouteLink(
-                url,
-                RouteName.PackageDeprecationGetAlternatePackageVersionsAction,
-                relativeUrl);
-        }
-
         public static string PreviewReadMe(
             this UrlHelper url,
             bool relativeUrl = true)
@@ -1003,14 +993,25 @@ namespace NuGetGallery
             return GetActionLink(url, "AddPackageOwner", "JsonApi", relativeUrl);
         }
 
-        public static string SigninAssistance(this UrlHelper url, bool relativeUrl = true)
-        {
-            return GetRouteLink(url, RouteName.SigninAssistance, relativeUrl);
-        }
-
         public static string RemovePackageOwner(this UrlHelper url, bool relativeUrl = true)
         {
             return GetActionLink(url, "RemovePackageOwner", "JsonApi", relativeUrl);
+        }
+
+        public static string GetDeprecationAlternatePackageVersions(
+            this UrlHelper url,
+            bool relativeUrl = true)
+        {
+            return GetActionLink(
+                url,
+                nameof(JsonApiController.GetDeprecationAlternatePackageVersions),
+                "JsonApi",
+                relativeUrl);
+        }
+
+        public static string SigninAssistance(this UrlHelper url, bool relativeUrl = true)
+        {
+            return GetRouteLink(url, RouteName.SigninAssistance, relativeUrl);
         }
 
         public static RouteUrlTemplate<OwnerRequestsListItemViewModel> ConfirmPendingOwnershipRequestTemplate(

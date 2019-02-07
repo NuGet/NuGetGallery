@@ -211,11 +211,6 @@ namespace NuGetGallery
                 new { controller = "Packages", action = "SetLicenseReportVisibility", visible = false },
                 new { version = new VersionRouteConstraint() });
 
-            routes.MapRoute(
-                RouteName.PackageDeprecationGetAlternatePackageVersionsAction,
-                "packages/manage/get-alternate-package-versions",
-                new { controller = "Packages", action = nameof(PackagesController.GetDeprecationAlternatePackageVersions) });
-
             var packageVersionActionRoute = routes.MapRoute(
                 RouteName.PackageVersionAction,
                 "packages/{id}/{version}/{action}",

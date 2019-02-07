@@ -4,12 +4,14 @@
 using System;
 using System.Globalization;
 using System.Linq;
+using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using NuGet.Services.Entities;
 using NuGet.Services.Messaging.Email;
+using NuGet.Versioning;
 using NuGetGallery.Configuration;
 using NuGetGallery.Filters;
 using NuGetGallery.Infrastructure.Mail.Messages;
@@ -317,6 +319,30 @@ namespace NuGetGallery
             public User CurrentUser { get; }
             public bool CurrentUserCanAcceptOnBehalfOfUser { get; }
             public string Error { get; }
+        }
+
+        [HttpGet]
+        [UIAuthorize]
+        public virtual JsonResult GetDeprecationAlternatePackageVersions(string id)
+        {
+            var registration = _packageService.FindPackageRegistrationById(id);
+            if (registration == null)
+            {
+                return Json(HttpStatusCode.NotFound, null, JsonRequestBehavior.AllowGet);
+            }
+
+            var versions = registration.Packages
+                .Where(p => p.PackageStatusKey == PackageStatus.Available)
+                .ToList()
+                .OrderByDescending(p => NuGetVersion.Parse(p.Version))
+                .Select(p => NuGetVersionFormatter.ToFullStringOrFallback(p.Version, p.Version));
+
+            if (!versions.Any())
+            {
+                return Json(HttpStatusCode.NotFound, null, JsonRequestBehavior.AllowGet);
+            }
+
+            return Json(HttpStatusCode.OK, versions.ToList(), JsonRequestBehavior.AllowGet);
         }
     }
 }
