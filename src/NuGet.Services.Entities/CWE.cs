@@ -36,7 +36,7 @@ namespace NuGet.Services.Entities
         /// <summary>
         /// Gets or sets the description of the CWE.
         /// </summary>
-        [MaxLength(600)]
+        [MaxLength(300)]
         [Required]
         public string Description { get; set; }
 

@@ -35,7 +35,7 @@ namespace NuGet.Services.Entities
         /// Gets or sets the description of the CVE.
         /// The description is a plain language field that describes the vulnerability with sufficient detail as to demonstrate that the vulnerability is unique.
         /// </summary>
-        [MaxLength(4000)]
+        [MaxLength(300)]
         [Required]
         public string Description { get; set; }
 

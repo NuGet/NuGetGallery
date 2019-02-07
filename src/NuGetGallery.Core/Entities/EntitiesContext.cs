@@ -382,7 +382,7 @@ namespace NuGetGallery
 
             modelBuilder.Entity<Cve>()
                 .Property(e => e.Description)
-                .HasMaxLength(4000)
+                .HasMaxLength(300)
                 .IsRequired();
 
             modelBuilder.Entity<Cwe>()
@@ -399,7 +399,7 @@ namespace NuGetGallery
 
             modelBuilder.Entity<Cwe>()
                 .Property(e => e.Description)
-                .HasMaxLength(600)
+                .HasMaxLength(300)
                 .IsRequired();
 
             modelBuilder.Entity<Package>()
