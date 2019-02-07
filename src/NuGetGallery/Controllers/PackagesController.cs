@@ -1280,7 +1280,7 @@ namespace NuGetGallery
             {
                 Id = Url.Package(package.PackageRegistration.Id, version: null, relativeUrl: false),
                 Title = SyndicationContent.CreatePlaintextContent($"NuGet.org: {package.Id}"),
-                Description = SyndicationContent.CreatePlaintextContent(package.Summary),
+                Description = SyndicationContent.CreatePlaintextContent(package.Description),
                 LastUpdatedTime = DateTimeOffset.Now,
             };
 
@@ -1302,6 +1302,7 @@ namespace NuGetGallery
                                                                       new Uri(Url.Package(package.PackageRegistration.Id, version: packageVersion.Version, relativeUrl: false)));
                 syndicationItem.Id = Url.Package(package.PackageRegistration.Id, version: packageVersion.Version, relativeUrl: false);
                 syndicationItem.LastUpdatedTime = packageVersion.LastUpdated;
+                syndicationItem.PublishDate = packageVersion.Created;
                 syndicationItem.Authors.Add(new SyndicationPerson() { Name = packageVersion.FlattenedAuthors });
                 feedItems.Add(syndicationItem);
             }
