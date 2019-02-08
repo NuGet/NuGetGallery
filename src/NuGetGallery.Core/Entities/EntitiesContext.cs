@@ -385,6 +385,10 @@ namespace NuGetGallery
                 .HasMaxLength(300)
                 .IsRequired();
 
+            modelBuilder.Entity<Cve>()
+                .Property(v => v.CvssRating)
+                .HasPrecision(3, 1);
+
             modelBuilder.Entity<Cwe>()
                 .HasKey(d => d.Key)
                 .Property(e => e.CweId)

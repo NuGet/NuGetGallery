@@ -70,6 +70,15 @@ namespace NuGet.Services.Entities
         [Required]
         public CveStatus Status { get; set; }
 
+        /// <summary>
+        /// Gets or sets the CVSS rating for this <see cref="Cve"/> as determined by the NVD.
+        /// </summary>
+        /// <remarks>
+        /// CVSS ratings are from 0.0 to 10.0 and have a single point of precision.
+        /// </remarks>
+        [Range(0, 10)]
+        public decimal? CvssRating { get; set; }
+
         public virtual ICollection<PackageDeprecation> PackageDeprecations { get; set; }
     }
 }
