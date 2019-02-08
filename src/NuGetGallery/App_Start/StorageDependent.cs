@@ -91,9 +91,9 @@ namespace NuGetGallery
                 Create<PackageFileService, IPackageFileService>(configuration.AzureStorage_Packages_ConnectionString, isSingleInstance: false),
                 Create<SymbolPackageFileService, ISymbolPackageFileService>(configuration.AzureStorage_Packages_ConnectionString, isSingleInstance: false),
                 Create<UploadFileService, IUploadFileService>(configuration.AzureStorage_Uploads_ConnectionString, isSingleInstance: false),
-                Create<CoreLicenseFileService, ICoreLicenseFileService>(configuration.AzureStorage_Packages_ConnectionString, isSingleInstance: false),
                 Create<RevalidationStateService, IRevalidationStateService>(configuration.AzureStorage_Revalidation_ConnectionString, isSingleInstance: false),
-                Create<FeatureFlagFileStorageService, IFeatureFlagStorageService>(configuration.AzureStorage_Content_ConnectionString, isSingleInstance: true)
+                Create<FeatureFlagFileStorageService, IFeatureFlagStorageService>(configuration.AzureStorage_Content_ConnectionString, isSingleInstance: true),
+                Create<CoreLicenseFileService, ICoreLicenseFileService>(configuration.AzureStorage_Flatcontainer_ConnectionString, isSingleInstance: false)
             };
 
             var connectionStringToBindingKey = dependents
