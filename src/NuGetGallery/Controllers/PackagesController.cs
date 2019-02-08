@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Data.Entity;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -1336,7 +1337,12 @@ namespace NuGetGallery
                 return DeprecateErrorResponse(HttpStatusCode.BadRequest, Strings.DeprecatePackage_NoVersions);
             }
 
-            var registration = _packageService.FindPackageRegistrationById(id);
+            var registration = _packageService
+                .GetAllPackageRegistrations()
+                .Include(pr => pr.Owners)
+                .Include(pr => pr.Packages.Select(p => p.Deprecations))
+                .SingleOrDefault(pr => pr.Id == id);
+
             if (registration == null)
             {
                 return DeprecateErrorResponse(HttpStatusCode.NotFound, string.Format(Strings.DeprecatePackage_NoRegistration, id));

@@ -253,7 +253,6 @@
     <Compile Include="Services\UserServiceFacts.cs" />
     <Compile Include="Services\FeedServiceFacts.cs" />
     <Compile Include="TestUtils\ContractAssert.cs" />
-    <Compile Include="TestUtils\FakeDbSet.cs" />
     <Compile Include="TestUtils\FakeEntitiesContext.cs" />
     <Compile Include="TestUtils\MockExtensions.cs" />
     <Compile Include="TestUtils\MockHandler.cs" />

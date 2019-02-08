@@ -150,10 +150,10 @@ namespace NuGetGallery.Services
         {
             public TestSupportRequestDbContext()
             {
-                Admins = new FakeDbSet<Admin>(new FakeEntitiesContext());
-                Issues = new FakeDbSet<Issue>(new FakeEntitiesContext());
-                Histories = new FakeDbSet<History>(new FakeEntitiesContext());
-                IssueStatus = new FakeDbSet<IssueStatus>(new FakeEntitiesContext());
+                Admins = FakeEntitiesContext.CreateDbSet<Admin>();
+                Issues = FakeEntitiesContext.CreateDbSet<Issue>();
+                Histories = FakeEntitiesContext.CreateDbSet<History>();
+                IssueStatus = FakeEntitiesContext.CreateDbSet<IssueStatus>();
             }
 
             public IDbSet<Admin> Admins { get; set; }

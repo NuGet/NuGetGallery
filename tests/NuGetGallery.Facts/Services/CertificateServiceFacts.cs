@@ -309,7 +309,7 @@ namespace NuGetGallery.Services
             _certificateRepository.Setup(x => x.GetAll())
                 .Returns(new EnumerableQuery<Certificate>(new[] { _certificate }));
 
-            var userCertificates = new Mock<IDbSet<UserCertificate>>(MockBehavior.Strict);
+            var userCertificates = new Mock<DbSet<UserCertificate>>(MockBehavior.Strict);
             var userCertificate = new UserCertificate()
             {
                 Key = 7,

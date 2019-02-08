@@ -3,8 +3,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Data.Entity;
+using System.Linq;
 using System.Threading.Tasks;
+using Moq;
 using NuGet.Services.Entities;
 using Xunit;
 
@@ -15,7 +18,7 @@ namespace NuGetGallery
         private readonly Dictionary<Type, object> dbSets = new Dictionary<Type, object>();
         private bool _areChangesSaved;
 
-        public IDbSet<PackageRegistration> PackageRegistrations
+        public DbSet<PackageRegistration> PackageRegistrations
         {
             get
             {
@@ -27,7 +30,7 @@ namespace NuGetGallery
             }
         }
 
-        public IDbSet<Package> Packages
+        public DbSet<Package> Packages
         {
             get
             {
@@ -39,7 +42,7 @@ namespace NuGetGallery
             }
         }
 
-        public IDbSet<Credential> Credentials
+        public DbSet<Credential> Credentials
         {
             get
             {
@@ -51,7 +54,7 @@ namespace NuGetGallery
             }
         }
 
-        public IDbSet<Scope> Scopes
+        public DbSet<Scope> Scopes
         {
             get
             {
@@ -63,7 +66,7 @@ namespace NuGetGallery
             }
         }
 
-        public IDbSet<User> Users
+        public DbSet<User> Users
         {
             get
             {
@@ -75,7 +78,7 @@ namespace NuGetGallery
             }
         }
 
-        public IDbSet<Organization> Organizations
+        public DbSet<Organization> Organizations
         {
             get
             {
@@ -87,7 +90,7 @@ namespace NuGetGallery
             }
         }
 
-        public IDbSet<UserSecurityPolicy> UserSecurityPolicies
+        public DbSet<UserSecurityPolicy> UserSecurityPolicies
         {
             get
             {
@@ -99,7 +102,7 @@ namespace NuGetGallery
             }
         }
 
-        public IDbSet<ReservedNamespace> ReservedNamespaces
+        public DbSet<ReservedNamespace> ReservedNamespaces
         {
             get
             {
@@ -111,7 +114,7 @@ namespace NuGetGallery
             }
         }
 
-        public IDbSet<Certificate> Certificates
+        public DbSet<Certificate> Certificates
         {
             get
             {
@@ -123,7 +126,7 @@ namespace NuGetGallery
             }
         }
 
-        public IDbSet<UserCertificate> UserCertificates
+        public DbSet<UserCertificate> UserCertificates
         {
             get
             {
@@ -135,7 +138,7 @@ namespace NuGetGallery
             }
         }
 
-        public IDbSet<SymbolPackage> SymbolPackages
+        public DbSet<SymbolPackage> SymbolPackages
         {
             get
             {
@@ -177,19 +180,19 @@ namespace NuGetGallery
             return Task.FromResult(0);
         }
 
-        public IDbSet<T> Set<T>() where T : class
+        public DbSet<T> Set<T>() where T : class
         {
             if (!dbSets.ContainsKey(typeof(T)))
             {
-                dbSets.Add(typeof(T), new FakeDbSet<T>(this));
+                dbSets.Add(typeof(T), CreateDbSet<T>());
             }
 
-            return (IDbSet<T>)(dbSets[typeof(T)]);
+            return (DbSet<T>)dbSets[typeof(T)];
         }
 
         public void DeleteOnCommit<T>(T entity) where T : class
         {
-            ((FakeDbSet<T>)(Set<T>())).Remove(entity);
+            Set<T>().Remove(entity);
         }
 
         public void VerifyCommitChanges()
@@ -206,6 +209,57 @@ namespace NuGetGallery
         public IDatabase GetDatabase()
         {
             throw new NotSupportedException();
+        }
+        
+        public static DbSet<T> CreateDbSet<T>() where T : class
+        {
+            var data = new List<T>();
+            var mockSet = new Mock<DbSet<T>>();
+            mockSet
+                .As<IQueryable<T>>()
+                .Setup(m => m.Provider)
+                .Returns(() => data.AsQueryable().Provider);
+
+            mockSet
+                .As<IQueryable<T>>()
+                .Setup(m => m.Expression)
+                .Returns(() => data.AsQueryable().Expression);
+
+            mockSet
+                .As<IQueryable<T>>()
+                .Setup(m => m.ElementType)
+                .Returns(() => data.AsQueryable().ElementType);
+
+            mockSet
+                .As<IQueryable<T>>()
+                .Setup(m => m.GetEnumerator())
+                .Returns(() => data.GetEnumerator());
+
+            mockSet
+                .Setup(x => x.Include(It.IsAny<string>()))
+                .Returns(mockSet.Object);
+
+            mockSet
+                .Setup(x => x.Add(It.IsAny<T>()))
+                .Callback<T>(x => data.Add(x));
+
+            mockSet
+                .Setup(x => x.AddRange(It.IsAny<IEnumerable<T>>()))
+                .Callback<IEnumerable<T>>(x => data.AddRange(x));
+
+            mockSet
+                .Setup(x => x.Remove(It.IsAny<T>()))
+                .Callback<T>(x => data.Remove(x));
+
+            mockSet
+                .Setup(x => x.RemoveRange(It.IsAny<IEnumerable<T>>()))
+                .Callback<IEnumerable<T>>(x => x.Select(y => data.Remove(y)));
+
+            mockSet
+                .Setup(x => x.Local)
+                .Returns(() => new ObservableCollection<T>(data));
+
+            return mockSet.Object;
         }
     }
 }

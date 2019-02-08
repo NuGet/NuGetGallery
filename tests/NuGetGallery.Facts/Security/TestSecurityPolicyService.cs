@@ -21,7 +21,7 @@ namespace NuGetGallery.Security
 
         public IAppConfiguration AppConfiguration { get; }
 
-        public Mock<IDbSet<UserSecurityPolicy>> MockUserSecurityPolicies { get; }
+        public Mock<DbSet<UserSecurityPolicy>> MockUserSecurityPolicies { get; }
         
         public TestUserSecurityPolicyData Mocks { get; }
 
@@ -51,7 +51,7 @@ namespace NuGetGallery.Security
             Mock<IAuditingService> mockAuditing,
             IAppConfiguration configuration)
         {
-            MockUserSecurityPolicies = new Mock<IDbSet<UserSecurityPolicy>>();
+            MockUserSecurityPolicies = new Mock<DbSet<UserSecurityPolicy>>();
             MockUserSecurityPolicies.Setup(p => p.Remove(It.IsAny<UserSecurityPolicy>())).Verifiable();
 
             MockEntitiesContext = mockEntities ?? new Mock<IEntitiesContext>();
