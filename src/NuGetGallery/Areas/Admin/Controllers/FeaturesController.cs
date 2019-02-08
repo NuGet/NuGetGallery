@@ -25,7 +25,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
             return View(new FeatureFlagsViewModel
             {
-                Flags = reference.Flags,
+                Flags = reference.FlagsJson,
                 ContentId = reference.ContentId
             });
         }
@@ -45,7 +45,8 @@ namespace NuGetGallery.Areas.Admin.Controllers
                         return Redirect(Url.Action(actionName: "Index", controllerName: "Features"));
 
                     case FeatureFlagSaveResultType.Conflict:
-                        TempData["ErrorMessage"] = "The feature flags were modified by someone else. Please reload the page and try again.";
+                        TempData["ErrorMessage"] = "Your changes were not applied as the feature flags were modified by someone else. " +
+                            "Please reload the page and try again.";
                         break;
 
                     case FeatureFlagSaveResultType.Invalid:

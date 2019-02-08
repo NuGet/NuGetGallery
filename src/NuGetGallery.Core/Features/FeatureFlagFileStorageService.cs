@@ -44,7 +44,7 @@ namespace NuGetGallery.Features
             using (var stream = reference.OpenRead())
             using (var streamReader = new StreamReader(stream))
             {
-                json = streamReader.ReadToEnd();
+                json = await streamReader.ReadToEndAsync();
             }
 
             return new FeatureFlagReference(

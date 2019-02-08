@@ -10,11 +10,11 @@ namespace NuGetGallery.Features
     /// </summary>
     public class FeatureFlagReference
     {
-        public FeatureFlagReference(string flags, string contentId)
+        public FeatureFlagReference(string flagsJson, string contentId)
         {
-            if (string.IsNullOrEmpty(flags))
+            if (string.IsNullOrEmpty(flagsJson))
             {
-                throw new ArgumentException(nameof(flags));
+                throw new ArgumentException(nameof(flagsJson));
             }
 
             if (string.IsNullOrEmpty(contentId))
@@ -22,14 +22,14 @@ namespace NuGetGallery.Features
                 throw new ArgumentException(nameof(contentId));
             }
 
-            Flags = flags;
+            FlagsJson = flagsJson;
             ContentId = contentId;
         }
 
         /// <summary>
         /// The feature flag's content, serialized as JSON.
         /// </summary>
-        public string Flags { get; }
+        public string FlagsJson { get; }
 
         /// <summary>
         /// The feature flag's ETag.

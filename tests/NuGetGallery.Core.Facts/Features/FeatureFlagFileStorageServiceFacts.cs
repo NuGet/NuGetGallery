@@ -70,7 +70,7 @@ namespace NuGetGallery.Features
                 var result = await _target.GetReferenceAsync();
 
                 // Assert - the flags should be formatted
-                Assert.Equal(FeatureFlagJsonHelper.FormattedFullJson, result.Flags);
+                Assert.Equal(FeatureFlagJsonHelper.FormattedFullJson, result.FlagsJson);
                 Assert.Equal("bar", result.ContentId);
 
                 _storage
