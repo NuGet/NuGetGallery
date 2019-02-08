@@ -85,16 +85,16 @@ namespace NuGetGallery
             if (DeprecationStatus != PackageDeprecationStatus.NotDeprecated)
             {
                 var deprecation = package.Deprecations.Single();
-                CVEIds = deprecation.GetCVEIds();
-                CVSSRating = deprecation.CVSSRating;
-                CWEIds = deprecation.GetCWEIds();
+                CveIds = deprecation.Cves?.Select(c => c.CveId).ToList();
+                CvssRating = deprecation.CvssRating;
+                CweIds = deprecation.Cwes?.Select(c => c.CweId).ToList();
+
+                // A deprecation should not have both an alternate package registration and an alternate package.
+                // In case a deprecation does have both, we will hide the alternate package registration's ID in this model.
                 AlternatePackageId = deprecation.AlternatePackageRegistration?.Id;
-                if (AlternatePackageId == null)
-                {
-                    var alternatePackage = deprecation.AlternatePackage;
-                    AlternatePackageId = alternatePackage.Id;
-                    AlternatePackageVersion = alternatePackage.Version;
-                }
+                var alternatePackage = deprecation.AlternatePackage;
+                AlternatePackageId = alternatePackage?.Id;
+                AlternatePackageVersion = alternatePackage?.Version;
 
                 CustomMessage = deprecation.CustomMessage;
             }
@@ -157,9 +157,9 @@ namespace NuGetGallery
         public IReadOnlyCollection<CompositeLicenseExpressionSegment> LicenseExpressionSegments { get; set; }
         public EmbeddedLicenseFileType EmbeddedLicenseType { get; set; }
 
-        public IReadOnlyCollection<string> CVEIds { get; set; }
-        public decimal? CVSSRating { get; set; }
-        public IReadOnlyCollection<string> CWEIds { get; set; }
+        public IReadOnlyCollection<string> CveIds { get; set; }
+        public decimal? CvssRating { get; set; }
+        public IReadOnlyCollection<string> CweIds { get; set; }
         public string AlternatePackageId { get; set; }
         public string AlternatePackageVersion { get; set; }
         public string CustomMessage { get; set; }

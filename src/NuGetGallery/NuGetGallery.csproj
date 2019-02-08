@@ -272,7 +272,6 @@
     <Compile Include="Controllers\PagesController.cs" />
     <Compile Include="Extensions\HttpExceptionExtensions.cs" />
     <Compile Include="Extensions\OrganizationExtensions.cs" />
-    <Compile Include="Extensions\PackageDeprecationExtensions.cs" />
     <Compile Include="Extensions\PrincipalExtensions.cs" />
     <Compile Include="Extensions\RouteExtensions.cs" />
     <Compile Include="Extensions\ScopeExtensions.cs" />
@@ -451,6 +450,7 @@
     <Compile Include="Services\IFeatureFlagService.cs" />
     <Compile Include="Services\InvalidLicenseUrlValidationMessage.cs" />
     <Compile Include="Services\InvalidUrlEncodingForLicenseUrlValidationMessage.cs" />
+    <Compile Include="Services\IPackageDeprecationService.cs" />
     <Compile Include="Services\ISymbolPackageUploadService.cs" />
     <Compile Include="Services\ISymbolPackageFileService.cs" />
     <Compile Include="Services\ITyposquattingCheckListCacheService.cs" />
@@ -460,6 +460,7 @@
     <Compile Include="Services\IValidationMessage.cs" />
     <Compile Include="Services\JsonValidationMessage.cs" />
     <Compile Include="Services\LicenseUrlDeprecationValidationMessage.cs" />
+    <Compile Include="Services\PackageDeprecationService.cs" />
     <Compile Include="Services\PackageShouldNotBeSignedUserFixableValidationMessage.cs" />
     <Compile Include="Services\PlainTextOnlyValidationMessage.cs" />
     <Compile Include="Services\SymbolPackageValidationResult.cs" />

@@ -109,6 +109,7 @@ namespace NuGetGallery
         private readonly IDiagnosticsSource _trace;
         private readonly ICoreLicenseFileService _coreLicenseFileService;
         private readonly ILicenseExpressionSplitter _licenseExpressionSplitter;
+        private readonly IPackageDeprecationService _deprecationService;
 
         public PackagesController(
             IPackageService packageService,
@@ -135,7 +136,8 @@ namespace NuGetGallery
             ISymbolPackageUploadService symbolPackageUploadService,
             IDiagnosticsService diagnosticsService,
             ICoreLicenseFileService coreLicenseFileService,
-            ILicenseExpressionSplitter licenseExpressionSplitter)
+            ILicenseExpressionSplitter licenseExpressionSplitter,
+            IPackageDeprecationService deprecationService)
         {
             _packageService = packageService;
             _uploadFileService = uploadFileService;
@@ -162,6 +164,7 @@ namespace NuGetGallery
             _trace = diagnosticsService?.SafeGetSource(nameof(PackagesController)) ?? throw new ArgumentNullException(nameof(diagnosticsService));
             _coreLicenseFileService = coreLicenseFileService ?? throw new ArgumentNullException(nameof(coreLicenseFileService));
             _licenseExpressionSplitter = licenseExpressionSplitter ?? throw new ArgumentNullException(nameof(licenseExpressionSplitter));
+            _deprecationService = deprecationService ?? throw new ArgumentNullException(nameof(deprecationService));
         }
 
         [HttpGet]
@@ -1390,15 +1393,28 @@ namespace NuGetGallery
                     packageVersions.Add(package);
                 }
             }
+            cveIds = cveIds ?? Enumerable.Empty<string>();
+            var cves = _deprecationService.GetCvesById(cveIds);
+            if (cveIds.Count() != cves.Count)
+            {
+                return DeprecateErrorResponse(HttpStatusCode.NotFound, Strings.DeprecatePackage_MissingCve);
+            }
 
-            await _packageService.UpdateDeprecation(
+            cweIds = cweIds ?? Enumerable.Empty<string>();
+            var cwes = _deprecationService.GetCwesById(cweIds);
+            if (cweIds.Count() != cwes.Count)
+            {
+                return DeprecateErrorResponse(HttpStatusCode.NotFound, Strings.DeprecatePackage_MissingCwe);
+            }
+
+            await _deprecationService.UpdateDeprecation(
                 packageVersions, 
                 isVulnerable, 
                 isLegacy, 
-                isOther, 
-                cveIds?.ToList(), 
-                cvssRating, 
-                cweIds?.ToList(), 
+                isOther,
+                cves, 
+                cvssRating,
+                cwes, 
                 alternatePackageRegistration, 
                 alternatePackage, 
                 customMessage, 

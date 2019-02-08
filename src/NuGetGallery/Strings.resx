@@ -1103,4 +1103,10 @@ The {1} Team</value>
   <data name="DeprecatePackage_NoVersions" xml:space="preserve">
     <value>You must select at least one version to deprecate!</value>
   </data>
+  <data name="DeprecatePackage_MissingCve" xml:space="preserve">
+    <value>At least one CVE specified could not be found.</value>
+  </data>
+  <data name="DeprecatePackage_MissingCwe" xml:space="preserve">
+    <value>At least one CWE specified could not be found.</value>
+  </data>
 </root>

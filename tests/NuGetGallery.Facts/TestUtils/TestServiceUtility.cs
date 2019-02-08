@@ -179,7 +179,6 @@ namespace NuGetGallery.TestUtils
 
             var packageRepository = new Mock<IEntityRepository<Package>>();
             var certificateRepository = new Mock<IEntityRepository<Certificate>>();
-            var deprecationRepository = new Mock<IEntityRepository<PackageDeprecation>>();
             var auditingService = new TestAuditingService();
             var telemetryService = new Mock<ITelemetryService>();
             var securityPolicyService = new Mock<ISecurityPolicyService>();
@@ -188,7 +187,6 @@ namespace NuGetGallery.TestUtils
                  packageRegistrationRepository.Object,
                  packageRepository.Object,
                  certificateRepository.Object,
-                 deprecationRepository.Object,
                  auditingService,
                  telemetryService.Object,
                  securityPolicyService.Object);

@@ -150,7 +150,7 @@ namespace NuGetGallery
             }
         }
 
-        public IDbSet<Cve> Cves
+        public DbSet<Cve> Cves
         {
             get
             {
@@ -162,7 +162,7 @@ namespace NuGetGallery
             }
         }
 
-        public IDbSet<Cwe> Cwes
+        public DbSet<Cwe> Cwes
         {
             get
             {

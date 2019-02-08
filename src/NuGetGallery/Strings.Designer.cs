@@ -767,6 +767,24 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to At least one CVE specified could not be found..
+        /// </summary>
+        public static string DeprecatePackage_MissingCve {
+            get {
+                return ResourceManager.GetString("DeprecatePackage_MissingCve", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to At least one CWE specified could not be found..
+        /// </summary>
+        public static string DeprecatePackage_MissingCwe {
+            get {
+                return ResourceManager.GetString("DeprecatePackage_MissingCwe", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Package &apos;{0} {1}&apos; does not exist. Please refresh the page and try again..
         /// </summary>
         public static string DeprecatePackage_MissingVersion {

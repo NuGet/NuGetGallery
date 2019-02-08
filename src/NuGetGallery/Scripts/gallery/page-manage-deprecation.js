@@ -36,7 +36,7 @@ function ManageDeprecationSecurityDetailListViewModel(title, label, placeholder)
 
     // Import the existing version deprecation state into this model.
     this.import = function (ids) {
-        var hasIds = ids !== null && ids.length;
+        var hasIds = ids && ids.length;
         self.hasIds(hasIds);
         if (hasIds) {
             self.addedIds(ids);
