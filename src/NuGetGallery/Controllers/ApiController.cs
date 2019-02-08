@@ -717,7 +717,7 @@ namespace NuGetGallery
 
                             TelemetryService.TrackPackagePushEvent(package, currentUser, User.Identity);
 
-                            var warnings = new List<IValidationMessage>();
+                            var warnings = new List<IGalleryMessage>();
                             warnings.AddRange(beforeValidationResult.Warnings);
                             warnings.AddRange(afterValidationResult.Warnings);
                             if (package.SemVerLevelKey == SemVerLevelKey.SemVer2)

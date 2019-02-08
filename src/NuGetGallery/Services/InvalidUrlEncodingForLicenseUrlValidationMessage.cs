@@ -7,7 +7,7 @@ namespace NuGetGallery
     /// The error message to be used when we detect an invalid URL encoding used for a license URL.
     /// Specifically, if we see that spaces are encoded as pluses instead of %20
     /// </summary>
-    public class InvalidUrlEncodingForLicenseUrlValidationMessage : IValidationMessage
+    public class InvalidUrlEncodingForLicenseUrlValidationMessage : IGalleryMessage
     {
         private string DetailsLink => $"<a href=\"https://aka.ms/malformedNuGetLicenseUrl\">{Strings.UploadPackage_LearnMore}</a>.";
         private string DetailsPlainText => "https://aka.ms/malformedNuGetLicenseUrl";

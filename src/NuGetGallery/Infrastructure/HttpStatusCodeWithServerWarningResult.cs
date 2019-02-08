@@ -18,7 +18,7 @@ namespace NuGetGallery
             Warnings = warnings ?? new string[0];
         }
 
-        public HttpStatusCodeWithServerWarningResult(HttpStatusCode statusCode, IReadOnlyList<IValidationMessage> warnings)
+        public HttpStatusCodeWithServerWarningResult(HttpStatusCode statusCode, IReadOnlyList<IGalleryMessage> warnings)
             : this(statusCode, warnings.Select(w => w.PlainTextMessage).ToList())
         {
         }

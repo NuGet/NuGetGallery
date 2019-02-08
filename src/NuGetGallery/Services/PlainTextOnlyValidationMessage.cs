@@ -4,10 +4,10 @@
 namespace NuGetGallery
 {
     /// <summary>
-    /// Cautious default implementation of <see cref="IValidationMessage"/> that does not allow
+    /// Cautious default implementation of <see cref="IGalleryMessage"/> that does not allow
     /// user to specify raw html response.
     /// </summary>
-    public class PlainTextOnlyValidationMessage : IValidationMessage
+    public class PlainTextOnlyValidationMessage : IGalleryMessage
     {
         public PlainTextOnlyValidationMessage(string validationMessage)
         {

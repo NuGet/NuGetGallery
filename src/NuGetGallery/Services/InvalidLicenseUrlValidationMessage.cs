@@ -9,7 +9,7 @@ namespace NuGetGallery
     /// The error message to be used when package contains license expression, but
     /// its license URL points to a wrong location
     /// </summary>
-    public class InvalidLicenseUrlValidationMessage : IValidationMessage
+    public class InvalidLicenseUrlValidationMessage : IGalleryMessage
     {
         private string DetailsLink => $"<a href=\"https://aka.ms/invalidNuGetLicenseUrl\">{Strings.UploadPackage_LearnMore}</a>.";
         private string DetailsPlainText => "https://aka.ms/invalidNuGetLicenseUrl";

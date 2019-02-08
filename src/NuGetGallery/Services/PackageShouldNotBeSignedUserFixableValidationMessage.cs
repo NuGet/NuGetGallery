@@ -10,7 +10,7 @@ namespace NuGetGallery
     /// was not setup to accept signed packages. We want to display some additional text when the error is
     /// presented on a web page, so this class abuses the messaging a little, no actual HTML is generated.
     /// </summary>
-    public class PackageShouldNotBeSignedUserFixableValidationMessage : IValidationMessage
+    public class PackageShouldNotBeSignedUserFixableValidationMessage : IGalleryMessage
     {
         public string PlainTextMessage => Strings.UploadPackage_PackageIsSignedButMissingCertificate_CurrentUserCanManageCertificates;
 

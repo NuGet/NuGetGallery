@@ -5324,7 +5324,7 @@ namespace NuGetGallery
                 using (var fakeFileStream = new MemoryStream())
                 {
                     const string expectedMessage = "The package is just bad.";
-                    var messageMock = new Mock<IValidationMessage>();
+                    var messageMock = new Mock<IGalleryMessage>();
                     messageMock
                         .SetupGet(m => m.PlainTextMessage)
                         .Returns(expectedMessage);
@@ -5383,7 +5383,7 @@ namespace NuGetGallery
                 using (var fakeFileStream = new MemoryStream())
                 {
                     const string expectedMessage = "The package is just bad.";
-                    var messageMock = new Mock<IValidationMessage>();
+                    var messageMock = new Mock<IGalleryMessage>();
                     messageMock
                         .SetupGet(m => m.PlainTextMessage)
                         .Returns(expectedMessage);

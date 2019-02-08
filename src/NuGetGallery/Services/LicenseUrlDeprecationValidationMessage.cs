@@ -10,7 +10,7 @@ namespace NuGetGallery
     /// <summary>
     /// A generic license url deprecation message that appends a "Learn more" documentation link to a given base message.
     /// </summary>
-    public class LicenseUrlDeprecationValidationMessage : IValidationMessage
+    public class LicenseUrlDeprecationValidationMessage : IGalleryMessage
     {
         private string DeprecationLink => $"<a href=\"{GalleryConstants.LicenseDeprecationUrl}\">{Strings.UploadPackage_LearnMore}</a>.";
 

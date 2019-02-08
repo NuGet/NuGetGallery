@@ -16,7 +16,7 @@ namespace NuGetGallery
             RawHtmlMessage = null;
         }
 
-        public JsonValidationMessage(IValidationMessage message)
+        public JsonValidationMessage(IGalleryMessage message)
         {
             if (message == null)
             {

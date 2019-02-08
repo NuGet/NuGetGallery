@@ -91,7 +91,7 @@ namespace NuGetGallery
 
         public async Task<PackageValidationResult> ValidateBeforeGeneratePackageAsync(PackageArchiveReader nuGetPackage, PackageMetadata packageMetadata)
         {
-            var warnings = new List<IValidationMessage>();
+            var warnings = new List<IGalleryMessage>();
 
             var result = await CheckPackageEntryCountAsync(nuGetPackage, warnings);
 
@@ -126,7 +126,7 @@ namespace NuGetGallery
             return PackageValidationResult.AcceptedWithWarnings(warnings);
         }
 
-        private async Task<PackageValidationResult> CheckLicenseMetadataAsync(PackageArchiveReader nuGetPackage, List<IValidationMessage> warnings)
+        private async Task<PackageValidationResult> CheckLicenseMetadataAsync(PackageArchiveReader nuGetPackage, List<IGalleryMessage> warnings)
         {
             LicenseCheckingNuspecReader nuspecReader = null;
             using (var nuspec = nuGetPackage.GetNuspec())
@@ -438,7 +438,7 @@ namespace NuGetGallery
 
         private async Task<PackageValidationResult> CheckPackageEntryCountAsync(
             PackageArchiveReader nuGetPackage,
-            List<IValidationMessage> warnings)
+            List<IGalleryMessage> warnings)
         {
             if (!_config.RejectPackagesWithTooManyPackageEntries)
             {
@@ -469,7 +469,7 @@ namespace NuGetGallery
         /// 1. If the type is "git" - allow the URL scheme "git://" or "https://". We will translate "git://" to "https://" at display time for known domains.
         /// 2. For types other then "git" - URL scheme should be "https://"
         /// </summary>
-        private PackageValidationResult CheckRepositoryMetadata(PackageMetadata packageMetadata, List<IValidationMessage> warnings)
+        private PackageValidationResult CheckRepositoryMetadata(PackageMetadata packageMetadata, List<IGalleryMessage> warnings)
         {
             if (packageMetadata.RepositoryUrl == null)
             {
@@ -506,7 +506,7 @@ namespace NuGetGallery
         /// <returns>The package validation result or null.</returns>
         private async Task<PackageValidationResult> CheckForUnsignedPushAfterAuthorSignedAsync(
             PackageArchiveReader nuGetPackage,
-            List<IValidationMessage> warnings)
+            List<IGalleryMessage> warnings)
         {
             // If the package is signed, there's no problem.
             if (await nuGetPackage.IsSignedAsync(CancellationToken.None))

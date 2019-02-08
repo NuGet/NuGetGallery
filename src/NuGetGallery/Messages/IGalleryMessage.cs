@@ -4,14 +4,14 @@
 namespace NuGetGallery
 {
     /// <summary>
-    /// Represents a validation message that may include a raw HTML message (if we want to present some links in the message, for example).
+    /// Represents a message that may include a raw HTML message (if we want to present some links in the message, for example).
     /// </summary>
     /// <remarks>
-    /// Implementations should sanitize all input used to generate <see cref="IValidationMessage.RawHtmlMessage"/> value.
+    /// Implementations should sanitize all input used to generate <see cref="IGalleryMessage.RawHtmlMessage"/> value.
     /// We should never have a generic implementation that would accept a raw HTML message as a constructor argument and
-    /// simply returns it as a value of <see cref="IValidationMessage.RawHtmlMessage"/>.
+    /// simply returns it as a value of <see cref="IGalleryMessage.RawHtmlMessage"/>.
     /// </remarks>
-    public interface IValidationMessage
+    public interface IGalleryMessage
     {
         /// <summary>
         /// Plain text representation of the validation message. If pasted into HTML, will be html encoded.

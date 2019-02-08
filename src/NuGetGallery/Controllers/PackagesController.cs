@@ -545,7 +545,7 @@ namespace NuGetGallery
             bool isSymbolsPackageUpload,
             bool hasExistingSymbolsPackageAvailable)
         {
-            IReadOnlyList<IValidationMessage> warnings = new List<IValidationMessage>();
+            IReadOnlyList<IGalleryMessage> warnings = new List<IGalleryMessage>();
             string licenseFileContents = null;
             IReadOnlyCollection<CompositeLicenseExpressionSegmentViewModel> licenseExpressionSegments = null;
             using (Stream uploadedFile = await _uploadFileService.GetUploadFileAsync(currentUser.Key))
@@ -2339,7 +2339,7 @@ namespace NuGetGallery
             return Json(httpStatusCode, new[] { new JsonValidationMessage(validationResult.Message) });
         }
 
-        private static IValidationMessage GetErrorMessageOrNull(PackageValidationResult validationResult)
+        private static IGalleryMessage GetErrorMessageOrNull(PackageValidationResult validationResult)
         {
             switch (validationResult.Type)
             {

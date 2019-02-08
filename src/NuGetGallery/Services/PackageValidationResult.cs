@@ -12,9 +12,9 @@ namespace NuGetGallery
     /// </summary>
     public class PackageValidationResult
     {
-        private static readonly IReadOnlyList<IValidationMessage> EmptyList = new IValidationMessage[0];
+        private static readonly IReadOnlyList<IGalleryMessage> EmptyList = new IGalleryMessage[0];
 
-        public PackageValidationResult(PackageValidationResultType type, IValidationMessage message)
+        public PackageValidationResult(PackageValidationResultType type, IGalleryMessage message)
             : this(type, message, warnings: null)
         {
         }
@@ -24,7 +24,7 @@ namespace NuGetGallery
         {
         }
 
-        public PackageValidationResult(PackageValidationResultType type, IValidationMessage message, IReadOnlyList<IValidationMessage> warnings)
+        public PackageValidationResult(PackageValidationResultType type, IGalleryMessage message, IReadOnlyList<IGalleryMessage> warnings)
         {
             if (type != PackageValidationResultType.Accepted && message == null)
             {
@@ -37,8 +37,8 @@ namespace NuGetGallery
         }
 
         public PackageValidationResultType Type { get; }
-        public IValidationMessage Message { get; }
-        public IReadOnlyList<IValidationMessage> Warnings { get; }
+        public IGalleryMessage Message { get; }
+        public IReadOnlyList<IGalleryMessage> Warnings { get; }
 
         public static PackageValidationResult Accepted()
         {
@@ -48,7 +48,7 @@ namespace NuGetGallery
                 warnings: null);
         }
 
-        public static PackageValidationResult AcceptedWithWarnings(IReadOnlyList<IValidationMessage> warnings)
+        public static PackageValidationResult AcceptedWithWarnings(IReadOnlyList<IGalleryMessage> warnings)
         {
             return new PackageValidationResult(
                 PackageValidationResultType.Accepted,
@@ -59,7 +59,7 @@ namespace NuGetGallery
         public static PackageValidationResult Invalid(string message)
             => Invalid(new PlainTextOnlyValidationMessage(message));
 
-        public static PackageValidationResult Invalid(IValidationMessage message)
+        public static PackageValidationResult Invalid(IGalleryMessage message)
         {
             if (message == null)
             {
