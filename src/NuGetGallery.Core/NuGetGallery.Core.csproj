@@ -135,6 +135,10 @@
     <Compile Include="Extensions\ValidationIssueExtensions.cs" />
     <Compile Include="Features\FeatureFlagFileStorageService.cs" />
     <Compile Include="Features\FeatureFlagClientExtensions.cs" />
+    <Compile Include="Features\FeatureFlagReference.cs" />
+    <Compile Include="Features\FeatureFlagSaveResult.cs" />
+    <Compile Include="Features\FeatureFlagSaveResultType.cs" />
+    <Compile Include="Features\IEditableFeatureFlagStorageService.cs" />
     <Compile Include="ICloudStorageStatusDependency.cs" />
     <Compile Include="Infrastructure\AzureEntityList.cs" />
     <Compile Include="Infrastructure\ElmahException.cs" />

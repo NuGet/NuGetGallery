@@ -416,6 +416,11 @@ namespace NuGetGallery
                 .SingleInstance();
 
             builder
+                .Register(context => context.Resolve<FeatureFlagFileStorageService>())
+                .As<IEditableFeatureFlagStorageService>()
+                .SingleInstance();
+
+            builder
                 .RegisterType<FeatureFlagCacheService>()
                 .As<IFeatureFlagCacheService>()
                 .SingleInstance();
