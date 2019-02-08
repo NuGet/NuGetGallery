@@ -66,9 +66,9 @@ namespace NuGetGallery.Configuration
         string AzureStorage_Packages_ConnectionString { get; set; }
 
         /// <summary>
-        /// The Azure Storage connection string used for flatcontainer, after upload.
+        /// The Azure Storage connection string used for flatContainer, after upload.
         /// </summary>
-        string AzureStorage_Flatcontainer_ConnectionString { get; set; }
+        string AzureStorage_FlatContainer_ConnectionString { get; set; }
 
         /// <summary>
         /// The Azure Storage connection string used for statistics.

@@ -102,6 +102,7 @@ namespace NuGetGallery
             Assert.Equal(typeToConnectionString[typeof(ContentService)], config.AzureStorage_Content_ConnectionString);
             Assert.Equal(typeToConnectionString[typeof(PackageFileService)], config.AzureStorage_Packages_ConnectionString);
             Assert.Equal(typeToConnectionString[typeof(UploadFileService)], config.AzureStorage_Uploads_ConnectionString);
+            Assert.Equal(typeToConnectionString[typeof(CoreLicenseFileService)], config.AzureStorage_FlatContainer_ConnectionString);
         }
 
         [Fact]
@@ -130,6 +131,8 @@ namespace NuGetGallery
             mock.Setup(x => x.AzureStorage_Content_ConnectionString).Returns("Content");
             mock.Setup(x => x.AzureStorage_Packages_ConnectionString).Returns("Packages");
             mock.Setup(x => x.AzureStorage_Uploads_ConnectionString).Returns("Uploads");
+            mock.Setup(x => x.AzureStorage_FlatContainer_ConnectionString).Returns("FlatContainer");
+
             return mock.Object;
         }
     }

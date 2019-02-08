@@ -53,8 +53,8 @@ namespace NuGetGallery.Configuration
         [DisplayName("AzureStorage.Packages.ConnectionString")]
         public string AzureStorage_Packages_ConnectionString { get; set; }
 
-        [DisplayName("AzureStorage.Flatcontainer.ConnectionString")]
-        public string AzureStorage_Flatcontainer_ConnectionString { get; set; }
+        [DisplayName("AzureStorage.FlatContainer.ConnectionString")]
+        public string AzureStorage_FlatContainer_ConnectionString { get; set; }
 
         [DisplayName("AzureStorage.Statistics.ConnectionString")]
         public string AzureStorage_Statistics_ConnectionString { get; set; }
