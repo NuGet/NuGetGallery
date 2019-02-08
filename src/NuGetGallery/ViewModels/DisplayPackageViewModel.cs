@@ -88,12 +88,12 @@ namespace NuGetGallery
                 CVEIds = deprecation.GetCVEIds();
                 CVSSRating = deprecation.CVSSRating;
                 CWEIds = deprecation.GetCWEIds();
-                AlternatePackageRegistrationId = deprecation.AlternatePackageRegistration?.Id;
-
-                var alternatePackage = deprecation.AlternatePackage;
-                if (alternatePackage != null)
+                AlternatePackageId = deprecation.AlternatePackageRegistration?.Id;
+                if (AlternatePackageId == null)
                 {
-                    AlternatePackage = new DisplayPackageViewModel(alternatePackage, currentUser, GetPushedBy(alternatePackage, currentUser));
+                    var alternatePackage = deprecation.AlternatePackage;
+                    AlternatePackageId = alternatePackage.Id;
+                    AlternatePackageVersion = alternatePackage.Version;
                 }
 
                 CustomMessage = deprecation.CustomMessage;
@@ -160,8 +160,8 @@ namespace NuGetGallery
         public IReadOnlyCollection<string> CVEIds { get; set; }
         public decimal? CVSSRating { get; set; }
         public IReadOnlyCollection<string> CWEIds { get; set; }
-        public string AlternatePackageRegistrationId { get; set; }
-        public DisplayPackageViewModel AlternatePackage { get; set; }
+        public string AlternatePackageId { get; set; }
+        public string AlternatePackageVersion { get; set; }
         public string CustomMessage { get; set; }
 
         private IDictionary<User, string> _pushedByCache = new Dictionary<User, string>();

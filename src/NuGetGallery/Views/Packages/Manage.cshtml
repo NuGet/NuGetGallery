@@ -97,8 +97,8 @@
                             version.CVEIds,
                             version.CVSSRating,
                             version.CWEIds,
-                            AlternatePackageId = version.AlternatePackage == null ? version.AlternatePackageRegistrationId : version.AlternatePackage.Id,
-                            AlternatePackageVersion = version.AlternatePackage == null ? null : version.AlternatePackage.Version,
+                            AlternatePackageId = version.AlternatePackageId,
+                            AlternatePackageVersion = version.AlternatePackageVersion,
                             version.CustomMessage,
                             ShouldUnlist = !(version.DeprecationStatus != PackageDeprecationStatus.NotDeprecated && version.Listed)
                         };
