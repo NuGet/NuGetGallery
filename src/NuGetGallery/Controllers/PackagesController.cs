@@ -1179,51 +1179,63 @@ namespace NuGetGallery
         [HttpGet]
         public virtual ActionResult AtomFeed(string id, bool allowPrerelease = false)
         {
-            var package = _packageService.FindPackageByIdAndVersion(id, string.Empty, null, allowPrerelease);
-            if (package == null)
+            var packageRegistration = _packageService.FindPackageRegistrationById(id);
+            if (packageRegistration == null)
             {
                 return HttpNotFound();
             }
 
+            // ToDo: Nuget.org text hardcoded
+            // ToDo: Tests!
+            var packageVersions  = packageRegistration.Packages
+                                   .Where(x => x.PackageStatusKey == PackageStatus.Available)
+                                   .OrderByDescending(p => NuGetVersion.Parse(p.NormalizedVersion))
+                                   .ToList();
+
+            var newestVersionPackage = packageVersions.First();
+
             SyndicationFeed feed = new SyndicationFeed()
             {
-                Id = Url.Package(package.PackageRegistration.Id, version: null, relativeUrl: false),
-                Title = SyndicationContent.CreatePlaintextContent($"NuGet.org: {package.Id}"),
-                Description = SyndicationContent.CreatePlaintextContent(package.Description),
+                Id = Url.Package(packageRegistration.Id, version: null, relativeUrl: false),
+                Title = SyndicationContent.CreatePlaintextContent($"NuGet.org: {packageRegistration.Id}"),
+                Description = SyndicationContent.CreatePlaintextContent(newestVersionPackage.Description),
                 LastUpdatedTime = DateTimeOffset.Now,
             };
 
-            if(!string.IsNullOrWhiteSpace(package.IconUrl))
+            if (!string.IsNullOrWhiteSpace(newestVersionPackage.IconUrl))
             {
-                feed.ImageUrl = new Uri(package.IconUrl);
+                feed.ImageUrl = new Uri(newestVersionPackage.IconUrl);
             }
-
-            var packageVersions  = package.PackageRegistration.Packages
-                                   .OrderByDescending(p => new NuGetVersion(p.Version), Comparer<NuGetVersion>.Create((a, b) => a.CompareTo(b)))
-                                   .ToList();
 
             List<SyndicationItem> feedItems = new List<SyndicationItem>();
 
+            List<SyndicationPerson> ownersAsAuthors = new List<SyndicationPerson>();
+            foreach(var packageOwner in packageRegistration.Owners)
+            {
+                ownersAsAuthors.Add(new SyndicationPerson() { Name = packageOwner.Username, Uri = Url.User(packageOwner, relativeUrl: false) });
+            }
+
             foreach(var packageVersion in packageVersions)
             {
-                SyndicationItem syndicationItem = new SyndicationItem($"{packageVersion.Title}: {package.Version}", 
-                                                                      package.Description,
-                                                                      new Uri(Url.Package(package.PackageRegistration.Id, version: packageVersion.Version, relativeUrl: false)));
-                syndicationItem.Id = Url.Package(package.PackageRegistration.Id, version: packageVersion.Version, relativeUrl: false);
+                SyndicationItem syndicationItem = new SyndicationItem($"{packageVersion.Title}: {packageVersion.Version}",
+                                                                      packageVersion.Description,
+                                                                      new Uri(Url.Package(packageVersion.Id, version: packageVersion.Version, relativeUrl: false)));
+                syndicationItem.Id = Url.Package(packageVersion.PackageRegistration.Id, version: packageVersion.Version, relativeUrl: false);
                 syndicationItem.LastUpdatedTime = packageVersion.LastUpdated;
                 syndicationItem.PublishDate = packageVersion.Created;
-                syndicationItem.Authors.Add(new SyndicationPerson() { Name = packageVersion.FlattenedAuthors });
+
+                syndicationItem.Authors.AddRange(ownersAsAuthors);
                 feedItems.Add(syndicationItem);
             }
 
             feed.Items = feedItems;
 
             feed.Links.Add(SyndicationLink.CreateSelfLink(
-                new Uri(Url.PackageAtomFeed(package.PackageRegistration.Id, relativeUrl: false)),
+                new Uri(Url.PackageAtomFeed(packageRegistration.Id, relativeUrl: false)),
                 "application/atom+xml"));
 
             feed.Links.Add(SyndicationLink.CreateAlternateLink(
-                new Uri(Url.Package(package.PackageRegistration.Id, version: null, relativeUrl: false)),
+                new Uri(Url.Package(packageRegistration.Id, version: null, relativeUrl: false)),
                 "text/html"));
 
             return new SyndicationAtomActionResult(feed);
