@@ -82,9 +82,10 @@ namespace NuGetGallery
                 }
             }
 
-            if (DeprecationStatus != PackageDeprecationStatus.NotDeprecated)
+            var deprecation = package.Deprecations.SingleOrDefault();
+            if (deprecation != null)
             {
-                var deprecation = package.Deprecations.Single();
+                DeprecationStatus = deprecation.Status;
                 CveIds = deprecation.Cves?.Select(c => c.CveId).ToList();
                 CvssRating = deprecation.CvssRating;
                 CweIds = deprecation.Cwes?.Select(c => c.CweId).ToList();
@@ -157,6 +158,7 @@ namespace NuGetGallery
         public IReadOnlyCollection<CompositeLicenseExpressionSegment> LicenseExpressionSegments { get; set; }
         public EmbeddedLicenseFileType EmbeddedLicenseType { get; set; }
 
+        public PackageDeprecationStatus DeprecationStatus { get; set; }
         public IReadOnlyCollection<string> CveIds { get; set; }
         public decimal? CvssRating { get; set; }
         public IReadOnlyCollection<string> CweIds { get; set; }

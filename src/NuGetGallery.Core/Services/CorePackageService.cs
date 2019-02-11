@@ -293,9 +293,6 @@ namespace NuGetGallery
                 .Include(p => p.PackageRegistration)
                 .Include(p => p.User)
                 .Include(p => p.SymbolPackages)
-                .Include(p => p.Deprecations.Select(d => d.AlternatePackage))
-                .Include(p => p.Deprecations.Select(d => d.AlternatePackage.PackageRegistration))
-                .Include(p => p.Deprecations.Select(d => d.AlternatePackageRegistration))
                 .Where(p => p.PackageRegistration.Id == id);
         }
 

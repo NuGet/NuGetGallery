@@ -34,8 +34,6 @@ namespace NuGetGallery
             ShortDescription = Description.TruncateAtWordBoundary(_descriptionLengthLimit, _omissionString, out wasTruncated);
             IsDescriptionTruncated = wasTruncated;
 
-            DeprecationStatus = package.Deprecations.SingleOrDefault()?.Status ?? PackageDeprecationStatus.NotDeprecated;
-
             CanDisplayPrivateMetadata = CanPerformAction(currentUser, package, ActionsRequiringPermissions.DisplayPrivatePackageMetadata);
             CanEdit = CanPerformAction(currentUser, package, ActionsRequiringPermissions.EditPackage);
             CanUnlistOrRelist = CanPerformAction(currentUser, package, ActionsRequiringPermissions.UnlistOrRelistPackage);
@@ -65,8 +63,6 @@ namespace NuGetGallery
                 return _signatureInformation;
             }
         }
-
-        public PackageDeprecationStatus DeprecationStatus { get; set; }
 
         public bool UseVersion
         {
