@@ -158,13 +158,51 @@ namespace NuGetGallery
                 // Optimization: Every time we look at a package we almost always want to see
                 // all the other packages with the same ID via the PackageRegistration property.
                 // This resulted in a gnarly query.
-                // Instead, we can always query for all packages with the ID and then filter on the client-side.
-                var packages = GetPackagesByIdQueryable(id)
+                // Instead, we can always query for all packages with the ID.
+                IEnumerable<Package> packagesQuery = GetPackagesByIdQueryable(id);
+
+                if (string.IsNullOrEmpty(version) && !allowPrerelease)
+                {
                     // If there's a specific version given, don't bother filtering by prerelease. 
                     // You could be asking for a prerelease package.
-                    .Where(p => allowPrerelease || !p.IsPrerelease || !string.IsNullOrEmpty(version))
-                    .ToList();
-                package = GetLatestPackage(GetPackagesByIdQueryable(id), semVerLevelKey);
+                    packagesQuery = packagesQuery.Where(p => !p.IsPrerelease);
+                }
+
+                var packageVersions = packagesQuery.ToList();
+
+                // Fallback behavior: collect the latest version.
+                // Check SemVer-level and allow-prerelease constraints.
+                if (semVerLevelKey == SemVerLevelKey.SemVer2)
+                {
+                    package = packageVersions.FirstOrDefault(p => p.IsLatestStableSemVer2);
+
+                    if (package == null && allowPrerelease)
+                    {
+                        package = packageVersions.FirstOrDefault(p => p.IsLatestSemVer2);
+                    }
+                }
+
+                // Fallback behavior: collect the latest version.
+                // If SemVer-level is not defined, 
+                // or SemVer-level = 2.0.0 and no package was marked as SemVer2-latest,
+                // then check for packages marked as non-SemVer2 latest.
+                if (semVerLevelKey == SemVerLevelKey.Unknown
+                    || (semVerLevelKey == SemVerLevelKey.SemVer2 && package == null))
+                {
+                    package = packageVersions.FirstOrDefault(p => p.IsLatestStable);
+
+                    if (package == null && allowPrerelease)
+                    {
+                        package = packageVersions.FirstOrDefault(p => p.IsLatest);
+                    }
+                }
+
+                // If we couldn't find a package marked as latest, then
+                // return the most recent one (prerelease ones were already filtered out if appropriate...)
+                if (package == null)
+                {
+                    package = packageVersions.OrderByDescending(p => p.Version).FirstOrDefault();
+                }
             }
 
             return package;
@@ -188,63 +226,6 @@ namespace NuGetGallery
             if (package == null)
             {
                 package = packageVersions.OrderByDescending(p => p.Version).FirstOrDefault();
-            }
-
-            return package;
-        }
-
-        public IReadOnlyCollection<Package> FindPackagesById(string id)
-        {
-            return GetPackagesByIdQueryable(id)
-                .Include(p => p.PackageRegistration.Owners)
-                .Include(p => p.PackageRegistration.Packages)
-                .Include(p => p.Deprecations.Select(d => d.AlternatePackage.PackageRegistration))
-                .Include(p => p.Deprecations.Select(d => d.AlternatePackageRegistration))
-                .ToList();
-        }
-
-        public Package GetLatestPackage(
-            IEnumerable<Package> packages,
-            int? semVerLevelKey = SemVerLevelKey.SemVer2)
-        {
-            if (packages == null)
-            {
-                throw new ArgumentNullException(nameof(packages));
-            }
-
-            Package package = null;
-            // Fallback behavior: collect the latest version.
-            // Check SemVer-level and allow-prerelease constraints.
-            if (semVerLevelKey == SemVerLevelKey.SemVer2)
-            {
-                package = packages.FirstOrDefault(p => p.IsLatestStableSemVer2);
-
-                if (package == null)
-                {
-                    package = packages.FirstOrDefault(p => p.IsLatestSemVer2);
-                }
-            }
-
-            // Fallback behavior: collect the latest version.
-            // If SemVer-level is not defined, 
-            // or SemVer-level = 2.0.0 and no package was marked as SemVer2-latest,
-            // then check for packages marked as non-SemVer2 latest.
-            if (semVerLevelKey == SemVerLevelKey.Unknown
-                || (semVerLevelKey == SemVerLevelKey.SemVer2 && package == null))
-            {
-                package = packages.FirstOrDefault(p => p.IsLatestStable);
-
-                if (package == null)
-                {
-                    package = packages.FirstOrDefault(p => p.IsLatest);
-                }
-            }
-
-            // If we couldn't find a package marked as latest, then
-            // return the most recent one (prerelease ones were already filtered out if appropriate...)
-            if (package == null)
-            {
-                package = packages.OrderByDescending(p => p.Version).FirstOrDefault();
             }
 
             return package;
@@ -301,6 +282,7 @@ namespace NuGetGallery
                 .Include(p => p.PackageRegistration)
                 .Include(p => p.PackageRegistration.Owners)
                 .Include(p => p.PackageRegistration.RequiredSigners)
+                .Include(p => p.Deprecations)
                 .ToList();
         }
 

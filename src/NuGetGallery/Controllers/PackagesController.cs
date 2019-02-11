@@ -657,8 +657,7 @@ namespace NuGetGallery
             }
             else
             {
-                var packages = _packageService.FindPackagesById(id);
-                package = _packageService.GetLatestPackage(packages, SemVerLevelKey.SemVer2);
+                package = _packageService.FindPackageByIdAndVersion(id, version, SemVerLevelKey.SemVer2);
             }
 
             // Validating packages should be hidden to everyone but the owners and admins.
@@ -1298,8 +1297,7 @@ namespace NuGetGallery
         [RequiresAccountConfirmation("manage a package")]
         public virtual async Task<ActionResult> Manage(string id, string version = null)
         {
-            var packages = _packageService.FindPackagesById(id);
-            var package = _packageService.GetLatestPackage(packages);
+            var package = _packageService.FindPackageByIdAndVersion(id, version, SemVerLevelKey.SemVer2);
             if (package == null)
             {
                 return HttpNotFound();
@@ -1342,8 +1340,13 @@ namespace NuGetGallery
                 return DeprecateErrorResponse(HttpStatusCode.BadRequest, Strings.DeprecatePackage_NoVersions);
             }
 
-            var packages = _packageService.FindPackagesById(id);
-            if (!packages.Any())
+            var registration = _packageService
+                .GetAllPackageRegistrations()
+                .Include(pr => pr.Owners)
+                .Include(pr => pr.Packages.Select(p => p.Deprecations))
+                .SingleOrDefault(pr => pr.Id == id);
+
+            if (registration == null)
             {
                 return DeprecateErrorResponse(HttpStatusCode.NotFound, string.Format(Strings.DeprecatePackage_NoRegistration, id));
             }
@@ -1377,7 +1380,7 @@ namespace NuGetGallery
             var packageVersions = new List<Package>();
             foreach (var version in versions)
             {
-                var package = packages.SingleOrDefault(v => v.NormalizedVersion == NuGetVersionFormatter.Normalize(version));
+                var package = registration.Packages.SingleOrDefault(v => v.NormalizedVersion == NuGetVersionFormatter.Normalize(version));
                 if (package == null)
                 {
                     // This should only happen if someone hacks the form or if a version of the package is deleted while the user is filling out the form.

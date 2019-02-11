@@ -30,12 +30,6 @@ namespace NuGetGallery
 
         Package FindAbsoluteLatestPackageById(string id, int? semVerLevelKey);
 
-        IReadOnlyCollection<Package> FindPackagesById(string id);
-
-        Package GetLatestPackage(
-            IEnumerable<Package> packages,
-            int? semVerLevelKey = SemVerLevelKey.SemVer2);
-
         IEnumerable<Package> FindPackagesByOwner(User user, bool includeUnlisted, bool includeVersions = false);
 
         IEnumerable<Package> FindPackagesByAnyMatchingOwner(User user, bool includeUnlisted, bool includeVersions = false);
