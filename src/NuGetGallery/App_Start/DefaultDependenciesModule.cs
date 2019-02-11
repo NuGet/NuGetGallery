@@ -364,6 +364,10 @@ namespace NuGetGallery
                 .As<ILicenseExpressionSegmentator>()
                 .InstancePerLifetimeScope();
 
+            builder.RegisterType<GalleryCloudBlobFolderDescription>()
+                .As<ICloudBlobFolderDescription>()
+                .InstancePerLifetimeScope();
+
             RegisterFeatureFlagsService(builder, configuration);
             RegisterMessagingService(builder, configuration);
 
