@@ -1,5 +1,4 @@
 ﻿using System.ServiceModel.Syndication;
-using System.Text;
 using System.Web;
 using System.Web.Mvc;
 using System.Xml;
@@ -7,7 +6,7 @@ using System.Xml;
 namespace NuGetGallery.Infrastructure
 {
     /// <summary>
-    /// Represents a class that is used to render an Atom 1.0 feed by using an <see cref="SyndicationFeed"/> instance 
+    /// ActionResult to render an Atom 1.0 feed by using an <see cref="SyndicationFeed"/> instance 
     /// representing the feed.
     /// </summary>
     public sealed class SyndicationAtomActionResult : ActionResult
@@ -33,7 +32,6 @@ namespace NuGetGallery.Infrastructure
             context.HttpContext.Response.ContentType = "application/atom+xml";
             Atom10FeedFormatter feedFormatter = new Atom10FeedFormatter(this.syndicationFeed);
             XmlWriterSettings xmlWriterSettings = new XmlWriterSettings();
-            xmlWriterSettings.Encoding = Encoding.UTF8;
 
             if (HttpContext.Current.IsDebuggingEnabled)
             {
