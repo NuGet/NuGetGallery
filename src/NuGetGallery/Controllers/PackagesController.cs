@@ -1185,10 +1185,8 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            // ToDo: Nuget.org text hardcoded
-            // ToDo: Tests!
             var packageVersions  = packageRegistration.Packages
-                                   .Where(x => x.PackageStatusKey == PackageStatus.Available)
+                                   .Where(x => x.Listed && x.PackageStatusKey == PackageStatus.Available)
                                    .OrderByDescending(p => NuGetVersion.Parse(p.NormalizedVersion))
                                    .ToList();
 
@@ -1197,7 +1195,7 @@ namespace NuGetGallery
             SyndicationFeed feed = new SyndicationFeed()
             {
                 Id = Url.Package(packageRegistration.Id, version: null, relativeUrl: false),
-                Title = SyndicationContent.CreatePlaintextContent($"NuGet.org: {packageRegistration.Id}"),
+                Title = SyndicationContent.CreatePlaintextContent($"{_config.Brand} Feed for package: {packageRegistration.Id}"),
                 Description = SyndicationContent.CreatePlaintextContent(newestVersionPackage.Description),
                 LastUpdatedTime = DateTimeOffset.Now,
             };
@@ -1221,8 +1219,8 @@ namespace NuGetGallery
                                                                       packageVersion.Description,
                                                                       new Uri(Url.Package(packageVersion.Id, version: packageVersion.Version, relativeUrl: false)));
                 syndicationItem.Id = Url.Package(packageVersion.PackageRegistration.Id, version: packageVersion.Version, relativeUrl: false);
-                syndicationItem.LastUpdatedTime = packageVersion.LastUpdated;
-                syndicationItem.PublishDate = packageVersion.Created;
+                syndicationItem.LastUpdatedTime = packageVersion.LastEdited ?? packageVersion.Published;
+                syndicationItem.PublishDate = packageVersion.Published;
 
                 syndicationItem.Authors.AddRange(ownersAsAuthors);
                 feedItems.Add(syndicationItem);
