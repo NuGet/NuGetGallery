@@ -159,12 +159,15 @@ namespace NuGetGallery
                 // all the other packages with the same ID via the PackageRegistration property.
                 // This resulted in a gnarly query.
                 // Instead, we can always query for all packages with the ID and then filter on the client-side.
-                var packages = GetPackagesByIdQueryable(id)
+                var packages = GetPackagesByIdQueryable(id);
+                if (string.IsNullOrEmpty(version) && !allowPrerelease)
+                {
                     // If there's a specific version given, don't bother filtering by prerelease. 
                     // You could be asking for a prerelease package.
-                    .Where(p => allowPrerelease || !p.IsPrerelease || !string.IsNullOrEmpty(version))
-                    .ToList();
-                package = GetLatestPackage(GetPackagesByIdQueryable(id), semVerLevelKey);
+                    packages = packages.Where(p => !p.IsPrerelease);
+                }
+                
+                package = GetLatestPackage(packages.ToList(), semVerLevelKey);
             }
 
             return package;
