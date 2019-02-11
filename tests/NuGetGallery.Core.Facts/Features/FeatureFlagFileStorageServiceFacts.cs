@@ -7,6 +7,7 @@ using System.IO;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage;
 using Moq;
 using Newtonsoft.Json;
@@ -274,8 +275,10 @@ namespace NuGetGallery.Features
 
             public FactsBase()
             {
+                var logger = Mock.Of<ILogger<FeatureFlagFileStorageService>>();
+
                 _storage = new Mock<ICoreFileStorageService>();
-                _target = new FeatureFlagFileStorageService(_storage.Object);
+                _target = new FeatureFlagFileStorageService(_storage.Object, logger);
             }
 
             protected Stream BuildStream(string content)

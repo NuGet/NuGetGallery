@@ -11,6 +11,7 @@ using NuGetGallery.Areas.Admin;
 using NuGetGallery.Areas.Admin.ViewModels;
 using NuGetGallery.Auditing;
 using NuGetGallery.Authentication;
+using NuGetGallery.Features;
 using NuGetGallery.Security;
 
 namespace NuGetGallery
@@ -27,6 +28,7 @@ namespace NuGetGallery
         private readonly IEntityRepository<User> _userRepository;
         private readonly IEntityRepository<Scope> _scopeRepository;
         private readonly ISupportRequestService _supportRequestService;
+        private readonly IEditableFeatureFlagStorageService _featureFlagService;
         private readonly IAuditingService _auditingService;
         private readonly ITelemetryService _telemetryService;
 
@@ -40,6 +42,7 @@ namespace NuGetGallery
                                     ISecurityPolicyService securityPolicyService,
                                     AuthenticationService authService,
                                     ISupportRequestService supportRequestService,
+                                    IEditableFeatureFlagStorageService featureFlagService,
                                     IAuditingService auditingService,
                                     ITelemetryService telemetryService
             )
@@ -54,6 +57,7 @@ namespace NuGetGallery
             _securityPolicyService = securityPolicyService ?? throw new ArgumentNullException(nameof(securityPolicyService));
             _authService = authService ?? throw new ArgumentNullException(nameof(authService));
             _supportRequestService = supportRequestService ?? throw new ArgumentNullException(nameof(supportRequestService));
+            _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
             _auditingService = auditingService ?? throw new ArgumentNullException(nameof(auditingService));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
         }
@@ -297,8 +301,21 @@ namespace NuGetGallery
             {
                 // The support requests DB and gallery DB are different.
                 // TransactionScope can be used for doing transaction actions across db on the same server but not on different servers.
-                // The below code will clean the suppport requests before the gallery data.
+                // The below code will clean the feature flags and suppport requests before the gallery data.
                 // The order is important in order to allow the admin the opportunity to execute this step again.
+                if (!await _featureFlagService.TryRemoveUserAsync(userToBeDeleted))
+                {
+                    return new DeleteUserAccountStatus()
+                    {
+                        Success = false,
+                        Description = string.Format(
+                            CultureInfo.CurrentCulture,
+                            Strings.AccountDelete_FailRetryable,
+                            userToBeDeleted.Username),
+                        AccountName = userToBeDeleted.Username
+                    };
+                }
+
                 await RemoveSupportRequests(userToBeDeleted);
 
                 if (commitAsTransaction)

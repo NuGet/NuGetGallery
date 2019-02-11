@@ -79,11 +79,20 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An exception was encoutered while trying to delete the account:{0}. {1}.
+        ///   Looks up a localized string similar to An exception was encountered while trying to delete the account:{0}. {1}.
         /// </summary>
         public static string AccountDelete_Fail {
             get {
                 return ResourceManager.GetString("AccountDelete_Fail", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A retryable error was encountered while trying to delete the account &apos;{0}&apos;. Please try again..
+        /// </summary>
+        public static string AccountDelete_FailRetryable {
+            get {
+                return ResourceManager.GetString("AccountDelete_FailRetryable", resourceCulture);
             }
         }
         

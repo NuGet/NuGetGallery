@@ -3,22 +3,31 @@
 
 using System;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using NuGet.Services.Entities;
 using NuGet.Services.FeatureFlags;
 
 namespace NuGetGallery.Features
 {
     public class FeatureFlagFileStorageService : IEditableFeatureFlagStorageService
     {
+        private const int MaxRemoveUserAttempts = 3;
+
         private readonly ICoreFileStorageService _storage;
+        private readonly ILogger<FeatureFlagFileStorageService> _logger;
         private readonly JsonSerializer _serializer;
 
-        public FeatureFlagFileStorageService(ICoreFileStorageService storage)
+        public FeatureFlagFileStorageService(
+            ICoreFileStorageService storage,
+            ILogger<FeatureFlagFileStorageService> logger)
         {
             _storage = storage ?? throw new ArgumentNullException(nameof(storage));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _serializer = JsonSerializer.Create(new JsonSerializerSettings
             {
                 Formatting = Formatting.Indented,
@@ -80,6 +89,90 @@ namespace NuGetGallery.Features
             catch (StorageException e) when (e.IsPreconditionFailedException())
             {
                 return FeatureFlagSaveResult.Conflict;
+            }
+        }
+
+        public async Task<bool> TryRemoveUserAsync(User user)
+        {
+            for (var attempt = 0; attempt < MaxRemoveUserAttempts; attempt++)
+            {
+                var retryable = (attempt + 1) < MaxRemoveUserAttempts;
+
+                try
+                {
+                    await MaybeUpdateFlagsAsync((FeatureFlags flags) =>
+                    {
+                        // Don't update the flags if the user isn't listed in any of the flights.
+                        if (!flags.Flights.Any(f => f.Value.Accounts.Contains(user.Username, StringComparer.OrdinalIgnoreCase)))
+                        {
+                            return null;
+                        }
+
+                        // The user is listed in the flights. Build a new feature flag object that
+                        // no longer contains the user.
+                         return new FeatureFlags(
+                            flags.Features,
+                            flags.Flights
+                                .ToDictionary(
+                                    f => f.Key,
+                                    f => RemoveUser(f.Value, user)));
+                    });
+
+                    return true;
+                }
+                catch (StorageException e) when (e.IsPreconditionFailedException())
+                {
+                    _logger.LogWarning(
+                        0,
+                        e,
+                        "Failed to remove user from feature flags due to precondition failed exception, " +
+                        "attempt {Attempt} of {MaxAttempts}...",
+                        attempt + 1,
+                        MaxRemoveUserAttempts);
+                }
+            }
+
+            return false;
+        }
+
+        private Flight RemoveUser(Flight flight, User user)
+        {
+            return new Flight(
+                flight.All,
+                flight.SiteAdmins,
+                flight.Accounts.Where(a => !a.Equals(user.Username, StringComparison.OrdinalIgnoreCase)).ToList(),
+                flight.Domains);
+        }
+
+        private async Task MaybeUpdateFlagsAsync(Func<FeatureFlags, FeatureFlags> updateAction)
+        {
+            var reference = await _storage.GetFileReferenceAsync(CoreConstants.Folders.ContentFolderName, CoreConstants.FeatureFlagsFileName);
+
+            FeatureFlags flags;
+            using (var stream = reference.OpenRead())
+            using (var streamReader = new StreamReader(stream))
+            using (var reader = new JsonTextReader(streamReader))
+            {
+                flags = _serializer.Deserialize<FeatureFlags>(reader);
+            }
+
+            // The action can cancel the update by returning null.
+            if (updateAction(flags) == null)
+            {
+                return;
+            }
+
+            var accessCondition = AccessConditionWrapper.GenerateIfMatchCondition(reference.ContentId);
+
+            using (var stream = new MemoryStream())
+            using (var writer = new StreamWriter(stream))
+            using (var jsonWriter = new JsonTextWriter(writer))
+            {
+                _serializer.Serialize(jsonWriter, flags);
+                jsonWriter.Flush();
+                stream.Position = 0;
+
+                await _storage.SaveFileAsync(CoreConstants.Folders.ContentFolderName, CoreConstants.FeatureFlagsFileName, stream, accessCondition);
             }
         }
 

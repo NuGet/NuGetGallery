@@ -11,6 +11,7 @@ using NuGetGallery.Areas.Admin;
 using NuGetGallery.Areas.Admin.Models;
 using NuGetGallery.Auditing;
 using NuGetGallery.Authentication;
+using NuGetGallery.Features;
 using NuGetGallery.Security;
 using Xunit;
 
@@ -523,6 +524,7 @@ namespace NuGetGallery.Services
                     SetupSecurityPolicyService().Object,
                     SetupAuthenticationService().Object,
                     SetupSupportRequestService().Object,
+                    SetupFeatureFlagStorageService().Object,
                     AuditService,
                     SetupTelemetryService().Object);
             }
@@ -688,6 +690,11 @@ namespace NuGetGallery.Services
                 }
 
                 return supportService;
+            }
+
+            private Mock<IEditableFeatureFlagStorageService> SetupFeatureFlagStorageService()
+            {
+                return new Mock<IEditableFeatureFlagStorageService>();
             }
 
             private Mock<IPackageOwnershipManagementService> SetupPackageOwnershipManagementService()

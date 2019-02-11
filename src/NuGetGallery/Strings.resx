@@ -569,7 +569,7 @@ For more information, please contact '{2}'.</value>
     <value>The account:{0} was already deleted. No action was performed.</value>
   </data>
   <data name="AccountDelete_Fail" xml:space="preserve">
-    <value>An exception was encoutered while trying to delete the account:{0}. {1}</value>
+    <value>An exception was encountered while trying to delete the account:{0}. {1}</value>
   </data>
   <data name="AccountDelete_Success" xml:space="preserve">
     <value>The account:{0} was deleted succesfully.</value>
@@ -1087,5 +1087,8 @@ The {1} Team</value>
   </data>
   <data name="UploadPackage_SymbolsPackageNotAllowed" xml:space="preserve">
     <value>Snupkg upload failed. Please use latest NuGet clients (v 4.9.0 or above) and a V3 endpoint to push Symbol packages. For details, refer https://docs.microsoft.com/nuget/create-packages/symbol-packages-snupkg</value>
+  </data>
+  <data name="AccountDelete_FailRetryable" xml:space="preserve">
+    <value>A retryable error was encountered while trying to delete the account '{0}'. Please try again.</value>
   </data>
 </root>
