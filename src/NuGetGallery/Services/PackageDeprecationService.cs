@@ -27,9 +27,7 @@ namespace NuGetGallery
 
         public async Task UpdateDeprecation(
             IReadOnlyCollection<Package> packages,
-            bool isVulnerable,
-            bool isLegacy,
-            bool isOther,
+            PackageDeprecationStatus status,
             IReadOnlyCollection<Cve> cves,
             decimal? cvssRating,
             IReadOnlyCollection<Cwe> cwes,
@@ -52,9 +50,7 @@ namespace NuGetGallery
 
             deprecatePackage(
                 packages,
-                isVulnerable,
-                isLegacy,
-                isOther,
+                status,
                 cves,
                 cvssRating,
                 cwes,
@@ -68,9 +64,7 @@ namespace NuGetGallery
 
         private delegate void UpdatePackageDeprecation(
             IReadOnlyCollection<Package> packages,
-            bool isVulnerable,
-            bool isLegacy,
-            bool isOther,
+            PackageDeprecationStatus status,
             IReadOnlyCollection<Cve> cves,
             decimal? cvssRating,
             IReadOnlyCollection<Cwe> cwes,
@@ -81,9 +75,7 @@ namespace NuGetGallery
 
         private void CombineDeprecation(
             IReadOnlyCollection<Package> packages,
-            bool isVulnerable,
-            bool isLegacy,
-            bool isOther,
+            PackageDeprecationStatus status,
             IReadOnlyCollection<Cve> cves,
             decimal? cvssRating,
             IReadOnlyCollection<Cwe> cwes,
@@ -92,7 +84,7 @@ namespace NuGetGallery
             string customMessage,
             bool shouldUnlist)
         {
-            var shouldDelete = !(isVulnerable || isLegacy || isOther);
+            var shouldDelete = status == PackageDeprecationStatus.NotDeprecated;
             var deprecations = new List<PackageDeprecation>();
             foreach (var package in packages)
             {
@@ -114,20 +106,7 @@ namespace NuGetGallery
                         package.Deprecations.Add(deprecation);
                     }
 
-                    if (isVulnerable)
-                    {
-                        deprecation.Status |= PackageDeprecationStatus.Vulnerable;
-                    }
-
-                    if (isLegacy)
-                    {
-                        deprecation.Status |= PackageDeprecationStatus.Legacy;
-                    }
-
-                    if (isOther)
-                    {
-                        deprecation.Status |= PackageDeprecationStatus.Other;
-                    }
+                    deprecation.Status |= status;
 
                     foreach (var cve in cves)
                     {
@@ -180,9 +159,7 @@ namespace NuGetGallery
 
         private void ReplaceDeprecation(
             IReadOnlyCollection<Package> packages,
-            bool isVulnerable,
-            bool isLegacy,
-            bool isOther,
+            PackageDeprecationStatus status,
             IReadOnlyCollection<Cve> cves,
             decimal? cvssRating,
             IReadOnlyCollection<Cwe> cwes,
@@ -191,22 +168,6 @@ namespace NuGetGallery
             string customMessage,
             bool shouldUnlist)
         {
-            var status = PackageDeprecationStatus.NotDeprecated;
-            if (isVulnerable)
-            {
-                status |= PackageDeprecationStatus.Vulnerable;
-            }
-
-            if (isLegacy)
-            {
-                status |= PackageDeprecationStatus.Legacy;
-            }
-
-            if (isOther)
-            {
-                status |= PackageDeprecationStatus.Other;
-            }
-
             var shouldDelete = status == PackageDeprecationStatus.NotDeprecated;
             var deprecations = new List<PackageDeprecation>();
             foreach (var package in packages)

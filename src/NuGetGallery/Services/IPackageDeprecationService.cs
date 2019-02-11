@@ -18,9 +18,7 @@ namespace NuGetGallery
         /// </summary>
         Task UpdateDeprecation(
             IReadOnlyCollection<Package> packages,
-            bool isVulnerable,
-            bool isLegacy,
-            bool isOther,
+            PackageDeprecationStatus status,
             IReadOnlyCollection<Cve> cve,
             decimal? cvssRating,
             IReadOnlyCollection<Cwe> cwe,

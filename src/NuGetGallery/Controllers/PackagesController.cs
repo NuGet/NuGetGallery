@@ -1407,11 +1407,25 @@ namespace NuGetGallery
                 return DeprecateErrorResponse(HttpStatusCode.NotFound, Strings.DeprecatePackage_MissingCwe);
             }
 
+            var status = PackageDeprecationStatus.NotDeprecated;
+            if (isVulnerable)
+            {
+                status = status |= PackageDeprecationStatus.Vulnerable;
+            }
+
+            if (isLegacy)
+            {
+                status = status |= PackageDeprecationStatus.Legacy;
+            }
+
+            if (isOther)
+            {
+                status = status |= PackageDeprecationStatus.Other;
+            }
+
             await _deprecationService.UpdateDeprecation(
-                packageVersions, 
-                isVulnerable, 
-                isLegacy, 
-                isOther,
+                packageVersions,
+                status,
                 cves, 
                 cvssRating,
                 cwes, 
