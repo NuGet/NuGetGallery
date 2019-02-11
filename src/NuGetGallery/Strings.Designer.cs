@@ -19,7 +19,7 @@ namespace NuGetGallery {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     public class Strings {
@@ -502,6 +502,24 @@ namespace NuGetGallery {
         public static string AuthenticationProviderDisabled {
             get {
                 return ResourceManager.GetString("AuthenticationProviderDisabled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid CVE ID format. The CVE ID should be formatted as \&quot;CVE-{year}-xxxxxxx\&quot; or just \&quot;{year}-xxxxxxx\&quot;.
+        /// </summary>
+        public static string AutocompleteCveIds_FormatException {
+            get {
+                return ResourceManager.GetString("AutocompleteCveIds_FormatException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid CWE ID format. The CWE ID should be formatted as \&quot;CWE-xxx\&quot;..
+        /// </summary>
+        public static string AutocompleteCweIds_FormatException {
+            get {
+                return ResourceManager.GetString("AutocompleteCweIds_FormatException", resourceCulture);
             }
         }
         

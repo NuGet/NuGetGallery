@@ -2,8 +2,10 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web;
@@ -13,7 +15,6 @@ using NuGet.Services.Messaging.Email;
 using NuGetGallery.Configuration;
 using NuGetGallery.Filters;
 using NuGetGallery.Infrastructure.Mail.Messages;
-using NuGetGallery.Security;
 
 namespace NuGetGallery
 {
@@ -34,11 +35,11 @@ namespace NuGetGallery
             IAppConfiguration appConfiguration,
             IPackageOwnershipManagementService packageOwnershipManagementService)
         {
-            _packageService = packageService;
-            _userService = userService;
-            _messageService = messageService;
-            _appConfiguration = appConfiguration;
-            _packageOwnershipManagementService = packageOwnershipManagementService;
+            _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
+            _userService = userService ?? throw new ArgumentNullException(nameof(userService));
+            _messageService = messageService ?? throw new ArgumentNullException(nameof(messageService));
+            _appConfiguration = appConfiguration ?? throw new ArgumentNullException(nameof(appConfiguration));
+            _packageOwnershipManagementService = packageOwnershipManagementService ?? throw new ArgumentNullException(nameof(packageOwnershipManagementService));
         }
 
         [HttpGet]
@@ -225,6 +226,72 @@ namespace NuGetGallery
             {
                 return Json(new { success = false, message = model.Error }, JsonRequestBehavior.AllowGet);
             }
+        }
+
+        [HttpGet]
+        [ActionName("CveIds")]
+        public ActionResult GetCveIds(string query)
+        {
+            if (string.IsNullOrWhiteSpace(query))
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest, "Search term cannot be empty.");
+            }
+
+            // We should wait for at least 4 numeric characters before suggesting.
+            if (query.ToUpperInvariant().Replace(Cve.IdPrefix, string.Empty).Length < 4)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest, "Search term must have at least 4 numeric characters. " + Strings.AutocompleteCveIds_FormatException);
+            }
+
+            var model = new CveAutocompleteDataViewModel();
+
+            // Get CVE data.
+            // Suggestions will be CVE Id's that start with characters entered by the user.
+            IReadOnlyCollection<CveIdAutocompleteQueryResult> suggestions;
+            try
+            {
+                suggestions = GetService<IAutoCompleteCveIdsQuery>().Execute(query);
+
+                model.Items.AddRange(suggestions);
+            }
+            catch (FormatException formatException)
+            {
+                return Json(new { success = false, message = formatException.Message }, JsonRequestBehavior.AllowGet);
+            }
+
+            return Json(model, JsonRequestBehavior.AllowGet);
+        }
+
+        [HttpGet]
+        [ActionName("CweIds")]
+        public ActionResult GetCweIds(string query)
+        {
+            if (string.IsNullOrWhiteSpace(query))
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest, "Search term cannot be empty.");
+            }
+
+            var model = new CweAutocompleteDataViewModel();
+
+            // Get CWE data.
+            // Suggestions will be CWE Id's that start with characters entered by the user,
+            // or CWE Id's that have a Name containing the textual search term provided by the user.
+            IReadOnlyCollection<CweIdAutocompleteQueryResult> suggestions;
+            try
+            {
+                suggestions = GetService<IAutoCompleteCweIdsQuery>().Execute(query);
+
+                if (suggestions != null)
+                {
+                    model.Items.AddRange(suggestions);
+                }
+            }
+            catch (FormatException formatException)
+            {
+                return Json(new { success = false, message = formatException.Message }, JsonRequestBehavior.AllowGet);
+            }
+
+            return Json(model, JsonRequestBehavior.AllowGet);
         }
 
         private bool TryGetManagePackageOwnerModel(string id, string username, bool isAddOwner, out ManagePackageOwnerModel model)

@@ -702,6 +702,17 @@ namespace NuGetGallery
                     .As<IAutoCompletePackageVersionsQuery>()
                     .InstancePerLifetimeScope();
             }
+
+            // Vulnerability Autocomplete
+            builder.RegisterType<AutocompleteCveIdsQuery>()
+                .AsSelf()
+                .As<IAutoCompleteCveIdsQuery>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<AutocompleteCweIdsQuery>()
+                .AsSelf()
+                .As<IAutoCompleteCweIdsQuery>()
+                .InstancePerLifetimeScope();
         }
 
         private static void ConfigureForLocalFileSystem(ContainerBuilder builder, IGalleryConfigurationService configuration)

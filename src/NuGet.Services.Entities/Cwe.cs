@@ -13,6 +13,8 @@ namespace NuGet.Services.Entities
     public class Cwe
         : IEntity
     {
+        public const string IdPrefix = "CWE-";
+
         public Cwe()
         {
             PackageDeprecations = new HashSet<PackageDeprecation>();
