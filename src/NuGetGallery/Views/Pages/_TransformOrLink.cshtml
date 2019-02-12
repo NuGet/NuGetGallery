@@ -41,7 +41,6 @@
                     <span>Please link this account to your Microsoft account.</span>
                 }
                 <br /><br />
-                If you wish to convert this account to an <b>organization</b>. Please follow the steps given in our <a href="https://docs.microsoft.com/en-us/nuget/faqs/nuget-faq#how-to-transform-my-nugetorg-account-to-an-organization" target="_blank">FAQ page.</a>
                 <b>Note:</b> No changes will be made to your account except for the authentication mechanism.
             </div>
             <div class="action-node">
@@ -51,6 +50,9 @@
                          @(!string.IsNullOrEmpty("~/Content/gallery/img/microsoft-account-24x24.png") ? (IHtmlString)ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/microsoft-account-24x24.png")) : new HtmlString(string.Empty)) />
                     <span>Sign in with Microsoft</span>
                 </button>
+            </div>
+            <div class="transform-text">
+                If you want to transform this account to an <a href="https://docs.microsoft.com/en-us/nuget/reference/organizations-on-nuget-org" target="_blank">organization</a>, please follow the steps on our <a href="https://docs.microsoft.com/en-us/nuget/faqs/nuget-faq#how-to-transform-my-nugetorg-account-to-an-organization" target="_blank">FAQ page.</a>
             </div>
         }
     </div>
