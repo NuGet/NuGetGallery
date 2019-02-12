@@ -800,7 +800,7 @@ namespace NuGetGallery
 
                 var registration = builder.RegisterType(dependent.ImplementationType)
                     .WithParameter(new ResolvedParameter(
-                       (pi, ctx) => pi.ParameterType == typeof(IFileStorageService),
+                       (pi, ctx) => pi.ParameterType.IsAssignableFrom(typeof(IFileStorageService)),
                        (pi, ctx) => ctx.ResolveKeyed<IFileStorageService>(dependent.BindingKey)))
                     .AsSelf()
                     .As(dependent.InterfaceType);
