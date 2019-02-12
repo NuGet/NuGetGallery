@@ -79,7 +79,10 @@ namespace NuGetGallery
             var controllerContext = new ControllerContext(requestContext, controller);
             controller.ControllerContext = controllerContext;
             var routeCollection = new RouteCollection();
-            Routes.RegisterRoutes(routeCollection);
+            routeCollection.MapRoute("catch-all", "{*catchall}");
+            routeCollection.MapRoute(RouteName.Home, "");
+            routeCollection.MapRoute(RouteName.DisplayPackage, "");
+            routeCollection.MapRoute(RouteName.DisplayPackageFeed, "");
             controller.Url = new UrlHelper(requestContext, routeCollection);
             return httpContext;
         }

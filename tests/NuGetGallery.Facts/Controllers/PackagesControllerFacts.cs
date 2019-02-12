@@ -30,6 +30,7 @@ using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
 using NuGetGallery.Framework;
 using NuGetGallery.Helpers;
+using NuGetGallery.Infrastructure;
 using NuGetGallery.Infrastructure.Mail.Messages;
 using NuGetGallery.Infrastructure.Mail.Requests;
 using NuGetGallery.Packaging;
@@ -904,6 +905,196 @@ namespace NuGetGallery
                 public override ValidationIssueCode IssueCode => throw new NotImplementedException();
             }
         }
+
+        public class TheAtomFeedPackageMethod
+            : TestContainer
+        {
+            [Fact]
+            public async Task GivenANonNormalizedVersionIt302sToTheNormalizedVersion()
+            {
+                // Arrange
+                var controller = CreateController(GetConfigurationService());
+
+                // Act
+                var result = await controller.DisplayPackage("Foo", "01.01.01");
+
+                // Assert
+                ResultAssert.IsRedirectToRoute(result, new
+                {
+                    action = "DisplayPackage",
+                    id = "Foo",
+                    version = "1.1.1"
+                }, permanent: true);
+            }
+
+            [Fact]
+            public void GivenANonExistentPackageIt404s()
+            {
+                // Arrange
+                var packageService = new Mock<IPackageService>();
+
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService);
+
+                packageService.Setup(p => p.FindPackageRegistrationById("Foo"))
+                              .ReturnsNull();
+
+                // Act
+                var result = controller.AtomFeed("Foo");
+
+                // Assert
+                ResultAssert.IsNotFound(result);
+            }
+
+            [Fact]
+            public void GivenAExistentPackageWithNoVersionsIt404s()
+            {
+                // Arrange
+                var packageService = new Mock<IPackageService>();
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService);
+
+
+                packageService.Setup(p => p.FindPackageRegistrationById("Foo"))
+                              .Returns(new PackageRegistration());
+
+                // Act
+                var result = controller.AtomFeed("Foo");
+
+                // Assert
+                ResultAssert.IsNotFound(result);
+            }
+
+            [Fact]
+            public void GivenAExistentPackageWithUnlistedAvailablePackagesIt404s()
+            {
+                // Arrange
+                var packageService = new Mock<IPackageService>();
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService);
+
+                var packageRegistration = new PackageRegistration();
+                var package = new Package
+                {
+                    Listed = false,
+                    PackageStatusKey = PackageStatus.Available
+                };
+                packageRegistration.Packages.Add(package);
+
+                packageService.Setup(p => p.FindPackageRegistrationById("Foo"))
+                              .Returns(packageRegistration);
+
+                // Act
+                var result = controller.AtomFeed("Foo");
+
+                // Assert
+                ResultAssert.IsNotFound(result);
+            }
+
+            [Fact]
+            public void GivenAExistentPackageWithListedUnavailablePackagesIt404s()
+            {
+                // Arrange
+                var packageService = new Mock<IPackageService>();
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService);
+
+                var packageRegistration = new PackageRegistration();
+                var package = new Package
+                {
+                    Listed = true,
+                    PackageStatusKey = PackageStatus.Validating
+                };
+                packageRegistration.Packages.Add(package);
+
+                packageService.Setup(p => p.FindPackageRegistrationById("Foo"))
+                              .Returns(packageRegistration);
+
+                // Act
+                var result = controller.AtomFeed("Foo");
+
+                // Assert
+                ResultAssert.IsNotFound(result);
+            }
+
+            [Fact]
+            public void GivenAExistentPackageWithListedAvailablePackagesItReturnsSyndicationFeed()
+            {
+                // Arrange
+                var httpContext = new Mock<HttpContextBase>();
+                var packageService = new Mock<IPackageService>();
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService,
+                    httpContext: httpContext);
+
+                var dateTimeNow = DateTime.Now;
+                var dateTimeYesterDay = dateTimeNow.AddDays(-1);
+
+                var packageRegistration = new PackageRegistration();
+                packageRegistration.Id = "Foo";
+                var package = new Package
+                {
+                    Listed = true,
+                    PackageStatusKey = PackageStatus.Available,
+                    NormalizedVersion = "1.0.0",
+                    Version = "1.0.0",
+                    Title = "Foo",
+                    Description = "Test Package",
+                    Published = dateTimeYesterDay
+                };
+                packageRegistration.Packages.Add(package);
+                var newestPackage = new Package
+                {
+                    Listed = true,
+                    PackageStatusKey = PackageStatus.Available,
+                    NormalizedVersion = "2.0.0",
+                    Version = "2.0.0",
+                    Title = "Foo",
+                    Description = "Most recent version: Test Package",
+                    Published = dateTimeNow
+                };
+                packageRegistration.Packages.Add(newestPackage);
+                packageService.Setup(p => p.FindPackageRegistrationById("Foo"))
+                              .Returns(packageRegistration);
+
+                // Act
+                var result = controller.AtomFeed("Foo");
+                var syndicationResult = result as SyndicationAtomActionResult;
+
+                // Assert
+                Assert.NotNull(syndicationResult);
+
+                Assert.Equal("https://localhost/?id=Foo", syndicationResult.SyndicationFeed.Id);
+                Assert.Equal(" Feed for package: Foo", syndicationResult.SyndicationFeed.Title.Text);
+                Assert.Equal("Most recent version: Test Package", syndicationResult.SyndicationFeed.Description.Text);
+                Assert.Equal(dateTimeNow, syndicationResult.SyndicationFeed.LastUpdatedTime);
+
+                var syndicationFeedItems = new List<System.ServiceModel.Syndication.SyndicationItem>(syndicationResult.SyndicationFeed.Items);
+
+                Assert.Equal(2, syndicationFeedItems.Count);
+
+                Assert.Equal("https://localhost/?id=Foo&version=2.0.0", syndicationFeedItems[0].Id);
+                Assert.Equal("Foo: 2.0.0", syndicationFeedItems[0].Title.Text);
+                Assert.Equal("Most recent version: Test Package", (syndicationFeedItems[0].Content as System.ServiceModel.Syndication.TextSyndicationContent).Text);
+                Assert.Equal(dateTimeNow, syndicationFeedItems[0].PublishDate);
+                Assert.Equal(dateTimeNow, syndicationFeedItems[0].LastUpdatedTime);
+
+                Assert.Equal("https://localhost/?id=Foo&version=1.0.0", syndicationFeedItems[1].Id);
+                Assert.Equal("Foo: 1.0.0", syndicationFeedItems[1].Title.Text);
+                Assert.Equal("Test Package", (syndicationFeedItems[1].Content as System.ServiceModel.Syndication.TextSyndicationContent).Text);
+                Assert.Equal(dateTimeYesterDay, syndicationFeedItems[1].PublishDate);
+                Assert.Equal(dateTimeYesterDay, syndicationFeedItems[1].LastUpdatedTime);
+
+            }
+
+
+        }
+
 
         public class TheOwnershipRequestMethods : TestContainer
         {
