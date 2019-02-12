@@ -157,7 +157,8 @@ namespace NuGetGallery.Features
             }
 
             // The action can cancel the update by returning null.
-            if (updateAction(flags) == null)
+            var result = updateAction(flags);
+            if (result == null)
             {
                 return;
             }
@@ -168,7 +169,7 @@ namespace NuGetGallery.Features
             using (var writer = new StreamWriter(stream))
             using (var jsonWriter = new JsonTextWriter(writer))
             {
-                _serializer.Serialize(jsonWriter, flags);
+                _serializer.Serialize(jsonWriter, result);
                 jsonWriter.Flush();
                 stream.Position = 0;
 

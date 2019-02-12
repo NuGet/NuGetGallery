@@ -192,7 +192,7 @@ namespace NuGetGallery.Services
             [InlineData(true)]
             public async Task WhenUserIsNotConfirmedTheUserRecordIsDeleted(bool isPackageOrphaned)
             {
-                //Arange
+                //Arrange
                 User testUser = new User("TestsUser") { Key = Key++, UnconfirmedEmailAddress = "user@test.com" };
                 var testableService = new DeleteAccountTestService(testUser);
                 var deleteAccountService = testableService.GetDeleteAccountService(isPackageOrphaned);
@@ -350,6 +350,28 @@ namespace NuGetGallery.Services
                 
                 var deleteRecord = testableService.AuditService.Records[0] as DeleteAccountAuditRecord;
                 Assert.True(deleteRecord != null);
+            }
+
+            [Fact]
+            public async Task FailsWhenFeatureFlagsRemovalFails()
+            {
+                // Arrange
+                var testUser = new User("TestsUser") { Key = Key++ };
+                var testableService = new DeleteAccountTestService(testUser);
+                var deleteAccountService = testableService.GetDeleteAccountService(
+                    isPackageOrphaned: false,
+                    isFeatureFlagsRemovalSuccessful: false);
+
+                // Act
+                var result = await deleteAccountService.DeleteAccountAsync(
+                    userToBeDeleted: testUser,
+                    userToExecuteTheDelete: testUser,
+                    commitAsTransaction: false);
+
+                // Assert
+                Assert.False(result.Success);
+                Assert.Equal("TestsUser", result.AccountName);
+                Assert.Contains("A retryable error was encountered", result.Description);
             }
 
             private static User CreateTestUser(ref PackageRegistration registration)
@@ -512,7 +534,7 @@ namespace NuGetGallery.Services
             {
             }
 
-            public DeleteAccountService GetDeleteAccountService(bool isPackageOrphaned)
+            public DeleteAccountService GetDeleteAccountService(bool isPackageOrphaned, bool isFeatureFlagsRemovalSuccessful = true)
             {
                 return new DeleteAccountService(SetupAccountDeleteRepository().Object,
                     SetupUserRepository().Object,
@@ -524,7 +546,7 @@ namespace NuGetGallery.Services
                     SetupSecurityPolicyService().Object,
                     SetupAuthenticationService().Object,
                     SetupSupportRequestService().Object,
-                    SetupFeatureFlagStorageService().Object,
+                    SetupFeatureFlagStorageService(isFeatureFlagsRemovalSuccessful).Object,
                     AuditService,
                     SetupTelemetryService().Object);
             }
@@ -692,9 +714,14 @@ namespace NuGetGallery.Services
                 return supportService;
             }
 
-            private Mock<IEditableFeatureFlagStorageService> SetupFeatureFlagStorageService()
+            private Mock<IEditableFeatureFlagStorageService> SetupFeatureFlagStorageService(bool succeeds)
             {
-                return new Mock<IEditableFeatureFlagStorageService>();
+                var flagsService = new Mock<IEditableFeatureFlagStorageService>();
+
+                flagsService.Setup(f => f.TryRemoveUserAsync(It.IsAny<User>()))
+                    .ReturnsAsync(succeeds);
+
+                return flagsService;
             }
 
             private Mock<IPackageOwnershipManagementService> SetupPackageOwnershipManagementService()
