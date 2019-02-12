@@ -23,24 +23,29 @@
 <script type="text/html" id="add-deprecation-template">
     <div class="deprecation-section form-group">
         <label class="deprecation-section-header">Select version(s)</label>
-        <p data-bind="text: chosenVersionsCountString"></p>
-        <div class="panel panel-default">
-            <div class="panel-body version-selector">
-                <div class="form-group unbolded-label">
-                    <label>
-                        <input name="versionSelectAll" type="checkbox" value="true" data-bind="checked: versionSelectAllChecked, click: toggleVersionSelectAll, clickBubble false" />
-                        Select all
-                    </label>
-                </div>
-                <div class="form-group version-filter">
-                    <input name="versionFilter" class="form-control full-line" type="text" data-bind="textInput: versionFilter" />
-                </div>
-                <div data-bind="foreach: versions">
-                    <div class="unbolded-label" data-bind="visible: visible">
+        <div class="dropdown">
+            <button class="dropdown-btn full-line text-left" data-bind="click: toggleDropdown">
+                <span data-bind="text: chosenVersionsCountString"></span>
+                <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
+            </button>
+            <div class="dropdown-content panel panel-default" data-bind="visible: dropdownOpen">
+                <div class="panel-body version-selector">
+                    <div class="form-group version-filter">
+                        <input name="versionFilter" class="form-control full-line" type="text" data-bind="textInput: versionFilter" />
+                    </div>
+                    <div class="unbolded-label">
                         <label>
-                            <input type="checkbox" value="true" data-bind="checked: checked, attr: { name: version }" />
-                            <span data-bind="text: version"></span>
+                            <input name="versionSelectAll" type="checkbox" value="true" data-bind="checked: versionSelectAllChecked, click: toggleVersionSelectAll, clickBubble false" />
+                            Select all
                         </label>
+                    </div>
+                    <div data-bind="foreach: versions">
+                        <div class="unbolded-label" data-bind="visible: visible">
+                            <label>
+                                <input type="checkbox" value="true" data-bind="checked: checked, attr: { name: version }" />
+                                <span data-bind="text: version"></span>
+                            </label>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -90,12 +95,12 @@
         </div>
         <div class="deprecation-subsection" data-bind="visible: isLegacy">
             <div class="row">
-                <div class="col-xs-8 form-group alternate-package-registration-container" data-bind="css: { 'has-error': chosenAlternatePackageIdError }">
+                <div class="col-sm-8 form-group alternate-package-registration-container" data-bind="css: { 'has-error': chosenAlternatePackageIdError }">
                     <label for="alternatePackageId" class="deprecation-section-header">Alternate package</label>
                     <input name="alternatePackageId" class="form-control full-line" type="text" data-bind="textInput: chosenAlternatePackageId" />
                     <span aria-live="assertive" class="help-block field-validation-error" role="alert" data-bind="text: chosenAlternatePackageIdError, visible: chosenAlternatePackageIdError"></span>
                 </div>
-                <div class="col-xs-4 form-group alternate-package-container">
+                <div class="col-sm-4 form-group alternate-package-container">
                     <label for="alternatePackageVersion" class="deprecation-section-header">Version</label>
                     <select class="form-control full-line" name="alternatePackageVersion" data-bind="options: alternatePackageVersions, value: chosenAlternatePackageVersion, enable: hasAlternatePackageVersions" size="1"></select>
                 </div>

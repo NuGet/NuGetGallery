@@ -1073,12 +1073,47 @@ img.reserved-indicator-icon {
 .page-manage-deprecation .deprecation-section .deprecation-section-header {
   margin-bottom: 15px;
 }
-.page-manage-deprecation .deprecation-section .version-selector {
+.page-manage-deprecation .deprecation-section .dropdown {
+  position: relative;
+  display: block;
+}
+.page-manage-deprecation .deprecation-section .dropdown .dropdown-btn {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display:         flex;
+  padding: 5px;
+  margin-bottom: 0;
+  background-color: white;
+  border: 1px solid #7f7f7f;
+  border-style: inset;
+
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+  -ms-flex-pack: justify;
+          justify-content: space-between;
+  -webkit-box-align: center;
+  -webkit-align-items: center;
+  -ms-flex-align: center;
+          align-items: center;
+}
+.page-manage-deprecation .deprecation-section .dropdown .dropdown-btn span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.page-manage-deprecation .deprecation-section .dropdown .dropdown-content {
+  position: absolute;
+  z-index: 1;
+  width: 100%;
+  border-top: 0;
+}
+.page-manage-deprecation .deprecation-section .dropdown .dropdown-content .version-selector {
   height: 300px;
   overflow: auto;
 }
-.page-manage-deprecation .deprecation-section .version-selector .version-filter {
-  margin-bottom: 20px;
+.page-manage-deprecation .deprecation-section .dropdown .dropdown-content .version-selector .version-filter {
+  margin-bottom: 5px;
 }
 .page-manage-deprecation .deprecation-section .unbolded-label label {
   font-weight: normal;

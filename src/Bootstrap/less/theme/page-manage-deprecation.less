@@ -10,13 +10,42 @@
         .deprecation-section-header {
             margin-bottom: 15px;
         }
-        
-        .version-selector {
-            height: 300px;
-            overflow: auto;
+
+        .dropdown {
+            position: relative;
+            display: block;
+
+            .dropdown-btn {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 5px;
+                margin-bottom: 0px;
+                background-color: white;
+                border-style: inset;
+                border: 1px solid #7f7f7f;
+
+                span {
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                }
+            }
             
-            .version-filter {
-                margin-bottom: 20px;
+            .dropdown-content {
+                position: absolute;
+                z-index: 1;
+                width: 100%;
+                border-top: 0px;
+
+                .version-selector {
+                    height: 300px;
+                    overflow: auto;
+                    
+                    .version-filter {
+                        margin-bottom: 5px;
+                    }
+                }
             }
         }
         

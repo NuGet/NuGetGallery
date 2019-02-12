@@ -56,6 +56,35 @@ function ManageDeprecationSecurityDetailListViewModel(title, label, placeholder)
 function ManageDeprecationViewModel(id, versionsDictionary, defaultVersion, submitUrl, packageUrl, getAlternatePackageVersions) {
     var self = this;
 
+    this.dropdownOpen = ko.observable(false);
+    this.toggleDropdown = function () {
+        self.dropdownOpen(!self.dropdownOpen());
+    };
+
+    var isElementInsideDropdown = function (element) {
+        var $target = $(element);
+        // '.closest' returns the list of ancestors between this element and the selector.
+        // If the selector is not an ancestor of the element, it returns an empty list.
+        return $target.closest('.dropdown').length;
+    };
+
+    // If we click outside the dropdown, close it.
+    $(document).click(function (event) {
+        if (!isElementInsideDropdown(event.target)) {
+            self.dropdownOpen(false);
+        }
+    });
+
+    // If we press escape while focus is inside the dropdown, close it.
+    $(document).keydown(function (e) {
+        if (e.which === 27 // Escape key
+            && isElementInsideDropdown(event.target)) {
+            self.dropdownOpen(false);
+            e.preventDefault();
+            $('.dropdown-btn').focus();
+        }
+    });
+
     // A filter to be applied to the versions.
     this.versionFilter = ko.observable('');
 
@@ -105,9 +134,16 @@ function ManageDeprecationViewModel(id, versionsDictionary, defaultVersion, subm
 
     // A string to display to the user describing how many versions are selected out of how many.
     this.chosenVersionsCountString = ko.pureComputed(function () {
+        if (self.versionSelectAllChecked()) {
+            return "All versions";
+        }
+
         var versionsCount = self.chosenVersionsCount();
-        var pluralString = versionsCount !== 1 ? "s" : "";
-        return versionsCount + " version" + pluralString + " selected out of " + self.versions.length;
+        if (versionsCount === 0) {
+            return "Select version(s) to deprecate";
+        }
+        
+        return self.chosenVersions().join(', ');
     }, this);
 
     // Whether or not the select all checkbox for the versions is selected.
