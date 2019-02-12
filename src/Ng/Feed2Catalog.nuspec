@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>Feed2Catalog</id>
+    <version>$version$</version>
+    <authors>.NET Foundation</authors>
+    <owners>.NET Foundation</owners>
+    <description>The Feed2Catalog job.</description>
+    <copyright>Copyright .NET Foundation</copyright>
+  </metadata>
+  <files>
+    <file src="bin\$configuration$\*.*" target="Ng"/>
+    <file src="Scripts\*.cmd" />
+    <file src="Scripts\*.ps1" />
+    <file src="Scripts\nssm.exe" />
+  </files>
+</package>
