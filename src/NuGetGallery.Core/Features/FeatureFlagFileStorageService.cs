@@ -96,8 +96,6 @@ namespace NuGetGallery.Features
         {
             for (var attempt = 0; attempt < MaxRemoveUserAttempts; attempt++)
             {
-                var retryable = (attempt + 1) < MaxRemoveUserAttempts;
-
                 try
                 {
                     await MaybeUpdateFlagsAsync((FeatureFlags flags) =>
