@@ -11,7 +11,7 @@ namespace NuGetGallery.Infrastructure
     /// </summary>
     public sealed class SyndicationAtomActionResult : ActionResult
     {
-        private readonly SyndicationFeed syndicationFeed;
+        public readonly SyndicationFeed SyndicationFeed;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SyndicationAtomActionResult"/> class.
@@ -19,7 +19,7 @@ namespace NuGetGallery.Infrastructure
         /// <param name="syndicationFeed">The Atom 1.0 <see cref="SyndicationFeed" />.</param>
         public SyndicationAtomActionResult(SyndicationFeed syndicationFeed)
         {
-            this.syndicationFeed = syndicationFeed;
+            SyndicationFeed = syndicationFeed;
         }
 
         /// <summary>
@@ -30,7 +30,7 @@ namespace NuGetGallery.Infrastructure
         public override void ExecuteResult(ControllerContext context)
         {
             context.HttpContext.Response.ContentType = "application/atom+xml";
-            Atom10FeedFormatter feedFormatter = new Atom10FeedFormatter(this.syndicationFeed);
+            Atom10FeedFormatter feedFormatter = new Atom10FeedFormatter(SyndicationFeed);
             XmlWriterSettings xmlWriterSettings = new XmlWriterSettings();
 
             if (HttpContext.Current.IsDebuggingEnabled)

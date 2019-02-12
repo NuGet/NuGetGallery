@@ -82,6 +82,7 @@ namespace NuGetGallery
             routeCollection.MapRoute("catch-all", "{*catchall}");
             routeCollection.MapRoute(RouteName.Home, "");
             routeCollection.MapRoute(RouteName.DisplayPackage, "");
+            routeCollection.MapRoute(RouteName.DisplayPackageFeed, "");
             controller.Url = new UrlHelper(requestContext, routeCollection);
             return httpContext;
         }

@@ -1190,6 +1190,11 @@ namespace NuGetGallery
                                    .OrderByDescending(p => NuGetVersion.Parse(p.NormalizedVersion))
                                    .ToList();
 
+            if(packageVersions.Count == 0)
+            {
+                return HttpNotFound();
+            }
+
             var newestVersionPackage = packageVersions.First();
 
             SyndicationFeed feed = new SyndicationFeed()
@@ -1197,7 +1202,7 @@ namespace NuGetGallery
                 Id = Url.Package(packageRegistration.Id, version: null, relativeUrl: false),
                 Title = SyndicationContent.CreatePlaintextContent($"{_config.Brand} Feed for package: {packageRegistration.Id}"),
                 Description = SyndicationContent.CreatePlaintextContent(newestVersionPackage.Description),
-                LastUpdatedTime = DateTimeOffset.Now,
+                LastUpdatedTime = newestVersionPackage.LastEdited ?? newestVersionPackage.Published
             };
 
             if (!string.IsNullOrWhiteSpace(newestVersionPackage.IconUrl))
@@ -1217,8 +1222,8 @@ namespace NuGetGallery
             {
                 SyndicationItem syndicationItem = new SyndicationItem($"{packageVersion.Title}: {packageVersion.Version}",
                                                                       packageVersion.Description,
-                                                                      new Uri(Url.Package(packageVersion.Id, version: packageVersion.Version, relativeUrl: false)));
-                syndicationItem.Id = Url.Package(packageVersion.PackageRegistration.Id, version: packageVersion.Version, relativeUrl: false);
+                                                                      new Uri(Url.Package(packageRegistration.Id, version: packageVersion.Version, relativeUrl: false)));
+                syndicationItem.Id = Url.Package(packageRegistration.Id, version: packageVersion.Version, relativeUrl: false);
                 syndicationItem.LastUpdatedTime = packageVersion.LastEdited ?? packageVersion.Published;
                 syndicationItem.PublishDate = packageVersion.Published;
 
