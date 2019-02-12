@@ -1282,7 +1282,7 @@ namespace NuGetGallery.Controllers
 
                 // Assert
                 ResultAssert.IsSafeRedirectTo(result, "theReturnUrl");
-                Assert.Equal(string.Format(Strings.ChangeCredential_Failed, identity), controller.TempData["ErrorMessage"]);
+                Assert.NotNull(controller.TempData["RawErrorMessage"]);
             }
 
             [Fact]

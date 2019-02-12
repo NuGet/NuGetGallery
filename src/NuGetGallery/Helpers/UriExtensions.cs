@@ -9,6 +9,8 @@ namespace NuGetGallery
 {
     public static class UriExtensions
     {
+        private static string ExternalLinkAnchorTagFormat = $"<a href=\"{{1}}\" target=\"_blank\">{{0}}</a>";
+
         public static bool IsHttpsProtocol(this Uri uri)
         {
             return uri.Scheme == Uri.UriSchemeHttps;
@@ -80,6 +82,11 @@ namespace NuGetGallery
 
             builder.Query = query.ToString();
             return builder.Uri.PathAndQuery;
+        }
+
+        public static string GetExternalUrlElement(string data, string link)
+        {
+            return string.Format(ExternalLinkAnchorTagFormat, data, link);
         }
     }
 }

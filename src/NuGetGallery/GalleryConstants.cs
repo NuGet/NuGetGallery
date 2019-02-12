@@ -129,5 +129,11 @@ namespace NuGetGallery
             public const string ClientVersion = "ClientVersion";
             public const string Operation = "Operation";
         }
+
+        public static class FAQLinks
+        {
+            public const string MSALinkedToAnotherAccount = "https://docs.microsoft.com/en-us/nuget/faqs/nuget-faq#microsoft-account-is-linked-with-another-nugetorg-account";
+            public const string EmailLinkedToAnotherMSAAccount = "https://docs.microsoft.com/en-us/nuget/faqs/nuget-faq#signing-in-with-microsoft-account-shows-me-my-email-is-linked-to-another-microsoft-account";
+        }
     }
 }

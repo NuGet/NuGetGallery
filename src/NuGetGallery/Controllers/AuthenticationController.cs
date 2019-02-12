@@ -497,8 +497,11 @@ namespace NuGetGallery
             }
             else
             {
-                // The identity value contains cookie non-compliant characters like `<, >`(eg: John Doe <john@doe.com>), hence these need to be encoded
-                TempData["ErrorMessage"] = string.Format(Strings.ChangeCredential_Failed, HttpUtility.UrlEncode(newCredential.Identity));
+                // The identity value contains cookie non-compliant charachters like `<, >`(eg: John Doe <john@doe.com>), and which would be treated 
+                // as an HTML tags, hence these need to be replaced before encoding, the URL characters need to be endcoded.
+                TempData["RawErrorMessage"] = string.Format(Strings.ChangeCredential_Failed,
+                    HttpUtility.UrlEncode(newCredential.Identity.Replace('<', '[').Replace('>', ']')),
+                    HttpUtility.UrlEncode(UriExtensions.GetExternalUrlElement("FAQs page", GalleryConstants.FAQLinks.MSALinkedToAnotherAccount)));
             }
 
             return SafeRedirect(returnUrl);
