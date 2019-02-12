@@ -85,14 +85,18 @@ namespace NuGetGallery
             bool shouldUnlist)
         {
             var shouldDelete = status == PackageDeprecationStatus.NotDeprecated;
-            var deprecations = new List<PackageDeprecation>();
+            var deprecationsToAddOrDelete = new List<PackageDeprecation>();
             foreach (var package in packages)
             {
                 var deprecation = package.Deprecations.SingleOrDefault();
 
                 if (shouldDelete)
                 {
-                    package.Deprecations.Remove(deprecation);
+                    if (deprecation != null)
+                    {
+                        package.Deprecations.Remove(deprecation);
+                        deprecationsToAddOrDelete.Add(deprecation);
+                    }
                 }
                 else
                 {
@@ -104,6 +108,7 @@ namespace NuGetGallery
                         };
 
                         package.Deprecations.Add(deprecation);
+                        deprecationsToAddOrDelete.Add(deprecation);
                     }
 
                     deprecation.Status |= status;
@@ -143,17 +148,15 @@ namespace NuGetGallery
                         package.Listed = false;
                     }
                 }
-
-                deprecations.Add(deprecation);
             }
 
             if (shouldDelete)
             {
-                _deprecationRepository.DeleteOnCommit(deprecations);
+                _deprecationRepository.DeleteOnCommit(deprecationsToAddOrDelete);
             }
             else
             {
-                _deprecationRepository.InsertOnCommit(deprecations);
+                _deprecationRepository.InsertOnCommit(deprecationsToAddOrDelete);
             }
         }
 
@@ -175,7 +178,11 @@ namespace NuGetGallery
                 var deprecation = package.Deprecations.SingleOrDefault();
                 if (shouldDelete)
                 {
-                    package.Deprecations.Remove(deprecation);
+                    if (deprecation != null)
+                    {
+                        package.Deprecations.Remove(deprecation);
+                        deprecations.Add(deprecation);
+                    }
                 }
                 else
                 {
@@ -187,6 +194,7 @@ namespace NuGetGallery
                         };
 
                         package.Deprecations.Add(deprecation);
+                        deprecations.Add(deprecation);
                     }
 
                     deprecation.Status = status;
@@ -208,8 +216,6 @@ namespace NuGetGallery
                         package.Listed = false;
                     }
                 }
-
-                deprecations.Add(deprecation);
             }
 
             if (shouldDelete)

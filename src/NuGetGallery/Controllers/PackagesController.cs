@@ -650,14 +650,20 @@ namespace NuGetGallery
                 return RedirectToActionPermanent("DisplayPackage", new { id = id, version = normalized });
             }
 
-            Package package;
-            if (version != null && version.Equals(GalleryConstants.AbsoluteLatestUrlString, StringComparison.InvariantCultureIgnoreCase))
+            Package package = null;
+            // Load all packages with the ID.
+            var packages = _packageService.FindPackagesById(id, withDeprecations: true);
+            if (version != null && 
+                !version.Equals(GalleryConstants.AbsoluteLatestUrlString, StringComparison.InvariantCultureIgnoreCase))
             {
-                package = _packageService.FindAbsoluteLatestPackageById(id, SemVerLevelKey.SemVer2);
+                // Try to find the exact version of the package if a version is specified and the version is not "absoluteLatest".
+                package = packages.SingleOrDefault(p => p.NormalizedVersion == NuGetVersionFormatter.Normalize(version));
             }
-            else
+
+            if (package == null)
             {
-                package = _packageService.FindPackageByIdAndVersion(id, version, SemVerLevelKey.SemVer2);
+                // If we cannot find the exact version or no version was provided, fall back to the latest version.
+                package = _packageService.GetLatestPackage(packages, SemVerLevelKey.SemVer2, allowPrerelease: true);
             }
 
             // Validating packages should be hidden to everyone but the owners and admins.
@@ -1297,9 +1303,24 @@ namespace NuGetGallery
         [RequiresAccountConfirmation("manage a package")]
         public virtual async Task<ActionResult> Manage(string id, string version = null)
         {
-            var package = _packageService.FindPackageByIdAndVersion(id, version, SemVerLevelKey.SemVer2);
+            Package package = null;
+            // Load all versions of the package.
+            var packages = _packageService.FindPackagesById(id, withDeprecations: true);
+            if (version != null)
+            {
+                // Try to find the exact version if it was specified.
+                package = packages.SingleOrDefault(p => p.NormalizedVersion == NuGetVersionFormatter.Normalize(version));
+            }
+
             if (package == null)
             {
+                // If the exact version was not found, fall back to the latest version.
+                package = _packageService.GetLatestPackage(packages, SemVerLevelKey.SemVer2, allowPrerelease: true);
+            }
+
+            if (package == null)
+            {
+                // If the package has no versions, return not found.
                 return HttpNotFound();
             }
 
@@ -1340,17 +1361,7 @@ namespace NuGetGallery
                 return DeprecateErrorResponse(HttpStatusCode.BadRequest, Strings.DeprecatePackage_NoVersions);
             }
 
-            var registration = _packageService
-                .GetAllPackageRegistrations()
-                .Include(pr => pr.Owners)
-                .Include(pr => pr.Packages.Select(p => p.Deprecations))
-                .SingleOrDefault(pr => pr.Id == id);
-
-            if (registration == null)
-            {
-                return DeprecateErrorResponse(HttpStatusCode.NotFound, string.Format(Strings.DeprecatePackage_NoRegistration, id));
-            }
-
+            var packages = _packageService.FindPackagesById(id, withDeprecations: true);
             PackageRegistration alternatePackageRegistration = null;
             Package alternatePackage = null;
             if (!string.IsNullOrEmpty(alternatePackageId))
@@ -1377,10 +1388,10 @@ namespace NuGetGallery
                 }
             }
 
-            var packageVersions = new List<Package>();
+            var packagesToUpdate = new List<Package>();
             foreach (var version in versions)
             {
-                var package = registration.Packages.SingleOrDefault(v => v.NormalizedVersion == NuGetVersionFormatter.Normalize(version));
+                var package = packages.SingleOrDefault(v => v.NormalizedVersion == NuGetVersionFormatter.Normalize(version));
                 if (package == null)
                 {
                     // This should only happen if someone hacks the form or if a version of the package is deleted while the user is filling out the form.
@@ -1390,9 +1401,10 @@ namespace NuGetGallery
                 }
                 else
                 {
-                    packageVersions.Add(package);
+                    packagesToUpdate.Add(package);
                 }
             }
+
             cveIds = cveIds ?? Enumerable.Empty<string>();
             var cves = _deprecationService.GetCvesById(cveIds);
             if (cveIds.Count() != cves.Count)
@@ -1424,7 +1436,7 @@ namespace NuGetGallery
             }
 
             await _deprecationService.UpdateDeprecation(
-                packageVersions,
+                packagesToUpdate,
                 status,
                 cves, 
                 cvssRating,

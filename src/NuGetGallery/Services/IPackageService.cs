@@ -17,6 +17,8 @@ namespace NuGetGallery
     /// </summary>
     public interface IPackageService : ICorePackageService
     {
+        IReadOnlyCollection<Package> FindPackagesById(string id, bool withDeprecations = false);
+
         /// <summary>
         /// Gets the package with the given ID and version when exists;
         /// otherwise gets the latest package version for the given package ID matching the provided constraints.
@@ -26,10 +28,17 @@ namespace NuGetGallery
         /// <param name="semVerLevelKey">The SemVer-level key that determines the SemVer filter to be applied.</param>
         /// <param name="allowPrerelease"><c>True</c> indicating pre-release packages are allowed, otherwise <c>false</c>.</param>
         /// <returns></returns>
-        Package FindPackageByIdAndVersion(string id, string version, int? semVerLevelKey = null, bool allowPrerelease = true);
+        Package FindPackageByIdAndVersion(
+            string id, 
+            string version, 
+            int? semVerLevelKey = null, 
+            bool allowPrerelease = true);
 
-        Package FindAbsoluteLatestPackageById(string id, int? semVerLevelKey);
-
+        Package GetLatestPackage(
+            IReadOnlyCollection<Package> packages, 
+            int? semVerLevelKey = SemVerLevelKey.SemVer2,
+            bool allowPrerelease = true);
+        
         IEnumerable<Package> FindPackagesByOwner(User user, bool includeUnlisted, bool includeVersions = false);
 
         IEnumerable<Package> FindPackagesByAnyMatchingOwner(User user, bool includeUnlisted, bool includeVersions = false);
