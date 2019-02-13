@@ -181,7 +181,7 @@ namespace NuGetGallery
             return package;
         }
 
-        public Package GetLatestPackage(
+        public virtual Package GetLatestPackage(
             IReadOnlyCollection<Package> packages, 
             int? semVerLevelKey = SemVerLevelKey.SemVer2,
             bool allowPrerelease = true)

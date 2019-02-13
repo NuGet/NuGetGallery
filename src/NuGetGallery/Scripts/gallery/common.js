@@ -209,7 +209,7 @@
         // File input buttons should respond to keyboard events.
         $("#" + id).on("keypress", function (e) {
             var code = (e.keyCode || e.which);
-            var isInteract = (code == 13 /*enter*/ || code == 32 /*space*/) && !e.altKey && !e.ctrlKey && !e.metaKey && !e.shiftKey;
+            var isInteract = (code === 13 /*enter*/ || code === 32 /*space*/) && !e.altKey && !e.ctrlKey && !e.metaKey && !e.shiftKey;
             if (isInteract) {
                 $(this).click();
             }
@@ -463,7 +463,7 @@
                     || (code >= 219 && code <= 222))  // [\ ] '
                 && !e.altKey && !e.ctrlKey && !e.metaKey;
 
-            if (isValidInputCharacter && document.activeElement == document.body) {
+            if (isValidInputCharacter && document.activeElement === document.body) {
                 var searchbox = $("#search");
                 searchbox.focus();
                 var currInput = searchbox.val();
