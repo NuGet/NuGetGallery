@@ -26,10 +26,9 @@ namespace NuGetGallery.Features
         Task<FeatureFlagSaveResult> TrySaveAsync(string flags, string contentId);
 
         /// <summary>
-        /// Remove the user from the feature flags if needed.
+        /// Remove the user from the feature flags if needed. This may throw on failure.
         /// </summary>
         /// <param name="user">The user to remove from feature flags.</param>
-        /// <returns>False if removing the user failed.</returns>
-        Task<bool> TryRemoveUserAsync(User user);
+        Task RemoveUserAsync(User user);
     }
 }

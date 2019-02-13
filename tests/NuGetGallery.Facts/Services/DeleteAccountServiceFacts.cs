@@ -82,7 +82,7 @@ namespace NuGetGallery.Services
                                                 userToExecuteTheDelete: testUser,
                                                 commitAsTransaction: false,
                                                 orphanPackagePolicy: AccountDeletionOrphanPackagePolicy.UnlistOrphans);
-                string expected = $"The account:{testUser.Username} was already deleted. No action was performed.";
+                string expected = $"The account '{testUser.Username}' was already deleted. No action was performed.";
                 Assert.Equal(expected, result.Description);
             }
 
@@ -371,7 +371,7 @@ namespace NuGetGallery.Services
                 // Assert
                 Assert.False(result.Success);
                 Assert.Equal("TestsUser", result.AccountName);
-                Assert.Contains("A retryable error was encountered", result.Description);
+                Assert.Contains("An exception was encountered while trying to delete the account 'TestsUser'", result.Description);
             }
 
             private static User CreateTestUser(ref PackageRegistration registration)
@@ -718,8 +718,12 @@ namespace NuGetGallery.Services
             {
                 var flagsService = new Mock<IEditableFeatureFlagStorageService>();
 
-                flagsService.Setup(f => f.TryRemoveUserAsync(It.IsAny<User>()))
-                    .ReturnsAsync(succeeds);
+                if (!succeeds)
+                {
+                    flagsService
+                        .Setup(f => f.RemoveUserAsync(It.IsAny<User>()))
+                        .ThrowsAsync(new InvalidOperationException("Failed to remove user"));
+                }
 
                 return flagsService;
             }

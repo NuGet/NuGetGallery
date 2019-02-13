@@ -276,11 +276,9 @@ namespace NuGetGallery.Features
                     .ReturnsAsync(BuildFileReference(flags));
 
                 // Act
-                var result = await _target.TryRemoveUserAsync(new User { Username = "user3" });
+                await _target.RemoveUserAsync(new User { Username = "user3" });
 
                 // Assert
-                Assert.True(result);
-
                 _storage.Verify(
                     s => s.SaveFileAsync(
                         It.IsAny<string>(),
@@ -317,10 +315,9 @@ namespace NuGetGallery.Features
                     .Returns(Task.CompletedTask);
 
                 // Act
-                var result = await _target.TryRemoveUserAsync(new User { Username = "user1" });
+                await _target.RemoveUserAsync(new User { Username = "user1" });
 
                 // Arrange
-                Assert.True(result);
                 Assert.NotNull(savedJson);
 
                 var savedFlags = JsonConvert.DeserializeObject<FeatureFlags>(savedJson);
@@ -375,10 +372,9 @@ namespace NuGetGallery.Features
                     .Returns(Task.CompletedTask);
 
                 // Act
-                var result = await _target.TryRemoveUserAsync(new User { Username = "user1" });
+                await _target.RemoveUserAsync(new User { Username = "user1" });
 
                 // Assert
-                Assert.True(result);
                 Assert.NotNull(savedJson);
 
                 var savedFlags = JsonConvert.DeserializeObject<FeatureFlags>(savedJson);
@@ -397,7 +393,7 @@ namespace NuGetGallery.Features
             }
 
             [Fact]
-            public async Task WhenSavePreconditionAlwaysFails_ReturnsFalse()
+            public async Task WhenSavePreconditionAlwaysFails_Throws()
             {
                 // Arrange
                 var flags = new FeatureFlagBuilder()
@@ -417,10 +413,10 @@ namespace NuGetGallery.Features
                     .ThrowsAsync(_preconditionException);
 
                 // Act
-                var result = await _target.TryRemoveUserAsync(new User { Username = "user1" });
+                var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => _target.RemoveUserAsync(new User { Username = "user1" }));
 
                 // Assert
-                Assert.False(result);
+                Assert.Contains("Unable to remove user from feature flags", exception.Message);
 
                 _storage.Verify(
                     s => s.SaveFileAsync(
@@ -454,10 +450,9 @@ namespace NuGetGallery.Features
                     .Returns(Task.CompletedTask);
 
                 // Act
-                var result = await _target.TryRemoveUserAsync(new User { Username = "user1" });
+                await _target.RemoveUserAsync(new User { Username = "user1" });
 
                 // Assert
-                Assert.True(result);
                 Assert.NotNull(savedJson);
 
                 var expectedJson = @"{

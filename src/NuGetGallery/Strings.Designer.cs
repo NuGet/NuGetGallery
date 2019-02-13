@@ -88,15 +88,6 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A retryable error was encountered while trying to delete the account &apos;{0}&apos;. Please try again..
-        /// </summary>
-        public static string AccountDelete_FailRetryable {
-            get {
-                return ResourceManager.GetString("AccountDelete_FailRetryable", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Account &apos;{0}&apos; cannot be deleted because it is an organization. The organization must be manually migrated to a user account without memberships before the account can be deleted..
         /// </summary>
         public static string AccountDelete_OrganizationDeleteNotImplemented {

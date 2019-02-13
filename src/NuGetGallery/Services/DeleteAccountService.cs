@@ -303,19 +303,7 @@ namespace NuGetGallery
                 // TransactionScope can be used for doing transaction actions across db on the same server but not on different servers.
                 // The below code will clean the feature flags and suppport requests before the gallery data.
                 // The order is important in order to allow the admin the opportunity to execute this step again.
-                if (!await _featureFlagService.TryRemoveUserAsync(userToBeDeleted))
-                {
-                    return new DeleteUserAccountStatus()
-                    {
-                        Success = false,
-                        Description = string.Format(
-                            CultureInfo.CurrentCulture,
-                            Strings.AccountDelete_FailRetryable,
-                            userToBeDeleted.Username),
-                        AccountName = userToBeDeleted.Username
-                    };
-                }
-
+                await _featureFlagService.RemoveUserAsync(userToBeDeleted);
                 await RemoveSupportRequests(userToBeDeleted);
 
                 if (commitAsTransaction)

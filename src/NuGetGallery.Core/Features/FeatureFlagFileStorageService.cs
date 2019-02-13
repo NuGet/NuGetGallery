@@ -87,7 +87,7 @@ namespace NuGetGallery.Features
             return await TrySaveAsync(flags, contentId);
         }
 
-        public async Task<bool> TryRemoveUserAsync(User user)
+        public async Task RemoveUserAsync(User user)
         {
             for (var attempt = 0; attempt < MaxRemoveUserAttempts; attempt++)
             {
@@ -104,7 +104,7 @@ namespace NuGetGallery.Features
                 // Don't update the flags if the user isn't listed in any of the flights.
                 if (!flags.Flights.Any(f => f.Value.Accounts.Contains(user.Username, StringComparer.OrdinalIgnoreCase)))
                 {
-                    return true;
+                    return;
                 }
 
                 // The user is listed in the flights. Build a new feature flag object that
@@ -119,7 +119,7 @@ namespace NuGetGallery.Features
                 var saveResult = await TrySaveAsync(result, reference.ContentId);
                 if (saveResult.Type == FeatureFlagSaveResultType.Ok)
                 {
-                    return true;
+                    return;
                 }
 
                 _logger.LogWarning(
@@ -129,7 +129,7 @@ namespace NuGetGallery.Features
                     MaxRemoveUserAttempts);
             }
 
-            return false;
+            throw new InvalidOperationException($"Unable to remove user from feature flags after {MaxRemoveUserAttempts} attempts");
         }
 
         private async Task<FeatureFlagSaveResult> TrySaveAsync(FeatureFlags flags, string contentId)
