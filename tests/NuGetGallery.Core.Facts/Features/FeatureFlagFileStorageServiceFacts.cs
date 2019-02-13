@@ -289,6 +289,21 @@ namespace NuGetGallery.Features
             }
 
             [Fact]
+            public async Task WhenExtraDataInJson_Throws()
+            {
+                // Arrange
+                _storage
+                    .Setup(s => s.GetFileReferenceAsync(CoreConstants.Folders.ContentFolderName, CoreConstants.FeatureFlagsFileName, null))
+                    .ReturnsAsync(BuildFileReference(@"{""Invalid"": true}"));
+
+                // Act
+                var exception = await Assert.ThrowsAsync<JsonSerializationException>(() => _target.RemoveUserAsync(new User { Username = "user1" }));
+
+                // Assert
+                Assert.Contains("Could not find member 'Invalid' on object of type 'FeatureFlags'", exception.Message);
+            }
+
+            [Fact]
             public async Task RemovesUser()
             {
                 string savedJson = null;

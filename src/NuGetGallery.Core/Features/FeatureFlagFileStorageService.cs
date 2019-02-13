@@ -20,17 +20,14 @@ namespace NuGetGallery.Features
     {
         private const int MaxRemoveUserAttempts = 3;
 
+        private static readonly JsonSerializer Serializer;
+
         private readonly ICoreFileStorageService _storage;
         private readonly ILogger<FeatureFlagFileStorageService> _logger;
-        private readonly JsonSerializer _serializer;
 
-        public FeatureFlagFileStorageService(
-            ICoreFileStorageService storage,
-            ILogger<FeatureFlagFileStorageService> logger)
+        static FeatureFlagFileStorageService()
         {
-            _storage = storage ?? throw new ArgumentNullException(nameof(storage));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _serializer = JsonSerializer.Create(new JsonSerializerSettings
+            Serializer = JsonSerializer.Create(new JsonSerializerSettings
             {
                 Formatting = Formatting.Indented,
                 MissingMemberHandling = MissingMemberHandling.Error,
@@ -41,13 +38,21 @@ namespace NuGetGallery.Features
             });
         }
 
+        public FeatureFlagFileStorageService(
+            ICoreFileStorageService storage,
+            ILogger<FeatureFlagFileStorageService> logger)
+        {
+            _storage = storage ?? throw new ArgumentNullException(nameof(storage));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        }
+
         public async Task<FeatureFlags> GetAsync()
         {
             using (var stream = await _storage.GetFileAsync(CoreConstants.Folders.ContentFolderName, CoreConstants.FeatureFlagsFileName))
             using (var streamReader = new StreamReader(stream))
             using (var reader = new JsonTextReader(streamReader))
             {
-                return _serializer.Deserialize<FeatureFlags>(reader);
+                return Serializer.Deserialize<FeatureFlags>(reader);
             }
         }
 
@@ -76,7 +81,7 @@ namespace NuGetGallery.Features
                 using (var reader = new StringReader(flagsJson))
                 using (var jsonReader = new JsonTextReader(reader))
                 {
-                    flags = _serializer.Deserialize<FeatureFlags>(jsonReader);
+                    flags = Serializer.Deserialize<FeatureFlags>(jsonReader);
                 }
             }
             catch (JsonException e)
@@ -98,7 +103,7 @@ namespace NuGetGallery.Features
                 using (var streamReader = new StreamReader(stream))
                 using (var reader = new JsonTextReader(streamReader))
                 {
-                    flags = _serializer.Deserialize<FeatureFlags>(reader);
+                    flags = Serializer.Deserialize<FeatureFlags>(reader);
                 }
 
                 // Don't update the flags if the user isn't listed in any of the flights.
@@ -142,7 +147,7 @@ namespace NuGetGallery.Features
                 using (var writer = new StreamWriter(stream))
                 using (var jsonWriter = new JsonTextWriter(writer))
                 {
-                    _serializer.Serialize(jsonWriter, flags);
+                    Serializer.Serialize(jsonWriter, flags);
                     jsonWriter.Flush();
                     stream.Position = 0;
 
