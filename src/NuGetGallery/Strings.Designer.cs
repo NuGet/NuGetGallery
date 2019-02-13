@@ -19,7 +19,7 @@ namespace NuGetGallery {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     public class Strings {
@@ -61,7 +61,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The account:{0} was already deleted. No action was performed..
+        ///   Looks up a localized string similar to The account &apos;{0}&apos; was already deleted. No action was performed..
         /// </summary>
         public static string AccountDelete_AccountAlreadyDeleted {
             get {
@@ -79,7 +79,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An exception was encountered while trying to delete the account:{0}. {1}.
+        ///   Looks up a localized string similar to An exception was encountered while trying to delete the account &apos;{0}&apos;: {1}.
         /// </summary>
         public static string AccountDelete_Fail {
             get {
@@ -106,7 +106,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The account:{0} was deleted succesfully..
+        ///   Looks up a localized string similar to The account &apos;{0}&apos; was deleted succesfully..
         /// </summary>
         public static string AccountDelete_Success {
             get {
