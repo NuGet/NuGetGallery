@@ -238,6 +238,23 @@ namespace NuGetGallery
                 + VirtualPathUtility.ToAbsolute("~/Content/Images/packageDefaultIcon-50x50.png", url.RequestContext.HttpContext.Request.ApplicationPath);
         }
 
+        public static string PackageAtomFeed(
+            this UrlHelper url,
+            string id,
+            bool relativeUrl = true)
+        {
+            string result = GetRouteLink(
+                url,
+                RouteName.DisplayPackageFeed,
+                relativeUrl,
+                routeValues: new RouteValueDictionary
+                {
+                    { "id", id },
+                });
+
+            return result;
+        }
+
         public static string PackageDownload(
             this UrlHelper url,
             int feedVersion,
