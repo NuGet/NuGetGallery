@@ -84,7 +84,7 @@ namespace NuGetGallery
             return builder.Uri.PathAndQuery;
         }
 
-        public static string GetExternalUrlElement(string data, string link)
+        public static string GetExternalUrlAnchorTag(string data, string link)
         {
             return string.Format(ExternalLinkAnchorTagFormat, data, link);
         }

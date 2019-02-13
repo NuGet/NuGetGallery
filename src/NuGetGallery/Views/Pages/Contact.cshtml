@@ -16,8 +16,8 @@
         <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
             <h2 class="ms-fontSize-xl ms-fontWeight-semibold">Having problems using a specific package on nuget.org?</h2>
             <p>
-                If you're having trouble installing or using a specific package, try contacting the owner of that package first.
-                You can reach them using the "Contact Owners" link on the package details page. Please note that nuget.org does not offer any assistance for individual package issues.
+                Please note that nuget.org does not offer any assistance for individual package issues. If you're having trouble installing or using a specific package, try contacting the owner of that package first.
+                You can reach them using the "Contact Owners" link on the package details page.
             </p>
 
             <h2 class="ms-fontSize-xl ms-fontWeight-semibold">Found a bug in NuGet or the website nuget.org?</h2>
@@ -36,23 +36,23 @@
 
             <h2 class="ms-fontSize-xl ms-fontWeight-semibold">Have trouble logging in to nuget.org with MSA/AAD logins?</h2>
             <p>
-                Check out our <a href="https://docs.microsoft.com/en-us/nuget/faqs/nuget-faq#nugetorg-account-management" target="_blank">nuget.org account management</a> FAQ page for solutions.
+                Check out our @(ViewHelpers.GetExternalUrlAnchorTag("nuget.org account management", GalleryConstants.FAQLinks.NuGetAccountManagement)) FAQ page for solutions.
             </p>
 
             <h2 class="ms-fontSize-xl ms-fontWeight-semibold">Want to change your nuget.org username?</h2>
             <p>
-                No need to contact support. Check out the steps for <a href="https://docs.microsoft.com/en-us/nuget/faqs/nuget-faq#how-do-i-change-my-nugetorg-account-username" target="_blank">changing nuget.org username</a> on the FAQ page for resolution steps.
+                No need to contact support. Check out the steps for @(ViewHelpers.GetExternalUrlAnchorTag("changing nuget.org username", GalleryConstants.FAQLinks.NuGetChangeUsername)) on the FAQ page for resolution steps.
+
             </p>
 
             <h2 class="ms-fontSize-xl ms-fontWeight-semibold">Want to delete your nuget.org account?</h2>
             <p>
-                No need to contact support. Check out the steps for <a href="https://docs.microsoft.com/en-us/nuget/faqs/nuget-faq#how-to-delete-my-nugetorg-account" target="_blank">deleting nuget.org account</a> on the FAQ page for resolution steps.
+                No need to contact support. Check out the steps for @(ViewHelpers.GetExternalUrlAnchorTag("deleting nuget.org account", GalleryConstants.FAQLinks.NuGetDeleteAccount)) on the FAQ page for resolution steps.
             </p>
 
             <h2 class="ms-fontSize-xl ms-fontWeight-semibold">Having issues working with nuget.org?</h2>
             <p>
-                Before reaching out to NuGet support, check out the
-                <a href="https://docs.microsoft.com/en-us/nuget/faqs/nuget-faq"><abbr title="Frequently Asked Questions">FAQ</abbr></a>.
+                Before reaching out to NuGet support, check out the @(ViewHelpers.GetExternalUrlAnchorTag("FAQ", GalleryConstants.FAQLinks.NuGetFAQ)).
             </p>
 
             @if (!User.Identity.IsAuthenticated)

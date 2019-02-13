@@ -52,7 +52,7 @@
                 </button>
             </div>
             <div class="transform-text">
-                If you want to transform this account to an <a href="https://docs.microsoft.com/en-us/nuget/reference/organizations-on-nuget-org" target="_blank">organization</a>, please follow the steps on our <a href="https://docs.microsoft.com/en-us/nuget/faqs/nuget-faq#how-to-transform-my-nugetorg-account-to-an-organization" target="_blank">FAQ page.</a>
+                If you want to transform this account to an @(ViewHelpers.GetExternalUrlAnchorTag("organization", "https://aka.ms/nugetorgs")), please follow the steps on our @(ViewHelpers.GetExternalUrlAnchorTag("FAQ page", GalleryConstants.FAQLinks.TransformToOrganization)).
             </div>
         }
     </div>

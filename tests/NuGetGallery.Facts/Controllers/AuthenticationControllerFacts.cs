@@ -1282,7 +1282,15 @@ namespace NuGetGallery.Controllers
 
                 // Assert
                 ResultAssert.IsSafeRedirectTo(result, "theReturnUrl");
-                Assert.NotNull(controller.TempData["RawErrorMessage"]);
+                
+                var errorMessage = controller.TempData["RawErrorMessage"];
+                var expectedMessage = string.Format(
+                    Strings.ChangeCredential_Failed,
+                    identity.Replace("<", "&lgt;").Replace(">", "&gt;"),
+                    UriExtensions.GetExternalUrlAnchorTag("FAQs page", GalleryConstants.FAQLinks.MSALinkedToAnotherAccount));
+
+                Assert.NotNull(errorMessage);
+                Assert.Equal(expectedMessage, errorMessage);
             }
 
             [Fact]
