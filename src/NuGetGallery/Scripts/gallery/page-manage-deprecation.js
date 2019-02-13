@@ -68,8 +68,15 @@ function ManageDeprecationViewModel(id, versionsDictionary, defaultVersion, subm
         return $target.closest('.dropdown').length;
     };
 
-    // If we click outside the dropdown, close it.
+    // If the user clicks outside of the dropdown, close it.
     $(document).click(function (event) {
+        if (!isElementInsideDropdown(event.target)) {
+            self.dropdownOpen(false);
+        }
+    });
+
+    // If an element outside of the dropdown gains focus, close it.
+    $(document).focusin(function (event) {
         if (!isElementInsideDropdown(event.target)) {
             self.dropdownOpen(false);
         }
