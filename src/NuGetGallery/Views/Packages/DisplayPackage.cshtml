@@ -85,6 +85,8 @@
     <meta property="og:description" content="@Model.Description" />
     <meta property="og:determiner" content="a" />
     <meta property="og:image" content="@(PackageHelper.ShouldRenderUrl(Model.IconUrl) ? Model.IconUrl : Url.Absolute("~/Content/gallery/img/default-package-icon-256x256.png"))" />
+
+    <link rel="alternate" type="application/atom+xml" title="Subscribe to @Model.Id updates" href="@Url.PackageAtomFeed(Model.Id)" />
 }
 
 @helper VersionListDivider(int rowCount, bool versionsExpanded)
@@ -859,6 +861,11 @@ foreach (var owner in Model.Owners)
                         <img width="24" height="24" alt="Tweet this package"
                              src="@Url.Absolute("~/Content/gallery/img/twitter.svg")"
                              @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/twitter-24x24.png")) />
+                    </a>
+                    <a href="@Url.PackageAtomFeed(Model.Id)" data-track="atom-feed">
+                        <img width="24" height="24" alt="Use the Atom feed to subscribe to new versions of @Model.Id"
+                             src="@Url.Absolute("~/Content/gallery/img/rss.svg")"
+                             @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/rss-24x24.png")) />
                     </a>
                 </p>
             }
