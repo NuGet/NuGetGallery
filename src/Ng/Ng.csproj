@@ -117,6 +117,13 @@
     <None Include="App.config">
       <SubType>Designer</SubType>
     </None>
+    <None Include="Catalog2Dnx.nuspec" />
+    <None Include="Catalog2Lucene.nuspec" />
+    <None Include="Catalog2Monitoring.nuspec" />
+    <None Include="Catalog2Registration.nuspec" />
+    <None Include="Feed2Catalog.nuspec" />
+    <None Include="Monitoring2Monitoring.nuspec" />
+    <None Include="MonitoringProcessor.nuspec" />
     <None Include="Ng.Operations.nuspec">
       <SubType>Designer</SubType>
     </None>

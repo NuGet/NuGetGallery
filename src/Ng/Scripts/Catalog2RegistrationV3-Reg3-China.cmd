@@ -8,6 +8,7 @@ echo "Starting job - #{Jobs.China.catalog2registrationv3reg3.Title}"
 title #{Jobs.China.catalog2registrationv3reg3.Title}
 
 start /w ng.exe catalog2registration ^
+    -instanceName catalog2registration-china ^
     -source #{Jobs.common.China.v3.Source} ^
     -contentBaseAddress #{Jobs.China.catalog2registrationv3reg3.ContentBaseAddress} ^
     -storageType azure ^
