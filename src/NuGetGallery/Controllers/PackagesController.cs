@@ -805,6 +805,7 @@ namespace NuGetGallery
         }
 
         [HttpGet]
+        [UIAuthorize]
         public virtual async Task<ActionResult> License(string id, string version)
         {
             var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
