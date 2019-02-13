@@ -14,15 +14,15 @@
     </div>
     <div class="row">
         <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
-            <h2 class="ms-fontSize-xl ms-fontWeight-semibold">Having problems using a specific package?</h2>
+            <h2 class="ms-fontSize-xl ms-fontWeight-semibold">Having problems using a specific package on nuget.org?</h2>
             <p>
-                If you're having trouble installing a specific package, try contacting the owner of that package first.
-                You can reach them using the "Contact Owners" link on the package details page.
+                If you're having trouble installing or using a specific package, try contacting the owner of that package first.
+                You can reach them using the "Contact Owners" link on the package details page. Please note that nuget.org support cannot offer any assistance with regards to individual package issues.
             </p>
 
-            <h2 class="ms-fontSize-xl ms-fontWeight-semibold">Found a bug in NuGet or the website NuGet.org?</h2>
+            <h2 class="ms-fontSize-xl ms-fontWeight-semibold">Found a bug in NuGet or the website nuget.org?</h2>
             <p>
-                If you're having trouble with the <strong>NuGet.org Website</strong>,
+                If you're having trouble with the <strong>nuget.org website</strong>,
                 file a bug on the NuGet Gallery <a href="https://github.com/NuGet/NuGetGallery/issues">Issue Tracker</a>.
                 If you're having trouble with the <strong>NuGet client tools</strong> (the Visual Studio extension, NuGet.exe command line tool, .NET CLI restore etc.),
                 file a bug on the NuGet Client <a href="https://github.com/NuGet/Home/issues">Issue Tracker</a>.
@@ -31,25 +31,35 @@
             <h2 class="ms-fontSize-xl ms-fontWeight-semibold">Is a package violating a license or otherwise abusive?</h2>
             <p>
                 If you feel that a package is violating the license of software you own or is violating our terms of service,
-                use the "Report Abuse" link on the package details page to report it directly to us.
+                use the "Report" link on the package details page to report it directly to us.
             </p>
 
-            <h2 class="ms-fontSize-xl ms-fontWeight-semibold">Want to change your NuGet.org username?</h2>
+            <h2 class="ms-fontSize-xl ms-fontWeight-semibold">Have trouble logging in to nuget.org with MSA/AAD logins?</h2>
             <p>
-                No need to contact support. Create a new user and transfer ownership of your packages to it.
+                Check out our <a href="https://docs.microsoft.com/en-us/nuget/faqs/nuget-faq#nugetorg-account-management" target="_blank">nuget.org account management</a> FAQ page for solutions.
             </p>
 
-            <h2 class="ms-fontSize-xl ms-fontWeight-semibold">Having issues working with NuGet.org?</h2>
+            <h2 class="ms-fontSize-xl ms-fontWeight-semibold">Want to change your nuget.org username?</h2>
+            <p>
+                No need to contact support. Check out the steps for <a href="https://docs.microsoft.com/en-us/nuget/faqs/nuget-faq#how-do-i-change-my-nugetorg-account-username" target="_blank">changing nuget.org username</a> on the FAQ page for resolution steps.
+            </p>
+
+            <h2 class="ms-fontSize-xl ms-fontWeight-semibold">Want to delete your nuget.org account?</h2>
+            <p>
+                No need to contact support. Check out the steps for <a href="https://docs.microsoft.com/en-us/nuget/faqs/nuget-faq#how-to-delete-my-nugetorg-account" target="_blank">deleting nuget.org account</a> on the FAQ page for resolution steps.
+            </p>
+
+            <h2 class="ms-fontSize-xl ms-fontWeight-semibold">Having issues working with nuget.org?</h2>
             <p>
                 Before reaching out to NuGet support, check out the
-                <a href="https://docs.nuget.org/consume/nuget-faq#managing-packages-in-nuget.org"><abbr title="Frequently Asked Questions">FAQ</abbr></a>.
+                <a href="https://docs.microsoft.com/en-us/nuget/faqs/nuget-faq"><abbr title="Frequently Asked Questions">FAQ</abbr></a>.
             </p>
 
             @if (!User.Identity.IsAuthenticated)
             {
                 <h2 class="ms-fontSize-xl ms-fontWeight-semibold">The above doesn't help? @Html.ActionLink("Sign in", "LogOn", new { controller = "Authentication", ReturnUrl = "/policies/Contact" }) to contact Support.</h2>
                 <p>
-                    Need help with your NuGet.org account? Please feel free to <span id="emailUs"></span>.
+                    Need help with your nuget.org account? Please feel free to <span id="emailUs"></span>.
                 </p>
             }
             else
