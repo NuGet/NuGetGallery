@@ -56,16 +56,24 @@ function ManageDeprecationSecurityDetailListViewModel(title, label, placeholder)
 function ManageDeprecationViewModel(id, versionsDictionary, defaultVersion, submitUrl, packageUrl, getAlternatePackageVersions) {
     var self = this;
 
+    var versionFilterId = 'versionFilter';
+    var selectAllVersionsId = 'versionSelectAll';
+    var versionIdPrefix = 'version';
     this.dropdownOpen = ko.observable(false);
     this.toggleDropdown = function () {
         self.dropdownOpen(!self.dropdownOpen());
+        $('#' + versionFilterId).focus();
     };
 
-    var isElementInsideDropdown = function (element) {
+    var isAncestor = function (element, ancestorSelector) {
         var $target = $(element);
         // '.closest' returns the list of ancestors between this element and the selector.
         // If the selector is not an ancestor of the element, it returns an empty list.
-        return $target.closest('.dropdown').length;
+        return $target.closest(ancestorSelector).length;
+    };
+
+    var isElementInsideDropdown = function (element) {
+        return isAncestor(element, '.dropdown');
     };
 
     // If the user clicks outside of the dropdown, close it.
@@ -82,13 +90,52 @@ function ManageDeprecationViewModel(id, versionsDictionary, defaultVersion, subm
         }
     });
 
-    // If we press escape while focus is inside the dropdown, close it.
-    $(document).keydown(function (e) {
-        if (e.which === 27 // Escape key
-            && isElementInsideDropdown(event.target)) {
-            self.dropdownOpen(false);
-            e.preventDefault();
-            $('.dropdown-btn').focus();
+    var upKeyCode = 38;
+    var downKeyCode = 40;
+    $(document).keydown(function (event) {
+        if (isElementInsideDropdown(event.target)) {
+            // If we press escape while focus is inside the dropdown, close it
+            if (event.which === 27) { // Escape key
+                self.dropdownOpen(false);
+                event.preventDefault();
+                $('.dropdown-btn').focus();
+            }
+
+            // If we press up or down while focusing on an input in the dropdown, move to the previous/next input
+            // If there is no previous/next input, do nothing
+            var targetId = event.target.id;
+            var focusTargetId;
+            if (targetId === versionFilterId) {
+                if (event.which === downKeyCode) {
+                    focusTargetId = selectAllVersionsId;
+                }
+            } else if (targetId === selectAllVersionsId) {
+                if (event.which === upKeyCode) {
+                    focusTargetId = versionFilterId;
+                } else if (event.which === downKeyCode) {
+                    focusTargetId = versionIdPrefix + '0';
+                }
+            } else if (targetId.startsWith(versionIdPrefix)) {
+                var indexString = targetId.substr(versionIdPrefix.length);
+                var index = parseInt(indexString);
+                if (event.which === upKeyCode) {
+                    if (index === 0) {
+                        focusTargetId = selectAllVersionsId;
+                    } else {
+                        focusTargetId = versionIdPrefix + (index - 1);
+                    }
+                } else if (event.which === downKeyCode) {
+                    var nextIndex = index + 1;
+                    if (nextIndex < self.versions.length) {
+                        focusTargetId = versionIdPrefix + nextIndex;
+                    }
+                }
+            }
+
+            if (focusTargetId) {
+                $('#' + focusTargetId).focus();
+                event.preventDefault();
+            }
         }
     });
 
