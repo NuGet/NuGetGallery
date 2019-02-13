@@ -832,24 +832,6 @@ namespace NuGetGallery
             : TestContainer
         {
             [Fact]
-            public async Task GivenANonNormalizedVersionIt302sToTheNormalizedVersion()
-            {
-                // Arrange
-                var controller = CreateController(GetConfigurationService());
-
-                // Act
-                var result = await controller.DisplayPackage("Foo", "01.01.01");
-
-                // Assert
-                ResultAssert.IsRedirectToRoute(result, new
-                {
-                    action = "DisplayPackage",
-                    id = "Foo",
-                    version = "1.1.1"
-                }, permanent: true);
-            }
-
-            [Fact]
             public void GivenANonExistentPackageIt404s()
             {
                 // Arrange
@@ -949,8 +931,11 @@ namespace NuGetGallery
                 // Arrange
                 var httpContext = new Mock<HttpContextBase>();
                 var packageService = new Mock<IPackageService>();
+                var configurationService = GetConfigurationService();
+                configurationService.Current.Brand = "Test Gallery";
+
                 var controller = CreateController(
-                    GetConfigurationService(),
+                    configurationService,
                     packageService: packageService,
                     httpContext: httpContext);
 
@@ -992,7 +977,7 @@ namespace NuGetGallery
                 Assert.NotNull(syndicationResult);
 
                 Assert.Equal("https://localhost/?id=Foo", syndicationResult.SyndicationFeed.Id);
-                Assert.Equal(" Feed for package: Foo", syndicationResult.SyndicationFeed.Title.Text);
+                Assert.Equal("Test Gallery Feed for package: Foo", syndicationResult.SyndicationFeed.Title.Text);
                 Assert.Equal("Most recent version: Test Package", syndicationResult.SyndicationFeed.Description.Text);
                 Assert.Equal(dateTimeNow, syndicationResult.SyndicationFeed.LastUpdatedTime);
 
@@ -1011,7 +996,6 @@ namespace NuGetGallery
                 Assert.Equal("Test Package", (syndicationFeedItems[1].Content as System.ServiceModel.Syndication.TextSyndicationContent).Text);
                 Assert.Equal(dateTimeYesterDay, syndicationFeedItems[1].PublishDate);
                 Assert.Equal(dateTimeYesterDay, syndicationFeedItems[1].LastUpdatedTime);
-
             }
 
 
