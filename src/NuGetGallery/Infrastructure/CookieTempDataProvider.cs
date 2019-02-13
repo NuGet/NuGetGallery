@@ -97,7 +97,7 @@ namespace NuGetGallery
                         continue;
                     }
 
-                    cookie[item.Key] = Convert.ToString(item.Value, CultureInfo.InvariantCulture);
+                    cookie[item.Key] = HttpUtility.UrlEncode(Convert.ToString(item.Value, CultureInfo.InvariantCulture));
                 }
                 _httpContext.Response.Cookies.Add(cookie);
             }
