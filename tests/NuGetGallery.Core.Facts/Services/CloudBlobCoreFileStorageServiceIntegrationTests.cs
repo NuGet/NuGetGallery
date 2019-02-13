@@ -55,8 +55,13 @@ namespace NuGetGallery
             _blobClientA = CloudStorageAccount.Parse(_fixture.ConnectionStringA).CreateCloudBlobClient();
             _blobClientB = CloudStorageAccount.Parse(_fixture.ConnectionStringB).CreateCloudBlobClient();
 
-            _targetA = new CloudBlobCoreFileStorageService(_clientA, Mock.Of<IDiagnosticsService>(), Mock.Of<ICloudBlobFolderDescription>());
-            _targetB = new CloudBlobCoreFileStorageService(_clientB, Mock.Of<IDiagnosticsService>(), Mock.Of<ICloudBlobFolderDescription>());
+            var folderDescription = new Mock<ICloudBlobFolderDescription>();
+            folderDescription
+                .Setup(fd => fd.GetContentType(It.IsAny<string>()))
+                .Returns(CoreConstants.PackageContentType);
+
+            _targetA = new CloudBlobCoreFileStorageService(_clientA, Mock.Of<IDiagnosticsService>(), folderDescription.Object);
+            _targetB = new CloudBlobCoreFileStorageService(_clientB, Mock.Of<IDiagnosticsService>(), folderDescription.Object);
         }
 
         [BlobStorageFact]
