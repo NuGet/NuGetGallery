@@ -566,13 +566,13 @@ For more information, please contact '{2}'.</value>
     <value>Organization accounts cannot create credentials.</value>
   </data>
   <data name="AccountDelete_AccountAlreadyDeleted" xml:space="preserve">
-    <value>The account:{0} was already deleted. No action was performed.</value>
+    <value>The account '{0}' was already deleted. No action was performed.</value>
   </data>
   <data name="AccountDelete_Fail" xml:space="preserve">
-    <value>An exception was encoutered while trying to delete the account:{0}. {1}</value>
+    <value>An exception was encountered while trying to delete the account '{0}': {1}</value>
   </data>
   <data name="AccountDelete_Success" xml:space="preserve">
-    <value>The account:{0} was deleted succesfully.</value>
+    <value>The account '{0}' was deleted succesfully.</value>
   </data>
   <data name="AccountDelete_CreateSupportRequestFails" xml:space="preserve">
     <value>The request failed to be submitted. Please try again or contact support.</value>

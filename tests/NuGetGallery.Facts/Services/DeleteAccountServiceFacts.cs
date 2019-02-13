@@ -11,6 +11,7 @@ using NuGetGallery.Areas.Admin;
 using NuGetGallery.Areas.Admin.Models;
 using NuGetGallery.Auditing;
 using NuGetGallery.Authentication;
+using NuGetGallery.Features;
 using NuGetGallery.Security;
 using Xunit;
 
@@ -81,7 +82,7 @@ namespace NuGetGallery.Services
                                                 userToExecuteTheDelete: testUser,
                                                 commitAsTransaction: false,
                                                 orphanPackagePolicy: AccountDeletionOrphanPackagePolicy.UnlistOrphans);
-                string expected = $"The account:{testUser.Username} was already deleted. No action was performed.";
+                string expected = $"The account '{testUser.Username}' was already deleted. No action was performed.";
                 Assert.Equal(expected, result.Description);
             }
 
@@ -191,7 +192,7 @@ namespace NuGetGallery.Services
             [InlineData(true)]
             public async Task WhenUserIsNotConfirmedTheUserRecordIsDeleted(bool isPackageOrphaned)
             {
-                //Arange
+                //Arrange
                 User testUser = new User("TestsUser") { Key = Key++, UnconfirmedEmailAddress = "user@test.com" };
                 var testableService = new DeleteAccountTestService(testUser);
                 var deleteAccountService = testableService.GetDeleteAccountService(isPackageOrphaned);
@@ -349,6 +350,28 @@ namespace NuGetGallery.Services
                 
                 var deleteRecord = testableService.AuditService.Records[0] as DeleteAccountAuditRecord;
                 Assert.True(deleteRecord != null);
+            }
+
+            [Fact]
+            public async Task FailsWhenFeatureFlagsRemovalFails()
+            {
+                // Arrange
+                var testUser = new User("TestsUser") { Key = Key++ };
+                var testableService = new DeleteAccountTestService(testUser);
+                var deleteAccountService = testableService.GetDeleteAccountService(
+                    isPackageOrphaned: false,
+                    isFeatureFlagsRemovalSuccessful: false);
+
+                // Act
+                var result = await deleteAccountService.DeleteAccountAsync(
+                    userToBeDeleted: testUser,
+                    userToExecuteTheDelete: testUser,
+                    commitAsTransaction: false);
+
+                // Assert
+                Assert.False(result.Success);
+                Assert.Equal("TestsUser", result.AccountName);
+                Assert.Contains("An exception was encountered while trying to delete the account 'TestsUser'", result.Description);
             }
 
             private static User CreateTestUser(ref PackageRegistration registration)
@@ -511,7 +534,7 @@ namespace NuGetGallery.Services
             {
             }
 
-            public DeleteAccountService GetDeleteAccountService(bool isPackageOrphaned)
+            public DeleteAccountService GetDeleteAccountService(bool isPackageOrphaned, bool isFeatureFlagsRemovalSuccessful = true)
             {
                 return new DeleteAccountService(SetupAccountDeleteRepository().Object,
                     SetupUserRepository().Object,
@@ -523,6 +546,7 @@ namespace NuGetGallery.Services
                     SetupSecurityPolicyService().Object,
                     SetupAuthenticationService().Object,
                     SetupSupportRequestService().Object,
+                    SetupFeatureFlagStorageService(isFeatureFlagsRemovalSuccessful).Object,
                     AuditService,
                     SetupTelemetryService().Object);
             }
@@ -688,6 +712,20 @@ namespace NuGetGallery.Services
                 }
 
                 return supportService;
+            }
+
+            private Mock<IEditableFeatureFlagStorageService> SetupFeatureFlagStorageService(bool succeeds)
+            {
+                var flagsService = new Mock<IEditableFeatureFlagStorageService>();
+
+                if (!succeeds)
+                {
+                    flagsService
+                        .Setup(f => f.RemoveUserAsync(It.IsAny<User>()))
+                        .ThrowsAsync(new InvalidOperationException("Failed to remove user"));
+                }
+
+                return flagsService;
             }
 
             private Mock<IPackageOwnershipManagementService> SetupPackageOwnershipManagementService()
