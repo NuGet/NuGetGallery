@@ -66,6 +66,7 @@
     <None Include="App.config" />
     <None Include="Scripts\*" />
     <None Include="Settings\*" />
+    <None Include="Validation.PackageSigning.ProcessSignature.nuspec" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NuGet.Jobs.Common\NuGet.Jobs.Common.csproj">
@@ -102,7 +103,7 @@
   <Import Project="$(SignPath)\sign.targets" Condition="Exists('$(SignPath)\sign.targets')" />
   <Import Project="$(SignPath)\sign.microbuild.targets" Condition="Exists('$(SignPath)\sign.microbuild.targets')" />
   <ItemGroup>
-    <PowerShellScriptsToSign Include="RunE2ETests.ps1"/>
+    <PowerShellScriptsToSign Include="RunE2ETests.ps1" />
   </ItemGroup>
   <Import Project="$(SignPath)\sign.scripts.targets" Condition="Exists('$(SignPath)\sign.scripts.targets')" />
   <Import Project="..\..\sign.thirdparty.targets" />

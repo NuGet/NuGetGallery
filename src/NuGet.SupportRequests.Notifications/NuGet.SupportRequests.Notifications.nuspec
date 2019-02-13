@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package >
   <metadata>
-    <id>NuGet.SupportRequests.Notifications.$branch$</id>
+    <id>SupportRequests.Notifications</id>
     <version>$version$</version>
     <title>NuGet.SupportRequests.Notifications</title>
     <authors>.NET Foundation</authors>

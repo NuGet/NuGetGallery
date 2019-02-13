@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package >
   <metadata>
-    <id>ArchivePackages.$branch$</id>
+    <id>ArchivePackages</id>
     <version>$version$</version>
     <title>ArchivePackages</title>
     <authors>.NET Foundation</authors>

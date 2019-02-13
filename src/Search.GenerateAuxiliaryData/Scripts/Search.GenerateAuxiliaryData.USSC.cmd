@@ -9,7 +9,12 @@ cd bin
 
     title #{Jobs.USSC.search.generateauxiliarydata.Title}
 
-    start /w search.generateauxiliarydata.exe -Configuration "#{Jobs.USSC.search.generateauxiliarydata.Configuration}" -verbose true -Sleep #{Jobs.search.generateauxiliarydata.Sleep} -InstrumentationKey "#{Jobs.search.generateauxiliarydata.ApplicationInsightsInstrumentationKey}"
+    start /w search.generateauxiliarydata.exe ^
+        -Configuration "#{Jobs.USSC.search.generateauxiliarydata.Configuration}" ^
+        -InstanceName Search.GenerateAuxillaryData-ussc ^
+        -verbose true ^
+        -Sleep #{Jobs.search.generateauxiliarydata.Sleep} ^
+        -InstrumentationKey "#{Jobs.search.generateauxiliarydata.ApplicationInsightsInstrumentationKey}"
 
     echo "Finished #{Jobs.USSC.search.generateauxiliarydata.Title}"
 

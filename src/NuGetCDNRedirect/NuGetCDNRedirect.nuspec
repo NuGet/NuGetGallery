@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package >
   <metadata>
-    <id>NuGetCDNRedirect.$branch$</id>
+    <id>NuGetCDNRedirect</id>
     <version>$version$</version>
     <title>NuGetCDNRedirect</title>
     <authors>.NET Foundation</authors>

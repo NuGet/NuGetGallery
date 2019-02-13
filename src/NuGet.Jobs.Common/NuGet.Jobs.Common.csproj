@@ -59,6 +59,7 @@
     <Compile Include="Extensions\LoggerExtensions.cs" />
     <Compile Include="Extensions\XElementExtensions.cs" />
     <Compile Include="ISqlConnectionFactory.cs" />
+    <Compile Include="JobNameTelemetryInitializer.cs" />
     <Compile Include="JsonConfigurationJob.cs" />
     <Compile Include="SecretReader\ISecretReaderFactory.cs" />
     <Compile Include="SecretReader\SecretReaderFactory.cs" />

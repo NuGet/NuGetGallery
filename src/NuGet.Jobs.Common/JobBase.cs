@@ -16,7 +16,7 @@ using NuGet.Services.Sql;
 
 namespace NuGet.Jobs
 {
-    using ICoreSqlConnectionFactory = NuGet.Services.Sql.ISqlConnectionFactory;
+    using ICoreSqlConnectionFactory = Services.Sql.ISqlConnectionFactory;
 
     public abstract class JobBase
     {
@@ -29,12 +29,9 @@ namespace NuGet.Jobs
 
         protected JobBase(EventSource jobEventSource)
         {
-            JobName = GetType().ToString();
             _jobEventSource = jobEventSource;
             SqlConnectionFactories = new Dictionary<string, ICoreSqlConnectionFactory>();
         }
-
-        public string JobName { get; private set; }
 
         protected ILoggerFactory LoggerFactory { get; private set; }
 

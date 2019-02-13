@@ -15,6 +15,7 @@ namespace NuGet.Jobs
         public const string Sleep = "Sleep";
         public const string Interval = "Interval";
         public const string ReinitializeAfterSeconds = "ReinitializeAfterSeconds";
+        public const string InstanceName = "InstanceName";
 
         public const string WhatIf = "WhatIf";
 

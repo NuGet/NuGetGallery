@@ -75,8 +75,15 @@ namespace NuGet.Jobs
                 _logger.LogInformation("Started...");
 
                 // Get the args passed in or provided as an env variable based on jobName as a dictionary of <string argName, string argValue>
+                var jobArgsDictionary = JobConfigurationManager.GetJobArgsDictionary(
+                    ServiceContainer,
+                    loggerFactory.CreateLogger(typeof(JobConfigurationManager)),
+                    commandLineArgs);
 
-                var jobArgsDictionary = JobConfigurationManager.GetJobArgsDictionary(ServiceContainer, loggerFactory.CreateLogger(typeof(JobConfigurationManager)), commandLineArgs, job.JobName);
+                // Determine job and instance name, for logging.
+                var jobName = job.GetType().Assembly.GetName().Name;
+                var instanceName = JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.InstanceName) ?? jobName;
+                TelemetryConfiguration.Active.TelemetryInitializers.Add(new JobNameTelemetryInitializer(jobName, instanceName));
 
                 // Setup logging
                 if (!ApplicationInsights.Initialized)
