@@ -230,23 +230,28 @@ namespace NuGetGallery
 
         [HttpGet]
         [ActionName("CveIds")]
-        public ActionResult GetCveIds(string query)
+        public JsonResult GetCveIds(string query)
         {
             if (string.IsNullOrWhiteSpace(query))
             {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest, "Search term cannot be empty.");
+                return Json(
+                    HttpStatusCode.BadRequest,
+                    new { success = false, message = "Search term cannot be empty." },
+                    JsonRequestBehavior.AllowGet);
             }
 
             // We should wait for at least 4 numeric characters before suggesting.
             if (query.ToUpperInvariant().Replace(Cve.IdPrefix, string.Empty).Length < 4)
             {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest, "Search term must have at least 4 numeric characters. " + Strings.AutocompleteCveIds_FormatException);
+                return Json(
+                    HttpStatusCode.BadRequest,
+                    new { success = false, message = "Search term must have at least 4 numeric characters. " + Strings.AutocompleteCveIds_FormatException },
+                    JsonRequestBehavior.AllowGet);
             }
-
-            var model = new CveAutocompleteDataViewModel();
 
             // Get CVE data.
             // Suggestions will be CVE Id's that start with characters entered by the user.
+            var model = new CveAutocompleteDataViewModel();
             IReadOnlyCollection<CveIdAutocompleteQueryResult> suggestions;
             try
             {
@@ -256,7 +261,10 @@ namespace NuGetGallery
             }
             catch (FormatException formatException)
             {
-                return Json(HttpStatusCode.BadRequest, new { success = false, message = formatException.Message }, JsonRequestBehavior.AllowGet);
+                return Json(
+                    HttpStatusCode.BadRequest,
+                    new { success = false, message = formatException.Message },
+                    JsonRequestBehavior.AllowGet);
             }
 
             return Json(model, JsonRequestBehavior.AllowGet);
@@ -264,11 +272,14 @@ namespace NuGetGallery
 
         [HttpGet]
         [ActionName("CweIds")]
-        public ActionResult GetCweIds(string query)
+        public JsonResult GetCweIds(string query)
         {
             if (string.IsNullOrWhiteSpace(query))
             {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest, "Search term cannot be empty.");
+                return Json(
+                    HttpStatusCode.BadRequest,
+                    new { success = false, message = "Search term cannot be empty." },
+                    JsonRequestBehavior.AllowGet);
             }
 
             var model = new CweAutocompleteDataViewModel();
@@ -288,7 +299,10 @@ namespace NuGetGallery
             }
             catch (FormatException formatException)
             {
-                return Json(HttpStatusCode.BadRequest, new { success = false, message = formatException.Message }, JsonRequestBehavior.AllowGet);
+                return Json(
+                    HttpStatusCode.BadRequest,
+                    new { success = false, message = formatException.Message },
+                    JsonRequestBehavior.AllowGet);
             }
 
             return Json(model, JsonRequestBehavior.AllowGet);
