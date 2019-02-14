@@ -1261,7 +1261,7 @@ namespace NuGetGallery.Controllers
                 // Arrange
                 GetMock<AuthenticationService>(); // Force a mock to be created
                 var controller = GetController<AuthenticationController>();
-                var identity = "Bloog";
+                var identity = "Bloog <bloog@blorg.com>";
                 var cred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", identity);
                 var serviceMock = GetMock<AuthenticationService>();
                 serviceMock
@@ -1282,7 +1282,15 @@ namespace NuGetGallery.Controllers
 
                 // Assert
                 ResultAssert.IsSafeRedirectTo(result, "theReturnUrl");
-                Assert.Equal(string.Format(Strings.ChangeCredential_Failed, identity), controller.TempData["ErrorMessage"]);
+                
+                var errorMessage = controller.TempData["RawErrorMessage"];
+                var expectedMessage = string.Format(
+                    Strings.ChangeCredential_Failed,
+                    identity.Replace("<", "&lt;").Replace(">", "&gt;"),
+                    UriExtensions.GetExternalUrlAnchorTag("FAQs page", GalleryConstants.FAQLinks.MSALinkedToAnotherAccount));
+
+                Assert.NotNull(errorMessage);
+                Assert.Equal(expectedMessage, errorMessage);
             }
 
             [Fact]
