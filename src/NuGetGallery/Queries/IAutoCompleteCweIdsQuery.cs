@@ -10,7 +10,7 @@ namespace NuGetGallery
     public interface IAutoCompleteCweIdsQuery
     {
         /// <summary>
-        /// Returns the CVE Id's and (truncated) descriptions matching 
+        /// Returns the CWE Id's and (truncated) descriptions matching 
         /// the user-provided <paramref name="queryString"/>.
         /// </summary>
         /// <param name="queryString">
