@@ -240,15 +240,6 @@ namespace NuGetGallery
                     JsonRequestBehavior.AllowGet);
             }
 
-            // We should wait for at least 4 numeric characters before suggesting.
-            if (query.ToUpperInvariant().Replace(Cve.IdPrefix, string.Empty).Length < 4)
-            {
-                return Json(
-                    HttpStatusCode.BadRequest,
-                    new { success = false, message = "Search term must have at least 4 numeric characters. " + Strings.AutocompleteCveIds_FormatException },
-                    JsonRequestBehavior.AllowGet);
-            }
-
             // Get CVE data.
             // Suggestions will be CVE Id's that start with characters entered by the user.
             var model = new CveAutocompleteDataViewModel();
