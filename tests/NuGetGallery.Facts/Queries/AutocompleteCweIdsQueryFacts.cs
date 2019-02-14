@@ -24,21 +24,19 @@ namespace NuGetGallery.Queries
             [Theory]
             [InlineData("0")]
             [InlineData("cWe-0")]
-            public void WhenQueryingByCweIdReturnsNullIfQueryStringTooShort(string queryString)
+            public void WhenQueryingByCweIdThrowsFormatExceptionIfQueryStringTooShort(string queryString)
             {
                 var query = new AutocompleteCweIdsQuery(new FakeEntitiesContext());
-                var result = query.Execute(queryString);
 
-                Assert.Null(result);
+                Assert.Throws<FormatException>(() => query.Execute(queryString));
             }
 
             [Fact]
-            public void WhenQueryingByNameReturnsNullIfQueryStringTooShort()
+            public void WhenQueryingByNameThrowsFormatExceptionIfQueryStringTooShort()
             {
                 var query = new AutocompleteCweIdsQuery(new FakeEntitiesContext());
-                var result = query.Execute("abc");
 
-                Assert.Null(result);
+                Assert.Throws<FormatException>(() => query.Execute("abc"));
             }
 
             [Theory]

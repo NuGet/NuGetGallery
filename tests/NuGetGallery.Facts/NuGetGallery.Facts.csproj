@@ -77,7 +77,6 @@
     <Compile Include="Authentication\AuthenticationServiceFacts.cs" />
     <Compile Include="Authentication\Providers\CommonAuth\AzureActiveDirectoryV2AuthenticatorFacts.cs" />
     <Compile Include="Authentication\TestCredentialHelper.cs" />
-    <Compile Include="Queries\CveIdHelperFacts.cs" />
     <Compile Include="Queries\CweQueryStringValidatorFacts.cs" />
     <Compile Include="Queries\CweIdHelperFacts.cs" />
     <Compile Include="Queries\AutocompleteCveIdsQueryFacts.cs" />

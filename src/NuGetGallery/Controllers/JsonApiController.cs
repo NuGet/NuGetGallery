@@ -283,10 +283,7 @@ namespace NuGetGallery
             {
                 suggestions = GetService<IAutoCompleteCweIdsQuery>().Execute(query);
 
-                if (suggestions != null)
-                {
-                    model.Items.AddRange(suggestions);
-                }
+                model.Items.AddRange(suggestions);
             }
             catch (FormatException formatException)
             {

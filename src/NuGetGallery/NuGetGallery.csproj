@@ -222,7 +222,6 @@
     <Compile Include="Authentication\Providers\AzureActiveDirectoryV2\AzureActiveDirectoryV2AuthenticatorConfiguration.cs" />
     <Compile Include="Authentication\Providers\AzureActiveDirectory\AzureActiveDirectoryAuthenticator.cs" />
     <Compile Include="Authentication\Providers\AzureActiveDirectory\AzureActiveDirectoryAuthenticatorConfiguration.cs" />
-    <Compile Include="Queries\CveIdHelper.cs" />
     <Compile Include="Queries\CweIdHelper.cs" />
     <Compile Include="Queries\CweQueryStringValidator.cs" />
     <Compile Include="Queries\CweQueryMethod.cs" />

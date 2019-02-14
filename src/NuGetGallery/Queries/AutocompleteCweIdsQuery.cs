@@ -12,7 +12,8 @@ namespace NuGetGallery
         : IAutoCompleteCweIdsQuery
     {
         // Search results should be limited anywhere between 5 - 10 results.
-        private const int _maxResults = 5;
+        private const int MaxResults = 5;
+
         private readonly IEntitiesContext _entitiesContext;
 
         public AutocompleteCweIdsQuery(IEntitiesContext entitiesContext)
@@ -36,34 +37,18 @@ namespace NuGetGallery
             switch (queryMethod)
             {
                 case CweQueryMethod.ByCweId:
-
-                    // When querying by CWE-ID, the validated search term will be properly prefixed already.
-                    // For numbers, we wait for 2 numeric characters (sometimes sufficient but other times it would be at least 3 digits). 
-                    if (validatedSearchTerm.Length < (Cwe.IdPrefix.Length + 2))
-                    {
-                        return null;
-                    }
-
                     queryResults = _entitiesContext.Cwes
                         .Where(e => e.CweId.StartsWith(validatedSearchTerm) && e.Listed == true)
                         .OrderBy(e => e.CweId)
-                        .Take(_maxResults)
+                        .Take(MaxResults)
                         .ToList();
                     break;
 
                 case CweQueryMethod.ByName:
-
-                    // When querying by Name, the validated search term will NOT be prefixed.
-                    // For text, we wait for 4 characters.
-                    if (validatedSearchTerm.Length < 4)
-                    {
-                        return null;
-                    }
-
                     queryResults = _entitiesContext.Cwes
                         .Where(e => e.Name.Contains(validatedSearchTerm) && e.Listed == true)
                         .OrderBy(e => e.CweId)
-                        .Take(_maxResults)
+                        .Take(MaxResults)
                         .ToList();
                     break;
                 default:

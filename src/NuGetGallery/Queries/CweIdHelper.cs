@@ -50,7 +50,7 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="cweId"></param>
         /// <returns><c>True</c> if the <paramref name="cweId"/> starts with the <see cref="Cwe.IdPrefix"/>; otherwise <c>false</c>.</returns>
-        public static bool StartsWithCweIdPrefix(string cweId)
+        internal static bool StartsWithCweIdPrefix(string cweId)
         {
             if (string.IsNullOrWhiteSpace(cweId))
             {
@@ -67,7 +67,7 @@ namespace NuGetGallery
         /// <exception cref="NotSupportedException">
         /// Thrown when the provided <paramref name="cweId"/> does not start with the <see cref="Cve.IdPrefix"/>.
         /// </exception>
-        public static string GetCweIdNumericPartAsString(string cweId)
+        private static string GetCweIdNumericPartAsString(string cweId)
         {
             if (!StartsWithCweIdPrefix(cweId))
             {

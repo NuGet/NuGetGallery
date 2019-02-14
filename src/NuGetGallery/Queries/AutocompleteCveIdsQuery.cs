@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using NuGet.Services.Entities;
 
 namespace NuGetGallery
@@ -12,7 +13,14 @@ namespace NuGetGallery
         : IAutoCompleteCveIdsQuery
     {
         // Search results should be limited anywhere between 5 - 10 results.
-        private const int _maxResults = 5;
+        private const int MaxResults = 5;
+
+        private static readonly TimeSpan RegexTimeout = TimeSpan.FromMinutes(1);
+        private static readonly Regex ValidationRegex = new Regex(
+            @"(CVE-)?(?<query>\d{4}(-\d*)?)",
+            RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.Singleline,
+            RegexTimeout);
+
         private readonly IEntitiesContext _entitiesContext;
 
         public AutocompleteCveIdsQuery(IEntitiesContext entitiesContext)
@@ -34,7 +42,7 @@ namespace NuGetGallery
             var queryResults = _entitiesContext.Cves
                 .Where(e => e.CveId.StartsWith(validatedPartialId) && e.Listed == true)
                 .OrderBy(e => e.CveId)
-                .Take(_maxResults)
+                .Take(MaxResults)
                 .ToList();
 
             return queryResults
@@ -48,38 +56,17 @@ namespace NuGetGallery
             // The user may choose to not type the CVE Id prefix "CVE-".
             // Accepted user input format is "CVE-{year}-xxxxxxx" or just "{year}-xxxxxxx".
 
-            // Strip off the leading "CVE-" if present.
-            var remainingSearchTerm = CveIdHelper.RemoveCveIdPrefix(partialId);
+            var match = ValidationRegex.Match(partialId);
 
-            if (remainingSearchTerm.Length < 4)
+            if (match.Value == string.Empty)
             {
                 throw new FormatException(Strings.AutocompleteCveIds_FormatException);
             }
 
-            // Try parsing the {year} part of the CVE Id.
-            if (!int.TryParse(remainingSearchTerm.Substring(0, 4), out var year))
-            {
-                // Invalid search term. Should be formatted as "CVE-{year}-xxxx" or just "{year}-xxxx".
-                throw new FormatException(Strings.AutocompleteCveIds_FormatException);
-            }
-
-            if (remainingSearchTerm.Length == 4)
-            {
-                return $"{Cve.IdPrefix}{year}";
-            }
-            else
-            {
-                // If the remaining part is more than 4 characters, it should have the format "{year}-xxxxxxx".
-                if (remainingSearchTerm[4] != '-')
-                {
-                    throw new FormatException(Strings.AutocompleteCveIds_FormatException);
-                }
-
-                remainingSearchTerm = remainingSearchTerm.Substring(4, remainingSearchTerm.Length - 4);
-            }
+            var query = match.Groups["query"];
 
             // Return the validated CVE ID (including the prefix for consistency and for db querying).
-            return $"{Cve.IdPrefix}{year}{remainingSearchTerm}";
+            return $"{Cve.IdPrefix}{query}";
         }
     }
 }
