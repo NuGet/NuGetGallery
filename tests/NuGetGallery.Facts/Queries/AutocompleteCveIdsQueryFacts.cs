@@ -26,6 +26,7 @@ namespace NuGetGallery.Queries
             [InlineData("CVE-2000-01", "CVE-2000-01")]
             [InlineData("cVe-2000-01", "CVE-2000-01")]
             [InlineData("2000-01", "CVE-2000-01")]
+            [InlineData("2000", "CVE-2000")]
             public void ReturnsExpectedResults(string queryString, string expectedCveIdStartString)
             {
                 var entitiesContext = new FakeEntitiesContext();

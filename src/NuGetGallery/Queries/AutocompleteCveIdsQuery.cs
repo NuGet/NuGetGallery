@@ -48,11 +48,6 @@ namespace NuGetGallery
             // The user may choose to not type the CVE Id prefix "CVE-".
             // Accepted user input format is "CVE-{year}-xxxxxxx" or just "{year}-xxxxxxx".
 
-            if (!partialId.Contains('-'))
-            {
-                throw new FormatException(Strings.AutocompleteCveIds_FormatException);
-            }
-
             // Strip off the leading "CVE-" if present.
             var remainingSearchTerm = CveIdHelper.RemoveCveIdPrefix(partialId);
 
