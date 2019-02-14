@@ -96,17 +96,12 @@ namespace NuGetGallery.Queries
                 var queryResults = query.Execute("Name A");
 
                 Assert.NotNull(queryResults);
-                Assert.Single(queryResults);
+                var singleResult = Assert.Single(queryResults);
 
-                Assert.Collection(
-                    queryResults,
-                    r =>
-                    {
-                        // Only the listed element matching by name should be returned.
-                        Assert.Equal(expectedResult.Name, r.Name);
-                        Assert.Equal(expectedResult.CweId, r.CweId);
-                        Assert.Equal(expectedResult.Description, r.Description);
-                    });
+                // Only the listed element matching by name should be returned.
+                Assert.Equal(expectedResult.Name, singleResult.Name);
+                Assert.Equal(expectedResult.CweId, singleResult.CweId);
+                Assert.Equal(expectedResult.Description, singleResult.Description);
             }
         }
     }
