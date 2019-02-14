@@ -256,7 +256,7 @@ namespace NuGetGallery
             }
             catch (FormatException formatException)
             {
-                return Json(new { success = false, message = formatException.Message }, JsonRequestBehavior.AllowGet);
+                return Json(HttpStatusCode.BadRequest, new { success = false, message = formatException.Message }, JsonRequestBehavior.AllowGet);
             }
 
             return Json(model, JsonRequestBehavior.AllowGet);
@@ -288,7 +288,7 @@ namespace NuGetGallery
             }
             catch (FormatException formatException)
             {
-                return Json(new { success = false, message = formatException.Message }, JsonRequestBehavior.AllowGet);
+                return Json(HttpStatusCode.BadRequest, new { success = false, message = formatException.Message }, JsonRequestBehavior.AllowGet);
             }
 
             return Json(model, JsonRequestBehavior.AllowGet);
