@@ -1009,10 +1009,12 @@ namespace NuGetGallery
 
                 var dateTimeNow = DateTime.Now;
                 var dateTimeYesterDay = dateTimeNow.AddDays(-1);
+                var dateTimeTwoDaysAgo = dateTimeNow.AddDays(-2);
 
                 var packageRegistration = new PackageRegistration();
                 packageRegistration.Id = "Foo";
-                var package = new Package
+
+                var oldestPackage = new Package
                 {
                     Listed = true,
                     PackageStatusKey = PackageStatus.Available,
@@ -1020,20 +1022,43 @@ namespace NuGetGallery
                     Version = "1.0.0",
                     Title = "Foo",
                     Description = "Test Package",
-                    Published = dateTimeYesterDay
+                    Created = dateTimeTwoDaysAgo,
+                    PackageRegistration = new PackageRegistration()
+                    {
+                        Id = "Foo"
+                    }
                 };
-                packageRegistration.Packages.Add(package);
-                var newestPackage = new Package
+                packageRegistration.Packages.Add(oldestPackage);
+
+                var highestVersionPackage = new Package
                 {
                     Listed = true,
                     PackageStatusKey = PackageStatus.Available,
                     NormalizedVersion = "2.0.0",
                     Version = "2.0.0",
-                    Title = "Foo",
                     Description = "Most recent version: Test Package",
-                    Published = dateTimeNow
+                    Created = dateTimeYesterDay,
+                    PackageRegistration = new PackageRegistration()
+                    {
+                        Id = "Foo"
+                    }
                 };
-                packageRegistration.Packages.Add(newestPackage);
+                packageRegistration.Packages.Add(highestVersionPackage);
+
+                var newestPackageButNotHighestVersion = new Package
+                {
+                    Listed = true,
+                    PackageStatusKey = PackageStatus.Available,
+                    NormalizedVersion = "1.1.0",
+                    Version = "1.1.0",
+                    Description = "Fix for older version: Test Package",
+                    Created = dateTimeNow,
+                    PackageRegistration = new PackageRegistration()
+                    {
+                        Id = "Foo"
+                    }
+                };
+                packageRegistration.Packages.Add(newestPackageButNotHighestVersion);
                 packageService.Setup(p => p.FindPackageRegistrationById("Foo"))
                               .Returns(packageRegistration);
 
@@ -1045,25 +1070,31 @@ namespace NuGetGallery
                 Assert.NotNull(syndicationResult);
 
                 Assert.Equal("https://localhost/packages/Foo/", syndicationResult.SyndicationFeed.Id);
-                Assert.Equal("Test Gallery Feed for package: Foo", syndicationResult.SyndicationFeed.Title.Text);
+                Assert.Equal("Test Gallery Feed for Foo", syndicationResult.SyndicationFeed.Title.Text);
                 Assert.Equal("Most recent version: Test Package", syndicationResult.SyndicationFeed.Description.Text);
                 Assert.Equal(dateTimeNow, syndicationResult.SyndicationFeed.LastUpdatedTime);
 
                 var syndicationFeedItems = new List<System.ServiceModel.Syndication.SyndicationItem>(syndicationResult.SyndicationFeed.Items);
 
-                Assert.Equal(2, syndicationFeedItems.Count);
+                Assert.Equal(3, syndicationFeedItems.Count);
 
                 Assert.Equal("https://localhost/packages/Foo/2.0.0", syndicationFeedItems[0].Id);
-                Assert.Equal("Foo: 2.0.0", syndicationFeedItems[0].Title.Text);
+                Assert.Equal("Foo 2.0.0", syndicationFeedItems[0].Title.Text);
                 Assert.Equal("Most recent version: Test Package", (syndicationFeedItems[0].Content as System.ServiceModel.Syndication.TextSyndicationContent).Text);
-                Assert.Equal(dateTimeNow, syndicationFeedItems[0].PublishDate);
-                Assert.Equal(dateTimeNow, syndicationFeedItems[0].LastUpdatedTime);
+                Assert.Equal(dateTimeYesterDay, syndicationFeedItems[0].PublishDate);
+                Assert.Equal(dateTimeYesterDay, syndicationFeedItems[0].LastUpdatedTime);
 
-                Assert.Equal("https://localhost/packages/Foo/1.0.0", syndicationFeedItems[1].Id);
-                Assert.Equal("Foo: 1.0.0", syndicationFeedItems[1].Title.Text);
-                Assert.Equal("Test Package", (syndicationFeedItems[1].Content as System.ServiceModel.Syndication.TextSyndicationContent).Text);
-                Assert.Equal(dateTimeYesterDay, syndicationFeedItems[1].PublishDate);
-                Assert.Equal(dateTimeYesterDay, syndicationFeedItems[1].LastUpdatedTime);
+                Assert.Equal("https://localhost/packages/Foo/1.1.0", syndicationFeedItems[1].Id);
+                Assert.Equal("Foo 1.1.0", syndicationFeedItems[1].Title.Text);
+                Assert.Equal("Fix for older version: Test Package", (syndicationFeedItems[1].Content as System.ServiceModel.Syndication.TextSyndicationContent).Text);
+                Assert.Equal(dateTimeNow, syndicationFeedItems[1].PublishDate);
+                Assert.Equal(dateTimeNow, syndicationFeedItems[1].LastUpdatedTime);
+
+                Assert.Equal("https://localhost/packages/Foo/1.0.0", syndicationFeedItems[2].Id);
+                Assert.Equal("Foo 1.0.0", syndicationFeedItems[2].Title.Text);
+                Assert.Equal("Test Package", (syndicationFeedItems[2].Content as System.ServiceModel.Syndication.TextSyndicationContent).Text);
+                Assert.Equal(dateTimeTwoDaysAgo, syndicationFeedItems[2].PublishDate);
+                Assert.Equal(dateTimeTwoDaysAgo, syndicationFeedItems[2].LastUpdatedTime);
             }
         }
 

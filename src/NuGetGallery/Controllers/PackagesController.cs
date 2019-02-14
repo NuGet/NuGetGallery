@@ -755,14 +755,18 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
+            // most recent version for feed title/description
             var newestVersionPackage = packageVersions.First();
+
+            // the last edited or created package is used as the feed timestamp
+            var lastUpdatedPackage = packageVersions.Max(x => x.LastEdited ?? x.Created);
 
             SyndicationFeed feed = new SyndicationFeed()
             {
                 Id = Url.Package(packageRegistration.Id, version: null, relativeUrl: false),
-                Title = SyndicationContent.CreatePlaintextContent($"{_config.Brand} Feed for package: {packageRegistration.Id}"),
+                Title = SyndicationContent.CreatePlaintextContent($"{_config.Brand} Feed for {packageRegistration.Id}"),
                 Description = SyndicationContent.CreatePlaintextContent(newestVersionPackage.Description),
-                LastUpdatedTime = newestVersionPackage.LastEdited ?? newestVersionPackage.Published
+                LastUpdatedTime = lastUpdatedPackage
             };
 
             if (!string.IsNullOrWhiteSpace(newestVersionPackage.IconUrl))
@@ -780,12 +784,12 @@ namespace NuGetGallery
 
             foreach (var packageVersion in packageVersions)
             {
-                SyndicationItem syndicationItem = new SyndicationItem($"{packageVersion.Title}: {packageVersion.Version}",
+                SyndicationItem syndicationItem = new SyndicationItem($"{packageVersion.Id} {packageVersion.Version}",
                                                                       packageVersion.Description,
                                                                       new Uri(Url.Package(packageRegistration.Id, version: packageVersion.Version, relativeUrl: false)));
                 syndicationItem.Id = Url.Package(packageRegistration.Id, version: packageVersion.Version, relativeUrl: false);
-                syndicationItem.LastUpdatedTime = packageVersion.LastEdited ?? packageVersion.Published;
-                syndicationItem.PublishDate = packageVersion.Published;
+                syndicationItem.LastUpdatedTime = packageVersion.LastEdited ?? packageVersion.Created;
+                syndicationItem.PublishDate = packageVersion.Created;
 
                 syndicationItem.Authors.AddRange(ownersAsAuthors);
                 feedItems.Add(syndicationItem);
