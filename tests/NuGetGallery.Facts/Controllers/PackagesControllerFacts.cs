@@ -69,7 +69,8 @@ namespace NuGetGallery
             Mock<IContentObjectService> contentObjectService = null,
             Mock<ISymbolPackageUploadService> symbolPackageUploadService = null,
             Mock<ICoreLicenseFileService> coreLicenseFileService = null,
-            Mock<ILicenseExpressionSplitter> licenseExpressionSplitter = null)
+            Mock<ILicenseExpressionSplitter> licenseExpressionSplitter = null,
+            Mock<IFeatureFlagService> featureFlagService = null)
         {
             packageService = packageService ?? new Mock<IPackageService>();
             if (uploadFileService == null)
@@ -181,6 +182,12 @@ namespace NuGetGallery
 
             licenseExpressionSplitter = licenseExpressionSplitter ?? new Mock<ILicenseExpressionSplitter>();
 
+            if (featureFlagService == null)
+            {
+                featureFlagService = new Mock<IFeatureFlagService>();
+                featureFlagService.SetReturnsDefault<bool>(true);
+            }
+
             var diagnosticsService = new Mock<IDiagnosticsService>();
             var controller = new Mock<PackagesController>(
                 packageService.Object,
@@ -207,7 +214,8 @@ namespace NuGetGallery
                 symbolPackageUploadService.Object,
                 diagnosticsService.Object,
                 coreLicenseFileService.Object,
-                licenseExpressionSplitter.Object);
+                licenseExpressionSplitter.Object,
+                featureFlagService.Object);
 
             controller.CallBase = true;
             controller.Object.SetOwinContextOverride(Fakes.CreateOwinContext());
@@ -966,6 +974,111 @@ namespace NuGetGallery
                 ResultAssert.IsNotFound(result);
             }
 
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public void GivenAnExistentPackageTheFeatureFlagHidesTheFeed(bool enabled)
+            {
+                // Arrange
+                var httpContext = new Mock<HttpContextBase>();
+                var packageService = new Mock<IPackageService>();
+                var configurationService = GetConfigurationService();
+                configurationService.Current.Brand = "Test Gallery";
+                var featureFlagService = new Mock<IFeatureFlagService>();
+                featureFlagService
+                    .Setup(x => x.IsPackagesAtomFeedEnabled())
+                    .Returns(enabled);
+
+                var controller = CreateController(
+                    configurationService,
+                    packageService: packageService,
+                    featureFlagService: featureFlagService,
+                    httpContext: httpContext);
+
+                var packageRegistration = new PackageRegistration();
+                packageRegistration.Id = "Foo";
+
+                var onlyVersion = new Package
+                {
+                    Listed = true,
+                    PackageStatusKey = PackageStatus.Available,
+                    NormalizedVersion = "2.0.0",
+                    Version = "2.0.0",
+                    IsPrerelease = true,
+                    PackageRegistration = new PackageRegistration()
+                    {
+                        Id = "Foo"
+                    }
+                };
+                packageRegistration.Packages.Add(onlyVersion);
+
+                packageService.Setup(p => p.FindPackageRegistrationById("Foo"))
+                              .Returns(packageRegistration);
+
+                // Act
+                var result = controller.AtomFeed("Foo");
+
+                // Assert
+                if (enabled)
+                {
+                    Assert.IsType<SyndicationAtomActionResult>(result);
+                }
+                else
+                {
+                    ResultAssert.IsNotFound(result);
+                }
+            }
+
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public void GivenAExistentPackagePrereleaseVersionsCanBeFilteredOut(bool includePrerelease)
+            {
+                // Arrange
+                var httpContext = new Mock<HttpContextBase>();
+                var packageService = new Mock<IPackageService>();
+                var configurationService = GetConfigurationService();
+                configurationService.Current.Brand = "Test Gallery";
+
+                var controller = CreateController(
+                    configurationService,
+                    packageService: packageService,
+                    httpContext: httpContext);
+
+                var packageRegistration = new PackageRegistration();
+                packageRegistration.Id = "Foo";
+
+                var onlyVersion = new Package
+                {
+                    Listed = true,
+                    PackageStatusKey = PackageStatus.Available,
+                    NormalizedVersion = "2.0.0-beta",
+                    Version = "2.0.0-beta",
+                    IsPrerelease = true,
+                    PackageRegistration = new PackageRegistration()
+                    {
+                        Id = "Foo"
+                    }
+                };
+                packageRegistration.Packages.Add(onlyVersion);
+
+                packageService.Setup(p => p.FindPackageRegistrationById("Foo"))
+                              .Returns(packageRegistration);
+
+                // Act
+                var result = controller.AtomFeed("Foo", includePrerelease);
+
+                // Assert
+                if (includePrerelease)
+                {
+                    Assert.IsType<SyndicationAtomActionResult>(result);
+                }
+                else
+                {
+                    ResultAssert.IsNotFound(result);
+                }
+            }
+
             [Fact]
             public void GivenAExistentPackageWithListedUnavailablePackagesIt404s()
             {
@@ -1034,8 +1147,9 @@ namespace NuGetGallery
                 {
                     Listed = true,
                     PackageStatusKey = PackageStatus.Available,
-                    NormalizedVersion = "2.0.0",
-                    Version = "2.0.0",
+                    NormalizedVersion = "2.0.0-beta",
+                    Version = "2.0.0-beta",
+                    IsPrerelease = true,
                     Description = "Most recent version: Test Package",
                     Created = dateTimeYesterDay,
                     PackageRegistration = new PackageRegistration()
@@ -1078,8 +1192,8 @@ namespace NuGetGallery
 
                 Assert.Equal(3, syndicationFeedItems.Count);
 
-                Assert.Equal("https://localhost/packages/Foo/2.0.0", syndicationFeedItems[0].Id);
-                Assert.Equal("Foo 2.0.0", syndicationFeedItems[0].Title.Text);
+                Assert.Equal("https://localhost/packages/Foo/2.0.0-beta", syndicationFeedItems[0].Id);
+                Assert.Equal("Foo 2.0.0-beta", syndicationFeedItems[0].Title.Text);
                 Assert.Equal("Most recent version: Test Package", (syndicationFeedItems[0].Content as System.ServiceModel.Syndication.TextSyndicationContent).Text);
                 Assert.Equal(dateTimeYesterDay, syndicationFeedItems[0].PublishDate);
                 Assert.Equal(dateTimeYesterDay, syndicationFeedItems[0].LastUpdatedTime);

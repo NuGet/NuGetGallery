@@ -109,6 +109,7 @@ namespace NuGetGallery
         private readonly IDiagnosticsSource _trace;
         private readonly ICoreLicenseFileService _coreLicenseFileService;
         private readonly ILicenseExpressionSplitter _licenseExpressionSplitter;
+        private readonly IFeatureFlagService _featureFlagService;
 
         public PackagesController(
             IPackageService packageService,
@@ -135,7 +136,8 @@ namespace NuGetGallery
             ISymbolPackageUploadService symbolPackageUploadService,
             IDiagnosticsService diagnosticsService,
             ICoreLicenseFileService coreLicenseFileService,
-            ILicenseExpressionSplitter licenseExpressionSplitter)
+            ILicenseExpressionSplitter licenseExpressionSplitter,
+            IFeatureFlagService featureFlagService)
         {
             _packageService = packageService;
             _uploadFileService = uploadFileService;
@@ -162,6 +164,7 @@ namespace NuGetGallery
             _trace = diagnosticsService?.SafeGetSource(nameof(PackagesController)) ?? throw new ArgumentNullException(nameof(diagnosticsService));
             _coreLicenseFileService = coreLicenseFileService ?? throw new ArgumentNullException(nameof(coreLicenseFileService));
             _licenseExpressionSplitter = licenseExpressionSplitter ?? throw new ArgumentNullException(nameof(licenseExpressionSplitter));
+            _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
         }
 
         [HttpGet]
@@ -673,6 +676,7 @@ namespace NuGetGallery
             model.PackageValidationIssues = _validationService.GetLatestPackageValidationIssues(package);
             model.SymbolsPackageValidationIssues = _validationService.GetLatestPackageValidationIssues(model.LatestSymbolsPackage);
             model.IsCertificatesUIEnabled = _contentObjectService.CertificatesConfiguration?.IsUIEnabledForUser(currentUser) ?? false;
+            model.IsAtomFeedEnabled = _featureFlagService.IsPackagesAtomFeedEnabled();
 
             model.ReadMeHtml = await _readMeService.GetReadMeHtmlAsync(package);
 
@@ -737,18 +741,31 @@ namespace NuGetGallery
         }
 
         [HttpGet]
-        public virtual ActionResult AtomFeed(string id, bool allowPrerelease = false)
+        public virtual ActionResult AtomFeed(string id, bool prerel = true)
         {
+            if (!_featureFlagService.IsPackagesAtomFeedEnabled())
+            {
+                return HttpNotFound();
+            }
+
             var packageRegistration = _packageService.FindPackageRegistrationById(id);
             if (packageRegistration == null)
             {
                 return HttpNotFound();
             }
 
-            var packageVersions = packageRegistration.Packages
-                                   .Where(x => x.Listed && x.PackageStatusKey == PackageStatus.Available)
-                                   .OrderByDescending(p => NuGetVersion.Parse(p.NormalizedVersion))
-                                   .ToList();
+            IEnumerable<Package> packageVersionsQuery = packageRegistration
+                .Packages
+                .Where(x => x.Listed && x.PackageStatusKey == PackageStatus.Available)
+                .OrderByDescending(p => NuGetVersion.Parse(p.NormalizedVersion));
+
+            if (!prerel)
+            {
+                packageVersionsQuery = packageVersionsQuery
+                    .Where(x => !x.IsPrerelease);
+            }
+
+            var packageVersions = packageVersionsQuery.ToList();
 
             if (packageVersions.Count == 0)
             {
