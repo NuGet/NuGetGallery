@@ -9,13 +9,14 @@ using System.Security.Principal;
 using System.Web;
 using Newtonsoft.Json;
 using NuGet.Services.Entities;
+using NuGet.Services.FeatureFlags;
 using NuGet.Versioning;
 using NuGetGallery.Authentication;
 using NuGetGallery.Diagnostics;
 
 namespace NuGetGallery
 {
-    public class TelemetryService : ITelemetryService
+    public class TelemetryService : ITelemetryService, IFeatureFlagTelemetryService
     {
         internal class Events
         {
@@ -68,7 +69,8 @@ namespace NuGetGallery
             public const string NonFsfOsiLicenseUsed = "NonFsfOsiLicenseUsed";
             public const string LicenseFileRejected = "LicenseFileRejected";
             public const string LicenseValidationFailed = "LicenseValidationFailed";
-            public const string SearchExecutionDuration = "SearchExecutionDuration";
+            public const string FeatureFlagStalenessSeconds = "FeatureFlagStalenessSeconds";
+	    public const string SearchExecutionDuration = "SearchExecutionDuration";
         }
 
         private IDiagnosticsSource _diagnosticsSource;
@@ -772,20 +774,6 @@ namespace NuGetGallery
             });
         }
 
-        /// <summary>
-        /// We use <see cref="ITelemetryClient.TrackMetric(string, double, IDictionary{string, string})"/> instead of
-        /// <see cref="ITelemetryClient.TrackEvent(string, IDictionary{string, string}, IDictionary{string, double})"/>
-        /// because events don't flow properly into our internal metrics and monitoring solution.
-        /// </summary>
-        protected virtual void TrackMetric(string metricName, double value, Action<Dictionary<string, string>> addProperties)
-        {
-            var telemetryProperties = new Dictionary<string, string>();
-
-            addProperties(telemetryProperties);
-
-            _telemetryClient.TrackMetric(metricName, value, telemetryProperties);
-        }
-
         public void TrackInvalidLicenseMetadata(string licenseValue)
             => TrackMetric(Events.InvalidLicenseMetadata, 1, p => p.Add(LicenseExpression, licenseValue));
 
@@ -798,12 +786,21 @@ namespace NuGetGallery
         public void TrackLicenseValidationFailure()
             => TrackMetric(Events.LicenseValidationFailed, 1, p => { });
 
-        public void TrackMetricForSearchExecutionDuration(string url, TimeSpan duration, HttpStatusCode statusCode)
+        public void TrackFeatureFlagStaleness(TimeSpan staleness)
+            => TrackMetric(Events.FeatureFlagStalenessSeconds, staleness.TotalSeconds, p => { });
+
+        /// <summary>
+        /// We use <see cref="ITelemetryClient.TrackMetric(string, double, IDictionary{string, string})"/> instead of
+        /// <see cref="ITelemetryClient.TrackEvent(string, IDictionary{string, string}, IDictionary{string, double})"/>
+        /// because events don't flow properly into our internal metrics and monitoring solution.
+        /// </summary>
+        protected virtual void TrackMetric(string metricName, double value, Action<Dictionary<string, string>> addProperties)
         {
-            TrackMetric(Events.SearchExecutionDuration, duration.TotalMilliseconds, properties => {
-                properties.Add(SearchUrl, url);
-                properties.Add(SearchHttpResponseCode, statusCode.ToString());
-            });
+            var telemetryProperties = new Dictionary<string, string>();
+
+            addProperties(telemetryProperties);
+
+            _telemetryClient.TrackMetric(metricName, value, telemetryProperties);
         }
     }
 }

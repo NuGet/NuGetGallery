@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq;
 
 namespace NuGet.Services.Entities
 {
@@ -22,6 +23,8 @@ namespace NuGet.Services.Entities
             PackageTypes = new HashSet<PackageType>();
             SupportedFrameworks = new HashSet<PackageFramework>();
             SymbolPackages = new HashSet<SymbolPackage>();
+            Deprecations = new HashSet<PackageDeprecation>();
+            AlternativeOf = new HashSet<PackageDeprecation>();
             Listed = true;
         }
 #pragma warning restore 618
@@ -251,5 +254,22 @@ namespace NuGet.Services.Entities
 
         [StringLength(500)]
         public string LicenseExpression { get; set; }
+
+        /// <summary>
+        /// Gets and sets the deprecations associated with this package.
+        /// </summary>
+        /// <remarks>
+        /// In the future, a package may have multiple deprecations associated with it, one visible and others hidden.
+        /// The visible deprecation will be the deprecation shown in the UI to users.
+        /// The hidden deprecations will consist of information about the package that we recommend package owners apply to their package.
+        /// For now, we only support a single deprecation per package (the visible deprecation).
+        /// </remarks>
+        public virtual ICollection<PackageDeprecation> Deprecations { get; set; }
+
+        /// <summary>
+        /// Gets and sets the list of deprecations that recommend this package as an alternative.
+        /// See <see cref="PackageDeprecation.AlternatePackage"/>.
+        /// </summary>
+        public virtual ICollection<PackageDeprecation> AlternativeOf { get; set; }
     }
 }

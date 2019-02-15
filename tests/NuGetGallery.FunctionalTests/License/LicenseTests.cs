@@ -21,8 +21,8 @@ namespace NuGetGallery.FunctionalTests.License
 
         [Fact]
         [Description("Push an invalidp package with license expression and verify uploading is blocked")]
-        [Priority(2)]
-        [Category("P2Tests")]
+        [Priority(1)]
+        [Category("P1Tests")]
         public async Task UploadInValidPackageWithLicenseExpression()
         {
             // Arrange
@@ -45,8 +45,8 @@ namespace NuGetGallery.FunctionalTests.License
 
         [Theory]
         [Description("Push an invalid package with license file and verify uploading is blocked")]
-        [Priority(2)]
-        [Category("P2Tests")]
+        [Priority(1)]
+        [Category("P1Tests")]
         [InlineData("https://testNugetLicenseUrl", "license.txt", "license.txt", "It's a license", "when a license file is packaged, <licenseUrl> must be set to ")]
         [InlineData("https://aka.ms/deprecateLicenseUrl", "licensefolder\\license.txt", "license.txt", "It's a license", "does not exist in the package")]
         public async Task UploadInValidPackageWithLicenseFile(string licenseUrl, string licenseFile, string licenseFileName, string licenseFileContents, string expectedErrorMessage)

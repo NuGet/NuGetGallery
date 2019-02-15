@@ -134,6 +134,7 @@
     <Compile Include="App_Start\AutofacConfig.cs" />
     <Compile Include="Areas\Admin\Controllers\DeleteAccountController.cs" />
     <Compile Include="Areas\Admin\Controllers\DeleteController.cs" />
+    <Compile Include="Areas\Admin\Controllers\FeaturesController.cs" />
     <Compile Include="Areas\Admin\Controllers\LockPackageController.cs" />
     <Compile Include="Areas\Admin\Controllers\ReservedNamespaceController.cs" />
     <Compile Include="Areas\Admin\Controllers\RevalidationController.cs" />
@@ -180,6 +181,7 @@
     <Compile Include="Areas\Admin\Services\ValidationAdminService.cs" />
     <Compile Include="Areas\Admin\ViewModels\DeleteAccountAsAdminViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\DeleteAccountStatus.cs" />
+    <Compile Include="Areas\Admin\ViewModels\FeatureFlagsViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\HardDeleteReflowBulkRequestConfirmation.cs" />
     <Compile Include="Areas\Admin\ViewModels\HardDeleteReflowBulkRequest.cs" />
     <Compile Include="Areas\Admin\ViewModels\HardDeleteReflowRequest.cs" />
@@ -274,15 +276,18 @@
     <Compile Include="Extensions\RouteExtensions.cs" />
     <Compile Include="Extensions\ScopeExtensions.cs" />
     <Compile Include="Extensions\CredentialExtensions.cs" />
+    <Compile Include="Extensions\SimulatedErrorTypeExtensions.cs" />
     <Compile Include="Extensions\UserExtensions.cs" />
     <Compile Include="Filters\ApiScopeRequiredAttribute.cs" />
     <Compile Include="Filters\UIAuthorizeAttribute.cs" />
     <Compile Include="Filters\ValidateRecaptchaResponseAttribute.cs" />
     <Compile Include="GalleryConstants.cs" />
     <Compile Include="GlobalSuppressions.cs" />
+    <Compile Include="Helpers\TruncatedStream.cs" />
     <Compile Include="Helpers\GravatarHelper.cs" />
     <Compile Include="Helpers\LicenseExpressionRedirectUrlHelper.cs" />
     <Compile Include="Helpers\ObfuscationHelper.cs" />
+    <Compile Include="Helpers\StreamHelper.cs" />
     <Compile Include="Helpers\TextHelper.cs" />
     <Compile Include="Helpers\ZipArchiveHelpers.cs" />
     <Compile Include="Helpers\PermissionsHelpers.cs" />
@@ -411,6 +416,14 @@
     <Compile Include="Migrations\201811291758016_RemoveCuratedFeedEntities.Designer.cs">
       <DependentUpon>201811291758016_RemoveCuratedFeedEntities.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201901142143060_AddDeprecationEntities.cs" />
+    <Compile Include="Migrations\201901142143060_AddDeprecationEntities.Designer.cs">
+      <DependentUpon>201901142143060_AddDeprecationEntities.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201902061444243_AddVulnerabilityEntities.cs" />
+    <Compile Include="Migrations\201902061444243_AddVulnerabilityEntities.Designer.cs">
+      <DependentUpon>201902061444243_AddVulnerabilityEntities.cs</DependentUpon>
+    </Compile>
     <Compile Include="RequestModels\DeleteAccountRequest.cs" />
     <Compile Include="Migrations\201710301857232_Organizations.cs" />
     <Compile Include="Migrations\201710301857232_Organizations.Designer.cs">
@@ -420,6 +433,7 @@
     <Compile Include="Migrations\201711021733062_ApiKeyOwnerScope.Designer.cs">
       <DependentUpon>201711021733062_ApiKeyOwnerScope.cs</DependentUpon>
     </Compile>
+    <Compile Include="RequestModels\SimulatedErrorType.cs" />
     <Compile Include="Security\AutomaticOverwriteRequiredSignerPolicy.cs" />
     <Compile Include="Security\ControlRequiredSignerPolicy.cs" />
     <Compile Include="Security\MicrosoftTeamSubscription.cs" />
@@ -438,7 +452,9 @@
     <Compile Include="Services\ActionsRequiringPermissions.cs" />
     <Compile Include="Services\AsynchronousPackageValidationInitiator.cs" />
     <Compile Include="Infrastructure\Mail\BackgroundMarkdownMessageService.cs" />
+    <Compile Include="Services\FeatureFlagService.cs" />
     <Compile Include="Services\GalleryContentFileMetadataService.cs" />
+    <Compile Include="Services\IFeatureFlagService.cs" />
     <Compile Include="Services\InvalidLicenseUrlValidationMessage.cs" />
     <Compile Include="Services\InvalidUrlEncodingForLicenseUrlValidationMessage.cs" />
     <Compile Include="Services\ISymbolPackageUploadService.cs" />
@@ -449,12 +465,11 @@
     <Compile Include="Services\ITyposquattingService.cs" />
     <Compile Include="Services\IValidationMessage.cs" />
     <Compile Include="Services\JsonValidationMessage.cs" />
-    <Compile Include="Services\IFlatContainerService.cs" />
-    <Compile Include="Services\FlatContainerService.cs" />
     <Compile Include="Services\LicenseUrlDeprecationValidationMessage.cs" />
     <Compile Include="Services\PackageShouldNotBeSignedUserFixableValidationMessage.cs" />
     <Compile Include="Services\PlainTextOnlyValidationMessage.cs" />
     <Compile Include="Services\SymbolPackageValidationResult.cs" />
+    <Compile Include="Services\FlatContainerContentFileMetadataService.cs" />
     <Compile Include="Infrastructure\Mail\MarkdownMessageService.cs" />
     <Compile Include="Services\SymbolPackageUploadService.cs" />
     <Compile Include="Services\SymbolPackageFileService.cs" />
@@ -701,10 +716,12 @@
     <Compile Include="ViewModels\CompositeLicenseExpressionSegmentViewModel.cs" />
     <Compile Include="ViewModels\DeleteOrganizationViewModel.cs" />
     <Compile Include="ViewModels\DeleteUserViewModel.cs" />
+    <Compile Include="ViewModels\DisplayLicenseViewModel.cs" />
     <Compile Include="ViewModels\ListCertificateItemViewModel.cs" />
     <Compile Include="ViewModels\GalleryHomeViewModel.cs" />
     <Compile Include="ViewModels\HandleOrganizationMembershipRequestModel.cs" />
     <Compile Include="ViewModels\ListPackageItemRequiredSignerViewModel.cs" />
+    <Compile Include="ViewModels\ManagePackageViewModel.cs" />
     <Compile Include="ViewModels\SignerViewModel.cs" />
     <Compile Include="WebRole.cs" />
     <Compile Include="Areas\Admin\AdminAreaRegistration.cs" />
@@ -1246,7 +1263,6 @@
     <Compile Include="Queries\IAutoCompletePackageVersionsQuery.cs" />
     <Compile Include="Queries\AutoCompleteDatabasePackageVersionsQuery.cs" />
     <Compile Include="Queries\AutoCompleteDatabasePackageIdsQuery.cs" />
-    <Compile Include="RequestModels\EditPackageRequest.cs" />
     <Compile Include="RequestModels\DeletePackagesRequest.cs" />
     <Compile Include="RequestModels\EditPackageVersionRequest.cs" />
     <Compile Include="RequestModels\VerifyPackageRequest.cs" />
@@ -1272,7 +1288,6 @@
     <Compile Include="ViewModels\DeleteAccountViewModel.cs" />
     <Compile Include="ViewModels\ApiKeyOwnerViewModel.cs" />
     <Compile Include="ViewModels\PackageOwnersResultViewModel.cs" />
-    <Compile Include="ViewModels\ManagePackagesListViewModel.cs" />
     <Compile Include="ViewModels\ApiKeyListViewModel.cs" />
     <Compile Include="ViewModels\ApiKeyViewModel.cs" />
     <Compile Include="ViewModels\OwnerRequestsListItemViewModel.cs" />
@@ -1508,7 +1523,6 @@
     <Compile Include="Services\SearchExtensionMethods.cs" />
     <Compile Include="ViewModels\ContactOwnersViewModel.cs" />
     <Compile Include="ViewModels\PasswordResetViewModel.cs" />
-    <Compile Include="ViewModels\ManagePackageOwnersViewModel.cs" />
     <Compile Include="ViewModels\IPackageVersionModel.cs" />
     <Compile Include="ViewModels\IPageableEnumerable.cs" />
     <Compile Include="App_Start\Routes.cs" />
@@ -1663,6 +1677,12 @@
     <EmbeddedResource Include="Migrations\201811291758016_RemoveCuratedFeedEntities.resx">
       <DependentUpon>201811291758016_RemoveCuratedFeedEntities.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201901142143060_AddDeprecationEntities.resx">
+      <DependentUpon>201901142143060_AddDeprecationEntities.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201902061444243_AddVulnerabilityEntities.resx">
+      <DependentUpon>201902061444243_AddVulnerabilityEntities.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv2getupdates.json" />
@@ -1713,7 +1733,6 @@
     <Content Include="Views\Authentication\_Register.cshtml" />
     <Content Include="Views\Shared\_PackageHeading.cshtml" />
     <Content Include="Views\Packages\_ImportReadMe.cshtml" />
-    <Content Include="Views\Packages\_SubmitPackage.cshtml" />
     <Content Include="Views\Packages\_EditForm.cshtml" />
     <Content Include="Areas\Admin\Views\DeleteAccount\DeleteUserAccount.cshtml" />
     <Content Include="Views\Users\_UserPackagesListForDeletedAccount.cshtml" />
@@ -1837,6 +1856,8 @@
     <EmbeddedResource Include="Infrastructure\AddPackageLicenseReport.sql" />
     <Content Include="Public\robots.txt" />
     <Content Include="App_Data\Files\Content\Typosquatting-Configuration.json" />
+    <Content Include="App_Data\Files\Content\flags.json" />
+    <Content Include="Areas\Admin\Views\Features\Index.cshtml" />
     <None Include="Properties\PublishProfiles\nuget-staging-frontend.pubxml" />
     <Content Include="Scripts\gallery\**\*" />
     <Content Include="Web.config">
@@ -1871,15 +1892,17 @@
     <Content Include="Views\Users\Account.cshtml" />
     <Content Include="Views\Packages\ConfirmOwner.cshtml" />
     <Content Include="Views\Errors\NotFound.cshtml" />
-    <Content Include="Views\Packages\Delete.cshtml" />
-    <Content Include="Views\Packages\Edit.cshtml" />
-    <Content Include="Views\Packages\ManagePackageOwners.cshtml" />
+    <Content Include="Views\Packages\_ManageListing.cshtml" />
+    <Content Include="Views\Packages\_ManageDocumentation.cshtml" />
+    <Content Include="Views\Packages\_ManageOwners.cshtml" />
     <Content Include="api\Web.config" />
     <Compile Include="Infrastructure\Lucene\LuceneSearchService.cs" />
     <Content Include="Views\Shared\ConfirmationRequired.cshtml" />
     <Content Include="Views\Pages\Contact.cshtml" />
     <Content Include="Views\Shared\_DeletePackage.cshtml" />
     <Content Include="Views\Packages\DeleteSymbols.cshtml" />
+    <Content Include="Views\Packages\Manage.cshtml" />
+    <Content Include="Views\Packages\License.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
@@ -2072,7 +2095,7 @@
       <Version>2.2.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Licenses">
-      <Version>2.41.0-agr-licenses-2294033</Version>
+      <Version>2.42.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.StrongName.AnglicanGeek.MarkdownMailer">
       <Version>1.2.0</Version>
@@ -2296,16 +2319,16 @@
       <Version>5.0.0-preview1.5665</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.KeyVault">
-      <Version>2.40.0</Version>
+      <Version>2.42.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Logging">
-      <Version>2.40.0</Version>
+      <Version>2.42.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Owin">
-      <Version>2.40.0</Version>
+      <Version>2.42.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Sql">
-      <Version>2.40.0</Version>
+      <Version>2.42.0</Version>
     </PackageReference>
     <PackageReference Include="Owin">
       <Version>1.0.0</Version>

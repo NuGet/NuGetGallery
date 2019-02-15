@@ -84,6 +84,7 @@
     <Compile Include="Infrastructure\Lucene\SearchPolicyFacts.cs" />
     <Compile Include="Infrastructure\Lucene\ResilientSearchServiceFacts.cs" />
     <Compile Include="Infrastructure\Lucene\GallerySearchServiceFacts.cs" />
+    <Compile Include="Helpers\StreamHelperFacts.cs" />
     <Compile Include="UsernameValidationRegex.cs" />
     <Compile Include="Extensions\NumberExtensionsFacts.cs" />
     <Compile Include="Extensions\RouteExtensionsFacts.cs" />
@@ -179,7 +180,6 @@
     <Compile Include="Services\SymbolPackageServiceFacts.cs" />
     <Compile Include="Services\PermissionsHelpersFacts.cs" />
     <Compile Include="Services\ReadMeServiceFacts.cs" />
-    <Compile Include="Services\FlatContainerServiceFacts.cs" />
     <Compile Include="Infrastructure\UserAuditRecordFacts.cs" />
     <Compile Include="OData\Filter\ODataFilterFacts.cs" />
     <Compile Include="OData\SearchService\SearchHijackerFacts.cs" />
@@ -271,6 +271,7 @@
     <Compile Include="UriExtensionsFacts.cs" />
     <Compile Include="UrlHelperExtensionsFacts.cs" />
     <Compile Include="ViewModels\DependencySetsViewModelFacts.cs" />
+    <Compile Include="ViewModels\DisplayLicenseViewModelFacts.cs" />
     <Compile Include="ViewModels\DisplayPackageViewModelFacts.cs" />
     <Compile Include="ViewModels\ListCertificateItemViewModelFacts.cs" />
     <Compile Include="ViewModels\ListPackageItemRequiredSignerViewModelFacts.cs" />

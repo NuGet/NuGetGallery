@@ -5,6 +5,7 @@
         && Request.IsAuthenticated
         && Config.Current.DeprecateNuGetPasswordLogins
         && User.HasPasswordLogin();
+    var rawErrorMessage = TempData.ContainsKey("RawErrorMessage") ? TempData["RawErrorMessage"].ToString() : null;
 }
 
 @if (!string.IsNullOrWhiteSpace(Config.Current.WarningBanner))
@@ -206,13 +207,26 @@
     </div>
 }
 
+@if (!string.IsNullOrEmpty(rawErrorMessage))
+{
+    <div class="alert-transient @(ViewBag.HasJumbotron == true ? "alert-transient-jumbotron" : string.Empty)">
+        <div class="container">
+            <div class="row">
+                <div class="@ViewHelpers.GetColumnClasses(ViewBag)" role="alert" aria-live="assertive">
+                    @ViewHelpers.AlertDanger(@<span>@Html.Raw(@rawErrorMessage)</span>)
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
 @if (ShowPasswordDeprecationBanner)
 {
     <div class="alert-transient @(ViewBag.HasJumbotron == true ? "alert-transient-jumbotron" : string.Empty)">
         <div class="container">
             <div class="row">
                 <div class="@ViewHelpers.GetColumnClasses(ViewBag)" role="alert" aria-live="assertive">
-                    @if (User.HasExternalLogin()) 
+                    @if (User.HasExternalLogin())
                     {
                         @ViewHelpers.AlertWarning(@<text>NuGet.org password login is no longer supported. Go to <a href="@Url.AccountSettings()">Account Settings</a> to disable your password login and use Microsoft account to sign in to the @(this.Config.Current.Brand).</text>)
                     }

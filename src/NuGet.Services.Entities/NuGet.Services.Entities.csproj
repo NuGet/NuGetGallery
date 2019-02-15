@@ -52,6 +52,10 @@
     <Compile Include="Credential.cs" />
     <Compile Include="CuratedFeed.cs" />
     <Compile Include="CuratedPackage.cs" />
+    <Compile Include="Cve.cs" />
+    <Compile Include="CveStatus.cs" />
+    <Compile Include="Cwe.cs" />
+    <Compile Include="CweStatus.cs" />
     <Compile Include="EmailMessage.cs" />
     <Compile Include="EmbeddedLicenseFileType.cs" />
     <Compile Include="EntityException.cs" />
@@ -67,6 +71,8 @@
     <Compile Include="PackageAuthor.cs" />
     <Compile Include="PackageDelete.cs" />
     <Compile Include="PackageDependency.cs" />
+    <Compile Include="PackageDeprecation.cs" />
+    <Compile Include="PackageDeprecationStatus.cs" />
     <Compile Include="PackageEditReadMeState.cs" />
     <Compile Include="PackageFramework.cs" />
     <Compile Include="PackageHistory.cs" />

@@ -177,6 +177,14 @@ namespace NuGetGallery
                 .Include("~/Scripts/gallery/page-manage-owners.js");
             BundleTable.Bundles.Add(manageOwnersScriptBundle);
 
+            var deletePackageScriptBundle = new ScriptBundle("~/Scripts/gallery/page-delete-package.min.js")
+                .Include("~/Scripts/gallery/page-delete-package.js");
+            BundleTable.Bundles.Add(deletePackageScriptBundle);
+
+            var editReadMeScriptBundle = new ScriptBundle("~/Scripts/gallery/page-edit-readme.min.js")
+                .Include("~/Scripts/gallery/page-edit-readme.js");
+            BundleTable.Bundles.Add(editReadMeScriptBundle);
+
             var aboutScriptBundle = new ScriptBundle("~/Scripts/gallery/page-about.min.js")
                 .Include("~/Scripts/gallery/page-about.js");
             BundleTable.Bundles.Add(aboutScriptBundle);

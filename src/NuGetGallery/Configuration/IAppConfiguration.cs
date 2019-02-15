@@ -66,6 +66,11 @@ namespace NuGetGallery.Configuration
         string AzureStorage_Packages_ConnectionString { get; set; }
 
         /// <summary>
+        /// The Azure Storage connection string used for flatContainer, after upload.
+        /// </summary>
+        string AzureStorage_FlatContainer_ConnectionString { get; set; }
+
+        /// <summary>
         /// The Azure Storage connection string used for statistics.
         /// </summary>
         string AzureStorage_Statistics_ConnectionString { get; set; }
@@ -84,6 +89,11 @@ namespace NuGetGallery.Configuration
         /// Gets a setting if Read Access Geo Redundant is enabled in azure storage
         /// </summary>
         bool AzureStorageReadAccessGeoRedundant { get; set; }
+
+        /// <summary>
+        /// How frequently the feature flags should be refreshed.
+        /// </summary>
+        TimeSpan FeatureFlagsRefreshInterval { get; set; }
 
         /// <summary>
         /// Gets a boolean indicating whether asynchronous package validation is enabled.

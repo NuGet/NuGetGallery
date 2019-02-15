@@ -61,6 +61,8 @@ namespace NuGetGallery
         /// User or organization accounts.
         /// </summary>
         public IDbSet<User> Users { get; set; }
+        public IDbSet<Cve> Cves { get; set; }
+        public IDbSet<Cwe> Cwes { get; set; }
 
         IDbSet<T> IEntitiesContext.Set<T>()
         {
@@ -367,6 +369,78 @@ namespace NuGetGallery
             modelBuilder.Entity<SymbolPackage>()
                 .Property(s => s.RowVersion)
                 .IsRowVersion();
+
+            modelBuilder.Entity<PackageDeprecation>()
+                .HasKey(d => d.Key);
+
+            modelBuilder.Entity<Cve>()
+                .HasKey(d => d.Key)
+                .Property(e => e.CveId)
+                .HasColumnType("varchar")
+                .HasMaxLength(20)
+                .IsRequired();
+
+            modelBuilder.Entity<Cve>()
+                .Property(e => e.Description)
+                .HasMaxLength(300)
+                .IsRequired();
+
+            modelBuilder.Entity<Cve>()
+                .Property(v => v.CvssRating)
+                .HasPrecision(3, 1);
+
+            modelBuilder.Entity<Cwe>()
+                .HasKey(d => d.Key)
+                .Property(e => e.CweId)
+                .HasColumnType("varchar")
+                .HasMaxLength(20)
+                .IsRequired();
+
+            modelBuilder.Entity<Cwe>()
+                .Property(e => e.Name)
+                .HasMaxLength(200)
+                .IsRequired();
+
+            modelBuilder.Entity<Cwe>()
+                .Property(e => e.Description)
+                .HasMaxLength(300)
+                .IsRequired();
+
+            modelBuilder.Entity<Package>()
+                .HasMany(p => p.Deprecations)
+                .WithRequired(d => d.Package)
+                .HasForeignKey(d => d.PackageKey)
+                .WillCascadeOnDelete(true);
+
+            modelBuilder.Entity<Package>()
+                .HasMany(p => p.AlternativeOf)
+                .WithOptional(d => d.AlternatePackage)
+                .HasForeignKey(d => d.AlternatePackageKey)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<PackageRegistration>()
+                .HasMany(p => p.AlternativeOf)
+                .WithOptional(d => d.AlternatePackageRegistration)
+                .HasForeignKey(d => d.AlternatePackageRegistrationKey)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<PackageDeprecation>()
+                .HasOptional(d => d.DeprecatedByUser)
+                .WithMany()
+                .HasForeignKey(d => d.DeprecatedByUserKey)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<PackageDeprecation>()
+                .Property(v => v.CvssRating)
+                .HasPrecision(3, 1);
+
+            modelBuilder.Entity<PackageDeprecation>()
+                .HasMany(p => p.Cves)
+                .WithMany(c => c.PackageDeprecations);
+
+            modelBuilder.Entity<PackageDeprecation>()
+                .HasMany(p => p.Cwes)
+                .WithMany(c => c.PackageDeprecations);
         }
 #pragma warning restore 618
     }

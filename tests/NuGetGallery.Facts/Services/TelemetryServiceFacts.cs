@@ -248,6 +248,10 @@ namespace NuGetGallery
                     yield return new object[] { "LicenseValidationFailed",
                         (TrackAction)(s => s.TrackLicenseValidationFailure())
                     };
+
+                    yield return new object[] { "FeatureFlagStalenessSeconds",
+                        (TrackAction)(s => s.TrackFeatureFlagStaleness(TimeSpan.FromMilliseconds(100)))
+                    };
                 }
             }
 

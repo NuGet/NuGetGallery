@@ -53,6 +53,9 @@ namespace NuGetGallery.Configuration
         [DisplayName("AzureStorage.Packages.ConnectionString")]
         public string AzureStorage_Packages_ConnectionString { get; set; }
 
+        [DisplayName("AzureStorage.FlatContainer.ConnectionString")]
+        public string AzureStorage_FlatContainer_ConnectionString { get; set; }
+
         [DisplayName("AzureStorage.Statistics.ConnectionString")]
         public string AzureStorage_Statistics_ConnectionString { get; set; }
 
@@ -66,6 +69,8 @@ namespace NuGetGallery.Configuration
         /// Gets a setting if Read Access Geo Redundant is enabled in azure storage
         /// </summary>
         public bool AzureStorageReadAccessGeoRedundant { get; set; }
+
+        public TimeSpan FeatureFlagsRefreshInterval { get; set; }
 
         public bool AsynchronousPackageValidationEnabled { get; set; }
 

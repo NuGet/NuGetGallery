@@ -8,7 +8,7 @@ using NuGetGallery.Areas.Admin.Models;
 
 namespace NuGetGallery.Areas.Admin.ViewModels
 {
-    public class ValidatedPackageViewModel
+    public class ValidatedPackageViewModel : IPackageVersionModel
     {
         public ValidatedPackageViewModel(IReadOnlyList<PackageValidationSet> validationSets, PackageDeletedStatus deletedStatus, ValidatingType validatingType)
         {
@@ -23,6 +23,7 @@ namespace NuGetGallery.Areas.Admin.ViewModels
 
         public int PackageKey { get; }
         public string Id { get; }
+        public string Version => NormalizedVersion;
         public string NormalizedVersion { get; }
         public PackageDeletedStatus DeletedStatus { get; }
         public IReadOnlyList<PackageValidationSet> ValidationSets { get; }

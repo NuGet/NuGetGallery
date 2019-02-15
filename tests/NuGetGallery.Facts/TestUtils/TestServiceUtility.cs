@@ -8,6 +8,7 @@ using System.Linq.Expressions;
 using Moq;
 using NuGet.Services.Entities;
 using NuGetGallery.Configuration;
+using NuGetGallery.Diagnostics;
 using NuGetGallery.Framework;
 using NuGetGallery.Security;
 
@@ -25,6 +26,7 @@ namespace NuGetGallery.TestUtils
         public Mock<IContentObjectService> MockConfigObjectService { get; protected set; }
         public Mock<IDateTimeProvider> MockDateTimeProvider { get; protected set; }
         public Mock<ITelemetryService> MockTelemetryService { get; protected set; }
+        public Mock<IDiagnosticsSource> MockDiagnosticsSource { get; protected set; }
 
         public TestableUserService()
         {
@@ -38,6 +40,7 @@ namespace NuGetGallery.TestUtils
             DateTimeProvider = (MockDateTimeProvider = new Mock<IDateTimeProvider>()).Object;
             Auditing = new TestAuditingService();
             TelemetryService = (MockTelemetryService = new Mock<ITelemetryService>()).Object;
+            DiagnosticsSource = (MockDiagnosticsSource = new Mock<IDiagnosticsSource>()).Object;
 
             // Set ConfirmEmailAddress to a default of true
             MockConfig.Setup(c => c.ConfirmEmailAddresses).Returns(true);

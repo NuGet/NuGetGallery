@@ -105,6 +105,11 @@ namespace NuGetGallery
                 new { controller = "Pages", action = "Contributors" });
 
             routes.MapRoute(
+                RouteName.PagesSimulateError,
+                "pages/simulate-error",
+                new { controller = "Pages", action = nameof(PagesController.SimulateError) });
+
+            routes.MapRoute(
                 RouteName.Policies,
                 "policies/{action}",
                 new { controller = "Pages" });
@@ -604,16 +609,6 @@ namespace NuGetGallery
 
             routes.Redirect(
                 r => r.MapRoute(
-                    "PackageActions",
-                    "Package/{action}/{id}/{version}",
-                    new { controller = "Packages", action = "ContactOwners" },
-                    // This next bit looks bad, but it's not. It will never change because
-                    // it's mapping the legacy routes to the new better routes.
-                    new { action = "ContactOwners|ManagePackageOwners" }),
-                permanent: true).To(packageActionRoute);
-
-            routes.Redirect(
-                r => r.MapRoute(
                     RouteName.ListPackages,
                     "List/Packages",
                     new { controller = "Packages", action = "ListPackages" }),
@@ -747,6 +742,11 @@ namespace NuGetGallery
                 RouteName.DownloadNuGetExe,
                 "nuget.exe",
                 new { controller = "Api", action = "GetNuGetExeApi" });
+
+            routes.MapRoute(
+                RouteName.ApiSimulateError,
+                "api/simulate-error",
+                new { controller = "Api", action = nameof(ApiController.SimulateError) });
         }
     }
 }

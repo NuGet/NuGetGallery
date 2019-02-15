@@ -5,6 +5,7 @@
 @using NuGetGallery.Configuration
 @using NuGetGallery.Cookies
 @using NuGet.Services.Entities
+@using NuGet.Services.Licenses
 
 @helper GetColumnClasses(string screenSize, int? columns)
 {
@@ -96,19 +97,6 @@
             </text>
         )
     }
-}
-
-@helper AlertPackageEditRecommendation()
-{
-    @AlertWarning(
-    @<text>
-        Editing package metadata is not supported.<br/>
-        <em>
-            To make edits to the package metadata, we recommend uploading a new version of the package created using the updated nuspec.
-            <a href="https://docs.microsoft.com/en-us/nuget/policies/nuget-faq#managing-packages-on-nugetorg" alt="Read more">Read more</a><br />
-        </em>
-    </text>
-        )
 }
 
 @helper AlertPasswordDeprecation()
@@ -662,5 +650,18 @@ var hlp = new AccordionHelper(name, formModelStatePrefix, expanded, page);
                 $submit.parents('form').submit();
             }
         </script>
+    }
+}
+
+@functions
+{
+    public static bool IsLicenseOrException(CompositeLicenseExpressionSegment segment)
+    {
+        return segment.Type == CompositeLicenseExpressionSegmentType.LicenseIdentifier || segment.Type == CompositeLicenseExpressionSegmentType.ExceptionIdentifier;
+    }
+
+    public static MvcHtmlString GetExternalUrlAnchorTag(string data, string link)
+    {
+        return MvcHtmlString.Create(UriExtensions.GetExternalUrlAnchorTag(data, link));
     }
 }
