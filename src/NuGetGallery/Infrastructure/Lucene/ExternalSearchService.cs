@@ -189,7 +189,7 @@ namespace NuGetGallery.Infrastructure.Lucene
                     result.HttpResponse.Content.Dispose();
                 }
 
-                results = new SearchResults(0, null, Enumerable.Empty<Package>().AsQueryable());
+                results = new SearchResults(0, null, Enumerable.Empty<Package>().AsQueryable(), statusCode: result.HttpResponse.StatusCode);
             }
 
             Trace.PerfEvent(

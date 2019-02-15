@@ -15,12 +15,13 @@ namespace NuGetGallery
 {
     public class AutoCompleteServiceQuery
     {
+        private readonly string _autocompletePath = "autocomplete";
         private readonly ServiceDiscoveryClient _serviceDiscoveryClient;
         private readonly string _autocompleteServiceResourceType;
         private readonly RetryingHttpClientWrapper _httpClientToDeprecate;
-        private readonly AutoCompleteSearchClient _autocompleteSearchClient;
+        private readonly IResilientSearchClient _resilientSearchClient;
 
-        public AutoCompleteServiceQuery(IAppConfiguration configuration, AutoCompleteSearchClient autocompleteSearchClient)
+        public AutoCompleteServiceQuery(IAppConfiguration configuration, IResilientSearchClient resilientSearchClient)
         {
             if (configuration == null)
             {
@@ -30,7 +31,7 @@ namespace NuGetGallery
             _serviceDiscoveryClient = new ServiceDiscoveryClient(configuration.ServiceDiscoveryUri);
             _autocompleteServiceResourceType = configuration.AutocompleteServiceResourceType;
             _httpClientToDeprecate = new RetryingHttpClientWrapper(new HttpClient(), QuietLog.LogHandledException);
-            _autocompleteSearchClient = autocompleteSearchClient;
+            _resilientSearchClient = resilientSearchClient;
         }
 
         public async Task<IEnumerable<string>> RunServiceQuery(
@@ -55,7 +56,7 @@ namespace NuGetGallery
 
         private async Task<string> ExecuteQuery(string queryString)
         {
-            return await _autocompleteSearchClient.GetStringAsync(queryString);
+            return await _resilientSearchClient.GetStringAsync(_autocompletePath, queryString.TrimStart('?'));
         }
 
         internal string BuildQueryString(string queryString, bool? includePrerelease, string semVerLevel = null)

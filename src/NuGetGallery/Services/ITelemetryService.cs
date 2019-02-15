@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Security.Principal;
 using NuGet.Services.Entities;
 using NuGet.Versioning;
@@ -255,5 +256,13 @@ namespace NuGetGallery
         /// Any license validation failure
         /// </summary>
         void TrackLicenseValidationFailure();
+
+        /// <summary>
+        /// The Search execution time.
+        /// </summary>
+        /// <param name="url">The search url.</param>
+        /// <param name="duration">The search duration.</param>
+        /// <param name="statusCode">The status code.</param>
+        void TrackMetricForSearchExecutionDuration(string url, TimeSpan duration, HttpStatusCode statusCode);
     }
 }

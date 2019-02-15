@@ -1088,4 +1088,7 @@ The {1} Team</value>
   <data name="UploadPackage_SymbolsPackageNotAllowed" xml:space="preserve">
     <value>Snupkg upload failed. Please use latest NuGet clients (v 4.9.0 or above) and a V3 endpoint to push Symbol packages. For details, refer https://docs.microsoft.com/nuget/create-packages/symbol-packages-snupkg</value>
   </data>
+  <data name="SearchServiceIsNotAvailable" xml:space="preserve">
+    <value>Search Service is not available. Please try again later.</value>
+  </data>
 </root>

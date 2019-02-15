@@ -13,30 +13,22 @@ namespace NuGet.Services.Search.Client
 {
     public class GallerySearchClient : ISearchClient
     {
-        private readonly HttpClient _httpClient;
+        private readonly string _searchPath = "search/query";
+        private readonly string _diagnosticsPath = "search/diag";
+        private readonly IResilientSearchClient _httpClient;
 
         /// <summary>
         /// Create a search service client.
         /// </summary>
         /// <param name="httpClient">The <see cref="HttpClient"/> to be used for the requests.</param>
-        public GallerySearchClient(HttpClient httpClient) 
+        public GallerySearchClient(IResilientSearchClient resilientHttpClient) 
         {
-            _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+            _httpClient = resilientHttpClient ?? throw new ArgumentNullException(nameof(resilientHttpClient));
         }
 
         public async Task<ServiceResponse<JObject>> GetDiagnostics()
         {
-            return new ServiceResponse<JObject>(await _httpClient.GetAsync( GetDiagnosticsUri() ));
-        }
-
-        public Uri GetDiagnosticsUri()
-        {
-            return _httpClient.BaseAddress.AppendPathToUri("search/diag");
-        }
-
-        public Uri GetSearchUri(string queryString)
-        {
-            return _httpClient.BaseAddress.AppendPathToUri("search/query", queryString);
+            return new ServiceResponse<JObject>(await _httpClient.GetAsync(_diagnosticsPath, null));
         }
 
         // This code is copied from the SearchClient 
@@ -113,9 +105,7 @@ namespace NuGet.Services.Search.Client
             var qs = new FormUrlEncodedContent(nameValue);
             var queryString = await qs.ReadAsStringAsync();
 
-            var requestEndpoint = GetSearchUri(queryString);
-
-            var httpResponseMessage = await _httpClient.GetAsync(requestEndpoint);
+            var httpResponseMessage = await _httpClient.GetAsync(_searchPath, queryString);
             return new ServiceResponse<SearchModels.SearchResults>(httpResponseMessage);
         }
     }

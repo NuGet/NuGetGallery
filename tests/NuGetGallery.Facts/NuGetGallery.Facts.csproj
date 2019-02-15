@@ -81,9 +81,9 @@
     <Compile Include="Controllers\AccountsControllerFacts.cs" />
     <Compile Include="Controllers\OrganizationsControllerFacts.cs" />
     <Compile Include="Controllers\SupportControllerFacts.cs" />
-    <Compile Include="SearchClient\GallerySearchServiceFacts.cs" />
-    <Compile Include="SearchClient\HttpRetryMessageHandlerFacts.cs" />
-    <Compile Include="SearchClient\AutoCompleteSearchClientFacts.cs" />
+    <Compile Include="Infrastructure\Lucene\SearchPolicyFacts.cs" />
+    <Compile Include="Infrastructure\Lucene\ResilientSearchServiceFacts.cs" />
+    <Compile Include="Infrastructure\Lucene\GallerySearchServiceFacts.cs" />
     <Compile Include="UsernameValidationRegex.cs" />
     <Compile Include="Extensions\NumberExtensionsFacts.cs" />
     <Compile Include="Extensions\RouteExtensionsFacts.cs" />

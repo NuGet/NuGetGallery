@@ -48,6 +48,7 @@ using NuGetGallery.Infrastructure.Lucene;
 using NuGetGallery.Infrastructure.Mail;
 using NuGetGallery.Security;
 using SecretReaderFactory = NuGetGallery.Configuration.SecretReader.SecretReaderFactory;
+using Microsoft.ApplicationInsights.Extensibility;
 
 namespace NuGetGallery
 {
@@ -64,15 +65,7 @@ namespace NuGetGallery
 
         protected override void Load(ContainerBuilder builder)
         {
-            var loggerConfiguration = LoggingSetup.CreateDefaultLoggerConfiguration(withConsoleLogger: false);
-            var loggerFactory = LoggingSetup.CreateLoggerFactory(loggerConfiguration);
             var services = new ServiceCollection();
-            builder.RegisterInstance(loggerFactory)
-                .AsSelf()
-                .As<ILoggerFactory>();
-            builder.RegisterGeneric(typeof(Logger<>))
-                .As(typeof(ILogger<>))
-                .SingleInstance();
 
             var telemetryClient = TelemetryClientWrapper.Instance;
             builder.RegisterInstance(telemetryClient)
@@ -97,6 +90,23 @@ namespace NuGetGallery
                 .SingleInstance();
 
             configuration.SecretInjector = secretInjector;
+
+            // Register the ILoggerFactory and configure it to use AppInsights if an instrumentation key is provided.
+            var instrumentationKey = configuration.Current.AppInsightsInstrumentationKey;
+            if (!string.IsNullOrEmpty(instrumentationKey))
+            {
+                TelemetryConfiguration.Active.InstrumentationKey = instrumentationKey;
+            }
+            var loggerConfiguration = LoggingSetup.CreateDefaultLoggerConfiguration(withConsoleLogger: false);
+            var loggerFactory = LoggingSetup.CreateLoggerFactory(loggerConfiguration);
+
+            builder.RegisterInstance(loggerFactory)
+                .AsSelf()
+                .As<ILoggerFactory>();
+
+            builder.RegisterGeneric(typeof(Logger<>))
+                .As(typeof(ILogger<>))
+                .SingleInstance();
 
             UrlHelperExtensions.SetConfigurationService(configuration);
 
@@ -124,9 +134,8 @@ namespace NuGetGallery
                 .As<Lucene.Net.Store.Directory>()
                 .SingleInstance();
 
-            // it will be used by the Autocomplete as well
-            services.AddTransient((s) => new HttpRetryMessageHandler(ex => QuietLog.LogHandledException(ex)));
-            ConfigureSearch(builder, configuration, services);
+            ConfigureResilientSearch(loggerFactory, configuration, services);
+            ConfigureSearch(builder, configuration);
 
             builder.RegisterType<DateTimeProvider>().AsSelf().As<IDateTimeProvider>().SingleInstance();
 
@@ -410,7 +419,7 @@ namespace NuGetGallery
                     .InstancePerLifetimeScope();
             }
 
-            ConfigureAutocomplete(builder, configuration, services);
+            ConfigureAutocomplete(builder, configuration);
             builder.Populate(services);
         }
 
@@ -630,7 +639,7 @@ namespace NuGetGallery
                 .InstancePerLifetimeScope();
         }
 
-        private static void ConfigureSearch(ContainerBuilder builder, IGalleryConfigurationService configuration, ServiceCollection services)
+        private static void ConfigureSearch(ContainerBuilder builder, IGalleryConfigurationService configuration)
         {
             if (configuration.Current.ServiceDiscoveryUri == null)
             {
@@ -645,21 +654,6 @@ namespace NuGetGallery
             }
             else
             {
-                services.AddTransient<CorrelatingHttpClientHandler>();
-                services.AddTransient((s) => new TracingHttpHandler(DependencyResolver.Current.GetService<IDiagnosticsService>().SafeGetSource("ExternalSearchService")));
-
-                services.AddHttpClient<ISearchClient, GallerySearchClient>(c =>
-                    c.BaseAddress = DependencyResolver.Current.GetService<IAppConfiguration>().SearchServiceUri
-                    )
-                    .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler() { AllowAutoRedirect = false })
-                    .AddHttpMessageHandler<TracingHttpHandler>()
-                    .AddHttpMessageHandler<CorrelatingHttpClientHandler>()
-                    .AddHttpMessageHandler<HttpRetryMessageHandler>();
-                    // To use Polly replace the .AddHttpMessageHandler<HttpRetryMessageHandler>()
-                    // with .AddPolicyHandler(() => HttpPolicyExtensions
-                    //        .HandleTransientHttpError(),
-                    //         .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(retryAttempt))
-
                 builder.RegisterType<ExternalSearchService>()
                     .AsSelf()
                     .As<ISearchService>()
@@ -668,14 +662,52 @@ namespace NuGetGallery
             }
         }
 
-        private static void ConfigureAutocomplete(ContainerBuilder builder, IGalleryConfigurationService configuration, ServiceCollection services)
+
+        private static void ConfigureResilientSearch(ILoggerFactory loggerFactory, IGalleryConfigurationService configuration, ServiceCollection services)
+        {
+            if (configuration.Current.SearchServiceUriPrimary != null && configuration.Current.SearchServiceUriSecondary != null)
+            {
+                var logger = loggerFactory.CreateLogger<SearchClientPolicies>();
+
+                services.AddTransient<CorrelatingHttpClientHandler>();
+                services.AddTransient((s) => new TracingHttpHandler(DependencyResolver.Current.GetService<IDiagnosticsService>().SafeGetSource("ExternalSearchService")));
+
+                services.AddHttpClient<ISearchHttpClient,SearchHttpClient>(SearchClientConfiguration.SearchPrimaryInstance, c =>
+                        c.BaseAddress = DependencyResolver.Current.GetService<IAppConfiguration>().SearchServiceUriPrimary)
+                    .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler() { AllowAutoRedirect = false })
+                    .AddHttpMessageHandler<TracingHttpHandler>()
+                    .AddHttpMessageHandler<CorrelatingHttpClientHandler>()
+                    .AddPolicyHandler(SearchClientPolicies.SearchClientFallBackCircuitBreakerPolicy(logger))
+                    .AddPolicyHandler(SearchClientPolicies.SearchClientWaitAndRetryForeverPolicy(logger))
+                    .AddPolicyHandler(SearchClientPolicies.SearchClientCircuitBreakerPolicy(
+                            SearchClientConfiguration.SearchRetryCount,
+                            TimeSpan.FromSeconds(SearchClientConfiguration.SearchCircuitBreakerDelayInSeconds),
+                            logger));
+
+                services.AddHttpClient<ISearchHttpClient,SearchHttpClient>(SearchClientConfiguration.SearchSecondaryInstance,  c =>
+                        c.BaseAddress = DependencyResolver.Current.GetService<IAppConfiguration>().SearchServiceUriSecondary)
+                    .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler() { AllowAutoRedirect = false })
+                    .AddHttpMessageHandler<TracingHttpHandler>()
+                    .AddHttpMessageHandler<CorrelatingHttpClientHandler>()
+                    .AddPolicyHandler(SearchClientPolicies.SearchClientFallBackCircuitBreakerPolicy(logger))
+                    .AddPolicyHandler(SearchClientPolicies.SearchClientWaitAndRetryForeverPolicy(logger))
+                    .AddPolicyHandler(SearchClientPolicies.SearchClientCircuitBreakerPolicy(
+                            SearchClientConfiguration.SearchRetryCount,
+                            TimeSpan.FromSeconds(SearchClientConfiguration.SearchCircuitBreakerDelayInSeconds),
+                            logger));
+
+                services.AddSingleton<ILogger<ResilientSearchHttpClient>>(loggerFactory.CreateLogger<ResilientSearchHttpClient>());
+                services.AddTransient<IResilientSearchClient, ResilientSearchHttpClient>();
+                services.AddTransient<ISearchClient, GallerySearchClient>();
+            }
+        }
+
+
+        private static void ConfigureAutocomplete(ContainerBuilder builder, IGalleryConfigurationService configuration)
         {
             if (configuration.Current.ServiceDiscoveryUri != null &&
                 !string.IsNullOrEmpty(configuration.Current.AutocompleteServiceResourceType))
             {
-                services.AddHttpClient<AutoCompleteSearchClient>(c => c.BaseAddress = DependencyResolver.Current.GetService<IAppConfiguration>().SearchServiceUri)
-                    .AddHttpMessageHandler<HttpRetryMessageHandler>();
-
                 builder.RegisterType<AutoCompleteServicePackageIdsQuery>()
                     .AsSelf()
                     .As<IAutoCompletePackageIdsQuery>()

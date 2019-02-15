@@ -2,11 +2,14 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Net;
 using System.Net.Http;
 using Newtonsoft.Json.Linq;
+using System.Text;
 using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
 using NuGet.Services.Search.Client;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
 
@@ -32,19 +35,42 @@ namespace NuGetGallery.Infrastructure.Lucene
                 return mockConfiguration.Object;
             }
 
-            private ISearchClient GetSearchClient(string baseUriAddress)
+            private ILogger<ResilientSearchHttpClient> GetLogger()
             {
-                var c = new HttpClient();
-                c.BaseAddress = new Uri(baseUriAddress);
-                return new GallerySearchClient(c);
+                var mockConfiguration = new Mock<ILogger<ResilientSearchHttpClient>>();
+                return mockConfiguration.Object;
+            }
+
+            private IResilientSearchClient GetResilientSearchClient(string path, string queryString)
+            {
+                var content = new JObject(
+                           new JProperty("queryString", queryString),
+                           new JProperty("path", path));
+
+                var responseMessage = new HttpResponseMessage()
+                {
+                    Content = new StringContent(content.ToString(), Encoding.UTF8, CoreConstants.TextContentType),
+                    RequestMessage = new HttpRequestMessage(HttpMethod.Get, $"{path}/{queryString}"),
+                    StatusCode = HttpStatusCode.OK
+                };
+
+                var mockIResilientSearchClient = new Mock<IResilientSearchClient>();
+                mockIResilientSearchClient.Setup(s => s.GetAsync(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(responseMessage);
+                mockIResilientSearchClient.Setup(s => s.GetStringAsync(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync($"{path}{queryString}");
+
+                return mockIResilientSearchClient.Object;
+            }
+
+            private ISearchClient GetSearchClient(string path, string queryString)
+            {
+                return new GallerySearchClient(GetResilientSearchClient(path, queryString));
             }
 
             [Fact]
             public void ReturnsTheExpectedClient()
             {
                 // Arrange
-                var gallerySearchClientBaseAddress = "https://nuget-dev-v2v3search.nugettest.org";
-                var service = new ExternalSearchService(GetConfiguration(), GetDiagnosticsService(), GetSearchClient(gallerySearchClientBaseAddress));
+                var service = new ExternalSearchService(GetConfiguration(), GetDiagnosticsService(), GetSearchClient(string.Empty, string.Empty));
 
                 // Act
                 var client = service.GetClient();

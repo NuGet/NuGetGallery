@@ -2,9 +2,11 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using NuGetGallery.Configuration;
 using NuGet.Services.Search.Client;
 using Moq;
@@ -22,24 +24,34 @@ namespace NuGetGallery
             return mockConfiguration.Object;
         }
 
-        private AutoCompleteSearchClient GetAutoCompleteSearchClient()
+        private ILogger<ResilientSearchHttpClient> GetLogger()
         {
-            var c = new HttpClient();
-            c.BaseAddress = new Uri("https://api-v2v3search-0.nuget.org");
-            return new AutoCompleteSearchClient(c);
+            var mockConfiguration = new Mock<ILogger<ResilientSearchHttpClient>>();
+            return mockConfiguration.Object;
+        }
+
+        private IResilientSearchClient GetResilientSearchClient()
+        {
+            var mockTelemetryService = new Mock<ITelemetryService>();
+            List<ISearchHttpClient> clients = new List<ISearchHttpClient>();
+            clients.Add(new SearchHttpClient(new HttpClient()
+            {
+                BaseAddress = new Uri("https://api-v2v3search-0.nuget.org")
+            }));
+            return new ResilientSearchHttpClient(clients, GetLogger(), mockTelemetryService.Object);
         }
 
         [Fact]
         public async Task ExecuteThrowsForEmptyId()
         {
-            var query = new AutoCompleteServicePackageVersionsQuery(GetConfiguration(), GetAutoCompleteSearchClient());
+            var query = new AutoCompleteServicePackageVersionsQuery(GetConfiguration(), GetResilientSearchClient());
             await Assert.ThrowsAsync<ArgumentNullException>(async () => await query.Execute(string.Empty, false));
         }
 
         [Fact]
         public async Task ExecuteReturnsResultsForSpecificQuery()
         {
-            var query = new AutoCompleteServicePackageVersionsQuery(GetConfiguration(), GetAutoCompleteSearchClient());
+            var query = new AutoCompleteServicePackageVersionsQuery(GetConfiguration(), GetResilientSearchClient());
             var result = await query.Execute("newtonsoft.json", false);
             Assert.True(result.Any());
         }
@@ -52,7 +64,7 @@ namespace NuGetGallery
         public void PackageVersionsQueryBuildsCorrectQueryString(bool includePrerelease, string semVerLevel, string expectedQueryString)
         {
             // Arrange
-            var query = new AutoCompleteServicePackageVersionsQuery(GetConfiguration(), GetAutoCompleteSearchClient());
+            var query = new AutoCompleteServicePackageVersionsQuery(GetConfiguration(), GetResilientSearchClient());
 
             // Act
             var actualQueryString = query.BuildQueryString("id=Newtonsoft.Json", includePrerelease, semVerLevel);

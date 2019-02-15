@@ -382,8 +382,14 @@ namespace NuGetGallery.Configuration
         bool AllowLicenselessPackages { get; set; }
 
         /// <summary>
-        /// Gets the Uri for the Search endpoint
+        /// The Uri for the Primary Search endpoint
         /// </summary>
-        Uri SearchServiceUri { get; set; }
+        Uri SearchServiceUriPrimary { get; set; }
+
+        /// <summary>
+        /// The Uri for the Secondary Search endpoint
+        /// </summary>
+        Uri SearchServiceUriSecondary { get; set; }
+
     }
 }

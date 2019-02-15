@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Security.Principal;
 using System.Web;
 using Newtonsoft.Json;
@@ -67,6 +68,7 @@ namespace NuGetGallery
             public const string NonFsfOsiLicenseUsed = "NonFsfOsiLicenseUsed";
             public const string LicenseFileRejected = "LicenseFileRejected";
             public const string LicenseValidationFailed = "LicenseValidationFailed";
+            public const string SearchExecutionDuration = "SearchExecutionDuration";
         }
 
         private IDiagnosticsSource _diagnosticsSource;
@@ -158,6 +160,11 @@ namespace NuGetGallery
 
         // License related properties
         public const string LicenseExpression = "LicenseExpression";
+
+        // Search related properties
+        public const string SearchUrl = "SearchUrl";
+        public const string SearchHttpResponseCode = "SearchHttpResponseCode";
+
 
         public TelemetryService(IDiagnosticsService diagnosticsService, ITelemetryClient telemetryClient = null)
         {
@@ -790,5 +797,13 @@ namespace NuGetGallery
 
         public void TrackLicenseValidationFailure()
             => TrackMetric(Events.LicenseValidationFailed, 1, p => { });
+
+        public void TrackMetricForSearchExecutionDuration(string url, TimeSpan duration, HttpStatusCode statusCode)
+        {
+            TrackMetric(Events.SearchExecutionDuration, duration.TotalMilliseconds, properties => {
+                properties.Add(SearchUrl, url);
+                properties.Add(SearchHttpResponseCode, statusCode.ToString());
+            });
+        }
     }
 }
