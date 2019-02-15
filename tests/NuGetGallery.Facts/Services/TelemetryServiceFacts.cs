@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net;
 using Moq;
 using NuGet.Services.Entities;
 using NuGet.Versioning;
@@ -251,6 +252,10 @@ namespace NuGetGallery
 
                     yield return new object[] { "FeatureFlagStalenessSeconds",
                         (TrackAction)(s => s.TrackFeatureFlagStaleness(TimeSpan.FromMilliseconds(100)))
+                    };
+
+                    yield return new object[] { "SearchExecutionDuration",
+                        (TrackAction)(s => s.TrackMetricForSearchExecutionDuration("https://www.bing.com", TimeSpan.FromMilliseconds(100), HttpStatusCode.OK))
                     };
                 }
             }

@@ -789,6 +789,13 @@ namespace NuGetGallery
         public void TrackFeatureFlagStaleness(TimeSpan staleness)
             => TrackMetric(Events.FeatureFlagStalenessSeconds, staleness.TotalSeconds, p => { });
 
+        public void TrackMetricForSearchExecutionDuration(string url, TimeSpan duration, HttpStatusCode statusCode)
+        {
+            TrackMetric(Events.SearchExecutionDuration, duration.TotalMilliseconds, properties => {
+                properties.Add(SearchUrl, url);
+                properties.Add(SearchHttpResponseCode, statusCode.ToString());
+            });
+        }
         /// <summary>
         /// We use <see cref="ITelemetryClient.TrackMetric(string, double, IDictionary{string, string})"/> instead of
         /// <see cref="ITelemetryClient.TrackEvent(string, IDictionary{string, string}, IDictionary{string, double})"/>
