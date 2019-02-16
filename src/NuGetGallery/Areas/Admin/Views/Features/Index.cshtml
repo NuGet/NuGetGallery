@@ -18,14 +18,14 @@
         {
             @ViewHelpers.AlertWarning(
                 @<text>
-                    The feature flags were last refreshed @Math.Round(Model.TimeSinceLastRefresh.Value.TotalSeconds) seconds ago
+                    The feature flags were last cached @Math.Round(Model.TimeSinceLastRefresh.Value.TotalSeconds) seconds ago
                     but should refresh every @Model.RefreshInterval.TotalSeconds seconds. Check the logs for errors.
                 </text>)
         }
         else
         {
             <p>
-                The feature flags were last refreshed @Math.Round(Model.TimeSinceLastRefresh.Value.TotalSeconds) seconds ago
+                The feature flags were last cached @Math.Round(Model.TimeSinceLastRefresh.Value.TotalSeconds) seconds ago
                 and refresh every @Model.RefreshInterval.TotalSeconds seconds.
             </p>
         }
