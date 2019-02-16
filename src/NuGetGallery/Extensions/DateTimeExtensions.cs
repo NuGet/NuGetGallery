@@ -18,11 +18,6 @@ namespace NuGetGallery
             return date < DateTime.UtcNow;
         }
 
-        public static string ToNuGetShortDateString(this DateTimeOffset self)
-        {
-            return self.ToString("d", CultureInfo.CurrentCulture);
-        }
-
         public static string ToNuGetShortDateString(this DateTime self)
         {
             return self.ToString("d", CultureInfo.CurrentCulture);
