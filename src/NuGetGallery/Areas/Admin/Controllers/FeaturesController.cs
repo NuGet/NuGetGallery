@@ -4,7 +4,9 @@
 using System;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using NuGet.Services.FeatureFlags;
 using NuGetGallery.Areas.Admin.ViewModels;
+using NuGetGallery.Configuration;
 using NuGetGallery.Features;
 
 namespace NuGetGallery.Areas.Admin.Controllers
@@ -12,19 +14,35 @@ namespace NuGetGallery.Areas.Admin.Controllers
     public class FeaturesController : AdminControllerBase
     {
         private readonly IEditableFeatureFlagStorageService _storage;
+        private readonly IFeatureFlagCacheService _cache;
+        private readonly IAppConfiguration _config;
 
-        public FeaturesController(IEditableFeatureFlagStorageService storage)
+        public FeaturesController(
+            IEditableFeatureFlagStorageService storage,
+            IFeatureFlagCacheService cache,
+            IAppConfiguration config)
         {
             _storage = storage ?? throw new ArgumentNullException(nameof(storage));
+            _cache = cache ?? throw new ArgumentNullException(nameof(cache));
+            _config = config ?? throw new ArgumentNullException(nameof(config));
         }
 
         [HttpGet]
         public async virtual Task<ActionResult> Index()
         {
             var reference = await _storage.GetReferenceAsync();
+            var lastUpdated = _cache.GetRefreshStartTimeOrNull();
+
+            TimeSpan? timeSinceLastRefresh = null;
+            if (lastUpdated.HasValue)
+            {
+                timeSinceLastRefresh = DateTimeOffset.UtcNow.Subtract(lastUpdated.Value);
+            }
 
             return View(new FeatureFlagsViewModel
             {
+                TimeSinceLastRefresh = timeSinceLastRefresh,
+                RefreshInterval = _config.FeatureFlagsRefreshInterval,
                 Flags = reference.FlagsJson,
                 ContentId = reference.ContentId
             });
@@ -41,7 +59,12 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 switch (result.Type)
                 {
                     case FeatureFlagSaveResultType.Ok:
-                        TempData["Message"] = "Your feature flags have been saved!";
+                        // The flags have been persisted. Refresh this instance's cache immediately.
+                        await _cache.RefreshAsync();
+
+                        var refreshSeconds = _config.FeatureFlagsRefreshInterval.TotalSeconds;
+
+                        TempData["Message"] = $"Your feature flags have been saved! It may take up to {refreshSeconds} seconds for this change to propagate everywhere.";
                         return Redirect(Url.Action(actionName: "Index", controllerName: "Features"));
 
                     case FeatureFlagSaveResultType.Conflict:
