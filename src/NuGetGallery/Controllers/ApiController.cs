@@ -36,6 +36,8 @@ namespace NuGetGallery
         : AppController
     {
         private const string NuGetExeUrl = "https://dist.nuget.org/win-x86-commandline/v2.8.6/nuget.exe";
+        private readonly IAutocompletePackageIdsQuery _autocompletePackageIdsQuery;
+        private readonly IAutocompletePackageVersionsQuery _autocompletePackageVersionsQuery;
 
         public IApiScopeEvaluator ApiScopeEvaluator { get; set; }
         public IEntitiesContext EntitiesContext { get; set; }
@@ -86,7 +88,9 @@ namespace NuGetGallery
             IPackageUploadService packageUploadService,
             IPackageDeleteService packageDeleteService,
             ISymbolPackageFileService symbolPackageFileService,
-            ISymbolPackageUploadService symbolPackageUploadService)
+            ISymbolPackageUploadService symbolPackageUploadService,
+            IAutocompletePackageIdsQuery autocompletePackageIdsQuery,
+            IAutocompletePackageVersionsQuery autocompletePackageVersionsQuery)
         {
             ApiScopeEvaluator = apiScopeEvaluator;
             EntitiesContext = entitiesContext;
@@ -109,6 +113,8 @@ namespace NuGetGallery
             StatisticsService = null;
             SymbolPackageFileService = symbolPackageFileService;
             SymbolPackageUploadService = symbolPackageUploadService;
+            _autocompletePackageIdsQuery = autocompletePackageIdsQuery;
+            _autocompletePackageVersionsQuery = autocompletePackageVersionsQuery;
         }
 
         public ApiController(
@@ -133,12 +139,14 @@ namespace NuGetGallery
             IPackageUploadService packageUploadService,
             IPackageDeleteService packageDeleteService,
             ISymbolPackageFileService symbolPackageFileService,
-            ISymbolPackageUploadService symbolPackageUploadServivce)
+            ISymbolPackageUploadService symbolPackageUploadServivce,
+            IAutocompletePackageIdsQuery autocompletePackageIdsQuery,
+            IAutocompletePackageVersionsQuery autocompletePackageVersionsQuery)
             : this(apiScopeEvaluator, entitiesContext, packageService, packageFileService, userService, contentService,
                   indexingService, searchService, statusService, messageService, auditingService,
                   configurationService, telemetryService, authenticationService, credentialBuilder, securityPolicies,
                   reservedNamespaceService, packageUploadService, packageDeleteService, symbolPackageFileService,
-                  symbolPackageUploadServivce)
+                  symbolPackageUploadServivce, autocompletePackageIdsQuery, autocompletePackageVersionsQuery)
         {
             StatisticsService = statisticsService;
         }
@@ -896,10 +904,9 @@ namespace NuGetGallery
             bool? includePrerelease,
             string semVerLevel = null)
         {
-            var query = GetService<IAutocompletePackageIdsQuery>();
             return new JsonResult
             {
-                Data = (await query.Execute(partialId, includePrerelease, semVerLevel)).ToArray(),
+                Data = (await _autocompletePackageIdsQuery.Execute(partialId, includePrerelease, semVerLevel)).ToArray(),
                 JsonRequestBehavior = JsonRequestBehavior.AllowGet
             };
         }
@@ -911,10 +918,9 @@ namespace NuGetGallery
             bool? includePrerelease,
             string semVerLevel = null)
         {
-            var query = GetService<IAutocompletePackageVersionsQuery>();
             return new JsonResult
             {
-                Data = (await query.Execute(id, includePrerelease, semVerLevel)).ToArray(),
+                Data = (await _autocompletePackageVersionsQuery.Execute(id, includePrerelease, semVerLevel)).ToArray(),
                 JsonRequestBehavior = JsonRequestBehavior.AllowGet
             };
         }

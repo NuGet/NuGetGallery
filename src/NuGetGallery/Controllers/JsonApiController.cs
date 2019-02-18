@@ -27,19 +27,25 @@ namespace NuGetGallery
         private readonly IUserService _userService;
         private readonly IAppConfiguration _appConfiguration;
         private readonly IPackageOwnershipManagementService _packageOwnershipManagementService;
+        private readonly IAutocompleteCveIdsQuery _autocompleteCveIdsQuery;
+        private readonly IAutocompleteCweIdsQuery _autocompleteCweIdsQuery;
 
         public JsonApiController(
             IPackageService packageService,
             IUserService userService,
             IMessageService messageService,
             IAppConfiguration appConfiguration,
-            IPackageOwnershipManagementService packageOwnershipManagementService)
+            IPackageOwnershipManagementService packageOwnershipManagementService,
+            IAutocompleteCveIdsQuery autocompleteCveIdsQuery,
+            IAutocompleteCweIdsQuery autocompleteCweIdsQuery)
         {
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _messageService = messageService ?? throw new ArgumentNullException(nameof(messageService));
             _appConfiguration = appConfiguration ?? throw new ArgumentNullException(nameof(appConfiguration));
             _packageOwnershipManagementService = packageOwnershipManagementService ?? throw new ArgumentNullException(nameof(packageOwnershipManagementService));
+            _autocompleteCveIdsQuery = autocompleteCveIdsQuery ?? throw new ArgumentNullException(nameof(autocompleteCveIdsQuery));
+            _autocompleteCweIdsQuery = autocompleteCweIdsQuery ?? throw new ArgumentNullException(nameof(autocompleteCweIdsQuery));
         }
 
         [HttpGet]
@@ -246,7 +252,7 @@ namespace NuGetGallery
             IReadOnlyCollection<CveIdAutocompleteQueryResult> suggestions;
             try
             {
-                suggestions = GetService<IAutocompleteCveIdsQuery>().Execute(query);
+                suggestions = _autocompleteCveIdsQuery.Execute(query);
 
                 model.Items.AddRange(suggestions);
             }
@@ -281,7 +287,7 @@ namespace NuGetGallery
             IReadOnlyCollection<CweIdAutocompleteQueryResult> suggestions;
             try
             {
-                suggestions = GetService<IAutocompleteCweIdsQuery>().Execute(query);
+                suggestions = _autocompleteCweIdsQuery.Execute(query);
 
                 model.Items.AddRange(suggestions);
             }
