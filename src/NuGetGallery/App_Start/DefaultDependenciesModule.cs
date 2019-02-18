@@ -705,13 +705,15 @@ namespace NuGetGallery
 
             // Vulnerability Autocomplete
             builder.RegisterType<AutocompleteCveIdsQuery>()
-                .AsSelf()
                 .As<IAutocompleteCveIdsQuery>()
                 .InstancePerLifetimeScope();
 
             builder.RegisterType<AutocompleteCweIdsQuery>()
-                .AsSelf()
                 .As<IAutocompleteCweIdsQuery>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<VulnerabilityAutocompleteService>()
+                .As<IVulnerabilityAutocompleteService>()
                 .InstancePerLifetimeScope();
         }
 

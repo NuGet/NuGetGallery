@@ -222,6 +222,9 @@
     <Compile Include="Authentication\Providers\AzureActiveDirectoryV2\AzureActiveDirectoryV2AuthenticatorConfiguration.cs" />
     <Compile Include="Authentication\Providers\AzureActiveDirectory\AzureActiveDirectoryAuthenticator.cs" />
     <Compile Include="Authentication\Providers\AzureActiveDirectory\AzureActiveDirectoryAuthenticatorConfiguration.cs" />
+    <Compile Include="Queries\AutocompleteCveIdQueryResult.cs" />
+    <Compile Include="Queries\AutocompleteCweIdQueryResult.cs" />
+    <Compile Include="Services\IVulnerabilityAutocompleteService.cs" />
     <Compile Include="ViewModels\CweAutocompleteViewModel.cs" />
     <Compile Include="ViewModels\CveAutocompleteViewModel.cs" />
     <Compile Include="Queries\AutocompleteDatabasePackageIdsQuery.cs" />
@@ -236,8 +239,6 @@
     <Compile Include="Queries\CweIdHelper.cs" />
     <Compile Include="Queries\CweQueryStringValidator.cs" />
     <Compile Include="Queries\CweQueryMethod.cs" />
-    <Compile Include="Queries\CweIdAutocompleteQueryResult.cs" />
-    <Compile Include="Queries\CveIdAutocompleteQueryResult.cs" />
     <Compile Include="Queries\AutocompleteCveIdsQuery.cs" />
     <Compile Include="Queries\AutocompleteCweIdsQuery.cs" />
     <Compile Include="Queries\IAutocompleteCveIdsQuery.cs" />
@@ -735,6 +736,7 @@
     <Compile Include="ViewModels\ListPackageItemRequiredSignerViewModel.cs" />
     <Compile Include="ViewModels\ManagePackageViewModel.cs" />
     <Compile Include="ViewModels\SignerViewModel.cs" />
+    <Compile Include="Services\VulnerabilityAutocompleteService.cs" />
     <Compile Include="WebRole.cs" />
     <Compile Include="Areas\Admin\AdminAreaRegistration.cs" />
     <Compile Include="Areas\Admin\Controllers\AdminControllerBase.cs" />

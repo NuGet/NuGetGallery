@@ -19,6 +19,6 @@ namespace NuGetGallery
         /// Returns a <see cref="IReadOnlyCollection{CweIdAutocompleteQueryResult}"/>.
         /// </returns>
         /// <exception cref="FormatException">Thrown when the format of the partial CWE Id is invalid or could not be determined.</exception>
-        IReadOnlyCollection<CweIdAutocompleteQueryResult> Execute(string queryString);
+        IReadOnlyCollection<AutocompleteCweIdQueryResult> Execute(string queryString);
     }
 }

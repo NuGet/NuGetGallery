@@ -5,9 +5,9 @@ using System;
 
 namespace NuGetGallery
 {
-    public class CweIdAutocompleteQueryResult
+    public class AutocompleteCweIdQueryResult
     {
-        public CweIdAutocompleteQueryResult(string cweId, string name, string description)
+        public AutocompleteCweIdQueryResult(string cweId, string name, string description)
         {
             CweId = cweId ?? throw new ArgumentNullException(nameof(cweId));
             Name = name ?? throw new ArgumentNullException(nameof(name));

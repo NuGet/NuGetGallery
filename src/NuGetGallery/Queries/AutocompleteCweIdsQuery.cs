@@ -21,7 +21,7 @@ namespace NuGetGallery
             _entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
         }
 
-        public IReadOnlyCollection<CweIdAutocompleteQueryResult> Execute(string queryString)
+        public IReadOnlyCollection<AutocompleteCweIdQueryResult> Execute(string queryString)
         {
             if (string.IsNullOrEmpty(queryString))
             {
@@ -56,7 +56,7 @@ namespace NuGetGallery
             }
 
             return queryResults
-                .Select(e => new CweIdAutocompleteQueryResult(e.CweId, e.Name, e.Description))
+                .Select(e => new AutocompleteCweIdQueryResult(e.CweId, e.Name, e.Description))
                 .OrderBy(e => CweIdHelper.GetCweIdNumericPartAsInteger(e.CweId))
                 .ToList();
         }

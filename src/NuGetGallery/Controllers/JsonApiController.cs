@@ -27,8 +27,7 @@ namespace NuGetGallery
         private readonly IUserService _userService;
         private readonly IAppConfiguration _appConfiguration;
         private readonly IPackageOwnershipManagementService _packageOwnershipManagementService;
-        private readonly IAutocompleteCveIdsQuery _autocompleteCveIdsQuery;
-        private readonly IAutocompleteCweIdsQuery _autocompleteCweIdsQuery;
+        private readonly IVulnerabilityAutocompleteService _vulnerabilityAutocompleteService;
 
         public JsonApiController(
             IPackageService packageService,
@@ -36,16 +35,14 @@ namespace NuGetGallery
             IMessageService messageService,
             IAppConfiguration appConfiguration,
             IPackageOwnershipManagementService packageOwnershipManagementService,
-            IAutocompleteCveIdsQuery autocompleteCveIdsQuery,
-            IAutocompleteCweIdsQuery autocompleteCweIdsQuery)
+            IVulnerabilityAutocompleteService vulnerabilityAutocompleteService)
         {
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _messageService = messageService ?? throw new ArgumentNullException(nameof(messageService));
             _appConfiguration = appConfiguration ?? throw new ArgumentNullException(nameof(appConfiguration));
             _packageOwnershipManagementService = packageOwnershipManagementService ?? throw new ArgumentNullException(nameof(packageOwnershipManagementService));
-            _autocompleteCveIdsQuery = autocompleteCveIdsQuery ?? throw new ArgumentNullException(nameof(autocompleteCveIdsQuery));
-            _autocompleteCweIdsQuery = autocompleteCweIdsQuery ?? throw new ArgumentNullException(nameof(autocompleteCweIdsQuery));
+            _vulnerabilityAutocompleteService = vulnerabilityAutocompleteService ?? throw new ArgumentNullException(nameof(vulnerabilityAutocompleteService));
         }
 
         [HttpGet]
@@ -250,7 +247,7 @@ namespace NuGetGallery
             // Suggestions will be CVE Id's that start with characters entered by the user.
             try
             {
-                var suggestions = _autocompleteCveIdsQuery.Execute(query);
+                var suggestions = _vulnerabilityAutocompleteService.AutocompleteCveIds(query);
 
                 return Json(
                     new CveAutocompleteViewModel(suggestions),
@@ -282,7 +279,7 @@ namespace NuGetGallery
             // or CWE Id's that have a Name containing the textual search term provided by the user.
             try
             {
-                var suggestions = _autocompleteCweIdsQuery.Execute(query);
+                var suggestions = _vulnerabilityAutocompleteService.AutocompleteCweIds(query);
 
                 return Json(
                     new CweAutocompleteViewModel(suggestions),

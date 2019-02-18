@@ -13,15 +13,15 @@ namespace NuGetGallery
             ErrorMessage = errorMessage;
         }
 
-        public CweAutocompleteViewModel(IReadOnlyCollection<CweIdAutocompleteQueryResult> results)
+        public CweAutocompleteViewModel(IReadOnlyCollection<AutocompleteCweIdQueryResult> results)
         {
             Success = true;
-            Results = new List<CweIdAutocompleteQueryResult>(results);
+            Results = new List<AutocompleteCweIdQueryResult>(results);
         }
 
         public bool Success { get; }
         public string ErrorMessage { get; }
 
-        public List<CweIdAutocompleteQueryResult> Results { get; }
+        public List<AutocompleteCweIdQueryResult> Results { get; }
     }
 }
