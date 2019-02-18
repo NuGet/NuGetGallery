@@ -235,63 +235,31 @@ namespace NuGetGallery
         [ActionName("CveIds")]
         public JsonResult GetCveIds(string query)
         {
-            if (string.IsNullOrWhiteSpace(query))
-            {
-                return Json(
-                    HttpStatusCode.BadRequest,
-                    new CveAutocompleteViewModel("Search term cannot be empty."),
-                    JsonRequestBehavior.AllowGet);
-            }
-
             // Get CVE data.
             // Suggestions will be CVE Id's that start with characters entered by the user.
-            try
-            {
-                var suggestions = _vulnerabilityAutocompleteService.AutocompleteCveIds(query);
+            var queryResult = _vulnerabilityAutocompleteService.AutocompleteCveIds(query);
+            var httpStatusCode = queryResult.Success ? HttpStatusCode.OK : HttpStatusCode.BadRequest;
 
-                return Json(
-                    new CveAutocompleteViewModel(suggestions),
-                    JsonRequestBehavior.AllowGet);
-            }
-            catch (FormatException formatException)
-            {
-                return Json(
-                    HttpStatusCode.BadRequest,
-                    new CveAutocompleteViewModel(formatException.Message),
-                    JsonRequestBehavior.AllowGet);
-            }
+            return Json(
+                httpStatusCode,
+                queryResult,
+                JsonRequestBehavior.AllowGet);
         }
 
         [HttpGet]
         [ActionName("CweIds")]
         public JsonResult GetCweIds(string query)
         {
-            if (string.IsNullOrWhiteSpace(query))
-            {
-                return Json(
-                    HttpStatusCode.BadRequest,
-                    new CweAutocompleteViewModel("Search term cannot be empty."),
-                    JsonRequestBehavior.AllowGet);
-            }
-
             // Get CWE data.
             // Suggestions will be CWE Id's that start with characters entered by the user,
             // or CWE Id's that have a Name containing the textual search term provided by the user.
-            try
-            {
-                var suggestions = _vulnerabilityAutocompleteService.AutocompleteCweIds(query);
+            var queryResult = _vulnerabilityAutocompleteService.AutocompleteCweIds(query);
+            var httpStatusCode = queryResult.Success ? HttpStatusCode.OK : HttpStatusCode.BadRequest;
 
-                return Json(
-                    new CweAutocompleteViewModel(suggestions),
-                    JsonRequestBehavior.AllowGet);
-            }
-            catch (FormatException formatException)
-            {
-                return Json(
-                    HttpStatusCode.BadRequest,
-                    new CweAutocompleteViewModel(formatException.Message),
-                    JsonRequestBehavior.AllowGet);
-            }
+            return Json(
+                httpStatusCode,
+                queryResult,
+                JsonRequestBehavior.AllowGet);
         }
 
         private bool TryGetManagePackageOwnerModel(string id, string username, bool isAddOwner, out ManagePackageOwnerModel model)

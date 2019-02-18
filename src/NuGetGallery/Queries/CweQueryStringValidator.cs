@@ -28,36 +28,29 @@ namespace NuGetGallery
         /// <summary>
         /// Validates a query string against CWE-ID formatting and query rules.
         /// </summary>
-        /// <exception cref="FormatException">
-        /// Thrown when the provided <paramref name="queryString"/> violates formatting or querying rules.
-        /// /// </exception>
-        public static string Validate(string queryString, out CweQueryMethod queryMethod)
+        public static bool TryValidate(string queryString, out CweQueryMethod queryMethod, out string validatedQueryString)
         {
+            if (string.IsNullOrEmpty(queryString))
+            {
+                validatedQueryString = null;
+                queryMethod = CweQueryMethod.Unknown;
+                return false;
+            }
+
             // Autocomplete can be for IDs starting with the number entered. 
             // If it's a text, then the suggestion would be based on the weakness name (title).
 
-            queryMethod = DetermineQueryMethod(queryString, out var numericPartString);
-
-            if (queryMethod == CweQueryMethod.ByCweId)
-            {
-                // Return the validated CWE ID (including the prefix for consistency and for db querying).
-                return $"{Cwe.IdPrefix}{numericPartString}";
-            }
-            else
-            {
-                return queryString;
-            }
-        }
-
-        private static CweQueryMethod DetermineQueryMethod(string queryString, out string numericPartString)
-        {
             var queryByIdMatch = QueryByIdValidationRegex.Match(queryString);
             if (queryByIdMatch.Success)
             {
                 // The user intended to query by CWE-ID.
-                numericPartString = queryByIdMatch.Groups["query"].Value;
+                var numericPartString = queryByIdMatch.Groups["query"].Value;
 
-                return CweQueryMethod.ByCweId;
+                // Return the validated CWE ID (including the prefix for consistency and for db querying).
+                validatedQueryString = $"{Cwe.IdPrefix}{numericPartString}";
+
+                queryMethod = CweQueryMethod.ByCweId;
+                return true;
             }
             else
             {
@@ -65,11 +58,14 @@ namespace NuGetGallery
                 if (queryByNameMatch.Success)
                 {
                     // The user intended to query by Name. Treat the query as a textual one.
-                    numericPartString = null;
-                    return CweQueryMethod.ByName;
+                    validatedQueryString = queryString;
+                    queryMethod = CweQueryMethod.ByName;
+                    return true;
                 }
 
-                throw new FormatException(Strings.AutocompleteCweIds_FormatException);
+                validatedQueryString = null;
+                queryMethod = CweQueryMethod.Unknown;
+                return false;
             }
         }
     }

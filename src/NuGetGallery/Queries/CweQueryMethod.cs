@@ -5,7 +5,8 @@ namespace NuGetGallery
 {
     public enum CweQueryMethod
     {
+        Unknown,
         ByCweId,
-        ByName
+        ByName,
     }
 }

@@ -508,18 +508,18 @@ namespace NuGetGallery {
         /// <summary>
         ///   Looks up a localized string similar to Invalid CVE ID format. The CVE ID should be formatted as \&quot;CVE-{year}-xxxxxxx\&quot; or just \&quot;{year}-xxxxxxx\&quot;.
         /// </summary>
-        public static string AutocompleteCveIds_FormatException {
+        public static string AutocompleteCveIds_ValidationError {
             get {
-                return ResourceManager.GetString("AutocompleteCveIds_FormatException", resourceCulture);
+                return ResourceManager.GetString("AutocompleteCveIds_ValidationError", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Invalid CWE ID format. The CWE ID should be formatted as \&quot;CWE-xxx\&quot;..
         /// </summary>
-        public static string AutocompleteCweIds_FormatException {
+        public static string AutocompleteCweIds_ValidationError {
             get {
-                return ResourceManager.GetString("AutocompleteCweIds_FormatException", resourceCulture);
+                return ResourceManager.GetString("AutocompleteCweIds_ValidationError", resourceCulture);
             }
         }
         

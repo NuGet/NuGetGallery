@@ -21,15 +21,13 @@ namespace NuGetGallery
             _entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
         }
 
-        public IReadOnlyCollection<AutocompleteCweIdQueryResult> Execute(string queryString)
+        public AutocompleteCweIdQueryResults Execute(string queryString)
         {
-            if (string.IsNullOrEmpty(queryString))
-            {
-                throw new ArgumentNullException(nameof(queryString));
-            }
-
             // Validate search term and determine query type.
-            var validatedSearchTerm = CweQueryStringValidator.Validate(queryString, out var queryMethod);
+            if (!CweQueryStringValidator.TryValidate(queryString, out var queryMethod, out var validatedQueryString))
+            {
+                return new AutocompleteCweIdQueryResults(Strings.AutocompleteCweIds_ValidationError);
+            }
 
             // Query the database.
             // Only include listed CVE entities.
@@ -38,7 +36,7 @@ namespace NuGetGallery
             {
                 case CweQueryMethod.ByCweId:
                     queryResults = _entitiesContext.Cwes
-                        .Where(e => e.CweId.StartsWith(validatedSearchTerm) && e.Listed)
+                        .Where(e => e.CweId.StartsWith(validatedQueryString) && e.Listed)
                         .OrderBy(e => e.CweId)
                         .Take(MaxResults)
                         .ToList();
@@ -46,7 +44,7 @@ namespace NuGetGallery
 
                 case CweQueryMethod.ByName:
                     queryResults = _entitiesContext.Cwes
-                        .Where(e => e.Name.Contains(validatedSearchTerm) && e.Listed)
+                        .Where(e => e.Name.Contains(validatedQueryString) && e.Listed)
                         .OrderBy(e => e.CweId)
                         .Take(MaxResults)
                         .ToList();
@@ -55,10 +53,12 @@ namespace NuGetGallery
                     throw new ArgumentOutOfRangeException(nameof(queryMethod));
             }
 
-            return queryResults
+            var results = queryResults
                 .Select(e => new AutocompleteCweIdQueryResult(e.CweId, e.Name, e.Description))
                 .OrderBy(e => CweIdHelper.GetCweIdNumericPartAsInteger(e.CweId))
                 .ToList();
+
+            return new AutocompleteCweIdQueryResults(results);
         }
     }
 }

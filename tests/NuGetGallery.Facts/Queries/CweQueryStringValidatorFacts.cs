@@ -17,8 +17,9 @@ namespace NuGetGallery.Queries
             [InlineData("name", "name", CweQueryMethod.ByName)]
             public void DeterminesQueryMethod(string queryString, string expectedValidatedString, CweQueryMethod expectedQueryMethod)
             {
-                var actualValidatedString = CweQueryStringValidator.Validate(queryString, out var actualQueryMethod);
+                var validationResult = CweQueryStringValidator.TryValidate(queryString, out var actualQueryMethod, out var actualValidatedString);
 
+                Assert.True(validationResult);
                 Assert.Equal(expectedQueryMethod, actualQueryMethod);
                 Assert.Equal(expectedValidatedString, actualValidatedString);
             }

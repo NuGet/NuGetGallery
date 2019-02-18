@@ -1,9 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
-
 namespace NuGetGallery
 {
     public interface IAutocompleteCveIdsQuery
@@ -14,9 +11,8 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="partialId">The partial CVE Id provided by the user.</param>
         /// <returns>
-        /// Returns a <see cref="IReadOnlyCollection{CveIdAutocompleteQueryResult}"/>.
+        /// Returns a <see cref="AutocompleteCveIdQueryResults"/>.
         /// </returns>
-        /// <exception cref="FormatException">Thrown when the format of the partial CVE Id is invalid or could not be determined.</exception>
-        IReadOnlyCollection<AutocompleteCveIdQueryResult> Execute(string partialId);
+        AutocompleteCveIdQueryResults Execute(string partialId);
     }
 }

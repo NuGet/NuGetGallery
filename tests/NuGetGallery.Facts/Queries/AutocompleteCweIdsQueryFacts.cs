@@ -14,29 +14,17 @@ namespace NuGetGallery.Queries
             [Theory]
             [InlineData(null)]
             [InlineData("")]
-            public void ThrowsExceptionForNullOrEmptyArgument(string queryString)
-            {
-                var query = new AutocompleteCweIdsQuery(new FakeEntitiesContext());
-
-                Assert.Throws<ArgumentNullException>(() => query.Execute(queryString));
-            }
-
-            [Theory]
             [InlineData("0")]
             [InlineData("cWe-0")]
-            public void WhenQueryingByCweIdThrowsFormatExceptionIfQueryStringTooShort(string queryString)
+            [InlineData("abc")]
+            public void ReturnsExpectedResultsIfQueryStringTooShort(string queryString)
             {
                 var query = new AutocompleteCweIdsQuery(new FakeEntitiesContext());
+                var queryResults = query.Execute(queryString);
 
-                Assert.Throws<FormatException>(() => query.Execute(queryString));
-            }
-
-            [Fact]
-            public void WhenQueryingByNameThrowsFormatExceptionIfQueryStringTooShort()
-            {
-                var query = new AutocompleteCweIdsQuery(new FakeEntitiesContext());
-
-                Assert.Throws<FormatException>(() => query.Execute("abc"));
+                Assert.False(queryResults.Success);
+                Assert.Equal(Strings.AutocompleteCweIds_ValidationError, queryResults.ErrorMessage);
+                Assert.Null(queryResults.Results);
             }
 
             [Theory]
@@ -64,11 +52,12 @@ namespace NuGetGallery.Queries
                 var query = new AutocompleteCweIdsQuery(entitiesContext);
                 var queryResults = query.Execute(queryString);
 
-                Assert.NotNull(queryResults);
-                Assert.Equal(5, queryResults.Count);
+                Assert.Equal(5, queryResults.Results.Count);
+                Assert.True(queryResults.Success);
+                Assert.Null(queryResults.ErrorMessage);
 
                 Assert.All(
-                    queryResults,
+                    queryResults.Results,
                     r =>
                     {
                         Assert.StartsWith(expectedCweIdStartString, r.CweId, StringComparison.OrdinalIgnoreCase);
@@ -96,7 +85,7 @@ namespace NuGetGallery.Queries
                 var queryResults = query.Execute("Name A");
 
                 Assert.NotNull(queryResults);
-                var singleResult = Assert.Single(queryResults);
+                var singleResult = Assert.Single(queryResults.Results);
 
                 // Only the listed element matching by name should be returned.
                 Assert.Equal(expectedResult.Name, singleResult.Name);

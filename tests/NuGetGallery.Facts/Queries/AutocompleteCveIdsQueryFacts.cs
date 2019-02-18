@@ -14,11 +14,14 @@ namespace NuGetGallery.Queries
             [Theory]
             [InlineData(null)]
             [InlineData("")]
-            public void ThrowsExceptionForNullOrEmptyArgument(string queryString)
+            public void ReturnsExpectedResultsForNullOrEmptyArgument(string queryString)
             {
                 var query = new AutocompleteCveIdsQuery(new FakeEntitiesContext());
+                var queryResults = query.Execute(queryString);
 
-                Assert.Throws<ArgumentNullException>(() => query.Execute(queryString));
+                Assert.False(queryResults.Success);
+                Assert.Null(queryResults.Results);
+                Assert.Equal(Strings.AutocompleteCveIds_ValidationError, queryResults.ErrorMessage);
             }
 
 
@@ -48,11 +51,11 @@ namespace NuGetGallery.Queries
                 var query = new AutocompleteCveIdsQuery(entitiesContext);
                 var queryResults = query.Execute(queryString);
 
-                Assert.NotNull(queryResults);
-                Assert.Equal(5, queryResults.Count);
-
+                Assert.Equal(5, queryResults.Results.Count);
+                Assert.True(queryResults.Success);
+                Assert.Null(queryResults.ErrorMessage);
                 Assert.All(
-                    queryResults,
+                    queryResults.Results,
                     r =>
                     {
                         Assert.StartsWith(expectedCveIdStartString, r.CveId, StringComparison.OrdinalIgnoreCase);

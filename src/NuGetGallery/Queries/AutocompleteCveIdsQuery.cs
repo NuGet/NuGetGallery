@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using NuGet.Services.Entities;
@@ -28,14 +27,12 @@ namespace NuGetGallery
             _entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
         }
 
-        public IReadOnlyCollection<AutocompleteCveIdQueryResult> Execute(string partialId)
+        public AutocompleteCveIdQueryResults Execute(string partialId)
         {
-            if (string.IsNullOrEmpty(partialId))
+            if (!TryValidatePartialCveIdFormat(partialId, out var validatedPartialId))
             {
-                throw new ArgumentNullException(nameof(partialId));
+                return new AutocompleteCveIdQueryResults(Strings.AutocompleteCveIds_ValidationError);
             }
-
-            var validatedPartialId = ValidatePartialCveIdFormat(partialId);
 
             // Query the database.
             // Only include listed CVE entities.
@@ -45,13 +42,21 @@ namespace NuGetGallery
                 .Take(MaxResults)
                 .ToList();
 
-            return queryResults
+            var results = queryResults
                 .Select(e => new AutocompleteCveIdQueryResult(e.CveId, e.Description))
                 .ToList();
+
+            return new AutocompleteCveIdQueryResults(results);
         }
 
-        private string ValidatePartialCveIdFormat(string partialId)
+        private bool TryValidatePartialCveIdFormat(string partialId, out string validatedCveIdQuery)
         {
+            if (string.IsNullOrEmpty(partialId))
+            {
+                validatedCveIdQuery = null;
+                return false;
+            }
+
             // The user input will be interpreted as a single CVE Id.
             // The user may choose to not type the CVE Id prefix "CVE-".
             // Accepted user input format is "CVE-{year}-xxxxxxx" or just "{year}-xxxxxxx".
@@ -60,13 +65,15 @@ namespace NuGetGallery
 
             if (match.Value == string.Empty)
             {
-                throw new FormatException(Strings.AutocompleteCveIds_FormatException);
+                validatedCveIdQuery = null;
+                return false;
             }
 
             var query = match.Groups["query"];
 
             // Return the validated CVE ID (including the prefix for consistency and for db querying).
-            return $"{Cve.IdPrefix}{query}";
+            validatedCveIdQuery = $"{Cve.IdPrefix}{query}";
+            return true;
         }
     }
 }
