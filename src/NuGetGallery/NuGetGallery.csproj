@@ -222,6 +222,8 @@
     <Compile Include="Authentication\Providers\AzureActiveDirectoryV2\AzureActiveDirectoryV2AuthenticatorConfiguration.cs" />
     <Compile Include="Authentication\Providers\AzureActiveDirectory\AzureActiveDirectoryAuthenticator.cs" />
     <Compile Include="Authentication\Providers\AzureActiveDirectory\AzureActiveDirectoryAuthenticatorConfiguration.cs" />
+    <Compile Include="ViewModels\CweAutocompleteViewModel.cs" />
+    <Compile Include="ViewModels\CveAutocompleteViewModel.cs" />
     <Compile Include="Queries\AutocompleteDatabasePackageIdsQuery.cs" />
     <Compile Include="Queries\AutocompleteDatabasePackageVersionsQuery.cs" />
     <Compile Include="Queries\AutocompleteDatabaseQuery.cs" />
@@ -238,8 +240,6 @@
     <Compile Include="Queries\CveIdAutocompleteQueryResult.cs" />
     <Compile Include="Queries\AutocompleteCveIdsQuery.cs" />
     <Compile Include="Queries\AutocompleteCweIdsQuery.cs" />
-    <Compile Include="ViewModels\CveAutocompleteDataViewModel.cs" />
-    <Compile Include="ViewModels\CweAutocompleteDataViewModel.cs" />
     <Compile Include="Queries\IAutocompleteCveIdsQuery.cs" />
     <Compile Include="Diagnostics\TraceDiagnosticsSourceScope.cs" />
     <Compile Include="Extensions\ClaimsExtensions.cs" />

@@ -242,29 +242,27 @@ namespace NuGetGallery
             {
                 return Json(
                     HttpStatusCode.BadRequest,
-                    new { success = false, message = "Search term cannot be empty." },
+                    new CveAutocompleteViewModel("Search term cannot be empty."),
                     JsonRequestBehavior.AllowGet);
             }
 
             // Get CVE data.
             // Suggestions will be CVE Id's that start with characters entered by the user.
-            var model = new CveAutocompleteDataViewModel();
-            IReadOnlyCollection<CveIdAutocompleteQueryResult> suggestions;
             try
             {
-                suggestions = _autocompleteCveIdsQuery.Execute(query);
+                var suggestions = _autocompleteCveIdsQuery.Execute(query);
 
-                model.Items.AddRange(suggestions);
+                return Json(
+                    new CveAutocompleteViewModel(suggestions),
+                    JsonRequestBehavior.AllowGet);
             }
             catch (FormatException formatException)
             {
                 return Json(
                     HttpStatusCode.BadRequest,
-                    new { success = false, message = formatException.Message },
+                    new CveAutocompleteViewModel(formatException.Message),
                     JsonRequestBehavior.AllowGet);
             }
-
-            return Json(model, JsonRequestBehavior.AllowGet);
         }
 
         [HttpGet]
@@ -275,31 +273,28 @@ namespace NuGetGallery
             {
                 return Json(
                     HttpStatusCode.BadRequest,
-                    new { success = false, message = "Search term cannot be empty." },
+                    new CweAutocompleteViewModel("Search term cannot be empty."),
                     JsonRequestBehavior.AllowGet);
             }
-
-            var model = new CweAutocompleteDataViewModel();
 
             // Get CWE data.
             // Suggestions will be CWE Id's that start with characters entered by the user,
             // or CWE Id's that have a Name containing the textual search term provided by the user.
-            IReadOnlyCollection<CweIdAutocompleteQueryResult> suggestions;
             try
             {
-                suggestions = _autocompleteCweIdsQuery.Execute(query);
+                var suggestions = _autocompleteCweIdsQuery.Execute(query);
 
-                model.Items.AddRange(suggestions);
+                return Json(
+                    new CweAutocompleteViewModel(suggestions),
+                    JsonRequestBehavior.AllowGet);
             }
             catch (FormatException formatException)
             {
                 return Json(
                     HttpStatusCode.BadRequest,
-                    new { success = false, message = formatException.Message },
+                    new CweAutocompleteViewModel(formatException.Message),
                     JsonRequestBehavior.AllowGet);
             }
-
-            return Json(model, JsonRequestBehavior.AllowGet);
         }
 
         private bool TryGetManagePackageOwnerModel(string id, string username, bool isAddOwner, out ManagePackageOwnerModel model)
