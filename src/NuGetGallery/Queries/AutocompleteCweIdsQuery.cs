@@ -38,7 +38,7 @@ namespace NuGetGallery
             {
                 case CweQueryMethod.ByCweId:
                     queryResults = _entitiesContext.Cwes
-                        .Where(e => e.CweId.StartsWith(validatedSearchTerm) && e.Listed == true)
+                        .Where(e => e.CweId.StartsWith(validatedSearchTerm) && e.Listed)
                         .OrderBy(e => e.CweId)
                         .Take(MaxResults)
                         .ToList();
@@ -46,7 +46,7 @@ namespace NuGetGallery
 
                 case CweQueryMethod.ByName:
                     queryResults = _entitiesContext.Cwes
-                        .Where(e => e.Name.Contains(validatedSearchTerm) && e.Listed == true)
+                        .Where(e => e.Name.Contains(validatedSearchTerm) && e.Listed)
                         .OrderBy(e => e.CweId)
                         .Take(MaxResults)
                         .ToList();

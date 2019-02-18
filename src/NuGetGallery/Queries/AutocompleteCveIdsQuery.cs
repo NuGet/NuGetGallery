@@ -40,7 +40,7 @@ namespace NuGetGallery
             // Query the database.
             // Only include listed CVE entities.
             var queryResults = _entitiesContext.Cves
-                .Where(e => e.CveId.StartsWith(validatedPartialId) && e.Listed == true)
+                .Where(e => e.CveId.StartsWith(validatedPartialId) && e.Listed)
                 .OrderBy(e => e.CveId)
                 .Take(MaxResults)
                 .ToList();
