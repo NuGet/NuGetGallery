@@ -24,7 +24,6 @@ namespace NuGetGallery.Queries
                 Assert.Equal(Strings.AutocompleteCveIds_ValidationError, queryResults.ErrorMessage);
             }
 
-
             [Theory]
             [InlineData("CVE-2000-01", "CVE-2000-01")]
             [InlineData("cVe-2000-01", "CVE-2000-01")]
