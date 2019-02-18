@@ -10,7 +10,7 @@ using NuGet.Services.Entities;
 namespace NuGetGallery
 {
     public class AutocompleteCveIdsQuery
-        : IAutoCompleteCveIdsQuery
+        : IAutocompleteCveIdsQuery
     {
         // Search results should be limited anywhere between 5 - 10 results.
         private const int MaxResults = 5;

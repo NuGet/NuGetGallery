@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace NuGetGallery
 {
-    public interface IAutoCompletePackageIdsQuery
+    public interface IAutocompletePackageIdsQuery
     {
         Task<IEnumerable<string>> Execute(
             string partialId,

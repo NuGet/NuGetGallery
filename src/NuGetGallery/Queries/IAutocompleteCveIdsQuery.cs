@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace NuGetGallery
 {
-    public interface IAutoCompleteCveIdsQuery
+    public interface IAutocompleteCveIdsQuery
     {
         /// <summary>
         /// Returns the CVE Id's and (truncated) descriptions matching 

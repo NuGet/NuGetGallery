@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace NuGetGallery
 {
-    public interface IAutoCompletePackageVersionsQuery
+    public interface IAutocompletePackageVersionsQuery
     {
         Task<IEnumerable<string>> Execute(
             string id,

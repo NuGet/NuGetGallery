@@ -7,7 +7,7 @@ using NuGet.Services.Entities;
 
 namespace NuGetGallery
 {
-    public interface IAutoCompleteCweIdsQuery
+    public interface IAutocompleteCweIdsQuery
     {
         /// <summary>
         /// Returns the CWE Id's and (truncated) descriptions matching 

@@ -896,7 +896,7 @@ namespace NuGetGallery
             bool? includePrerelease,
             string semVerLevel = null)
         {
-            var query = GetService<IAutoCompletePackageIdsQuery>();
+            var query = GetService<IAutocompletePackageIdsQuery>();
             return new JsonResult
             {
                 Data = (await query.Execute(partialId, includePrerelease, semVerLevel)).ToArray(),
@@ -911,7 +911,7 @@ namespace NuGetGallery
             bool? includePrerelease,
             string semVerLevel = null)
         {
-            var query = GetService<IAutoCompletePackageVersionsQuery>();
+            var query = GetService<IAutocompletePackageVersionsQuery>();
             return new JsonResult
             {
                 Data = (await query.Execute(id, includePrerelease, semVerLevel)).ToArray(),
