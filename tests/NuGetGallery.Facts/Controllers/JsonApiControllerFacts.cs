@@ -757,7 +757,7 @@ namespace NuGetGallery.Controllers
                     var controller = GetController<JsonApiController>();
 
                     // Act
-                    var result = controller.GetPackageOwners("fakeId", "2.0.0");
+                    var result = controller.GetPackageOwners("fakeId");
                     dynamic data = ((JsonResult)result).Data;
 
                     // Assert
@@ -775,7 +775,7 @@ namespace NuGetGallery.Controllers
                     controller.SetCurrentUser(currentUser);
 
                     // Act
-                    var result = controller.GetPackageOwners(fakes.Package.Id, fakes.Package.Packages.First().Version);
+                    var result = controller.GetPackageOwners(fakes.Package.Id);
 
                     // Assert
                     Assert.IsType<HttpUnauthorizedResult>(result);
@@ -808,7 +808,7 @@ namespace NuGetGallery.Controllers
                     var controller = GetController<JsonApiController>();
                     controller.SetCurrentUser(currentUser);
 
-                    var result = controller.GetPackageOwners("FakePackage", "2.0");
+                    var result = controller.GetPackageOwners("FakePackage");
                     return ((JsonResult)result).Data as IEnumerable<PackageOwnersResultViewModel>;
                 }
 

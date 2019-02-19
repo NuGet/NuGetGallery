@@ -650,14 +650,26 @@ namespace NuGetGallery
                 return RedirectToActionPermanent("DisplayPackage", new { id = id, version = normalized });
             }
 
-            Package package;
-            if (version != null && version.Equals(GalleryConstants.AbsoluteLatestUrlString, StringComparison.InvariantCultureIgnoreCase))
+            Package package = null;
+            // Load all packages with the ID.
+            var packages = _packageService.FindPackagesById(id);
+            if (version != null)
             {
-                package = _packageService.FindAbsoluteLatestPackageById(id, SemVerLevelKey.SemVer2);
+                if (version.Equals(GalleryConstants.AbsoluteLatestUrlString, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    // The user is looking for the absolute latest version and not an exact version.
+                    package = packages.FirstOrDefault(p => p.IsLatestSemVer2);
+                }
+                else
+                {
+                    package = packages.SingleOrDefault(p => p.NormalizedVersion == NuGetVersionFormatter.Normalize(version));
+                }
             }
-            else
+
+            if (package == null)
             {
-                package = _packageService.FindPackageByIdAndVersion(id, version, SemVerLevelKey.SemVer2);
+                // If we cannot find the exact version or no version was provided, fall back to the latest version.
+                package = _packageService.FilterLatestPackage(packages, SemVerLevelKey.SemVer2, allowPrerelease: true);
             }
 
             // Validating packages should be hidden to everyone but the owners and admins.
@@ -669,14 +681,13 @@ namespace NuGetGallery
             {
                 return HttpNotFound();
             }
-            
+
             var model = new DisplayPackageViewModel(package, currentUser);
 
             model.ValidatingTooLong = _validationService.IsValidatingTooLong(package);
             model.PackageValidationIssues = _validationService.GetLatestPackageValidationIssues(package);
             model.SymbolsPackageValidationIssues = _validationService.GetLatestPackageValidationIssues(model.LatestSymbolsPackage);
             model.IsCertificatesUIEnabled = _contentObjectService.CertificatesConfiguration?.IsUIEnabledForUser(currentUser) ?? false;
-            model.IsAtomFeedEnabled = _featureFlagService.IsPackagesAtomFeedEnabled();
 
             model.ReadMeHtml = await _readMeService.GetReadMeHtmlAsync(package);
 
@@ -1382,17 +1393,32 @@ namespace NuGetGallery
         [RequiresAccountConfirmation("manage a package")]
         public virtual async Task<ActionResult> Manage(string id, string version = null)
         {
-            var package = _packageService.FindPackageByIdAndVersion(id, version, SemVerLevelKey.SemVer2);
+            Package package = null;
+            // Load all versions of the package.
+            var packages = _packageService.FindPackagesById(id, withDeprecations: true);
+            if (version != null)
+            {
+                // Try to find the exact version if it was specified.
+                package = packages.SingleOrDefault(p => p.NormalizedVersion == NuGetVersionFormatter.Normalize(version));
+            }
+
             if (package == null)
             {
+                // If the exact version was not found, fall back to the latest version.
+                package = _packageService.FilterLatestPackage(packages, SemVerLevelKey.SemVer2, allowPrerelease: true);
+            }
+
+            if (package == null)
+            {
+                // If the package has no versions, return not found.
                 return HttpNotFound();
             }
 
             var model = new ManagePackageViewModel(
-                package, 
-                GetCurrentUser(), 
-                ReportMyPackageReasons, 
-                Url, 
+                package,
+                GetCurrentUser(),
+                ReportMyPackageReasons,
+                Url,
                 await _readMeService.GetReadMeMdAsync(package));
 
             if (!model.CanEdit && !model.CanManageOwners && !model.CanUnlistOrRelist)

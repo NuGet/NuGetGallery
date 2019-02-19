@@ -967,99 +967,6 @@ namespace NuGetGallery
             }
         }
 
-        public class TheFindAbsoluteLatestPackageByIdMethod
-        {
-            [Fact]
-            public void ReturnsTheLatestVersionWhenSemVerLevelUnknown()
-            {
-                // Arrange
-                var repository = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
-                var packageRegistration = new PackageRegistration { Id = "theId" };
-                var package1 = new Package { Version = "1.0", PackageRegistration = packageRegistration, Listed = true, IsLatestStable = true };
-                var package2 = new Package { Version = "2.0.0a", PackageRegistration = packageRegistration, IsPrerelease = true, Listed = true, IsLatest = true };
-
-                repository
-                    .Setup(repo => repo.GetAll())
-                    .Returns(new[] { package1, package2 }.AsQueryable());
-                var service = CreateService(packageRepository: repository);
-
-                // Act
-                var result = service.FindAbsoluteLatestPackageById("theId", SemVerLevelKey.Unknown);
-
-                // Assert
-                Assert.NotNull(result);
-                Assert.Equal("2.0.0a", result.Version);
-            }
-
-            [Fact]
-            public void ReturnsTheLatestVersionWhenSemVerLevel2()
-            {
-                // Arrange
-                var repository = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
-                var packageRegistration = new PackageRegistration { Id = "theId" };
-                var package1 = new Package { Version = "1.0", PackageRegistration = packageRegistration, Listed = true, IsLatestStable = true };
-                var package2 = new Package { Version = "2.0.0-alpha.1", PackageRegistration = packageRegistration, IsPrerelease = true, Listed = true, IsLatest = true, SemVerLevelKey = SemVerLevelKey.SemVer2 };
-
-                repository
-                    .Setup(repo => repo.GetAll())
-                    .Returns(new[] { package1, package2 }.AsQueryable());
-                var service = CreateService(packageRepository: repository);
-
-                // Act
-                var result = service.FindAbsoluteLatestPackageById("theId", SemVerLevelKey.SemVer2);
-
-                // Assert
-                Assert.NotNull(result);
-                Assert.Equal("2.0.0-alpha.1", result.Version);
-            }
-
-            [Fact]
-            public void ReturnsTheMostRecentVersionWhenSemVerLevelUnknown()
-            {
-                // Arrange
-                var repository = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
-                var packageRegistration = new PackageRegistration { Id = "theId" };
-                var package1 = new Package { Version = "1.0", PackageRegistration = packageRegistration, Listed = true };
-                var package2 = new Package { Version = "2.0.0-alpha", PackageRegistration = packageRegistration, IsPrerelease = true, Listed = true };
-                var package3 = new Package { Version = "2.0.0", PackageRegistration = packageRegistration, Listed = true, IsLatest = true };
-
-                repository
-                    .Setup(repo => repo.GetAll())
-                    .Returns(new[] { package1, package2, package3 }.AsQueryable());
-                var service = CreateService(packageRepository: repository);
-
-                // Act
-                var result = service.FindAbsoluteLatestPackageById("theId", SemVerLevelKey.Unknown);
-
-                // Assert
-                Assert.NotNull(result);
-                Assert.Equal("2.0.0", result.Version);
-            }
-
-            [Fact]
-            public void ReturnsTheMostRecentVersionWhenSemVerLevel2()
-            {
-                // Arrange
-                var repository = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
-                var packageRegistration = new PackageRegistration { Id = "theId" };
-                var package1 = new Package { Version = "1.0", PackageRegistration = packageRegistration, Listed = true };
-                var package2 = new Package { Version = "2.0.0-alpha.1", PackageRegistration = packageRegistration, IsPrerelease = true, Listed = true, SemVerLevelKey = SemVerLevelKey.SemVer2 };
-                var package3 = new Package { Version = "2.0.0+metadata", PackageRegistration = packageRegistration, Listed = true, SemVerLevelKey = SemVerLevelKey.SemVer2, IsLatestSemVer2 = true };
-
-                repository
-                    .Setup(repo => repo.GetAll())
-                    .Returns(new[] { package1, package2, package3 }.AsQueryable());
-                var service = CreateService(packageRepository: repository);
-
-                // Act
-                var result = service.FindAbsoluteLatestPackageById("theId", SemVerLevelKey.SemVer2);
-
-                // Assert
-                Assert.NotNull(result);
-                Assert.Equal("2.0.0+metadata", result.Version);
-            }
-        }
-
         public class TheFindPackagesByOwnerMethod : TheFindPackagesByOwnersMethodsBase
         {
             public static IEnumerable<object[]> TestData_RoleVariants
@@ -2226,7 +2133,7 @@ namespace NuGetGallery
 
                     // If we delete the first organization, the package is orphaned unless is it owned a user or it is owned by the second organization and that organization has members.
                     if (state.HasFlag(OwnershipState.OwnedByUser1) ||
-                        state.HasFlag(OwnershipState.OwnedByUser2) || 
+                        state.HasFlag(OwnershipState.OwnedByUser2) ||
                         (state.HasFlag(OwnershipState.OwnedByOrganization2) && (state.HasFlag(OwnershipState.User1InOrganization2) || state.HasFlag(OwnershipState.User2InOrganization2))))
                     {
                         expectedResult = false;
@@ -2301,7 +2208,7 @@ namespace NuGetGallery
                 Assert.True(package.HideLicenseReport);
             }
         }
-        
+
         public class TheSetRequiredSignerAsyncMethodOneParameter : TestContainer
         {
             private readonly User _user1;
