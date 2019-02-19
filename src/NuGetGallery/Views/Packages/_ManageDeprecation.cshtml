@@ -28,21 +28,21 @@
                 <span data-bind="text: chosenVersionsCountString"></span>
                 <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
             </button>
-            <div class="dropdown-content panel panel-default" data-bind="visible: dropdownOpen">
+            <div class="dropdown-content panel panel-default" tabindex="-1" data-bind="visible: dropdownOpen">
                 <div class="panel-body version-selector">
                     <div class="form-group version-filter">
-                        <input id="versionFilter" name="versionFilter" tabindex="-1" class="form-control full-line" type="text" data-bind="textInput: versionFilter" />
+                        <input name="versionFilter" class="form-control full-line" type="text" data-bind="textInput: versionFilter" />
                     </div>
                     <div class="unbolded-label">
                         <label>
-                            <input id="versionSelectAll" name="versionSelectAll" tabindex="-1" type="checkbox" value="true" data-bind="checked: versionSelectAllChecked, click: toggleVersionSelectAll, clickBubble false" />
+                            <input name="versionSelectAll" type="checkbox" value="true" data-bind="checked: versionSelectAllChecked, click: toggleVersionSelectAll, clickBubble false" />
                             Select all
                         </label>
                     </div>
                     <div data-bind="foreach: versions">
                         <div class="unbolded-label" data-bind="visible: visible">
                             <label>
-                                <input type="checkbox" value="true" tabindex="-1" data-bind="checked: checked, attr: { id: 'version' + $index(), name: version }" />
+                                <input type="checkbox" value="true" data-bind="checked: checked, attr: { name: version }" />
                                 <span data-bind="text: version"></span>
                             </label>
                         </div>

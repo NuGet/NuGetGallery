@@ -214,21 +214,24 @@
                 $(this).click();
             }
         });
-    }
+    };
 
-    nuget.canElementBeTabbedTo = function (element) {
-        var isElement = function (type) {
-            return element.is(type);
-        }
+    nuget.isElement = function (element, type) {
+        return element.is(type);
+    };
 
-        var hasAttribute = function (attributeName) {
-            var attribute = element.attr(attributeName);
-            return typeof attribute !== typeof undefined && attribute !== false;
-        }
+    nuget.hasAttribute = function (element, attributeName) {
+        var attribute = element.attr(attributeName);
+        return typeof attribute !== typeof undefined && attribute !== false;
+    };
 
-        if (hasAttribute("tabindex")) {
-            // Elements that have had their tabindex set to -1 cannot be tabbed to.
-            return element.attr("tabindex") !== "-1";
+    nuget.canElementBeFocused = function (element) {
+        element = $(element);
+        var isElement = window.nuget.isElement.bind(this, element);
+        var hasAttribute = window.nuget.hasAttribute.bind(this, element);
+
+        if (!isElement(':visible')) {
+            return false;
         }
 
         // See https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/Content_categories#Interactive_content
@@ -246,34 +249,11 @@
             (isElement("menu") && element.attr("type") !== "toolbar") ||
             (isElement("object") && hasAttribute("usemap")) ||
             (isElement("video") && hasAttribute("controls")));
-    }
+    };
 
-    nuget.getFirstChildThatCanBeTabbedTo = function (element) {
-        if (window.nuget.canElementBeTabbedTo(element)) {
-            return element;
-        }
-
-        // If an element has its tabindex set to -1, none of its children can be tabbed to.
-        if (element.attr("tabindex") === "-1") {
-            return null;
-        }
-
-        var i;
-        var children = element.children();
-        for (i = 0; i < children.length; i++) {
-            var child = children.eq(i);
-            if (window.nuget.canElementBeTabbedTo(child)) {
-                return child;
-            }
-
-            var childChild = window.nuget.getFirstChildThatCanBeTabbedTo(child);
-            if (childChild !== null) {
-                return childChild;
-            }
-        }
-
-        return null;
-    }
+    nuget.canElementBeTabbedTo = function (element) {
+        return window.nuget.canElementBeFocused(element) && $(element).attr('tabindex') !== "-1";
+    };
 
     // Source: https://stackoverflow.com/a/27568129/52749
     // Detects whether SVG is supported in the browser.
@@ -365,7 +345,7 @@
         var $field = $("#AntiForgeryForm input[name=__RequestVerificationToken]");
         if (data instanceof FormData)
         {
-            data.append($tokenKey, $field.val())
+            data.append($tokenKey, $field.val());
         }
         else
         {
@@ -383,9 +363,14 @@
         }
 
         return stringToFormat;
-    }
+    };
 
     window.nuget = nuget;
+
+    jQuery.extend(jQuery.expr[':'], {
+        focusable: window.nuget.canElementBeFocused,
+        tabbable: window.nuget.canElementBeTabbedTo
+    });
 
     initializeJQueryValidator();
 
@@ -475,7 +460,7 @@
         $("#skipToContent").on('click', function () {
             // Focus on the first element that can be tabbed to inside the "skippedToContent" element.
             var skippedToContent = $("#skippedToContent");
-            var firstChildThatCanBeTabbedTo = window.nuget.getFirstChildThatCanBeTabbedTo(skippedToContent.first());
+            var firstChildThatCanBeTabbedTo = skippedToContent.find(':tabbable').first();
             if (firstChildThatCanBeTabbedTo !== null) {
                 firstChildThatCanBeTabbedTo.focus();
             } else {

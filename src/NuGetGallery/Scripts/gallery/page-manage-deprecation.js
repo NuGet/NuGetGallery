@@ -56,84 +56,87 @@ function ManageDeprecationSecurityDetailListViewModel(title, label, placeholder)
 function ManageDeprecationViewModel(id, versionsDictionary, defaultVersion, submitUrl, packageUrl, getAlternatePackageVersions) {
     var self = this;
 
-    var versionFilterId = 'versionFilter';
-    var selectAllVersionsId = 'versionSelectAll';
-    var versionIdPrefix = 'version';
+    this.dropdownSelector = '.deprecation-section .dropdown';
+    this.dropdownBtnSelector = self.dropdownSelector + ' .dropdown-btn';
+    this.dropdownContentSelector = self.dropdownSelector + ' .dropdown-content';
+    this.getFocusableDropdownContentElements = function () {
+        return $(self.dropdownContentSelector).find(':focusable:not(:has(:focusable))');
+    };
+
     this.dropdownOpen = ko.observable(false);
     this.toggleDropdown = function () {
         self.dropdownOpen(!self.dropdownOpen());
-        $('#' + versionFilterId).focus();
+
+        if (self.dropdownOpen()) {
+            self.getFocusableDropdownContentElements().first().focus();
+        }
     };
 
-    var isAncestor = function (element, ancestorSelector) {
+    this.isAncestor = function (element, ancestorSelector) {
         var $target = $(element);
         // '.closest' returns the list of ancestors between this element and the selector.
         // If the selector is not an ancestor of the element, it returns an empty list.
         return $target.closest(ancestorSelector).length;
     };
 
-    var isElementInsideDropdown = function (element) {
-        return isAncestor(element, '.dropdown');
+    this.isElementInsideDropdown = function (element) {
+        return self.isAncestor(element, self.dropdownSelector);
     };
 
     // If the user clicks outside of the dropdown, close it.
     $(document).click(function (event) {
-        if (!isElementInsideDropdown(event.target)) {
+        if (!self.isElementInsideDropdown(event.target)) {
             self.dropdownOpen(false);
         }
     });
 
     // If an element outside of the dropdown gains focus, close it.
     $(document).focusin(function (event) {
-        if (!isElementInsideDropdown(event.target)) {
+        if (!self.isElementInsideDropdown(event.target)) {
             self.dropdownOpen(false);
         }
     });
+    
+    this.findPrevFocusableElement = function (element) {
+        var focusableElements = self.getFocusableDropdownContentElements();
+        var current = focusableElements.index(element);
+        if (current > 0) {
+            return focusableElements.eq(current - 1);
+        }
+    };
 
-    var upKeyCode = 38;
-    var downKeyCode = 40;
+    this.findNextFocusableElement = function (element) {
+        var focusableElements = self.getFocusableDropdownContentElements();
+        var current = focusableElements.index(element);
+        if (current < focusableElements.length - 1) {
+            return focusableElements.eq(current + 1);
+        }
+    };
+
+    this.escapeKeyCode = 27;
+    this.upKeyCode = 38;
+    this.downKeyCode = 40;
     $(document).keydown(function (event) {
-        if (isElementInsideDropdown(event.target)) {
+        var target = event.target;
+        if (self.isElementInsideDropdown(target)) {
             // If we press escape while focus is inside the dropdown, close it
-            if (event.which === 27) { // Escape key
+            if (event.which === self.escapeKeyCode) { // Escape key
                 self.dropdownOpen(false);
                 event.preventDefault();
-                $('.dropdown-btn').focus();
+                $(self.dropdownBtnSelector).focus();
             }
 
             // If we press up or down while focusing on an input in the dropdown, move to the previous/next input
             // If there is no previous/next input, do nothing
-            var targetId = event.target.id;
-            var focusTargetId;
-            if (targetId === versionFilterId) {
-                if (event.which === downKeyCode) {
-                    focusTargetId = selectAllVersionsId;
-                }
-            } else if (targetId === selectAllVersionsId) {
-                if (event.which === upKeyCode) {
-                    focusTargetId = versionFilterId;
-                } else if (event.which === downKeyCode) {
-                    focusTargetId = versionIdPrefix + '0';
-                }
-            } else if (targetId.startsWith(versionIdPrefix)) {
-                var indexString = targetId.substr(versionIdPrefix.length);
-                var index = parseInt(indexString);
-                if (event.which === upKeyCode) {
-                    if (index === 0) {
-                        focusTargetId = selectAllVersionsId;
-                    } else {
-                        focusTargetId = versionIdPrefix + (index - 1);
-                    }
-                } else if (event.which === downKeyCode) {
-                    var nextIndex = index + 1;
-                    if (nextIndex < self.versions.length) {
-                        focusTargetId = versionIdPrefix + nextIndex;
-                    }
-                }
+            var focusTarget;
+            if (event.which === self.upKeyCode) {
+                focusTarget = self.findPrevFocusableElement(target);
+            } else if (event.which === self.downKeyCode) {
+                focusTarget = self.findNextFocusableElement(target);
             }
 
-            if (focusTargetId) {
-                $('#' + focusTargetId).focus();
+            if (focusTarget) {
+                $(focusTarget).focus();
                 event.preventDefault();
             }
         }
@@ -482,4 +485,6 @@ function ManageDeprecationViewModel(id, versionsDictionary, defaultVersion, subm
     }
 
     ko.applyBindings(this, $(".page-manage-deprecation")[0]);
+
+    self.getFocusableDropdownContentElements().attr('tabindex', '-1');
 }
