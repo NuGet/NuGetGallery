@@ -94,8 +94,6 @@ function ManageDeprecationViewModel(id, versionsDictionary, defaultVersion, subm
     });
 
     this.escapeKeyCode = 27;
-    this.upKeyCode = 38;
-    this.downKeyCode = 40;
     $(document).keydown(function (event) {
         var target = event.target;
         if (self.isElementInsideDropdown(target)) {
