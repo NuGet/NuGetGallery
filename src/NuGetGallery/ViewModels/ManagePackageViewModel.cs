@@ -42,15 +42,21 @@ namespace NuGetGallery
             VersionReadMeStateDictionary = new Dictionary<string, VersionReadMeState>();
             var submitUrlTemplate = url.PackageVersionActionTemplate("Edit");
             var getReadMeUrlTemplate = url.PackageVersionActionTemplate("GetReadMeMd");
+            string defaultSelectedVersion = null;
             foreach (var versionSelectPackage in versionSelectPackages)
             {
-                var text = NuGetVersionFormatter.Normalize(versionSelectPackage.Version) + (versionSelectPackage.IsLatestStableSemVer2 ? " (Latest)" : string.Empty);
-                var value = versionSelectPackage.Version;
+                var text = NuGetVersionFormatter.ToFullString(versionSelectPackage.Version) + (versionSelectPackage.IsLatestSemVer2 ? " (Latest)" : string.Empty);
+                var value = NuGetVersionFormatter.Normalize(versionSelectPackage.Version);
                 versionSelectListItems.Add(new SelectListItem
                 {
                     Text = text,
                     Value = value
                 });
+
+                if (versionSelectPackage == package)
+                {
+                    defaultSelectedVersion = value;
+                }
 
                 VersionListedStateDictionary.Add(
                     value, 
@@ -69,7 +75,7 @@ namespace NuGetGallery
                 versionSelectListItems,
                 nameof(SelectListItem.Value),
                 nameof(SelectListItem.Text),
-                package.Version);
+                defaultSelectedVersion);
 
             // Update edit model with the readme.md data.
             ReadMe = new EditPackageVersionReadMeRequest();
