@@ -48,23 +48,23 @@ namespace NuGetGallery
         }
 
         public bool ReadOnly { get; private set; }
-        public IDbSet<PackageRegistration> PackageRegistrations { get; set; }
-        public IDbSet<Credential> Credentials { get; set; }
-        public IDbSet<Scope> Scopes { get; set; }
-        public IDbSet<UserSecurityPolicy> UserSecurityPolicies { get; set; }
-        public IDbSet<ReservedNamespace> ReservedNamespaces { get; set; }
-        public IDbSet<Certificate> Certificates { get; set; }
-        public IDbSet<UserCertificate> UserCertificates { get; set; }
-        public IDbSet<SymbolPackage> SymbolPackages { get; set; }
+        public DbSet<PackageRegistration> PackageRegistrations { get; set; }
+        public DbSet<Credential> Credentials { get; set; }
+        public DbSet<Scope> Scopes { get; set; }
+        public DbSet<UserSecurityPolicy> UserSecurityPolicies { get; set; }
+        public DbSet<ReservedNamespace> ReservedNamespaces { get; set; }
+        public DbSet<Certificate> Certificates { get; set; }
+        public DbSet<UserCertificate> UserCertificates { get; set; }
+        public DbSet<SymbolPackage> SymbolPackages { get; set; }
 
         /// <summary>
         /// User or organization accounts.
         /// </summary>
-        public IDbSet<User> Users { get; set; }
-        public IDbSet<Cve> Cves { get; set; }
-        public IDbSet<Cwe> Cwes { get; set; }
+        public DbSet<User> Users { get; set; }
+        public DbSet<Cve> Cves { get; set; }
+        public DbSet<Cwe> Cwes { get; set; }
 
-        IDbSet<T> IEntitiesContext.Set<T>()
+        DbSet<T> IEntitiesContext.Set<T>()
         {
             return base.Set<T>();
         }
