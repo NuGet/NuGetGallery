@@ -10,7 +10,7 @@ using NuGet.Versioning;
 
 namespace NuGetGallery
 {
-    public class ManagePackageViewModel : DisplayPackageViewModel
+    public class ManagePackageViewModel : ListPackageItemViewModel
     {
         public ManagePackageViewModel(Package package, User currentUser, IReadOnlyList<ReportPackageReason> reasons, UrlHelper url, string readMe)
             : base(package, currentUser)
@@ -32,18 +32,44 @@ namespace NuGetGallery
 
             IsLocked = package.PackageRegistration.IsLocked;
 
-            var versionSelectPackages = PackageVersions.Where(p => !p.Deleted);
+            var versionSelectPackages = package.PackageRegistration.Packages
+                .Where(p => p.PackageStatusKey == PackageStatus.Available || p.PackageStatusKey == PackageStatus.Validating)
+                .OrderByDescending(p => new NuGetVersion(p.Version))
+                .ToList();
+
+            var versionSelectListItems = new List<SelectListItem>();
+            VersionListedStateDictionary = new Dictionary<string, VersionListedState>();
+            VersionReadMeStateDictionary = new Dictionary<string, VersionReadMeState>();
+            var submitUrlTemplate = url.PackageVersionActionTemplate("Edit");
+            var getReadMeUrlTemplate = url.PackageVersionActionTemplate("GetReadMeMd");
+            foreach (var versionSelectPackage in versionSelectPackages)
+            {
+                var text = NuGetVersionFormatter.Normalize(versionSelectPackage.Version) + (versionSelectPackage.IsLatestStableSemVer2 ? " (Latest)" : string.Empty);
+                var value = versionSelectPackage.Version;
+                versionSelectListItems.Add(new SelectListItem
+                {
+                    Text = text,
+                    Value = value
+                });
+
+                VersionListedStateDictionary.Add(
+                    value, 
+                    new VersionListedState(versionSelectPackage));
+
+                var model = new TrivialPackageVersionModel(versionSelectPackage);
+                VersionReadMeStateDictionary.Add(
+                    value, 
+                    new VersionReadMeState(
+                        submitUrlTemplate.Resolve(model),
+                        getReadMeUrlTemplate.Resolve(model),
+                        null));
+            }
+
             VersionSelectList = new SelectList(
-                PackageVersions
-                    .Where(p => !p.Deleted && !p.FailedValidation)
-                    .Select(p => new SelectListItem
-                    {
-                        Text = p.FullVersion + (p.LatestVersionSemVer2 ? " (Latest)" : string.Empty),
-                        Value = p.Version
-                    }),
-                "Value",
-                "Text",
-                Version);
+                versionSelectListItems,
+                nameof(SelectListItem.Value),
+                nameof(SelectListItem.Text),
+                package.Version);
 
             // Update edit model with the readme.md data.
             ReadMe = new EditPackageVersionReadMeRequest();
@@ -63,5 +89,35 @@ namespace NuGetGallery
         public bool IsLocked { get; }
 
         public EditPackageVersionReadMeRequest ReadMe { get; set; }
+
+        public Dictionary<string, VersionListedState> VersionListedStateDictionary { get; set; }
+
+        public Dictionary<string, VersionReadMeState> VersionReadMeStateDictionary { get; set; }
+
+        public class VersionListedState
+        {
+            public VersionListedState(Package package)
+            {
+                Listed = package.Listed;
+                DownloadCount = package.DownloadCount;
+            }
+
+            public bool Listed { get; set; }
+            public int DownloadCount { get; set; }
+        }
+
+        public class VersionReadMeState
+        {
+            public VersionReadMeState(string submitUrl, string getReadMeUrl, string readMe)
+            {
+                SubmitUrl = submitUrl;
+                GetReadMeUrl = getReadMeUrl;
+                ReadMe = readMe;
+            }
+
+            public string SubmitUrl { get; set; }
+            public string GetReadMeUrl { get; set; }
+            public string ReadMe { get; set; }
+        }
     }
 }
