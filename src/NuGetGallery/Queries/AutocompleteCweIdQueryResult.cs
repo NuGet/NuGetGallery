@@ -15,7 +15,9 @@ namespace NuGetGallery
         }
 
         public string CweId { get; }
+
         public string Name { get; }
+
         public string Description { get; }
     }
 }

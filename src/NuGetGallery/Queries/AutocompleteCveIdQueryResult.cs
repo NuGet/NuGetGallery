@@ -7,13 +7,17 @@ namespace NuGetGallery
 {
     public class AutocompleteCveIdQueryResult
     {
-        public AutocompleteCveIdQueryResult(string cveId, string description)
+        public AutocompleteCveIdQueryResult(string cveId, string description, decimal? cvssRating)
         {
             CveId = cveId ?? throw new ArgumentNullException(nameof(cveId));
             Description = description ?? throw new ArgumentNullException(nameof(description));
+            CvssRating = cvssRating;
         }
 
         public string CveId { get; }
+
         public string Description { get; }
+
+        public decimal? CvssRating { get; set; }
     }
 }

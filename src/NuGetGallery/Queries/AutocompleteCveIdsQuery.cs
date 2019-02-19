@@ -43,7 +43,7 @@ namespace NuGetGallery
                 .ToList();
 
             var results = queryResults
-                .Select(e => new AutocompleteCveIdQueryResult(e.CveId, e.Description))
+                .Select(e => new AutocompleteCveIdQueryResult(e.CveId, e.Description, e.CvssRating))
                 .ToList();
 
             return new AutocompleteCveIdQueryResults(results);
