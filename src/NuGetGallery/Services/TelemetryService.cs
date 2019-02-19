@@ -70,7 +70,7 @@ namespace NuGetGallery
             public const string LicenseFileRejected = "LicenseFileRejected";
             public const string LicenseValidationFailed = "LicenseValidationFailed";
             public const string FeatureFlagStalenessSeconds = "FeatureFlagStalenessSeconds";
-	    public const string SearchExecutionDuration = "SearchExecutionDuration";
+            public const string SearchExecutionDuration = "SearchExecutionDuration";
         }
 
         private IDiagnosticsSource _diagnosticsSource;

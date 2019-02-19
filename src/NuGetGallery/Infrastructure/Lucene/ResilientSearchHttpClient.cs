@@ -39,7 +39,7 @@ namespace NuGet.Services.Search.Client
                 if (result.IsSuccessStatusCode)
                 {
                     sw.Stop();
-                    _telemetryService.TrackMetricForSearchExecutionDuration(searchUri.AbsoluteUri, sw.Elapsed, HttpStatusCode.ServiceUnavailable);
+                    _telemetryService.TrackMetricForSearchExecutionDuration(searchUri.AbsoluteUri, sw.Elapsed, result.StatusCode);
                     return result;
                 }
             }
