@@ -1261,7 +1261,6 @@ namespace NuGetGallery
             }
         }
 
-
         public class TheOwnershipRequestMethods : TestContainer
         {
             private int _key = 0;
