@@ -66,10 +66,6 @@ function ManageDeprecationViewModel(id, versionsDictionary, defaultVersion, subm
     this.dropdownOpen = ko.observable(false);
     this.toggleDropdown = function () {
         self.dropdownOpen(!self.dropdownOpen());
-
-        if (self.dropdownOpen()) {
-            self.getFocusableDropdownContentElements().first().focus();
-        }
     };
 
     this.isAncestor = function (element, ancestorSelector) {
@@ -96,22 +92,6 @@ function ManageDeprecationViewModel(id, versionsDictionary, defaultVersion, subm
             self.dropdownOpen(false);
         }
     });
-    
-    this.findPrevFocusableElement = function (element) {
-        var focusableElements = self.getFocusableDropdownContentElements();
-        var current = focusableElements.index(element);
-        if (current > 0) {
-            return focusableElements.eq(current - 1);
-        }
-    };
-
-    this.findNextFocusableElement = function (element) {
-        var focusableElements = self.getFocusableDropdownContentElements();
-        var current = focusableElements.index(element);
-        if (current < focusableElements.length - 1) {
-            return focusableElements.eq(current + 1);
-        }
-    };
 
     this.escapeKeyCode = 27;
     this.upKeyCode = 38;
@@ -124,20 +104,6 @@ function ManageDeprecationViewModel(id, versionsDictionary, defaultVersion, subm
                 self.dropdownOpen(false);
                 event.preventDefault();
                 $(self.dropdownBtnSelector).focus();
-            }
-
-            // If we press up or down while focusing on an input in the dropdown, move to the previous/next input
-            // If there is no previous/next input, do nothing
-            var focusTarget;
-            if (event.which === self.upKeyCode) {
-                focusTarget = self.findPrevFocusableElement(target);
-            } else if (event.which === self.downKeyCode) {
-                focusTarget = self.findNextFocusableElement(target);
-            }
-
-            if (focusTarget) {
-                $(focusTarget).focus();
-                event.preventDefault();
             }
         }
     });
