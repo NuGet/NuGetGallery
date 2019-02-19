@@ -8,8 +8,8 @@ using System.Data.Entity;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Net.Mail;
 using System.Net.Http;
+using System.Net.Mail;
 using System.Security.Principal;
 using System.Threading.Tasks;
 using System.Web;
@@ -20,8 +20,9 @@ using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using Autofac.Core;
 using Elmah;
-using Microsoft.Extensions.Logging;
+using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.ServiceRuntime;
 using NuGet.Services.Entities;
 using NuGet.Services.FeatureFlags;
@@ -50,7 +51,6 @@ using NuGetGallery.Infrastructure.Lucene;
 using NuGetGallery.Infrastructure.Mail;
 using NuGetGallery.Security;
 using SecretReaderFactory = NuGetGallery.Configuration.SecretReader.SecretReaderFactory;
-using Microsoft.ApplicationInsights.Extensibility;
 
 namespace NuGetGallery
 {
