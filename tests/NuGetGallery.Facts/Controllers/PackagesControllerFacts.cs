@@ -30,6 +30,7 @@ using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
 using NuGetGallery.Framework;
 using NuGetGallery.Helpers;
+using NuGetGallery.Infrastructure;
 using NuGetGallery.Infrastructure.Mail.Messages;
 using NuGetGallery.Infrastructure.Mail.Requests;
 using NuGetGallery.Packaging;
@@ -68,7 +69,8 @@ namespace NuGetGallery
             Mock<IContentObjectService> contentObjectService = null,
             Mock<ISymbolPackageUploadService> symbolPackageUploadService = null,
             Mock<ICoreLicenseFileService> coreLicenseFileService = null,
-            Mock<ILicenseExpressionSplitter> licenseExpressionSplitter = null)
+            Mock<ILicenseExpressionSplitter> licenseExpressionSplitter = null,
+            Mock<IFeatureFlagService> featureFlagService = null)
         {
             packageService = packageService ?? new Mock<IPackageService>();
             if (uploadFileService == null)
@@ -180,6 +182,12 @@ namespace NuGetGallery
 
             licenseExpressionSplitter = licenseExpressionSplitter ?? new Mock<ILicenseExpressionSplitter>();
 
+            if (featureFlagService == null)
+            {
+                featureFlagService = new Mock<IFeatureFlagService>();
+                featureFlagService.SetReturnsDefault<bool>(true);
+            }
+
             var diagnosticsService = new Mock<IDiagnosticsService>();
             var controller = new Mock<PackagesController>(
                 packageService.Object,
@@ -206,7 +214,8 @@ namespace NuGetGallery
                 symbolPackageUploadService.Object,
                 diagnosticsService.Object,
                 coreLicenseFileService.Object,
-                licenseExpressionSplitter.Object);
+                licenseExpressionSplitter.Object,
+                featureFlagService.Object);
 
             controller.CallBase = true;
             controller.Object.SetOwinContextOverride(Fakes.CreateOwinContext());
@@ -892,6 +901,314 @@ namespace NuGetGallery
                 public TestIssue(string message) => _message = message;
 
                 public override ValidationIssueCode IssueCode => throw new NotImplementedException();
+            }
+        }
+
+        public class TheAtomFeedPackageMethod
+            : TestContainer
+        {
+            [Fact]
+            public void GivenANonExistentPackageIt404s()
+            {
+                // Arrange
+                var packageService = new Mock<IPackageService>();
+
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService);
+
+                packageService.Setup(p => p.FindPackageRegistrationById("Foo"))
+                              .ReturnsNull();
+
+                // Act
+                var result = controller.AtomFeed("Foo");
+
+                // Assert
+                ResultAssert.IsNotFound(result);
+            }
+
+            [Fact]
+            public void GivenAExistentPackageWithNoVersionsIt404s()
+            {
+                // Arrange
+                var packageService = new Mock<IPackageService>();
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService);
+
+
+                packageService.Setup(p => p.FindPackageRegistrationById("Foo"))
+                              .Returns(new PackageRegistration());
+
+                // Act
+                var result = controller.AtomFeed("Foo");
+
+                // Assert
+                ResultAssert.IsNotFound(result);
+            }
+
+            [Fact]
+            public void GivenAExistentPackageWithUnlistedAvailablePackagesIt404s()
+            {
+                // Arrange
+                var packageService = new Mock<IPackageService>();
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService);
+
+                var packageRegistration = new PackageRegistration();
+                var package = new Package
+                {
+                    Listed = false,
+                    PackageStatusKey = PackageStatus.Available
+                };
+                packageRegistration.Packages.Add(package);
+
+                packageService.Setup(p => p.FindPackageRegistrationById("Foo"))
+                              .Returns(packageRegistration);
+
+                // Act
+                var result = controller.AtomFeed("Foo");
+
+                // Assert
+                ResultAssert.IsNotFound(result);
+            }
+
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public void GivenAnExistentPackageTheFeatureFlagHidesTheFeed(bool enabled)
+            {
+                // Arrange
+                var httpContext = new Mock<HttpContextBase>();
+                var packageService = new Mock<IPackageService>();
+                var configurationService = GetConfigurationService();
+                configurationService.Current.Brand = "Test Gallery";
+                var featureFlagService = new Mock<IFeatureFlagService>();
+                featureFlagService
+                    .Setup(x => x.IsPackagesAtomFeedEnabled())
+                    .Returns(enabled);
+
+                var controller = CreateController(
+                    configurationService,
+                    packageService: packageService,
+                    featureFlagService: featureFlagService,
+                    httpContext: httpContext);
+
+                var packageRegistration = new PackageRegistration();
+                packageRegistration.Id = "Foo";
+
+                var onlyVersion = new Package
+                {
+                    Listed = true,
+                    PackageStatusKey = PackageStatus.Available,
+                    NormalizedVersion = "2.0.0",
+                    Version = "2.0.0",
+                    IsPrerelease = true,
+                    PackageRegistration = new PackageRegistration()
+                    {
+                        Id = "Foo"
+                    }
+                };
+                packageRegistration.Packages.Add(onlyVersion);
+
+                packageService.Setup(p => p.FindPackageRegistrationById("Foo"))
+                              .Returns(packageRegistration);
+
+                // Act
+                var result = controller.AtomFeed("Foo");
+
+                // Assert
+                if (enabled)
+                {
+                    Assert.IsType<SyndicationAtomActionResult>(result);
+                }
+                else
+                {
+                    ResultAssert.IsNotFound(result);
+                }
+            }
+
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public void GivenAExistentPackagePrereleaseVersionsCanBeFilteredOut(bool includePrerelease)
+            {
+                // Arrange
+                var httpContext = new Mock<HttpContextBase>();
+                var packageService = new Mock<IPackageService>();
+                var configurationService = GetConfigurationService();
+                configurationService.Current.Brand = "Test Gallery";
+
+                var controller = CreateController(
+                    configurationService,
+                    packageService: packageService,
+                    httpContext: httpContext);
+
+                var packageRegistration = new PackageRegistration();
+                packageRegistration.Id = "Foo";
+
+                var onlyVersion = new Package
+                {
+                    Listed = true,
+                    PackageStatusKey = PackageStatus.Available,
+                    NormalizedVersion = "2.0.0-beta",
+                    Version = "2.0.0-beta",
+                    IsPrerelease = true,
+                    PackageRegistration = new PackageRegistration()
+                    {
+                        Id = "Foo"
+                    }
+                };
+                packageRegistration.Packages.Add(onlyVersion);
+
+                packageService.Setup(p => p.FindPackageRegistrationById("Foo"))
+                              .Returns(packageRegistration);
+
+                // Act
+                var result = controller.AtomFeed("Foo", includePrerelease);
+
+                // Assert
+                if (includePrerelease)
+                {
+                    Assert.IsType<SyndicationAtomActionResult>(result);
+                }
+                else
+                {
+                    ResultAssert.IsNotFound(result);
+                }
+            }
+
+            [Fact]
+            public void GivenAExistentPackageWithListedUnavailablePackagesIt404s()
+            {
+                // Arrange
+                var packageService = new Mock<IPackageService>();
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService);
+
+                var packageRegistration = new PackageRegistration();
+                var package = new Package
+                {
+                    Listed = true,
+                    PackageStatusKey = PackageStatus.Validating
+                };
+                packageRegistration.Packages.Add(package);
+
+                packageService.Setup(p => p.FindPackageRegistrationById("Foo"))
+                              .Returns(packageRegistration);
+
+                // Act
+                var result = controller.AtomFeed("Foo");
+
+                // Assert
+                ResultAssert.IsNotFound(result);
+            }
+
+            [Fact]
+            public void GivenAExistentPackageWithListedAvailablePackagesItReturnsSyndicationFeed()
+            {
+                // Arrange
+                var httpContext = new Mock<HttpContextBase>();
+                var packageService = new Mock<IPackageService>();
+                var configurationService = GetConfigurationService();
+                configurationService.Current.Brand = "Test Gallery";
+
+                var controller = CreateController(
+                    configurationService,
+                    packageService: packageService,
+                    httpContext: httpContext);
+
+                var dateTimeNow = DateTime.Now;
+                var dateTimeYesterDay = dateTimeNow.AddDays(-1);
+                var dateTimeTwoDaysAgo = dateTimeNow.AddDays(-2);
+
+                var packageRegistration = new PackageRegistration();
+                packageRegistration.Id = "Foo";
+
+                var oldestPackage = new Package
+                {
+                    Listed = true,
+                    PackageStatusKey = PackageStatus.Available,
+                    NormalizedVersion = "1.0.0",
+                    Version = "1.0.0",
+                    Title = "Foo",
+                    Description = "Test Package",
+                    Created = dateTimeTwoDaysAgo,
+                    PackageRegistration = new PackageRegistration()
+                    {
+                        Id = "Foo"
+                    }
+                };
+                packageRegistration.Packages.Add(oldestPackage);
+
+                var highestVersionPackage = new Package
+                {
+                    Listed = true,
+                    PackageStatusKey = PackageStatus.Available,
+                    NormalizedVersion = "2.0.0-beta",
+                    Version = "2.0.0-beta",
+                    IsPrerelease = true,
+                    Description = "Most recent version: Test Package",
+                    Created = dateTimeYesterDay,
+                    PackageRegistration = new PackageRegistration()
+                    {
+                        Id = "Foo"
+                    }
+                };
+                packageRegistration.Packages.Add(highestVersionPackage);
+
+                var newestPackageButNotHighestVersion = new Package
+                {
+                    Listed = true,
+                    PackageStatusKey = PackageStatus.Available,
+                    NormalizedVersion = "1.1.0",
+                    Version = "1.1.0",
+                    Description = "Fix for older version: Test Package",
+                    Created = dateTimeNow,
+                    PackageRegistration = new PackageRegistration()
+                    {
+                        Id = "Foo"
+                    }
+                };
+                packageRegistration.Packages.Add(newestPackageButNotHighestVersion);
+                packageService.Setup(p => p.FindPackageRegistrationById("Foo"))
+                              .Returns(packageRegistration);
+
+                // Act
+                var result = controller.AtomFeed("Foo");
+                var syndicationResult = result as SyndicationAtomActionResult;
+
+                // Assert
+                Assert.NotNull(syndicationResult);
+
+                Assert.Equal("https://localhost/packages/Foo/", syndicationResult.SyndicationFeed.Id);
+                Assert.Equal("Test Gallery Feed for Foo", syndicationResult.SyndicationFeed.Title.Text);
+                Assert.Equal("Most recent version: Test Package", syndicationResult.SyndicationFeed.Description.Text);
+                Assert.Equal(dateTimeNow, syndicationResult.SyndicationFeed.LastUpdatedTime);
+
+                var syndicationFeedItems = new List<System.ServiceModel.Syndication.SyndicationItem>(syndicationResult.SyndicationFeed.Items);
+
+                Assert.Equal(3, syndicationFeedItems.Count);
+
+                Assert.Equal("https://localhost/packages/Foo/2.0.0-beta", syndicationFeedItems[0].Id);
+                Assert.Equal("Foo 2.0.0-beta", syndicationFeedItems[0].Title.Text);
+                Assert.Equal("Most recent version: Test Package", (syndicationFeedItems[0].Content as System.ServiceModel.Syndication.TextSyndicationContent).Text);
+                Assert.Equal(dateTimeYesterDay, syndicationFeedItems[0].PublishDate);
+                Assert.Equal(dateTimeYesterDay, syndicationFeedItems[0].LastUpdatedTime);
+
+                Assert.Equal("https://localhost/packages/Foo/1.1.0", syndicationFeedItems[1].Id);
+                Assert.Equal("Foo 1.1.0", syndicationFeedItems[1].Title.Text);
+                Assert.Equal("Fix for older version: Test Package", (syndicationFeedItems[1].Content as System.ServiceModel.Syndication.TextSyndicationContent).Text);
+                Assert.Equal(dateTimeNow, syndicationFeedItems[1].PublishDate);
+                Assert.Equal(dateTimeNow, syndicationFeedItems[1].LastUpdatedTime);
+
+                Assert.Equal("https://localhost/packages/Foo/1.0.0", syndicationFeedItems[2].Id);
+                Assert.Equal("Foo 1.0.0", syndicationFeedItems[2].Title.Text);
+                Assert.Equal("Test Package", (syndicationFeedItems[2].Content as System.ServiceModel.Syndication.TextSyndicationContent).Text);
+                Assert.Equal(dateTimeTwoDaysAgo, syndicationFeedItems[2].PublishDate);
+                Assert.Equal(dateTimeTwoDaysAgo, syndicationFeedItems[2].LastUpdatedTime);
             }
         }
 

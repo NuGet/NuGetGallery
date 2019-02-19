@@ -13,7 +13,6 @@ using NuGet.Services.Messaging.Email;
 using NuGetGallery.Configuration;
 using NuGetGallery.Filters;
 using NuGetGallery.Infrastructure.Mail.Messages;
-using NuGetGallery.Security;
 
 namespace NuGetGallery
 {
@@ -25,7 +24,6 @@ namespace NuGetGallery
         private readonly IPackageService _packageService;
         private readonly IUserService _userService;
         private readonly IAppConfiguration _appConfiguration;
-        private readonly ISecurityPolicyService _policyService;
         private readonly IPackageOwnershipManagementService _packageOwnershipManagementService;
 
         public JsonApiController(
@@ -33,15 +31,13 @@ namespace NuGetGallery
             IUserService userService,
             IMessageService messageService,
             IAppConfiguration appConfiguration,
-            ISecurityPolicyService policyService,
             IPackageOwnershipManagementService packageOwnershipManagementService)
         {
-            _packageService = packageService;
-            _userService = userService;
-            _messageService = messageService;
-            _appConfiguration = appConfiguration;
-            _policyService = policyService;
-            _packageOwnershipManagementService = packageOwnershipManagementService;
+            _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
+            _userService = userService ?? throw new ArgumentNullException(nameof(userService));
+            _messageService = messageService ?? throw new ArgumentNullException(nameof(messageService));
+            _appConfiguration = appConfiguration ?? throw new ArgumentNullException(nameof(appConfiguration));
+            _packageOwnershipManagementService = packageOwnershipManagementService ?? throw new ArgumentNullException(nameof(packageOwnershipManagementService));
         }
 
         [HttpGet]

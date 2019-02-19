@@ -100,6 +100,11 @@ namespace NuGetGallery
                 new { controller = "JsonApi" });
 
             routes.MapRoute(
+                RouteName.ManageDeprecationJsonApi,
+                "json/deprecation/{action}",
+                new { controller = "ManageDeprecationJsonApi" });
+
+            routes.MapRoute(
                 RouteName.Contributors,
                 "pages/contributors",
                 new { controller = "Pages", action = "Contributors" });
@@ -154,7 +159,7 @@ namespace NuGetGallery
                 "packages/{id}/required-signer/{username}",
                 new { controller = "Packages", action = RouteName.SetRequiredSigner, username = UrlParameter.Optional },
                 constraints: new { httpMethod = new HttpMethodConstraint("POST") },
-                obfuscationMetadata: new RouteExtensions.ObfuscatedPathMetadata(3, Obfuscator.DefaultTelemetryUserName) );
+                obfuscationMetadata: new RouteExtensions.ObfuscatedPathMetadata(3, Obfuscator.DefaultTelemetryUserName));
 
             routes.MapRoute(
                 RouteName.PackageOwnerConfirmation,
@@ -200,6 +205,15 @@ namespace NuGetGallery
                 new { version = new VersionRouteConstraint() });
 
             routes.MapRoute(
+                RouteName.DisplayPackageFeed,
+                "packages/{id}/atom.xml",
+                new
+                {
+                    controller = "Packages",
+                    action = nameof(PackagesController.AtomFeed)
+                });
+
+            routes.MapRoute(
                 RouteName.PackageEnableLicenseReport,
                 "packages/{id}/{version}/EnableLicenseReport",
                 new { controller = "Packages", action = "SetLicenseReportVisibility", visible = true },
@@ -236,7 +250,7 @@ namespace NuGetGallery
                 RouteName.License,
                 "packages/{id}/{version}/license",
                 new { controller = "Packages", action = "License" });
-            
+
             //Redirecting v1 Confirmation Route
             routes.Redirect(
                 r => r.MapRoute(
@@ -483,7 +497,7 @@ namespace NuGetGallery
                     new RouteExtensions.ObfuscatedPathMetadata(4, Obfuscator.DefaultTelemetryToken)
                 });
 
-            routes.MapRoute( 
+            routes.MapRoute(
                 RouteName.OrganizationMemberCancelAjax,
                 "organization/{accountName}/members/cancel",
                 new { controller = "Organizations", action = RouteName.OrganizationMemberCancelAjax },

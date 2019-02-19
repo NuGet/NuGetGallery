@@ -13,7 +13,7 @@ using NuGetGallery.Configuration;
 
 namespace NuGetGallery
 {
-    public class AutoCompleteServiceQuery
+    public class AutocompleteServiceQuery
     {
         private readonly string _autocompletePath = "autocomplete";
         private readonly ServiceDiscoveryClient _serviceDiscoveryClient;
@@ -21,7 +21,7 @@ namespace NuGetGallery
         private readonly RetryingHttpClientWrapper _httpClientToDeprecate;
         private readonly IResilientSearchClient _resilientSearchClient;
 
-        public AutoCompleteServiceQuery(IAppConfiguration configuration, IResilientSearchClient resilientSearchClient)
+        public AutocompleteServiceQuery(IAppConfiguration configuration, IResilientSearchClient resilientSearchClient)
         {
             if (configuration == null)
             {

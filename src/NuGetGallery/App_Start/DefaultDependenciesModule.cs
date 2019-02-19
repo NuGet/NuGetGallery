@@ -738,28 +738,41 @@ namespace NuGetGallery
             if (configuration.Current.ServiceDiscoveryUri != null &&
                 !string.IsNullOrEmpty(configuration.Current.AutocompleteServiceResourceType))
             {
-                builder.RegisterType<AutoCompleteServicePackageIdsQuery>()
+                builder.RegisterType<AutocompleteServicePackageIdsQuery>()
                     .AsSelf()
-                    .As<IAutoCompletePackageIdsQuery>()
+                    .As<IAutocompletePackageIdsQuery>()
                     .SingleInstance();
 
-                builder.RegisterType<AutoCompleteServicePackageVersionsQuery>()
+                builder.RegisterType<AutocompleteServicePackageVersionsQuery>()
                     .AsSelf()
-                    .As<IAutoCompletePackageVersionsQuery>()
+                    .As<IAutocompletePackageVersionsQuery>()
                     .InstancePerLifetimeScope();
             }
             else
             {
-                builder.RegisterType<AutoCompleteDatabasePackageIdsQuery>()
+                builder.RegisterType<AutocompleteDatabasePackageIdsQuery>()
                     .AsSelf()
-                    .As<IAutoCompletePackageIdsQuery>()
+                    .As<IAutocompletePackageIdsQuery>()
                     .InstancePerLifetimeScope();
 
-                builder.RegisterType<AutoCompleteDatabasePackageVersionsQuery>()
+                builder.RegisterType<AutocompleteDatabasePackageVersionsQuery>()
                     .AsSelf()
-                    .As<IAutoCompletePackageVersionsQuery>()
+                    .As<IAutocompletePackageVersionsQuery>()
                     .InstancePerLifetimeScope();
             }
+
+            // Vulnerability Autocomplete
+            builder.RegisterType<AutocompleteCveIdsQuery>()
+                .As<IAutocompleteCveIdsQuery>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<AutocompleteCweIdsQuery>()
+                .As<IAutocompleteCweIdsQuery>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<VulnerabilityAutocompleteService>()
+                .As<IVulnerabilityAutocompleteService>()
+                .InstancePerLifetimeScope();
         }
 
         private static void ConfigureForLocalFileSystem(ContainerBuilder builder, IGalleryConfigurationService configuration)

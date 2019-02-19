@@ -14,6 +14,8 @@ namespace NuGet.Services.Entities
     public class Cve
         : IEntity
     {
+        public const string IdPrefix = "CVE-";
+
         public Cve()
         {
             PackageDeprecations = new HashSet<PackageDeprecation>();

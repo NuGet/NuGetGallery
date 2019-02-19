@@ -9,10 +9,10 @@ using NuGet.Services.Search.Client;
 
 namespace NuGetGallery
 {
-    public class AutoCompleteServicePackageVersionsQuery
-        : AutoCompleteServiceQuery, IAutoCompletePackageVersionsQuery
+    public class AutocompleteServicePackageVersionsQuery
+        : AutocompleteServiceQuery, IAutocompletePackageVersionsQuery
     {
-        public AutoCompleteServicePackageVersionsQuery(IAppConfiguration configuration, IResilientSearchClient resilientSearchClient)
+        public AutocompleteServicePackageVersionsQuery(IAppConfiguration configuration, IResilientSearchClient resilientSearchClient)
             : base(configuration, resilientSearchClient)
         {
         }

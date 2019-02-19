@@ -1091,4 +1091,10 @@ The {1} Team</value>
   <data name="SearchServiceIsNotAvailable" xml:space="preserve">
     <value>Search Service is not available. Please try again later.</value>
   </data>
+  <data name="AutocompleteCveIds_ValidationError" xml:space="preserve">
+    <value>Invalid CVE ID format. The CVE ID should be formatted as \"CVE-{year}-xxxxxxx\" or just \"{year}-xxxxxxx\" with a minimum of 4 digits.</value>
+  </data>
+  <data name="AutocompleteCweIds_ValidationError" xml:space="preserve">
+    <value>Invalid CWE ID format. The CWE ID should be formatted as \"CWE-xxx\" with a minimum of 2 digits, or have a minimum length of 4 characters for a textual query.</value>
+  </data>
 </root>

@@ -21,5 +21,12 @@ namespace NuGetGallery
         /// <param name="user"></param>
         /// <returns></returns>
         bool IsTyposquattingEnabled(User user);
+
+        /// <summary>
+        /// Whether the packages Atom feed is enabled. If true, users can subscribe to new package versions using a
+        /// feed reader on a per package ID basis.
+        /// </summary>
+        /// <returns></returns>
+        bool IsPackagesAtomFeedEnabled();
     }
 }

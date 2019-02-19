@@ -9,11 +9,11 @@ using System.Threading.Tasks;
 
 namespace NuGetGallery
 {
-    public class AutoCompleteDatabaseQuery
+    public class AutocompleteDatabaseQuery
     {
         private readonly DbContext _dbContext;
 
-        public AutoCompleteDatabaseQuery(IEntitiesContext entities)
+        public AutocompleteDatabaseQuery(IEntitiesContext entities)
         {
             if (entities == null)
             {
