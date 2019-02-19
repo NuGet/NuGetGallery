@@ -2,28 +2,48 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
+using NuGet.Services.Entities;
 using NuGet.Services.FeatureFlags;
 
 namespace NuGetGallery.Features
 {
     public class FeatureFlagFileStorageService : IEditableFeatureFlagStorageService
     {
-        private readonly ICoreFileStorageService _storage;
-        private readonly JsonSerializer _serializer;
+        private const int MaxRemoveUserAttempts = 3;
 
-        public FeatureFlagFileStorageService(ICoreFileStorageService storage)
+        private static readonly JsonSerializer Serializer;
+
+        private readonly ICoreFileStorageService _storage;
+        private readonly ILogger<FeatureFlagFileStorageService> _logger;
+
+        static FeatureFlagFileStorageService()
         {
-            _storage = storage ?? throw new ArgumentNullException(nameof(storage));
-            _serializer = JsonSerializer.Create(new JsonSerializerSettings
+            Serializer = JsonSerializer.Create(new JsonSerializerSettings
             {
                 Formatting = Formatting.Indented,
-                MissingMemberHandling = MissingMemberHandling.Error
+                MissingMemberHandling = MissingMemberHandling.Error,
+                Converters = new List<JsonConverter>
+                {
+                    new StringEnumConverter()
+                }
             });
+        }
+
+        public FeatureFlagFileStorageService(
+            ICoreFileStorageService storage,
+            ILogger<FeatureFlagFileStorageService> logger)
+        {
+            _storage = storage ?? throw new ArgumentNullException(nameof(storage));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         public async Task<FeatureFlags> GetAsync()
@@ -32,7 +52,7 @@ namespace NuGetGallery.Features
             using (var streamReader = new StreamReader(stream))
             using (var reader = new JsonTextReader(streamReader))
             {
-                return _serializer.Deserialize<FeatureFlags>(reader);
+                return Serializer.Deserialize<FeatureFlags>(reader);
             }
         }
 
@@ -52,24 +72,83 @@ namespace NuGetGallery.Features
                 reference.ContentId);
         }
 
-        public async Task<FeatureFlagSaveResult> TrySaveAsync(string flags, string contentId)
+        public async Task<FeatureFlagSaveResult> TrySaveAsync(string flagsJson, string contentId)
         {
             // Ensure the feature flags are valid before saving them.
-            var validationResult = ValidateFlagsOrNull(flags);
-            if (validationResult != null)
+            FeatureFlags flags;
+            try
             {
-                return validationResult;
+                using (var reader = new StringReader(flagsJson))
+                using (var jsonReader = new JsonTextReader(reader))
+                {
+                    flags = Serializer.Deserialize<FeatureFlags>(jsonReader);
+                }
+            }
+            catch (JsonException e)
+            {
+                return FeatureFlagSaveResult.Invalid(e.Message);
             }
 
+            return await TrySaveAsync(flags, contentId);
+        }
+
+        public async Task RemoveUserAsync(User user)
+        {
+            for (var attempt = 0; attempt < MaxRemoveUserAttempts; attempt++)
+            {
+                var reference = await _storage.GetFileReferenceAsync(CoreConstants.Folders.ContentFolderName, CoreConstants.FeatureFlagsFileName);
+
+                FeatureFlags flags;
+                using (var stream = reference.OpenRead())
+                using (var streamReader = new StreamReader(stream))
+                using (var reader = new JsonTextReader(streamReader))
+                {
+                    flags = Serializer.Deserialize<FeatureFlags>(reader);
+                }
+
+                // Don't update the flags if the user isn't listed in any of the flights.
+                if (!flags.Flights.Any(f => f.Value.Accounts.Contains(user.Username, StringComparer.OrdinalIgnoreCase)))
+                {
+                    return;
+                }
+
+                // The user is listed in the flights. Build a new feature flag object that
+                // no longer contains the user.
+                var result = new FeatureFlags(
+                   flags.Features,
+                   flags.Flights
+                       .ToDictionary(
+                           f => f.Key,
+                           f => RemoveUser(f.Value, user)));
+
+                var saveResult = await TrySaveAsync(result, reference.ContentId);
+                if (saveResult.Type == FeatureFlagSaveResultType.Ok)
+                {
+                    return;
+                }
+
+                _logger.LogWarning(
+                    0,
+                    "Failed to remove user from feature flags, attempt {Attempt} of {MaxAttempts}...",
+                    attempt + 1,
+                    MaxRemoveUserAttempts);
+            }
+
+            throw new InvalidOperationException($"Unable to remove user from feature flags after {MaxRemoveUserAttempts} attempts");
+        }
+
+        private async Task<FeatureFlagSaveResult> TrySaveAsync(FeatureFlags flags, string contentId)
+        {
             var accessCondition = AccessConditionWrapper.GenerateIfMatchCondition(contentId);
 
             try
             {
                 using (var stream = new MemoryStream())
                 using (var writer = new StreamWriter(stream))
+                using (var jsonWriter = new JsonTextWriter(writer))
                 {
-                    writer.Write(PrettifyJson(flags));
-                    writer.Flush();
+                    Serializer.Serialize(jsonWriter, flags);
+                    jsonWriter.Flush();
                     stream.Position = 0;
 
                     await _storage.SaveFileAsync(CoreConstants.Folders.ContentFolderName, CoreConstants.FeatureFlagsFileName, stream, accessCondition);
@@ -83,21 +162,13 @@ namespace NuGetGallery.Features
             }
         }
 
-        private FeatureFlagSaveResult ValidateFlagsOrNull(string flags)
+        private Flight RemoveUser(Flight flight, User user)
         {
-            try
-            {
-                using (var reader = new StringReader(flags))
-                using (var jsonReader = new JsonTextReader(reader))
-                {
-                    _serializer.Deserialize<FeatureFlags>(jsonReader);
-                    return null;
-                }
-            }
-            catch (JsonException e)
-            {
-                return FeatureFlagSaveResult.Invalid(e.Message);
-            }
+            return new Flight(
+                flight.All,
+                flight.SiteAdmins,
+                flight.Accounts.Where(a => !a.Equals(user.Username, StringComparison.OrdinalIgnoreCase)).ToList(),
+                flight.Domains);
         }
 
         private string PrettifyJson(string json)

@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
+using NuGet.Services.Entities;
 using NuGet.Services.FeatureFlags;
 
 namespace NuGetGallery.Features
@@ -23,5 +24,11 @@ namespace NuGetGallery.Features
         /// <param name="contentId">The feature flag's ETag.</param>
         /// <returns>The result of the save operation.</returns>
         Task<FeatureFlagSaveResult> TrySaveAsync(string flags, string contentId);
+
+        /// <summary>
+        /// Remove the user from the feature flags if needed. This may throw on failure.
+        /// </summary>
+        /// <param name="user">The user to remove from feature flags.</param>
+        Task RemoveUserAsync(User user);
     }
 }

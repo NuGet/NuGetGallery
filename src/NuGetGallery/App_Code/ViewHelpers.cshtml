@@ -659,4 +659,9 @@ var hlp = new AccordionHelper(name, formModelStatePrefix, expanded, page);
     {
         return segment.Type == CompositeLicenseExpressionSegmentType.LicenseIdentifier || segment.Type == CompositeLicenseExpressionSegmentType.ExceptionIdentifier;
     }
+
+    public static MvcHtmlString GetExternalUrlAnchorTag(string data, string link)
+    {
+        return MvcHtmlString.Create(UriExtensions.GetExternalUrlAnchorTag(data, link));
+    }
 }

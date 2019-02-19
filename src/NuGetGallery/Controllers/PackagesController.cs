@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Mail;
+using System.ServiceModel.Syndication;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
@@ -27,6 +28,7 @@ using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
 using NuGetGallery.Filters;
 using NuGetGallery.Helpers;
+using NuGetGallery.Infrastructure;
 using NuGetGallery.Infrastructure.Lucene;
 using NuGetGallery.Infrastructure.Mail.Messages;
 using NuGetGallery.Infrastructure.Mail.Requests;
@@ -735,7 +737,78 @@ namespace NuGetGallery
         }
 
         [HttpGet]
-        [UIAuthorize]
+        public virtual ActionResult AtomFeed(string id, bool allowPrerelease = false)
+        {
+            var packageRegistration = _packageService.FindPackageRegistrationById(id);
+            if (packageRegistration == null)
+            {
+                return HttpNotFound();
+            }
+
+            var packageVersions = packageRegistration.Packages
+                                   .Where(x => x.Listed && x.PackageStatusKey == PackageStatus.Available)
+                                   .OrderByDescending(p => NuGetVersion.Parse(p.NormalizedVersion))
+                                   .ToList();
+
+            if (packageVersions.Count == 0)
+            {
+                return HttpNotFound();
+            }
+
+            // most recent version for feed title/description
+            var newestVersionPackage = packageVersions.First();
+
+            // the last edited or created package is used as the feed timestamp
+            var lastUpdatedPackage = packageVersions.Max(x => x.LastEdited ?? x.Created);
+
+            SyndicationFeed feed = new SyndicationFeed()
+            {
+                Id = Url.Package(packageRegistration.Id, version: null, relativeUrl: false),
+                Title = SyndicationContent.CreatePlaintextContent($"{_config.Brand} Feed for {packageRegistration.Id}"),
+                Description = SyndicationContent.CreatePlaintextContent(newestVersionPackage.Description),
+                LastUpdatedTime = lastUpdatedPackage
+            };
+
+            if (!string.IsNullOrWhiteSpace(newestVersionPackage.IconUrl))
+            {
+                feed.ImageUrl = new Uri(newestVersionPackage.IconUrl);
+            }
+
+            List<SyndicationItem> feedItems = new List<SyndicationItem>();
+
+            List<SyndicationPerson> ownersAsAuthors = new List<SyndicationPerson>();
+            foreach (var packageOwner in packageRegistration.Owners)
+            {
+                ownersAsAuthors.Add(new SyndicationPerson() { Name = packageOwner.Username, Uri = Url.User(packageOwner, relativeUrl: false) });
+            }
+
+            foreach (var packageVersion in packageVersions)
+            {
+                SyndicationItem syndicationItem = new SyndicationItem($"{packageVersion.Id} {packageVersion.Version}",
+                                                                      packageVersion.Description,
+                                                                      new Uri(Url.Package(packageRegistration.Id, version: packageVersion.Version, relativeUrl: false)));
+                syndicationItem.Id = Url.Package(packageRegistration.Id, version: packageVersion.Version, relativeUrl: false);
+                syndicationItem.LastUpdatedTime = packageVersion.LastEdited ?? packageVersion.Created;
+                syndicationItem.PublishDate = packageVersion.Created;
+
+                syndicationItem.Authors.AddRange(ownersAsAuthors);
+                feedItems.Add(syndicationItem);
+            }
+
+            feed.Items = feedItems;
+
+            feed.Links.Add(SyndicationLink.CreateSelfLink(
+                new Uri(Url.PackageAtomFeed(packageRegistration.Id, relativeUrl: false)),
+                "application/atom+xml"));
+
+            feed.Links.Add(SyndicationLink.CreateAlternateLink(
+                new Uri(Url.Package(packageRegistration.Id, version: null, relativeUrl: false)),
+                "text/html"));
+
+            return new SyndicationAtomActionResult(feed);
+        }
+
+        [HttpGet]
         public virtual async Task<ActionResult> License(string id, string version)
         {
             var package = _packageService.FindPackageByIdAndVersionStrict(id, version);

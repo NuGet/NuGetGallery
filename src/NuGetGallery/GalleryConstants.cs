@@ -129,5 +129,16 @@ namespace NuGetGallery
             public const string ClientVersion = "ClientVersion";
             public const string Operation = "Operation";
         }
+
+        public static class FAQLinks
+        {
+            public const string NuGetFAQ = "https://aka.ms/nuget-faq";
+            public const string MSALinkedToAnotherAccount = "https://aka.ms/nuget-faq-msa-linked-another-account";
+            public const string EmailLinkedToAnotherMSAAccount = "https://aka.ms/nuget-faq-email-linked-another-msa";
+            public const string NuGetAccountManagement = "https://aka.ms/nuget-faq-account-management";
+            public const string NuGetChangeUsername = "https://aka.ms/nuget-faq-change-username";
+            public const string NuGetDeleteAccount = "https://aka.ms/nuget-faq-delete-account";
+            public const string TransformToOrganization = "https://aka.ms/nuget-faq-transform-org";
+        }
     }
 }
