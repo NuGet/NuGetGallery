@@ -88,6 +88,7 @@ namespace NuGetGallery
         public const string Contributors = "Contributors";
         public const string Team = "Team";
         public const string JsonApi = "JsonApi";
+        public const string ManageDeprecationJsonApi = "ManageDeprecationJsonApi";
         public const string Downloads = "Downloads";
         public const string AdminDeleteAccount = "AdminDeleteAccount";
         public const string UserDeleteAccount = "DeleteAccount";

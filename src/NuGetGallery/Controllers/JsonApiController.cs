@@ -2,10 +2,8 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web;
@@ -27,22 +25,19 @@ namespace NuGetGallery
         private readonly IUserService _userService;
         private readonly IAppConfiguration _appConfiguration;
         private readonly IPackageOwnershipManagementService _packageOwnershipManagementService;
-        private readonly IVulnerabilityAutocompleteService _vulnerabilityAutocompleteService;
 
         public JsonApiController(
             IPackageService packageService,
             IUserService userService,
             IMessageService messageService,
             IAppConfiguration appConfiguration,
-            IPackageOwnershipManagementService packageOwnershipManagementService,
-            IVulnerabilityAutocompleteService vulnerabilityAutocompleteService)
+            IPackageOwnershipManagementService packageOwnershipManagementService)
         {
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _messageService = messageService ?? throw new ArgumentNullException(nameof(messageService));
             _appConfiguration = appConfiguration ?? throw new ArgumentNullException(nameof(appConfiguration));
             _packageOwnershipManagementService = packageOwnershipManagementService ?? throw new ArgumentNullException(nameof(packageOwnershipManagementService));
-            _vulnerabilityAutocompleteService = vulnerabilityAutocompleteService ?? throw new ArgumentNullException(nameof(vulnerabilityAutocompleteService));
         }
 
         [HttpGet]
@@ -229,37 +224,6 @@ namespace NuGetGallery
             {
                 return Json(new { success = false, message = model.Error }, JsonRequestBehavior.AllowGet);
             }
-        }
-
-        [HttpGet]
-        [ActionName("CveIds")]
-        public JsonResult GetCveIds(string query)
-        {
-            // Get CVE data.
-            // Suggestions will be CVE Id's that start with characters entered by the user.
-            var queryResult = _vulnerabilityAutocompleteService.AutocompleteCveIds(query);
-            var httpStatusCode = queryResult.Success ? HttpStatusCode.OK : HttpStatusCode.BadRequest;
-
-            return Json(
-                httpStatusCode,
-                queryResult,
-                JsonRequestBehavior.AllowGet);
-        }
-
-        [HttpGet]
-        [ActionName("CweIds")]
-        public JsonResult GetCweIds(string query)
-        {
-            // Get CWE data.
-            // Suggestions will be CWE Id's that start with characters entered by the user,
-            // or CWE Id's that have a Name containing the textual search term provided by the user.
-            var queryResult = _vulnerabilityAutocompleteService.AutocompleteCweIds(query);
-            var httpStatusCode = queryResult.Success ? HttpStatusCode.OK : HttpStatusCode.BadRequest;
-
-            return Json(
-                httpStatusCode,
-                queryResult,
-                JsonRequestBehavior.AllowGet);
         }
 
         private bool TryGetManagePackageOwnerModel(string id, string username, bool isAddOwner, out ManagePackageOwnerModel model)

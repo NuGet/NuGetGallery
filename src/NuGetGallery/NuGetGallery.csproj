@@ -222,6 +222,7 @@
     <Compile Include="Authentication\Providers\AzureActiveDirectoryV2\AzureActiveDirectoryV2AuthenticatorConfiguration.cs" />
     <Compile Include="Authentication\Providers\AzureActiveDirectory\AzureActiveDirectoryAuthenticator.cs" />
     <Compile Include="Authentication\Providers\AzureActiveDirectory\AzureActiveDirectoryAuthenticatorConfiguration.cs" />
+    <Compile Include="Controllers\ManageDeprecationJsonApiController.cs" />
     <Compile Include="Queries\AutocompleteCveIdQueryResults.cs" />
     <Compile Include="Queries\AutocompleteCweIdQueryResults.cs" />
     <Compile Include="Queries\AutocompleteCveIdQueryResult.cs" />
