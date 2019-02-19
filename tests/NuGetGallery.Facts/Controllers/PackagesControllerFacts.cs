@@ -30,6 +30,7 @@ using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
 using NuGetGallery.Framework;
 using NuGetGallery.Helpers;
+using NuGetGallery.Infrastructure;
 using NuGetGallery.Infrastructure.Mail.Messages;
 using NuGetGallery.Infrastructure.Mail.Requests;
 using NuGetGallery.Packaging;
