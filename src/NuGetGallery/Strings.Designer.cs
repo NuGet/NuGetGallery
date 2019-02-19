@@ -506,7 +506,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid CVE ID format. The CVE ID should be formatted as \&quot;CVE-{year}-xxxxxxx\&quot; or just \&quot;{year}-xxxxxxx\&quot;.
+        ///   Looks up a localized string similar to Invalid CVE ID format. The CVE ID should be formatted as \&quot;CVE-{year}-xxxxxxx\&quot; or just \&quot;{year}-xxxxxxx\&quot; with a minimum of 4 digits..
         /// </summary>
         public static string AutocompleteCveIds_ValidationError {
             get {
@@ -515,7 +515,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid CWE ID format. The CWE ID should be formatted as \&quot;CWE-xxx\&quot;..
+        ///   Looks up a localized string similar to Invalid CWE ID format. The CWE ID should be formatted as \&quot;CWE-xxx\&quot; with a minimum of 2 digits, or have a minimum length of 4 characters for a textual query..
         /// </summary>
         public static string AutocompleteCweIds_ValidationError {
             get {
