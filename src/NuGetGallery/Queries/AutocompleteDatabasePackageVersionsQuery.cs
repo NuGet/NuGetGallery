@@ -9,8 +9,8 @@ using NuGet.Services.Entities;
 
 namespace NuGetGallery
 {
-    public class AutoCompleteDatabasePackageVersionsQuery
-        : AutoCompleteDatabaseQuery, IAutoCompletePackageVersionsQuery
+    public class AutocompleteDatabasePackageVersionsQuery
+        : AutocompleteDatabaseQuery, IAutocompletePackageVersionsQuery
     {
         private static readonly string _sqlFormat = @"SELECT p.[Version]
 FROM Packages p (NOLOCK)
@@ -18,7 +18,7 @@ FROM Packages p (NOLOCK)
 WHERE p.[PackageStatusKey] = " + (int)PackageStatus.Available + @" AND p.[Listed] = 1 AND {0} AND pr.ID = {{0}}
 	{1}";
 
-        public AutoCompleteDatabasePackageVersionsQuery(IEntitiesContext entities)
+        public AutocompleteDatabasePackageVersionsQuery(IEntitiesContext entities)
             : base(entities)
         {
         }

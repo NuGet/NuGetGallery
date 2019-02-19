@@ -8,10 +8,10 @@ using NuGetGallery.Configuration;
 
 namespace NuGetGallery
 {
-    public class AutoCompleteServicePackageVersionsQuery
-        : AutoCompleteServiceQuery, IAutoCompletePackageVersionsQuery
+    public class AutocompleteServicePackageVersionsQuery
+        : AutocompleteServiceQuery, IAutocompletePackageVersionsQuery
     {
-        public AutoCompleteServicePackageVersionsQuery(IAppConfiguration configuration)
+        public AutocompleteServicePackageVersionsQuery(IAppConfiguration configuration)
             : base(configuration)
         {
         }
