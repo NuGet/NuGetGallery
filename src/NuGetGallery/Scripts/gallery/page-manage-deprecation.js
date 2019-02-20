@@ -59,9 +59,6 @@ function ManageDeprecationViewModel(id, versionsDictionary, defaultVersion, subm
     this.dropdownSelector = '.deprecation-section .dropdown';
     this.dropdownBtnSelector = self.dropdownSelector + ' .dropdown-btn';
     this.dropdownContentSelector = self.dropdownSelector + ' .dropdown-content';
-    this.getFocusableDropdownContentElements = function () {
-        return $(self.dropdownContentSelector).find(':focusable:not(:has(:focusable))');
-    };
 
     this.dropdownOpen = ko.observable(false);
     this.toggleDropdown = function () {
@@ -108,10 +105,6 @@ function ManageDeprecationViewModel(id, versionsDictionary, defaultVersion, subm
 
     // A filter to be applied to the versions.
     this.versionFilter = ko.observable('');
-    this.versionFilterVisible = function () {
-        var versionSelectorContainer = $(self.dropdownContentSelector + ' .version-selector')[0];
-        return versionSelectorContainer.offsetHeight < versionSelectorContainer.scrollHeight;
-    };
 
     // Existing deprecation state information per version.
     this.versions = Object.keys(versionsDictionary).map(function (version) {
@@ -465,6 +458,4 @@ function ManageDeprecationViewModel(id, versionsDictionary, defaultVersion, subm
     }
 
     ko.applyBindings(this, $(".page-manage-deprecation")[0]);
-
-    self.getFocusableDropdownContentElements().attr('tabindex', '-1');
 }
