@@ -156,7 +156,7 @@ function ManageDeprecationViewModel(id, versionsDictionary, defaultVersion, subm
     // A string to display to the user describing how many versions are selected out of how many.
     this.chosenVersionsCountString = ko.pureComputed(function () {
         if (self.versionSelectAllChecked()) {
-            return "All versions";
+            return "All current versions";
         }
 
         var versionsCount = self.chosenVersionsCount();
@@ -212,6 +212,7 @@ function ManageDeprecationViewModel(id, versionsDictionary, defaultVersion, subm
     this.selectedCvssRating = ko.observable(0);
 
     // A string describing the severity of the CVSS rating entered by the user.
+    var invalidCvssRatingString = 'Invalid CVSS rating!';
     this.cvssRatingLabel = ko.pureComputed(function () {
         var rating = self.selectedCvssRating();
         if (!rating) {
@@ -220,7 +221,7 @@ function ManageDeprecationViewModel(id, versionsDictionary, defaultVersion, subm
 
         var ratingFloat = parseFloat(rating);
         if (isNaN(ratingFloat) || ratingFloat < 0 || ratingFloat > 10) {
-            return 'Invalid CVSS rating!';
+            return invalidCvssRatingString;
         }
 
         if (ratingFloat < 4) {
@@ -236,6 +237,9 @@ function ManageDeprecationViewModel(id, versionsDictionary, defaultVersion, subm
         }
 
         return 'Critical';
+    }, this);
+    this.cvssRatingIsInvalid = ko.pureComputed(function () {
+        return self.cvssRatingLabel() === invalidCvssRatingString;
     }, this);
 
     // The CVSS rating to submit with the form.

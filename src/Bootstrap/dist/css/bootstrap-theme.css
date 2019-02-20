@@ -215,6 +215,9 @@ h3 a:active {
   text-decoration: none;
 }
 @media screen and (max-width: 768px) {
+  .container {
+    width: 100vw;
+  }
   img.package-icon {
     max-width: 60px;
     max-height: 60px;

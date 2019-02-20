@@ -82,7 +82,7 @@
                 </div>
                 <div class="security-detail-input">
                     <input class="form-control cvss-input" name="selectedCvssRating" type="text" placeholder="0.0" size="4" maxlength="4" data-bind="textInput: selectedCvssRating, disable: !hasCvss()" />
-                    <span data-bind="text: cvssRatingLabel"></span>
+                    <span data-bind="text: cvssRatingLabel, css: { 'text-danger': cvssRatingIsInvalid }"></span>
                 </div>
             </div>
             <div data-bind="template: { name: 'deprecation-security-detail-list-input-template', data: cwes }"></div>
@@ -109,7 +109,7 @@
         <div class="form-group unbolded-label">
             <label>
                 <input name="isOther" type="checkbox" value="true" data-bind="checked: isOther" />
-                Other
+                This package should be deprecated for <b>other</b> reasons
             </label>
         </div>
     </div>

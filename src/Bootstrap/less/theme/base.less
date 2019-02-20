@@ -273,6 +273,13 @@ h2, h3 {
 }
 
 @media screen and (max-width: @screen-sm) {
+  // Bootstrap doesn't set the container width when the screen is xs.
+  // We want the container width to be the width of the viewport on xs screens.
+  // Otherwise, elements that depend on the width of the container could behave oddly on xs screens.
+  .container {
+    width: 100vw;
+  }
+
   img.package-icon {
     max-width: 60px;
     max-height: 60px;
