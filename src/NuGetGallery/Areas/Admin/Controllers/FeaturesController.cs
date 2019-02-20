@@ -31,7 +31,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
         public async virtual Task<ActionResult> Index()
         {
             var reference = await _storage.GetReferenceAsync();
-            var lastUpdated = _cache.GetRefreshStartTimeOrNull();
+            var lastUpdated = _cache.GetRefreshTimeOrNull();
 
             TimeSpan? timeSinceLastRefresh = null;
             if (lastUpdated.HasValue)
