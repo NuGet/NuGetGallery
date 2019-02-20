@@ -12,7 +12,7 @@ namespace NuGetGallery.Areas.Admin.ViewModels
 
         public TimeSpan? TimeSinceLastRefresh { get; set; }
 
-        public bool IsTimeSinceLastRefreshTooHigh
+        public bool IsOutdated
         {
             // Ideally, the feature flags refresh instantly at the refresh interval.
             // To account for random delays, we'll allow for up to a minute of drift before

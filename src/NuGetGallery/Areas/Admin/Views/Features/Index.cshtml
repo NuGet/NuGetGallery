@@ -4,49 +4,49 @@
     ViewBag.Title = "Feature Flags";
 }
 
-    <section role="main" class="container main-container page-revalidation">
-        <h1>Feature flags</h1>
+<section role="main" class="container main-container page-revalidation">
+    <h1>Feature flags</h1>
 
-        @if (!Model.TimeSinceLastRefresh.HasValue)
-        {
-            @ViewHelpers.AlertWarning(
-                @<text>
-                    The feature flags haven't loaded yet. Check the logs for errors.
-                </text>)
-        }
-        else if (Model.IsTimeSinceLastRefreshTooHigh)
-        {
-            @ViewHelpers.AlertWarning(
-                @<text>
-                    The feature flags were last cached @Math.Round(Model.TimeSinceLastRefresh.Value.TotalSeconds) seconds ago
-                    but should refresh every @Model.RefreshInterval.TotalSeconds seconds. Check the logs for errors.
-                </text>)
-        }
-        else
-        {
-            <p>
+    @if (!Model.TimeSinceLastRefresh.HasValue)
+    {
+        @ViewHelpers.AlertWarning(
+            @<text>
+                The feature flags haven't loaded yet. Check the logs for errors.
+            </text>)
+    }
+    else if (Model.IsOutdated)
+    {
+        @ViewHelpers.AlertWarning(
+            @<text>
                 The feature flags were last cached @Math.Round(Model.TimeSinceLastRefresh.Value.TotalSeconds) seconds ago
-                and refresh every @Model.RefreshInterval.TotalSeconds seconds.
-            </p>
-        }
+                but should refresh every @Model.RefreshInterval.TotalSeconds seconds. Check the logs for errors.
+            </text>)
+    }
+    else
+    {
+        <p>
+            The feature flags were last cached @Math.Round(Model.TimeSinceLastRefresh.Value.TotalSeconds) seconds ago
+            and refresh every @Model.RefreshInterval.TotalSeconds seconds.
+        </p>
+    }
 
-        <div class="form-group danger-zone">
-            <text>
-                @using (Html.BeginForm("Index", "Features", FormMethod.Post))
-                {
-                    @Html.AntiForgeryToken()
-                    @Html.Hidden("ContentId", Model.ContentId)
+    <div class="form-group danger-zone">
+        <text>
+            @using (Html.BeginForm("Index", "Features", FormMethod.Post))
+            {
+                @Html.AntiForgeryToken()
+                @Html.Hidden("ContentId", Model.ContentId)
 
-                    <div class="form-group @Html.HasErrorFor(m => m.Flags)">
-                        @Html.ShowLabelFor(m => m.Flags)
-                        @Html.ShowTextAreaFor(m => m.Flags, rows: 30, columns: 50)
-                        @Html.ShowValidationMessagesFor(m => m.Flags)
-                    </div>
+                <div class="form-group @Html.HasErrorFor(m => m.Flags)">
+                    @Html.ShowLabelFor(m => m.Flags)
+                    @Html.ShowTextAreaFor(m => m.Flags, rows: 30, columns: 50)
+                    @Html.ShowValidationMessagesFor(m => m.Flags)
+                </div>
 
-                    <div class="form-group">
-                        <input id="Submit" type="submit" class="btn btn-primary form-control" value="Save" />
-                    </div>
-                }
-            </text>
-        </div>
-    </section>
+                <div class="form-group">
+                    <input id="Submit" type="submit" class="btn btn-primary form-control" value="Save" />
+                </div>
+            }
+        </text>
+    </div>
+</section>
