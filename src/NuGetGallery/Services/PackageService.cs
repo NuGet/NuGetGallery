@@ -187,7 +187,8 @@ namespace NuGetGallery
             bool allowPrerelease = true)
         {
             return FilterLatestPackageHelper(
-                packages.Where(p => allowPrerelease || p.IsPrerelease).ToList(),
+                // Filter out prereleases in the list if prereleases are not allowed.
+                packages.Where(p => allowPrerelease || !p.IsPrerelease).ToList(),
                 semVerLevelKey,
                 allowPrerelease);
         }
