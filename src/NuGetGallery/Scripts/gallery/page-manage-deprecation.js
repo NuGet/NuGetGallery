@@ -108,6 +108,10 @@ function ManageDeprecationViewModel(id, versionsDictionary, defaultVersion, subm
 
     // A filter to be applied to the versions.
     this.versionFilter = ko.observable('');
+    this.versionFilterVisible = function () {
+        var versionSelectorContainer = $(self.dropdownContentSelector + ' .version-selector')[0];
+        return versionSelectorContainer.offsetHeight < versionSelectorContainer.scrollHeight;
+    };
 
     // Existing deprecation state information per version.
     this.versions = Object.keys(versionsDictionary).map(function (version) {
@@ -155,7 +159,7 @@ function ManageDeprecationViewModel(id, versionsDictionary, defaultVersion, subm
 
     // A string to display to the user describing how many versions are selected out of how many.
     this.chosenVersionsCountString = ko.pureComputed(function () {
-        if (self.versionSelectAllChecked()) {
+        if (self.allVersionsSelected()) {
             return "All versions";
         }
 
@@ -165,6 +169,18 @@ function ManageDeprecationViewModel(id, versionsDictionary, defaultVersion, subm
         }
         
         return self.chosenVersions().join(', ');
+    }, this);
+
+    // Whether or not all versions (visible or not) are selected
+    this.allVersionsSelected = ko.pureComputed(function () {
+        for (var index in self.versions) {
+            var version = self.versions[index];
+            if (!version.checked()) {
+                return false;
+            }
+        }
+
+        return true;
     }, this);
 
     // Whether or not the select all checkbox for the versions is selected.

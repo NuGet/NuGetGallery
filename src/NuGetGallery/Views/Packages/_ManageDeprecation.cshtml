@@ -30,8 +30,8 @@
             </button>
             <div class="dropdown-content panel panel-default" data-bind="visible: dropdownOpen">
                 <div class="panel-body version-selector">
-                    <div class="form-group version-filter">
-                        <input name="versionFilter" class="form-control full-line" type="text" data-bind="textInput: versionFilter" />
+                    <div class="form-group version-filter" data-bind="visible: versionFilterVisible()">
+                        <input name="versionFilter" class="form-control full-line" type="text" placeholder="Search" data-bind="textInput: versionFilter" />
                     </div>
                     <div class="unbolded-label">
                         <label>

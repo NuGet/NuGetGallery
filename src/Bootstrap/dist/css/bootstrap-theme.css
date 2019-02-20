@@ -1109,7 +1109,7 @@ img.reserved-indicator-icon {
   border-top: 0;
 }
 .page-manage-deprecation .deprecation-section .dropdown .dropdown-content .version-selector {
-  height: 300px;
+  max-height: 300px;
   overflow: auto;
 }
 .page-manage-deprecation .deprecation-section .dropdown .dropdown-content .version-selector .version-filter {
