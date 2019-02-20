@@ -4,6 +4,7 @@
 using System;
 using System.Net;
 using System.Web.Mvc;
+using NuGetGallery.Filters;
 
 namespace NuGetGallery
 {
@@ -11,11 +12,14 @@ namespace NuGetGallery
         : AppController
     {
         private readonly IVulnerabilityAutocompleteService _vulnerabilityAutocompleteService;
+        private readonly IPackageService _packageService;
 
         public ManageDeprecationJsonApiController(
-            IVulnerabilityAutocompleteService vulnerabilityAutocompleteService)
+            IVulnerabilityAutocompleteService vulnerabilityAutocompleteService,
+            IPackageService packageService)
         {
             _vulnerabilityAutocompleteService = vulnerabilityAutocompleteService ?? throw new ArgumentNullException(nameof(vulnerabilityAutocompleteService));
+            _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
         }
 
         [HttpGet]
@@ -47,6 +51,30 @@ namespace NuGetGallery
                 httpStatusCode,
                 queryResult,
                 JsonRequestBehavior.AllowGet);
+        }
+
+        [HttpGet]
+        [UIAuthorize]
+        public virtual JsonResult GetAlternatePackageVersions(string id)
+        {
+            var registration = _packageService.FindPackageRegistrationById(id);
+            if (registration == null)
+            {
+                return Json(HttpStatusCode.NotFound, null, JsonRequestBehavior.AllowGet);
+            }
+
+            var versions = registration.Packages
+                .Where(p => p.PackageStatusKey == PackageStatus.Available)
+                .ToList()
+                .OrderByDescending(p => NuGetVersion.Parse(p.Version))
+                .Select(p => NuGetVersionFormatter.ToFullStringOrFallback(p.Version, p.Version));
+
+            if (!versions.Any())
+            {
+                return Json(HttpStatusCode.NotFound, null, JsonRequestBehavior.AllowGet);
+            }
+
+            return Json(HttpStatusCode.OK, versions.ToList(), JsonRequestBehavior.AllowGet);
         }
     }
 }

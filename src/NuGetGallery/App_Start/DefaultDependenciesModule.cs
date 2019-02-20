@@ -216,6 +216,21 @@ namespace NuGetGallery
                 .As<IEntityRepository<SymbolPackage>>()
                 .InstancePerLifetimeScope();
 
+            builder.RegisterType<EntityRepository<PackageDeprecation>>()
+                .AsSelf()
+                .As<IEntityRepository<PackageDeprecation>>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<EntityRepository<Cve>>()
+               .AsSelf()
+               .As<IEntityRepository<Cve>>()
+               .InstancePerLifetimeScope();
+
+            builder.RegisterType<EntityRepository<Cwe>>()
+               .AsSelf()
+               .As<IEntityRepository<Cwe>>()
+               .InstancePerLifetimeScope();
+
             var supportDbConnectionFactory = CreateDbConnectionFactory(
                 diagnosticsService,
                 nameof(SupportRequestDbContext),
@@ -354,6 +369,10 @@ namespace NuGetGallery
 
             builder.RegisterType<LicenseExpressionSegmentator>()
                 .As<ILicenseExpressionSegmentator>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<PackageDeprecationService>()
+                .As<IPackageDeprecationService>()
                 .InstancePerLifetimeScope();
 
             RegisterFeatureFlagsService(builder, configuration);

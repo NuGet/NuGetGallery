@@ -1,0 +1,108 @@
+.page-manage-deprecation {
+    .full-line {
+        display: block;
+        width: 100%;
+    }
+
+    .deprecation-section {
+        margin-top: 40px;
+
+        .deprecation-section-header {
+            margin-bottom: 15px;
+        }
+
+        .dropdown {
+            position: relative;
+            display: block;
+
+            .dropdown-btn {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 5px;
+                margin-bottom: 0px;
+                background-color: white;
+                border-style: inset;
+                border: 1px solid #7f7f7f;
+
+                span {
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                }
+            }
+            
+            .dropdown-content {
+                position: absolute;
+                z-index: 1;
+                width: 100%;
+                border-top: 0px;
+
+                .version-selector {
+                    height: 300px;
+                    overflow: auto;
+                    
+                    .version-filter {
+                        margin-bottom: 5px;
+                    }
+                }
+            }
+        }
+        
+        .unbolded-label {
+            label {
+                font-weight: normal;
+            }
+        }
+        
+        .deprecation-subsection {
+            margin: 25px;
+            
+            .security-detail {
+                padding: 10px;
+
+                .security-detail-input-label {
+                    display: block;
+                    margin-bottom: 0px;
+                    font-weight: normal;
+                }
+
+                .security-detail-input {
+                    margin-top: 10px;
+                
+                    .cvss-input {
+                        display: inline-block;
+                        width: 65px;
+                        margin-right: 15px;
+                    }
+                }
+                
+                .security-detail-list-input {
+                    display: flex;
+                    justify-content: space-between;
+
+                    button {
+                        margin-left: 15px;
+                    }
+                }
+
+                .security-detail-list {
+                    margin-top: 10px;
+
+                    .security-detail-list-item {
+                        display: flex;
+                        justify-content: space-between;
+                        padding: 10px;
+                        margin-top: 10px;
+                    }
+                }
+            }
+            
+            .alternate-package-container {
+                @media (max-width: @screen-sm-min) {
+                    margin-top: 40px;
+                }
+            }
+        }
+    }
+}

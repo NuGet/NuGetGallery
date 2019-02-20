@@ -145,9 +145,9 @@ namespace NuGetGallery
                 new { controller = "Packages", action = "VerifyPackage" });
 
             routes.MapRoute(
-                 RouteName.PreviewReadMe,
-                 "packages/manage/preview-readme",
-                 new { controller = "Packages", action = "PreviewReadMe" });
+                RouteName.PreviewReadMe,
+                "packages/manage/preview-readme",
+                new { controller = "Packages", action = "PreviewReadMe" });
 
             routes.MapRoute(
                 RouteName.CancelUpload,
@@ -240,6 +240,11 @@ namespace NuGetGallery
                 RouteName.PackageDeleteAction,
                 "packages/manage/delete",
                 new { controller = "Packages", action = "Delete" });
+
+            var packageDeprecateRoute = routes.MapRoute(
+                RouteName.PackageDeprecateAction,
+                "packages/manage/deprecate",
+                new { controller = "Packages", action = nameof(PackagesController.Deprecate) });
 
             var confirmationRequiredRoute = routes.MapRoute(
                 "ConfirmationRequired",
