@@ -216,21 +216,9 @@
         });
     };
 
-    nuget.isElement = function (element, type) {
-        return element.is(type);
-    };
-
-    nuget.hasAttribute = function (element, attributeName) {
-        var attribute = element.attr(attributeName);
-        return typeof attribute !== typeof undefined && attribute !== false;
-    };
-
     nuget.canElementBeFocused = function (element) {
         element = $(element);
-        var isElement = window.nuget.isElement.bind(this, element);
-        var hasAttribute = window.nuget.hasAttribute.bind(this, element);
-
-        if (!isElement(':visible')) {
+        if (!element.is(':visible')) {
             return false;
         }
 
@@ -238,17 +226,17 @@
         var alwaysInteractiveElements = ['a', 'button', 'details', 'embed', 'iframe', 'keygen', 'label', 'select', 'textarea'];
         var i;
         for (i = 0; i < alwaysInteractiveElements.length; i++) {
-            if (isElement(alwaysInteractiveElements[i])) {
+            if (element.is(alwaysInteractiveElements[i])) {
                 return true;
             }
         }
 
-        return isElement("audio") && hasAttribute("controls") ||
-            isElement("img") && hasAttribute("usemap") ||
-            isElement("input") && element.attr("type") !== "hidden" ||
-            isElement("menu") && element.attr("type") !== "toolbar" ||
-            isElement("object") && hasAttribute("usemap") ||
-            isElement("video") && hasAttribute("controls");
+        return element.is("audio") && !!element.attr("controls") ||
+            element.is("img") && !!element.attr("usemap") ||
+            element.is("input") && element.attr("type") !== "hidden" ||
+            element.is("menu") && element.attr("type") !== "toolbar" ||
+            element.is("object") && !!element.attr("usemap") ||
+            element.is("video") && !!element.attr("controls");
     };
 
     nuget.canElementBeTabbedTo = function (element) {
