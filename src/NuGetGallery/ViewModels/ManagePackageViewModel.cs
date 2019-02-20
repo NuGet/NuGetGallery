@@ -40,6 +40,8 @@ namespace NuGetGallery
             var versionSelectListItems = new List<SelectListItem>();
             VersionListedStateDictionary = new Dictionary<string, VersionListedState>();
             VersionReadMeStateDictionary = new Dictionary<string, VersionReadMeState>();
+            VersionDeprecatedStateDictionary = new Dictionary<string, VersionDeprecatedState>();
+
             var submitUrlTemplate = url.PackageVersionActionTemplate("Edit");
             var getReadMeUrlTemplate = url.PackageVersionActionTemplate("GetReadMeMd");
             string defaultSelectedVersion = null;
@@ -69,6 +71,10 @@ namespace NuGetGallery
                         submitUrlTemplate.Resolve(model),
                         getReadMeUrlTemplate.Resolve(model),
                         null));
+
+                VersionDeprecatedStateDictionary.Add(
+                    value,
+                    new VersionDeprecatedState(versionSelectPackage));
             }
 
             VersionSelectList = new SelectList(
@@ -99,6 +105,8 @@ namespace NuGetGallery
         public Dictionary<string, VersionListedState> VersionListedStateDictionary { get; set; }
 
         public Dictionary<string, VersionReadMeState> VersionReadMeStateDictionary { get; set; }
+        
+        public Dictionary<string, VersionDeprecatedState> VersionDeprecatedStateDictionary { get; set; }
 
         public class VersionListedState
         {
@@ -124,6 +132,53 @@ namespace NuGetGallery
             public string SubmitUrl { get; set; }
             public string GetReadMeUrl { get; set; }
             public string ReadMe { get; set; }
+        }
+
+        public class VersionDeprecatedState
+        {
+            public VersionDeprecatedState(Package package)
+            {
+                var deprecation = package.Deprecations.SingleOrDefault();
+                if (deprecation != null)
+                {
+                    IsVulnerable = CheckPackageDeprecationStatusFlag(deprecation, PackageDeprecationStatus.Vulnerable);
+                    IsLegacy = CheckPackageDeprecationStatusFlag(deprecation, PackageDeprecationStatus.Legacy);
+                    IsOther = CheckPackageDeprecationStatusFlag(deprecation, PackageDeprecationStatus.Other);
+
+                    CveIds = deprecation.Cves?.Select(c => c.CveId).ToList();
+                    CvssRating = deprecation.CvssRating;
+                    CweIds = deprecation.Cwes?.Select(c => c.CweId).ToList();
+
+                    // A deprecation should not have both an alternate package registration and an alternate package.
+                    // In case a deprecation does have both, we will hide the alternate package registration's ID in this model.
+                    AlternatePackageId = deprecation.AlternatePackageRegistration?.Id;
+                    var alternatePackage = deprecation.AlternatePackage;
+                    AlternatePackageId = alternatePackage?.Id;
+                    AlternatePackageVersion = alternatePackage?.Version;
+
+                    CustomMessage = deprecation.CustomMessage;
+
+                    // It doesn't make sense to unlist packages that are already unlisted.
+                    // Additionally, if a package was not unlisted when it was deprecated, we shouldn't unlist it when its deprecation information is updated.
+                    ShouldUnlist = package.Listed && deprecation.Status == PackageDeprecationStatus.NotDeprecated;
+                }
+            }
+
+            public bool IsVulnerable { get; set; }
+            public bool IsLegacy { get; set; }
+            public bool IsOther { get; set; }
+            public IReadOnlyCollection<string> CveIds { get; set; }
+            public decimal? CvssRating { get; set; }
+            public IReadOnlyCollection<string> CweIds { get; set; }
+            public string AlternatePackageId { get; set; }
+            public string AlternatePackageVersion { get; set; }
+            public string CustomMessage { get; set; }
+            public bool ShouldUnlist { get; set; }
+
+            private bool CheckPackageDeprecationStatusFlag(PackageDeprecation deprecation, PackageDeprecationStatus flag)
+            {
+                return (deprecation.Status & flag) > PackageDeprecationStatus.NotDeprecated;
+            }
         }
     }
 }

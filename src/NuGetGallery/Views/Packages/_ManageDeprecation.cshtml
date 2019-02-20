@@ -1,0 +1,163 @@
+﻿@model ManagePackageViewModel
+
+<div class="page-manage-deprecation">
+    <span>Deprecating a package will warn all consumers of the package who use it in their projects.</span>
+
+    @if (!Model.VersionSelectList.Any())
+    {
+        @ViewHelpers.AlertInfo(
+                @<text>
+                    <span>There are no versions that can be deprecated.</span>
+                </text>)
+    }
+    else if (!Model.CanDeprecate)
+    {
+        @ViewHelpers.AlertWarning(@<text>You do not have permission to deprecate this package.</text>)
+    }
+    else
+    {
+        <div data-bind="template: { name: 'add-deprecation-template' }"></div>
+    }
+</div>
+
+<script type="text/html" id="add-deprecation-template">
+    <div class="deprecation-section form-group">
+        <label class="deprecation-section-header">Select version(s)</label>
+        <div class="dropdown">
+            <button class="dropdown-btn full-line text-left" data-bind="click: toggleDropdown">
+                <span data-bind="text: chosenVersionsCountString"></span>
+                <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
+            </button>
+            <div class="dropdown-content panel panel-default" data-bind="visible: dropdownOpen">
+                <div class="panel-body version-selector">
+                    <div class="form-group version-filter">
+                        <input name="versionFilter" class="form-control full-line" type="text" data-bind="textInput: versionFilter" />
+                    </div>
+                    <div class="unbolded-label">
+                        <label>
+                            <input name="versionSelectAll" type="checkbox" value="true" data-bind="checked: versionSelectAllChecked, click: toggleVersionSelectAll, clickBubble false" />
+                            Select all
+                        </label>
+                    </div>
+                    <div data-bind="foreach: versions">
+                        <div class="unbolded-label" data-bind="visible: visible">
+                            <label>
+                                <input type="checkbox" value="true" data-bind="checked: checked, attr: { name: version }" />
+                                <span data-bind="text: version"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="has-error">
+            <span aria-live="assertive" class="help-block field-validation-error" role="alert" data-bind="visible: chosenVersionsCount() == 0">
+                At least one version must be selected.
+            </span>
+        </div>
+    </div>
+
+    <div class="deprecation-section">
+        <div class="deprecation-section-header">
+            <b>Select reason(s)</b>
+        </div>
+        <div class="form-group unbolded-label">
+            <label>
+                <input name="isVulnerable" type="checkbox" value="true" data-bind="checked: isVulnerable" />
+                This package has <b>security vulnerabilities</b>
+            </label>
+        </div>
+        <div class="deprecation-subsection" data-bind="visible: isVulnerable">
+            <div class="deprecation-section-header">
+                <b>Provide additional security details</b>
+            </div>
+            <div data-bind="template: { name: 'deprecation-security-detail-list-input-template', data: cves }"></div>
+            <div class="security-detail panel panel-default">
+                <div>
+                    <label>
+                        <input name="hasCvss" type="checkbox" value="true" data-bind="checked: hasCvss" />
+                        CVSS Quality Severity Rating
+                    </label>
+                    <label class="security-detail-input-label" for="selectedCvssRating">You can add the vulnerability rating (0-10) applicable to the vulnerabilities.</label>
+                </div>
+                <div class="security-detail-input">
+                    <input class="form-control cvss-input" name="selectedCvssRating" type="text" placeholder="0.0" size="4" maxlength="4" data-bind="textInput: selectedCvssRating, disable: !hasCvss()" />
+                    <span data-bind="text: cvssRatingLabel"></span>
+                </div>
+            </div>
+            <div data-bind="template: { name: 'deprecation-security-detail-list-input-template', data: cwes }"></div>
+        </div>
+        <div class="form-group unbolded-label">
+            <label>
+                <input name="isLegacy" type="checkbox" value="true" data-bind="checked: isLegacy" />
+                This package is <b>legacy</b> and is no longer maintained
+            </label>
+        </div>
+        <div class="deprecation-subsection" data-bind="visible: isLegacy">
+            <div class="row">
+                <div class="col-sm-8 form-group alternate-package-registration-container" data-bind="css: { 'has-error': chosenAlternatePackageIdError }">
+                    <label for="alternatePackageId" class="deprecation-section-header">Alternate package</label>
+                    <input name="alternatePackageId" class="form-control full-line" type="text" data-bind="textInput: chosenAlternatePackageId" />
+                    <span aria-live="assertive" class="help-block field-validation-error" role="alert" data-bind="text: chosenAlternatePackageIdError, visible: chosenAlternatePackageIdError"></span>
+                </div>
+                <div class="col-sm-4 form-group alternate-package-container">
+                    <label for="alternatePackageVersion" class="deprecation-section-header">Version</label>
+                    <select class="form-control full-line" name="alternatePackageVersion" data-bind="options: alternatePackageVersions, value: chosenAlternatePackageVersion, enable: hasAlternatePackageVersions" size="1"></select>
+                </div>
+            </div>
+        </div>
+        <div class="form-group unbolded-label">
+            <label>
+                <input name="isOther" type="checkbox" value="true" data-bind="checked: isOther" />
+                Other
+            </label>
+        </div>
+    </div>
+
+    <div data-bind="visible: isVulnerable() || isLegacy() || isOther()">
+        <div class="deprecation-section form-group">
+            <label for="customMessage" class="deprecation-section-header">Provide custom message</label>
+            <textarea name="customMessage" class="form-control full-line" data-bind="textInput: customMessage" rows="2"></textarea>
+        </div>
+        <div class="deprecation-section form-group">
+            <label>
+                <input type="checkbox" value="true" data-bind="checked: shouldUnlist" />
+                Unlist this package from search results
+            </label>
+        </div>
+    </div>
+
+    <div data-bind="visible: submitError">
+        @ViewHelpers.AlertDanger(@<text><span data-bind="text: submitError"></span></text>)
+    </div>
+
+    <div class="deprecation-section form-group">
+        <button class="btn btn-primary full-line" type="submit" data-bind="click: submit">Save</button>
+    </div>
+</script>
+
+<script type="text/html" id="deprecation-security-detail-list-input-template">
+    <div class="security-detail panel panel-default">
+        <div>
+            <label>
+                <input name="hasIds" type="checkbox" value="true" data-bind="checked: hasIds" />
+                <span data-bind="text: title"></span>
+            </label>
+            <label class="security-detail-input-label" for="addId" data-bind="text: label"></label>
+        </div>
+        <div class="security-detail-input security-detail-list-input">
+            <input class="form-control" name="addId" type="text" data-bind="textInput: addId, disable: !hasIds(), attr: { placeholder: placeholder }" />
+            <button class="btn btn-primary" data-bind="click: add, disable: !hasIds()">Add</button>
+        </div>
+        <div class="security-detail-list" data-bind="visible: $data, foreach: ids">
+            <div class="security-detail-list-item alert-info">
+                <span data-bind="text: $data"></span>
+                <a class="icon-link"
+                   href="#"
+                   data-bind="click: $parent.remove.bind($data)">
+                    <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</script> 

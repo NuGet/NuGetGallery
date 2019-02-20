@@ -2,8 +2,11 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
 using System.Net;
 using System.Web.Mvc;
+using NuGet.Services.Entities;
+using NuGet.Versioning;
 using NuGetGallery.Filters;
 
 namespace NuGetGallery
@@ -67,7 +70,7 @@ namespace NuGetGallery
                 .Where(p => p.PackageStatusKey == PackageStatus.Available)
                 .ToList()
                 .OrderByDescending(p => NuGetVersion.Parse(p.Version))
-                .Select(p => NuGetVersionFormatter.ToFullStringOrFallback(p.Version, p.Version));
+                .Select(p => NuGetVersionFormatter.ToFullString(p.Version));
 
             if (!versions.Any())
             {

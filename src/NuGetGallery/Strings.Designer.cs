@@ -785,6 +785,60 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to At least one CVE specified could not be found..
+        /// </summary>
+        public static string DeprecatePackage_MissingCve {
+            get {
+                return ResourceManager.GetString("DeprecatePackage_MissingCve", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to At least one CWE specified could not be found..
+        /// </summary>
+        public static string DeprecatePackage_MissingCwe {
+            get {
+                return ResourceManager.GetString("DeprecatePackage_MissingCwe", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Package &apos;{0} {1}&apos; does not exist. Please refresh the page and try again..
+        /// </summary>
+        public static string DeprecatePackage_MissingVersion {
+            get {
+                return ResourceManager.GetString("DeprecatePackage_MissingVersion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Alternate package &apos;{0} {1}&apos; does not exist..
+        /// </summary>
+        public static string DeprecatePackage_NoAlternatePackage {
+            get {
+                return ResourceManager.GetString("DeprecatePackage_NoAlternatePackage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Alternate package &apos;{0}&apos; does not exist..
+        /// </summary>
+        public static string DeprecatePackage_NoAlternatePackageRegistration {
+            get {
+                return ResourceManager.GetString("DeprecatePackage_NoAlternatePackageRegistration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You must select at least one version to deprecate!.
+        /// </summary>
+        public static string DeprecatePackage_NoVersions {
+            get {
+                return ResourceManager.GetString("DeprecatePackage_NoVersions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The password login is discontinued and has been removed for your account. Please use your Microsoft account to log into {0} going forward..
         /// </summary>
         public static string DiscontinuedLogin_PasswordRemoved {
