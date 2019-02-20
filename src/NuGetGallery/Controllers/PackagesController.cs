@@ -688,6 +688,7 @@ namespace NuGetGallery
             model.PackageValidationIssues = _validationService.GetLatestPackageValidationIssues(package);
             model.SymbolsPackageValidationIssues = _validationService.GetLatestPackageValidationIssues(model.LatestSymbolsPackage);
             model.IsCertificatesUIEnabled = _contentObjectService.CertificatesConfiguration?.IsUIEnabledForUser(currentUser) ?? false;
+            model.IsAtomFeedEnabled = _featureFlagService.IsPackagesAtomFeedEnabled();
 
             model.ReadMeHtml = await _readMeService.GetReadMeHtmlAsync(package);
 

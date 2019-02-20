@@ -748,7 +748,7 @@ namespace NuGetGallery
                 var readMeMd = "# Hello World!";
 
                 // Act
-                var result = await GetDisplayPackageResult(readMeMd, true);
+                var result = await GetResultWithReadMe(readMeMd, true);
 
                 // Assert
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
@@ -762,7 +762,7 @@ namespace NuGetGallery
                 var readMeMd = string.Concat(Enumerable.Repeat($"---{Environment.NewLine}", 20));
 
                 // Act
-                var result = await GetDisplayPackageResult(readMeMd, true);
+                var result = await GetResultWithReadMe(readMeMd, true);
 
                 // Assert
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
@@ -775,7 +775,7 @@ namespace NuGetGallery
             public async Task WhenHasReadMeAndFileNotFound_ReturnsNull()
             {
                 // Arrange & Act
-                var result = await GetDisplayPackageResult(null, true);
+                var result = await GetResultWithReadMe(null, true);
 
                 // Assert
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
@@ -786,14 +786,14 @@ namespace NuGetGallery
             public async Task WhenHasReadMeFalse_ReturnsNull()
             {
                 // Arrange and Act
-                var result = await GetDisplayPackageResult(null, false);
+                var result = await GetResultWithReadMe(null, false);
 
                 // Assert
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
                 Assert.Null(model.ReadMeHtml);
             }
 
-            private async Task<ActionResult> GetDisplayPackageResult(string readMeHtml, bool hasReadMe)
+            private async Task<ActionResult> GetResultWithReadMe(string readMeHtml, bool hasReadMe)
             {
                 var packageService = new Mock<IPackageService>();
                 var indexingService = new Mock<IIndexingService>();
@@ -886,6 +886,53 @@ namespace NuGetGallery
                 // Assert
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
                 Assert.Equal(model.PackageValidationIssues, expectedIssues);
+            }
+
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public async Task ShowsAtomFeedIfEnabled(bool isAtomFeedEnabled)
+            {
+                var featureFlagService = new Mock<IFeatureFlagService>();
+                var packageService = new Mock<IPackageService>();
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService,
+                    featureFlagService: featureFlagService);
+                controller.SetCurrentUser(TestUtility.FakeUser);
+
+                var id = "Foo";
+                var package = new Package()
+                {
+                    PackageRegistration = new PackageRegistration()
+                    {
+                        Id = id,
+                        Owners = new List<User>()
+                    },
+                    Version = "01.1.01",
+                    NormalizedVersion = "1.1.1",
+                    Title = "A test package!"
+                };
+
+                var packages = new[] { package };
+                packageService
+                    .Setup(p => p.FindPackagesById(id, false))
+                    .Returns(packages);
+
+                packageService
+                    .Setup(p => p.FilterLatestPackage(packages, SemVerLevelKey.SemVer2, true))
+                    .Returns(package);
+
+                featureFlagService
+                    .Setup(x => x.IsPackagesAtomFeedEnabled())
+                    .Returns(isAtomFeedEnabled);
+
+                // Arrange and Act
+                var result = await controller.DisplayPackage(id, version: null);
+
+                // Assert
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
+                Assert.Equal(isAtomFeedEnabled, model.IsAtomFeedEnabled);
             }
 
             [Fact]
