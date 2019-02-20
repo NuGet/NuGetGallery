@@ -545,7 +545,17 @@ namespace NuGetGallery
             bool isSymbolsPackageUpload,
             bool hasExistingSymbolsPackageAvailable)
         {
-            var packageContentData = await ValidateAndProcessPackageContents(currentUser, isSymbolsPackageUpload);
+            PackageContentData packageContentData = null;
+            try
+            {
+                packageContentData = await ValidateAndProcessPackageContents(currentUser, isSymbolsPackageUpload);
+
+            }
+            catch (Exception)
+            {
+                await _uploadFileService.DeleteUploadFileAsync(currentUser.Key);
+                throw;
+            }
 
             if (packageContentData.ErrorResult != null)
             {

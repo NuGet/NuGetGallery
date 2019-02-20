@@ -4611,7 +4611,46 @@ namespace NuGetGallery
                     packageUploadService: fakePackageUploadService);
                 controller.SetCurrentUser(TestUtility.FakeUser);
 
-                var result = await controller.UploadPackage(fakeUploadedFile.Object) as JsonResult;
+                var result = await controller.UploadPackage(fakeUploadedFile.Object);
+
+                fakeUploadFileService
+                    .Verify(x => x.DeleteUploadFileAsync(TestUtility.FakeUser.Key), Times.Once);
+            }
+
+            [Fact]
+            public async Task WillCleanupUploadContainerOnExceptionInBeforeGeneratePackage()
+            {
+                var fakeUploadedFile = new Mock<HttpPostedFileBase>();
+                fakeUploadedFile
+                    .Setup(x => x.FileName)
+                    .Returns(PackageId + ".nupkg");
+                Stream fakeFileStream = TestPackage.CreateTestPackageStream(PackageId, PackageVersion);
+                fakeUploadedFile
+                    .Setup(x => x.InputStream)
+                    .Returns(fakeFileStream);
+                var fakeUploadFileService = new Mock<IUploadFileService>();
+                fakeUploadFileService
+                    .Setup(x => x.DeleteUploadFileAsync(TestUtility.FakeUser.Key))
+                    .Returns(Task.FromResult(0));
+                fakeUploadFileService
+                    .SetupSequence(x => x.GetUploadFileAsync(TestUtility.FakeUser.Key))
+                    .Returns(Task.FromResult<Stream>(null))
+                    .Returns(Task.FromResult(fakeFileStream));
+                fakeUploadFileService
+                    .Setup(x => x.SaveUploadFileAsync(TestUtility.FakeUser.Key, It.IsAny<Stream>())).Returns(Task.FromResult(0));
+
+                var fakePackageUploadService = GetValidPackageUploadService(PackageId, PackageVersion);
+                fakePackageUploadService
+                    .Setup(x => x.ValidateBeforeGeneratePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageMetadata>()))
+                    .ThrowsAsync(new Exception("TestExceptionMessage"));
+
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    uploadFileService: fakeUploadFileService,
+                    packageUploadService: fakePackageUploadService);
+                controller.SetCurrentUser(TestUtility.FakeUser);
+
+                var result = await controller.UploadPackage(fakeUploadedFile.Object);
 
                 fakeUploadFileService
                     .Verify(x => x.DeleteUploadFileAsync(TestUtility.FakeUser.Key), Times.Once);
