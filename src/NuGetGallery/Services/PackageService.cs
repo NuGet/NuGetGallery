@@ -193,7 +193,7 @@ namespace NuGetGallery
                 allowPrerelease);
         }
 
-        private Package FilterLatestPackageHelper(
+        private static Package FilterLatestPackageHelper(
             IReadOnlyCollection<Package> packages,
             int? semVerLevelKey,
             bool allowPrerelease)

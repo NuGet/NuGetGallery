@@ -626,7 +626,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task GivenAnAbsoluteLatestVersionItQueriesTheCorrectVersion()
+            public async Task GivenAnAbsoluteLatestVersionItReturnsTheFirstLatestSemVer2()
             {
                 // Arrange
                 var packageService = new Mock<IPackageService>();
@@ -693,6 +693,53 @@ namespace NuGetGallery
                 Assert.Equal(latestPackage.NormalizedVersion, model.Version);
                 Assert.Equal(latestPackage.Title, model.Title);
                 Assert.True(model.LatestVersionSemVer2);
+            }
+
+            [Fact]
+            public async Task GivenAnAbsoluteLatestVersionAndNoLatestSemVer2ItFiltersTheList()
+            {
+                // Arrange
+                var packageService = new Mock<IPackageService>();
+                var indexingService = new Mock<IIndexingService>();
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService, indexingService: indexingService);
+                controller.SetCurrentUser(TestUtility.FakeUser);
+
+                var id = "Foo";
+                var notLatestPackage = new Package
+                {
+                    PackageRegistration = new PackageRegistration()
+                    {
+                        Id = id,
+                        Owners = new List<User>()
+                    },
+                    Version = "3.0.0",
+                    NormalizedVersion = "3.0.0",
+                    Title = "An old test package!"
+                };
+
+                var packages = new[] { notLatestPackage };
+                packageService
+                    .Setup(p => p.FindPackagesById(id, false))
+                    .Returns(packages);
+
+                packageService
+                    .Setup(p => p.FilterLatestPackage(packages, SemVerLevelKey.SemVer2, true))
+                    .Returns(notLatestPackage);
+
+                indexingService.Setup(i => i.GetLastWriteTime()).Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
+
+                // Act
+                var result = await controller.DisplayPackage("Foo", GalleryConstants.AbsoluteLatestUrlString);
+
+                // Assert
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
+
+                Assert.Equal(id, model.Id);
+                Assert.Equal(notLatestPackage.NormalizedVersion, model.Version);
+                Assert.Equal(notLatestPackage.Title, model.Title);
+                Assert.False(model.LatestVersionSemVer2);
             }
 
             [Fact]

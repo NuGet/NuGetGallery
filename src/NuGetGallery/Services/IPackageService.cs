@@ -17,6 +17,10 @@ namespace NuGetGallery
     /// </summary>
     public interface IPackageService : ICorePackageService
     {
+        /// <summary>
+        /// Returns all packages with an <see cref="Package.Id"/> of <paramref name="id"/>.
+        /// Includes deprecation entities if <paramref name="withDeprecations"/> is true.
+        /// </summary>
         IReadOnlyCollection<Package> FindPackagesById(string id, bool withDeprecations = false);
 
         /// <summary>
