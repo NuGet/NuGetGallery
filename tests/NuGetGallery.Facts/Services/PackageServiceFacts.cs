@@ -912,6 +912,12 @@ namespace NuGetGallery
                 Assert.Equal("1.0.0b", result.Version);
             }
 
+            [Fact]
+            public void ThrowsIfPackagesNull()
+            {
+                Assert.Throws<ArgumentNullException>(() => InvokeMethod(null));
+            }
+
             protected virtual Package InvokeMethod(
                 IReadOnlyCollection<Package> packages,
                 int? semVerLevelKey = SemVerLevelKey.SemVer2,

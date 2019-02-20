@@ -188,7 +188,7 @@ namespace NuGetGallery
         {
             return FilterLatestPackageHelper(
                 // Filter out prereleases in the list if prereleases are not allowed.
-                packages.Where(p => allowPrerelease || !p.IsPrerelease).ToList(),
+                packages?.Where(p => allowPrerelease || !p.IsPrerelease).ToList(),
                 semVerLevelKey,
                 allowPrerelease);
         }
@@ -198,6 +198,11 @@ namespace NuGetGallery
             int? semVerLevelKey,
             bool allowPrerelease)
         {
+            if (packages == null)
+            {
+                throw new ArgumentNullException(nameof(packages));
+            }
+
             Package package = null;
 
             // Fallback behavior: collect the latest version.
