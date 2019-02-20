@@ -175,7 +175,7 @@ namespace NuGetGallery
 
                 var packageVersions = packagesQuery.ToList();
 
-                package = FilterLatestPackage(packageVersions, semVerLevelKey);
+                package = FilterLatestPackageHelper(packageVersions, semVerLevelKey, allowPrerelease);
             }
 
             return package;
@@ -185,6 +185,17 @@ namespace NuGetGallery
             IReadOnlyCollection<Package> packages,
             int? semVerLevelKey = SemVerLevelKey.SemVer2,
             bool allowPrerelease = true)
+        {
+            return FilterLatestPackageHelper(
+                packages.Where(p => allowPrerelease || p.IsPrerelease).ToList(),
+                semVerLevelKey,
+                allowPrerelease);
+        }
+
+        private Package FilterLatestPackageHelper(
+            IReadOnlyCollection<Package> packages,
+            int? semVerLevelKey,
+            bool allowPrerelease)
         {
             Package package = null;
 
@@ -215,8 +226,8 @@ namespace NuGetGallery
                 }
             }
 
-            // If we couldn't find a package marked as latest, then
-            // return the most recent one (prerelease ones were already filtered out if appropriate...)
+            // If we couldn't find a package marked as latest, then return the most recent one.
+            // Prereleases were already filtered out if appropriate.
             if (package == null)
             {
                 package = packages.OrderByDescending(p => p.Version).FirstOrDefault();
