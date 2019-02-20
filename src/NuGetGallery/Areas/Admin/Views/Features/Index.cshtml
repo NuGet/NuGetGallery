@@ -7,6 +7,29 @@
 <section role="main" class="container main-container page-revalidation">
     <h1>Feature flags</h1>
 
+    @if (!Model.TimeSinceLastRefresh.HasValue)
+    {
+        @ViewHelpers.AlertWarning(
+            @<text>
+                The feature flags haven't loaded yet. Check the logs for errors.
+            </text>)
+    }
+    else if (Model.IsOutdated)
+    {
+        @ViewHelpers.AlertWarning(
+            @<text>
+                The feature flags were last cached @Math.Round(Model.TimeSinceLastRefresh.Value.TotalSeconds) seconds ago
+                but should refresh every @Model.RefreshInterval.TotalSeconds seconds. Check the logs for errors.
+            </text>)
+    }
+    else
+    {
+        <p>
+            The feature flags were last cached @Math.Round(Model.TimeSinceLastRefresh.Value.TotalSeconds) seconds ago
+            and refresh every @Model.RefreshInterval.TotalSeconds seconds.
+        </p>
+    }
+
     <div class="form-group danger-zone">
         <text>
             @using (Html.BeginForm("Index", "Features", FormMethod.Post))
