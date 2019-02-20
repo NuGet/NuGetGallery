@@ -19,7 +19,7 @@ namespace NuGetGallery
         {
             _package = package ?? throw new ArgumentNullException(nameof(package));
 
-            FullVersion = NuGetVersionFormatter.ToFullStringOrFallback(package.Version, fallback: package.Version);
+            FullVersion = NuGetVersionFormatter.ToFullString(package.Version);
             IsSemVer2 = package.SemVerLevelKey == SemVerLevelKey.SemVer2;
 
             Version = String.IsNullOrEmpty(package.NormalizedVersion) ?

@@ -1366,10 +1366,10 @@ namespace NuGetGallery
                 var packages = InvokeFindPackagesByOwner(currentUser, includeUnlisted: true).ToList();
 
                 var nugetCatalogReaderPackage = packages.Single(p => p.PackageRegistration.Id == "NuGet.CatalogReader");
-                Assert.Equal("1.5.12+git.78e44a8", NuGetVersionFormatter.ToFullStringOrFallback(nugetCatalogReaderPackage.Version, fallback: nugetCatalogReaderPackage.Version));
+                Assert.Equal("1.5.12+git.78e44a8", NuGetVersionFormatter.ToFullString(nugetCatalogReaderPackage.Version));
 
                 var sleetLibPackage = packages.Single(p => p.PackageRegistration.Id == "SleetLib");
-                Assert.Equal("2.2.24+git.f2a0cb6", NuGetVersionFormatter.ToFullStringOrFallback(sleetLibPackage.Version, fallback: sleetLibPackage.Version));
+                Assert.Equal("2.2.24+git.f2a0cb6", NuGetVersionFormatter.ToFullString(sleetLibPackage.Version));
             }
 
             protected FakeEntitiesContext GetMixedVersioningPackagesContext(User currentUser, User packageOwner)

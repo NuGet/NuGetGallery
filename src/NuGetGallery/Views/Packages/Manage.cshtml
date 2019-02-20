@@ -59,37 +59,12 @@
         var strings_RemovingSelf = "@Html.Raw(Strings.ManagePackageOwners_RemovingSelf)";
 
         // Set up delete section
-        var versionListedState = @Html.Raw(
-           Json.Encode(
-               Model.VersionSelectList.ToDictionary(
-                   v => v.Value,
-                   v =>
-                   {
-                       var version = Model.PackageVersions.Single(p => p.Version == v.Value);
-                       return new
-                       {
-                           version.Listed,
-                           version.DownloadCount
-                       };
-                   })));
+        var versionListedState = @Html.Raw(Json.Encode(Model.VersionListedStateDictionary));
 
         $(function () {
             // Set up documentation section
-            @{
-                var editTemplate = Url.PackageVersionActionTemplate("Edit");
-                var getReadMeTemplate = Url.PackageVersionActionTemplate("GetReadMeMd");
-            }
-
             var readMeModel = {
-                "Versions": @Html.Raw(Json.Encode(Model.VersionSelectList.ToDictionary(v => v.Value, v => {
-                           var pvmodel = new TrivialPackageVersionModel(Model.Id, v.Value);
-                           return new
-                           {
-                               submit = editTemplate.Resolve(pvmodel),
-                               getReadMe = getReadMeTemplate.Resolve(pvmodel),
-                               readMe = (EditPackageVersionReadMeRequest)null
-                           };
-                       }))),
+                "Versions": @Html.Raw(Json.Encode(Model.VersionReadMeStateDictionary)),
                 "Edit": @Html.Raw(Json.Encode(Model.ReadMe))
             };
 
