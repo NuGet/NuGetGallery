@@ -19,9 +19,11 @@ namespace NuGet.Services.FeatureFlags.Tests
             [Fact]
             public void ReturnsNullOnUnitialized()
             {
-                var result = _target.GetLatestFlagsOrNull();
+                var flags = _target.GetLatestFlagsOrNull();
+                var lastRefresh = _target.GetRefreshTimeOrNull();
 
-                Assert.Null(result);
+                Assert.Null(flags);
+                Assert.Null(lastRefresh);
 
                 _storage.Verify(s => s.GetAsync(), Times.Never);
             }
@@ -37,10 +39,12 @@ namespace NuGet.Services.FeatureFlags.Tests
                 await _target.RefreshAsync();
 
                 // Act
-                var result = _target.GetLatestFlagsOrNull();
+                var flags = _target.GetLatestFlagsOrNull();
+                var lastRefresh = _target.GetRefreshTimeOrNull();
 
                 // Assert
-                Assert.Same(_latestFlags, result);
+                Assert.Same(_latestFlags, flags);
+                Assert.NotNull(lastRefresh);
 
                 _storage.Verify(s => s.GetAsync(), Times.Once);
             }

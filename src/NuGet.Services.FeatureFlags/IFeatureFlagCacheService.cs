@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -31,5 +32,11 @@ namespace NuGet.Services.FeatureFlags
         /// </summary>
         /// <returns>The latest cached flags, or null if the flags have never been loaded successfully.</returns>
         FeatureFlags GetLatestFlagsOrNull();
+
+        /// <summary>
+        /// Fetch the time at which the flags were last refreshed.
+        /// </summary>
+        /// <returns>The last time flags were refreshed, or null if the flags have never been loaded successfully.</returns>
+        DateTimeOffset? GetRefreshTimeOrNull();
     }
 }

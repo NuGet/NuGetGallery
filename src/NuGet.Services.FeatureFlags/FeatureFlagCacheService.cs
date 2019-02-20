@@ -44,6 +44,11 @@ namespace NuGet.Services.FeatureFlags
             return _latestFlags?.FeatureFlags;
         }
 
+        public DateTimeOffset? GetRefreshTimeOrNull()
+        {
+            return _latestFlags?.RefreshStartTime;
+        }
+
         public async Task RefreshAsync()
         {
             var refreshTime = DateTimeOffset.UtcNow;
