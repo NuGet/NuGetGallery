@@ -285,15 +285,26 @@ namespace NuGetGallery
             }
         }
 
-        protected IQueryable<Package> GetPackagesByIdQueryable(string id)
+        protected IQueryable<Package> GetPackagesByIdQueryable(string id, bool withDeprecations = false)
         {
-            return _packageRepository
+            var packages = _packageRepository
                 .GetAll()
                 .Include(p => p.LicenseReports)
                 .Include(p => p.PackageRegistration)
                 .Include(p => p.User)
                 .Include(p => p.SymbolPackages)
                 .Where(p => p.PackageRegistration.Id == id);
+
+            if (withDeprecations)
+            {
+                packages = packages
+                    .Include(p => p.Deprecations.Select(d => d.AlternatePackage.PackageRegistration))
+                    .Include(p => p.Deprecations.Select(d => d.AlternatePackageRegistration))
+                    .Include(p => p.Deprecations.Select(d => d.Cves))
+                    .Include(p => p.Deprecations.Select(d => d.Cwes));
+            }
+
+            return packages;
         }
 
         private static Package FindPackage(IQueryable<Package> packages, Func<IQueryable<Package>, IQueryable<Package>> predicate = null)

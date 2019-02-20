@@ -41,24 +41,22 @@ namespace NuGetGallery
         }
 
         [HttpGet]
-        public virtual ActionResult GetPackageOwners(string id, string version)
+        public virtual ActionResult GetPackageOwners(string id)
         {
-            var package = _packageService.FindPackageByIdAndVersion(id, version);
-            if (package == null)
+            var registration = _packageService.FindPackageRegistrationById(id);
+            if (registration == null)
             {
                 return Json(new { message = Strings.AddOwner_PackageNotFound });
             }
 
             var currentUser = GetCurrentUser();
-            if (ActionsRequiringPermissions.ManagePackageOwnership.CheckPermissionsOnBehalfOfAnyAccount(currentUser, package) != PermissionsCheckResult.Allowed)
+            if (ActionsRequiringPermissions.ManagePackageOwnership.CheckPermissionsOnBehalfOfAnyAccount(currentUser, registration) != PermissionsCheckResult.Allowed)
             {
                 return new HttpUnauthorizedResult();
             }
 
-            var packageRegistration = package.PackageRegistration;
-            var packageRegistrationOwners = package.PackageRegistration.Owners;
-            var allMatchingNamespaceOwners = package
-                .PackageRegistration
+            var packageRegistrationOwners = registration.Owners;
+            var allMatchingNamespaceOwners = registration
                 .ReservedNamespaces
                 .SelectMany(rn => rn.Owners)
                 .Distinct();
@@ -71,7 +69,7 @@ namespace NuGetGallery
                 .Select(u => new PackageOwnersResultViewModel(
                     u,
                     currentUser,
-                    packageRegistration,
+                    registration,
                     Url,
                     isPending: false,
                     isNamespaceOwner: true));
@@ -81,7 +79,7 @@ namespace NuGetGallery
                 .Select(u => new PackageOwnersResultViewModel(
                     u,
                     currentUser,
-                    packageRegistration,
+                    registration,
                     Url,
                     isPending: false,
                     isNamespaceOwner: false));
@@ -89,11 +87,11 @@ namespace NuGetGallery
             owners = owners.Union(packageOwnersOnlyResultViewModel);
 
             var pending =
-                _packageOwnershipManagementService.GetPackageOwnershipRequests(package: package.PackageRegistration)
+                _packageOwnershipManagementService.GetPackageOwnershipRequests(package: registration)
                 .Select(r => new PackageOwnersResultViewModel(
                     r.NewOwner,
                     currentUser,
-                    packageRegistration,
+                    registration,
                     Url,
                     isPending: true,
                     isNamespaceOwner: false));

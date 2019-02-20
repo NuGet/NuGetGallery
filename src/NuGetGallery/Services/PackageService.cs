@@ -135,6 +135,11 @@ namespace NuGetGallery
                 .SingleOrDefault(pr => pr.Id == packageId);
         }
 
+        public virtual IReadOnlyCollection<Package> FindPackagesById(string id, bool withDeprecations = false)
+        {
+            return GetPackagesByIdQueryable(id, withDeprecations).ToList();
+        }
+
         public virtual Package FindPackageByIdAndVersion(
             string id,
             string version,
@@ -170,62 +175,68 @@ namespace NuGetGallery
 
                 var packageVersions = packagesQuery.ToList();
 
-                // Fallback behavior: collect the latest version.
-                // Check SemVer-level and allow-prerelease constraints.
-                if (semVerLevelKey == SemVerLevelKey.SemVer2)
-                {
-                    package = packageVersions.FirstOrDefault(p => p.IsLatestStableSemVer2);
-
-                    if (package == null && allowPrerelease)
-                    {
-                        package = packageVersions.FirstOrDefault(p => p.IsLatestSemVer2);
-                    }
-                }
-
-                // Fallback behavior: collect the latest version.
-                // If SemVer-level is not defined, 
-                // or SemVer-level = 2.0.0 and no package was marked as SemVer2-latest,
-                // then check for packages marked as non-SemVer2 latest.
-                if (semVerLevelKey == SemVerLevelKey.Unknown
-                    || (semVerLevelKey == SemVerLevelKey.SemVer2 && package == null))
-                {
-                    package = packageVersions.FirstOrDefault(p => p.IsLatestStable);
-
-                    if (package == null && allowPrerelease)
-                    {
-                        package = packageVersions.FirstOrDefault(p => p.IsLatest);
-                    }
-                }
-
-                // If we couldn't find a package marked as latest, then
-                // return the most recent one (prerelease ones were already filtered out if appropriate...)
-                if (package == null)
-                {
-                    package = packageVersions.OrderByDescending(p => p.Version).FirstOrDefault();
-                }
+                package = FilterLatestPackageHelper(packageVersions, semVerLevelKey, allowPrerelease);
             }
 
             return package;
         }
 
-        public virtual Package FindAbsoluteLatestPackageById(string id, int? semVerLevelKey)
+        public virtual Package FilterLatestPackage(
+            IReadOnlyCollection<Package> packages,
+            int? semVerLevelKey = SemVerLevelKey.SemVer2,
+            bool allowPrerelease = true)
         {
-            var packageVersions = GetPackagesByIdQueryable(id);
+            return FilterLatestPackageHelper(
+                // Filter out prereleases in the list if prereleases are not allowed.
+                packages?.Where(p => allowPrerelease || !p.IsPrerelease).ToList(),
+                semVerLevelKey,
+                allowPrerelease);
+        }
 
-            Package package;
+        private static Package FilterLatestPackageHelper(
+            IReadOnlyCollection<Package> packages,
+            int? semVerLevelKey,
+            bool allowPrerelease)
+        {
+            if (packages == null)
+            {
+                throw new ArgumentNullException(nameof(packages));
+            }
+
+            Package package = null;
+
+            // Fallback behavior: collect the latest version.
+            // Check SemVer-level and allow-prerelease constraints.
             if (semVerLevelKey == SemVerLevelKey.SemVer2)
             {
-                package = packageVersions.FirstOrDefault(p => p.IsLatestSemVer2);
-            }
-            else
-            {
-                package = packageVersions.FirstOrDefault(p => p.IsLatest);
+                package = packages.FirstOrDefault(p => p.IsLatestStableSemVer2);
+
+                if (package == null && allowPrerelease)
+                {
+                    package = packages.FirstOrDefault(p => p.IsLatestSemVer2);
+                }
             }
 
-            // If we couldn't find a package marked as latest, then return the most recent one 
+            // Fallback behavior: collect the latest version.
+            // If SemVer-level is not defined, 
+            // or SemVer-level = 2.0.0 and no package was marked as SemVer2-latest,
+            // then check for packages marked as non-SemVer2 latest.
+            if (semVerLevelKey == SemVerLevelKey.Unknown
+                || (semVerLevelKey == SemVerLevelKey.SemVer2 && package == null))
+            {
+                package = packages.FirstOrDefault(p => p.IsLatestStable);
+
+                if (package == null && allowPrerelease)
+                {
+                    package = packages.FirstOrDefault(p => p.IsLatest);
+                }
+            }
+
+            // If we couldn't find a package marked as latest, then return the most recent one.
+            // Prereleases were already filtered out if appropriate.
             if (package == null)
             {
-                package = packageVersions.OrderByDescending(p => p.Version).FirstOrDefault();
+                package = packages.OrderByDescending(p => p.Version).FirstOrDefault();
             }
 
             return package;
@@ -277,7 +288,7 @@ namespace NuGetGallery
                         .ThenByDescending(p => p.Key)
                         .FirstOrDefault());
             }
-            
+
             return packages
                 .Include(p => p.PackageRegistration)
                 .Include(p => p.PackageRegistration.Owners)
@@ -360,7 +371,7 @@ namespace NuGetGallery
                 await _packageRepository.CommitChangesAsync();
             }
         }
-        
+
         public bool WillPackageBeOrphanedIfOwnerRemoved(PackageRegistration package, User ownerToRemove)
         {
             return WillPackageBeOrphanedIfOwnerRemovedHelper(package.Owners, ownerToRemove);
