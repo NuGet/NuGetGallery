@@ -125,11 +125,7 @@ function ManageDeprecationViewModel(id, versionsDictionary, defaultVersion, subm
             text: versionData.Text,
             deprecated: versionData.IsVulnerable || versionData.IsLegacy || versionData.IsOther,
             checked: checked,
-            visible: visible,
-            selected: ko.pureComputed(function () {
-                // If a version is checked but not visible in the UI, it is not selected.
-                return checked() && visible();
-            })
+            visible: visible
         };
     });
 
@@ -138,7 +134,7 @@ function ManageDeprecationViewModel(id, versionsDictionary, defaultVersion, subm
         return ko.utils
             .arrayFilter(
                 self.versions,
-                function (version) { return version.selected(); })
+                function (version) { return version.checked(); })
             .map(function (version) { return version.version; });
     }, this);
 
@@ -158,6 +154,14 @@ function ManageDeprecationViewModel(id, versionsDictionary, defaultVersion, subm
         }
 
         return chosenVersions.join(', ');
+    }, this);
+
+    this.versionSelectAllText = ko.pureComputed(function () {
+        if (self.versionFilter()) {
+            return "Select filtered";
+        }
+
+        return "Select all";
     }, this);
 
     // Whether or not the select all checkbox for the versions is selected.
