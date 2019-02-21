@@ -112,7 +112,7 @@ namespace NuGetGallery
             }
 
             var packages = _packageService.FindPackagesById(id, withDeprecations: true);
-            var registration = packages.FirstOrDefault().PackageRegistration;
+            var registration = packages.FirstOrDefault()?.PackageRegistration;
             if (registration == null)
             {
                 // This should only happen if someone hacks the form or if the package is deleted while the user is filling out the form.
