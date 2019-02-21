@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
 using System.Net;
 using NuGet.Services.Entities;
 using NuGetGallery.Framework;
@@ -33,7 +34,7 @@ namespace NuGetGallery.Controllers
             [InlineData("01", "CWE-01")]
             public void ReturnsHttp200AndExpectedBodyForValidRequests(string queryString, string expectedCweIdStartString)
             {
-                var entitiesContext = Get<IEntitiesContext>();
+                var cweRepositoryMock = GetMock<IEntityRepository<Cwe>>();
 
                 var expectedResult1 = new Cwe { CweId = "CWE-011", Name = "Name A: listed", Description = "Description A: listed.", Listed = true };
                 var notExpectedResult1 = new Cwe { CweId = "CWE-012", Name = "Name A: unlisted", Description = "Description A: unlisted.", Listed = false };
@@ -42,13 +43,19 @@ namespace NuGetGallery.Controllers
                 var expectedResult4 = new Cwe { CweId = "CWE-015", Name = "Name D", Description = "description D", Listed = true };
                 var expectedResult5 = new Cwe { CweId = "CWE-016", Name = "Name E", Description = "description E", Listed = true };
                 var notExpectedResult2 = new Cwe { CweId = "CWE-017", Name = "Name F", Description = "description F", Listed = true };
-                entitiesContext.Cwes.Add(expectedResult1);
-                entitiesContext.Cwes.Add(notExpectedResult1);
-                entitiesContext.Cwes.Add(expectedResult2);
-                entitiesContext.Cwes.Add(expectedResult3);
-                entitiesContext.Cwes.Add(expectedResult4);
-                entitiesContext.Cwes.Add(expectedResult5);
-                entitiesContext.Cwes.Add(notExpectedResult2);
+
+                cweRepositoryMock
+                    .Setup(x => x.GetAll())
+                    .Returns(new[] 
+                    {
+                        expectedResult1,
+                        notExpectedResult1,
+                        expectedResult2,
+                        expectedResult3,
+                        expectedResult4,
+                        expectedResult5,
+                        notExpectedResult2
+                    }.AsQueryable());
 
                 var queryResults = InvokeAndAssertStatusCode(queryString, HttpStatusCode.OK);
 
@@ -108,7 +115,7 @@ namespace NuGetGallery.Controllers
             [InlineData("2000", "CVE-2000")]
             public void ReturnsHttp200AndExpectedBodyForValidRequests(string queryString, string expectedCveIdStartString)
             {
-                var entitiesContext = Get<IEntitiesContext>();
+                var cveRepositoryMock = GetMock<IEntityRepository<Cve>>();
 
                 var expectedResult1 = new Cve { CveId = "CVE-2000-011", Description = "Description A: listed.", Listed = true };
                 var notExpectedResult1 = new Cve { CveId = "CVE-2000-012", Description = "Description A: unlisted.", Listed = false };
@@ -117,13 +124,19 @@ namespace NuGetGallery.Controllers
                 var expectedResult4 = new Cve { CveId = "CVE-2000-015", Description = "description D", Listed = true };
                 var expectedResult5 = new Cve { CveId = "CVE-2000-016", Description = "description E", Listed = true };
                 var notExpectedResult2 = new Cve { CveId = "CVE-2000-017", Description = "description F", Listed = true };
-                entitiesContext.Cves.Add(expectedResult1);
-                entitiesContext.Cves.Add(notExpectedResult1);
-                entitiesContext.Cves.Add(expectedResult2);
-                entitiesContext.Cves.Add(expectedResult3);
-                entitiesContext.Cves.Add(expectedResult4);
-                entitiesContext.Cves.Add(expectedResult5);
-                entitiesContext.Cves.Add(notExpectedResult2);
+
+                cveRepositoryMock
+                    .Setup(x => x.GetAll())
+                    .Returns(new[]
+                    {
+                        expectedResult1,
+                        notExpectedResult1,
+                        expectedResult2,
+                        expectedResult3,
+                        expectedResult4,
+                        expectedResult5,
+                        notExpectedResult2
+                    }.AsQueryable());
 
                 var queryResults = InvokeAndAssertStatusCode(queryString, HttpStatusCode.OK);
 
