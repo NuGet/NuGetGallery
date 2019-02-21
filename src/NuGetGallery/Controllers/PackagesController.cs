@@ -1455,6 +1455,12 @@ namespace NuGetGallery
                 return DeprecateErrorResponse(HttpStatusCode.BadRequest, Strings.DeprecatePackage_NoVersions);
             }
 
+            var registration = _packageService.FindPackageRegistrationById(id);
+            if (ActionsRequiringPermissions.DeprecatePackage.CheckPermissionsOnBehalfOfAnyAccount(GetCurrentUser(), registration) != PermissionsCheckResult.Allowed)
+            {
+                return DeprecateErrorResponse(HttpStatusCode.Forbidden, Strings.DeprecatePackage_Forbidden);
+            }
+
             var packages = _packageService.FindPackagesById(id, withDeprecations: true);
             PackageRegistration alternatePackageRegistration = null;
             Package alternatePackage = null;

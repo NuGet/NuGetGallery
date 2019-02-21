@@ -785,6 +785,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to You do not have permission to deprecate this package..
+        /// </summary>
+        public static string DeprecatePackage_Forbidden {
+            get {
+                return ResourceManager.GetString("DeprecatePackage_Forbidden", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to At least one CVE specified could not be found..
         /// </summary>
         public static string DeprecatePackage_MissingCve {

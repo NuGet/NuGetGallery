@@ -1112,4 +1112,7 @@ The {1} Team</value>
   <data name="DeprecatePackage_MissingCwe" xml:space="preserve">
     <value>At least one CWE specified could not be found.</value>
   </data>
+  <data name="DeprecatePackage_Forbidden" xml:space="preserve">
+    <value>You do not have permission to deprecate this package.</value>
+  </data>
 </root>
