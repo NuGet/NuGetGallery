@@ -155,7 +155,7 @@ function ManageDeprecationViewModel(id, versionsDictionary, defaultVersion, subm
 
     // A string to display to the user describing how many versions are selected out of how many.
     this.chosenVersionsCountString = ko.pureComputed(function () {
-        if (self.versionSelectAllChecked()) {
+        if (self.allVersionsSelected()) {
             return "All current versions";
         }
 
@@ -165,6 +165,17 @@ function ManageDeprecationViewModel(id, versionsDictionary, defaultVersion, subm
         }
 
         return self.chosenVersions().join(', ');
+    }, this);
+
+    this.allVersionsSelected = ko.pureComputed(function () {
+        for (var index in self.versions) {
+            var version = self.versions[index];
+            if (!version.checked()) {
+                return false;
+            }
+        }
+
+        return true;
     }, this);
 
     // Whether or not the select all checkbox for the versions is selected.

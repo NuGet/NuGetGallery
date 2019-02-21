@@ -1116,7 +1116,16 @@ img.reserved-indicator-icon {
   overflow: auto;
 }
 .page-manage-deprecation .deprecation-section .dropdown .dropdown-content .version-selector .version-filter {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display:         flex;
   margin-bottom: 5px;
+}
+.page-manage-deprecation .deprecation-section .dropdown .dropdown-content .version-selector .version-filter input {
+  width: 100%;
+  margin-left: 10px;
+  border: 0;
 }
 .page-manage-deprecation .deprecation-section .unbolded-label label {
   font-weight: normal;
