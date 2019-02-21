@@ -794,6 +794,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Package &apos;{0}&apos; is locked and cannot have its deprecation changed..
+        /// </summary>
+        public static string DeprecatePackage_Locked {
+            get {
+                return ResourceManager.GetString("DeprecatePackage_Locked", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to At least one CVE specified could not be found..
         /// </summary>
         public static string DeprecatePackage_MissingCve {

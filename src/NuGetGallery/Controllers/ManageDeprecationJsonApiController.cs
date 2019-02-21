@@ -69,8 +69,9 @@ namespace NuGetGallery
             var versions = registration.Packages
                 .Where(p => p.PackageStatusKey == PackageStatus.Available)
                 .ToList()
-                .OrderByDescending(p => NuGetVersion.Parse(p.Version))
-                .Select(p => NuGetVersionFormatter.ToFullString(p.Version));
+                .Select(p => NuGetVersion.Parse(p.Version))
+                .OrderByDescending(v => v)
+                .Select(v => v.ToFullString());
 
             if (!versions.Any())
             {

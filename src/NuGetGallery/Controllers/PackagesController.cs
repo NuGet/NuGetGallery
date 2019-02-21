@@ -1461,6 +1461,13 @@ namespace NuGetGallery
                 return DeprecateErrorResponse(HttpStatusCode.Forbidden, Strings.DeprecatePackage_Forbidden);
             }
 
+            if (registration.IsLocked)
+            {
+                return DeprecateErrorResponse(
+                    HttpStatusCode.Forbidden,
+                    string.Format(Strings.DeprecatePackage_Locked, id));
+            }
+
             var packages = _packageService.FindPackagesById(id, withDeprecations: true);
             PackageRegistration alternatePackageRegistration = null;
             Package alternatePackage = null;
@@ -1491,7 +1498,8 @@ namespace NuGetGallery
             var packagesToUpdate = new List<Package>();
             foreach (var version in versions)
             {
-                var package = packages.SingleOrDefault(v => v.NormalizedVersion == NuGetVersionFormatter.Normalize(version));
+                var normalizedVersion = NuGetVersionFormatter.Normalize(version);
+                var package = packages.SingleOrDefault(v => v.NormalizedVersion == normalizedVersion);
                 if (package == null)
                 {
                     // This should only happen if someone hacks the form or if a version of the package is deleted while the user is filling out the form.

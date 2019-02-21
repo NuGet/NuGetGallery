@@ -1115,4 +1115,7 @@ The {1} Team</value>
   <data name="DeprecatePackage_Forbidden" xml:space="preserve">
     <value>You do not have permission to deprecate this package.</value>
   </data>
+  <data name="DeprecatePackage_Locked" xml:space="preserve">
+    <value>Package '{0}' is locked and cannot have its deprecation changed.</value>
+  </data>
 </root>
