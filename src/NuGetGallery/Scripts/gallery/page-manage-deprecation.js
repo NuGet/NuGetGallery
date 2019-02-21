@@ -132,63 +132,40 @@ function ManageDeprecationViewModel(id, versionsDictionary, defaultVersion, subm
 
     // The versions selected in the UI.
     this.chosenVersions = ko.pureComputed(function () {
-        var selected = [];
-        for (var index in self.versions) {
-            var version = self.versions[index];
-            if (version.selected()) {
-                selected.push(version.version);
-            }
-        }
-
-        return selected;
+        return ko.utils
+            .arrayFilter(
+                self.versions,
+                function (version) { return version.selected(); })
+            .map(function (version) { return version.version; });
     }, this);
 
-    // The number of versions selected.
-    this.chosenVersionsCount = ko.pureComputed(function () {
-        var versions = self.chosenVersions();
-        if (!versions) {
-            return 0;
-        }
-
-        return versions.length;
+    this.hasNoVersionsSelected = ko.pureComputed(function () {
+        return !self.chosenVersions().length;
     }, this);
 
     // A string to display to the user describing how many versions are selected out of how many.
-    this.chosenVersionsCountString = ko.pureComputed(function () {
-        if (self.allVersionsSelected()) {
-            return "All current versions";
-        }
-
-        var versionsCount = self.chosenVersionsCount();
-        if (versionsCount === 0) {
+    this.chosenVersionsString = ko.pureComputed(function () {
+        var chosenVersions = self.chosenVersions();
+        if (chosenVersions.length === 0) {
             return "Select version(s) to deprecate";
         }
 
-        return self.chosenVersions().join(', ');
-    }, this);
-
-    this.allVersionsSelected = ko.pureComputed(function () {
-        for (var index in self.versions) {
-            var version = self.versions[index];
-            if (!version.checked()) {
-                return false;
-            }
+        if (chosenVersions.length === self.versions.length) {
+            "All current versions";
         }
 
-        return true;
+        return chosenVersions.join(', ');
     }, this);
 
     // Whether or not the select all checkbox for the versions is selected.
     this.versionSelectAllChecked = ko.pureComputed(function () {
-        for (var index in self.versions) {
-            var version = self.versions[index];
-            if (version.visible() && !version.checked()) {
-                // If a version is visible in the UI and is not checked, select all must not be checked.
-                return false;
-            }
-        }
-
-        return true;
+        return !ko.utils
+            .arrayFirst(
+                self.versions,
+                function (version) {
+                    // If a version is visible in the UI and is not checked, select all must not be checked.
+                    return version.visible() && !version.checked();
+                });
     }, this);
 
     // Toggles whether or not all versions are selected.
@@ -196,12 +173,13 @@ function ManageDeprecationViewModel(id, versionsDictionary, defaultVersion, subm
     // If the checkbox is already selected, it deselects all versions visible in the UI.
     this.toggleVersionSelectAll = function () {
         var checked = !self.versionSelectAllChecked();
-        for (var index in self.versions) {
-            var version = self.versions[index];
-            if (version.visible()) {
-                version.checked(checked);
-            }
-        }
+        ko.utils.arrayForEach(
+            self.versions,
+            function (version) {
+                if (version.visible()) {
+                    version.checked(checked);
+                }
+            });
 
         return true;
     };

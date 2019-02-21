@@ -25,7 +25,7 @@
         <label class="deprecation-section-header">Select version(s)</label>
         <div class="dropdown">
             <button class="dropdown-btn full-line text-left" data-bind="click: toggleDropdown">
-                <span data-bind="text: chosenVersionsCountString"></span>
+                <span data-bind="text: chosenVersionsString"></span>
                 <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
             </button>
             <div class="dropdown-content panel panel-default" data-bind="visible: dropdownOpen">
@@ -52,7 +52,7 @@
             </div>
         </div>
         <div class="has-error">
-            <span aria-live="assertive" class="help-block field-validation-error" role="alert" data-bind="visible: chosenVersionsCount() == 0">
+            <span aria-live="assertive" class="help-block field-validation-error" role="alert" data-bind="visible: !chosenVersions().length">
                 At least one version must be selected.
             </span>
         </div>
