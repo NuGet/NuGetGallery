@@ -794,6 +794,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The CVSS rating specified is invalid..
+        /// </summary>
+        public static string DeprecatePackage_InvalidCvss {
+            get {
+                return ResourceManager.GetString("DeprecatePackage_InvalidCvss", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Package &apos;{0}&apos; is locked and cannot have its deprecation changed..
         /// </summary>
         public static string DeprecatePackage_Locked {
@@ -821,7 +830,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Package &apos;{0}&apos; does not exist. Please refresh the page and try again..
+        ///   Looks up a localized string similar to Package &apos;{0}&apos; could not be found..
         /// </summary>
         public static string DeprecatePackage_MissingRegistration {
             get {
@@ -830,7 +839,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Package &apos;{0} {1}&apos; does not exist. Please refresh the page and try again..
+        ///   Looks up a localized string similar to At least one version of package &apos;{0}&apos; specified could not be found..
         /// </summary>
         public static string DeprecatePackage_MissingVersion {
             get {

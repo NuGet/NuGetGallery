@@ -1095,7 +1095,7 @@ The {1} Team</value>
     <value>Invalid CWE ID format. The CWE ID should be formatted as \"CWE-xxx\" with a minimum of 2 digits, or have a minimum length of 4 characters for a textual query.</value>
   </data>
   <data name="DeprecatePackage_MissingVersion" xml:space="preserve">
-    <value>Package '{0} {1}' does not exist. Please refresh the page and try again.</value>
+    <value>At least one version of package '{0}' specified could not be found.</value>
   </data>
   <data name="DeprecatePackage_NoAlternatePackage" xml:space="preserve">
     <value>Alternate package '{0} {1}' does not exist.</value>
@@ -1119,6 +1119,9 @@ The {1} Team</value>
     <value>Package '{0}' is locked and cannot have its deprecation changed.</value>
   </data>
   <data name="DeprecatePackage_MissingRegistration" xml:space="preserve">
-    <value>Package '{0}' does not exist. Please refresh the page and try again.</value>
+    <value>Package '{0}' could not be found.</value>
+  </data>
+  <data name="DeprecatePackage_InvalidCvss" xml:space="preserve">
+    <value>The CVSS rating specified is invalid.</value>
   </data>
 </root>
