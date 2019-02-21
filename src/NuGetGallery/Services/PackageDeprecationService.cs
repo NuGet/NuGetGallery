@@ -11,18 +11,18 @@ namespace NuGetGallery
 {
     public class PackageDeprecationService : IPackageDeprecationService
     {
-        private IEntityRepository<PackageDeprecation> _deprecationRepository;
-        private IEntityRepository<Cve> _cveRepository;
-        private IEntityRepository<Cwe> _cweRepository;
+        private readonly IEntityRepository<PackageDeprecation> _deprecationRepository;
+        private readonly IEntityRepository<Cve> _cveRepository;
+        private readonly IEntityRepository<Cwe> _cweRepository;
 
         public PackageDeprecationService(
            IEntityRepository<PackageDeprecation> deprecationRepository,
            IEntityRepository<Cve> cveRepository,
            IEntityRepository<Cwe> cweRepository)
         {
-            _deprecationRepository = deprecationRepository;
-            _cveRepository = cveRepository;
-            _cweRepository = cweRepository;
+            _deprecationRepository = deprecationRepository ?? throw new ArgumentNullException(nameof(deprecationRepository));
+            _cveRepository = cveRepository ?? throw new ArgumentNullException(nameof(cveRepository));
+            _cweRepository = cweRepository ?? throw new ArgumentNullException(nameof(cweRepository));
         }
 
         public async Task UpdateDeprecation(

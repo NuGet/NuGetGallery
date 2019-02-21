@@ -110,7 +110,6 @@ namespace NuGetGallery
         private readonly ICoreLicenseFileService _coreLicenseFileService;
         private readonly ILicenseExpressionSplitter _licenseExpressionSplitter;
         private readonly IFeatureFlagService _featureFlagService;
-        private readonly IPackageDeprecationService _deprecationService;
 
         public PackagesController(
             IPackageService packageService,
@@ -138,8 +137,7 @@ namespace NuGetGallery
             IDiagnosticsService diagnosticsService,
             ICoreLicenseFileService coreLicenseFileService,
             ILicenseExpressionSplitter licenseExpressionSplitter,
-            IFeatureFlagService featureFlagService,
-            IPackageDeprecationService deprecationService)
+            IFeatureFlagService featureFlagService)
         {
             _packageService = packageService;
             _uploadFileService = uploadFileService;
@@ -167,7 +165,6 @@ namespace NuGetGallery
             _coreLicenseFileService = coreLicenseFileService ?? throw new ArgumentNullException(nameof(coreLicenseFileService));
             _licenseExpressionSplitter = licenseExpressionSplitter ?? throw new ArgumentNullException(nameof(licenseExpressionSplitter));
             _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
-            _deprecationService = deprecationService ?? throw new ArgumentNullException(nameof(deprecationService));
         }
 
         [HttpGet]
