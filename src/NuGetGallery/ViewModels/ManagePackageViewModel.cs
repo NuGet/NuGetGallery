@@ -105,8 +105,8 @@ namespace NuGetGallery
                 DownloadCount = package.DownloadCount;
             }
 
-            public bool Listed { get; set; }
-            public int DownloadCount { get; set; }
+            public bool Listed { get; }
+            public int DownloadCount { get; }
         }
 
         public class VersionReadMeState
@@ -118,9 +118,9 @@ namespace NuGetGallery
                 ReadMe = readMe;
             }
 
-            public string SubmitUrl { get; set; }
-            public string GetReadMeUrl { get; set; }
-            public string ReadMe { get; set; }
+            public string SubmitUrl { get; }
+            public string GetReadMeUrl { get; }
+            public string ReadMe { get; }
         }
 
         public class VersionDeprecationState
@@ -155,17 +155,17 @@ namespace NuGetGallery
                 }
             }
 
-            public string Text { get; set; }
-            public bool IsVulnerable { get; set; }
-            public bool IsLegacy { get; set; }
-            public bool IsOther { get; set; }
-            public IReadOnlyCollection<string> CveIds { get; set; }
-            public decimal? CvssRating { get; set; }
-            public IReadOnlyCollection<string> CweIds { get; set; }
-            public string AlternatePackageId { get; set; }
-            public string AlternatePackageVersion { get; set; }
-            public string CustomMessage { get; set; }
-            public bool ShouldUnlist { get; set; }
+            public string Text { get; }
+            public bool IsVulnerable { get; }
+            public bool IsLegacy { get; }
+            public bool IsOther { get; }
+            public IReadOnlyCollection<string> CveIds { get; }
+            public decimal? CvssRating { get; }
+            public IReadOnlyCollection<string> CweIds { get; }
+            public string AlternatePackageId { get; }
+            public string AlternatePackageVersion { get; }
+            public string CustomMessage { get; }
+            public bool ShouldUnlist { get; }
         }
     }
 }
