@@ -1434,6 +1434,7 @@ namespace NuGetGallery
         }
 
         [HttpPost]
+        [UIAuthorize]
         [RequiresAccountConfirmation("deprecate a package")]
         [ValidateAntiForgeryToken]
         public virtual async Task<JsonResult> Deprecate(
@@ -1455,7 +1456,16 @@ namespace NuGetGallery
                 return DeprecateErrorResponse(HttpStatusCode.BadRequest, Strings.DeprecatePackage_NoVersions);
             }
 
-            var registration = _packageService.FindPackageRegistrationById(id);
+            var packages = _packageService.FindPackagesById(id, withDeprecations: true);
+            var registration = packages.FirstOrDefault().PackageRegistration;
+            if (registration == null)
+            {
+                // This should only happen if someone hacks the form or if the package is deleted while the user is filling out the form.
+                return DeprecateErrorResponse(
+                    HttpStatusCode.NotFound,
+                    string.Format(Strings.DeprecatePackage_MissingRegistration, id));
+            }
+
             if (ActionsRequiringPermissions.DeprecatePackage.CheckPermissionsOnBehalfOfAnyAccount(GetCurrentUser(), registration) != PermissionsCheckResult.Allowed)
             {
                 return DeprecateErrorResponse(HttpStatusCode.Forbidden, Strings.DeprecatePackage_Forbidden);
@@ -1468,7 +1478,6 @@ namespace NuGetGallery
                     string.Format(Strings.DeprecatePackage_Locked, id));
             }
 
-            var packages = _packageService.FindPackagesById(id, withDeprecations: true);
             PackageRegistration alternatePackageRegistration = null;
             Package alternatePackage = null;
             if (!string.IsNullOrEmpty(alternatePackageId))

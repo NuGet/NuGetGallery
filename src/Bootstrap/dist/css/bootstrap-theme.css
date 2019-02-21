@@ -548,6 +548,58 @@ img.reserved-indicator-icon {
   margin-top: 75px;
   margin-bottom: 0;
 }
+.multi-select-dropdown {
+  position: relative;
+  display: block;
+}
+.multi-select-dropdown .dropdown-btn {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display:         flex;
+  width: 100%;
+  padding: 5px;
+  margin-bottom: 0;
+  background-color: white;
+  border: 1px solid #7f7f7f;
+  border-style: inset;
+
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+  -ms-flex-pack: justify;
+          justify-content: space-between;
+  -webkit-box-align: center;
+  -webkit-align-items: center;
+  -ms-flex-align: center;
+          align-items: center;
+}
+.multi-select-dropdown .dropdown-btn span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.multi-select-dropdown .dropdown-content {
+  position: absolute;
+  z-index: 1;
+  width: 100%;
+  border-top: 0;
+}
+.multi-select-dropdown .dropdown-content .dropdown-selector {
+  height: 300px;
+  overflow: auto;
+}
+.multi-select-dropdown .dropdown-content .dropdown-selector .dropdown-filter {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display:         flex;
+  margin-bottom: 5px;
+}
+.multi-select-dropdown .dropdown-content .dropdown-selector .dropdown-filter input {
+  width: 100%;
+  margin-left: 10px;
+  border: 0;
+}
 .user-package-list .manage-package-listing .package-icon {
   min-width: 20px;
   max-height: 2em;
@@ -1075,57 +1127,6 @@ img.reserved-indicator-icon {
 }
 .page-manage-deprecation .deprecation-section .deprecation-section-header {
   margin-bottom: 15px;
-}
-.page-manage-deprecation .deprecation-section .dropdown {
-  position: relative;
-  display: block;
-}
-.page-manage-deprecation .deprecation-section .dropdown .dropdown-btn {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display:         flex;
-  padding: 5px;
-  margin-bottom: 0;
-  background-color: white;
-  border: 1px solid #7f7f7f;
-  border-style: inset;
-
-  -webkit-box-pack: justify;
-  -webkit-justify-content: space-between;
-  -ms-flex-pack: justify;
-          justify-content: space-between;
-  -webkit-box-align: center;
-  -webkit-align-items: center;
-  -ms-flex-align: center;
-          align-items: center;
-}
-.page-manage-deprecation .deprecation-section .dropdown .dropdown-btn span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.page-manage-deprecation .deprecation-section .dropdown .dropdown-content {
-  position: absolute;
-  z-index: 1;
-  width: 100%;
-  border-top: 0;
-}
-.page-manage-deprecation .deprecation-section .dropdown .dropdown-content .version-selector {
-  height: 300px;
-  overflow: auto;
-}
-.page-manage-deprecation .deprecation-section .dropdown .dropdown-content .version-selector .version-filter {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display:         flex;
-  margin-bottom: 5px;
-}
-.page-manage-deprecation .deprecation-section .dropdown .dropdown-content .version-selector .version-filter input {
-  width: 100%;
-  margin-left: 10px;
-  border: 0;
 }
 .page-manage-deprecation .deprecation-section .unbolded-label label {
   font-weight: normal;

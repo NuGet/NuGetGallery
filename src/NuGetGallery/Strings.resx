@@ -1118,4 +1118,7 @@ The {1} Team</value>
   <data name="DeprecatePackage_Locked" xml:space="preserve">
     <value>Package '{0}' is locked and cannot have its deprecation changed.</value>
   </data>
+  <data name="DeprecatePackage_MissingRegistration" xml:space="preserve">
+    <value>Package '{0}' does not exist. Please refresh the page and try again.</value>
+  </data>
 </root>

@@ -821,6 +821,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Package &apos;{0}&apos; does not exist. Please refresh the page and try again..
+        /// </summary>
+        public static string DeprecatePackage_MissingRegistration {
+            get {
+                return ResourceManager.GetString("DeprecatePackage_MissingRegistration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Package &apos;{0} {1}&apos; does not exist. Please refresh the page and try again..
         /// </summary>
         public static string DeprecatePackage_MissingVersion {

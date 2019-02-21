@@ -56,140 +56,18 @@ function ManageDeprecationSecurityDetailListViewModel(title, label, placeholder)
 function ManageDeprecationViewModel(id, versionsDictionary, defaultVersion, submitUrl, packageUrl, getAlternatePackageVersions) {
     var self = this;
 
-    this.dropdownSelector = '.deprecation-section .dropdown';
-    this.dropdownBtnSelector = self.dropdownSelector + ' .dropdown-btn';
-    this.dropdownContentSelector = self.dropdownSelector + ' .dropdown-content';
-    this.getFocusableDropdownContentElements = function () {
-        return $(self.dropdownContentSelector).find(':focusable:not(:has(:focusable))');
-    };
-
-    this.dropdownOpen = ko.observable(false);
-    this.toggleDropdown = function () {
-        self.dropdownOpen(!self.dropdownOpen());
-    };
-
-    this.isAncestor = function (element, ancestorSelector) {
-        var $target = $(element);
-        // '.closest' returns the list of ancestors between this element and the selector.
-        // If the selector is not an ancestor of the element, it returns an empty list.
-        return $target.closest(ancestorSelector).length;
-    };
-
-    this.isElementInsideDropdown = function (element) {
-        return self.isAncestor(element, self.dropdownSelector);
-    };
-
-    // If the user clicks outside of the dropdown, close it.
-    $(document).click(function (event) {
-        if (!self.isElementInsideDropdown(event.target)) {
-            self.dropdownOpen(false);
-        }
-    });
-
-    // If an element outside of the dropdown gains focus, close it.
-    $(document).focusin(function (event) {
-        if (!self.isElementInsideDropdown(event.target)) {
-            self.dropdownOpen(false);
-        }
-    });
-
-    this.escapeKeyCode = 27;
-    $(document).keydown(function (event) {
-        var target = event.target;
-        if (self.isElementInsideDropdown(target)) {
-            // If we press escape while focus is inside the dropdown, close it
-            if (event.which === self.escapeKeyCode) { // Escape key
-                self.dropdownOpen(false);
-                event.preventDefault();
-                $(self.dropdownBtnSelector).focus();
-            }
-        }
-    });
-
-    // A filter to be applied to the versions.
-    this.versionFilter = ko.observable('');
-
     // Existing deprecation state information per version.
-    this.versions = Object.keys(versionsDictionary).map(function (version) {
-        // Whether or not a version's checkbox is selected.
-        var checked = ko.observable(false);
-
-        // Whether or not the version should appear in the UI (it is not filtered out).
-        var visible = ko.pureComputed(function () {
-            return version.startsWith(self.versionFilter());
-        });
-
+    var items = Object.keys(versionsDictionary).map(function (version) {
         var versionData = versionsDictionary[version];
-        return {
-            version: version,
-            text: versionData.Text,
-            deprecated: versionData.IsVulnerable || versionData.IsLegacy || versionData.IsOther,
-            checked: checked,
-            visible: visible
-        };
+        return new MultiSelectDropdownItem(
+            version,
+            versionData.Text,
+            version,
+            version === defaultVersion,
+            versionData.IsVulnerable || versionData.IsLegacy || versionData.IsOther);
     });
 
-    // The versions selected in the UI.
-    this.chosenVersions = ko.pureComputed(function () {
-        return ko.utils
-            .arrayFilter(
-                self.versions,
-                function (version) { return version.checked(); })
-            .map(function (version) { return version.version; });
-    }, this);
-
-    this.hasNoVersionsSelected = ko.pureComputed(function () {
-        return !self.chosenVersions().length;
-    }, this);
-
-    // A string to display to the user describing how many versions are selected out of how many.
-    this.chosenVersionsString = ko.pureComputed(function () {
-        var chosenVersions = self.chosenVersions();
-        if (chosenVersions.length === 0) {
-            return "Select version(s) to deprecate";
-        }
-
-        if (chosenVersions.length === self.versions.length) {
-            return "All current versions";
-        }
-
-        return chosenVersions.join(', ');
-    }, this);
-
-    this.versionSelectAllText = ko.pureComputed(function () {
-        if (self.versionFilter()) {
-            return "Select filtered";
-        }
-
-        return "Select all";
-    }, this);
-
-    // Whether or not the select all checkbox for the versions is selected.
-    this.versionSelectAllChecked = ko.pureComputed(function () {
-        return !ko.utils
-            .arrayFirst(
-                self.versions,
-                function (version) {
-                    // If a version is visible in the UI and is not checked, select all must not be checked.
-                    return version.visible() && !version.checked();
-                });
-    }, this);
-
-    // Toggles whether or not all versions are selected.
-    // If the checkbox is not selected, it selects all versions visible in the UI.
-    // If the checkbox is already selected, it deselects all versions visible in the UI.
-    this.toggleVersionSelectAll = function () {
-        var checked = !self.versionSelectAllChecked();
-        ko.utils.arrayForEach(
-            self.versions,
-            function (version) {
-                if (version.visible()) {
-                    version.checked(checked);
-                }
-            });
-
-        return true;
-    };
+    this.dropdown = new MultiSelectDropdown(items, "Select version(s) to deprecate", "All current versions");
 
     this.isVulnerable = ko.observable(false);
     this.isLegacy = ko.observable(false);
@@ -357,7 +235,7 @@ function ManageDeprecationViewModel(id, versionsDictionary, defaultVersion, subm
             type: 'POST',
             data: window.nuget.addAjaxAntiForgeryToken({
                 id: id,
-                versions: self.chosenVersions(),
+                versions: self.dropdown.chosenItems(),
                 isVulnerable: self.isVulnerable(),
                 isLegacy: self.isLegacy(),
                 isOther: self.isOther(),
@@ -379,76 +257,73 @@ function ManageDeprecationViewModel(id, versionsDictionary, defaultVersion, subm
         });
     };
 
+    var saveDeprecationFormState = function (version) {
+        var versionData = versionsDictionary[version];
+        if (!versionData) {
+            return;
+        }
+
+        versionData.IsVulnerable = self.isVulnerable();
+        versionData.IsLegacy = self.isLegacy();
+        versionData.IsOther = self.isOther();
+        versionData.CVEIds = self.cves.export();
+        versionData.CVSSRating = self.cvssRating();
+        versionData.CWEIds = self.cwes.export();
+        versionData.AlternatePackageId = self.alternatePackageId();
+        versionData.AlternatePackageVersion = self.alternatePackageVersion();
+        versionData.CustomMessage = self.customMessage();
+        versionData.ShouldUnlist = self.shouldUnlist();
+    };
+
+    var loadDeprecationFormState = function (version) {
+        var versionData = versionsDictionary[version];
+        if (!versionData) {
+            return;
+        }
+
+        self.isVulnerable(versionData.IsVulnerable);
+        self.isLegacy(versionData.IsLegacy);
+        self.isOther(versionData.IsOther);
+
+        self.cves.import(versionData.CVEIds);
+
+        self.hasCvss(versionData.CVSSRating);
+        self.selectedCvssRating(versionData.CVSSRating);
+
+        self.cwes.import(versionData.CWEIds);
+
+        self.chosenAlternatePackageId(versionData.AlternatePackageId);
+        if (versionData.AlternatePackageVersion) {
+            self.alternatePackageVersionsCached([versionData.AlternatePackageVersion]);
+            self.chosenAlternatePackageVersion(versionData.AlternatePackageVersion);
+        }
+
+        self.customMessage(versionData.CustomMessage);
+        self.shouldUnlist(versionData.ShouldUnlist);
+    };
+
     // When the chosen versions are changed, remember the contents of the form in case the user navigates back to this version.
-    this.chosenVersions.subscribe(function (oldVersions) {
+    this.dropdown.chosenItems.subscribe(function (oldVersions) {
         if (!oldVersions || oldVersions.length !== 1) {
             // If no versions or multiple versions are selected, don't cache the contents of the form.
             return;
         }
 
-        var version = versionsDictionary[oldVersions[0]];
-        if (!version) {
-            return;
-        }
-
-        version.IsVulnerable = self.isVulnerable();
-        version.IsLegacy = self.isLegacy();
-        version.IsOther = self.isOther();
-        version.CVEIds = self.cves.export();
-        version.CVSSRating = self.cvssRating();
-        version.CWEIds = self.cwes.export();
-        version.AlternatePackageId = self.alternatePackageId();
-        version.AlternatePackageVersion = self.alternatePackageVersion();
-        version.CustomMessage = self.customMessage();
-        version.ShouldUnlist = self.shouldUnlist();
+        saveDeprecationFormState(oldVersions[0]);
     }, this, "beforeChange");
 
     // When the chosen versions are changed, load the existing deprecation state for this version.
-    this.chosenVersions.subscribe(function (newVersions) {
+    this.dropdown.chosenItems.subscribe(function (newVersions) {
         if (!newVersions || newVersions.length !== 1) {
             // If no versions or multiple versions are selected, don't load the existing deprecation state.
             return;
         }
 
-        var version = versionsDictionary[newVersions[0]];
-        if (!version) {
-            return;
-        }
-
-        self.isVulnerable(version.IsVulnerable);
-        self.isLegacy(version.IsLegacy);
-        self.isOther(version.IsOther);
-
-        self.cves.import(version.CVEIds);
-
-        self.hasCvss(version.CVSSRating);
-        self.selectedCvssRating(version.CVSSRating);
-
-        self.cwes.import(version.CWEIds);
-
-        self.chosenAlternatePackageId(version.AlternatePackageId);
-        if (version.AlternatePackageVersion) {
-            self.alternatePackageVersionsCached([version.AlternatePackageVersion]);
-            self.chosenAlternatePackageVersion(version.AlternatePackageVersion);
-        }
-
-        self.customMessage(version.CustomMessage);
-        self.shouldUnlist(version.ShouldUnlist);
+        loadDeprecationFormState(newVersions[0]);
     }, this);
 
-    // Select the default version in the form.
-    if (versionsDictionary[defaultVersion]) {
-        for (var index in self.versions) {
-            var version = self.versions[index];
-            if (version.version === defaultVersion) {
-                version.checked(true);
-            } else {
-                version.checked(false);
-            }
-        }
-    }
+    // Load the state for the default version.
+    loadDeprecationFormState(defaultVersion);
 
     ko.applyBindings(this, $(".page-manage-deprecation")[0]);
-
-    self.getFocusableDropdownContentElements().attr('tabindex', '-1');
 }

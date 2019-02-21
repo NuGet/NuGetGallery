@@ -26,6 +26,7 @@ namespace NuGetGallery
         }
 
         [HttpGet]
+        [UIAuthorize]
         [ActionName("CveIds")]
         public JsonResult GetCveIds(string query)
         {
@@ -41,6 +42,7 @@ namespace NuGetGallery
         }
 
         [HttpGet]
+        [UIAuthorize]
         [ActionName("CweIds")]
         public JsonResult GetCweIds(string query)
         {

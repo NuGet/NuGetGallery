@@ -1915,6 +1915,7 @@
     <Content Include="Views\Packages\Manage.cshtml" />
     <Content Include="Views\Packages\License.cshtml" />
     <Content Include="Views\Packages\_ManageDeprecation.cshtml" />
+    <Content Include="Views\Shared\_MultiSelectDropdown.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
