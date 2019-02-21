@@ -707,7 +707,7 @@ namespace NuGetGallery
 
             Package package = null;
             // Load all packages with the ID.
-            var packages = _packageService.FindPackagesById(id);
+            var packages = _packageService.FindPackagesById(id, withDeprecations: true);
             if (version != null)
             {
                 if (version.Equals(GalleryConstants.AbsoluteLatestUrlString, StringComparison.InvariantCultureIgnoreCase))

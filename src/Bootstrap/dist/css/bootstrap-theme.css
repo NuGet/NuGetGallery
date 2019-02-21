@@ -875,6 +875,18 @@ img.reserved-indicator-icon {
 .page-package-details .package-title .reserved-indicator {
   width: 25px;
 }
+.page-package-details .deprecation-container .deprecation-expander-side {
+  float: right;
+}
+.page-package-details .deprecation-container .deprecation-expander-side #deprecation-expander-icon {
+  margin-left: 15px;
+}
+.page-package-details .deprecation-container .deprecation-content-container {
+  margin-top: 15px;
+}
+.page-package-details .deprecation-container .deprecation-content-container p:last-of-type {
+  margin-bottom: 0;
+}
 .page-package-details .failed-validation-alert-list {
   margin-top: 15px;
   margin-bottom: 15px;

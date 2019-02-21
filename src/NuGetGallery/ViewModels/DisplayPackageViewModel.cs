@@ -46,6 +46,25 @@ namespace NuGetGallery
                 DownloadsPerDayLabel = DownloadsPerDay < 1 ? "<1" : DownloadsPerDay.ToNuGetNumberString();
                 IsDotnetToolPackageType = package.PackageTypes.Any(e => e.Name.Equals("DotnetTool", StringComparison.OrdinalIgnoreCase));
             }
+
+            var deprecation = package.Deprecations.SingleOrDefault();
+            if (deprecation != null)
+            {
+                DeprecationStatus = deprecation.Status;
+
+                CveIds = deprecation.Cves?.Select(c => c.CveId).ToList();
+                CvssRating = deprecation.CvssRating;
+                CweIds = deprecation.Cwes?.Select(c => c.CweId).ToList();
+
+                // A deprecation should not have both an alternate package registration and an alternate package.
+                // In case a deprecation does have both, we will hide the alternate package registration's ID in this model.
+                AlternatePackageId = deprecation.AlternatePackageRegistration?.Id;
+                var alternatePackage = deprecation.AlternatePackage;
+                AlternatePackageId = alternatePackage?.Id;
+                AlternatePackageVersion = alternatePackage?.Version;
+
+                CustomMessage = deprecation.CustomMessage;
+            }
         }
 
         private DisplayPackageViewModel(Package package, User currentUser, string pushedBy)
@@ -140,6 +159,14 @@ namespace NuGetGallery
         public string LicenseExpression { get; set; }
         public IReadOnlyCollection<CompositeLicenseExpressionSegment> LicenseExpressionSegments { get; set; }
         public EmbeddedLicenseFileType EmbeddedLicenseType { get; set; }
+
+        public PackageDeprecationStatus DeprecationStatus { get; set; }
+        public IReadOnlyCollection<string> CveIds { get; set; }
+        public decimal? CvssRating { get; set; }
+        public IReadOnlyCollection<string> CweIds { get; set; }
+        public string AlternatePackageId { get; set; }
+        public string AlternatePackageVersion { get; set; }
+        public string CustomMessage { get; set; }
 
         private IDictionary<User, string> _pushedByCache = new Dictionary<User, string>();
 

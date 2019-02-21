@@ -1,0 +1,143 @@
+﻿@model DisplayPackageViewModel
+
+@helper VulnerabilityDetailList(IReadOnlyCollection<string> ids, string title, Func<string, string> getUrl)
+{
+    if (ids == null || !ids.Any())
+    {
+        return;
+    }
+
+    <b>@title</b>
+    <p>
+        @{
+            bool isFirst = true;
+        }
+
+        @foreach (var id in ids)
+        {
+            if (!isFirst)
+            {
+                @:|
+            }
+            else
+            {
+                isFirst = false;
+            }
+
+            <a href="@getUrl(id)">@id</a>
+        }
+    </p>
+}
+
+<div class="deprecation-container">
+    @{
+        var subclass = "info";
+        var icon = "Info";
+        if (Model.DeprecationStatus.HasFlag(PackageDeprecationStatus.Vulnerable))
+        {
+            if (Model.CvssRating >= 7)
+            {
+                subclass = "warning";
+                icon = "Warning";
+            }
+            else
+            {
+                subclass = "danger";
+                icon = "ErrorBadge";
+            }
+        }
+    }
+
+    <div class="icon-text alert alert-@subclass">
+        <div id="show-deprecation-content-container" tabindex="0" data-toggle="collapse" data-target="#deprecation-content-container" aria-expanded="false" aria-controls="deprecation-content-container" aria-labelledby="deprecation-container-label">
+            <span>
+                <i class="ms-Icon ms-Icon--@icon" aria-hidden="true"></i>
+
+                @{
+                    var isVulnerable = Model.DeprecationStatus.HasFlag(PackageDeprecationStatus.Vulnerable);
+                    var isLegacy = Model.DeprecationStatus.HasFlag(PackageDeprecationStatus.Legacy);
+                    var deprecationReasonString = string.Empty;
+                    if (isVulnerable || isLegacy)
+                    {
+                        deprecationReasonString += " because ";
+                        if (isVulnerable)
+                        {
+                            deprecationReasonString += "it has vulnerabilities";
+                        }
+
+                        if (isLegacy)
+                        {
+                            if (isVulnerable)
+                            {
+                                deprecationReasonString += " and ";
+                            }
+
+                            deprecationReasonString += "it is no longer maintained by its owners";
+                        }
+                    }
+                }
+
+                <span id="deprecation-container-label">This package has been deprecated@(deprecationReasonString).</span>
+            </span>
+
+            <span class="deprecation-expander-side">
+                @if (Model.CvssRating.HasValue)
+                {
+                    string ratingString;
+                    if (Model.CvssRating < 4)
+                    {
+                        ratingString = "low";
+                    }
+                    else if (Model.CvssRating < 7)
+                    {
+                        ratingString = "medium";
+                    }
+                    else if (Model.CvssRating < 9)
+                    {
+                        ratingString = "high";
+                    }
+                    else
+                    {
+                        ratingString = "critical";
+                    }
+
+                    <span>CVSS rating: @ratingString</span>
+                }
+
+                <i id="deprecation-expander-icon" class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
+            </span>
+        </div>
+
+        <div class="deprecation-content-container collapse" id="deprecation-content-container">
+            @VulnerabilityDetailList(Model.CveIds, "CVEs", (id) => "https://cve.mitre.org/cgi-bin/cvename.cgi?name=" + id)
+            @VulnerabilityDetailList(Model.CweIds, "CWEs", (id) => "https://cwe.mitre.org/data/definitions/" + id + ".html")
+
+            @if (!string.IsNullOrEmpty(Model.AlternatePackageId))
+            {
+                string alternateUrl;
+                string alternateText;
+                if (!string.IsNullOrEmpty(Model.AlternatePackageVersion))
+                {
+                    alternateUrl = Url.Package(Model.AlternatePackageId);
+                    alternateText = Model.AlternatePackageId;
+                }
+                else
+                {
+                    alternateUrl = Url.Package(Model.AlternatePackageId, Model.AlternatePackageVersion);
+                    alternateText = Model.AlternatePackageId + " " + Model.AlternatePackageVersion;
+                }
+
+                <b>Suggested Alternatives</b>
+                <p>
+                    Consider using <a href="@alternateUrl">@alternateText</a> instead of this package.
+                </p>
+            }
+
+            @if (!string.IsNullOrEmpty(Model.CustomMessage))
+            {
+                <b>Package owner message</b>
+                <p>@Model.CustomMessage</p>
+            }
+        </div>
+    </div>
+</div>
