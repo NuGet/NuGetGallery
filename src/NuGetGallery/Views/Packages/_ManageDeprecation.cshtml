@@ -44,7 +44,7 @@
                         <div class="unbolded-label" data-bind="visible: visible">
                             <label>
                                 <input type="checkbox" value="true" data-bind="checked: checked, attr: { name: version }" />
-                                <span data-bind="text: version"></span>
+                                <span data-bind="text: text, css: { 'text-danger': deprecated }"></span>
                             </label>
                         </div>
                     </div>

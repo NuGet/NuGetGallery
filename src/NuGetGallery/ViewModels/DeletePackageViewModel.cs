@@ -2,10 +2,8 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using NuGet.Services.Entities;
-using NuGet.Versioning;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using System.Web.Mvc;
 
 namespace NuGetGallery
@@ -31,7 +29,7 @@ namespace NuGetGallery
             IsLocked = package.PackageRegistration.IsLocked;
         }
 
-        public SelectList VersionSelectList { get; set; }
+        public IEnumerable<SelectListItem> VersionSelectList { get; set; }
 
         public DeletePackagesRequest DeletePackagesRequest { get; set; }
 

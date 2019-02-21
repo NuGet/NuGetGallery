@@ -2613,8 +2613,8 @@ namespace NuGetGallery
 
                 foreach (var pkg in _packageRegistration.Packages)
                 {
-                    var valueField = controller.Url.DeleteSymbolsPackage(model);
-                    var textField = model.NuGetVersion.ToFullString() + (pkg.IsLatestSemVer2 ? " (Latest)" : string.Empty);
+                    var valueField = controller.Url.DeleteSymbolsPackage(new TrivialPackageVersionModel(pkg));
+                    var textField = PackageHelper.GetSelectListText(pkg);
 
                     var selectListItem = model.VersionSelectList
                         .SingleOrDefault(i => string.Equals(i.Text, textField) && string.Equals(i.Value, valueField));

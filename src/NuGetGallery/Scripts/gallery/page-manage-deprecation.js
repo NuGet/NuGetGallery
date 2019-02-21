@@ -119,8 +119,11 @@ function ManageDeprecationViewModel(id, versionsDictionary, defaultVersion, subm
             return version.startsWith(self.versionFilter());
         });
 
+        var versionData = versionsDictionary[version];
         return {
             version: version,
+            text: versionData.Text,
+            deprecated: versionData.IsVulnerable || versionData.IsLegacy || versionData.IsOther,
             checked: checked,
             visible: visible,
             selected: ko.pureComputed(function () {

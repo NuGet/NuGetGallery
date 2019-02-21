@@ -37,28 +37,23 @@ namespace NuGetGallery
                 .OrderByDescending(p => new NuGetVersion(p.Version))
                 .ToList();
 
-            var versionSelectListItems = new List<SelectListItem>();
+            VersionSelectList = new List<SelectListItem>();
             VersionListedStateDictionary = new Dictionary<string, VersionListedState>();
             VersionReadMeStateDictionary = new Dictionary<string, VersionReadMeState>();
-            VersionDeprecatedStateDictionary = new Dictionary<string, VersionDeprecatedState>();
+            VersionDeprecationStateDictionary = new Dictionary<string, VersionDeprecationState>();
 
             var submitUrlTemplate = url.PackageVersionActionTemplate("Edit");
             var getReadMeUrlTemplate = url.PackageVersionActionTemplate("GetReadMeMd");
-            string defaultSelectedVersion = null;
             foreach (var versionSelectPackage in versionSelectPackages)
             {
-                var text = NuGetVersionFormatter.ToFullString(versionSelectPackage.Version) + (versionSelectPackage.IsLatestSemVer2 ? " (Latest)" : string.Empty);
+                var text = PackageHelper.GetSelectListText(versionSelectPackage);
                 var value = NuGetVersionFormatter.Normalize(versionSelectPackage.Version);
-                versionSelectListItems.Add(new SelectListItem
+                VersionSelectList.Add(new SelectListItem
                 {
                     Text = text,
-                    Value = value
+                    Value = value,
+                    Selected = package == versionSelectPackage
                 });
-
-                if (versionSelectPackage == package)
-                {
-                    defaultSelectedVersion = value;
-                }
 
                 VersionListedStateDictionary.Add(
                     value, 
@@ -72,16 +67,10 @@ namespace NuGetGallery
                         getReadMeUrlTemplate.Resolve(model),
                         null));
 
-                VersionDeprecatedStateDictionary.Add(
+                VersionDeprecationStateDictionary.Add(
                     value,
-                    new VersionDeprecatedState(versionSelectPackage));
+                    new VersionDeprecationState(versionSelectPackage, text));
             }
-
-            VersionSelectList = new SelectList(
-                versionSelectListItems,
-                nameof(SelectListItem.Value),
-                nameof(SelectListItem.Text),
-                defaultSelectedVersion);
 
             // Update edit model with the readme.md data.
             ReadMe = new EditPackageVersionReadMeRequest();
@@ -92,7 +81,7 @@ namespace NuGetGallery
             }
         }
 
-        public SelectList VersionSelectList { get; set; }
+        public List<SelectListItem> VersionSelectList { get; set; }
 
         public bool IsCurrentUserAnAdmin { get; }
 
@@ -106,7 +95,7 @@ namespace NuGetGallery
 
         public Dictionary<string, VersionReadMeState> VersionReadMeStateDictionary { get; set; }
         
-        public Dictionary<string, VersionDeprecatedState> VersionDeprecatedStateDictionary { get; set; }
+        public Dictionary<string, VersionDeprecationState> VersionDeprecationStateDictionary { get; set; }
 
         public class VersionListedState
         {
@@ -134,16 +123,18 @@ namespace NuGetGallery
             public string ReadMe { get; set; }
         }
 
-        public class VersionDeprecatedState
+        public class VersionDeprecationState
         {
-            public VersionDeprecatedState(Package package)
+            public VersionDeprecationState(Package package, string text)
             {
+                Text = text;
+
                 var deprecation = package.Deprecations.SingleOrDefault();
                 if (deprecation != null)
                 {
-                    IsVulnerable = CheckPackageDeprecationStatusFlag(deprecation, PackageDeprecationStatus.Vulnerable);
-                    IsLegacy = CheckPackageDeprecationStatusFlag(deprecation, PackageDeprecationStatus.Legacy);
-                    IsOther = CheckPackageDeprecationStatusFlag(deprecation, PackageDeprecationStatus.Other);
+                    IsVulnerable = deprecation.Status.HasFlag(PackageDeprecationStatus.Vulnerable);
+                    IsLegacy = deprecation.Status.HasFlag(PackageDeprecationStatus.Legacy);
+                    IsOther = deprecation.Status.HasFlag(PackageDeprecationStatus.Other);
 
                     CveIds = deprecation.Cves?.Select(c => c.CveId).ToList();
                     CvssRating = deprecation.CvssRating;
@@ -164,6 +155,7 @@ namespace NuGetGallery
                 }
             }
 
+            public string Text { get; set; }
             public bool IsVulnerable { get; set; }
             public bool IsLegacy { get; set; }
             public bool IsOther { get; set; }
@@ -174,11 +166,6 @@ namespace NuGetGallery
             public string AlternatePackageVersion { get; set; }
             public string CustomMessage { get; set; }
             public bool ShouldUnlist { get; set; }
-
-            private bool CheckPackageDeprecationStatusFlag(PackageDeprecation deprecation, PackageDeprecationStatus flag)
-            {
-                return (deprecation.Status & flag) > PackageDeprecationStatus.NotDeprecated;
-            }
         }
     }
 }
