@@ -150,7 +150,7 @@ function ManageDeprecationViewModel(id, versionsDictionary, defaultVersion, subm
         }
 
         if (chosenVersions.length === self.versions.length) {
-            "All current versions";
+            return "All current versions";
         }
 
         return chosenVersions.join(', ');
