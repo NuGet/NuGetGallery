@@ -4,6 +4,7 @@
 using System;
 using System.Linq;
 using System.Net;
+using System.Web.Mvc;
 using NuGet.Services.Entities;
 using NuGetGallery.Framework;
 using Xunit;
@@ -171,6 +172,126 @@ namespace NuGetGallery.Controllers
                 Assert.Equal((int)expectedStatusCode, controller.Response.StatusCode);
 
                 return result.Data as AutocompleteCveIdQueryResults;
+            }
+        }
+
+        public class TheGetAlternatePackageVersionsMethod : TestContainer
+        {
+            [Fact]
+            public void ReturnsNotFoundIfIdMissing()
+            {
+                // Arrange
+                var id = "missingId";
+                GetMock<IPackageService>()
+                    .Setup(x => x.FindPackageRegistrationById(id))
+                    .Returns((PackageRegistration)null);
+
+                var controller = GetController<ManageDeprecationJsonApiController>();
+
+                // Act
+                var result = controller.GetAlternatePackageVersions(id);
+
+                // Assert
+                Assert.Equal(JsonRequestBehavior.AllowGet, result.JsonRequestBehavior);
+                Assert.Equal((int)HttpStatusCode.NotFound, controller.Response.StatusCode);
+                Assert.Null(result.Data);
+            }
+
+            [Fact]
+            public void ReturnsNotFoundIfNoVersions()
+            {
+                // Arrange
+                var id = "Crested.Gecko";
+                var registration = new PackageRegistration
+                {
+                    Id = id
+                };
+
+                GetMock<IPackageService>()
+                    .Setup(x => x.FindPackageRegistrationById(id))
+                    .Returns(registration);
+
+                var controller = GetController<ManageDeprecationJsonApiController>();
+
+                // Act
+                var result = controller.GetAlternatePackageVersions(id);
+
+                // Assert
+                Assert.Equal(JsonRequestBehavior.AllowGet, result.JsonRequestBehavior);
+                Assert.Equal((int)HttpStatusCode.NotFound, controller.Response.StatusCode);
+                Assert.Null(result.Data);
+            }
+
+            [Fact]
+            public void ReturnsAllAvailableVersionsInReverseVersionOrder()
+            {
+                // Arrange
+                var id = "Crested.Gecko";
+                var firstPackage = new Package
+                {
+                    Version = "1.0.0+build"
+                };
+
+                var secondPackage = new Package
+                {
+                    Version = "2.0.0+build"
+                };
+
+                var thirdPackage = new Package
+                {
+                    Version = "3.0.0+build"
+                };
+
+                var deletedPackage = new Package
+                {
+                    Version = "2.1.0",
+                    PackageStatusKey = PackageStatus.Deleted
+                };
+
+                var validatingPackage = new Package
+                {
+                    Version = "2.1.0",
+                    PackageStatusKey = PackageStatus.Validating
+                };
+
+                var failedValidationPackage = new Package
+                {
+                    Version = "2.1.0",
+                    PackageStatusKey = PackageStatus.FailedValidation
+                };
+
+                var registration = new PackageRegistration
+                {
+                    Id = id,
+                    Packages = new[] 
+                    {
+                        firstPackage,
+                        deletedPackage,
+                        validatingPackage,
+                        failedValidationPackage,
+                        thirdPackage,
+                        secondPackage
+                    }
+                };
+
+                GetMock<IPackageService>()
+                    .Setup(x => x.FindPackageRegistrationById(id))
+                    .Returns(registration);
+
+                var controller = GetController<ManageDeprecationJsonApiController>();
+
+                // Act
+                var result = controller.GetAlternatePackageVersions(id);
+
+                // Assert
+                Assert.Equal(JsonRequestBehavior.AllowGet, result.JsonRequestBehavior);
+                Assert.Equal((int)HttpStatusCode.OK, controller.Response.StatusCode);
+
+                var expected = new[] { thirdPackage, secondPackage, firstPackage }
+                    .Select(v => v.Version)
+                    .ToList();
+
+                Assert.Equal(expected, result.Data);
             }
         }
     }
