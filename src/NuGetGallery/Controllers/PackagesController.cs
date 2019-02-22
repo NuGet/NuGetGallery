@@ -549,7 +549,6 @@ namespace NuGetGallery
             try
             {
                 packageContentData = await ValidateAndProcessPackageContents(currentUser, isSymbolsPackageUpload);
-
             }
             catch (Exception)
             {
