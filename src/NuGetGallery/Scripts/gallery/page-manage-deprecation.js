@@ -71,12 +71,12 @@ function ManageDeprecationSecurityDetailListViewModel(title, label, placeholder,
     };
 }
 
-function ManageDeprecationViewModel(id, versionsDictionary, defaultVersion, submitUrl, packageUrl, getAlternatePackageVersions) {
+function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defaultVersion, submitUrl, packageUrl, getAlternatePackageVersions) {
     var self = this;
 
     // Existing deprecation state information per version.
-    var items = Object.keys(versionsDictionary).map(function (version) {
-        var versionData = versionsDictionary[version];
+    var items = Object.keys(versionDeprecationStateDictionary).map(function (version) {
+        var versionData = versionDeprecationStateDictionary[version];
         return new MultiSelectDropdownItem(
             version,
             versionData.Text,
@@ -249,16 +249,70 @@ function ManageDeprecationViewModel(id, versionsDictionary, defaultVersion, subm
     this.submitError = ko.observable();
     this.submit = function () {
         self.submitError(null);
+
+        var chosenItems = self.dropdown.chosenItems();
+        var isVulnerable = self.isVulnerable();
+        var isLegacy = self.isLegacy();
+        var isOther = self.isOther();
+        var alertMessage = "";
+        var areMultipleVersionsSelected = chosenItems.length > 1;
+
+        if (isVulnerable || isLegacy || isOther) {
+            if (areMultipleVersionsSelected) {
+                var warnAboutReplacing = false;
+                for (var i in chosenItems) {
+                    var version = chosenItems[i];
+                    var versionData = versionDeprecationStateDictionary[version];
+                    if (!versionData) {
+                        // It shouldn't be possible to select a version that didn't exist when the page loaded.
+                        // In case there is a bug and the user did select a valid version, continue on anyway.
+                        continue;
+                    }
+
+                    if (isVulnerable && versionData.IsVulnerable || isLegacy && versionData.IsLegacy) {
+                        warnAboutReplacing = true;
+                        break;
+                    }
+                }
+
+                if (warnAboutReplacing) {
+                    var informationToReplace = "";
+                    if (isVulnerable) {
+                        informationToReplace += "vulnerability";
+                    }
+
+                    if (isLegacy) {
+                        if (isVulnerable) {
+                            informationToReplace += " and ";
+                        }
+
+                        informationToReplace += "alternate package";
+                    }
+
+                    alertMessage = "Some of your versions will have their" + informationToReplace + " information replaced.";
+                } else {
+                    alertMessage = "Some of your versions will have this new deprecation information added to their existing information.";
+                }
+            }
+        } else {
+            alertMessage = "The version" + (areMultipleVersionsSelected > 1 ? "s" : "") +
+                " you selected will be un-deprecated and have their deprecation information removed.";
+        }
+
+        if (alertMessage && !confirm(alertMessage + " Do you want to continue?")) {
+            return;
+        }
+
         $.ajax({
             url: submitUrl,
             dataType: 'json',
             type: 'POST',
             data: window.nuget.addAjaxAntiForgeryToken({
                 id: id,
-                versions: self.dropdown.chosenItems(),
-                isVulnerable: self.isVulnerable(),
-                isLegacy: self.isLegacy(),
-                isOther: self.isOther(),
+                versions: chosenItems,
+                isVulnerable: isVulnerable,
+                isLegacy: isLegacy,
+                isOther: isOther,
                 cveIds: self.cves.export(),
                 cvssRating: self.cvssRating(),
                 cweIds: self.cwes.export(),
@@ -277,8 +331,13 @@ function ManageDeprecationViewModel(id, versionsDictionary, defaultVersion, subm
         });
     };
 
+    // Clone the version deprecation state dictionary so that we can remember form state when the selected versions change.
+    // The default state for a selected version is its current deprecation state.
+    // Converting the existing dictionary to JSON and then parsing it is a very cheap way to do a deep copy.
+    var versionDeprecationFormState = JSON.parse(JSON.stringify(versionDeprecationStateDictionary));
+
     var saveDeprecationFormState = function (version) {
-        var versionData = versionsDictionary[version];
+        var versionData = versionDeprecationFormState[version];
         if (!versionData) {
             return;
         }
@@ -296,7 +355,7 @@ function ManageDeprecationViewModel(id, versionsDictionary, defaultVersion, subm
     };
 
     var loadDeprecationFormState = function (version) {
-        var versionData = versionsDictionary[version];
+        var versionData = versionDeprecationFormState[version];
         if (!versionData) {
             return;
         }

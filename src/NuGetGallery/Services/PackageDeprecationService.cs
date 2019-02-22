@@ -36,141 +36,6 @@ namespace NuGetGallery
            string customMessage,
            bool shouldUnlist)
         {
-            UpdatePackageDeprecation deprecatePackage;
-            if (packages.Count() == 1)
-            {
-                // Updating a single package's deprecation does a replace.
-                deprecatePackage = ReplaceDeprecation;
-            }
-            else
-            {
-                // Updating multiple packages combines the new state with the existing state for each package.
-                deprecatePackage = CombineDeprecation;
-            }
-
-            deprecatePackage(
-               packages,
-               status,
-               cves,
-               cvssRating,
-               cwes,
-               alternatePackageRegistration,
-               alternatePackage,
-               customMessage,
-               shouldUnlist);
-
-            await _deprecationRepository.CommitChangesAsync();
-        }
-
-        private delegate void UpdatePackageDeprecation(
-           IReadOnlyCollection<Package> packages,
-           PackageDeprecationStatus status,
-           IReadOnlyCollection<Cve> cves,
-           decimal? cvssRating,
-           IReadOnlyCollection<Cwe> cwes,
-           PackageRegistration alternatePackageRegistration,
-           Package alternatePackage,
-           string customMessage,
-           bool shouldUnlist);
-
-        private void CombineDeprecation(
-           IReadOnlyCollection<Package> packages,
-           PackageDeprecationStatus status,
-           IReadOnlyCollection<Cve> cves,
-           decimal? cvssRating,
-           IReadOnlyCollection<Cwe> cwes,
-           PackageRegistration alternatePackageRegistration,
-           Package alternatePackage,
-           string customMessage,
-           bool shouldUnlist)
-        {
-            var shouldDelete = status == PackageDeprecationStatus.NotDeprecated;
-            var deprecationsToAddOrDelete = new List<PackageDeprecation>();
-            foreach (var package in packages)
-            {
-                var deprecation = package.Deprecations.SingleOrDefault();
-
-                if (shouldDelete)
-                {
-                    if (deprecation != null)
-                    {
-                        package.Deprecations.Remove(deprecation);
-                        deprecationsToAddOrDelete.Add(deprecation);
-                    }
-                }
-                else
-                {
-                    if (deprecation == null)
-                    {
-                        deprecation = new PackageDeprecation
-                        {
-                            Package = package
-                        };
-
-                        package.Deprecations.Add(deprecation);
-                        deprecationsToAddOrDelete.Add(deprecation);
-                    }
-
-                    deprecation.Status |= status;
-
-                    foreach (var cve in cves)
-                    {
-                        deprecation.Cves.Add(cve);
-                    }
-
-                    if (cvssRating != null)
-                    {
-                        deprecation.CvssRating = cvssRating;
-                    }
-
-                    foreach (var cwe in cwes)
-                    {
-                        deprecation.Cwes.Add(cwe);
-                    }
-
-                    if (alternatePackageRegistration != null)
-                    {
-                        deprecation.AlternatePackageRegistration = alternatePackageRegistration;
-                    }
-
-                    if (alternatePackage != null)
-                    {
-                        deprecation.AlternatePackage = alternatePackage;
-                    }
-
-                    if (string.IsNullOrEmpty(customMessage))
-                    {
-                        deprecation.CustomMessage = customMessage;
-                    }
-
-                    if (shouldUnlist)
-                    {
-                        package.Listed = false;
-                    }
-                }
-            }
-
-            if (shouldDelete)
-            {
-                _deprecationRepository.DeleteOnCommit(deprecationsToAddOrDelete);
-            }
-            else
-            {
-                _deprecationRepository.InsertOnCommit(deprecationsToAddOrDelete);
-            }
-        }
-
-        private void ReplaceDeprecation(
-           IReadOnlyCollection<Package> packages,
-           PackageDeprecationStatus status,
-           IReadOnlyCollection<Cve> cves,
-           decimal? cvssRating,
-           IReadOnlyCollection<Cwe> cwes,
-           PackageRegistration alternatePackageRegistration,
-           Package alternatePackage,
-           string customMessage,
-           bool shouldUnlist)
-        {
             var shouldDelete = status == PackageDeprecationStatus.NotDeprecated;
             var deprecations = new List<PackageDeprecation>();
             foreach (var package in packages)
@@ -198,17 +63,30 @@ namespace NuGetGallery
                     }
 
                     deprecation.Status = status;
-                    foreach (var cve in cves)
+                    
+                    if (status.HasFlag(PackageDeprecationStatus.Vulnerable))
                     {
-                        deprecation.Cves.Add(cve);
+                        deprecation.Cves.Clear();
+                        foreach (var cve in cves)
+                        {
+                            deprecation.Cves.Add(cve);
+                        }
+
+                        deprecation.CvssRating = cvssRating;
+
+                        deprecation.Cwes.Clear();
+                        foreach (var cwe in cwes)
+                        {
+                            deprecation.Cwes.Add(cwe);
+                        }
                     }
-                    deprecation.CvssRating = cvssRating;
-                    foreach (var cwe in cwes)
+
+                    if (status.HasFlag(PackageDeprecationStatus.Legacy))
                     {
-                        deprecation.Cwes.Add(cwe);
+                        deprecation.AlternatePackageRegistration = alternatePackageRegistration;
+                        deprecation.AlternatePackage = alternatePackage;
                     }
-                    deprecation.AlternatePackageRegistration = alternatePackageRegistration;
-                    deprecation.AlternatePackage = alternatePackage;
+
                     deprecation.CustomMessage = customMessage;
 
                     if (shouldUnlist)
@@ -226,6 +104,8 @@ namespace NuGetGallery
             {
                 _deprecationRepository.InsertOnCommit(deprecations);
             }
+
+            await _deprecationRepository.CommitChangesAsync();
         }
 
         public IReadOnlyCollection<Cve> GetCvesById(IEnumerable<string> ids)
