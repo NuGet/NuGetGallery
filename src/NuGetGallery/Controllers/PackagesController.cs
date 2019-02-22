@@ -550,20 +550,79 @@ namespace NuGetGallery
             bool isSymbolsPackageUpload,
             bool hasExistingSymbolsPackageAvailable)
         {
+            PackageContentData packageContentData = null;
+            try
+            {
+                packageContentData = await ValidateAndProcessPackageContents(currentUser, isSymbolsPackageUpload);
+            }
+            catch (Exception)
+            {
+                await _uploadFileService.DeleteUploadFileAsync(currentUser.Key);
+                throw;
+            }
+
+            if (packageContentData.ErrorResult != null)
+            {
+                await _uploadFileService.DeleteUploadFileAsync(currentUser.Key);
+                return packageContentData.ErrorResult;
+            }
+
+            var model = new VerifyPackageRequest(packageMetadata, accountsAllowedOnBehalfOf, existingPackageRegistration);
+            model.IsSymbolsPackage = isSymbolsPackageUpload;
+            model.HasExistingAvailableSymbols = hasExistingSymbolsPackageAvailable;
+            model.Warnings.AddRange(packageContentData.Warnings.Select(w => new JsonValidationMessage(w)));
+            model.LicenseFileContents = packageContentData.LicenseFileContents;
+            model.LicenseExpressionSegments = packageContentData.LicenseExpressionSegments;
+            return Json(model);
+        }
+
+        private class PackageContentData
+        {
+            public PackageContentData(
+                JsonResult errorResult)
+            {
+                ErrorResult = errorResult;
+            }
+
+            public PackageContentData(
+                PackageMetadata packageMetadata,
+                IReadOnlyList<IValidationMessage> warnings,
+                string licenseFileContents,
+                IReadOnlyCollection<CompositeLicenseExpressionSegmentViewModel> licenseExpressionSegments)
+            {
+                PackageMetadata = packageMetadata;
+                Warnings = warnings;
+                LicenseFileContents = licenseFileContents;
+                LicenseExpressionSegments = licenseExpressionSegments;
+            }
+
+            public JsonResult ErrorResult { get; }
+            public PackageMetadata PackageMetadata { get; }
+            public IReadOnlyList<IValidationMessage> Warnings { get; }
+            public string LicenseFileContents { get; }
+            public IReadOnlyCollection<CompositeLicenseExpressionSegmentViewModel> LicenseExpressionSegments { get; }
+        }
+
+        private async Task<PackageContentData> ValidateAndProcessPackageContents(User currentUser, bool isSymbolsPackageUpload)
+        {
             IReadOnlyList<IValidationMessage> warnings = new List<IValidationMessage>();
             string licenseFileContents = null;
             IReadOnlyCollection<CompositeLicenseExpressionSegmentViewModel> licenseExpressionSegments = null;
+            PackageMetadata packageMetadata = null;
+
             using (Stream uploadedFile = await _uploadFileService.GetUploadFileAsync(currentUser.Key))
             {
                 if (uploadedFile == null)
                 {
-                    return Json(HttpStatusCode.BadRequest, new[] { new JsonValidationMessage(Strings.UploadFileIsRequired) });
+                    return new PackageContentData(
+                        Json(HttpStatusCode.BadRequest, new[] { new JsonValidationMessage(Strings.UploadFileIsRequired) }));
                 }
 
                 var packageArchiveReader = await SafeCreatePackage(currentUser, uploadedFile);
                 if (packageArchiveReader == null)
                 {
-                    return Json(HttpStatusCode.BadRequest, new[] { new JsonValidationMessage(Strings.UploadFileIsRequired) });
+                    return new PackageContentData(
+                        Json(HttpStatusCode.BadRequest, new[] { new JsonValidationMessage(Strings.UploadFileIsRequired) }));
                 }
 
                 try
@@ -576,7 +635,8 @@ namespace NuGetGallery
                 {
                     _telemetryService.TraceException(ex);
 
-                    return Json(HttpStatusCode.BadRequest, new[] { new JsonValidationMessage(ex.GetUserSafeMessage()) });
+                    return new PackageContentData(
+                        Json(HttpStatusCode.BadRequest, new[] { new JsonValidationMessage(ex.GetUserSafeMessage()) }));
                 }
 
                 if (!isSymbolsPackageUpload)
@@ -585,7 +645,7 @@ namespace NuGetGallery
                     var validationJsonResult = GetJsonResultOrNull(validationResult);
                     if (validationJsonResult != null)
                     {
-                        return validationJsonResult;
+                        return new PackageContentData(validationJsonResult);
                     }
 
                     warnings = validationResult.Warnings;
@@ -600,17 +660,12 @@ namespace NuGetGallery
                 {
                     _telemetryService.TraceException(ex);
 
-                    return Json(HttpStatusCode.BadRequest, new[] { new JsonValidationMessage(ex.GetUserSafeMessage()) });
+                    return new PackageContentData(
+                        Json(HttpStatusCode.BadRequest, new[] { new JsonValidationMessage(ex.GetUserSafeMessage()) }));
                 }
             }
 
-            var model = new VerifyPackageRequest(packageMetadata, accountsAllowedOnBehalfOf, existingPackageRegistration);
-            model.IsSymbolsPackage = isSymbolsPackageUpload;
-            model.HasExistingAvailableSymbols = hasExistingSymbolsPackageAvailable;
-            model.Warnings.AddRange(warnings.Select(w => new JsonValidationMessage(w)));
-            model.LicenseFileContents = licenseFileContents;
-            model.LicenseExpressionSegments = licenseExpressionSegments;
-            return Json(model);
+            return new PackageContentData(packageMetadata, warnings, licenseFileContents, licenseExpressionSegments);
         }
 
         private IReadOnlyCollection<CompositeLicenseExpressionSegmentViewModel> GetLicenseExpressionSegmentsOrNull(LicenseMetadata licenseMetadata)
