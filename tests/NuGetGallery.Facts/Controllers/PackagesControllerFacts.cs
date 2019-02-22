@@ -370,7 +370,7 @@ namespace NuGetGallery
                     GetConfigurationService(),
                     packageService: packageService);
 
-                packageService.Setup(p => p.FindPackagesById("Foo", false))
+                packageService.Setup(p => p.FindPackagesById("Foo", true))
                     .Returns(new Package[0]);
 
                 // Act
@@ -506,7 +506,7 @@ namespace NuGetGallery
 
                 var packages = new[] { package };
                 packageService
-                    .Setup(p => p.FindPackagesById(id, false))
+                    .Setup(p => p.FindPackagesById(id, true))
                     .Returns(packages);
 
                 // Act
@@ -610,7 +610,7 @@ namespace NuGetGallery
 
                 var packages = new[] { package };
                 packageService
-                    .Setup(p => p.FindPackagesById(id, false))
+                    .Setup(p => p.FindPackagesById(id, true))
                     .Returns(packages);
 
                 indexingService.Setup(i => i.GetLastWriteTime()).Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
@@ -677,7 +677,7 @@ namespace NuGetGallery
                 };
 
                 packageService
-                    .Setup(p => p.FindPackagesById(id, false))
+                    .Setup(p => p.FindPackagesById(id, true))
                     .Returns(new[] { notLatestPackage, latestPackage, latestButNotPackage });
 
                 indexingService.Setup(i => i.GetLastWriteTime()).Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
@@ -721,7 +721,7 @@ namespace NuGetGallery
 
                 var packages = new[] { notLatestPackage };
                 packageService
-                    .Setup(p => p.FindPackagesById(id, false))
+                    .Setup(p => p.FindPackagesById(id, true))
                     .Returns(packages);
 
                 packageService
@@ -768,7 +768,7 @@ namespace NuGetGallery
 
                 var packages = new[] { package };
                 packageService
-                    .Setup(p => p.FindPackagesById("Foo", false))
+                    .Setup(p => p.FindPackagesById("Foo", true))
                     .Returns(packages);
 
                 packageService
@@ -866,7 +866,7 @@ namespace NuGetGallery
 
                 var packages = new[] { package };
                 packageService
-                    .Setup(p => p.FindPackagesById(id, false))
+                    .Setup(p => p.FindPackagesById(id, true))
                     .Returns(packages);
 
                 packageService
@@ -910,7 +910,7 @@ namespace NuGetGallery
                 };
 
                 var packages = new[] { package };
-                packageService.Setup(p => p.FindPackagesById("Foo", false))
+                packageService.Setup(p => p.FindPackagesById("Foo", true))
                     .Returns(packages);
                 packageService.Setup(p => p.FilterLatestPackage(packages, SemVerLevelKey.SemVer2, true))
                     .Returns(package);
@@ -963,7 +963,7 @@ namespace NuGetGallery
 
                 var packages = new[] { package };
                 packageService
-                    .Setup(p => p.FindPackagesById(id, false))
+                    .Setup(p => p.FindPackagesById(id, true))
                     .Returns(packages);
 
                 packageService
@@ -1011,7 +1011,7 @@ namespace NuGetGallery
 
                 var packages = new[] { package };
                 packageService
-                    .Setup(p => p.FindPackagesById(id, false))
+                    .Setup(p => p.FindPackagesById(id, true))
                     .Returns(packages);
 
                 packageService
