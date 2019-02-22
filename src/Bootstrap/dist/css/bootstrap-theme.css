@@ -216,7 +216,11 @@ h3 a:active {
 }
 @media screen and (max-width: 768px) {
   .container {
-    width: 100vw;
+    width: -webkit-calc(100vw - 15px);
+    width:         calc(100vw - 15px);
+  }
+  .navbar-toggle {
+    margin-right: 0;
   }
   img.package-icon {
     max-width: 60px;

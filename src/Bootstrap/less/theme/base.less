@@ -273,11 +273,18 @@ h2, h3 {
 }
 
 @media screen and (max-width: @screen-sm) {
-  // Bootstrap doesn't set the container width when the screen is xs.
-  // We want the container width to be the width of the viewport on xs screens.
-  // Otherwise, elements that depend on the width of the container could behave oddly on xs screens.
   .container {
-    width: 100vw;
+    // Bootstrap doesn't set the container width when the screen is xs.
+    // This works fine when there are no elements in the container that are wider than the viewport,
+    // however, if there are elements in the container that are wider than the viewport, 
+    // their overflow properties will not work properly because they are not bound by the size of the container.
+    // To fix this, we need to set the container width to be the width of the viewport minus the row margin on xs screens.
+    // This way, those elements that are larger than the viewport are properly bound by the size of the container and overflow properly.
+    width: calc(100vw - 15px);
+  }
+
+  .navbar-toggle {
+    margin-right: 0;
   }
 
   img.package-icon {
