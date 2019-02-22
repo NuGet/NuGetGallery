@@ -1415,12 +1415,14 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
+            var currentUser = GetCurrentUser();
             var model = new ManagePackageViewModel(
                 package,
                 GetCurrentUser(),
                 ReportMyPackageReasons,
                 Url,
-                await _readMeService.GetReadMeMdAsync(package));
+                await _readMeService.GetReadMeMdAsync(package),
+                _featureFlagService.IsManageDeprecationEnabled(currentUser));
 
             if (!model.CanEdit && !model.CanManageOwners && !model.CanUnlistOrRelist)
             {

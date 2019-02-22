@@ -12,7 +12,7 @@ namespace NuGetGallery
 {
     public class ManagePackageViewModel : ListPackageItemViewModel
     {
-        public ManagePackageViewModel(Package package, User currentUser, IReadOnlyList<ReportPackageReason> reasons, UrlHelper url, string readMe)
+        public ManagePackageViewModel(Package package, User currentUser, IReadOnlyList<ReportPackageReason> reasons, UrlHelper url, string readMe, bool isManageDeprecationEnabled)
             : base(package, currentUser)
         {
             IsCurrentUserAnAdmin = currentUser != null && currentUser.IsAdministrator;
@@ -31,6 +31,8 @@ namespace NuGetGallery
             };
 
             IsLocked = package.PackageRegistration.IsLocked;
+
+            IsManageDeprecationEnabled = isManageDeprecationEnabled;
 
             var versionSelectPackages = package.PackageRegistration.Packages
                 .Where(p => p.PackageStatusKey == PackageStatus.Available || p.PackageStatusKey == PackageStatus.Validating)
@@ -94,6 +96,8 @@ namespace NuGetGallery
         public Dictionary<string, VersionListedState> VersionListedStateDictionary { get; set; }
 
         public Dictionary<string, VersionReadMeState> VersionReadMeStateDictionary { get; set; }
+
+        public bool IsManageDeprecationEnabled { get; }
         
         public Dictionary<string, VersionDeprecationState> VersionDeprecationStateDictionary { get; set; }
 

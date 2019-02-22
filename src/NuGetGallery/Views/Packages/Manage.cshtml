@@ -23,12 +23,15 @@
                 @<text>@Html.Partial("_ManageOwners", Model)</text>,
                 expanded: false)
 
-            @ViewHelpers.Section(
-                this,
-                "Deprecation",
-                "Deprecation",
-                @<text>@Html.Partial("_ManageDeprecation", Model)</text>,
-                expanded: false)
+            @if (Model.IsManageDeprecationEnabled)
+            {
+                @ViewHelpers.Section(
+                    this,
+                    "Deprecation",
+                    "Deprecation",
+                    @<text>@Html.Partial("_ManageDeprecation", Model)</text>,
+                    expanded: false)
+            }
 
             @ViewHelpers.Section(
                 this,

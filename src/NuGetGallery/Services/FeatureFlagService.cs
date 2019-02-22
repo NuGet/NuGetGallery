@@ -18,6 +18,8 @@ namespace NuGetGallery
 
         private const string PackagesAtomFeedFeatureName = GalleryPrefix + "PackagesAtomFeed";
 
+        private const string ManageDeprecationFeatureName = GalleryPrefix + "ManageDeprecation";
+
         private readonly IFeatureFlagClient _client;
 
         public FeatureFlagService(IFeatureFlagClient client)
@@ -38,6 +40,11 @@ namespace NuGetGallery
         public bool IsPackagesAtomFeedEnabled()
         {
             return _client.IsEnabled(PackagesAtomFeedFeatureName, defaultValue: false);
+        }
+
+        public bool IsManageDeprecationEnabled(User user)
+        {
+            return _client.IsEnabled(ManageDeprecationFeatureName, user, defaultValue: false);
         }
 
         private bool IsEnabled(string flight, User user, bool defaultValue)
