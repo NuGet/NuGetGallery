@@ -269,34 +269,20 @@ function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defau
                         continue;
                     }
 
-                    if (isVulnerable && versionData.IsVulnerable || isLegacy && versionData.IsLegacy) {
+                    if (versionData.IsVulnerable || versionData.IsLegacy || versionData.IsOther) {
                         warnAboutReplacing = true;
                         break;
                     }
                 }
 
                 if (warnAboutReplacing) {
-                    var informationToReplace = "";
-                    if (isVulnerable) {
-                        informationToReplace += "vulnerability";
-                    }
-
-                    if (isLegacy) {
-                        if (isVulnerable) {
-                            informationToReplace += " and ";
-                        }
-
-                        informationToReplace += "alternate package";
-                    }
-
-                    alertMessage = "Some of your versions will have their" + informationToReplace + " information replaced.";
-                } else {
-                    alertMessage = "Some of your versions will have this new deprecation information added to their existing information.";
+                    alertMessage = "Some of your versions will have their deprecation information replaced.";
                 }
             }
         } else {
-            alertMessage = "The version" + (areMultipleVersionsSelected > 1 ? "s" : "") +
-                " you selected will be un-deprecated and have their deprecation information removed.";
+            alertMessage = "The version" + (areMultipleVersionsSelected ? "s" : "") +
+                " you selected will have " + (areMultipleVersionsSelected ? "their" : "its") +
+                " deprecation information removed.";
         }
 
         if (alertMessage && !confirm(alertMessage + " Do you want to continue?")) {

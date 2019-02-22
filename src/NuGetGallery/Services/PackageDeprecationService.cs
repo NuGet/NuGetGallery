@@ -63,29 +63,23 @@ namespace NuGetGallery
                     }
 
                     deprecation.Status = status;
-                    
-                    if (status.HasFlag(PackageDeprecationStatus.Vulnerable))
+
+                    deprecation.Cves.Clear();
+                    foreach (var cve in cves)
                     {
-                        deprecation.Cves.Clear();
-                        foreach (var cve in cves)
-                        {
-                            deprecation.Cves.Add(cve);
-                        }
-
-                        deprecation.CvssRating = cvssRating;
-
-                        deprecation.Cwes.Clear();
-                        foreach (var cwe in cwes)
-                        {
-                            deprecation.Cwes.Add(cwe);
-                        }
+                        deprecation.Cves.Add(cve);
                     }
 
-                    if (status.HasFlag(PackageDeprecationStatus.Legacy))
+                    deprecation.CvssRating = cvssRating;
+
+                    deprecation.Cwes.Clear();
+                    foreach (var cwe in cwes)
                     {
-                        deprecation.AlternatePackageRegistration = alternatePackageRegistration;
-                        deprecation.AlternatePackage = alternatePackage;
+                        deprecation.Cwes.Add(cwe);
                     }
+
+                    deprecation.AlternatePackageRegistration = alternatePackageRegistration;
+                    deprecation.AlternatePackage = alternatePackage;
 
                     deprecation.CustomMessage = customMessage;
 
