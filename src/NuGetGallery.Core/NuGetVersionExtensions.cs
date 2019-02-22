@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using System.Text.RegularExpressions;
 using NuGet.Versioning;
 
@@ -20,7 +19,7 @@ namespace NuGetGallery
             return parsed.ToNormalizedString();
         }
 
-        public static string ToFullStringOrFallback(string version, string fallback = "")
+        public static string ToFullString(string version)
         {
             NuGetVersion nugetVersion;
             if (NuGetVersion.TryParse(version, out nugetVersion))
@@ -29,7 +28,7 @@ namespace NuGetGallery
             }
             else
             {
-                return fallback;
+                return version;
             }
         }
     }

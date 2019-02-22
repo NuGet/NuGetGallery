@@ -31,15 +31,15 @@
                 }
 
                 var version = _viewModel.Versions[selectedVersion];
-                var cachedReadMe = version.readMe;
+                var cachedReadMe = version.ReadMe;
                 if (cachedReadMe === null) {
-                    var url = version.getReadMe;
+                    var url = version.GetReadMeUrl;
                     $.ajax({
                         url: url,
                         type: 'GET',
                         statusCode: {
                             200: function (data) {
-                                version.readMe = data;
+                                version.ReadMe = data;
                                 _viewModel.Edit = data;
                                 bindData(_viewModel);
                             },
@@ -89,7 +89,7 @@
                     return;
                 }
 
-                var url = _viewModel.Versions[selectedVersion].submit;
+                var url = _viewModel.Versions[selectedVersion].SubmitUrl;
                 $.ajax({
                     url: url,
                     type: 'POST',

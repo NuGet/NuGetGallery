@@ -19,7 +19,7 @@ namespace NuGetGallery {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     public class Strings {
@@ -61,7 +61,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The account:{0} was already deleted. No action was performed..
+        ///   Looks up a localized string similar to The account &apos;{0}&apos; was already deleted. No action was performed..
         /// </summary>
         public static string AccountDelete_AccountAlreadyDeleted {
             get {
@@ -79,7 +79,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An exception was encoutered while trying to delete the account:{0}. {1}.
+        ///   Looks up a localized string similar to An exception was encountered while trying to delete the account &apos;{0}&apos;: {1}.
         /// </summary>
         public static string AccountDelete_Fail {
             get {
@@ -97,7 +97,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The account:{0} was deleted succesfully..
+        ///   Looks up a localized string similar to The account &apos;{0}&apos; was deleted succesfully..
         /// </summary>
         public static string AccountDelete_Success {
             get {
@@ -506,6 +506,24 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invalid CVE ID format. The CVE ID should be formatted as \&quot;CVE-{year}-xxxxxxx\&quot; or just \&quot;{year}-xxxxxxx\&quot; with a minimum of 4 digits..
+        /// </summary>
+        public static string AutocompleteCveIds_ValidationError {
+            get {
+                return ResourceManager.GetString("AutocompleteCveIds_ValidationError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid CWE ID format. The CWE ID should be formatted as \&quot;CWE-xxx\&quot; with a minimum of 2 digits, or have a minimum length of 4 characters for a textual query..
+        /// </summary>
+        public static string AutocompleteCweIds_ValidationError {
+            get {
+                return ResourceManager.GetString("AutocompleteCweIds_ValidationError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to (automated).
         /// </summary>
         public static string AutomatedPackageDeleteSignature {
@@ -596,7 +614,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Failed to update the Microsoft account with &apos;{0}&apos;. This could happen if it is already linked to another NuGet account. Contact support for more information..
+        ///   Looks up a localized string similar to Failed to update the Microsoft account with &apos;{0}&apos;. This could happen if it is already linked to another NuGet account. See {1} for more details..
         /// </summary>
         public static string ChangeCredential_Failed {
             get {

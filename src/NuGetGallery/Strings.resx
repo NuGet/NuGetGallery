@@ -566,13 +566,13 @@ For more information, please contact '{2}'.</value>
     <value>Organization accounts cannot create credentials.</value>
   </data>
   <data name="AccountDelete_AccountAlreadyDeleted" xml:space="preserve">
-    <value>The account:{0} was already deleted. No action was performed.</value>
+    <value>The account '{0}' was already deleted. No action was performed.</value>
   </data>
   <data name="AccountDelete_Fail" xml:space="preserve">
-    <value>An exception was encoutered while trying to delete the account:{0}. {1}</value>
+    <value>An exception was encountered while trying to delete the account '{0}': {1}</value>
   </data>
   <data name="AccountDelete_Success" xml:space="preserve">
-    <value>The account:{0} was deleted succesfully.</value>
+    <value>The account '{0}' was deleted succesfully.</value>
   </data>
   <data name="AccountDelete_CreateSupportRequestFails" xml:space="preserve">
     <value>The request failed to be submitted. Please try again or contact support.</value>
@@ -697,7 +697,7 @@ For more information, please contact '{2}'.</value>
 If you would like to update the linked Microsoft account you can do so from the account settings page.</value>
   </data>
   <data name="ChangeCredential_Failed" xml:space="preserve">
-    <value>Failed to update the Microsoft account with '{0}'. This could happen if it is already linked to another NuGet account. Contact support for more information.</value>
+    <value>Failed to update the Microsoft account with '{0}'. This could happen if it is already linked to another NuGet account. See {1} for more details.</value>
   </data>
   <data name="ChangeCredential_NotAllowed" xml:space="preserve">
     <value>The change of Azure active directory account is not allowed by your organization(s): {0}. Please leave these organization(s) to change your login.</value>
@@ -1087,5 +1087,11 @@ The {1} Team</value>
   </data>
   <data name="UploadPackage_SymbolsPackageNotAllowed" xml:space="preserve">
     <value>Snupkg upload failed. Please use latest NuGet clients (v 4.9.0 or above) and a V3 endpoint to push Symbol packages. For details, refer https://docs.microsoft.com/nuget/create-packages/symbol-packages-snupkg</value>
+  </data>
+  <data name="AutocompleteCveIds_ValidationError" xml:space="preserve">
+    <value>Invalid CVE ID format. The CVE ID should be formatted as \"CVE-{year}-xxxxxxx\" or just \"{year}-xxxxxxx\" with a minimum of 4 digits.</value>
+  </data>
+  <data name="AutocompleteCweIds_ValidationError" xml:space="preserve">
+    <value>Invalid CWE ID format. The CWE ID should be formatted as \"CWE-xxx\" with a minimum of 2 digits, or have a minimum length of 4 characters for a textual query.</value>
   </data>
 </root>

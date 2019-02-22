@@ -13,13 +13,13 @@ using NuGetGallery.Configuration;
 
 namespace NuGetGallery
 {
-    public class AutoCompleteServiceQuery
+    public class AutocompleteServiceQuery
     {
         private readonly ServiceDiscoveryClient _serviceDiscoveryClient;
         private readonly string _autocompleteServiceResourceType;
         private readonly RetryingHttpClientWrapper _httpClient;
 
-        public AutoCompleteServiceQuery(IAppConfiguration configuration)
+        public AutocompleteServiceQuery(IAppConfiguration configuration)
         {
             if (configuration == null)
             {

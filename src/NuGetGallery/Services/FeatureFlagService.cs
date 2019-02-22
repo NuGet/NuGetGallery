@@ -16,6 +16,8 @@ namespace NuGetGallery
         private const string TyposquattingFeatureName = GalleryPrefix + "Typosquatting";
         private const string TyposquattingFlightName = GalleryPrefix + "TyposquattingFlight";
 
+        private const string PackagesAtomFeedFeatureName = GalleryPrefix + "PackagesAtomFeed";
+
         private readonly IFeatureFlagClient _client;
 
         public FeatureFlagService(IFeatureFlagClient client)
@@ -31,6 +33,11 @@ namespace NuGetGallery
         public bool IsTyposquattingEnabled(User user)
         {
             return _client.IsEnabled(TyposquattingFlightName, user, defaultValue: false);
+        }
+
+        public bool IsPackagesAtomFeedEnabled()
+        {
+            return _client.IsEnabled(PackagesAtomFeedFeatureName, defaultValue: false);
         }
 
         private bool IsEnabled(string flight, User user, bool defaultValue)

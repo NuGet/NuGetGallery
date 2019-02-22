@@ -91,7 +91,7 @@ namespace NuGetGallery.Services
                 supportRequestContext.Issues.Add(randomIssue);
 
                 var auditingService = new Mock<IAuditingService>();
-                SupportRequestService supportRequestService = new SupportRequestService(supportRequestContext, GetAppConfig(),auditingService.Object);
+                SupportRequestService supportRequestService = new SupportRequestService(supportRequestContext, GetAppConfig(), auditingService.Object);
 
                 // Act
                 await supportRequestService.DeleteSupportRequestsAsync(user);
@@ -150,16 +150,16 @@ namespace NuGetGallery.Services
         {
             public TestSupportRequestDbContext()
             {
-                Admins = new FakeDbSet<Admin>(new FakeEntitiesContext());
-                Issues = new FakeDbSet<Issue>(new FakeEntitiesContext());
-                Histories = new FakeDbSet<History>(new FakeEntitiesContext());
-                IssueStatus = new FakeDbSet<IssueStatus>(new FakeEntitiesContext());
+                Admins = FakeEntitiesContext.CreateDbSet<Admin>();
+                Issues = FakeEntitiesContext.CreateDbSet<Issue>();
+                Histories = FakeEntitiesContext.CreateDbSet<History>();
+                IssueStatus = FakeEntitiesContext.CreateDbSet<IssueStatus>();
             }
 
             public IDbSet<Admin> Admins { get; set; }
-            public  IDbSet<Issue> Issues { get; set; }
-            public  IDbSet<History> Histories { get; set; }
-            public  IDbSet<IssueStatus> IssueStatus { get; set; }
+            public IDbSet<Issue> Issues { get; set; }
+            public IDbSet<History> Histories { get; set; }
+            public IDbSet<IssueStatus> IssueStatus { get; set; }
 
             public async Task CommitChangesAsync()
             {

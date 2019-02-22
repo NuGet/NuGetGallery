@@ -7,8 +7,8 @@ using System.Threading.Tasks;
 
 namespace NuGetGallery
 {
-    public class AutoCompleteDatabasePackageIdsQuery
-        : AutoCompleteDatabaseQuery, IAutoCompletePackageIdsQuery
+    public class AutocompleteDatabasePackageIdsQuery
+        : AutocompleteDatabaseQuery, IAutocompletePackageIdsQuery
     {
         private const string _partialIdSqlFormat = @"SELECT TOP 30 pr.ID
 FROM Packages p (NOLOCK)
@@ -25,7 +25,7 @@ WHERE  {0}
 GROUP BY pr.ID
 ORDER BY MAX(pr.DownloadCount) DESC";
         
-        public AutoCompleteDatabasePackageIdsQuery(IEntitiesContext entities)
+        public AutocompleteDatabasePackageIdsQuery(IEntitiesContext entities)
             : base(entities)
         {
         }

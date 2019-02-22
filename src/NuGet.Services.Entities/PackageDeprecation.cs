@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -13,6 +14,12 @@ namespace NuGet.Services.Entities
     public class PackageDeprecation
         : IEntity
     {
+        public PackageDeprecation()
+        {
+            Cves = new HashSet<Cve>();
+            Cwes = new HashSet<Cwe>();
+        }
+
         /// <summary>
         /// Gets or sets the primary key for the entity.
         /// </summary>
@@ -90,18 +97,16 @@ namespace NuGet.Services.Entities
         /// CVSS ratings are from 0.0 to 10.0 and have a single point of precision.
         /// </remarks>
         [Range(0, 10)]
-        public decimal? CVSSRating { get; set; }
+        public decimal? CvssRating { get; set; }
 
         /// <summary>
-        /// Gets or sets the serialized JSON object containing an array of CVE ID's related to this deprecation.
-        /// The JSON object should have a version property that defines the version of its schema.
+        /// Gets or sets the collection of CVE's related to this deprecation.
         /// </summary>
-        public string CVEIds { get; set; }
+        public virtual ICollection<Cve> Cves { get; set; }
 
         /// <summary>
-        /// Gets or sets the serialized JSON object containing an array of CWE ID's related to this deprecation.
-        /// The JSON object should have a version property that defines the version of its schema.
+        /// Gets or sets the collection of CWE's related to this deprecation.
         /// </summary>
-        public string CWEIds { get; set; }
+        public virtual ICollection<Cwe> Cwes { get; set; }
     }
 }

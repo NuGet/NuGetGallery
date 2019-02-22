@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Mail;
+using System.ServiceModel.Syndication;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
@@ -27,6 +28,7 @@ using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
 using NuGetGallery.Filters;
 using NuGetGallery.Helpers;
+using NuGetGallery.Infrastructure;
 using NuGetGallery.Infrastructure.Lucene;
 using NuGetGallery.Infrastructure.Mail.Messages;
 using NuGetGallery.Infrastructure.Mail.Requests;
@@ -40,6 +42,15 @@ namespace NuGetGallery
     public partial class PackagesController
         : AppController
     {
+        /// <summary>
+        /// The upper limit on allowed license file size for displaying in gallery.
+        /// </summary>
+        /// <remarks>
+        /// Warning: This limit should never be decreased! And this limit must be less than int.MaxValue!
+        /// <see cref="MaxAllowedLicenseLengthForUploading"/> in <see cref="PackageUploadService"/> is used to limit the license file size during uploading.
+        /// </remarks>
+        internal const int MaxAllowedLicenseLengthForDisplaying = 1024 * 1024; // 1 MB
+
         private static readonly IReadOnlyList<ReportPackageReason> ReportAbuseReasons = new[]
         {
             ReportPackageReason.ViolatesALicenseIOwn,
@@ -96,9 +107,9 @@ namespace NuGetGallery
         private readonly IContentObjectService _contentObjectService;
         private readonly ISymbolPackageUploadService _symbolPackageUploadService;
         private readonly IDiagnosticsSource _trace;
-        private readonly IFlatContainerService _flatContainerService;
         private readonly ICoreLicenseFileService _coreLicenseFileService;
         private readonly ILicenseExpressionSplitter _licenseExpressionSplitter;
+        private readonly IFeatureFlagService _featureFlagService;
 
         public PackagesController(
             IPackageService packageService,
@@ -124,9 +135,9 @@ namespace NuGetGallery
             IContentObjectService contentObjectService,
             ISymbolPackageUploadService symbolPackageUploadService,
             IDiagnosticsService diagnosticsService,
-            IFlatContainerService flatContainerService,
             ICoreLicenseFileService coreLicenseFileService,
-            ILicenseExpressionSplitter licenseExpressionSplitter)
+            ILicenseExpressionSplitter licenseExpressionSplitter,
+            IFeatureFlagService featureFlagService)
         {
             _packageService = packageService;
             _uploadFileService = uploadFileService;
@@ -151,9 +162,9 @@ namespace NuGetGallery
             _contentObjectService = contentObjectService;
             _symbolPackageUploadService = symbolPackageUploadService;
             _trace = diagnosticsService?.SafeGetSource(nameof(PackagesController)) ?? throw new ArgumentNullException(nameof(diagnosticsService));
-            _flatContainerService = flatContainerService;
             _coreLicenseFileService = coreLicenseFileService ?? throw new ArgumentNullException(nameof(coreLicenseFileService));
             _licenseExpressionSplitter = licenseExpressionSplitter ?? throw new ArgumentNullException(nameof(licenseExpressionSplitter));
+            _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
         }
 
         [HttpGet]
@@ -639,14 +650,26 @@ namespace NuGetGallery
                 return RedirectToActionPermanent("DisplayPackage", new { id = id, version = normalized });
             }
 
-            Package package;
-            if (version != null && version.Equals(GalleryConstants.AbsoluteLatestUrlString, StringComparison.InvariantCultureIgnoreCase))
+            Package package = null;
+            // Load all packages with the ID.
+            var packages = _packageService.FindPackagesById(id);
+            if (version != null)
             {
-                package = _packageService.FindAbsoluteLatestPackageById(id, SemVerLevelKey.SemVer2);
+                if (version.Equals(GalleryConstants.AbsoluteLatestUrlString, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    // The user is looking for the absolute latest version and not an exact version.
+                    package = packages.FirstOrDefault(p => p.IsLatestSemVer2);
+                }
+                else
+                {
+                    package = packages.SingleOrDefault(p => p.NormalizedVersion == NuGetVersionFormatter.Normalize(version));
+                }
             }
-            else
+
+            if (package == null)
             {
-                package = _packageService.FindPackageByIdAndVersion(id, version, SemVerLevelKey.SemVer2);
+                // If we cannot find the exact version or no version was provided, fall back to the latest version.
+                package = _packageService.FilterLatestPackage(packages, SemVerLevelKey.SemVer2, allowPrerelease: true);
             }
 
             // Validating packages should be hidden to everyone but the owners and admins.
@@ -658,13 +681,14 @@ namespace NuGetGallery
             {
                 return HttpNotFound();
             }
-            
+
             var model = new DisplayPackageViewModel(package, currentUser);
 
             model.ValidatingTooLong = _validationService.IsValidatingTooLong(package);
             model.PackageValidationIssues = _validationService.GetLatestPackageValidationIssues(package);
             model.SymbolsPackageValidationIssues = _validationService.GetLatestPackageValidationIssues(model.LatestSymbolsPackage);
             model.IsCertificatesUIEnabled = _contentObjectService.CertificatesConfiguration?.IsUIEnabledForUser(currentUser) ?? false;
+            model.IsAtomFeedEnabled = _featureFlagService.IsPackagesAtomFeedEnabled();
 
             model.ReadMeHtml = await _readMeService.GetReadMeHtmlAsync(package);
 
@@ -728,6 +752,92 @@ namespace NuGetGallery
             return View(model);
         }
 
+        [HttpGet]
+        public virtual ActionResult AtomFeed(string id, bool prerel = true)
+        {
+            if (!_featureFlagService.IsPackagesAtomFeedEnabled())
+            {
+                return HttpNotFound();
+            }
+
+            var packageRegistration = _packageService.FindPackageRegistrationById(id);
+            if (packageRegistration == null)
+            {
+                return HttpNotFound();
+            }
+
+            IEnumerable<Package> packageVersionsQuery = packageRegistration
+                .Packages
+                .Where(x => x.Listed && x.PackageStatusKey == PackageStatus.Available)
+                .OrderByDescending(p => NuGetVersion.Parse(p.NormalizedVersion));
+
+            if (!prerel)
+            {
+                packageVersionsQuery = packageVersionsQuery
+                    .Where(x => !x.IsPrerelease);
+            }
+
+            var packageVersions = packageVersionsQuery.ToList();
+
+            if (packageVersions.Count == 0)
+            {
+                return HttpNotFound();
+            }
+
+            // most recent version for feed title/description
+            var newestVersionPackage = packageVersions.First();
+
+            // the last edited or created package is used as the feed timestamp
+            var lastUpdatedPackage = packageVersions.Max(x => x.LastEdited ?? x.Created);
+
+            SyndicationFeed feed = new SyndicationFeed()
+            {
+                Id = Url.Package(packageRegistration.Id, version: null, relativeUrl: false),
+                Title = SyndicationContent.CreatePlaintextContent($"{_config.Brand} Feed for {packageRegistration.Id}"),
+                Description = SyndicationContent.CreatePlaintextContent(newestVersionPackage.Description),
+                LastUpdatedTime = lastUpdatedPackage
+            };
+
+            if (!string.IsNullOrWhiteSpace(newestVersionPackage.IconUrl))
+            {
+                feed.ImageUrl = new Uri(newestVersionPackage.IconUrl);
+            }
+
+            List<SyndicationItem> feedItems = new List<SyndicationItem>();
+
+            List<SyndicationPerson> ownersAsAuthors = new List<SyndicationPerson>();
+            foreach (var packageOwner in packageRegistration.Owners)
+            {
+                ownersAsAuthors.Add(new SyndicationPerson() { Name = packageOwner.Username, Uri = Url.User(packageOwner, relativeUrl: false) });
+            }
+
+            foreach (var packageVersion in packageVersions)
+            {
+                SyndicationItem syndicationItem = new SyndicationItem($"{packageVersion.Id} {packageVersion.Version}",
+                                                                      packageVersion.Description,
+                                                                      new Uri(Url.Package(packageRegistration.Id, version: packageVersion.Version, relativeUrl: false)));
+                syndicationItem.Id = Url.Package(packageRegistration.Id, version: packageVersion.Version, relativeUrl: false);
+                syndicationItem.LastUpdatedTime = packageVersion.LastEdited ?? packageVersion.Created;
+                syndicationItem.PublishDate = packageVersion.Created;
+
+                syndicationItem.Authors.AddRange(ownersAsAuthors);
+                feedItems.Add(syndicationItem);
+            }
+
+            feed.Items = feedItems;
+
+            feed.Links.Add(SyndicationLink.CreateSelfLink(
+                new Uri(Url.PackageAtomFeed(packageRegistration.Id, relativeUrl: false)),
+                "application/atom+xml"));
+
+            feed.Links.Add(SyndicationLink.CreateAlternateLink(
+                new Uri(Url.Package(packageRegistration.Id, version: null, relativeUrl: false)),
+                "text/html"));
+
+            return new SyndicationAtomActionResult(feed);
+        }
+
+        [HttpGet]
         public virtual async Task<ActionResult> License(string id, string version)
         {
             var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
@@ -736,31 +846,45 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            if (!string.IsNullOrWhiteSpace(package.LicenseExpression))
+            IReadOnlyCollection<CompositeLicenseExpressionSegment> licenseExpressionSegments = null;
+            string licenseFileContents = null;
+            try
             {
-                return Redirect(LicenseExpressionRedirectUrlHelper.GetLicenseExpressionRedirectUrl(package.LicenseExpression));
-            }
-
-            if (package.EmbeddedLicenseType == EmbeddedLicenseFileType.Absent)
-            {
-                return HttpNotFound();
-            }
-
-            if (!_config.AsynchronousPackageValidationEnabled)
-            {
-                try
+                if (!string.IsNullOrWhiteSpace(package.LicenseExpression))
                 {
-                    var licenseFileContent = await _coreLicenseFileService.DownloadLicenseFileAsync(package);
-                    return new FileStreamResult(licenseFileContent, "text/plain");
+                    licenseExpressionSegments = _licenseExpressionSplitter.SplitExpression(package.LicenseExpression);
                 }
-                catch (Exception ex)
+
+                if (package.EmbeddedLicenseType != EmbeddedLicenseFileType.Absent)
                 {
-                    _telemetryService.TraceException(ex);
-                    return HttpNotFound();
+                    /// <remarks>
+                    /// The "licenseFileStream" below is already in memory, since low level method <see cref="GetFileAsync"/> in <see cref="CloudBlobCoreFileStorageService"/> reads the whole stream from blob storage into memory.
+                    /// There is a need to consider refactoring <see cref="CoreLicenseFileService"/> and provide a "GetUnBufferedFileAsync" method in <see cref="CloudBlobCoreFileStorageService"/>.
+                    /// In this way, we could read very large stream from blob storage with max size restriction.
+                    /// </remarks>
+                    using (var licenseFileStream = await _coreLicenseFileService.DownloadLicenseFileAsync(package))
+                    using (var licenseFileTrucatedStream = await licenseFileStream.GetTruncatedStreamWithMaxSizeAsync(MaxAllowedLicenseLengthForDisplaying))
+                    {
+                        if (licenseFileTrucatedStream.IsTruncated)
+                        {
+                            throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, "The license file exceeds the max limit of {0} to display in Gallery", MaxAllowedLicenseLengthForDisplaying));
+                        }
+                        else
+                        {
+                            licenseFileContents = Encoding.UTF8.GetString(licenseFileTrucatedStream.Stream.GetBuffer(), 0, (int)licenseFileTrucatedStream.Stream.Length);
+                        }
+                    }
                 }
             }
+            catch (Exception ex)
+            {
+                _telemetryService.TraceException(ex);
+                throw;
+            }
 
-            return Redirect(await _flatContainerService.GetLicenseFileFlatContainerUrlAsync(package.Id, package.NormalizedVersion));
+            var model = new DisplayLicenseViewModel(package, licenseExpressionSegments, licenseFileContents);
+
+            return View(model);
         }
 
         public virtual async Task<ActionResult> ListPackages(PackageListSearchViewModel searchAndListModel)
@@ -1270,17 +1394,32 @@ namespace NuGetGallery
         [RequiresAccountConfirmation("manage a package")]
         public virtual async Task<ActionResult> Manage(string id, string version = null)
         {
-            var package = _packageService.FindPackageByIdAndVersion(id, version);
+            Package package = null;
+            // Load all versions of the package.
+            var packages = _packageService.FindPackagesById(id, withDeprecations: true);
+            if (version != null)
+            {
+                // Try to find the exact version if it was specified.
+                package = packages.SingleOrDefault(p => p.NormalizedVersion == NuGetVersionFormatter.Normalize(version));
+            }
+
             if (package == null)
             {
+                // If the exact version was not found, fall back to the latest version.
+                package = _packageService.FilterLatestPackage(packages, SemVerLevelKey.SemVer2, allowPrerelease: true);
+            }
+
+            if (package == null)
+            {
+                // If the package has no versions, return not found.
                 return HttpNotFound();
             }
 
             var model = new ManagePackageViewModel(
-                package, 
-                GetCurrentUser(), 
-                ReportMyPackageReasons, 
-                Url, 
+                package,
+                GetCurrentUser(),
+                ReportMyPackageReasons,
+                Url,
                 await _readMeService.GetReadMeMdAsync(package));
 
             if (!model.CanEdit && !model.CanManageOwners && !model.CanUnlistOrRelist)
@@ -1296,7 +1435,7 @@ namespace NuGetGallery
         [RequiresAccountConfirmation("delete a symbols package")]
         public virtual ActionResult DeleteSymbols(string id, string version)
         {
-            var package = _packageService.FindPackageByIdAndVersion(id, version);
+            var package = _packageService.FindPackageByIdAndVersion(id, version, SemVerLevelKey.SemVer2);
             if (package == null)
             {
                 return HttpNotFound();
@@ -1338,7 +1477,7 @@ namespace NuGetGallery
         [RequiresAccountConfirmation("reflow a package")]
         public virtual async Task<ActionResult> Reflow(string id, string version)
         {
-            var package = _packageService.FindPackageByIdAndVersion(id, version);
+            var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
 
             if (package == null)
             {
@@ -1373,7 +1512,7 @@ namespace NuGetGallery
         [RequiresAccountConfirmation("revalidate a package")]
         public virtual async Task<ActionResult> Revalidate(string id, string version)
         {
-            var package = _packageService.FindPackageByIdAndVersion(id, version);
+            var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
 
             if (package == null)
             {
@@ -1401,7 +1540,7 @@ namespace NuGetGallery
         [RequiresAccountConfirmation("revalidate a symbols package")]
         public virtual async Task<ActionResult> RevalidateSymbols(string id, string version)
         {
-            var package = _packageService.FindPackageByIdAndVersion(id, version);
+            var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
 
             if (package == null)
             {
@@ -1607,7 +1746,7 @@ namespace NuGetGallery
         [RequiresAccountConfirmation("edit a package")]
         public virtual async Task<JsonResult> Edit(string id, string version, VerifyPackageRequest formData, string returnUrl)
         {
-            var package = _packageService.FindPackageByIdAndVersion(id, version);
+            var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
             if (package == null)
             {
                 return Json(HttpStatusCode.NotFound, new[] { new JsonValidationMessage(string.Format(Strings.PackageWithIdAndVersionNotFound, id, version)) });

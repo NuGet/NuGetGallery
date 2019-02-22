@@ -340,17 +340,9 @@ namespace NuGetGallery
                 .As<ITyposquattingCheckListCacheService>()
                 .SingleInstance();
 
-            builder.RegisterType<FlatContainerService>()
-                .As<IFlatContainerService>()
-                .InstancePerLifetimeScope();
-
             builder.Register<ServiceDiscoveryClient>(c =>
                     new ServiceDiscoveryClient(c.Resolve<IAppConfiguration>().ServiceDiscoveryUri))
                 .As<IServiceDiscoveryClient>();
-
-            builder.RegisterType<GalleryContentFileMetadataService>()
-                .As<IContentFileMetadataService>()
-                .InstancePerLifetimeScope();
 
             builder.RegisterType<LicenseExpressionSplitter>()
                 .As<ILicenseExpressionSplitter>()
@@ -421,6 +413,11 @@ namespace NuGetGallery
                     RefreshInterval = configuration.Current.FeatureFlagsRefreshInterval,
                 })
                 .AsSelf()
+                .SingleInstance();
+
+            builder
+                .Register(context => context.Resolve<FeatureFlagFileStorageService>())
+                .As<IEditableFeatureFlagStorageService>()
                 .SingleInstance();
 
             builder
@@ -683,28 +680,41 @@ namespace NuGetGallery
             if (configuration.Current.ServiceDiscoveryUri != null &&
                 !string.IsNullOrEmpty(configuration.Current.AutocompleteServiceResourceType))
             {
-                builder.RegisterType<AutoCompleteServicePackageIdsQuery>()
+                builder.RegisterType<AutocompleteServicePackageIdsQuery>()
                     .AsSelf()
-                    .As<IAutoCompletePackageIdsQuery>()
+                    .As<IAutocompletePackageIdsQuery>()
                     .SingleInstance();
 
-                builder.RegisterType<AutoCompleteServicePackageVersionsQuery>()
+                builder.RegisterType<AutocompleteServicePackageVersionsQuery>()
                     .AsSelf()
-                    .As<IAutoCompletePackageVersionsQuery>()
+                    .As<IAutocompletePackageVersionsQuery>()
                     .InstancePerLifetimeScope();
             }
             else
             {
-                builder.RegisterType<AutoCompleteDatabasePackageIdsQuery>()
+                builder.RegisterType<AutocompleteDatabasePackageIdsQuery>()
                     .AsSelf()
-                    .As<IAutoCompletePackageIdsQuery>()
+                    .As<IAutocompletePackageIdsQuery>()
                     .InstancePerLifetimeScope();
 
-                builder.RegisterType<AutoCompleteDatabasePackageVersionsQuery>()
+                builder.RegisterType<AutocompleteDatabasePackageVersionsQuery>()
                     .AsSelf()
-                    .As<IAutoCompletePackageVersionsQuery>()
+                    .As<IAutocompletePackageVersionsQuery>()
                     .InstancePerLifetimeScope();
             }
+
+            // Vulnerability Autocomplete
+            builder.RegisterType<AutocompleteCveIdsQuery>()
+                .As<IAutocompleteCveIdsQuery>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<AutocompleteCweIdsQuery>()
+                .As<IAutocompleteCweIdsQuery>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<VulnerabilityAutocompleteService>()
+                .As<IVulnerabilityAutocompleteService>()
+                .InstancePerLifetimeScope();
         }
 
         private static void ConfigureForLocalFileSystem(ContainerBuilder builder, IGalleryConfigurationService configuration)
@@ -755,6 +765,10 @@ namespace NuGetGallery
             builder.RegisterInstance(new SqlErrorLog(configuration.Current.SqlConnectionString))
                 .As<ErrorLog>()
                 .SingleInstance();
+
+            builder.RegisterType<GalleryContentFileMetadataService>()
+                .As<IContentFileMetadataService>()
+                .SingleInstance();
         }
 
         private static IAuditingService GetAuditingServiceForLocalFileSystem(IGalleryConfigurationService configuration)
@@ -799,7 +813,7 @@ namespace NuGetGallery
 
                 var registration = builder.RegisterType(dependent.ImplementationType)
                     .WithParameter(new ResolvedParameter(
-                       (pi, ctx) => pi.ParameterType == typeof(IFileStorageService),
+                       (pi, ctx) => pi.ParameterType.IsAssignableFrom(typeof(IFileStorageService)),
                        (pi, ctx) => ctx.ResolveKeyed<IFileStorageService>(dependent.BindingKey)))
                     .AsSelf()
                     .As(dependent.InterfaceType);
@@ -846,6 +860,10 @@ namespace NuGetGallery
 
             builder.RegisterInstance(new TableErrorLog(configuration.Current.AzureStorage_Errors_ConnectionString, configuration.Current.AzureStorageReadAccessGeoRedundant))
                 .As<ErrorLog>()
+                .SingleInstance();
+
+            builder.RegisterType<FlatContainerContentFileMetadataService>()
+                .As<IContentFileMetadataService>()
                 .SingleInstance();
         }
 

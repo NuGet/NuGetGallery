@@ -94,7 +94,7 @@ namespace NuGetGallery.Infrastructure
         public class TheSaveTempDataMethod
         {
             [Fact]
-            public void StoresValuesInCookie()
+            public void StoresValuesInCookieInEncodedFormat()
             {
                 var cookies = new HttpCookieCollection();
                 var httpContext = new Mock<HttpContextBase>();
@@ -115,9 +115,9 @@ namespace NuGetGallery.Infrastructure
                 Assert.True(cookies[0].HttpOnly);
                 Assert.True(cookies[0].Secure);
                 Assert.Equal(3, cookies[0].Values.Count);
-                Assert.Equal("Say hello to my little friend", cookies[0]["message"]);
-                Assert.Equal("123", cookies[0]["key2"]);
-                Assert.Equal("dumb&dumber?:;,isit", cookies[0]["key3"]);
+                Assert.Equal(HttpUtility.UrlEncode("Say hello to my little friend"), cookies[0]["message"]);
+                Assert.Equal(HttpUtility.UrlEncode("123"), cookies[0]["key2"]);
+                Assert.Equal(HttpUtility.UrlEncode("dumb&dumber?:;,isit"), cookies[0]["key3"]);
             }
 
             [Fact]

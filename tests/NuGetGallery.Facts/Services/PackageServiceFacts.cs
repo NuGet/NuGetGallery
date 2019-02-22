@@ -826,7 +826,108 @@ namespace NuGetGallery
             }
         }
 
-        public class TheFindPackageByIdAndVersionMethod
+        public class TheFilterLatestPackageMethod
+        {
+            protected const string Id = "theId";
+
+            [Theory]
+            [InlineData(null)]
+            [InlineData("2.0.0")]
+            public void ReturnsTheLatestStableVersionIfAvailable(string semVerLevel)
+            {
+                // Arrange
+                var packageRegistration = new PackageRegistration { Id = Id };
+                var package1 = new Package { Version = "1.0", PackageRegistration = packageRegistration, Listed = true, IsLatestStable = true, IsLatestStableSemVer2 = true };
+                var package2 = new Package { Version = "1.0.0a", PackageRegistration = packageRegistration, IsPrerelease = true, Listed = true, IsLatest = true };
+
+                // Act
+                var result = InvokeMethod(new[] { package1, package2 }, semVerLevelKey: SemVerLevelKey.ForSemVerLevel(semVerLevel));
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.Equal("1.0", result.Version);
+            }
+
+            [Fact]
+            public void ReturnsTheLatestStableSemVer2VersionIfAvailable()
+            {
+                // Arrange
+                var packageRegistration = new PackageRegistration { Id = Id };
+                var package0 = new Package { Version = "1.0.0+metadata", PackageRegistration = packageRegistration, Listed = true, IsLatestStableSemVer2 = true };
+                var package1 = new Package { Version = "1.0", PackageRegistration = packageRegistration, Listed = true, IsLatestStable = true };
+                var package2 = new Package { Version = "1.0.0a", PackageRegistration = packageRegistration, IsPrerelease = true, Listed = true, IsLatest = true };
+
+                // Act
+                var result = InvokeMethod(new[] { package0, package1, package2 }, semVerLevelKey: SemVerLevelKey.SemVer2);
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.Equal("1.0.0+metadata", result.Version);
+            }
+
+            [Fact]
+            public void ReturnsTheLatestVersionIfNoLatestStableVersionIsAvailable()
+            {
+                // Arrange
+                var packageRegistration = new PackageRegistration { Id = Id };
+                var package1 = new Package { Version = "1.0.0b", PackageRegistration = packageRegistration, IsPrerelease = true, Listed = true, IsLatest = true };
+                var package2 = new Package { Version = "1.0.0a", PackageRegistration = packageRegistration, IsPrerelease = true, Listed = true };
+
+                // Act
+                var result = InvokeMethod(new[] { package1, package2 });
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.Equal("1.0.0b", result.Version);
+            }
+
+            [Fact]
+            public void ReturnsNullIfNoLatestStableVersionIsAvailableAndPrereleaseIsDisallowed()
+            {
+                // Arrange
+                var packageRegistration = new PackageRegistration { Id = Id };
+                var package1 = new Package { Version = "1.0.0b", PackageRegistration = packageRegistration, IsPrerelease = true, Listed = true, IsLatest = true };
+                var package2 = new Package { Version = "1.0.0a", PackageRegistration = packageRegistration, IsPrerelease = true, Listed = true };
+
+                // Act
+                var result = InvokeMethod(new[] { package1, package2 }, allowPrerelease: false);
+
+                // Assert
+                Assert.Null(result);
+            }
+
+            [Fact]
+            public void ReturnsTheMostRecentVersionIfNoLatestVersionIsAvailable()
+            {
+                // Arrange
+                var packageRegistration = new PackageRegistration { Id = Id };
+                var package1 = new Package { Version = "1.0.0b", PackageRegistration = packageRegistration, IsPrerelease = true, Listed = false };
+                var package2 = new Package { Version = "1.0.0a", PackageRegistration = packageRegistration, IsPrerelease = true, Listed = false };
+
+                // Act
+                var result = InvokeMethod(new[] { package1, package2 });
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.Equal("1.0.0b", result.Version);
+            }
+
+            [Fact]
+            public void ThrowsIfPackagesNull()
+            {
+                Assert.Throws<ArgumentNullException>(() => InvokeMethod(null));
+            }
+
+            protected virtual Package InvokeMethod(
+                IReadOnlyCollection<Package> packages,
+                int? semVerLevelKey = SemVerLevelKey.SemVer2,
+                bool allowPrerelease = true)
+            {
+                return CreateService().FilterLatestPackage(packages, semVerLevelKey, allowPrerelease);
+            }
+        }
+
+        public class TheFindPackageByIdAndVersionMethod : TheFilterLatestPackageMethod
         {
             [Fact]
             public void ReturnsTheRequestedPackageVersion()
@@ -838,7 +939,7 @@ namespace NuGetGallery
                             new Exception("This should not be called when the version is specified."));
                     });
 
-                service.FindPackageByIdAndVersion("theId", "1.0.42");
+                service.FindPackageByIdAndVersion(Id, "1.0.42");
 
                 // Nothing to assert because it's too complicated to test the actual LINQ expression.
                 // What we're testing via the throw above is that it didn't load the registration and get the latest version.
@@ -854,209 +955,17 @@ namespace NuGetGallery
                 Assert.Equal("id", ex.ParamName);
             }
 
-            [Theory]
-            [InlineData(null)]
-            [InlineData("2.0.0")]
-            public void ReturnsTheLatestStableVersionIfAvailable(string semVerLevel)
+            protected override Package InvokeMethod(
+                IReadOnlyCollection<Package> packages, 
+                int? semVerLevelKey = 2, 
+                bool allowPrerelease = true)
             {
-                // Arrange
                 var repository = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
-                var packageRegistration = new PackageRegistration { Id = "theId" };
-                var package1 = new Package { Version = "1.0", PackageRegistration = packageRegistration, Listed = true, IsLatestStable = true, IsLatestStableSemVer2 = true };
-                var package2 = new Package { Version = "1.0.0a", PackageRegistration = packageRegistration, IsPrerelease = true, Listed = true, IsLatest = true };
-
                 repository
                     .Setup(repo => repo.GetAll())
-                    .Returns(new[] { package1, package2 }.AsQueryable());
+                    .Returns(packages.AsQueryable());
                 var service = CreateService(packageRepository: repository);
-
-                // Act
-                var result = service.FindPackageByIdAndVersion("theId", version: null, semVerLevelKey: SemVerLevelKey.ForSemVerLevel(semVerLevel));
-
-                // Assert
-                Assert.NotNull(result);
-                Assert.Equal("1.0", result.Version);
-            }
-
-            [Fact]
-            public void ReturnsTheLatestStableSemVer2VersionIfAvailable()
-            {
-                // Arrange
-                var repository = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
-                var packageRegistration = new PackageRegistration { Id = "theId" };
-                var package0 = new Package { Version = "1.0.0+metadata", PackageRegistration = packageRegistration, Listed = true, IsLatestStableSemVer2 = true };
-                var package1 = new Package { Version = "1.0", PackageRegistration = packageRegistration, Listed = true, IsLatestStable = true };
-                var package2 = new Package { Version = "1.0.0a", PackageRegistration = packageRegistration, IsPrerelease = true, Listed = true, IsLatest = true };
-
-                repository
-                    .Setup(repo => repo.GetAll())
-                    .Returns(new[] { package0, package1, package2 }.AsQueryable());
-                var service = CreateService(packageRepository: repository);
-
-                // Act
-                var result = service.FindPackageByIdAndVersion("theId", version: null, semVerLevelKey: SemVerLevelKey.SemVer2);
-
-                // Assert
-                Assert.NotNull(result);
-                Assert.Equal("1.0.0+metadata", result.Version);
-            }
-
-            [Fact]
-            public void ReturnsTheLatestVersionIfNoLatestStableVersionIsAvailable()
-            {
-                // Arrange
-                var repository = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
-                var packageRegistration = new PackageRegistration { Id = "theId" };
-                var package1 = new Package { Version = "1.0.0b", PackageRegistration = packageRegistration, IsPrerelease = true, Listed = true, IsLatest = true };
-                var package2 = new Package { Version = "1.0.0a", PackageRegistration = packageRegistration, IsPrerelease = true, Listed = true };
-
-                repository
-                    .Setup(repo => repo.GetAll())
-                    .Returns(new[] { package1, package2 }.AsQueryable());
-                var service = CreateService(packageRepository: repository);
-
-                // Act
-                var result = service.FindPackageByIdAndVersion("theId", version: null);
-
-                // Assert
-                Assert.NotNull(result);
-                Assert.Equal("1.0.0b", result.Version);
-            }
-
-            [Fact]
-            public void ReturnsNullIfNoLatestStableVersionIsAvailableAndPrereleaseIsDisallowed()
-            {
-                // Arrange
-                var repository = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
-                var packageRegistration = new PackageRegistration { Id = "theId" };
-                var package1 = new Package { Version = "1.0.0b", PackageRegistration = packageRegistration, IsPrerelease = true, Listed = true, IsLatest = true };
-                var package2 = new Package { Version = "1.0.0a", PackageRegistration = packageRegistration, IsPrerelease = true, Listed = true };
-
-                repository
-                    .Setup(repo => repo.GetAll())
-                    .Returns(new[] { package1, package2 }.AsQueryable());
-                var service = CreateService(packageRepository: repository);
-
-                // Act
-                var result = service.FindPackageByIdAndVersion("theId", version: null, allowPrerelease: false);
-
-                // Assert
-                Assert.Null(result);
-            }
-
-            [Fact]
-            public void ReturnsTheMostRecentVersionIfNoLatestVersionIsAvailable()
-            {
-                // Arrange
-                var repository = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
-                var packageRegistration = new PackageRegistration { Id = "theId" };
-                var package1 = new Package { Version = "1.0.0b", PackageRegistration = packageRegistration, IsPrerelease = true, Listed = false };
-                var package2 = new Package { Version = "1.0.0a", PackageRegistration = packageRegistration, IsPrerelease = true, Listed = false };
-
-                repository
-                    .Setup(repo => repo.GetAll())
-                    .Returns(new[] { package1, package2 }.AsQueryable());
-                var service = CreateService(packageRepository: repository);
-
-                // Act
-                var result = service.FindPackageByIdAndVersion("theId", null);
-
-                // Assert
-                Assert.NotNull(result);
-                Assert.Equal("1.0.0b", result.Version);
-            }
-        }
-
-        public class TheFindAbsoluteLatestPackageByIdMethod
-        {
-            [Fact]
-            public void ReturnsTheLatestVersionWhenSemVerLevelUnknown()
-            {
-                // Arrange
-                var repository = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
-                var packageRegistration = new PackageRegistration { Id = "theId" };
-                var package1 = new Package { Version = "1.0", PackageRegistration = packageRegistration, Listed = true, IsLatestStable = true };
-                var package2 = new Package { Version = "2.0.0a", PackageRegistration = packageRegistration, IsPrerelease = true, Listed = true, IsLatest = true };
-
-                repository
-                    .Setup(repo => repo.GetAll())
-                    .Returns(new[] { package1, package2 }.AsQueryable());
-                var service = CreateService(packageRepository: repository);
-
-                // Act
-                var result = service.FindAbsoluteLatestPackageById("theId", SemVerLevelKey.Unknown);
-
-                // Assert
-                Assert.NotNull(result);
-                Assert.Equal("2.0.0a", result.Version);
-            }
-
-            [Fact]
-            public void ReturnsTheLatestVersionWhenSemVerLevel2()
-            {
-                // Arrange
-                var repository = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
-                var packageRegistration = new PackageRegistration { Id = "theId" };
-                var package1 = new Package { Version = "1.0", PackageRegistration = packageRegistration, Listed = true, IsLatestStable = true };
-                var package2 = new Package { Version = "2.0.0-alpha.1", PackageRegistration = packageRegistration, IsPrerelease = true, Listed = true, IsLatest = true, SemVerLevelKey = SemVerLevelKey.SemVer2 };
-
-                repository
-                    .Setup(repo => repo.GetAll())
-                    .Returns(new[] { package1, package2 }.AsQueryable());
-                var service = CreateService(packageRepository: repository);
-
-                // Act
-                var result = service.FindAbsoluteLatestPackageById("theId", SemVerLevelKey.SemVer2);
-
-                // Assert
-                Assert.NotNull(result);
-                Assert.Equal("2.0.0-alpha.1", result.Version);
-            }
-
-            [Fact]
-            public void ReturnsTheMostRecentVersionWhenSemVerLevelUnknown()
-            {
-                // Arrange
-                var repository = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
-                var packageRegistration = new PackageRegistration { Id = "theId" };
-                var package1 = new Package { Version = "1.0", PackageRegistration = packageRegistration, Listed = true };
-                var package2 = new Package { Version = "2.0.0-alpha", PackageRegistration = packageRegistration, IsPrerelease = true, Listed = true };
-                var package3 = new Package { Version = "2.0.0", PackageRegistration = packageRegistration, Listed = true, IsLatest = true };
-
-                repository
-                    .Setup(repo => repo.GetAll())
-                    .Returns(new[] { package1, package2, package3 }.AsQueryable());
-                var service = CreateService(packageRepository: repository);
-
-                // Act
-                var result = service.FindAbsoluteLatestPackageById("theId", SemVerLevelKey.Unknown);
-
-                // Assert
-                Assert.NotNull(result);
-                Assert.Equal("2.0.0", result.Version);
-            }
-
-            [Fact]
-            public void ReturnsTheMostRecentVersionWhenSemVerLevel2()
-            {
-                // Arrange
-                var repository = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
-                var packageRegistration = new PackageRegistration { Id = "theId" };
-                var package1 = new Package { Version = "1.0", PackageRegistration = packageRegistration, Listed = true };
-                var package2 = new Package { Version = "2.0.0-alpha.1", PackageRegistration = packageRegistration, IsPrerelease = true, Listed = true, SemVerLevelKey = SemVerLevelKey.SemVer2 };
-                var package3 = new Package { Version = "2.0.0+metadata", PackageRegistration = packageRegistration, Listed = true, SemVerLevelKey = SemVerLevelKey.SemVer2, IsLatestSemVer2 = true };
-
-                repository
-                    .Setup(repo => repo.GetAll())
-                    .Returns(new[] { package1, package2, package3 }.AsQueryable());
-                var service = CreateService(packageRepository: repository);
-
-                // Act
-                var result = service.FindAbsoluteLatestPackageById("theId", SemVerLevelKey.SemVer2);
-
-                // Assert
-                Assert.NotNull(result);
-                Assert.Equal("2.0.0+metadata", result.Version);
+                return service.FindPackageByIdAndVersion(Id, null, semVerLevelKey, allowPrerelease);
             }
         }
 
@@ -1366,10 +1275,10 @@ namespace NuGetGallery
                 var packages = InvokeFindPackagesByOwner(currentUser, includeUnlisted: true).ToList();
 
                 var nugetCatalogReaderPackage = packages.Single(p => p.PackageRegistration.Id == "NuGet.CatalogReader");
-                Assert.Equal("1.5.12+git.78e44a8", NuGetVersionFormatter.ToFullStringOrFallback(nugetCatalogReaderPackage.Version, fallback: nugetCatalogReaderPackage.Version));
+                Assert.Equal("1.5.12+git.78e44a8", NuGetVersionFormatter.ToFullString(nugetCatalogReaderPackage.Version));
 
                 var sleetLibPackage = packages.Single(p => p.PackageRegistration.Id == "SleetLib");
-                Assert.Equal("2.2.24+git.f2a0cb6", NuGetVersionFormatter.ToFullStringOrFallback(sleetLibPackage.Version, fallback: sleetLibPackage.Version));
+                Assert.Equal("2.2.24+git.f2a0cb6", NuGetVersionFormatter.ToFullString(sleetLibPackage.Version));
             }
 
             protected FakeEntitiesContext GetMixedVersioningPackagesContext(User currentUser, User packageOwner)
@@ -2226,7 +2135,7 @@ namespace NuGetGallery
 
                     // If we delete the first organization, the package is orphaned unless is it owned a user or it is owned by the second organization and that organization has members.
                     if (state.HasFlag(OwnershipState.OwnedByUser1) ||
-                        state.HasFlag(OwnershipState.OwnedByUser2) || 
+                        state.HasFlag(OwnershipState.OwnedByUser2) ||
                         (state.HasFlag(OwnershipState.OwnedByOrganization2) && (state.HasFlag(OwnershipState.User1InOrganization2) || state.HasFlag(OwnershipState.User2InOrganization2))))
                     {
                         expectedResult = false;
@@ -2301,7 +2210,7 @@ namespace NuGetGallery
                 Assert.True(package.HideLicenseReport);
             }
         }
-        
+
         public class TheSetRequiredSignerAsyncMethodOneParameter : TestContainer
         {
             private readonly User _user1;
