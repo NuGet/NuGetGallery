@@ -24,7 +24,7 @@
 
 <script type="text/html" id="add-deprecation-template">
     <div class="deprecation-section form-group">
-        <label class="deprecation-section-header">Select version(s)</label>
+        <label id="dropdown-label" class="deprecation-section-header">Select version(s)</label>
         <div data-bind="template: { name: 'multi-select-dropdown', data: dropdown }"></div>
         <div class="has-error">
             <span aria-live="assertive" class="help-block field-validation-error" role="alert" data-bind="visible: !dropdown.chosenItems().length">
@@ -54,10 +54,10 @@
                         <input name="hasCvss" type="checkbox" value="true" data-bind="checked: hasCvss" />
                         CVSS Quality Severity Rating
                     </label>
-                    <label class="security-detail-input-label" for="selectedCvssRating">You can add the vulnerability rating (0-10) applicable to the vulnerabilities.</label>
+                    <label class="security-detail-input-label" for="selectedCvssRating">Enter the vulnerability rating (0-10) applicable to the vulnerabilities.</label>
                 </div>
                 <div class="security-detail-input">
-                    <input class="form-control cvss-input" name="selectedCvssRating" type="text" placeholder="0.0" size="4" maxlength="4" data-bind="textInput: selectedCvssRating, disable: !hasCvss()" />
+                    <input id="selectedCvssRating" class="form-control cvss-input" name="selectedCvssRating" type="text" placeholder="0.0" size="4" maxlength="4" data-bind="textInput: selectedCvssRating, disable: !hasCvss()" />
                     <span data-bind="text: cvssRatingLabel, css: { 'text-danger': cvssRatingIsInvalid }"></span>
                 </div>
             </div>
@@ -73,12 +73,12 @@
             <div class="row">
                 <div class="col-sm-8 form-group alternate-package-registration-container" data-bind="css: { 'has-error': chosenAlternatePackageIdError }">
                     <label for="alternatePackageId" class="deprecation-section-header">Alternate package</label>
-                    <input name="alternatePackageId" class="form-control full-line" type="text" data-bind="textInput: chosenAlternatePackageId" />
+                    <input name="alternatePackageId" class="form-control full-line" type="text" aria-label="Alternate package ID" data-bind="textInput: chosenAlternatePackageId" />
                     <span aria-live="assertive" class="help-block field-validation-error" role="alert" data-bind="text: chosenAlternatePackageIdError, visible: chosenAlternatePackageIdError"></span>
                 </div>
                 <div class="col-sm-4 form-group alternate-package-container">
                     <label for="alternatePackageVersion" class="deprecation-section-header">Version</label>
-                    <select class="form-control full-line" name="alternatePackageVersion" data-bind="options: alternatePackageVersions, value: chosenAlternatePackageVersion, enable: hasAlternatePackageVersions" size="1"></select>
+                    <select class="form-control full-line" name="alternatePackageVersion" aria-label="Alternate package version" data-bind="options: alternatePackageVersions, value: chosenAlternatePackageVersion, enable: hasAlternatePackageVersions" size="1"></select>
                 </div>
             </div>
         </div>
@@ -93,7 +93,7 @@
     <div data-bind="visible: isVulnerable() || isLegacy() || isOther()">
         <div class="deprecation-section form-group">
             <label for="customMessage" class="deprecation-section-header">Provide custom message</label>
-            <textarea name="customMessage" class="form-control full-line" data-bind="textInput: customMessage" rows="2"></textarea>
+            <textarea id="customMessage" name="customMessage" class="form-control full-line" data-bind="textInput: customMessage" rows="2"></textarea>
         </div>
         <div class="deprecation-section form-group">
             <label>
@@ -108,7 +108,7 @@
     </div>
 
     <div class="deprecation-section form-group">
-        <button class="btn btn-primary full-line" type="submit" data-bind="click: submit">Save</button>
+        <button class="btn btn-primary full-line" type="submit" aria-label="Save package deprecation information" data-bind="click: submit">Save</button>
     </div>
 </script>
 
@@ -119,18 +119,18 @@
                 <input name="hasIds" type="checkbox" value="true" data-bind="checked: hasIds" />
                 <span data-bind="text: title"></span>
             </label>
-            <label class="security-detail-input-label" for="addId" data-bind="text: label"></label>
+            <label class="security-detail-input-label" data-bind="text: label"></label>
         </div>
         <div class="security-detail-input security-detail-list-input">
-            <input class="form-control" name="addId" type="text" data-bind="textInput: addId, disable: !hasIds(), attr: { placeholder: placeholder }" />
-            <button class="btn btn-primary" data-bind="click: add, disable: !hasIds()">Add</button>
+            <input class="form-control" name="addId" type="text" data-bind="textInput: addId, disable: !hasIds(), attr: { placeholder: placeholder, 'aria-label': label }, event: { keydown: addKeyDown }" />
+            <button class="btn btn-primary" data-bind="click: add, disable: !hasIds(), attr: { 'aria-label': addLabel }">Add</button>
         </div>
         <div class="security-detail-list" data-bind="visible: $data, foreach: ids">
             <div class="security-detail-list-item alert-info">
                 <span data-bind="text: $data"></span>
                 <a class="icon-link"
                    href="#"
-                   data-bind="click: $parent.remove.bind($data)">
+                   data-bind="click: $parent.remove.bind($data), attr: { 'aria-label': 'Remove ' + $data }">
                     <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
                 </a>
             </div>

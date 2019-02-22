@@ -1,6 +1,6 @@
 ﻿<script type="text/html" id="multi-select-dropdown">
     <div class="multi-select-dropdown">
-        <button class="dropdown-btn" data-bind="click: toggleDropdown">
+        <button class="dropdown-btn" data-bind="click: toggleDropdown, attr: { 'aria-label': toggleLabel }">
             <span data-bind="text: toggleText"></span>
             <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
         </button>
@@ -8,7 +8,7 @@
             <div class="panel-body dropdown-selector">
                 <div class="form-group dropdown-filter form-control full-line">
                     <i class="ms-Icon ms-Icon--Search" aria-hidden="true"></i>
-                    <input name="filter" type="text" data-bind="textInput: filter" />
+                    <input name="filter" type="text" data-bind="textInput: filter, attr: { placeholder: filterPlaceholder }" />
                 </div>
                 <div class="unbolded-label">
                     <label>

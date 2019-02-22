@@ -1,7 +1,7 @@
 ﻿'use strict';
 
 // Shared model between the CVE view and the CWE view
-function ManageDeprecationSecurityDetailListViewModel(title, label, placeholder) {
+function ManageDeprecationSecurityDetailListViewModel(title, label, placeholder, addLabel) {
     var self = this;
 
     this.title = ko.observable(title);
@@ -25,12 +25,30 @@ function ManageDeprecationSecurityDetailListViewModel(title, label, placeholder)
 
     // The ID that has been typed into the textbox but not yet submitted.
     this.addId = ko.observable('');
+    this.addLabel = addLabel;
     this.add = function () {
         self.addedIds.push(self.addId());
         self.addId('');
     };
+    this.addKeyDown = function (data, event) {
+        if (event.which === 13) { /* Enter */
+            self.add();
+            return false;
+        }
 
-    this.remove = function (id) {
+        return true;
+    };
+
+    this.remove = function (id, event) {
+        // Try to focus on the next added item.
+        var nextItem = $(event.target).closest('.security-detail-list-item').next('.security-detail-list-item');
+        if (nextItem.length) {
+            nextItem.find(':tabbable').focus();
+        } else {
+            // Otherwise, focus on the "add item" input.
+            $(event.target).closest('.security-detail').find('[name="addId"]').focus();
+        }
+
         self.addedIds.remove(id);
     };
 
@@ -67,7 +85,7 @@ function ManageDeprecationViewModel(id, versionsDictionary, defaultVersion, subm
             versionData.IsVulnerable || versionData.IsLegacy || versionData.IsOther);
     });
 
-    this.dropdown = new MultiSelectDropdown(items, "Select version(s) to deprecate", "All current versions");
+    this.dropdown = new MultiSelectDropdown(items, "version", "versions");
 
     this.isVulnerable = ko.observable(false);
     this.isLegacy = ko.observable(false);
@@ -76,8 +94,9 @@ function ManageDeprecationViewModel(id, versionsDictionary, defaultVersion, subm
     // The model for the CVEs view.
     this.cves = new ManageDeprecationSecurityDetailListViewModel(
         "CVE ID(s)",
-        "You can provide a list of CVEs applicable to the vulnerability.",
-        "Add CVE by ID e.g. CVE-2014-999999, CVE-2015-888888");
+        "Add one or more CVEs applicable to the vulnerability.",
+        "Add CVE by ID e.g. CVE-2014-999999, CVE-2015-888888",
+        "Add CVE");
 
     // Whether or not the checkbox for the CVSS section is checked.
     this.hasCvss = ko.observable(false);
@@ -129,8 +148,9 @@ function ManageDeprecationViewModel(id, versionsDictionary, defaultVersion, subm
     // The model for the CWEs view
     this.cwes = new ManageDeprecationSecurityDetailListViewModel(
         "CWE(s)",
-        "You can add one or more CWEs applicable to the vulnerability.",
-        "Add CWE by ID or title");
+        "Add one or more CWEs applicable to the vulnerability.",
+        "Add CWE by ID or title",
+        "Add CWE");
 
     // The ID entered into the alternate package ID textbox.
     this.chosenAlternatePackageId = ko.observable('');

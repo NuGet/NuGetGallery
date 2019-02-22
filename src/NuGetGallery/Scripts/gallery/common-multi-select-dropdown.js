@@ -6,7 +6,7 @@
     this.isRed = isRed;
 }
 
-function MultiSelectDropdown(items, noneSelectedText, allSelectedText) {
+function MultiSelectDropdown(items, singularItemTitle, pluralItemTitle) {
     var self = this;
 
     this.dropdownSelector = '.multi-select-dropdown';
@@ -57,6 +57,7 @@ function MultiSelectDropdown(items, noneSelectedText, allSelectedText) {
 
     // A filter to be applied to the items
     this.filter = ko.observable('');
+    this.filterPlaceholder = "Search for " + pluralItemTitle;
 
     // The items displayed in the dropdown.
     this.items = items;
@@ -81,22 +82,38 @@ function MultiSelectDropdown(items, noneSelectedText, allSelectedText) {
     this.toggleText = ko.pureComputed(function () {
         var chosenItems = self.chosenItems();
         if (chosenItems.length === 0) {
-            return noneSelectedText;
+            return "No " + pluralItemTitle;
         }
 
         if (chosenItems.length === self.items.length) {
-            return allSelectedText;
+            return "All " + pluralItemTitle;
         }
 
         return chosenItems.join(', ');
     }, this);
-
-    this.selectAllText = ko.pureComputed(function () {
-        if (self.filter()) {
-            return "Select filtered";
+    this.toggleLabel = ko.pureComputed(function () {
+        var chosenItems = self.chosenItems();
+        if (chosenItems.length === 0) {
+            return "No " + pluralItemTitle + " selected";
         }
 
-        return "Select all";
+        if (chosenItems.length === self.items.length) {
+            return "All " + pluralItemTitle + " selected";
+        }
+
+        var itemTitle = chosenItems.length > 1 ? pluralItemTitle : singularItemTitle;
+        return "Selected " + itemTitle + " " + chosenItems.join(', ');
+    }, this);
+
+    this.selectAllText = ko.pureComputed(function () {
+        var prefix;
+        if (self.filter()) {
+            prefix = "Select filtered ";
+        } else {
+            prefix = "Select all ";
+        }
+
+        return prefix + pluralItemTitle;
     }, this);
 
     // Whether or not the select all checkbox for the items is selected.
