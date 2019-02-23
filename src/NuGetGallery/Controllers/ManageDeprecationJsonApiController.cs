@@ -135,9 +135,9 @@ namespace NuGetGallery
 
             PackageRegistration alternatePackageRegistration = null;
             Package alternatePackage = null;
-            if (!string.IsNullOrEmpty(alternatePackageId))
+            if (!string.IsNullOrWhiteSpace(alternatePackageId))
             {
-                if (!string.IsNullOrEmpty(alternatePackageVersion))
+                if (!string.IsNullOrWhiteSpace(alternatePackageVersion))
                 {
                     alternatePackage = _packageService.FindPackageByIdAndVersionStrict(alternatePackageId, alternatePackageVersion);
                     if (alternatePackage == null)
@@ -194,17 +194,17 @@ namespace NuGetGallery
             var status = PackageDeprecationStatus.NotDeprecated;
             if (isVulnerable)
             {
-                status = status |= PackageDeprecationStatus.Vulnerable;
+                status |= PackageDeprecationStatus.Vulnerable;
             }
 
             if (isLegacy)
             {
-                status = status |= PackageDeprecationStatus.Legacy;
+                status |= PackageDeprecationStatus.Legacy;
             }
 
             if (isOther)
             {
-                status = status |= PackageDeprecationStatus.Other;
+                status |= PackageDeprecationStatus.Other;
             }
 
             if (cvssRating.HasValue && (cvssRating < 0 || cvssRating > 10))
