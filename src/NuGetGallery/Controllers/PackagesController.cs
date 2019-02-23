@@ -1395,6 +1395,7 @@ namespace NuGetGallery
         public virtual async Task<ActionResult> Manage(string id, string version = null)
         {
             Package package = null;
+
             // Load all versions of the package.
             var packages = _packageService.FindPackagesById(id, withDeprecations: true);
             if (version != null)
@@ -1437,9 +1438,25 @@ namespace NuGetGallery
         [RequiresAccountConfirmation("delete a symbols package")]
         public virtual ActionResult DeleteSymbols(string id, string version)
         {
-            var package = _packageService.FindPackageByIdAndVersion(id, version, SemVerLevelKey.SemVer2);
+            Package package = null;
+
+            // Load all versions of the package.
+            var packages = _packageService.FindPackagesById(id);
+            if (version != null)
+            {
+                // Try to find the exact version if it was specified.
+                package = packages.SingleOrDefault(p => p.NormalizedVersion == NuGetVersionFormatter.Normalize(version));
+            }
+
             if (package == null)
             {
+                // If the exact version was not found, fall back to the latest version.
+                package = _packageService.FilterLatestPackage(packages, SemVerLevelKey.SemVer2, allowPrerelease: true);
+            }
+
+            if (package == null)
+            {
+                // If the package has no versions, return not found.
                 return HttpNotFound();
             }
 
@@ -1452,9 +1469,7 @@ namespace NuGetGallery
             var model = new DeletePackageViewModel(package, currentUser, DeleteReasons);
 
             // Fetch all versions of the package with symbols.
-            var versionsWithSymbols = package
-                .PackageRegistration
-                .Packages
+            var versionsWithSymbols = packages
                 .Where(p => p.PackageStatusKey != PackageStatus.Deleted)
                 .Where(p => (p.LatestSymbolPackage()?.StatusKey ?? PackageStatus.Deleted) == PackageStatus.Available);
 

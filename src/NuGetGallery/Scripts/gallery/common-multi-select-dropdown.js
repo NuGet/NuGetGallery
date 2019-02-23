@@ -1,4 +1,6 @@
-﻿function MultiSelectDropdownItem(value, text, name, checked, isRed) {
+﻿'use strict';
+
+function MultiSelectDropdownItem(value, text, name, checked, isRed) {
     this.value = value;
     this.text = text;
     this.name = name;
