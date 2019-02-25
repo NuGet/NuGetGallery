@@ -10,6 +10,7 @@ using Newtonsoft.Json.Linq;
 using NuGet.Services.Search.Client;
 using NuGet.Versioning;
 using NuGetGallery.Configuration;
+using NuGetGallery.Infrastructure.Search;
 
 namespace NuGetGallery
 {
@@ -40,6 +41,7 @@ namespace NuGetGallery
             string semVerLevel = null)
         {
             queryString = BuildQueryString(queryString, includePrerelease, semVerLevel);
+            // This will be under the feature flag.
             var result = await DeprecatedExecuteQuery(queryString);
             var resultObject = JObject.Parse(result);
 
@@ -54,9 +56,10 @@ namespace NuGetGallery
             return await _httpClientToDeprecate.GetStringAsync(endpoints);
         }
 
-        private async Task<string> ExecuteQuery(string queryString)
+        internal async Task<string> ExecuteQuery(string queryString)
         {
-            return await _resilientSearchClient.GetStringAsync(_autocompletePath, queryString.TrimStart('?'));
+            var response = await _resilientSearchClient.GetAsync(_autocompletePath, queryString.TrimStart('?'));
+            return await response.Content.ReadAsStringAsync();
         }
 
         internal string BuildQueryString(string queryString, bool? includePrerelease, string semVerLevel = null)
@@ -67,11 +70,6 @@ namespace NuGetGallery
             if (!string.IsNullOrEmpty(semVerLevel) && NuGetVersion.TryParse(semVerLevel, out semVerLevelVersion))
             {
                 queryString += $"&semVerLevel={semVerLevel}";
-            }
-
-            if (string.IsNullOrEmpty(queryString))
-            {
-                return string.Empty;
             }
 
             return "?" + queryString.TrimStart('&');

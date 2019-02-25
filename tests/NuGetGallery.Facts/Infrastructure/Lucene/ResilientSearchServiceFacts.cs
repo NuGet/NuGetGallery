@@ -8,12 +8,14 @@ using System.Net.Http;
 using Newtonsoft.Json.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using NuGet.Services.Search.Client;
 using Microsoft.Extensions.Logging;
+using NuGetGallery;
+using NuGetGallery.Infrastructure;
+using NuGetGallery.Infrastructure.Search;
 using Moq;
 using Xunit;
 
-namespace NuGetGallery.Infrastructure.Lucene
+namespace NuGet.Services.Search.Client
 {
     public class ResilientSearchServiceFacts
     {
@@ -25,12 +27,12 @@ namespace NuGetGallery.Infrastructure.Lucene
                 // Arrange
                 string path = "query";
                 string queryString = "queryString";
-                string baseAddress1 = "https://bing222.com";
-                string baseAddress2 = "https://bing222.com";
+                string baseAddress1 = "https://foo222.com";
+                string baseAddress2 = "https://foo222.com";
                 Uri u1 = new Uri($"{baseAddress1}/{path}?{queryString}");
                 Uri u2 = new Uri($"{baseAddress2}/{path}?{queryString}");
-                Mock<ISearchHttpClient> mockISearchHttpClient1;
-                Mock<ISearchHttpClient> mockISearchHttpClient2;
+                Mock<IHttpClientWrapper> mockISearchHttpClient1;
+                Mock<IHttpClientWrapper> mockISearchHttpClient2;
                 var resilientTestClient = GetResilientSearchClient(baseAddress1, baseAddress2,
                     GetResponseMessage(u1, HttpStatusCode.BadRequest), GetResponseMessage(u2, HttpStatusCode.BadRequest),
                     out mockISearchHttpClient1, out mockISearchHttpClient2);
@@ -53,12 +55,12 @@ namespace NuGetGallery.Infrastructure.Lucene
                 // Arrange
                 string path = "query";
                 string queryString = "queryString";
-                string baseAddress1 = "https://bing111.com";
-                string baseAddress2 = "https://bing222.com";
+                string baseAddress1 = "https://foo111.com";
+                string baseAddress2 = "https://foo222.com";
                 Uri u1 = new Uri($"{baseAddress1}/{path}?{queryString}");
                 Uri u2 = new Uri($"{baseAddress2}/{path}?{queryString}");
-                Mock<ISearchHttpClient> mockISearchHttpClient1;
-                Mock<ISearchHttpClient> mockISearchHttpClient2;
+                Mock<IHttpClientWrapper> mockISearchHttpClient1;
+                Mock<IHttpClientWrapper> mockISearchHttpClient2;
                 var response1 = GetResponseMessage(u1, HttpStatusCode.OK);
                 var response2 = GetResponseMessage(u2, HttpStatusCode.OK);
                 var resilientTestClient = GetResilientSearchClient(baseAddress1, baseAddress2, response1, response2, out mockISearchHttpClient1, out mockISearchHttpClient2);
@@ -78,12 +80,12 @@ namespace NuGetGallery.Infrastructure.Lucene
                 // Arrange
                 string path = "query";
                 string queryString = "queryString";
-                string baseAddress1 = "https://bing111.com";
-                string baseAddress2 = "https://bing222.com";
+                string baseAddress1 = "https://foo111.com";
+                string baseAddress2 = "https://foo222.com";
                 Uri u1 = new Uri($"{baseAddress1}/{path}?{queryString}");
                 Uri u2 = new Uri($"{baseAddress2}/{path}?{queryString}");
-                Mock<ISearchHttpClient> mockISearchHttpClient1;
-                Mock<ISearchHttpClient> mockISearchHttpClient2;
+                Mock<IHttpClientWrapper> mockISearchHttpClient1;
+                Mock<IHttpClientWrapper> mockISearchHttpClient2;
                 var response1 = GetResponseMessage(u1, HttpStatusCode.ServiceUnavailable);
                 var response2 = GetResponseMessage(u2, HttpStatusCode.OK);
                 var resilientTestClient = GetResilientSearchClient(baseAddress1, baseAddress2, response1, response2, out mockISearchHttpClient1, out mockISearchHttpClient2);
@@ -93,84 +95,6 @@ namespace NuGetGallery.Infrastructure.Lucene
 
                 // Assert
                 Assert.Equal(response2, result);
-                mockISearchHttpClient1.Verify(x => x.GetAsync(u1), Times.Once);
-                mockISearchHttpClient2.Verify(x => x.GetAsync(u2), Times.Once);
-            }
-        }
-
-        public class TheGetStringAsyncMethod
-        {
-            [Fact]
-            public async Task GetStringAsyncReturnsNotAvailableWhenServicesAreNotAvailable()
-            {
-                // Arrange
-                string path = "query";
-                string queryString = "queryString";
-                string baseAddress1 = "https://bing222.com";
-                string baseAddress2 = "https://bing222.com";
-                Uri u1 = new Uri($"{baseAddress1}/{path}?{queryString}");
-                Uri u2 = new Uri($"{baseAddress2}/{path}?{queryString}");
-                Mock<ISearchHttpClient> mockISearchHttpClient1;
-                Mock<ISearchHttpClient> mockISearchHttpClient2;
-                var resilientTestClient = GetResilientSearchClient(baseAddress1, baseAddress2,
-                    GetResponseMessage(u1, HttpStatusCode.BadRequest), GetResponseMessage(u2, HttpStatusCode.BadRequest),
-                    out mockISearchHttpClient1, out mockISearchHttpClient2);
-
-                // Act
-                var result = await resilientTestClient.GetStringAsync(path, queryString);
-
-                // Assert
-                Assert.Equal("{\r\n  \"data\": {\r\n    \"message\": \"Search Service is not available. Please try again later.\"\r\n  }\r\n}", result);
-                mockISearchHttpClient1.Verify(x => x.GetAsync(u1), Times.Once);
-                mockISearchHttpClient2.Verify(x => x.GetAsync(u2), Times.Once);
-            }
-
-            [Fact]
-            public async Task GetStringAsyncReturnsFirstClientResponseIfAvailable()
-            {
-                // Arrange
-                string path = "query";
-                string queryString = "queryString";
-                string baseAddress1 = "https://bing111.com";
-                string baseAddress2 = "https://bing222.com";
-                Uri u1 = new Uri($"{baseAddress1}/{path}?{queryString}");
-                Uri u2 = new Uri($"{baseAddress2}/{path}?{queryString}");
-                Mock<ISearchHttpClient> mockISearchHttpClient1;
-                Mock<ISearchHttpClient> mockISearchHttpClient2;
-                var response1 = GetResponseMessage(u1, HttpStatusCode.OK);
-                var response2 = GetResponseMessage(u2, HttpStatusCode.OK);
-                var resilientTestClient = GetResilientSearchClient(baseAddress1, baseAddress2, response1, response2, out mockISearchHttpClient1, out mockISearchHttpClient2);
-
-                // Act
-                var result = await resilientTestClient.GetStringAsync(path, queryString);
-
-                // Assert
-                Assert.Equal(await response1.Content.ReadAsStringAsync(), result);
-                mockISearchHttpClient1.Verify(x => x.GetAsync(u1), Times.Once);
-                mockISearchHttpClient2.Verify(x => x.GetAsync(u2), Times.Never);
-            }
-
-            [Fact]
-            public async Task GetStringAsyncReturnsSecondClientResponseIfFirstIsNotAvailable()
-            {
-                // Arrange
-                string path = "query";
-                string queryString = "queryString";
-                string baseAddress1 = "https://bing111.com";
-                string baseAddress2 = "https://bing222.com";
-                Uri u1 = new Uri($"{baseAddress1}/{path}?{queryString}");
-                Uri u2 = new Uri($"{baseAddress2}/{path}?{queryString}");
-                Mock<ISearchHttpClient> mockISearchHttpClient1;
-                Mock<ISearchHttpClient> mockISearchHttpClient2;
-                var response1 = GetResponseMessage(u1, HttpStatusCode.ServiceUnavailable);
-                var response2 = GetResponseMessage(u2, HttpStatusCode.OK);
-                var resilientTestClient = GetResilientSearchClient(baseAddress1, baseAddress2, response1, response2, out mockISearchHttpClient1, out mockISearchHttpClient2);
-
-                // Act
-                var result = await resilientTestClient.GetStringAsync(path, queryString);
-
-                // Assert
-                Assert.Equal(await response2.Content.ReadAsStringAsync(), result);
                 mockISearchHttpClient1.Verify(x => x.GetAsync(u1), Times.Once);
                 mockISearchHttpClient2.Verify(x => x.GetAsync(u2), Times.Once);
             }
@@ -186,19 +110,19 @@ namespace NuGetGallery.Infrastructure.Lucene
             string secondaryBaseAddress,
             HttpResponseMessage getAsyncResultMessage1,
             HttpResponseMessage getAsyncResultMessage2,
-            out Mock<ISearchHttpClient> mockISearchHttpClient1,
-            out Mock<ISearchHttpClient> mockISearchHttpClient2)
+            out Mock<IHttpClientWrapper> mockISearchHttpClient1,
+            out Mock<IHttpClientWrapper> mockISearchHttpClient2)
         {
             var mockTelemetryService = new Mock<ITelemetryService>();
-            mockISearchHttpClient1 = new Mock<ISearchHttpClient>();
+            mockISearchHttpClient1 = new Mock<IHttpClientWrapper>();
             mockISearchHttpClient1.SetupGet(x => x.BaseAddress).Returns(new Uri(primaryBaseAddress));
             mockISearchHttpClient1.Setup(x => x.GetAsync(It.IsAny<Uri>())).ReturnsAsync(getAsyncResultMessage1);
 
-            mockISearchHttpClient2 = new Mock<ISearchHttpClient>();
+            mockISearchHttpClient2 = new Mock<IHttpClientWrapper>();
             mockISearchHttpClient2.SetupGet(x => x.BaseAddress).Returns(new Uri(secondaryBaseAddress));
             mockISearchHttpClient2.Setup(x => x.GetAsync(It.IsAny<Uri>())).ReturnsAsync(getAsyncResultMessage2);
 
-            List<ISearchHttpClient> clients = new List<ISearchHttpClient>() { mockISearchHttpClient1.Object, mockISearchHttpClient2.Object };
+            List<IHttpClientWrapper> clients = new List<IHttpClientWrapper>() { mockISearchHttpClient1.Object, mockISearchHttpClient2.Object };
             return new ResilientSearchHttpClient(clients, GetLogger(), mockTelemetryService.Object);
         }
 
@@ -217,7 +141,6 @@ namespace NuGetGallery.Infrastructure.Lucene
                 RequestMessage = new HttpRequestMessage(HttpMethod.Get, $"{path}/{queryString}"),
                 StatusCode = statusCode
             };
-
         }
     }
 }

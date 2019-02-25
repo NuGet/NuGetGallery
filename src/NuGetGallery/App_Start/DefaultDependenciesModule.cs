@@ -47,8 +47,8 @@ using NuGetGallery.Diagnostics;
 using NuGetGallery.Features;
 using NuGetGallery.Infrastructure;
 using NuGetGallery.Infrastructure.Authentication;
-using NuGetGallery.Infrastructure.Lucene;
 using NuGetGallery.Infrastructure.Mail;
+using NuGetGallery.Infrastructure.Search;
 using NuGetGallery.Security;
 using SecretReaderFactory = NuGetGallery.Configuration.SecretReader.SecretReaderFactory;
 
@@ -69,18 +69,6 @@ namespace NuGetGallery
         {
             var services = new ServiceCollection();
 
-            var telemetryClient = TelemetryClientWrapper.Instance;
-            builder.RegisterInstance(telemetryClient)
-                .AsSelf()
-                .As<ITelemetryClient>()
-                .SingleInstance();
-
-            var diagnosticsService = new DiagnosticsService(telemetryClient);
-            builder.RegisterInstance(diagnosticsService)
-                .AsSelf()
-                .As<IDiagnosticsService>()
-                .SingleInstance();
-
             var configuration = new ConfigurationService();
             var secretReaderFactory = new SecretReaderFactory(configuration);
             var secretReader = secretReaderFactory.CreateSecretReader();
@@ -99,16 +87,24 @@ namespace NuGetGallery
             {
                 TelemetryConfiguration.Active.InstrumentationKey = instrumentationKey;
             }
+
             var loggerConfiguration = LoggingSetup.CreateDefaultLoggerConfiguration(withConsoleLogger: false);
             var loggerFactory = LoggingSetup.CreateLoggerFactory(loggerConfiguration);
 
-            builder.RegisterInstance(loggerFactory)
+            var telemetryClient = TelemetryClientWrapper.Instance;
+            builder.RegisterInstance(telemetryClient)
                 .AsSelf()
-                .As<ILoggerFactory>();
-
-            builder.RegisterGeneric(typeof(Logger<>))
-                .As(typeof(ILogger<>))
+                .As<ITelemetryClient>()
                 .SingleInstance();
+
+            var diagnosticsService = new DiagnosticsService(telemetryClient);
+            builder.RegisterInstance(diagnosticsService)
+                .AsSelf()
+                .As<IDiagnosticsService>()
+                .SingleInstance();
+
+            services.AddSingleton(loggerFactory);
+            services.AddSingleton(typeof(ILogger<>), typeof(Logger<>));
 
             UrlHelperExtensions.SetConfigurationService(configuration);
 
@@ -128,7 +124,9 @@ namespace NuGetGallery
             builder.Register(c => configuration.PackageDelete)
                 .As<IPackageDeleteConfiguration>();
 
-            builder.RegisterType<TelemetryService>()
+            var telemetryService = new TelemetryService(diagnosticsService, telemetryClient);
+            builder.RegisterInstance(telemetryService)
+                .AsSelf()
                 .As<ITelemetryService>()
                 .As<IFeatureFlagTelemetryService>()
                 .SingleInstance();
@@ -140,7 +138,7 @@ namespace NuGetGallery
                 .As<Lucene.Net.Store.Directory>()
                 .SingleInstance();
 
-            ConfigureResilientSearch(loggerFactory, configuration, services);
+            ConfigureResilientSearch(loggerFactory, configuration, telemetryService, services);
             ConfigureSearch(builder, configuration);
 
             builder.RegisterType<DateTimeProvider>().AsSelf().As<IDateTimeProvider>().SingleInstance();
@@ -692,41 +690,49 @@ namespace NuGetGallery
             }
         }
 
-
-        private static void ConfigureResilientSearch(ILoggerFactory loggerFactory, IGalleryConfigurationService configuration, ServiceCollection services)
+        private static List<(string name,Uri searchUri)> GetSearchClientsFromConfiguration(IGalleryConfigurationService configuration)
         {
-            if (configuration.Current.SearchServiceUriPrimary != null && configuration.Current.SearchServiceUriSecondary != null)
+            List<(string name, Uri searchUri)> searchClients = new List<(string name, Uri searchUri)>();
+            if (configuration.Current.SearchServiceUriPrimary != null)
+            {
+                searchClients.Add((SearchClientConfiguration.SearchPrimaryInstance, configuration.Current.SearchServiceUriPrimary));
+            }
+            if (configuration.Current.SearchServiceUriSecondary != null)
+            {
+                searchClients.Add((SearchClientConfiguration.SearchSecondaryInstance, configuration.Current.SearchServiceUriSecondary));
+            }
+
+            return searchClients;
+        }
+
+        private static void ConfigureResilientSearch(ILoggerFactory loggerFactory, IGalleryConfigurationService configuration, ITelemetryService telemetryService, ServiceCollection services)
+        {
+            var searchClients = GetSearchClientsFromConfiguration(configuration);
+
+            if (searchClients.Count >= 1)
             {
                 var logger = loggerFactory.CreateLogger<SearchClientPolicies>();
-
                 services.AddTransient<CorrelatingHttpClientHandler>();
                 services.AddTransient((s) => new TracingHttpHandler(DependencyResolver.Current.GetService<IDiagnosticsService>().SafeGetSource("ExternalSearchService")));
 
-                services.AddHttpClient<ISearchHttpClient,SearchHttpClient>(SearchClientConfiguration.SearchPrimaryInstance, c =>
-                        c.BaseAddress = DependencyResolver.Current.GetService<IAppConfiguration>().SearchServiceUriPrimary)
-                    .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler() { AllowAutoRedirect = false })
+                foreach(var searchClient in searchClients)
+                {
+                    // The policy handlers will be applied from the bottom to the top.
+                    // The most inner one is the one added last.
+                    services.AddHttpClient<IHttpClientWrapper, HttpClientWrapper>(searchClient.name, c =>
+                         c.BaseAddress = searchClient.searchUri)
+                    .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler() { AllowAutoRedirect = true })
                     .AddHttpMessageHandler<TracingHttpHandler>()
                     .AddHttpMessageHandler<CorrelatingHttpClientHandler>()
-                    .AddPolicyHandler(SearchClientPolicies.SearchClientFallBackCircuitBreakerPolicy(logger))
-                    .AddPolicyHandler(SearchClientPolicies.SearchClientWaitAndRetryForeverPolicy(logger))
+                    .AddPolicyHandler(SearchClientPolicies.SearchClientFallBackCircuitBreakerPolicy(logger, searchClient.name, telemetryService))
+                    .AddPolicyHandler(SearchClientPolicies.SearchClientWaitAndRetryForeverPolicy(logger, searchClient.name, telemetryService))
                     .AddPolicyHandler(SearchClientPolicies.SearchClientCircuitBreakerPolicy(
                             SearchClientConfiguration.SearchRetryCount,
-                            TimeSpan.FromSeconds(SearchClientConfiguration.SearchCircuitBreakerDelayInSeconds),
-                            logger));
-
-                services.AddHttpClient<ISearchHttpClient,SearchHttpClient>(SearchClientConfiguration.SearchSecondaryInstance,  c =>
-                        c.BaseAddress = DependencyResolver.Current.GetService<IAppConfiguration>().SearchServiceUriSecondary)
-                    .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler() { AllowAutoRedirect = false })
-                    .AddHttpMessageHandler<TracingHttpHandler>()
-                    .AddHttpMessageHandler<CorrelatingHttpClientHandler>()
-                    .AddPolicyHandler(SearchClientPolicies.SearchClientFallBackCircuitBreakerPolicy(logger))
-                    .AddPolicyHandler(SearchClientPolicies.SearchClientWaitAndRetryForeverPolicy(logger))
-                    .AddPolicyHandler(SearchClientPolicies.SearchClientCircuitBreakerPolicy(
-                            SearchClientConfiguration.SearchRetryCount,
-                            TimeSpan.FromSeconds(SearchClientConfiguration.SearchCircuitBreakerDelayInSeconds),
-                            logger));
-
-                services.AddSingleton<ILogger<ResilientSearchHttpClient>>(loggerFactory.CreateLogger<ResilientSearchHttpClient>());
+                            TimeSpan.FromSeconds(configuration.Current.SearchCircuitBreakerDelayInSeconds),
+                            logger,
+                            searchClient.name,
+                            telemetryService));
+                }
                 services.AddTransient<IResilientSearchClient, ResilientSearchHttpClient>();
                 services.AddTransient<ISearchClient, GallerySearchClient>();
             }

@@ -12,7 +12,7 @@ using System.Web.Http.OData.Query;
 using System.Web.Routing;
 using NuGet.Services.Entities;
 using NuGet.Services.Search.Models;
-using NuGetGallery.Infrastructure.Lucene;
+using NuGetGallery.Infrastructure.Search;
 using NuGetGallery.OData.QueryFilter;
 using NuGetGallery.OData.QueryInterceptors;
 using QueryInterceptor;

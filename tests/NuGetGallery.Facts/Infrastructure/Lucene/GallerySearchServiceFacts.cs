@@ -7,12 +7,11 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
-using NuGet.Services.Search.Client;
 using NuGet.Services.Search.Models;
 using Newtonsoft.Json.Linq;
 using Xunit;
 
-namespace NuGetGallery.Infrastructure.Lucene
+namespace NuGetGallery.Infrastructure.Search
 {
     public class GallerySearchServiceFacts
     {
@@ -45,11 +44,11 @@ namespace NuGetGallery.Infrastructure.Lucene
         }
 
         [Theory]
-        [InlineData(null, null, false, SortOrder.Relevance, 1, 10, false, false, false, false, null, null )]
-        [InlineData("query", "projectTypeFilter", true, SortOrder.LastEdited, 1, 10, true, true, true, true, "supportedFramework", "semVerLevel")]
-        [InlineData("query", "projectTypeFilter", true, SortOrder.Published, 1, 10, true, true, true, true, "supportedFramework", "semVerLevel")]
-        [InlineData("query", "projectTypeFilter", true, SortOrder.TitleAscending, 1, 10, true, true, true, true, "supportedFramework", "semVerLevel")]
-        [InlineData("query", "projectTypeFilter", true, SortOrder.TitleDescending, 1, 10, true, true, true, true, "supportedFramework", "semVerLevel")]
+        [InlineData(null, null, false, SortOrder.Relevance, 1, 10, false, false, false, false, null, null, "q=&skip=1&take=10&sortBy=relevance&luceneQuery=false")]
+        [InlineData("query", "projectTypeFilter", true, SortOrder.LastEdited, 1, 10, true, true, true, true, "supportedFramework", "semVerLevel", "q=query&skip=1&take=10&sortBy=lastEdited&semVerLevel=semVerLevel&supportedFramework=supportedFramework&projectType=projectTypeFilter&prerelease=true&explanation=true&ignoreFilter=true&countOnly=true")]
+        [InlineData("query", "projectTypeFilter", true, SortOrder.Published, 1, 10, true, true, true, true, "supportedFramework", "semVerLevel", "q=query&skip=1&take=10&sortBy=published&semVerLevel=semVerLevel&supportedFramework=supportedFramework&projectType=projectTypeFilter&prerelease=true&explanation=true&ignoreFilter=true&countOnly=true")]
+        [InlineData("query", "projectTypeFilter", true, SortOrder.TitleAscending, 1, 10, true, true, true, true, "supportedFramework", "semVerLevel", "q=query&skip=1&take=10&sortBy=title-asc&semVerLevel=semVerLevel&supportedFramework=supportedFramework&projectType=projectTypeFilter&prerelease=true&explanation=true&ignoreFilter=true&countOnly=true")]
+        [InlineData("query", "projectTypeFilter", true, SortOrder.TitleDescending, 1, 10, true, true, true, true, "supportedFramework", "semVerLevel", "q=query&skip=1&take=10&sortBy=title-desc&semVerLevel=semVerLevel&supportedFramework=supportedFramework&projectType=projectTypeFilter&prerelease=true&explanation=true&ignoreFilter=true&countOnly=true")]
 
         public async Task SearchArgumentsAreCorrectSet(string query,
             string projectTypeFilter,
@@ -62,7 +61,8 @@ namespace NuGetGallery.Infrastructure.Lucene
             bool explain,
             bool getAllVersions,
             string supportedFramework,
-            string semVerLevel)
+            string semVerLevel,
+            string expectedResult)
         {
             // Arrange 
             var gallerySearchClient = new GallerySearchClient(ResilientClientForTest.GetTestInstance(HttpStatusCode.OK));
@@ -90,81 +90,7 @@ namespace NuGetGallery.Infrastructure.Lucene
             Assert.Equal(200, (int)statusCode);
             Assert.True(response.IsSuccessStatusCode);
             Assert.Equal("search/query", path);
-            Assert.Equal(await GetExpectedSeacrhQueryString(query,
-                projectTypeFilter,
-                includePrerelease,
-                sortBy,
-                skip,
-                take,
-                isLuceneQuery,
-                countOnly,
-                explain,
-                getAllVersions,
-                supportedFramework,
-                semVerLevel), queryString);
-        }
-
-        private async Task<string> GetExpectedSeacrhQueryString(string query,
-            string projectTypeFilter,
-            bool includePrerelease,
-            SortOrder sortBy,
-            int skip,
-            int take,
-            bool isLuceneQuery,
-            bool countOnly,
-            bool explain,
-            bool getAllVersions,
-            string supportedFramework,
-            string semVerLevel)
-        {
-            IDictionary<string, string> nameValue = new Dictionary<string, string>();
-            nameValue.Add("q", query);
-            nameValue.Add("skip", skip.ToString());
-            nameValue.Add("take", take.ToString());
-            nameValue.Add("sortBy", SortNames[sortBy]);
-
-            if (!String.IsNullOrEmpty(semVerLevel))
-            {
-                nameValue.Add("semVerLevel", semVerLevel);
-            }
-
-            if (!String.IsNullOrEmpty(supportedFramework))
-            {
-                nameValue.Add("supportedFramework", supportedFramework);
-            }
-
-            if (!String.IsNullOrEmpty(projectTypeFilter))
-            {
-                nameValue.Add("projectType", projectTypeFilter);
-            }
-
-            if (includePrerelease)
-            {
-                nameValue.Add("prerelease", "true");
-            }
-
-            if (!isLuceneQuery)
-            {
-                nameValue.Add("luceneQuery", "false");
-            }
-
-            if (explain)
-            {
-                nameValue.Add("explanation", "true");
-            }
-
-            if (getAllVersions)
-            {
-                nameValue.Add("ignoreFilter", "true");
-            }
-
-            if (countOnly)
-            {
-                nameValue.Add("countOnly", "true");
-            }
-
-            var qs = new FormUrlEncodedContent(nameValue);
-            return await qs.ReadAsStringAsync();
+            Assert.Equal(expectedResult, queryString);
         }
 
         private static readonly Dictionary<SortOrder, string> SortNames = new Dictionary<SortOrder, string>

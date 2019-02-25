@@ -401,5 +401,9 @@ namespace NuGetGallery.Configuration
         /// </summary>
         Uri SearchServiceUriSecondary { get; set; }
 
+        /// <summary>
+        /// The time in seconds for the circuit breaker delay. (The time the circuit breaker will stay in open state)
+        /// </summary>
+        int SearchCircuitBreakerDelayInSeconds { get; set; }
     }
 }

@@ -319,9 +319,9 @@
     <Compile Include="Infrastructure\Authentication\ApiKeyV3.cs" />
     <Compile Include="Infrastructure\Authentication\ApiKeyV4.cs" />
     <Compile Include="Infrastructure\Authentication\Base32Encoder.cs" />
-    <Compile Include="Infrastructure\Lucene\SearchHttpClient.cs" />
+    <Compile Include="Infrastructure\Lucene\HttpClientWrapper.cs" />
     <Compile Include="Infrastructure\Lucene\IResilientSearchClient.cs" />
-    <Compile Include="Infrastructure\Lucene\ISearchHttpClient.cs" />
+    <Compile Include="Infrastructure\Lucene\IHttpClientWrapper.cs" />
     <Compile Include="Infrastructure\Lucene\ResilientSearchHttpClient.cs" />
     <Compile Include="Infrastructure\Lucene\SearchClientConfiguration.cs" />
     <Compile Include="Infrastructure\Lucene\SearchClientPolicies.cs" />

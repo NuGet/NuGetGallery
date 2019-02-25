@@ -5,13 +5,13 @@ using System;
 using System.Net.Http;
 using System.Threading.Tasks;
 
-namespace NuGet.Services.Search.Client
+namespace NuGetGallery.Infrastructure
 {
-    public class SearchHttpClient : ISearchHttpClient
+    public class HttpClientWrapper : IHttpClientWrapper
     {
         HttpClient _httpClient;
 
-        public SearchHttpClient(HttpClient httpClient)
+        public HttpClientWrapper(HttpClient httpClient)
         {
             _httpClient = httpClient ?? throw (new ArgumentNullException(nameof(httpClient)));
         }

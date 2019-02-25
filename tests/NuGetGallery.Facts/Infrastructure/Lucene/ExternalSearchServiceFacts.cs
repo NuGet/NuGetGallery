@@ -13,7 +13,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
 
-namespace NuGetGallery.Infrastructure.Lucene
+namespace NuGetGallery.Infrastructure.Search
 {
     public class ExternalSearchServiceFacts
     {
@@ -56,7 +56,6 @@ namespace NuGetGallery.Infrastructure.Lucene
 
                 var mockIResilientSearchClient = new Mock<IResilientSearchClient>();
                 mockIResilientSearchClient.Setup(s => s.GetAsync(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(responseMessage);
-                mockIResilientSearchClient.Setup(s => s.GetStringAsync(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync($"{path}{queryString}");
 
                 return mockIResilientSearchClient.Object;
             }

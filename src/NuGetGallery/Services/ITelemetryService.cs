@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Net.Http;
 using System.Security.Principal;
 using NuGet.Services.Entities;
 using NuGet.Versioning;
@@ -262,7 +263,29 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="url">The search url.</param>
         /// <param name="duration">The search duration.</param>
-        /// <param name="statusCode">The status code.</param>
-        void TrackMetricForSearchExecutionDuration(string url, TimeSpan duration, HttpStatusCode statusCode);
+        /// <param name="success">True if the search was successful.</param>
+        void TrackMetricForSearchExecutionDuration(string url, TimeSpan duration, bool success);
+
+        /// <summary>
+        /// Tracks the OnBreak for the search circuitbreaker.
+        /// </summary>
+        /// <param name="searchName">A name to identify the search instance.</param>
+        /// <param name="exception">The exception if any.</param>
+        /// <param name="responseMessage">The response message.</param>
+        void TrackMetricForSearchCircuitBreakerOnBreak(string searchName, Exception exception, HttpResponseMessage responseMessage);
+
+        /// <summary>
+        /// Tracks the OnReset for the search circuit breaker.
+        /// </summary>
+        /// <param name="searchName">A name to identify the search instance.</param>
+        void TrackMetricForSearchCircuitBreakerOnReset(string searchName);
+
+        /// <summary>
+        /// Tracks the OnRetry for the search retry policy.
+        /// </summary>
+        /// <param name="searchName">A name to identify the search instance.</param>
+        /// <param name="exception">The exception.</param>
+        /// <param name=""></param>
+        void TrackMetricForSearchOnRetry(string searchName, Exception exception);
     }
 }

@@ -15,26 +15,20 @@ using NuGet.Services.Search.Client.Correlation;
 using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
 
-namespace NuGetGallery.Infrastructure.Lucene
+namespace NuGetGallery.Infrastructure.Search
 {
     public class ExternalSearchService : ISearchService, IIndexingService, IRawSearchService
     {
         public static readonly string SearchRoundtripTimePerfCounter = "SearchRoundtripTime";
 
         private static IEndpointHealthIndicatorStore _healthIndicatorStore;
-        // Search client that will be deprecated. It is still needed to allow the feature flag until the search that uses traffic manager is enabled.
+        // Search client that will be deprecated. It is still needed to allow the feature flag until the new search implementation is enabled.
         private static ISearchClient _deprecatedSearchClient;
-        // Search client that will use the traffic manager end point.
         private ISearchClient _searchClient;
 
         private JObject _diagCache;
 
         public Uri ServiceUri { get; private set; }
-
-        /// <summary>
-        /// The SearchService Uri as set in the web.config.
-        /// </summary>
-        private Uri SearchServiceUri { get; set; }
 
         protected IDiagnosticsSource Trace { get; private set; }
 
@@ -73,14 +67,30 @@ namespace NuGetGallery.Infrastructure.Lucene
 
         public ExternalSearchService(IAppConfiguration config, IDiagnosticsService diagnostics, ISearchClient searchClient)
         {
-            var serviceUri = config.ServiceDiscoveryUri;
+            ServiceUri = config.ServiceDiscoveryUri;
             _searchClient = searchClient ?? throw new ArgumentNullException(nameof(searchClient));
 
             Trace = diagnostics.SafeGetSource("ExternalSearchService");
 
             // Extract credentials
-            ICredentials serviceUriCredentials = ExtractCredentialsFromUri(ref serviceUri);
-            ServiceUri = serviceUri;
+            var userInfo = ServiceUri.UserInfo;
+            ICredentials credentials = null;
+            if (!String.IsNullOrEmpty(userInfo))
+            {
+                var split = userInfo.Split(':');
+                if (split.Length != 2)
+                {
+                    throw new FormatException("Invalid user info in SearchServiceUri!");
+                }
+
+                // Split the credentials out
+                credentials = new NetworkCredential(split[0], split[1]);
+                ServiceUri = new UriBuilder(ServiceUri)
+                {
+                    UserName = null,
+                    Password = null
+                }.Uri;
+            }
 
             // note: intentionally not locking the next two assignments to avoid blocking calls
             if (_healthIndicatorStore == null)
@@ -93,43 +103,12 @@ namespace NuGetGallery.Infrastructure.Lucene
                 _deprecatedSearchClient = new SearchClient(
                     ServiceUri, 
                     config.SearchServiceResourceType,
-                    serviceUriCredentials, 
+                    credentials, 
                     _healthIndicatorStore,
                     QuietLog.LogHandledException,
                     new TracingHttpHandler(Trace), 
                     new CorrelatingHttpClientHandler());
             }
-        }
-
-        private static readonly Task<bool> _exists = Task.FromResult(true);
-
-        public ICredentials ExtractCredentialsFromUri(ref Uri uri)
-        {
-            var userInfo = uri.UserInfo;
-            ICredentials credentials = null;
-            if (!String.IsNullOrEmpty(userInfo))
-            {
-                var split = userInfo.Split(':');
-                if (split.Length != 2)
-                {
-                    throw new FormatException("Invalid user info in SearchServiceUri!");
-                }
-
-                // Split the credentials out
-                credentials = new NetworkCredential(split[0], split[1]);
-                uri = new UriBuilder(ServiceUri)
-                {
-                    UserName = null,
-                    Password = null
-                }.Uri;
-            }
-
-            return credentials;
-        }
-
-        public Task<bool> Exists()
-        {
-            return _exists;
         }
 
         public virtual Task<SearchResults> RawSearch(SearchFilter filter)
@@ -189,7 +168,7 @@ namespace NuGetGallery.Infrastructure.Lucene
                     result.HttpResponse.Content.Dispose();
                 }
 
-                results = new SearchResults(0, null, Enumerable.Empty<Package>().AsQueryable(), statusCode: result.HttpResponse.StatusCode);
+                results = new SearchResults(0, null, Enumerable.Empty<Package>().AsQueryable(), responseMessage: result.HttpResponse);
             }
 
             Trace.PerfEvent(
@@ -350,8 +329,8 @@ namespace NuGetGallery.Infrastructure.Lucene
         /// <summary>
         /// It will return the client to use based on the feature flag.
         /// </summary>
-        /// <returns></returns>
-        public ISearchClient GetClient(){ return _deprecatedSearchClient; }
+        /// <returns>The search client in use. Used for the unit tests.</returns>
+        internal ISearchClient GetClient(){ return _deprecatedSearchClient; }
 
         // Bunch of no-ops to disable indexing because an external search service is doing that.
         public void UpdateIndex()

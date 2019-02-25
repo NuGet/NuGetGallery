@@ -6,10 +6,10 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
-using NuGetGallery;
 using SearchModels = NuGet.Services.Search.Models;
+using NuGet.Services.Search.Client;
 
-namespace NuGet.Services.Search.Client 
+namespace NuGetGallery.Infrastructure.Search 
 {
     public class GallerySearchClient : ISearchClient
     {

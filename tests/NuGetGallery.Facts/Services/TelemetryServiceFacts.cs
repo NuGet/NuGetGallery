@@ -255,7 +255,19 @@ namespace NuGetGallery
                     };
 
                     yield return new object[] { "SearchExecutionDuration",
-                        (TrackAction)(s => s.TrackMetricForSearchExecutionDuration("https://www.bing.com", TimeSpan.FromMilliseconds(100), HttpStatusCode.OK))
+                        (TrackAction)(s => s.TrackMetricForSearchExecutionDuration("https://www.bing.com", TimeSpan.FromMilliseconds(100), true))
+                    };
+
+                    yield return new object[] { "SearchCircuitBreakerOnBreak",
+                        (TrackAction)(s => s.TrackMetricForSearchCircuitBreakerOnBreak("SomeName", exception: null, responseMessage: null))
+                    };
+
+                    yield return new object[] { "SearchCircuitBreakerOnReset",
+                        (TrackAction)(s => s.TrackMetricForSearchCircuitBreakerOnReset("SomeName"))
+                    };
+
+                    yield return new object[] { "SearchOnRetry",
+                        (TrackAction)(s => s.TrackMetricForSearchOnRetry("SomeName", exception: null))
                     };
                 }
             }

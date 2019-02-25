@@ -4,12 +4,10 @@
 using System.Net.Http;
 using System.Threading.Tasks;
 
-namespace NuGet.Services.Search.Client
+namespace NuGetGallery.Infrastructure.Search
 {
     public interface IResilientSearchClient
     {
         Task<HttpResponseMessage> GetAsync(string path, string queryString);
-
-        Task<string> GetStringAsync(string path, string queryString);
     }
 }

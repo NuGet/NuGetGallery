@@ -6,8 +6,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using Newtonsoft.Json.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using NuGet.Services.Search.Client;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,7 +13,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
 
-namespace NuGetGallery.Infrastructure.Lucene
+namespace NuGetGallery.Infrastructure.Search
 {
     public class SearchPolicyFacts
     {
@@ -151,11 +149,11 @@ namespace NuGetGallery.Infrastructure.Lucene
 
             var r = await validClient.GetAsync(uri);
 
-            var retryInfo = _loggerFor_InvalidTestSearchHttpClientWithShortCircuitBreakDelay.Informations.Where(s => s.StartsWith("Policy retry - it will retry after")).Count();
-            var onCircuitBreakerfallBackInfo = _loggerFor_InvalidTestSearchHttpClientWithShortCircuitBreakDelay.Informations.Where(s => s.StartsWith("On circuit breaker fallback.")).Count();
-            var circuitBreakerWarning = _loggerFor_InvalidTestSearchHttpClientWithShortCircuitBreakDelay.Warnings.Where(s => s.StartsWith("SearchCircuitBreaker logging: Breaking the circuit for")).Count();
-            var onCircuitBreakerReset = _loggerFor_InvalidTestSearchHttpClientWithShortCircuitBreakDelay.Informations.Where(s => s.StartsWith("SearchCircuitBreaker logging: Call ok! Closed the circuit again!")).Count();
-            var onCircuitBreakerHalfOpen = _loggerFor_InvalidTestSearchHttpClientWithShortCircuitBreakDelay.Informations.Where(s => s.StartsWith("SearchCircuitBreaker logging: Half-open: Next call is a trial!")).Count();
+            var retryInfo = _loggerFor_ValidTestSearchHttpClient.Informations.Where(s => s.StartsWith("Policy retry - it will retry after")).Count();
+            var onCircuitBreakerfallBackInfo = _loggerFor_ValidTestSearchHttpClient.Informations.Where(s => s.StartsWith("On circuit breaker fallback.")).Count();
+            var circuitBreakerWarning = _loggerFor_ValidTestSearchHttpClient.Warnings.Where(s => s.StartsWith("SearchCircuitBreaker logging: Breaking the circuit for")).Count();
+            var onCircuitBreakerReset = _loggerFor_ValidTestSearchHttpClient.Informations.Where(s => s.StartsWith("SearchCircuitBreaker logging: Call ok! Closed the circuit again!")).Count();
+            var onCircuitBreakerHalfOpen = _loggerFor_ValidTestSearchHttpClient.Informations.Where(s => s.StartsWith("SearchCircuitBreaker logging: Half-open: Next call is a trial!")).Count();
 
             Assert.Equal(0, retryInfo);
             Assert.Equal(0, onCircuitBreakerfallBackInfo);
@@ -173,80 +171,45 @@ namespace NuGetGallery.Infrastructure.Lucene
 
         private static ServiceCollection ConfigureServices()
         {
+            Mock<ITelemetryService> mockITelemetryService = new Mock<ITelemetryService>();
+            ITelemetryService telemetryServiceResolver = mockITelemetryService.Object;
+
             ServiceCollection services = new ServiceCollection();
             _loggerFor_InvalidTestSearchHttpClientWithLongCircuitBreakDelay = new LoggerFor_TestSearchHttpClient();
             _loggerFor_InvalidTestSearchHttpClientWithShortCircuitBreakDelay = new LoggerFor_TestSearchHttpClient();
             _loggerFor_ValidTestSearchHttpClient = new LoggerFor_TestSearchHttpClient();
 
-            services.AddHttpClient<TestSearchHttpClient>(_nameFor_InvalidTestSearchHttpClientWithLongCircuitBreakDelay, c =>
-                         c.BaseAddress = new Uri(_longInvalidAddress))
-                    .AddPolicyHandler(SearchClientPolicies.SearchClientFallBackCircuitBreakerPolicy(_loggerFor_InvalidTestSearchHttpClientWithLongCircuitBreakDelay))
-                    .AddPolicyHandler(SearchClientPolicies.SearchClientWaitAndRetryForeverPolicy(_loggerFor_InvalidTestSearchHttpClientWithLongCircuitBreakDelay))
+            services.AddHttpClient<TestSearchHttpClient>(_nameFor_InvalidTestSearchHttpClientWithLongCircuitBreakDelay, c => c.BaseAddress = new Uri(_longInvalidAddress))
+                    .AddPolicyHandler(SearchClientPolicies.SearchClientFallBackCircuitBreakerPolicy(_loggerFor_InvalidTestSearchHttpClientWithLongCircuitBreakDelay, "InvalidTestSearchHttpClientWithLongCircuitBreakDelay", telemetryServiceResolver))
+                    .AddPolicyHandler(SearchClientPolicies.SearchClientWaitAndRetryForeverPolicy(_loggerFor_InvalidTestSearchHttpClientWithLongCircuitBreakDelay, "InvalidTestSearchHttpClientWithLongCircuitBreakDelay", telemetryServiceResolver))
                     .AddPolicyHandler(SearchClientPolicies.SearchClientCircuitBreakerPolicy(
                             _retryCount,
                             TimeSpan.FromSeconds(_circuitBreakerLongDelaySeconds),
-                            _loggerFor_InvalidTestSearchHttpClientWithLongCircuitBreakDelay));
+                            _loggerFor_InvalidTestSearchHttpClientWithLongCircuitBreakDelay,
+                            "InvalidTestSearchHttpClientWithLongCircuitBreakDelay", telemetryServiceResolver));
 
-            services.AddHttpClient<TestSearchHttpClient>(_nameFor_InvalidTestSearchHttpClientWithShortCircuitBreakDelay, c =>
-                         c.BaseAddress = new Uri(_shortInvalidAddress))
-                    .AddPolicyHandler(SearchClientPolicies.SearchClientFallBackCircuitBreakerPolicy(_loggerFor_InvalidTestSearchHttpClientWithShortCircuitBreakDelay))
-                    .AddPolicyHandler(SearchClientPolicies.SearchClientWaitAndRetryForeverPolicy(_loggerFor_InvalidTestSearchHttpClientWithShortCircuitBreakDelay))
+            services.AddHttpClient<TestSearchHttpClient>(_nameFor_InvalidTestSearchHttpClientWithShortCircuitBreakDelay, c => c.BaseAddress = new Uri(_shortInvalidAddress))
+                    .AddPolicyHandler(SearchClientPolicies.SearchClientFallBackCircuitBreakerPolicy(_loggerFor_InvalidTestSearchHttpClientWithShortCircuitBreakDelay, "InvalidTestSearchHttpClientWithShortCircuitBreakDelay", telemetryServiceResolver))
+                    .AddPolicyHandler(SearchClientPolicies.SearchClientWaitAndRetryForeverPolicy(_loggerFor_InvalidTestSearchHttpClientWithShortCircuitBreakDelay, "InvalidTestSearchHttpClientWithShortCircuitBreakDelay", telemetryServiceResolver))
                     .AddPolicyHandler(SearchClientPolicies.SearchClientCircuitBreakerPolicy(
                             _retryCount,
                             TimeSpan.FromSeconds(_circuitBreakerShortDelaySeconds),
-                            _loggerFor_InvalidTestSearchHttpClientWithShortCircuitBreakDelay));
+                            _loggerFor_InvalidTestSearchHttpClientWithShortCircuitBreakDelay,
+                            "InvalidTestSearchHttpClientWithShortCircuitBreakDelay", telemetryServiceResolver));
 
-            services.AddHttpClient<TestSearchHttpClient>(_nameFor_ValidTestSearchHttpClient, c =>
-                        c.BaseAddress = new Uri(_validAddress))
-                   .AddPolicyHandler(SearchClientPolicies.SearchClientFallBackCircuitBreakerPolicy(_loggerFor_ValidTestSearchHttpClient))
-                   .AddPolicyHandler(SearchClientPolicies.SearchClientWaitAndRetryForeverPolicy(_loggerFor_ValidTestSearchHttpClient))
+            services.AddHttpClient<TestSearchHttpClient>(_nameFor_ValidTestSearchHttpClient, c => c.BaseAddress = new Uri(_validAddress))
+                   .AddPolicyHandler(SearchClientPolicies.SearchClientFallBackCircuitBreakerPolicy(_loggerFor_ValidTestSearchHttpClient, "ValidTestSearchHttpClient", telemetryServiceResolver))
+                   .AddPolicyHandler(SearchClientPolicies.SearchClientWaitAndRetryForeverPolicy(_loggerFor_ValidTestSearchHttpClient, "InvalidTestSearchHttpClientWithShortCircuitBreakDelay", telemetryServiceResolver))
                    .AddPolicyHandler(SearchClientPolicies.SearchClientCircuitBreakerPolicy(
                            _retryCount,
                            TimeSpan.FromSeconds(_circuitBreakerShortDelaySeconds),
-                           _loggerFor_ValidTestSearchHttpClient));
+                           _loggerFor_ValidTestSearchHttpClient,
+                           "InvalidTestSearchHttpClientWithShortCircuitBreakDelay", telemetryServiceResolver));
 
             return services;
         }
 
-        private static IResilientSearchClient GetResilientSearchClient(string primaryBaseAddress,
-            string secondaryBaseAddress,
-            HttpResponseMessage getAsyncResultMessage1,
-            HttpResponseMessage getAsyncResultMessage2,
-            out Mock<ISearchHttpClient> mockISearchHttpClient1,
-            out Mock<ISearchHttpClient> mockISearchHttpClient2)
-        {
-            var mockTelemetryService = new Mock<ITelemetryService>();
-            mockISearchHttpClient1 = new Mock<ISearchHttpClient>();
-            mockISearchHttpClient1.SetupGet(x => x.BaseAddress).Returns(new Uri(primaryBaseAddress));
-            mockISearchHttpClient1.Setup(x => x.GetAsync(It.IsAny<Uri>())).ReturnsAsync(getAsyncResultMessage1);
-
-            mockISearchHttpClient2 = new Mock<ISearchHttpClient>();
-            mockISearchHttpClient2.SetupGet(x => x.BaseAddress).Returns(new Uri(secondaryBaseAddress));
-            mockISearchHttpClient2.Setup(x => x.GetAsync(It.IsAny<Uri>())).ReturnsAsync(getAsyncResultMessage2);
-
-            List<ISearchHttpClient> clients = new List<ISearchHttpClient>() { mockISearchHttpClient1.Object, mockISearchHttpClient2.Object };
-            return new ResilientSearchHttpClient(clients, GetLogger(), mockTelemetryService.Object);
-        }
-
-        private static HttpResponseMessage GetResponseMessage(Uri uri, HttpStatusCode statusCode)
-        {
-            string path = uri.AbsolutePath;
-            string queryString = uri.Query;
-
-            var content = new JObject(
-                           new JProperty("queryString", queryString),
-                           new JProperty("path", path));
-
-            return new HttpResponseMessage()
-            {
-                Content = new StringContent(content.ToString(), Encoding.UTF8, CoreConstants.TextContentType),
-                RequestMessage = new HttpRequestMessage(HttpMethod.Get, $"{path}/{queryString}"),
-                StatusCode = statusCode
-            };
-
-        }
-
-        private class TestSearchHttpClient : ISearchHttpClient
+        private class TestSearchHttpClient : IHttpClientWrapper
         {
             HttpClient _client;
 
@@ -257,13 +220,23 @@ namespace NuGetGallery.Infrastructure.Lucene
 
             public Uri BaseAddress => _client.BaseAddress;
 
-            public Task<HttpResponseMessage> GetAsync(Uri uri)
+            public async Task<HttpResponseMessage> GetAsync(Uri uri)
             {
-                return _client.GetAsync(uri);
+                HttpResponseMessage m = null;
+                try
+                {
+                    m = await _client.GetAsync(uri);
+                    return m;
+                }
+                catch (Exception e)
+                {
+                    var msg = e.Message;
+                    throw e;
+                }
             }
         }
 
-        private class ValidSearchHttpClient : ISearchHttpClient
+        private class ValidSearchHttpClient : IHttpClientWrapper
         {
             HttpClient _client;
 
@@ -310,24 +283,6 @@ namespace NuGetGallery.Infrastructure.Lucene
                     default:
                         break;
                 }
-            }
-        }
-
-        private class LoggerForValidSearchHttpClient : ILogger
-        {
-            public IDisposable BeginScope<TState>(TState state)
-            {
-                throw new NotImplementedException();
-            }
-
-            public bool IsEnabled(LogLevel logLevel)
-            {
-                throw new NotImplementedException();
-            }
-
-            public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
-            {
-                throw new NotImplementedException();
             }
         }
     }

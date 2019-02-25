@@ -9,7 +9,8 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NuGetGallery.Configuration;
-using NuGet.Services.Search.Client;
+using NuGetGallery.Infrastructure;
+using NuGetGallery.Infrastructure.Search;
 using Xunit;
 
 namespace NuGetGallery
@@ -33,8 +34,8 @@ namespace NuGetGallery
         private IResilientSearchClient GetResilientSearchClient()
         {
             var mockTelemetryService = new Mock<ITelemetryService>();
-            List<ISearchHttpClient> clients = new List<ISearchHttpClient>();
-            clients.Add(new SearchHttpClient(new HttpClient()
+            List<IHttpClientWrapper> clients = new List<IHttpClientWrapper>();
+            clients.Add(new HttpClientWrapper(new HttpClient()
             {
                 BaseAddress = new Uri("https://api-v2v3search-0.nuget.org")
             }));

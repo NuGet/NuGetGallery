@@ -5,13 +5,13 @@ using System;
 using System.Net.Http;
 using System.Threading.Tasks;
 
-namespace NuGet.Services.Search.Client
+namespace NuGetGallery.Infrastructure
 {
     /// <summary>
-    /// A wrapper around HttpClient to be used by the Search.
+    /// A wrapper around HttpClient.
     /// It enables better unit testing and typed dependency injection pattern for the search http clients. 
     /// </summary>
-    public interface ISearchHttpClient
+    public interface IHttpClientWrapper
     {
         Task<HttpResponseMessage> GetAsync(Uri uri);
 

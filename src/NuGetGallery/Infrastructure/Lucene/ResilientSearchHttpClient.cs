@@ -9,18 +9,17 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using NuGetGallery;
 using Newtonsoft.Json.Linq;
 
-namespace NuGet.Services.Search.Client
+namespace NuGetGallery.Infrastructure.Search
 {
     public class ResilientSearchHttpClient : IResilientSearchClient
     {
-        private readonly IEnumerable<ISearchHttpClient> _httpClients;
+        private readonly IEnumerable<IHttpClientWrapper> _httpClients;
         private readonly ILogger _logger;
         private readonly ITelemetryService _telemetryService;
 
-        public ResilientSearchHttpClient(IEnumerable<ISearchHttpClient> searchClients, ILogger<ResilientSearchHttpClient> logger, ITelemetryService telemetryService)
+        public ResilientSearchHttpClient(IEnumerable<IHttpClientWrapper> searchClients, ILogger<ResilientSearchHttpClient> logger, ITelemetryService telemetryService)
         {
             _httpClients = searchClients ?? throw new ArgumentNullException(nameof(logger));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -39,19 +38,13 @@ namespace NuGet.Services.Search.Client
                 if (result.IsSuccessStatusCode)
                 {
                     sw.Stop();
-                    _telemetryService.TrackMetricForSearchExecutionDuration(searchUri.AbsoluteUri, sw.Elapsed, result.StatusCode);
+                    _telemetryService.TrackMetricForSearchExecutionDuration(searchUri.AbsoluteUri, sw.Elapsed, success: true);
                     return result;
                 }
             }
             sw.Stop();
-            _telemetryService.TrackMetricForSearchExecutionDuration(searchUri?.AbsoluteUri??string.Empty, sw.Elapsed, HttpStatusCode.ServiceUnavailable);
+            _telemetryService.TrackMetricForSearchExecutionDuration(searchUri?.AbsoluteUri??string.Empty, sw.Elapsed, success: false);
             return GetSearchServiceNotAvailableHttpResponseMessage(path, queryString);
-        }
-
-        public async Task<string> GetStringAsync(string path, string queryString)
-        {
-            var result = await GetAsync(path, queryString);
-            return await result.Content.ReadAsStringAsync();
         }
 
         private static HttpResponseMessage GetSearchServiceNotAvailableHttpResponseMessage(string path, string queryString)
@@ -62,7 +55,7 @@ namespace NuGet.Services.Search.Client
 
             return new HttpResponseMessage()
             {
-                Content = new StringContent(content.ToString(), Encoding.UTF8, CoreConstants.TextContentType),
+                Content = new StringContent(content.ToString(), Encoding.UTF8, CoreConstants.JsonContentType),
                 RequestMessage = new HttpRequestMessage(HttpMethod.Get, $"{path}/{queryString}"),
                 StatusCode = HttpStatusCode.ServiceUnavailable
             };

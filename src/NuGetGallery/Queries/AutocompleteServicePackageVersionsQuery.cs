@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using NuGetGallery.Configuration;
-using NuGet.Services.Search.Client;
+using NuGetGallery.Infrastructure.Search;
 
 namespace NuGetGallery
 {
