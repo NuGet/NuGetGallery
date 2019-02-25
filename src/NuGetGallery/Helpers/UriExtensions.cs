@@ -93,7 +93,7 @@ namespace NuGetGallery
                 builder.Query = queryString;
             }
             return builder.Uri;
-	}
+    }
 
         public static string GetExternalUrlAnchorTag(string data, string link)
         {
