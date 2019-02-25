@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Web.Mvc;
@@ -178,38 +179,13 @@ namespace NuGetGallery.Controllers
         public class TheGetAlternatePackageVersionsMethod : TestContainer
         {
             [Fact]
-            public void ReturnsNotFoundIfIdMissing()
-            {
-                // Arrange
-                var id = "missingId";
-                GetMock<IPackageService>()
-                    .Setup(x => x.FindPackageRegistrationById(id))
-                    .Returns((PackageRegistration)null);
-
-                var controller = GetController<ManageDeprecationJsonApiController>();
-
-                // Act
-                var result = controller.GetAlternatePackageVersions(id);
-
-                // Assert
-                Assert.Equal(JsonRequestBehavior.AllowGet, result.JsonRequestBehavior);
-                Assert.Equal((int)HttpStatusCode.NotFound, controller.Response.StatusCode);
-                Assert.Null(result.Data);
-            }
-
-            [Fact]
-            public void ReturnsNotFoundIfNoVersions()
+            public void ReturnsEmptyIfNoVersions()
             {
                 // Arrange
                 var id = "Crested.Gecko";
-                var registration = new PackageRegistration
-                {
-                    Id = id
-                };
-
                 GetMock<IPackageService>()
-                    .Setup(x => x.FindPackageRegistrationById(id))
-                    .Returns(registration);
+                    .Setup(x => x.FindPackagesById(id, false))
+                    .Returns(new Package[0]);
 
                 var controller = GetController<ManageDeprecationJsonApiController>();
 
@@ -218,8 +194,8 @@ namespace NuGetGallery.Controllers
 
                 // Assert
                 Assert.Equal(JsonRequestBehavior.AllowGet, result.JsonRequestBehavior);
-                Assert.Equal((int)HttpStatusCode.NotFound, controller.Response.StatusCode);
-                Assert.Null(result.Data);
+                Assert.Equal((int)HttpStatusCode.OK, controller.Response.StatusCode);
+                Assert.Empty((IEnumerable<string>)result.Data);
             }
 
             [Fact]
@@ -260,23 +236,19 @@ namespace NuGetGallery.Controllers
                     PackageStatusKey = PackageStatus.FailedValidation
                 };
 
-                var registration = new PackageRegistration
+                var packages = new[]
                 {
-                    Id = id,
-                    Packages = new[] 
-                    {
-                        firstPackage,
-                        deletedPackage,
-                        validatingPackage,
-                        failedValidationPackage,
-                        thirdPackage,
-                        secondPackage
-                    }
+                    firstPackage,
+                    deletedPackage,
+                    validatingPackage,
+                    failedValidationPackage,
+                    thirdPackage,
+                    secondPackage
                 };
 
                 GetMock<IPackageService>()
-                    .Setup(x => x.FindPackageRegistrationById(id))
-                    .Returns(registration);
+                    .Setup(x => x.FindPackagesById(id, false))
+                    .Returns(packages);
 
                 var controller = GetController<ManageDeprecationJsonApiController>();
 
