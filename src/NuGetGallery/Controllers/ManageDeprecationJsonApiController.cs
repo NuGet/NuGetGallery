@@ -19,15 +19,18 @@ namespace NuGetGallery
         private readonly IVulnerabilityAutocompleteService _vulnerabilityAutocompleteService;
         private readonly IPackageService _packageService;
         private readonly IPackageDeprecationService _deprecationService;
+        private readonly IFeatureFlagService _featureFlagService;
 
         public ManageDeprecationJsonApiController(
             IVulnerabilityAutocompleteService vulnerabilityAutocompleteService,
             IPackageService packageService,
-            IPackageDeprecationService deprecationService)
+            IPackageDeprecationService deprecationService,
+            IFeatureFlagService featureFlagService)
         {
             _vulnerabilityAutocompleteService = vulnerabilityAutocompleteService ?? throw new ArgumentNullException(nameof(vulnerabilityAutocompleteService));
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
             _deprecationService = deprecationService ?? throw new ArgumentNullException(nameof(deprecationService));
+            _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
         }
 
         [HttpGet]
@@ -67,25 +70,14 @@ namespace NuGetGallery
         [UIAuthorize]
         public virtual JsonResult GetAlternatePackageVersions(string id)
         {
-            var registration = _packageService.FindPackageRegistrationById(id);
-            if (registration == null)
-            {
-                return Json(HttpStatusCode.NotFound, null, JsonRequestBehavior.AllowGet);
-            }
-
-            var versions = registration.Packages
+            var versions = _packageService.FindPackagesById(id)
                 .Where(p => p.PackageStatusKey == PackageStatus.Available)
-                .ToList()
                 .Select(p => NuGetVersion.Parse(p.Version))
                 .OrderByDescending(v => v)
-                .Select(v => v.ToFullString());
+                .Select(v => v.ToFullString())
+                .ToList();
 
-            if (!versions.Any())
-            {
-                return Json(HttpStatusCode.NotFound, null, JsonRequestBehavior.AllowGet);
-            }
-
-            return Json(HttpStatusCode.OK, versions.ToList(), JsonRequestBehavior.AllowGet);
+            return Json(HttpStatusCode.OK, versions, JsonRequestBehavior.AllowGet);
         }
 
         [HttpPost]
@@ -106,6 +98,12 @@ namespace NuGetGallery
             string customMessage,
             bool shouldUnlist)
         {
+            var currentUser = GetCurrentUser();
+            if (!_featureFlagService.IsManageDeprecationEnabled(GetCurrentUser()))
+            {
+                return DeprecateErrorResponse(HttpStatusCode.Forbidden, Strings.DeprecatePackage_Forbidden);
+            }
+
             if (versions == null || !versions.Any())
             {
                 return DeprecateErrorResponse(HttpStatusCode.BadRequest, Strings.DeprecatePackage_NoVersions);
@@ -121,7 +119,7 @@ namespace NuGetGallery
                     string.Format(Strings.DeprecatePackage_MissingRegistration, id));
             }
 
-            if (ActionsRequiringPermissions.DeprecatePackage.CheckPermissionsOnBehalfOfAnyAccount(GetCurrentUser(), registration) != PermissionsCheckResult.Allowed)
+            if (ActionsRequiringPermissions.DeprecatePackage.CheckPermissionsOnBehalfOfAnyAccount(currentUser, registration) != PermissionsCheckResult.Allowed)
             {
                 return DeprecateErrorResponse(HttpStatusCode.Forbidden, Strings.DeprecatePackage_Forbidden);
             }

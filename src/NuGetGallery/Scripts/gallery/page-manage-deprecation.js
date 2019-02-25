@@ -195,15 +195,13 @@ function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defau
             statusCode: {
                 200: function (data) {
                     if (self.alternatePackageId() === id) {
-                        self.alternatePackageVersionsCached(data);
-                        self.chosenAlternatePackageIdError(null);
-                    }
-                },
-
-                404: function () {
-                    if (self.alternatePackageId() === id) {
-                        self.alternatePackageVersionsCached.removeAll();
-                        self.chosenAlternatePackageIdError("Could not find alternate package '" + id + "'.");
+                        if (data.length) {
+                            self.alternatePackageVersionsCached(data);
+                            self.chosenAlternatePackageIdError(null);
+                        } else {
+                            self.alternatePackageVersionsCached.removeAll();
+                            self.chosenAlternatePackageIdError("Could not find alternate package '" + id + "'.");
+                        }
                     }
                 }
             },
