@@ -380,6 +380,9 @@ function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defau
 
     // When the chosen versions are changed, remember the contents of the form in case the user navigates back to this version.
     this.dropdown.chosenItems.subscribe(function (oldVersions) {
+        // Reset the error when the chosen items change.
+        self.submitError(null);
+
         if (!oldVersions || oldVersions.length !== 1) {
             // If no versions or multiple versions are selected, don't cache the contents of the form.
             return;
