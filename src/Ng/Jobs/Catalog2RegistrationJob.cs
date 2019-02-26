@@ -74,6 +74,7 @@ namespace Ng.Jobs
             var contentBaseAddress = arguments.GetOrDefault<string>(Arguments.ContentBaseAddress);
             var galleryBaseAddress = arguments.GetOrDefault<string>(Arguments.GalleryBaseAddress);
             var isContentFlatContainer = arguments.GetOrDefault<bool>(Arguments.ContentIsFlatContainer);
+            var maxConcurrentBatches = MaxConcurrentBatches(arguments.GetOrDefault<int>(Arguments.MaxConcurrentBatches));
 
             // The term "legacy" here refers to the registration hives that do not contain any SemVer 2.0.0 packages.
             // In production, this is two registration hives:
@@ -108,7 +109,8 @@ namespace Ng.Jobs
                 galleryBaseAddress == null ? null : new Uri(galleryBaseAddress),
                 TelemetryService,
                 Logger,
-                CommandHelpers.GetHttpMessageHandlerFactory(TelemetryService, verbose));
+                CommandHelpers.GetHttpMessageHandlerFactory(TelemetryService, verbose),
+                maxConcurrentBatches: maxConcurrentBatches);
 
             var cursorStorage = storageFactories.LegacyStorageFactory.Create();
             _front = new DurableCursor(cursorStorage.ResolveUri("cursor.json"), cursorStorage, MemoryCursor.MinValue);
@@ -116,6 +118,20 @@ namespace Ng.Jobs
 
             _destination = storageFactories.LegacyStorageFactory.DestinationAddress;
             TelemetryService.GlobalDimensions[TelemetryConstants.Destination] = _destination?.AbsoluteUri;
+        }
+
+        private int MaxConcurrentBatches(int argBatches)
+        {
+            if (argBatches < 0)
+            {
+                throw new ArgumentException($"{nameof(argBatches)} cannot be negative.");
+            }
+            if (argBatches == 0)
+            {
+                return RegistrationCollector.DefaultMaxConcurrentBatches;
+            }
+
+            return argBatches;
         }
 
         protected override async Task RunInternalAsync(CancellationToken cancellationToken)

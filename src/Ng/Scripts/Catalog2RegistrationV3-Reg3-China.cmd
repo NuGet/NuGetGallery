@@ -38,7 +38,8 @@ start /w ng.exe catalog2registration ^
     -flatContainerName #{Jobs.China.catalog2registrationv3reg3.FlatContainerName} ^
     -storageOperationMaxExecutionTimeInSeconds #{Jobs.Common.China.AzureOperationMaxTimeout} ^
     -storageServerTimeoutInSeconds #{Jobs.Common.China.StorageServerTimeoutInSeconds} ^
-    -galleryBaseAddress #{Jobs.China.catalog2registrationv3reg3.GalleryBaseAddress}
+    -galleryBaseAddress #{Jobs.China.catalog2registrationv3reg3.GalleryBaseAddress} ^
+    -maxConcurrentBatches #{Jobs.common.v3.MaxConcurrentBatches}
 
 echo "Finished #{Jobs.China.catalog2registrationv3reg3.Title}"
 
