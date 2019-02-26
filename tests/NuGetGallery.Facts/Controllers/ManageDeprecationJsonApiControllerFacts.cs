@@ -336,6 +336,32 @@ namespace NuGetGallery.Controllers
             }
 
             [Theory]
+            [InlineData(-1)]
+            [InlineData(11)]
+            public async Task ReturnsBadRequestIfCvssInvalid(decimal cvss)
+            {
+                // Arrange
+                var currentUser = TestUtility.FakeUser;
+
+                var featureFlagService = GetMock<IFeatureFlagService>();
+                featureFlagService
+                    .Setup(x => x.IsManageDeprecationEnabled(currentUser))
+                    .Returns(true)
+                    .Verifiable();
+
+                var controller = GetController<ManageDeprecationJsonApiController>();
+                controller.SetCurrentUser(currentUser);
+
+                // Act
+                var result = await controller.Deprecate(
+                    "id", new[] { "1.0.0" }, false, false, false, null, cvss, null, null, null, null, false);
+
+                // Assert
+                AssertErrorResponse(controller, result, HttpStatusCode.BadRequest, Strings.DeprecatePackage_NoVersions);
+                featureFlagService.Verify();
+            }
+
+            [Theory]
             [MemberData(nameof(ReturnsNotFoundIfNoPackagesOrRegistrationMissing_Data))]
             public async Task ReturnsNotFoundIfNoPackagesOrRegistrationMissing(IEnumerable<Package> packages)
             {
@@ -777,70 +803,6 @@ namespace NuGetGallery.Controllers
                 featureFlagService.Verify();
                 packageService.Verify();
                 deprecationService.Verify();
-            }
-
-            public static IEnumerable<object[]> ReturnsNotFoundIfCvssInvalid_Data = 
-                MemberDataHelper.Combine(Owner_Data, MemberDataHelper.AsDataSet(-1, 11));
-
-            [Theory]
-            [MemberData(nameof(ReturnsNotFoundIfCvssInvalid_Data))]
-            public async Task ReturnsBadRequestIfCvssInvalid(User currentUser, User owner, decimal cvss)
-            {
-                // Arrange
-                var id = "id";
-
-                var featureFlagService = GetMock<IFeatureFlagService>();
-                featureFlagService
-                    .Setup(x => x.IsManageDeprecationEnabled(currentUser))
-                    .Returns(true)
-                    .Verifiable();
-
-                var registration = new PackageRegistration
-                {
-                    Id = id
-                };
-
-                registration.Owners.Add(owner);
-
-                var package = new Package
-                {
-                    NormalizedVersion = "2.3.4",
-                    PackageRegistration = registration
-                };
-
-                var package2 = new Package
-                {
-                    NormalizedVersion = "1.0.0",
-                    PackageRegistration = registration
-                };
-
-                var packageService = GetMock<IPackageService>();
-                packageService
-                    .Setup(x => x.FindPackagesById(id, true))
-                    .Returns(new[] { package, package2 })
-                    .Verifiable();
-
-                var deprecationService = GetMock<IPackageDeprecationService>();
-                deprecationService
-                    .Setup(x => x.GetCvesById(It.IsAny<IEnumerable<string>>()))
-                    .Returns(new Cve[0])
-                    .Verifiable();
-
-                var controller = GetController<ManageDeprecationJsonApiController>();
-                controller.SetCurrentUser(currentUser);
-
-                // Act
-                var result = await controller.Deprecate(
-                    id, new[] { package.NormalizedVersion, package2.NormalizedVersion }, false, false, false, null, cvss, null, null, null, null, false);
-
-                // Assert
-                AssertErrorResponse(
-                    controller,
-                    result,
-                    HttpStatusCode.BadRequest,
-                    Strings.DeprecatePackage_InvalidCvss);
-                featureFlagService.Verify();
-                packageService.Verify();
             }
 
             [Theory]

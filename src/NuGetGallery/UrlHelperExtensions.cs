@@ -761,9 +761,9 @@ namespace NuGetGallery
         public static string DeprecatePackage(this UrlHelper url, bool relativeUrl = true)
         {
             return GetActionLink(
-                url, 
+                url,
                 nameof(ManageDeprecationJsonApiController.Deprecate),
-                "ManageDeprecationJsonApi", 
+                "ManageDeprecationJsonApi",
                 relativeUrl);
         }
 

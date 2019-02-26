@@ -109,6 +109,11 @@ namespace NuGetGallery
                 return DeprecateErrorResponse(HttpStatusCode.BadRequest, Strings.DeprecatePackage_NoVersions);
             }
 
+            if (cvssRating.HasValue && (cvssRating < 0 || cvssRating > 10))
+            {
+                return DeprecateErrorResponse(HttpStatusCode.BadRequest, Strings.DeprecatePackage_InvalidCvss);
+            }
+
             var packages = _packageService.FindPackagesById(id, withDeprecations: true);
             var registration = packages.FirstOrDefault()?.PackageRegistration;
             if (registration == null)
@@ -180,11 +185,6 @@ namespace NuGetGallery
             if (cveIds.Count() != cves.Count)
             {
                 return DeprecateErrorResponse(HttpStatusCode.NotFound, Strings.DeprecatePackage_MissingCve);
-            }
-
-            if (cvssRating.HasValue && (cvssRating < 0 || cvssRating > 10))
-            {
-                return DeprecateErrorResponse(HttpStatusCode.BadRequest, Strings.DeprecatePackage_InvalidCvss);
             }
 
             cweIds = cweIds ?? Enumerable.Empty<string>();

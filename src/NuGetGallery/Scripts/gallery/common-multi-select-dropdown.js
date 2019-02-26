@@ -23,7 +23,7 @@ function MultiSelectDropdown(items, singularItemTitle, pluralItemTitle) {
         var $target = $(element);
         // '.closest' returns the list of ancestors between this element and the selector.
         // If the selector is not an ancestor of the element, it returns an empty list.
-        return $target.closest(ancestorSelector).length;
+        return !!$target.closest(ancestorSelector).length;
     };
 
     this.isElementInsideDropdown = function (element) {

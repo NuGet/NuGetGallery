@@ -2420,7 +2420,7 @@ namespace NuGetGallery
             public static IEnumerable<object[]> ManageDeprecationFeatureFlagIsSetInModel_Data =
                 MemberDataHelper.Combine(
                     Owner_Data,
-                    MemberDataHelper.AsDataSet(false, true));
+                    MemberDataHelper.BooleanDataSet());
 
             [Theory]
             [MemberData(nameof(ManageDeprecationFeatureFlagIsSetInModel_Data))]
