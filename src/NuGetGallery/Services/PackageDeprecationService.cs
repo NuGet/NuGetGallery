@@ -36,6 +36,21 @@ namespace NuGetGallery
            string customMessage,
            bool shouldUnlist)
         {
+            if (packages == null || !packages.Any())
+            {
+                throw new ArgumentException(nameof(packages));
+            }
+
+            if (cves == null)
+            {
+                throw new ArgumentNullException(nameof(cves));
+            }
+
+            if (cwes == null)
+            {
+                throw new ArgumentNullException(nameof(cwes));
+            }
+
             var shouldDelete = status == PackageDeprecationStatus.NotDeprecated;
             var deprecations = new List<PackageDeprecation>();
             foreach (var package in packages)
