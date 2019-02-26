@@ -1265,6 +1265,9 @@ img.reserved-indicator-icon {
 .page-profile .profile-details .statistics .statistic .description {
   font-size: 24px;
 }
+.page-profile .profile-details .additional-info {
+  margin-top: 20px;
+}
 .page-report-abuse .report-form #alreadycontactedowner-label {
   display: inline;
 }
