@@ -357,7 +357,7 @@ namespace NuGetGallery.Controllers
                     "id", new[] { "1.0.0" }, false, false, false, null, cvss, null, null, null, null, false);
 
                 // Assert
-                AssertErrorResponse(controller, result, HttpStatusCode.BadRequest, Strings.DeprecatePackage_NoVersions);
+                AssertErrorResponse(controller, result, HttpStatusCode.BadRequest, Strings.DeprecatePackage_InvalidCvss);
                 featureFlagService.Verify();
             }
 
