@@ -28,5 +28,13 @@ namespace NuGetGallery
         /// </summary>
         /// <returns></returns>
         bool IsPackagesAtomFeedEnabled();
+
+        /// <summary>
+        /// Whether or not users can manage their package's deprecation state.
+        /// If disabled, 
+        /// </summary>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        bool IsManageDeprecationEnabled(User user);
     }
 }

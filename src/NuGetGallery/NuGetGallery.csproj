@@ -227,6 +227,7 @@
     <Compile Include="Queries\AutocompleteCweIdQueryResults.cs" />
     <Compile Include="Queries\AutocompleteCveIdQueryResult.cs" />
     <Compile Include="Queries\AutocompleteCweIdQueryResult.cs" />
+    <Compile Include="Services\IPackageDeprecationService.cs" />
     <Compile Include="Services\IVulnerabilityAutocompleteService.cs" />
     <Compile Include="Queries\AutocompleteDatabasePackageIdsQuery.cs" />
     <Compile Include="Queries\AutocompleteDatabasePackageVersionsQuery.cs" />
@@ -481,6 +482,7 @@
     <Compile Include="Services\IValidationMessage.cs" />
     <Compile Include="Services\JsonValidationMessage.cs" />
     <Compile Include="Services\LicenseUrlDeprecationValidationMessage.cs" />
+    <Compile Include="Services\PackageDeprecationService.cs" />
     <Compile Include="Services\PackageShouldNotBeSignedUserFixableValidationMessage.cs" />
     <Compile Include="Services\PlainTextOnlyValidationMessage.cs" />
     <Compile Include="Services\SymbolPackageValidationResult.cs" />
@@ -1912,6 +1914,8 @@
     <Content Include="Views\Packages\DeleteSymbols.cshtml" />
     <Content Include="Views\Packages\Manage.cshtml" />
     <Content Include="Views\Packages\License.cshtml" />
+    <Content Include="Views\Packages\_ManageDeprecation.cshtml" />
+    <Content Include="Views\Shared\_MultiSelectDropdown.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />

@@ -23,6 +23,16 @@
                 @<text>@Html.Partial("_ManageOwners", Model)</text>,
                 expanded: false)
 
+            @if (Model.IsManageDeprecationEnabled)
+            {
+                @ViewHelpers.Section(
+                    this,
+                    "Deprecation",
+                    "Deprecation",
+                    @<text>@Html.Partial("_ManageDeprecation", Model)</text>,
+                    expanded: false)
+            }
+
             @ViewHelpers.Section(
                 this,
                 "Listing",
@@ -61,6 +71,10 @@
         // Set up delete section
         var versionListedState = @Html.Raw(Json.Encode(Model.VersionListedStateDictionary));
 
+        // Set up deprecation section
+        var strings_AnyVersion = "Any version";
+        var versionDeprecationState = @Html.Raw(Json.Encode(Model.VersionDeprecationStateDictionary));
+
         $(function () {
             // Set up documentation section
             var readMeModel = {
@@ -96,10 +110,20 @@
             });
 
             deleteVersionSelect.change();
+
+            // Set up deprecation section
+            var deprecationViewModel = new ManageDeprecationViewModel(
+                '@Model.Id',
+                versionDeprecationState,
+                '@Model.Version',
+                '@Url.DeprecatePackage()',
+                packageUrl,
+                '@Url.GetDeprecationAlternatePackageVersions()');
         });
     </script>
     @ViewHelpers.SectionsScript(this)
     @Scripts.Render("~/Scripts/gallery/page-manage-owners.min.js")
+    @Scripts.Render("~/Scripts/gallery/page-manage-deprecation.min.js")
     @Scripts.Render("~/Scripts/gallery/page-delete-package.min.js")
     @Scripts.Render("~/Scripts/gallery/page-edit-readme.min.js")
 }

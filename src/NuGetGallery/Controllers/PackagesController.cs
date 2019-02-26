@@ -1450,6 +1450,7 @@ namespace NuGetGallery
         public virtual async Task<ActionResult> Manage(string id, string version = null)
         {
             Package package = null;
+
             // Load all versions of the package.
             var packages = _packageService.FindPackagesById(id, withDeprecations: true);
             if (version != null)
@@ -1470,12 +1471,14 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
+            var currentUser = GetCurrentUser();
             var model = new ManagePackageViewModel(
                 package,
                 GetCurrentUser(),
                 ReportMyPackageReasons,
                 Url,
-                await _readMeService.GetReadMeMdAsync(package));
+                await _readMeService.GetReadMeMdAsync(package),
+                _featureFlagService.IsManageDeprecationEnabled(currentUser));
 
             if (!model.CanEdit && !model.CanManageOwners && !model.CanUnlistOrRelist)
             {

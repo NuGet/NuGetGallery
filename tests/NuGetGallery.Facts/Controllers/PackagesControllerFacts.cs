@@ -2416,6 +2416,49 @@ namespace NuGetGallery
                 Assert.Null(model.ReadMe.ReadMe.SourceType);
                 Assert.Null(model.ReadMe.ReadMe.SourceText);
             }
+
+            public static IEnumerable<object[]> ManageDeprecationFeatureFlagIsSetInModel_Data =
+                MemberDataHelper.Combine(
+                    Owner_Data,
+                    MemberDataHelper.BooleanDataSet());
+
+            [Theory]
+            [MemberData(nameof(ManageDeprecationFeatureFlagIsSetInModel_Data))]
+            public async Task ManageDeprecationFeatureFlagIsSetInModel(User currentUser, User owner, bool isManageDeprecationEnabled)
+            {
+                // Arrange
+                PackageRegistration.Owners.Add(owner);
+                Package.HasReadMe = false;
+
+                var packageService = SetupPackageService();
+
+                var featureFlagService = GetMock<IFeatureFlagService>();
+                featureFlagService
+                    .Setup(x => x.IsManageDeprecationEnabled(currentUser))
+                    .Returns(isManageDeprecationEnabled)
+                    .Verifiable();
+
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService,
+                    featureFlagService: featureFlagService);
+                controller.SetCurrentUser(currentUser);
+
+                var routeCollection = new RouteCollection();
+                Routes.RegisterRoutes(routeCollection);
+                controller.Url = new UrlHelper(controller.ControllerContext.RequestContext, routeCollection);
+
+                // Act
+                var result = await GetManageResult(controller);
+
+                // Assert
+                var model = ResultAssert.IsView<ManagePackageViewModel>(result);
+
+                packageService.Verify();
+                featureFlagService.Verify();
+
+                Assert.Equal(isManageDeprecationEnabled, model.IsManageDeprecationEnabled);
+            }
         }
 
         public class TheManageMethodWithExactVersion : TheManageMethod

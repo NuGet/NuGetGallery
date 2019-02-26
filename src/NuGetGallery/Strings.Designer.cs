@@ -785,6 +785,96 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to You do not have permission to deprecate this package..
+        /// </summary>
+        public static string DeprecatePackage_Forbidden {
+            get {
+                return ResourceManager.GetString("DeprecatePackage_Forbidden", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The CVSS rating specified is invalid..
+        /// </summary>
+        public static string DeprecatePackage_InvalidCvss {
+            get {
+                return ResourceManager.GetString("DeprecatePackage_InvalidCvss", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Package &apos;{0}&apos; is locked and cannot have its deprecation changed..
+        /// </summary>
+        public static string DeprecatePackage_Locked {
+            get {
+                return ResourceManager.GetString("DeprecatePackage_Locked", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to At least one CVE specified could not be found..
+        /// </summary>
+        public static string DeprecatePackage_MissingCve {
+            get {
+                return ResourceManager.GetString("DeprecatePackage_MissingCve", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to At least one CWE specified could not be found..
+        /// </summary>
+        public static string DeprecatePackage_MissingCwe {
+            get {
+                return ResourceManager.GetString("DeprecatePackage_MissingCwe", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Package &apos;{0}&apos; could not be found..
+        /// </summary>
+        public static string DeprecatePackage_MissingRegistration {
+            get {
+                return ResourceManager.GetString("DeprecatePackage_MissingRegistration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to At least one version of package &apos;{0}&apos; specified could not be found..
+        /// </summary>
+        public static string DeprecatePackage_MissingVersion {
+            get {
+                return ResourceManager.GetString("DeprecatePackage_MissingVersion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Alternate package &apos;{0} {1}&apos; does not exist..
+        /// </summary>
+        public static string DeprecatePackage_NoAlternatePackage {
+            get {
+                return ResourceManager.GetString("DeprecatePackage_NoAlternatePackage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Alternate package &apos;{0}&apos; does not exist..
+        /// </summary>
+        public static string DeprecatePackage_NoAlternatePackageRegistration {
+            get {
+                return ResourceManager.GetString("DeprecatePackage_NoAlternatePackageRegistration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You must select at least one version to deprecate!.
+        /// </summary>
+        public static string DeprecatePackage_NoVersions {
+            get {
+                return ResourceManager.GetString("DeprecatePackage_NoVersions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The password login is discontinued and has been removed for your account. Please use your Microsoft account to log into {0} going forward..
         /// </summary>
         public static string DiscontinuedLogin_PasswordRemoved {

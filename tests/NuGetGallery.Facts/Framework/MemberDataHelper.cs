@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -16,6 +17,17 @@ namespace NuGetGallery.Framework
         public static IEnumerable<object[]> AsDataSet(params object[] dataSet)
         {
             return dataSet.Select(d => new[] { d });
+        }
+
+        public static IEnumerable<object[]> BooleanDataSet()
+        {
+            return AsDataSet(false, true);
+        }
+
+        public static IEnumerable<object[]> EnumDataSet<TEnum>()
+        {
+            return Enum.GetValues(typeof(TEnum)).Cast<TEnum>()
+                .Select(e => new object[] { e });
         }
 
         public static IEnumerable<object[]> Combine(params IEnumerable<object[]>[] dataSets)

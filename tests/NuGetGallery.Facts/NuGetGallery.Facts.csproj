@@ -87,6 +87,7 @@
     <Compile Include="Controllers\SupportControllerFacts.cs" />
     <Compile Include="Helpers\StreamHelperFacts.cs" />
     <Compile Include="Queries\AutocompleteCweIdsQueryFacts.cs" />
+    <Compile Include="Services\PackageDeprecationServiceFacts.cs" />
     <Compile Include="UsernameValidationRegex.cs" />
     <Compile Include="Extensions\NumberExtensionsFacts.cs" />
     <Compile Include="Extensions\RouteExtensionsFacts.cs" />

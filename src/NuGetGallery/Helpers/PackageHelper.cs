@@ -2,7 +2,9 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using NuGet.Services.Entities;
 using NuGetGallery.Packaging;
 
 namespace NuGetGallery
@@ -169,6 +171,42 @@ namespace NuGetGallery
             {
                 throw new EntityException(Strings.NuGetPackagePropertyTooLong, "RepositoryUrl", "4000");
             }
+        }
+
+        public static string GetSelectListText(Package package)
+        {
+            var tags = new List<string>();
+            if (package.IsLatestSemVer2)
+            {
+                tags.Add("Latest");
+            }
+
+            var deprecation = package.Deprecations.SingleOrDefault();
+            if (deprecation != null)
+            {
+                var deprecationReasons = new List<string>();
+                if (deprecation.Status.HasFlag(PackageDeprecationStatus.Vulnerable))
+                {
+                    deprecationReasons.Add("Vulnerable");
+                }
+
+                if (deprecation.Status.HasFlag(PackageDeprecationStatus.Legacy))
+                {
+                    deprecationReasons.Add("Legacy");
+                }
+
+                if (deprecation.Status.HasFlag(PackageDeprecationStatus.Other))
+                {
+                    deprecationReasons.Add("Other");
+                }
+
+                if (deprecationReasons.Any())
+                {
+                    tags.Add("Deprecated - " + string.Join(", ", deprecationReasons));
+                }
+            }
+
+            return NuGetVersionFormatter.ToFullString(package.Version) + (tags.Any() ? $" ({string.Join(", ", tags)})" : string.Empty);
         }
     }
 }
