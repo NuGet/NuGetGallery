@@ -2,13 +2,11 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.ServiceModel.Syndication;
 using System.Threading.Tasks;
 using System.Xml;
-using NuGet.Versioning;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -44,63 +42,6 @@ namespace NuGetGallery.FunctionalTests.AtomFeed
                 {
                     Assert.Contains(Constants.TestPackageId, item.Title.Text);
                 }
-            }
-        }
-
-        [Theory]
-        [Priority(2)]
-        [Category("P2Tests")]
-        [InlineData(false)]
-        [InlineData(true)]
-        public async Task ObservesPrerelParameter(bool prerel)
-        {
-            // Arrange
-            var feedUrl = new Uri(new Uri(UrlHelper.BaseUrl), $"/packages/Newtonsoft.Json/atom.xml?prerel={prerel}");
-
-            // Act
-            using (var httpClient = new HttpClient())
-            using (var response = await httpClient.GetAsync(feedUrl))
-            {
-                // Assert
-                var feed = await ReadFeedAsync(response);
-                foreach (var item in feed.Items)
-                {
-                    var version = item.Title.Text.Split(' ').Last();
-                    Assert.True(NuGetVersion.TryParse(version, out var parsedVersion), $"The version '{version}' is not parsable.");
-                    if (!prerel)
-                    {
-                        Assert.False(parsedVersion.IsPrerelease, $"The version '{version}' should not be included since it is prerelease.");
-                    }
-                }
-            }
-        }
-
-        [Fact]
-        [Priority(2)]
-        [Category("P2Tests")]
-        public async Task DefaultsToIncludingPrerel()
-        {
-            // Arrange
-            var feedUrl = new Uri(new Uri(UrlHelper.BaseUrl), $"/packages/Newtonsoft.Json/atom.xml");
-
-            // Act
-            using (var httpClient = new HttpClient())
-            using (var response = await httpClient.GetAsync(feedUrl))
-            {
-                // Assert
-                var feed = await ReadFeedAsync(response);
-                var prerelCount = 0;
-                foreach (var item in feed.Items)
-                {
-                    var version = item.Title.Text.Split(' ').Last();
-                    Assert.True(NuGetVersion.TryParse(version, out var parsedVersion), $"The version '{version}' is not parsable.");
-                    if (parsedVersion.IsPrerelease)
-                    {
-                        prerelCount++;
-                    }
-                }
-
-                Assert.InRange(prerelCount, 1, feed.Items.Count());
             }
         }
 
