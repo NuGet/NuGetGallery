@@ -26,10 +26,11 @@
     <div class="deprecation-section form-group">
         <label id="dropdown-label" class="deprecation-section-header">Select version(s)</label>
         <div data-bind="template: { name: 'multi-select-dropdown', data: dropdown }"></div>
-        <div class="has-error">
-            <span aria-live="assertive" class="help-block field-validation-error" role="alert" data-bind="visible: !dropdown.chosenItems().length">
-                At least one version must be selected.
-            </span>
+        <div data-bind="visible: !dropdown.chosenItems().length">
+            @ViewHelpers.AlertDanger(@<text>At least one version must be selected.</text>)
+        </div>
+        <div data-bind="visible: chosenItemsConflictWarning">
+            @ViewHelpers.AlertWarning(@<text><span data-bind="text: chosenItemsConflictWarning"></span></text>)
         </div>
     </div>
 
@@ -74,12 +75,14 @@
                 <div class="col-sm-8 form-group alternate-package-registration-container" data-bind="css: { 'has-error': chosenAlternatePackageIdError }">
                     <label for="alternatePackageId" class="deprecation-section-header">Alternate package</label>
                     <input name="alternatePackageId" class="form-control full-line" type="text" aria-label="Alternate package ID" data-bind="textInput: chosenAlternatePackageId" />
-                    <span aria-live="assertive" class="help-block field-validation-error" role="alert" data-bind="text: chosenAlternatePackageIdError, visible: chosenAlternatePackageIdError"></span>
                 </div>
                 <div class="col-sm-4 form-group alternate-package-container">
                     <label for="alternatePackageVersion" class="deprecation-section-header">Version</label>
                     <select class="form-control full-line" name="alternatePackageVersion" aria-label="Alternate package version" data-bind="options: alternatePackageVersions, value: chosenAlternatePackageVersion, enable: hasAlternatePackageVersions" size="1"></select>
                 </div>
+            </div>
+            <div data-bind="visible: chosenAlternatePackageIdError">
+                @ViewHelpers.AlertDanger(@<text><span data-bind="text: chosenAlternatePackageIdError"></span></text>)
             </div>
         </div>
         <div class="form-group unbolded-label">

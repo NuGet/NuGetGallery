@@ -86,6 +86,53 @@ function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defau
     });
 
     this.dropdown = new MultiSelectDropdown(items, "version", "versions");
+    this.chosenItemsConflictWarning = ko.pureComputed(function () {
+        var chosenItems = self.dropdown.chosenItems();
+        var isVulnerable = self.isVulnerable();
+        var isLegacy = self.isLegacy();
+        var isOther = self.isOther();
+        var warningMessage = null;
+        var areMultipleVersionsSelected = chosenItems.length > 1;
+
+        if (chosenItems.length === 0) {
+            // If nothing is selected, an error will show
+            // No need to show a warning in addition to the error
+            return null;
+        }
+
+        var hasVersionsWithExistingDeprecationState = false;
+        for (var i in chosenItems) {
+            var version = chosenItems[i];
+            var versionData = versionDeprecationStateDictionary[version];
+            if (!versionData) {
+                // It shouldn't be possible to select a version that didn't exist when the page loaded.
+                // In case there is a bug and the user did select a valid version, continue on anyway.
+                continue;
+            }
+
+            if (versionData.IsVulnerable || versionData.IsLegacy || versionData.IsOther) {
+                hasVersionsWithExistingDeprecationState = true;
+                break;
+            }
+        }
+
+        if (isVulnerable || isLegacy || isOther) {
+            if (areMultipleVersionsSelected && hasVersionsWithExistingDeprecationState) {
+                // Show a warning if multiple versions are selected and at least one has an existing deprecation
+                // The user should be aware they are replacing existing deprecations
+                // Don't show an alert if a single version is selected because it is clear that the deprecation is being replaced
+                warningMessage = "Some of the package versions you selected have already been deprecated. These versions will have their deprecation information overriden or removed based on your actions.";
+            }
+        } else if (hasVersionsWithExistingDeprecationState) {
+            // Show a warning if no reasons are selected and at least one selected version has an existing deprecation
+            // The user should be aware that they are deleting the existing deprecation
+            warningMessage = "The version" + (areMultipleVersionsSelected ? "s" : "") +
+                " you selected will have " + (areMultipleVersionsSelected ? "their" : "its") +
+                " deprecation information removed.";
+        }
+
+        return warningMessage;
+    }, this);
 
     this.isVulnerable = ko.observable(false);
     this.isLegacy = ko.observable(false);
@@ -248,41 +295,7 @@ function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defau
     this.submit = function () {
         self.submitError(null);
 
-        var chosenItems = self.dropdown.chosenItems();
-        var isVulnerable = self.isVulnerable();
-        var isLegacy = self.isLegacy();
-        var isOther = self.isOther();
-        var alertMessage = "";
-        var areMultipleVersionsSelected = chosenItems.length > 1;
-
-        if (isVulnerable || isLegacy || isOther) {
-            if (areMultipleVersionsSelected) {
-                var warnAboutReplacing = false;
-                for (var i in chosenItems) {
-                    var version = chosenItems[i];
-                    var versionData = versionDeprecationStateDictionary[version];
-                    if (!versionData) {
-                        // It shouldn't be possible to select a version that didn't exist when the page loaded.
-                        // In case there is a bug and the user did select a valid version, continue on anyway.
-                        continue;
-                    }
-
-                    if (versionData.IsVulnerable || versionData.IsLegacy || versionData.IsOther) {
-                        warnAboutReplacing = true;
-                        break;
-                    }
-                }
-
-                if (warnAboutReplacing) {
-                    alertMessage = "Some of your versions will have their deprecation information replaced.";
-                }
-            }
-        } else {
-            alertMessage = "The version" + (areMultipleVersionsSelected ? "s" : "") +
-                " you selected will have " + (areMultipleVersionsSelected ? "their" : "its") +
-                " deprecation information removed.";
-        }
-
+        var alertMessage = self.chosenItemsConflictWarning();
         if (alertMessage && !confirm(alertMessage + " Do you want to continue?")) {
             return;
         }
@@ -293,10 +306,10 @@ function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defau
             type: 'POST',
             data: window.nuget.addAjaxAntiForgeryToken({
                 id: id,
-                versions: chosenItems,
-                isVulnerable: isVulnerable,
-                isLegacy: isLegacy,
-                isOther: isOther,
+                versions: self.dropdown.chosenItems(),
+                isVulnerable: self.isVulnerable(),
+                isLegacy: self.isLegacy(),
+                isOther: self.isOther(),
                 cveIds: self.cves.export(),
                 cvssRating: self.cvssRating(),
                 cweIds: self.cwes.export(),

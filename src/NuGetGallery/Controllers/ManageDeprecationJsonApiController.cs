@@ -182,6 +182,11 @@ namespace NuGetGallery
                 return DeprecateErrorResponse(HttpStatusCode.NotFound, Strings.DeprecatePackage_MissingCve);
             }
 
+            if (cvssRating.HasValue && (cvssRating < 0 || cvssRating > 10))
+            {
+                return DeprecateErrorResponse(HttpStatusCode.BadRequest, Strings.DeprecatePackage_InvalidCvss);
+            }
+
             cweIds = cweIds ?? Enumerable.Empty<string>();
             var cwes = _deprecationService.GetCwesById(cweIds);
             if (cweIds.Count() != cwes.Count)
@@ -205,11 +210,6 @@ namespace NuGetGallery
                 status |= PackageDeprecationStatus.Other;
             }
 
-            if (cvssRating.HasValue && (cvssRating < 0 || cvssRating > 10))
-            {
-                return DeprecateErrorResponse(HttpStatusCode.BadRequest, Strings.DeprecatePackage_InvalidCvss);
-            }
-
             await _deprecationService.UpdateDeprecation(
                 packagesToUpdate,
                 status,
@@ -226,7 +226,7 @@ namespace NuGetGallery
 
         private JsonResult DeprecateErrorResponse(HttpStatusCode code, string error)
         {
-            return Json(HttpStatusCode.BadRequest, new { error });
+            return Json(code, new { error });
         }
     }
 }
