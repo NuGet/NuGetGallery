@@ -576,37 +576,6 @@ namespace NuGetGallery.FunctionalTests
         }
 
         /// <summary>
-        /// Returns the download count of the given package as a formatted string as it would appear in the gallery UI.
-        /// </summary>
-        public static string GetFormattedDownLoadStatistics(string packageId)
-        {
-            var formattedCount = GetDownLoadStatistics(packageId).ToString("N1", CultureInfo.InvariantCulture);
-            if (formattedCount.EndsWith(".0"))
-                formattedCount = formattedCount.Remove(formattedCount.Length - 2);
-            return formattedCount;
-        }
-
-        /// <summary>
-        /// Returns the download count of the given package.
-        /// </summary>
-        public static int GetDownLoadStatistics(string packageId)
-        {
-            var repo = PackageRepositoryFactory.Default.CreateRepository(SourceUrl);
-            var package = repo.FindPackage(packageId);
-            return package.DownloadCount;
-        }
-
-        /// <summary>
-        /// Returns the download count of the specific version of the package.
-        /// </summary>
-        public static int GetDownLoadStatisticsForPackageVersion(string packageId, string packageVersion)
-        {
-            var repo = PackageRepositoryFactory.Default.CreateRepository(SourceUrl);
-            var package = repo.FindPackage(packageId, new NuGet.SemanticVersion(packageVersion));
-            return package.DownloadCount;
-        }
-
-        /// <summary>
         /// Searchs the gallery to get the packages matching the specific search term and returns their count.
         /// </summary>
         public static int GetPackageCountForSearchTerm(string searchQuery)
