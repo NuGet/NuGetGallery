@@ -917,14 +917,11 @@ namespace NuGetGallery.Controllers
                 Package
             }
 
-            public static IEnumerable<object[]> ReturnsSuccessful_Data = 
+            public static IEnumerable<object[]> ReturnsSuccessful_Data =
                 MemberDataHelper.Combine(
                     Owner_Data,
                     PackageDeprecationStates_Data,
                     MemberDataHelper.EnumDataSet<ReturnsSuccessful_AlternatePackage_State>(),
-                    MemberDataHelper.BooleanDataSet(),
-                    MemberDataHelper.BooleanDataSet(),
-                    MemberDataHelper.BooleanDataSet(),
                     MemberDataHelper.BooleanDataSet(),
                     MemberDataHelper.BooleanDataSet()).ToList();
 
@@ -938,10 +935,7 @@ namespace NuGetGallery.Controllers
                 bool isOther, 
                 PackageDeprecationStatus expectedStatus, 
                 ReturnsSuccessful_AlternatePackage_State alternatePackageState, 
-                bool hasCves,
-                bool hasCvss,
-                bool hasCwes,
-                bool hasCustomMessage,
+                bool hasAdditionalData,
                 bool shouldUnlist)
             {
                 // Arrange
@@ -1014,23 +1008,23 @@ namespace NuGetGallery.Controllers
 
                 var deprecationService = GetMock<IPackageDeprecationService>();
 
-                var cveIds = hasCves ? new[] { "cve-1", "cve-2", "cve-3" } : null;
+                var cveIds = hasAdditionalData ? new[] { "cve-1", "cve-2", "cve-3" } : null;
                 var cves = cveIds?.Select(i => new Cve { CveId = i }).ToArray() ?? new Cve[0];
                 deprecationService
                     .Setup(x => x.GetCvesById(cveIds ?? Enumerable.Empty<string>()))
                     .Returns(cves)
                     .Verifiable();
 
-                var cvss = hasCvss ? (decimal?)5.5 : null;
+                var cvss = hasAdditionalData ? (decimal?)5.5 : null;
 
-                var cweIds = hasCwes ? new[] { "cwe-1", "cwe-2", "cwe-3" } : null;
+                var cweIds = hasAdditionalData ? new[] { "cwe-1", "cwe-2", "cwe-3" } : null;
                 var cwes = cweIds?.Select(i => new Cwe { CweId = i }).ToArray() ?? new Cwe[0];
                 deprecationService
                     .Setup(x => x.GetCwesById(cweIds ?? Enumerable.Empty<string>()))
                     .Returns(cwes)
                     .Verifiable();
 
-                var customMessage = hasCustomMessage ? "message" : null;
+                var customMessage = hasAdditionalData ? "message" : null;
 
                 deprecationService
                     .Setup(x => x.UpdateDeprecation(
