@@ -44,12 +44,11 @@ function MultiSelectDropdown(items, singularItemTitle, pluralItemTitle) {
         }
     });
 
-    this.escapeKeyCode = 27;
     $(document).keydown(function (event) {
         var target = event.target;
         if (self.isElementInsideDropdown(target)) {
             // If we press escape while focus is inside the dropdown, close it
-            if (event.which === self.escapeKeyCode) { // Escape key
+            if (event.which === 27) { // Escape key
                 self.dropdownOpen(false);
                 event.preventDefault();
                 $(self.dropdownBtnSelector).focus();
