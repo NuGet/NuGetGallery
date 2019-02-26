@@ -2527,11 +2527,11 @@ namespace NuGetGallery
             }
         }
 
-        public class TheDeleteSymbolsMethod : TestContainer
+        public abstract class TheDeleteSymbolsMethod : TestContainer
         {
-            private string _packageId = "CrestedGecko";
-            private PackageRegistration _packageRegistration;
-            private Package _package;
+            protected string _packageId = "CrestedGecko";
+            protected PackageRegistration _packageRegistration;
+            protected Package _package;
 
             public TheDeleteSymbolsMethod()
             {
@@ -2544,6 +2544,7 @@ namespace NuGetGallery
                     Key = 2,
                     PackageRegistration = _packageRegistration,
                     Version = "1.0.0+metadata",
+                    NormalizedVersion = "1.0.0",
                     Listed = true,
                     IsLatestSemVer2 = true,
                     HasReadMe = false,
@@ -2554,6 +2555,7 @@ namespace NuGetGallery
                     Key = 1,
                     PackageRegistration = _packageRegistration,
                     Version = "1.0.0-alpha",
+                    NormalizedVersion = "1.0.0-alpha",
                     IsLatest = true,
                     IsLatestSemVer2 = true,
                     Listed = true,
@@ -2570,7 +2572,14 @@ namespace NuGetGallery
             [Fact]
             public void Returns404IfPackageNotFound()
             {
-                var controller = CreateController(GetConfigurationService());
+                var packageService = new Mock<IPackageService>();
+                packageService
+                    .Setup(x => x.FindPackagesById(_packageRegistration.Id, false))
+                    .Returns(new Package[0]);
+
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService);
 
                 var result = controller.DeleteSymbols(_packageRegistration.Id, _package.Version);
 
@@ -2652,8 +2661,8 @@ namespace NuGetGallery
 
                 foreach (var pkg in _packageRegistration.Packages)
                 {
-                    var valueField = controller.Url.DeleteSymbolsPackage(model);
-                    var textField = model.NuGetVersion.ToFullString() + (pkg.IsLatestSemVer2 ? " (Latest)" : string.Empty);
+                    var valueField = controller.Url.DeleteSymbolsPackage(new TrivialPackageVersionModel(pkg));
+                    var textField = PackageHelper.GetSelectListText(pkg);
 
                     var selectListItem = model.VersionSelectList
                         .SingleOrDefault(i => string.Equals(i.Text, textField) && string.Equals(i.Value, valueField));
@@ -2664,30 +2673,13 @@ namespace NuGetGallery
                 }
             }
 
-            [Fact]
-            public void WhenPackageRegistrationIsLockedReturnsLockedState()
+            [Theory]
+            [MemberData(nameof(Owner_Data))]
+            public void WhenPackageRegistrationIsLockedReturnsLockedState(User currentUser, User owner)
             {
-                // Arrange
-                var user = new User("Frodo") { Key = 1 };
-                var packageRegistration = new PackageRegistration { Id = "Foo", IsLocked = true };
-                packageRegistration.Owners.Add(user);
+                _packageRegistration.IsLocked = true;
 
-                var package = new Package
-                {
-                    Key = 2,
-                    PackageRegistration = packageRegistration,
-                    Version = "1.0.0+metadata",
-                };
-
-                var packageService = new Mock<IPackageService>(MockBehavior.Strict);
-                packageService.Setup(svc => svc.FindPackageByIdAndVersion("Foo", "1.0.0", SemVerLevelKey.SemVer2, true))
-                    .Returns(package);
-
-                var controller = CreateController(GetConfigurationService(), packageService: packageService);
-                controller.SetCurrentUser(user);
-
-                // Act
-                var result = controller.DeleteSymbols("Foo", "1.0.0");
+                var result = GetDeleteSymbolsResult(currentUser, owner, out var controller);
 
                 // Assert
                 var model = ResultAssert.IsView<DeletePackageViewModel>(result);
@@ -2698,11 +2690,7 @@ namespace NuGetGallery
             {
                 _packageRegistration.Owners.Add(owner);
 
-                var packageService = new Mock<IPackageService>(MockBehavior.Strict);
-                packageService
-                    .Setup(svc => svc.FindPackageByIdAndVersion(_packageId, _package.Version, SemVerLevelKey.SemVer2, true))
-                    .Returns(_package).Verifiable();
-
+                var packageService = CreatePackageService();
                 controller = CreateController(
                     GetConfigurationService(),
                     packageService: packageService);
@@ -2712,10 +2700,69 @@ namespace NuGetGallery
                 Routes.RegisterRoutes(routeCollection);
                 controller.Url = new UrlHelper(controller.ControllerContext.RequestContext, routeCollection);
 
-                var result = controller.DeleteSymbols(_packageId, _package.Version);
+                var result = InvokeDeleteSymbols(controller);
 
                 packageService.Verify();
                 return result;
+            }
+
+            protected abstract Mock<IPackageService> CreatePackageService();
+
+            protected abstract ActionResult InvokeDeleteSymbols(PackagesController controller);
+        }
+
+        public class TheDeleteSymbolsMethodWithExactVersion : TheDeleteSymbolsMethod
+        {
+            protected override Mock<IPackageService> CreatePackageService()
+            {
+                var packageService = new Mock<IPackageService>(MockBehavior.Strict);
+                packageService
+                    .Setup(svc => svc.FindPackagesById(_packageId, false))
+                    .Returns(_packageRegistration.Packages.ToList())
+                    .Verifiable();
+
+                return packageService;
+            }
+
+            protected override ActionResult InvokeDeleteSymbols(PackagesController controller)
+            {
+                return controller.DeleteSymbols(_packageId, _package.Version);
+            }
+        }
+
+        public abstract class TheDeleteSymbolsMethodThatFilters : TheDeleteSymbolsMethod
+        {
+            protected override Mock<IPackageService> CreatePackageService()
+            {
+                var packages = _packageRegistration.Packages.ToList();
+                var packageService = new Mock<IPackageService>(MockBehavior.Strict);
+                packageService
+                    .Setup(svc => svc.FindPackagesById(_packageId, false))
+                    .Returns(packages)
+                    .Verifiable();
+
+                packageService
+                    .Setup(svc => svc.FilterLatestPackage(packages, SemVerLevelKey.SemVer2, true))
+                    .Returns(_package)
+                    .Verifiable();
+
+                return packageService;
+            }
+        }
+
+        public class TheDeleteSymbolsMethodWithMissingVersion : TheDeleteSymbolsMethodThatFilters
+        {
+            protected override ActionResult InvokeDeleteSymbols(PackagesController controller)
+            {
+                return controller.DeleteSymbols(_packageId, "missing");
+            }
+        }
+
+        public class TheDeleteSymbolsMethodWithNullVersion : TheDeleteSymbolsMethodThatFilters
+        {
+            protected override ActionResult InvokeDeleteSymbols(PackagesController controller)
+            {
+                return controller.DeleteSymbols(_packageId, null);
             }
         }
 
