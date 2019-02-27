@@ -298,16 +298,21 @@ namespace NuGetGallery.Services
 
         public class TheGetCvesByIdMethod : TestContainer
         {
-            [Fact]
-            public void ThrowsIfNullIdList()
+            public static IEnumerable<object[]> CommitChanges_Data => 
+                MemberDataHelper.BooleanDataSet();
+
+            [Theory]
+            [MemberData(nameof(CommitChanges_Data))]
+            public Task ThrowsIfNullIdList(bool commitChanges)
             {
                 var service = Get<PackageDeprecationService>();
 
-                Assert.Throws<ArgumentNullException>(() => service.GetCvesById(null));
+                return Assert.ThrowsAsync<ArgumentNullException>(() => service.GetOrCreateCvesByIdAsync(null, commitChanges));
             }
 
-            [Fact]
-            public void ReturnsCvesWithMatchingIds()
+            [Theory]
+            [MemberData(nameof(CommitChanges_Data))]
+            public async Task ReturnsExistingAndCreatedCves(bool commitChanges)
             {
                 // Arrange
                 var matchingCve1 = new Cve
@@ -339,28 +344,45 @@ namespace NuGetGallery.Services
 
                 var service = Get<PackageDeprecationService>();
 
-                var matchingCves = new[] { matchingCve1, matchingCve2 };
+                var missingCveId = "cve-5";
+                var queriedCveIds = new[] { matchingCve1.CveId, matchingCve2.CveId, missingCveId };
 
                 // Act
-                var result = service.GetCvesById(matchingCves.Select(c => c.CveId));
+                var result = await service.GetOrCreateCvesByIdAsync(queriedCveIds, commitChanges);
 
                 // Assert
-                Assert.Equal(matchingCves, result);
+                Assert.Equal(3, result.Count);
+                Assert.Contains(matchingCve1, result);
+                Assert.Contains(matchingCve2, result);
+
+                var createdCve = result.Last();
+                Assert.Equal(missingCveId, createdCve.CveId);
+                Assert.False(createdCve.Listed);
+                Assert.Equal(CveStatus.Unknown, createdCve.Status);
+                Assert.Null(createdCve.Description);
+                Assert.Null(createdCve.CvssRating);
+                Assert.Null(createdCve.LastModifiedDate);
+                Assert.Null(createdCve.PublishedDate);
             }
         }
 
         public class TheGetCwesByIdMethod : TestContainer
         {
-            [Fact]
-            public void ThrowsIfNullIdList()
+            public static IEnumerable<object[]> CommitChanges_Data =>
+                MemberDataHelper.BooleanDataSet();
+
+            [Theory]
+            [MemberData(nameof(CommitChanges_Data))]
+            public Task ThrowsIfNullIdList(bool commitChanges)
             {
                 var service = Get<PackageDeprecationService>();
 
-                Assert.Throws<ArgumentNullException>(() => service.GetCwesById(null));
+                return Assert.ThrowsAsync<ArgumentNullException>(() => service.GetOrCreateCwesByIdAsync(null, commitChanges));
             }
 
-            [Fact]
-            public void ReturnsCwesWithMatchingIds()
+            [Theory]
+            [MemberData(nameof(CommitChanges_Data))]
+            public async Task ReturnsExistingAndCreatedCwes(bool commitChanges)
             {
                 // Arrange
                 var matchingCwe1 = new Cwe
@@ -392,13 +414,23 @@ namespace NuGetGallery.Services
 
                 var service = Get<PackageDeprecationService>();
 
-                var matchingCwes = new[] { matchingCwe1, matchingCwe2 };
+                var missingCweId = "cwe-5";
+                var queriedCweIds = new[] { matchingCwe1.CweId, matchingCwe2.CweId, missingCweId };
 
                 // Act
-                var result = service.GetCwesById(matchingCwes.Select(c => c.CweId));
+                var result = await service.GetOrCreateCwesByIdAsync(queriedCweIds, commitChanges);
 
                 // Assert
-                Assert.Equal(matchingCwes, result);
+                Assert.Equal(3, result.Count);
+                Assert.Contains(matchingCwe1, result);
+                Assert.Contains(matchingCwe2, result);
+
+                var createdCwe = result.Last();
+                Assert.Equal(missingCweId, createdCwe.CweId);
+                Assert.False(createdCwe.Listed);
+                Assert.Equal(CweStatus.Unknown, createdCwe.Status);
+                Assert.Null(createdCwe.Description);
+                Assert.Null(createdCwe.Name);
             }
         }
     }

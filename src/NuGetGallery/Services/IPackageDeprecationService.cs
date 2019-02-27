@@ -30,11 +30,11 @@ namespace NuGetGallery
         /// <summary>
         /// Fetches all <see cref="Cve"/>s with a <see cref="Cve.CveId"/> contained in <paramref name="ids"/>.
         /// </summary>
-        IReadOnlyCollection<Cve> GetCvesById(IEnumerable<string> ids);
+        Task<IReadOnlyCollection<Cve>> GetOrCreateCvesByIdAsync(IEnumerable<string> ids, bool commitChanges);
 
         /// <summary>
         /// Fetches all <see cref="Cwe"/>s with a <see cref="Cwe.CweId"/> contained in <paramref name="ids"/>.
         /// </summary>
-        IReadOnlyCollection<Cwe> GetCwesById(IEnumerable<string> ids);
+        Task<IReadOnlyCollection<Cwe>> GetOrCreateCwesByIdAsync(IEnumerable<string> ids, bool commitChanges);
     }
 }

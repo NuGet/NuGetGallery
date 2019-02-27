@@ -382,8 +382,7 @@ namespace NuGetGallery
 
             modelBuilder.Entity<Cve>()
                 .Property(e => e.Description)
-                .HasMaxLength(300)
-                .IsRequired();
+                .HasMaxLength(300);
 
             modelBuilder.Entity<Cve>()
                 .Property(v => v.CvssRating)
@@ -398,13 +397,11 @@ namespace NuGetGallery
 
             modelBuilder.Entity<Cwe>()
                 .Property(e => e.Name)
-                .HasMaxLength(200)
-                .IsRequired();
+                .HasMaxLength(200);
 
             modelBuilder.Entity<Cwe>()
                 .Property(e => e.Description)
-                .HasMaxLength(300)
-                .IsRequired();
+                .HasMaxLength(300);
 
             modelBuilder.Entity<Package>()
                 .HasMany(p => p.Deprecations)

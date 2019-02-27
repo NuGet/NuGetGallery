@@ -223,6 +223,10 @@
     <Compile Include="Authentication\Providers\AzureActiveDirectory\AzureActiveDirectoryAuthenticator.cs" />
     <Compile Include="Authentication\Providers\AzureActiveDirectory\AzureActiveDirectoryAuthenticatorConfiguration.cs" />
     <Compile Include="Controllers\ManageDeprecationJsonApiController.cs" />
+    <Compile Include="Migrations\201902272132297_VulnerabilityEntitiesCanBeEmpty.cs" />
+    <Compile Include="Migrations\201902272132297_VulnerabilityEntitiesCanBeEmpty.Designer.cs">
+      <DependentUpon>201902272132297_VulnerabilityEntitiesCanBeEmpty.cs</DependentUpon>
+    </Compile>
     <Compile Include="Queries\AutocompleteCveIdQueryResults.cs" />
     <Compile Include="Queries\AutocompleteCweIdQueryResults.cs" />
     <Compile Include="Queries\AutocompleteCveIdQueryResult.cs" />
@@ -1700,6 +1704,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201902061444243_AddVulnerabilityEntities.resx">
       <DependentUpon>201902061444243_AddVulnerabilityEntities.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201902272132297_VulnerabilityEntitiesCanBeEmpty.resx">
+      <DependentUpon>201902272132297_VulnerabilityEntitiesCanBeEmpty.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />

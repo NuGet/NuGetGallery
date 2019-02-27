@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using NuGet.Services.Entities;
@@ -16,6 +17,14 @@ namespace NuGetGallery
     public partial class ManageDeprecationJsonApiController
         : AppController
     {
+        private static readonly TimeSpan RegexTimeout = TimeSpan.FromMinutes(1);
+
+        public const string CveIdRegexPattern = @"CVE-\d{4}-\d+";
+        private static readonly Regex CveIdRegex = GetRegexFromPattern(CveIdRegexPattern);
+
+        public const string CweIdRegexPattern = @"CWE-\d+";
+        private static readonly Regex CweIdRegex = GetRegexFromPattern(CweIdRegexPattern);
+
         private readonly IVulnerabilityAutocompleteService _vulnerabilityAutocompleteService;
         private readonly IPackageService _packageService;
         private readonly IPackageDeprecationService _deprecationService;
@@ -109,6 +118,28 @@ namespace NuGetGallery
                 return DeprecateErrorResponse(HttpStatusCode.BadRequest, Strings.DeprecatePackage_NoVersions);
             }
 
+            JsonResult vulnerabilityDetailIdsErrorResult;
+
+            cveIds = cveIds ?? Enumerable.Empty<string>();
+            if (!TryVerifyVulnerabilityDetailIds(
+                cveIds, 
+                CveIdRegex, 
+                Strings.DeprecatePackage_InvalidCve, 
+                out vulnerabilityDetailIdsErrorResult))
+            {
+                return vulnerabilityDetailIdsErrorResult;
+            }
+
+            cweIds = cweIds ?? Enumerable.Empty<string>();
+            if (!TryVerifyVulnerabilityDetailIds(
+                cweIds, 
+                CweIdRegex, 
+                Strings.DeprecatePackage_InvalidCwe, 
+                out vulnerabilityDetailIdsErrorResult))
+            {
+                return vulnerabilityDetailIdsErrorResult;
+            }
+
             if (cvssRating.HasValue && (cvssRating < 0 || cvssRating > 10))
             {
                 return DeprecateErrorResponse(HttpStatusCode.BadRequest, Strings.DeprecatePackage_InvalidCvss);
@@ -180,19 +211,8 @@ namespace NuGetGallery
                 }
             }
 
-            cveIds = cveIds ?? Enumerable.Empty<string>();
-            var cves = _deprecationService.GetCvesById(cveIds);
-            if (cveIds.Count() != cves.Count)
-            {
-                return DeprecateErrorResponse(HttpStatusCode.NotFound, Strings.DeprecatePackage_MissingCve);
-            }
-
-            cweIds = cweIds ?? Enumerable.Empty<string>();
-            var cwes = _deprecationService.GetCwesById(cweIds);
-            if (cweIds.Count() != cwes.Count)
-            {
-                return DeprecateErrorResponse(HttpStatusCode.NotFound, Strings.DeprecatePackage_MissingCwe);
-            }
+            var cves = await _deprecationService.GetOrCreateCvesByIdAsync(cveIds, commitChanges: false);
+            var cwes = await _deprecationService.GetOrCreateCwesByIdAsync(cweIds, commitChanges: false);
 
             var status = PackageDeprecationStatus.NotDeprecated;
             if (isVulnerable)
@@ -227,6 +247,40 @@ namespace NuGetGallery
         private JsonResult DeprecateErrorResponse(HttpStatusCode code, string error)
         {
             return Json(code, new { error });
+        }
+        
+        /// <summary>
+        /// Verifies IDs in the list match <paramref name="regex"/>.
+        /// If they don't, returns <c>false</c> and sets <paramref name="result"/> to the expected <see cref="JsonResult"/>.
+        /// Otherwise, returns <c>true</c>.
+        /// </summary>
+        /// <param name="errorString">The error string to use to construct <paramref name="result"/>.</param>
+        private bool TryVerifyVulnerabilityDetailIds(
+            IEnumerable<string> ids, 
+            Regex regex, 
+            string errorString, 
+            out JsonResult result)
+        {
+            result = null;
+            string invalidId;
+            if ((invalidId = ids.FirstOrDefault(c => !regex.IsMatch(c))) != null)
+            {
+                result = DeprecateErrorResponse(
+                    HttpStatusCode.BadRequest,
+                    string.Format(errorString, invalidId));
+
+                return false;
+            }
+
+            return true;
+        }
+
+        private static Regex GetRegexFromPattern(string pattern)
+        {
+            return new Regex(
+                pattern,
+                RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.Singleline,
+                RegexTimeout);
         }
     }
 }

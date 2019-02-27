@@ -794,6 +794,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The CVE ID &apos;{0}&apos; is invalid..
+        /// </summary>
+        public static string DeprecatePackage_InvalidCve {
+            get {
+                return ResourceManager.GetString("DeprecatePackage_InvalidCve", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The CVSS rating specified is invalid..
         /// </summary>
         public static string DeprecatePackage_InvalidCvss {
@@ -803,29 +812,20 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The CWE ID &apos;{0}&apos; is invalid..
+        /// </summary>
+        public static string DeprecatePackage_InvalidCwe {
+            get {
+                return ResourceManager.GetString("DeprecatePackage_InvalidCwe", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Package &apos;{0}&apos; is locked and cannot have its deprecation changed..
         /// </summary>
         public static string DeprecatePackage_Locked {
             get {
                 return ResourceManager.GetString("DeprecatePackage_Locked", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to At least one CVE specified could not be found..
-        /// </summary>
-        public static string DeprecatePackage_MissingCve {
-            get {
-                return ResourceManager.GetString("DeprecatePackage_MissingCve", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to At least one CWE specified could not be found..
-        /// </summary>
-        public static string DeprecatePackage_MissingCwe {
-            get {
-                return ResourceManager.GetString("DeprecatePackage_MissingCwe", resourceCulture);
             }
         }
         
