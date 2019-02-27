@@ -147,6 +147,11 @@
             </div>
             <button class="btn btn-primary" data-bind="click: addWithoutAutocomplete, disable: !hasIds(), attr: { 'aria-label': addLabel }">Add</button>
         </div>
+
+        <div data-bind="visible: addError">
+            @ViewHelpers.AlertDanger(@<text><span data-bind="text: addError"></span></text>)
+        </div>
+
         <div class="security-detail-list" data-bind="visible: $data, foreach: ids">
             <div class="security-detail-list-item alert-info">
                 <div class="security-detail-list-item-header">

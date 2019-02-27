@@ -9,7 +9,7 @@ function ManageDeprecationSecurityDetailListItemViewModel(id, fromAutocomplete, 
 }
 
 // Shared model between the CVE view and the CWE view
-function ManageDeprecationSecurityDetailListViewModel(id, title, label, placeholder, addLabel, autocompleteUrl, processAutocompleteResult, missingAutocompleteName, missingAutocompleteDescription, updateCvssFromItem) {
+function ManageDeprecationSecurityDetailListViewModel(id, title, label, placeholder, addLabel, addRegex, autocompleteUrl, processAutocompleteResult, missingAutocompleteName, missingAutocompleteDescription, updateCvssFromItem) {
     var self = this;
 
     this.id = id;
@@ -37,6 +37,7 @@ function ManageDeprecationSecurityDetailListViewModel(id, title, label, placehol
     // The ID that has been typed into the textbox but not yet submitted.
     this.addId = ko.observable('');
     this.addLabel = addLabel;
+    this.addError = ko.observable('');
 
     this.showAutocompleteResults = ko.observable(true);
     var autocompleteSelector = "#" + id + "-autocomplete";
@@ -48,6 +49,8 @@ function ManageDeprecationSecurityDetailListViewModel(id, title, label, placehol
 
     this.autocompleteResults = ko.observableArray();
     this.addId.subscribe(function () {
+        self.addError('');
+
         var query = self.addId();
         $.ajax({
             url: autocompleteUrl,
@@ -84,6 +87,12 @@ function ManageDeprecationSecurityDetailListViewModel(id, title, label, placehol
     }, this);
 
     this.add = function (addedItemViewModel) {
+        var id = addedItemViewModel.id;
+        if (!id.match(addRegex)) {
+            self.addError("'" + id + "' is not a valid ID!");
+            return;
+        }
+
         self.addedIds.push(addedItemViewModel);
         self.addId('');
         updateCvssFromItem(addedItemViewModel);
@@ -305,6 +314,7 @@ function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defau
         "Add one or more CVEs applicable to the vulnerability.",
         "Add CVE by ID e.g. CVE-2014-999999, CVE-2015-888888",
         "Add CVE",
+        /^CVE-\d{4}-\d+$/g,
         getCveIdsUrl,
         function (result) {
             return new ManageDeprecationSecurityDetailListItemViewModel(
@@ -321,6 +331,7 @@ function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defau
         "Add one or more CWEs applicable to the vulnerability.",
         "Add CWE by ID or title",
         "Add CWE",
+        /^CWE-\d+$/g,
         getCweIdsUrl,
         function (result) {
             return new ManageDeprecationSecurityDetailListItemViewModel(
