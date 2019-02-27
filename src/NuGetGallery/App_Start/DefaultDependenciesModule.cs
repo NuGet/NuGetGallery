@@ -8,6 +8,7 @@ using System.Data.Entity;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Net.Mail;
 using System.Security.Principal;
 using System.Threading.Tasks;
@@ -16,8 +17,11 @@ using System.Web.Hosting;
 using System.Web.Mvc;
 using AnglicanGeek.MarkdownMailer;
 using Autofac;
+using Autofac.Extensions.DependencyInjection;
 using Autofac.Core;
 using Elmah;
+using Microsoft.ApplicationInsights.Extensibility;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.ServiceRuntime;
 using NuGet.Services.Entities;
@@ -28,6 +32,7 @@ using NuGet.Services.Logging;
 using NuGet.Services.Messaging;
 using NuGet.Services.Messaging.Email;
 using NuGet.Services.Search.Client;
+using NuGet.Services.Search.Client.Correlation;
 using NuGet.Services.ServiceBus;
 using NuGet.Services.Sql;
 using NuGet.Services.Validation;
@@ -42,8 +47,8 @@ using NuGetGallery.Diagnostics;
 using NuGetGallery.Features;
 using NuGetGallery.Infrastructure;
 using NuGetGallery.Infrastructure.Authentication;
-using NuGetGallery.Infrastructure.Lucene;
 using NuGetGallery.Infrastructure.Mail;
+using NuGetGallery.Infrastructure.Search;
 using NuGetGallery.Security;
 using SecretReaderFactory = NuGetGallery.Configuration.SecretReader.SecretReaderFactory;
 
@@ -62,14 +67,29 @@ namespace NuGetGallery
 
         protected override void Load(ContainerBuilder builder)
         {
+            var services = new ServiceCollection();
+
+            var configuration = new ConfigurationService();
+            var secretReaderFactory = new SecretReaderFactory(configuration);
+            var secretReader = secretReaderFactory.CreateSecretReader();
+            var secretInjector = secretReaderFactory.CreateSecretInjector(secretReader);
+
+            builder.RegisterInstance(secretInjector)
+                .AsSelf()
+                .As<ISecretInjector>()
+                .SingleInstance();
+
+            configuration.SecretInjector = secretInjector;
+
+            // Register the ILoggerFactory and configure it to use AppInsights if an instrumentation key is provided.
+            var instrumentationKey = configuration.Current.AppInsightsInstrumentationKey;
+            if (!string.IsNullOrEmpty(instrumentationKey))
+            {
+                TelemetryConfiguration.Active.InstrumentationKey = instrumentationKey;
+            }
+
             var loggerConfiguration = LoggingSetup.CreateDefaultLoggerConfiguration(withConsoleLogger: false);
             var loggerFactory = LoggingSetup.CreateLoggerFactory(loggerConfiguration);
-            builder.RegisterInstance(loggerFactory)
-                .AsSelf()
-                .As<ILoggerFactory>();
-            builder.RegisterGeneric(typeof(Logger<>))
-                .As(typeof(ILogger<>))
-                .SingleInstance();
 
             var telemetryClient = TelemetryClientWrapper.Instance;
             builder.RegisterInstance(telemetryClient)
@@ -83,17 +103,8 @@ namespace NuGetGallery
                 .As<IDiagnosticsService>()
                 .SingleInstance();
 
-            var configuration = new ConfigurationService();
-            var secretReaderFactory = new SecretReaderFactory(configuration);
-            var secretReader = secretReaderFactory.CreateSecretReader();
-            var secretInjector = secretReaderFactory.CreateSecretInjector(secretReader);
-
-            builder.RegisterInstance(secretInjector)
-                .AsSelf()
-                .As<ISecretInjector>()
-                .SingleInstance();
-
-            configuration.SecretInjector = secretInjector;
+            services.AddSingleton(loggerFactory);
+            services.AddSingleton(typeof(ILogger<>), typeof(Logger<>));
 
             UrlHelperExtensions.SetConfigurationService(configuration);
 
@@ -113,7 +124,9 @@ namespace NuGetGallery
             builder.Register(c => configuration.PackageDelete)
                 .As<IPackageDeleteConfiguration>();
 
-            builder.RegisterType<TelemetryService>()
+            var telemetryService = new TelemetryService(diagnosticsService, telemetryClient);
+            builder.RegisterInstance(telemetryService)
+                .AsSelf()
                 .As<ITelemetryService>()
                 .As<IFeatureFlagTelemetryService>()
                 .SingleInstance();
@@ -125,6 +138,7 @@ namespace NuGetGallery
                 .As<Lucene.Net.Store.Directory>()
                 .SingleInstance();
 
+            ConfigureResilientSearch(loggerFactory, configuration, telemetryService, services);
             ConfigureSearch(builder, configuration);
 
             builder.RegisterType<DateTimeProvider>().AsSelf().As<IDateTimeProvider>().SingleInstance();
@@ -422,6 +436,7 @@ namespace NuGetGallery
             }
 
             ConfigureAutocomplete(builder, configuration);
+            builder.Populate(services);
         }
 
         private static void RegisterFeatureFlagsService(ContainerBuilder builder, ConfigurationService configuration)
@@ -693,6 +708,55 @@ namespace NuGetGallery
                     .InstancePerLifetimeScope();
             }
         }
+
+        private static List<(string name,Uri searchUri)> GetSearchClientsFromConfiguration(IGalleryConfigurationService configuration)
+        {
+            List<(string name, Uri searchUri)> searchClients = new List<(string name, Uri searchUri)>();
+            if (configuration.Current.SearchServiceUriPrimary != null)
+            {
+                searchClients.Add((SearchClientConfiguration.SearchPrimaryInstance, configuration.Current.SearchServiceUriPrimary));
+            }
+            if (configuration.Current.SearchServiceUriSecondary != null)
+            {
+                searchClients.Add((SearchClientConfiguration.SearchSecondaryInstance, configuration.Current.SearchServiceUriSecondary));
+            }
+
+            return searchClients;
+        }
+
+        private static void ConfigureResilientSearch(ILoggerFactory loggerFactory, IGalleryConfigurationService configuration, ITelemetryService telemetryService, ServiceCollection services)
+        {
+            var searchClients = GetSearchClientsFromConfiguration(configuration);
+
+            if (searchClients.Count >= 1)
+            {
+                var logger = loggerFactory.CreateLogger<SearchClientPolicies>();
+                services.AddTransient<CorrelatingHttpClientHandler>();
+                services.AddTransient((s) => new TracingHttpHandler(DependencyResolver.Current.GetService<IDiagnosticsService>().SafeGetSource("ExternalSearchService")));
+
+                foreach(var searchClient in searchClients)
+                {
+                    // The policy handlers will be applied from the bottom to the top.
+                    // The most inner one is the one added last.
+                    services.AddHttpClient<IHttpClientWrapper, HttpClientWrapper>(searchClient.name, c =>
+                         c.BaseAddress = searchClient.searchUri)
+                    .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler() { AllowAutoRedirect = true })
+                    .AddHttpMessageHandler<TracingHttpHandler>()
+                    .AddHttpMessageHandler<CorrelatingHttpClientHandler>()
+                    .AddPolicyHandler(SearchClientPolicies.SearchClientFallBackCircuitBreakerPolicy(logger, searchClient.name, telemetryService))
+                    .AddPolicyHandler(SearchClientPolicies.SearchClientWaitAndRetryForeverPolicy(logger, searchClient.name, telemetryService))
+                    .AddPolicyHandler(SearchClientPolicies.SearchClientCircuitBreakerPolicy(
+                            SearchClientConfiguration.SearchRetryCount,
+                            TimeSpan.FromSeconds(configuration.Current.SearchCircuitBreakerDelayInSeconds),
+                            logger,
+                            searchClient.name,
+                            telemetryService));
+                }
+                services.AddTransient<IResilientSearchClient, ResilientSearchHttpClient>();
+                services.AddTransient<ISearchClient, GallerySearchClient>();
+            }
+        }
+
 
         private static void ConfigureAutocomplete(ContainerBuilder builder, IGalleryConfigurationService configuration)
         {

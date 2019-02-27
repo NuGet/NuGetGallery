@@ -1832,6 +1832,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Search Service is not available. Please try again later..
+        /// </summary>
+        public static string SearchServiceIsNotAvailable {
+            get {
+                return ResourceManager.GetString("SearchServiceIsNotAvailable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The package metadata contains a non-compliant copyright element..
         /// </summary>
         public static string SecurityPolicy_CopyrightNotCompliant {

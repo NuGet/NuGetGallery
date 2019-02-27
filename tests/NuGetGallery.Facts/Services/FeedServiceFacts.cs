@@ -15,7 +15,7 @@ using System.Web.Http.Results;
 using Moq;
 using NuGet.Services.Entities;
 using NuGetGallery.Configuration;
-using NuGetGallery.Infrastructure.Lucene;
+using NuGetGallery.Infrastructure.Search;
 using NuGetGallery.OData;
 using NuGetGallery.OData.QueryFilter;
 using NuGetGallery.TestUtils.Infrastructure;

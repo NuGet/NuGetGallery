@@ -5,14 +5,15 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using NuGetGallery.Configuration;
+using NuGetGallery.Infrastructure.Search;
 
 namespace NuGetGallery
 {
     public class AutocompleteServicePackageVersionsQuery
         : AutocompleteServiceQuery, IAutocompletePackageVersionsQuery
     {
-        public AutocompleteServicePackageVersionsQuery(IAppConfiguration configuration)
-            : base(configuration)
+        public AutocompleteServicePackageVersionsQuery(IAppConfiguration configuration, IResilientSearchClient resilientSearchClient)
+            : base(configuration, resilientSearchClient)
         {
         }
 

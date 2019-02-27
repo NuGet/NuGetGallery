@@ -390,5 +390,20 @@ namespace NuGetGallery.Configuration
         /// no embedded license) are allowed into Gallery.
         /// </summary>
         bool AllowLicenselessPackages { get; set; }
+
+        /// <summary>
+        /// The Uri for the Primary Search endpoint
+        /// </summary>
+        Uri SearchServiceUriPrimary { get; set; }
+
+        /// <summary>
+        /// The Uri for the Secondary Search endpoint
+        /// </summary>
+        Uri SearchServiceUriSecondary { get; set; }
+
+        /// <summary>
+        /// The time in seconds for the circuit breaker delay. (The time the circuit breaker will stay in open state)
+        /// </summary>
+        int SearchCircuitBreakerDelayInSeconds { get; set; }
     }
 }

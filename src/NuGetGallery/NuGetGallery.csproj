@@ -320,6 +320,12 @@
     <Compile Include="Infrastructure\Authentication\ApiKeyV3.cs" />
     <Compile Include="Infrastructure\Authentication\ApiKeyV4.cs" />
     <Compile Include="Infrastructure\Authentication\Base32Encoder.cs" />
+    <Compile Include="Infrastructure\Lucene\HttpClientWrapper.cs" />
+    <Compile Include="Infrastructure\Lucene\IResilientSearchClient.cs" />
+    <Compile Include="Infrastructure\Lucene\IHttpClientWrapper.cs" />
+    <Compile Include="Infrastructure\Lucene\ResilientSearchHttpClient.cs" />
+    <Compile Include="Infrastructure\Lucene\SearchClientConfiguration.cs" />
+    <Compile Include="Infrastructure\Lucene\SearchClientPolicies.cs" />
     <Compile Include="Infrastructure\Mail\ConfirmationEmailBuilder.cs" />
     <Compile Include="Infrastructure\Mail\EmailMessageFooter.cs" />
     <Compile Include="Infrastructure\Mail\GalleryEmailRecipientsUtility.cs" />
@@ -355,6 +361,7 @@
     <Compile Include="Infrastructure\Mail\Messages\ReportPackageMessageBase.cs" />
     <Compile Include="Infrastructure\Mail\Messages\SigninAssistanceMessage.cs" />
     <Compile Include="Infrastructure\Mail\Requests\ReportPackageRequest.cs" />
+    <Compile Include="Infrastructure\Lucene\GallerySearchClient.cs" />
     <Compile Include="Infrastructure\SyndicationAtomActionResult.cs" />
     <Compile Include="Migrations\201711082145351_AddAccountDelete.cs" />
     <Compile Include="Migrations\201711082145351_AddAccountDelete.Designer.cs">
@@ -2092,8 +2099,20 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Autofac.Extensions.DependencyInjection">
+      <Version>4.3.1</Version>
+    </PackageReference>
     <PackageReference Include="Markdig.Signed">
       <Version>0.15.4</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection">
+      <Version>2.2.0</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Http">
+      <Version>2.2.0</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Http.Polly">
+      <Version>2.2.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Licenses">
       <Version>2.43.0</Version>
@@ -2257,10 +2276,10 @@
       <Version>5.7.0</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Logging">
-      <Version>1.1.2</Version>
+      <Version>2.2.0</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions">
-      <Version>1.1.2</Version>
+      <Version>2.2.0</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.IdentityModel.Clients.ActiveDirectory">
       <Version>3.19.4</Version>
