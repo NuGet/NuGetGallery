@@ -19,42 +19,11 @@ function MultiSelectDropdown(items, singularItemTitle, pluralItemTitle) {
         self.dropdownOpen(!self.dropdownOpen());
     };
 
-    this.isAncestor = function (element, ancestorSelector) {
-        var $target = $(element);
-        // '.closest' returns the list of ancestors between this element and the selector.
-        // If the selector is not an ancestor of the element, it returns an empty list.
-        return !!$target.closest(ancestorSelector).length;
-    };
-
-    this.isElementInsideDropdown = function (element) {
-        return self.isAncestor(element, self.dropdownSelector);
-    };
-
-    // If the user clicks outside of the dropdown, close it.
-    $(document).click(function (event) {
-        if (!self.isElementInsideDropdown(event.target)) {
-            self.dropdownOpen(false);
-        }
-    });
-
-    // If an element outside of the dropdown gains focus, close it.
-    $(document).focusin(function (event) {
-        if (!self.isElementInsideDropdown(event.target)) {
-            self.dropdownOpen(false);
-        }
-    });
-
-    $(document).keydown(function (event) {
-        var target = event.target;
-        if (self.isElementInsideDropdown(target)) {
-            // If we press escape while focus is inside the dropdown, close it
-            if (event.which === 27) { // Escape key
-                self.dropdownOpen(false);
-                event.preventDefault();
-                $(self.dropdownBtnSelector).focus();
-            }
-        }
-    });
+    window.nuget.configureDropdown(
+        self.dropdownSelector,
+        self.dropdownBtnSelector,
+        self.dropdownOpen,
+        false);
 
     // A filter to be applied to the items
     this.filter = ko.observable('');

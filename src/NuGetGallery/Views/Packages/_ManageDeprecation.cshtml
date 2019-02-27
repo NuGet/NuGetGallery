@@ -125,14 +125,33 @@
             <label class="security-detail-input-label" data-bind="text: label"></label>
         </div>
         <div class="security-detail-input security-detail-list-input">
-            <input class="form-control" name="addId" type="text" data-bind="textInput: addId, disable: !hasIds(), attr: { placeholder: placeholder, 'aria-label': label }, event: { keydown: addWithoutAutocompleteKeyDown }" />
+            <div class="security-detail-list-autocomplete" data-bind="attr: { id: id + '-autocomplete' }">
+                <input class="form-control" name="addId" type="text" data-bind="textInput: addId, disable: !hasIds(), attr: { placeholder: placeholder, 'aria-label': label }, event: { keydown: addWithoutAutocompleteKeyDown }" />
+                <div class="security-detail-list-autocomplete-content panel panel-default" data-bind="foreach: autocompleteResults, visible: showAutocompleteResults">
+                    <a class="icon-link"
+                       href="#"
+                       data-bind="click: $parent.addWithAutocomplete.bind($data), attr: { 'aria-label': 'Add ' + id }">
+                        <div class="security-detail-list-item">
+                            <span class="security-detail-list-item-existing" data-bind="text: id"></span>
+                            <span data-bind="visible: name">
+                                &nbsp;-&nbsp;
+                                <span data-bind="text: name"></span>
+                            </span>
+                            <span data-bind="visible: description">
+                                &nbsp;-&nbsp;
+                                <span data-bind="text: description"></span>
+                            </span>
+                        </div>
+                    </a>
+                </div>
+            </div>
             <button class="btn btn-primary" data-bind="click: addWithoutAutocomplete, disable: !hasIds(), attr: { 'aria-label': addLabel }">Add</button>
         </div>
         <div class="security-detail-list" data-bind="visible: $data, foreach: ids">
             <div class="security-detail-list-item alert-info">
                 <div class="security-detail-list-item-header">
                     <div>
-                        <span data-bind="text: id, css: { 'text-info': description, 'text-danger': !description }"></span>
+                        <span data-bind="text: id, css: { 'security-detail-list-item-existing': fromAutocomplete, 'security-detail-list-item-missing': !fromAutocomplete }"></span>
                         <span data-bind="visible: name || !fromAutocomplete">
                             &nbsp;-&nbsp;
                             <span data-bind="visible: name, text: name"></span>
@@ -141,7 +160,7 @@
                     </div>
                     <a class="icon-link"
                        href="#"
-                       data-bind="click: $parent.remove.bind(id), attr: { 'aria-label': 'Remove ' + id }">
+                       data-bind="click: $parent.remove.bind(id), attr: { 'aria-label': 'Remove ' + id }, clickBubble: false">
                         <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
                     </a>
                 </div>

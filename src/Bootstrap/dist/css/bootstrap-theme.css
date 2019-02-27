@@ -1154,6 +1154,33 @@ img.reserved-indicator-icon {
   width: 65px;
   margin-right: 15px;
 }
+.page-manage-deprecation .deprecation-section .deprecation-subsection .security-detail .security-detail-list-item {
+  padding: 10px;
+}
+.page-manage-deprecation .deprecation-section .deprecation-subsection .security-detail .security-detail-list-item span {
+  color: black;
+  text-decoration: none;
+}
+.page-manage-deprecation .deprecation-section .deprecation-subsection .security-detail .security-detail-list-item .security-detail-list-item-existing {
+  color: #31708f;
+}
+.page-manage-deprecation .deprecation-section .deprecation-subsection .security-detail .security-detail-list-item .security-detail-list-item-missing {
+  color: #a94442;
+}
+.page-manage-deprecation .deprecation-section .deprecation-subsection .security-detail .security-detail-list-item .security-detail-list-item-header {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display:         flex;
+
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+  -ms-flex-pack: justify;
+          justify-content: space-between;
+}
+.page-manage-deprecation .deprecation-section .deprecation-subsection .security-detail .security-detail-list-item .security-detail-list-item-description {
+  margin-top: 5px;
+}
 .page-manage-deprecation .deprecation-section .deprecation-subsection .security-detail .security-detail-list-input {
   display: -webkit-box;
   display: -webkit-flex;
@@ -1165,6 +1192,22 @@ img.reserved-indicator-icon {
   -ms-flex-pack: justify;
           justify-content: space-between;
 }
+.page-manage-deprecation .deprecation-section .deprecation-subsection .security-detail .security-detail-list-input .security-detail-list-autocomplete {
+  position: relative;
+  display: block;
+  width: 100%;
+}
+.page-manage-deprecation .deprecation-section .deprecation-subsection .security-detail .security-detail-list-input .security-detail-list-autocomplete .security-detail-list-autocomplete-content {
+  position: absolute;
+  z-index: 1;
+  width: 100%;
+  border-top: 0;
+}
+.page-manage-deprecation .deprecation-section .deprecation-subsection .security-detail .security-detail-list-input .security-detail-list-autocomplete .security-detail-list-autocomplete-content .security-detail-list-item:focus,
+.page-manage-deprecation .deprecation-section .deprecation-subsection .security-detail .security-detail-list-input .security-detail-list-autocomplete .security-detail-list-autocomplete-content .security-detail-list-item > :focus,
+.page-manage-deprecation .deprecation-section .deprecation-subsection .security-detail .security-detail-list-input .security-detail-list-autocomplete .security-detail-list-autocomplete-content .security-detail-list-item:hover {
+  background-color: #f4f4f4;
+}
 .page-manage-deprecation .deprecation-section .deprecation-subsection .security-detail .security-detail-list-input button {
   margin-left: 15px;
 }
@@ -1172,22 +1215,7 @@ img.reserved-indicator-icon {
   margin-top: 10px;
 }
 .page-manage-deprecation .deprecation-section .deprecation-subsection .security-detail .security-detail-list .security-detail-list-item {
-  padding: 10px;
   margin-top: 10px;
-}
-.page-manage-deprecation .deprecation-section .deprecation-subsection .security-detail .security-detail-list .security-detail-list-item .security-detail-list-item-header {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display:         flex;
-
-  -webkit-box-pack: justify;
-  -webkit-justify-content: space-between;
-  -ms-flex-pack: justify;
-          justify-content: space-between;
-}
-.page-manage-deprecation .deprecation-section .deprecation-subsection .security-detail .security-detail-list .security-detail-list-item .security-detail-list-item-description {
-  margin-top: 5px;
 }
 @media (max-width: 768px) {
   .page-manage-deprecation .deprecation-section .deprecation-subsection .alternate-package-container {

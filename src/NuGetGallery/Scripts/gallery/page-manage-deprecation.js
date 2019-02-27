@@ -9,9 +9,10 @@ function ManageDeprecationSecurityDetailListItemViewModel(id, fromAutocomplete, 
 }
 
 // Shared model between the CVE view and the CWE view
-function ManageDeprecationSecurityDetailListViewModel(title, label, placeholder, addLabel, autocompleteUrl, processAutocompleteResult, missingAutocompleteName, missingAutocompleteDescription, updateCvssFromItem) {
+function ManageDeprecationSecurityDetailListViewModel(id, title, label, placeholder, addLabel, autocompleteUrl, processAutocompleteResult, missingAutocompleteName, missingAutocompleteDescription, updateCvssFromItem) {
     var self = this;
 
+    this.id = id;
     this.title = ko.observable(title);
     this.label = ko.observable(label);
     this.placeholder = ko.observable(placeholder);
@@ -37,6 +38,14 @@ function ManageDeprecationSecurityDetailListViewModel(title, label, placeholder,
     this.addId = ko.observable('');
     this.addLabel = addLabel;
 
+    this.showAutocompleteResults = ko.observable(true);
+    var autocompleteSelector = "#" + id + "-autocomplete";
+    window.nuget.configureDropdown(
+        ":has(> " + autocompleteSelector + ")",
+        autocompleteSelector,
+        self.showAutocompleteResults,
+        true);
+
     this.autocompleteResults = ko.observableArray();
     this.addId.subscribe(function () {
         var query = self.addId();
@@ -49,12 +58,27 @@ function ManageDeprecationSecurityDetailListViewModel(title, label, placeholder,
             },
 
             success: function (data) {
+                if (query !== self.addId()) {
+                    // Don't set the autocomplete results if the ID in the box has changed.
+                    return;
+                }
+
                 if (!data.Success) {
+                    self.autocompleteResults([]);
                     return;
                 }
 
                 self.autocompleteResults(
                     data.Results.map(processAutocompleteResult));
+            },
+
+            error: function () {
+                if (query !== self.addId()) {
+                    // Don't set the autocomplete results if the ID in the box has changed.
+                    return;
+                }
+
+                self.autocompleteResults([]);
             }
         });
     }, this);
@@ -75,7 +99,8 @@ function ManageDeprecationSecurityDetailListViewModel(title, label, placeholder,
         // If there is an autocomplete result with the same ID, use it.
         var matchingAutocompleteResult = ko.utils.arrayFirst(
             self.autocompleteResults(),
-            function (result) { return result.id === addedId; });
+            // CVE IDs and CWE IDs are case-insensitive, so match autocomplete results case-insensitively.
+            function (result) { return result.id.toUpperCase() === addedId.toUpperCase(); });
 
         var addedItem = matchingAutocompleteResult
             ? matchingAutocompleteResult
@@ -93,13 +118,15 @@ function ManageDeprecationSecurityDetailListViewModel(title, label, placeholder,
     };
 
     this.remove = function (id, event) {
+        var $target = $(event.target);
+
         // Try to focus on the next added item.
-        var nextItem = $(event.target).closest('.security-detail-list-item').next('.security-detail-list-item');
+        var nextItem = $target.closest('.security-detail-list-item').next('.security-detail-list-item');
         if (nextItem.length) {
             nextItem.find(':tabbable').focus();
         } else {
             // Otherwise, focus on the "add item" input.
-            $(event.target).closest('.security-detail').find('[name="addId"]').focus();
+            $target.closest('.security-detail').find('[name="addId"]').focus();
         }
 
         self.addedIds.remove(id);
@@ -273,6 +300,7 @@ function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defau
 
     // The model for the CVEs view.
     this.cves = new ManageDeprecationSecurityDetailListViewModel(
+        "cve",
         "CVE ID(s)",
         "Add one or more CVEs applicable to the vulnerability.",
         "Add CVE by ID e.g. CVE-2014-999999, CVE-2015-888888",
@@ -288,6 +316,7 @@ function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defau
 
     // The model for the CWEs view
     this.cwes = new ManageDeprecationSecurityDetailListViewModel(
+        "cwe",
         "CWE(s)",
         "Add one or more CWEs applicable to the vulnerability.",
         "Add CWE by ID or title",

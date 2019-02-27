@@ -38,10 +38,55 @@
                         margin-right: 15px;
                     }
                 }
+
+                .security-detail-list-item {
+                    padding: 10px;
+
+                    span {
+                        text-decoration: none;
+                        color: black;
+                    }
+
+                    .security-detail-list-item-existing {
+                        color: @state-info-text;
+                    }
+
+                    .security-detail-list-item-missing {
+                        color: @state-danger-text;
+                    }
+
+                    .security-detail-list-item-header {
+                        display: flex;
+                        justify-content: space-between;
+                    }
+
+                    .security-detail-list-item-description {
+                        margin-top: 5px;
+                    }
+                }
                 
                 .security-detail-list-input {
                     display: flex;
                     justify-content: space-between;
+
+                    .security-detail-list-autocomplete {
+                        width: 100%;
+                        position: relative;
+                        display: block;
+
+                        .security-detail-list-autocomplete-content {
+                            position: absolute;
+                            z-index: 1;
+                            width: 100%;
+                            border-top: 0px;
+
+                            .security-detail-list-item {
+                                &:focus, & > :focus, &:hover {
+                                    background-color: @alert-info-bg;
+                                }
+                            }
+                        }
+                    }
 
                     button {
                         margin-left: 15px;
@@ -52,17 +97,7 @@
                     margin-top: 10px;
 
                     .security-detail-list-item {
-                        padding: 10px;
                         margin-top: 10px;
-
-                        .security-detail-list-item-header {
-                            display: flex;
-                            justify-content: space-between;
-                        }
-
-                        .security-detail-list-item-description {
-                            margin-top: 5px;
-                        }
                     }
                 }
             }
