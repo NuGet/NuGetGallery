@@ -110,7 +110,7 @@
 
         <div class="deprecation-content-container collapse" id="deprecation-content-container">
             @VulnerabilityDetailList(Model.CveIds, "CVEs", (id) => "https://cve.mitre.org/cgi-bin/cvename.cgi?name=" + id)
-            @VulnerabilityDetailList(Model.CweIds, "CWEs", (id) => "https://cwe.mitre.org/data/definitions/" + id + ".html")
+            @VulnerabilityDetailList(Model.CweIds, "CWEs", (id) => "https://cwe.mitre.org/data/definitions/" + id.Substring("CWE-".Length) + ".html")
 
             @if (!string.IsNullOrEmpty(Model.AlternatePackageId))
             {
