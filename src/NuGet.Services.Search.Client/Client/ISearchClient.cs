@@ -9,6 +9,22 @@ namespace NuGet.Services.Search.Client
 {
     public interface ISearchClient
     {
+        /// <summary>
+        /// Performs the Search based on the parameters.
+        /// </summary>
+        /// <param name="query">The query string.</param>
+        /// <param name="projectTypeFilter">ProjectType</param>
+        /// <param name="includePrerelease">IncludePrerelease</param>
+        /// <param name="sortBy">SortBy</param>
+        /// <param name="skip">Skip</param>
+        /// <param name="take">Take</param>
+        /// <param name="isLuceneQuery">IsLuceneQuery</param>
+        /// <param name="countOnly">CountOnly</param>
+        /// <param name="explain">Explain</param>
+        /// <param name="getAllVersions">GetAllVersions</param>
+        /// <param name="supportedFramework">SupportedFramework</param>
+        /// <param name="semVerLevel">SemVerLevel</param>
+        /// <returns></returns>
         Task<ServiceResponse<SearchResults>> Search(
             string query,
             string projectTypeFilter,
@@ -23,6 +39,10 @@ namespace NuGet.Services.Search.Client
             string supportedFramework,
             string semVerLevel);
 
+        /// <summary>
+        /// Returns the search diag.
+        /// </summary>
+        /// <returns></returns>
         Task<ServiceResponse<JObject>> GetDiagnostics();
     }
 }
