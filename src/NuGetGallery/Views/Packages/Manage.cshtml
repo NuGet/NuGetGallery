@@ -118,7 +118,9 @@
                 '@Model.Version',
                 '@Url.DeprecatePackage()',
                 packageUrl,
-                '@Url.GetDeprecationAlternatePackageVersions()');
+                '@Url.GetDeprecationAlternatePackageVersions()',
+                '@Url.GetDeprecationCveIds()',
+                '@Url.GetDeprecationCweIds()');
         });
     </script>
     @ViewHelpers.SectionsScript(this)

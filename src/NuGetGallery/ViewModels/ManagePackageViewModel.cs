@@ -140,9 +140,9 @@ namespace NuGetGallery
                     IsLegacy = deprecation.Status.HasFlag(PackageDeprecationStatus.Legacy);
                     IsOther = deprecation.Status.HasFlag(PackageDeprecationStatus.Other);
 
-                    CveIds = deprecation.Cves?.Select(c => c.CveId).ToList();
+                    CveIds = deprecation.Cves?.Select(c => new VulnerabilityDetailState(c)).ToList();
                     CvssRating = deprecation.CvssRating;
-                    CweIds = deprecation.Cwes?.Select(c => c.CweId).ToList();
+                    CweIds = deprecation.Cwes?.Select(c => new VulnerabilityDetailState(c)).ToList();
 
                     // A deprecation should not have both an alternate package registration and an alternate package.
                     // In case a deprecation does have both, we will hide the alternate package registration's ID in this model.
@@ -163,13 +163,45 @@ namespace NuGetGallery
             public bool IsVulnerable { get; }
             public bool IsLegacy { get; }
             public bool IsOther { get; }
-            public IReadOnlyCollection<string> CveIds { get; }
+            public IReadOnlyCollection<VulnerabilityDetailState> CveIds { get; }
             public decimal? CvssRating { get; }
-            public IReadOnlyCollection<string> CweIds { get; }
+            public IReadOnlyCollection<VulnerabilityDetailState> CweIds { get; }
             public string AlternatePackageId { get; }
             public string AlternatePackageVersion { get; }
             public string CustomMessage { get; }
             public bool ShouldUnlist { get; }
+
+            /// <remarks>
+            /// Ideally, the fields of this class would be pascal-case.
+            /// Unfortunately, however, the serializer that MVC uses interally (JavaScriptSerializer) does not support changing the serialized name of a property.
+            /// The JS on the client-side depends on the exact naming of these fields, and it would add unnecessary complexity to do the conversion on the client-side.
+            /// </remarks>
+            public class VulnerabilityDetailState
+            {
+                public VulnerabilityDetailState(Cve cve)
+                    : this(cve.CveId, cve.Description)
+                {
+                    cvss = cve.CvssRating;
+                }
+
+                public VulnerabilityDetailState(Cwe cwe)
+                    : this (cwe.CweId, cwe.Description)
+                {
+                    name = cwe.Name;
+                }
+
+                private VulnerabilityDetailState(string id, string description)
+                {
+                    this.id = id;
+                    this.description = description;
+                }
+
+                public string id { get; }
+                public string name { get; }
+                public string description { get; }
+                public decimal? cvss { get; }
+                public bool fromAutocomplete => true;
+            }
         }
     }
 }
