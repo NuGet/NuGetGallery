@@ -69,6 +69,7 @@
     <Compile Include="SearchService\SearchParametersBuilderFacts.cs" />
     <Compile Include="SearchService\SearchResponseBuilderFacts.cs" />
     <Compile Include="SearchService\SearchStatusServiceFacts.cs" />
+    <Compile Include="SearchService\SearchTextBuilderFacts.cs" />
     <Compile Include="Support\Cursor.cs" />
     <Compile Include="Support\Data.cs" />
     <Compile Include="Support\SerializationUtilities.cs" />

@@ -1,0 +1,290 @@
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Xunit;
+
+namespace NuGet.Services.AzureSearch.SearchService
+{
+    public class SearchTextBuilderFacts
+    {
+        public class V2Search : FactsBase
+        {
+            [Theory]
+            [MemberData(nameof(CommonAzureSearchQueryData))]
+            public void GeneratesAzureSearchQuery(string input, string expected)
+            {
+                var actual = _target.V2Search(new V2SearchRequest { Query = input });
+
+                Assert.Equal(expected, actual);
+            }
+
+            // TODO: id and packageId query fields should map to different fields with different analyzers
+            // See: https://github.com/NuGet/NuGetGallery/issues/6920
+            // See: https://github.com/NuGet/NuGetGallery/issues/6922
+            [Theory]
+            [InlineData(false, "packageId:hello")]
+            [InlineData(true, "packageId:hello")]
+            public void WhenLuceneQuery_TreatsLeadingIdAsPackageId(bool luceneQuery, string expected)
+            {
+                var actual = _target.V2Search(new V2SearchRequest
+                {
+                    Query = "id:hello",
+                    LuceneQuery = luceneQuery,
+                });
+
+                Assert.Equal(expected, actual);
+            }
+
+            [Theory]
+            [MemberData(nameof(GenerateQueriesManyClauses))]
+            public void ThrowsWhenQueryHasTooManyClauses(int nonFieldScopedTerms, int fieldScopedTerms, bool shouldThrow)
+            {
+                var request = new V2SearchRequest { Query = GenerateQuery(nonFieldScopedTerms, fieldScopedTerms) };
+
+                if (shouldThrow)
+                {
+                    var e = Assert.Throws<InvalidOperationException>(() => _target.V2Search(request));
+                    Assert.Equal("A query can only have up to 1024 clauses", e.Message);
+                }
+                else
+                {
+                    _target.V2Search(request);
+                }
+            }
+
+            [Theory]
+            [MemberData(nameof(GenerateQueryWithTooBigTerm))]
+            public void ThrowsWhenTermIsTooBig(string query)
+            {
+                var request = new V2SearchRequest { Query = query };
+                var e = Assert.Throws<InvalidOperationException>(() => _target.V2Search(request));
+
+                Assert.Equal("Query terms cannot exceed 32768 bytes", e.Message);
+            }
+        }
+
+        public class V3Search : FactsBase
+        {
+            [Theory]
+            [MemberData(nameof(CommonAzureSearchQueryData))]
+            public void GeneratesAzureSearchQuery(string input, string expected)
+            {
+                var actual = _target.V3Search(new V3SearchRequest { Query = input });
+
+                Assert.Equal(expected, actual);
+            }
+
+            [Theory]
+            [MemberData(nameof(GenerateQueriesManyClauses))]
+            public void ThrowsWhenQueryHasTooManyClauses(int nonFieldScopedTerms, int fieldScopedTerms, bool shouldThrow)
+            {
+                var request = new V3SearchRequest { Query = GenerateQuery(nonFieldScopedTerms, fieldScopedTerms) };
+
+                if (shouldThrow)
+                {
+                    var e = Assert.Throws<InvalidOperationException>(() => _target.V3Search(request));
+                    Assert.Equal("A query can only have up to 1024 clauses", e.Message);
+                }
+                else
+                {
+                    _target.V3Search(request);
+                }
+            }
+
+            [Theory]
+            [MemberData(nameof(GenerateQueryWithTooBigTerm))]
+            public void ThrowsWhenTermIsTooBig(string query)
+            {
+                var request = new V3SearchRequest { Query = query };
+                var e = Assert.Throws<InvalidOperationException>(() => _target.V3Search(request));
+
+                Assert.Equal("Query terms cannot exceed 32768 bytes", e.Message);
+            }
+        }
+
+        public class FactsBase
+        {
+            protected readonly SearchTextBuilder _target;
+
+            public FactsBase()
+            {
+                _target = new SearchTextBuilder();
+            }
+
+            public static IEnumerable<object[]> CommonAzureSearchQueryData()
+            {
+                // Map of inputs to expected output
+                var data = new Dictionary<string, string>
+                {
+                    { "", "*" },
+                    { " ", "*" },
+
+                    // TODO: id should support partial matching
+                    // TODO: packageId, version, and owners should be case insensitive
+                    // See: https://github.com/NuGet/NuGetGallery/issues/6920
+                    // See: https://github.com/NuGet/NuGetGallery/issues/6922
+                    { "id:test", "packageId:test" },
+                    { "packageId:json", "packageId:json" },
+                    { "version:1.0.0-test", "normalizedVersion:1.0.0\\-test" },
+                    { "title:hello", "title:hello" },
+                    { "description:hello", "description:hello" },
+                    { "tag:hi", "tags:hi" },
+                    { "tags:foo", "tags:foo" },
+                    { "author:bob", "authors:bob" },
+                    { "authors:billy", "authors:billy" },
+                    { "summary:test", "summary:test" },
+                    { "owner:goat", "owners:goat" },
+                    { "owners:nugget", "owners:nugget" },
+
+                    // The NuGet query fields are case insensitive
+                    { "ID:TEST", "packageId:TEST" },
+                    { "PACKAGEID:JSON", "packageId:JSON" },
+                    { "VERSION:1.0.0-TEST", "normalizedVersion:1.0.0\\-TEST" },
+                    { "TITLE:HELLO", "title:HELLO" },
+                    { "DESCRIPTION:HELLO", "description:HELLO" },
+                    { "TAG:HI", "tags:HI" },
+                    { "TAGS:FOO", "tags:FOO" },
+                    { "AUTHOR:BOB", "authors:BOB" },
+                    { "AUTHORS:BILLY", "authors:BILLY" },
+                    { "SUMMARY:TEST", "summary:TEST" },
+                    { "OWNER:GOAT", "owners:GOAT" },
+                    { "OWNERS:NUGGET", "owners:NUGGET" },
+                    
+                    // Unknown fields are ignored
+                    { "fake:test", "*" },
+
+                    // The version field is normalized, if possible
+                    { "version:1.0.0.0", "normalizedVersion:1.0.0" },
+                    { "version:1.0.0.0-test", "normalizedVersion:1.0.0\\-test" },
+                    { "version:Thisisnotavalidversion", "normalizedVersion:Thisisnotavalidversion" },
+
+                    // The tags field is split by delimiters
+                    { "tag:a,b;c|d", "tags:(a b c d)" },
+                    { "tags:a,b;c|d", "tags:(a b c d)" },
+
+                    // TODO: id should support partial matching
+                    // TODO: packageId, version, and owners should be case insensitive
+                    // See: https://github.com/NuGet/NuGetGallery/issues/6920
+                    // See: https://github.com/NuGet/NuGetGallery/issues/6922
+                    { "id:foo id:bar", "packageId:(foo bar)" },
+                    { "packageId:foo packageId:bar", "packageId:(foo bar)" },
+                    { "title:hello title:world", "title:(hello world)" },
+                    { "description:I description:am", "description:(I am)" },
+                    { "tag:a tag:sentient tags:being", "tags:(a sentient being)" },
+                    { "author:a author:b authors:c", "authors:(a b c)" },
+                    { "summary:d summary:e", "summary:(d e)" },
+                    { "owner:billy owners:the owner:goat", "owners:(billy the goat)" },
+                    { @"tag:a,b;c tags:d tags:""e f""", "tags:(a b c d e f)" },
+                    
+                    // If there are multiple terms, each field-scoped term must have at least one match
+                    { "title:foo description:bar title:baz", "+title:(foo baz) +description:bar" },
+                    { "title:foo bar", "+title:foo bar" },
+                    { "title:foo unknown:bar", "title:foo" },
+
+                    // If there are non-field-scoped terms and no field-scoped terms, at least of one the non-field-scoped terms is required.
+                    { "foo bar", "foo bar" },
+                    { "id packageId version title description tag author summary owner owners", "id packageId version title description tag author summary owner owners" },
+                    { "ID PACKAGEID VERSION TITLE DESCRIPTION TAG AUTHOR SUMMARY OWNER OWNERS", "ID PACKAGEID VERSION TITLE DESCRIPTION TAG AUTHOR SUMMARY OWNER OWNERS" },
+                    
+                    // Quotes allow adjacent terms to be searched
+                    { @"""foo bar""", @"""foo bar""" },
+                    { @"""foo bar"" baz", @"""foo bar"" baz" },
+                    { @"id:""foo bar""", @"packageId:""foo bar""" },
+                    { @"id:""a b"" c id:d packageId:e f", @"+packageId:(""a b"" d e) c f" },
+
+                    // Duplicate search terms on the same query field are folded
+                    { "a a", "a" },
+                    { "title:a title:a", "title:a" },
+                    { "tag:a tags:a", "tags:a" },
+                    { "tags:a,a", "tags:a" },
+
+                    // Single word query terms are unquoted.
+                    { @"""a""", "a" },
+                    { @"title:""a""", "title:a" },
+
+                    // Special characters are escaped
+                    { @"title:+ description:""+""", @"+title:\+ +description:\+" },
+                    { @"title:- description:""-""", @"+title:\- +description:\-" },
+                    { @"title:& description:""&""", @"+title:\& +description:\&" },
+                    { @"title:| description:""|""", @"+title:\| +description:\|" },
+                    { @"title:! description:""!""", @"+title:\! +description:\!" },
+                    { @"title:( description:""(""", @"+title:\( +description:\(" },
+                    { @"title:) description:"")""", @"+title:\) +description:\)" },
+                    { @"title:{ description:""{""", @"+title:\{ +description:\{" },
+                    { @"title:} description:""}""", @"+title:\} +description:\}" },
+                    { @"title:[ description:""[""", @"+title:\[ +description:\[" },
+                    { @"title:] description:""]""", @"+title:\] +description:\]" },
+                    { @"title:~ description:""~""", @"+title:\~ +description:\~" },
+                    { @"title:* description:""*""", @"+title:\* +description:\*" },
+                    { @"title:? description:""?""", @"+title:\? +description:\?" },
+                    { @"title:\ description:""\""", @"+title:\\ +description:\\" },
+                    { @"title:/ description:""/""", @"+title:\/ +description:\/" },
+                    { @"title:"":""", @"title:\:" },
+
+                    { @"+ - & | ! ( ) { } [ ] ~ * ? \ / "":""", @"\+ \- \& \| \! \( \) \{ \} \[ \] \~ \* \? \\ \/ \:" },
+                };
+
+                foreach (var datum in data)
+                {
+                    yield return new object[] { datum.Key, datum.Value };
+                }
+            }
+
+            public static IEnumerable<object[]> GenerateQueriesManyClauses()
+            {
+                object[] Setup(int nonFieldScopedTerms = 0, int fieldScopedTerms = 0, bool shouldThrow = false)
+                {
+                    return new object[] { nonFieldScopedTerms, fieldScopedTerms, shouldThrow };
+                }
+
+                // There must be less than 1025 clauses. Each non-field-scoped term count as a clause.
+                yield return Setup(nonFieldScopedTerms: 1024, shouldThrow: false);
+                yield return Setup(nonFieldScopedTerms: 1025, shouldThrow: true);
+
+                // Each field-scoped terms count as a clause each, and the field-scope itself counts as a clause if it has more than one term.
+                yield return Setup(fieldScopedTerms: 1023, shouldThrow: false);
+                yield return Setup(fieldScopedTerms: 1024, shouldThrow: true);
+
+                yield return Setup(nonFieldScopedTerms: 1023, fieldScopedTerms: 1, shouldThrow: false);
+                yield return Setup(nonFieldScopedTerms: 1024, fieldScopedTerms: 1, shouldThrow: true);
+
+                yield return Setup(nonFieldScopedTerms: 1021, fieldScopedTerms: 2, shouldThrow: false);
+                yield return Setup(nonFieldScopedTerms: 1022, fieldScopedTerms: 2, shouldThrow: true);
+            }
+
+            protected string GenerateQuery(int nonFieldScopedTerms, int fieldScopedTerms)
+            {
+                List<string> GenerateTerms(int count)
+                {
+                    return Enumerable.Range(0, count).Select(i => i.ToString()).ToList();
+                }
+
+                var nonFieldScoped = GenerateTerms(nonFieldScopedTerms);
+                var result = string.Join(" ", nonFieldScoped);
+
+                if (fieldScopedTerms == 0)
+                {
+                    return result;
+                }
+
+                if (nonFieldScopedTerms > 0)
+                {
+                    result += " ";
+                }
+
+                var fieldScoped = GenerateTerms(fieldScopedTerms);
+                result += $"packageId:{string.Join(" packageId:", fieldScoped)}";
+
+                return result;
+            }
+
+            public static IEnumerable<object[]> GenerateQueryWithTooBigTerm()
+            {
+                yield return new object[] { new string('a', 32 * 1024 + 1) };
+            }
+        }
+    }
+}

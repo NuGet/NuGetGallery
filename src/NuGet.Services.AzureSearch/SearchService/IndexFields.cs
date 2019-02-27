@@ -9,27 +9,27 @@ namespace NuGet.Services.AzureSearch.SearchService
     {
         private static readonly NamingStrategy CamelCaseNamingStrategy = new CamelCaseNamingStrategy();
 
-        public static readonly string LastEdited = CamelCaseNamingStrategy.GetPropertyName(
-            nameof(BaseMetadataDocument.LastEdited),
-            hasSpecifiedName: false);
+        private static string Name(string input)
+        {
+            return CamelCaseNamingStrategy.GetPropertyName(input, hasSpecifiedName: false);
+        }
 
-        public static readonly string Published = CamelCaseNamingStrategy.GetPropertyName(
-            nameof(BaseMetadataDocument.Published),
-            hasSpecifiedName: false);
-
-        public static readonly string SortableTitle = CamelCaseNamingStrategy.GetPropertyName(
-            nameof(BaseMetadataDocument.SortableTitle),
-            hasSpecifiedName: false);
-
-        public static readonly string SemVerLevel = CamelCaseNamingStrategy.GetPropertyName(
-            nameof(BaseMetadataDocument.SemVerLevel),
-            hasSpecifiedName: false);
+        public static readonly string Authors = Name(nameof(BaseMetadataDocument.Authors));
+        public static readonly string Description = Name(nameof(BaseMetadataDocument.Description));
+        public static readonly string LastEdited = Name(nameof(BaseMetadataDocument.LastEdited));
+        public static readonly string NormalizedVersion = Name(nameof(BaseMetadataDocument.NormalizedVersion));
+        public static readonly string PackageId = Name(nameof(BaseMetadataDocument.PackageId));
+        public static readonly string Published = Name(nameof(BaseMetadataDocument.Published));
+        public static readonly string SemVerLevel = Name(nameof(BaseMetadataDocument.SemVerLevel));
+        public static readonly string SortableTitle = Name(nameof(BaseMetadataDocument.SortableTitle));
+        public static readonly string Summary = Name(nameof(BaseMetadataDocument.Summary));
+        public static readonly string Tags = Name(nameof(BaseMetadataDocument.Tags));
+        public static readonly string Title = Name(nameof(BaseMetadataDocument.Title));
 
         public static class Search
         {
-            public static readonly string SearchFilters = CamelCaseNamingStrategy.GetPropertyName(
-                nameof(SearchDocument.UpdateLatest.SearchFilters),
-                hasSpecifiedName: false);
+            public static readonly string Owners = Name(nameof(SearchDocument.Full.Owners));
+            public static readonly string SearchFilters = Name(nameof(SearchDocument.UpdateLatest.SearchFilters));
         }
     }
 }

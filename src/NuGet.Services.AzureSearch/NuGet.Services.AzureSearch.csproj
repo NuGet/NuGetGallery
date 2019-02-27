@@ -43,6 +43,7 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="SearchService\AzureSearchQueryBuilder.cs" />
     <Compile Include="BlobContainerBuilder.cs" />
     <Compile Include="IBlobContainerBuilder.cs" />
     <Compile Include="Measure.cs" />
