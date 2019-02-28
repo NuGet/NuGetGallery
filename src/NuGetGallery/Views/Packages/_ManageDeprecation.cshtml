@@ -156,7 +156,7 @@
             <div class="security-detail-list-item alert-info">
                 <div class="security-detail-list-item-header">
                     <div>
-                        <span data-bind="text: id, css: { 'security-detail-list-item-existing': fromAutocomplete, 'security-detail-list-item-missing': !fromAutocomplete }"></span>
+                        <a data-bind="text: id, attr: { href: $parent.getUrlFromId(id) }, css: { 'security-detail-list-item-existing': fromAutocomplete, 'security-detail-list-item-missing': !fromAutocomplete }"></a>
                         <span data-bind="visible: name || !fromAutocomplete">
                             &nbsp;-&nbsp;
                             <span data-bind="visible: name, text: name"></span>

@@ -785,11 +785,29 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to https://cve.mitre.org/cgi-bin/cvename.cgi?name={0}.
+        /// </summary>
+        public static string DeprecatePackage_CveUrlFormat {
+            get {
+                return ResourceManager.GetString("DeprecatePackage_CveUrlFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to At least one CWE provided was not found!.
         /// </summary>
         public static string DeprecatePackage_CweMissing {
             get {
                 return ResourceManager.GetString("DeprecatePackage_CweMissing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to https://cwe.mitre.org/data/definitions/{0}.html.
+        /// </summary>
+        public static string DeprecatePackage_CweUrlFormat {
+            get {
+                return ResourceManager.GetString("DeprecatePackage_CweUrlFormat", resourceCulture);
             }
         }
         

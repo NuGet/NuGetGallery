@@ -9,15 +9,16 @@ function ManageDeprecationSecurityDetailListItemViewModel(id, fromAutocomplete, 
 }
 
 // Shared model between the CVE view and the CWE view
-function ManageDeprecationSecurityDetailListViewModel(id, title, label, placeholder, addLabel, addRegex, autocompleteUrl, processAutocompleteResult, missingAutocompleteName, missingAutocompleteDescription, updateCvssFromItem) {
+function ManageDeprecationSecurityDetailListViewModel(id, title, label, placeholder, addLabel, addRegex, addErrorString, getUrlFromId, autocompleteUrl, processAutocompleteResult, missingAutocompleteName, missingAutocompleteDescription, updateCvssFromItem) {
     var self = this;
 
     this.id = id;
-    this.title = ko.observable(title);
-    this.label = ko.observable(label);
-    this.placeholder = ko.observable(placeholder);
-    this.missingAutocompleteName = ko.observable(missingAutocompleteName);
-    this.missingAutocompleteDescription = ko.observable(missingAutocompleteDescription);
+    this.title = title;
+    this.label = label;
+    this.placeholder = placeholder;
+    this.getUrlFromId = getUrlFromId;
+    this.missingAutocompleteName = missingAutocompleteName;
+    this.missingAutocompleteDescription = missingAutocompleteDescription;
 
     // Whether or not the checkbox for this section is checked.
     this.hasIds = ko.observable(false);
@@ -89,7 +90,7 @@ function ManageDeprecationSecurityDetailListViewModel(id, title, label, placehol
     this.add = function (addedItemViewModel) {
         var id = addedItemViewModel.id;
         if (!id.match(addRegex)) {
-            self.addError("'" + id + "' is not a valid ID!");
+            self.addError("'" + id + "' is not a valid ID! " + addErrorString);
             return;
         }
 
@@ -103,13 +104,14 @@ function ManageDeprecationSecurityDetailListViewModel(id, title, label, placehol
     };
 
     this.addWithoutAutocomplete = function () {
-        var addedId = self.addId();
+        // Uppercase the ID because CVE and CWE IDs are case-insensitive.
+        // If the user enters 'cve-2019-0001' instead of 'CVE-2019-0001', we shouldn't fail.
+        var addedId = self.addId().toUpperCase();
 
         // If there is an autocomplete result with the same ID, use it.
         var matchingAutocompleteResult = ko.utils.arrayFirst(
             self.autocompleteResults(),
-            // CVE IDs and CWE IDs are case-insensitive, so match autocomplete results case-insensitively.
-            function (result) { return result.id.toUpperCase() === addedId.toUpperCase(); });
+            function (result) { return result.id === addedId; });
 
         var addedItem = matchingAutocompleteResult
             ? matchingAutocompleteResult
@@ -164,7 +166,7 @@ function ManageDeprecationSecurityDetailListViewModel(id, title, label, placehol
     };
 }
 
-function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defaultVersion, submitUrl, packageUrl, getAlternatePackageVersionsUrl, getCveIdsUrl, getCweIdsUrl) {
+function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defaultVersion, submitUrl, packageUrl, getAlternatePackageVersionsUrl, cveUrlTemplate, getCveIdsUrl, cweUrlTemplate, getCweIdsUrl) {
     var self = this;
 
     // Existing deprecation state information per version.
@@ -314,7 +316,11 @@ function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defau
         "Add one or more CVEs applicable to the vulnerability.",
         "Add CVE by ID e.g. CVE-2014-999999, CVE-2015-888888",
         "Add CVE",
-        /^CVE-\d{4}-\d+$/g,
+        /^CVE-\d{4}-\d{4,}$/g,
+        "CVE IDs have the form 'CVE-YYYY-NNNN', where 'YYYY' is a year (exactly 4 digits) and 'NNNN' is a number (with at least 4 digits).",
+        function (id) {
+            return window.nuget.formatString(cveUrlTemplate, id);
+        },
         getCveIdsUrl,
         function (result) {
             return new ManageDeprecationSecurityDetailListItemViewModel(
@@ -332,6 +338,10 @@ function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defau
         "Add CWE by ID or title",
         "Add CWE",
         /^CWE-\d+$/g,
+        "CWE IDs have the form 'CWE-N', where N is a number.",
+        function (id) {
+            return window.nuget.formatString(cweUrlTemplate, id.replace("CWE-", ""));
+        },
         getCweIdsUrl,
         function (result) {
             return new ManageDeprecationSecurityDetailListItemViewModel(
