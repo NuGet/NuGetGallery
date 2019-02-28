@@ -1203,6 +1203,11 @@ img.reserved-indicator-icon {
   width: 100%;
   border-top: 0;
 }
+.page-manage-deprecation .deprecation-section .deprecation-subsection .security-detail .security-detail-list-input .security-detail-list-autocomplete .security-detail-list-autocomplete-content .security-detail-list-item {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .page-manage-deprecation .deprecation-section .deprecation-subsection .security-detail .security-detail-list-input .security-detail-list-autocomplete .security-detail-list-autocomplete-content .security-detail-list-item:focus,
 .page-manage-deprecation .deprecation-section .deprecation-subsection .security-detail .security-detail-list-input .security-detail-list-autocomplete .security-detail-list-autocomplete-content .security-detail-list-item > :focus,
 .page-manage-deprecation .deprecation-section .deprecation-subsection .security-detail .security-detail-list-input .security-detail-list-autocomplete .security-detail-list-autocomplete-content .security-detail-list-item:hover {

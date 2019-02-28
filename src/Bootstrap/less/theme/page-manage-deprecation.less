@@ -81,6 +81,10 @@
                             border-top: 0px;
 
                             .security-detail-list-item {
+                                overflow: hidden;
+                                text-overflow: ellipsis;
+                                white-space: nowrap;
+
                                 &:focus, & > :focus, &:hover {
                                     background-color: @alert-info-bg;
                                 }
