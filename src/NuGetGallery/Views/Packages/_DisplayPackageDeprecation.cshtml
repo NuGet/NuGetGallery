@@ -30,29 +30,11 @@
 }
 
 <div class="deprecation-container">
-    @{
-        var subclass = "info";
-        var icon = "Info";
-        if (Model.DeprecationStatus.HasFlag(PackageDeprecationStatus.Vulnerable))
-        {
-            if (Model.CvssRating >= 7)
-            {
-                subclass = "danger";
-                icon = "ErrorBadge";
-            }
-            else
-            {
-                subclass = "warning";
-                icon = "Warning";
-            }
-        }
-    }
-
-    <div class="icon-text alert alert-@subclass">
+    <div class="icon-text alert alert-warning">
         <div id="show-deprecation-content-container" class="deprecation-expander" tabindex="0" data-toggle="collapse" data-target="#deprecation-content-container" aria-expanded="false" aria-controls="deprecation-content-container" aria-labelledby="deprecation-container-label">
             <div class="deprecation-expander">
                 <div class="deprecation-expander-icon-container">
-                    <i class="deprecation-expander-icon ms-Icon ms-Icon--@icon" aria-hidden="true"></i>
+                    <i class="deprecation-expander-icon ms-Icon ms-Icon--Warning" aria-hidden="true"></i>
                 </div>
 
                 @{
