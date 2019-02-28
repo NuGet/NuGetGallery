@@ -384,14 +384,14 @@ namespace NuGetGallery
             }
         }
 
-        [ActionName("Authenticate")]
+        [ActionName(ActionName.Authenticate)]
         [HttpGet]
         public virtual ActionResult AuthenticateGet(string returnUrl, string provider)
         {
             return AuthenticateAndLinkExternal(returnUrl, provider);
         }
 
-        [ActionName("Authenticate")]
+        [ActionName(ActionName.Authenticate)]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public virtual ActionResult AuthenticatePost(string returnUrl, string provider)
@@ -399,7 +399,7 @@ namespace NuGetGallery
             return AuthenticateAndLinkExternal(returnUrl, provider);
         }
 
-        [ActionName("AuthenticateExternal")]
+        [ActionName(ActionName.AuthenticateExternal)]
         [HttpGet]
         public virtual ActionResult AuthenticateExternal(string returnUrl)
         {

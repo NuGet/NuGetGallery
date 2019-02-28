@@ -35,7 +35,7 @@ namespace NuGetGallery
 
         [HttpGet]
         [UIAuthorize]
-        [ActionName("CveIds")]
+        [ActionName(ActionName.CveIds)]
         public JsonResult GetCveIds(string query)
         {
             // Get CVE data.
@@ -51,7 +51,7 @@ namespace NuGetGallery
 
         [HttpGet]
         [UIAuthorize]
-        [ActionName("CweIds")]
+        [ActionName(ActionName.CweIds)]
         public JsonResult GetCweIds(string query)
         {
             // Get CWE data.

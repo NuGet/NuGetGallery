@@ -1298,17 +1298,17 @@ namespace NuGetGallery
 
         public static string TransformAccount(this UrlHelper url, bool relativeUrl = true)
         {
-            return GetActionLink(url, RouteName.TransformToOrganization, "Users", relativeUrl);
+            return GetActionLink(url, ActionName.TransformToOrganization, "Users", relativeUrl);
         }
 
         public static string ConfirmTransformAccount(this UrlHelper url, User accountToTransform, bool relativeUrl = true)
         {
-            return url.HandleTransformAccount(RouteName.TransformToOrganizationConfirmation, accountToTransform, relativeUrl);
+            return url.HandleTransformAccount(ActionName.TransformToOrganizationConfirmation, accountToTransform, relativeUrl);
         }
 
         public static string RejectTransformAccount(this UrlHelper url, User accountToTransform, bool relativeUrl = true)
         {
-            return url.HandleTransformAccount(RouteName.TransformToOrganizationRejection, accountToTransform, relativeUrl);
+            return url.HandleTransformAccount(ActionName.TransformToOrganizationRejection, accountToTransform, relativeUrl);
         }
 
         private static string HandleTransformAccount(this UrlHelper url, string routeName, User accountToTransform, bool relativeUrl = true)
@@ -1318,19 +1318,19 @@ namespace NuGetGallery
 
         public static string ConfirmTransformAccount(this UrlHelper url, string accountToTransformUsername, string confirmationToken, bool relativeUrl = true)
         {
-            return url.HandleTransformAccount(RouteName.TransformToOrganizationConfirmation, accountToTransformUsername, confirmationToken, relativeUrl);
+            return url.HandleTransformAccount(ActionName.TransformToOrganizationConfirmation, accountToTransformUsername, confirmationToken, relativeUrl);
         }
 
         public static string RejectTransformAccount(this UrlHelper url, string accountToTransformUsername, string confirmationToken, bool relativeUrl = true)
         {
-            return url.HandleTransformAccount("RejectTransform", accountToTransformUsername, confirmationToken, relativeUrl);
+            return url.HandleTransformAccount(ActionName.TransformToOrganizationRejection, accountToTransformUsername, confirmationToken, relativeUrl);
         }
 
-        private static string HandleTransformAccount(this UrlHelper url, string routeName, string accountToTransformUsername, string confirmationToken, bool relativeUrl = true)
+        private static string HandleTransformAccount(this UrlHelper url, string actionName, string accountToTransformUsername, string confirmationToken, bool relativeUrl = true)
         {
             return GetActionLink(
                 url,
-                routeName,
+                actionName,
                 "Users",
                 relativeUrl,
                 routeValues: new RouteValueDictionary
@@ -1344,7 +1344,7 @@ namespace NuGetGallery
         {
             return GetActionLink(
                 url,
-                RouteName.TransformToOrganizationCancellation,
+                ActionName.TransformToOrganizationCancellation,
                 "Users",
                 relativeUrl,
                 routeValues: new RouteValueDictionary

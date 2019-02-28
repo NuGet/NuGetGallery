@@ -119,7 +119,7 @@ namespace NuGetGallery
 
         [HttpGet]
         [UIAuthorize(allowDiscontinuedLogins: true)]
-        [ActionName(RouteName.TransformToOrganization)]
+        [ActionName(ActionName.TransformToOrganization)]
         public virtual ActionResult TransformToOrganization()
         {
             var accountToTransform = GetCurrentUser();
@@ -143,7 +143,7 @@ namespace NuGetGallery
         [HttpPost]
         [UIAuthorize(allowDiscontinuedLogins: true)]
         [ValidateAntiForgeryToken]
-        [ActionName(RouteName.TransformToOrganization)]
+        [ActionName(ActionName.TransformToOrganization)]
         public virtual async Task<ActionResult> TransformToOrganization(TransformAccountViewModel transformViewModel)
         {
             var accountToTransform = GetCurrentUser();
@@ -211,7 +211,7 @@ namespace NuGetGallery
 
         [HttpGet]
         [UIAuthorize(allowDiscontinuedLogins: true)]
-        [ActionName(RouteName.TransformToOrganizationConfirmation)]
+        [ActionName(ActionName.TransformToOrganizationConfirmation)]
         public virtual async Task<ActionResult> ConfirmTransformToOrganization(string accountNameToTransform, string token)
         {
             var adminUser = GetCurrentUser();
@@ -249,7 +249,7 @@ namespace NuGetGallery
 
         [HttpGet]
         [UIAuthorize(allowDiscontinuedLogins: true)]
-        [ActionName(RouteName.TransformToOrganizationRejection)]
+        [ActionName(ActionName.TransformToOrganizationRejection)]
         public virtual async Task<ActionResult> RejectTransformToOrganization(string accountNameToTransform, string token)
         {
             var adminUser = GetCurrentUser();
@@ -286,7 +286,7 @@ namespace NuGetGallery
 
         [HttpGet]
         [UIAuthorize(allowDiscontinuedLogins: true)]
-        [ActionName(RouteName.TransformToOrganizationCancellation)]
+        [ActionName(ActionName.TransformToOrganizationCancellation)]
         public virtual async Task<ActionResult> CancelTransformToOrganization(string token)
         {
             var accountToTransform = GetCurrentUser();

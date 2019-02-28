@@ -390,12 +390,12 @@ namespace NuGetGallery
             routes.MapRoute(
                 RouteName.TransformToOrganization,
                 "account/transform",
-                new { controller = "Users", action = RouteName.TransformToOrganization });
+                new { controller = "Users", action = ActionName.TransformToOrganization });
 
             routes.MapRoute(
                 RouteName.TransformToOrganizationConfirmation,
                 "account/transform/confirm/{accountNameToTransform}/{token}",
-                new { controller = "Users", action = RouteName.TransformToOrganizationConfirmation },
+                new { controller = "Users", action = ActionName.TransformToOrganizationConfirmation },
                 new[]
                 {
                     new RouteExtensions.ObfuscatedPathMetadata(3, Obfuscator.DefaultTelemetryUserName),
@@ -405,7 +405,7 @@ namespace NuGetGallery
             routes.MapRoute(
                 RouteName.TransformToOrganizationRejection,
                 "account/transform/reject/{accountNameToTransform}/{token}",
-                new { controller = "Users", action = RouteName.TransformToOrganizationRejection },
+                new { controller = "Users", action = ActionName.TransformToOrganizationRejection },
                 new[]
                 {
                     new RouteExtensions.ObfuscatedPathMetadata(3, Obfuscator.DefaultTelemetryUserName),
@@ -415,7 +415,7 @@ namespace NuGetGallery
             routes.MapRoute(
                 RouteName.TransformToOrganizationCancellation,
                 "account/transform/cancel/{token}",
-                new { controller = "Users", action = RouteName.TransformToOrganizationCancellation },
+                new { controller = "Users", action = ActionName.TransformToOrganizationCancellation },
                 new RouteExtensions.ObfuscatedPathMetadata(3, Obfuscator.DefaultTelemetryToken));
 
             routes.MapRoute(

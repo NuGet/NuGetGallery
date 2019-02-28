@@ -93,7 +93,7 @@ namespace NuGetGallery
 
         [UIAuthorize(allowDiscontinuedLogins: true)]
         [HttpPost]
-        [ActionName("ConfirmationRequired")]
+        [ActionName(ActionName.ConfirmationRequired)]
         [ValidateAntiForgeryToken]
         public virtual async Task<ActionResult> ConfirmationRequiredPost(string accountName = null)
         {

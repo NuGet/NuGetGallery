@@ -153,14 +153,14 @@ namespace NuGetGallery
 
 
         [HttpGet]
-        [ActionName("GetSymbolPackageApi")]
+        [ActionName(ActionName.GetSymbolPackageApi)]
         public virtual async Task<ActionResult> GetSymbolPackage(string id, string version)
         {
             return await GetPackageInternal(id, version, isSymbolPackage: true);
         }
 
         [HttpGet]
-        [ActionName("GetPackageApi")]
+        [ActionName(ActionName.GetPackageApi)]
         public virtual async Task<ActionResult> GetPackage(string id, string version)
         {
             return await GetPackageInternal(id, version, isSymbolPackage: false);
@@ -259,14 +259,14 @@ namespace NuGetGallery
         }
 
         [HttpGet]
-        [ActionName("GetNuGetExeApi")]
+        [ActionName(ActionName.GetNuGetExeApi)]
         public virtual ActionResult GetNuGetExe()
         {
             return new RedirectResult(NuGetExeUrl, permanent: false);
         }
 
         [HttpGet]
-        [ActionName("StatusApi")]
+        [ActionName(ActionName.StatusApi)]
         public virtual async Task<ActionResult> Status()
         {
             if (StatusService == null)
@@ -277,7 +277,7 @@ namespace NuGetGallery
         }
 
         [HttpGet]
-        [ActionName("HealthProbeApi")]
+        [ActionName(ActionName.HealthProbeApi)]
         public ActionResult HealthProbe()
         {
             return new HttpStatusCodeWithBodyResult(HttpStatusCode.OK, "Gallery is Available");
@@ -292,7 +292,7 @@ namespace NuGetGallery
         [HttpPost]
         [ApiAuthorize]
         [ApiScopeRequired(NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion)]
-        [ActionName("CreatePackageVerificationKey")]
+        [ActionName(ActionName.CreatePackageVerificationKey)]
         public virtual async Task<ActionResult> CreatePackageVerificationKeyAsync(string id, string version)
         {
             // For backwards compatibility, we must preserve existing behavior where the client always pushes
@@ -318,7 +318,7 @@ namespace NuGetGallery
         [HttpGet]
         [ApiAuthorize]
         [ApiScopeRequired(NuGetScopes.PackageVerify, NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion)]
-        [ActionName("VerifyPackageKey")]
+        [ActionName(ActionName.VerifyPackageKey)]
         public virtual async Task<ActionResult> VerifyPackageKeyAsync(string id, string version)
         {
             var user = GetCurrentUser();
@@ -379,7 +379,7 @@ namespace NuGetGallery
         [HttpPut]
         [ApiAuthorize]
         [ApiScopeRequired(NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion)]
-        [ActionName("PushPackageApi")]
+        [ActionName(ActionName.PushPackageApi)]
         public virtual Task<ActionResult> CreatePackagePut()
         {
             return CreatePackageInternal();
@@ -388,7 +388,7 @@ namespace NuGetGallery
         [HttpPost]
         [ApiAuthorize]
         [ApiScopeRequired(NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion)]
-        [ActionName("PushPackageApi")]
+        [ActionName(ActionName.PushPackageApi)]
         public virtual Task<ActionResult> CreatePackagePost()
         {
             return CreatePackageInternal();
@@ -397,7 +397,7 @@ namespace NuGetGallery
         [HttpPut]
         [ApiAuthorize]
         [ApiScopeRequired(NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion)]
-        [ActionName("PushSymbolPackageApi")]
+        [ActionName(ActionName.PushSymbolPackageApi)]
         public virtual async Task<ActionResult> CreateSymbolPackagePutAsync()
         {
             string id = null;
@@ -795,7 +795,7 @@ namespace NuGetGallery
         [HttpDelete]
         [ApiAuthorize]
         [ApiScopeRequired(NuGetScopes.PackageUnlist)]
-        [ActionName("DeletePackageApi")]
+        [ActionName(ActionName.DeletePackageApi)]
         public virtual async Task<ActionResult> DeletePackage(string id, string version)
         {
             var package = PackageService.FindPackageByIdAndVersionStrict(id, version);
@@ -827,7 +827,7 @@ namespace NuGetGallery
         [HttpPost]
         [ApiAuthorize]
         [ApiScopeRequired(NuGetScopes.PackageUnlist)]
-        [ActionName("PublishPackageApi")]
+        [ActionName(ActionName.PublishPackageApi)]
         public virtual async Task<ActionResult> PublishPackage(string id, string version)
         {
             var package = PackageService.FindPackageByIdAndVersionStrict(id, version);
@@ -898,7 +898,7 @@ namespace NuGetGallery
         }
 
         [HttpGet]
-        [ActionName("PackageIDs")]
+        [ActionName(ActionName.PackageIDs)]
         public virtual async Task<ActionResult> GetPackageIds(
             string partialId,
             bool? includePrerelease,
@@ -912,7 +912,7 @@ namespace NuGetGallery
         }
 
         [HttpGet]
-        [ActionName("PackageVersions")]
+        [ActionName(ActionName.PackageVersions)]
         public virtual async Task<ActionResult> GetPackageVersions(
             string id,
             bool? includePrerelease,
@@ -926,7 +926,7 @@ namespace NuGetGallery
         }
 
         [HttpGet]
-        [ActionName("Query")]
+        [ActionName(ActionName.Query)]
         public virtual async Task<ActionResult> Query(string q)
         {
             var queryFilter = new SearchFilter(SearchFilter.ODataSearchContext);
@@ -942,7 +942,7 @@ namespace NuGetGallery
         }
 
         [HttpGet]
-        [ActionName("StatisticsDownloadsApi")]
+        [ActionName(ActionName.StatisticsDownloadsApi)]
         public virtual async Task<ActionResult> GetStatsDownloads(int? count)
         {
             await StatisticsService.Refresh();
