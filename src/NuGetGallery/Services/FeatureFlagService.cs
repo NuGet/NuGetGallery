@@ -19,6 +19,7 @@ namespace NuGetGallery
         private const string PackagesAtomFeedFeatureName = GalleryPrefix + "PackagesAtomFeed";
 
         private const string ManageDeprecationFeatureName = GalleryPrefix + "ManageDeprecation";
+        private const string SearchCircuitBreakerFeatureName = GalleryPrefix + "SearchCircuitBreaker";
 
         private readonly IFeatureFlagClient _client;
 
@@ -50,6 +51,11 @@ namespace NuGetGallery
         private bool IsEnabled(string flight, User user, bool defaultValue)
         {
             return _client.IsEnabled(flight, user, defaultValue);
+        }
+
+        public bool IsSearchCircuitBreakerEnabled()
+        {
+            return _client.IsEnabled(PackagesAtomFeedFeatureName, defaultValue: false);
         }
     }
 }

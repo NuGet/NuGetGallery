@@ -41,6 +41,13 @@ namespace NuGetGallery.Infrastructure.Search
                 return mockConfiguration.Object;
             }
 
+            private IFeatureFlagService GetFeatureFlagService(bool circuitBreakerIsEnabled)
+            {
+                var mockTelemetryService = new Mock<IFeatureFlagService>();
+                mockTelemetryService.Setup(c => c.IsSearchCircuitBreakerEnabled()).Returns(circuitBreakerIsEnabled);
+                return mockTelemetryService.Object;
+            }
+
             private IResilientSearchClient GetResilientSearchClient(string path, string queryString)
             {
                 var content = new JObject(
@@ -65,17 +72,19 @@ namespace NuGetGallery.Infrastructure.Search
                 return new GallerySearchClient(GetResilientSearchClient(path, queryString));
             }
 
-            [Fact]
-            public void ReturnsTheExpectedClient()
+            [Theory]
+            [InlineData(true, "NuGetGallery.Infrastructure.Search.GallerySearchClient")]
+            [InlineData(false, "NuGet.Services.Search.Client.SearchClient")]
+            public void ReturnsTheExpectedClient(bool circuitBreakerIsEnabled, string expected)
             {
                 // Arrange
-                var service = new ExternalSearchService(GetConfiguration(), GetDiagnosticsService(), GetSearchClient(string.Empty, string.Empty));
+                var service = new ExternalSearchService(GetConfiguration(), GetDiagnosticsService(), GetSearchClient(string.Empty, string.Empty), GetFeatureFlagService(circuitBreakerIsEnabled));
 
                 // Act
                 var client = service.GetClient();
                 var clientType = client.GetType();
 
-                Assert.Equal("NuGet.Services.Search.Client.SearchClient", clientType.FullName);
+                Assert.Equal(expected, clientType.FullName);
             }
         }
 

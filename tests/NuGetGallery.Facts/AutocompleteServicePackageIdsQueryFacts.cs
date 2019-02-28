@@ -42,10 +42,16 @@ namespace NuGetGallery
             return new ResilientSearchHttpClient(clients, GetLogger(), mockTelemetryService.Object);
         }
 
+        private IFeatureFlagService GetFeatureFlagService()
+        {
+            var mockTelemetryService = new Mock<IFeatureFlagService>();
+            return mockTelemetryService.Object;
+        }
+
         [Fact]
         public async Task ExecuteReturns30ResultsForEmptyQuery()
         {
-            var query = new AutocompleteServicePackageIdsQuery(GetConfiguration(), GetResilientSearchClient());
+            var query = new AutocompleteServicePackageIdsQuery(GetConfiguration(), GetResilientSearchClient(), GetFeatureFlagService());
             var result = await query.Execute("", false);
             Assert.True(result.Count() == 30);
         }
@@ -53,7 +59,7 @@ namespace NuGetGallery
         [Fact]
         public async Task ExecuteReturns30ResultsForNullQuery()
         {
-            var query = new AutocompleteServicePackageIdsQuery(GetConfiguration(), GetResilientSearchClient());
+            var query = new AutocompleteServicePackageIdsQuery(GetConfiguration(), GetResilientSearchClient(), GetFeatureFlagService());
             var result = await query.Execute(null, false);
             Assert.True(result.Count() == 30);
         }
@@ -61,7 +67,7 @@ namespace NuGetGallery
         [Fact]
         public async Task ExecuteReturnsResultsForSpecificQuery()
         {
-            var query = new AutocompleteServicePackageIdsQuery(GetConfiguration(), GetResilientSearchClient());
+            var query = new AutocompleteServicePackageIdsQuery(GetConfiguration(), GetResilientSearchClient(), GetFeatureFlagService());
             var result = await query.Execute("jquery", false);
             Assert.Contains("jquery", result, StringComparer.OrdinalIgnoreCase);
         }
@@ -74,7 +80,7 @@ namespace NuGetGallery
         public void PackageIdQueryBuildsCorrectQueryString(bool includePrerelease, string semVerLevel, string expectedQueryString)
         {
             // Arrange
-            var query = new AutocompleteServicePackageIdsQuery(GetConfiguration(), GetResilientSearchClient());
+            var query = new AutocompleteServicePackageIdsQuery(GetConfiguration(), GetResilientSearchClient(), GetFeatureFlagService());
 
             // Act
             var actualQueryString = query.BuildQueryString("take=30&q=Json", includePrerelease, semVerLevel);

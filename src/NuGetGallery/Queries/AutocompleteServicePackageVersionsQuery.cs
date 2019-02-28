@@ -12,8 +12,8 @@ namespace NuGetGallery
     public class AutocompleteServicePackageVersionsQuery
         : AutocompleteServiceQuery, IAutocompletePackageVersionsQuery
     {
-        public AutocompleteServicePackageVersionsQuery(IAppConfiguration configuration, IResilientSearchClient resilientSearchClient)
-            : base(configuration, resilientSearchClient)
+        public AutocompleteServicePackageVersionsQuery(IAppConfiguration configuration, IResilientSearchClient resilientSearchClient, IFeatureFlagService featureFlagService)
+            : base(configuration, resilientSearchClient, featureFlagService)
         {
         }
 
