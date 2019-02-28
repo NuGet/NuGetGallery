@@ -20,16 +20,32 @@
   }
 
   .deprecation-container {
-    .deprecation-expander-side {
-      float: right;
+    .deprecation-expander {
+      display: flex;
+      justify-content: space-between;
+      vertical-align: middle;
 
-      #deprecation-expander-icon {
-        margin-left: 15px;
+      .deprecation-expander-icon-container {
+        display: flex;
+        align-items: center;
+        
+        .deprecation-expander-icon {
+          position: unset;
+          top: unset;
+        }
+      }
+
+      .deprecation-expander-info-right {
+        padding-left: 15px;
       }
     }
 
     .deprecation-content-container {
       margin-top: 15px;
+
+      p {
+        margin-top: 5px;
+      }
 
       p:last-of-type {
         margin-bottom: 0px;

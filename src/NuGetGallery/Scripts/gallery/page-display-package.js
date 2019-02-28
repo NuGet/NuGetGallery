@@ -19,7 +19,7 @@ $(function () {
             container.removeAttr(expanderAttributes[i]);
         }
 
-        $('#deprecation-expander-icon').hide();
+        $('#deprecation-expander-icon-right').hide();
     }
 
     // Configure ReadMe container

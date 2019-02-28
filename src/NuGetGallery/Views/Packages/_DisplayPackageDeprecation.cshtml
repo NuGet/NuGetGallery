@@ -49,9 +49,11 @@
     }
 
     <div class="icon-text alert alert-@subclass">
-        <div id="show-deprecation-content-container" tabindex="0" data-toggle="collapse" data-target="#deprecation-content-container" aria-expanded="false" aria-controls="deprecation-content-container" aria-labelledby="deprecation-container-label">
-            <span>
-                <i class="ms-Icon ms-Icon--@icon" aria-hidden="true"></i>
+        <div id="show-deprecation-content-container" class="deprecation-expander" tabindex="0" data-toggle="collapse" data-target="#deprecation-content-container" aria-expanded="false" aria-controls="deprecation-content-container" aria-labelledby="deprecation-container-label">
+            <div class="deprecation-expander">
+                <div class="deprecation-expander-icon-container">
+                    <i class="deprecation-expander-icon ms-Icon ms-Icon--@icon" aria-hidden="true"></i>
+                </div>
 
                 @{
                     var isVulnerable = Model.DeprecationStatus.HasFlag(PackageDeprecationStatus.Vulnerable);
@@ -76,36 +78,37 @@
                         }
                     }
                 }
+                <div id="deprecation-container-label" class="deprecation-expander-info-right">This package has been deprecated@(deprecationReasonString).</div>
+            </div>
 
-                <span id="deprecation-container-label">This package has been deprecated@(deprecationReasonString).</span>
-            </span>
-
-            <span class="deprecation-expander-side">
+            <div class="deprecation-expander">
                 @if (Model.CvssRating.HasValue)
                 {
                     string ratingString;
                     if (Model.CvssRating < 4)
                     {
-                        ratingString = "low";
+                        ratingString = "Low";
                     }
                     else if (Model.CvssRating < 7)
                     {
-                        ratingString = "medium";
+                        ratingString = "Medium";
                     }
                     else if (Model.CvssRating < 9)
                     {
-                        ratingString = "high";
+                        ratingString = "High";
                     }
                     else
                     {
-                        ratingString = "critical";
+                        ratingString = "Critical";
                     }
 
-                    <span>CVSS rating: @ratingString</span>
+                    <div class="deprecation-expander-info-right">CVSS rating: @ratingString</div>
                 }
 
-                <i id="deprecation-expander-icon" class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
-            </span>
+                <div class="deprecation-expander-icon-container">
+                    <i id="deprecation-expander-icon-right" class="deprecation-expander-icon deprecation-expander-info-right ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
+                </div>
+            </div>
         </div>
 
         <div class="deprecation-content-container collapse" id="deprecation-content-container">
@@ -116,7 +119,7 @@
             {
                 string alternateUrl;
                 string alternateText;
-                if (!string.IsNullOrEmpty(Model.AlternatePackageVersion))
+                if (string.IsNullOrEmpty(Model.AlternatePackageVersion))
                 {
                     alternateUrl = Url.Package(Model.AlternatePackageId);
                     alternateText = Model.AlternatePackageId;
