@@ -61,10 +61,10 @@
                     var deprecationReasonString = string.Empty;
                     if (isVulnerable || isLegacy)
                     {
-                        deprecationReasonString += " because ";
+                        deprecationReasonString += " because it ";
                         if (isVulnerable)
                         {
-                            deprecationReasonString += "it has vulnerabilities";
+                            deprecationReasonString += "has vulnerabilities";
                         }
 
                         if (isLegacy)
@@ -74,7 +74,7 @@
                                 deprecationReasonString += " and ";
                             }
 
-                            deprecationReasonString += "it is no longer maintained by its owners";
+                            deprecationReasonString += "is no longer maintained by its owners";
                         }
                     }
                 }
@@ -102,7 +102,7 @@
                         ratingString = "Critical";
                     }
 
-                    <div class="deprecation-expander-info-right">CVSS rating: @ratingString</div>
+                    <div class="deprecation-expander-info-right">CVSS rating: <b>@ratingString</b></div>
                 }
 
                 <div class="deprecation-expander-icon-container">
