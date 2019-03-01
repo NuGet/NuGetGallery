@@ -155,6 +155,7 @@ namespace NuGet.Services.AzureSearch
         ""windowsazureofficial""
       ],
       ""title"": ""Windows Azure Storage"",
+      ""tokenizedPackageId"": ""WindowsAzure.Storage"",
       ""lastUpdatedDocument"": ""2018-12-14T09:30:00+00:00"",
       ""lastDocumentType"": ""NuGet.Services.AzureSearch.HijackDocument+Full"",
       ""lastUpdatedFromCatalog"": false,
@@ -288,6 +289,7 @@ namespace NuGet.Services.AzureSearch
         ""windowsazureofficial""
       ],
       ""title"": ""Windows Azure Storage"",
+      ""tokenizedPackageId"": ""WindowsAzure.Storage"",
       ""lastUpdatedDocument"": ""2018-12-14T09:30:00+00:00"",
       ""lastDocumentType"": ""NuGet.Services.AzureSearch.HijackDocument+Full"",
       ""lastUpdatedFromCatalog"": true,

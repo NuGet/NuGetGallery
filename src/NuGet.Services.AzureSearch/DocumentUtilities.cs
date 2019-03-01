@@ -103,6 +103,7 @@ namespace NuGet.Services.AzureSearch
             document.Summary = package.Summary;
             document.Tags = package.Tags == null ? null : Utils.SplitTags(package.Tags);
             document.Title = package.Title;
+            document.TokenizedPackageId = packageId;
         }
 
         public static void PopulateMetadata(
@@ -136,6 +137,7 @@ namespace NuGet.Services.AzureSearch
             document.Summary = leaf.Summary;
             document.Tags = leaf.Tags == null ? null : leaf.Tags.ToArray();
             document.Title = leaf.Title;
+            document.TokenizedPackageId = leaf.PackageId;
         }
 
         private static string GetSortableTitle(string title, string packageId)

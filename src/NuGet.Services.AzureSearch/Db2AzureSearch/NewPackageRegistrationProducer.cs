@@ -87,7 +87,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 if (log)
                 {
                     _logger.LogInformation(
-                        "There are {PackageCount} packages to in memory, waiting to be pushed to Azure Search. " +
+                        "There are {PackageCount} packages in memory waiting to be pushed to Azure Search. " +
                         "Waiting until this number drops below {Max} before fetching more packages.",
                         packageCount,
                         max);

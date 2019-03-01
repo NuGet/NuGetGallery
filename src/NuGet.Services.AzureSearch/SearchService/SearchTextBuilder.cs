@@ -18,7 +18,7 @@ namespace NuGet.Services.AzureSearch.SearchService
         {
             { QueryField.Author, IndexFields.Authors },
             { QueryField.Description, IndexFields.Description },
-            { QueryField.Id, IndexFields.PackageId },
+            { QueryField.Id, IndexFields.TokenizedPackageId },
             { QueryField.Owner, IndexFields.Search.Owners },
             { QueryField.PackageId, IndexFields.PackageId },
             { QueryField.Summary, IndexFields.Summary },

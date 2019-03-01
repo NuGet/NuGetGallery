@@ -21,11 +21,8 @@ namespace NuGet.Services.AzureSearch.SearchService
                 Assert.Equal(expected, actual);
             }
 
-            // TODO: id and packageId query fields should map to different fields with different analyzers
-            // See: https://github.com/NuGet/NuGetGallery/issues/6920
-            // See: https://github.com/NuGet/NuGetGallery/issues/6922
             [Theory]
-            [InlineData(false, "packageId:hello")]
+            [InlineData(false, "tokenizedPackageId:hello")]
             [InlineData(true, "packageId:hello")]
             public void WhenLuceneQuery_TreatsLeadingIdAsPackageId(bool luceneQuery, string expected)
             {
@@ -122,11 +119,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                     { "", "*" },
                     { " ", "*" },
 
-                    // TODO: id should support partial matching
-                    // TODO: packageId, version, and owners should be case insensitive
-                    // See: https://github.com/NuGet/NuGetGallery/issues/6920
-                    // See: https://github.com/NuGet/NuGetGallery/issues/6922
-                    { "id:test", "packageId:test" },
+                    { "id:test", "tokenizedPackageId:test" },
                     { "packageId:json", "packageId:json" },
                     { "version:1.0.0-test", "normalizedVersion:1.0.0\\-test" },
                     { "title:hello", "title:hello" },
@@ -140,7 +133,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                     { "owners:nugget", "owners:nugget" },
 
                     // The NuGet query fields are case insensitive
-                    { "ID:TEST", "packageId:TEST" },
+                    { "ID:TEST", "tokenizedPackageId:TEST" },
                     { "PACKAGEID:JSON", "packageId:JSON" },
                     { "VERSION:1.0.0-TEST", "normalizedVersion:1.0.0\\-TEST" },
                     { "TITLE:HELLO", "title:HELLO" },
@@ -165,11 +158,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                     { "tag:a,b;c|d", "tags:(a b c d)" },
                     { "tags:a,b;c|d", "tags:(a b c d)" },
 
-                    // TODO: id should support partial matching
-                    // TODO: packageId, version, and owners should be case insensitive
-                    // See: https://github.com/NuGet/NuGetGallery/issues/6920
-                    // See: https://github.com/NuGet/NuGetGallery/issues/6922
-                    { "id:foo id:bar", "packageId:(foo bar)" },
+                    { "id:foo id:bar", "tokenizedPackageId:(foo bar)" },
                     { "packageId:foo packageId:bar", "packageId:(foo bar)" },
                     { "title:hello title:world", "title:(hello world)" },
                     { "description:I description:am", "description:(I am)" },
@@ -192,8 +181,8 @@ namespace NuGet.Services.AzureSearch.SearchService
                     // Quotes allow adjacent terms to be searched
                     { @"""foo bar""", @"""foo bar""" },
                     { @"""foo bar"" baz", @"""foo bar"" baz" },
-                    { @"id:""foo bar""", @"packageId:""foo bar""" },
-                    { @"id:""a b"" c id:d packageId:e f", @"+packageId:(""a b"" d e) c f" },
+                    { @"title:""foo bar""", @"title:""foo bar""" },
+                    { @"title:""a b"" c title:d f", @"+title:(""a b"" d) c f" },
 
                     // Duplicate search terms on the same query field are folded
                     { "a a", "a" },

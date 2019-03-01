@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Azure.Search;
 using Microsoft.Azure.Search.Models;
@@ -92,19 +93,36 @@ namespace NuGet.Services.AzureSearch
 
         private Index InitializeSearchIndex()
         {
-            return new Index
-            {
-                Name = _options.Value.SearchIndexName,
-                Fields = FieldBuilder.BuildForType<SearchDocument.Full>(),
-            };
+            return InitializeIndex<SearchDocument.Full>(
+                _options.Value.SearchIndexName);
         }
 
         private Index InitializeHijackIndex()
         {
+            return InitializeIndex<HijackDocument.Full>(
+                _options.Value.HijackIndexName);
+        }
+
+        private Index InitializeIndex<TDocument>(string name)
+        {
             return new Index
             {
-                Name = _options.Value.HijackIndexName,
-                Fields = FieldBuilder.BuildForType<HijackDocument.Full>(),
+                Name = name,
+                Fields = FieldBuilder.BuildForType<TDocument>(),
+                Analyzers = new List<Analyzer>
+                {
+                    DescriptionAnalyzer.Instance,
+                    ExactMatchCustomAnalyzer.Instance,
+                    PackageIdCustomAnalyzer.Instance,
+                },
+                Tokenizers = new List<Tokenizer>
+                {
+                    PackageIdCustomTokenizer.Instance,
+                },
+                TokenFilters = new List<TokenFilter>
+                {
+                    IdentifierCustomTokenFilter.Instance,
+                }
             };
         }
     }

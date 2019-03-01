@@ -43,11 +43,16 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Analysis\DescriptionCustomAnalyzer.cs" />
+    <Compile Include="Analysis\IdentifierCustomTokenFilter.cs" />
+    <Compile Include="Analysis\PackageIdCustomAnalyzer.cs" />
+    <Compile Include="Analysis\PackageIdCustomTokenizer.cs" />
     <Compile Include="SearchService\AzureSearchQueryBuilder.cs" />
     <Compile Include="BlobContainerBuilder.cs" />
     <Compile Include="IBlobContainerBuilder.cs" />
     <Compile Include="Measure.cs" />
     <Compile Include="DurationMeasurement.cs" />
+    <Compile Include="Analysis\ExactMatchCustomAnalyzer.cs" />
     <Compile Include="SearchService\AuxiliaryDataCache.cs" />
     <Compile Include="SearchService\AuxiliaryFileClient.cs" />
     <Compile Include="SearchService\AuxiliaryFileReloader.cs" />
