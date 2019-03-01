@@ -22,7 +22,7 @@ namespace NuGetGallery
                 RouteTable.Routes.MapRoute(
                 RouteName.Home,
                 "",
-                new { controller = "Pages", action = "EmptyHome" });
+                new { controller = "Pages", action = nameof(PagesController.EmptyHome) });
             }
             RegisterApiV2Routes(routes);
         }
@@ -32,67 +32,67 @@ namespace NuGetGallery
             routes.MapRoute(
                 RouteName.Home,
                 "",
-                new { controller = "Pages", action = "Home" }); // T4MVC doesn't work with Async Action
+                new { controller = "Pages", action = nameof(PagesController.Home) }); // T4MVC doesn't work with Async Action
 
             routes.MapRoute(
                 RouteName.ErrorReadOnly,
                 "errors/readonly",
-                new { controller = "Errors", action = "ReadOnlyMode" });
+                new { controller = "Errors", action = nameof(ErrorsController.ReadOnlyMode) });
 
             routes.MapRoute(
                 RouteName.Error500,
                 "errors/500",
-                new { controller = "Errors", action = "InternalError" });
+                new { controller = "Errors", action = nameof(ErrorsController.InternalError) });
 
             routes.MapRoute(
                 RouteName.Error404,
                 "errors/404",
-                new { controller = "Errors", action = "NotFound" });
+                new { controller = "Errors", action = nameof(ErrorsController.NotFound) });
 
             routes.MapRoute(
                 RouteName.Error400,
                 "errors/400",
-                new { controller = "Errors", action = "BadRequest" });
+                new { controller = "Errors", action = nameof(ErrorsController.BadRequest) });
 
             routes.MapRoute(
                 RouteName.StatisticsHome,
                 "stats",
-                new { controller = "Statistics", action = "Index" });
+                new { controller = "Statistics", action = nameof(StatisticsController.Index) });
 
             routes.MapRoute(
                 RouteName.Stats,
                 "stats/totals",
-                new { controller = "Statistics", action = "Totals" });
+                new { controller = "Statistics", action = nameof(StatisticsController.Totals) });
 
             routes.MapRoute(
                 RouteName.StatisticsPackages,
                 "stats/packages",
-                new { controller = "Statistics", action = "Packages" });
+                new { controller = "Statistics", action = nameof(StatisticsController.Packages) });
 
             routes.MapRoute(
                 RouteName.StatisticsPackageVersions,
                 "stats/packageversions",
-                new { controller = "Statistics", action = "PackageVersions" });
+                new { controller = "Statistics", action = nameof(StatisticsController.PackageVersions) });
 
             routes.MapRoute(
                 RouteName.StatisticsPackageDownloadsDetail,
                 "stats/packages/{id}/{version}",
-                new { controller = "Statistics", action = "PackageDownloadsDetail" });
+                new { controller = "Statistics", action = nameof(StatisticsController.PackageDownloadsDetail) });
 
             routes.MapRoute(
                 RouteName.StatisticsPackageDownloadsDetailReport,
                 "stats/reports/packages/{id}/{version}",
-                new { controller = "Statistics", action = "PackageDownloadsDetailReport" });
+                new { controller = "Statistics", action = nameof(StatisticsController.PackageDownloadsDetailReport) });
 
             routes.MapRoute(
                 RouteName.StatisticsPackageDownloadsByVersion,
                 "stats/packages/{id}",
-                new { controller = "Statistics", action = "PackageDownloadsByVersion" });
+                new { controller = "Statistics", action = nameof(StatisticsController.PackageDownloadsByVersion) });
 
             routes.MapRoute(
                 RouteName.StatisticsPackageDownloadsByVersionReport,
                 "stats/reports/packages/{id}",
-                new { controller = "Statistics", action = "PackageDownloadsByVersionReport" });
+                new { controller = "Statistics", action = nameof(StatisticsController.PackageDownloadsByVersionReport) });
 
             routes.MapRoute(
                 RouteName.JsonApi,
@@ -103,11 +103,6 @@ namespace NuGetGallery
                 RouteName.ManageDeprecationJsonApi,
                 "json/deprecation/{action}",
                 new { controller = "ManageDeprecationJsonApi" });
-
-            routes.MapRoute(
-                RouteName.Contributors,
-                "pages/contributors",
-                new { controller = "Pages", action = "Contributors" });
 
             routes.MapRoute(
                 RouteName.PagesSimulateError,
@@ -122,37 +117,37 @@ namespace NuGetGallery
             routes.MapRoute(
                 RouteName.Pages,
                 "pages/{pageName}",
-                new { controller = "Pages", action = "Page" });
+                new { controller = "Pages", action = nameof(PagesController.Page) });
 
             var packageListRoute = routes.MapRoute(
                 RouteName.ListPackages,
                 "packages",
-                new { controller = "Packages", action = "ListPackages" });
+                new { controller = "Packages", action = nameof(PackagesController.ListPackages) });
 
             var uploadPackageRoute = routes.MapRoute(
                 RouteName.UploadPackage,
                 "packages/manage/upload",
-                new { controller = "Packages", action = "UploadPackage" });
+                new { controller = "Packages", action = nameof(PackagesController.UploadPackage) });
 
             routes.MapRoute(
                 RouteName.UploadPackageProgress,
                 "packages/manage/upload-progress",
-                new { controller = "Packages", action = "UploadPackageProgress" });
+                new { controller = "Packages", action = nameof(PackagesController.UploadPackageProgress) });
 
             routes.MapRoute(
                 RouteName.VerifyPackage,
                 "packages/manage/verify-upload",
-                new { controller = "Packages", action = "VerifyPackage" });
+                new { controller = "Packages", action = nameof(PackagesController.VerifyPackage) });
 
             routes.MapRoute(
                 RouteName.PreviewReadMe,
                 "packages/manage/preview-readme",
-                new { controller = "Packages", action = "PreviewReadMe" });
+                new { controller = "Packages", action = nameof(PackagesController.PreviewReadMe) });
 
             routes.MapRoute(
                 RouteName.CancelUpload,
                 "packages/manage/cancel-upload",
-                new { controller = "Packages", action = "CancelUpload" });
+                new { controller = "Packages", action = nameof(PackagesController.CancelUpload) });
 
             routes.MapRoute(
                 RouteName.SetRequiredSigner,
@@ -164,7 +159,7 @@ namespace NuGetGallery
             routes.MapRoute(
                 RouteName.PackageOwnerConfirmation,
                 "packages/{id}/owners/{username}/confirm/{token}",
-                new { controller = "Packages", action = "ConfirmPendingOwnershipRequest" },
+                new { controller = "Packages", action = nameof(PackagesController.ConfirmPendingOwnershipRequest) },
                 new[]
                 {
                     new RouteExtensions.ObfuscatedPathMetadata(3, Obfuscator.DefaultTelemetryUserName),
@@ -174,7 +169,7 @@ namespace NuGetGallery
             routes.MapRoute(
                 RouteName.PackageOwnerRejection,
                 "packages/{id}/owners/{username}/reject/{token}",
-                new { controller = "Packages", action = "RejectPendingOwnershipRequest" },
+                new { controller = "Packages", action = nameof(PackagesController.RejectPendingOwnershipRequest) },
                 new[]
                 {
                     new RouteExtensions.ObfuscatedPathMetadata(3, Obfuscator.DefaultTelemetryUserName),
@@ -184,7 +179,7 @@ namespace NuGetGallery
             routes.MapRoute(
                 RouteName.PackageOwnerCancellation,
                 "packages/{id}/owners/{username}/cancel/{token}",
-                new { controller = "Packages", action = "CancelPendingOwnershipRequest" },
+                new { controller = "Packages", action = nameof(PackagesController.CancelPendingOwnershipRequest) },
                 new[]
                 {
                     new RouteExtensions.ObfuscatedPathMetadata(3, Obfuscator.DefaultTelemetryUserName),
@@ -199,7 +194,7 @@ namespace NuGetGallery
                 new
                 {
                     controller = "packages",
-                    action = "DisplayPackage",
+                    action = nameof(PackagesController.DisplayPackage),
                     version = UrlParameter.Optional
                 },
                 new { version = new VersionRouteConstraint() });
@@ -216,13 +211,13 @@ namespace NuGetGallery
             routes.MapRoute(
                 RouteName.PackageEnableLicenseReport,
                 "packages/{id}/{version}/EnableLicenseReport",
-                new { controller = "Packages", action = "SetLicenseReportVisibility", visible = true },
+                new { controller = "Packages", action = nameof(PackagesController.SetLicenseReportVisibility), visible = true },
                 new { version = new VersionRouteConstraint() });
 
             routes.MapRoute(
                 RouteName.PackageDisableLicenseReport,
                 "packages/{id}/{version}/DisableLicenseReport",
-                new { controller = "Packages", action = "SetLicenseReportVisibility", visible = false },
+                new { controller = "Packages", action = nameof(PackagesController.SetLicenseReportVisibility), visible = false },
                 new { version = new VersionRouteConstraint() });
 
             var packageVersionActionRoute = routes.MapRoute(
@@ -239,17 +234,17 @@ namespace NuGetGallery
             var packageDeleteRoute = routes.MapRoute(
                 RouteName.PackageDeleteAction,
                 "packages/manage/delete",
-                new { controller = "Packages", action = "Delete" });
+                new { controller = "Packages", action = nameof(PackagesController.Delete) });
 
             var confirmationRequiredRoute = routes.MapRoute(
-                "ConfirmationRequired",
+                RouteName.ConfirmationRequired,
                 "account/ConfirmationRequired",
-                new { controller = "Users", action = "ConfirmationRequired" });
+                new { controller = "Users", action = ActionName.ConfirmationRequired });
 
             routes.MapRoute(
                 RouteName.License,
                 "packages/{id}/{version}/license",
-                new { controller = "Packages", action = "License" });
+                new { controller = "Packages", action = nameof(PackagesController.License) });
 
             //Redirecting v1 Confirmation Route
             routes.Redirect(
@@ -260,35 +255,35 @@ namespace NuGetGallery
             routes.MapRoute(
                 RouteName.ExternalAuthenticationCallback,
                 "users/account/authenticate/return",
-                new { controller = "Authentication", action = "LinkExternalAccount" });
+                new { controller = "Authentication", action = nameof(AuthenticationController.LinkExternalAccount) });
 
             routes.MapRoute(
                 RouteName.ExternalAuthentication,
                 "users/account/authenticate/{provider}",
-                new { controller = "Authentication", action = "Authenticate" });
+                new { controller = "Authentication", action = ActionName.Authenticate });
 
             routes.MapRoute(
                 "RegisterAccount",
                 "account/register",
-                new { controller = "Authentication", action = "Register" },
+                new { controller = "Authentication", action = nameof(AuthenticationController.Register) },
                 new { httpMethod = new HttpMethodConstraint("POST") });
 
             routes.MapRoute(
                 RouteName.SigninAssistance,
                 "account/assistance",
-                new { controller = "Authentication", action = "SignInAssistance" },
+                new { controller = "Authentication", action = nameof(AuthenticationController.SignInAssistance) },
                 new { httpMethod = new HttpMethodConstraint("POST") });
 
             routes.MapRoute(
                 RouteName.LegacyRegister,
                 "account/register",
-                new { controller = "Authentication", action = "RegisterLegacy" },
+                new { controller = "Authentication", action = nameof(AuthenticationController.RegisterLegacy) },
                 new { httpMethod = new HttpMethodConstraint("GET") });
 
             routes.MapRoute(
                 RouteName.LegacyRegister2,
                 "users/account/register",
-                new { controller = "Authentication", action = "RegisterLegacy" },
+                new { controller = "Authentication", action = nameof(AuthenticationController.RegisterLegacy) },
                 new { httpMethod = new HttpMethodConstraint("GET") });
 
             routes.MapRoute(
@@ -299,47 +294,47 @@ namespace NuGetGallery
             routes.MapRoute(
                 RouteName.Profile,
                 "profiles/{username}",
-                new { controller = "Users", action = "Profiles" },
+                new { controller = "Users", action = nameof(UsersController.Profiles) },
                 new RouteExtensions.ObfuscatedPathMetadata(1, Obfuscator.DefaultTelemetryUserName));
 
             routes.MapRoute(
                 RouteName.GetUserCertificate,
                 "account/certificates/{thumbprint}",
-                new { controller = "Users", action = "GetCertificate" },
+                new { controller = "Users", action = nameof(UsersController.GetCertificate) },
                 constraints: new { httpMethod = new HttpMethodConstraint("GET") });
 
             routes.MapRoute(
                 RouteName.DeleteUserCertificate,
                 "account/certificates/{thumbprint}",
-                new { controller = "Users", action = "DeleteCertificate" },
+                new { controller = "Users", action = nameof(UsersController.DeleteCertificate) },
                 constraints: new { httpMethod = new HttpMethodConstraint("DELETE") });
 
             routes.MapRoute(
                 RouteName.GetUserCertificates,
                 "account/certificates",
-                new { controller = "Users", action = "GetCertificates" },
+                new { controller = "Users", action = nameof(UsersController.GetCertificates) },
                 constraints: new { httpMethod = new HttpMethodConstraint("GET") });
 
             routes.MapRoute(
                 RouteName.AddUserCertificate,
                 "account/certificates",
-                new { controller = "Users", action = "AddCertificate" },
+                new { controller = "Users", action = nameof(UsersController.AddCertificate) },
                 constraints: new { httpMethod = new HttpMethodConstraint("POST") });
 
             routes.MapRoute(
                 RouteName.RemovePassword,
                 "account/RemoveCredential/password",
-                new { controller = "Users", action = "RemovePassword" });
+                new { controller = "Users", action = nameof(UsersController.RemovePassword) });
 
             routes.MapRoute(
                 RouteName.RemoveCredential,
                 "account/RemoveCredential/{credentialType}",
-                new { controller = "Users", action = "RemoveCredential" });
+                new { controller = "Users", action = nameof(UsersController.RemoveCredential) });
 
             routes.MapRoute(
                 RouteName.PasswordReset,
                 "account/forgotpassword/{username}/{token}",
-                new { controller = "Users", action = "ResetPassword", forgot = true },
+                new { controller = "Users", action = nameof(UsersController.ResetPassword), forgot = true },
                 new[]
                 {
                     new RouteExtensions.ObfuscatedPathMetadata(2, Obfuscator.DefaultTelemetryUserName),
@@ -349,7 +344,7 @@ namespace NuGetGallery
             routes.MapRoute(
                 RouteName.PasswordSet,
                 "account/setpassword/{username}/{token}",
-                new { controller = "Users", action = "ResetPassword", forgot = false },
+                new { controller = "Users", action = nameof(UsersController.ResetPassword), forgot = false },
                 new[]
                 {
                     new RouteExtensions.ObfuscatedPathMetadata(2, Obfuscator.DefaultTelemetryUserName),
@@ -359,7 +354,7 @@ namespace NuGetGallery
             routes.MapRoute(
                 RouteName.ConfirmAccount,
                 "account/confirm/{accountName}/{token}",
-                new { controller = "Users", action = "Confirm" },
+                new { controller = "Users", action = nameof(UsersController.Confirm) },
                 new[]
                 {
                     new RouteExtensions.ObfuscatedPathMetadata(2, Obfuscator.DefaultTelemetryUserName),
@@ -369,23 +364,23 @@ namespace NuGetGallery
             routes.MapRoute(
                 RouteName.ChangeEmailSubscription,
                 "account/subscription/change",
-                new { controller = "Users", action = "ChangeEmailSubscription" });
+                new { controller = "Users", action = nameof(UsersController.ChangeEmailSubscription) });
 
             routes.MapRoute(
                 RouteName.ChangeMultiFactorAuthentication,
                 "account/changeMultiFactorAuthentication",
-                new { controller = "Users", action = "ChangeMultiFactorAuthentication" });
+                new { controller = "Users", action = nameof(UsersController.ChangeMultiFactorAuthentication) });
 
             routes.MapRoute(
                 RouteName.AdminDeleteAccount,
                 "account/delete/{accountName}",
-                new { controller = "Users", action = "Delete" },
+                new { controller = "Users", action = nameof(UsersController.Delete) },
                 new RouteExtensions.ObfuscatedPathMetadata(2, Obfuscator.DefaultTelemetryUserName));
 
             routes.MapRoute(
                 RouteName.UserDeleteAccount,
                 "account/delete",
-                new { controller = "Users", action = "DeleteRequest" });
+                new { controller = "Users", action = nameof(UsersController.DeleteRequest) });
 
             routes.MapRoute(
                 RouteName.TransformToOrganization,
@@ -421,43 +416,43 @@ namespace NuGetGallery
             routes.MapRoute(
                 RouteName.ApiKeys,
                 "account/apikeys",
-                new { controller = "Users", action = "ApiKeys" });
+                new { controller = "Users", action = nameof(UsersController.ApiKeys) });
 
             routes.MapRoute(
                 RouteName.Account,
                 "account/{action}",
-                new { controller = "Users", action = "Account" });
+                new { controller = "Users", action = nameof(UsersController.Account) });
 
             routes.MapRoute(
                 RouteName.AddOrganization,
                 "organization/add",
-                new { controller = "Organizations", action = "Add" });
+                new { controller = "Organizations", action = nameof(OrganizationsController.Add) });
 
             routes.MapRoute(
                 RouteName.GetOrganizationCertificate,
                 "organization/{accountName}/certificates/{thumbprint}",
-                new { controller = "Organizations", action = "GetCertificate" },
+                new { controller = "Organizations", action = nameof(OrganizationsController.GetCertificate) },
                 constraints: new { httpMethod = new HttpMethodConstraint("GET") },
                 obfuscationMetadata: new RouteExtensions.ObfuscatedPathMetadata(1, Obfuscator.DefaultTelemetryUserName));
 
             routes.MapRoute(
                 RouteName.DeleteOrganizationCertificate,
                 "organization/{accountName}/certificates/{thumbprint}",
-                new { controller = "Organizations", action = "DeleteCertificate" },
+                new { controller = "Organizations", action = nameof(OrganizationsController.DeleteCertificate) },
                 constraints: new { httpMethod = new HttpMethodConstraint("DELETE") },
                 obfuscationMetadata: new RouteExtensions.ObfuscatedPathMetadata(1, Obfuscator.DefaultTelemetryUserName));
 
             routes.MapRoute(
                 RouteName.GetOrganizationCertificates,
                 "organization/{accountName}/certificates",
-                new { controller = "Organizations", action = "GetCertificates" },
+                new { controller = "Organizations", action = nameof(OrganizationsController.GetCertificates) },
                 constraints: new { httpMethod = new HttpMethodConstraint("GET") },
                 obfuscationMetadata: new RouteExtensions.ObfuscatedPathMetadata(1, Obfuscator.DefaultTelemetryUserName));
 
             routes.MapRoute(
                 RouteName.AddOrganizationCertificate,
                 "organization/{accountName}/certificates",
-                new { controller = "Organizations", action = "AddCertificate" },
+                new { controller = "Organizations", action = nameof(OrganizationsController.AddCertificate) },
                 constraints: new { httpMethod = new HttpMethodConstraint("POST") },
                 obfuscationMetadata: new RouteExtensions.ObfuscatedPathMetadata(1, Obfuscator.DefaultTelemetryUserName));
 
@@ -548,19 +543,19 @@ namespace NuGetGallery
             routes.MapRoute(
                 RouteName.OrganizationAccount,
                 "organization/{accountName}/{action}",
-                new { controller = "Organizations", action = "ManageOrganization" },
+                new { controller = "Organizations", action = nameof(OrganizationsController.ManageOrganization) },
                 new RouteExtensions.ObfuscatedPathMetadata(1, Obfuscator.DefaultTelemetryUserName));
 
             routes.MapRoute(
                 RouteName.ChangeOrganizationEmailSubscription,
                 "organization/{accountName}/subscription/change",
-                new { controller = "Organizations", action = "ChangeEmailSubscription" },
+                new { controller = "Organizations", action = nameof(OrganizationsController.ChangeEmailSubscription) },
                 new RouteExtensions.ObfuscatedPathMetadata(1, Obfuscator.DefaultTelemetryUserName));
 
             routes.MapRoute(
                 RouteName.Downloads,
                 "downloads",
-                new { controller = "Pages", action = "Downloads" });
+                new { controller = "Pages", action = nameof(PagesController.Downloads) });
 
             // TODO : Most of the routes are essentially of the format api/v{x}/*. We should refactor the code to vary them by the version.
             // V1 Routes
@@ -571,7 +566,7 @@ namespace NuGetGallery
                 new
                 {
                     controller = "Api",
-                    action = "VerifyPackageKey",
+                    action = ActionName.VerifyPackageKey,
                     version = UrlParameter.Optional
                 });
 
@@ -581,7 +576,7 @@ namespace NuGetGallery
                 new
                 {
                     controller = "Api",
-                    action = "CreatePackageVerificationKey",
+                    action = ActionName.CreatePackageVerificationKey,
                     version = UrlParameter.Optional
                 });
 
@@ -591,7 +586,7 @@ namespace NuGetGallery
                 defaults: new
                 {
                     controller = "Api",
-                    action = "GetPackageApi",
+                    action = ActionName.GetPackageApi,
                     version = UrlParameter.Optional
                 },
                 constraints: new { httpMethod = new HttpMethodConstraint("GET") });
@@ -599,18 +594,13 @@ namespace NuGetGallery
             routes.MapRoute(
                 "v1" + RouteName.PushPackageApi,
                 "v1/PackageFiles/{apiKey}/nupkg",
-                defaults: new { controller = "Api", action = "PushPackageApi" },
+                defaults: new { controller = "Api", action = ActionName.PushPackageApi },
                 constraints: new { httpMethod = new HttpMethodConstraint("POST") });
-
-            routes.MapRoute(
-                "v1" + RouteName.DeletePackageApi,
-                "v1/Packages/{apiKey}/{id}/{version}",
-                new { controller = "Api", action = "DeletePackages" });
 
             routes.MapRoute(
                 "v1" + RouteName.PublishPackageApi,
                 "v1/PublishedPackages/Publish",
-                new { controller = "Api", action = "PublishPackage" });
+                new { controller = "Api", action = nameof(ApiController.PublishPackage) });
 
             // Redirected Legacy Routes
 
@@ -618,35 +608,35 @@ namespace NuGetGallery
                 r => r.MapRoute(
                     "ReportAbuse",
                     "Package/ReportAbuse/{id}/{version}",
-                    new { controller = "Packages", action = "ReportAbuse" }),
+                    new { controller = "Packages", action = nameof(PackagesController.ReportAbuse) }),
                 permanent: true).To(packageVersionActionRoute);
 
             routes.Redirect(
                 r => r.MapRoute(
                     RouteName.ListPackages,
                     "List/Packages",
-                    new { controller = "Packages", action = "ListPackages" }),
+                    new { controller = "Packages", action = nameof(PackagesController.ListPackages) }),
                 permanent: true).To(packageListRoute);
 
             routes.Redirect(
                 r => r.MapRoute(
                     RouteName.DisplayPackage,
                     "List/Packages/{id}/{version}",
-                    new { controller = "Packages", action = "DisplayPackage", version = UrlParameter.Optional }),
+                    new { controller = "Packages", action = nameof(PackagesController.DisplayPackage), version = UrlParameter.Optional }),
                 permanent: true).To(packageDisplayRoute);
 
             routes.Redirect(
                 r => r.MapRoute(
                     RouteName.NewSubmission,
                     "Contribute/NewSubmission",
-                    new { controller = "Packages", action = "UploadPackage" }),
+                    new { controller = "Packages", action = nameof(PackagesController.UploadPackage) }),
                 permanent: true).To(uploadPackageRoute);
 
             routes.Redirect(
                 r => r.MapRoute(
                     "LegacyDownloadRoute",
                     "v1/Package/Download/{id}/{version}",
-                    new { controller = "Api", action = "GetPackageApi", version = UrlParameter.Optional }),
+                    new { controller = "Api", action = ActionName.GetPackageApi, version = UrlParameter.Optional }),
                 permanent: true).To(downloadRoute);
         }
 
@@ -656,7 +646,7 @@ namespace NuGetGallery
             routes.MapRoute(
                 RouteName.Team,
                 "api/v2/team",
-                defaults: new { controller = "Api", action = "Team" },
+                defaults: new { controller = "Api", action = nameof(ApiController.Team) },
                 constraints: new { httpMethod = new HttpMethodConstraint("GET") });
 
             routes.MapRoute(
@@ -665,7 +655,7 @@ namespace NuGetGallery
                 new
                 {
                     controller = "Api",
-                    action = "VerifyPackageKey",
+                    action = ActionName.VerifyPackageKey,
                     version = UrlParameter.Optional
                 });
 
@@ -675,87 +665,87 @@ namespace NuGetGallery
                 new
                 {
                     controller = "Api",
-                    action = "CreatePackageVerificationKey",
+                    action = ActionName.CreatePackageVerificationKey,
                     version = UrlParameter.Optional
                 });
 
             routes.MapRoute(
                 "v2CuratedFeeds" + RouteName.DownloadPackage,
                 "api/v2/curated-feeds/package/{id}/{version}",
-                defaults: new { controller = "Api", action = "GetPackageApi", version = UrlParameter.Optional },
+                defaults: new { controller = "Api", action = ActionName.GetPackageApi, version = UrlParameter.Optional },
                 constraints: new { httpMethod = new HttpMethodConstraint("GET") });
 
             routes.MapRoute(
                 "v2" + RouteName.DownloadPackage,
                 "api/v2/package/{id}/{version}",
-                defaults: new { controller = "Api", action = "GetPackageApi", version = UrlParameter.Optional },
+                defaults: new { controller = "Api", action = ActionName.GetPackageApi, version = UrlParameter.Optional },
                 constraints: new { httpMethod = new HttpMethodConstraint("GET") });
 
             routes.MapRoute(
                 "v2" + RouteName.DownloadSymbolsPackage,
                 "api/v2/symbolpackage/{id}/{version}",
-                defaults: new { controller = "Api", action = "GetSymbolPackageApi", version = UrlParameter.Optional },
+                defaults: new { controller = "Api", action = ActionName.GetSymbolPackageApi, version = UrlParameter.Optional },
                 constraints: new { httpMethod = new HttpMethodConstraint("GET") });
 
             routes.MapRoute(
                 "v2" + RouteName.PushPackageApi,
                 "api/v2/package",
-                defaults: new { controller = "Api", action = "PushPackageApi" },
+                defaults: new { controller = "Api", action = ActionName.PushPackageApi },
                 constraints: new { httpMethod = new HttpMethodConstraint("PUT") });
 
             routes.MapRoute(
                 "v2" + RouteName.PushSymbolPackageApi,
                 "api/v2/symbolpackage",
-                defaults: new { controller = "Api", action = "PushSymbolPackageApi" },
+                defaults: new { controller = "Api", action = ActionName.PushSymbolPackageApi },
                 constraints: new { httpMethod = new HttpMethodConstraint("PUT") });
 
             routes.MapRoute(
                 "v2" + RouteName.DeletePackageApi,
                 "api/v2/package/{id}/{version}",
-                new { controller = "Api", action = "DeletePackageApi" },
+                new { controller = "Api", action = ActionName.DeletePackageApi },
                 constraints: new { httpMethod = new HttpMethodConstraint("DELETE") });
 
             routes.MapRoute(
                 "v2" + RouteName.PublishPackageApi,
                 "api/v2/package/{id}/{version}",
-                new { controller = "Api", action = "PublishPackageApi" },
+                new { controller = "Api", action = ActionName.PublishPackageApi },
                 constraints: new { httpMethod = new HttpMethodConstraint("POST") });
 
             routes.MapRoute(
                 "v2PackageIds",
                 "api/v2/package-ids",
-                new { controller = "Api", action = "PackageIDs" });
+                new { controller = "Api", action = ActionName.PackageIDs });
 
             routes.MapRoute(
                 "v2PackageVersions",
                 "api/v2/package-versions/{id}",
-                new { controller = "Api", action = "PackageVersions" });
+                new { controller = "Api", action = ActionName.PackageVersions });
 
             routes.MapRoute(
                 "v2Query",
                 "api/v2/query",
-                new { controller = "Api", action = "Query" });
+                new { controller = "Api", action = ActionName.Query });
 
             routes.MapRoute(
                 RouteName.StatisticsDownloadsApi,
                 "api/v2/stats/downloads/last6weeks",
-                defaults: new { controller = "Api", action = "StatisticsDownloadsApi" },
+                defaults: new { controller = "Api", action = ActionName.StatisticsDownloadsApi },
                 constraints: new { httpMethod = new HttpMethodConstraint("GET") });
 
             routes.MapRoute(
                 RouteName.Status,
                 "api/status",
-                new { controller = "Api", action = "StatusApi" });
+                new { controller = "Api", action = ActionName.StatusApi });
 
             routes.MapRoute(
                 RouteName.HealthProbe,
                 "api/health-probe",
-                new { controller = "Api", action = "HealthProbeApi" });
+                new { controller = "Api", action = ActionName.HealthProbeApi });
 
             routes.MapRoute(
                 RouteName.DownloadNuGetExe,
                 "nuget.exe",
-                new { controller = "Api", action = "GetNuGetExeApi" });
+                new { controller = "Api", action = ActionName.GetNuGetExeApi });
 
             routes.MapRoute(
                 RouteName.ApiSimulateError,

@@ -114,7 +114,7 @@ namespace NuGetGallery.OData.Serializers
                     new
                     {
                         controller = "Api",
-                        action = "GetPackageApi",
+                        action = ActionName.GetPackageApi,
                         version = UrlParameter.Optional
                     }),
                 constraints: new HttpRouteValueDictionary(

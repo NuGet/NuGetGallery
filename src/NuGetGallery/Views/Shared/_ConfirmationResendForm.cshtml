@@ -14,7 +14,7 @@
     }
 }
 
-@using (Html.BeginForm("ConfirmationRequired", controllerName))
+@using (Html.BeginForm(ActionName.ConfirmationRequired, controllerName))
 {
     @Html.AntiForgeryToken()
 

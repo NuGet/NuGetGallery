@@ -6,6 +6,7 @@ namespace NuGetGallery
     public static class RouteName
     {
         public const string Account = "Account";
+        public const string ConfirmationRequired = "ConfirmationRequired";
         public const string OrganizationAccount = "ManageOrganization";
         public const string AddOrganization = "AddOrganization";
         public const string OrganizationMemberAddAjax = "AddMember";
@@ -85,7 +86,6 @@ namespace NuGetGallery
         public const string Error400 = "Error400";
         public const string Status = "Status";
         public const string HealthProbe = "HealthProbe";
-        public const string Contributors = "Contributors";
         public const string Team = "Team";
         public const string JsonApi = "JsonApi";
         public const string ManageDeprecationJsonApi = "ManageDeprecationJsonApi";
