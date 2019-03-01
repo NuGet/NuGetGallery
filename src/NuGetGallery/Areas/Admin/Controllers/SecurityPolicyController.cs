@@ -33,6 +33,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
         }
 
         [HttpGet]
+        [ActionName(ActionName.AdminSecurityPolicyIndex)]
         public virtual ActionResult Index()
         {
             var model = new SecurityPolicyViewModel()
@@ -44,6 +45,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
         }
 
         [HttpGet]
+        [ActionName(ActionName.AdminSecurityPolicySearch)]
         public virtual JsonResult Search(string query)
         {
             // Parse query and look for users in the DB.
@@ -72,6 +74,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [ActionName(ActionName.AdminSecurityPolicyUpdate)]
         public async Task<JsonResult> Update(List<string> subscriptionsJson)
         {
             var subscribeRequests =  subscriptionsJson?.Select(JsonConvert.DeserializeObject<JObject>)

@@ -47,7 +47,7 @@
             @(Model.ChangeNotifications.NotifyPackagePushed ? ViewBag.NotifyPackagePushedEnabled : ViewBag.NotifyPackagePushedNotEnabled)
         </text>,
         @<text>
-            @using (Html.BeginForm("ChangeEmailSubscription", controllerName, FormMethod.Post, new { aria_label = "Change email subscription settings" }))
+            @using (Html.BeginForm(ActionName.ChangeEmailSubscription, controllerName, FormMethod.Post, new { aria_label = "Change email subscription settings" }))
             {
                 @Html.AntiForgeryToken()
 

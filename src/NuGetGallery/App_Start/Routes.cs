@@ -234,7 +234,7 @@ namespace NuGetGallery
             var packageDeleteRoute = routes.MapRoute(
                 RouteName.PackageDeleteAction,
                 "packages/manage/delete",
-                new { controller = "Packages", action = nameof(PackagesController.Delete) });
+                new { controller = "Packages", action = ActionName.DeletePackageUIPost });
 
             var confirmationRequiredRoute = routes.MapRoute(
                 RouteName.ConfirmationRequired,
@@ -265,7 +265,7 @@ namespace NuGetGallery
             routes.MapRoute(
                 "RegisterAccount",
                 "account/register",
-                new { controller = "Authentication", action = nameof(AuthenticationController.Register) },
+                new { controller = "Authentication", action = ActionName.RegisterUser },
                 new { httpMethod = new HttpMethodConstraint("POST") });
 
             routes.MapRoute(
@@ -364,17 +364,17 @@ namespace NuGetGallery
             routes.MapRoute(
                 RouteName.ChangeEmailSubscription,
                 "account/subscription/change",
-                new { controller = "Users", action = nameof(UsersController.ChangeEmailSubscription) });
+                new { controller = "Users", action = ActionName.ChangeEmailSubscription });
 
             routes.MapRoute(
                 RouteName.ChangeMultiFactorAuthentication,
                 "account/changeMultiFactorAuthentication",
-                new { controller = "Users", action = nameof(UsersController.ChangeMultiFactorAuthentication) });
+                new { controller = "Users", action = ActionName.ChangeMultiFactorAuthentication });
 
             routes.MapRoute(
                 RouteName.AdminDeleteAccount,
                 "account/delete/{accountName}",
-                new { controller = "Users", action = nameof(UsersController.Delete) },
+                new { controller = "Users", action = ActionName.DeleteUser },
                 new RouteExtensions.ObfuscatedPathMetadata(2, Obfuscator.DefaultTelemetryUserName));
 
             routes.MapRoute(
@@ -426,7 +426,7 @@ namespace NuGetGallery
             routes.MapRoute(
                 RouteName.AddOrganization,
                 "organization/add",
-                new { controller = "Organizations", action = nameof(OrganizationsController.Add) });
+                new { controller = "Organizations", action = ActionName.AddOrganizationPost });
 
             routes.MapRoute(
                 RouteName.GetOrganizationCertificate,
@@ -549,7 +549,7 @@ namespace NuGetGallery
             routes.MapRoute(
                 RouteName.ChangeOrganizationEmailSubscription,
                 "organization/{accountName}/subscription/change",
-                new { controller = "Organizations", action = nameof(OrganizationsController.ChangeEmailSubscription) },
+                new { controller = "Organizations", action = ActionName.ChangeEmailSubscription },
                 new RouteExtensions.ObfuscatedPathMetadata(1, Obfuscator.DefaultTelemetryUserName));
 
             routes.MapRoute(

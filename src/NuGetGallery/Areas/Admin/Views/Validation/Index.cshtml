@@ -17,7 +17,7 @@
 <section role="main" class="container main-container">
     <h2>Package Validations</h2>
 
-    <form method="get" action="@Url.Action(actionName: "Search")">
+    <form method="get" action="@Url.Action(actionName: ActionName.AdminValidationSearch)">
         <p>
             <textarea name="q" placeholder="Search for package validations..." autocomplete="off" autofocus style="width: 100%" rows="5">@Model.Query</textarea>
         </p>
@@ -45,8 +45,8 @@
     {
         <div>
             <h3>
-                <a href="@Url.Action("Search", new { q = package.Id } )">@package.Id</a>
-                <a href="@Url.Action("Search", new { q = package.Id + " " + package.NormalizedVersion } )">@package.NormalizedVersion</a>
+                <a href="@Url.Action(ActionName.AdminValidationSearch, new { q = package.Id } )">@package.Id</a>
+                <a href="@Url.Action(ActionName.AdminValidationSearch, new { q = package.Id + " " + package.NormalizedVersion } )">@package.NormalizedVersion</a>
             </h3>
             <p>
                 @switch (package.DeletedStatus)
@@ -83,7 +83,7 @@
                 <h4>Validation Set @set.Key</h4>
                 <div style="margin-left: 20px">
                     <p>
-                        <b>Tracking ID:</b> <a href="@Url.Action("Search", new { q = set.ValidationTrackingId } )">@set.ValidationTrackingId</a><br />
+                        <b>Tracking ID:</b> <a href="@Url.Action(ActionName.AdminValidationSearch, new { q = set.ValidationTrackingId } )">@set.ValidationTrackingId</a><br />
                         <b>Created:</b> @ShowTimestamp(set.Created)<br />
                         @if (set.Created != set.Updated)
                         {

@@ -281,7 +281,7 @@ namespace NuGetGallery
 
             TempData["Message"] = message;
 
-            return RedirectToAction(actionName: "Home", controllerName: "Pages");
+            return RedirectToAction(actionName: nameof(PagesController.Home), controllerName: "Pages");
         }
 
         [HttpGet]
@@ -307,7 +307,7 @@ namespace NuGetGallery
                 TempData["ErrorMessage"] = Strings.TransformAccount_FailedMissingRequestToCancel;
             }
 
-            return RedirectToAction(actionName: "Home", controllerName: "Pages");
+            return RedirectToAction(actionName: nameof(PagesController.Home), controllerName: "Pages");
         }
 
         private ActionResult TransformToOrganizationFailed(string errorMessage)
@@ -318,6 +318,7 @@ namespace NuGetGallery
         [HttpPost]
         [UIAuthorize]
         [ValidateAntiForgeryToken]
+        [ActionName(ActionName.RequestUserAccountDeletionPost)]
         public override async Task<ActionResult> RequestAccountDeletion(string accountName = null)
         {
             var user = GetAccount(accountName);
@@ -338,7 +339,7 @@ namespace NuGetGallery
                 if (!accountDeleteStatus.Success)
                 {
                     TempData["RequestFailedMessage"] = Strings.AccountSelfDelete_Fail;
-                    return RedirectToAction("DeleteRequest");
+                    return RedirectToAction(nameof(DeleteRequest));
                 }
                 OwinContext.Authentication.SignOut();
                 return SafeRedirect(Url.Home(false));
@@ -360,6 +361,7 @@ namespace NuGetGallery
 
         [HttpGet]
         [UIAuthorize(Roles = "Admins")]
+        [ActionName(ActionName.DeleteUser)]
         public virtual ActionResult Delete(string accountName)
         {
             var user = UserService.FindByUsername(accountName);
@@ -375,6 +377,7 @@ namespace NuGetGallery
         [UIAuthorize(Roles = "Admins")]
         [RequiresAccountConfirmation("Delete account")]
         [ValidateAntiForgeryToken]
+        [ActionName(ActionName.DeleteUser)]
         public virtual async Task<ActionResult> Delete(DeleteAccountAsAdminViewModel model)
         {
             var user = UserService.FindByUsername(model.AccountName);
@@ -638,7 +641,7 @@ namespace NuGetGallery
                 await MessageService.SendMessageAsync(emailMessage);
             }
 
-            return RedirectToAction("PasswordChanged");
+            return RedirectToAction(nameof(PasswordChanged));
         }
 
         [HttpGet]
@@ -667,6 +670,7 @@ namespace NuGetGallery
         [HttpPost]
         [UIAuthorize]
         [ValidateAntiForgeryToken]
+        [ActionName(ActionName.ChangePassword)]
         public virtual async Task<ActionResult> ChangePassword(UserAccountViewModel model)
         {
             var user = GetCurrentUser();
@@ -711,13 +715,14 @@ namespace NuGetGallery
                 }
 
                 TempData["Message"] = Strings.PasswordChanged;
-                return RedirectToAction("Account");
+                return RedirectToAction(AccountAction);
             }
         }
 
         [HttpPost]
         [UIAuthorize]
         [ValidateAntiForgeryToken]
+        [ActionName(ActionName.ChangeMultiFactorAuthentication)]
         public virtual async Task<ActionResult> ChangeMultiFactorAuthentication(bool enableMultiFactor)
         {
             var user = GetCurrentUser();
@@ -775,6 +780,7 @@ namespace NuGetGallery
         [HttpPost]
         [UIAuthorize]
         [ValidateAntiForgeryToken]
+        [ActionName(ActionName.LinkOrChangeExternalCredential)]
         public virtual ActionResult LinkOrChangeExternalCredential()
         {
             return Redirect(Url.AuthenticateExternal(Url.AccountSettings()));
@@ -1046,7 +1052,7 @@ namespace NuGetGallery
             {
                 TempData["Message"] = Strings.CredentialNotFound;
 
-                return RedirectToAction("Account");
+                return RedirectToAction(AccountAction);
             }
 
             // Count credentials and make sure the user can always login
@@ -1074,7 +1080,7 @@ namespace NuGetGallery
                 TempData["Message"] = message;
             }
 
-            return RedirectToAction("Account");
+            return RedirectToAction(AccountAction);
         }
 
         protected override void UpdateAccountViewModel(User account, UserAccountViewModel model)
@@ -1126,7 +1132,7 @@ namespace NuGetGallery
 
             await MessageService.SendMessageAsync(message);
 
-            return RedirectToAction(actionName: "PasswordSent", controllerName: "Users");
+            return RedirectToAction(actionName: nameof(PasswordSent), controllerName: "Users");
         }
     }
 }

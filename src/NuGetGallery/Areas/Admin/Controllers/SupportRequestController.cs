@@ -37,6 +37,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
         }
 
         [HttpGet]
+        [ActionName(ActionName.AdminSupportRequestManageAdmins)]
         public ViewResult Admins()
         {
             var viewModel = new SupportRequestAdminsViewModel();
@@ -45,6 +46,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
         }
 
         [HttpGet]
+        [ActionName(ActionName.AdminSupportRequestGetAdmins)]
         public ActionResult GetAdmins()
         {
             var admins = _supportRequestService.GetAllAdmins().Select(a => new SupportRequestAdminViewModel(a));
@@ -55,6 +57,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [ActionName(ActionName.AdminSupportRequestDisableAdmin)]
         public async Task<ActionResult> DisableAdmin(int key)
         {
             try
@@ -71,6 +74,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [ActionName(ActionName.AdminSupportRequestEnableAdmin)]
         public async Task<ActionResult> EnableAdmin(int key)
         {
             try
@@ -87,6 +91,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [ActionName(ActionName.AdminSupportRequestAddAdmin)]
         public async Task<ActionResult> AddAdmin(string galleryUsername)
         {
             try
@@ -103,6 +108,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [ActionName(ActionName.AdminSupportRequestUpdateAdmin)]
         public async Task<ActionResult> UpdateAdmin(int key, string galleryUsername)
         {
             try
@@ -119,6 +125,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [ActionName(ActionName.AdminSupportRequestSave)]
         public async Task<ActionResult> Save(int issueKey, int? assignedToId, int issueStatusId, string comment)
         {
             try
@@ -133,6 +140,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             }
         }
 
+        [ActionName(ActionName.AdminSupportRequestFilter)]
         public async Task<ActionResult> Filter(int pageNumber = 1, int take = _defaultTakeCount, int? assignedToId = null, int? issueStatusId = null, string reason = null)
         {
             if (pageNumber <= 0)
@@ -169,6 +177,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             return Json(data, JsonRequestBehavior.AllowGet);
         }
 
+        [ActionName(ActionName.AdminSupportRequestIndex)]
         public async Task<ActionResult> Index(int pageNumber = 1, int take = _defaultTakeCount, int? assignedToId = null, int? issueStatusId = null, string reason = null)
         {
             if (pageNumber <= 0)
@@ -210,6 +219,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
         }
 
         [HttpGet]
+        [ActionName(ActionName.AdminSupportRequestHistory)]
         public ActionResult History(int id)
         {
             var historyEntries = _supportRequestService.GetHistoryEntriesByIssueKey(id).OrderByDescending(h => h.EntryDate);

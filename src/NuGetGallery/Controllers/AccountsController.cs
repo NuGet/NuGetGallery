@@ -184,6 +184,7 @@ namespace NuGetGallery
         [UIAuthorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [ActionName(ActionName.ChangeEmailSubscription)]
         public virtual async Task<ActionResult> ChangeEmailSubscription(TAccountViewModel model)
         {
             var account = GetAccount(model.AccountName);
@@ -208,6 +209,7 @@ namespace NuGetGallery
         [HttpPost]
         [UIAuthorize]
         [ValidateAntiForgeryToken]
+        [ActionName(ActionName.ChangeEmail)]
         public virtual async Task<ActionResult> ChangeEmail(TAccountViewModel model)
         {
             var account = GetAccount(model.AccountName);
@@ -269,6 +271,7 @@ namespace NuGetGallery
         [HttpPost]
         [UIAuthorize]
         [ValidateAntiForgeryToken]
+        [ActionName(ActionName.CancelChangeEmail)]
         public virtual async Task<ActionResult> CancelChangeEmail(TAccountViewModel model)
         {
             var account = GetAccount(model.AccountName);

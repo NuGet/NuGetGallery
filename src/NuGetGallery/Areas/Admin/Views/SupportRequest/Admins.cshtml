@@ -1,4 +1,5 @@
-﻿@using NuGetGallery.Helpers
+﻿@using NuGetGallery
+@using NuGetGallery.Helpers
 @model SupportRequestAdminsViewModel
 
 @{
@@ -44,7 +45,7 @@
     </div>
 
     <div id="sr-nav-menu">
-        <a id="manageSupportRequestsButton" href="@Url.Action("Index")" title="Manage Support Requests">Manage Support Requests</a>
+        <a id="manageSupportRequestsButton" href="@Url.Action(ActionName.AdminSupportRequestIndex)" title="Manage Support Requests">Manage Support Requests</a>
     </div>
 
     <div id="sr-admins-container">
@@ -96,7 +97,7 @@
                 this.newGalleryUsername = ko.observable();
 
                 this.createAdmin = function (success, error) {
-                    var url = '@Url.Action("AddAdmin")';
+                    var url = '@Url.Action(ActionName.AdminSupportRequestAddAdmin)';
                     var model = {
                         galleryUsername: $self.newGalleryUsername()
                     };
@@ -119,7 +120,7 @@
                 this.editGalleryUsername = ko.observable();
 
                 this.updateAdmin = function (success, error) {
-                    var url = '@Url.Action("UpdateAdmin")';
+                    var url = '@Url.Action(ActionName.AdminSupportRequestUpdateAdmin)';
                     var model = {
                         key: $self.admin.Key,
                         galleryUsername: $self.editGalleryUsername
@@ -178,10 +179,10 @@
 
                     if (data.AccessDisabled !== false) {
                         confirmationText = 'Are you sure you want to enable access for ' + data.GalleryUsername + '?';
-                        url = '@Url.Action("EnableAdmin")';
+                        url = '@Url.Action(ActionName.AdminSupportRequestEnableAdmin)';
                     } else {
                         confirmationText = 'Are you sure you want to disable access for ' + data.GalleryUsername + '?';
-                        url = '@Url.Action("DisableAdmin")';
+                        url = '@Url.Action(ActionName.AdminSupportRequestDisableAdmin)';
                     }
 
                     if (confirm(confirmationText)) {
@@ -202,7 +203,7 @@
                 }
 
                 this.refresh = function () {
-                    var url = '@Url.Action("GetAdmins")';
+                    var url = '@Url.Action(ActionName.AdminSupportRequestGetAdmins)';
 
                     $.ajax({
                         url: url,

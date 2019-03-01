@@ -86,6 +86,7 @@ namespace NuGetGallery
         [HttpPost]
         [UIAuthorize]
         [ValidateAntiForgeryToken]
+        [ActionName(ActionName.AddOrganizationPost)]
         public async Task<ActionResult> Add(AddOrganizationViewModel model)
         {
             var organizationName = model.OrganizationName;
@@ -339,6 +340,7 @@ namespace NuGetGallery
         [HttpPost]
         [ValidateAntiForgeryToken]
         [UIAuthorize]
+        [ActionName(ActionName.RequestOrganizationAccountDeletionPost)]
         public override async Task<ActionResult> RequestAccountDeletion(string accountName = null)
         {
             var account = GetAccount(accountName);
@@ -373,7 +375,7 @@ namespace NuGetGallery
             {
                 TempData["Message"] = $"Your organization, '{accountName}', was successfully deleted!";
 
-                return RedirectToAction("Organizations", "Users");
+                return RedirectToAction(nameof(UsersController.Organizations), "Users");
             }
             else
             {

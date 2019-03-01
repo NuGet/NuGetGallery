@@ -1,4 +1,5 @@
-﻿@model NuGetGallery.DeleteAccountRequest
+﻿@using NuGetGallery
+@model NuGetGallery.DeleteAccountRequest
 
 @{
     ViewBag.Title = "Delete account";
@@ -35,7 +36,7 @@
                 this.search = function () {
                     $self.doneSearching = ko.observable(false);
                     $.ajax({
-                        url: '@Url.Action("Search", "DeleteAccount", new {area = "Admin"})?query=' + encodeURIComponent($self.searchQuery()),
+                        url: '@Url.Action(ActionName.AdminDeleteAccountSearch, "DeleteAccount", new {area = "Admin"})?query=' + encodeURIComponent($self.searchQuery()),
                             cache: false,
                             dataType: 'json',
                             success: function(data) {

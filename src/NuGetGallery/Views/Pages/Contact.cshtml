@@ -69,7 +69,7 @@
                     A member of our Support team will be in touch with you soon.
                 </p>
 
-                using (Html.BeginForm("Contact", "Pages"))
+                using (Html.BeginForm(ActionName.ContactPagePost, "Pages"))
                 {
                     <fieldset class="form">
                         @Html.AntiForgeryToken()

@@ -1059,7 +1059,7 @@ namespace NuGetGallery
                 // If user logged on in as owner a different tab, then clicked the link, we can redirect them to ReportMyPackage
                 if (ActionsRequiringPermissions.ReportPackageAsOwner.CheckPermissionsOnBehalfOfAnyAccount(user, package) == PermissionsCheckResult.Allowed)
                 {
-                    return RedirectToAction("ReportMyPackage", new { id, version });
+                    return RedirectToAction(nameof(ReportMyPackage), new { id, version });
                 }
 
                 if (user.Confirmed)
@@ -1663,6 +1663,7 @@ namespace NuGetGallery
         [HttpPost]
         [RequiresAccountConfirmation("delete a package")]
         [ValidateAntiForgeryToken]
+        [ActionName(ActionName.DeletePackageUIPost)]
         public virtual async Task<ActionResult> Delete(DeletePackagesRequest deletePackagesRequest)
         {
             var packagesToDelete = new List<Package>();
@@ -1718,6 +1719,7 @@ namespace NuGetGallery
         [HttpPost]
         [RequiresAccountConfirmation("delete a symbols package")]
         [ValidateAntiForgeryToken]
+        [ActionName(ActionName.DeleteSymbolsPackage)]
         public virtual async Task<ActionResult> DeleteSymbolsPackage(string id, string version)
         {
             var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
@@ -1791,6 +1793,7 @@ namespace NuGetGallery
         [HttpPost]
         [RequiresAccountConfirmation("unlist a package")]
         [ValidateAntiForgeryToken]
+        [ActionName(ActionName.UpdatePackageListed)]
         public virtual async Task<ActionResult> UpdateListed(string id, string version, bool? listed)
         {
             // Edit does exactly the same thing that Delete used to do... REUSE ALL THE CODE!

@@ -2,7 +2,7 @@
 @model DeleteAccountAsAdminViewModel
 
 <div class="form-group danger-zone">
-    @using (Html.BeginForm("Delete", "Users", FormMethod.Post, new { id = "delete-form" }))
+    @using (Html.BeginForm(ActionName.DeleteUser, "Users", FormMethod.Post, new { id = "delete-form" }))
     {
         @Html.HttpMethodOverride(HttpVerbs.Delete)
         @Html.AntiForgeryToken()

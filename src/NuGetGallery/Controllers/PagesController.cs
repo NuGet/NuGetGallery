@@ -60,6 +60,7 @@ namespace NuGetGallery
         }
 
         [HttpGet]
+        [ActionName(ActionName.ContactPagePost)]
         public virtual ActionResult Contact()
         {
             return View(new ContactSupportViewModel());

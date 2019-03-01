@@ -1,4 +1,5 @@
-﻿@model SecurityPolicyViewModel
+﻿@using NuGetGallery
+@model SecurityPolicyViewModel
 
 @{
     ViewBag.Title = "Security Policies";
@@ -58,7 +59,7 @@
                     </p>
 
                     <input type="submit" value="I understand, update policies." title="I understand, update policies." data-bind="click: update" />
-                    <a class="cancel" href="@Url.Action("Index", "Home")" title="Cancel changes">Cancel</a>
+                    <a class="cancel" href="@Url.Action(ActionName.AdminHomeIndex, "Home")" title="Cancel changes">Cancel</a>
                 </fieldset>
             </div>
         }
@@ -84,7 +85,7 @@
                     });
                     
                     $.ajax({
-                        url: '@Url.Action("Update", "SecurityPolicy", new { area = "Admin" })',
+                        url: '@Url.Action(ActionName.AdminSecurityPolicyUpdate, "SecurityPolicy", new { area = "Admin" })',
                         cache: false,
                         dataType: 'json',
                         type: 'POST',
@@ -102,7 +103,7 @@
                 this.search = function () {
                     $self.message("");
                     $.ajax({
-                        url: '@Url.Action("Search", "SecurityPolicy", new {area = "Admin"})?query=' + encodeURIComponent($self.searchQuery()),
+                        url: '@Url.Action(ActionName.AdminSecurityPolicySearch, "SecurityPolicy", new {area = "Admin"})?query=' + encodeURIComponent($self.searchQuery()),
                         cache: false,
                         dataType: 'json',
                         success: function (data) {

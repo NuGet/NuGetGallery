@@ -32,7 +32,7 @@
 
     <div class="form-group danger-zone">
         <text>
-            @using (Html.BeginForm("Index", "Features", FormMethod.Post))
+            @using (Html.BeginForm(ActionName.AdminFeatureFlags, "Features", FormMethod.Post))
             {
                 @Html.AntiForgeryToken()
                 @Html.Hidden("ContentId", Model.ContentId)

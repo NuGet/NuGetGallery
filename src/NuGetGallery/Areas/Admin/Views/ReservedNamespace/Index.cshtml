@@ -1,4 +1,5 @@
-﻿@model ReservedNamespaceViewModel
+﻿@using NuGetGallery
+@model ReservedNamespaceViewModel
 @{
     ViewBag.Title = "Index";
 }
@@ -97,7 +98,7 @@
                     $self.message("");
                     $self.newOwner("");
                     $.ajax({
-                        url: '@Url.Action("SearchPrefix", "ReservedNamespace", new {area = "Admin"})?query=' + encodeURIComponent($self.prefixSearchQuery()),
+                        url: '@Url.Action(ActionName.AdminReservedNamespaceSearchPrefix, "ReservedNamespace", new {area = "Admin"})?query=' + encodeURIComponent($self.prefixSearchQuery()),
                         cache: false,
                         dataType: 'json',
                         success: function (data) {
@@ -129,8 +130,8 @@
 
                     var prefixToModify = data;
                     var url = addPrefix
-                        ? '@Url.Action("AddNamespace", "ReservedNamespace", new { area = "Admin" })'
-                        : '@Url.Action("RemoveNamespace", "ReservedNamespace", new { area = "Admin" })';
+                        ? '@Url.Action(ActionName.AdminReservedNamespaceAddNamespace, "ReservedNamespace", new { area = "Admin" })'
+                        : '@Url.Action(ActionName.AdminReservedNamespaceRemoveNamespace, "ReservedNamespace", new { area = "Admin" })';
                     $self.message("");
                     $.ajax({
                         url: url,
@@ -162,7 +163,7 @@
 
                     $self.message("");
                     $.ajax({
-                        url: '@Url.Action("AddOwner", "ReservedNamespace", new { area = "Admin" })',
+                        url: '@Url.Action(ActionName.AdminReservedNamespaceAddOwner, "ReservedNamespace", new { area = "Admin" })',
                         cache: false,
                         dataType: 'json',
                         type: 'POST',
@@ -195,7 +196,7 @@
 
                     $self.message("");
                     $.ajax({
-                        url: '@Url.Action("RemoveOwner", "ReservedNamespace", new { area = "Admin" })',
+                        url: '@Url.Action(ActionName.AdminReservedNamespaceRemoveOwner, "ReservedNamespace", new { area = "Admin" })',
                         cache: false,
                         dataType: 'json',
                         type: 'POST',

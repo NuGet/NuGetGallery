@@ -20,6 +20,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
         }
 
         [HttpGet]
+        [ActionName(ActionName.AdminHomeIndex)]
         public virtual ActionResult Index()
         {
             var viewModel = new HomeViewModel(
@@ -35,11 +36,12 @@ namespace NuGetGallery.Areas.Admin.Controllers
         }
 
         [HttpGet]
+        [ActionName(ActionName.AdminClearContentCache)]
         public virtual ActionResult ClearContentCache()
         {
             _content.ClearCache();
             TempData["Message"] = "Cleared Content Cache";
-            return RedirectToAction("Index");
+            return RedirectToAction(ActionName.AdminHomeIndex);
         }
     }
 }

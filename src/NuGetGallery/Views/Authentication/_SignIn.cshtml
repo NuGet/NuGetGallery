@@ -2,7 +2,7 @@
 @{
     var returnUrl = ViewData.ContainsKey(GalleryConstants.ReturnUrlViewDataKey) ? (string)ViewData[GalleryConstants.ReturnUrlViewDataKey] : Request.RawUrl;
 }
-@using (Html.BeginForm("SignIn", "Authentication"))
+@using (Html.BeginForm(ActionName.SignIn, "Authentication"))
 {
     @Html.AntiForgeryToken()
     @Html.Hidden("ReturnUrl", returnUrl)

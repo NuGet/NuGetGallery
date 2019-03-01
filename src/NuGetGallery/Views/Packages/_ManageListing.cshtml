@@ -65,7 +65,7 @@
                         </text>)
                 }
 
-                @using (Html.BeginForm("UpdateListed", "Packages", new { aria_label = "Change listing of this package version" }))
+                @using (Html.BeginForm(ActionName.UpdatePackageListed, "Packages", new { aria_label = "Change listing of this package version" }))
                 {
                     @Html.AntiForgeryToken()
                     @Html.Hidden("version", @Model.Version, new { id = "input-list-package" })
@@ -99,7 +99,7 @@
                         If the package should be removed from search results but still be available for restore, consider unlisting the package instead.
                     </text>)
 
-                @using (Html.BeginForm("Delete", "Packages", FormMethod.Post, new { id = "delete-form", aria_label = "Delete this package version" }))
+                @using (Html.BeginForm(ActionName.DeletePackageUIPost, "Packages", FormMethod.Post, new { id = "delete-form", aria_label = "Delete this package version" }))
                 {
                     foreach (var p in Model.DeletePackagesRequest.Packages)
                     {

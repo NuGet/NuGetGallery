@@ -21,6 +21,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
         }
 
         [HttpGet]
+        [ActionName(ActionName.AdminRevalidationIndex)]
         public async virtual Task<ActionResult> Index()
         {
             var state = await _state.GetStateAsync();
@@ -31,6 +32,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [ActionName(ActionName.SetKillswitch)]
         public async Task<ActionResult> SetKillswitch(bool killswitch)
         {
             try
@@ -43,7 +45,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 QuietLog.LogHandledException(e);
             }
 
-            return Redirect(Url.Action(actionName: "Index", controllerName: "Revalidation"));
+            return Redirect(Url.Action(actionName: nameof(Index), controllerName: "Revalidation"));
         }
     }
 }

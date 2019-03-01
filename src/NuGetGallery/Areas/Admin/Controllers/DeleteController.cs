@@ -31,6 +31,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
         }
 
         [HttpGet]
+        [ActionName(ActionName.AdminDeletePackageIndex)]
         public virtual ActionResult Index()
         {
             var model = new DeletePackagesRequest
@@ -48,6 +49,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
         };
 
         [HttpGet]
+        [ActionName(ActionName.AdminDeletePackageSearch)]
         public virtual ActionResult Search(string query)
         {
             // Search suports several options:
@@ -132,6 +134,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
         }
 
         [HttpGet]
+        [ActionName(ActionName.AdminDeletePackageReflow)]
         public virtual ActionResult Reflow()
         {
             return View(nameof(Reflow));
@@ -139,6 +142,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [ActionName(ActionName.AdminDeletePackageReflowBulk)]
         public virtual ActionResult ReflowBulk(HardDeleteReflowBulkRequest request)
         {
             if (string.IsNullOrWhiteSpace(request.BulkList))
@@ -181,6 +185,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [ActionName(ActionName.AdminDeletePackageReflowBulkConfirm)]
         public virtual async Task<ActionResult> ReflowBulkConfirm(HardDeleteReflowBulkRequestConfirmation confirmation)
         {
             var failures = new List<string>();

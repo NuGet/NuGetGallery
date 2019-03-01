@@ -1,4 +1,5 @@
-﻿@model LockPackageViewModel
+﻿@using NuGetGallery
+@model LockPackageViewModel
 @{
     ViewBag.Title = "Package Locking";
 }
@@ -6,7 +7,7 @@
 <section role="main" class="container main-container">
     <h2>Package Locking</h2>
 
-    <form method="get" action="@Url.Action(actionName: "Search")">
+    <form method="get" action="@Url.Action(actionName: ActionName.AdminLockPackageSearch)">
         <p>
             <textarea name="query" placeholder="Search for package ids..." autocomplete="off" autofocus style="width: 100%" rows="5">@Model.Query</textarea>
         </p>
@@ -26,7 +27,7 @@
 
     @if (Model.PackageLockStates != null && Model.PackageLockStates.Any())
     {
-        using (Html.BeginForm("Update", "LockPackage", FormMethod.Post))
+        using (Html.BeginForm(ActionName.AdminLockPackageUpdate, "LockPackage", FormMethod.Post))
         {
             @Html.AntiForgeryToken()
             @Html.HiddenFor(model => model.Query)

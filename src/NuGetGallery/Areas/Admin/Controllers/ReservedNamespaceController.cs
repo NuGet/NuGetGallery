@@ -23,12 +23,14 @@ namespace NuGetGallery.Areas.Admin.Controllers
         }
 
         [HttpGet]
+        [ActionName(ActionName.AdminReservedNamespaceIndex)]
         public ActionResult Index()
         {
             return View();
         }
 
         [HttpGet]
+        [ActionName(ActionName.AdminReservedNamespaceSearchPrefix)]
         public JsonResult SearchPrefix(string query)
         {
             var prefixQueries = GetPrefixesFromQuery(query);
@@ -51,6 +53,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [ActionName(ActionName.AdminReservedNamespaceAddNamespace)]
         public async Task<JsonResult> AddNamespace(ReservedNamespace newNamespace)
         {
             try
@@ -66,6 +69,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [ActionName(ActionName.AdminReservedNamespaceRemoveNamespace)]
         public async Task<JsonResult> RemoveNamespace(ReservedNamespace existingNamespace)
         {
             try
@@ -82,6 +86,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [ActionName(ActionName.AdminReservedNamespaceAddOwner)]
         public async Task<JsonResult> AddOwner(ReservedNamespace prefix, string owner)
         {
             try
@@ -97,6 +102,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [ActionName(ActionName.AdminReservedNamespaceRemoveOwner)]
         public async Task<JsonResult> RemoveOwner(ReservedNamespace prefix, string owner)
         {
             try

@@ -1,6 +1,7 @@
-﻿@model HardDeleteReflowBulkRequestConfirmation
+﻿@using NuGetGallery
+@model HardDeleteReflowBulkRequestConfirmation
 
-@using (Html.BeginForm("ReflowBulkConfirm", "Delete"))
+@using (Html.BeginForm(ActionName.AdminDeletePackageReflowBulkConfirm, "Delete"))
 {
     @Html.AntiForgeryToken()
 

@@ -72,7 +72,7 @@
                             <strong>Deleting this symbols package will remove all symbols in this package from the symbol server and make them unavailable.</strong><br />
                         </text>)
 
-                    @using (Html.BeginForm("DeleteSymbolsPackage", "Packages", FormMethod.Post, new { id = "delete-symbols-form" }))
+                    @using (Html.BeginForm(ActionName.DeleteSymbolsPackage, "Packages", FormMethod.Post, new { id = "delete-symbols-form" }))
                     {
                         @Html.AntiForgeryToken()
 

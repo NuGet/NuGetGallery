@@ -22,6 +22,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
         }
 
         [HttpGet]
+        [ActionName(ActionName.AdminLockPackageIndex)]
         public virtual ActionResult Index()
         {
             var model = new LockPackageViewModel();
@@ -30,6 +31,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
         }
 
         [HttpGet]
+        [ActionName(ActionName.AdminLockPackageSearch)]
         public virtual ActionResult Search(string query)
         {
             var lines = Helpers.ParseQueryToLines(query);
@@ -44,6 +46,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [ActionName(ActionName.AdminLockPackageUpdate)]
         public async Task<ActionResult> Update(LockPackageViewModel lockPackageViewModel)
         {
             int counter = 0;

@@ -1,4 +1,5 @@
-﻿@model NuGetGallery.Areas.Admin.Models.LuceneInfoModel
+﻿@using NuGetGallery
+@model NuGetGallery.Areas.Admin.Models.LuceneInfoModel
 @{
     ViewBag.Title = "Lucene Maintenance";
     TimeZoneInfo timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
@@ -35,7 +36,7 @@
 
     @if (Model.IsLocal)
     {
-        using (Html.BeginForm("Rebuild", "Lucene"))
+        using (Html.BeginForm(ActionName.AdminLuceneRebuild, "Lucene"))
         {
             @Html.AntiForgeryToken()
             <fieldset class="form">

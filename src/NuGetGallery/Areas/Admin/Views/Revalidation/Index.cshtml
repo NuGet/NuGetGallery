@@ -1,4 +1,5 @@
-﻿@model RevalidationPageViewModel
+﻿@using NuGetGallery
+@model RevalidationPageViewModel
 @{
     ViewBag.Title = "Revalidation Job";
 }
@@ -21,7 +22,7 @@
             <h2>Killswitch</h2>
             <div class="form-group danger-zone">
                 <text>
-                    @using (Html.BeginForm("SetKillswitch", "Revalidation", FormMethod.Post))
+                    @using (Html.BeginForm(ActionName.SetKillswitch, "Revalidation", FormMethod.Post))
                     {
                         @Html.AntiForgeryToken()
 

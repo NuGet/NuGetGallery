@@ -25,10 +25,10 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
         //
         // GET: /Admin/Lucene/
-
+        [ActionName(ActionName.AdminLuceneIndex)]
         public virtual async Task<ActionResult> Index()
         {
-            return View("Index", await GetLuceneInfo());
+            return View(nameof(Index), await GetLuceneInfo());
         }
 
         private async Task<LuceneInfoModel> GetLuceneInfo()
@@ -56,6 +56,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [ActionName(ActionName.AdminLuceneRebuild)]
         public virtual Task<ActionResult> Rebuild()
         {
             IndexingService.UpdateIndex(forceRefresh: true);

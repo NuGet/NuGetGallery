@@ -22,12 +22,14 @@ namespace NuGetGallery.Areas.Admin.Controllers
         }
 
         [HttpGet]
+        [ActionName(ActionName.AdminValidationIndex)]
         public virtual ActionResult Index()
         {
             return View(nameof(Index), new ValidationPageViewModel());
         }
 
         [HttpGet]
+        [ActionName(ActionName.AdminValidationSearch)]
         public virtual ActionResult Search(string q)
         {
             var packageValidationSets = _validationAdminService.Search(q ?? string.Empty);

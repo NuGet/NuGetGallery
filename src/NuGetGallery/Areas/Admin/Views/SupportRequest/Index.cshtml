@@ -1,4 +1,5 @@
-﻿@using NuGetGallery.Helpers
+﻿@using NuGetGallery
+@using NuGetGallery.Helpers
 @model SupportRequestsViewModel
 
 @{
@@ -14,7 +15,7 @@
 
 <section role="main" class="container main-container">
     <div id="sr-nav-menu">
-        <a id="manageAdminsButton" href="@Url.Action("Admins")" title="Manage Support Request Administrators">Manage SR-Admins</a>
+        <a id="manageAdminsButton" href="@Url.Action(ActionName.AdminSupportRequestManageAdmins)" title="Manage Support Request Administrators">Manage SR-Admins</a>
     </div>
 
     @if (Model == null || !Model.Issues.Any())
@@ -181,7 +182,7 @@
 
         <script type="text/javascript">
             $(function () {
-                var viewModel = new SupportRequestsViewModel('@Url.Action("Save")', '@Url.Action("Filter")', '@Url.Action("History")');
+                var viewModel = new SupportRequestsViewModel('@Url.Action(ActionName.AdminSupportRequestSave)', '@Url.Action(ActionName.AdminSupportRequestFilter)', '@Url.Action(ActionName.AdminSupportRequestHistory)');
 
                 viewModel.take(@Model.ItemsPerPage);
                 viewModel.pageNumber(@Model.CurrentPageNumber);

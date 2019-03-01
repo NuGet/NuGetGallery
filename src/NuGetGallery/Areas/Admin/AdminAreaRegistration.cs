@@ -4,6 +4,7 @@
 using System.Web.Mvc;
 using Autofac.Features.Indexed;
 using NuGet.Services.Sql;
+using NuGetGallery.Areas.Admin.Controllers;
 using NuGetGallery.Areas.Admin.DynamicData;
 
 namespace NuGetGallery.Areas.Admin
@@ -24,7 +25,7 @@ namespace NuGetGallery.Areas.Admin
             context.MapRoute(
                 "Admin_default",
                 "Admin/{controller}/{action}/{id}",
-                new { controller="Home", action = "Index", id = UrlParameter.Optional }
+                new { controller="Home", action = ActionName.AdminHomeIndex, id = UrlParameter.Optional }
             );
         }
     }

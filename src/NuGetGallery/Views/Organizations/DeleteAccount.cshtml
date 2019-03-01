@@ -47,7 +47,7 @@
             {
                 <div class="form-group danger-zone">
                     <text>
-                        @using (Html.BeginForm("RequestAccountDeletion", "Organizations", FormMethod.Post, new { id = "delete-organization" }))
+                        @using (Html.BeginForm(ActionName.RequestOrganizationAccountDeletionPost, "Organizations", FormMethod.Post, new { id = "delete-organization" }))
                         {
                             @Html.AntiForgeryToken()
                             <p>

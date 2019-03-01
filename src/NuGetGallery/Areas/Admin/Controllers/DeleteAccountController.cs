@@ -18,12 +18,14 @@ namespace NuGetGallery.Areas.Admin.Controllers
         }
 
         [HttpGet]
+        [ActionName(ActionName.AdminDeleteAccountIndex)]
         public virtual ActionResult Index()
         {
             return View();
         }
 
         [HttpGet]
+        [ActionName(ActionName.AdminDeleteAccountSearch)]
         public virtual ActionResult Search(string query)
         {
             var results = new List<DeleteAccountSearchResult>();

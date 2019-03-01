@@ -28,6 +28,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
         }
 
         [HttpGet]
+        [ActionName(ActionName.AdminFeatureFlags)]
         public async virtual Task<ActionResult> Index()
         {
             var reference = await _storage.GetReferenceAsync();
@@ -50,6 +51,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [ActionName(ActionName.AdminFeatureFlags)]
         public async Task<ActionResult> Index(FeatureFlagsViewModel model)
         {
             if (ModelState.IsValid)
@@ -65,7 +67,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                         var refreshSeconds = _config.FeatureFlagsRefreshInterval.TotalSeconds;
 
                         TempData["Message"] = $"Your feature flags have been saved! It may take up to {refreshSeconds} seconds for this change to propagate everywhere.";
-                        return Redirect(Url.Action(actionName: "Index", controllerName: "Features"));
+                        return Redirect(Url.Action(actionName: ActionName.AdminFeatureFlags, controllerName: "Features"));
 
                     case FeatureFlagSaveResultType.Conflict:
                         TempData["ErrorMessage"] = "Your changes were not applied as the feature flags were modified by someone else. " +

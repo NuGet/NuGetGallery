@@ -775,7 +775,7 @@ namespace NuGetGallery
         {
             return GetActionLink(
                 url,
-                nameof(ValidationController.Search),
+                ActionName.AdminValidationSearch,
                 "Validation",
                 relativeUrl,
                 routeValues: new RouteValueDictionary
@@ -815,7 +815,7 @@ namespace NuGetGallery
         {
             return GetActionLink(
                 url,
-                nameof(UsersController.Delete),
+                ActionName.DeleteUser,
                 "Users",
                 relativeUrl,
                 routeValues: new RouteValueDictionary
@@ -890,7 +890,7 @@ namespace NuGetGallery
         public static string AddOrganization(this UrlHelper url, bool relativeUrl = true)
         {
             return GetActionLink(url,
-                nameof(OrganizationsController.Add),
+                ActionName.AddOrganizationPost,
                 "Organizations",
                 relativeUrl);
         }
@@ -1209,7 +1209,7 @@ namespace NuGetGallery
 
         public static string Contact(this UrlHelper url, bool relativeUrl = true)
         {
-            return GetActionLink(url, nameof(PagesController.Contact), "Pages", relativeUrl);
+            return GetActionLink(url, ActionName.ContactPagePost, "Pages", relativeUrl);
         }
 
         public static string ContactOwners(this UrlHelper url, IPackageVersionModel package, bool relativeUrl = true)
@@ -1256,7 +1256,7 @@ namespace NuGetGallery
         {
             return GetActionLink(
                 url,
-                nameof(HomeController.Index),
+                ActionName.AdminHomeIndex,
                 "Home",
                 relativeUrl,
                 area: AdminAreaRegistration.Name);

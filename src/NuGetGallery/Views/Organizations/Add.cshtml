@@ -33,7 +33,7 @@
                 </aside>
 
                 <div class="col-sm-6 col-sm-pull-3">
-                    @using (Html.BeginForm("Add", "Organizations", FormMethod.Post))
+                    @using (Html.BeginForm(ActionName.AddOrganizationPost, "Organizations", FormMethod.Post))
                     {
                         @Html.AntiForgeryToken()
 

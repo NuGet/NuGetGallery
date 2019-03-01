@@ -29,7 +29,7 @@
             }
             else
             {
-                using (Html.BeginForm("ChangeEmail", controllerName))
+                using (Html.BeginForm(ActionName.ChangeEmail, controllerName))
                 {
                     @Html.AntiForgeryToken()
 

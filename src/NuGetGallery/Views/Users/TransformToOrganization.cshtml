@@ -37,7 +37,7 @@
                     </p></text>)
             </div>
 
-            @using (Html.BeginForm("Transform", "Users", FormMethod.Post, new { id = "transform"}))
+            @using (Html.BeginForm(ActionName.TransformToOrganization, "Users", FormMethod.Post, new { id = "transform"}))
             {
                 @Html.AntiForgeryToken()
 

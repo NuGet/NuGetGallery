@@ -121,6 +121,7 @@ namespace NuGetGallery
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [ActionName(ActionName.SignIn)]
         public virtual async Task<ActionResult> SignIn(LogOnViewModel model, string returnUrl, bool linkingAccount)
         {
             // I think it should be obvious why we don't want the current URL to be the return URL here ;)
@@ -241,6 +242,7 @@ namespace NuGetGallery
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [ActionName(ActionName.RegisterUser)]
         public virtual async Task<ActionResult> Register(LogOnViewModel model, string returnUrl, bool linkingAccount)
         {
             // I think it should be obvious why we don't want the current URL to be the return URL here ;)
@@ -681,7 +683,7 @@ namespace NuGetGallery
             }
 
             // User was not on their way anywhere in particular. Show them the thanks/welcome page.
-            return RedirectToAction(actionName: "Thanks", controllerName: "Users");
+            return RedirectToAction(actionName: nameof(UsersController.Thanks), controllerName: "Users");
         }
 
         private async Task<LoginUserDetails> AssociateCredential(AuthenticatedUser user)
