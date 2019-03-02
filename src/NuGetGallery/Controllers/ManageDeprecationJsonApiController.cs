@@ -124,7 +124,7 @@ namespace NuGetGallery
             cveIds = cveIds ?? Enumerable.Empty<string>();
             if (!TryVerifyVulnerabilityDetailIds(
                 cveIds, 
-                ValidateCveId,
+                IsValidCveId,
                 Strings.DeprecatePackage_InvalidCve, 
                 out vulnerabilityDetailIdsErrorResult))
             {
@@ -134,7 +134,7 @@ namespace NuGetGallery
             cweIds = cweIds ?? Enumerable.Empty<string>();
             if (!TryVerifyVulnerabilityDetailIds(
                 cweIds, 
-                ValidateCweId, 
+                IsValidCweId, 
                 Strings.DeprecatePackage_InvalidCwe, 
                 out vulnerabilityDetailIdsErrorResult))
             {
@@ -276,7 +276,7 @@ namespace NuGetGallery
             return true;
         }
 
-        private bool ValidateCveId(string id)
+        private bool IsValidCveId(string id)
         {
             var match = CveIdRegex.Match(id);
             if (match.Value == string.Empty)
@@ -298,7 +298,7 @@ namespace NuGetGallery
             return true;
         }
 
-        private bool ValidateCweId(string id)
+        private bool IsValidCweId(string id)
         {
             return CweIdRegex.IsMatch(id);
         }
