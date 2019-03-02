@@ -37,6 +37,7 @@ namespace NuGet.Services.Entities
         /// Gets or sets the name of the CWE.
         /// </summary>
         [MaxLength(200)]
+        [Required]
         public string Name { get; set; }
 
         /// <summary>
@@ -46,6 +47,7 @@ namespace NuGet.Services.Entities
         /// The description field is intentionally truncated to maximum 300 characters.
         /// </remarks>
         [MaxLength(300)]
+        [Required]
         public string Description { get; set; }
 
         /// <summary>

@@ -7,13 +7,13 @@ namespace NuGetGallery.Migrations
     using System.Resources;
     
     [GeneratedCode("EntityFramework.Migrations", "6.1.3-40302")]
-    public sealed partial class VulnerabilityEntitiesCanBeEmpty : IMigrationMetadata
+    public sealed partial class CvesCanBeEmpty : IMigrationMetadata
     {
-        private readonly ResourceManager Resources = new ResourceManager(typeof(VulnerabilityEntitiesCanBeEmpty));
+        private readonly ResourceManager Resources = new ResourceManager(typeof(CvesCanBeEmpty));
         
         string IMigrationMetadata.Id
         {
-            get { return "201902272132297_VulnerabilityEntitiesCanBeEmpty"; }
+            get { return "201903020136235_CvesCanBeEmpty"; }
         }
         
         string IMigrationMetadata.Source

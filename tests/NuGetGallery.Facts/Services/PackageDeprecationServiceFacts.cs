@@ -368,21 +368,60 @@ namespace NuGetGallery.Services
 
         public class TheGetCwesByIdMethod : TestContainer
         {
-            public static IEnumerable<object[]> CommitChanges_Data =>
-                MemberDataHelper.BooleanDataSet();
-
-            [Theory]
-            [MemberData(nameof(CommitChanges_Data))]
-            public Task ThrowsIfNullIdList(bool commitChanges)
+            [Fact]
+            public void ThrowsIfNullIdList()
             {
                 var service = Get<PackageDeprecationService>();
 
-                return Assert.ThrowsAsync<ArgumentNullException>(() => service.GetOrCreateCwesByIdAsync(null, commitChanges));
+                Assert.Throws<ArgumentNullException>(() => service.GetCwesByIdAsync(null));
             }
 
-            [Theory]
-            [MemberData(nameof(CommitChanges_Data))]
-            public async Task ReturnsExistingAndCreatedCwes(bool commitChanges)
+            [Fact]
+            public void ReturnsExistingAndCreatedCwes(bool commitChanges)
+            {
+                // Arrange
+                var matchingCwe1 = new Cwe
+                {
+                    CweId = "cve-1"
+                };
+
+                var notMatchingCwe1 = new Cwe
+                {
+                    CweId = "cve-2"
+                };
+
+                var matchingCwe2 = new Cwe
+                {
+                    CweId = "cve-3"
+                };
+
+                var notMatchingCwe2 = new Cwe
+                {
+                    CweId = "cve-4"
+                };
+
+                var cwes = new[] { matchingCwe1, notMatchingCwe1, matchingCwe2, notMatchingCwe2 };
+                var repository = GetMock<IEntityRepository<Cwe>>();
+                repository
+                    .Setup(x => x.GetAll())
+                    .Returns(cwes.AsQueryable())
+                    .Verifiable();
+
+                var service = Get<PackageDeprecationService>();
+
+                var queriedCweIds = new[] { matchingCwe1.CweId, matchingCwe2.CweId };
+
+                // Act
+                var result = service.GetCwesByIdAsync(queriedCweIds);
+
+                // Assert
+                Assert.Equal(2, result.Count);
+                Assert.Contains(matchingCwe1, result);
+                Assert.Contains(matchingCwe2, result);
+            }
+
+            [Fact]
+            public void ReturnsExistingAndCreatedCwes()
             {
                 // Arrange
                 var matchingCwe1 = new Cwe
@@ -418,19 +457,7 @@ namespace NuGetGallery.Services
                 var queriedCweIds = new[] { matchingCwe1.CweId, matchingCwe2.CweId, missingCweId };
 
                 // Act
-                var result = await service.GetOrCreateCwesByIdAsync(queriedCweIds, commitChanges);
-
-                // Assert
-                Assert.Equal(3, result.Count);
-                Assert.Contains(matchingCwe1, result);
-                Assert.Contains(matchingCwe2, result);
-
-                var createdCwe = result.Last();
-                Assert.Equal(missingCweId, createdCwe.CweId);
-                Assert.False(createdCwe.Listed);
-                Assert.Equal(CweStatus.Unknown, createdCwe.Status);
-                Assert.Null(createdCwe.Description);
-                Assert.Null(createdCwe.Name);
+                Assert.Throws<ArgumentException>(() => service.GetCwesByIdAsync(queriedCweIds));
             }
         }
     }

@@ -47,12 +47,6 @@ namespace NuGet.Services.Entities
         /// <remarks>
         /// CWEs with this status must be filtered out during initial import.
         /// </remarks>
-        Deprecated = 5,
-
-        /// <summary>
-        /// A value of Unknown refers to an entity that was entered by a user of NuGet.org.
-        /// If the CWE exists, it will be updated with the full data when it is imported.
-        /// </summary>
-        Unknown = 6
+        Deprecated = 5
     }
 }

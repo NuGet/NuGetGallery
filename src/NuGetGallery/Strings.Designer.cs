@@ -785,6 +785,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to At least one CWE provided was not found!.
+        /// </summary>
+        public static string DeprecatePackage_CweMissing {
+            get {
+                return ResourceManager.GetString("DeprecatePackage_CweMissing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to You do not have permission to deprecate this package..
         /// </summary>
         public static string DeprecatePackage_Forbidden {

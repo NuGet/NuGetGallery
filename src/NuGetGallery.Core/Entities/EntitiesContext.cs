@@ -397,11 +397,13 @@ namespace NuGetGallery
 
             modelBuilder.Entity<Cwe>()
                 .Property(e => e.Name)
-                .HasMaxLength(200);
+                .HasMaxLength(200)
+                .IsRequired();
 
             modelBuilder.Entity<Cwe>()
                 .Property(e => e.Description)
-                .HasMaxLength(300);
+                .HasMaxLength(300)
+                .IsRequired();
 
             modelBuilder.Entity<Package>()
                 .HasMany(p => p.Deprecations)

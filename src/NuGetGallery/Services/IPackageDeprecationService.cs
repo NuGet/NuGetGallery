@@ -29,12 +29,13 @@ namespace NuGetGallery
 
         /// <summary>
         /// Fetches all <see cref="Cve"/>s with a <see cref="Cve.CveId"/> contained in <paramref name="ids"/>.
+        /// If an ID does not have an associated <see cref="Cve"/>, it creates a dummy entity.
         /// </summary>
         Task<IReadOnlyCollection<Cve>> GetOrCreateCvesByIdAsync(IEnumerable<string> ids, bool commitChanges);
 
         /// <summary>
         /// Fetches all <see cref="Cwe"/>s with a <see cref="Cwe.CweId"/> contained in <paramref name="ids"/>.
         /// </summary>
-        Task<IReadOnlyCollection<Cwe>> GetOrCreateCwesByIdAsync(IEnumerable<string> ids, bool commitChanges);
+        IReadOnlyCollection<Cwe> GetCwesByIdAsync(IEnumerable<string> ids);
     }
 }

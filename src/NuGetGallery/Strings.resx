@@ -1127,4 +1127,7 @@ The {1} Team</value>
   <data name="DeprecatePackage_InvalidCvss" xml:space="preserve">
     <value>The CVSS rating specified is invalid.</value>
   </data>
+  <data name="DeprecatePackage_CweMissing" xml:space="preserve">
+    <value>At least one CWE provided was not found!</value>
+  </data>
 </root>

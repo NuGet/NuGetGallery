@@ -117,71 +117,59 @@ namespace NuGetGallery
             await _deprecationRepository.CommitChangesAsync();
         }
 
-        public Task<IReadOnlyCollection<Cve>> GetOrCreateCvesByIdAsync(IEnumerable<string> ids, bool commitChanges)
-        {
-            return GetOrCreateVulnerabilityDetailById(
-                ids,
-                commitChanges,
-                _cveRepository,
-                cve => cve.CveId,
-                id => new Cve
-                {
-                    CveId = id,
-                    Listed = false,
-                    Status = CveStatus.Unknown
-                });
-        }
-
-        public Task<IReadOnlyCollection<Cwe>> GetOrCreateCwesByIdAsync(IEnumerable<string> ids, bool commitChanges)
-        {
-            return GetOrCreateVulnerabilityDetailById(
-                ids, 
-                commitChanges, 
-                _cweRepository, 
-                cwe => cwe.CweId, 
-                id => new Cwe
-                {
-                    CweId = id,
-                    Listed = false,
-                    Status = CweStatus.Unknown
-                });
-        }
-
-        private async Task<IReadOnlyCollection<TVulnerabilityDetail>> GetOrCreateVulnerabilityDetailById<TVulnerabilityDetail>(
-            IEnumerable<string> ids, 
-            bool commitChanges, 
-            IEntityRepository<TVulnerabilityDetail> repository,
-            Func<TVulnerabilityDetail, string> getId,
-            Func<string, TVulnerabilityDetail> createDetail)
-            where TVulnerabilityDetail : class, new()
+        public async Task<IReadOnlyCollection<Cve>> GetOrCreateCvesByIdAsync(IEnumerable<string> ids, bool commitChanges)
         {
             if (ids == null)
             {
                 throw new ArgumentNullException(nameof(ids));
             }
 
-            var details = repository.GetAll()
-               .Where(c => ids.Contains(getId(c)))
+            var details = _cveRepository.GetAll()
+               .Where(c => ids.Contains(c.CveId))
                .ToList();
 
-            var addedDetails = new List<TVulnerabilityDetail>();
-            foreach (var missingId in ids.Where(i => !details.Any(c => getId(c) == i)))
+            var addedDetails = new List<Cve>();
+            foreach (var missingId in ids.Where(i => !details.Any(c => c.CveId == i)))
             {
-                var detail = createDetail(missingId);
+                var detail = new Cve
+                {
+                    CveId = missingId,
+                    Listed = false,
+                    Status = CveStatus.Unknown
+                };
                 addedDetails.Add(detail);
                 details.Add(detail);
             }
 
             if (addedDetails.Any())
             {
-                repository.InsertOnCommit(addedDetails);
+                _cveRepository.InsertOnCommit(addedDetails);
                 if (commitChanges)
                 {
-                    await repository.CommitChangesAsync();
+                    await _cveRepository.CommitChangesAsync();
                 }
             }
 
             return details;
+        }
+
+        public IReadOnlyCollection<Cwe> GetCwesByIdAsync(IEnumerable<string> ids)
+        {
+            if (ids == null)
+            {
+                throw new ArgumentNullException(nameof(ids));
+            }
+
+            var cwes = _cweRepository.GetAll()
+               .Where(c => ids.Contains(c.CweId))
+               .ToList();
+
+            if (ids.Any(i => !cwes.Any(c => i == c.CweId)))
+            {
+                throw new ArgumentException("Some IDs do not have a CWE associated with them!", nameof(ids));
+            }
+
+            return cwes;
         }
     }
 }

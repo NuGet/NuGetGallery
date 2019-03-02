@@ -805,6 +805,68 @@ namespace NuGetGallery.Controllers
                 packageService.Verify();
             }
 
+            [Theory]
+            [MemberData(nameof(Owner_Data))]
+            public async Task ReturnsNotFoundIfGetCwesByIdThrowsArgumentException(User currentUser, User owner)
+            {
+                // Arrange
+                var id = "id";
+
+                var featureFlagService = GetMock<IFeatureFlagService>();
+                featureFlagService
+                    .Setup(x => x.IsManageDeprecationEnabled(currentUser))
+                    .Returns(true)
+                    .Verifiable();
+
+                var registration = new PackageRegistration
+                {
+                    Id = id
+                };
+
+                registration.Owners.Add(owner);
+
+                var package = new Package
+                {
+                    NormalizedVersion = "2.3.4",
+                    PackageRegistration = registration
+                };
+
+                var packageService = GetMock<IPackageService>();
+                packageService
+                    .Setup(x => x.FindPackagesById(id, true))
+                    .Returns(new[] { package })
+                    .Verifiable();
+
+                var deprecationService = GetMock<IPackageDeprecationService>();
+
+                var cves = new Cve[0];
+                deprecationService
+                    .Setup(x => x.GetOrCreateCvesByIdAsync(Enumerable.Empty<string>(), false))
+                    .CompletesWith(cves)
+                    .Verifiable();
+
+                deprecationService
+                    .Setup(x => x.GetCwesByIdAsync(Enumerable.Empty<string>()))
+                    .Throws(new ArgumentException())
+                    .Verifiable();
+
+                var controller = GetController<ManageDeprecationJsonApiController>();
+                controller.SetCurrentUser(currentUser);
+
+                // Act
+                var result = await controller.Deprecate(
+                    id, new[] { package.NormalizedVersion }, false, false, false, null, null, null, null, null, null, false);
+
+                // Assert
+                AssertErrorResponse(
+                    controller,
+                    result,
+                    HttpStatusCode.NotFound,
+                    Strings.DeprecatePackage_CweMissing);
+                featureFlagService.Verify();
+                packageService.Verify();
+            }
+
             private static void AssertErrorResponse(
                 ManageDeprecationJsonApiController controller,
                 JsonResult result,
@@ -952,8 +1014,8 @@ namespace NuGetGallery.Controllers
                 var cweIds = hasAdditionalData ? new[] { "CWE-1", "CWE-2", "CWE-3" } : null;
                 var cwes = cweIds?.Select(i => new Cwe { CweId = i }).ToArray() ?? new Cwe[0];
                 deprecationService
-                    .Setup(x => x.GetOrCreateCwesByIdAsync(cweIds ?? Enumerable.Empty<string>(), false))
-                    .CompletesWith(cwes)
+                    .Setup(x => x.GetCwesByIdAsync(cweIds ?? Enumerable.Empty<string>()))
+                    .Returns(cwes)
                     .Verifiable();
 
                 var customMessage = hasAdditionalData ? "message" : null;

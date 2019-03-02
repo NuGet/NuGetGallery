@@ -213,7 +213,16 @@ namespace NuGetGallery
             }
 
             var cves = await _deprecationService.GetOrCreateCvesByIdAsync(cveIds, commitChanges: false);
-            var cwes = await _deprecationService.GetOrCreateCwesByIdAsync(cweIds, commitChanges: false);
+
+            IReadOnlyCollection<Cwe> cwes;
+            try
+            {
+                cwes = _deprecationService.GetCwesByIdAsync(cweIds);
+            }
+            catch (ArgumentException)
+            {
+                return DeprecateErrorResponse(HttpStatusCode.NotFound, Strings.DeprecatePackage_CweMissing);
+            }
 
             var status = PackageDeprecationStatus.NotDeprecated;
             if (isVulnerable)
