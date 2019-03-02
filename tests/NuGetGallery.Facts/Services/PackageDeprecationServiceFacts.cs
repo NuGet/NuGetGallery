@@ -377,7 +377,7 @@ namespace NuGetGallery.Services
             }
 
             [Fact]
-            public void ReturnsExistingAndCreatedCwes(bool commitChanges)
+            public void ReturnsExistingAndCreatedCwes()
             {
                 // Arrange
                 var matchingCwe1 = new Cwe
@@ -421,7 +421,7 @@ namespace NuGetGallery.Services
             }
 
             [Fact]
-            public void ReturnsExistingAndCreatedCwes()
+            public void ThrowsIfNoCweExistsForId()
             {
                 // Arrange
                 var matchingCwe1 = new Cwe
