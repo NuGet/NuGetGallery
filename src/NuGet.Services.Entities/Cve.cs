@@ -46,18 +46,17 @@ namespace NuGet.Services.Entities
         /// The description field is intentionally truncated to maximum 300 characters.
         /// </remarks>
         [MaxLength(300)]
-        [Required]
         public string Description { get; set; }
 
         /// <summary>
         /// Gets or sets the last-modified date for the entity.
         /// </summary>
-        public DateTime LastModifiedDate { get; set; }
+        public DateTime? LastModifiedDate { get; set; }
 
         /// <summary>
         /// Gets or sets the date this CVE entity was first published.
         /// </summary>
-        public DateTime PublishedDate { get; set; }
+        public DateTime? PublishedDate { get; set; }
 
         /// <summary>
         /// Gets or sets whether the <see cref="Cve"/> is publicly listed.

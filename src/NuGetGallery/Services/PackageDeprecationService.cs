@@ -117,16 +117,40 @@ namespace NuGetGallery
             await _deprecationRepository.CommitChangesAsync();
         }
 
-        public IReadOnlyCollection<Cve> GetCvesById(IEnumerable<string> ids)
+        public async Task<IReadOnlyCollection<Cve>> GetOrCreateCvesByIdAsync(IEnumerable<string> ids, bool commitChanges)
         {
             if (ids == null)
             {
                 throw new ArgumentNullException(nameof(ids));
             }
 
-            return _cveRepository.GetAll()
+            var details = _cveRepository.GetAll()
                .Where(c => ids.Contains(c.CveId))
                .ToList();
+
+            var addedDetails = new List<Cve>();
+            foreach (var missingId in ids.Where(i => !details.Any(c => c.CveId == i)))
+            {
+                var detail = new Cve
+                {
+                    CveId = missingId,
+                    Listed = false,
+                    Status = CveStatus.Unknown
+                };
+                addedDetails.Add(detail);
+                details.Add(detail);
+            }
+
+            if (addedDetails.Any())
+            {
+                _cveRepository.InsertOnCommit(addedDetails);
+                if (commitChanges)
+                {
+                    await _cveRepository.CommitChangesAsync();
+                }
+            }
+
+            return details;
         }
 
         public IReadOnlyCollection<Cwe> GetCwesById(IEnumerable<string> ids)
@@ -136,9 +160,16 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(ids));
             }
 
-            return _cweRepository.GetAll()
+            var cwes = _cweRepository.GetAll()
                .Where(c => ids.Contains(c.CweId))
                .ToList();
+
+            if (ids.Any(i => !cwes.Any(c => i == c.CweId)))
+            {
+                throw new ArgumentException("Some IDs do not have a CWE associated with them!", nameof(ids));
+            }
+
+            return cwes;
         }
     }
 }

@@ -1109,11 +1109,11 @@ The {1} Team</value>
   <data name="DeprecatePackage_NoVersions" xml:space="preserve">
     <value>You must select at least one version to deprecate!</value>
   </data>
-  <data name="DeprecatePackage_MissingCve" xml:space="preserve">
-    <value>At least one CVE specified could not be found.</value>
+  <data name="DeprecatePackage_InvalidCve" xml:space="preserve">
+    <value>The CVE ID '{0}' is invalid. CVE IDs have the form 'CVE-YYYY-NNNN', where 'YYYY' is a year (exactly 4 digits) and 'NNNN' is a number (with at least 4 digits).</value>
   </data>
-  <data name="DeprecatePackage_MissingCwe" xml:space="preserve">
-    <value>At least one CWE specified could not be found.</value>
+  <data name="DeprecatePackage_InvalidCwe" xml:space="preserve">
+    <value>The CWE ID '{0}' is invalid. CWE IDs have the form 'CWE-N', where N is a number.</value>
   </data>
   <data name="DeprecatePackage_Forbidden" xml:space="preserve">
     <value>You do not have permission to deprecate this package.</value>
@@ -1126,5 +1126,8 @@ The {1} Team</value>
   </data>
   <data name="DeprecatePackage_InvalidCvss" xml:space="preserve">
     <value>The CVSS rating specified is invalid.</value>
+  </data>
+  <data name="DeprecatePackage_CweMissing" xml:space="preserve">
+    <value>At least one CWE provided was not found!</value>
   </data>
 </root>

@@ -785,11 +785,29 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to At least one CWE provided was not found!.
+        /// </summary>
+        public static string DeprecatePackage_CweMissing {
+            get {
+                return ResourceManager.GetString("DeprecatePackage_CweMissing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to You do not have permission to deprecate this package..
         /// </summary>
         public static string DeprecatePackage_Forbidden {
             get {
                 return ResourceManager.GetString("DeprecatePackage_Forbidden", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The CVE ID &apos;{0}&apos; is invalid. CVE IDs have the form &apos;CVE-YYYY-NNNN&apos;, where &apos;YYYY&apos; is a year (exactly 4 digits) and &apos;NNNN&apos; is a number (with at least 4 digits)..
+        /// </summary>
+        public static string DeprecatePackage_InvalidCve {
+            get {
+                return ResourceManager.GetString("DeprecatePackage_InvalidCve", resourceCulture);
             }
         }
         
@@ -803,29 +821,20 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The CWE ID &apos;{0}&apos; is invalid. CWE IDs have the form &apos;CWE-N&apos;, where N is a number..
+        /// </summary>
+        public static string DeprecatePackage_InvalidCwe {
+            get {
+                return ResourceManager.GetString("DeprecatePackage_InvalidCwe", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Package &apos;{0}&apos; is locked and cannot have its deprecation changed..
         /// </summary>
         public static string DeprecatePackage_Locked {
             get {
                 return ResourceManager.GetString("DeprecatePackage_Locked", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to At least one CVE specified could not be found..
-        /// </summary>
-        public static string DeprecatePackage_MissingCve {
-            get {
-                return ResourceManager.GetString("DeprecatePackage_MissingCve", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to At least one CWE specified could not be found..
-        /// </summary>
-        public static string DeprecatePackage_MissingCwe {
-            get {
-                return ResourceManager.GetString("DeprecatePackage_MissingCwe", resourceCulture);
             }
         }
         

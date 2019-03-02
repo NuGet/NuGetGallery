@@ -298,16 +298,21 @@ namespace NuGetGallery.Services
 
         public class TheGetCvesByIdMethod : TestContainer
         {
-            [Fact]
-            public void ThrowsIfNullIdList()
+            public static IEnumerable<object[]> CommitChanges_Data => 
+                MemberDataHelper.BooleanDataSet();
+
+            [Theory]
+            [MemberData(nameof(CommitChanges_Data))]
+            public Task ThrowsIfNullIdList(bool commitChanges)
             {
                 var service = Get<PackageDeprecationService>();
 
-                Assert.Throws<ArgumentNullException>(() => service.GetCvesById(null));
+                return Assert.ThrowsAsync<ArgumentNullException>(() => service.GetOrCreateCvesByIdAsync(null, commitChanges));
             }
 
-            [Fact]
-            public void ReturnsCvesWithMatchingIds()
+            [Theory]
+            [MemberData(nameof(CommitChanges_Data))]
+            public async Task ReturnsExistingAndCreatedCves(bool commitChanges)
             {
                 // Arrange
                 var matchingCve1 = new Cve
@@ -339,13 +344,25 @@ namespace NuGetGallery.Services
 
                 var service = Get<PackageDeprecationService>();
 
-                var matchingCves = new[] { matchingCve1, matchingCve2 };
+                var missingCveId = "cve-5";
+                var queriedCveIds = new[] { matchingCve1.CveId, matchingCve2.CveId, missingCveId };
 
                 // Act
-                var result = service.GetCvesById(matchingCves.Select(c => c.CveId));
+                var result = await service.GetOrCreateCvesByIdAsync(queriedCveIds, commitChanges);
 
                 // Assert
-                Assert.Equal(matchingCves, result);
+                Assert.Equal(3, result.Count);
+                Assert.Contains(matchingCve1, result);
+                Assert.Contains(matchingCve2, result);
+
+                var createdCve = result.Last();
+                Assert.Equal(missingCveId, createdCve.CveId);
+                Assert.False(createdCve.Listed);
+                Assert.Equal(CveStatus.Unknown, createdCve.Status);
+                Assert.Null(createdCve.Description);
+                Assert.Null(createdCve.CvssRating);
+                Assert.Null(createdCve.LastModifiedDate);
+                Assert.Null(createdCve.PublishedDate);
             }
         }
 
@@ -360,7 +377,7 @@ namespace NuGetGallery.Services
             }
 
             [Fact]
-            public void ReturnsCwesWithMatchingIds()
+            public void ReturnsExistingAndCreatedCwes()
             {
                 // Arrange
                 var matchingCwe1 = new Cwe
@@ -392,13 +409,55 @@ namespace NuGetGallery.Services
 
                 var service = Get<PackageDeprecationService>();
 
-                var matchingCwes = new[] { matchingCwe1, matchingCwe2 };
+                var queriedCweIds = new[] { matchingCwe1.CweId, matchingCwe2.CweId };
 
                 // Act
-                var result = service.GetCwesById(matchingCwes.Select(c => c.CweId));
+                var result = service.GetCwesById(queriedCweIds);
 
                 // Assert
-                Assert.Equal(matchingCwes, result);
+                Assert.Equal(2, result.Count);
+                Assert.Contains(matchingCwe1, result);
+                Assert.Contains(matchingCwe2, result);
+            }
+
+            [Fact]
+            public void ThrowsIfNoCweExistsForId()
+            {
+                // Arrange
+                var matchingCwe1 = new Cwe
+                {
+                    CweId = "cve-1"
+                };
+
+                var notMatchingCwe1 = new Cwe
+                {
+                    CweId = "cve-2"
+                };
+
+                var matchingCwe2 = new Cwe
+                {
+                    CweId = "cve-3"
+                };
+
+                var notMatchingCwe2 = new Cwe
+                {
+                    CweId = "cve-4"
+                };
+
+                var cwes = new[] { matchingCwe1, notMatchingCwe1, matchingCwe2, notMatchingCwe2 };
+                var repository = GetMock<IEntityRepository<Cwe>>();
+                repository
+                    .Setup(x => x.GetAll())
+                    .Returns(cwes.AsQueryable())
+                    .Verifiable();
+
+                var service = Get<PackageDeprecationService>();
+
+                var missingCweId = "cwe-5";
+                var queriedCweIds = new[] { matchingCwe1.CweId, matchingCwe2.CweId, missingCweId };
+
+                // Act
+                Assert.Throws<ArgumentException>(() => service.GetCwesById(queriedCweIds));
             }
         }
     }
