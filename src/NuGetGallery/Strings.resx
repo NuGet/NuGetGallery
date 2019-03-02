@@ -1110,10 +1110,10 @@ The {1} Team</value>
     <value>You must select at least one version to deprecate!</value>
   </data>
   <data name="DeprecatePackage_InvalidCve" xml:space="preserve">
-    <value>The CVE ID '{0}' is invalid.</value>
+    <value>The CVE ID '{0}' is invalid. CVE IDs have the form 'CVE-YYYY-NNNN', where 'YYYY' is a year (exactly 4 digits) and 'NNNN' is a number (with at least 4 digits).</value>
   </data>
   <data name="DeprecatePackage_InvalidCwe" xml:space="preserve">
-    <value>The CWE ID '{0}' is invalid.</value>
+    <value>The CWE ID '{0}' is invalid. CWE IDs have the form 'CWE-N', where N is a number.</value>
   </data>
   <data name="DeprecatePackage_Forbidden" xml:space="preserve">
     <value>You do not have permission to deprecate this package.</value>

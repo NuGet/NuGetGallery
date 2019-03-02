@@ -19,7 +19,8 @@ namespace NuGetGallery
     {
         private static readonly TimeSpan RegexTimeout = TimeSpan.FromMinutes(1);
 
-        public const string CveIdRegexPattern = @"CVE-\d{4}-\d+";
+        public const string CveIdRegexYearGroupName = "year";
+        public const string CveIdRegexPattern = @"CVE-(?<" + CveIdRegexYearGroupName + @">\d{4})-\d{4,}";
         private static readonly Regex CveIdRegex = GetRegexFromPattern(CveIdRegexPattern);
 
         public const string CweIdRegexPattern = @"CWE-\d+";
@@ -123,7 +124,7 @@ namespace NuGetGallery
             cveIds = cveIds ?? Enumerable.Empty<string>();
             if (!TryVerifyVulnerabilityDetailIds(
                 cveIds, 
-                CveIdRegex, 
+                ValidateCveId,
                 Strings.DeprecatePackage_InvalidCve, 
                 out vulnerabilityDetailIdsErrorResult))
             {
@@ -133,7 +134,7 @@ namespace NuGetGallery
             cweIds = cweIds ?? Enumerable.Empty<string>();
             if (!TryVerifyVulnerabilityDetailIds(
                 cweIds, 
-                CweIdRegex, 
+                ValidateCweId, 
                 Strings.DeprecatePackage_InvalidCwe, 
                 out vulnerabilityDetailIdsErrorResult))
             {
@@ -257,13 +258,13 @@ namespace NuGetGallery
         /// <param name="errorString">The error string to use to construct <paramref name="result"/>.</param>
         private bool TryVerifyVulnerabilityDetailIds(
             IEnumerable<string> ids, 
-            Regex regex, 
+            Func<string, bool> isValid,
             string errorString, 
             out JsonResult result)
         {
             result = null;
             string invalidId;
-            if ((invalidId = ids.FirstOrDefault(c => !regex.IsMatch(c))) != null)
+            if ((invalidId = ids.FirstOrDefault(c => !isValid(c))) != null)
             {
                 result = DeprecateErrorResponse(
                     HttpStatusCode.BadRequest,
@@ -273,6 +274,33 @@ namespace NuGetGallery
             }
 
             return true;
+        }
+
+        private bool ValidateCveId(string id)
+        {
+            var match = CveIdRegex.Match(id);
+            if (match.Value == string.Empty)
+            {
+                return false;
+            }
+
+            var yearString = match.Groups[CveIdRegexYearGroupName].Value;
+            if (!int.TryParse(yearString.ToString(), out var year))
+            {
+                return false;
+            }
+
+            if (year < 1999 || year > DateTime.UtcNow.Year)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        private bool ValidateCweId(string id)
+        {
+            return CweIdRegex.IsMatch(id);
         }
 
         private static Regex GetRegexFromPattern(string pattern)

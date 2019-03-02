@@ -794,7 +794,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The CVE ID &apos;{0}&apos; is invalid..
+        ///   Looks up a localized string similar to The CVE ID &apos;{0}&apos; is invalid. CVE IDs have the form &apos;CVE-YYYY-NNNN&apos;, where &apos;YYYY&apos; is a year (exactly 4 digits) and &apos;NNNN&apos; is a number (with at least 4 digits)..
         /// </summary>
         public static string DeprecatePackage_InvalidCve {
             get {
@@ -812,7 +812,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The CWE ID &apos;{0}&apos; is invalid..
+        ///   Looks up a localized string similar to The CWE ID &apos;{0}&apos; is invalid. CWE IDs have the form &apos;CWE-N&apos;, where N is a number..
         /// </summary>
         public static string DeprecatePackage_InvalidCwe {
             get {

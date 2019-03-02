@@ -335,8 +335,13 @@ namespace NuGetGallery.Controllers
                 }
             }
 
-            [Fact]
-            public async Task ReturnsBadRequestIfCveIdInvalid()
+            [Theory]
+            [InlineData("yabba-dabba-doo")] // Doesn't match at all
+            [InlineData("CVE-2019")] // Missing number
+            [InlineData("CVE-2019-234")] // Number not long enough
+            [InlineData("CVE-1998-43244")] // Year too old
+            [InlineData("CVE-9999-1323")] // Year in the future...if NuGet.org has lasted 7980 years since the creation of this unit test, congratulations!
+            public async Task ReturnsBadRequestIfCveIdInvalid(string invalidId)
             {
                 // Arrange
                 var currentUser = TestUtility.FakeUser;
@@ -350,11 +355,9 @@ namespace NuGetGallery.Controllers
                 var controller = GetController<ManageDeprecationJsonApiController>();
                 controller.SetCurrentUser(currentUser);
 
-                var invalidId = "yabba-dabba-doo";
-
                 // Act
                 var result = await controller.Deprecate(
-                    "id", new[] { "1.0.0" }, false, false, false, new[] { "CVE-2019-1", invalidId }, null, null, null, null, null, false);
+                    "id", new[] { "1.0.0" }, false, false, false, new[] { "CVE-2019-1111", invalidId }, null, null, null, null, null, false);
 
                 // Assert
                 AssertErrorResponse(
@@ -937,7 +940,7 @@ namespace NuGetGallery.Controllers
 
                 var deprecationService = GetMock<IPackageDeprecationService>();
 
-                var cveIds = hasAdditionalData ? new[] { "CVE-2019-1", "CVE-2019-2", "CVE-2019-3" } : null;
+                var cveIds = hasAdditionalData ? new[] { "CVE-2019-1111", "CVE-2019-22222", "CVE-2019-333333" } : null;
                 var cves = cveIds?.Select(i => new Cve { CveId = i }).ToArray() ?? new Cve[0];
                 deprecationService
                     .Setup(x => x.GetOrCreateCvesByIdAsync(cveIds ?? Enumerable.Empty<string>(), false))
