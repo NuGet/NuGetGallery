@@ -17,9 +17,6 @@ namespace NuGetGallery
     public partial class ManageDeprecationJsonApiController
         : AppController
     {
-        public const string GetCveIdsActionName = "CveIds";
-        public const string GetCweIdsActionName = "CweIds";
-
         private static readonly TimeSpan RegexTimeout = TimeSpan.FromMinutes(1);
 
         public const string CveIdRegexYearGroupName = "year";
@@ -48,7 +45,7 @@ namespace NuGetGallery
 
         [HttpGet]
         [UIAuthorize]
-        [ActionName(GetCveIdsActionName)]
+        [ActionName(ActionName.GetCveIds)]
         public JsonResult GetCveIds(string query)
         {
             // Get CVE data.
@@ -64,7 +61,7 @@ namespace NuGetGallery
 
         [HttpGet]
         [UIAuthorize]
-        [ActionName(GetCweIdsActionName)]
+        [ActionName(ActionName.GetCweIds)]
         public JsonResult GetCweIds(string query)
         {
             // Get CWE data.

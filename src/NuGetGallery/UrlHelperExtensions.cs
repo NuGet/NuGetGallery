@@ -1024,7 +1024,7 @@ namespace NuGetGallery
             bool relativeUrl = true)
         {
             return url.GetDeprecationAction(
-                ManageDeprecationJsonApiController.GetCveIdsActionName,
+                ActionName.GetCveIds,
                 relativeUrl);
         }
 
@@ -1033,7 +1033,7 @@ namespace NuGetGallery
             bool relativeUrl = true)
         {
             return url.GetDeprecationAction(
-                ManageDeprecationJsonApiController.GetCweIdsActionName,
+                ActionName.GetCweIds,
                 relativeUrl);
         }
 
