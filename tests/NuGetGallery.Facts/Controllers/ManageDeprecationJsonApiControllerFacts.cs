@@ -846,7 +846,7 @@ namespace NuGetGallery.Controllers
                     .Verifiable();
 
                 deprecationService
-                    .Setup(x => x.GetCwesByIdAsync(Enumerable.Empty<string>()))
+                    .Setup(x => x.GetCwesById(Enumerable.Empty<string>()))
                     .Throws(new ArgumentException())
                     .Verifiable();
 
@@ -1014,7 +1014,7 @@ namespace NuGetGallery.Controllers
                 var cweIds = hasAdditionalData ? new[] { "CWE-1", "CWE-2", "CWE-3" } : null;
                 var cwes = cweIds?.Select(i => new Cwe { CweId = i }).ToArray() ?? new Cwe[0];
                 deprecationService
-                    .Setup(x => x.GetCwesByIdAsync(cweIds ?? Enumerable.Empty<string>()))
+                    .Setup(x => x.GetCwesById(cweIds ?? Enumerable.Empty<string>()))
                     .Returns(cwes)
                     .Verifiable();
 

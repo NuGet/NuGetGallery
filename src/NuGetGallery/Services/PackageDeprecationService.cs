@@ -153,7 +153,7 @@ namespace NuGetGallery
             return details;
         }
 
-        public IReadOnlyCollection<Cwe> GetCwesByIdAsync(IEnumerable<string> ids)
+        public IReadOnlyCollection<Cwe> GetCwesById(IEnumerable<string> ids)
         {
             if (ids == null)
             {

@@ -373,7 +373,7 @@ namespace NuGetGallery.Services
             {
                 var service = Get<PackageDeprecationService>();
 
-                Assert.Throws<ArgumentNullException>(() => service.GetCwesByIdAsync(null));
+                Assert.Throws<ArgumentNullException>(() => service.GetCwesById(null));
             }
 
             [Fact]
@@ -412,7 +412,7 @@ namespace NuGetGallery.Services
                 var queriedCweIds = new[] { matchingCwe1.CweId, matchingCwe2.CweId };
 
                 // Act
-                var result = service.GetCwesByIdAsync(queriedCweIds);
+                var result = service.GetCwesById(queriedCweIds);
 
                 // Assert
                 Assert.Equal(2, result.Count);
@@ -457,7 +457,7 @@ namespace NuGetGallery.Services
                 var queriedCweIds = new[] { matchingCwe1.CweId, matchingCwe2.CweId, missingCweId };
 
                 // Act
-                Assert.Throws<ArgumentException>(() => service.GetCwesByIdAsync(queriedCweIds));
+                Assert.Throws<ArgumentException>(() => service.GetCwesById(queriedCweIds));
             }
         }
     }

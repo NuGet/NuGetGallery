@@ -217,7 +217,7 @@ namespace NuGetGallery
             IReadOnlyCollection<Cwe> cwes;
             try
             {
-                cwes = _deprecationService.GetCwesByIdAsync(cweIds);
+                cwes = _deprecationService.GetCwesById(cweIds);
             }
             catch (ArgumentException)
             {
