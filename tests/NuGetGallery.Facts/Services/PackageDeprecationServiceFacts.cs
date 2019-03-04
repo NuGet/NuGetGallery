@@ -460,5 +460,79 @@ namespace NuGetGallery.Services
                 Assert.Throws<ArgumentException>(() => service.GetCwesById(queriedCweIds));
             }
         }
+
+        public class TheGetDeprecationByPackageMethod : TestContainer
+        {
+            [Fact]
+            public void GetsDeprecationOfPackage()
+            {
+                // Arrange
+                var key = 190304;
+                var package = new Package
+                {
+                    Key = key
+                };
+
+                var differentDeprecation = new PackageDeprecation
+                {
+                    PackageKey = 9925
+                };
+
+                var matchingDeprecation = new PackageDeprecation
+                {
+                    PackageKey = key
+                };
+
+                var repository = GetMock<IEntityRepository<PackageDeprecation>>();
+                repository
+                    .Setup(x => x.GetAll())
+                    .Returns(new[] 
+                    {
+                        differentDeprecation,
+                        matchingDeprecation
+                    }.AsQueryable());
+
+                // Act
+                var deprecation = Get<PackageDeprecationService>()
+                    .GetDeprecationByPackage(package);
+
+                // Assert
+                Assert.Equal(matchingDeprecation, deprecation);
+            }
+
+            [Fact]
+            public void ThrowsIfMultipleDeprecationsOfPackage()
+            {
+                // Arrange
+                var key = 190304;
+                var package = new Package
+                {
+                    Key = key
+                };
+
+                var matchingDeprecation1 = new PackageDeprecation
+                {
+                    PackageKey = key
+                };
+
+                var matchingDeprecation2 = new PackageDeprecation
+                {
+                    PackageKey = key
+                };
+
+                var repository = GetMock<IEntityRepository<PackageDeprecation>>();
+                repository
+                    .Setup(x => x.GetAll())
+                    .Returns(new[]
+                    {
+                        matchingDeprecation1,
+                        matchingDeprecation2
+                    }.AsQueryable());
+
+                // Act / Assert
+                Assert.Throws<InvalidOperationException>(
+                    () => Get<PackageDeprecationService>().GetDeprecationByPackage(package));
+            }
+        }
     }
 }
