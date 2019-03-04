@@ -94,9 +94,16 @@ function ManageDeprecationSecurityDetailListViewModel(id, title, label, placehol
             return;
         }
 
+        if (ko.utils.arrayFirst(self.addedIds(), function (item) { return item.id === id; })) {
+            self.addError("'" + id + "' has already been added!");
+            return;
+        }
+
         self.addedIds.push(addedItemViewModel);
         self.addId('');
         updateCvssFromItem(addedItemViewModel);
+
+        $(autocompleteSelector).find('[name="addId"]').focus();
     };
 
     this.addWithAutocomplete = function (item) {
