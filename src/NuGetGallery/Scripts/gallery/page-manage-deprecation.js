@@ -9,7 +9,7 @@ function ManageDeprecationSecurityDetailListItemViewModel(id, fromAutocomplete, 
 }
 
 // Shared model between the CVE view and the CWE view
-function ManageDeprecationSecurityDetailListViewModel(id, title, label, placeholder, addLabel, addRegex, addErrorString, getUrlFromId, autocompleteUrl, processAutocompleteResult, missingAutocompleteName, missingAutocompleteDescription, updateCvssFromItem) {
+function ManageDeprecationSecurityDetailListViewModel(id, title, label, placeholder, addLabel, addRegex, addErrorString, getUrlFromId, autocompleteUrl, processAutocompleteResult, updateCvssFromItem, allowMissingFromAutocomplete, missingFromAutocompleteErrorTemplate, missingAutocompleteName, missingAutocompleteDescription) {
     var self = this;
 
     this.id = id;
@@ -113,9 +113,20 @@ function ManageDeprecationSecurityDetailListViewModel(id, title, label, placehol
             self.autocompleteResults(),
             function (result) { return result.id === addedId; });
 
-        var addedItem = matchingAutocompleteResult
-            ? matchingAutocompleteResult
-            : new ManageDeprecationSecurityDetailListItemViewModel(addedId, false);
+        var addedItem;
+        if (matchingAutocompleteResult) {
+            addedItem = matchingAutocompleteResult;
+        } else {
+            if (!allowMissingFromAutocomplete) {
+                self.addError(window.nuget.formatString(
+                    missingFromAutocompleteErrorTemplate,
+                    addedId));
+                return;
+            }
+
+            addedItem = new ManageDeprecationSecurityDetailListItemViewModel(addedId, false);
+        }
+
         self.add(addedItem);
     };
 
@@ -326,9 +337,11 @@ function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defau
             return new ManageDeprecationSecurityDetailListItemViewModel(
                 result.CveId, true, null, result.Description, result.CvssRating);
         },
-        "We could not find this CVE. Is this CVE correct?",
-        "NuGet.org refreshes its CVE data on a regular cadence and if we find this ID, your deprecation will be updated with the latest data.",
-        this.updateCvssFromItem);
+        this.updateCvssFromItem,
+        true,
+        null,
+        "We could not find this CVE. Is it correct?",
+        "NuGet.org refreshes its CVE data often and if we find this ID, your deprecation will be updated with the latest data.");
 
     // The model for the CWEs view
     this.cwes = new ManageDeprecationSecurityDetailListViewModel(
@@ -347,9 +360,11 @@ function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defau
             return new ManageDeprecationSecurityDetailListItemViewModel(
                 result.CweId, true, result.Name, result.Description, result.CvssRating);
         },
-        "We could not find this CWE. Is this CWE correct?",
-        "NuGet.org refreshes its CWE data on a regular cadence and if we find this ID, your deprecation will be updated with the latest data.",
-        this.updateCvssFromItem);
+        this.updateCvssFromItem,
+        false,
+        "We could not find a CWE with an ID of '{0}'. NuGet.org refreshes its CWE information often, but we might not have the latest data. Please enter a different CWE or wait and try again later.",
+        null,
+        null);
 
     // The ID entered into the alternate package ID textbox.
     this.chosenAlternatePackageId = ko.observable('');

@@ -101,6 +101,10 @@ namespace NuGetGallery
         
         public Dictionary<string, VersionDeprecationState> VersionDeprecationStateDictionary { get; set; }
 
+        /// <remarks>
+        /// The schema of this class is shared with the client-side Javascript to share information about package listing state.
+        /// The JS expects the exact naming of its properties. Do not change the naming without updating the JS.
+        /// </remarks>
         public class VersionListedState
         {
             public VersionListedState(Package package)
@@ -113,6 +117,10 @@ namespace NuGetGallery
             public int DownloadCount { get; }
         }
 
+        /// <remarks>
+        /// The schema of this class is shared with the client-side Javascript to share information about package ReadMe state.
+        /// The JS expects the exact naming of its properties. Do not change the naming without updating the JS.
+        /// </remarks>
         public class VersionReadMeState
         {
             public VersionReadMeState(string submitUrl, string getReadMeUrl, string readMe)
@@ -127,6 +135,10 @@ namespace NuGetGallery
             public string ReadMe { get; }
         }
 
+        /// <remarks>
+        /// The schema of this class is shared with the client-side Javascript to share information about package deprecation state.
+        /// The JS expects the exact naming of its properties. Do not change the naming without updating the JS.
+        /// </remarks>
         public class VersionDeprecationState
         {
             public VersionDeprecationState(Package package, string text)
