@@ -24,7 +24,8 @@ namespace NuGetGallery.Infrastructure.Search
         private static IEndpointHealthIndicatorStore _healthIndicatorStore;
         // Search client that will be deprecated. It is still needed to allow the feature flag until the new search implementation is enabled.
         private static ISearchClient _deprecatedSearchClient;
-        private ISearchClient _searchClient;
+        private readonly ISearchClient _searchClient;
+        private readonly IFeatureFlagService _featureFlagService;
 
         private JObject _diagCache;
 
@@ -65,10 +66,11 @@ namespace NuGetGallery.Infrastructure.Search
             }
         }
 
-        public ExternalSearchService(IAppConfiguration config, IDiagnosticsService diagnostics, ISearchClient searchClient)
+        public ExternalSearchService(IAppConfiguration config, IDiagnosticsService diagnostics, ISearchClient searchClient, IFeatureFlagService featureFlagService)
         {
             ServiceUri = config.ServiceDiscoveryUri;
             _searchClient = searchClient ?? throw new ArgumentNullException(nameof(searchClient));
+            _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
 
             Trace = diagnostics.SafeGetSource("ExternalSearchService");
 
@@ -330,7 +332,10 @@ namespace NuGetGallery.Infrastructure.Search
         /// It will return the client to use based on the feature flag.
         /// </summary>
         /// <returns>The search client in use. Used for the unit tests.</returns>
-        internal ISearchClient GetClient(){ return _deprecatedSearchClient; }
+        internal ISearchClient GetClient()
+        {
+            return _featureFlagService.IsSearchCircuitBreakerEnabled() ? _searchClient : _deprecatedSearchClient;
+        }
 
         // Bunch of no-ops to disable indexing because an external search service is doing that.
         public void UpdateIndex()

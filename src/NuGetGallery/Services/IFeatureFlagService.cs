@@ -36,5 +36,11 @@ namespace NuGetGallery
         /// <param name="user"></param>
         /// <returns></returns>
         bool IsManageDeprecationEnabled(User user);
+
+        /// <summary>
+        /// Whether or not the search is using circuit breaker.
+        /// </summary>
+        /// <returns></returns>
+        bool IsSearchCircuitBreakerEnabled();
     }
 }

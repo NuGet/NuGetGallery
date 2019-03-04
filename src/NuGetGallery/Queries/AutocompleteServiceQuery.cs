@@ -21,8 +21,9 @@ namespace NuGetGallery
         private readonly string _autocompleteServiceResourceType;
         private readonly RetryingHttpClientWrapper _httpClientToDeprecate;
         private readonly IResilientSearchClient _resilientSearchClient;
+        private readonly IFeatureFlagService _featureFlagService;
 
-        public AutocompleteServiceQuery(IAppConfiguration configuration, IResilientSearchClient resilientSearchClient)
+        public AutocompleteServiceQuery(IAppConfiguration configuration, IResilientSearchClient resilientSearchClient, IFeatureFlagService featureFlagService)
         {
             if (configuration == null)
             {
@@ -33,6 +34,7 @@ namespace NuGetGallery
             _autocompleteServiceResourceType = configuration.AutocompleteServiceResourceType;
             _httpClientToDeprecate = new RetryingHttpClientWrapper(new HttpClient(), QuietLog.LogHandledException);
             _resilientSearchClient = resilientSearchClient;
+            _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
         }
 
         public async Task<IEnumerable<string>> RunServiceQuery(
@@ -41,8 +43,7 @@ namespace NuGetGallery
             string semVerLevel = null)
         {
             queryString = BuildQueryString(queryString, includePrerelease, semVerLevel);
-            // This will be under the feature flag.
-            var result = await DeprecatedExecuteQuery(queryString);
+            var result = _featureFlagService.IsSearchCircuitBreakerEnabled() ? await ExecuteQuery(queryString) : await DeprecatedExecuteQuery(queryString);
             var resultObject = JObject.Parse(result);
 
             return resultObject["data"].Select(entry => entry.ToString());

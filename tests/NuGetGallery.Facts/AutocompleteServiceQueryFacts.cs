@@ -71,7 +71,9 @@ namespace NuGetGallery
                 var mockIResilientSearchClient = new Mock<IResilientSearchClient>();
                 mockIResilientSearchClient.Setup(s => s.GetAsync(_autocompletePath, It.IsAny<string>())).ReturnsAsync(_responseMessage);
 
-                _instance = new AutocompleteServiceQuery(mockConfiguration.Object, mockIResilientSearchClient.Object);
+                var mockTelemetryService = new Mock<IFeatureFlagService>();
+
+                _instance = new AutocompleteServiceQuery(mockConfiguration.Object, mockIResilientSearchClient.Object, mockTelemetryService.Object);
             }
 
             private static HttpResponseMessage GetResponseMessage(Uri uri, HttpStatusCode statusCode)
