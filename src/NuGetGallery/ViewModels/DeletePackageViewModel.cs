@@ -11,7 +11,7 @@ namespace NuGetGallery
     public class DeletePackageViewModel : DisplayPackageViewModel
     {
         public DeletePackageViewModel(Package package, User currentUser, IReadOnlyList<ReportPackageReason> reasons)
-            : base(package, currentUser)
+            : base(package, currentUser, null)
         {
             DeletePackagesRequest = new DeletePackagesRequest
             {

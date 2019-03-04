@@ -740,12 +740,8 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            // Load the deprecation associated with this package.
-            // We want to fetch only the deprecation for the primary package.
-            // Fetching the deprecation for every version of the package is potentially very expensive.
-            _deprecationService.GetDeprecationByPackage(package);
-
-            var model = new DisplayPackageViewModel(package, currentUser);
+            var deprecation = _deprecationService.GetDeprecationByPackage(package);
+            var model = new DisplayPackageViewModel(package, currentUser, deprecation);
 
             model.ValidatingTooLong = _validationService.IsValidatingTooLong(package);
             model.PackageValidationIssues = _validationService.GetLatestPackageValidationIssues(package);

@@ -94,8 +94,8 @@
         </div>
 
         <div class="deprecation-content-container collapse" id="deprecation-content-container">
-            @VulnerabilityDetailList(Model.CveIds, "CVEs", (id) => "https://cve.mitre.org/cgi-bin/cvename.cgi?name=" + id)
-            @VulnerabilityDetailList(Model.CweIds, "CWEs", (id) => "https://cwe.mitre.org/data/definitions/" + id.Substring("CWE-".Length) + ".html")
+            @VulnerabilityDetailList(Model.CveIds, "CVEs", (id) => string.Format(Strings.DeprecatePackage_CveUrlFormat, id))
+            @VulnerabilityDetailList(Model.CweIds, "CWEs", (id) => string.Format(Strings.DeprecatePackage_CweUrlFormat, id.Substring("CWE-".Length)))
 
             @if (!string.IsNullOrEmpty(Model.AlternatePackageId))
             {

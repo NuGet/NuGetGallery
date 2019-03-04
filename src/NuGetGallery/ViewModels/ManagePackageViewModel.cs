@@ -156,12 +156,16 @@ namespace NuGetGallery
                     CvssRating = deprecation.CvssRating;
                     CweIds = deprecation.Cwes?.Select(c => new VulnerabilityDetailState(c)).ToList();
 
-                    // A deprecation should not have both an alternate package registration and an alternate package.
-                    // In case a deprecation does have both, we will hide the alternate package registration's ID in this model.
                     AlternatePackageId = deprecation.AlternatePackageRegistration?.Id;
+
                     var alternatePackage = deprecation.AlternatePackage;
-                    AlternatePackageId = alternatePackage?.Id;
-                    AlternatePackageVersion = alternatePackage?.Version;
+                    if (alternatePackage != null)
+                    {
+                        // A deprecation should not have both an alternate package registration and an alternate package.
+                        // In case a deprecation does have both, we will hide the alternate package registration's ID in this model.
+                        AlternatePackageId = alternatePackage?.Id;
+                        AlternatePackageVersion = alternatePackage?.Version;
+                    }
 
                     CustomMessage = deprecation.CustomMessage;
 
