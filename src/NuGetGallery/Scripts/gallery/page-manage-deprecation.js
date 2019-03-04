@@ -1,12 +1,24 @@
 ﻿'use strict';
 
+function ManageDeprecationSecurityDetailListItemViewModel(id, fromAutocomplete, name, description, cvss) {
+    this.id = id;
+    this.fromAutocomplete = fromAutocomplete;
+    this.name = name;
+    this.description = description;
+    this.cvss = cvss;
+}
+
 // Shared model between the CVE view and the CWE view
-function ManageDeprecationSecurityDetailListViewModel(title, label, placeholder, addLabel) {
+function ManageDeprecationSecurityDetailListViewModel(id, title, label, placeholder, addLabel, addRegex, addErrorString, getUrlFromId, autocompleteUrl, processAutocompleteResult, updateCvssFromItem, allowMissingFromAutocomplete, missingFromAutocompleteErrorTemplate, missingAutocompleteName, missingAutocompleteDescription) {
     var self = this;
 
-    this.title = ko.observable(title);
-    this.label = ko.observable(label);
-    this.placeholder = ko.observable(placeholder);
+    this.id = id;
+    this.title = title;
+    this.label = label;
+    this.placeholder = placeholder;
+    this.getUrlFromId = getUrlFromId;
+    this.missingAutocompleteName = missingAutocompleteName;
+    this.missingAutocompleteDescription = missingAutocompleteDescription;
 
     // Whether or not the checkbox for this section is checked.
     this.hasIds = ko.observable(false);
@@ -26,13 +38,108 @@ function ManageDeprecationSecurityDetailListViewModel(title, label, placeholder,
     // The ID that has been typed into the textbox but not yet submitted.
     this.addId = ko.observable('');
     this.addLabel = addLabel;
-    this.add = function () {
-        self.addedIds.push(self.addId());
+    this.addError = ko.observable('');
+
+    this.showAutocompleteResults = ko.observable(true);
+    var autocompleteSelector = "#" + id + "-autocomplete";
+    window.nuget.configureDropdown(
+        ":has(> " + autocompleteSelector + ")",
+        autocompleteSelector,
+        self.showAutocompleteResults,
+        true);
+
+    this.autocompleteResults = ko.observableArray();
+    this.addId.subscribe(function () {
+        self.addError('');
+
+        var query = self.addId();
+        $.ajax({
+            url: autocompleteUrl,
+            dataType: 'json',
+            type: 'GET',
+            data: {
+                query: query
+            },
+
+            success: function (data) {
+                if (query !== self.addId()) {
+                    // Don't set the autocomplete results if the ID in the box has changed.
+                    return;
+                }
+
+                if (!data.Success) {
+                    self.autocompleteResults([]);
+                    return;
+                }
+
+                self.autocompleteResults(
+                    data.Results.map(processAutocompleteResult));
+            },
+
+            error: function () {
+                if (query !== self.addId()) {
+                    // Don't set the autocomplete results if the ID in the box has changed.
+                    return;
+                }
+
+                self.autocompleteResults([]);
+            }
+        });
+    }, this);
+
+    this.add = function (addedItemViewModel) {
+        var id = addedItemViewModel.id;
+        if (!id.match(addRegex)) {
+            self.addError("'" + id + "' is not a valid ID! " + addErrorString);
+            return;
+        }
+
+        if (ko.utils.arrayFirst(self.addedIds(), function (item) { return item.id === id; })) {
+            self.addError("'" + id + "' has already been added!");
+            return;
+        }
+
+        self.addedIds.push(addedItemViewModel);
         self.addId('');
+        updateCvssFromItem(addedItemViewModel);
+
+        $(autocompleteSelector).find('[name="addId"]').focus();
     };
-    this.addKeyDown = function (data, event) {
+
+    this.addWithAutocomplete = function (item) {
+        self.add(item);
+    };
+
+    this.addWithoutAutocomplete = function () {
+        // Uppercase the ID because CVE and CWE IDs are case-insensitive.
+        // If the user enters 'cve-2019-0001' instead of 'CVE-2019-0001', we shouldn't fail.
+        var addedId = self.addId().toUpperCase();
+
+        // If there is an autocomplete result with the same ID, use it.
+        var matchingAutocompleteResult = ko.utils.arrayFirst(
+            self.autocompleteResults(),
+            function (result) { return result.id === addedId; });
+
+        var addedItem;
+        if (matchingAutocompleteResult) {
+            addedItem = matchingAutocompleteResult;
+        } else {
+            if (!allowMissingFromAutocomplete) {
+                self.addError(window.nuget.formatString(
+                    missingFromAutocompleteErrorTemplate,
+                    addedId));
+                return;
+            }
+
+            addedItem = new ManageDeprecationSecurityDetailListItemViewModel(addedId, false);
+        }
+
+        self.add(addedItem);
+    };
+
+    this.addWithoutAutocompleteKeyDown = function (data, event) {
         if (event.which === 13) { /* Enter */
-            self.add();
+            self.addWithoutAutocomplete();
             return false;
         }
 
@@ -40,13 +147,15 @@ function ManageDeprecationSecurityDetailListViewModel(title, label, placeholder,
     };
 
     this.remove = function (id, event) {
+        var $target = $(event.target);
+
         // Try to focus on the next added item.
-        var nextItem = $(event.target).closest('.security-detail-list-item').next('.security-detail-list-item');
+        var nextItem = $target.closest('.security-detail-list-item').next('.security-detail-list-item');
         if (nextItem.length) {
             nextItem.find(':tabbable').focus();
         } else {
             // Otherwise, focus on the "add item" input.
-            $(event.target).closest('.security-detail').find('[name="addId"]').focus();
+            $target.closest('.security-detail').find('[name="addId"]').focus();
         }
 
         self.addedIds.remove(id);
@@ -69,9 +178,13 @@ function ManageDeprecationSecurityDetailListViewModel(title, label, placeholder,
         // Otherwise, the value returned by this function will change based on the UI.
         return self.ids().slice(0);
     };
+
+    this.exportIds = function () {
+        return self.export().map(function (item) { return item.id; });
+    };
 }
 
-function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defaultVersion, submitUrl, packageUrl, getAlternatePackageVersions) {
+function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defaultVersion, submitUrl, packageUrl, getAlternatePackageVersionsUrl, cveUrlTemplate, getCveIdsUrl, cweUrlTemplate, getCweIdsUrl) {
     var self = this;
 
     // Existing deprecation state information per version.
@@ -138,13 +251,6 @@ function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defau
     this.isLegacy = ko.observable(false);
     this.isOther = ko.observable(false);
 
-    // The model for the CVEs view.
-    this.cves = new ManageDeprecationSecurityDetailListViewModel(
-        "CVE ID(s)",
-        "Add one or more CVEs applicable to the vulnerability.",
-        "Add CVE by ID e.g. CVE-2014-999999, CVE-2015-888888",
-        "Add CVE");
-
     // Whether or not the checkbox for the CVSS section is checked.
     this.hasCvss = ko.observable(false);
 
@@ -153,14 +259,27 @@ function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defau
 
     // A string describing the severity of the CVSS rating entered by the user.
     var invalidCvssRatingString = 'Invalid CVSS rating!';
-    this.cvssRatingLabel = ko.pureComputed(function () {
+    this.getCvssRatingFloat = function () {
         var rating = self.selectedCvssRating();
         if (!rating) {
-            return '';
+            return null;
         }
 
         var ratingFloat = parseFloat(rating);
         if (isNaN(ratingFloat) || ratingFloat < 0 || ratingFloat > 10) {
+            return;
+        }
+
+        return ratingFloat;
+    };
+
+    this.cvssRatingLabel = ko.pureComputed(function () {
+        var ratingFloat = self.getCvssRatingFloat();
+        if (ratingFloat === null) {
+            return '';
+        }
+
+        if (!ratingFloat) {
             return invalidCvssRatingString;
         }
 
@@ -192,12 +311,67 @@ function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defau
         }
     }, this);
 
+    this.updateCvssFromItem = function (item) {
+        if (!item || !item.cvss) {
+            return;
+        }
+
+        self.hasCvss(true);
+
+        var currentCvss = self.getCvssRatingFloat();
+        var newCvss = currentCvss
+            // If there is an existing CVSS, take the max of the current CVSS and the item's CVSS
+            ? Math.max(currentCvss, item.cvss)
+            // Otherwise, take the item's CVSS
+            : item.cvss;
+        self.selectedCvssRating(newCvss);
+    };
+
+    // The model for the CVEs view.
+    this.cves = new ManageDeprecationSecurityDetailListViewModel(
+        "cve",
+        "CVE ID(s)",
+        "Add one or more CVEs applicable to the vulnerability.",
+        "Add CVE by ID e.g. CVE-2014-999999, CVE-2015-888888",
+        "Add CVE",
+        /^CVE-\d{4}-\d{4,}$/g,
+        "CVE IDs have the form 'CVE-YYYY-NNNN', where 'YYYY' is a year (exactly 4 digits) and 'NNNN' is a number (with at least 4 digits).",
+        function (id) {
+            return window.nuget.formatString(cveUrlTemplate, id);
+        },
+        getCveIdsUrl,
+        function (result) {
+            return new ManageDeprecationSecurityDetailListItemViewModel(
+                result.CveId, true, null, result.Description, result.CvssRating);
+        },
+        this.updateCvssFromItem,
+        true,
+        null,
+        "We could not find this CVE. Is it correct?",
+        "NuGet.org refreshes its CVE data often and if we find this ID, your deprecation will be updated with the latest data.");
+
     // The model for the CWEs view
     this.cwes = new ManageDeprecationSecurityDetailListViewModel(
+        "cwe",
         "CWE(s)",
         "Add one or more CWEs applicable to the vulnerability.",
         "Add CWE by ID or title",
-        "Add CWE");
+        "Add CWE",
+        /^CWE-\d+$/g,
+        "CWE IDs have the form 'CWE-N', where N is a number.",
+        function (id) {
+            return window.nuget.formatString(cweUrlTemplate, id.replace("CWE-", ""));
+        },
+        getCweIdsUrl,
+        function (result) {
+            return new ManageDeprecationSecurityDetailListItemViewModel(
+                result.CweId, true, result.Name, result.Description, result.CvssRating);
+        },
+        this.updateCvssFromItem,
+        false,
+        "We could not find a CWE with an ID of '{0}'. NuGet.org refreshes its CWE information often, but we might not have the latest data. Please enter a different CWE or wait and try again later.",
+        null,
+        null);
 
     // The ID entered into the alternate package ID textbox.
     this.chosenAlternatePackageId = ko.observable('');
@@ -232,7 +406,7 @@ function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defau
         }
 
         $.ajax({
-            url: getAlternatePackageVersions,
+            url: getAlternatePackageVersionsUrl,
             dataType: 'json',
             type: 'GET',
             data: {
@@ -310,9 +484,9 @@ function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defau
                 isVulnerable: self.isVulnerable(),
                 isLegacy: self.isLegacy(),
                 isOther: self.isOther(),
-                cveIds: self.cves.export(),
+                cveIds: self.cves.exportIds(),
                 cvssRating: self.cvssRating(),
-                cweIds: self.cwes.export(),
+                cweIds: self.cwes.exportIds(),
                 alternatePackageId: self.alternatePackageId(),
                 alternatePackageVersion: self.alternatePackageVersion(),
                 customMessage: self.customMessage(),
@@ -342,9 +516,9 @@ function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defau
         versionData.IsVulnerable = self.isVulnerable();
         versionData.IsLegacy = self.isLegacy();
         versionData.IsOther = self.isOther();
-        versionData.CVEIds = self.cves.export();
-        versionData.CVSSRating = self.cvssRating();
-        versionData.CWEIds = self.cwes.export();
+        versionData.CveIds = self.cves.export();
+        versionData.CvssRating = self.cvssRating();
+        versionData.CweIds = self.cwes.export();
         versionData.AlternatePackageId = self.alternatePackageId();
         versionData.AlternatePackageVersion = self.alternatePackageVersion();
         versionData.CustomMessage = self.customMessage();
@@ -361,12 +535,12 @@ function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defau
         self.isLegacy(versionData.IsLegacy);
         self.isOther(versionData.IsOther);
 
-        self.cves.import(versionData.CVEIds);
+        self.cves.import(versionData.CveIds);
 
-        self.hasCvss(versionData.CVSSRating);
-        self.selectedCvssRating(versionData.CVSSRating);
+        self.hasCvss(versionData.CvssRating);
+        self.selectedCvssRating(versionData.CvssRating);
 
-        self.cwes.import(versionData.CWEIds);
+        self.cwes.import(versionData.CweIds);
 
         self.chosenAlternatePackageId(versionData.AlternatePackageId);
         if (versionData.AlternatePackageVersion) {
