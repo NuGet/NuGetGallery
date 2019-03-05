@@ -15,15 +15,21 @@ namespace NuGetGallery
         private readonly IEntityRepository<PackageDeprecation> _deprecationRepository;
         private readonly IEntityRepository<Cve> _cveRepository;
         private readonly IEntityRepository<Cwe> _cweRepository;
+        private readonly IPackageService _packageService;
+        private readonly IIndexingService _indexingService;
 
         public PackageDeprecationService(
            IEntityRepository<PackageDeprecation> deprecationRepository,
            IEntityRepository<Cve> cveRepository,
-           IEntityRepository<Cwe> cweRepository)
+           IEntityRepository<Cwe> cweRepository,
+           IPackageService packageService,
+           IIndexingService indexingService)
         {
             _deprecationRepository = deprecationRepository ?? throw new ArgumentNullException(nameof(deprecationRepository));
             _cveRepository = cveRepository ?? throw new ArgumentNullException(nameof(cveRepository));
             _cweRepository = cweRepository ?? throw new ArgumentNullException(nameof(cweRepository));
+            _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
+            _indexingService = indexingService ?? throw new ArgumentNullException(nameof(indexingService));
         }
 
         public async Task UpdateDeprecation(
@@ -101,8 +107,7 @@ namespace NuGetGallery
 
                     if (shouldUnlist)
                     {
-                        package.Listed = false;
-                        package.LastEdited = DateTime.UtcNow;
+                        await _packageService.MarkPackageUnlistedAsync(package, false);
                     }
                 }
             }
@@ -117,6 +122,11 @@ namespace NuGetGallery
             }
 
             await _deprecationRepository.CommitChangesAsync();
+
+            foreach (var package in packages)
+            {
+                _indexingService.UpdatePackage(package);
+            }
         }
 
         public async Task<IReadOnlyCollection<Cve>> GetOrCreateCvesByIdAsync(IEnumerable<string> ids, bool commitChanges)
