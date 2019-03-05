@@ -110,6 +110,7 @@ namespace NuGetGallery
         private readonly ICoreLicenseFileService _coreLicenseFileService;
         private readonly ILicenseExpressionSplitter _licenseExpressionSplitter;
         private readonly IFeatureFlagService _featureFlagService;
+        private readonly IPackageDeprecationService _deprecationService;
 
         public PackagesController(
             IPackageService packageService,
@@ -137,7 +138,8 @@ namespace NuGetGallery
             IDiagnosticsService diagnosticsService,
             ICoreLicenseFileService coreLicenseFileService,
             ILicenseExpressionSplitter licenseExpressionSplitter,
-            IFeatureFlagService featureFlagService)
+            IFeatureFlagService featureFlagService,
+            IPackageDeprecationService deprecationService)
         {
             _packageService = packageService;
             _uploadFileService = uploadFileService;
@@ -165,6 +167,7 @@ namespace NuGetGallery
             _coreLicenseFileService = coreLicenseFileService ?? throw new ArgumentNullException(nameof(coreLicenseFileService));
             _licenseExpressionSplitter = licenseExpressionSplitter ?? throw new ArgumentNullException(nameof(licenseExpressionSplitter));
             _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
+            _deprecationService = deprecationService ?? throw new ArgumentNullException(nameof(deprecationService));
         }
 
         [HttpGet]
@@ -737,7 +740,8 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            var model = new DisplayPackageViewModel(package, currentUser);
+            var deprecation = _deprecationService.GetDeprecationByPackage(package);
+            var model = new DisplayPackageViewModel(package, currentUser, deprecation);
 
             model.ValidatingTooLong = _validationService.IsValidatingTooLong(package);
             model.PackageValidationIssues = _validationService.GetLatestPackageValidationIssues(package);
@@ -1493,9 +1497,25 @@ namespace NuGetGallery
         [RequiresAccountConfirmation("delete a symbols package")]
         public virtual ActionResult DeleteSymbols(string id, string version)
         {
-            var package = _packageService.FindPackageByIdAndVersion(id, version, SemVerLevelKey.SemVer2);
+            Package package = null;
+
+            // Load all versions of the package.
+            var packages = _packageService.FindPackagesById(id);
+            if (version != null)
+            {
+                // Try to find the exact version if it was specified.
+                package = packages.SingleOrDefault(p => p.NormalizedVersion == NuGetVersionFormatter.Normalize(version));
+            }
+
             if (package == null)
             {
+                // If the exact version was not found, fall back to the latest version.
+                package = _packageService.FilterLatestPackage(packages, SemVerLevelKey.SemVer2, allowPrerelease: true);
+            }
+
+            if (package == null)
+            {
+                // If the package has no versions, return not found.
                 return HttpNotFound();
             }
 
@@ -1507,26 +1527,19 @@ namespace NuGetGallery
 
             var model = new DeletePackageViewModel(package, currentUser, DeleteReasons);
 
-            // Fetch all the available symbols package for all the versions from the 
-            // database since the DisplayPackageViewModel(base class for DeletePackageViewModel) does not
-            // set the `LatestSymbolsPackage` data on the model(since it is an unnecessary and expensive db
-            // query). It is fine to do this here when invoking delete page. Note: this could also potentially 
-            // cause unbounded(high number) db calls based on the number of versions associated with a package.
-            var packageViewModelsForAllAvailableSymbolsPackage = package
-                .PackageRegistration
-                .Packages
+            // Fetch all versions of the package with symbols.
+            var versionsWithSymbols = packages
                 .Where(p => p.PackageStatusKey != PackageStatus.Deleted)
-                .Select(p => p.LatestSymbolPackage())
-                .Where(sp => sp != null && sp.StatusKey == PackageStatus.Available)
-                .Select(sp => new PackageViewModel(sp.Package));
+                .Where(p => (p.LatestSymbolPackage()?.StatusKey ?? PackageStatus.Deleted) == PackageStatus.Available)
+                .OrderByDescending(p => new NuGetVersion(p.Version));
 
-            model.VersionSelectList = new SelectList(
-                packageViewModelsForAllAvailableSymbolsPackage
-                .Select(pvm => new
+            model.VersionSelectList = versionsWithSymbols
+                .Select(versionWithSymbols => new SelectListItem
                 {
-                    text = pvm.NuGetVersion.ToFullString() + (pvm.LatestVersionSemVer2 ? " (Latest)" : string.Empty),
-                    url = Url.DeleteSymbolsPackage(pvm)
-                }), "url", "text", Url.DeleteSymbolsPackage(model));
+                    Text = PackageHelper.GetSelectListText(versionWithSymbols),
+                    Value = Url.DeleteSymbolsPackage(new TrivialPackageVersionModel(versionWithSymbols)),
+                    Selected = package == versionWithSymbols
+                });
 
             return View(model);
         }

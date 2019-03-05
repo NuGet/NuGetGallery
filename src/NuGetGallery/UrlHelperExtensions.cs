@@ -1019,13 +1019,41 @@ namespace NuGetGallery
             return GetActionLink(url, "RemovePackageOwner", "JsonApi", relativeUrl);
         }
 
+        public static string GetDeprecationCveIds(
+            this UrlHelper url,
+            bool relativeUrl = true)
+        {
+            return url.GetDeprecationAction(
+                ActionName.GetCveIds,
+                relativeUrl);
+        }
+
+        public static string GetDeprecationCweIds(
+            this UrlHelper url,
+            bool relativeUrl = true)
+        {
+            return url.GetDeprecationAction(
+                ActionName.GetCweIds,
+                relativeUrl);
+        }
+
         public static string GetDeprecationAlternatePackageVersions(
             this UrlHelper url,
             bool relativeUrl = true)
         {
+            return url.GetDeprecationAction(
+                nameof(ManageDeprecationJsonApiController.GetAlternatePackageVersions), 
+                relativeUrl);
+        }
+
+        public static string GetDeprecationAction(
+            this UrlHelper url,
+            string actionName,
+            bool relativeUrl = true)
+        {
             return GetActionLink(
                 url,
-                nameof(ManageDeprecationJsonApiController.GetAlternatePackageVersions),
+                actionName,
                 "ManageDeprecationJsonApi",
                 relativeUrl);
         }

@@ -123,6 +123,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ActionName.cs" />
     <Compile Include="App_Start\NuGetODataV2CuratedFeedConfig.cs" />
     <Compile Include="App_Start\NuGetODataV2FeedConfig.cs" />
     <Compile Include="App_Start\NuGetODataV1FeedConfig.cs" />
@@ -223,6 +224,10 @@
     <Compile Include="Authentication\Providers\AzureActiveDirectory\AzureActiveDirectoryAuthenticator.cs" />
     <Compile Include="Authentication\Providers\AzureActiveDirectory\AzureActiveDirectoryAuthenticatorConfiguration.cs" />
     <Compile Include="Controllers\ManageDeprecationJsonApiController.cs" />
+    <Compile Include="Migrations\201903020136235_CvesCanBeEmpty.cs" />
+    <Compile Include="Migrations\201903020136235_CvesCanBeEmpty.Designer.cs">
+      <DependentUpon>201903020136235_CvesCanBeEmpty.cs</DependentUpon>
+    </Compile>
     <Compile Include="Queries\AutocompleteCveIdQueryResults.cs" />
     <Compile Include="Queries\AutocompleteCweIdQueryResults.cs" />
     <Compile Include="Queries\AutocompleteCveIdQueryResult.cs" />
@@ -1701,6 +1706,9 @@
     <EmbeddedResource Include="Migrations\201902061444243_AddVulnerabilityEntities.resx">
       <DependentUpon>201902061444243_AddVulnerabilityEntities.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201903020136235_CvesCanBeEmpty.resx">
+      <DependentUpon>201903020136235_CvesCanBeEmpty.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv2getupdates.json" />
@@ -1923,6 +1931,7 @@
     <Content Include="Views\Packages\License.cshtml" />
     <Content Include="Views\Packages\_ManageDeprecation.cshtml" />
     <Content Include="Views\Shared\_MultiSelectDropdown.cshtml" />
+    <Content Include="Views\Packages\_DisplayPackageDeprecation.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />

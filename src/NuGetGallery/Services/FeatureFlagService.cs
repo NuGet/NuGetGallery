@@ -55,7 +55,7 @@ namespace NuGetGallery
 
         public bool IsSearchCircuitBreakerEnabled()
         {
-            return _client.IsEnabled(PackagesAtomFeedFeatureName, defaultValue: false);
+            return _client.IsEnabled(SearchCircuitBreakerFeatureName, defaultValue: false);
         }
     }
 }

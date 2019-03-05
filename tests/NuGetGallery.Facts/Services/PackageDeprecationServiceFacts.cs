@@ -77,8 +77,10 @@ namespace NuGetGallery.Services
                         false));
             }
 
-            [Fact]
-            public async Task DeletesExistingDeprecationsIfStatusNotDeprecated()
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public async Task DeletesExistingDeprecationsIfStatusNotDeprecated(bool shouldUnlist)
             {
                 // Arrange
                 var packageWithDeprecation1 = new Package
@@ -114,6 +116,20 @@ namespace NuGetGallery.Services
                     .Completes()
                     .Verifiable();
 
+                var packageService = GetMock<IPackageService>();
+                var indexingService = GetMock<IIndexingService>();
+                foreach (var package in packages)
+                {
+                    // When deleting deprecations, packages should not be unlisted because the option is hidden in the UI.
+                    packageService
+                        .Setup(x => x.MarkPackageUnlistedAsync(package, false))
+                        .Throws<InvalidOperationException>();
+
+                    indexingService
+                        .Setup(x => x.UpdatePackage(package))
+                        .Verifiable();
+                }
+
                 var service = Get<PackageDeprecationService>();
 
                 // Act
@@ -126,10 +142,11 @@ namespace NuGetGallery.Services
                     null,
                     null,
                     null,
-                    false);
+                    shouldUnlist);
 
                 // Assert
                 deprecationRepository.Verify();
+                indexingService.Verify();
 
                 foreach (var package in packages)
                 {
@@ -143,22 +160,27 @@ namespace NuGetGallery.Services
             public async Task ReplacesExistingDeprecations(bool shouldUnlist)
             {
                 // Arrange
-                var unlistedPackageWithoutDeprecation = new Package();
+                var lastEdited = new DateTime(2019, 3, 4);
+
+                var unlistedPackageWithoutDeprecation = new Package
+                {
+                    LastEdited = lastEdited
+                };
 
                 var packageWithDeprecation1 = new Package
                 {
-                    Listed = true,
-                    Deprecations = new List<PackageDeprecation> { new PackageDeprecation() }
+                    Deprecations = new List<PackageDeprecation> { new PackageDeprecation() },
+                    LastEdited = lastEdited
                 };
 
                 var packageWithoutDeprecation1 = new Package
                 {
-                    Listed = true,
+                    LastEdited = lastEdited
                 };
 
                 var packageWithDeprecation2 = new Package
                 {
-                    Listed = true,
+                    LastEdited = lastEdited,
                     Deprecations = new List<PackageDeprecation>
                     {
                         new PackageDeprecation
@@ -176,12 +198,12 @@ namespace NuGetGallery.Services
 
                 var packageWithoutDeprecation2 = new Package
                 {
-                    Listed = true,
+                    LastEdited = lastEdited
                 };
 
                 var packageWithDeprecation3 = new Package
                 {
-                    Listed = true,
+                    LastEdited = lastEdited,
                     Deprecations = new List<PackageDeprecation>
                     {
                         new PackageDeprecation
@@ -220,6 +242,30 @@ namespace NuGetGallery.Services
                     .Setup(x => x.CommitChangesAsync())
                     .Completes()
                     .Verifiable();
+
+                var packageService = GetMock<IPackageService>();
+                var indexingService = GetMock<IIndexingService>();
+                foreach (var package in packages)
+                {
+                    var unlistPackageSetup = packageService
+                        .Setup(x => x.MarkPackageUnlistedAsync(package, false));
+
+                    if (shouldUnlist)
+                    {
+                        unlistPackageSetup
+                            .Completes()
+                            .Verifiable();
+                    }
+                    else
+                    {
+                        unlistPackageSetup
+                            .Throws<InvalidOperationException>();
+                    }
+
+                    indexingService
+                        .Setup(x => x.UpdatePackage(package))
+                        .Verifiable();
+                }
 
                 var service = Get<PackageDeprecationService>();
 
@@ -272,6 +318,8 @@ namespace NuGetGallery.Services
 
                 // Assert
                 deprecationRepository.Verify();
+                packageService.Verify();
+                indexingService.Verify();
 
                 foreach (var package in packages)
                 {
@@ -283,31 +331,27 @@ namespace NuGetGallery.Services
                     Assert.Equal(alternatePackageRegistration, deprecation.AlternatePackageRegistration);
                     Assert.Equal(alternatePackage, deprecation.AlternatePackage);
                     Assert.Equal(customMessage, deprecation.CustomMessage);
-                    
-                    if (shouldUnlist)
-                    {
-                        Assert.False(package.Listed);
-                    }
-                    else if (package != unlistedPackageWithoutDeprecation)
-                    {
-                        Assert.True(package.Listed);
-                    }
                 }
             }
         }
 
         public class TheGetCvesByIdMethod : TestContainer
         {
-            [Fact]
-            public void ThrowsIfNullIdList()
+            public static IEnumerable<object[]> CommitChanges_Data => 
+                MemberDataHelper.BooleanDataSet();
+
+            [Theory]
+            [MemberData(nameof(CommitChanges_Data))]
+            public Task ThrowsIfNullIdList(bool commitChanges)
             {
                 var service = Get<PackageDeprecationService>();
 
-                Assert.Throws<ArgumentNullException>(() => service.GetCvesById(null));
+                return Assert.ThrowsAsync<ArgumentNullException>(() => service.GetOrCreateCvesByIdAsync(null, commitChanges));
             }
 
-            [Fact]
-            public void ReturnsCvesWithMatchingIds()
+            [Theory]
+            [MemberData(nameof(CommitChanges_Data))]
+            public async Task ReturnsExistingAndCreatedCves(bool commitChanges)
             {
                 // Arrange
                 var matchingCve1 = new Cve
@@ -339,13 +383,25 @@ namespace NuGetGallery.Services
 
                 var service = Get<PackageDeprecationService>();
 
-                var matchingCves = new[] { matchingCve1, matchingCve2 };
+                var missingCveId = "cve-5";
+                var queriedCveIds = new[] { matchingCve1.CveId, matchingCve2.CveId, missingCveId };
 
                 // Act
-                var result = service.GetCvesById(matchingCves.Select(c => c.CveId));
+                var result = await service.GetOrCreateCvesByIdAsync(queriedCveIds, commitChanges);
 
                 // Assert
-                Assert.Equal(matchingCves, result);
+                Assert.Equal(3, result.Count);
+                Assert.Contains(matchingCve1, result);
+                Assert.Contains(matchingCve2, result);
+
+                var createdCve = result.Last();
+                Assert.Equal(missingCveId, createdCve.CveId);
+                Assert.False(createdCve.Listed);
+                Assert.Equal(CveStatus.Unknown, createdCve.Status);
+                Assert.Null(createdCve.Description);
+                Assert.Null(createdCve.CvssRating);
+                Assert.Null(createdCve.LastModifiedDate);
+                Assert.Null(createdCve.PublishedDate);
             }
         }
 
@@ -360,7 +416,7 @@ namespace NuGetGallery.Services
             }
 
             [Fact]
-            public void ReturnsCwesWithMatchingIds()
+            public void ReturnsExistingAndCreatedCwes()
             {
                 // Arrange
                 var matchingCwe1 = new Cwe
@@ -392,13 +448,129 @@ namespace NuGetGallery.Services
 
                 var service = Get<PackageDeprecationService>();
 
-                var matchingCwes = new[] { matchingCwe1, matchingCwe2 };
+                var queriedCweIds = new[] { matchingCwe1.CweId, matchingCwe2.CweId };
 
                 // Act
-                var result = service.GetCwesById(matchingCwes.Select(c => c.CweId));
+                var result = service.GetCwesById(queriedCweIds);
 
                 // Assert
-                Assert.Equal(matchingCwes, result);
+                Assert.Equal(2, result.Count);
+                Assert.Contains(matchingCwe1, result);
+                Assert.Contains(matchingCwe2, result);
+            }
+
+            [Fact]
+            public void ThrowsIfNoCweExistsForId()
+            {
+                // Arrange
+                var matchingCwe1 = new Cwe
+                {
+                    CweId = "cve-1"
+                };
+
+                var notMatchingCwe1 = new Cwe
+                {
+                    CweId = "cve-2"
+                };
+
+                var matchingCwe2 = new Cwe
+                {
+                    CweId = "cve-3"
+                };
+
+                var notMatchingCwe2 = new Cwe
+                {
+                    CweId = "cve-4"
+                };
+
+                var cwes = new[] { matchingCwe1, notMatchingCwe1, matchingCwe2, notMatchingCwe2 };
+                var repository = GetMock<IEntityRepository<Cwe>>();
+                repository
+                    .Setup(x => x.GetAll())
+                    .Returns(cwes.AsQueryable())
+                    .Verifiable();
+
+                var service = Get<PackageDeprecationService>();
+
+                var missingCweId = "cwe-5";
+                var queriedCweIds = new[] { matchingCwe1.CweId, matchingCwe2.CweId, missingCweId };
+
+                // Act
+                Assert.Throws<ArgumentException>(() => service.GetCwesById(queriedCweIds));
+            }
+        }
+
+        public class TheGetDeprecationByPackageMethod : TestContainer
+        {
+            [Fact]
+            public void GetsDeprecationOfPackage()
+            {
+                // Arrange
+                var key = 190304;
+                var package = new Package
+                {
+                    Key = key
+                };
+
+                var differentDeprecation = new PackageDeprecation
+                {
+                    PackageKey = 9925
+                };
+
+                var matchingDeprecation = new PackageDeprecation
+                {
+                    PackageKey = key
+                };
+
+                var repository = GetMock<IEntityRepository<PackageDeprecation>>();
+                repository
+                    .Setup(x => x.GetAll())
+                    .Returns(new[] 
+                    {
+                        differentDeprecation,
+                        matchingDeprecation
+                    }.AsQueryable());
+
+                // Act
+                var deprecation = Get<PackageDeprecationService>()
+                    .GetDeprecationByPackage(package);
+
+                // Assert
+                Assert.Equal(matchingDeprecation, deprecation);
+            }
+
+            [Fact]
+            public void ThrowsIfMultipleDeprecationsOfPackage()
+            {
+                // Arrange
+                var key = 190304;
+                var package = new Package
+                {
+                    Key = key
+                };
+
+                var matchingDeprecation1 = new PackageDeprecation
+                {
+                    PackageKey = key
+                };
+
+                var matchingDeprecation2 = new PackageDeprecation
+                {
+                    PackageKey = key
+                };
+
+                var repository = GetMock<IEntityRepository<PackageDeprecation>>();
+                repository
+                    .Setup(x => x.GetAll())
+                    .Returns(new[]
+                    {
+                        matchingDeprecation1,
+                        matchingDeprecation2
+                    }.AsQueryable());
+
+                // Act / Assert
+                Assert.Throws<InvalidOperationException>(
+                    () => Get<PackageDeprecationService>().GetDeprecationByPackage(package));
             }
         }
     }

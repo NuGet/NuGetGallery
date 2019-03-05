@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
 using NuGet.Services.Entities;
@@ -14,15 +15,21 @@ namespace NuGetGallery
         private readonly IEntityRepository<PackageDeprecation> _deprecationRepository;
         private readonly IEntityRepository<Cve> _cveRepository;
         private readonly IEntityRepository<Cwe> _cweRepository;
+        private readonly IPackageService _packageService;
+        private readonly IIndexingService _indexingService;
 
         public PackageDeprecationService(
            IEntityRepository<PackageDeprecation> deprecationRepository,
            IEntityRepository<Cve> cveRepository,
-           IEntityRepository<Cwe> cweRepository)
+           IEntityRepository<Cwe> cweRepository,
+           IPackageService packageService,
+           IIndexingService indexingService)
         {
             _deprecationRepository = deprecationRepository ?? throw new ArgumentNullException(nameof(deprecationRepository));
             _cveRepository = cveRepository ?? throw new ArgumentNullException(nameof(cveRepository));
             _cweRepository = cweRepository ?? throw new ArgumentNullException(nameof(cweRepository));
+            _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
+            _indexingService = indexingService ?? throw new ArgumentNullException(nameof(indexingService));
         }
 
         public async Task UpdateDeprecation(
@@ -100,7 +107,7 @@ namespace NuGetGallery
 
                     if (shouldUnlist)
                     {
-                        package.Listed = false;
+                        await _packageService.MarkPackageUnlistedAsync(package, commitChanges: false);
                     }
                 }
             }
@@ -115,18 +122,48 @@ namespace NuGetGallery
             }
 
             await _deprecationRepository.CommitChangesAsync();
+
+            // Update the indexing of the packages we updated the deprecation information of.
+            foreach (var package in packages)
+            {
+                _indexingService.UpdatePackage(package);
+            }
         }
 
-        public IReadOnlyCollection<Cve> GetCvesById(IEnumerable<string> ids)
+        public async Task<IReadOnlyCollection<Cve>> GetOrCreateCvesByIdAsync(IEnumerable<string> ids, bool commitChanges)
         {
             if (ids == null)
             {
                 throw new ArgumentNullException(nameof(ids));
             }
 
-            return _cveRepository.GetAll()
+            var details = _cveRepository.GetAll()
                .Where(c => ids.Contains(c.CveId))
                .ToList();
+
+            var addedDetails = new List<Cve>();
+            foreach (var missingId in ids.Where(i => !details.Any(c => c.CveId == i)))
+            {
+                var detail = new Cve
+                {
+                    CveId = missingId,
+                    Listed = false,
+                    Status = CveStatus.Unknown
+                };
+                addedDetails.Add(detail);
+                details.Add(detail);
+            }
+
+            if (addedDetails.Any())
+            {
+                _cveRepository.InsertOnCommit(addedDetails);
+                if (commitChanges)
+                {
+                    await _cveRepository.CommitChangesAsync();
+                }
+            }
+
+            return details;
         }
 
         public IReadOnlyCollection<Cwe> GetCwesById(IEnumerable<string> ids)
@@ -136,9 +173,26 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(ids));
             }
 
-            return _cweRepository.GetAll()
+            var cwes = _cweRepository.GetAll()
                .Where(c => ids.Contains(c.CweId))
                .ToList();
+
+            if (ids.Any(i => !cwes.Any(c => i == c.CweId)))
+            {
+                throw new ArgumentException("Some IDs do not have a CWE associated with them!", nameof(ids));
+            }
+
+            return cwes;
+        }
+
+        public PackageDeprecation GetDeprecationByPackage(Package package)
+        {
+            return _deprecationRepository.GetAll()
+                .Include(d => d.Cves)
+                .Include(d => d.Cwes)
+                .Include(d => d.AlternatePackage.PackageRegistration)
+                .Include(d => d.AlternatePackageRegistration)
+                .SingleOrDefault(d => d.PackageKey == package.Key);
         }
     }
 }
