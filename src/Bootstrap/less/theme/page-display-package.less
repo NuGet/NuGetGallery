@@ -24,24 +24,30 @@
       display: flex;
       justify-content: space-between;
       vertical-align: middle;
+      width: 100%;
 
-      .deprecation-expander-icon-container {
+      .deprecation-expander-container {
         display: flex;
-        align-items: center;
-        
+
         .deprecation-expander-icon {
           position: unset;
           top: unset;
         }
-      }
+  
+        .deprecation-expander-info-right {
+          padding-left: 15px;
+        }
 
-      .deprecation-expander-info-right {
-        padding-left: 15px;
+        .deprecation-expander-severity-rating {
+          margin-left: 5px;
+        }
       }
     }
 
     .deprecation-content-container {
       margin-top: 15px;
+      padding-top: 15px;
+      border-top: 1px solid lightgray;
 
       p {
         margin-top: 5px;
