@@ -1193,6 +1193,9 @@ img.reserved-indicator-icon {
   width: 65px;
   margin-right: 15px;
 }
+.page-manage-deprecation .deprecation-section .deprecation-subsection .security-detail .security-detail-input .cvss-bold {
+  font-weight: bold;
+}
 .page-manage-deprecation .deprecation-section .deprecation-subsection .security-detail .security-detail-list-item {
   padding: 10px;
 }
