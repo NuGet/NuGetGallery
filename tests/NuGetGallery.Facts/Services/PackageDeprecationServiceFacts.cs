@@ -143,22 +143,31 @@ namespace NuGetGallery.Services
             public async Task ReplacesExistingDeprecations(bool shouldUnlist)
             {
                 // Arrange
-                var unlistedPackageWithoutDeprecation = new Package();
+                var lastEdited = new DateTime(2019, 3, 4);
+
+                var unlistedPackageWithoutDeprecation = new Package
+                {
+                    Listed = false,
+                    LastEdited = lastEdited
+                };
 
                 var packageWithDeprecation1 = new Package
                 {
                     Listed = true,
-                    Deprecations = new List<PackageDeprecation> { new PackageDeprecation() }
+                    Deprecations = new List<PackageDeprecation> { new PackageDeprecation() },
+                    LastEdited = lastEdited
                 };
 
                 var packageWithoutDeprecation1 = new Package
                 {
                     Listed = true,
+                    LastEdited = lastEdited
                 };
 
                 var packageWithDeprecation2 = new Package
                 {
                     Listed = true,
+                    LastEdited = lastEdited,
                     Deprecations = new List<PackageDeprecation>
                     {
                         new PackageDeprecation
@@ -177,11 +186,13 @@ namespace NuGetGallery.Services
                 var packageWithoutDeprecation2 = new Package
                 {
                     Listed = true,
+                    LastEdited = lastEdited
                 };
 
                 var packageWithDeprecation3 = new Package
                 {
                     Listed = true,
+                    LastEdited = lastEdited,
                     Deprecations = new List<PackageDeprecation>
                     {
                         new PackageDeprecation
@@ -287,10 +298,12 @@ namespace NuGetGallery.Services
                     if (shouldUnlist)
                     {
                         Assert.False(package.Listed);
+                        Assert.True(package.LastEdited > lastEdited);
                     }
-                    else if (package != unlistedPackageWithoutDeprecation)
+                    else 
                     {
-                        Assert.True(package.Listed);
+                        Assert.Equal(package != unlistedPackageWithoutDeprecation, package.Listed);
+                        Assert.Equal(lastEdited, package.LastEdited);
                     }
                 }
             }
