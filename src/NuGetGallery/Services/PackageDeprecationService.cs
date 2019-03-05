@@ -102,6 +102,7 @@ namespace NuGetGallery
                     if (shouldUnlist)
                     {
                         package.Listed = false;
+                        package.LastEdited = DateTime.UtcNow;
                     }
                 }
             }
