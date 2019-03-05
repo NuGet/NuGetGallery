@@ -45,16 +45,12 @@
                                 if (isVulnerable)
                                 {
                                     @:This package has been deprecated due to <b>vulnerabilities</b>.
+                                    <br />
+                                    @:This package is also <b>legacy</b> and is no longer maintained.
                                 }
-
-                                if (isLegacy)
+                                else if (isLegacy)
                                 {
-                                    if (isVulnerable)
-                                    {
-                                        <br />
-                                    }
-
-                                    @:This package has been deprecated because it is <b>no longer maintained</b>.
+                                    @:This package has been deprecated because it is <b>legacy</b> and is no longer maintained.
                                 }
                             }
                             else
