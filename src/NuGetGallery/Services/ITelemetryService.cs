@@ -272,20 +272,24 @@ namespace NuGetGallery
         /// <param name="searchName">A name to identify the search instance.</param>
         /// <param name="exception">The exception if any.</param>
         /// <param name="responseMessage">The response message.</param>
-        void TrackMetricForSearchCircuitBreakerOnBreak(string searchName, Exception exception, HttpResponseMessage responseMessage);
+        /// <param name="correlationId">CorrelationId set by Polly context.</param>
+        void TrackMetricForSearchCircuitBreakerOnBreak(string searchName, Exception exception, HttpResponseMessage responseMessage, string correlationId, string uri);
 
         /// <summary>
         /// Tracks the OnReset for the search circuit breaker.
         /// </summary>
         /// <param name="searchName">A name to identify the search instance.</param>
-        void TrackMetricForSearchCircuitBreakerOnReset(string searchName);
+        /// <param name="correlationId">CorrelationId set by Polly context.</param>
+        void TrackMetricForSearchCircuitBreakerOnReset(string searchName, string correlationId, string uri);
 
         /// <summary>
         /// Tracks the OnRetry for the search retry policy.
         /// </summary>
         /// <param name="searchName">A name to identify the search instance.</param>
         /// <param name="exception">The exception.</param>
+        /// <param name="correlationId">CorrelationId set by Polly context.</param>
+        /// <param name="circuitBreakerStatus">The CircuitBreakerStatus at the time of the Retry action.</param>
         /// <param name=""></param>
-        void TrackMetricForSearchOnRetry(string searchName, Exception exception);
+        void TrackMetricForSearchOnRetry(string searchName, Exception exception, string correlationId, string uri, string circuitBreakerStatus);
     }
 }

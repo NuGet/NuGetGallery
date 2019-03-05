@@ -4,6 +4,7 @@
 using System;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Polly;
 
 namespace NuGetGallery.Infrastructure
 {
@@ -20,7 +21,14 @@ namespace NuGetGallery.Infrastructure
 
         public Task<HttpResponseMessage> GetAsync(Uri uri)
         {
-            return _httpClient.GetAsync(uri);
+            // Add the request Uri to the  Polly contex to be used for logging.
+            // https://docs.microsoft.com/en-us/dotnet/api/polly.httprequestmessageextensions.setpolicyexecutioncontext?view=aspnetcore-2.2
+            // http://www.thepollyproject.org/2017/05/04/putting-the-context-into-polly/ 
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, uri);
+            var context = new Context();
+            context.Add("RequestUri", uri.AbsoluteUri);
+            request.SetPolicyExecutionContext(context);
+            return _httpClient.SendAsync(request);
         }
     }
 }
