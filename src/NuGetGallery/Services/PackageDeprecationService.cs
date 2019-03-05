@@ -123,6 +123,7 @@ namespace NuGetGallery
 
             await _deprecationRepository.CommitChangesAsync();
 
+            // Update the indexing of the packages we updated the deprecation information of.
             foreach (var package in packages)
             {
                 _indexingService.UpdatePackage(package);
