@@ -33,8 +33,7 @@ namespace NuGetGallery.Services
                         new Cwe[0],
                         null,
                         null,
-                        null,
-                        false));
+                        null));
             }
 
             [Fact]
@@ -53,8 +52,7 @@ namespace NuGetGallery.Services
                         new Cwe[0],
                         null,
                         null,
-                        null,
-                        false));
+                        null));
             }
 
             [Fact]
@@ -73,14 +71,11 @@ namespace NuGetGallery.Services
                         null,
                         null,
                         null,
-                        null,
-                        false));
+                        null));
             }
 
-            [Theory]
-            [InlineData(false)]
-            [InlineData(true)]
-            public async Task DeletesExistingDeprecationsIfStatusNotDeprecated(bool shouldUnlist)
+            [Fact]
+            public async Task DeletesExistingDeprecationsIfStatusNotDeprecated()
             {
                 // Arrange
                 var packageWithDeprecation1 = new Package
@@ -116,20 +111,6 @@ namespace NuGetGallery.Services
                     .Completes()
                     .Verifiable();
 
-                var packageService = GetMock<IPackageService>();
-                var indexingService = GetMock<IIndexingService>();
-                foreach (var package in packages)
-                {
-                    // When deleting deprecations, packages should not be unlisted because the option is hidden in the UI.
-                    packageService
-                        .Setup(x => x.MarkPackageUnlistedAsync(package, false))
-                        .Throws<InvalidOperationException>();
-
-                    indexingService
-                        .Setup(x => x.UpdatePackage(package))
-                        .Verifiable();
-                }
-
                 var service = Get<PackageDeprecationService>();
 
                 // Act
@@ -141,12 +122,10 @@ namespace NuGetGallery.Services
                     new Cwe[0],
                     null,
                     null,
-                    null,
-                    shouldUnlist);
+                    null);
 
                 // Assert
                 deprecationRepository.Verify();
-                indexingService.Verify();
 
                 foreach (var package in packages)
                 {
@@ -161,11 +140,6 @@ namespace NuGetGallery.Services
             {
                 // Arrange
                 var lastEdited = new DateTime(2019, 3, 4);
-
-                var unlistedPackageWithoutDeprecation = new Package
-                {
-                    LastEdited = lastEdited
-                };
 
                 var packageWithDeprecation1 = new Package
                 {
@@ -221,7 +195,6 @@ namespace NuGetGallery.Services
 
                 var packages = new[]
                 {
-                    unlistedPackageWithoutDeprecation,
                     packageWithDeprecation1,
                     packageWithoutDeprecation1,
                     packageWithDeprecation2,
@@ -242,30 +215,6 @@ namespace NuGetGallery.Services
                     .Setup(x => x.CommitChangesAsync())
                     .Completes()
                     .Verifiable();
-
-                var packageService = GetMock<IPackageService>();
-                var indexingService = GetMock<IIndexingService>();
-                foreach (var package in packages)
-                {
-                    var unlistPackageSetup = packageService
-                        .Setup(x => x.MarkPackageUnlistedAsync(package, false));
-
-                    if (shouldUnlist)
-                    {
-                        unlistPackageSetup
-                            .Completes()
-                            .Verifiable();
-                    }
-                    else
-                    {
-                        unlistPackageSetup
-                            .Throws<InvalidOperationException>();
-                    }
-
-                    indexingService
-                        .Setup(x => x.UpdatePackage(package))
-                        .Verifiable();
-                }
 
                 var service = Get<PackageDeprecationService>();
 
@@ -313,13 +262,10 @@ namespace NuGetGallery.Services
                     cwes,
                     alternatePackageRegistration,
                     alternatePackage,
-                    customMessage,
-                    shouldUnlist);
+                    customMessage);
 
                 // Assert
                 deprecationRepository.Verify();
-                packageService.Verify();
-                indexingService.Verify();
 
                 foreach (var package in packages)
                 {

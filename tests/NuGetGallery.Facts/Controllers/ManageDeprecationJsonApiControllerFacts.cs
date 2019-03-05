@@ -289,7 +289,7 @@ namespace NuGetGallery.Controllers
 
                 // Act
                 var result = await controller.Deprecate(
-                    "id", null, false, false, false, null, null, null, null, null, null, false);
+                    "id", null, false, false, false, null, null, null, null, null, null);
 
                 // Assert
                 AssertErrorResponse(controller, result, HttpStatusCode.Forbidden, Strings.DeprecatePackage_Forbidden);
@@ -317,7 +317,7 @@ namespace NuGetGallery.Controllers
 
                 // Act
                 var result = await controller.Deprecate(
-                    "id", versions, false, false, false, null, null, null, null, null, null, false);
+                    "id", versions, false, false, false, null, null, null, null, null, null);
 
                 // Assert
                 AssertErrorResponse(controller, result, HttpStatusCode.BadRequest, Strings.DeprecatePackage_NoVersions);
@@ -357,7 +357,7 @@ namespace NuGetGallery.Controllers
 
                 // Act
                 var result = await controller.Deprecate(
-                    "id", new[] { "1.0.0" }, false, false, false, new[] { "CVE-2019-1111", invalidId }, null, null, null, null, null, false);
+                    "id", new[] { "1.0.0" }, false, false, false, new[] { "CVE-2019-1111", invalidId }, null, null, null, null, null);
 
                 // Assert
                 AssertErrorResponse(
@@ -387,7 +387,7 @@ namespace NuGetGallery.Controllers
 
                 // Act
                 var result = await controller.Deprecate(
-                    "id", new[] { "1.0.0" }, false, false, false, null, null, new[] { "CWE-1", invalidId }, null, null, null, false);
+                    "id", new[] { "1.0.0" }, false, false, false, null, null, new[] { "CWE-1", invalidId }, null, null, null);
 
                 // Assert
                 AssertErrorResponse(
@@ -417,7 +417,7 @@ namespace NuGetGallery.Controllers
 
                 // Act
                 var result = await controller.Deprecate(
-                    "id", new[] { "1.0.0" }, false, false, false, null, cvss, null, null, null, null, false);
+                    "id", new[] { "1.0.0" }, false, false, false, null, cvss, null, null, null, null);
 
                 // Assert
                 AssertErrorResponse(controller, result, HttpStatusCode.BadRequest, Strings.DeprecatePackage_InvalidCvss);
@@ -449,7 +449,7 @@ namespace NuGetGallery.Controllers
 
                 // Act
                 var result = await controller.Deprecate(
-                    id, new[] { "1.0.0" }, false, false, false, null, null, null, null, null, null, false);
+                    id, new[] { "1.0.0" }, false, false, false, null, null, null, null, null, null);
 
                 // Assert
                 AssertErrorResponse(controller, result, HttpStatusCode.NotFound, string.Format(Strings.DeprecatePackage_MissingRegistration, id));
@@ -511,7 +511,7 @@ namespace NuGetGallery.Controllers
 
                 // Act
                 var result = await controller.Deprecate(
-                    id, new[] { "1.0.0" }, false, false, false, null, null, null, null, null, null, false);
+                    id, new[] { "1.0.0" }, false, false, false, null, null, null, null, null, null);
 
                 // Assert
                 AssertErrorResponse(controller, result, HttpStatusCode.Forbidden, Strings.DeprecatePackage_Forbidden);
@@ -586,7 +586,7 @@ namespace NuGetGallery.Controllers
 
                 // Act
                 var result = await controller.Deprecate(
-                    id, new[] { "1.0.0" }, false, false, false, null, null, null, null, null, null, false);
+                    id, new[] { "1.0.0" }, false, false, false, null, null, null, null, null, null);
 
                 // Assert
                 AssertErrorResponse(
@@ -640,7 +640,7 @@ namespace NuGetGallery.Controllers
 
                 // Act
                 var result = await controller.Deprecate(
-                    id, new[] { "1.0.0" }, false, false, false, null, null, null, alternatePackageId, null, null, false);
+                    id, new[] { "1.0.0" }, false, false, false, null, null, null, alternatePackageId, null, null);
 
                 // Assert
                 AssertErrorResponse(
@@ -695,7 +695,7 @@ namespace NuGetGallery.Controllers
 
                 // Act
                 var result = await controller.Deprecate(
-                    id, new[] { "1.0.0" }, false, false, false, null, null, null, alternatePackageId, alternatePackageVersion, null, false);
+                    id, new[] { "1.0.0" }, false, false, false, null, null, null, alternatePackageId, alternatePackageVersion, null);
 
                 // Assert
                 AssertErrorResponse(
@@ -744,7 +744,7 @@ namespace NuGetGallery.Controllers
 
                 // Act
                 var result = await controller.Deprecate(
-                    id, new[] { "1.0.0" }, false, false, false, null, null, null, null, null, null, false);
+                    id, new[] { "1.0.0" }, false, false, false, null, null, null, null, null, null);
 
                 // Assert
                 AssertErrorResponse(
@@ -793,7 +793,7 @@ namespace NuGetGallery.Controllers
 
                 // Act
                 var result = await controller.Deprecate(
-                    id, new[] { package.NormalizedVersion, "1.0.0" }, false, false, false, null, null, null, null, null, null, false);
+                    id, new[] { package.NormalizedVersion, "1.0.0" }, false, false, false, null, null, null, null, null, null);
 
                 // Assert
                 AssertErrorResponse(
@@ -855,7 +855,7 @@ namespace NuGetGallery.Controllers
 
                 // Act
                 var result = await controller.Deprecate(
-                    id, new[] { package.NormalizedVersion }, false, false, false, null, null, null, null, null, null, false);
+                    id, new[] { package.NormalizedVersion }, false, false, false, null, null, null, null, null, null);
 
                 // Assert
                 AssertErrorResponse(
@@ -916,7 +916,6 @@ namespace NuGetGallery.Controllers
                     Owner_Data,
                     PackageDeprecationStates_Data,
                     MemberDataHelper.EnumDataSet<ReturnsSuccessful_AlternatePackage_State>(),
-                    MemberDataHelper.BooleanDataSet(),
                     MemberDataHelper.BooleanDataSet()).ToList();
 
             [Theory]
@@ -929,8 +928,7 @@ namespace NuGetGallery.Controllers
                 bool isOther, 
                 PackageDeprecationStatus expectedStatus, 
                 ReturnsSuccessful_AlternatePackage_State alternatePackageState, 
-                bool hasAdditionalData,
-                bool shouldUnlist)
+                bool hasAdditionalData)
             {
                 // Arrange
                 var id = "id";
@@ -1029,8 +1027,7 @@ namespace NuGetGallery.Controllers
                         cwes,
                         alternatePackageState == ReturnsSuccessful_AlternatePackage_State.Registration ? alternatePackageRegistration : null,
                         alternatePackageState == ReturnsSuccessful_AlternatePackage_State.Package ? alternatePackage : null,
-                        customMessage,
-                        shouldUnlist))
+                        customMessage))
                     .Completes()
                     .Verifiable();
                     
@@ -1049,8 +1046,7 @@ namespace NuGetGallery.Controllers
                     cweIds,
                     alternatePackageId, 
                     alternatePackageVersion, 
-                    customMessage, 
-                    shouldUnlist);
+                    customMessage);
 
                 // Assert
                 AssertSuccessResponse(controller);

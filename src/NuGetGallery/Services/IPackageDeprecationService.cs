@@ -24,8 +24,7 @@ namespace NuGetGallery
             IReadOnlyCollection<Cwe> cwe,
             PackageRegistration alternatePackageRegistration,
             Package alternatePackage,
-            string customMessage,
-            bool shouldUnlist);
+            string customMessage);
 
         /// <summary>
         /// Fetches all <see cref="Cve"/>s with a <see cref="Cve.CveId"/> contained in <paramref name="ids"/>.
