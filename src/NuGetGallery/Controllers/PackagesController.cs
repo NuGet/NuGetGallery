@@ -1526,7 +1526,8 @@ namespace NuGetGallery
             // Fetch all versions of the package with symbols.
             var versionsWithSymbols = packages
                 .Where(p => p.PackageStatusKey != PackageStatus.Deleted)
-                .Where(p => (p.LatestSymbolPackage()?.StatusKey ?? PackageStatus.Deleted) == PackageStatus.Available);
+                .Where(p => (p.LatestSymbolPackage()?.StatusKey ?? PackageStatus.Deleted) == PackageStatus.Available)
+                .OrderByDescending(p => new NuGetVersion(p.Version));
 
             model.VersionSelectList = versionsWithSymbols
                 .Select(versionWithSymbols => new SelectListItem
