@@ -107,7 +107,7 @@ namespace NuGetGallery
 
                     if (shouldUnlist)
                     {
-                        await _packageService.MarkPackageUnlistedAsync(package, false);
+                        await _packageService.MarkPackageUnlistedAsync(package, commitChanges: false);
                     }
                 }
             }
