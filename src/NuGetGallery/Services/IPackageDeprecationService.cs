@@ -37,5 +37,7 @@ namespace NuGetGallery
         /// Fetches all <see cref="Cwe"/>s with a <see cref="Cwe.CweId"/> contained in <paramref name="ids"/>.
         /// </summary>
         IReadOnlyCollection<Cwe> GetCwesById(IEnumerable<string> ids);
+
+        PackageDeprecation GetDeprecationByPackage(Package package);
     }
 }

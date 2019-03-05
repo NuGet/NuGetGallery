@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
 using NuGet.Services.Entities;
@@ -170,6 +171,16 @@ namespace NuGetGallery
             }
 
             return cwes;
+        }
+
+        public PackageDeprecation GetDeprecationByPackage(Package package)
+        {
+            return _deprecationRepository.GetAll()
+                .Include(d => d.Cves)
+                .Include(d => d.Cwes)
+                .Include(d => d.AlternatePackage.PackageRegistration)
+                .Include(d => d.AlternatePackageRegistration)
+                .SingleOrDefault(d => d.PackageKey == package.Key);
         }
     }
 }

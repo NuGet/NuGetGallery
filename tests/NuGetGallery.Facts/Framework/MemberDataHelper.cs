@@ -30,6 +30,16 @@ namespace NuGetGallery.Framework
                 .Select(e => new object[] { e });
         }
 
+        public static IEnumerable<object[]> FlagEnumDataSet<TEnum>()
+        {
+            return Enumerable
+                .Range(
+                    0, 
+                    Enum.GetValues(typeof(TEnum)).Cast<int>().Max() * 2)
+                .Cast<TEnum>()
+                .Select(e => new object[] { e });
+        }
+
         public static IEnumerable<object[]> Combine(params IEnumerable<object[]>[] dataSets)
         {
             if (!dataSets.Any())

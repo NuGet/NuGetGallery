@@ -255,6 +255,11 @@
                 )
             }
 
+            @if (Model.DeprecationStatus != PackageDeprecationStatus.NotDeprecated)
+            {
+                @Html.Partial("_DisplayPackageDeprecation")
+            }
+
             @if (Model.Prerelease)
             {
                 @ViewHelpers.AlertInfo(

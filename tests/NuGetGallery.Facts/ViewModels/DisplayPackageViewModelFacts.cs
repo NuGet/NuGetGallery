@@ -57,7 +57,7 @@ namespace NuGetGallery.ViewModels
                 }
             };
 
-            var model = new DisplayPackageViewModel(package, null);
+            var model = new DisplayPackageViewModel(package, null, null);
             Assert.Equal(expectedKind, model.RepositoryType);
             Assert.Equal(expectedUrl, model.RepositoryUrl);
         }
@@ -99,7 +99,7 @@ namespace NuGetGallery.ViewModels
                 }
             };
 
-            var model = new DisplayPackageViewModel(package, null);
+            var model = new DisplayPackageViewModel(package, null, null);
             Assert.Equal(expected, model.ProjectUrl);
         }
 
@@ -127,7 +127,7 @@ namespace NuGetGallery.ViewModels
                 }
             };
 
-            var model = new DisplayPackageViewModel(package, null);
+            var model = new DisplayPackageViewModel(package, null, null);
             Assert.Equal(expected, model.LicenseUrl);
         }
 
@@ -146,7 +146,7 @@ namespace NuGetGallery.ViewModels
                 }
             };
 
-            var packageViewModel = new DisplayPackageViewModel(package, currentUser: null);
+            var packageViewModel = new DisplayPackageViewModel(package, currentUser: null, deprecation: null);
             Assert.Equal(new string[] { "l1", "l2", "l3", "l4", "l5" }, packageViewModel.LicenseNames);
         }
 
@@ -175,7 +175,7 @@ namespace NuGetGallery.ViewModels
                     new Package { Version = "1.0.10", PackageRegistration = package.PackageRegistration }
                 };
 
-            var packageVersions = new DisplayPackageViewModel(package, null)
+            var packageVersions = new DisplayPackageViewModel(package, null, null)
                 .PackageVersions.ToList();
 
             // Descending
@@ -227,7 +227,7 @@ namespace NuGetGallery.ViewModels
                 });
             }
 
-            var viewModel = new DisplayPackageViewModel(package, null);
+            var viewModel = new DisplayPackageViewModel(package, null, null);
 
             // Descending
             Assert.NotNull(viewModel.LatestSymbolsPackage);
@@ -265,7 +265,7 @@ namespace NuGetGallery.ViewModels
 
             package.SymbolPackages = symbolPackageList;
 
-            var viewModel = new DisplayPackageViewModel(package, null);
+            var viewModel = new DisplayPackageViewModel(package, null, null);
 
             Assert.Equal(symbolPackageList[0], viewModel.LatestSymbolsPackage);
         }
@@ -303,7 +303,7 @@ namespace NuGetGallery.ViewModels
                 };
 
             // Act
-            var viewModel = new DisplayPackageViewModel(package, null);
+            var viewModel = new DisplayPackageViewModel(package, null, null);
 
             // Assert
             Assert.Equal(daysSinceFirstPackageCreated, viewModel.TotalDaysSinceCreated);
@@ -332,7 +332,7 @@ namespace NuGetGallery.ViewModels
 
             package.PackageRegistration.Packages = new[] { package };
 
-            var viewModel = new DisplayPackageViewModel(package, null);
+            var viewModel = new DisplayPackageViewModel(package, null, null);
 
             // Act
             var label = viewModel.DownloadsPerDayLabel;
@@ -364,7 +364,7 @@ namespace NuGetGallery.ViewModels
 
             package.PackageRegistration.Packages = new[] { package };
 
-            var viewModel = new DisplayPackageViewModel(package, null);
+            var viewModel = new DisplayPackageViewModel(package, null, null);
 
             // Act
             var label = viewModel.DownloadsPerDayLabel;
@@ -412,7 +412,7 @@ namespace NuGetGallery.ViewModels
 
             package.PackageRegistration.Packages = new[] { package, otherPackage };
 
-            var viewModel = new DisplayPackageViewModel(package, null);
+            var viewModel = new DisplayPackageViewModel(package, null, null);
 
             // Act
             var hasNewerPrerelease = viewModel.HasNewerPrerelease;
@@ -459,7 +459,7 @@ namespace NuGetGallery.ViewModels
 
             package.PackageRegistration.Packages = new[] { package, otherPackage };
 
-            var viewModel = new DisplayPackageViewModel(package, null);
+            var viewModel = new DisplayPackageViewModel(package, null, null);
 
             // Act
             var hasNewerRelease = viewModel.HasNewerRelease;
@@ -498,7 +498,7 @@ namespace NuGetGallery.ViewModels
 
             package.PackageRegistration.Packages = new[] { package, otherPackage };
 
-            var viewModel = new DisplayPackageViewModel(package, null);
+            var viewModel = new DisplayPackageViewModel(package, null, null);
 
             // Act
             var hasNewerPrerelease = viewModel.HasNewerPrerelease;
@@ -538,7 +538,7 @@ namespace NuGetGallery.ViewModels
 
             package.PackageRegistration.Packages = new[] { package, otherPackage };
 
-            var viewModel = new DisplayPackageViewModel(package, null);
+            var viewModel = new DisplayPackageViewModel(package, null, null);
 
             // Act
             var hasNewerRelease = viewModel.HasNewerRelease;
@@ -556,7 +556,7 @@ namespace NuGetGallery.ViewModels
             var package = CreateTestPackage("1.0.0", dependencyVersion: versionSpec);
 
             // Act
-            var viewModel = new DisplayPackageViewModel(package, null);
+            var viewModel = new DisplayPackageViewModel(package, null, null);
 
             // Assert
             Assert.False(viewModel.HasSemVer2Dependency);
@@ -572,7 +572,7 @@ namespace NuGetGallery.ViewModels
             var package = CreateTestPackage("1.0.0", dependencyVersion: versionSpec);
 
             // Act
-            var viewModel = new DisplayPackageViewModel(package, null);
+            var viewModel = new DisplayPackageViewModel(package, null, null);
 
             // Assert
             Assert.True(viewModel.HasSemVer2Dependency);
@@ -588,7 +588,7 @@ namespace NuGetGallery.ViewModels
             var package = CreateTestPackage("1.0.0", dependencyVersion: versionSpec);
 
             // Act
-            var viewModel = new DisplayPackageViewModel(package, null);
+            var viewModel = new DisplayPackageViewModel(package, null, null);
 
             // Assert
             Assert.False(viewModel.HasSemVer2Dependency);
@@ -604,7 +604,7 @@ namespace NuGetGallery.ViewModels
             var package = CreateTestPackage(version);
 
             // Act
-            var viewModel = new DisplayPackageViewModel(package, null);
+            var viewModel = new DisplayPackageViewModel(package, null, null);
 
             // Assert
             Assert.False(viewModel.HasSemVer2Version);
@@ -620,7 +620,7 @@ namespace NuGetGallery.ViewModels
             var package = CreateTestPackage(version);
 
             // Act
-            var viewModel = new DisplayPackageViewModel(package, null);
+            var viewModel = new DisplayPackageViewModel(package, null, null);
 
             // Assert
             Assert.True(viewModel.HasSemVer2Version);
@@ -730,9 +730,136 @@ namespace NuGetGallery.ViewModels
             [MemberData(nameof(Data))]
             public void ReturnsExpectedUser(Package package, User currentUser, string expected)
             {
-                var model = new DisplayPackageViewModel(package, currentUser);
+                var model = new DisplayPackageViewModel(package, currentUser, null);
 
                 Assert.Equal(expected, model.PushedBy);
+            }
+        }
+
+        public static IEnumerable<object[]> DeprecationFieldsAreSetAsExpected_Data =
+            MemberDataHelper.Combine(
+                MemberDataHelper.FlagEnumDataSet<PackageDeprecationStatus>(),
+                MemberDataHelper.BooleanDataSet(),
+                MemberDataHelper.BooleanDataSet(),
+                MemberDataHelper.BooleanDataSet(),
+                MemberDataHelper.BooleanDataSet());
+
+        [Theory]
+        [MemberData(nameof(DeprecationFieldsAreSetAsExpected_Data))]
+        public void DeprecationFieldsAreSetAsExpected(
+            PackageDeprecationStatus status,
+            bool hasCves,
+            bool hasCwes,
+            bool hasAlternateRegistration,
+            bool hasAlternatePackage)
+        {
+            // Arrange
+            var deprecation = new PackageDeprecation
+            {
+                Status = status,
+                CvssRating = (decimal)5.5,
+                CustomMessage = "hello"
+            };
+
+            var cveIds = new[] { "CVE-2019-1111", "CVE-2019-2222" };
+            if (hasCves)
+            {
+                foreach (var cveId in cveIds)
+                {
+                    var cve = new Cve
+                    {
+                        CveId = cveId
+                    };
+
+                    deprecation.Cves.Add(cve);
+                }
+            }
+
+            var cweIds = new[] { "CWE-1", "CWE-2" };
+            if (hasCwes)
+            {
+                foreach (var cweId in cweIds)
+                {
+                    var cwe = new Cwe
+                    {
+                        CweId = cweId
+                    };
+
+                    deprecation.Cwes.Add(cwe);
+                }
+            }
+
+            var alternateRegistrationId = "alternateRegistrationId";
+            if (hasAlternateRegistration)
+            {
+                var registration = new PackageRegistration
+                {
+                    Id = alternateRegistrationId
+                };
+
+                deprecation.AlternatePackageRegistration = registration;
+            }
+
+            var alternatePackageRegistrationId = "alternatePackageRegistration";
+            var alternatePackageVersion = "1.0.0-alt";
+            if (hasAlternatePackage)
+            {
+                var alternatePackageRegistration = new PackageRegistration
+                {
+                    Id = alternatePackageRegistrationId
+                };
+
+                var alternatePackage = new Package
+                {
+                    Version = alternatePackageVersion,
+                    PackageRegistration = alternatePackageRegistration
+                };
+
+                deprecation.AlternatePackage = alternatePackage;
+            }
+
+            var package = CreateTestPackage("1.0.0");
+
+            // Act
+            var model = new DisplayPackageViewModel(package, null, deprecation);
+
+            // Assert
+            Assert.Equal(status, model.DeprecationStatus);
+            Assert.Equal(deprecation.CvssRating, model.CvssRating);
+            Assert.Equal(deprecation.CustomMessage, model.CustomMessage);
+
+            if (hasCves)
+            {
+                Assert.Equal(cveIds, model.CveIds);
+            }
+            else
+            {
+                Assert.Empty(model.CveIds);
+            }
+
+            if (hasCwes)
+            {
+                Assert.Equal(cweIds, model.CweIds);
+            }
+            else
+            {
+                Assert.Empty(model.CweIds);
+            }
+
+            if (hasAlternatePackage)
+            {
+                Assert.Equal(alternatePackageRegistrationId, model.AlternatePackageId);
+                Assert.Equal(alternatePackageVersion, model.AlternatePackageVersion);
+            }
+            else if (hasAlternateRegistration)
+            {
+                Assert.Equal(alternateRegistrationId, model.AlternatePackageId);
+                Assert.Null(model.AlternatePackageVersion);
+            }
+            else
+            {
+                Assert.Null(model.AlternatePackageId);
+                Assert.Null(model.AlternatePackageVersion);
             }
         }
     }
