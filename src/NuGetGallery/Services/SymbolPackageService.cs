@@ -177,15 +177,14 @@ namespace NuGetGallery
         }
 
         /// <summary>
-        /// If there are not any pdb files in the snupkg the publish action should be blocked.
+        /// If there are not any pdb files in the snupkg the publish action will be rejected.
         /// </summary>
         /// <param name="symbolPackage"></param>
         /// <returns></returns>
-        private static bool CheckForPDBFiles(PackageArchiveReader symbolPackage)
+        internal static bool CheckForPDBFiles(PackageArchiveReader symbolPackage)
         {
             return symbolPackage.GetFiles()
-                .Select( filePath => new FileInfo(filePath))
-                .Where( fileInfo => !string.IsNullOrEmpty(fileInfo.Name) && fileInfo.Extension == PDBExtension)
+                .Where(filePath => !string.IsNullOrEmpty(Path.GetFileName(filePath)) && Path.GetExtension(filePath) == PDBExtension)
                 .Any();
         }
 

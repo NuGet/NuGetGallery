@@ -169,6 +169,18 @@ namespace NuGetGallery
 
                 await service.EnsureValidAsync(packageArchiveReader);
             }
+
+            [Fact]
+            public async Task WillThrowForSnupkgFileWithoutSymbols()
+            {
+                var service = CreateService();
+                var action = CreatePopulatePackageAction(".p7s");
+
+                var validSymbolPackageStream = TestPackage.CreateTestSymbolPackageStream("theId", "1.0.42", populatePackage: action);
+                var packageArchiveReader = PackageServiceUtility.CreateArchiveReader(validSymbolPackageStream);
+
+                await Assert.ThrowsAsync<InvalidDataException>(async () => await service.EnsureValidAsync(packageArchiveReader));
+            }
         }
 
         public class TheCreateSymbolPackageMethod
