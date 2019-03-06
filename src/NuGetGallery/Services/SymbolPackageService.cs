@@ -156,7 +156,7 @@ namespace NuGetGallery
 
             if (!CheckForPDBFiles(symbolPackage))
             {
-                throw new InvalidDataException(string.Format(Strings.SymbolsPackage_InvalidFiles, PDBExtension));
+                throw new InvalidDataException(string.Format(Strings.SymbolsPackage_NoSymbols));
             }
         }
 

@@ -2060,9 +2060,9 @@ namespace NuGetGallery {
         /// <summary>
         ///   Looks up a localized string similar to The package does not contain any symbols..
         /// </summary>
-        public static string SymbolsPackage_NoPDB {
+        public static string SymbolsPackage_NoSymbols {
             get {
-                return ResourceManager.GetString("SymbolsPackage_NoPDB", resourceCulture);
+                return ResourceManager.GetString("SymbolsPackage_NoSymbols", resourceCulture);
             }
         }
         
