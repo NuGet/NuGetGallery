@@ -736,9 +736,19 @@ namespace NuGetGallery.ViewModels
             }
         }
 
+        public enum SeverityString_State
+        {
+            None,
+            Low,
+            Medium,
+            High,
+            Critical
+        }
+
         public static IEnumerable<object[]> DeprecationFieldsAreSetAsExpected_Data =
             MemberDataHelper.Combine(
                 MemberDataHelper.FlagEnumDataSet<PackageDeprecationStatus>(),
+                MemberDataHelper.EnumDataSet<SeverityString_State>(),
                 MemberDataHelper.BooleanDataSet(),
                 MemberDataHelper.BooleanDataSet(),
                 MemberDataHelper.BooleanDataSet(),
@@ -748,16 +758,39 @@ namespace NuGetGallery.ViewModels
         [MemberData(nameof(DeprecationFieldsAreSetAsExpected_Data))]
         public void DeprecationFieldsAreSetAsExpected(
             PackageDeprecationStatus status,
+            SeverityString_State severity,
             bool hasCves,
             bool hasCwes,
             bool hasAlternateRegistration,
             bool hasAlternatePackage)
         {
             // Arrange
+            decimal? cvss;
+            switch (severity)
+            {
+                case SeverityString_State.Critical:
+                    cvss = (decimal)9.5;
+                    break;
+                case SeverityString_State.High:
+                    cvss = (decimal)7.5;
+                    break;
+                case SeverityString_State.Medium:
+                    cvss = (decimal)5;
+                    break;
+                case SeverityString_State.Low:
+                    cvss = (decimal)2;
+                    break;
+                case SeverityString_State.None:
+                    cvss = null;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(severity));
+            }
+
             var deprecation = new PackageDeprecation
             {
                 Status = status,
-                CvssRating = (decimal)5.5,
+                CvssRating = cvss,
                 CustomMessage = "hello"
             };
 
@@ -825,8 +858,31 @@ namespace NuGetGallery.ViewModels
 
             // Assert
             Assert.Equal(status, model.DeprecationStatus);
-            Assert.Equal(deprecation.CvssRating, model.CvssRating);
             Assert.Equal(deprecation.CustomMessage, model.CustomMessage);
+
+            string expectedString;
+            switch (severity)
+            {
+                case SeverityString_State.Critical:
+                    expectedString = "Critical";
+                    break;
+                case SeverityString_State.High:
+                    expectedString = "High";
+                    break;
+                case SeverityString_State.Medium:
+                    expectedString = "Medium";
+                    break;
+                case SeverityString_State.Low:
+                    expectedString = "Low";
+                    break;
+                case SeverityString_State.None:
+                    expectedString = null;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(severity));
+            }
+
+            Assert.Equal(expectedString, model.Severity);
 
             if (hasCves)
             {

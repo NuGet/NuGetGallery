@@ -52,8 +52,28 @@ namespace NuGetGallery
                 DeprecationStatus = deprecation.Status;
 
                 CveIds = deprecation.Cves?.Select(c => c.CveId).ToList();
-                CvssRating = deprecation.CvssRating;
                 CweIds = deprecation.Cwes?.Select(c => c.CweId).ToList();
+
+                if (deprecation.CvssRating.HasValue)
+                {
+                    var cvssRating = deprecation.CvssRating.Value;
+                    if (cvssRating < 4)
+                    {
+                        Severity = "Low";
+                    }
+                    else if (cvssRating < 7)
+                    {
+                        Severity = "Medium";
+                    }
+                    else if (cvssRating < 9)
+                    {
+                        Severity = "High";
+                    }
+                    else
+                    {
+                        Severity = "Critical";
+                    }
+                }
 
                 AlternatePackageId = deprecation.AlternatePackageRegistration?.Id;
 
@@ -165,7 +185,7 @@ namespace NuGetGallery
 
         public PackageDeprecationStatus DeprecationStatus { get; set; }
         public IReadOnlyCollection<string> CveIds { get; set; }
-        public decimal? CvssRating { get; set; }
+        public string Severity { get; set; }
         public IReadOnlyCollection<string> CweIds { get; set; }
         public string AlternatePackageId { get; set; }
         public string AlternatePackageVersion { get; set; }

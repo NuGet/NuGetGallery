@@ -33,61 +33,41 @@
     <div class="icon-text alert alert-warning">
         <div id="show-deprecation-content-container" class="deprecation-expander" tabindex="0" data-toggle="collapse" data-target="#deprecation-content-container" aria-expanded="false" aria-controls="deprecation-content-container" aria-labelledby="deprecation-container-label">
             <div class="deprecation-expander">
-                <div class="deprecation-expander-icon-container">
+                <div class="deprecation-expander-container">
                     <i class="deprecation-expander-icon ms-Icon ms-Icon--Warning" aria-hidden="true"></i>
-                </div>
 
-                @{
-                    var isVulnerable = Model.DeprecationStatus.HasFlag(PackageDeprecationStatus.Vulnerable);
-                    var isLegacy = Model.DeprecationStatus.HasFlag(PackageDeprecationStatus.Legacy);
-                    var deprecationReasonString = string.Empty;
-                    if (isVulnerable || isLegacy)
-                    {
-                        deprecationReasonString += " because it ";
-                        if (isVulnerable)
-                        {
-                            deprecationReasonString += "has vulnerabilities";
-                        }
-
-                        if (isLegacy)
-                        {
+                    <div id="deprecation-container-label" class="deprecation-expander-info-right">
+                        @{
+                            var isVulnerable = Model.DeprecationStatus.HasFlag(PackageDeprecationStatus.Vulnerable);
+                            var isLegacy = Model.DeprecationStatus.HasFlag(PackageDeprecationStatus.Legacy);
                             if (isVulnerable)
                             {
-                                deprecationReasonString += " and ";
+                                @:This package has been deprecated due to <b>vulnerabilities</b>.
+
+                                if (isLegacy)
+                                {
+                                    <br />
+                                    @:This package is also <b>legacy</b> and is no longer maintained.
+                                }
                             }
-
-                            deprecationReasonString += "is no longer maintained by its owners";
+                            else if (isLegacy)
+                            {
+                                @:This package has been deprecated because it is <b>legacy</b> and is no longer maintained.
+                            }
+                            else
+                            {
+                                @:This package has been deprecated.
+                            }
                         }
-                    }
-                }
-                <div id="deprecation-container-label" class="deprecation-expander-info-right">This package has been deprecated@(deprecationReasonString).</div>
-            </div>
+                    </div>
+                </div>
 
-            <div class="deprecation-expander">
-                @if (Model.CvssRating.HasValue)
-                {
-                    string ratingString;
-                    if (Model.CvssRating < 4)
+                <div class="deprecation-expander-container">
+                    @if (Model.Severity != null)
                     {
-                        ratingString = "Low";
-                    }
-                    else if (Model.CvssRating < 7)
-                    {
-                        ratingString = "Medium";
-                    }
-                    else if (Model.CvssRating < 9)
-                    {
-                        ratingString = "High";
-                    }
-                    else
-                    {
-                        ratingString = "Critical";
+                        <div class="deprecation-expander-info-right deprecation-expander-container">Severity: <b class="deprecation-expander-severity-rating">@Model.Severity</b></div>
                     }
 
-                    <div class="deprecation-expander-info-right">CVSS rating: <b>@ratingString</b></div>
-                }
-
-                <div class="deprecation-expander-icon-container">
                     <i id="deprecation-expander-icon-right" class="deprecation-expander-icon deprecation-expander-info-right ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
                 </div>
             </div>

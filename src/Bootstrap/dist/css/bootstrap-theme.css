@@ -880,6 +880,7 @@ img.reserved-indicator-icon {
   display: -webkit-flex;
   display: -ms-flexbox;
   display:         flex;
+  width: 100%;
   vertical-align: middle;
 
   -webkit-box-pack: justify;
@@ -887,26 +888,26 @@ img.reserved-indicator-icon {
   -ms-flex-pack: justify;
           justify-content: space-between;
 }
-.page-package-details .deprecation-container .deprecation-expander .deprecation-expander-icon-container {
+.page-package-details .deprecation-container .deprecation-expander .deprecation-expander-container {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
   display:         flex;
-
-  -webkit-box-align: center;
-  -webkit-align-items: center;
-  -ms-flex-align: center;
-          align-items: center;
 }
-.page-package-details .deprecation-container .deprecation-expander .deprecation-expander-icon-container .deprecation-expander-icon {
+.page-package-details .deprecation-container .deprecation-expander .deprecation-expander-container .deprecation-expander-icon {
   position: unset;
   top: unset;
 }
-.page-package-details .deprecation-container .deprecation-expander .deprecation-expander-info-right {
+.page-package-details .deprecation-container .deprecation-expander .deprecation-expander-container .deprecation-expander-info-right {
   padding-left: 15px;
 }
+.page-package-details .deprecation-container .deprecation-expander .deprecation-expander-container .deprecation-expander-severity-rating {
+  margin-left: 5px;
+}
 .page-package-details .deprecation-container .deprecation-content-container {
+  padding-top: 15px;
   margin-top: 15px;
+  border-top: 1px solid lightgray;
 }
 .page-package-details .deprecation-container .deprecation-content-container p {
   margin-top: 5px;
