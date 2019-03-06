@@ -181,7 +181,7 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="symbolPackage"></param>
         /// <returns></returns>
-        internal static bool CheckForPDBFiles(PackageArchiveReader symbolPackage)
+        private static bool CheckForPDBFiles(PackageArchiveReader symbolPackage)
         {
             return symbolPackage.GetFiles()
                 .Where(filePath => !string.IsNullOrEmpty(Path.GetFileName(filePath)) && Path.GetExtension(filePath) == PDBExtension)
