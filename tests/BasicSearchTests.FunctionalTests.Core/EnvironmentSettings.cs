@@ -12,6 +12,7 @@ namespace BasicSearchTests.FunctionalTests.Core
     {
         private static string _searchServiceBaseurl;
         private static string _indexBaseUrl;
+        private static string _configurationName;
 
         /// <summary>
         /// The environment against which the (search service) test has to be run. The value would be picked from env variable.
@@ -40,14 +41,27 @@ namespace BasicSearchTests.FunctionalTests.Core
             {
                 if (string.IsNullOrEmpty(_indexBaseUrl))
                 {
-                    _indexBaseUrl = GetEnvironmentVariable("IndexBaseUrl", "https://api.int.nugettest.org/v3-index/index.json");
+                    _indexBaseUrl = GetEnvironmentVariable("IndexBaseUrl", "https://apiint.nugettest.org/v3-index/index.json");
                 }
 
                 return _indexBaseUrl;
             }
         }
 
-        private static string GetEnvironmentVariable(string key, string defaultValue)
+        public static string ConfigurationName
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_configurationName))
+                {
+                    _configurationName = GetEnvironmentVariable("ConfigurationName", required: true);
+                }
+
+                return _configurationName;
+            }
+        }
+
+        private static string GetEnvironmentVariable(string key, string defaultValue = null, bool required = false)
         {
             var envVariable = Environment.GetEnvironmentVariable(key, EnvironmentVariableTarget.User);
             if (string.IsNullOrEmpty(envVariable))
@@ -62,6 +76,11 @@ namespace BasicSearchTests.FunctionalTests.Core
 
             if (string.IsNullOrEmpty(envVariable))
             {
+                if (required)
+                {
+                    throw new InvalidOperationException($"The '{key}' environment variable must be set to run this test");
+                }
+
                 envVariable = defaultValue;
             }
 

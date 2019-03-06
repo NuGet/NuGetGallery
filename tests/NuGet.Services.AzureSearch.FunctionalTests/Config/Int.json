@@ -1,0 +1,16 @@
+﻿{
+  "TestSettings": {
+    "RunAzureSearchAnalysisTests": false,
+
+    "AzureSearchIndexName": "",
+    "AzureSearchIndexUrl": "",
+    "AzureSearchIndexAdminApiKey": ""
+  },
+
+  "KeyVault_VaultName": "",
+  "KeyVault_ClientId": "",
+  "KeyVault_CertificateThumbprint": "",
+  "KeyVault_StoreName": "",
+  "KeyVault_StoreLocation": "",
+  "KeyVault_ValidateCertificate": ""
+}

@@ -28,7 +28,7 @@ namespace BasicSearchTests.FunctionalTests.Core
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            Assert.Equal(content, "READY");
+            Assert.Equal("READY", content);
         }
 
         [Fact]
@@ -40,7 +40,7 @@ namespace BasicSearchTests.FunctionalTests.Core
 
             // Assert
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
-            Assert.Equal(content, "UNRECOGNIZED");
+            Assert.Equal("UNRECOGNIZED", content);
         }
 
         [Fact]

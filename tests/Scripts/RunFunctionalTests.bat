@@ -5,12 +5,12 @@ cd ..
 
 REM Configuration
 set config=Release
-set solutionPath="BasicSearchTests.FunctionalTests.sln"
+set solutionPath="NuGetServicesMetadata.FunctionalTests.sln"
 set exitCode=0
 
 REM Required Tools
 set msbuild="%PROGRAMFILES(X86)%\Microsoft Visual Studio\2017\Enterprise\MSBuild\15.0\Bin\msbuild"
-set xunit=".\packages\xunit.runner.console.2.1.0\tools\xunit.console.exe"
+set xunit=".\packages\xunit.runner.console.2.4.1\tools\net461\xunit.console.exe"
 set nuget="nuget.exe"
 
 REM Delete old test results
@@ -33,10 +33,13 @@ call %msbuild% "%solutionPath%" /p:Configuration="%config%" /p:Platform="Any CPU
 if not "%errorlevel%"=="0" goto failure
 
 REM Run functional tests
-set testDir="BasicSearchTests.FunctionalTests.Core\bin\%config%"
 
 echo "Running basic search functional core tests..."
-call %xunit% "%testDir%\BasicSearchTests.FunctionalTests.Core.dll" -xml functionaltests.P0.xml
+call %xunit% "BasicSearchTests.FunctionalTests.Core\bin\%config%\BasicSearchTests.FunctionalTests.Core.dll" -xml functionaltests.BasicSearchTests.xml
+if not "%errorlevel%"=="0" set exitCode=-1
+
+echo "Running Azure Search functional tests..."
+call %xunit% "NuGet.Services.AzureSearch.FunctionalTests\bin\%config%\NuGet.Services.AzureSearch.FunctionalTests.dll" -xml functionaltests.AzureSearchTests.xml
 if not "%errorlevel%"=="0" set exitCode=-1
 
 exit /B %exitCode%

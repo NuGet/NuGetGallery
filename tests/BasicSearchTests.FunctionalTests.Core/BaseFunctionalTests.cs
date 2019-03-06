@@ -8,22 +8,33 @@ using System.Net;
 
 namespace BasicSearchTests.FunctionalTests.Core
 {
-    public class BaseFunctionalTests
+    public class BaseFunctionalTests : IDisposable
     {
         protected HttpClient Client;
         protected RetryHandler RetryHandler;
 
         public BaseFunctionalTests()
+            : this(EnvironmentSettings.SearchServiceBaseUrl)
+        {
+        }
+
+        public BaseFunctionalTests(string baseUrl)
         {
             // Arrange
             IgnoreCertificateValidationErrors();
             RetryHandler = new RetryHandler(new HttpClientHandler());
-            Client = new HttpClient(RetryHandler) { BaseAddress = new Uri(EnvironmentSettings.SearchServiceBaseUrl) };
+            Client = new HttpClient(RetryHandler) { BaseAddress = new Uri(baseUrl) };
         }
 
         private static void IgnoreCertificateValidationErrors()
         {
             ServicePointManager.ServerCertificateValidationCallback += (sender, cert, chain, sslPolicyErrors) => true;
+        }
+
+        public void Dispose()
+        {
+            Client.Dispose();
+            RetryHandler.Dispose();
         }
     }
 }
