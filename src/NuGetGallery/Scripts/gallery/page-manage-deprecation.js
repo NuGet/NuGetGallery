@@ -462,9 +462,6 @@ function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defau
     // The custom message to submit with the form.
     this.customMessage = ko.observable('');
 
-    // Whether or not the packages should be unlisted.
-    this.shouldUnlist = ko.observable(true);
-
     this.submitError = ko.observable();
     this.submit = function () {
         self.submitError(null);
@@ -489,8 +486,7 @@ function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defau
                 cweIds: self.cwes.exportIds(),
                 alternatePackageId: self.alternatePackageId(),
                 alternatePackageVersion: self.alternatePackageVersion(),
-                customMessage: self.customMessage(),
-                shouldUnlist: self.shouldUnlist()
+                customMessage: self.customMessage()
             }),
             success: function () {
                 window.location.href = packageUrl;
@@ -522,7 +518,6 @@ function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defau
         versionData.AlternatePackageId = self.alternatePackageId();
         versionData.AlternatePackageVersion = self.alternatePackageVersion();
         versionData.CustomMessage = self.customMessage();
-        versionData.ShouldUnlist = self.shouldUnlist();
     };
 
     var loadDeprecationFormState = function (version) {
@@ -549,7 +544,6 @@ function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defau
         }
 
         self.customMessage(versionData.CustomMessage);
-        self.shouldUnlist(versionData.ShouldUnlist);
     };
 
     // When the chosen versions are changed, remember the contents of the form in case the user navigates back to this version.

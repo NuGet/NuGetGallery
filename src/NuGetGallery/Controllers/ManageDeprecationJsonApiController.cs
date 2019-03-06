@@ -105,8 +105,7 @@ namespace NuGetGallery
             IEnumerable<string> cweIds,
             string alternatePackageId,
             string alternatePackageVersion,
-            string customMessage,
-            bool shouldUnlist)
+            string customMessage)
         {
             var currentUser = GetCurrentUser();
             if (!_featureFlagService.IsManageDeprecationEnabled(GetCurrentUser()))
@@ -248,8 +247,7 @@ namespace NuGetGallery
                 cwes,
                 alternatePackageRegistration,
                 alternatePackage,
-                customMessage,
-                shouldUnlist);
+                customMessage);
 
             return Json(HttpStatusCode.OK);
         }
