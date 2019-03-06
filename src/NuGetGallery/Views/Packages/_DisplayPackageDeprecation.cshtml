@@ -63,27 +63,9 @@
                 </div>
 
                 <div class="deprecation-expander-container">
-                    @if (Model.CvssRating.HasValue)
+                    @if (Model.Severity != null)
                     {
-                        string ratingString;
-                        if (Model.CvssRating < 4)
-                        {
-                            ratingString = "Low";
-                        }
-                        else if (Model.CvssRating < 7)
-                        {
-                            ratingString = "Medium";
-                        }
-                        else if (Model.CvssRating < 9)
-                        {
-                            ratingString = "High";
-                        }
-                        else
-                        {
-                            ratingString = "Critical";
-                        }
-
-                        <div class="deprecation-expander-info-right deprecation-expander-container">Severity: <b class="deprecation-expander-severity-rating">@ratingString</b></div>
+                        <div class="deprecation-expander-info-right deprecation-expander-container">Severity: <b class="deprecation-expander-severity-rating">@Model.Severity</b></div>
                     }
 
                     <i id="deprecation-expander-icon-right" class="deprecation-expander-icon deprecation-expander-info-right ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
