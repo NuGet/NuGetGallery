@@ -544,6 +544,17 @@ namespace NuGetGallery
             }
 
             [Fact]
+            private async Task WillThrowIfTheNuGetPackageReleaseNotesIsLongerThan35000()
+            {
+                var service = CreateService();
+                var nugetPackage = PackageServiceUtility.CreateNuGetPackage(releaseNotes: "theReleaseNotes".PadRight(35001, '_'));
+
+                var ex = await Assert.ThrowsAsync<InvalidPackageException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), owner: null, currentUser: null, isVerified: false));
+
+                Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "ReleaseNotes", "35000"), ex.Message);
+            }
+
+            [Fact]
             private async Task WillThrowIfTheVersionIsLongerThan64Characters()
             {
                 var service = CreateService();
@@ -815,7 +826,108 @@ namespace NuGetGallery
             }
         }
 
-        public class TheFindPackageByIdAndVersionMethod
+        public class TheFilterLatestPackageMethod
+        {
+            protected const string Id = "theId";
+
+            [Theory]
+            [InlineData(null)]
+            [InlineData("2.0.0")]
+            public void ReturnsTheLatestStableVersionIfAvailable(string semVerLevel)
+            {
+                // Arrange
+                var packageRegistration = new PackageRegistration { Id = Id };
+                var package1 = new Package { Version = "1.0", PackageRegistration = packageRegistration, Listed = true, IsLatestStable = true, IsLatestStableSemVer2 = true };
+                var package2 = new Package { Version = "1.0.0a", PackageRegistration = packageRegistration, IsPrerelease = true, Listed = true, IsLatest = true };
+
+                // Act
+                var result = InvokeMethod(new[] { package1, package2 }, semVerLevelKey: SemVerLevelKey.ForSemVerLevel(semVerLevel));
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.Equal("1.0", result.Version);
+            }
+
+            [Fact]
+            public void ReturnsTheLatestStableSemVer2VersionIfAvailable()
+            {
+                // Arrange
+                var packageRegistration = new PackageRegistration { Id = Id };
+                var package0 = new Package { Version = "1.0.0+metadata", PackageRegistration = packageRegistration, Listed = true, IsLatestStableSemVer2 = true };
+                var package1 = new Package { Version = "1.0", PackageRegistration = packageRegistration, Listed = true, IsLatestStable = true };
+                var package2 = new Package { Version = "1.0.0a", PackageRegistration = packageRegistration, IsPrerelease = true, Listed = true, IsLatest = true };
+
+                // Act
+                var result = InvokeMethod(new[] { package0, package1, package2 }, semVerLevelKey: SemVerLevelKey.SemVer2);
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.Equal("1.0.0+metadata", result.Version);
+            }
+
+            [Fact]
+            public void ReturnsTheLatestVersionIfNoLatestStableVersionIsAvailable()
+            {
+                // Arrange
+                var packageRegistration = new PackageRegistration { Id = Id };
+                var package1 = new Package { Version = "1.0.0b", PackageRegistration = packageRegistration, IsPrerelease = true, Listed = true, IsLatest = true };
+                var package2 = new Package { Version = "1.0.0a", PackageRegistration = packageRegistration, IsPrerelease = true, Listed = true };
+
+                // Act
+                var result = InvokeMethod(new[] { package1, package2 });
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.Equal("1.0.0b", result.Version);
+            }
+
+            [Fact]
+            public void ReturnsNullIfNoLatestStableVersionIsAvailableAndPrereleaseIsDisallowed()
+            {
+                // Arrange
+                var packageRegistration = new PackageRegistration { Id = Id };
+                var package1 = new Package { Version = "1.0.0b", PackageRegistration = packageRegistration, IsPrerelease = true, Listed = true, IsLatest = true };
+                var package2 = new Package { Version = "1.0.0a", PackageRegistration = packageRegistration, IsPrerelease = true, Listed = true };
+
+                // Act
+                var result = InvokeMethod(new[] { package1, package2 }, allowPrerelease: false);
+
+                // Assert
+                Assert.Null(result);
+            }
+
+            [Fact]
+            public void ReturnsTheMostRecentVersionIfNoLatestVersionIsAvailable()
+            {
+                // Arrange
+                var packageRegistration = new PackageRegistration { Id = Id };
+                var package1 = new Package { Version = "1.0.0b", PackageRegistration = packageRegistration, IsPrerelease = true, Listed = false };
+                var package2 = new Package { Version = "1.0.0a", PackageRegistration = packageRegistration, IsPrerelease = true, Listed = false };
+
+                // Act
+                var result = InvokeMethod(new[] { package1, package2 });
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.Equal("1.0.0b", result.Version);
+            }
+
+            [Fact]
+            public void ThrowsIfPackagesNull()
+            {
+                Assert.Throws<ArgumentNullException>(() => InvokeMethod(null));
+            }
+
+            protected virtual Package InvokeMethod(
+                IReadOnlyCollection<Package> packages,
+                int? semVerLevelKey = SemVerLevelKey.SemVer2,
+                bool allowPrerelease = true)
+            {
+                return CreateService().FilterLatestPackage(packages, semVerLevelKey, allowPrerelease);
+            }
+        }
+
+        public class TheFindPackageByIdAndVersionMethod : TheFilterLatestPackageMethod
         {
             [Fact]
             public void ReturnsTheRequestedPackageVersion()
@@ -827,7 +939,7 @@ namespace NuGetGallery
                             new Exception("This should not be called when the version is specified."));
                     });
 
-                service.FindPackageByIdAndVersion("theId", "1.0.42");
+                service.FindPackageByIdAndVersion(Id, "1.0.42");
 
                 // Nothing to assert because it's too complicated to test the actual LINQ expression.
                 // What we're testing via the throw above is that it didn't load the registration and get the latest version.
@@ -843,209 +955,17 @@ namespace NuGetGallery
                 Assert.Equal("id", ex.ParamName);
             }
 
-            [Theory]
-            [InlineData(null)]
-            [InlineData("2.0.0")]
-            public void ReturnsTheLatestStableVersionIfAvailable(string semVerLevel)
+            protected override Package InvokeMethod(
+                IReadOnlyCollection<Package> packages, 
+                int? semVerLevelKey = 2, 
+                bool allowPrerelease = true)
             {
-                // Arrange
                 var repository = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
-                var packageRegistration = new PackageRegistration { Id = "theId" };
-                var package1 = new Package { Version = "1.0", PackageRegistration = packageRegistration, Listed = true, IsLatestStable = true, IsLatestStableSemVer2 = true };
-                var package2 = new Package { Version = "1.0.0a", PackageRegistration = packageRegistration, IsPrerelease = true, Listed = true, IsLatest = true };
-
                 repository
                     .Setup(repo => repo.GetAll())
-                    .Returns(new[] { package1, package2 }.AsQueryable());
+                    .Returns(packages.AsQueryable());
                 var service = CreateService(packageRepository: repository);
-
-                // Act
-                var result = service.FindPackageByIdAndVersion("theId", version: null, semVerLevelKey: SemVerLevelKey.ForSemVerLevel(semVerLevel));
-
-                // Assert
-                Assert.NotNull(result);
-                Assert.Equal("1.0", result.Version);
-            }
-
-            [Fact]
-            public void ReturnsTheLatestStableSemVer2VersionIfAvailable()
-            {
-                // Arrange
-                var repository = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
-                var packageRegistration = new PackageRegistration { Id = "theId" };
-                var package0 = new Package { Version = "1.0.0+metadata", PackageRegistration = packageRegistration, Listed = true, IsLatestStableSemVer2 = true };
-                var package1 = new Package { Version = "1.0", PackageRegistration = packageRegistration, Listed = true, IsLatestStable = true };
-                var package2 = new Package { Version = "1.0.0a", PackageRegistration = packageRegistration, IsPrerelease = true, Listed = true, IsLatest = true };
-
-                repository
-                    .Setup(repo => repo.GetAll())
-                    .Returns(new[] { package0, package1, package2 }.AsQueryable());
-                var service = CreateService(packageRepository: repository);
-
-                // Act
-                var result = service.FindPackageByIdAndVersion("theId", version: null, semVerLevelKey: SemVerLevelKey.SemVer2);
-
-                // Assert
-                Assert.NotNull(result);
-                Assert.Equal("1.0.0+metadata", result.Version);
-            }
-
-            [Fact]
-            public void ReturnsTheLatestVersionIfNoLatestStableVersionIsAvailable()
-            {
-                // Arrange
-                var repository = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
-                var packageRegistration = new PackageRegistration { Id = "theId" };
-                var package1 = new Package { Version = "1.0.0b", PackageRegistration = packageRegistration, IsPrerelease = true, Listed = true, IsLatest = true };
-                var package2 = new Package { Version = "1.0.0a", PackageRegistration = packageRegistration, IsPrerelease = true, Listed = true };
-
-                repository
-                    .Setup(repo => repo.GetAll())
-                    .Returns(new[] { package1, package2 }.AsQueryable());
-                var service = CreateService(packageRepository: repository);
-
-                // Act
-                var result = service.FindPackageByIdAndVersion("theId", version: null);
-
-                // Assert
-                Assert.NotNull(result);
-                Assert.Equal("1.0.0b", result.Version);
-            }
-
-            [Fact]
-            public void ReturnsNullIfNoLatestStableVersionIsAvailableAndPrereleaseIsDisallowed()
-            {
-                // Arrange
-                var repository = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
-                var packageRegistration = new PackageRegistration { Id = "theId" };
-                var package1 = new Package { Version = "1.0.0b", PackageRegistration = packageRegistration, IsPrerelease = true, Listed = true, IsLatest = true };
-                var package2 = new Package { Version = "1.0.0a", PackageRegistration = packageRegistration, IsPrerelease = true, Listed = true };
-
-                repository
-                    .Setup(repo => repo.GetAll())
-                    .Returns(new[] { package1, package2 }.AsQueryable());
-                var service = CreateService(packageRepository: repository);
-
-                // Act
-                var result = service.FindPackageByIdAndVersion("theId", version: null, allowPrerelease: false);
-
-                // Assert
-                Assert.Null(result);
-            }
-
-            [Fact]
-            public void ReturnsTheMostRecentVersionIfNoLatestVersionIsAvailable()
-            {
-                // Arrange
-                var repository = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
-                var packageRegistration = new PackageRegistration { Id = "theId" };
-                var package1 = new Package { Version = "1.0.0b", PackageRegistration = packageRegistration, IsPrerelease = true, Listed = false };
-                var package2 = new Package { Version = "1.0.0a", PackageRegistration = packageRegistration, IsPrerelease = true, Listed = false };
-
-                repository
-                    .Setup(repo => repo.GetAll())
-                    .Returns(new[] { package1, package2 }.AsQueryable());
-                var service = CreateService(packageRepository: repository);
-
-                // Act
-                var result = service.FindPackageByIdAndVersion("theId", null);
-
-                // Assert
-                Assert.NotNull(result);
-                Assert.Equal("1.0.0b", result.Version);
-            }
-        }
-
-        public class TheFindAbsoluteLatestPackageByIdMethod
-        {
-            [Fact]
-            public void ReturnsTheLatestVersionWhenSemVerLevelUnknown()
-            {
-                // Arrange
-                var repository = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
-                var packageRegistration = new PackageRegistration { Id = "theId" };
-                var package1 = new Package { Version = "1.0", PackageRegistration = packageRegistration, Listed = true, IsLatestStable = true };
-                var package2 = new Package { Version = "2.0.0a", PackageRegistration = packageRegistration, IsPrerelease = true, Listed = true, IsLatest = true };
-
-                repository
-                    .Setup(repo => repo.GetAll())
-                    .Returns(new[] { package1, package2 }.AsQueryable());
-                var service = CreateService(packageRepository: repository);
-
-                // Act
-                var result = service.FindAbsoluteLatestPackageById("theId", SemVerLevelKey.Unknown);
-
-                // Assert
-                Assert.NotNull(result);
-                Assert.Equal("2.0.0a", result.Version);
-            }
-
-            [Fact]
-            public void ReturnsTheLatestVersionWhenSemVerLevel2()
-            {
-                // Arrange
-                var repository = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
-                var packageRegistration = new PackageRegistration { Id = "theId" };
-                var package1 = new Package { Version = "1.0", PackageRegistration = packageRegistration, Listed = true, IsLatestStable = true };
-                var package2 = new Package { Version = "2.0.0-alpha.1", PackageRegistration = packageRegistration, IsPrerelease = true, Listed = true, IsLatest = true, SemVerLevelKey = SemVerLevelKey.SemVer2 };
-
-                repository
-                    .Setup(repo => repo.GetAll())
-                    .Returns(new[] { package1, package2 }.AsQueryable());
-                var service = CreateService(packageRepository: repository);
-
-                // Act
-                var result = service.FindAbsoluteLatestPackageById("theId", SemVerLevelKey.SemVer2);
-
-                // Assert
-                Assert.NotNull(result);
-                Assert.Equal("2.0.0-alpha.1", result.Version);
-            }
-
-            [Fact]
-            public void ReturnsTheMostRecentVersionWhenSemVerLevelUnknown()
-            {
-                // Arrange
-                var repository = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
-                var packageRegistration = new PackageRegistration { Id = "theId" };
-                var package1 = new Package { Version = "1.0", PackageRegistration = packageRegistration, Listed = true };
-                var package2 = new Package { Version = "2.0.0-alpha", PackageRegistration = packageRegistration, IsPrerelease = true, Listed = true };
-                var package3 = new Package { Version = "2.0.0", PackageRegistration = packageRegistration, Listed = true, IsLatest = true };
-
-                repository
-                    .Setup(repo => repo.GetAll())
-                    .Returns(new[] { package1, package2, package3 }.AsQueryable());
-                var service = CreateService(packageRepository: repository);
-
-                // Act
-                var result = service.FindAbsoluteLatestPackageById("theId", SemVerLevelKey.Unknown);
-
-                // Assert
-                Assert.NotNull(result);
-                Assert.Equal("2.0.0", result.Version);
-            }
-
-            [Fact]
-            public void ReturnsTheMostRecentVersionWhenSemVerLevel2()
-            {
-                // Arrange
-                var repository = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
-                var packageRegistration = new PackageRegistration { Id = "theId" };
-                var package1 = new Package { Version = "1.0", PackageRegistration = packageRegistration, Listed = true };
-                var package2 = new Package { Version = "2.0.0-alpha.1", PackageRegistration = packageRegistration, IsPrerelease = true, Listed = true, SemVerLevelKey = SemVerLevelKey.SemVer2 };
-                var package3 = new Package { Version = "2.0.0+metadata", PackageRegistration = packageRegistration, Listed = true, SemVerLevelKey = SemVerLevelKey.SemVer2, IsLatestSemVer2 = true };
-
-                repository
-                    .Setup(repo => repo.GetAll())
-                    .Returns(new[] { package1, package2, package3 }.AsQueryable());
-                var service = CreateService(packageRepository: repository);
-
-                // Act
-                var result = service.FindAbsoluteLatestPackageById("theId", SemVerLevelKey.SemVer2);
-
-                // Assert
-                Assert.NotNull(result);
-                Assert.Equal("2.0.0+metadata", result.Version);
+                return service.FindPackageByIdAndVersion(Id, null, semVerLevelKey, allowPrerelease);
             }
         }
 
@@ -1355,10 +1275,10 @@ namespace NuGetGallery
                 var packages = InvokeFindPackagesByOwner(currentUser, includeUnlisted: true).ToList();
 
                 var nugetCatalogReaderPackage = packages.Single(p => p.PackageRegistration.Id == "NuGet.CatalogReader");
-                Assert.Equal("1.5.12+git.78e44a8", NuGetVersionFormatter.ToFullStringOrFallback(nugetCatalogReaderPackage.Version, fallback: nugetCatalogReaderPackage.Version));
+                Assert.Equal("1.5.12+git.78e44a8", NuGetVersionFormatter.ToFullString(nugetCatalogReaderPackage.Version));
 
                 var sleetLibPackage = packages.Single(p => p.PackageRegistration.Id == "SleetLib");
-                Assert.Equal("2.2.24+git.f2a0cb6", NuGetVersionFormatter.ToFullStringOrFallback(sleetLibPackage.Version, fallback: sleetLibPackage.Version));
+                Assert.Equal("2.2.24+git.f2a0cb6", NuGetVersionFormatter.ToFullString(sleetLibPackage.Version));
             }
 
             protected FakeEntitiesContext GetMixedVersioningPackagesContext(User currentUser, User packageOwner)
@@ -2048,6 +1968,21 @@ namespace NuGetGallery
             }
         }
 
+        public class TheEnsureValidMethod
+        {
+            [Fact]
+            public async Task EnsureValidThrowsForSymbolsPackage()
+            {
+                // Arrange
+                var service = CreateService();
+                var packageStream = TestPackage.CreateTestSymbolPackageStream();
+                var packageArchiveReader = PackageServiceUtility.CreateArchiveReader(packageStream);
+
+                // Act and Assert
+                await Assert.ThrowsAsync<InvalidPackageException>(async () => await service.EnsureValid(packageArchiveReader));
+            }
+        }
+
         public class TheRemovePackageOwnerMethod
         {
             [Fact]
@@ -2073,6 +2008,169 @@ namespace NuGetGallery
                 await service.RemovePackageOwnerAsync(package, singleOwner);
 
                 Assert.DoesNotContain(singleOwner, package.Owners);
+            }
+        }
+
+        public class TheWillOrphanPackageIfOwnerRemovedMethod
+        {
+            [Flags]
+            public enum OwnershipState
+            {
+                OwnedByUser1 = 1 << 0,
+                OwnedByUser2 = 1 << 1,
+                OwnedByOrganization1 = 1 << 2,
+                OwnedByOrganization2 = 1 << 3,
+                User1InOrganization1 = 1 << 4,
+                User2InOrganization1 = 1 << 5,
+                User1InOrganization2 = 1 << 6,
+                User2InOrganization2 = 1 << 7,
+            }
+
+            public enum AccountToDelete
+            {
+                User1,
+                User2,
+                Organization1,
+                Organization2
+            }
+
+            public static IEnumerable<object[]> WillBeOrphaned_Input
+            {
+                get
+                {
+                    for (int i = 0; i < Enum.GetValues(typeof(OwnershipState)).Cast<int>().Max() * 2; i++)
+                    {
+                        var ownershipState = (OwnershipState)i;
+                        foreach (var accountToDelete in Enum.GetValues(typeof(AccountToDelete)).Cast<AccountToDelete>())
+                        {
+                            yield return new object[] { ownershipState, accountToDelete };
+                        }
+                    }
+                }
+            }
+
+            [Theory]
+            [MemberData(nameof(WillBeOrphaned_Input))]
+            public void WillBeOrphaned(OwnershipState state, AccountToDelete accountToDelete)
+            {
+                // Create users to test
+                var user1 = new User("testUser1") { Key = 0 };
+                var user2 = new User("testUser2") { Key = 1 };
+                var organization1 = new Organization("testOrganization1") { Key = 2 };
+                var organization2 = new Organization("testOrganization2") { Key = 3 };
+
+                // Configure organization membership
+                if (state.HasFlag(OwnershipState.User1InOrganization1))
+                {
+                    AddMemberToOrganization(organization1, user1);
+                }
+
+                if (state.HasFlag(OwnershipState.User2InOrganization1))
+                {
+                    AddMemberToOrganization(organization1, user2);
+                }
+
+                if (state.HasFlag(OwnershipState.User1InOrganization2))
+                {
+                    AddMemberToOrganization(organization2, user1);
+                }
+
+                if (state.HasFlag(OwnershipState.User2InOrganization2))
+                {
+                    AddMemberToOrganization(organization2, user2);
+                }
+
+                // Configure package ownership
+                var package = new PackageRegistration() { Key = 4 };
+                if (state.HasFlag(OwnershipState.OwnedByUser1))
+                {
+                    package.Owners.Add(user1);
+                }
+
+                if (state.HasFlag(OwnershipState.OwnedByUser2))
+                {
+                    package.Owners.Add(user2);
+                }
+
+                if (state.HasFlag(OwnershipState.OwnedByOrganization1))
+                {
+                    package.Owners.Add(organization1);
+                }
+
+                if (state.HasFlag(OwnershipState.OwnedByOrganization2))
+                {
+                    package.Owners.Add(organization2);
+                }
+
+                // Determine expected result and account to delete
+                var expectedResult = true;
+                User userToDelete;
+                if (accountToDelete == AccountToDelete.User1)
+                {
+                    userToDelete = user1;
+
+                    // If we delete the first user, the package is orphaned unless it is owned by the second user or an organization that the second user is a member of.
+                    if (state.HasFlag(OwnershipState.OwnedByUser2) ||
+                        (state.HasFlag(OwnershipState.OwnedByOrganization1) && state.HasFlag(OwnershipState.User2InOrganization1)) ||
+                        (state.HasFlag(OwnershipState.OwnedByOrganization2) && state.HasFlag(OwnershipState.User2InOrganization2)))
+                    {
+                        expectedResult = false;
+                    }
+                }
+                else if (accountToDelete == AccountToDelete.User2)
+                {
+                    userToDelete = user2;
+
+                    // If we delete the second user, the package is orphaned unless it is owned by the first user or an organization that the second user is a member of.
+                    if (state.HasFlag(OwnershipState.OwnedByUser1) ||
+                        (state.HasFlag(OwnershipState.OwnedByOrganization1) && state.HasFlag(OwnershipState.User1InOrganization1)) ||
+                        (state.HasFlag(OwnershipState.OwnedByOrganization2) && state.HasFlag(OwnershipState.User1InOrganization2)))
+                    {
+                        expectedResult = false;
+                    }
+                }
+                else if (accountToDelete == AccountToDelete.Organization1)
+                {
+                    userToDelete = organization1;
+
+                    // If we delete the first organization, the package is orphaned unless is it owned a user or it is owned by the second organization and that organization has members.
+                    if (state.HasFlag(OwnershipState.OwnedByUser1) ||
+                        state.HasFlag(OwnershipState.OwnedByUser2) ||
+                        (state.HasFlag(OwnershipState.OwnedByOrganization2) && (state.HasFlag(OwnershipState.User1InOrganization2) || state.HasFlag(OwnershipState.User2InOrganization2))))
+                    {
+                        expectedResult = false;
+                    }
+                }
+                else if (accountToDelete == AccountToDelete.Organization2)
+                {
+                    userToDelete = organization2;
+
+                    // If we delete the second organization, the package is orphaned unless is it owned a user or it is owned by the first organization and that organization has members.
+                    if (state.HasFlag(OwnershipState.OwnedByUser1) ||
+                        state.HasFlag(OwnershipState.OwnedByUser2) ||
+                        (state.HasFlag(OwnershipState.OwnedByOrganization1) && (state.HasFlag(OwnershipState.User1InOrganization1) || state.HasFlag(OwnershipState.User2InOrganization1))))
+                    {
+                        expectedResult = false;
+                    }
+                }
+                else
+                {
+                    throw new ArgumentException(nameof(accountToDelete));
+                }
+
+                // Delete account
+                var service = CreateService();
+                var result = service.WillPackageBeOrphanedIfOwnerRemoved(package, userToDelete);
+
+                // Assert expected result
+                Assert.Equal(expectedResult, result);
+            }
+
+            private void AddMemberToOrganization(Organization organization, User member)
+            {
+                var membership = new Membership() { Member = member, Organization = organization };
+                organization.Members.Add(membership);
+                member.Organizations.Add(membership);
             }
         }
 
@@ -2110,182 +2208,6 @@ namespace NuGetGallery
                 service.SetLicenseReportVisibilityAsync(package, false);
 
                 Assert.True(package.HideLicenseReport);
-            }
-        }
-
-        public class TheGetPackageUserAccountOwnersMethod : TestContainer
-        {
-            [Theory]
-            [MemberData(nameof(GetPackageUserAccountOwners_Input))]
-            public void TestGetPackageUserAccountOwners(Package package, int expectedResult)
-            {
-                // Arrange
-                var context = GetFakeContext();
-                context.PackageRegistrations.Add(package.PackageRegistration);
-                context.Packages.Add(package);
-                var service = Get<PackageService>();
-
-                // Act
-                var result = service.GetPackageUserAccountOwners(package).Count();
-
-                // Assert
-                Assert.Equal(expectedResult, result);
-            }
-
-            private static PackageRegistration CreatePackageRegistration(int key)
-            {
-                return new PackageRegistration() { Key = 1, Id = $"regKey{key}" };
-            }
-
-            public static IEnumerable<object[]> GetPackageUserAccountOwners_Input
-            {
-                get
-                {
-                    List<object[]> result = new List<object[]>();
-
-                    var description = "Description";
-                    var packageRegistration0 = CreatePackageRegistration(0);
-                    var result0 = 0;
-                    result.Add(new object[] { new Package() { Key = 0, Version = "1.0.0", PackageRegistration = packageRegistration0, Description = description }, result0 });
-
-                    var packageRegistration1 = CreatePackageRegistration(1);
-                    packageRegistration1.Owners.Add(new User() { Username = "user1", Key = 1 });
-                    var result1 = 1;
-                    result.Add(new object[] { new Package() { Key = 1, Version = "1.0.0", PackageRegistration = packageRegistration1, Description = description }, result1 });
-
-                    var packageRegistration2 = CreatePackageRegistration(2);
-                    packageRegistration2.Owners.Add(new User() { Username = "user2.1", Key = 1 });
-                    packageRegistration2.Owners.Add(new User() { Username = "user2.2", Key = 2 });
-                    var result2 = 2;
-                    result.Add(new object[] { new Package() { Key = 2, Version = "1.0.0", PackageRegistration = packageRegistration2, Description = description }, result2 });
-
-                    var packageRegistration3 = CreatePackageRegistration(3);
-                    packageRegistration3.Owners.Add(new Organization() { Username = "userOrg3", Members = new List<Membership>() });
-                    var result3 = 0;
-                    result.Add(new object[] { new Package() { Key = 3, Version = "1.0.0", PackageRegistration = packageRegistration3, Description = description }, result3 });
-
-                    var packageRegistration4 = CreatePackageRegistration(4);
-                    packageRegistration4.Owners.Add(new User() { Username = "user4.1" });
-                    packageRegistration4.Owners.Add(new Organization() { Username = "userOrg4" });
-                    var result4 = 1;
-                    result.Add(new object[] { new Package() { Key = 4, Version = "1.0.0", PackageRegistration = packageRegistration4, Description = description }, result4 });
-
-                    // A single organization with one owner
-                    var packageRegistration5 = CreatePackageRegistration(5);
-                    var user51 = new User() { Username = "user5.1", Key = 51 };
-                    packageRegistration5.Owners.Add(new Organization()
-                    {
-                        Username = "userOrg5",
-                        Key = 50,
-                        Members = new List<Membership> { new Membership() { Member = user51, MemberKey = user51.Key, OrganizationKey = 50 } }
-                    });
-                    var result5 = 1;
-                    result.Add(new object[] { new Package() { Key = 5, Version = "1.0.0", PackageRegistration = packageRegistration5, Description = description }, result5 });
-
-                    // Same user in organization and as individual account
-                    var packageRegistration6 = CreatePackageRegistration(6);
-                    var user61 = new User() { Username = "user6.1", Key = 61 };
-                    packageRegistration6.Owners.Add(new Organization()
-                    {
-                        Username = "userOrg6",
-                        Key = 60,
-                        Members = new List<Membership> { new Membership() { Member = user61, MemberKey = user61.Key, OrganizationKey = 60 } }
-                    });
-                    packageRegistration6.Owners.Add(user61);
-                    var result6 = 1;
-                    result.Add(new object[] { new Package() { Key = 6, Version = "1.0.0", PackageRegistration = packageRegistration6, Description = description }, result6 });
-
-                    // One organization with two members
-                    var packageRegistration7 = CreatePackageRegistration(7);
-                    var user71 = new User() { Username = "user7.1", Key = 71 };
-                    var user72 = new User() { Username = "user7.2", Key = 72 };
-                    packageRegistration7.Owners.Add(new Organization()
-                    {
-                        Username = "userOrg7",
-                        Key = 70,
-                        Members = new List<Membership>{new Membership(){Member = user71, MemberKey = user71.Key, OrganizationKey = 70},
-                                                       new Membership(){Member = user72, MemberKey = user72.Key, OrganizationKey = 70}}
-                    });
-                    var result7 = 2;
-                    result.Add(new object[] { new Package() { Key = 7, Version = "1.0.0", PackageRegistration = packageRegistration7, Description = description }, result7 });
-
-                    // Two organizations with same member
-                    var packageRegistration8 = CreatePackageRegistration(9);
-                    var user81 = new User() { Username = "user8.1", Key = 81 };
-                    packageRegistration8.Owners.Add(new Organization()
-                    {
-                        Username = "userOrg81",
-                        Key = 801,
-                        Members = new List<Membership> { new Membership() { Member = user81, MemberKey = user81.Key, OrganizationKey = 801 } }
-                    });
-                    packageRegistration8.Owners.Add(new Organization()
-                    {
-                        Username = "userOrg82",
-                        Key = 802,
-                        Members = new List<Membership> { new Membership() { Member = user81, MemberKey = user81.Key, OrganizationKey = 802 } }
-                    });
-                    var result8 = 1;
-                    result.Add(new object[] { new Package() { Key = 8, Version = "1.0.0", PackageRegistration = packageRegistration8, Description = description }, result8 });
-
-                    // Organization with suborganization with one member 
-                    var packageRegistration9 = CreatePackageRegistration(9);
-                    var user91 = new User() { Username = "user9.1", Key = 91 };
-                    var org91 = new Organization()
-                    {
-                        Username = "org9Child",
-                        Key = 902,
-                        Members = new List<Membership> { new Membership() { Member = user91, MemberKey = user91.Key, OrganizationKey = 902 } }
-                    };
-                    packageRegistration9.Owners.Add(new Organization()
-                    {
-                        Username = "userOrgParent",
-                        Key = 901,
-                        Members = new List<Membership> { new Membership() { Member = org91, MemberKey = org91.Key, OrganizationKey = 901 } }
-                    });
-                    var result9 = 1;
-                    result.Add(new object[] { new Package() { Key = 9, Version = "1.0.0", PackageRegistration = packageRegistration9, Description = description }, result9 });
-
-                    // Organization with suborganization with one member and one individual user account
-                    var packageRegistration10 = CreatePackageRegistration(10);
-                    var user101 = new User() { Username = "user10.1", Key = 101 };
-                    var org101 = new Organization()
-                    {
-                        Username = "org101Child",
-                        Key = 1002,
-                        Members = new List<Membership> { new Membership() { Member = user101, MemberKey = user101.Key, OrganizationKey = 1002 } }
-                    };
-                    packageRegistration10.Owners.Add(new Organization()
-                    {
-                        Username = "userOrgParent",
-                        Key = 1001,
-                        Members = new List<Membership> { new Membership() { Member = org101, MemberKey = org101.Key, OrganizationKey = 1001 } }
-                    });
-                    packageRegistration10.Owners.Add(user101);
-                    var result10 = 1;
-                    result.Add(new object[] { new Package() { Key = 10, Version = "1.0.0", PackageRegistration = packageRegistration10, Description = description }, result10 });
-
-                    // Organization with suborganization with one member and one individual different user account
-                    var packageRegistration11 = CreatePackageRegistration(11);
-                    var user111 = new User() { Username = "user11.1", Key = 111 };
-                    var user112 = new User() { Username = "user11.2", Key = 112 };
-                    var org111 = new Organization()
-                    {
-                        Username = "org111Child",
-                        Key = 1102,
-                        Members = new List<Membership> { new Membership() { Member = user111, MemberKey = user111.Key, OrganizationKey = 1102 } }
-                    };
-                    packageRegistration11.Owners.Add(new Organization()
-                    {
-                        Username = "userOrgParent",
-                        Key = 1101,
-                        Members = new List<Membership> { new Membership() { Member = org111, MemberKey = org111.Key, OrganizationKey = 1101 } }
-                    });
-                    packageRegistration11.Owners.Add(user112);
-                    var result11 = 2;
-                    result.Add(new object[] { new Package() { Key = 11, Version = "1.0.0", PackageRegistration = packageRegistration11, Description = description }, result11 });
-
-                    return result;
-                }
             }
         }
 

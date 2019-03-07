@@ -15,7 +15,7 @@ namespace NuGetGallery.Areas.Admin.ViewModels
         public DeleteAccountAsAdminViewModel(IDeleteAccountViewModel model)
         {
             AccountName = model.AccountName;
-            HasOrphanPackages = model.HasOrphanPackages;
+            HasPackagesThatWillBeOrphaned = model.HasPackagesThatWillBeOrphaned;
         }
 
         public string AccountName { get; set; }
@@ -28,6 +28,6 @@ namespace NuGetGallery.Areas.Admin.ViewModels
         [Display(Name = "Unlist any orphaned packages.")]
         public bool ShouldUnlist { get; set; }
 
-        public bool HasOrphanPackages { get; set; }
+        public bool HasPackagesThatWillBeOrphaned { get; set; }
     }
 }

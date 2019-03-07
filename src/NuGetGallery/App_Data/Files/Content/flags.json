@@ -1,0 +1,20 @@
+{
+  "Features": {
+    "NuGetGallery.Typosquatting": "Enabled",
+    "NuGetGallery.PackagesAtomFeed": "Enabled"
+  },
+  "Flights": {
+    "NuGetGallery.TyposquattingFlight": {
+      "All": true,
+      "SiteAdmins": false,
+      "Accounts": [],
+      "Domains": []
+    },
+    "NuGetGallery.ManageDeprecation": {
+      "All": false,
+      "SiteAdmins": true,
+      "Accounts": [],
+      "Domains": []
+    }
+  }
+}

@@ -22,14 +22,14 @@ namespace NuGetGallery.Security
             "© Microsoft Corporation. Tüm hakları saklıdır.",
             "© Microsoft Corporation. Todos os direitos reservados.",
             "© Microsoft Corporation. Alle Rechte vorbehalten.",
-            "© Microsoft Corporation. 保留所有权利.",
             "© Microsoft Corporation. Všechna práva vyhrazena.",
-            "© Microsoft Corporation. Reservados todos los derechos.",
+            "© Microsoft Corporation. Todos los derechos reservados.",
             "© Microsoft Corporation. Wszelkie prawa zastrzeżone.",
             "© Microsoft Corporation. Tous droits réservés.",
-            "© Microsoft Corporation. 著作權所有，並保留一切權利。",
-            "© Microsoft Corporation. Tutti i diritti sono riservati.",
-            "© Корпорация Майкрософт (Microsoft Corporation). Все права защищены."
+            "© Microsoft Corporation。 保留所有权利。",
+            "© Microsoft Corporation. Tutti i diritti riservati.",
+            "© корпорация Майкрософт. Все права защищены.",
+            "© Microsoft Corporation。 著作權所有，並保留一切權利。"
         };
 
         public string SubscriptionName => Name;
@@ -61,6 +61,7 @@ namespace NuGetGallery.Security
                     Name,
                     MicrosoftUsername,
                     allowedCopyrightNotices: AllowedCopyrightNotices,
+                    allowedAuthors: new[] { MicrosoftUsername },
                     isLicenseUrlRequired: true,
                     isProjectUrlRequired: true,
                     errorMessageFormat: Strings.SecurityPolicy_RequireMicrosoftPackageMetadataComplianceForPush)

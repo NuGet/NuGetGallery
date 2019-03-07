@@ -100,9 +100,19 @@ namespace NuGetGallery
                 new { controller = "JsonApi" });
 
             routes.MapRoute(
+                RouteName.ManageDeprecationJsonApi,
+                "json/deprecation/{action}",
+                new { controller = "ManageDeprecationJsonApi" });
+
+            routes.MapRoute(
                 RouteName.Contributors,
                 "pages/contributors",
                 new { controller = "Pages", action = "Contributors" });
+
+            routes.MapRoute(
+                RouteName.PagesSimulateError,
+                "pages/simulate-error",
+                new { controller = "Pages", action = nameof(PagesController.SimulateError) });
 
             routes.MapRoute(
                 RouteName.Policies,
@@ -135,9 +145,9 @@ namespace NuGetGallery
                 new { controller = "Packages", action = "VerifyPackage" });
 
             routes.MapRoute(
-                 RouteName.PreviewReadMe,
-                 "packages/manage/preview-readme",
-                 new { controller = "Packages", action = "PreviewReadMe" });
+                RouteName.PreviewReadMe,
+                "packages/manage/preview-readme",
+                new { controller = "Packages", action = "PreviewReadMe" });
 
             routes.MapRoute(
                 RouteName.CancelUpload,
@@ -149,7 +159,7 @@ namespace NuGetGallery
                 "packages/{id}/required-signer/{username}",
                 new { controller = "Packages", action = RouteName.SetRequiredSigner, username = UrlParameter.Optional },
                 constraints: new { httpMethod = new HttpMethodConstraint("POST") },
-                obfuscationMetadata: new RouteExtensions.ObfuscatedPathMetadata(3, Obfuscator.DefaultTelemetryUserName) );
+                obfuscationMetadata: new RouteExtensions.ObfuscatedPathMetadata(3, Obfuscator.DefaultTelemetryUserName));
 
             routes.MapRoute(
                 RouteName.PackageOwnerConfirmation,
@@ -195,6 +205,15 @@ namespace NuGetGallery
                 new { version = new VersionRouteConstraint() });
 
             routes.MapRoute(
+                RouteName.DisplayPackageFeed,
+                "packages/{id}/atom.xml",
+                new
+                {
+                    controller = "Packages",
+                    action = nameof(PackagesController.AtomFeed)
+                });
+
+            routes.MapRoute(
                 RouteName.PackageEnableLicenseReport,
                 "packages/{id}/{version}/EnableLicenseReport",
                 new { controller = "Packages", action = "SetLicenseReportVisibility", visible = true },
@@ -226,6 +245,11 @@ namespace NuGetGallery
                 "ConfirmationRequired",
                 "account/ConfirmationRequired",
                 new { controller = "Users", action = "ConfirmationRequired" });
+
+            routes.MapRoute(
+                RouteName.License,
+                "packages/{id}/{version}/license",
+                new { controller = "Packages", action = "License" });
 
             //Redirecting v1 Confirmation Route
             routes.Redirect(
@@ -473,7 +497,7 @@ namespace NuGetGallery
                     new RouteExtensions.ObfuscatedPathMetadata(4, Obfuscator.DefaultTelemetryToken)
                 });
 
-            routes.MapRoute( 
+            routes.MapRoute(
                 RouteName.OrganizationMemberCancelAjax,
                 "organization/{accountName}/members/cancel",
                 new { controller = "Organizations", action = RouteName.OrganizationMemberCancelAjax },
@@ -596,16 +620,6 @@ namespace NuGetGallery
                     "Package/ReportAbuse/{id}/{version}",
                     new { controller = "Packages", action = "ReportAbuse" }),
                 permanent: true).To(packageVersionActionRoute);
-
-            routes.Redirect(
-                r => r.MapRoute(
-                    "PackageActions",
-                    "Package/{action}/{id}/{version}",
-                    new { controller = "Packages", action = "ContactOwners" },
-                    // This next bit looks bad, but it's not. It will never change because
-                    // it's mapping the legacy routes to the new better routes.
-                    new { action = "ContactOwners|ManagePackageOwners" }),
-                permanent: true).To(packageActionRoute);
 
             routes.Redirect(
                 r => r.MapRoute(
@@ -742,6 +756,11 @@ namespace NuGetGallery
                 RouteName.DownloadNuGetExe,
                 "nuget.exe",
                 new { controller = "Api", action = "GetNuGetExeApi" });
+
+            routes.MapRoute(
+                RouteName.ApiSimulateError,
+                "api/simulate-error",
+                new { controller = "Api", action = nameof(ApiController.SimulateError) });
         }
     }
 }

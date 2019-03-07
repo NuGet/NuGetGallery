@@ -44,7 +44,7 @@ namespace NuGetGallery.FunctionalTests
             }
 
             Directory.CreateDirectory(packageDir);
-            
+
             var commandlineHelper = new CommandlineHelper(TestOutputHelper);
             await commandlineHelper.SpecPackageAsync(packageName, packageDir);
 
@@ -79,7 +79,27 @@ namespace NuGetGallery.FunctionalTests
             }
             return filePath;
         }
+        
+        /// <summary>
+        /// Given a nupsec file path, add the license expression attribute.
+        /// </summary>
+        /// <param name="nuspecFilePath"></param>
+        /// <param name="licenseExpression"></param>
+        public static void AddLicenseExpression(string nuspecFilePath, string licenseExpression)
+        {
+            UpdateNuspecFile(nuspecFilePath, "</metadata>", $"<license type='expression'>{licenseExpression}</license></metadata>");
+        }
 
+        /// <summary>
+        /// Given a nupsec file path, add the license file attribute.
+        /// </summary>
+        /// <param name="nuspecFilePath"></param>
+        /// <param name="licenseFile"></param>
+        public static void AddLicenseFile(string nuspecFilePath, string licenseFile)
+        {
+            UpdateNuspecFile(nuspecFilePath, "</metadata>", $"<license type='file'>{licenseFile}</license></metadata>");
+        }
+        
         /// <summary>
         /// Given a nupsec file path, add the windows 8 tag to it.
         /// </summary>

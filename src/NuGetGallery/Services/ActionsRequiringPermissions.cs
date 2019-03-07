@@ -85,6 +85,14 @@ namespace NuGetGallery
                 packageRegistrationPermissionsRequirement: RequireOwnerOrSiteAdmin);
 
         /// <summary>
+        /// The action of deprecating an existing version of an existing package ID.
+        /// </summary>
+        public static ActionRequiringPackagePermissions DeprecatePackage =
+            new ActionRequiringPackagePermissions(
+                accountOnBehalfOfPermissionsRequirement: RequireOwnerOrOrganizationMember,
+                packageRegistrationPermissionsRequirement: RequireOwnerOrSiteAdmin);
+
+        /// <summary>
         /// The action of managing the ownership of an existing package ID.
         /// </summary>
         public static ActionRequiringPackagePermissions ManagePackageOwnership =

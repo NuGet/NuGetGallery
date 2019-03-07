@@ -148,5 +148,11 @@ namespace NuGetGallery
             }
             return View();
         }
+
+        [HttpGet]
+        public virtual ActionResult SimulateError(SimulatedErrorType type = SimulatedErrorType.Exception)
+        {
+            return type.MapToMvcResult();
+        }
     }
 }

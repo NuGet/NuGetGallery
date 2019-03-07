@@ -1,0 +1,114 @@
+﻿@model ManagePackageViewModel
+
+@if (!Model.CanUnlistOrRelist)
+{
+    @ViewHelpers.AlertWarning(@<text>You do not have permission to change the listing of this package.</text>)
+    return;
+}
+
+<div class="page-delete-package">
+
+    @if (!Model.VersionSelectList.Any())
+    {
+        @ViewHelpers.AlertInfo(
+            @<text>
+                <span>There are no versions that can have their listing state changed.</span>
+            </text>)
+    }
+    else if (Model.IsLocked && !User.IsAdministrator())
+    {
+        <div class="validation-error-message-list">
+            @ViewHelpers.AlertDanger(
+                @<text>
+                    <span>
+                        Package '@Model.Id' has been locked. This means you cannot publish a new version or change the listing status of a published package version. Please contact
+                        <a href="mailto:support@nuget.org?subject=@HttpUtility.UrlPathEncode(string.Format("Requesting support for a locked package - '{0}'", Model.Id))">support@nuget.org</a>.
+                    </span>
+                </text>)
+        </div>
+    }
+    else
+    {
+        if (Model.IsLocked && User.IsAdministrator())
+        {
+            <div class="validation-error-message-list">
+                @ViewHelpers.AlertDanger(
+                    @<text>
+                        <span>Package '@Model.Id' has been locked.</span>
+                    </text>)
+            </div>
+        }
+
+        <label for="input-select-version" id="package-version-label">Select version</label>
+
+        @Html.DropDownList("version-selection", Model.VersionSelectList,
+            new
+            {
+                @class = "form-control",
+                title = "Select a version",
+                id = "input-select-version"
+            })
+
+        if (!Model.IsLocked)
+        {
+            <b>
+                List or unlist version
+            </b>
+
+            <div>
+
+                @if (!User.IsAdministrator())
+                {
+                    @ViewHelpers.AlertInfo(
+                        @<text>
+                            You can control how your packages are listed using the checkbox below. As per <a href="https://docs.microsoft.com/en-us/nuget/policies/deleting-packages">policy</a>, permanent deletion is not supported as it would break every project depending on the availability of the package. For more assistance, <a href="@Url.ReportAbuse(Model)" title="Contact Support">Contact Support</a>.
+                        </text>)
+                }
+
+                @using (Html.BeginForm("UpdateListed", "Packages", new { aria_label = "Change listing of this package version" }))
+                {
+                    @Html.AntiForgeryToken()
+                    @Html.Hidden("version", @Model.Version, new { id = "input-list-package" })
+                    <div class="form-group @Html.HasErrorFor(package => package.Listed)">
+                        @Html.ShowCheckboxFor(package => package.Listed)
+                        @Html.ShowLabelFor(package => package.Listed, "List in search results.")
+                        @Html.ShowValidationMessagesFor(package => package.Listed)
+
+                        <p>Unlisted packages cannot be installed directly and do not show up in search results.</p>
+                    </div>
+
+                    <div class="form-group">
+                        <input type="submit" class="btn btn-primary form-control" value="Save" />
+                    </div>
+                }
+            </div>
+        }
+
+        if (User.IsAdministrator())
+        {
+            <b>
+                Delete version
+            </b>
+
+            <div class="list-unstyled">
+                @ViewHelpers.AlertDanger(
+                    @<text>
+                        <strong>Deleting this package will make it unavailable for download and package restore.</strong><br />
+                        This package version has been downloaded <span id="downloadCount">@Model.DownloadCount</span> times (@Model.TotalDownloadCount downloads in total).
+                        Deleting it may break a large number of development teams.
+                        If the package should be removed from search results but still be available for restore, consider unlisting the package instead.
+                    </text>)
+
+                @using (Html.BeginForm("Delete", "Packages", FormMethod.Post, new { id = "delete-form", aria_label = "Delete this package version" }))
+                {
+                    foreach (var p in Model.DeletePackagesRequest.Packages)
+                    {
+                        <input id="input-delete-package" type="hidden" name="Packages[]" value="@p" />
+                    }
+
+                    @Html.Partial("_DeletePackage", Model.DeletePackagesRequest)
+                }
+            </div>
+        }
+    }
+</div>

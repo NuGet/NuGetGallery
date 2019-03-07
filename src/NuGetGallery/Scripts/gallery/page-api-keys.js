@@ -98,10 +98,10 @@
                     var existingOwner = ko.utils.arrayFirst(
                         this.PackageOwners,
                         function (owner) {
-                            return owner.Owner.toUpperCase() == data.Owner.toUpperCase()
+                            return owner.Owner.toUpperCase() === data.Owner.toUpperCase()
                         });
 
-                    if (existingOwner == null) {
+                    if (existingOwner === null) {
                         existingOwner = { "Owner": data.Owner, "PackageIds": [] };
                     }
 
@@ -306,7 +306,7 @@
                 return ko.unwrap(this.SelectedCount).toLocaleString()
                     + ' of '
                     + ko.unwrap(this.TotalCount).toLocaleString()
-                    + ' package' + (this.TotalCount == 1 ? '' : 's')
+                    + ' package' + (this.TotalCount === 1 ? '' : 's')
                     + ' selected';
             }, this);
 

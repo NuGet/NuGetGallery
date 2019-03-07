@@ -1,0 +1,133 @@
+﻿@model ManagePackageViewModel
+@{
+    ViewBag.Title = "Manage Package " + Model.Id;
+    ViewBag.Tab = "Packages";
+    ViewBag.MdPageColumns = GalleryConstants.ColumnsFormMd;
+}
+
+<section role="main" class="container main-container">
+    @ViewHelpers.AjaxAntiForgeryToken(Html)
+    <div class="row">
+        <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
+            @Html.Partial(
+                "_PackageHeading",
+                new PackageHeadingModel(
+                    Model,
+                    "Manage",
+                    linkIdOnly: true))
+
+            @ViewHelpers.Section(
+                this,
+                "Owners",
+                "Owners",
+                @<text>@Html.Partial("_ManageOwners", Model)</text>,
+                expanded: false)
+
+            @if (Model.IsManageDeprecationEnabled)
+            {
+                @ViewHelpers.Section(
+                    this,
+                    "Deprecation",
+                    "Deprecation",
+                    @<text>@Html.Partial("_ManageDeprecation", Model)</text>,
+                    expanded: false)
+            }
+
+            @ViewHelpers.Section(
+                this,
+                "Listing",
+                "Listing",
+                @<text>@Html.Partial("_ManageListing", Model)</text>,
+                expanded: false)
+
+            @ViewHelpers.Section(
+                this,
+                "Documentation",
+                "Documentation",
+                @<text>@Html.Partial("_ManageDocumentation", Model)</text>,
+                expanded: false)
+        </div>
+    </div>
+</section>
+
+@section BottomScripts {
+    <script type="text/javascript">
+        // Set up owners section
+        var packageId = "@Model.Id";
+        var isUserAnAdmin = "@Model.IsCurrentUserAnAdmin";
+        var packageUrl = "@Url.Package(Model.Id)";
+        var getPackageOwnersUrl = "@Url.GetPackageOwners()";
+        var addPackageOwnerUrl = "@Url.AddPackageOwner()";
+        var removePackageOwnerUrl = "@Url.RemovePackageOwner()";
+
+        // Owners strings
+        var strings_Error = "@Html.Raw(Strings.ManagePackageOwners_Error)";
+        var strings_InvalidUsername = "@Html.Raw(Strings.ManagePackageOwners_InvalidUsername)";
+        var strings_AlreadyPending = "@Html.Raw(Strings.ManagePackageOwners_AlreadyPending)";
+        var strings_RemovingOwnership = "@Html.Raw(Strings.ManagePackageOwners_RemovingOwnership)";
+        var strings_RemovingOrganization = "@Html.Raw(Strings.ManagePackageOwners_RemovingOrganization)";
+        var strings_RemovingSelf = "@Html.Raw(Strings.ManagePackageOwners_RemovingSelf)";
+
+        // Set up delete section
+        var versionListedState = @Html.Raw(Json.Encode(Model.VersionListedStateDictionary));
+
+        // Set up deprecation section
+        var strings_AnyVersion = "Any version";
+        var versionDeprecationState = @Html.Raw(Json.Encode(Model.VersionDeprecationStateDictionary));
+
+        $(function () {
+            // Set up documentation section
+            var readMeModel = {
+                "Versions": @Html.Raw(Json.Encode(Model.VersionReadMeStateDictionary)),
+                "Edit": @Html.Raw(Json.Encode(Model.ReadMe))
+            };
+
+            var readMeModelVersion = readMeModel.Versions['@Model.Version'];
+            if (readMeModelVersion) {
+                readMeModelVersion.readMe = @Html.Raw(Json.Encode(Model.ReadMe));
+            }
+
+            EditReadMeManager.init(
+                readMeModel,
+                '@Url.PreviewReadMe()');
+
+            // Set up delete section
+            var deleteVersionSelect = $('.page-delete-package #input-select-version');
+            deleteVersionSelect.change(function () {
+                // Make sure the forms now reference the selected version of the package.
+                var version = $(this).val();
+                $('#input-list-package').val(version);
+                $('#input-delete-package').val(packageId + '|' + version);
+
+                // Update the form to show the correct version.
+                var state = versionListedState[version];
+                // Update the listed checkbox to match the state of the package.
+                var listed = state.Listed;
+                $(".page-delete-package input#Listed")[0].checked = listed;
+                // Update the text stating the download count on the delete form.
+                var downloadCount = state.DownloadCount;
+                $(".page-delete-package #downloadCount").text(downloadCount);
+            });
+
+            deleteVersionSelect.change();
+
+            // Set up deprecation section
+            var deprecationViewModel = new ManageDeprecationViewModel(
+                '@Model.Id',
+                versionDeprecationState,
+                '@Model.Version',
+                '@Url.DeprecatePackage()',
+                packageUrl,
+                '@Url.GetDeprecationAlternatePackageVersions()',
+                '@Strings.DeprecatePackage_CveUrlFormat',
+                '@Url.GetDeprecationCveIds()',
+                '@Strings.DeprecatePackage_CweUrlFormat',
+                '@Url.GetDeprecationCweIds()');
+        });
+    </script>
+    @ViewHelpers.SectionsScript(this)
+    @Scripts.Render("~/Scripts/gallery/page-manage-owners.min.js")
+    @Scripts.Render("~/Scripts/gallery/page-manage-deprecation.min.js")
+    @Scripts.Render("~/Scripts/gallery/page-delete-package.min.js")
+    @Scripts.Render("~/Scripts/gallery/page-edit-readme.min.js")
+}

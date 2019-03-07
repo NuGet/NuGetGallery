@@ -7,9 +7,9 @@ using System.IO;
 using System.IO.Compression;
 using System.Threading.Tasks;
 using Moq;
-using NuGet.Packaging;
 using NuGet.Services.Entities;
 using NuGetGallery.Packaging;
+using NuGetGallery.TestUtils;
 using Xunit;
 using ClientPackageType = NuGet.Packaging.Core.PackageType;
 
@@ -37,16 +37,6 @@ namespace NuGetGallery
             }
 
             return symbolPackageService.Object;
-        }
-
-        private static PackageArchiveReader CreateArchiveReader(Stream stream)
-        {
-            if (stream == null)
-            {
-                stream = TestPackage.CreateTestPackageStream("theId", "1.0.42");
-            }
-
-            return new PackageArchiveReader(stream, leaveStreamOpen: true);
         }
 
         private static List<ClientPackageType> CreateSymbolPackageTypesObject()
@@ -91,7 +81,7 @@ namespace NuGetGallery
             {
                 var service = CreateService();
                 var invalidSymbolPackageStream = TestPackage.CreateTestPackageStream("theId", "1.0.42");
-                var packageArchiveReader = CreateArchiveReader(invalidSymbolPackageStream);
+                var packageArchiveReader = PackageServiceUtility.CreateArchiveReader(invalidSymbolPackageStream);
 
                 await Assert.ThrowsAsync<InvalidPackageException>(async () => await service.EnsureValidAsync(packageArchiveReader));
             }
@@ -105,7 +95,7 @@ namespace NuGetGallery
                     new ClientPackageType("SymbolsPackage", new Version("1.1"))
                 };
                 var invalidSymbolPackageStream = TestPackage.CreateTestPackageStream("theId", "1.0.42", packageTypes: packageTypes);
-                var packageArchiveReader = CreateArchiveReader(invalidSymbolPackageStream);
+                var packageArchiveReader = PackageServiceUtility.CreateArchiveReader(invalidSymbolPackageStream);
 
                 await Assert.ThrowsAsync<InvalidPackageException>(async () => await service.EnsureValidAsync(packageArchiveReader));
             }
@@ -118,7 +108,7 @@ namespace NuGetGallery
                 packageTypes.Add(new ClientPackageType("RandomPackageType", ClientPackageType.EmptyVersion));
 
                 var invalidSymbolPackageStream = TestPackage.CreateTestPackageStream("theId", "1.0.42", packageTypes: packageTypes);
-                var packageArchiveReader = CreateArchiveReader(invalidSymbolPackageStream);
+                var packageArchiveReader = PackageServiceUtility.CreateArchiveReader(invalidSymbolPackageStream);
 
                 await Assert.ThrowsAsync<InvalidPackageException>(async () => await service.EnsureValidAsync(packageArchiveReader));
             }
@@ -130,7 +120,7 @@ namespace NuGetGallery
                 var packageTypes = CreateSymbolPackageTypesObject();
 
                 var invalidSymbolPackageStream = TestPackage.CreateTestPackageStream("theId", "1.0.42", authors: "Random authors", packageTypes: packageTypes);
-                var packageArchiveReader = CreateArchiveReader(invalidSymbolPackageStream);
+                var packageArchiveReader = PackageServiceUtility.CreateArchiveReader(invalidSymbolPackageStream);
 
                 await Assert.ThrowsAsync<InvalidDataException>(async () => await service.EnsureValidAsync(packageArchiveReader));
             }
@@ -142,7 +132,7 @@ namespace NuGetGallery
                 var packageTypes = CreateSymbolPackageTypesObject();
 
                 var invalidSymbolPackageStream = TestPackage.CreateTestPackageStream("theId", "1.0.42", owners: "Random owners", packageTypes: packageTypes);
-                var packageArchiveReader = CreateArchiveReader(invalidSymbolPackageStream);
+                var packageArchiveReader = PackageServiceUtility.CreateArchiveReader(invalidSymbolPackageStream);
 
                 await Assert.ThrowsAsync<InvalidDataException>(async () => await service.EnsureValidAsync(packageArchiveReader));
             }
@@ -158,7 +148,7 @@ namespace NuGetGallery
                 var action = CreatePopulatePackageAction(extension);
 
                 var invalidSymbolPackageStream = TestPackage.CreateTestSymbolPackageStream("theId", "1.0.42", populatePackage: action);
-                var packageArchiveReader = CreateArchiveReader(invalidSymbolPackageStream);
+                var packageArchiveReader = PackageServiceUtility.CreateArchiveReader(invalidSymbolPackageStream);
 
                 await Assert.ThrowsAsync<InvalidDataException>(async () => await service.EnsureValidAsync(packageArchiveReader));
             }
@@ -175,7 +165,7 @@ namespace NuGetGallery
                 var action = CreatePopulatePackageAction(extension);
 
                 var validSymbolPackageStream = TestPackage.CreateTestSymbolPackageStream("theId", "1.0.42", populatePackage: action);
-                var packageArchiveReader = CreateArchiveReader(validSymbolPackageStream);
+                var packageArchiveReader = PackageServiceUtility.CreateArchiveReader(validSymbolPackageStream);
 
                 await service.EnsureValidAsync(packageArchiveReader);
             }

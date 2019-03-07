@@ -189,6 +189,30 @@ namespace NuGetGallery.Areas.Admin.Controllers
         }
 
         [Fact]
+        public void IsSubscribedIgnoresPolicyState()
+        {
+            // Arrange.
+            var users = TestUsers.ToList();
+            var policyService = new TestSecurityPolicyService();
+            var entitiesMock = policyService.MockEntitiesContext;
+            entitiesMock.Setup(c => c.Users).Returns(users.MockDbSet().Object);
+            var controller = new SecurityPolicyController(entitiesMock.Object, policyService);
+            var subscription = policyService.Mocks.UserPoliciesSubscription.Object;
+
+            users.ForEach(async u => await policyService.SubscribeAsync(u, subscription));
+            policyService.MockEntitiesContext.ResetCalls();
+
+            // Act.
+            // Simulates changes to the configurable state of all existing policy subscriptions
+            users.ForEach(u => 
+                u.SecurityPolicies.Where(p => p.Subscription == subscription.SubscriptionName).ToList().ForEach(p => 
+                    p.Value = Guid.NewGuid().ToString()));
+
+            // Assert.
+            Assert.All(users, u => Assert.True(policyService.IsSubscribed(u, subscription)));
+        }
+
+        [Fact]
         public async Task UpdateIgnoresBadUsers()
         {
             // Arrange.

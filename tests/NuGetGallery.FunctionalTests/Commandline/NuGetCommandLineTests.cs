@@ -61,8 +61,8 @@ namespace NuGetGallery.FunctionalTests.Commandline
         [Theory]
         [MemberData(nameof(UploadAndUnlistPackages_Data))]
         [Description("Tests upload and unlist scenarios with API key")]
-        [Priority(0)]
-        [Category("P0Tests")]
+        [Priority(2)]
+        [Category("P2Tests")]
         public async Task UploadAndUnlistPackages(string apiKey)
         {
             // Can push new package ID
@@ -137,8 +137,8 @@ namespace NuGetGallery.FunctionalTests.Commandline
 
         [PackageLockFact]
         [Description("Verifies push version, and delete are not allowed on a locked package")]
-        [Priority(2)]
-        [Category("P2Tests")]
+        [Priority(1)]
+        [Category("P1Tests")]
         public async Task LockedPackageCannotBeModified()
         {
             // Arrange

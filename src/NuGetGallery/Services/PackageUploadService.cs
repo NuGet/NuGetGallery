@@ -7,7 +7,6 @@ using System.Data.Entity.Infrastructure;
 using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -16,6 +15,7 @@ using NuGet.Packaging.Licenses;
 using NuGet.Services.Entities;
 using NuGet.Versioning;
 using NuGetGallery.Configuration;
+using NuGetGallery.Diagnostics;
 using NuGetGallery.Helpers;
 using NuGetGallery.Packaging;
 
@@ -36,9 +36,6 @@ namespace NuGetGallery
             LicenseType.Expression.ToString()
         };
 
-        private const string LicenseNodeName = "license";
-        private const string AllowedLicenseVersion = "1.0.0";
-        private const string Unlicensed = "UNLICENSED";
         /// <summary>
         /// The upper limit on allowed license file size.
         /// </summary>
@@ -47,8 +44,11 @@ namespace NuGetGallery
         /// in plain text and small enough to not cause issues with scanning through such file a few times
         /// during the package validation.
         /// </remarks>
-        private const long MaxAllowedLicenseLength = 1024 * 1024;
+        private const long MaxAllowedLicenseLengthForUploading = 1024 * 1024; // 1 MB
         private const int MaxAllowedLicenseNodeValueLength = 500;
+        private const string LicenseNodeName = "license";
+        private const string AllowedLicenseVersion = "1.0.0";
+        private const string Unlicensed = "UNLICENSED";
 
         private readonly IPackageService _packageService;
         private readonly IPackageFileService _packageFileService;
@@ -58,6 +58,8 @@ namespace NuGetGallery
         private readonly IAppConfiguration _config;
         private readonly ITyposquattingService _typosquattingService;
         private readonly ITelemetryService _telemetryService;
+        private readonly ICoreLicenseFileService _coreLicenseFileService;
+        private readonly IDiagnosticsSource _trace;
 
         public PackageUploadService(
             IPackageService packageService,
@@ -67,7 +69,9 @@ namespace NuGetGallery
             IValidationService validationService,
             IAppConfiguration config,
             ITyposquattingService typosquattingService,
-            ITelemetryService telemetryService)
+            ITelemetryService telemetryService,
+            ICoreLicenseFileService coreLicenseFileService,
+            IDiagnosticsService diagnosticsService)
         {
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
             _packageFileService = packageFileService ?? throw new ArgumentNullException(nameof(packageFileService));
@@ -77,6 +81,12 @@ namespace NuGetGallery
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _typosquattingService = typosquattingService ?? throw new ArgumentNullException(nameof(typosquattingService));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
+            _coreLicenseFileService = coreLicenseFileService ?? throw new ArgumentNullException(nameof(coreLicenseFileService));
+            if (diagnosticsService == null)
+            {
+                throw new ArgumentNullException(nameof(diagnosticsService));
+            }
+            _trace = diagnosticsService.GetSource(nameof(PackageUploadService));
         }
 
         public async Task<PackageValidationResult> ValidateBeforeGeneratePackageAsync(PackageArchiveReader nuGetPackage, PackageMetadata packageMetadata)
@@ -159,13 +169,6 @@ namespace NuGetGallery
                             Strings.UploadPackage_UnsupportedLicenseVersion,
                             versionText));
                 }
-
-                // TODO: remove when all pipeline changes are done
-                if (LicenseType.File.ToString().Equals(typeText, StringComparison.OrdinalIgnoreCase))
-                {
-                    _telemetryService.TrackLicenseFileRejected();
-                    return PackageValidationResult.Invalid(Strings.UploadPackage_LicenseFilesAreNotAllowed);
-                }
             }
 
             var licenseUrl = nuspecReader.GetLicenseUrl();
@@ -182,8 +185,7 @@ namespace NuGetGallery
                     }
                     else
                     {
-                        // TODO: uncomment when we have full support for licenses.
-                        // warnings.Add(new LicenseUrlDeprecationValidationMessage(Strings.UploadPackage_LicenseShouldBeSpecified));
+                        warnings.Add(new LicenseUrlDeprecationValidationMessage(Strings.UploadPackage_LicenseShouldBeSpecified));
                     }
                 }
 
@@ -200,8 +202,7 @@ namespace NuGetGallery
                     }
                     else
                     {
-                        // TODO: uncomment when we have full support for licenses.
-                        //warnings.Add(new LicenseUrlDeprecationValidationMessage(Strings.UploadPackage_DeprecatingLicenseUrl));
+                        warnings.Add(new LicenseUrlDeprecationValidationMessage(Strings.UploadPackage_DeprecatingLicenseUrl));
                     }
                 }
 
@@ -241,18 +242,26 @@ namespace NuGetGallery
 
             if (licenseMetadata.Type == LicenseType.File)
             {
+                // fix the path separator. Client enforces forward slashes in all file paths when packing
+                var licenseFilename = FileNameHelper.GetZipEntryPath(licenseMetadata.License);
+                if (licenseFilename != licenseMetadata.License)
+                {
+                    var packageIdentity = nuspecReader.GetIdentity();
+                    _trace.Information($"Transformed license file name from `{licenseMetadata.License}` to `{licenseFilename}` for package {packageIdentity.Id} {packageIdentity.Version}");
+                }
+
                 // check if specified file is present in the package
                 var fileList = new HashSet<string>(nuGetPackage.GetFiles());
-                if (!fileList.Contains(licenseMetadata.License))
+                if (!fileList.Contains(licenseFilename))
                 {
                     return PackageValidationResult.Invalid(
                         string.Format(
                             Strings.UploadPackage_LicenseFileDoesNotExist,
-                            licenseMetadata.License));
+                            licenseFilename));
                 }
 
                 // check if specified file has allowed extension
-                var licenseFileExtension = Path.GetExtension(licenseMetadata.License);
+                var licenseFileExtension = Path.GetExtension(licenseFilename);
                 if (!AllowedLicenseFileExtensions.Contains(licenseFileExtension, StringComparer.OrdinalIgnoreCase))
                 {
                     return PackageValidationResult.Invalid(
@@ -262,16 +271,16 @@ namespace NuGetGallery
                             string.Join(", ", AllowedLicenseFileExtensions.Where(x => x != string.Empty).Select(extension => $"'{extension}'"))));
                 }
 
-                var licenseFileEntry = nuGetPackage.GetEntry(licenseMetadata.License);
-                if (licenseFileEntry.Length > MaxAllowedLicenseLength)
+                var licenseFileEntry = nuGetPackage.GetEntry(licenseFilename);
+                if (licenseFileEntry.Length > MaxAllowedLicenseLengthForUploading)
                 {
                     return PackageValidationResult.Invalid(
                         string.Format(
                             Strings.UploadPackage_LicenseFileTooLong,
-                            MaxAllowedLicenseLength.ToUserFriendlyBytesLabel()));
+                            MaxAllowedLicenseLengthForUploading.ToUserFriendlyBytesLabel()));
                 }
 
-                using (var licenseFileStream = nuGetPackage.GetStream(licenseMetadata.License))
+                using (var licenseFileStream = nuGetPackage.GetStream(licenseFilename))
                 {
                     if (!await IsStreamLengthMatchesReportedAsync(licenseFileStream, licenseFileEntry.Length))
                     {
@@ -280,7 +289,7 @@ namespace NuGetGallery
                 }
 
                 // zip streams do not support seeking, so we'll have to reopen them
-                using (var licenseFileStream = nuGetPackage.GetStream(licenseMetadata.License))
+                using (var licenseFileStream = nuGetPackage.GetStream(licenseFilename))
                 {
                     // check if specified file is a text file
                     if (!await TextHelper.LooksLikeUtf8TextStreamAsync(licenseFileStream))
@@ -722,7 +731,7 @@ namespace NuGetGallery
                     {
                         // if the package is immediately made available, it means there is a high chance we don't have
                         // validation pipeline that would normally store the license file, so we'll do it ourselves here.
-                        await SavePackageLicenseFile(packageFile, package);
+                        await _coreLicenseFileService.ExtractAndSaveLicenseFileAsync(package, packageFile);
                     }
                     try
                     {
@@ -730,7 +739,7 @@ namespace NuGetGallery
                     }
                     catch when (package.EmbeddedLicenseType != EmbeddedLicenseFileType.Absent)
                     {
-                        await _packageFileService.DeleteLicenseFileAsync(
+                        await _coreLicenseFileService.DeleteLicenseFileAsync(
                             package.PackageRegistration.Id,
                             package.NormalizedVersion);
                         throw;
@@ -762,7 +771,7 @@ namespace NuGetGallery
                     await _packageFileService.DeletePackageFileAsync(
                         package.PackageRegistration.Id,
                         package.Version);
-                    await _packageFileService.DeleteLicenseFileAsync(
+                    await _coreLicenseFileService.DeleteLicenseFileAsync(
                         package.PackageRegistration.Id,
                         package.NormalizedVersion);
                 }
@@ -797,26 +806,6 @@ namespace NuGetGallery
             }
 
             throw ex;
-        }
-
-        private async Task SavePackageLicenseFile(Stream packageFile, Package package)
-        {
-            packageFile.Seek(0, SeekOrigin.Begin);
-            using (var packageArchiveReader = new PackageArchiveReader(packageFile, leaveStreamOpen: true))
-            {
-                var packageMetadata = PackageMetadata.FromNuspecReader(packageArchiveReader.GetNuspecReader(), strict: true);
-                if (packageMetadata.LicenseMetadata == null || packageMetadata.LicenseMetadata.Type != LicenseType.File || string.IsNullOrWhiteSpace(packageMetadata.LicenseMetadata.License))
-                {
-                    throw new InvalidOperationException("No license file specified in the nuspec");
-                }
-
-                var filename = packageMetadata.LicenseMetadata.License;
-                var licenseFileEntry = packageArchiveReader.GetEntry(filename); // throws on non-existent file
-                using (var licenseFileStream = licenseFileEntry.Open())
-                {
-                    await _packageFileService.SaveLicenseFileAsync(package, licenseFileStream);
-                }
-            }
         }
     }
 }

@@ -7,10 +7,6 @@ namespace NuGetGallery
     {
         public string FileFolderName => CoreConstants.Folders.PackagesFolderName;
 
-        public string PackageContentFolderName => CoreConstants.Folders.PackagesContentFolderName;
-
-        public string PackageContentPathTemplate => CoreConstants.PackageContentFileSavePathTemplate;
-
         public string FileSavePathTemplate => CoreConstants.PackageFileSavePathTemplate;
 
         public string FileExtension => CoreConstants.NuGetPackageFileExtension;

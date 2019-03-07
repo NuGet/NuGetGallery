@@ -5,15 +5,15 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NuGet.Services.Entities;
+using NuGet.Services.Licenses;
 using NuGet.Services.Validation.Issues;
 using NuGet.Versioning;
-using NuGetGallery.Helpers;
 
 namespace NuGetGallery
 {
     public class DisplayPackageViewModel : ListPackageItemViewModel
     {
-        public DisplayPackageViewModel(Package package, User currentUser, IOrderedEnumerable<Package> packageHistory)
+        public DisplayPackageViewModel(Package package, User currentUser, PackageDeprecation deprecation)
             : this(package, currentUser, (string)null)
         {
             HasSemVer2Version = NuGetVersion.IsSemVer2;
@@ -23,7 +23,13 @@ namespace NuGetGallery
                 .Any(p => (p.HasUpperBound && p.MaxVersion.IsSemVer2) || (p.HasLowerBound && p.MinVersion.IsSemVer2));
 
             Dependencies = new DependencySetsViewModel(package.Dependencies);
-            PackageVersions = packageHistory.Select(p => new DisplayPackageViewModel(p, currentUser, GetPushedBy(p, currentUser)));
+
+            var packageHistory = package
+                .PackageRegistration
+                .Packages
+                .OrderByDescending(p => new NuGetVersion(p.Version))
+                .ToList();
+            PackageVersions = packageHistory.Select(p => new DisplayPackageViewModel(p, currentUser, GetPushedBy(p, currentUser))).ToList();
 
             PushedBy = GetPushedBy(package, currentUser);
             PackageFileSize = package.PackageFileSize;
@@ -40,9 +46,51 @@ namespace NuGetGallery
                 DownloadsPerDayLabel = DownloadsPerDay < 1 ? "<1" : DownloadsPerDay.ToNuGetNumberString();
                 IsDotnetToolPackageType = package.PackageTypes.Any(e => e.Name.Equals("DotnetTool", StringComparison.OrdinalIgnoreCase));
             }
+
+            if (deprecation != null)
+            {
+                DeprecationStatus = deprecation.Status;
+
+                CveIds = deprecation.Cves?.Select(c => c.CveId).ToList();
+                CweIds = deprecation.Cwes?.Select(c => c.CweId).ToList();
+
+                if (deprecation.CvssRating.HasValue)
+                {
+                    var cvssRating = deprecation.CvssRating.Value;
+                    if (cvssRating < 4)
+                    {
+                        Severity = "Low";
+                    }
+                    else if (cvssRating < 7)
+                    {
+                        Severity = "Medium";
+                    }
+                    else if (cvssRating < 9)
+                    {
+                        Severity = "High";
+                    }
+                    else
+                    {
+                        Severity = "Critical";
+                    }
+                }
+
+                AlternatePackageId = deprecation.AlternatePackageRegistration?.Id;
+
+                var alternatePackage = deprecation.AlternatePackage;
+                if (alternatePackage != null)
+                {
+                    // A deprecation should not have both an alternate package registration and an alternate package.
+                    // In case a deprecation does have both, we will hide the alternate package registration's ID in this model.
+                    AlternatePackageId = alternatePackage?.Id;
+                    AlternatePackageVersion = alternatePackage?.Version;
+                }
+
+                CustomMessage = deprecation.CustomMessage;
+            }
         }
 
-        public DisplayPackageViewModel(Package package, User currentUser, string pushedBy)
+        private DisplayPackageViewModel(Package package, User currentUser, string pushedBy)
             : base(package, currentUser)
         {
             Copyright = package.Copyright;
@@ -62,12 +110,10 @@ namespace NuGetGallery
                 ProjectUrl = projectUrl;
             }
 
-            var licenseExpression = package.LicenseExpression;
-            if (!string.IsNullOrWhiteSpace(licenseExpression))
-            {
-                LicenseUrl = LicenseExpressionRedirectUrlHelper.GetLicenseExpressionRedirectUrl(licenseExpression);
-            }
-            else if (PackageHelper.TryPrepareUrlForRendering(package.LicenseUrl, out string licenseUrl))
+            EmbeddedLicenseType = package.EmbeddedLicenseType;
+            LicenseExpression = package.LicenseExpression;
+
+            if (PackageHelper.TryPrepareUrlForRendering(package.LicenseUrl, out string licenseUrl))
             {
                 LicenseUrl = licenseUrl;
 
@@ -83,7 +129,7 @@ namespace NuGetGallery
         public IReadOnlyList<ValidationIssue> PackageValidationIssues { get; set; }
         public IReadOnlyList<ValidationIssue> SymbolsPackageValidationIssues { get; set; }
         public DependencySetsViewModel Dependencies { get; set; }
-        public IEnumerable<DisplayPackageViewModel> PackageVersions { get; set; }
+        public IReadOnlyList<DisplayPackageViewModel> PackageVersions { get; set; }
         public string Copyright { get; set; }
         public string ReadMeHtml { get; set; }
         public DateTime? LastEdited { get; set; }
@@ -95,6 +141,7 @@ namespace NuGetGallery
         public bool HasSemVer2Version { get; }
         public bool HasSemVer2Dependency { get; }
         public bool IsDotnetToolPackageType { get; set; }
+        public bool IsAtomFeedEnabled { get; set; }
 
         public bool HasNewerPrerelease
         {
@@ -132,6 +179,17 @@ namespace NuGetGallery
         public string ProjectUrl { get; set; }
         public string LicenseUrl { get; set; }
         public IEnumerable<string> LicenseNames { get; set; }
+        public string LicenseExpression { get; set; }
+        public IReadOnlyCollection<CompositeLicenseExpressionSegment> LicenseExpressionSegments { get; set; }
+        public EmbeddedLicenseFileType EmbeddedLicenseType { get; set; }
+
+        public PackageDeprecationStatus DeprecationStatus { get; set; }
+        public IReadOnlyCollection<string> CveIds { get; set; }
+        public string Severity { get; set; }
+        public IReadOnlyCollection<string> CweIds { get; set; }
+        public string AlternatePackageId { get; set; }
+        public string AlternatePackageVersion { get; set; }
+        public string CustomMessage { get; set; }
 
         private IDictionary<User, string> _pushedByCache = new Dictionary<User, string>();
 

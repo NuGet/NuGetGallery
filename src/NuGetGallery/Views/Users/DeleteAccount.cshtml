@@ -38,7 +38,7 @@
                             <li>Not delete the NuGet packages associated with the account.</li>
                         </ul>
                     </p>
-                    if (Model.HasOrphanPackages)
+                    if (Model.HasPackagesThatWillBeOrphaned)
                     {
                             @ViewHelpers.AlertDanger(@<text>One or more packages do not have co-owners.</text>)
                     }

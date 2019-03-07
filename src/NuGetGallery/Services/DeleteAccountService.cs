@@ -11,6 +11,7 @@ using NuGetGallery.Areas.Admin;
 using NuGetGallery.Areas.Admin.ViewModels;
 using NuGetGallery.Auditing;
 using NuGetGallery.Authentication;
+using NuGetGallery.Features;
 using NuGetGallery.Security;
 
 namespace NuGetGallery
@@ -27,6 +28,7 @@ namespace NuGetGallery
         private readonly IEntityRepository<User> _userRepository;
         private readonly IEntityRepository<Scope> _scopeRepository;
         private readonly ISupportRequestService _supportRequestService;
+        private readonly IEditableFeatureFlagStorageService _featureFlagService;
         private readonly IAuditingService _auditingService;
         private readonly ITelemetryService _telemetryService;
 
@@ -40,6 +42,7 @@ namespace NuGetGallery
                                     ISecurityPolicyService securityPolicyService,
                                     AuthenticationService authService,
                                     ISupportRequestService supportRequestService,
+                                    IEditableFeatureFlagStorageService featureFlagService,
                                     IAuditingService auditingService,
                                     ITelemetryService telemetryService
             )
@@ -54,6 +57,7 @@ namespace NuGetGallery
             _securityPolicyService = securityPolicyService ?? throw new ArgumentNullException(nameof(securityPolicyService));
             _authService = authService ?? throw new ArgumentNullException(nameof(authService));
             _supportRequestService = supportRequestService ?? throw new ArgumentNullException(nameof(supportRequestService));
+            _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
             _auditingService = auditingService ?? throw new ArgumentNullException(nameof(auditingService));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
         }
@@ -183,10 +187,8 @@ namespace NuGetGallery
         {
             foreach (var package in GetPackagesOwnedByUser(user))
             {
-                var owners = user is Organization ? package.PackageRegistration.Owners : _packageService.GetPackageUserAccountOwners(package);
-                if (owners.Count() <= 1)
+                if (_packageService.WillPackageBeOrphanedIfOwnerRemoved(package.PackageRegistration, user))
                 {
-                    // Package will be orphaned by removing ownership.
                     if (orphanPackagePolicy == AccountDeletionOrphanPackagePolicy.DoNotAllowOrphans)
                     {
                         throw new InvalidOperationException($"Deleting user '{user.Username}' will make package '{package.PackageRegistration.Id}' an orphan, but no orphans were expected.");
@@ -199,12 +201,6 @@ namespace NuGetGallery
 
                 await _packageOwnershipManagementService.RemovePackageOwnerAsync(package.PackageRegistration, requestingUser, user, commitAsTransaction:false);
             }
-        }
-
-        private bool WillPackageBeOrphaned(User user, Package package)
-        {
-            var owners = user is Organization ? package.PackageRegistration.Owners : _packageService.GetPackageUserAccountOwners(package);
-            return owners.Count() <= 1;
         }
 
         private List<Package> GetPackagesOwnedByUser(User user)
@@ -225,22 +221,21 @@ namespace NuGetGallery
         {
             foreach (var membership in user.Organizations.ToArray())
             {
-                var organization = membership.Organization;
-                var members = organization.Members.ToList();
-                var collaborators = members.Where(m => !m.IsAdmin).ToList();
-                var memberCount = members.Count();
                 user.Organizations.Remove(membership);
+                var organization = membership.Organization;
+                var otherMembers = organization.Members
+                    .Where(m => !m.Member.MatchesUser(user));
 
-                if (memberCount < 2)
+                if (!otherMembers.Any())
                 {
                     // The user we are deleting is the only member of the organization.
                     // We should delete the entire organization.
                     await DeleteAccountImplAsync(organization, requestingUser, orphanPackagePolicy);
                 }
-                else if (memberCount - 1 <= collaborators.Count())
+                else if (otherMembers.All(m => !m.IsAdmin))
                 {
                     // All other members of this organization are collaborators, so we should promote them to administrators.
-                    foreach (var collaborator in collaborators)
+                    foreach (var collaborator in otherMembers)
                     {
                         collaborator.IsAdmin = true;
                     }
@@ -291,7 +286,7 @@ namespace NuGetGallery
 
         private async Task RemoveSupportRequests(User user)
         {
-            await _supportRequestService.DeleteSupportRequestsAsync(user.Username);
+            await _supportRequestService.DeleteSupportRequestsAsync(user);
         }
 
         private async Task RemoveUser(User user)
@@ -306,8 +301,9 @@ namespace NuGetGallery
             {
                 // The support requests DB and gallery DB are different.
                 // TransactionScope can be used for doing transaction actions across db on the same server but not on different servers.
-                // The below code will clean the suppport requests before the gallery data.
+                // The below code will clean the feature flags and suppport requests before the gallery data.
                 // The order is important in order to allow the admin the opportunity to execute this step again.
+                await _featureFlagService.RemoveUserAsync(userToBeDeleted);
                 await RemoveSupportRequests(userToBeDeleted);
 
                 if (commitAsTransaction)

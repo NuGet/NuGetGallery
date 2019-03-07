@@ -50,9 +50,14 @@ namespace NuGetGallery.ViewModels
                 Version = "1.0.0",
                 RepositoryUrl = repoUrl,
                 RepositoryType = repoType,
+                PackageRegistration = new PackageRegistration
+                {
+                    Owners = Enumerable.Empty<User>().ToList(),
+                    Packages = Enumerable.Empty<Package>().ToList()
+                }
             };
 
-            var model = new DisplayPackageViewModel(package, null, "test");
+            var model = new DisplayPackageViewModel(package, null, null);
             Assert.Equal(expectedKind, model.RepositoryType);
             Assert.Equal(expectedUrl, model.RepositoryUrl);
         }
@@ -80,15 +85,21 @@ namespace NuGetGallery.ViewModels
         [InlineData("http://microsoft.com:80/", "https://microsoft.com/")]
         [InlineData("http://githubpages.github.io/my.page", "https://githubpages.github.io/my.page")]
         [InlineData("http://githubpages.github.com", "https://githubpages.github.com/")]
+        [InlineData("http://weblogs.asp.net/j/fontawesome-portable", "https://weblogs.asp.net/j/fontawesome-portable")]
         public void ItInitializesProjectUrl(string projectUrl, string expected)
         {
             var package = new Package
             {
                 Version = "1.0.0",
-                ProjectUrl = projectUrl
+                ProjectUrl = projectUrl,
+                PackageRegistration = new PackageRegistration
+                {
+                    Owners = Enumerable.Empty<User>().ToList(),
+                    Packages = Enumerable.Empty<Package>().ToList()
+                }
             };
 
-            var model = new DisplayPackageViewModel(package, null, "test");
+            var model = new DisplayPackageViewModel(package, null, null);
             Assert.Equal(expected, model.ProjectUrl);
         }
 
@@ -108,10 +119,15 @@ namespace NuGetGallery.ViewModels
             var package = new Package
             {
                 Version = "1.0.0",
-                LicenseUrl = licenseUrl
+                LicenseUrl = licenseUrl,
+                PackageRegistration = new PackageRegistration
+                {
+                    Owners = Enumerable.Empty<User>().ToList(),
+                    Packages = Enumerable.Empty<Package>().ToList()
+                }
             };
 
-            var model = new DisplayPackageViewModel(package, null, "test");
+            var model = new DisplayPackageViewModel(package, null, null);
             Assert.Equal(expected, model.LicenseUrl);
         }
 
@@ -123,9 +139,14 @@ namespace NuGetGallery.ViewModels
                 LicenseUrl = "https://mylicense.com",
                 Version = "1.0.0",
                 LicenseNames = "l1,l2, l3 ,l4  ,  l5 ",
+                PackageRegistration = new PackageRegistration
+                {
+                    Owners = Enumerable.Empty<User>().ToList(),
+                    Packages = Enumerable.Empty<Package>().ToList()
+                }
             };
 
-            var packageViewModel = new DisplayPackageViewModel(package, currentUser: null, pushedBy: "test");
+            var packageViewModel = new DisplayPackageViewModel(package, currentUser: null, deprecation: null);
             Assert.Equal(new string[] { "l1", "l2", "l3", "l4", "l5" }, packageViewModel.LicenseNames);
         }
 
@@ -154,7 +175,7 @@ namespace NuGetGallery.ViewModels
                     new Package { Version = "1.0.10", PackageRegistration = package.PackageRegistration }
                 };
 
-            var packageVersions = new DisplayPackageViewModel(package, null, package.PackageRegistration.Packages.OrderByDescending(p => new NuGetVersion(p.Version)))
+            var packageVersions = new DisplayPackageViewModel(package, null, null)
                 .PackageVersions.ToList();
 
             // Descending
@@ -206,7 +227,7 @@ namespace NuGetGallery.ViewModels
                 });
             }
 
-            var viewModel = new DisplayPackageViewModel(package, null, package.PackageRegistration.Packages.OrderByDescending(p => new NuGetVersion(p.Version)));
+            var viewModel = new DisplayPackageViewModel(package, null, null);
 
             // Descending
             Assert.NotNull(viewModel.LatestSymbolsPackage);
@@ -244,7 +265,7 @@ namespace NuGetGallery.ViewModels
 
             package.SymbolPackages = symbolPackageList;
 
-            var viewModel = new DisplayPackageViewModel(package, null, packageHistory: Enumerable.Empty<Package>().OrderBy(x => 1));
+            var viewModel = new DisplayPackageViewModel(package, null, null);
 
             Assert.Equal(symbolPackageList[0], viewModel.LatestSymbolsPackage);
         }
@@ -281,10 +302,8 @@ namespace NuGetGallery.ViewModels
                     new Package { Version = "2.0.1", PackageRegistration = packageRegistration, DownloadCount = 140, Created = utcNow.AddDays(-3) }
                 };
 
-            var packageHistory = packageRegistration.Packages.OrderByDescending(p => new NuGetVersion(p.Version));
-
             // Act
-            var viewModel = new DisplayPackageViewModel(package, null, packageHistory);
+            var viewModel = new DisplayPackageViewModel(package, null, null);
 
             // Assert
             Assert.Equal(daysSinceFirstPackageCreated, viewModel.TotalDaysSinceCreated);
@@ -313,7 +332,7 @@ namespace NuGetGallery.ViewModels
 
             package.PackageRegistration.Packages = new[] { package };
 
-            var viewModel = new DisplayPackageViewModel(package, null, package.PackageRegistration.Packages.OrderByDescending(p => new NuGetVersion(p.Version)));
+            var viewModel = new DisplayPackageViewModel(package, null, null);
 
             // Act
             var label = viewModel.DownloadsPerDayLabel;
@@ -345,7 +364,7 @@ namespace NuGetGallery.ViewModels
 
             package.PackageRegistration.Packages = new[] { package };
 
-            var viewModel = new DisplayPackageViewModel(package, null, package.PackageRegistration.Packages.OrderByDescending(p => new NuGetVersion(p.Version)));
+            var viewModel = new DisplayPackageViewModel(package, null, null);
 
             // Act
             var label = viewModel.DownloadsPerDayLabel;
@@ -393,7 +412,7 @@ namespace NuGetGallery.ViewModels
 
             package.PackageRegistration.Packages = new[] { package, otherPackage };
 
-            var viewModel = new DisplayPackageViewModel(package, null, package.PackageRegistration.Packages.OrderByDescending(p => new NuGetVersion(p.Version)));
+            var viewModel = new DisplayPackageViewModel(package, null, null);
 
             // Act
             var hasNewerPrerelease = viewModel.HasNewerPrerelease;
@@ -440,7 +459,7 @@ namespace NuGetGallery.ViewModels
 
             package.PackageRegistration.Packages = new[] { package, otherPackage };
 
-            var viewModel = new DisplayPackageViewModel(package, null, package.PackageRegistration.Packages.OrderByDescending(p => new NuGetVersion(p.Version)));
+            var viewModel = new DisplayPackageViewModel(package, null, null);
 
             // Act
             var hasNewerRelease = viewModel.HasNewerRelease;
@@ -479,7 +498,7 @@ namespace NuGetGallery.ViewModels
 
             package.PackageRegistration.Packages = new[] { package, otherPackage };
 
-            var viewModel = new DisplayPackageViewModel(package, null, package.PackageRegistration.Packages.OrderByDescending(p => new NuGetVersion(p.Version)));
+            var viewModel = new DisplayPackageViewModel(package, null, null);
 
             // Act
             var hasNewerPrerelease = viewModel.HasNewerPrerelease;
@@ -519,7 +538,7 @@ namespace NuGetGallery.ViewModels
 
             package.PackageRegistration.Packages = new[] { package, otherPackage };
 
-            var viewModel = new DisplayPackageViewModel(package, null, package.PackageRegistration.Packages.OrderByDescending(p => new NuGetVersion(p.Version)));
+            var viewModel = new DisplayPackageViewModel(package, null, null);
 
             // Act
             var hasNewerRelease = viewModel.HasNewerRelease;
@@ -535,10 +554,9 @@ namespace NuGetGallery.ViewModels
         {
             // Arrange
             var package = CreateTestPackage("1.0.0", dependencyVersion: versionSpec);
-            var history = package.PackageRegistration.Packages.OrderByDescending(p => p.Version);
 
             // Act
-            var viewModel = new DisplayPackageViewModel(package, null, history);
+            var viewModel = new DisplayPackageViewModel(package, null, null);
 
             // Assert
             Assert.False(viewModel.HasSemVer2Dependency);
@@ -552,10 +570,9 @@ namespace NuGetGallery.ViewModels
         {
             // Arrange
             var package = CreateTestPackage("1.0.0", dependencyVersion: versionSpec);
-            var history = package.PackageRegistration.Packages.OrderByDescending(p => p.Version);
 
             // Act
-            var viewModel = new DisplayPackageViewModel(package, null, history);
+            var viewModel = new DisplayPackageViewModel(package, null, null);
 
             // Assert
             Assert.True(viewModel.HasSemVer2Dependency);
@@ -569,10 +586,9 @@ namespace NuGetGallery.ViewModels
         {
             // Arrange
             var package = CreateTestPackage("1.0.0", dependencyVersion: versionSpec);
-            var history = package.PackageRegistration.Packages.OrderByDescending(p => p.Version);
 
             // Act
-            var viewModel = new DisplayPackageViewModel(package, null, history);
+            var viewModel = new DisplayPackageViewModel(package, null, null);
 
             // Assert
             Assert.False(viewModel.HasSemVer2Dependency);
@@ -586,10 +602,9 @@ namespace NuGetGallery.ViewModels
         {
             // Arrange
             var package = CreateTestPackage(version);
-            var history = package.PackageRegistration.Packages.OrderByDescending(p => p.Version);
 
             // Act
-            var viewModel = new DisplayPackageViewModel(package, null, history);
+            var viewModel = new DisplayPackageViewModel(package, null, null);
 
             // Assert
             Assert.False(viewModel.HasSemVer2Version);
@@ -603,10 +618,9 @@ namespace NuGetGallery.ViewModels
         {
             // Arrange
             var package = CreateTestPackage(version);
-            var history = package.PackageRegistration.Packages.OrderByDescending(p => p.Version);
 
             // Act
-            var viewModel = new DisplayPackageViewModel(package, null, history);
+            var viewModel = new DisplayPackageViewModel(package, null, null);
 
             // Assert
             Assert.True(viewModel.HasSemVer2Version);
@@ -716,9 +730,192 @@ namespace NuGetGallery.ViewModels
             [MemberData(nameof(Data))]
             public void ReturnsExpectedUser(Package package, User currentUser, string expected)
             {
-                var model = new DisplayPackageViewModel(package, currentUser, new[] { package }.OrderByDescending(p => new NuGetVersion(p.Version)));
+                var model = new DisplayPackageViewModel(package, currentUser, null);
 
                 Assert.Equal(expected, model.PushedBy);
+            }
+        }
+
+        public enum SeverityString_State
+        {
+            None,
+            Low,
+            Medium,
+            High,
+            Critical
+        }
+
+        public static IEnumerable<object[]> DeprecationFieldsAreSetAsExpected_Data =
+            MemberDataHelper.Combine(
+                MemberDataHelper.FlagEnumDataSet<PackageDeprecationStatus>(),
+                MemberDataHelper.EnumDataSet<SeverityString_State>(),
+                MemberDataHelper.BooleanDataSet(),
+                MemberDataHelper.BooleanDataSet(),
+                MemberDataHelper.BooleanDataSet(),
+                MemberDataHelper.BooleanDataSet());
+
+        [Theory]
+        [MemberData(nameof(DeprecationFieldsAreSetAsExpected_Data))]
+        public void DeprecationFieldsAreSetAsExpected(
+            PackageDeprecationStatus status,
+            SeverityString_State severity,
+            bool hasCves,
+            bool hasCwes,
+            bool hasAlternateRegistration,
+            bool hasAlternatePackage)
+        {
+            // Arrange
+            decimal? cvss;
+            switch (severity)
+            {
+                case SeverityString_State.Critical:
+                    cvss = (decimal)9.5;
+                    break;
+                case SeverityString_State.High:
+                    cvss = (decimal)7.5;
+                    break;
+                case SeverityString_State.Medium:
+                    cvss = (decimal)5;
+                    break;
+                case SeverityString_State.Low:
+                    cvss = (decimal)2;
+                    break;
+                case SeverityString_State.None:
+                    cvss = null;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(severity));
+            }
+
+            var deprecation = new PackageDeprecation
+            {
+                Status = status,
+                CvssRating = cvss,
+                CustomMessage = "hello"
+            };
+
+            var cveIds = new[] { "CVE-2019-1111", "CVE-2019-2222" };
+            if (hasCves)
+            {
+                foreach (var cveId in cveIds)
+                {
+                    var cve = new Cve
+                    {
+                        CveId = cveId
+                    };
+
+                    deprecation.Cves.Add(cve);
+                }
+            }
+
+            var cweIds = new[] { "CWE-1", "CWE-2" };
+            if (hasCwes)
+            {
+                foreach (var cweId in cweIds)
+                {
+                    var cwe = new Cwe
+                    {
+                        CweId = cweId
+                    };
+
+                    deprecation.Cwes.Add(cwe);
+                }
+            }
+
+            var alternateRegistrationId = "alternateRegistrationId";
+            if (hasAlternateRegistration)
+            {
+                var registration = new PackageRegistration
+                {
+                    Id = alternateRegistrationId
+                };
+
+                deprecation.AlternatePackageRegistration = registration;
+            }
+
+            var alternatePackageRegistrationId = "alternatePackageRegistration";
+            var alternatePackageVersion = "1.0.0-alt";
+            if (hasAlternatePackage)
+            {
+                var alternatePackageRegistration = new PackageRegistration
+                {
+                    Id = alternatePackageRegistrationId
+                };
+
+                var alternatePackage = new Package
+                {
+                    Version = alternatePackageVersion,
+                    PackageRegistration = alternatePackageRegistration
+                };
+
+                deprecation.AlternatePackage = alternatePackage;
+            }
+
+            var package = CreateTestPackage("1.0.0");
+
+            // Act
+            var model = new DisplayPackageViewModel(package, null, deprecation);
+
+            // Assert
+            Assert.Equal(status, model.DeprecationStatus);
+            Assert.Equal(deprecation.CustomMessage, model.CustomMessage);
+
+            string expectedString;
+            switch (severity)
+            {
+                case SeverityString_State.Critical:
+                    expectedString = "Critical";
+                    break;
+                case SeverityString_State.High:
+                    expectedString = "High";
+                    break;
+                case SeverityString_State.Medium:
+                    expectedString = "Medium";
+                    break;
+                case SeverityString_State.Low:
+                    expectedString = "Low";
+                    break;
+                case SeverityString_State.None:
+                    expectedString = null;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(severity));
+            }
+
+            Assert.Equal(expectedString, model.Severity);
+
+            if (hasCves)
+            {
+                Assert.Equal(cveIds, model.CveIds);
+            }
+            else
+            {
+                Assert.Empty(model.CveIds);
+            }
+
+            if (hasCwes)
+            {
+                Assert.Equal(cweIds, model.CweIds);
+            }
+            else
+            {
+                Assert.Empty(model.CweIds);
+            }
+
+            if (hasAlternatePackage)
+            {
+                Assert.Equal(alternatePackageRegistrationId, model.AlternatePackageId);
+                Assert.Equal(alternatePackageVersion, model.AlternatePackageVersion);
+            }
+            else if (hasAlternateRegistration)
+            {
+                Assert.Equal(alternateRegistrationId, model.AlternatePackageId);
+                Assert.Null(model.AlternatePackageVersion);
+            }
+            else
+            {
+                Assert.Null(model.AlternatePackageId);
+                Assert.Null(model.AlternatePackageVersion);
             }
         }
     }

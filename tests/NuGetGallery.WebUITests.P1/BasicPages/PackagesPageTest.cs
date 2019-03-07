@@ -29,10 +29,6 @@ namespace NuGetGallery.FunctionalTests.WebUITests.BasicPages
             var packageTitleValidationRule = AssertAndValidationHelper.GetValidationRuleForFindText(packageId + " " + ClientSdkHelper.GetLatestStableVersion(packageId));
             packagePageRequest.ValidateResponse += packageTitleValidationRule.Validate;
 
-            // Rule to check that the download count is present in the response.
-            var downloadCountValidationRule = AssertAndValidationHelper.GetValidationRuleForFindText(ClientSdkHelper.GetFormattedDownLoadStatistics(packageId));
-            packagePageRequest.ValidateResponse += downloadCountValidationRule.Validate;
-
             yield return packagePageRequest;
         }
     }

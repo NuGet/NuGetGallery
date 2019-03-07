@@ -2,6 +2,7 @@
 @{
     ViewBag.Title = "Upload Package";
     ViewBag.Tab = "Upload";
+    ViewBag.MdPageColumns = GalleryConstants.ColumnsFormMd;
     var placeholder = Model.IsSymbolsUploadEnabled
         ? "Browse or Drop files to select a package (.nupkg) or symbols package (.snupkg)..."
         : "Browse or Drop files to select a package (.nupkg)";
@@ -13,6 +14,7 @@
 <section role="main" class="container main-container page-upload">
     <div class="row">
         <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
+            @ViewHelpers.AjaxAntiForgeryToken(Html)
             @ViewHelpers.PackagesBreadcrumb(Url, CurrentUser, true, @<text>Upload</text>)
             <div class="text-left">
                 <p class="message">Your package file will be uploaded and hosted on the @(Config.Current.Brand) server (@(Config.Current.SiteRoot)).</p>
@@ -71,7 +73,7 @@
 @section BottomScripts
 {
     @* Right now this is the only page that uses this script. If we increase our usage of it, we should put it in our bundles *@
-    @Scripts.Render("~/Scripts/gallery/page-edit-readme.js")
+    @Scripts.Render("~/Scripts/gallery/page-edit-readme.min.js")
     @Scripts.Render("~/Scripts/gallery/async-file-upload.js")
     <script type="text/javascript">
         var InProgressPackage = @Html.Raw(Json.Encode(Model.InProgressUpload));
@@ -86,7 +88,8 @@
                 '@Url.UploadPackage()',
                 '@Url.CancelUpload()',
                 '@Url.VerifyPackage()',
-                '@Guid.NewGuid()');
+                '@Guid.NewGuid()',
+                '@Url.PreviewReadMe()');
         });
     </script>
 }

@@ -46,6 +46,14 @@ namespace NuGetGallery
             return new CloudBlobWrapper(blob);
         }
 
+        public async Task<Stream> OpenReadAsync(AccessCondition accessCondition)
+        {
+            return await _blob.OpenReadAsync(
+                accessCondition: accessCondition,
+                options: null,
+                operationContext: null);
+        }
+
         public async Task DeleteIfExistsAsync()
         {
             await _blob.DeleteIfExistsAsync(

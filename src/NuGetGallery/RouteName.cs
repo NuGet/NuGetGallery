@@ -26,6 +26,7 @@ namespace NuGetGallery
         public const string ApiKeys = "ApiKeys";
         public const string Profile = "Profile";
         public const string DisplayPackage = "package-route";
+        public const string DisplayPackageFeed = "package-route-feed";
         public const string DownloadPackage = "DownloadPackage";
         public const string DownloadSymbolsPackage = "DownloadSymbolsPackage";
         public const string DownloadNuGetExe = "DownloadNuGetExe";
@@ -53,6 +54,7 @@ namespace NuGetGallery
         public const string NewSubmission = "NewSubmission";
         public const string VerifyPackage = "VerifyPackage";
         public const string PreviewReadMe = "PreviewReadMe";
+        public const string GetReadMeMd = "GetReadMeMd";
         public const string CreatePackageVerificationKey = "CreatePackageVerificationKey";
         public const string VerifyPackageKey = "VerifyPackageKey";
         public const string CancelUpload = "CancelUpload";
@@ -86,6 +88,7 @@ namespace NuGetGallery
         public const string Contributors = "Contributors";
         public const string Team = "Team";
         public const string JsonApi = "JsonApi";
+        public const string ManageDeprecationJsonApi = "ManageDeprecationJsonApi";
         public const string Downloads = "Downloads";
         public const string AdminDeleteAccount = "AdminDeleteAccount";
         public const string UserDeleteAccount = "DeleteAccount";
@@ -98,5 +101,9 @@ namespace NuGetGallery
         public const string GetOrganizationCertificate = "GetOrganizationCertificate";
         public const string GetOrganizationCertificates = "GetOrganizationCertificates";
         public const string SetRequiredSigner = "SetRequiredSigner";
+        public const string License = "License";
+        public const string ApiV2CuratedSimulateError = "api-v2curated-simulate-error";
+        public const string PagesSimulateError = "PagesSimulateError";
+        public const string ApiSimulateError = "ApiSimulateError";
     }
 }

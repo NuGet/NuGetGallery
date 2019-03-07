@@ -69,6 +69,47 @@ namespace NuGetGallery.FunctionalTests
         }
 
         /// <summary>
+        /// Creates a package with the license expression.
+        /// </summary>
+        /// <returns></returns>
+        public async Task<string> CreatePackageWithLicenseExpression(string packageName, string packageVersion, string licenseUrl, string licenseExpression)
+        {
+            var nuspecHelper = new NuspecHelper(TestOutputHelper);
+            var nuspecFileFullPath = await nuspecHelper.CreateDefaultNuspecFile(packageName, packageVersion, licenseUrl: licenseUrl);
+            var nuspecDir = Path.GetDirectoryName(nuspecFileFullPath);
+
+            var nupkgFileFullPath = await CreatePackageInternal(nuspecFileFullPath);
+            var nuspecFileName = packageName + ".nuspec";
+
+            NuspecHelper.AddLicenseExpression(nuspecFileFullPath, licenseExpression);
+            ReplaceNuspecFileInNupkg(nupkgFileFullPath, nuspecFileFullPath, nuspecFileName);
+
+            return nupkgFileFullPath;
+        }
+        
+        /// <summary>
+        /// Creates a package with the license file.
+        /// </summary>
+        /// <returns></returns>
+        public async Task<string> CreatePackageWithLicenseFile(string packageName, string packageVersion, string licenseUrl, string licenseFile, string licenseFileName, string licenseFileContents)
+        {
+            var nuspecHelper = new NuspecHelper(TestOutputHelper);
+            var nuspecFileFullPath = await nuspecHelper.CreateDefaultNuspecFile(packageName, packageVersion, licenseUrl: licenseUrl);
+            var nuspecDir = Path.GetDirectoryName(nuspecFileFullPath);
+
+            var licenseFilePath = GetOrCreateFilePath(nuspecDir, licenseFileName);
+            AddFile(licenseFilePath, licenseFileContents);
+
+            var nupkgFileFullPath = await CreatePackageInternal(nuspecFileFullPath);
+            var nuspecFileName = packageName + ".nuspec";
+
+            NuspecHelper.AddLicenseFile(nuspecFileFullPath, licenseFile);
+            ReplaceNuspecFileInNupkg(nupkgFileFullPath, nuspecFileFullPath, nuspecFileName);
+
+            return nupkgFileFullPath;
+        }
+        
+        /// <summary>
         /// Creates a package which will grow up to a huge size when extracted.
         /// </summary>
         /// <param name="packageName"></param>
@@ -139,6 +180,56 @@ namespace NuGetGallery.FunctionalTests
             var provider = new CSharpCodeProvider();
             string source = "using System; namespace CodeDom { public class B {public static int k=7;}}";
             provider.CompileAssemblyFromSource(parameters, source);
+        }
+        
+        /// <summary>
+        /// Get the file path given base directory and filename.
+        /// </summary>
+        /// <param name="baseDir"></param>
+        /// <param name="filename"></param>
+        internal static string GetOrCreateFilePath(string baseDir, string fileName)
+        {
+            var filePath = Path.Combine(baseDir, @fileName);
+            var fileDir = Path.GetDirectoryName(filePath);
+            if (!Directory.Exists(fileDir))
+            {
+                Directory.CreateDirectory(fileDir);
+            }
+
+            return filePath;
+        }
+        
+        /// <summary>
+        /// Adds the file in the filePath location.
+        /// </summary>
+        /// <param name="filePath"></param>
+        /// <param name="fileContents"></param>
+        internal static void AddFile(string filePath, string fileContents)
+        {
+            using (var streamWriter = new StreamWriter(filePath))
+            {
+                streamWriter.Write(fileContents);
+                streamWriter.Close();
+            }
+        }
+        
+        /// <summary>
+        /// Replace the nuspec file in nupkg.
+        /// </summary>
+        /// <param name="nupkgFileFullPath"></param>
+        /// <param name="nuspecFileFullPath"></param>
+        /// <param name="nuspecFileName"></param>
+        internal static void ReplaceNuspecFileInNupkg(string nupkgFileFullPath, string nuspecFileFullPath, string nuspecFileName)
+        {
+            using (var packageArchive = ZipFile.Open(nupkgFileFullPath, ZipArchiveMode.Update))
+            {
+                var nuspecEntry = packageArchive.GetEntry(nuspecFileName);
+                if (nuspecEntry != null)
+                {
+                    nuspecEntry.Delete();
+                }
+                packageArchive.CreateEntryFromFile(nuspecFileFullPath, nuspecFileName);
+            }
         }
 
         private async Task<string> CreatePackageInternal(string nuspecFileFullPath)

@@ -21,8 +21,8 @@ namespace NuGetGallery.Security
 
         public IAppConfiguration AppConfiguration { get; }
 
-        public Mock<IDbSet<UserSecurityPolicy>> MockUserSecurityPolicies { get; }
-        
+        public Mock<DbSet<UserSecurityPolicy>> MockUserSecurityPolicies { get; }
+
         public TestUserSecurityPolicyData Mocks { get; }
 
         public override IEnumerable<IUserSecurityPolicySubscription> Subscriptions { get; }
@@ -42,7 +42,7 @@ namespace NuGetGallery.Security
             Mocks = mocks ?? new TestUserSecurityPolicyData();
 
             UserHandlers = userHandlers ?? Mocks.Handlers.Select(m => m.Object);
-            Subscriptions = userSubscriptions ?? new [] { Mocks.UserPoliciesSubscription.Object };
+            Subscriptions = userSubscriptions ?? new[] { Mocks.UserPoliciesSubscription.Object };
             DefaultSubscription = Mocks.DefaultSubscription.Object;
         }
 
@@ -51,7 +51,7 @@ namespace NuGetGallery.Security
             Mock<IAuditingService> mockAuditing,
             IAppConfiguration configuration)
         {
-            MockUserSecurityPolicies = new Mock<IDbSet<UserSecurityPolicy>>();
+            MockUserSecurityPolicies = new Mock<DbSet<UserSecurityPolicy>>();
             MockUserSecurityPolicies.Setup(p => p.Remove(It.IsAny<UserSecurityPolicy>())).Verifiable();
 
             MockEntitiesContext = mockEntities ?? new Mock<IEntitiesContext>();

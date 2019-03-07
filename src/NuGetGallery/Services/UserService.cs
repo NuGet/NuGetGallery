@@ -8,9 +8,11 @@ using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using NuGet.Services.Entities;
 using NuGetGallery.Auditing;
 using NuGetGallery.Configuration;
+using NuGetGallery.Diagnostics;
 using NuGetGallery.Infrastructure.Authentication;
 using NuGetGallery.Security;
 using Crypto = NuGetGallery.CryptographyService;
@@ -39,6 +41,8 @@ namespace NuGetGallery
 
         public ITelemetryService TelemetryService { get; protected set; }
 
+        public IDiagnosticsSource DiagnosticsSource { get; protected set; }
+
         protected UserService() { }
 
         public UserService(
@@ -52,7 +56,8 @@ namespace NuGetGallery
             ISecurityPolicyService securityPolicyService,
             IDateTimeProvider dateTimeProvider,
             ICredentialBuilder credentialBuilder,
-            ITelemetryService telemetryService)
+            ITelemetryService telemetryService,
+            IDiagnosticsService diagnosticsService)
             : this()
         {
             Config = config;
@@ -65,6 +70,7 @@ namespace NuGetGallery
             SecurityPolicyService = securityPolicyService;
             DateTimeProvider = dateTimeProvider;
             TelemetryService = telemetryService;
+            DiagnosticsSource = diagnosticsService.SafeGetSource(nameof(UserService));
         }
 
         public async Task<MembershipRequest> AddMembershipRequestAsync(Organization organization, string memberName, bool isAdmin)
@@ -591,12 +597,21 @@ namespace NuGetGallery
         private async Task SubscribeOrganizationToTenantPolicyIfTenantIdIsSupported(User organization, User adminUser, bool commitChanges = true)
         {
             var tenantId = adminUser.Credentials.GetAzureActiveDirectoryCredential()?.TenantId;
-            if (string.IsNullOrWhiteSpace(tenantId) ||
-                !ContentObjectService.LoginDiscontinuationConfiguration.IsTenantIdPolicySupportedForOrganization(organization.EmailAddress ?? organization.UnconfirmedEmailAddress, tenantId))
+            if (string.IsNullOrEmpty(tenantId))
             {
+                DiagnosticsSource.LogInformation("Will not apply tenant policy to organization because admin user does not have an AAD credential.");
                 return;
             }
 
+            if (!ContentObjectService.LoginDiscontinuationConfiguration.IsTenantIdPolicySupportedForOrganization(
+                organization.EmailAddress ?? organization.UnconfirmedEmailAddress, 
+                tenantId))
+            {
+                DiagnosticsSource.LogInformation("Will not apply tenant policy to organization because policy is not supported for email-tenant pair.");
+                return;
+            }
+
+            DiagnosticsSource.LogInformation("Applying tenant policy to organization.");
             var tenantPolicy = RequireOrganizationTenantPolicy.Create(tenantId);
             await SecurityPolicyService.SubscribeAsync(organization, tenantPolicy, commitChanges);
         }

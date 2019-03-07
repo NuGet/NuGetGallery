@@ -1,7 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
+using System.ComponentModel;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
@@ -20,6 +20,9 @@ namespace NuGetGallery.FunctionalTests.TyposquattingCheck
         }
 
         [TyposquattingTestFact]
+        [Description("Push a package with a typosquatting Id and verify uploading is blocked")]
+        [Priority(1)]
+        [Category("P1Tests")]
         public async Task UploadTyposquattingPackageAndBlockUser()
         {
             var packageId = "newtonsoft-json";

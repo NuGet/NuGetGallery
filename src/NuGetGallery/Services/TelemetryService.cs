@@ -4,17 +4,20 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Security.Principal;
 using System.Web;
 using Newtonsoft.Json;
 using NuGet.Services.Entities;
+using NuGet.Services.FeatureFlags;
 using NuGet.Versioning;
 using NuGetGallery.Authentication;
 using NuGetGallery.Diagnostics;
 
 namespace NuGetGallery
 {
-    public class TelemetryService : ITelemetryService
+    public class TelemetryService : ITelemetryService, IFeatureFlagTelemetryService
     {
         internal class Events
         {
@@ -67,6 +70,11 @@ namespace NuGetGallery
             public const string NonFsfOsiLicenseUsed = "NonFsfOsiLicenseUsed";
             public const string LicenseFileRejected = "LicenseFileRejected";
             public const string LicenseValidationFailed = "LicenseValidationFailed";
+            public const string FeatureFlagStalenessSeconds = "FeatureFlagStalenessSeconds";
+            public const string SearchExecutionDuration = "SearchExecutionDuration";
+            public const string SearchCircuitBreakerOnBreak = "SearchCircuitBreakerOnBreak";
+            public const string SearchCircuitBreakerOnReset = "SearchCircuitBreakerOnReset";
+            public const string SearchOnRetry = "SearchOnRetry";
         }
 
         private IDiagnosticsSource _diagnosticsSource;
@@ -158,6 +166,13 @@ namespace NuGetGallery
 
         // License related properties
         public const string LicenseExpression = "LicenseExpression";
+
+        // Search related properties
+        public const string SearchUrl = "SearchUrl";
+        public const string SearchHttpResponseCode = "SearchHttpResponseCode";
+        public const string SearchSuccessExecutionStatus = "SearchSuccessExecutionStatus";
+        public const string SearchException = "SearchException";
+        public const string SearchName = "SearchName";
 
         public TelemetryService(IDiagnosticsService diagnosticsService, ITelemetryClient telemetryClient = null)
         {
@@ -765,6 +780,52 @@ namespace NuGetGallery
             });
         }
 
+        public void TrackInvalidLicenseMetadata(string licenseValue)
+            => TrackMetric(Events.InvalidLicenseMetadata, 1, p => p.Add(LicenseExpression, licenseValue));
+
+        public void TrackNonFsfOsiLicenseUse(string licenseExpression)
+            => TrackMetric(Events.NonFsfOsiLicenseUsed, 1, p => p.Add(LicenseExpression, licenseExpression));
+
+        public void TrackLicenseFileRejected()
+            => TrackMetric(Events.LicenseFileRejected, 1, p => { });
+
+        public void TrackLicenseValidationFailure()
+            => TrackMetric(Events.LicenseValidationFailed, 1, p => { });
+
+        public void TrackFeatureFlagStaleness(TimeSpan staleness)
+            => TrackMetric(Events.FeatureFlagStalenessSeconds, staleness.TotalSeconds, p => { });
+
+        public void TrackMetricForSearchExecutionDuration(string url, TimeSpan duration, bool executionSuccessStatus)
+        {
+            TrackMetric(Events.SearchExecutionDuration, duration.TotalMilliseconds, properties => {
+                properties.Add(SearchUrl, url);
+                properties.Add(SearchSuccessExecutionStatus, executionSuccessStatus.ToString());
+            });
+        }
+
+        public void TrackMetricForSearchCircuitBreakerOnBreak(string searchName, Exception exception, HttpResponseMessage responseMessage)
+        {
+            TrackMetric(Events.SearchCircuitBreakerOnBreak, 1, properties => {
+                properties.Add(SearchName, searchName);
+                properties.Add(SearchException, exception?.ToString() ?? string.Empty);
+                properties.Add(SearchHttpResponseCode, responseMessage?.StatusCode.ToString() ?? string.Empty);
+            });
+        }
+
+        public void TrackMetricForSearchCircuitBreakerOnReset(string searchName)
+        {
+            TrackMetric(Events.SearchCircuitBreakerOnReset, 1, properties => {
+                properties.Add(SearchName, searchName);
+            });
+        }
+
+        public void TrackMetricForSearchOnRetry(string searchName, Exception exception)
+        {
+            TrackMetric(Events.SearchOnRetry, 1, properties => {
+                properties.Add(SearchName, searchName);
+                properties.Add(SearchException, exception?.ToString() ?? string.Empty);
+            });
+        }
         /// <summary>
         /// We use <see cref="ITelemetryClient.TrackMetric(string, double, IDictionary{string, string})"/> instead of
         /// <see cref="ITelemetryClient.TrackEvent(string, IDictionary{string, string}, IDictionary{string, double})"/>
@@ -778,17 +839,5 @@ namespace NuGetGallery
 
             _telemetryClient.TrackMetric(metricName, value, telemetryProperties);
         }
-
-        public void TrackInvalidLicenseMetadata(string licenseValue)
-            => TrackMetric(Events.InvalidLicenseMetadata, 1, p => p.Add(LicenseExpression, licenseValue));
-
-        public void TrackNonFsfOsiLicenseUse(string licenseExpression)
-            => TrackMetric(Events.NonFsfOsiLicenseUsed, 1, p => p.Add(LicenseExpression, licenseExpression));
-
-        public void TrackLicenseFileRejected()
-            => TrackMetric(Events.LicenseFileRejected, 1, p => { });
-
-        public void TrackLicenseValidationFailure()
-            => TrackMetric(Events.LicenseValidationFailed, 1, p => { });
     }
 }

@@ -61,7 +61,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The account:{0} was already deleted. No action was performed..
+        ///   Looks up a localized string similar to The account &apos;{0}&apos; was already deleted. No action was performed..
         /// </summary>
         public static string AccountDelete_AccountAlreadyDeleted {
             get {
@@ -79,7 +79,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An exception was encoutered while trying to delete the account:{0}. {1}.
+        ///   Looks up a localized string similar to An exception was encountered while trying to delete the account &apos;{0}&apos;: {1}.
         /// </summary>
         public static string AccountDelete_Fail {
             get {
@@ -97,7 +97,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The account:{0} was deleted succesfully..
+        ///   Looks up a localized string similar to The account &apos;{0}&apos; was deleted succesfully..
         /// </summary>
         public static string AccountDelete_Success {
             get {
@@ -506,6 +506,24 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invalid CVE ID format. The CVE ID should be formatted as \&quot;CVE-{year}-xxxxxxx\&quot; or just \&quot;{year}-xxxxxxx\&quot; with a minimum of 4 digits..
+        /// </summary>
+        public static string AutocompleteCveIds_ValidationError {
+            get {
+                return ResourceManager.GetString("AutocompleteCveIds_ValidationError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid CWE ID format. The CWE ID should be formatted as \&quot;CWE-xxx\&quot; with a minimum of 2 digits, or have a minimum length of 4 characters for a textual query..
+        /// </summary>
+        public static string AutocompleteCweIds_ValidationError {
+            get {
+                return ResourceManager.GetString("AutocompleteCweIds_ValidationError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to (automated).
         /// </summary>
         public static string AutomatedPackageDeleteSignature {
@@ -596,7 +614,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Failed to update the Microsoft account with &apos;{0}&apos;. This could happen if it is already linked to another NuGet account. Contact support for more information..
+        ///   Looks up a localized string similar to Failed to update the Microsoft account with &apos;{0}&apos;. This could happen if it is already linked to another NuGet account. See {1} for more details..
         /// </summary>
         public static string ChangeCredential_Failed {
             get {
@@ -767,6 +785,123 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to https://cve.mitre.org/cgi-bin/cvename.cgi?name={0}.
+        /// </summary>
+        public static string DeprecatePackage_CveUrlFormat {
+            get {
+                return ResourceManager.GetString("DeprecatePackage_CveUrlFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to At least one CWE provided was not found!.
+        /// </summary>
+        public static string DeprecatePackage_CweMissing {
+            get {
+                return ResourceManager.GetString("DeprecatePackage_CweMissing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to https://cwe.mitre.org/data/definitions/{0}.html.
+        /// </summary>
+        public static string DeprecatePackage_CweUrlFormat {
+            get {
+                return ResourceManager.GetString("DeprecatePackage_CweUrlFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You do not have permission to deprecate this package..
+        /// </summary>
+        public static string DeprecatePackage_Forbidden {
+            get {
+                return ResourceManager.GetString("DeprecatePackage_Forbidden", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The CVE ID &apos;{0}&apos; is invalid. CVE IDs have the form &apos;CVE-YYYY-NNNN&apos;, where &apos;YYYY&apos; is a year (exactly 4 digits) and &apos;NNNN&apos; is a number (with at least 4 digits)..
+        /// </summary>
+        public static string DeprecatePackage_InvalidCve {
+            get {
+                return ResourceManager.GetString("DeprecatePackage_InvalidCve", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The CVSS rating specified is invalid..
+        /// </summary>
+        public static string DeprecatePackage_InvalidCvss {
+            get {
+                return ResourceManager.GetString("DeprecatePackage_InvalidCvss", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The CWE ID &apos;{0}&apos; is invalid. CWE IDs have the form &apos;CWE-N&apos;, where N is a number..
+        /// </summary>
+        public static string DeprecatePackage_InvalidCwe {
+            get {
+                return ResourceManager.GetString("DeprecatePackage_InvalidCwe", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Package &apos;{0}&apos; is locked and cannot have its deprecation changed..
+        /// </summary>
+        public static string DeprecatePackage_Locked {
+            get {
+                return ResourceManager.GetString("DeprecatePackage_Locked", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Package &apos;{0}&apos; could not be found..
+        /// </summary>
+        public static string DeprecatePackage_MissingRegistration {
+            get {
+                return ResourceManager.GetString("DeprecatePackage_MissingRegistration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to At least one version of package &apos;{0}&apos; specified could not be found..
+        /// </summary>
+        public static string DeprecatePackage_MissingVersion {
+            get {
+                return ResourceManager.GetString("DeprecatePackage_MissingVersion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Alternate package &apos;{0} {1}&apos; does not exist..
+        /// </summary>
+        public static string DeprecatePackage_NoAlternatePackage {
+            get {
+                return ResourceManager.GetString("DeprecatePackage_NoAlternatePackage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Alternate package &apos;{0}&apos; does not exist..
+        /// </summary>
+        public static string DeprecatePackage_NoAlternatePackageRegistration {
+            get {
+                return ResourceManager.GetString("DeprecatePackage_NoAlternatePackageRegistration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You must select at least one version to deprecate!.
+        /// </summary>
+        public static string DeprecatePackage_NoVersions {
+            get {
+                return ResourceManager.GetString("DeprecatePackage_NoVersions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The password login is discontinued and has been removed for your account. Please use your Microsoft account to log into {0} going forward..
         /// </summary>
         public static string DiscontinuedLogin_PasswordRemoved {
@@ -856,7 +991,7 @@ namespace NuGetGallery {
         ///
         ///[{0}]({0})
         ///
-        ///Note that NuGet.org password login is deprecated. Please use Microsoft account to sign into {1}.
+        ///Note that NuGet.org password login is no longer supported. Please use Microsoft account to sign into {1}.
         ///
         ///Thanks,
         ///The {1} Team.
@@ -884,7 +1019,7 @@ namespace NuGetGallery {
         ///
         ///[{0}]({0})
         ///
-        ///Note that NuGet.org password login is deprecated. Please use Microsoft account to sign into {1}.
+        ///Note that NuGet.org password login is no longer supported. Please use Microsoft account to sign into {1}.
         ///
         ///Thanks,
         ///The {1} Team.
@@ -1535,7 +1670,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The namespace &apos;{0}&apos; contains invalid characters. Examples of valid namespaces include &apos;MyNamespace&apos; and &apos;MyNamespace.&apos;..
+        ///   Looks up a localized string similar to The namespace &apos;{0}&apos; contains invalid characters. Examples of valid namespaces include &apos;MyNamespace&apos;, &apos;MyNamespace.&apos; or &apos;MyNamespace-&apos; etc..
         /// </summary>
         public static string ReservedNamespace_InvalidCharactersInNamespace {
             get {
@@ -1724,11 +1859,38 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Search Service is not available. Please try again later..
+        /// </summary>
+        public static string SearchServiceIsNotAvailable {
+            get {
+                return ResourceManager.GetString("SearchServiceIsNotAvailable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The package metadata contains a non-compliant copyright element..
         /// </summary>
         public static string SecurityPolicy_CopyrightNotCompliant {
             get {
                 return ResourceManager.GetString("SecurityPolicy_CopyrightNotCompliant", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The package metadata defines &apos;{0}&apos; as author more than once, which is not allowed by policy..
+        /// </summary>
+        public static string SecurityPolicy_PackageAuthorDuplicatesNotAllowed {
+            get {
+                return ResourceManager.GetString("SecurityPolicy_PackageAuthorDuplicatesNotAllowed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The package metadata defines &apos;{0}&apos; as one of the authors which is not allowed by policy..
+        /// </summary>
+        public static string SecurityPolicy_PackageAuthorNotAllowed {
+            get {
+                return ResourceManager.GetString("SecurityPolicy_PackageAuthorNotAllowed", resourceCulture);
             }
         }
         
@@ -2487,6 +2649,15 @@ namespace NuGetGallery {
         public static string UploadPackage_SignedToUnsignedTransition {
             get {
                 return ResourceManager.GetString("UploadPackage_SignedToUnsignedTransition", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Snupkg upload failed. Please use latest NuGet clients (v 4.9.0 or above) and a V3 endpoint to push Symbol packages. For details, refer https://docs.microsoft.com/nuget/create-packages/symbol-packages-snupkg.
+        /// </summary>
+        public static string UploadPackage_SymbolsPackageNotAllowed {
+            get {
+                return ResourceManager.GetString("UploadPackage_SymbolsPackageNotAllowed", resourceCulture);
             }
         }
         

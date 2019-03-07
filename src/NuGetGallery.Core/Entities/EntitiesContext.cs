@@ -48,21 +48,23 @@ namespace NuGetGallery
         }
 
         public bool ReadOnly { get; private set; }
-        public IDbSet<PackageRegistration> PackageRegistrations { get; set; }
-        public IDbSet<Credential> Credentials { get; set; }
-        public IDbSet<Scope> Scopes { get; set; }
-        public IDbSet<UserSecurityPolicy> UserSecurityPolicies { get; set; }
-        public IDbSet<ReservedNamespace> ReservedNamespaces { get; set; }
-        public IDbSet<Certificate> Certificates { get; set; }
-        public IDbSet<UserCertificate> UserCertificates { get; set; }
-        public IDbSet<SymbolPackage> SymbolPackages { get; set; }
+        public DbSet<PackageRegistration> PackageRegistrations { get; set; }
+        public DbSet<Credential> Credentials { get; set; }
+        public DbSet<Scope> Scopes { get; set; }
+        public DbSet<UserSecurityPolicy> UserSecurityPolicies { get; set; }
+        public DbSet<ReservedNamespace> ReservedNamespaces { get; set; }
+        public DbSet<Certificate> Certificates { get; set; }
+        public DbSet<UserCertificate> UserCertificates { get; set; }
+        public DbSet<SymbolPackage> SymbolPackages { get; set; }
 
         /// <summary>
         /// User or organization accounts.
         /// </summary>
-        public IDbSet<User> Users { get; set; }
+        public DbSet<User> Users { get; set; }
+        public DbSet<Cve> Cves { get; set; }
+        public DbSet<Cwe> Cwes { get; set; }
 
-        IDbSet<T> IEntitiesContext.Set<T>()
+        DbSet<T> IEntitiesContext.Set<T>()
         {
             return base.Set<T>();
         }
@@ -367,6 +369,77 @@ namespace NuGetGallery
             modelBuilder.Entity<SymbolPackage>()
                 .Property(s => s.RowVersion)
                 .IsRowVersion();
+
+            modelBuilder.Entity<PackageDeprecation>()
+                .HasKey(d => d.Key);
+
+            modelBuilder.Entity<Cve>()
+                .HasKey(d => d.Key)
+                .Property(e => e.CveId)
+                .HasColumnType("varchar")
+                .HasMaxLength(20)
+                .IsRequired();
+
+            modelBuilder.Entity<Cve>()
+                .Property(e => e.Description)
+                .HasMaxLength(300);
+
+            modelBuilder.Entity<Cve>()
+                .Property(v => v.CvssRating)
+                .HasPrecision(3, 1);
+
+            modelBuilder.Entity<Cwe>()
+                .HasKey(d => d.Key)
+                .Property(e => e.CweId)
+                .HasColumnType("varchar")
+                .HasMaxLength(20)
+                .IsRequired();
+
+            modelBuilder.Entity<Cwe>()
+                .Property(e => e.Name)
+                .HasMaxLength(200)
+                .IsRequired();
+
+            modelBuilder.Entity<Cwe>()
+                .Property(e => e.Description)
+                .HasMaxLength(300)
+                .IsRequired();
+
+            modelBuilder.Entity<Package>()
+                .HasMany(p => p.Deprecations)
+                .WithRequired(d => d.Package)
+                .HasForeignKey(d => d.PackageKey)
+                .WillCascadeOnDelete(true);
+
+            modelBuilder.Entity<Package>()
+                .HasMany(p => p.AlternativeOf)
+                .WithOptional(d => d.AlternatePackage)
+                .HasForeignKey(d => d.AlternatePackageKey)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<PackageRegistration>()
+                .HasMany(p => p.AlternativeOf)
+                .WithOptional(d => d.AlternatePackageRegistration)
+                .HasForeignKey(d => d.AlternatePackageRegistrationKey)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<PackageDeprecation>()
+                .HasOptional(d => d.DeprecatedByUser)
+                .WithMany()
+                .HasForeignKey(d => d.DeprecatedByUserKey)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<PackageDeprecation>()
+                .Property(v => v.CvssRating)
+                .HasPrecision(3, 1);
+
+            modelBuilder.Entity<PackageDeprecation>()
+                .HasMany(p => p.Cves)
+                .WithMany(c => c.PackageDeprecations);
+
+            modelBuilder.Entity<PackageDeprecation>()
+                .HasMany(p => p.Cwes)
+                .WithMany(c => c.PackageDeprecations);
         }
 #pragma warning restore 618
     }

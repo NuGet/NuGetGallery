@@ -21,18 +21,21 @@ namespace NuGetGallery
         };
 
         private readonly IContentObjectService _contentObjectService;
+        private readonly IFeatureFlagService _featureFlagService;
         private readonly IPackageService _packageService;
         private readonly IReservedNamespaceService _reservedNamespaceService;
         private readonly ITelemetryService _telemetryService;
         private readonly ITyposquattingCheckListCacheService _typosquattingCheckListCacheService;
 
         public TyposquattingService(IContentObjectService contentObjectService,
+                                    IFeatureFlagService featureFlagService,
                                     IPackageService packageService,
                                     IReservedNamespaceService reservedNamespaceService,
                                     ITelemetryService telemetryService,
                                     ITyposquattingCheckListCacheService typosquattingCheckListCacheService)
         {
             _contentObjectService = contentObjectService ?? throw new ArgumentNullException(nameof(contentObjectService));
+            _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
             _reservedNamespaceService = reservedNamespaceService ?? throw new ArgumentNullException(nameof(reservedNamespaceService));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
@@ -46,7 +49,7 @@ namespace NuGetGallery
             typosquattingCheckCollisionIds = new List<string>();
             var wasUploadBlocked = false;
 
-            if (!_contentObjectService.TyposquattingConfiguration.IsCheckEnabled || _reservedNamespaceService.GetReservedNamespacesForId(uploadedPackageId).Any())
+            if (!_featureFlagService.IsTyposquattingEnabled() || _reservedNamespaceService.GetReservedNamespacesForId(uploadedPackageId).Any())
             {
                 return wasUploadBlocked;
             }
@@ -119,7 +122,7 @@ namespace NuGetGallery
             var isUserAllowedTyposquatting = collisionPackagesIdAndOwners
                 .Any(pio => pio.Owners.Any(k => k == uploadedPackageOwner.Key));
 
-            wasUploadBlocked = _contentObjectService.TyposquattingConfiguration.IsBlockUsersEnabled && !isUserAllowedTyposquatting;
+            wasUploadBlocked = _featureFlagService.IsTyposquattingEnabled(uploadedPackageOwner) && !isUserAllowedTyposquatting;
             ownersCheckStopwatch.Stop();
 
             _telemetryService.TrackMetricForTyposquattingOwnersCheckTime(uploadedPackageId, ownersCheckStopwatch.Elapsed);

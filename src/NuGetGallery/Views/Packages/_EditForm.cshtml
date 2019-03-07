@@ -1,31 +1,17 @@
 ﻿<form aria-label="Edit your package" id="edit-readme-form">
     @Html.AntiForgeryToken()
-        
-    <div id="readme-collapser-container" class="hidden">
-        <h2>
-            <a href="#" role="button" data-toggle="collapse" data-target="#readme-package-form"
-               aria-expanded="true" aria-controls="readme-package-form" id="show-readme-package-form">
-                <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
-                <span>Import Documentation</span>
-            </a>
-        </h2>
-    </div>
 
     <div id="import-readme-container">
     </div>
     @Html.Partial("_ImportReadMe")
 
-    <div id="submit-collapser-container" class="hidden">
-        <h2>
-            <a href="#" role="button" data-toggle="collapse" data-target="#submit-package-form"
-               aria-expanded="true" aria-controls="submit-package-form" id="show-submit-package-form">
-                <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
-                <span>Submit</span>
-            </a>
-        </h2>
-    </div>
-
     <div id="submit-package-container">
     </div>
-    @Html.Partial("_SubmitPackage")
+    <script type="text/html" id="submit-package-template">
+        <div class="form-group btn-toolbar row" id="submit-package-form">
+            <div class="col-xs-12">
+                <input type="button" class="btn btn-primary btn-block" value="Submit" id="verify-submit-button" />
+            </div>
+        </div>
+    </script>
 </form>

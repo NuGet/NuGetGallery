@@ -48,6 +48,7 @@ namespace NuGetGallery
             {
                 var folderNames = new List<object[]>
                 {
+                    // Folder name, is public, content type
                     new object[] { CoreConstants.Folders.ContentFolderName, false, CoreConstants.JsonContentType, },
                     new object[] { CoreConstants.Folders.DownloadsFolderName, true, CoreConstants.OctetStreamContentType },
                     new object[] { CoreConstants.Folders.PackageBackupsFolderName, true, CoreConstants.PackageContentType },
@@ -61,6 +62,7 @@ namespace NuGetGallery
                     new object[] { CoreConstants.Folders.PackagesContentFolderName, false, CoreConstants.OctetStreamContentType },
                     new object[] { CoreConstants.Folders.RevalidationFolderName, false, CoreConstants.JsonContentType },
                     new object[] { CoreConstants.Folders.StatusFolderName, false, CoreConstants.JsonContentType },
+                    new object[] { CoreConstants.Folders.FlatContainerFolderName, false, CoreConstants.PackageContentType },
                 };
 
                 if (!IncludePermissions && !IncludeContentTypes)
