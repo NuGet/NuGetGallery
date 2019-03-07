@@ -273,6 +273,7 @@ namespace NuGetGallery
         /// <param name="exception">The exception if any.</param>
         /// <param name="responseMessage">The response message.</param>
         /// <param name="correlationId">CorrelationId set by Polly context.</param>
+        /// <param name="uri">The request uri.</param>
         void TrackMetricForSearchCircuitBreakerOnBreak(string searchName, Exception exception, HttpResponseMessage responseMessage, string correlationId, string uri);
 
         /// <summary>
@@ -280,6 +281,7 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="searchName">A name to identify the search instance.</param>
         /// <param name="correlationId">CorrelationId set by Polly context.</param>
+        /// <param name="uri">The request uri.</param>
         void TrackMetricForSearchCircuitBreakerOnReset(string searchName, string correlationId, string uri);
 
         /// <summary>

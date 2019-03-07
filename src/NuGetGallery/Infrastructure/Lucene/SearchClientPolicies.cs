@@ -17,6 +17,9 @@ namespace NuGetGallery.Infrastructure.Search
     // Docs: https://github.com/App-vNext/Polly/wiki/Circuit-Breaker
     public class SearchClientPolicies
     {
+        internal const string ContextKey_RequestUri = "RequestUri";
+        internal const string ContextKey_CircuitBreakerStatus = "CircuitBreakerStatus";
+
         /// <summary>
         /// Builds the CircuitBreakerPolicy. Through this policy if <paramref name="breakAfterCount"/> consecutive requests will fail with transient HttpErrors
         /// the circuit breaker will move into Open state. 
@@ -38,7 +41,7 @@ namespace NuGetGallery.Infrastructure.Search
                 breakDuration,
                 onBreak: (delegateResult, circuitBreakerStatus, breakDelay, context) =>
                 {
-                    context.Add("CircuitBreakerStatus", circuitBreakerStatus);
+                    context.Add(ContextKey_CircuitBreakerStatus, circuitBreakerStatus);
                     telemetryService.TrackMetricForSearchCircuitBreakerOnBreak(searchName, delegateResult.Exception, delegateResult.Result, context.CorrelationId.ToString(), GetValueFromContext("RequestUri",context));
                     logger.LogWarning("SearchCircuitBreaker logging: Breaking the circuit for {BreakDelayInMilliseconds} milliseconds due to {Exception} {SearchName}.",
                         breakDelay.TotalMilliseconds,
@@ -77,8 +80,8 @@ namespace NuGetGallery.Infrastructure.Search
                                         telemetryService.TrackMetricForSearchOnRetry(searchName,
                                             delegateResult.Exception,
                                             context.CorrelationId.ToString(),
-                                            GetValueFromContext("RequestUri", context),
-                                            GetValueFromContext("CircuitBreakerStatus", context));
+                                            GetValueFromContext(ContextKey_RequestUri, context),
+                                            GetValueFromContext(ContextKey_CircuitBreakerStatus, context));
                                         logger.LogInformation("Policy retry - it will retry after {RetryMilliseconds} milliseconds. {Exception} {SearchName}", waitDuration.TotalMilliseconds, delegateResult.Exception, searchName);
                                     });
         }
