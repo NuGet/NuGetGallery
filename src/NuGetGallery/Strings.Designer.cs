@@ -2058,7 +2058,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The package does not contain any symbols..
+        ///   Looks up a localized string similar to The package does not contain any symbol (.pdb) files..
         /// </summary>
         public static string SymbolsPackage_NoSymbols {
             get {
