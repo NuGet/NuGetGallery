@@ -20,6 +20,7 @@ namespace NuGet.Services.Validation.Issues
         public static ValidationIssue SymbolErrorCode_ChecksumDoesNotMatch { get; } = new NoDataValidationIssue(ValidationIssueCode.SymbolErrorCode_ChecksumDoesNotMatch);
         public static ValidationIssue SymbolErrorCode_MatchingAssemblyNotFound { get; } = new NoDataValidationIssue(ValidationIssueCode.SymbolErrorCode_MatchingAssemblyNotFound);
         public static ValidationIssue SymbolErrorCode_PdbIsNotPortable { get; } = new NoDataValidationIssue(ValidationIssueCode.SymbolErrorCode_PdbIsNotPortable);
+        public static ValidationIssue SymbolErrorCode_SnupkgDoesNotContainSymbols { get; } = new NoDataValidationIssue(ValidationIssueCode.SymbolErrorCode_SnupkgDoesNotContainSymbols);
 
         /// <summary>
         /// The map of issue codes to the type that represents the issues. The types MUST extend <see cref="ValidationIssue"/>.
@@ -48,7 +49,8 @@ namespace NuGet.Services.Validation.Issues
             ValidationIssueCode.PackageIsNotSigned,
             ValidationIssueCode.SymbolErrorCode_ChecksumDoesNotMatch,
             ValidationIssueCode.SymbolErrorCode_MatchingAssemblyNotFound,
-            ValidationIssueCode.SymbolErrorCode_PdbIsNotPortable
+            ValidationIssueCode.SymbolErrorCode_PdbIsNotPortable,
+            ValidationIssueCode.SymbolErrorCode_SnupkgDoesNotContainSymbols,
         };
 
         /// <summary>

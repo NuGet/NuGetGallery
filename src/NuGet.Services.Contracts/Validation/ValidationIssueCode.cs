@@ -77,7 +77,12 @@ namespace NuGet.Services.Validation
         /// The pdb is not portable.
         /// </summary>
         SymbolErrorCode_PdbIsNotPortable = 252,
-        #endregion 
+
+        /// <summary>
+        /// The snupkg does not contain pdbs.
+        /// </summary>
+        SymbolErrorCode_SnupkgDoesNotContainSymbols = 253,
+        #endregion
 
         /// <summary>
         /// Obsolete testing issue - do NOT use this!

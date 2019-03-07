@@ -242,7 +242,8 @@ namespace NuGet.Services.Validation.Issues.Tests
             { ValidationIssueCode.PackageIsNotSigned, () => ValidationIssue.PackageIsNotSigned },
             { ValidationIssueCode.SymbolErrorCode_ChecksumDoesNotMatch, () => ValidationIssue.SymbolErrorCode_ChecksumDoesNotMatch },
             { ValidationIssueCode.SymbolErrorCode_MatchingAssemblyNotFound, () => ValidationIssue.SymbolErrorCode_MatchingAssemblyNotFound },
-            { ValidationIssueCode.SymbolErrorCode_PdbIsNotPortable, () => ValidationIssue.SymbolErrorCode_PdbIsNotPortable }
+            { ValidationIssueCode.SymbolErrorCode_PdbIsNotPortable, () => ValidationIssue.SymbolErrorCode_PdbIsNotPortable },
+            { ValidationIssueCode.SymbolErrorCode_SnupkgDoesNotContainSymbols, () => ValidationIssue.SymbolErrorCode_SnupkgDoesNotContainSymbols },
         };
     }
 }

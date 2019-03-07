@@ -25,6 +25,7 @@ namespace NuGet.Services.Validation
             { 250, ValidationIssueCode.SymbolErrorCode_ChecksumDoesNotMatch },
             { 251, ValidationIssueCode.SymbolErrorCode_MatchingAssemblyNotFound},
             { 252, ValidationIssueCode.SymbolErrorCode_PdbIsNotPortable},
+            { 253, ValidationIssueCode.SymbolErrorCode_SnupkgDoesNotContainSymbols},
 #pragma warning disable 618
             { 9999, ValidationIssueCode.ObsoleteTesting },
 #pragma warning restore 618
