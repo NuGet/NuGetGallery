@@ -184,8 +184,7 @@ namespace NuGetGallery
         private static bool CheckForPDBFiles(PackageArchiveReader symbolPackage)
         {
             return symbolPackage.GetFiles()
-                .Where(filePath => !string.IsNullOrEmpty(Path.GetFileName(filePath)) && Path.GetExtension(filePath) == PDBExtension)
-                .Any();
+                .Any(filePath => !string.IsNullOrEmpty(Path.GetFileName(filePath)) && Path.GetExtension(filePath) == PDBExtension);
         }
 
         private static bool IsPortable(string pdbFile)

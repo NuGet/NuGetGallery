@@ -48,12 +48,7 @@ namespace NuGetGallery
                 };
         }
 
-        private static Action<ZipArchive> CreatePopulatePackageAction(string extension)
-        {
-            return CreatePopulatePackageAction(new string[]{ extension });
-        }
-
-        private static Action<ZipArchive> CreatePopulatePackageAction(string[] extensions)
+        private static Action<ZipArchive> CreatePopulatePackageAction(params string[] extensions)
         {
             return archive =>
             {
