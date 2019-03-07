@@ -259,15 +259,15 @@ namespace NuGetGallery
                     };
 
                     yield return new object[] { "SearchCircuitBreakerOnBreak",
-                        (TrackAction)(s => s.TrackMetricForSearchCircuitBreakerOnBreak("SomeName", exception: null, responseMessage: null))
+                        (TrackAction)(s => s.TrackMetricForSearchCircuitBreakerOnBreak("SomeName", exception: null, responseMessage: null, correlationId: string.Empty, uri: string.Empty))
                     };
 
                     yield return new object[] { "SearchCircuitBreakerOnReset",
-                        (TrackAction)(s => s.TrackMetricForSearchCircuitBreakerOnReset("SomeName"))
+                        (TrackAction)(s => s.TrackMetricForSearchCircuitBreakerOnReset("SomeName", correlationId: string.Empty, uri: string.Empty))
                     };
 
                     yield return new object[] { "SearchOnRetry",
-                        (TrackAction)(s => s.TrackMetricForSearchOnRetry("SomeName", exception: null))
+                        (TrackAction)(s => s.TrackMetricForSearchOnRetry("SomeName", exception: null, correlationId: string.Empty, uri: string.Empty, circuitBreakerStatus: string.Empty))
                     };
                 }
             }

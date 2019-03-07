@@ -173,6 +173,8 @@ namespace NuGetGallery
         public const string SearchSuccessExecutionStatus = "SearchSuccessExecutionStatus";
         public const string SearchException = "SearchException";
         public const string SearchName = "SearchName";
+        public const string SearchPollyCorrelationId = "SearchPollyCorrelationId";
+        public const string SearchCircuitBreakerStatus = "SearchCircuitBreakerStatus";
 
         public TelemetryService(IDiagnosticsService diagnosticsService, ITelemetryClient telemetryClient = null)
         {
@@ -803,27 +805,34 @@ namespace NuGetGallery
             });
         }
 
-        public void TrackMetricForSearchCircuitBreakerOnBreak(string searchName, Exception exception, HttpResponseMessage responseMessage)
+        public void TrackMetricForSearchCircuitBreakerOnBreak(string searchName, Exception exception, HttpResponseMessage responseMessage, string correlationId, string uri)
         {
             TrackMetric(Events.SearchCircuitBreakerOnBreak, 1, properties => {
                 properties.Add(SearchName, searchName);
                 properties.Add(SearchException, exception?.ToString() ?? string.Empty);
                 properties.Add(SearchHttpResponseCode, responseMessage?.StatusCode.ToString() ?? string.Empty);
+                properties.Add(SearchPollyCorrelationId, correlationId);
+                properties.Add(SearchUrl, uri);
             });
         }
 
-        public void TrackMetricForSearchCircuitBreakerOnReset(string searchName)
+        public void TrackMetricForSearchCircuitBreakerOnReset(string searchName, string correlationId, string uri)
         {
             TrackMetric(Events.SearchCircuitBreakerOnReset, 1, properties => {
                 properties.Add(SearchName, searchName);
+                properties.Add(SearchPollyCorrelationId, correlationId);
+                properties.Add(SearchUrl, uri);
             });
         }
 
-        public void TrackMetricForSearchOnRetry(string searchName, Exception exception)
+        public void TrackMetricForSearchOnRetry(string searchName, Exception exception, string correlationId, string uri, string circuitBreakerStatus)
         {
             TrackMetric(Events.SearchOnRetry, 1, properties => {
                 properties.Add(SearchName, searchName);
                 properties.Add(SearchException, exception?.ToString() ?? string.Empty);
+                properties.Add(SearchPollyCorrelationId, correlationId);
+                properties.Add(SearchUrl, uri);
+                properties.Add(SearchCircuitBreakerStatus, circuitBreakerStatus);
             });
         }
         /// <summary>

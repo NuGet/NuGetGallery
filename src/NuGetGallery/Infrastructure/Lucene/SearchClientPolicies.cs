@@ -9,16 +9,20 @@ using Microsoft.Extensions.Logging;
 using Polly;
 using Polly.CircuitBreaker;
 using Polly.Extensions.Http;
-using NuGetGallery;
 
 namespace NuGetGallery.Infrastructure.Search
 {
     // Implements Polly policies 
     // Samples at https://github.com/App-vNext/Polly-Samples
+    // Docs: https://github.com/App-vNext/Polly/wiki/Circuit-Breaker
     public class SearchClientPolicies
     {
+        internal const string ContextKey_RequestUri = "RequestUri";
+        internal const string ContextKey_CircuitBreakerStatus = "CircuitBreakerStatus";
+
         /// <summary>
-        /// Builds the CircuitBreakerPolicy. Through this policy a request will be retried for <paramref name="breakAfterCount"/> and break after. This will move the circuit breaker into Open state. 
+        /// Builds the CircuitBreakerPolicy. Through this policy if <paramref name="breakAfterCount"/> consecutive requests will fail with transient HttpErrors
+        /// the circuit breaker will move into Open state. 
         /// It will stay in this state(Open) for the <paramref name="breakDuration"/>. This means that requests made while the circuit is in this state will fail fast.
         /// When the timeout expires trial requsts are allowed. The state will be changed to a Close state if they succeed.
         /// If they do not succeed the circuit will be moved back in the Open state for another <paramref name="breakDuration"/>. 
@@ -35,9 +39,10 @@ namespace NuGetGallery.Infrastructure.Search
                 .HandleTransientHttpError()
                 .CircuitBreakerAsync(breakAfterCount,
                 breakDuration,
-                onBreak: (delegateResult, breakDelay, context) =>
+                onBreak: (delegateResult, circuitBreakerStatus, breakDelay, context) =>
                 {
-                    telemetryService.TrackMetricForSearchCircuitBreakerOnBreak(searchName, delegateResult.Exception, delegateResult.Result);
+                    context.Add(ContextKey_CircuitBreakerStatus, circuitBreakerStatus);
+                    telemetryService.TrackMetricForSearchCircuitBreakerOnBreak(searchName, delegateResult.Exception, delegateResult.Result, context.CorrelationId.ToString(), GetValueFromContext("RequestUri",context));
                     logger.LogWarning("SearchCircuitBreaker logging: Breaking the circuit for {BreakDelayInMilliseconds} milliseconds due to {Exception} {SearchName}.",
                         breakDelay.TotalMilliseconds,
                         delegateResult.Exception,
@@ -45,7 +50,7 @@ namespace NuGetGallery.Infrastructure.Search
                 },
                 onReset: (context) =>
                 {
-                    telemetryService.TrackMetricForSearchCircuitBreakerOnReset(searchName);
+                    telemetryService.TrackMetricForSearchCircuitBreakerOnReset(searchName, context.CorrelationId.ToString(), GetValueFromContext("RequestUri", context));
                     logger.LogInformation("SearchCircuitBreaker logging: Call ok! Closed the circuit again! {SearchName}", searchName);
                 },
                 onHalfOpen: () => logger.LogInformation("SearchCircuitBreaker logging: Half-open: Next call is a trial! {SearchName}", searchName));
@@ -69,10 +74,14 @@ namespace NuGetGallery.Infrastructure.Search
                                 return false;
                             }).
                         WaitAndRetryForeverAsync(
-                            sleepDurationProvider: retryAttempt => TimeSpan.FromMilliseconds(SearchClientConfiguration.WaitAndRetryDefaultIntervalInMilliseconds), 
-                            onRetry: (delegateResult, waitDuration) =>
+                            sleepDurationProvider: (retryAttempt, context) => TimeSpan.FromMilliseconds(SearchClientConfiguration.WaitAndRetryDefaultIntervalInMilliseconds),
+                            onRetry: (delegateResult, waitDuration, context) =>
                                     {
-                                        telemetryService.TrackMetricForSearchOnRetry(searchName, delegateResult.Exception);
+                                        telemetryService.TrackMetricForSearchOnRetry(searchName,
+                                            delegateResult.Exception,
+                                            context.CorrelationId.ToString(),
+                                            GetValueFromContext(ContextKey_RequestUri, context),
+                                            GetValueFromContext(ContextKey_CircuitBreakerStatus, context));
                                         logger.LogInformation("Policy retry - it will retry after {RetryMilliseconds} milliseconds. {Exception} {SearchName}", waitDuration.TotalMilliseconds, delegateResult.Exception, searchName);
                                     });
         }
@@ -100,6 +109,12 @@ namespace NuGetGallery.Infrastructure.Search
                                     await Task.Yield();
                                     logger.LogInformation("On circuit breaker fallback. {SearchName} {Exception} {Result}", searchName, delegateResult.Exception, delegateResult.Result);
                                 });
+        }
+
+        private static string GetValueFromContext(string contextKey, Context context)
+        {
+            object objValue = null;
+            return context.TryGetValue(contextKey, out objValue) ? objValue.ToString() : string.Empty;
         }
     }
 }
