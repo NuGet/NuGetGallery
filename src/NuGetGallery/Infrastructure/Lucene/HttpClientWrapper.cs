@@ -22,7 +22,7 @@ namespace NuGetGallery.Infrastructure
 
         public async Task<HttpResponseMessage> GetAsync(Uri uri)
         {
-            // Add the request Uri to the  Polly contex to be used for logging.
+            // Add the request Uri to the  Polly context to be used for logging.
             // https://docs.microsoft.com/en-us/dotnet/api/polly.httprequestmessageextensions.setpolicyexecutioncontext?view=aspnetcore-2.2
             // http://www.thepollyproject.org/2017/05/04/putting-the-context-into-polly/ 
             using (HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, uri))
