@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Threading.Tasks;
 using Moq;
 using NuGet.Services.Entities;
@@ -47,13 +48,12 @@ namespace NuGetGallery
                 };
         }
 
-        private static Action<ZipArchive> CreatePopulatePackageAction(string extension)
+        private static Action<ZipArchive> CreatePopulatePackageAction(params string[] extensions)
         {
             return archive =>
             {
-                var entryList = new List<ZipArchiveEntry>() {
-                            archive.CreateEntry("file1" + extension)
-                        };
+                int fileIndex = 0;
+                var entryList = extensions.Select(extension => archive.CreateEntry($"file{fileIndex++}{extension}"));
 
                 foreach (var entry in entryList)
                 {
@@ -162,12 +162,24 @@ namespace NuGetGallery
             public async Task WillNotThrowForValidSnupkgFile(string extension)
             {
                 var service = CreateService();
-                var action = CreatePopulatePackageAction(extension);
+                var action = CreatePopulatePackageAction(new string[] { extension, ".pdb" });
 
                 var validSymbolPackageStream = TestPackage.CreateTestSymbolPackageStream("theId", "1.0.42", populatePackage: action);
                 var packageArchiveReader = PackageServiceUtility.CreateArchiveReader(validSymbolPackageStream);
 
                 await service.EnsureValidAsync(packageArchiveReader);
+            }
+
+            [Fact]
+            public async Task WillThrowForSnupkgFileWithoutSymbols()
+            {
+                var service = CreateService();
+                var action = CreatePopulatePackageAction(".p7s");
+
+                var validSymbolPackageStream = TestPackage.CreateTestSymbolPackageStream("theId", "1.0.42", populatePackage: action);
+                var packageArchiveReader = PackageServiceUtility.CreateArchiveReader(validSymbolPackageStream);
+
+                await Assert.ThrowsAsync<InvalidDataException>(async () => await service.EnsureValidAsync(packageArchiveReader));
             }
         }
 

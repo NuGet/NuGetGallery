@@ -1138,4 +1138,7 @@ The {1} Team</value>
     <value>https://cwe.mitre.org/data/definitions/{0}.html</value>
     <comment>{0} is the CWE's ID number (e.g. CWE-999 has an ID number of 999)</comment>
   </data>
+  <data name="SymbolsPackage_NoSymbols" xml:space="preserve">
+    <value>The package does not contain any symbol (.pdb) files.</value>
+  </data>
 </root>
