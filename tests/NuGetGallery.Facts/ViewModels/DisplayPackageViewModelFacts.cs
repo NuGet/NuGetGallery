@@ -789,7 +789,6 @@ namespace NuGetGallery.ViewModels
 
             var deprecation = new PackageDeprecation
             {
-                Status = status,
                 CvssRating = cvss,
                 CustomMessage = "hello"
             };
@@ -852,6 +851,13 @@ namespace NuGetGallery.ViewModels
             }
 
             var package = CreateTestPackage("1.0.0");
+
+            var linkedDeprecation = new PackageDeprecation
+            {
+                Status = status
+            };
+
+            package.Deprecations.Add(linkedDeprecation);
 
             // Act
             var model = new DisplayPackageViewModel(package, null, deprecation);
@@ -917,6 +923,15 @@ namespace NuGetGallery.ViewModels
                 Assert.Null(model.AlternatePackageId);
                 Assert.Null(model.AlternatePackageVersion);
             }
+
+            var versionModel = model.PackageVersions.Single();
+            Assert.Equal(status, versionModel.DeprecationStatus);
+            Assert.Null(versionModel.Severity);
+            Assert.Null(versionModel.CveIds);
+            Assert.Null(versionModel.CweIds);
+            Assert.Null(versionModel.AlternatePackageId);
+            Assert.Null(versionModel.AlternatePackageVersion);
+            Assert.Null(versionModel.CustomMessage);
         }
     }
 }

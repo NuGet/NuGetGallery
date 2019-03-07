@@ -187,7 +187,7 @@ namespace NuGetGallery.Controllers
                 // Arrange
                 var id = "Crested.Gecko";
                 GetMock<IPackageService>()
-                    .Setup(x => x.FindPackagesById(id, false))
+                    .Setup(x => x.FindPackagesById(id, PackageDeprecationFieldsToInclude.None))
                     .Returns(new Package[0]);
 
                 var controller = GetController<ManageDeprecationJsonApiController>();
@@ -250,7 +250,7 @@ namespace NuGetGallery.Controllers
                 };
 
                 GetMock<IPackageService>()
-                    .Setup(x => x.FindPackagesById(id, false))
+                    .Setup(x => x.FindPackagesById(id, PackageDeprecationFieldsToInclude.None))
                     .Returns(packages);
 
                 var controller = GetController<ManageDeprecationJsonApiController>();
@@ -440,7 +440,7 @@ namespace NuGetGallery.Controllers
 
                 var packageService = GetMock<IPackageService>();
                 packageService
-                    .Setup(x => x.FindPackagesById(id, true))
+                    .Setup(x => x.FindPackagesById(id, PackageDeprecationFieldsToInclude.DeprecationAndRelationships))
                     .Returns(packages.ToList())
                     .Verifiable();
 
@@ -502,7 +502,7 @@ namespace NuGetGallery.Controllers
 
                 var packageService = GetMock<IPackageService>();
                 packageService
-                    .Setup(x => x.FindPackagesById(id, true))
+                    .Setup(x => x.FindPackagesById(id, PackageDeprecationFieldsToInclude.DeprecationAndRelationships))
                     .Returns(new[] { package })
                     .Verifiable();
 
@@ -577,7 +577,7 @@ namespace NuGetGallery.Controllers
 
                 var packageService = GetMock<IPackageService>();
                 packageService
-                    .Setup(x => x.FindPackagesById(id, true))
+                    .Setup(x => x.FindPackagesById(id, PackageDeprecationFieldsToInclude.DeprecationAndRelationships))
                     .Returns(new[] { package })
                     .Verifiable();
 
@@ -625,7 +625,7 @@ namespace NuGetGallery.Controllers
 
                 var packageService = GetMock<IPackageService>();
                 packageService
-                    .Setup(x => x.FindPackagesById(id, true))
+                    .Setup(x => x.FindPackagesById(id, PackageDeprecationFieldsToInclude.DeprecationAndRelationships))
                     .Returns(new[] { package })
                     .Verifiable();
 
@@ -679,7 +679,7 @@ namespace NuGetGallery.Controllers
 
                 var packageService = GetMock<IPackageService>();
                 packageService
-                    .Setup(x => x.FindPackagesById(id, true))
+                    .Setup(x => x.FindPackagesById(id, PackageDeprecationFieldsToInclude.DeprecationAndRelationships))
                     .Returns(new[] { package })
                     .Verifiable();
 
@@ -735,7 +735,7 @@ namespace NuGetGallery.Controllers
 
                 var packageService = GetMock<IPackageService>();
                 packageService
-                    .Setup(x => x.FindPackagesById(id, true))
+                    .Setup(x => x.FindPackagesById(id, PackageDeprecationFieldsToInclude.DeprecationAndRelationships))
                     .Returns(new[] { package })
                     .Verifiable();
 
@@ -784,7 +784,7 @@ namespace NuGetGallery.Controllers
 
                 var packageService = GetMock<IPackageService>();
                 packageService
-                    .Setup(x => x.FindPackagesById(id, true))
+                    .Setup(x => x.FindPackagesById(id, PackageDeprecationFieldsToInclude.DeprecationAndRelationships))
                     .Returns(new[] { package })
                     .Verifiable();
 
@@ -833,7 +833,7 @@ namespace NuGetGallery.Controllers
 
                 var packageService = GetMock<IPackageService>();
                 packageService
-                    .Setup(x => x.FindPackagesById(id, true))
+                    .Setup(x => x.FindPackagesById(id, PackageDeprecationFieldsToInclude.DeprecationAndRelationships))
                     .Returns(new[] { package })
                     .Verifiable();
 
@@ -966,7 +966,7 @@ namespace NuGetGallery.Controllers
 
                 var packageService = GetMock<IPackageService>();
                 packageService
-                    .Setup(x => x.FindPackagesById(id, true))
+                    .Setup(x => x.FindPackagesById(id, PackageDeprecationFieldsToInclude.DeprecationAndRelationships))
                     .Returns(new[] { package, package2, unselectedPackage })
                     .Verifiable();
 

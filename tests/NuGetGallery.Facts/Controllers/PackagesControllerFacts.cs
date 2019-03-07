@@ -374,7 +374,7 @@ namespace NuGetGallery
                     GetConfigurationService(),
                     packageService: packageService);
 
-                packageService.Setup(p => p.FindPackagesById("Foo", false))
+                packageService.Setup(p => p.FindPackagesById("Foo", PackageDeprecationFieldsToInclude.Deprecation))
                     .Returns(new Package[0]);
 
                 // Act
@@ -518,7 +518,7 @@ namespace NuGetGallery
 
                 var packages = new[] { package };
                 packageService
-                    .Setup(p => p.FindPackagesById(id, false))
+                    .Setup(p => p.FindPackagesById(id, PackageDeprecationFieldsToInclude.Deprecation))
                     .Returns(packages);
 
                 var getDeprecationByPackageSetup = deprecationService
@@ -641,7 +641,7 @@ namespace NuGetGallery
 
                 var packages = new[] { package };
                 packageService
-                    .Setup(p => p.FindPackagesById(id, false))
+                    .Setup(p => p.FindPackagesById(id, PackageDeprecationFieldsToInclude.Deprecation))
                     .Returns(packages);
 
                 deprecationService
@@ -717,7 +717,7 @@ namespace NuGetGallery
                 };
 
                 packageService
-                    .Setup(p => p.FindPackagesById(id, false))
+                    .Setup(p => p.FindPackagesById(id, PackageDeprecationFieldsToInclude.Deprecation))
                     .Returns(new[] { notLatestPackage, latestPackage, latestButNotPackage });
 
                 deprecationService
@@ -770,7 +770,7 @@ namespace NuGetGallery
 
                 var packages = new[] { notLatestPackage };
                 packageService
-                    .Setup(p => p.FindPackagesById(id, false))
+                    .Setup(p => p.FindPackagesById(id, PackageDeprecationFieldsToInclude.Deprecation))
                     .Returns(packages);
 
                 packageService
@@ -825,7 +825,7 @@ namespace NuGetGallery
 
                 var packages = new[] { package };
                 packageService
-                    .Setup(p => p.FindPackagesById("Foo", false))
+                    .Setup(p => p.FindPackagesById("Foo", PackageDeprecationFieldsToInclude.Deprecation))
                     .Returns(packages);
 
                 packageService
@@ -933,7 +933,7 @@ namespace NuGetGallery
 
                 var packages = new[] { package };
                 packageService
-                    .Setup(p => p.FindPackagesById(id, false))
+                    .Setup(p => p.FindPackagesById(id, PackageDeprecationFieldsToInclude.Deprecation))
                     .Returns(packages);
 
                 packageService
@@ -990,7 +990,7 @@ namespace NuGetGallery
                 };
 
                 var packages = new[] { package };
-                packageService.Setup(p => p.FindPackagesById("Foo", false))
+                packageService.Setup(p => p.FindPackagesById("Foo", PackageDeprecationFieldsToInclude.Deprecation))
                     .Returns(packages);
                 packageService.Setup(p => p.FilterLatestPackage(packages, SemVerLevelKey.SemVer2, true))
                     .Returns(package);
@@ -1051,7 +1051,7 @@ namespace NuGetGallery
 
                 var packages = new[] { package };
                 packageService
-                    .Setup(p => p.FindPackagesById(id, false))
+                    .Setup(p => p.FindPackagesById(id, PackageDeprecationFieldsToInclude.Deprecation))
                     .Returns(packages);
 
                 packageService
@@ -1106,7 +1106,7 @@ namespace NuGetGallery
 
                 var packages = new[] { package };
                 packageService
-                    .Setup(p => p.FindPackagesById(id, false))
+                    .Setup(p => p.FindPackagesById(id, PackageDeprecationFieldsToInclude.Deprecation))
                     .Returns(packages);
 
                 packageService
@@ -2576,7 +2576,7 @@ namespace NuGetGallery
                 var packageService = new Mock<IPackageService>(MockBehavior.Strict);
                 var packages = isPackageMissing ? new Package[0] : new[] { Package };
                 packageService
-                    .Setup(p => p.FindPackagesById(PackageRegistration.Id, true))
+                    .Setup(p => p.FindPackagesById(PackageRegistration.Id, PackageDeprecationFieldsToInclude.DeprecationAndRelationships))
                     .Returns(packages)
                     .Verifiable();
 
@@ -2598,7 +2598,7 @@ namespace NuGetGallery
                 var packageService = new Mock<IPackageService>(MockBehavior.Strict);
                 var packages = new[] { Package };
                 packageService
-                    .Setup(p => p.FindPackagesById(PackageRegistration.Id, true))
+                    .Setup(p => p.FindPackagesById(PackageRegistration.Id, PackageDeprecationFieldsToInclude.DeprecationAndRelationships))
                     .Returns(packages)
                     .Verifiable();
 
@@ -2676,7 +2676,7 @@ namespace NuGetGallery
             {
                 var packageService = new Mock<IPackageService>();
                 packageService
-                    .Setup(x => x.FindPackagesById(_packageRegistration.Id, false))
+                    .Setup(x => x.FindPackagesById(_packageRegistration.Id, PackageDeprecationFieldsToInclude.None))
                     .Returns(new Package[0]);
 
                 var controller = CreateController(
@@ -2819,7 +2819,7 @@ namespace NuGetGallery
             {
                 var packageService = new Mock<IPackageService>(MockBehavior.Strict);
                 packageService
-                    .Setup(svc => svc.FindPackagesById(_packageId, false))
+                    .Setup(svc => svc.FindPackagesById(_packageId, PackageDeprecationFieldsToInclude.None))
                     .Returns(_packageRegistration.Packages.ToList())
                     .Verifiable();
 
@@ -2839,7 +2839,7 @@ namespace NuGetGallery
                 var packages = _packageRegistration.Packages.ToList();
                 var packageService = new Mock<IPackageService>(MockBehavior.Strict);
                 packageService
-                    .Setup(svc => svc.FindPackagesById(_packageId, false))
+                    .Setup(svc => svc.FindPackagesById(_packageId, PackageDeprecationFieldsToInclude.None))
                     .Returns(packages)
                     .Verifiable();
 

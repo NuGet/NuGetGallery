@@ -193,6 +193,7 @@
     <Compile Include="Services\IFileMetadataService.cs" />
     <Compile Include="Services\IRevalidationStateService.cs" />
     <Compile Include="Services\ISimpleCloudBlob.cs" />
+    <Compile Include="Services\PackageDeprecationFieldsToInclude.cs" />
     <Compile Include="Services\SymbolPackageFileServiceMetadata.cs" />
     <Compile Include="Services\PackageFileServiceMetadata.cs" />
     <Compile Include="Services\RevalidationState.cs" />

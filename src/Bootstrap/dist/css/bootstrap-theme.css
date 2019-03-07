@@ -1016,6 +1016,9 @@ img.reserved-indicator-icon {
   width: 100%;
   margin: 0;
 }
+.page-package-details #version-history .deprecated {
+  text-decoration: line-through;
+}
 .page-downloads .list-tools li {
   margin-top: 20px;
 }
