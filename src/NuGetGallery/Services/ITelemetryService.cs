@@ -290,8 +290,8 @@ namespace NuGetGallery
         /// <param name="searchName">A name to identify the search instance.</param>
         /// <param name="exception">The exception.</param>
         /// <param name="correlationId">CorrelationId set by Polly context.</param>
+        /// <param name="uri">The request uri.</param>
         /// <param name="circuitBreakerStatus">The CircuitBreakerStatus at the time of the Retry action.</param>
-        /// <param name=""></param>
         void TrackMetricForSearchOnRetry(string searchName, Exception exception, string correlationId, string uri, string circuitBreakerStatus);
     }
 }
