@@ -744,9 +744,9 @@ namespace NuGetGallery
                     .AddHttpMessageHandler<TracingHttpHandler>()
                     .AddHttpMessageHandler<CorrelatingHttpClientHandler>()
                     .AddPolicyHandler(SearchClientPolicies.SearchClientFallBackCircuitBreakerPolicy(logger, searchClient.name, telemetryService))
-                    .AddPolicyHandler(SearchClientPolicies.SearchClientWaitAndRetryForeverPolicy(logger, searchClient.name, telemetryService))
+                    .AddPolicyHandler(SearchClientPolicies.SearchClientWaitAndRetryPolicy(configuration.Current.WaitAndRetryCount, configuration.Current.WaitAndRetryIntervalInMilliseconds, logger, searchClient.name, telemetryService))
                     .AddPolicyHandler(SearchClientPolicies.SearchClientCircuitBreakerPolicy(
-                            SearchClientConfiguration.SearchRetryCount,
+                            configuration.Current.CircuitBreakerBreakAfterCount,
                             TimeSpan.FromSeconds(configuration.Current.SearchCircuitBreakerDelayInSeconds),
                             logger,
                             searchClient.name,

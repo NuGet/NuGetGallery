@@ -7,8 +7,5 @@ namespace NuGetGallery.Infrastructure.Search
     {
         public static string SearchPrimaryInstance = "SearchPrimary";
         public static string SearchSecondaryInstance = "SearchSecondary";
-        public static int SearchRetryCount = 3;
-        // Try to have searchRetryCount*retryInterval to be close to 1 second in order to keep the user still engaged. https://www.nngroup.com/articles/website-response-times/
-        public static int WaitAndRetryDefaultIntervalInMilliseconds = 500;
     }
 }

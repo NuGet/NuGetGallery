@@ -405,5 +405,20 @@ namespace NuGetGallery.Configuration
         /// The time in seconds for the circuit breaker delay. (The time the circuit breaker will stay in open state)
         /// </summary>
         int SearchCircuitBreakerDelayInSeconds { get; set; }
+
+        /// <summary>
+        /// The wait time in milliseconds for the WaitAndRetry policy.
+        /// </summary>
+        int WaitAndRetryIntervalInMilliseconds { get; set; }
+
+        /// <summary>
+        /// A request will fail after this number of retries.
+        /// </summary>
+        int WaitAndRetryCount { get; set; }
+
+        /// <summary>
+        /// CircuitBreaker will open after this number of consecutive failed requests.
+        /// </summary>
+        int CircuitBreakerBreakAfterCount { get; set; }
     }
 }
