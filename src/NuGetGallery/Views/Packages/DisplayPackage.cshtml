@@ -537,7 +537,7 @@
                                     </td>
                                     <td>
                                         <a href="@Url.Package(packageVersion)" title="@packageVersion.FullVersion" 
-                                           class="@(packageVersion.DeprecationStatus != PackageDeprecationStatus.NotDeprecated ? "deprecated" : "")">
+                                           class="@(packageVersion.DeprecationStatus != PackageDeprecationStatus.NotDeprecated ? "text-danger" : "")">
                                             @packageVersion.Version.Abbreviate(30)
                                         </a>
                                     </td>
