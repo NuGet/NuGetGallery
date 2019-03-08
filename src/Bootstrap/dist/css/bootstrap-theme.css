@@ -926,13 +926,13 @@ img.reserved-indicator-icon {
 
   overflow-wrap: break-word;
 }
-.page-package-details .package-details-main .package-info-cell {
+.page-package-details .package-details-main .signature-info-cell {
   max-width: 1em;
   padding-right: 0;
   padding-left: 0;
   cursor: default;
 }
-.page-package-details .package-details-main .package-info-cell .package-info {
+.page-package-details .package-details-main .signature-info-cell .signature-info {
   padding-left: 6px;
 }
 .page-package-details .package-details-info .ms-Icon-ul li {
