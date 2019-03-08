@@ -577,8 +577,9 @@
                                 rowCount++;
                                 @VersionListDivider(rowCount, versionsExpanded)
                                 <tr class="deleted">
-                                    <td class="version" colspan="2">
-                                        @packageVersion.Version (deleted)
+                                    <td class="signature-info-cell"></td>
+                                    <td class="version">
+                                        @packageVersion.Version
                                     </td>
                                     <td>
                                         @packageVersion.DownloadCount
@@ -586,7 +587,9 @@
                                     <td>
                                         <span data-datetime="@packageVersion.LastUpdated.ToString("O")">@packageVersion.LastUpdated.ToNuGetShortDateString()</span>
                                     </td>
-                                    <td></td>
+                                    <td>
+                                        Deleted
+                                    </td>
                                 </tr>
                             }
                         }
