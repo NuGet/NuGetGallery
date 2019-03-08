@@ -82,6 +82,11 @@ namespace NuGet.Services.Validation
         /// The snupkg does not contain pdbs.
         /// </summary>
         SymbolErrorCode_SnupkgDoesNotContainSymbols = 253,
+
+        /// <summary>
+        /// The snupkg contains entries not safe for extraction.
+        /// </summary>
+        SymbolErrorCode_SnupkgContainsEntriesNotSafeForExtraction = 254,
         #endregion
 
         /// <summary>

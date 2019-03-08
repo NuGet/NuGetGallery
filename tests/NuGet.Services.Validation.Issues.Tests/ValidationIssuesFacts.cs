@@ -244,6 +244,7 @@ namespace NuGet.Services.Validation.Issues.Tests
             { ValidationIssueCode.SymbolErrorCode_MatchingAssemblyNotFound, () => ValidationIssue.SymbolErrorCode_MatchingAssemblyNotFound },
             { ValidationIssueCode.SymbolErrorCode_PdbIsNotPortable, () => ValidationIssue.SymbolErrorCode_PdbIsNotPortable },
             { ValidationIssueCode.SymbolErrorCode_SnupkgDoesNotContainSymbols, () => ValidationIssue.SymbolErrorCode_SnupkgDoesNotContainSymbols },
+            { ValidationIssueCode.SymbolErrorCode_SnupkgContainsEntriesNotSafeForExtraction, () => ValidationIssue.SymbolErrorCode_SnupkgContainsEntriesNotSafeForExtraction },
         };
     }
 }
