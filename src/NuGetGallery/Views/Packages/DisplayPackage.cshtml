@@ -529,15 +529,18 @@
                                 rowCount++;
                                 @VersionListDivider(rowCount, versionsExpanded)
                                 <tr class="@(packageVersion.IsCurrent(Model) ? "bg-info" : null)">
-                                    <td class="signature-info-cell">
-                                        @if (Model.IsCertificatesUIEnabled && !string.IsNullOrEmpty(packageVersion.SignatureInformation))
+                                    <td class="package-info-cell">
+                                        @if (packageVersion.DeprecationStatus != PackageDeprecationStatus.NotDeprecated)
                                         {
-                                            <i class="ms-Icon ms-Icon--Ribbon signature-info" title="@packageVersion.SignatureInformation"></i>
+                                            <i class="ms-Icon ms-Icon--Warning package-info" title="Deprecated"></i>
+                                        }
+                                        else if (Model.IsCertificatesUIEnabled && !string.IsNullOrEmpty(packageVersion.SignatureInformation))
+                                        {
+                                            <i class="ms-Icon ms-Icon--Ribbon package-info" title="@packageVersion.SignatureInformation"></i>
                                         }
                                     </td>
                                     <td>
-                                        <a href="@Url.Package(packageVersion)" title="@packageVersion.FullVersion" 
-                                           class="@(packageVersion.DeprecationStatus != PackageDeprecationStatus.NotDeprecated ? "text-danger" : "")">
+                                        <a href="@Url.Package(packageVersion)" title="@packageVersion.FullVersion">
                                             @packageVersion.Version.Abbreviate(30)
                                         </a>
                                     </td>
