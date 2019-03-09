@@ -866,6 +866,9 @@ img.reserved-indicator-icon {
 .page-package-details h1 {
   margin-bottom: 0;
 }
+.page-package-details tr {
+  border-bottom: 1px solid lightgray;
+}
 .page-package-details .package-title {
   margin-bottom: 24px;
 }

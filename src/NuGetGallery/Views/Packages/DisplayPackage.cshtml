@@ -574,7 +574,30 @@
                                     <td class="package-icon-cell">
                                         @if (packageVersion.DeprecationStatus != PackageDeprecationStatus.NotDeprecated)
                                         {
-                                            <i class="ms-Icon ms-Icon--Warning package-icon" title="@packageVersion.Version is deprecated"></i>
+                                            var deprecationTitle = packageVersion.Version;
+                                            var isVulnerable = packageVersion.DeprecationStatus.HasFlag(PackageDeprecationStatus.Vulnerable);
+                                            var isLegacy = packageVersion.DeprecationStatus.HasFlag(PackageDeprecationStatus.Legacy);
+                                            if (isVulnerable)
+                                            {
+                                                deprecationTitle += " is deprecated because it has vulnerabilities";
+
+                                                if (isLegacy)
+                                                {
+                                                    deprecationTitle += " and is legacy and is no longer maintained";
+                                                }
+
+                                                deprecationTitle += ".";
+                                            }
+                                            else if (isLegacy)
+                                            {
+                                                deprecationTitle += " is deprecated because it is legacy and is no longer maintained.";
+                                            }
+                                            else
+                                            {
+                                                deprecationTitle += " is deprecated.";
+                                            }
+
+                                            <i class="ms-Icon ms-Icon--Warning package-icon" title="@deprecationTitle"></i>
                                         }
                                     </td>
                                 </tr>
