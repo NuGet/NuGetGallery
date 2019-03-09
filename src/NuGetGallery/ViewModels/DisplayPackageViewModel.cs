@@ -46,7 +46,7 @@ namespace NuGetGallery
                 DownloadsPerDayLabel = DownloadsPerDay < 1 ? "<1" : DownloadsPerDay.ToNuGetNumberString();
                 IsDotnetToolPackageType = package.PackageTypes.Any(e => e.Name.Equals("DotnetTool", StringComparison.OrdinalIgnoreCase));
             }
-            
+
             if (deprecation != null)
             {
                 CveIds = deprecation.Cves?.Select(c => c.CveId).ToList();
