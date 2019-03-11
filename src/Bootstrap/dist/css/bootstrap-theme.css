@@ -866,6 +866,9 @@ img.reserved-indicator-icon {
 .page-package-details h1 {
   margin-bottom: 0;
 }
+.page-package-details tr {
+  border-bottom: 1px solid lightgray;
+}
 .page-package-details .package-title {
   margin-bottom: 24px;
 }
@@ -926,13 +929,14 @@ img.reserved-indicator-icon {
 
   overflow-wrap: break-word;
 }
-.page-package-details .package-details-main .signature-info-cell {
-  max-width: 1em;
+.page-package-details .package-details-main .package-icon-cell {
   padding-right: 0;
   padding-left: 0;
+  text-align: right;
   cursor: default;
 }
-.page-package-details .package-details-main .signature-info-cell .signature-info {
+.page-package-details .package-details-main .package-icon-cell .package-icon {
+  padding-right: 6px;
   padding-left: 6px;
 }
 .page-package-details .package-details-info .ms-Icon-ul li {

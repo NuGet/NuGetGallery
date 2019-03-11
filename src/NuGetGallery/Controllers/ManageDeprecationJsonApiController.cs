@@ -145,7 +145,7 @@ namespace NuGetGallery
                 return DeprecateErrorResponse(HttpStatusCode.BadRequest, Strings.DeprecatePackage_InvalidCvss);
             }
 
-            var packages = _packageService.FindPackagesById(id, withDeprecations: true);
+            var packages = _packageService.FindPackagesById(id, PackageDeprecationFieldsToInclude.DeprecationAndRelationships);
             var registration = packages.FirstOrDefault()?.PackageRegistration;
             if (registration == null)
             {
