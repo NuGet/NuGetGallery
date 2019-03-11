@@ -553,7 +553,7 @@
 
                                         <td>
                                             @if (packageStatusSummary == PackageStatusSummary.Listed ||
-                                                packageStatusSummary == PackageStatusSummary.Unlisted)
+                                                 packageStatusSummary == PackageStatusSummary.Unlisted)
                                             {
                                                 <a href="@Url.ManagePackage(packageVersion)">@NuGetGallery.Helpers.EnumHelper.GetDescription(packageStatusSummary)</a>
                                             }
