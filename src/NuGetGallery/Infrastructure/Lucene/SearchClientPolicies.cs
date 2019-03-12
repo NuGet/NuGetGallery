@@ -27,7 +27,7 @@ namespace NuGetGallery.Infrastructure.Search
         /// When the timeout expires trial requsts are allowed. The state will be changed to a Close state if they succeed.
         /// If they do not succeed the circuit will be moved back in the Open state for another <paramref name="breakDuration"/>. 
         /// </summary>
-        /// <param name="breakAfterCount">The number of retries until circuit will be open.</param>
+        /// <param name="breakAfterCount">The number of allowed failures until circuit will be open.</param>
         /// <param name="breakDuration">The <see cref="TimeSpan"/> for the circuit to stay open.</param>
         /// <param name="logger">An <see cref="ILogger"/> instance.</param>
         /// <returns>The policy.</returns>
@@ -58,11 +58,15 @@ namespace NuGetGallery.Infrastructure.Search
 
         /// <summary>
         /// A WaitAndRetryForever policy to be used with the SearchClientCircuitBreakerPolicy. 
-        /// The policy will retry on any transient error and will not retry on <see cref="BrokenCircuitException"/> to avoid non-necessary retries due to circuit breaker exceptions.
+        /// The policy will retry for <paramref name="retryCount"/> on any transient error and will not retry on <see cref="BrokenCircuitException"/> to avoid non-necessary retries due to circuit breaker exceptions.
         /// </summary>
-        /// <param name="logger">An <see cref="ILogger"/> instance.</param>
+        /// <param name="retryCount">The allowed number of retries.</param>
+        /// <param name="waitInMilliseconds">The time to wait between retries.</param>
+        /// <param name="logger">The logger</param>
+        /// <param name="searchName">The search name.</param>
+        /// <param name="telemetryService">Telemetry service</param>
         /// <returns>The policy.</returns>
-        public static IAsyncPolicy<HttpResponseMessage> SearchClientWaitAndRetryForeverPolicy(ILogger logger, string searchName, ITelemetryService telemetryService)
+        public static IAsyncPolicy<HttpResponseMessage> SearchClientWaitAndRetryPolicy(int retryCount, int waitInMilliseconds, ILogger logger, string searchName, ITelemetryService telemetryService)
         {
             return HttpPolicyExtensions.
                          HandleTransientHttpError()
@@ -73,17 +77,18 @@ namespace NuGetGallery.Infrastructure.Search
                                 // There should not be any retry in this case
                                 return false;
                             }).
-                        WaitAndRetryForeverAsync(
-                            sleepDurationProvider: (retryAttempt, context) => TimeSpan.FromMilliseconds(SearchClientConfiguration.WaitAndRetryDefaultIntervalInMilliseconds),
+                        WaitAndRetryAsync(
+                            retryCount: retryCount,
+                            sleepDurationProvider: (retryAttempt, context) => TimeSpan.FromMilliseconds(waitInMilliseconds),
                             onRetry: (delegateResult, waitDuration, context) =>
-                                    {
-                                        telemetryService.TrackMetricForSearchOnRetry(searchName,
-                                            delegateResult.Exception,
-                                            context.CorrelationId.ToString(),
-                                            GetValueFromContext(ContextKey_RequestUri, context),
-                                            GetValueFromContext(ContextKey_CircuitBreakerStatus, context));
-                                        logger.LogInformation("Policy retry - it will retry after {RetryMilliseconds} milliseconds. {Exception} {SearchName}", waitDuration.TotalMilliseconds, delegateResult.Exception, searchName);
-                                    });
+                            {
+                                telemetryService.TrackMetricForSearchOnRetry(searchName,
+                                    delegateResult.Exception,
+                                    context.CorrelationId.ToString(),
+                                    GetValueFromContext(ContextKey_RequestUri, context),
+                                    GetValueFromContext(ContextKey_CircuitBreakerStatus, context));
+                                logger.LogInformation("Policy retry - it will retry after {RetryMilliseconds} milliseconds. {Exception} {SearchName}", waitDuration.TotalMilliseconds, delegateResult.Exception, searchName);
+                            });
         }
 
         /// <summary>
