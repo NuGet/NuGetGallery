@@ -31,7 +31,7 @@ namespace NuGetGallery.Infrastructure.Search
         private static LoggerFor_TestSearchHttpClient _loggerFor_InvalidTestSearchHttpClientWithShortCircuitBreakDelay;
         private static LoggerFor_TestSearchHttpClient _loggerFor_ValidTestSearchHttpClient;
         private static string _nameFor_InvalidTestSearchHttpClientWithLongCircuitBreakDelay = "InvalidTestSearchHttpClientWithLongCircuitBreakDelay";
-        private static string _nameFor_InvalidTestSearchHttpClientWithShortCircuitBreakDelay = "InvalidTestSearchHttpClientWithSWhortCircuitBreakDelay";
+        private static string _nameFor_InvalidTestSearchHttpClientWithShortCircuitBreakDelay = "InvalidTestSearchHttpClientWithShortCircuitBreakDelay";
         private static string _nameFor_ValidTestSearchHttpClient = "ValidTestSearchHttpClient";
         private static readonly string _longInvalidAddress = "https://api-v2v3search-long.nuget.org";
         private static readonly string _shortInvalidAddress = "https://api-v2v3search-short.nuget.org";

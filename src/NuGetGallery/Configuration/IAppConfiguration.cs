@@ -409,16 +409,16 @@ namespace NuGetGallery.Configuration
         /// <summary>
         /// The wait time in milliseconds for the WaitAndRetry policy.
         /// </summary>
-        int WaitAndRetryIntervalInMilliseconds { get; set; }
+        int SearchCircuitBreakerWaitAndRetryIntervalInMilliseconds { get; set; }
 
         /// <summary>
-        /// A request will fail after this number of retries.
+        /// A request will fail after this number of retries. In total a request will fail after this number of retries + 1.
         /// </summary>
-        int WaitAndRetryCount { get; set; }
+        int SearchCircuitBreakerWaitAndRetryCount { get; set; }
 
         /// <summary>
         /// CircuitBreaker will open after this number of consecutive failed requests.
         /// </summary>
-        int CircuitBreakerBreakAfterCount { get; set; }
+        int SearchCircuitBreakerBreakAfterCount { get; set; }
     }
 }

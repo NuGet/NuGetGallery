@@ -384,14 +384,14 @@ namespace NuGetGallery.Configuration
         // The default value was chosen to have searchRetryCount*retryInterval to be close to 1 second in order to keep the user still engaged.
         // https://www.nngroup.com/articles/website-response-times/
         [DefaultValue(500)]
-        public int WaitAndRetryIntervalInMilliseconds { get; set; }
+        public int SearchCircuitBreakerWaitAndRetryIntervalInMilliseconds { get; set; }
 
         [DefaultValue(3)]
-        public int WaitAndRetryCount { get; set; }
+        public int SearchCircuitBreakerWaitAndRetryCount { get; set; }
 
         // Default value was chosen using the AI data.
         // It is the average of the search request count per second during the last 90 days.
         [DefaultValue(200)]
-        public int CircuitBreakerBreakAfterCount { get; set; }
+        public int SearchCircuitBreakerBreakAfterCount { get; set; }
     }
 }
