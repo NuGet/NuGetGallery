@@ -154,9 +154,7 @@
     <Compile Include="PackageMetadataExtensions.cs" />
     <Compile Include="PackageReaderCoreExtensions.cs" />
     <Compile Include="Packaging\InvalidPackageException.cs" />
-    <Compile Include="Packaging\ManifestEdit.cs" />
     <Compile Include="Packaging\ManifestValidator.cs" />
-    <Compile Include="Packaging\NupkgRewriter.cs" />
     <Compile Include="Packaging\PackageIdValidator.cs" />
     <Compile Include="Packaging\PackageMetadata.cs" />
     <Compile Include="Packaging\PackageMetadataStrings.cs" />

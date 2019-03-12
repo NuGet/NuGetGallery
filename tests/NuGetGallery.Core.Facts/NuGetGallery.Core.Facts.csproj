@@ -96,7 +96,6 @@
     <Compile Include="Packaging\PackageIdValidatorTest.cs" />
     <Compile Include="Packaging\PackageMetadataFacts.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Packaging\NupkgRewriterFacts.cs" />
     <Compile Include="SemVerLevelKeyFacts.cs" />
     <Compile Include="Services\AccessConditionWrapperFacts.cs" />
     <Compile Include="Services\CoreLicenseFileServiceFacts.cs" />
