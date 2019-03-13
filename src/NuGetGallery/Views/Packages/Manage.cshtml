@@ -5,6 +5,8 @@
     ViewBag.MdPageColumns = GalleryConstants.ColumnsFormMd;
 }
 
+@Html.Partial("_MultiSelectDropdown")
+
 <section role="main" class="container main-container">
     @ViewHelpers.AjaxAntiForgeryToken(Html)
     <div class="row">
@@ -15,6 +17,15 @@
                     Model,
                     "Manage",
                     linkIdOnly: true))
+
+            @if (Model.IsLocked)
+            {
+                @ViewHelpers.AlertDanger(
+                    @<text>
+                        Package '@Model.Id' has been locked. Please contact 
+                        <a href="mailto:support@nuget.org?subject=@HttpUtility.UrlPathEncode(string.Format("Requesting support for a locked package - '{0}'", Model.Id))">support@nuget.org</a>
+                    </text>)
+            }
 
             @ViewHelpers.Section(
                 this,
@@ -103,7 +114,7 @@
                 var state = versionListedState[version];
                 // Update the listed checkbox to match the state of the package.
                 var listed = state.Listed;
-                $(".page-delete-package input#Listed")[0].checked = listed;
+                $(".page-delete-package input#Listed").prop('checked', listed);
                 // Update the text stating the download count on the delete form.
                 var downloadCount = state.DownloadCount;
                 $(".page-delete-package #downloadCount").text(downloadCount);

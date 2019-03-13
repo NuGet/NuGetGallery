@@ -589,7 +589,7 @@ img.reserved-indicator-icon {
   border-top: 0;
 }
 .multi-select-dropdown .dropdown-content .dropdown-selector {
-  height: 300px;
+  max-height: 300px;
   overflow: auto;
 }
 .multi-select-dropdown .dropdown-content .dropdown-selector .dropdown-filter {

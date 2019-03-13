@@ -1,26 +1,25 @@
 ﻿@model ManagePackageViewModel
 
 <div class="page-manage-deprecation">
-    <span>Deprecating a package will warn all consumers of the package who use it in their projects.</span>
-
     @if (!Model.VersionSelectList.Any())
     {
-        @ViewHelpers.AlertInfo(
-                @<text>
-                    <span>There are no versions that can be deprecated.</span>
-                </text>)
+        @ViewHelpers.AlertInfo(@<text>There are no versions that can be deprecated.</text>)
     }
     else if (!Model.CanDeprecate)
     {
-        @ViewHelpers.AlertWarning(@<text>You do not have permission to deprecate this package.</text>)
+        @ViewHelpers.AlertDanger(@<text>You do not have permission to deprecate this package.</text>)
+    }
+    else if (Model.IsLocked)
+    {
+        @ViewHelpers.AlertDanger(@<text>Locked packages cannot be deprecated.</text>)
     }
     else
     {
+        <span>Deprecating a package will warn all consumers of the package who use it in their projects.</span>
+
         <div data-bind="template: { name: 'add-deprecation-template' }"></div>
     }
 </div>
-
-@Html.Partial("_MultiSelectDropdown")
 
 <script type="text/html" id="add-deprecation-template">
     <div class="deprecation-section form-group">
@@ -150,7 +149,7 @@
             <div class="security-detail-list-item alert-info">
                 <div class="security-detail-list-item-header">
                     <div>
-                        <a data-bind="text: id, attr: { href: $parent.getUrlFromId(id) }, css: { 'security-detail-list-item-existing': fromAutocomplete, 'security-detail-list-item-missing': !fromAutocomplete }"></a>
+                        <a data-bind="text: id, attr: { href: $parent.getUrlFromId(id) }, css: { 'security-detail-list-item-existing': fromAutocomplete, 'security-detail-list-item-missing': !fromAutocomplete }" target="_blank"></a>
                         <span data-bind="visible: name || !fromAutocomplete">
                             &nbsp;-&nbsp;
                             <span data-bind="visible: name, text: name"></span>
