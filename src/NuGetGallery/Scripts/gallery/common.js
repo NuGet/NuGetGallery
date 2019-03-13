@@ -231,6 +231,11 @@
             }
         }
 
+        var tabIndex = element.attr('tabindex');
+        if (!!tabIndex && tabIndex >= 0) {
+            return true;
+        }
+
         return element.is("audio") && !!element.attr("controls") ||
             element.is("img") && !!element.attr("usemap") ||
             element.is("input") && element.attr("type") !== "hidden" ||
