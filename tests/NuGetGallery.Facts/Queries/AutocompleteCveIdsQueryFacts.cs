@@ -2,6 +2,8 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
+using Moq;
 using NuGet.Services.Entities;
 using Xunit;
 
@@ -16,7 +18,7 @@ namespace NuGetGallery.Queries
             [InlineData("")]
             public void ReturnsExpectedResultsForNullOrEmptyArgument(string queryString)
             {
-                var query = new AutocompleteCveIdsQuery(new FakeEntitiesContext());
+                var query = new AutocompleteCveIdsQuery(Mock.Of<IEntityRepository<Cve>>());
                 var queryResults = query.Execute(queryString);
 
                 Assert.False(queryResults.Success);
@@ -31,7 +33,6 @@ namespace NuGetGallery.Queries
             [InlineData("2000", "CVE-2000")]
             public void ReturnsExpectedResults(string queryString, string expectedCveIdStartString)
             {
-                var entitiesContext = new FakeEntitiesContext();
                 var expectedResult1 = new Cve { CveId = "CVE-2000-011", Description = "Description A: listed.", Listed = true };
                 var notExpectedResult1 = new Cve { CveId = "CVE-2000-012", Description = "Description A: unlisted.", Listed = false };
                 var expectedResult2 = new Cve { CveId = "CVE-2000-013", Description = "description B", Listed = true };
@@ -39,15 +40,22 @@ namespace NuGetGallery.Queries
                 var expectedResult4 = new Cve { CveId = "CVE-2000-015", Description = "description D", Listed = true };
                 var expectedResult5 = new Cve { CveId = "CVE-2000-016", Description = "description E", Listed = true };
                 var notExpectedResult2 = new Cve { CveId = "CVE-2000-017", Description = "description F", Listed = true };
-                entitiesContext.Cves.Add(expectedResult1);
-                entitiesContext.Cves.Add(notExpectedResult1);
-                entitiesContext.Cves.Add(expectedResult2);
-                entitiesContext.Cves.Add(expectedResult3);
-                entitiesContext.Cves.Add(expectedResult4);
-                entitiesContext.Cves.Add(expectedResult5);
-                entitiesContext.Cves.Add(notExpectedResult2);
 
-                var query = new AutocompleteCveIdsQuery(entitiesContext);
+                var cveRepositoryMock = new Mock<IEntityRepository<Cve>>();
+                cveRepositoryMock
+                    .Setup(x => x.GetAll())
+                    .Returns(new[] 
+                    {
+                        expectedResult1,
+                        notExpectedResult1,
+                        expectedResult2,
+                        expectedResult3,
+                        expectedResult4,
+                        expectedResult5,
+                        notExpectedResult2
+                    }.AsQueryable());
+
+                var query = new AutocompleteCveIdsQuery(cveRepositoryMock.Object);
                 var queryResults = query.Execute(queryString);
 
                 Assert.Equal(5, queryResults.Results.Count);

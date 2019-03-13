@@ -41,6 +41,7 @@ namespace NuGetGallery
             CanReportAsOwner = CanPerformAction(currentUser, package, ActionsRequiringPermissions.ReportPackageAsOwner);
             CanSeeBreadcrumbWithProfile = CanPerformAction(currentUser, package, ActionsRequiringPermissions.ShowProfileBreadcrumb);
             CanDeleteSymbolsPackage = CanPerformAction(currentUser, package, ActionsRequiringPermissions.DeleteSymbolPackage);
+            CanDeprecate = CanPerformAction(currentUser, package, ActionsRequiringPermissions.DeprecatePackage);
         }
 
         public string Authors { get; set; }
@@ -81,6 +82,7 @@ namespace NuGetGallery
         public bool CanReportAsOwner { get; set; }
         public bool CanSeeBreadcrumbWithProfile { get; set; }
         public bool CanDeleteSymbolsPackage { get; set; }
+        public bool CanDeprecate { get; set; }
 
         private static bool CanPerformAction(User currentUser, Package package, ActionRequiringPackagePermissions action)
         {

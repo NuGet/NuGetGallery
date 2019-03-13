@@ -135,9 +135,11 @@ namespace NuGetGallery
                 .SingleOrDefault(pr => pr.Id == packageId);
         }
 
-        public virtual IReadOnlyCollection<Package> FindPackagesById(string id, bool withDeprecations = false)
+        public virtual IReadOnlyCollection<Package> FindPackagesById(
+            string id, 
+            PackageDeprecationFieldsToInclude deprecationFields = PackageDeprecationFieldsToInclude.None)
         {
-            return GetPackagesByIdQueryable(id, withDeprecations).ToList();
+            return GetPackagesByIdQueryable(id, deprecationFields).ToList();
         }
 
         public virtual Package FindPackageByIdAndVersion(

@@ -23,6 +23,20 @@
                     <div class="description">Total @(Model.TotalPackageDownloadCount == 1 ? "download" : "downloads") of packages</div>
                 </div>
             </div>
+            @if (User.IsAdministrator())
+            {
+                <div class="additional-info">
+                    <dl>
+                        <dt>Email Address:</dt>
+                        <dd>@Model.EmailAddress</dd>
+                        @if (Model.UnconfirmedEmailAddress != null)
+                        {
+                            <dt>Unconfirmed Email Address:</dt>
+                            <dd>@Model.UnconfirmedEmailAddress</dd>
+                        }
+                    </dl>
+                </div>
+            }
         </aside>
         <article class="col-md-9 col-md-pull-3">
             <div class="profile-title">

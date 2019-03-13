@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net;
 using Moq;
 using NuGet.Services.Entities;
 using NuGet.Versioning;
@@ -251,6 +252,22 @@ namespace NuGetGallery
 
                     yield return new object[] { "FeatureFlagStalenessSeconds",
                         (TrackAction)(s => s.TrackFeatureFlagStaleness(TimeSpan.FromMilliseconds(100)))
+                    };
+
+                    yield return new object[] { "SearchExecutionDuration",
+                        (TrackAction)(s => s.TrackMetricForSearchExecutionDuration("https://www.bing.com", TimeSpan.FromMilliseconds(100), true))
+                    };
+
+                    yield return new object[] { "SearchCircuitBreakerOnBreak",
+                        (TrackAction)(s => s.TrackMetricForSearchCircuitBreakerOnBreak("SomeName", exception: null, responseMessage: null, correlationId: string.Empty, uri: string.Empty))
+                    };
+
+                    yield return new object[] { "SearchCircuitBreakerOnReset",
+                        (TrackAction)(s => s.TrackMetricForSearchCircuitBreakerOnReset("SomeName", correlationId: string.Empty, uri: string.Empty))
+                    };
+
+                    yield return new object[] { "SearchOnRetry",
+                        (TrackAction)(s => s.TrackMetricForSearchOnRetry("SomeName", exception: null, correlationId: string.Empty, uri: string.Empty, circuitBreakerStatus: string.Empty))
                     };
                 }
             }

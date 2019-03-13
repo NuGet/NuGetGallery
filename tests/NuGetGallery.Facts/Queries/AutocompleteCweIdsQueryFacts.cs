@@ -2,6 +2,8 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
+using Moq;
 using NuGet.Services.Entities;
 using Xunit;
 
@@ -19,7 +21,7 @@ namespace NuGetGallery.Queries
             [InlineData("abc")]
             public void ReturnsExpectedResultsIfQueryStringTooShort(string queryString)
             {
-                var query = new AutocompleteCweIdsQuery(new FakeEntitiesContext());
+                var query = new AutocompleteCweIdsQuery(Mock.Of<IEntityRepository<Cwe>>());
                 var queryResults = query.Execute(queryString);
 
                 Assert.False(queryResults.Success);
@@ -33,7 +35,6 @@ namespace NuGetGallery.Queries
             [InlineData("01", "CWE-01")]
             public void WhenQueryingByIdReturnsExpectedResults(string queryString, string expectedCweIdStartString)
             {
-                var entitiesContext = new FakeEntitiesContext();
                 var expectedResult1 = new Cwe { CweId = "CWE-011", Name = "Name A: listed", Description = "Description A: listed.", Listed = true };
                 var notExpectedResult1 = new Cwe { CweId = "CWE-012", Name = "Name A: unlisted", Description = "Description A: unlisted.", Listed = false };
                 var expectedResult2 = new Cwe { CweId = "CWE-013", Name = "Name B", Description = "description B", Listed = true };
@@ -41,15 +42,22 @@ namespace NuGetGallery.Queries
                 var expectedResult4 = new Cwe { CweId = "CWE-015", Name = "Name D", Description = "description D", Listed = true };
                 var expectedResult5 = new Cwe { CweId = "CWE-016", Name = "Name E", Description = "description E", Listed = true };
                 var notExpectedResult2 = new Cwe { CweId = "CWE-017", Name = "Name F", Description = "description F", Listed = true };
-                entitiesContext.Cwes.Add(expectedResult1);
-                entitiesContext.Cwes.Add(notExpectedResult1);
-                entitiesContext.Cwes.Add(expectedResult2);
-                entitiesContext.Cwes.Add(expectedResult3);
-                entitiesContext.Cwes.Add(expectedResult4);
-                entitiesContext.Cwes.Add(expectedResult5);
-                entitiesContext.Cwes.Add(notExpectedResult2);
 
-                var query = new AutocompleteCweIdsQuery(entitiesContext);
+                var cweRepositoryMock = new Mock<IEntityRepository<Cwe>>();
+                cweRepositoryMock
+                    .Setup(x => x.GetAll())
+                    .Returns(new[]
+                    {
+                        expectedResult1,
+                        notExpectedResult1,
+                        expectedResult2,
+                        expectedResult3,
+                        expectedResult4,
+                        expectedResult5,
+                        notExpectedResult2
+                    }.AsQueryable());
+
+                var query = new AutocompleteCweIdsQuery(cweRepositoryMock.Object);
                 var queryResults = query.Execute(queryString);
 
                 Assert.Equal(5, queryResults.Results.Count);
@@ -73,15 +81,21 @@ namespace NuGetGallery.Queries
             [Fact]
             public void WhenQueryingByNameReturnsExpectedResults()
             {
-                var entitiesContext = new FakeEntitiesContext();
                 var expectedResult = new Cwe { CweId = "CWE-001", Name = "Name A: listed", Description = "Description A: listed.", Listed = true };
                 var notExpectedResult1 = new Cwe { CweId = "CWE-002", Name = "Name A: unlisted", Description = "Description A: unlisted.", Listed = false };
                 var notExpectedResult2 = new Cwe { CweId = "CWE-003", Name = "Name B", Description = "description B", Listed = true };
-                entitiesContext.Cwes.Add(expectedResult);
-                entitiesContext.Cwes.Add(notExpectedResult1);
-                entitiesContext.Cwes.Add(notExpectedResult2);
 
-                var query = new AutocompleteCweIdsQuery(entitiesContext);
+                var cweRepositoryMock = new Mock<IEntityRepository<Cwe>>();
+                cweRepositoryMock
+                    .Setup(x => x.GetAll())
+                    .Returns(new[]
+                    {
+                        expectedResult,
+                        notExpectedResult1,
+                        notExpectedResult2
+                    }.AsQueryable());
+
+                var query = new AutocompleteCweIdsQuery(cweRepositoryMock.Object);
                 var queryResults = query.Execute("Name A");
 
                 Assert.NotNull(queryResults);

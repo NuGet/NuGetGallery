@@ -29,9 +29,9 @@ using NuGetGallery.Diagnostics;
 using NuGetGallery.Filters;
 using NuGetGallery.Helpers;
 using NuGetGallery.Infrastructure;
-using NuGetGallery.Infrastructure.Lucene;
 using NuGetGallery.Infrastructure.Mail.Messages;
 using NuGetGallery.Infrastructure.Mail.Requests;
+using NuGetGallery.Infrastructure.Search;
 using NuGetGallery.OData;
 using NuGetGallery.Packaging;
 using NuGetGallery.Security;
@@ -110,6 +110,7 @@ namespace NuGetGallery
         private readonly ICoreLicenseFileService _coreLicenseFileService;
         private readonly ILicenseExpressionSplitter _licenseExpressionSplitter;
         private readonly IFeatureFlagService _featureFlagService;
+        private readonly IPackageDeprecationService _deprecationService;
 
         public PackagesController(
             IPackageService packageService,
@@ -137,7 +138,8 @@ namespace NuGetGallery
             IDiagnosticsService diagnosticsService,
             ICoreLicenseFileService coreLicenseFileService,
             ILicenseExpressionSplitter licenseExpressionSplitter,
-            IFeatureFlagService featureFlagService)
+            IFeatureFlagService featureFlagService,
+            IPackageDeprecationService deprecationService)
         {
             _packageService = packageService;
             _uploadFileService = uploadFileService;
@@ -165,6 +167,7 @@ namespace NuGetGallery
             _coreLicenseFileService = coreLicenseFileService ?? throw new ArgumentNullException(nameof(coreLicenseFileService));
             _licenseExpressionSplitter = licenseExpressionSplitter ?? throw new ArgumentNullException(nameof(licenseExpressionSplitter));
             _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
+            _deprecationService = deprecationService ?? throw new ArgumentNullException(nameof(deprecationService));
         }
 
         [HttpGet]
@@ -550,20 +553,79 @@ namespace NuGetGallery
             bool isSymbolsPackageUpload,
             bool hasExistingSymbolsPackageAvailable)
         {
+            PackageContentData packageContentData = null;
+            try
+            {
+                packageContentData = await ValidateAndProcessPackageContents(currentUser, isSymbolsPackageUpload);
+            }
+            catch (Exception)
+            {
+                await _uploadFileService.DeleteUploadFileAsync(currentUser.Key);
+                throw;
+            }
+
+            if (packageContentData.ErrorResult != null)
+            {
+                await _uploadFileService.DeleteUploadFileAsync(currentUser.Key);
+                return packageContentData.ErrorResult;
+            }
+
+            var model = new VerifyPackageRequest(packageMetadata, accountsAllowedOnBehalfOf, existingPackageRegistration);
+            model.IsSymbolsPackage = isSymbolsPackageUpload;
+            model.HasExistingAvailableSymbols = hasExistingSymbolsPackageAvailable;
+            model.Warnings.AddRange(packageContentData.Warnings.Select(w => new JsonValidationMessage(w)));
+            model.LicenseFileContents = packageContentData.LicenseFileContents;
+            model.LicenseExpressionSegments = packageContentData.LicenseExpressionSegments;
+            return Json(model);
+        }
+
+        private class PackageContentData
+        {
+            public PackageContentData(
+                JsonResult errorResult)
+            {
+                ErrorResult = errorResult;
+            }
+
+            public PackageContentData(
+                PackageMetadata packageMetadata,
+                IReadOnlyList<IValidationMessage> warnings,
+                string licenseFileContents,
+                IReadOnlyCollection<CompositeLicenseExpressionSegmentViewModel> licenseExpressionSegments)
+            {
+                PackageMetadata = packageMetadata;
+                Warnings = warnings;
+                LicenseFileContents = licenseFileContents;
+                LicenseExpressionSegments = licenseExpressionSegments;
+            }
+
+            public JsonResult ErrorResult { get; }
+            public PackageMetadata PackageMetadata { get; }
+            public IReadOnlyList<IValidationMessage> Warnings { get; }
+            public string LicenseFileContents { get; }
+            public IReadOnlyCollection<CompositeLicenseExpressionSegmentViewModel> LicenseExpressionSegments { get; }
+        }
+
+        private async Task<PackageContentData> ValidateAndProcessPackageContents(User currentUser, bool isSymbolsPackageUpload)
+        {
             IReadOnlyList<IValidationMessage> warnings = new List<IValidationMessage>();
             string licenseFileContents = null;
             IReadOnlyCollection<CompositeLicenseExpressionSegmentViewModel> licenseExpressionSegments = null;
+            PackageMetadata packageMetadata = null;
+
             using (Stream uploadedFile = await _uploadFileService.GetUploadFileAsync(currentUser.Key))
             {
                 if (uploadedFile == null)
                 {
-                    return Json(HttpStatusCode.BadRequest, new[] { new JsonValidationMessage(Strings.UploadFileIsRequired) });
+                    return new PackageContentData(
+                        Json(HttpStatusCode.BadRequest, new[] { new JsonValidationMessage(Strings.UploadFileIsRequired) }));
                 }
 
                 var packageArchiveReader = await SafeCreatePackage(currentUser, uploadedFile);
                 if (packageArchiveReader == null)
                 {
-                    return Json(HttpStatusCode.BadRequest, new[] { new JsonValidationMessage(Strings.UploadFileIsRequired) });
+                    return new PackageContentData(
+                        Json(HttpStatusCode.BadRequest, new[] { new JsonValidationMessage(Strings.UploadFileIsRequired) }));
                 }
 
                 try
@@ -576,7 +638,8 @@ namespace NuGetGallery
                 {
                     _telemetryService.TraceException(ex);
 
-                    return Json(HttpStatusCode.BadRequest, new[] { new JsonValidationMessage(ex.GetUserSafeMessage()) });
+                    return new PackageContentData(
+                        Json(HttpStatusCode.BadRequest, new[] { new JsonValidationMessage(ex.GetUserSafeMessage()) }));
                 }
 
                 if (!isSymbolsPackageUpload)
@@ -585,7 +648,7 @@ namespace NuGetGallery
                     var validationJsonResult = GetJsonResultOrNull(validationResult);
                     if (validationJsonResult != null)
                     {
-                        return validationJsonResult;
+                        return new PackageContentData(validationJsonResult);
                     }
 
                     warnings = validationResult.Warnings;
@@ -600,17 +663,12 @@ namespace NuGetGallery
                 {
                     _telemetryService.TraceException(ex);
 
-                    return Json(HttpStatusCode.BadRequest, new[] { new JsonValidationMessage(ex.GetUserSafeMessage()) });
+                    return new PackageContentData(
+                        Json(HttpStatusCode.BadRequest, new[] { new JsonValidationMessage(ex.GetUserSafeMessage()) }));
                 }
             }
 
-            var model = new VerifyPackageRequest(packageMetadata, accountsAllowedOnBehalfOf, existingPackageRegistration);
-            model.IsSymbolsPackage = isSymbolsPackageUpload;
-            model.HasExistingAvailableSymbols = hasExistingSymbolsPackageAvailable;
-            model.Warnings.AddRange(warnings.Select(w => new JsonValidationMessage(w)));
-            model.LicenseFileContents = licenseFileContents;
-            model.LicenseExpressionSegments = licenseExpressionSegments;
-            return Json(model);
+            return new PackageContentData(packageMetadata, warnings, licenseFileContents, licenseExpressionSegments);
         }
 
         private IReadOnlyCollection<CompositeLicenseExpressionSegmentViewModel> GetLicenseExpressionSegmentsOrNull(LicenseMetadata licenseMetadata)
@@ -652,7 +710,7 @@ namespace NuGetGallery
 
             Package package = null;
             // Load all packages with the ID.
-            var packages = _packageService.FindPackagesById(id);
+            var packages = _packageService.FindPackagesById(id, PackageDeprecationFieldsToInclude.Deprecation);
             if (version != null)
             {
                 if (version.Equals(GalleryConstants.AbsoluteLatestUrlString, StringComparison.InvariantCultureIgnoreCase))
@@ -682,7 +740,8 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            var model = new DisplayPackageViewModel(package, currentUser);
+            var deprecation = _deprecationService.GetDeprecationByPackage(package);
+            var model = new DisplayPackageViewModel(package, currentUser, deprecation);
 
             model.ValidatingTooLong = _validationService.IsValidatingTooLong(package);
             model.PackageValidationIssues = _validationService.GetLatestPackageValidationIssues(package);
@@ -1395,8 +1454,10 @@ namespace NuGetGallery
         public virtual async Task<ActionResult> Manage(string id, string version = null)
         {
             Package package = null;
+
             // Load all versions of the package.
-            var packages = _packageService.FindPackagesById(id, withDeprecations: true);
+            var packages = _packageService.FindPackagesById(
+                id, PackageDeprecationFieldsToInclude.DeprecationAndRelationships);
             if (version != null)
             {
                 // Try to find the exact version if it was specified.
@@ -1415,12 +1476,14 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
+            var currentUser = GetCurrentUser();
             var model = new ManagePackageViewModel(
                 package,
                 GetCurrentUser(),
                 ReportMyPackageReasons,
                 Url,
-                await _readMeService.GetReadMeMdAsync(package));
+                await _readMeService.GetReadMeMdAsync(package),
+                _featureFlagService.IsManageDeprecationEnabled(currentUser));
 
             if (!model.CanEdit && !model.CanManageOwners && !model.CanUnlistOrRelist)
             {
@@ -1435,9 +1498,25 @@ namespace NuGetGallery
         [RequiresAccountConfirmation("delete a symbols package")]
         public virtual ActionResult DeleteSymbols(string id, string version)
         {
-            var package = _packageService.FindPackageByIdAndVersion(id, version, SemVerLevelKey.SemVer2);
+            Package package = null;
+
+            // Load all versions of the package.
+            var packages = _packageService.FindPackagesById(id);
+            if (version != null)
+            {
+                // Try to find the exact version if it was specified.
+                package = packages.SingleOrDefault(p => p.NormalizedVersion == NuGetVersionFormatter.Normalize(version));
+            }
+
             if (package == null)
             {
+                // If the exact version was not found, fall back to the latest version.
+                package = _packageService.FilterLatestPackage(packages, SemVerLevelKey.SemVer2, allowPrerelease: true);
+            }
+
+            if (package == null)
+            {
+                // If the package has no versions, return not found.
                 return HttpNotFound();
             }
 
@@ -1449,26 +1528,19 @@ namespace NuGetGallery
 
             var model = new DeletePackageViewModel(package, currentUser, DeleteReasons);
 
-            // Fetch all the available symbols package for all the versions from the 
-            // database since the DisplayPackageViewModel(base class for DeletePackageViewModel) does not
-            // set the `LatestSymbolsPackage` data on the model(since it is an unnecessary and expensive db
-            // query). It is fine to do this here when invoking delete page. Note: this could also potentially 
-            // cause unbounded(high number) db calls based on the number of versions associated with a package.
-            var packageViewModelsForAllAvailableSymbolsPackage = package
-                .PackageRegistration
-                .Packages
+            // Fetch all versions of the package with symbols.
+            var versionsWithSymbols = packages
                 .Where(p => p.PackageStatusKey != PackageStatus.Deleted)
-                .Select(p => p.LatestSymbolPackage())
-                .Where(sp => sp != null && sp.StatusKey == PackageStatus.Available)
-                .Select(sp => new PackageViewModel(sp.Package));
+                .Where(p => (p.LatestSymbolPackage()?.StatusKey ?? PackageStatus.Deleted) == PackageStatus.Available)
+                .OrderByDescending(p => new NuGetVersion(p.Version));
 
-            model.VersionSelectList = new SelectList(
-                packageViewModelsForAllAvailableSymbolsPackage
-                .Select(pvm => new
+            model.VersionSelectList = versionsWithSymbols
+                .Select(versionWithSymbols => new SelectListItem
                 {
-                    text = pvm.NuGetVersion.ToFullString() + (pvm.LatestVersionSemVer2 ? " (Latest)" : string.Empty),
-                    url = Url.DeleteSymbolsPackage(pvm)
-                }), "url", "text", Url.DeleteSymbolsPackage(model));
+                    Text = PackageHelper.GetSelectListText(versionWithSymbols),
+                    Value = Url.DeleteSymbolsPackage(new TrivialPackageVersionModel(versionWithSymbols)),
+                    Selected = package == versionWithSymbols
+                });
 
             return View(model);
         }

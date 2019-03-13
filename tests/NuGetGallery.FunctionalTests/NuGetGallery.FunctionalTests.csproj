@@ -85,6 +85,12 @@
     <Compile Include="AtomFeed\AtomFeedTests.cs" />
     <Compile Include="Commandline\NuGetCommandLineTests.cs" />
     <Compile Include="Commandline\NuGetCoreTests.cs" />
+    <Compile Include="ErrorHandling\EndpointType.cs" />
+    <Compile Include="ErrorHandling\ErrorHandlingTests.cs" />
+    <Compile Include="ErrorHandling\Validator.cs" />
+    <Compile Include="ErrorHandling\SimulatedErrorRequest.cs" />
+    <Compile Include="ErrorHandling\SimulatedErrorType.cs" />
+    <Compile Include="ErrorHandling\TestResponse.cs" />
     <Compile Include="ODataFeeds\CuratedFeedTest.cs" />
     <Compile Include="ODataFeeds\SearchTest.cs" />
     <Compile Include="ODataFeeds\V2FeedExtendedTests.cs" />

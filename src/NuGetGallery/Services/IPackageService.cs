@@ -19,9 +19,11 @@ namespace NuGetGallery
     {
         /// <summary>
         /// Returns all packages with an <see cref="Package.Id"/> of <paramref name="id"/>.
-        /// Includes deprecation entities if <paramref name="withDeprecations"/> is true.
+        /// Includes deprecation fields based on <paramref name="deprecationFields"/>.
         /// </summary>
-        IReadOnlyCollection<Package> FindPackagesById(string id, bool withDeprecations = false);
+        IReadOnlyCollection<Package> FindPackagesById(
+            string id, 
+            PackageDeprecationFieldsToInclude deprecationFields = PackageDeprecationFieldsToInclude.None);
 
         /// <summary>
         /// Gets the package with the given ID and version when exists;

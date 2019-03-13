@@ -153,6 +153,11 @@ namespace NuGetGallery
             {
                 throw new InvalidDataException(string.Format(Strings.SymbolsPackage_InvalidFiles, PDBExtension));
             }
+
+            if (!CheckForPDBFiles(symbolPackage))
+            {
+                throw new InvalidDataException(string.Format(Strings.SymbolsPackage_NoSymbols));
+            }
         }
 
         private static bool CheckForAllowedFiles(PackageArchiveReader symbolPackage)
@@ -169,6 +174,17 @@ namespace NuGetGallery
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// If there are not any pdb files in the snupkg the publish action will be rejected.
+        /// </summary>
+        /// <param name="symbolPackage"></param>
+        /// <returns></returns>
+        private static bool CheckForPDBFiles(PackageArchiveReader symbolPackage)
+        {
+            return symbolPackage.GetFiles()
+                .Any(filePath => !string.IsNullOrEmpty(Path.GetFileName(filePath)) && Path.GetExtension(filePath) == PDBExtension);
         }
 
         private static bool IsPortable(string pdbFile)

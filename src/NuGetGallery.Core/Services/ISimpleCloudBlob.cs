@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
@@ -50,5 +51,17 @@ namespace NuGetGallery
         /// </param>
         /// <returns>Shared access signature in form of URI query portion.</returns>
         string GetSharedAccessSignature(SharedAccessBlobPermissions permissions, DateTimeOffset? endOfAccess);
+
+        /// <summary>
+        /// Opens the seekable read stream to the file in blob storage.
+        /// </summary>
+        /// <param name="serverTimeout">Timeout for a single HTTP request issued by implementation. See <see cref="BlobRequestOptions.ServerTimeout"/>.</param>
+        /// <param name="maxExecutionTime">Total timeout accross all potential retries. See <see cref="BlobRequestOptions.MaximumExecutionTime"/>.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>Read stream for a blob in blob storage.</returns>
+        Task<Stream> OpenReadStreamAsync(
+            TimeSpan serverTimeout,
+            TimeSpan maxExecutionTime,
+            CancellationToken cancellationToken);
     }
 }

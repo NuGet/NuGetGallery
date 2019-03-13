@@ -390,5 +390,35 @@ namespace NuGetGallery.Configuration
         /// no embedded license) are allowed into Gallery.
         /// </summary>
         bool AllowLicenselessPackages { get; set; }
+
+        /// <summary>
+        /// The Uri for the Primary Search endpoint
+        /// </summary>
+        Uri SearchServiceUriPrimary { get; set; }
+
+        /// <summary>
+        /// The Uri for the Secondary Search endpoint
+        /// </summary>
+        Uri SearchServiceUriSecondary { get; set; }
+
+        /// <summary>
+        /// The time in seconds for the circuit breaker delay. (The time the circuit breaker will stay in open state)
+        /// </summary>
+        int SearchCircuitBreakerDelayInSeconds { get; set; }
+
+        /// <summary>
+        /// The wait time in milliseconds for the WaitAndRetry policy.
+        /// </summary>
+        int SearchCircuitBreakerWaitAndRetryIntervalInMilliseconds { get; set; }
+
+        /// <summary>
+        /// A request will fail after this number of retries. In total a request will fail after this number of retries + 1.
+        /// </summary>
+        int SearchCircuitBreakerWaitAndRetryCount { get; set; }
+
+        /// <summary>
+        /// CircuitBreaker will open after this number of consecutive failed requests.
+        /// </summary>
+        int SearchCircuitBreakerBreakAfterCount { get; set; }
     }
 }

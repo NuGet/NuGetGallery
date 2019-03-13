@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
@@ -27,6 +28,22 @@ namespace NuGetGallery
         public CloudBlobWrapper(CloudBlockBlob blob)
         {
             _blob = blob;
+        }
+
+        public static CloudBlobWrapper FromUri(Uri uri)
+        {
+            if (uri == null)
+            {
+                throw new ArgumentNullException(nameof(uri));
+            }
+
+            if (!IsBlobStorageUri(uri))
+            {
+                throw new ArgumentException($"{nameof(uri)} must point to blob storage", nameof(uri));
+            }
+
+            var blob = new CloudBlockBlob(uri);
+            return new CloudBlobWrapper(blob);
         }
 
         public async Task<Stream> OpenReadAsync(AccessCondition accessCondition)
@@ -139,6 +156,28 @@ namespace NuGetGallery
                 destAccessCondition: destAccessCondition,
                 options: null,
                 operationContext: null);
+        }
+
+        public async Task<Stream> OpenReadStreamAsync(
+            TimeSpan serverTimeout,
+            TimeSpan maxExecutionTime,
+            CancellationToken cancellationToken)
+        {
+            var accessCondition = AccessCondition.GenerateEmptyCondition();
+            var blobRequestOptions = new BlobRequestOptions
+            {
+                ServerTimeout = serverTimeout,
+                MaximumExecutionTime = maxExecutionTime,
+                RetryPolicy = new ExponentialRetry(),
+            };
+            var operationContext = new OperationContext();
+
+            return await _blob.OpenReadAsync(accessCondition, blobRequestOptions, operationContext, cancellationToken);
+        }
+
+        private static bool IsBlobStorageUri(Uri uri)
+        {
+            return uri.Authority.EndsWith(".blob.core.windows.net");
         }
 
         // The default retry policy treats a 304 as an error that requires a retry. We don't want that!

@@ -7,6 +7,10 @@
     margin-bottom: 0;
   }
 
+  tr {
+    border-bottom: 1px solid lightgray;
+  }
+
   .package-title {
     margin-bottom: 24px;
 
@@ -19,6 +23,46 @@
     }
   }
 
+  .deprecation-container {
+    .deprecation-expander {
+      display: flex;
+      justify-content: space-between;
+      vertical-align: middle;
+      width: 100%;
+
+      .deprecation-expander-container {
+        display: flex;
+
+        .deprecation-expander-icon {
+          position: unset;
+          top: unset;
+        }
+  
+        .deprecation-expander-info-right {
+          padding-left: 15px;
+        }
+
+        .deprecation-expander-severity-rating {
+          margin-left: 5px;
+        }
+      }
+    }
+
+    .deprecation-content-container {
+      margin-top: 15px;
+      padding-top: 15px;
+      border-top: 1px solid lightgray;
+
+      p {
+        margin-top: 5px;
+      }
+
+      p:last-of-type {
+        margin-bottom: 0px;
+      }
+    }
+  }
+
   .failed-validation-alert-list {
     margin-top: 15px;
     margin-bottom: 15px;
@@ -27,14 +71,15 @@
   .package-details-main {
     .break-word;
 
-    .signature-info-cell {
+    .package-icon-cell {
       cursor: default;
-      max-width: 1em;
       padding-left: 0;
       padding-right: 0;
+      text-align: right;
 
-      .signature-info {
+      .package-icon {
         padding-left: 6px;
+        padding-right: 6px;
       }
     }
   }

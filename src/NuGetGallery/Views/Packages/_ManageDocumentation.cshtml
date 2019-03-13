@@ -50,18 +50,14 @@
                 @Html.AntiForgeryToken()
 
                 @Html.ValidationSummary(true)
-                <div class="row">
-                    <label for="input-select-readme" id="readme-version-label" class="col-xs-12">
-                        <span>Select version</span>
-                        @Html.DropDownList("version-selection", Model.VersionSelectList,
-                            new
-                            {
-                                @class = "form-control selectpicker show-tick show-menu-arrow btn-block",
-                                @title = "Select a version",
-                                @id = "input-select-readme"
-                            })
-                    </label>
-                </div>
+                <label for="input-select-readme" id="readme-version-label">Select version</label>
+                @Html.DropDownList("version-selection", Model.VersionSelectList,
+                    new
+                    {
+                        @class = "form-control",
+                        @title = "Select a version",
+                        @id = "input-select-readme"
+                    })
             </form>
             <div id="validation-failure-container">
             </div>

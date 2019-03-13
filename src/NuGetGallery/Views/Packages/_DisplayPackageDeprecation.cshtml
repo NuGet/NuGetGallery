@@ -1,0 +1,108 @@
+﻿@model DisplayPackageViewModel
+
+@helper VulnerabilityDetailList(IReadOnlyCollection<string> ids, string title, Func<string, string> getUrl)
+{
+    if (ids == null || !ids.Any())
+    {
+        return;
+    }
+
+    <b>@title</b>
+    <p>
+        @{
+            bool isFirst = true;
+        }
+
+        @foreach (var id in ids)
+        {
+            if (!isFirst)
+            {
+                @:|
+            }
+            else
+            {
+                isFirst = false;
+            }
+
+            <a href="@getUrl(id)">@id</a>
+        }
+    </p>
+}
+
+<div class="deprecation-container">
+    <div class="icon-text alert alert-warning">
+        <div id="show-deprecation-content-container" class="deprecation-expander" tabindex="0" data-toggle="collapse" data-target="#deprecation-content-container" aria-expanded="false" aria-controls="deprecation-content-container" aria-labelledby="deprecation-container-label">
+            <div class="deprecation-expander">
+                <div class="deprecation-expander-container">
+                    <i class="deprecation-expander-icon ms-Icon ms-Icon--Warning" aria-hidden="true"></i>
+
+                    <div id="deprecation-container-label" class="deprecation-expander-info-right">
+                        @{
+                            var isVulnerable = Model.DeprecationStatus.HasFlag(PackageDeprecationStatus.Vulnerable);
+                            var isLegacy = Model.DeprecationStatus.HasFlag(PackageDeprecationStatus.Legacy);
+                            if (isVulnerable)
+                            {
+                                @:This package has been deprecated due to <b>vulnerabilities</b>.
+
+                                if (isLegacy)
+                                {
+                                    <br />
+                                    @:This package is also <b>legacy</b> and is no longer maintained.
+                                }
+                            }
+                            else if (isLegacy)
+                            {
+                                @:This package has been deprecated because it is <b>legacy</b> and is no longer maintained.
+                            }
+                            else
+                            {
+                                @:This package has been deprecated.
+                            }
+                        }
+                    </div>
+                </div>
+
+                <div class="deprecation-expander-container">
+                    @if (Model.Severity != null)
+                    {
+                        <div class="deprecation-expander-info-right deprecation-expander-container">Severity: <b class="deprecation-expander-severity-rating">@Model.Severity</b></div>
+                    }
+
+                    <i id="deprecation-expander-icon-right" class="deprecation-expander-icon deprecation-expander-info-right ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="deprecation-content-container collapse" id="deprecation-content-container">
+            @VulnerabilityDetailList(Model.CveIds, "CVEs", (id) => string.Format(Strings.DeprecatePackage_CveUrlFormat, id))
+            @VulnerabilityDetailList(Model.CweIds, "CWEs", (id) => string.Format(Strings.DeprecatePackage_CweUrlFormat, id.Substring("CWE-".Length)))
+
+            @if (!string.IsNullOrEmpty(Model.AlternatePackageId))
+            {
+                string alternateUrl;
+                string alternateText;
+                if (string.IsNullOrEmpty(Model.AlternatePackageVersion))
+                {
+                    alternateUrl = Url.Package(Model.AlternatePackageId);
+                    alternateText = Model.AlternatePackageId;
+                }
+                else
+                {
+                    alternateUrl = Url.Package(Model.AlternatePackageId, Model.AlternatePackageVersion);
+                    alternateText = Model.AlternatePackageId + " " + Model.AlternatePackageVersion;
+                }
+
+                <b>Suggested Alternatives</b>
+                <p>
+                    Consider using <a href="@alternateUrl">@alternateText</a> instead of this package.
+                </p>
+            }
+
+            @if (!string.IsNullOrEmpty(Model.CustomMessage))
+            {
+                <b>Package owner message</b>
+                <p>@Model.CustomMessage</p>
+            }
+        </div>
+    </div>
+</div>

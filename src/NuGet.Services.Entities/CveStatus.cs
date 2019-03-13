@@ -72,6 +72,12 @@ namespace NuGet.Services.Entities
         /// Due to a CNA error, the CVE candidate was also originally assigned to another issue.
         /// The CVE description will provide details about which other CVEs to refer too.
         /// </summary>
-        Split = 10
+        Split = 10,
+
+        /// <summary>
+        /// A value of Unknown refers to an entity that was entered by a user of NuGet.org.
+        /// If the CVE exists, it will be updated with the full data when it is imported.
+        /// </summary>
+        Unknown = 11
     }
 }
