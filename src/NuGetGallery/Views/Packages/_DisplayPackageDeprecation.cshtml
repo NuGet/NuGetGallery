@@ -32,7 +32,7 @@
 <div class="deprecation-container">
     <div class="icon-text alert alert-warning">
         <div id="show-deprecation-content-container" class="deprecation-expander" tabindex="0" data-toggle="collapse" data-target="#deprecation-content-container" aria-expanded="false" aria-controls="deprecation-content-container" aria-labelledby="deprecation-container-label">
-            <div class="deprecation-expander">
+            <div class="deprecation-expander" role="button">
                 <div class="deprecation-expander-container">
                     <i class="deprecation-expander-icon ms-Icon ms-Icon--Warning" aria-hidden="true"></i>
 
@@ -93,14 +93,12 @@
                 }
 
                 <b>Suggested Alternatives</b>
-                <p>
-                    Consider using <a href="@alternateUrl">@alternateText</a> instead of this package.
-                </p>
+                <p><a href="@alternateUrl">@alternateText</a></p>
             }
 
             @if (!string.IsNullOrEmpty(Model.CustomMessage))
             {
-                <b>Package owner message</b>
+                <b>Additional Details</b>
                 <p>@Model.CustomMessage</p>
             }
         </div>

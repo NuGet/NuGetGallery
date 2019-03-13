@@ -1387,7 +1387,7 @@ namespace NuGetGallery
                 PackageId = id,
                 PackageVersion = package.Version,
                 ProjectUrl = package.ProjectUrl,
-                Owners = package.PackageRegistration.Owners.Where(u => u.EmailAllowed),
+                Owners = package.PackageRegistration.Owners.Where(u => u.EmailAllowed).Select(u => u.Username),
                 CopySender = true,
                 HasOwners = hasOwners
             };
@@ -2141,7 +2141,7 @@ namespace NuGetGallery
             }
         }
 
-        public virtual async Task<JsonResult> VerifySymbolsPackageInternal(
+        protected virtual async Task<JsonResult> VerifySymbolsPackageInternal(
             VerifyPackageRequest formData,
             Stream uploadFile,
             PackageArchiveReader packageArchiveReader,
@@ -2241,7 +2241,7 @@ namespace NuGetGallery
             }
         }
 
-        public virtual async Task<JsonResult> VerifyPackageInternal(
+        protected virtual async Task<JsonResult> VerifyPackageInternal(
             VerifyPackageRequest formData,
             Stream uploadFile,
             PackageArchiveReader packageArchiveReader,
