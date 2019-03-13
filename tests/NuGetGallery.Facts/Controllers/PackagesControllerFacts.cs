@@ -2161,7 +2161,7 @@ namespace NuGetGallery
 
                 // assert
                 Assert.Equal(2, model.Owners.Count());
-                Assert.Empty(model.Owners.Where(u => u.Username == notAllowedUser));
+                Assert.Empty(model.Owners.Where(u => u == notAllowedUser));
             }
 
             [Fact]
