@@ -222,6 +222,12 @@
             return false;
         }
 
+        // Elements with tabindex set to a value besides -1 are focusable.
+        var tabIndex = element.attr('tabindex');
+        if (!!tabIndex && tabIndex >= 0) {
+            return true;
+        }
+
         // See https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/Content_categories#Interactive_content
         var alwaysInteractiveElements = ['a', 'button', 'details', 'embed', 'iframe', 'keygen', 'label', 'select', 'textarea'];
         var i;
@@ -229,11 +235,6 @@
             if (element.is(alwaysInteractiveElements[i])) {
                 return true;
             }
-        }
-
-        var tabIndex = element.attr('tabindex');
-        if (!!tabIndex && tabIndex >= 0) {
-            return true;
         }
 
         return element.is("audio") && !!element.attr("controls") ||
