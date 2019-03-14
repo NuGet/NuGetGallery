@@ -9,12 +9,13 @@ using NuGet.Versioning;
 using NuGetGallery.Framework;
 using Xunit;
 using static NuGetGallery.DisplayPackageViewModel;
+using NuGetGallery.TestUtils;
 
 namespace NuGetGallery.ViewModels
 {
     public class DisplayPackageViewModelFacts
     {
-        private Random gen = new Random();
+        private SecureRandomNumberGenerator gen = new SecureRandomNumberGenerator();
 
         private DateTime RandomDay()
         {

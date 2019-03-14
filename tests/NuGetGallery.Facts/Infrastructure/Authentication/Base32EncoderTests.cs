@@ -6,12 +6,13 @@ using System.Linq;
 using System.Text;
 using NuGetGallery.Infrastructure.Authentication;
 using Xunit;
+using NuGetGallery.TestUtils;
 
 namespace NuGetGallery.Infrastructure
 {
     public class Base32EncoderTests
     {
-        private Random _random = new Random(0);
+        private SecureRandomNumberGenerator _random = new SecureRandomNumberGenerator();
 
         [Fact]
         public void WhenDataIsNullEncodeThrowsNullReferenceException()

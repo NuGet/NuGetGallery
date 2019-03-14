@@ -6,6 +6,7 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using Xunit;
+using NuGetGallery.TestUtils;
 
 namespace NuGetGallery.Helpers
 {
@@ -95,7 +96,7 @@ namespace NuGetGallery.Helpers
         {
             var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
             var stringBuilder = new StringBuilder();
-            var random = new Random();
+            var random = new SecureRandomNumberGenerator();
             for (int i = 0; i < length; i++)
             {
                 stringBuilder.Append(chars[random.Next(chars.Length)]);

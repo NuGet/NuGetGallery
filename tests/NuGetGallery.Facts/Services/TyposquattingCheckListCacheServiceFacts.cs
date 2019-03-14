@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Moq;
 using NuGet.Services.Entities;
 using Xunit;
+using NuGetGallery.TestUtils;
 
 namespace NuGetGallery
 {
@@ -29,7 +30,7 @@ namespace NuGetGallery
                 new PackageRegistration()
                 {
                     Id = _packageIds[i],
-                    DownloadCount = new Random().Next(0, 10000),
+                    DownloadCount = new SecureRandomNumberGenerator().Next(0, 10000),
                     IsVerified = true,
                     Owners = new List<User> { new User() { Username = string.Format("owner{0}", i + 1), Key = i + 1 } }
                 }).AsQueryable();
