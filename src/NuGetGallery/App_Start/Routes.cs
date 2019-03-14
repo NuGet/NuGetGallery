@@ -145,9 +145,9 @@ namespace NuGetGallery
                 new { controller = "Packages", action = "VerifyPackage" });
 
             routes.MapRoute(
-                 RouteName.PreviewReadMe,
-                 "packages/manage/preview-readme",
-                 new { controller = "Packages", action = "PreviewReadMe" });
+                RouteName.PreviewReadMe,
+                "packages/manage/preview-readme",
+                new { controller = "Packages", action = "PreviewReadMe" });
 
             routes.MapRoute(
                 RouteName.CancelUpload,

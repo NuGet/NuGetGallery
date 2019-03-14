@@ -12,7 +12,7 @@ namespace NuGetGallery
 {
     public class ManagePackageViewModel : ListPackageItemViewModel
     {
-        public ManagePackageViewModel(Package package, User currentUser, IReadOnlyList<ReportPackageReason> reasons, UrlHelper url, string readMe)
+        public ManagePackageViewModel(Package package, User currentUser, IReadOnlyList<ReportPackageReason> reasons, UrlHelper url, string readMe, bool isManageDeprecationEnabled)
             : base(package, currentUser)
         {
             IsCurrentUserAnAdmin = currentUser != null && currentUser.IsAdministrator;
@@ -32,31 +32,30 @@ namespace NuGetGallery
 
             IsLocked = package.PackageRegistration.IsLocked;
 
+            IsManageDeprecationEnabled = isManageDeprecationEnabled;
+
             var versionSelectPackages = package.PackageRegistration.Packages
                 .Where(p => p.PackageStatusKey == PackageStatus.Available || p.PackageStatusKey == PackageStatus.Validating)
                 .OrderByDescending(p => new NuGetVersion(p.Version))
                 .ToList();
 
-            var versionSelectListItems = new List<SelectListItem>();
+            VersionSelectList = new List<SelectListItem>();
             VersionListedStateDictionary = new Dictionary<string, VersionListedState>();
             VersionReadMeStateDictionary = new Dictionary<string, VersionReadMeState>();
+            VersionDeprecationStateDictionary = new Dictionary<string, VersionDeprecationState>();
+
             var submitUrlTemplate = url.PackageVersionActionTemplate("Edit");
             var getReadMeUrlTemplate = url.PackageVersionActionTemplate("GetReadMeMd");
-            string defaultSelectedVersion = null;
             foreach (var versionSelectPackage in versionSelectPackages)
             {
-                var text = NuGetVersionFormatter.ToFullString(versionSelectPackage.Version) + (versionSelectPackage.IsLatestSemVer2 ? " (Latest)" : string.Empty);
+                var text = PackageHelper.GetSelectListText(versionSelectPackage);
                 var value = NuGetVersionFormatter.Normalize(versionSelectPackage.Version);
-                versionSelectListItems.Add(new SelectListItem
+                VersionSelectList.Add(new SelectListItem
                 {
                     Text = text,
-                    Value = value
+                    Value = value,
+                    Selected = package == versionSelectPackage
                 });
-
-                if (versionSelectPackage == package)
-                {
-                    defaultSelectedVersion = value;
-                }
 
                 VersionListedStateDictionary.Add(
                     value, 
@@ -69,13 +68,11 @@ namespace NuGetGallery
                         submitUrlTemplate.Resolve(model),
                         getReadMeUrlTemplate.Resolve(model),
                         null));
-            }
 
-            VersionSelectList = new SelectList(
-                versionSelectListItems,
-                nameof(SelectListItem.Value),
-                nameof(SelectListItem.Text),
-                defaultSelectedVersion);
+                VersionDeprecationStateDictionary.Add(
+                    value,
+                    new VersionDeprecationState(versionSelectPackage, text));
+            }
 
             // Update edit model with the readme.md data.
             ReadMe = new EditPackageVersionReadMeRequest();
@@ -86,7 +83,7 @@ namespace NuGetGallery
             }
         }
 
-        public SelectList VersionSelectList { get; set; }
+        public List<SelectListItem> VersionSelectList { get; set; }
 
         public bool IsCurrentUserAnAdmin { get; }
 
@@ -100,6 +97,14 @@ namespace NuGetGallery
 
         public Dictionary<string, VersionReadMeState> VersionReadMeStateDictionary { get; set; }
 
+        public bool IsManageDeprecationEnabled { get; }
+        
+        public Dictionary<string, VersionDeprecationState> VersionDeprecationStateDictionary { get; set; }
+
+        /// <remarks>
+        /// The schema of this class is shared with the client-side Javascript to share information about package listing state.
+        /// The JS expects the exact naming of its properties. Do not change the naming without updating the JS.
+        /// </remarks>
         public class VersionListedState
         {
             public VersionListedState(Package package)
@@ -108,10 +113,14 @@ namespace NuGetGallery
                 DownloadCount = package.DownloadCount;
             }
 
-            public bool Listed { get; set; }
-            public int DownloadCount { get; set; }
+            public bool Listed { get; }
+            public int DownloadCount { get; }
         }
 
+        /// <remarks>
+        /// The schema of this class is shared with the client-side Javascript to share information about package ReadMe state.
+        /// The JS expects the exact naming of its properties. Do not change the naming without updating the JS.
+        /// </remarks>
         public class VersionReadMeState
         {
             public VersionReadMeState(string submitUrl, string getReadMeUrl, string readMe)
@@ -121,9 +130,89 @@ namespace NuGetGallery
                 ReadMe = readMe;
             }
 
-            public string SubmitUrl { get; set; }
-            public string GetReadMeUrl { get; set; }
-            public string ReadMe { get; set; }
+            public string SubmitUrl { get; }
+            public string GetReadMeUrl { get; }
+            public string ReadMe { get; }
+        }
+
+        /// <remarks>
+        /// The schema of this class is shared with the client-side Javascript to share information about package deprecation state.
+        /// The JS expects the exact naming of its properties. Do not change the naming without updating the JS.
+        /// </remarks>
+        public class VersionDeprecationState
+        {
+            public VersionDeprecationState(Package package, string text)
+            {
+                Text = text;
+
+                var deprecation = package.Deprecations.SingleOrDefault();
+                if (deprecation != null)
+                {
+                    IsVulnerable = deprecation.Status.HasFlag(PackageDeprecationStatus.Vulnerable);
+                    IsLegacy = deprecation.Status.HasFlag(PackageDeprecationStatus.Legacy);
+                    IsOther = deprecation.Status.HasFlag(PackageDeprecationStatus.Other);
+
+                    CveIds = deprecation.Cves?.Select(c => new VulnerabilityDetailState(c)).ToList();
+                    CvssRating = deprecation.CvssRating;
+                    CweIds = deprecation.Cwes?.Select(c => new VulnerabilityDetailState(c)).ToList();
+
+                    AlternatePackageId = deprecation.AlternatePackageRegistration?.Id;
+
+                    var alternatePackage = deprecation.AlternatePackage;
+                    if (alternatePackage != null)
+                    {
+                        // A deprecation should not have both an alternate package registration and an alternate package.
+                        // In case a deprecation does have both, we will hide the alternate package registration's ID in this model.
+                        AlternatePackageId = alternatePackage?.Id;
+                        AlternatePackageVersion = alternatePackage?.Version;
+                    }
+
+                    CustomMessage = deprecation.CustomMessage;
+                }
+            }
+
+            public string Text { get; }
+            public bool IsVulnerable { get; }
+            public bool IsLegacy { get; }
+            public bool IsOther { get; }
+            public IReadOnlyCollection<VulnerabilityDetailState> CveIds { get; }
+            public decimal? CvssRating { get; }
+            public IReadOnlyCollection<VulnerabilityDetailState> CweIds { get; }
+            public string AlternatePackageId { get; }
+            public string AlternatePackageVersion { get; }
+            public string CustomMessage { get; }
+
+            /// <remarks>
+            /// Ideally, the fields of this class would be pascal-case.
+            /// Unfortunately, however, the serializer that MVC uses interally (JavaScriptSerializer) does not support changing the serialized name of a property.
+            /// The JS on the client-side depends on the exact naming of these fields, and it would add unnecessary complexity to do the conversion on the client-side.
+            /// </remarks>
+            public class VulnerabilityDetailState
+            {
+                public VulnerabilityDetailState(Cve cve)
+                    : this(cve.CveId, cve.Description)
+                {
+                    cvss = cve.CvssRating;
+                }
+
+                public VulnerabilityDetailState(Cwe cwe)
+                    : this (cwe.CweId, cwe.Description)
+                {
+                    name = cwe.Name;
+                }
+
+                private VulnerabilityDetailState(string id, string description)
+                {
+                    this.id = id;
+                    this.description = description;
+                }
+
+                public string id { get; }
+                public string name { get; }
+                public string description { get; }
+                public decimal? cvss { get; }
+                public bool fromAutocomplete => true;
+            }
         }
     }
 }

@@ -30,8 +30,7 @@
             @ViewHelpers.AlertDanger(
                 @<text>
                     <span>
-                        Package '@Model.Id' has been locked. This means you cannot publish a new version or change the listing status of a published package version. Please contact
-                        <a href="mailto:support@nuget.org?subject=@HttpUtility.UrlPathEncode(string.Format("Requesting support for a locked package - '{0}'", Model.Id))">support@nuget.org</a>.
+                        You cannot update the documentation of a locked package.
                     </span>
                 </text>)
         </div>
@@ -50,18 +49,14 @@
                 @Html.AntiForgeryToken()
 
                 @Html.ValidationSummary(true)
-                <div class="row">
-                    <label for="input-select-readme" id="readme-version-label" class="col-xs-12">
-                        <span>Select version</span>
-                        @Html.DropDownList("version-selection", Model.VersionSelectList,
-                            new
-                            {
-                                @class = "form-control selectpicker show-tick show-menu-arrow btn-block",
-                                @title = "Select a version",
-                                @id = "input-select-readme"
-                            })
-                    </label>
-                </div>
+                <label for="input-select-readme" id="readme-version-label">Select version</label>
+                @Html.DropDownList("version-selection", Model.VersionSelectList,
+                    new
+                    {
+                        @class = "form-control",
+                        @title = "Select a version",
+                        @id = "input-select-readme"
+                    })
             </form>
             <div id="validation-failure-container">
             </div>

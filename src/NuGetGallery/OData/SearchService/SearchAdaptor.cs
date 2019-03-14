@@ -12,7 +12,7 @@ using System.Web.Http.OData.Query;
 using System.Web.Routing;
 using NuGet.Services.Entities;
 using NuGet.Services.Search.Models;
-using NuGetGallery.Infrastructure.Lucene;
+using NuGetGallery.Infrastructure.Search;
 using NuGetGallery.OData.QueryFilter;
 using NuGetGallery.OData.QueryInterceptors;
 using QueryInterceptor;
@@ -55,19 +55,17 @@ namespace NuGetGallery.OData
             return searchFilter;
         }
 
-        private static async Task<IQueryable<Package>> GetResultsFromSearchService(ISearchService searchService, SearchFilter searchFilter)
+        private static async Task<SearchResults> GetResultsFromSearchService(ISearchService searchService, SearchFilter searchFilter)
         {
-            var result = await searchService.Search(searchFilter);
-            return FormatResults(searchFilter, result);
+            return await searchService.Search(searchFilter);
         }
 
-        private static async Task<IQueryable<Package>> GetRawResultsFromSearchService(ISearchService searchService, SearchFilter searchFilter)
+        private static async Task<SearchResults> GetRawResultsFromSearchService(ISearchService searchService, SearchFilter searchFilter)
         {
             var externalSearchService = searchService as ExternalSearchService;
             if (externalSearchService != null)
             {
-                var result = await externalSearchService.RawSearch(searchFilter);
-                return FormatResults(searchFilter, result);
+                return await externalSearchService.RawSearch(searchFilter);
             }
 
             return await GetResultsFromSearchService(searchService, searchFilter);
@@ -122,7 +120,10 @@ namespace NuGetGallery.OData
 
                 var results = await GetRawResultsFromSearchService(searchService, searchFilter);
 
-                return new SearchAdaptorResult(true, results);
+                if (SearchResults.IsSuccessful(results))
+                {
+                    return new SearchAdaptorResult(true, FormatResults(searchFilter, results));
+                }
             }
 
             return new SearchAdaptorResult(false, packages);
@@ -150,7 +151,10 @@ namespace NuGetGallery.OData
 
                 var results = await GetResultsFromSearchService(searchService, searchFilter);
 
-                return new SearchAdaptorResult(true, results);
+                if (SearchResults.IsSuccessful(results))
+                {
+                    return new SearchAdaptorResult(true, FormatResults(searchFilter, results));
+                }
             }
 
             if (!includePrerelease)

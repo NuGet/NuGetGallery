@@ -1,13 +1,93 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
+using System.Net;
+using System.Net.Http;
 using Newtonsoft.Json.Linq;
+using System.Text;
+using NuGetGallery.Configuration;
+using NuGetGallery.Diagnostics;
+using NuGet.Services.Search.Client;
+using Microsoft.Extensions.Logging;
+using Moq;
 using Xunit;
 
-namespace NuGetGallery.Infrastructure.Lucene
+namespace NuGetGallery.Infrastructure.Search
 {
     public class ExternalSearchServiceFacts
     {
+        public class TheGetClientMethod
+        {
+            private IAppConfiguration GetConfiguration()
+            {
+                var mockConfiguration = new Mock<IAppConfiguration>();
+                mockConfiguration.SetupGet(c => c.ServiceDiscoveryUri).Returns(new Uri("https://api.nuget.org/v3/index.json"));
+                mockConfiguration.SetupGet(c => c.SearchServiceResourceType).Returns("SearchGalleryQueryService/3.0.0-rc");
+                return mockConfiguration.Object;
+            }
+
+            private IDiagnosticsService GetDiagnosticsService()
+            {
+                var mockConfiguration = new Mock<IDiagnosticsService>();
+                mockConfiguration.Setup(ds => ds.GetSource(It.IsAny<string>()))
+                    .Returns(Mock.Of<IDiagnosticsSource>());
+                return mockConfiguration.Object;
+            }
+
+            private ILogger<ResilientSearchHttpClient> GetLogger()
+            {
+                var mockConfiguration = new Mock<ILogger<ResilientSearchHttpClient>>();
+                return mockConfiguration.Object;
+            }
+
+            private IFeatureFlagService GetFeatureFlagService(bool circuitBreakerIsEnabled)
+            {
+                var mockTelemetryService = new Mock<IFeatureFlagService>();
+                mockTelemetryService.Setup(c => c.IsSearchCircuitBreakerEnabled()).Returns(circuitBreakerIsEnabled);
+                return mockTelemetryService.Object;
+            }
+
+            private IResilientSearchClient GetResilientSearchClient(string path, string queryString)
+            {
+                var content = new JObject(
+                           new JProperty("queryString", queryString),
+                           new JProperty("path", path));
+
+                var responseMessage = new HttpResponseMessage()
+                {
+                    Content = new StringContent(content.ToString(), Encoding.UTF8, CoreConstants.TextContentType),
+                    RequestMessage = new HttpRequestMessage(HttpMethod.Get, $"{path}/{queryString}"),
+                    StatusCode = HttpStatusCode.OK
+                };
+
+                var mockIResilientSearchClient = new Mock<IResilientSearchClient>();
+                mockIResilientSearchClient.Setup(s => s.GetAsync(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(responseMessage);
+
+                return mockIResilientSearchClient.Object;
+            }
+
+            private ISearchClient GetSearchClient(string path, string queryString)
+            {
+                return new GallerySearchClient(GetResilientSearchClient(path, queryString));
+            }
+
+            [Theory]
+            [InlineData(true, "NuGetGallery.Infrastructure.Search.GallerySearchClient")]
+            [InlineData(false, "NuGet.Services.Search.Client.SearchClient")]
+            public void ReturnsTheExpectedClient(bool circuitBreakerIsEnabled, string expected)
+            {
+                // Arrange
+                var service = new ExternalSearchService(GetConfiguration(), GetDiagnosticsService(), GetSearchClient(string.Empty, string.Empty), GetFeatureFlagService(circuitBreakerIsEnabled));
+
+                // Act
+                var client = service.GetClient();
+                var clientType = client.GetType();
+
+                Assert.Equal(expected, clientType.FullName);
+            }
+        }
+
         public class TheReadPackageMethod
         {
             [Fact]

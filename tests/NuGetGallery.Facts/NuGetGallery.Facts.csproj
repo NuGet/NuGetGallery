@@ -77,6 +77,7 @@
     <Compile Include="Authentication\AuthenticationServiceFacts.cs" />
     <Compile Include="Authentication\Providers\CommonAuth\AzureActiveDirectoryV2AuthenticatorFacts.cs" />
     <Compile Include="Authentication\TestCredentialHelper.cs" />
+    <Compile Include="AutocompleteServiceQueryFacts.cs" />
     <Compile Include="Controllers\ManageDeprecationJsonApiControllerFacts.cs" />
     <Compile Include="Queries\CweQueryStringValidatorFacts.cs" />
     <Compile Include="Queries\CweIdHelperFacts.cs" />
@@ -85,9 +86,13 @@
     <Compile Include="Controllers\AccountsControllerFacts.cs" />
     <Compile Include="Controllers\OrganizationsControllerFacts.cs" />
     <Compile Include="Controllers\SupportControllerFacts.cs" />
+    <Compile Include="Infrastructure\Lucene\SearchPolicyFacts.cs" />
+    <Compile Include="Infrastructure\Lucene\ResilientSearchServiceFacts.cs" />
+    <Compile Include="Infrastructure\Lucene\GallerySearchServiceFacts.cs" />
     <Compile Include="Helpers\StreamHelperFacts.cs" />
     <Compile Include="Queries\AutocompleteCweIdsQueryFacts.cs" />
     <Compile Include="TestUtils\SecureRandomNumberGenerator.cs" />
+    <Compile Include="Services\PackageDeprecationServiceFacts.cs" />
     <Compile Include="UsernameValidationRegex.cs" />
     <Compile Include="Extensions\NumberExtensionsFacts.cs" />
     <Compile Include="Extensions\RouteExtensionsFacts.cs" />

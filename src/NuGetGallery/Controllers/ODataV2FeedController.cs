@@ -13,7 +13,7 @@ using NuGet.Frameworks;
 using NuGet.Services.Entities;
 using NuGet.Versioning;
 using NuGetGallery.Configuration;
-using NuGetGallery.Infrastructure.Lucene;
+using NuGetGallery.Infrastructure.Search;
 using NuGetGallery.OData;
 using NuGetGallery.OData.QueryFilter;
 using NuGetGallery.OData.QueryInterceptors;

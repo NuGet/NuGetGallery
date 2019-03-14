@@ -1,20 +1,28 @@
 $(function () {
     'use strict';
 
-    function configureCopyButton(id) {
-        var copyButton = $('#' + id + '-button');
-        copyButton.popover({ trigger: 'manual' });
-
-        copyButton.click(function () {
-            var text = $('#' + id + '-text').text().trim();
-            window.nuget.copyTextToClipboard(text, copyButton);
-            copyButton.popover('show');
-            setTimeout(function () {
-                copyButton.popover('destroy');
-            }, 1000);
+    // Configure the deprecation information container
+    var container = $('#show-deprecation-content-container');
+    if ($('#deprecation-content-container').children().length) {
+        // If the deprecation information container has content, configure it as an expander.
+        window.nuget.configureExpander("deprecation-content-container", "ChevronDown", null, "ChevronUp");
+        container.keydown(function (event) {
+            if (event.which === 13) { // Enter
+                $(event.target).click();
+            }
         });
-    }    
-    
+    }
+    else {
+        // If the container does not have content, remove its expander attributes
+        var expanderAttributes = ['data-toggle', 'data-target', 'aria-expanded', 'aria-controls', 'tabindex'];
+        for (var i in expanderAttributes) {
+            container.removeAttr(expanderAttributes[i]);
+        }
+
+        $('#deprecation-expander-icon-right').hide();
+    }
+
+    // Configure ReadMe container
     var readmeContainer = $("#readme-container");
     if (readmeContainer[0])
     {
@@ -41,6 +49,7 @@ $(function () {
         });
     }
 
+    // Configure expanders
     window.nuget.configureExpanderHeading("dependency-groups");
     window.nuget.configureExpanderHeading("version-history");
     window.nuget.configureExpander(
@@ -49,6 +58,21 @@ $(function () {
         "Show less",
         "CalculatorSubtract",
         "Show more"); 
+
+    // Configure package manager copy buttons
+    function configureCopyButton(id) {
+        var copyButton = $('#' + id + '-button');
+        copyButton.popover({ trigger: 'manual' });
+
+        copyButton.click(function () {
+            var text = $('#' + id + '-text').text().trim();
+            window.nuget.copyTextToClipboard(text, copyButton);
+            copyButton.popover('show');
+            setTimeout(function () {
+                copyButton.popover('destroy');
+            }, 1000);
+        });
+    }  
 
     for (var i in packageManagers)
     {

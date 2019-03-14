@@ -222,6 +222,12 @@
             return false;
         }
 
+        // Elements with tabindex set to a value besides -1 are focusable.
+        var tabIndex = element.attr('tabindex');
+        if (!!tabIndex && tabIndex >= 0) {
+            return true;
+        }
+
         // See https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/Content_categories#Interactive_content
         var alwaysInteractiveElements = ['a', 'button', 'details', 'embed', 'iframe', 'keygen', 'label', 'select', 'textarea'];
         var i;
@@ -351,6 +357,49 @@
         }
 
         return stringToFormat;
+    };
+
+    nuget.isAncestor = function (element, ancestorSelector) {
+        var $target = $(element);
+        // '.closest' returns the list of ancestors between this element and the selector.
+        // If the selector is not an ancestor of the element, it returns an empty list.
+        return !!$target.closest(ancestorSelector).length;
+    };
+
+    nuget.configureDropdown = function (dropdownSelector, dropdownHeaderSelector, setDropdownOpen, openWhenFocused) {
+        var isElementInsideDropdown = function (element) {
+            return window.nuget.isAncestor(element, dropdownSelector);
+        };
+
+        // If the user clicks outside the dropdown, close it
+        $(document).click(function (event) {
+            if (!isElementInsideDropdown(event.target)) {
+                setDropdownOpen(false);
+            }
+        });
+
+        $(document).focusin(function (event) {
+            var isInsideDropdown = isElementInsideDropdown(event.target);
+            if (isInsideDropdown && openWhenFocused) {
+                // If an element inside the dropdown gains focus, open the dropdown if configured to
+                setDropdownOpen(true);
+            } else if (!isInsideDropdown) {
+                // If an element outside of the dropdown gains focus, close it
+                setDropdownOpen(false);
+            }
+        });
+
+        $(document).keydown(function (event) {
+            var target = event.target;
+            if (isElementInsideDropdown(target)) {
+                // If we press escape while focus is inside the dropdown, close it
+                if (event.which === 27) { // Escape key
+                    setDropdownOpen(false);
+                    event.preventDefault();
+                    $(dropdownHeaderSelector).focus();
+                }
+            }
+        });
     };
 
     window.nuget = nuget;

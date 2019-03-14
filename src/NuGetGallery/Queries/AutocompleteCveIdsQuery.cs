@@ -20,11 +20,11 @@ namespace NuGetGallery
             RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.Singleline,
             RegexTimeout);
 
-        private readonly IEntitiesContext _entitiesContext;
+        private readonly IEntityRepository<Cve> _cveRepository;
 
-        public AutocompleteCveIdsQuery(IEntitiesContext entitiesContext)
+        public AutocompleteCveIdsQuery(IEntityRepository<Cve> cveRepository)
         {
-            _entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
+            _cveRepository = cveRepository ?? throw new ArgumentNullException(nameof(cveRepository));
         }
 
         public AutocompleteCveIdQueryResults Execute(string partialId)
@@ -36,7 +36,7 @@ namespace NuGetGallery
 
             // Query the database.
             // Only include listed CVE entities.
-            var queryResults = _entitiesContext.Cves
+            var queryResults = _cveRepository.GetAll()
                 .Where(e => e.CveId.StartsWith(validatedPartialId) && e.Listed)
                 .OrderBy(e => e.CveId)
                 .Take(MaxResults)

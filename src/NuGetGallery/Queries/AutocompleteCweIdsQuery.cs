@@ -14,11 +14,11 @@ namespace NuGetGallery
         // Search results should be limited anywhere between 5 - 10 results.
         private const int MaxResults = 5;
 
-        private readonly IEntitiesContext _entitiesContext;
+        private readonly IEntityRepository<Cwe> _cweRepository;
 
-        public AutocompleteCweIdsQuery(IEntitiesContext entitiesContext)
+        public AutocompleteCweIdsQuery(IEntityRepository<Cwe> cweRepository)
         {
-            _entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
+            _cweRepository = cweRepository ?? throw new ArgumentNullException(nameof(cweRepository));
         }
 
         public AutocompleteCweIdQueryResults Execute(string queryString)
@@ -35,7 +35,7 @@ namespace NuGetGallery
             switch (queryMethod)
             {
                 case CweQueryMethod.ByCweId:
-                    queryResults = _entitiesContext.Cwes
+                    queryResults = _cweRepository.GetAll()
                         .Where(e => e.CweId.StartsWith(validatedQueryString) && e.Listed)
                         .OrderBy(e => e.CweId)
                         .Take(MaxResults)
@@ -43,7 +43,7 @@ namespace NuGetGallery
                     break;
 
                 case CweQueryMethod.ByName:
-                    queryResults = _entitiesContext.Cwes
+                    queryResults = _cweRepository.GetAll()
                         .Where(e => e.Name.Contains(validatedQueryString) && e.Listed)
                         .OrderBy(e => e.CweId)
                         .Take(MaxResults)

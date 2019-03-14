@@ -382,8 +382,7 @@ namespace NuGetGallery
 
             modelBuilder.Entity<Cve>()
                 .Property(e => e.Description)
-                .HasMaxLength(300)
-                .IsRequired();
+                .HasMaxLength(300);
 
             modelBuilder.Entity<Cve>()
                 .Property(v => v.CvssRating)

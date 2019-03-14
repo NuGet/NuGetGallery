@@ -12,7 +12,7 @@ using NuGet.Services.Search.Models;
 
 namespace NuGet.Services.Search.Client
 {
-    public class SearchClient
+    public class SearchClient : ISearchClient
     {
         private readonly RetryingHttpClientWrapper _retryingHttpClientWrapper;
         private readonly ServiceDiscoveryClient _discoveryClient;

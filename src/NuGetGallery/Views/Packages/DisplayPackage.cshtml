@@ -255,6 +255,11 @@
                 )
             }
 
+            @if (Model.DeprecationStatus != PackageDeprecationStatus.NotDeprecated)
+            {
+                @Html.Partial("_DisplayPackageDeprecation")
+            }
+
             @if (Model.Prerelease)
             {
                 @ViewHelpers.AlertInfo(
@@ -499,13 +504,14 @@
                 <table class="table borderless">
                     <thead>
                         <tr>
-                            <th colspan="2">Version</th>
+                            <th>Version</th>
                             <th>Downloads</th>
                             <th>Last updated</th>
                             @if (Model.CanDisplayPrivateMetadata)
                             {
                                 <th>Status</th>
                             }
+                            <th colspan="2"></th>
                         </tr>
                     </thead>
                     <tbody class="no-border">
@@ -524,12 +530,6 @@
                                 rowCount++;
                                 @VersionListDivider(rowCount, versionsExpanded)
                                 <tr class="@(packageVersion.IsCurrent(Model) ? "bg-info" : null)">
-                                    <td class="signature-info-cell">
-                                        @if (Model.IsCertificatesUIEnabled && !string.IsNullOrEmpty(packageVersion.SignatureInformation))
-                                        {
-                                            <i class="ms-Icon ms-Icon--Ribbon signature-info" title="@packageVersion.SignatureInformation"></i>
-                                        }
-                                    </td>
                                     <td>
                                         <a href="@Url.Package(packageVersion)" title="@packageVersion.FullVersion">
                                             @packageVersion.Version.Abbreviate(30)
@@ -551,20 +551,55 @@
                                     {
                                         var packageStatusSummary = packageVersion.PackageStatusSummary;
 
-                                        if (packageStatusSummary == PackageStatusSummary.Listed ||
-                                            packageStatusSummary == PackageStatusSummary.Unlisted)
-                                        {
-                                            <td>
+                                        <td>
+                                            @if (packageStatusSummary == PackageStatusSummary.Listed ||
+                                                 packageStatusSummary == PackageStatusSummary.Unlisted)
+                                            {
                                                 <a href="@Url.ManagePackage(packageVersion)">@NuGetGallery.Helpers.EnumHelper.GetDescription(packageStatusSummary)</a>
-                                            </td>
-                                        }
-                                        else
-                                        {
-                                            <td>
+                                            }
+                                            else
+                                            {
                                                 @NuGetGallery.Helpers.EnumHelper.GetDescription(packageStatusSummary)
-                                            </td>
-                                        }
+                                            }
+                                        </td>
                                     }
+
+                                    <td class="package-icon-cell">
+                                        @if (Model.IsCertificatesUIEnabled && !string.IsNullOrEmpty(packageVersion.SignatureInformation))
+                                        {
+                                            <i class="ms-Icon ms-Icon--Ribbon package-icon" title="@packageVersion.SignatureInformation"></i>
+                                        }
+                                    </td>
+
+                                    <td class="package-icon-cell">
+                                        @if (packageVersion.DeprecationStatus != PackageDeprecationStatus.NotDeprecated)
+                                        {
+                                            var deprecationTitle = packageVersion.Version;
+                                            var isVulnerable = packageVersion.DeprecationStatus.HasFlag(PackageDeprecationStatus.Vulnerable);
+                                            var isLegacy = packageVersion.DeprecationStatus.HasFlag(PackageDeprecationStatus.Legacy);
+                                            if (isVulnerable)
+                                            {
+                                                deprecationTitle += " is deprecated because it has vulnerabilities";
+
+                                                if (isLegacy)
+                                                {
+                                                    deprecationTitle += " and is legacy and is no longer maintained";
+                                                }
+
+                                                deprecationTitle += ".";
+                                            }
+                                            else if (isLegacy)
+                                            {
+                                                deprecationTitle += " is deprecated because it is legacy and is no longer maintained.";
+                                            }
+                                            else
+                                            {
+                                                deprecationTitle += " is deprecated.";
+                                            }
+
+                                            <i class="ms-Icon ms-Icon--Warning package-icon" title="@deprecationTitle"></i>
+                                        }
+                                    </td>
                                 </tr>
                             }
                             else if (packageVersion.Deleted && packageVersion.CanDisplayPrivateMetadata)
@@ -572,8 +607,8 @@
                                 rowCount++;
                                 @VersionListDivider(rowCount, versionsExpanded)
                                 <tr class="deleted">
-                                    <td class="version" colspan="2">
-                                        @packageVersion.Version (deleted)
+                                    <td class="version">
+                                        @packageVersion.Version
                                     </td>
                                     <td>
                                         @packageVersion.DownloadCount
@@ -581,7 +616,10 @@
                                     <td>
                                         <span data-datetime="@packageVersion.LastUpdated.ToString("O")">@packageVersion.LastUpdated.ToNuGetShortDateString()</span>
                                     </td>
-                                    <td></td>
+                                    <td>
+                                        Deleted
+                                    </td>
+                                    <td colspan="2"></td>
                                 </tr>
                             }
                         }

@@ -4,6 +4,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Security.Principal;
 using System.Web;
 using Newtonsoft.Json;
@@ -69,6 +71,10 @@ namespace NuGetGallery
             public const string LicenseFileRejected = "LicenseFileRejected";
             public const string LicenseValidationFailed = "LicenseValidationFailed";
             public const string FeatureFlagStalenessSeconds = "FeatureFlagStalenessSeconds";
+            public const string SearchExecutionDuration = "SearchExecutionDuration";
+            public const string SearchCircuitBreakerOnBreak = "SearchCircuitBreakerOnBreak";
+            public const string SearchCircuitBreakerOnReset = "SearchCircuitBreakerOnReset";
+            public const string SearchOnRetry = "SearchOnRetry";
         }
 
         private IDiagnosticsSource _diagnosticsSource;
@@ -160,6 +166,15 @@ namespace NuGetGallery
 
         // License related properties
         public const string LicenseExpression = "LicenseExpression";
+
+        // Search related properties
+        public const string SearchUrl = "SearchUrl";
+        public const string SearchHttpResponseCode = "SearchHttpResponseCode";
+        public const string SearchSuccessExecutionStatus = "SearchSuccessExecutionStatus";
+        public const string SearchException = "SearchException";
+        public const string SearchName = "SearchName";
+        public const string SearchPollyCorrelationId = "SearchPollyCorrelationId";
+        public const string SearchCircuitBreakerStatus = "SearchCircuitBreakerStatus";
 
         public TelemetryService(IDiagnosticsService diagnosticsService, ITelemetryClient telemetryClient = null)
         {
@@ -782,6 +797,44 @@ namespace NuGetGallery
         public void TrackFeatureFlagStaleness(TimeSpan staleness)
             => TrackMetric(Events.FeatureFlagStalenessSeconds, staleness.TotalSeconds, p => { });
 
+        public void TrackMetricForSearchExecutionDuration(string url, TimeSpan duration, bool executionSuccessStatus)
+        {
+            TrackMetric(Events.SearchExecutionDuration, duration.TotalMilliseconds, properties => {
+                properties.Add(SearchUrl, url);
+                properties.Add(SearchSuccessExecutionStatus, executionSuccessStatus.ToString());
+            });
+        }
+
+        public void TrackMetricForSearchCircuitBreakerOnBreak(string searchName, Exception exception, HttpResponseMessage responseMessage, string correlationId, string uri)
+        {
+            TrackMetric(Events.SearchCircuitBreakerOnBreak, 1, properties => {
+                properties.Add(SearchName, searchName);
+                properties.Add(SearchException, exception?.ToString() ?? string.Empty);
+                properties.Add(SearchHttpResponseCode, responseMessage?.StatusCode.ToString() ?? string.Empty);
+                properties.Add(SearchPollyCorrelationId, correlationId);
+                properties.Add(SearchUrl, uri);
+            });
+        }
+
+        public void TrackMetricForSearchCircuitBreakerOnReset(string searchName, string correlationId, string uri)
+        {
+            TrackMetric(Events.SearchCircuitBreakerOnReset, 1, properties => {
+                properties.Add(SearchName, searchName);
+                properties.Add(SearchPollyCorrelationId, correlationId);
+                properties.Add(SearchUrl, uri);
+            });
+        }
+
+        public void TrackMetricForSearchOnRetry(string searchName, Exception exception, string correlationId, string uri, string circuitBreakerStatus)
+        {
+            TrackMetric(Events.SearchOnRetry, 1, properties => {
+                properties.Add(SearchName, searchName);
+                properties.Add(SearchException, exception?.ToString() ?? string.Empty);
+                properties.Add(SearchPollyCorrelationId, correlationId);
+                properties.Add(SearchUrl, uri);
+                properties.Add(SearchCircuitBreakerStatus, circuitBreakerStatus);
+            });
+        }
         /// <summary>
         /// We use <see cref="ITelemetryClient.TrackMetric(string, double, IDictionary{string, string})"/> instead of
         /// <see cref="ITelemetryClient.TrackEvent(string, IDictionary{string, string}, IDictionary{string, double})"/>

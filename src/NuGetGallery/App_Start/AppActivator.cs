@@ -156,6 +156,10 @@ namespace NuGetGallery
                 .Include("~/Scripts/gallery/stats-dimensions.js");
             BundleTable.Bundles.Add(d3ScriptBundle);
 
+            var multiSelectDropdownBundle = new ScriptBundle("~/Scripts/gallery/common-multi-select-dropdown.min.js")
+                .Include("~/Scripts/gallery/common-multi-select-dropdown.js");
+            BundleTable.Bundles.Add(multiSelectDropdownBundle);
+
             var homeScriptBundle = new ScriptBundle("~/Scripts/gallery/page-home.min.js")
                 .Include("~/Scripts/gallery/page-home.js");
             BundleTable.Bundles.Add(homeScriptBundle);
@@ -176,6 +180,10 @@ namespace NuGetGallery
             var manageOwnersScriptBundle = new ScriptBundle("~/Scripts/gallery/page-manage-owners.min.js")
                 .Include("~/Scripts/gallery/page-manage-owners.js");
             BundleTable.Bundles.Add(manageOwnersScriptBundle);
+
+            var manageDeprecationScriptBundle = new ScriptBundle("~/Scripts/gallery/page-manage-deprecation.min.js")
+                .Include("~/Scripts/gallery/page-manage-deprecation.js");
+            BundleTable.Bundles.Add(manageDeprecationScriptBundle);
 
             var deletePackageScriptBundle = new ScriptBundle("~/Scripts/gallery/page-delete-package.min.js")
                 .Include("~/Scripts/gallery/page-delete-package.js");

@@ -15,14 +15,17 @@ using NuGet.Services.Search.Client.Correlation;
 using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
 
-namespace NuGetGallery.Infrastructure.Lucene
+namespace NuGetGallery.Infrastructure.Search
 {
     public class ExternalSearchService : ISearchService, IIndexingService, IRawSearchService
     {
         public static readonly string SearchRoundtripTimePerfCounter = "SearchRoundtripTime";
 
         private static IEndpointHealthIndicatorStore _healthIndicatorStore;
-        private static SearchClient _client;
+        // Search client that will be deprecated. It is still needed to allow the feature flag until the new search implementation is enabled.
+        private static ISearchClient _deprecatedSearchClient;
+        private readonly ISearchClient _searchClient;
+        private readonly IFeatureFlagService _featureFlagService;
 
         private JObject _diagCache;
 
@@ -50,9 +53,9 @@ namespace NuGetGallery.Infrastructure.Lucene
                 _healthIndicatorStore = new BaseUrlHealthIndicatorStore(new NullHealthIndicatorLogger());
             }
 
-            if (_client == null)
+            if (_deprecatedSearchClient == null)
             {
-                _client = new SearchClient(
+                _deprecatedSearchClient = new SearchClient(
                     ServiceUri, 
                     "SearchGalleryQueryService/3.0.0-rc", 
                     null, 
@@ -63,9 +66,11 @@ namespace NuGetGallery.Infrastructure.Lucene
             }
         }
 
-        public ExternalSearchService(IAppConfiguration config, IDiagnosticsService diagnostics)
+        public ExternalSearchService(IAppConfiguration config, IDiagnosticsService diagnostics, ISearchClient searchClient, IFeatureFlagService featureFlagService)
         {
             ServiceUri = config.ServiceDiscoveryUri;
+            _searchClient = searchClient ?? throw new ArgumentNullException(nameof(searchClient));
+            _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
 
             Trace = diagnostics.SafeGetSource("ExternalSearchService");
 
@@ -95,23 +100,17 @@ namespace NuGetGallery.Infrastructure.Lucene
                 _healthIndicatorStore = new BaseUrlHealthIndicatorStore(new AppInsightsHealthIndicatorLogger());
             }
 
-            if (_client == null)
+            if (_deprecatedSearchClient == null)
             {
-                _client = new SearchClient(
+                _deprecatedSearchClient = new SearchClient(
                     ServiceUri, 
-                    config.SearchServiceResourceType, 
+                    config.SearchServiceResourceType,
                     credentials, 
                     _healthIndicatorStore,
                     QuietLog.LogHandledException,
                     new TracingHttpHandler(Trace), 
                     new CorrelatingHttpClientHandler());
             }
-        }
-
-        private static readonly Task<bool> _exists = Task.FromResult(true);
-        public Task<bool> Exists()
-        {
-            return _exists;
         }
 
         public virtual Task<SearchResults> RawSearch(SearchFilter filter)
@@ -129,7 +128,7 @@ namespace NuGetGallery.Infrastructure.Lucene
             // Query!
             var sw = new Stopwatch();
             sw.Start();
-            var result = await _client.Search(
+            var result = await GetClient().Search(
                 filter.SearchTerm,
                 projectTypeFilter: null,
                 includePrerelease: filter.IncludePrerelease,
@@ -171,7 +170,7 @@ namespace NuGetGallery.Infrastructure.Lucene
                     result.HttpResponse.Content.Dispose();
                 }
 
-                results = new SearchResults(0, null, Enumerable.Empty<Package>().AsQueryable());
+                results = new SearchResults(0, null, Enumerable.Empty<Package>().AsQueryable(), responseMessage: result.HttpResponse);
             }
 
             Trace.PerfEvent(
@@ -238,7 +237,7 @@ namespace NuGetGallery.Infrastructure.Lucene
         {
             if (_diagCache == null)
             {
-                var resp = await _client.GetDiagnostics();
+                var resp = await GetClient().GetDiagnostics();
                 if (!resp.IsSuccessStatusCode)
                 {
                     Trace.Error("HTTP Error when retrieving diagnostics: " + ((int)resp.StatusCode).ToString());
@@ -327,6 +326,15 @@ namespace NuGetGallery.Infrastructure.Lucene
                 HideLicenseReport = doc.Value<bool>("HideLicenseReport"),
                 Listed = doc.Value<bool>("Listed")
             };
+        }
+
+        /// <summary>
+        /// It will return the client to use based on the feature flag.
+        /// </summary>
+        /// <returns>The search client in use. Used for the unit tests.</returns>
+        internal ISearchClient GetClient()
+        {
+            return _featureFlagService.IsSearchCircuitBreakerEnabled() ? _searchClient : _deprecatedSearchClient;
         }
 
         // Bunch of no-ops to disable indexing because an external search service is doing that.
