@@ -173,6 +173,18 @@ Function Invoke-BuildStep {
     }
 }
 
+Function Sign-Packages {
+    [CmdletBinding()]
+    param(
+        [string]$Configuration = $DefaultConfiguration,
+        [int]$BuildNumber = (Get-BuildNumber),
+        [string]$MSBuildVersion = $DefaultMSBuildVersion
+    )
+
+    $ProjectPath = Join-Path $PSScriptRoot "sign.proj"
+    Build-Solution $Configuration $BuildNumber -MSBuildVersion "$MSBuildVersion" $ProjectPath
+}
+
 Function Build-Solution {
     [CmdletBinding()]
     param(
