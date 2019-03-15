@@ -138,6 +138,7 @@
     <Build Include="Programmability\Stored Procedures\dbo.CheckLogFileHasToolStatistics.sql" />
     <Build Include="Programmability\Stored Procedures\dbo.DownloadReportRecentCommunityPopularity.sql" />
     <Build Include="Programmability\Stored Procedures\dbo.DownloadReportRecentCommunityPopularityDetail.sql" />
+    <Build Include="Views\dbo.View_Fixed_Week_Dimension_Date.sql" />
   </ItemGroup>
   <ItemGroup>
     <None Include="StaticCodeAnalysis.SuppressMessages.xml" />
