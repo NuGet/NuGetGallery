@@ -127,6 +127,11 @@ Invoke-BuildStep 'Creating artifacts' { `
     } `
     -ev +BuildErrors
 
+Invoke-BuildStep 'Signing the packages' {
+        Sign-Packages -Configuration $Configuration -BuildNumber $BuildNumber -MSBuildVersion "15" `
+    } `
+    -ev +BuildErrors
+
 Trace-Log ('-' * 60)
 
 ## Calculating Build time
