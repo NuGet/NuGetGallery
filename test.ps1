@@ -26,7 +26,8 @@ Function Run-Tests {
     
     $TestAssemblies = "tests\NuGetGallery.Core.Facts\bin\$Configuration\NuGetGallery.Core.Facts.dll", `
         "tests\NuGetGallery.Facts\bin\$Configuration\NuGetGallery.Facts.dll", `
-        "tests\NuGet.Services.Entities.Tests\bin\$Configuration\NuGet.Services.Entities.Tests.dll"
+        "tests\NuGet.Services.Entities.Tests\bin\$Configuration\NuGet.Services.Entities.Tests.dll", `
+        "tests\VerifyMicrosoftPackage.Facts\bin\$Configuration\NuGet.VerifyMicrosoftPackage.Facts.dll"
     
     $TestCount = 0
     

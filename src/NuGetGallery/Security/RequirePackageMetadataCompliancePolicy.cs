@@ -39,7 +39,7 @@ namespace NuGetGallery.Security
 
             // This particular package policy assumes the existence of a particular user.
             // Succeed silently (effectively ignoring this policy when enabled) when that user does not exist.
-            var state = GetState(context);
+            var state = RequirePackageMetadataComplianceUtility.DeserializeState(context.Policies);
             var requiredCoOwner = context.UserService.FindByUsername(state.RequiredCoOwnerUsername);
             if (requiredCoOwner == null)
             {
@@ -48,7 +48,7 @@ namespace NuGetGallery.Security
             }
 
             // Evaluate package metadata validations
-            if (!IsPackageMetadataCompliant(context.Package, state, out var complianceFailures))
+            if (!RequirePackageMetadataComplianceUtility.IsPackageMetadataCompliant(context.Package, state, out var complianceFailures))
             {
                 context.TelemetryService.TrackPackageMetadataComplianceError(
                     context.Package.Id,
@@ -100,7 +100,7 @@ namespace NuGetGallery.Security
             bool isProjectUrlRequired,
             string errorMessageFormat)
         {
-            var value = JsonConvert.SerializeObject(new State()
+            var value = JsonConvert.SerializeObject(new RequirePackageMetadataState
             {
                 RequiredCoOwnerUsername = requiredCoOwnerUsername,
                 AllowedCopyrightNotices = allowedCopyrightNotices,
@@ -111,110 +111,6 @@ namespace NuGetGallery.Security
             });
 
             return new UserSecurityPolicy(PolicyName, subscription, value);
-        }
-
-        private bool IsPackageMetadataCompliant(Package package, State state, out IList<string> complianceFailures)
-        {
-            complianceFailures = new List<string>();
-
-            // Author validation
-            ValidatePackageAuthors(package, state, complianceFailures);
-
-            // Copyright validation
-            if (!state.AllowedCopyrightNotices.Contains(package.Copyright))
-            {
-                complianceFailures.Add(Strings.SecurityPolicy_CopyrightNotCompliant);
-            }
-
-            // LicenseUrl validation
-            if (state.IsLicenseUrlRequired && string.IsNullOrWhiteSpace(package.LicenseUrl))
-            {
-                complianceFailures.Add(Strings.SecurityPolicy_RequiredLicenseUrlMissing);
-            }
-
-            // ProjectUrl validation
-            if (state.IsProjectUrlRequired && string.IsNullOrWhiteSpace(package.ProjectUrl))
-            {
-                complianceFailures.Add(Strings.SecurityPolicy_RequiredProjectUrlMissing);
-            }
-
-            return !complianceFailures.Any();
-        }
-
-        private static void ValidatePackageAuthors(Package package, State state, IList<string> complianceFailures)
-        {
-            var packageAuthors = package.FlattenedAuthors
-                .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
-                .Select(s => s.Trim())
-                .ToList();
-
-            // Check for duplicate entries
-            var duplicateAuthors = packageAuthors
-                .GroupBy(x => x)
-                .Where(group => group.Count() > 1)
-                .Select(group => group.Key)
-                .ToList();
-
-            if (duplicateAuthors.Any())
-            {
-                complianceFailures.Add(string.Format(CultureInfo.CurrentCulture, Strings.SecurityPolicy_PackageAuthorDuplicatesNotAllowed, string.Join(",", duplicateAuthors)));
-            }
-            else
-            {
-                if (state.AllowedAuthors?.Length > 0)
-                {
-                    foreach (var packageAuthor in packageAuthors)
-                    {
-                        if (!state.AllowedAuthors.Contains(packageAuthor))
-                        {
-                            complianceFailures.Add(string.Format(CultureInfo.CurrentCulture, Strings.SecurityPolicy_PackageAuthorNotAllowed, packageAuthor));
-                        }
-                    }
-                }
-                else
-                {
-                    // No list of allowed authors is defined for this policy.
-                    // We require the required co-owner to be defined as the only package author.
-                    if (packageAuthors.Count() > 1 || packageAuthors.Single() != state.RequiredCoOwnerUsername)
-                    {
-                        complianceFailures.Add(string.Format(CultureInfo.CurrentCulture, Strings.SecurityPolicy_RequiredAuthorMissing, state.RequiredCoOwnerUsername));
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Retrieve the policy state.
-        /// </summary>
-        private State GetState(UserSecurityPolicyEvaluationContext context)
-        {
-            var policyStates = context.Policies
-                .Where(p => !string.IsNullOrEmpty(p.Value))
-                .Select(p => JsonConvert.DeserializeObject<State>(p.Value));
-
-            // TODO: what if there are multiple?
-            return policyStates.First();
-        }
-
-        public class State
-        {
-            [JsonProperty("u")]
-            public string RequiredCoOwnerUsername { get; set; }
-
-            [JsonProperty("copy")]
-            public string[] AllowedCopyrightNotices { get; set; }
-
-            [JsonProperty("authors")]
-            public string[] AllowedAuthors { get; set; }
-
-            [JsonProperty("licUrlReq")]
-            public bool IsLicenseUrlRequired { get; set; }
-
-            [JsonProperty("projUrlReq")]
-            public bool IsProjectUrlRequired { get; set; }
-
-            [JsonProperty("error")]
-            public string ErrorMessageFormat { get; set; }
         }
     }
 }

@@ -232,6 +232,8 @@
     <Compile Include="Queries\AutocompleteCweIdQueryResults.cs" />
     <Compile Include="Queries\AutocompleteCveIdQueryResult.cs" />
     <Compile Include="Queries\AutocompleteCweIdQueryResult.cs" />
+    <Compile Include="Security\RequirePackageMetadataComplianceUtility.cs" />
+    <Compile Include="Security\RequirePackageMetadataState.cs" />
     <Compile Include="Services\IPackageDeprecationService.cs" />
     <Compile Include="Services\IVulnerabilityAutocompleteService.cs" />
     <Compile Include="Queries\AutocompleteDatabasePackageIdsQuery.cs" />

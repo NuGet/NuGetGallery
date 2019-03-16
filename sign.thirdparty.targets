@@ -1,0 +1,13 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <SignFilesDependsOn Include="EnumerateThirdPartyBinariesToSign" />
+  </ItemGroup>
+  <Target Name="EnumerateThirdPartyBinariesToSign" AfterTargets="AfterBuild" Condition="'$(SignType)' != 'none'">
+    <ItemGroup>
+      <FilesToSign Include="$(OutDir)%(ThirdPartyBinaries.Identity)" Condition="Exists('$(OutDir)%(ThirdPartyBinaries.Identity)')">
+        <Authenticode>3PartySHA2</Authenticode>
+      </FilesToSign>
+    </ItemGroup>
+    <Message Text="Files to sign:%0A@(FilesToSign, '%0A')" Importance="High" />
+  </Target>
+</Project>
