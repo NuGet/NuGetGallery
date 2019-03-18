@@ -2,11 +2,28 @@
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <!--
   "MicroBuild_NuPkgSigningEnabled" configures whether or not .nupkg files built will be signed.
-  We are not required to sign the .nupkg files we produce, so we must set it to false.
+  We always sign .nupkg files as batch using "sign.proj" instead of part of the project build process.
   -->
   <PropertyGroup>
     <MicroBuild_NuPkgSigningEnabled>false</MicroBuild_NuPkgSigningEnabled>
   </PropertyGroup>
+
+  <!--
+  When we are not building a web app package, sign any time after build.
+  -->
+  <PropertyGroup Condition="'$(WebPublishMethod)' != 'Package'">
+    <EnumerateFilesToSignAfterTargets>AfterBuild</EnumerateFilesToSignAfterTargets>
+  </PropertyGroup>
+
+  <!--
+  When we are building a web app package, sign after compiling but before copying the website assemblies to a single
+  folder for packaging.
+  -->
+  <PropertyGroup Condition="'$(WebPublishMethod)' == 'Package'">
+    <EnumerateFilesToSignAfterTargets>Compile</EnumerateFilesToSignAfterTargets>
+    <PipelineCopyAllFilesToOneFolderForMsdeployDependsOn>SignFiles</PipelineCopyAllFilesToOneFolderForMsdeployDependsOn>
+  </PropertyGroup>
+
   <!--
   "EnumerateFilesToSign" is a custom target that runs after build and signs the output assembly of the project. This
   target only runs if the "SignAssembly" is true (which enables delayed signing) and if "SignType" is not "none". This
@@ -17,7 +34,10 @@
   <ItemGroup>
     <SignFilesDependsOn Include="EnumerateFilesToSign" />
   </ItemGroup>
-  <Target Name="EnumerateFilesToSign" AfterTargets="AfterBuild" Condition="'$(SignAssembly)' == 'true' AND '$(SignType)' != 'none'">
+  <Target
+    Name="EnumerateFilesToSign"
+    AfterTargets="$(EnumerateFilesToSignAfterTargets)"
+    Condition="'$(SignAssembly)' == 'true' AND '$(SignType)' != 'none'">
     <ItemGroup>
       <OutputToSign Include="$(MSBuildProjectDirectory)\%(IntermediateAssembly.Identity)" />
       <OutputToSign Include="$(TargetPath)" />
