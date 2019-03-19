@@ -10,6 +10,5 @@ namespace NuGet.SupportRequests.Notifications
         // avoids value duplication, avoids annoying namespace conflicts in this job
         public const string InstrumentationKey = Jobs.JobArgumentNames.InstrumentationKey;
         public const string SourceDatabase = Jobs.JobArgumentNames.SourceDatabase;
-        public const string SmtpUri = Jobs.JobArgumentNames.SmtpUri;
     }
 }

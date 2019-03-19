@@ -86,9 +86,6 @@
     "TopicPath": "symbol-orchestrator",
     "SubscriptionName": "orchestrator"
   },
-  "Smtp": {
-    "SmtpUri": ""
-  },
   "Email": {
     "GalleryOwner": "NuGet Gallery <support@nuget.org>",
     "GalleryNoReplyAddress": "NuGet Gallery <noreply@nuget.org>",

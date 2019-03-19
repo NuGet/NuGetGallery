@@ -63,7 +63,6 @@
     <Compile Include="JsonConfigurationJob.cs" />
     <Compile Include="SecretReader\ISecretReaderFactory.cs" />
     <Compile Include="SecretReader\SecretReaderFactory.cs" />
-    <Compile Include="SmtpUri.cs" />
     <Compile Include="Configuration\JobConfigurationManager.cs" />
     <Compile Include="Extensions\DapperExtensions.cs" />
     <Compile Include="JobBase.cs" />

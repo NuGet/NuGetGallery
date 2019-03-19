@@ -7,7 +7,6 @@
     "GalleryAccountUrl": "https://int.nugettest.org/account/ApiKeys",
     "GalleryBrand": "NuGet Gallery",
     "MailFrom": "support@nuget.org",
-    "SmtpUri": "#{Jobs.gallery.credentialexpiration.SmtpUri}",
     "WarnDaysBeforeExpiration": 7,
     "WhatIf": true
   },

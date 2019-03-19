@@ -111,7 +111,6 @@ namespace NuGet.Jobs
 
         // Arguments specific to e-mail
         public const string MailFrom = "MailFrom";
-        public const string SmtpUri = "SmtpUri";
 
         // Arguments specific to StatusAggregator
         public const string StatusStorageAccount = "StatusStorageAccount";
