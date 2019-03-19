@@ -118,7 +118,6 @@
     <Compile Include="Entities\IDbContextTransaction.cs" />
     <Compile Include="Entities\EntitiesConfiguration.cs" />
     <Compile Include="Entities\EntitiesContext.cs" />
-    <Compile Include="Entities\EntityException.cs" />
     <Compile Include="Entities\Interception\ObjectMaterializedInterception.cs" />
     <Compile Include="Entities\Interception\ObjectMaterializedInterceptingDbContext.cs" />
     <Compile Include="Entities\EntityRepository.cs" />
