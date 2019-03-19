@@ -22,7 +22,7 @@ namespace NuGetGallery
             get;
         }
 
-        public ElmahException(Exception e, Dictionary<string,string> serverVariables) : base (e.Message, e.InnerException)
+        public ElmahException(Exception e, Dictionary<string, string> serverVariables) : base(e.Message, e.InnerException)
         {
             ServerVariables = serverVariables ?? new Dictionary<string, string>();
             _baseException = e;
