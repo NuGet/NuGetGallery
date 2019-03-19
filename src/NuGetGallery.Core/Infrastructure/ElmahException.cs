@@ -12,7 +12,7 @@ namespace NuGetGallery
     /// </summary>
     public class ElmahException : Exception
     {
-        private Exception _baseException;
+        private readonly Exception _baseException;
 
         /// <summary>
         /// Server variables values in Elmah logs will be overwritten by these values.
