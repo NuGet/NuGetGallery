@@ -232,7 +232,6 @@ namespace Validation.PackageSigning.ValidateCertificate
                         page);
 
                     await _context.SaveChangesAsync();
-                    page++;
                 }
 
                 _logger.LogInformation(
@@ -254,6 +253,8 @@ namespace Validation.PackageSigning.ValidateCertificate
 
                     HandleSignatureDecision(signature, decision, certificate, certificateVerificationResult);
                 }
+
+                page++;
             }
             while (signatures.Count == MaxSignatureUpdatesPerTransaction);
 
