@@ -15,7 +15,7 @@ namespace NuGetGallery
         private Exception _baseException;
 
         /// <summary>
-        /// Server variables values in Elamh logs will be overwritten by these values.
+        /// Server variables values in Elmah logs will be overwritten by these values.
         /// </summary>
         public Dictionary<string, string> ServerVariables
         {
