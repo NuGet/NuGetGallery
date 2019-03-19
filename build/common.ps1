@@ -311,11 +311,7 @@ Function Invoke-FxCop {
     }
     
     # Invoke using the msbuild RunCodeAnalysis target
-    $msBuildProps = "/p:CustomBeforeMicrosoftCSharpTargets=$codeAnalysisProps;SignType=none"
-    
-    if ($VerbosePreference) {
-        $msBuildProps += ";CodeAnalysisVerbose=true"
-    }
+    $msBuildProps = "/p:CustomBeforeMicrosoftCSharpTargets=$codeAnalysisProps;SignType=none;CodeAnalysisVerbose=true"
     
     Build-Solution $Configuration $BuildNumber -MSBuildVersion "$MSBuildVersion" $SolutionPath -Target "Rebuild;RunCodeAnalysis" -MSBuildProperties $msBuildProps -SkipRestore:$SkipRestore
 }
@@ -333,7 +329,7 @@ Function Invoke-Git {
 
 Function Reset-Submodules {
     Trace-Log 'Resetting submodules'
-    $args = 'submodule', 'foreach', '--recursive', 'git', 'reset', '--hard'
+    $args = 'submodule', 'deinit', '--all', '-f'
 
     Invoke-Git -Arguments $args
 }
@@ -365,11 +361,7 @@ Function Update-Submodule {
     }
 
     Trace-Log "Updating submodule $Name ($Path)."
-    $args = 'submodule', 'update', '--init', '--remote', '--recursive', '--', "$Path"
-    
-    if (-not $VerbosePreference) {
-        $args += '--quiet'
-    }
+    $args = 'submodule', 'update', '--init', '--remote', '--', "$Path"
 
     Invoke-Git -Arguments $args
 }
