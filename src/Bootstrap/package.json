@@ -79,6 +79,7 @@
     "mime": "^1.4.1",
     "minimatch": "^3.0.4",
     "no-case": "^2.3.2",
+    "node-uuid": "^1.4.8",
     "tough-cookie": "^2.3.3"
   }
 }
