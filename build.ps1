@@ -9,7 +9,7 @@ param (
     [string]$SemanticVersion = '1.0.0-zlocal',
     [string]$Branch,
     [string]$CommitSHA,
-    [string]$BuildBranch = 'b5f9d1c89da96c462935e2195ceb00e69287b93e'
+    [string]$BuildBranch = '2d8feecabe3aeaed7f5b4d50b9be78c94faf39ec'
 )
 
 # For TeamCity - If any issue occurs, this script fails the build. - By default, TeamCity returns an exit code of 0 for all powershell scripts, even if they fail
@@ -119,6 +119,11 @@ Invoke-BuildStep 'Creating artifacts' {
         $nuspecPackages | ForEach-Object {
             New-Package (Join-Path $PSScriptRoot $_) -Configuration $Configuration -BuildNumber $BuildNumber -Version $SemanticVersion -Branch $Branch
         }
+    } `
+    -ev +BuildErrors
+
+Invoke-BuildStep 'Signing the packages' {
+        Sign-Packages -Configuration $Configuration -BuildNumber $BuildNumber -MSBuildVersion "15" `
     } `
     -ev +BuildErrors
 
