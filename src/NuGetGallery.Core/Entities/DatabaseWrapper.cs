@@ -46,7 +46,7 @@ namespace NuGetGallery
 
             if (string.IsNullOrEmpty(sqlCommand))
             {
-                throw new ArgumentException($"SQL resource '{name}' is empty.", "name");
+                throw new ArgumentException($"SQL resource '{name}' is empty.", nameof(name));
             }
 
             return await ExecuteSqlCommandAsync(sqlCommand, parameters);
