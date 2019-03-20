@@ -60,6 +60,8 @@ namespace Ng
         public const string PreferAlternatePackageSourceStorage = "preferAlternatePackageSourceStorage";
 
         public const string StorageUseServerSideCopy = "storageUseServerSideCopy";
+        public const string MaxConcurrentBatches = "maxConcurrentBatches";
+
         #endregion
 
         #region Catalog2Lucene
@@ -87,6 +89,7 @@ namespace Ng
         public const string ContentIsFlatContainer = "contentIsFlatContainer";
         public const string CursorUri = "cursorUri";
         public const string FlatContainerName = "flatContainerName";
+
         #endregion
 
         #region Catalog2PackageFixup

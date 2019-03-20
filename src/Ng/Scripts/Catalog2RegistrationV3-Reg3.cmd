@@ -35,7 +35,8 @@ start /w ng.exe catalog2registration ^
     -contentIsFlatContainer #{Jobs.catalog2registrationv3reg3.IsContentFlatContainer} ^
     -cursorUri #{Jobs.catalog2registrationv3reg3.CursorUri} ^
     -flatContainerName #{Jobs.catalog2registrationv3reg3.FlatContainerName} ^
-    -galleryBaseAddress #{Jobs.catalog2registrationv3reg3.GalleryBaseAddress}
+    -galleryBaseAddress #{Jobs.catalog2registrationv3reg3.GalleryBaseAddress} ^
+    -maxConcurrentBatches #{Jobs.common.v3.MaxConcurrentBatches}
 
 echo "Finished #{Jobs.catalog2registrationv3reg3.Title}"
 
