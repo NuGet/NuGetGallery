@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -411,6 +412,75 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
                 _telemetryService.Verify(a => a.TrackUnableToValidateCertificateEvent(It.IsAny<EndCertificate>()), Times.Once);
                 _telemetryService.Verify(a => a.TrackPackageSignatureShouldBeInvalidatedEvent(It.IsAny<PackageSignature>()), Times.Never);
                 _context.Verify(c => c.SaveChangesAsync(), Times.Exactly(2));
+            }
+
+            [Fact]
+            public async Task ProcessesSignaturesInBatchesOf500()
+            {
+                // Arrange - Invalidate a certificate that is depended on by 501 signatures.
+                // This should invalidate all signatures in batches of 500 signatures.
+                var verificationResult = new CertificateVerificationResult(
+                    status: EndCertificateStatus.Invalid,
+                    statusFlags: X509ChainStatusFlags.ExplicitDistrust);
+
+                var signatures = new List<PackageSignature>();
+
+                for (var i = 0; i < 501; i++)
+                {
+                    var state = new PackageSigningState { SigningStatus = PackageSigningStatus.Valid };
+
+                    var signature = new PackageSignature
+                    {
+                        Key = i,
+                        Status = PackageSignatureStatus.Valid,
+                        Type = PackageSignatureType.Author
+                    };
+
+                    state.PackageSignatures = new[] { signature };
+                    signature.PackageSigningState = state;
+                    signature.EndCertificate = _certificate1;
+                    signature.TrustedTimestamps = new TrustedTimestamp[0];
+
+                    signatures.Add(signature);
+                }
+
+                _certificate1.PackageSignatures = signatures;
+                _certificate1.TrustedTimestamps = new TrustedTimestamp[0];
+                _certificate1.Use = EndCertificateUse.CodeSigning;
+
+                _context.Mock(packageSignatures: signatures);
+
+                var hasSaved = false;
+                var invalidationsBeforeSave = 0;
+                var invalidationsAfterSave = 0;
+
+                _context.Setup(c => c.SaveChangesAsync())
+                    .Returns(Task.FromResult(0))
+                    .Callback(() => hasSaved = true);
+
+                _telemetryService
+                    .Setup(t => t.TrackPackageSignatureMayBeInvalidatedEvent(It.IsAny<PackageSignature>()))
+                    .Callback((PackageSignature s) =>
+                    {
+                        if (!hasSaved)
+                        {
+                            invalidationsBeforeSave++;
+                        }
+                        else
+                        {
+                            invalidationsAfterSave++;
+                        }
+                    });
+
+                // Act
+                var result = await _target.TrySaveResultAsync(_certificateValidation1, verificationResult);
+
+                // Assert - two batches should be saved. The first batch should invalidate 500 signatures,
+                // the second batch should invalidate 1 signature.
+                _context.Verify(c => c.SaveChangesAsync(), Times.Exactly(2));
+
+                Assert.Equal(500, invalidationsBeforeSave);
+                Assert.Equal(1, invalidationsAfterSave);
             }
         }
 
