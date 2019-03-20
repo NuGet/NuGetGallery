@@ -16,12 +16,12 @@
   </PropertyGroup>
 
   <!--
-  When we are building a web app package, sign after compiling but before copying the website assemblies to a single
-  folder for packaging.
+  When we are building a web app package, sign after collecting all of the DLLs into one folder but before the package
+  is created.
   -->
   <PropertyGroup Condition="'$(WebPublishMethod)' == 'Package'">
-    <EnumerateFilesToSignAfterTargets>Compile</EnumerateFilesToSignAfterTargets>
-    <PipelineCopyAllFilesToOneFolderForMsdeployDependsOn>SignFiles</PipelineCopyAllFilesToOneFolderForMsdeployDependsOn>
+    <EnumerateFilesToSignAfterTargets>PipelineCopyAllFilesToOneFolderForMsdeploy</EnumerateFilesToSignAfterTargets>
+    <PackageUsingManifestDependsOn>SignFiles</PackageUsingManifestDependsOn>
   </PropertyGroup>
 
   <!--
@@ -38,16 +38,39 @@
     Name="EnumerateFilesToSign"
     AfterTargets="$(EnumerateFilesToSignAfterTargets)"
     Condition="'$(SignAssembly)' == 'true' AND '$(SignType)' != 'none'">
+
     <ItemGroup>
       <OutputToSign Include="$(MSBuildProjectDirectory)\%(IntermediateAssembly.Identity)" />
       <OutputToSign Include="$(TargetPath)" />
     </ItemGroup>
     <ItemGroup>
-      <FilesToSign Include="%(OutputToSign.Identity)">
+      <FilesToSign
+        Include="%(OutputToSign.Identity)"
+        Condition="Exists('%(OutputToSign.Identity)')">
         <Authenticode>Microsoft</Authenticode>
         <StrongName>MsSharedLib72</StrongName>
       </FilesToSign>
     </ItemGroup>
+
+    <!--
+    When we are building a web app package, sign the third party assemblies and output assembly from the single folder
+    used for packaging.
+    -->
+    <ItemGroup Condition="'$(WebPublishMethod)' == 'Package'">
+      <FilesToSign
+        Include="$(WPPAllFilesInSingleFolder)\bin\%(ThirdPartyBinaries.Identity)"
+        Condition="Exists('$(WPPAllFilesInSingleFolder)\bin\%(ThirdPartyBinaries.Identity)')">
+        <Authenticode>3PartySHA2</Authenticode>
+      </FilesToSign>
+      <FilesToSign
+        Include="$(WPPAllFilesInSingleFolder)\bin\$(TargetFileName)"
+        Condition="Exists('$(WPPAllFilesInSingleFolder)\bin\$(TargetFileName)')">
+        <Authenticode>Microsoft</Authenticode>
+        <StrongName>MsSharedLib72</StrongName>
+      </FilesToSign>
+    </ItemGroup>
+
+    <Message Text="Count of files to sign: @(FilesToSign->Count())" Importance="High" />
     <Message Text="Files to sign:%0A@(FilesToSign, '%0A')" Importance="High" />
   </Target>
 </Project>
