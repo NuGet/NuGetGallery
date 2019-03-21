@@ -1,7 +1,7 @@
 /*!
  * Bootstrap's Gruntfile
- * http://getbootstrap.com
- * Copyright 2013-2016 Twitter, Inc.
+ * https://getbootstrap.com/
+ * Copyright 2013-2019 Twitter, Inc.
  * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
  */
 
@@ -50,8 +50,7 @@ module.exports = function (grunt) {
 
     // Task configuration.
     clean: {
-      dist: 'dist',
-      docs: 'docs/dist'
+      dist: 'dist'
     },
 
     concat: {
@@ -59,7 +58,7 @@ module.exports = function (grunt) {
         banner: '<%= banner %>\n<%= jqueryCheck %>\n<%= jqueryVersionCheck %>',
         stripBanners: false
       },
-      bootstrap: {
+      core: {
         src: [
           'js/transition.js',
           'js/alert.js',
@@ -80,43 +79,40 @@ module.exports = function (grunt) {
 
     uglify: {
       options: {
-        compress: {
-          warnings: false
-        },
+        compress: true,
         mangle: true,
-        preserveComments: /^!|@preserve|@license|@cc_on/i
+        ie8: true,
+        output: {
+          comments: /^!|@preserve|@license|@cc_on/i
+        }
       },
       core: {
-        src: '<%= concat.bootstrap.dest %>',
+        src: '<%= concat.core.dest %>',
         dest: 'dist/js/<%= pkg.name %>.min.js'
       },
       customize: {
         src: configBridge.paths.customizerJs,
         dest: 'docs/assets/js/customize.min.js'
-      },
-      docsJs: {
-        src: configBridge.paths.docsJs,
-        dest: 'docs/assets/js/docs.min.js'
       }
     },
 
     less: {
-      compileCore: {
+      options: {
+        ieCompat: true,
+        strictMath: true,
+        sourceMap: true,
+        outputSourceFiles: true
+      },
+      core: {
         options: {
-          strictMath: true,
-          sourceMap: true,
-          outputSourceFiles: true,
           sourceMapURL: '<%= pkg.name %>.css.map',
           sourceMapFilename: 'dist/css/<%= pkg.name %>.css.map'
         },
         src: 'less/bootstrap.less',
         dest: 'dist/css/<%= pkg.name %>.css'
       },
-      compileTheme: {
+      theme: {
         options: {
-          strictMath: true,
-          sourceMap: true,
-          outputSourceFiles: true,
           sourceMapURL: '<%= pkg.name %>-theme.css.map',
           sourceMapFilename: 'dist/css/<%= pkg.name %>-theme.css.map'
         },
@@ -125,132 +121,60 @@ module.exports = function (grunt) {
       }
     },
 
-    autoprefixer: {
+    postcss: {
       options: {
-        browsers: configBridge.config.autoprefixerBrowsers
+        map: {
+          inline: false,
+          sourcesContent: true
+        },
+        processors: [
+          require('autoprefixer')(configBridge.config.autoprefixer)
+        ]
       },
       core: {
-        options: {
-          map: true
-        },
         src: 'dist/css/<%= pkg.name %>.css'
       },
       theme: {
-        options: {
-          map: true
-        },
         src: 'dist/css/<%= pkg.name %>-theme.css'
-      },
-      docs: {
-        src: ['docs/assets/css/src/docs.css']
-      },
-      examples: {
-        expand: true,
-        cwd: 'docs/examples/',
-        src: ['**/*.css'],
-        dest: 'docs/examples/'
       }
     },
 
     cssmin: {
       options: {
-        // TODO: disable `zeroUnits` optimization once clean-css 3.2 is released
-        //    and then simplify the fix for https://github.com/twbs/bootstrap/issues/14837 accordingly
         compatibility: 'ie8',
-        keepSpecialComments: '*',
         sourceMap: true,
         sourceMapInlineSources: true,
-        advanced: false
+        level: {
+          1: {
+            specialComments: 'all'
+          }
+        }
       },
-      minifyCore: {
+      core: {
         src: 'dist/css/<%= pkg.name %>.css',
         dest: 'dist/css/<%= pkg.name %>.min.css'
       },
-      minifyTheme: {
+      theme: {
         src: 'dist/css/<%= pkg.name %>-theme.css',
         dest: 'dist/css/<%= pkg.name %>-theme.min.css'
-      },
-      docs: {
-        src: [
-          'docs/assets/css/ie10-viewport-bug-workaround.css',
-          'docs/assets/css/src/pygments-manni.css',
-          'docs/assets/css/src/docs.css'
-        ],
-        dest: 'docs/assets/css/docs.min.css'
-      }
-    },
-
-    csscomb: {
-      options: {
-        config: 'less/.csscomb.json'
-      },
-      dist: {
-        expand: true,
-        cwd: 'dist/css/',
-        src: ['*.css', '!*.min.css'],
-        dest: 'dist/css/'
-      },
-      examples: {
-        expand: true,
-        cwd: 'docs/examples/',
-        src: '**/*.css',
-        dest: 'docs/examples/'
-      },
-      docs: {
-        src: 'docs/assets/css/src/docs.css',
-        dest: 'docs/assets/css/src/docs.css'
       }
     },
 
     copy: {
-      docs: {
+      fonts: {
         expand: true,
-        cwd: 'dist/',
-        src: [
-          '**/*'
-        ],
-        dest: 'docs/dist/'
-      },
-      gallerycss: {
-        expand: true,
-        cwd: 'dist/css/',
-        src: [
-          'bootstrap.css',
-          'bootstrap-theme.css'
-        ],
-        dest: '../NuGetGallery/Content/gallery/css/'
-      },
-      galleryjs: {
-        expand: true,
-        cwd: 'dist/js/',
-        src: [
-          'bootstrap.js'
-        ],
-        dest: '../NuGetGallery/Scripts/gallery/'
+        src: 'fonts/**',
+        dest: 'dist/'
       }
     },
 
-    compress: {
-      main: {
-        options: {
-          archive: 'bootstrap-<%= pkg.version %>-dist.zip',
-          mode: 'zip',
-          level: 9,
-          pretty: true
-        },
-        files: [
-          {
-            expand: true,
-            cwd: 'dist/',
-            src: ['**'],
-            dest: 'bootstrap-<%= pkg.version %>-dist'
-          }
-        ]
+    watch: {
+      less: {
+        files: 'less/**/*.less',
+        tasks: ['less', 'copy']
       }
     }
-
   });
-
 
   // These plugins provide necessary tasks.
   require('load-grunt-tasks')(grunt, { scope: 'devDependencies' });
@@ -260,18 +184,31 @@ module.exports = function (grunt) {
   grunt.registerTask('dist-js', ['concat', 'uglify:core', 'commonjs']);
 
   // CSS distribution task.
-  grunt.registerTask('less-compile', ['less:compileCore', 'less:compileTheme']);
-  grunt.registerTask('dist-css', ['less-compile', 'autoprefixer:core', 'autoprefixer:theme', 'csscomb:dist', 'cssmin:minifyCore', 'cssmin:minifyTheme']);
+  grunt.registerTask('dist-css', ['less:core', 'less:theme', 'postcss:core', 'postcss:theme', 'cssmin:core', 'cssmin:theme']);
 
   // Full distribution task.
-  grunt.registerTask('dist', ['clean:dist', 'dist-css', 'dist-js', 'copy:gallerycss', 'copy:galleryjs']);
+  grunt.registerTask('dist', ['clean:dist', 'dist-css', 'copy:fonts', 'dist-js']);
 
   // Default task.
-  grunt.registerTask('default', ['dist']);
+  grunt.registerTask('default', ['clean:dist', 'copy:fonts', 'dist-css', 'dist-js']);
+
+  grunt.registerTask('build-glyphicons-data', function () {
+    generateGlyphiconsData.call(this, grunt);
+  });
+
+  // task for building customizer
+  grunt.registerTask('build-customizer', ['build-customizer-html', 'build-raw-files']);
+  grunt.registerTask('build-customizer-html');
+  grunt.registerTask('build-raw-files', 'Add scripts/less files to customizer.', function () {
+    var banner = grunt.template.process('<%= banner %>');
+    generateRawFiles(grunt, banner);
+  });
 
   grunt.registerTask('commonjs', 'Generate CommonJS entrypoint module in dist dir.', function () {
-    var srcFiles = grunt.config.get('concat.bootstrap.src');
+    var srcFiles = grunt.config.get('concat.core.src');
     var destFilepath = 'dist/js/npm.js';
     generateCommonJSModule(grunt, srcFiles, destFilepath);
   });
+
+  grunt.registerTask('prep-release', ['dist']);
 };
