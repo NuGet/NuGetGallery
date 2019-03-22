@@ -102,6 +102,8 @@ namespace NuGetGallery.Views.Packages
                 yield return ValidationIssue.SymbolErrorCode_ChecksumDoesNotMatch;
                 yield return ValidationIssue.SymbolErrorCode_MatchingAssemblyNotFound;
                 yield return ValidationIssue.SymbolErrorCode_PdbIsNotPortable;
+                yield return ValidationIssue.SymbolErrorCode_SnupkgDoesNotContainSymbols;
+                yield return ValidationIssue.SymbolErrorCode_SnupkgContainsEntriesNotSafeForExtraction;
                 yield return new UnauthorizedCertificateFailure("thumbprint");
             }
         }
