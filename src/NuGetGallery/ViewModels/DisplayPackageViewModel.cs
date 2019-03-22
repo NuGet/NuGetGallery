@@ -49,8 +49,6 @@ namespace NuGetGallery
 
             if (deprecation != null)
             {
-                DeprecationStatus = deprecation.Status;
-
                 CveIds = deprecation.Cves?.Select(c => c.CveId).ToList();
                 CweIds = deprecation.Cwes?.Select(c => c.CweId).ToList();
 
@@ -123,6 +121,9 @@ namespace NuGetGallery
                     LicenseNames = licenseNames.Split(',').Select(l => l.Trim());
                 }
             }
+
+            DeprecationStatus = package.Deprecations.SingleOrDefault()?.Status 
+                ?? PackageDeprecationStatus.NotDeprecated;
         }
 
         public bool ValidatingTooLong { get; set; }

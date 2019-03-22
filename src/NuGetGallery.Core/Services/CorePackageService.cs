@@ -285,7 +285,9 @@ namespace NuGetGallery
             }
         }
 
-        protected IQueryable<Package> GetPackagesByIdQueryable(string id, bool withDeprecations = false)
+        protected IQueryable<Package> GetPackagesByIdQueryable(
+            string id, 
+            PackageDeprecationFieldsToInclude deprecationFields = PackageDeprecationFieldsToInclude.None)
         {
             var packages = _packageRepository
                 .GetAll()
@@ -295,7 +297,12 @@ namespace NuGetGallery
                 .Include(p => p.SymbolPackages)
                 .Where(p => p.PackageRegistration.Id == id);
 
-            if (withDeprecations)
+            if (deprecationFields == PackageDeprecationFieldsToInclude.Deprecation)
+            {
+                packages = packages
+                    .Include(p => p.Deprecations);
+            }
+            else if (deprecationFields == PackageDeprecationFieldsToInclude.DeprecationAndRelationships)
             {
                 packages = packages
                     .Include(p => p.Deprecations.Select(d => d.AlternatePackage.PackageRegistration))

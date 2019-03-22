@@ -12,17 +12,17 @@ namespace NuGetGallery
     /// </summary>
     public class ElmahException : Exception
     {
-        private Exception _baseException;
+        private readonly Exception _baseException;
 
         /// <summary>
-        /// Server variables values in Elamh logs will be overwritten by these values.
+        /// Server variables values in Elmah logs will be overwritten by these values.
         /// </summary>
         public Dictionary<string, string> ServerVariables
         {
             get;
         }
 
-        public ElmahException(Exception e, Dictionary<string,string> serverVariables) : base (e.Message, e.InnerException)
+        public ElmahException(Exception e, Dictionary<string, string> serverVariables) : base(e.Message, e.InnerException)
         {
             ServerVariables = serverVariables ?? new Dictionary<string, string>();
             _baseException = e;

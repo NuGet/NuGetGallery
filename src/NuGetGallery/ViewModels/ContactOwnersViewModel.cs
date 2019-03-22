@@ -17,7 +17,7 @@ namespace NuGetGallery
 
         public string ProjectUrl { get; set; }
 
-        public IEnumerable<User> Owners { get; set; }
+        public IEnumerable<string> Owners { get; set; }
 
         [Display(Name = "Send me a copy")]
         public bool CopySender { get; set; }

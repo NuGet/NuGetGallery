@@ -234,7 +234,7 @@ function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defau
                 // Show a warning if multiple versions are selected and at least one has an existing deprecation
                 // The user should be aware they are replacing existing deprecations
                 // Don't show an alert if a single version is selected because it is clear that the deprecation is being replaced
-                warningMessage = "Some of the package versions you selected have already been deprecated. These versions will have their deprecation information overriden or removed based on your actions.";
+                warningMessage = "Some of the package versions you selected have already been deprecated. All selected versions will have their deprecation information overridden or removed when you submit this form.";
             }
         } else if (hasVersionsWithExistingDeprecationState) {
             // Show a warning if no reasons are selected and at least one selected version has an existing deprecation
@@ -572,5 +572,10 @@ function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defau
     // Load the state for the default version.
     loadDeprecationFormState(defaultVersion);
 
-    ko.applyBindings(this, $(".page-manage-deprecation")[0]);
+    var section = $(".page-manage-deprecation")[0];
+    // Only apply bindings if the form exists.
+    // In certain situations (the package is locked, user doesn't have permissions, etc) we do not render the form.
+    if (section) {
+        ko.applyBindings(this, section);
+    }
 }

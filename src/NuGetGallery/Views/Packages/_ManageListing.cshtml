@@ -10,35 +10,16 @@
 
     @if (!Model.VersionSelectList.Any())
     {
-        @ViewHelpers.AlertInfo(
-            @<text>
-                <span>There are no versions that can have their listing state changed.</span>
-            </text>)
+        @ViewHelpers.AlertInfo(@<text>There are no versions that can have their listing state changed.</text>)
     }
     else if (Model.IsLocked && !User.IsAdministrator())
     {
         <div class="validation-error-message-list">
-            @ViewHelpers.AlertDanger(
-                @<text>
-                    <span>
-                        Package '@Model.Id' has been locked. This means you cannot publish a new version or change the listing status of a published package version. Please contact
-                        <a href="mailto:support@nuget.org?subject=@HttpUtility.UrlPathEncode(string.Format("Requesting support for a locked package - '{0}'", Model.Id))">support@nuget.org</a>.
-                    </span>
-                </text>)
+            @ViewHelpers.AlertDanger(@<text>You cannot change the listing state of a locked package.</text>)
         </div>
     }
     else
     {
-        if (Model.IsLocked && User.IsAdministrator())
-        {
-            <div class="validation-error-message-list">
-                @ViewHelpers.AlertDanger(
-                    @<text>
-                        <span>Package '@Model.Id' has been locked.</span>
-                    </text>)
-            </div>
-        }
-
         <label for="input-select-version" id="package-version-label">Select version</label>
 
         @Html.DropDownList("version-selection", Model.VersionSelectList,

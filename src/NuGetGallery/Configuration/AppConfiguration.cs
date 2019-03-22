@@ -378,6 +378,20 @@ namespace NuGetGallery.Configuration
         /// </summary>
         public Uri SearchServiceUriSecondary { get; set; }
 
+        [DefaultValue(600)]
         public int SearchCircuitBreakerDelayInSeconds { get; set; }
+
+        // The default value was chosen to have searchRetryCount*retryInterval to be close to 1 second in order to keep the user still engaged.
+        // https://www.nngroup.com/articles/website-response-times/
+        [DefaultValue(500)]
+        public int SearchCircuitBreakerWaitAndRetryIntervalInMilliseconds { get; set; }
+
+        [DefaultValue(3)]
+        public int SearchCircuitBreakerWaitAndRetryCount { get; set; }
+
+        // Default value was chosen using the AI data.
+        // It is the average of the search request count per second during the last 90 days.
+        [DefaultValue(200)]
+        public int SearchCircuitBreakerBreakAfterCount { get; set; }
     }
 }

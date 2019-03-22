@@ -710,7 +710,7 @@ namespace NuGetGallery
 
             Package package = null;
             // Load all packages with the ID.
-            var packages = _packageService.FindPackagesById(id);
+            var packages = _packageService.FindPackagesById(id, PackageDeprecationFieldsToInclude.Deprecation);
             if (version != null)
             {
                 if (version.Equals(GalleryConstants.AbsoluteLatestUrlString, StringComparison.InvariantCultureIgnoreCase))
@@ -1387,7 +1387,7 @@ namespace NuGetGallery
                 PackageId = id,
                 PackageVersion = package.Version,
                 ProjectUrl = package.ProjectUrl,
-                Owners = package.PackageRegistration.Owners.Where(u => u.EmailAllowed),
+                Owners = package.PackageRegistration.Owners.Where(u => u.EmailAllowed).Select(u => u.Username),
                 CopySender = true,
                 HasOwners = hasOwners
             };
@@ -1456,7 +1456,8 @@ namespace NuGetGallery
             Package package = null;
 
             // Load all versions of the package.
-            var packages = _packageService.FindPackagesById(id, withDeprecations: true);
+            var packages = _packageService.FindPackagesById(
+                id, PackageDeprecationFieldsToInclude.DeprecationAndRelationships);
             if (version != null)
             {
                 // Try to find the exact version if it was specified.
@@ -2140,7 +2141,7 @@ namespace NuGetGallery
             }
         }
 
-        public virtual async Task<JsonResult> VerifySymbolsPackageInternal(
+        protected virtual async Task<JsonResult> VerifySymbolsPackageInternal(
             VerifyPackageRequest formData,
             Stream uploadFile,
             PackageArchiveReader packageArchiveReader,
@@ -2240,7 +2241,7 @@ namespace NuGetGallery
             }
         }
 
-        public virtual async Task<JsonResult> VerifyPackageInternal(
+        protected virtual async Task<JsonResult> VerifyPackageInternal(
             VerifyPackageRequest formData,
             Stream uploadFile,
             PackageArchiveReader packageArchiveReader,

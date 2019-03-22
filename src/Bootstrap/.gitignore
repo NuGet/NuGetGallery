@@ -37,6 +37,8 @@ Thumbs.db
 docs/.jekyll-metadata
 
 # Folders to ignore
+/.bundle/
+/vendor/
 bower_components
 node_modules
 
@@ -44,3 +46,6 @@ node_modules
 dist/css/*.map
 dist/css/*.min.css
 dist/js/*.min.js
+
+# we won't be distributing Bootstrap docs
+docs/dist
