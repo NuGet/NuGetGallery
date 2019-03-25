@@ -7,7 +7,7 @@
     <ProjectGuid>{2DD07A73-8C88-4429-BB24-C2813586EF92}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>Validation.Symbols</RootNamespace>
-    <AssemblyName>Validation.Symbols</AssemblyName>
+    <AssemblyName>Validation.Symbols.Job</AssemblyName>
     <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -65,7 +65,9 @@
     <None Include="Settings\dev.json" />
     <None Include="Settings\int.json" />
     <None Include="Settings\prod.json" />
-    <None Include="Validation.Symbols.nuspec" />
+    <None Include="Validation.Symbols.Job.nuspec">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NuGet.Jobs.Common\NuGet.Jobs.Common.csproj">

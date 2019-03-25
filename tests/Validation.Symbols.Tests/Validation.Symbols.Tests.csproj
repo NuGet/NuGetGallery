@@ -77,9 +77,9 @@
       <Project>{17510a22-176f-4e96-a867-e79f1b54f54f}</Project>
       <Name>Validation.Symbols.Core</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\src\Validation.Symbols\Validation.Symbols.csproj">
+    <ProjectReference Include="..\..\src\Validation.Symbols\Validation.Symbols.Job.csproj">
       <Project>{2dd07a73-8c88-4429-bb24-c2813586ef92}</Project>
-      <Name>Validation.Symbols</Name>
+      <Name>Validation.Symbols.Job</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

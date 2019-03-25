@@ -133,7 +133,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Monitoring.RebootSearchInst
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Monitoring.RebootSearchInstance.Tests", "tests\Monitoring.RebootSearchInstance.Tests\Monitoring.RebootSearchInstance.Tests.csproj", "{21C0A0EE-8696-4013-950F-D6495D0C6E40}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Validation.Symbols", "src\Validation.Symbols\Validation.Symbols.csproj", "{2DD07A73-8C88-4429-BB24-C2813586EF92}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Validation.Symbols.Job", "src\Validation.Symbols\Validation.Symbols.Job.csproj", "{2DD07A73-8C88-4429-BB24-C2813586EF92}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Validation.Symbols.Tests", "tests\Validation.Symbols.Tests\Validation.Symbols.Tests.csproj", "{640D29AB-4D1B-4FC7-AE67-AD12EE5AC503}"
 EndProject

@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package >
   <metadata>
-    <id>Validation.Symbols</id>
+    <id>Validation.Symbols.Job</id>
     <version>$version$</version>
     <title>Validation.Symbols</title>
     <authors>.NET Foundation</authors>
