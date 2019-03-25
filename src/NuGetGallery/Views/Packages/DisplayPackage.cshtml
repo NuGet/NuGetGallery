@@ -255,7 +255,7 @@
                 )
             }
 
-            @if (Model.DeprecationStatus != PackageDeprecationStatus.NotDeprecated)
+            @if (Model.IsPackageDeprecationEnabled && Model.DeprecationStatus != PackageDeprecationStatus.NotDeprecated)
             {
                 @Html.Partial("_DisplayPackageDeprecation")
             }
@@ -572,7 +572,7 @@
                                     </td>
 
                                     <td class="package-icon-cell">
-                                        @if (packageVersion.DeprecationStatus != PackageDeprecationStatus.NotDeprecated)
+                                        @if (Model.IsPackageDeprecationEnabled && packageVersion.DeprecationStatus != PackageDeprecationStatus.NotDeprecated)
                                         {
                                             var deprecationTitle = packageVersion.Version;
                                             var isVulnerable = packageVersion.DeprecationStatus.HasFlag(PackageDeprecationStatus.Vulnerable);

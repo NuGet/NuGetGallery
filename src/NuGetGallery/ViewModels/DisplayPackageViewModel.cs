@@ -143,6 +143,7 @@ namespace NuGetGallery
         public bool HasSemVer2Dependency { get; }
         public bool IsDotnetToolPackageType { get; set; }
         public bool IsAtomFeedEnabled { get; set; }
+        public bool IsPackageDeprecationEnabled { get; set; }
 
         public bool HasNewerPrerelease
         {
