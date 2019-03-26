@@ -81,7 +81,7 @@ namespace Stats.ImportAzureCdnStatistics
             var leasedLogFiles = await _blobLeaseManager.LeaseNextLogFilesToBeProcessedAsync(prefix, alreadyAggregatedLogFiles);
             foreach (var leasedLogFile in leasedLogFiles)
             {
-                var packageTranslator = new PackageTranslator("packagetranslations.json");
+                var packageTranslator = new PackageTranslator();
                 var packageStatisticsParser = new PackageStatisticsParser(packageTranslator, LoggerFactory);
                 await logProcessor.ProcessLogFileAsync(leasedLogFile, packageStatisticsParser, _configuration.AggregatesOnly);
 

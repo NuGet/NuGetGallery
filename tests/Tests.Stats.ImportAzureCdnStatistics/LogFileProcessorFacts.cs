@@ -20,8 +20,7 @@ namespace Tests.Stats.ImportAzureCdnStatistics
         private static readonly Assembly _currentAssembly =
             typeof(LogFileProcessorFacts).Assembly;
 
-        private static readonly PackageTranslator _packageTranslator =
-            new PackageTranslator("packageTranslations.json");
+        private static readonly PackageTranslator _packageTranslator = new PackageTranslator();
 
         private static readonly IPackageStatisticsParser _packageStatisticsParser =
             new PackageStatisticsParser(_packageTranslator, new LoggerFactory());

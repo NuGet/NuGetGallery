@@ -10,7 +10,7 @@ namespace Tests.Stats.ImportAzureCdnStatistics
     {
         private static PackageTranslator CreatePackageTranslator()
         {
-            return new PackageTranslator("packagetranslations.json");
+            return new TestablePackageTranslator();
         }
 
         [Fact]

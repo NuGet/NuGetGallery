@@ -54,6 +54,7 @@
     <Compile Include="PackageStatisticsParserFacts.cs" />
     <Compile Include="PackageTranslatorFacts.cs" />
     <Compile Include="StatisticsParserFacts.cs" />
+    <Compile Include="TestablePackageTranslator.cs" />
     <Compile Include="ToolDimensionFacts.cs" />
     <Compile Include="ToolStatisticsParserFacts.cs" />
     <Compile Include="UserAgentParserFacts.cs" />
@@ -67,9 +68,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="app.config" />
-    <None Include="packagetranslations.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    <EmbeddedResource Include="packagetranslations.json">
+      <LogicalName>packagetranslations.json</LogicalName>
+    </EmbeddedResource>
     <EmbeddedResource Include="TestData\PackageDownloads.log" />
     <EmbeddedResource Include="TestData\ToolDownloads.log" />
     <EmbeddedResource Include="TestData\PackageAndToolDownloads.log" />
