@@ -17,7 +17,9 @@ namespace NuGetGallery.Features
         {
             if (user == null)
             {
-                throw new ArgumentNullException(nameof(user));
+                // The current user is null when not logged in.
+                // Return the default value if the user is not logged in.
+                return defaultValue;
             }
 
             return client.IsEnabled(flight, new FlightUser(user), defaultValue);

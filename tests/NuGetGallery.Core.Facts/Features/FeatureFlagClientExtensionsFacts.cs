@@ -11,8 +11,10 @@ namespace NuGetGallery.Features
 {
     public class FeatureFlagClientExtensionsFacts
     {
-        [Fact]
-        public void ConvertsUser()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void ConvertsUser(bool defaultValueForNull)
         {
             // Arrange
             var client = new Mock<IFeatureFlagClient>();
@@ -37,6 +39,7 @@ namespace NuGetGallery.Features
             // Act
             FeatureFlagClientExtensions.IsEnabled(client.Object, "flightA", user, defaultValue: true);
             FeatureFlagClientExtensions.IsEnabled(client.Object, "flightB", admin, defaultValue: true);
+            var result = FeatureFlagClientExtensions.IsEnabled(client.Object, "flightC", null, defaultValueForNull);
 
             // Assert
             client.Verify(
@@ -56,6 +59,15 @@ namespace NuGetGallery.Features
                         u.EmailAddress == "b@b.com" &&
                         u.IsSiteAdmin == true),
                     true));
+
+            client.Verify(
+                c => c.IsEnabled(
+                    "flightC",
+                    null,
+                    defaultValueForNull),
+                Times.Never());
+
+            Assert.Equal(defaultValueForNull, result);
         }
     }
 }
