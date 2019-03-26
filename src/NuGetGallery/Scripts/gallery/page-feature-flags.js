@@ -57,6 +57,14 @@ function FlightViewModel(name, existed, all, siteAdmins, accounts, domains) {
             return 'You are disabling a feature named ' + self.name() + ' for all users that was enabled before.';
         }
 
+        if (self.siteAdmins() && !self.wasSiteAdmins) {
+            return 'You are enabling a flight named ' + self.name() + ' for site admins that was disabled before.';
+        }
+
+        if (!self.siteAdmins() && self.wasSiteAdmins) {
+            return 'You are disabling a feature named ' + self.name() + ' for site admins that was enabled before.';
+        }
+
         return null;
     }, this);
 
