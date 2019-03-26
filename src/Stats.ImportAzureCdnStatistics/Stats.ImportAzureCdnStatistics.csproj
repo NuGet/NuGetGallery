@@ -88,9 +88,9 @@
     <EmbeddedResource Include="knownclients.yaml">
       <LogicalName>knownclients.yaml</LogicalName>
     </EmbeddedResource>
-    <None Include="packagetranslations.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    <EmbeddedResource Include="packagetranslations.json">
+      <LogicalName>packagetranslations.json</LogicalName>
+    </EmbeddedResource>
     <None Include="Scripts\*" />
     <None Include="Settings\dev.json" />
     <None Include="Settings\int.json" />

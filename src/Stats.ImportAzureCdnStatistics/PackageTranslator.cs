@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json.Linq;
 
@@ -14,15 +15,15 @@ namespace Stats.ImportAzureCdnStatistics
         private readonly Dictionary<string, List<PackageTranslation>> _packageTranslations
             = new Dictionary<string, List<PackageTranslation>>(StringComparer.OrdinalIgnoreCase);
 
-        public PackageTranslator(string packageTranslationsJsonPath)
+        public PackageTranslator()
         {
-            if (!File.Exists(packageTranslationsJsonPath))
-            {
-                throw new FileNotFoundException("Could not find file.", packageTranslationsJsonPath);
-            }
+            JObject packageTranslationsJson;
 
-            var packageTranslationsJson = JObject.Parse(
-                File.ReadAllText(packageTranslationsJsonPath));
+            using (var stream = GetPackageTranslationsStream())
+            using (var reader = new StreamReader(stream))
+            {
+                packageTranslationsJson = JObject.Parse(reader.ReadToEnd());
+            }
 
             var packageTranslationsArray = (JArray) packageTranslationsJson["translations"];
             foreach (var packageTranslationJson in packageTranslationsArray.Children<JObject>())
@@ -71,6 +72,11 @@ namespace Stats.ImportAzureCdnStatistics
             }
 
             return translateOccurred;
+        }
+
+        internal virtual Stream GetPackageTranslationsStream()
+        {
+            return Assembly.GetExecutingAssembly().GetManifestResourceStream("packagetranslations.json");
         }
     }
 }

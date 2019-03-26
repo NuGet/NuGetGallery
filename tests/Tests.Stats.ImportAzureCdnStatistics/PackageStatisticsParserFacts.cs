@@ -43,7 +43,7 @@ namespace Tests.Stats.ImportAzureCdnStatistics
             // Arrange
             var logEntry = GetCdnLogEntry($"http://test.me/{packageId}.{packageVersion}.nupkg");
 
-            var translator = new PackageTranslator("packagetranslations.json");
+            var translator = new TestablePackageTranslator();
             var statsParser = new PackageStatisticsParser(translator, new LoggerFactory());
 
             // Act

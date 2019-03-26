@@ -7,7 +7,7 @@ echo "Starting job - #{Jobs.Validation.Symbols.Title}"
 
 title #{Jobs.Validation.Symbols.Title}
 
-start /w Validation.Symbols.exe ^
+start /w Validation.Symbols.Job.exe ^
     -Configuration #{Jobs.validation.SymbolValidation.Configuration} ^
     -InstrumentationKey "#{Jobs.validation.SymbolValidation.InstrumentationKey}"
 
