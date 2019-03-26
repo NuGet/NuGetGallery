@@ -2327,7 +2327,7 @@ namespace NuGetGallery
                     case ValidationIssueCode.SymbolErrorCode_PdbIsNotPortable:
                         return "The uploaded symbols package contains one or more pdbs that are not portable.";
                     case ValidationIssueCode.SymbolErrorCode_SnupkgDoesNotContainSymbols:
-                        return "The uploaded symbols package does not contain any symbols.";
+                        return "The uploaded symbols package does not contain any symbol files.";
                     case ValidationIssueCode.SymbolErrorCode_SnupkgContainsEntriesNotSafeForExtraction:
                         return "The uploaded symbols package contains entries that are not safe for extraction.";
                     default:
