@@ -1079,6 +1079,60 @@ namespace NuGetGallery
             [Theory]
             [InlineData(false)]
             [InlineData(true)]
+            public async Task DoesNotShowDeprecationToLoggedOutUsers(bool isDeprecationEnabled)
+            {
+                var featureFlagService = new Mock<IFeatureFlagService>();
+                var packageService = new Mock<IPackageService>();
+                var deprecationService = new Mock<IPackageDeprecationService>();
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService,
+                    featureFlagService: featureFlagService,
+                    deprecationService: deprecationService);
+
+                var id = "Foo";
+                var package = new Package()
+                {
+                    PackageRegistration = new PackageRegistration()
+                    {
+                        Id = id,
+                        Owners = new List<User>()
+                    },
+                    Version = "01.1.01",
+                    NormalizedVersion = "1.1.1",
+                    Title = "A test package!"
+                };
+
+                var packages = new[] { package };
+                packageService
+                    .Setup(p => p.FindPackagesById(id, PackageDeprecationFieldsToInclude.Deprecation))
+                    .Returns(packages);
+
+                packageService
+                    .Setup(p => p.FilterLatestPackage(packages, SemVerLevelKey.SemVer2, true))
+                    .Returns(package);
+
+                featureFlagService
+                    .Setup(x => x.IsManageDeprecationEnabled(It.IsAny<User>()))
+                    .Returns(isDeprecationEnabled);
+
+                deprecationService
+                    .Setup(x => x.GetDeprecationByPackage(package))
+                    .Verifiable();
+
+                // Arrange and Act
+                var result = await controller.DisplayPackage(id, version: null);
+
+                // Assert
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
+                Assert.False(model.IsPackageDeprecationEnabled);
+
+                deprecationService.Verify();
+            }
+
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
             public async Task ShowsDeprecationIfEnabled(bool isDeprecationEnabled)
             {
                 var featureFlagService = new Mock<IFeatureFlagService>();
