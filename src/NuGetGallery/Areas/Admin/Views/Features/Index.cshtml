@@ -30,23 +30,24 @@
         </p>
     }
 
-    <div class="form-group danger-zone">
-        <text>
-            @using (Html.BeginForm("Index", "Features", FormMethod.Post))
-            {
-                @Html.AntiForgeryToken()
-                @Html.Hidden("ContentId", Model.ContentId)
+    <script type="text/javascript">
 
-                <div class="form-group @Html.HasErrorFor(m => m.Flags)">
-                    @Html.ShowLabelFor(m => m.Flags)
-                    @Html.ShowTextAreaFor(m => m.Flags, rows: 30, columns: 50)
-                    @Html.ShowValidationMessagesFor(m => m.Flags)
-                </div>
-
-                <div class="form-group">
-                    <input id="Submit" type="submit" class="btn btn-primary form-control" value="Save" />
-                </div>
-            }
-        </text>
-    </div>
+    </script>
 </section>
+
+<script type="text/html" id="feature-flags">
+    <h2>
+        Flags
+    </h2>
+    <div data-bind="foreach: ">
+
+    </div>
+</script>
+
+<script type="text/html" id="flag">
+
+</script>
+
+<script type="text/html" id="flight">
+
+</script>
