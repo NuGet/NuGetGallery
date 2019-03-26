@@ -2125,6 +2125,7 @@
     </PackageReference>
     <PackageReference Include="NuGet.Services.Licenses">
       <Version>2.44.0</Version>
+      <Version>2.44.0-loshar-anonymous-flights-2530168</Version>
     </PackageReference>
     <PackageReference Include="NuGet.StrongName.AnglicanGeek.MarkdownMailer">
       <Version>1.2.0</Version>
@@ -2358,6 +2359,16 @@
     </PackageReference>
     <PackageReference Include="NuGet.Services.Sql">
       <Version>2.44.0</Version>
+      <Version>2.44.0-loshar-anonymous-flights-2530168</Version>
+    </PackageReference>
+    <PackageReference Include="NuGet.Services.Logging">
+      <Version>2.44.0-loshar-anonymous-flights-2530168</Version>
+    </PackageReference>
+    <PackageReference Include="NuGet.Services.Owin">
+      <Version>2.44.0-loshar-anonymous-flights-2530168</Version>
+    </PackageReference>
+    <PackageReference Include="NuGet.Services.Sql">
+      <Version>2.44.0-loshar-anonymous-flights-2530168</Version>
     </PackageReference>
     <PackageReference Include="Owin">
       <Version>1.0.0</Version>
