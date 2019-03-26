@@ -45,6 +45,11 @@ namespace NuGetGallery
 
         public bool IsManageDeprecationEnabled(User user)
         {
+            if (user == null)
+            {
+                return false;
+            }
+
             return _client.IsEnabled(ManageDeprecationFeatureName, user, defaultValue: false);
         }
 
