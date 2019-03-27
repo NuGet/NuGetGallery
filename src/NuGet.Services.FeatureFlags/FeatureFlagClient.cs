@@ -84,19 +84,23 @@ namespace NuGet.Services.FeatureFlags
                 return true;
             }
 
-            if (flight.Accounts.Contains(user.Username, StringComparer.OrdinalIgnoreCase))
+            // The user object may be null if the user is anonymous.
+            if (user != null)
             {
-                return true;
-            }
+                if (flight.Accounts.Contains(user.Username, StringComparer.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
 
-            if (TryParseEmailDomain(user.EmailAddress, out var domain) && flight.Domains.Contains(domain, StringComparer.OrdinalIgnoreCase))
-            {
-                return true;
-            }
+                if (TryParseEmailDomain(user.EmailAddress, out var domain) && flight.Domains.Contains(domain, StringComparer.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
 
-            if (flight.SiteAdmins && user.IsSiteAdmin)
-            {
-                return true;
+                if (flight.SiteAdmins && user.IsSiteAdmin)
+                {
+                    return true;
+                }
             }
 
             return false;

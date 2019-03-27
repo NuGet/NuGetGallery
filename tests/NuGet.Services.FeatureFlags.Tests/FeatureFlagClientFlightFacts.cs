@@ -25,6 +25,7 @@ namespace NuGet.Services.FeatureFlags.Tests
                     .Returns<FeatureFlags>(null);
 
                 Assert.Equal(defaultValue, _target.IsEnabled("Flight", _user, defaultValue));
+                Assert.Equal(defaultValue, _target.IsEnabled("Flight", _anonymous, defaultValue));
             }
 
             [Theory]
@@ -42,6 +43,7 @@ namespace NuGet.Services.FeatureFlags.Tests
                     .Returns(latestFlags);
 
                 Assert.Equal(defaultValue, _target.IsEnabled("Unknown", _user, defaultValue));
+                Assert.Equal(defaultValue, _target.IsEnabled("Unknown", _anonymous, defaultValue));
             }
 
             [Theory]
@@ -63,6 +65,9 @@ namespace NuGet.Services.FeatureFlags.Tests
 
                 Assert.False(_target.IsEnabled("Flight", _admin, defaultValue));
                 Assert.False(_target.IsEnabled("flight", _admin, defaultValue));
+
+                Assert.False(_target.IsEnabled("Flight", _anonymous, defaultValue));
+                Assert.False(_target.IsEnabled("flight", _anonymous, defaultValue));
             }
 
             [Theory]
@@ -84,6 +89,9 @@ namespace NuGet.Services.FeatureFlags.Tests
 
                 Assert.True(_target.IsEnabled("Flight", _admin, defaultValue));
                 Assert.True(_target.IsEnabled("flight", _admin, defaultValue));
+
+                Assert.True(_target.IsEnabled("Flight", _anonymous, defaultValue));
+                Assert.True(_target.IsEnabled("flight", _anonymous, defaultValue));
             }
 
             [Theory]
@@ -105,6 +113,9 @@ namespace NuGet.Services.FeatureFlags.Tests
 
                 Assert.True(_target.IsEnabled("Flight", _admin, defaultValue));
                 Assert.True(_target.IsEnabled("flight", _admin, defaultValue));
+
+                Assert.False(_target.IsEnabled("Flight", _anonymous, defaultValue));
+                Assert.False(_target.IsEnabled("flight", _anonymous, defaultValue));
 
                 // Account names should be case insensitive
                 var user2 = new TestFlightUser { Username = "CASE_TEST", EmailAddress = "test@nuget.org" };
@@ -133,6 +144,9 @@ namespace NuGet.Services.FeatureFlags.Tests
                 Assert.False(_target.IsEnabled("Flight", _user, defaultValue));
                 Assert.False(_target.IsEnabled("flight", _user, defaultValue));
 
+                Assert.False(_target.IsEnabled("Flight", _anonymous, defaultValue));
+                Assert.False(_target.IsEnabled("flight", _anonymous, defaultValue));
+
                 // Domains should be case insensitive
                 var user2 = new TestFlightUser { Username = "case_test", EmailAddress = "TEST@NUGET.ORG" };
 
@@ -159,6 +173,9 @@ namespace NuGet.Services.FeatureFlags.Tests
 
                 Assert.True(_target.IsEnabled("flight", _admin, defaultValue));
                 Assert.True(_target.IsEnabled("Flight", _admin, defaultValue));
+
+                Assert.False(_target.IsEnabled("Flight", _anonymous, defaultValue));
+                Assert.False(_target.IsEnabled("flight", _anonymous, defaultValue));
             }
         }
 
@@ -169,6 +186,7 @@ namespace NuGet.Services.FeatureFlags.Tests
 
             protected readonly IFlightUser _user;
             protected readonly IFlightUser _admin;
+            protected readonly IFlightUser _anonymous;
 
             public FactsBase()
             {
@@ -191,6 +209,8 @@ namespace NuGet.Services.FeatureFlags.Tests
                     EmailAddress = "admin@nuget.org",
                     IsSiteAdmin = true,
                 };
+
+                _anonymous = null;
             }
 
             protected class TestFlightUser : IFlightUser
