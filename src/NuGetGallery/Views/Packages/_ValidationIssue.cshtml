@@ -73,6 +73,16 @@
             The uploaded symbols package contains one or more pdbs that are not portable.
         </text>
         break;
+    case ValidationIssueCode.SymbolErrorCode_SnupkgDoesNotContainSymbols:
+        <text>
+            The uploaded symbols package does not contain any symbol files.
+        </text>
+	break;
+    case ValidationIssueCode.SymbolErrorCode_SnupkgContainsEntriesNotSafeForExtraction:
+        <text>
+            The uploaded symbols package contains entries that are not safe for extraction.
+        </text>
+        break;
     default:
         <text>
             There was an unknown failure when validating your package.
