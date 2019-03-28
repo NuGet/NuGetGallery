@@ -21,8 +21,9 @@ namespace Search.GenerateAuxiliaryData
             Func<Task<SqlConnection>> openSqlConnectionAsync,
             CloudBlobContainer defaultDestinationContainer,
             string defaultVerifiedPackagesScript,
-            string defaultName)
-            : base(logger, openSqlConnectionAsync, defaultDestinationContainer, defaultName)
+            string defaultName,
+            TimeSpan commandTimeout)
+            : base(logger, openSqlConnectionAsync, defaultDestinationContainer, defaultName, commandTimeout)
         {
             _verifiedPackagesScript = defaultVerifiedPackagesScript;
         }
@@ -30,7 +31,6 @@ namespace Search.GenerateAuxiliaryData
         protected override JContainer GetResultOfQuery(SqlConnection connection)
         {
             var verifiedPackagesCommand = GetEmbeddedSqlCommand(connection, _verifiedPackagesScript);
-            verifiedPackagesCommand.CommandTimeout = 60;
 
             SqlDataReader reader = null;
 

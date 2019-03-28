@@ -47,7 +47,8 @@ namespace Tests.Search.GenerateAuxiliaryData
                 openSqlConnectionAsync: () => null,
                 defaultDestinationContainer: new CloudBlobContainer(new Uri("https://nuget.org")),
                 defaultRankingsScript: "b",
-                defaultName: "c");
+                defaultName: "c",
+                commandTimeout: TimeSpan.FromSeconds(10));
         }
     }
 }

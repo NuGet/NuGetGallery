@@ -24,19 +24,23 @@ namespace Search.GenerateAuxiliaryData
 
         private Func<Task<SqlConnection>> OpenSqlConnectionAsync { get; }
 
+        private readonly TimeSpan _commandTimeout;
+
         public SqlExporter(
             ILogger<SqlExporter> logger,
             Func<Task<SqlConnection>> openSqlConnectionAsync,
             CloudBlobContainer defaultDestinationContainer,
-            string defaultName)
+            string defaultName,
+            TimeSpan commandTimeout)
             : base(logger, defaultDestinationContainer, defaultName)
         {
             _logger = logger;
             OpenSqlConnectionAsync = openSqlConnectionAsync;
+            _commandTimeout = commandTimeout;
         }
 
         [SuppressMessage("Microsoft.Security", "CA2100", Justification = "Query string comes from embedded resource, not user input.")]
-        protected static SqlCommand GetEmbeddedSqlCommand(SqlConnection connection, string resourceName)
+        protected SqlCommand GetEmbeddedSqlCommand(SqlConnection connection, string resourceName)
         {
             using (var reader = new StreamReader(_executingAssembly.GetManifestResourceStream(_assemblyName + "." + resourceName)))
             {
@@ -44,7 +48,8 @@ namespace Search.GenerateAuxiliaryData
 
                 return new SqlCommand(commandText, connection)
                 {
-                    CommandType = CommandType.Text
+                    CommandType = CommandType.Text,
+                    CommandTimeout = (int)_commandTimeout.TotalSeconds,
                 };
             }
         }

@@ -23,8 +23,12 @@ namespace Search.GenerateAuxiliaryData
             ILogger<NestedJArrayExporter> logger,
             Func<Task<SqlConnection>> openSqlConnectionAsync,
             CloudBlobContainer defaultDestinationContainer,
-            string defaultSqlScript, string defaultName, string defaultCol0, string defaultCol1)
-            : base(logger, openSqlConnectionAsync, defaultDestinationContainer, defaultName)
+            string defaultSqlScript,
+            string defaultName,
+            string defaultCol0,
+            string defaultCol1,
+            TimeSpan commandTimeout)
+            : base(logger, openSqlConnectionAsync, defaultDestinationContainer, defaultName, commandTimeout)
         {
             Col0 = defaultCol0;
             Col1 = defaultCol1;

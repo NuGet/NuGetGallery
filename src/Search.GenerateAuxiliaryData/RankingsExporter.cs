@@ -24,8 +24,9 @@ namespace Search.GenerateAuxiliaryData
             Func<Task<SqlConnection>> openSqlConnectionAsync,
             CloudBlobContainer defaultDestinationContainer,
             string defaultRankingsScript,
-            string defaultName)
-            : base(logger, openSqlConnectionAsync, defaultDestinationContainer, defaultName)
+            string defaultName,
+            TimeSpan commandTimeout)
+            : base(logger, openSqlConnectionAsync, defaultDestinationContainer, defaultName, commandTimeout)
         {
             _rankingsTotalScript = defaultRankingsScript;
         }
@@ -34,7 +35,6 @@ namespace Search.GenerateAuxiliaryData
         {
             var rankingsTotalCommand = GetEmbeddedSqlCommand(connection, _rankingsTotalScript);
             rankingsTotalCommand.Parameters.AddWithValue(_rankingCountParameterName, _rankingCount);
-            rankingsTotalCommand.CommandTimeout = 60;
 
             return GetRankings(rankingsTotalCommand.ExecuteReader());
         }

@@ -58,7 +58,8 @@ namespace Search.GenerateAuxiliaryData
                     OpenSqlConnectionAsync<GalleryDbConfiguration>,
                     destinationContainer,
                     ScriptVerifiedPackages,
-                    OutputNameVerifiedPackages),
+                    OutputNameVerifiedPackages,
+                    Configuration.SqlCommandTimeout),
 
                 new NestedJArrayExporter(
                     LoggerFactory.CreateLogger<NestedJArrayExporter>(),
@@ -67,14 +68,16 @@ namespace Search.GenerateAuxiliaryData
                     ScriptOwners,
                     OutputNameOwners,
                     Col0Owners,
-                    Col1Owners),
+                    Col1Owners,
+                    Configuration.SqlCommandTimeout),
 
                 new RankingsExporter(
                     LoggerFactory.CreateLogger<RankingsExporter>(),
                     OpenSqlConnectionAsync<StatisticsDbConfiguration>,
                     destinationContainer,
                     ScriptRankingsTotal,
-                    OutputNameRankings),
+                    OutputNameRankings,
+                    Configuration.SqlCommandTimeout),
 
                 new BlobStorageExporter(
                     LoggerFactory.CreateLogger<BlobStorageExporter>(),
