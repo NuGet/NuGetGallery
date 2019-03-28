@@ -599,7 +599,6 @@ namespace NuGetGallery
         /// that only need a single link should call Url.User instead.
         public static RouteUrlTemplate<User> UserTemplate(
             this UrlHelper url,
-            string scheme = null,
             bool relativeUrl = true)
         {
             var routesGenerator = new Dictionary<string, Func<User, object>>
@@ -617,10 +616,28 @@ namespace NuGetGallery
             return new RouteUrlTemplate<User>(linkGenerator, routesGenerator);
         }
 
+        public static RouteUrlTemplate<string> UsernameTemplate(
+            this UrlHelper url,
+            bool relativeUrl = true)
+        {
+            var routesGenerator = new Dictionary<string, Func<string, object>>
+            {
+                { "username", u => u }
+            };
+
+            Func<RouteValueDictionary, string> linkGenerator = rv => GetActionLink(
+                url,
+                "Profiles",
+                "Users",
+                relativeUrl,
+                routeValues: rv);
+
+            return new RouteUrlTemplate<string>(linkGenerator, routesGenerator);
+        }
+
         public static string User(
             this UrlHelper url,
             string username,
-            string scheme = null,
             bool relativeUrl = true)
         {
             return GetActionLink(
@@ -892,6 +909,25 @@ namespace NuGetGallery
                 "Add",
                 "Organizations",
                 relativeUrl);
+        }
+
+        public static RouteUrlTemplate<string> ManageMyOrganizationTemplate(
+            this UrlHelper url,
+            bool relativeUrl = true)
+        {
+            var routesGenerator = new Dictionary<string, Func<string, object>>
+            {
+                { "accountName", u => u }
+            };
+
+            Func<RouteValueDictionary, string> linkGenerator = rv => GetActionLink(
+                url,
+                "ManageOrganization",
+                "Organizations",
+                relativeUrl,
+                routeValues: rv);
+
+            return new RouteUrlTemplate<string>(linkGenerator, routesGenerator);
         }
 
         public static string ManageMyOrganization(this UrlHelper url, string accountName, bool relativeUrl = true)

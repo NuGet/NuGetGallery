@@ -230,15 +230,25 @@
         });
 }
 
-@helper UserLinkWithIcon(UrlHelper url, User user)
+@helper UserLinkWithIcon(string url, User user)
 {
     <span class="ms-noWrap">
         @if (user is Organization)
         {
             <i class="ms-Icon ms-Icon--Group" aria-hidden="true"></i>
         }
-        <a href="@url.User(user.Username)" title="@user.Username">@user.Username.Abbreviate(15)</a>
+        <a href="@url" title="@user.Username">@user.Username.Abbreviate(15)</a>
     </span>
+}
+
+@helper UserLinkWithIcon(UrlHelper url, User user)
+{
+    @UserLinkWithIcon(url.User(user.Username), user)
+}
+
+@helper UserLinkWithIcon(RouteUrlTemplate<User> userTemplate, User user)
+{
+    @UserLinkWithIcon(userTemplate.Resolve(user), user)
 }
 
 @helper WriteMeta(string name, string val)
