@@ -30,12 +30,12 @@ namespace Search.GenerateAuxiliaryData
 
         public override async Task ExportAsync()
         {
-            _logger.LogInformation("Copying {ReportName} report from {ConnectionString}/{SourceName}", _name, _sourceContainer.Uri, _sourceName);
+            _logger.LogInformation("Copying {ReportName} report from {ConnectionString}/{SourceName}", Name, _sourceContainer.Uri, _sourceName);
 
             await _destinationContainer.CreateIfNotExistsAsync();
 
             var sourceCloudBlob = _sourceContainer.GetBlockBlobReference(_sourceName);
-            var destinationCloudBlob = _destinationContainer.GetBlockBlobReference(_name);
+            var destinationCloudBlob = _destinationContainer.GetBlockBlobReference(Name);
 
 
             await destinationCloudBlob.StartCopyAsync(sourceCloudBlob);
@@ -57,7 +57,7 @@ namespace Search.GenerateAuxiliaryData
                 throw new StorageException($"The blob copy operation had copy status {destinationCloudBlob.CopyState.Status} ({destinationCloudBlob.CopyState.StatusDescription}).");
             }
 
-            _logger.LogInformation("Copy of {ReportName} completed. Took: {Seconds} seconds.", _name, stopwatch.Elapsed.TotalSeconds);
+            _logger.LogInformation("Copy of {ReportName} completed. Took: {Seconds} seconds.", Name, stopwatch.Elapsed.TotalSeconds);
         }
     }
 }

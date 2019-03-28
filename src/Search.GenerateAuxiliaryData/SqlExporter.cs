@@ -34,7 +34,6 @@ namespace Search.GenerateAuxiliaryData
             TimeSpan commandTimeout)
             : base(logger, defaultDestinationContainer, defaultName)
         {
-            _logger = logger;
             OpenSqlConnectionAsync = openSqlConnectionAsync;
             _commandTimeout = commandTimeout;
         }
@@ -60,12 +59,12 @@ namespace Search.GenerateAuxiliaryData
             using (var connection = await OpenSqlConnectionAsync())
             {
                 _logger.LogInformation("Generating {ReportName} report from {DataSource}/{InitialCatalog}.",
-                    _name, connection.DataSource, connection.Database);
+                    Name, connection.DataSource, connection.Database);
 
                 result = GetResultOfQuery(connection);
             }
 
-            await WriteToBlobAsync(_logger, _destinationContainer, result.ToString(Formatting.None), _name);
+            await WriteToBlobAsync(_logger, _destinationContainer, result.ToString(Formatting.None), Name);
         }
 
         protected abstract JContainer GetResultOfQuery(SqlConnection connection);
