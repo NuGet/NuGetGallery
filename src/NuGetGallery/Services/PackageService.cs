@@ -21,8 +21,6 @@ namespace NuGetGallery
 {
     public class PackageService : CorePackageService, IPackageService
     {
-        private readonly IEntityRepository<User> _userRepository;
-        private readonly IEntityRepository<Organization> _organizationRepository;
         private readonly IAuditingService _auditingService;
         private readonly ITelemetryService _telemetryService;
         private readonly ISecurityPolicyService _securityPolicyService;
@@ -31,15 +29,11 @@ namespace NuGetGallery
             IEntityRepository<PackageRegistration> packageRegistrationRepository,
             IEntityRepository<Package> packageRepository,
             IEntityRepository<Certificate> certificateRepository,
-            IEntityRepository<User> userRepository,
-            IEntityRepository<Organization> organizationRepository,
             IAuditingService auditingService,
             ITelemetryService telemetryService,
             ISecurityPolicyService securityPolicyService)
             : base(packageRepository, packageRegistrationRepository, certificateRepository)
         {
-            _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
-            _organizationRepository = organizationRepository ?? throw new ArgumentNullException(nameof(organizationRepository));
             _auditingService = auditingService ?? throw new ArgumentNullException(nameof(auditingService));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _securityPolicyService = securityPolicyService ?? throw new ArgumentNullException(nameof(securityPolicyService));
@@ -264,24 +258,18 @@ namespace NuGetGallery
             bool includeVersions = false)
         {
             var owners = new List<User> { user };
-
-            var organizationKeys = user.Organizations.Select(o => o.OrganizationKey).ToList();
-            var organizations = _organizationRepository.GetAll()
-                .Where(o => organizationKeys.Contains(o.Key))
-                .Include(o => o.Members)
-                .Include(o => o.PackageRegistrations);
-            owners.AddRange(organizations);
+            owners.AddRange(user.Organizations.Select(o => o.Organization));
             return GetPackagesForOwners(owners, includeUnlisted, includeVersions);
         }
 
         private IEnumerable<Package> GetPackagesForOwners(IEnumerable<User> owners, bool includeUnlisted, bool includeVersions)
         {
-            var ownerKeys = owners.Select(o => o.Key);
-
-            var packages = _userRepository.GetAll()
-                .Where(u => ownerKeys.Contains(u.Key))
-                .Include(o => o.PackageRegistrations)
+            var packageRegistrationKeys = owners
                 .SelectMany(o => o.PackageRegistrations)
+                .Select(pr => pr.Key);
+
+            var packages = _packageRegistrationRepository.GetAll()
+                .Where(pr => packageRegistrationKeys.Contains(pr.Key))
                 .SelectMany(pr => pr.Packages);
 
             if (!includeUnlisted)
