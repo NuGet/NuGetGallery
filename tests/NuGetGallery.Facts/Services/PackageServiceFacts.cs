@@ -1142,8 +1142,9 @@ namespace NuGetGallery
             [Theory]
             public virtual void ReturnsAListedPackage(User currentUser, User packageOwner)
             {
-                var packageRegistration = new PackageRegistration { Id = "theId", Owners = { packageOwner } };
-                var package = new Package { Version = "1.0", PackageRegistration = packageRegistration, Listed = true, IsLatestSemVer2 = true, IsLatestStableSemVer2 = true };
+                var packageRegistration = new PackageRegistration { Key = 5, Id = "theId", Owners = { packageOwner } };
+                packageOwner.PackageRegistrations.Add(packageRegistration);
+                var package = new Package { Version = "1.0", PackageRegistration = packageRegistration, PackageRegistrationKey = packageRegistration.Key, Listed = true, IsLatestSemVer2 = true, IsLatestStableSemVer2 = true };
                 packageRegistration.Packages.Add(package);
 
                 var context = GetFakeContext();
@@ -1152,14 +1153,15 @@ namespace NuGetGallery
                 context.Packages.Add(package);
 
                 var packages = InvokeFindPackagesByOwner(currentUser, includeUnlisted: false);
-                Assert.Single(packages);
+                Assert.Contains(package, packages);
             }
 
             [Theory]
             public virtual void ReturnsNoUnlistedPackagesWhenIncludeUnlistedIsFalse(User currentUser, User packageOwner)
             {
-                var packageRegistration = new PackageRegistration { Id = "theId", Owners = { packageOwner } };
-                var package = new Package { Version = "1.0", PackageRegistration = packageRegistration, Listed = false, IsLatest = false, IsLatestStable = false };
+                var packageRegistration = new PackageRegistration { Key = 5, Id = "theId", Owners = { packageOwner } };
+                packageOwner.PackageRegistrations.Add(packageRegistration);
+                var package = new Package { Version = "1.0", PackageRegistration = packageRegistration, PackageRegistrationKey = packageRegistration.Key, Listed = false, IsLatest = false, IsLatestStable = false };
                 packageRegistration.Packages.Add(package);
 
                 var context = GetFakeContext();
@@ -1168,14 +1170,15 @@ namespace NuGetGallery
                 context.Packages.Add(package);
 
                 var packages = InvokeFindPackagesByOwner(currentUser, includeUnlisted: false);
-                Assert.Empty(packages);
+                Assert.DoesNotContain(package, packages);
             }
 
             [Theory]
             public virtual void ReturnsAnUnlistedPackageWhenIncludeUnlistedIsTrue(User currentUser, User packageOwner)
             {
-                var packageRegistration = new PackageRegistration { Id = "theId", Owners = { packageOwner } };
-                var package = new Package { Version = "1.0", PackageRegistration = packageRegistration, Listed = false, IsLatest = false, IsLatestStable = false };
+                var packageRegistration = new PackageRegistration { Key = 5, Id = "theId", Owners = { packageOwner } };
+                packageOwner.PackageRegistrations.Add(packageRegistration);
+                var package = new Package { Version = "1.0", PackageRegistration = packageRegistration, PackageRegistrationKey = packageRegistration.Key, Listed = false, IsLatest = false, IsLatestStable = false };
                 packageRegistration.Packages.Add(package);
 
                 var context = GetFakeContext();
@@ -1184,19 +1187,21 @@ namespace NuGetGallery
                 context.Packages.Add(package);
 
                 var packages = InvokeFindPackagesByOwner(currentUser, includeUnlisted: true);
-                Assert.Single(packages);
+                Assert.Contains(package, packages);
             }
 
             [Theory]
             public virtual void ReturnsAPackageForEachPackageRegistration(User currentUser, User packageOwner)
             {
-                var packageRegistrationA = new PackageRegistration { Key = 0, Id = "idA", Owners = { packageOwner } };
+                var packageRegistrationA = new PackageRegistration { Key = 5, Id = "idA", Owners = { packageOwner } };
+                packageOwner.PackageRegistrations.Add(packageRegistrationA);
                 var packageRegistrationB = new PackageRegistration { Key = 1, Id = "idB", Owners = { packageOwner } };
+                packageOwner.PackageRegistrations.Add(packageRegistrationB);
                 var packageA = new Package
                 {
                     Version = "1.0",
                     PackageRegistration = packageRegistrationA,
-                    PackageRegistrationKey = 0,
+                    PackageRegistrationKey = packageRegistrationA.Key,
                     Listed = true,
                     IsLatestSemVer2 = true,
                     IsLatestStableSemVer2 = true
@@ -1205,7 +1210,7 @@ namespace NuGetGallery
                 {
                     Version = "1.0",
                     PackageRegistration = packageRegistrationB,
-                    PackageRegistrationKey = 1,
+                    PackageRegistrationKey = packageRegistrationB.Key,
                     Listed = true,
                     IsLatestSemVer2 = true,
                     IsLatestStableSemVer2 = true
@@ -1221,7 +1226,6 @@ namespace NuGetGallery
                 context.Packages.Add(packageB);
 
                 var packages = InvokeFindPackagesByOwner(currentUser, includeUnlisted: false).ToList();
-                Assert.Equal(2, packages.Count);
                 Assert.Contains(packageA, packages);
                 Assert.Contains(packageB, packages);
             }
@@ -1229,10 +1233,10 @@ namespace NuGetGallery
             [Theory]
             public virtual void ReturnsOnlyLatestStableSemVer2PackageIfBothExist(User currentUser, User packageOwner)
             {
-                var packageRegistration = new PackageRegistration { Id = "theId", Owners = { packageOwner } };
-                var latestPackage = new Package { Version = "2.0.0-alpha", PackageRegistration = packageRegistration, Listed = true, IsLatest = true };
-                var latestSemVer2Package = new Package { Version = "2.0.0-alpha.1", PackageRegistration = packageRegistration, Listed = true, IsLatestSemVer2 = true };
-                var latestStablePackage = new Package { Version = "1.0", PackageRegistration = packageRegistration, Listed = true, IsLatestStableSemVer2 = true };
+                var packageRegistration = new PackageRegistration { Key = 5, Id = "theId", Owners = { packageOwner } };
+                packageOwner.PackageRegistrations.Add(packageRegistration);
+                var latestPackage = new Package { Version = "2.0.0-alpha", PackageRegistration = packageRegistration, PackageRegistrationKey = packageRegistration.Key, Listed = true, IsLatest = true };
+                var latestStablePackage = new Package { Version = "1.0", PackageRegistration = packageRegistration, PackageRegistrationKey = packageRegistration.Key, Listed = true, IsLatestStableSemVer2 = true };
                 packageRegistration.Packages.Add(latestPackage);
                 packageRegistration.Packages.Add(latestStablePackage);
 
@@ -1243,16 +1247,16 @@ namespace NuGetGallery
                 context.Packages.Add(latestStablePackage);
 
                 var packages = InvokeFindPackagesByOwner(currentUser, includeUnlisted: false).ToList();
-                Assert.Single(packages);
                 Assert.Contains(latestStablePackage, packages);
             }
 
             [Theory]
             public virtual void ReturnsOnlyLatestStablePackageIfNoLatestStableSemVer2Exist(User currentUser, User packageOwner)
             {
-                var packageRegistration = new PackageRegistration { Id = "theId", Owners = { packageOwner } };
-                var latestPackage = new Package { Version = "2.0.0-alpha", PackageRegistration = packageRegistration, Listed = true, IsLatest = true };
-                var latestStablePackage = new Package { Version = "1.0", PackageRegistration = packageRegistration, Listed = true, IsLatestStable = true };
+                var packageRegistration = new PackageRegistration { Key = 5, Id = "theId", Owners = { packageOwner } };
+                packageOwner.PackageRegistrations.Add(packageRegistration);
+                var latestPackage = new Package { Version = "2.0.0-alpha", PackageRegistration = packageRegistration, PackageRegistrationKey = packageRegistration.Key, Listed = true, IsLatest = true };
+                var latestStablePackage = new Package { Version = "1.0", PackageRegistration = packageRegistration, PackageRegistrationKey = packageRegistration.Key, Listed = true, IsLatestStable = true };
                 packageRegistration.Packages.Add(latestPackage);
                 packageRegistration.Packages.Add(latestStablePackage);
 
@@ -1263,7 +1267,6 @@ namespace NuGetGallery
                 context.Packages.Add(latestStablePackage);
 
                 var packages = InvokeFindPackagesByOwner(currentUser, includeUnlisted: false).ToList();
-                Assert.Single(packages);
                 Assert.Contains(latestStablePackage, packages);
             }
 
@@ -1287,44 +1290,42 @@ namespace NuGetGallery
 
                 context.Users.Add(currentUser);
 
-                var sleetLibRegistration = new PackageRegistration { Key = 0, Id = "SleetLib", Owners = { packageOwner } };
+                var sleetLibRegistration = new PackageRegistration { Key = 5, Id = "SleetLib", Owners = { packageOwner } };
+                packageOwner.PackageRegistrations.Add(sleetLibRegistration);
                 var sleetLibPackages = new[]
                 {
-                    new Package { PackageRegistrationKey = 0, Version = "2.2.24+git.f2a0cb6", PackageRegistration = sleetLibRegistration, Listed = true, IsLatestStableSemVer2 = true, IsLatestSemVer2 = true },
-                    new Package { PackageRegistrationKey = 0, Version = "2.2.18+git.4d361d8", PackageRegistration = sleetLibRegistration, Listed = true },
-                    new Package { PackageRegistrationKey = 0, Version = "2.2.16+git.c6be4b4", PackageRegistration = sleetLibRegistration, Listed = true },
-                    new Package { PackageRegistrationKey = 0, Version = "2.2.13+git.e657e80", PackageRegistration = sleetLibRegistration, Listed = true },
-                    new Package { PackageRegistrationKey = 0, Version = "2.2.9+git.4a81f0c", PackageRegistration = sleetLibRegistration, Listed = true },
-                    new Package { PackageRegistrationKey = 0, Version = "2.2.7+git.393c301", PackageRegistration = sleetLibRegistration, Listed = true },
-                    new Package { PackageRegistrationKey = 0, Version = "2.2.3+git.98f8237", PackageRegistration = sleetLibRegistration, Listed = true },
-                    new Package { PackageRegistrationKey = 0, Version = "2.2.1+git.e11393a", PackageRegistration = sleetLibRegistration, Listed = true },
-                    new Package { PackageRegistrationKey = 0, Version = "2.2.0+git.6973dc7", PackageRegistration = sleetLibRegistration, Listed = true },
-                    new Package { PackageRegistrationKey = 0, Version = "2.0.0+git.5106315", PackageRegistration = sleetLibRegistration, Listed = true },
-                    new Package { PackageRegistrationKey = 0, Version = "2.0.0-beta.19+git.hash.befdb81dbbef6fb5b8cdf147cc467f9904339cc8", PackageRegistration = sleetLibRegistration, Listed = false },
-                    new Package { PackageRegistrationKey = 0, Version = "1.1.0-beta-296", PackageRegistration = sleetLibRegistration, Listed = true, IsLatest = true }
+                    new Package { PackageRegistrationKey = sleetLibRegistration.Key, Version = "2.2.24+git.f2a0cb6", PackageRegistration = sleetLibRegistration, Listed = true, IsLatestStableSemVer2 = true, IsLatestSemVer2 = true },
+                    new Package { PackageRegistrationKey = sleetLibRegistration.Key, Version = "2.2.18+git.4d361d8", PackageRegistration = sleetLibRegistration, Listed = true },
+                    new Package { PackageRegistrationKey = sleetLibRegistration.Key, Version = "2.2.16+git.c6be4b4", PackageRegistration = sleetLibRegistration, Listed = true },
+                    new Package { PackageRegistrationKey = sleetLibRegistration.Key, Version = "2.2.13+git.e657e80", PackageRegistration = sleetLibRegistration, Listed = true },
+                    new Package { PackageRegistrationKey = sleetLibRegistration.Key, Version = "2.2.9+git.4a81f0c", PackageRegistration = sleetLibRegistration, Listed = true },
+                    new Package { PackageRegistrationKey = sleetLibRegistration.Key, Version = "2.2.7+git.393c301", PackageRegistration = sleetLibRegistration, Listed = true },
+                    new Package { PackageRegistrationKey = sleetLibRegistration.Key, Version = "2.2.3+git.98f8237", PackageRegistration = sleetLibRegistration, Listed = true },
+                    new Package { PackageRegistrationKey = sleetLibRegistration.Key, Version = "2.2.1+git.e11393a", PackageRegistration = sleetLibRegistration, Listed = true },
+                    new Package { PackageRegistrationKey = sleetLibRegistration.Key, Version = "2.2.0+git.6973dc7", PackageRegistration = sleetLibRegistration, Listed = true },
+                    new Package { PackageRegistrationKey = sleetLibRegistration.Key, Version = "2.0.0+git.5106315", PackageRegistration = sleetLibRegistration, Listed = true },
+                    new Package { PackageRegistrationKey = sleetLibRegistration.Key, Version = "2.0.0-beta.19+git.hash.befdb81dbbef6fb5b8cdf147cc467f9904339cc8", PackageRegistration = sleetLibRegistration, Listed = false },
+                    new Package { PackageRegistrationKey = sleetLibRegistration.Key, Version = "1.1.0-beta-296", PackageRegistration = sleetLibRegistration, Listed = true, IsLatest = true }
                 };
                 context.PackageRegistrations.Add(sleetLibRegistration);
-                foreach (var package in sleetLibPackages)
-                {
-                    context.Packages.Add(package);
-                }
+                sleetLibRegistration.Packages.AddRange(sleetLibPackages);
+                context.Packages.AddRange(sleetLibPackages);
 
                 var nugetCatalogReaderRegistration = new PackageRegistration { Key = 1, Id = "NuGet.CatalogReader", Owners = { packageOwner } };
+                packageOwner.PackageRegistrations.Add(nugetCatalogReaderRegistration);
                 var nugetCatalogReaderPackages = new[]
                 {
-                    new Package { PackageRegistrationKey = 1, Version = "1.5.12+git.78e44a8", PackageRegistration = nugetCatalogReaderRegistration, Listed = true, IsLatestStableSemVer2 = true, IsLatestSemVer2 = true },
-                    new Package { PackageRegistrationKey = 1, Version = "1.5.8+git.bcda3b8", PackageRegistration = nugetCatalogReaderRegistration, Listed = true },
-                    new Package { PackageRegistrationKey = 1, Version = "1.4.0+git.e2a36b6", PackageRegistration = nugetCatalogReaderRegistration, Listed = true },
-                    new Package { PackageRegistrationKey = 1, Version = "1.3.0+git.a6a89a3", PackageRegistration = nugetCatalogReaderRegistration, Listed = true },
-                    new Package { PackageRegistrationKey = 1, Version = "1.2.0", PackageRegistration = nugetCatalogReaderRegistration, Listed = true, IsLatest = true, IsLatestStable = true },
-                    new Package { PackageRegistrationKey = 1, Version = "1.1.0", PackageRegistration = nugetCatalogReaderRegistration, Listed = true },
-                    new Package { PackageRegistrationKey = 1, Version = "1.0.0", PackageRegistration = nugetCatalogReaderRegistration, Listed = true }
+                    new Package { PackageRegistrationKey = nugetCatalogReaderRegistration.Key, Version = "1.5.12+git.78e44a8", PackageRegistration = nugetCatalogReaderRegistration, Listed = true, IsLatestStableSemVer2 = true, IsLatestSemVer2 = true },
+                    new Package { PackageRegistrationKey = nugetCatalogReaderRegistration.Key, Version = "1.5.8+git.bcda3b8", PackageRegistration = nugetCatalogReaderRegistration, Listed = true },
+                    new Package { PackageRegistrationKey = nugetCatalogReaderRegistration.Key, Version = "1.4.0+git.e2a36b6", PackageRegistration = nugetCatalogReaderRegistration, Listed = true },
+                    new Package { PackageRegistrationKey = nugetCatalogReaderRegistration.Key, Version = "1.3.0+git.a6a89a3", PackageRegistration = nugetCatalogReaderRegistration, Listed = true },
+                    new Package { PackageRegistrationKey = nugetCatalogReaderRegistration.Key, Version = "1.2.0", PackageRegistration = nugetCatalogReaderRegistration, Listed = true, IsLatest = true, IsLatestStable = true },
+                    new Package { PackageRegistrationKey = nugetCatalogReaderRegistration.Key, Version = "1.1.0", PackageRegistration = nugetCatalogReaderRegistration, Listed = true },
+                    new Package { PackageRegistrationKey = nugetCatalogReaderRegistration.Key, Version = "1.0.0", PackageRegistration = nugetCatalogReaderRegistration, Listed = true }
                 };
                 context.PackageRegistrations.Add(nugetCatalogReaderRegistration);
-                foreach (var package in nugetCatalogReaderPackages)
-                {
-                    context.Packages.Add(package);
-                }
+                nugetCatalogReaderRegistration.Packages.AddRange(nugetCatalogReaderPackages);
+                context.Packages.AddRange(nugetCatalogReaderPackages);
 
                 return context;
             }
@@ -1333,7 +1334,8 @@ namespace NuGetGallery
             public virtual void ReturnsFirstIfMultiplePackagesSetToLatest(User currentUser, User packageOwner)
             {
                 // Verify behavior to work around IsLatest concurrency issue: https://github.com/NuGet/NuGetGallery/issues/2514
-                var packageRegistration = new PackageRegistration { Id = "theId", Owners = { packageOwner } };
+                var packageRegistration = new PackageRegistration { Key = 5, Id = "theId", Owners = { packageOwner } };
+                packageOwner.PackageRegistrations.Add(packageRegistration);
                 var package1 = new Package { Version = "1.0", PackageRegistration = packageRegistration, Listed = true, IsLatest = true, IsLatestStable = true };
                 var package2 = new Package { Version = "2.0", PackageRegistration = packageRegistration, Listed = true, IsLatest = true, IsLatestStable = true };
                 packageRegistration.Packages.Add(package2);
@@ -1346,20 +1348,21 @@ namespace NuGetGallery
                 context.Packages.Add(package1);
 
                 var packages = InvokeFindPackagesByOwner(currentUser, includeUnlisted: false);
-                Assert.Single(packages);
+                Assert.DoesNotContain(package1, packages);
                 Assert.Contains(package2, packages);
             }
 
             [Theory]
             public virtual void ReturnsVersionsWhenIncludedVersionsIsTrue_IncludeUnlistedTrue(User currentUser, User packageOwner)
             {
-                var packageRegistration = new PackageRegistration { Key = 0, Id = "theId", Owners = { packageOwner } };
+                var packageRegistration = new PackageRegistration { Key = 5, Id = "theId", Owners = { packageOwner } };
+                packageOwner.PackageRegistrations.Add(packageRegistration);
 
                 var package1 = new Package
                 {
                     Version = "1.0",
                     PackageRegistration = packageRegistration,
-                    PackageRegistrationKey = 0,
+                    PackageRegistrationKey = packageRegistration.Key,
                     Listed = false,
                     IsLatest = false,
                     IsLatestStable = false
@@ -1370,7 +1373,7 @@ namespace NuGetGallery
                 {
                     Version = "2.0",
                     PackageRegistration = packageRegistration,
-                    PackageRegistrationKey = 0,
+                    PackageRegistrationKey = packageRegistration.Key,
                     Listed = true,
                     IsLatest = true,
                     IsLatestStable = true
@@ -1384,13 +1387,15 @@ namespace NuGetGallery
                 context.Packages.Add(package2);
 
                 var packages = InvokeFindPackagesByOwner(currentUser, includeUnlisted: true, includeVersions: true);
-                Assert.Equal(2, packages.Count());
+                Assert.Contains(package2, packages);
+                Assert.Contains(package1, packages);
             }
 
             [Theory]
             public virtual void ReturnsVersionsWhenIncludedVersionsIsTrue_IncludeUnlistedFalse(User currentUser, User packageOwner)
             {
-                var packageRegistration = new PackageRegistration { Id = "theId", Owners = { packageOwner } };
+                var packageRegistration = new PackageRegistration { Key = 5, Id = "theId", Owners = { packageOwner } };
+                packageOwner.PackageRegistrations.Add(packageRegistration);
                 var package1 = new Package { Version = "1.0", PackageRegistration = packageRegistration, Listed = false, IsLatest = false, IsLatestStable = false };
                 packageRegistration.Packages.Add(package1);
 
@@ -1404,7 +1409,8 @@ namespace NuGetGallery
                 context.Packages.Add(package2);
 
                 var packages = InvokeFindPackagesByOwner(currentUser, includeUnlisted: false, includeVersions: true);
-                Assert.Single(packages);
+                Assert.Contains(package2, packages);
+                Assert.DoesNotContain(package1, packages);
             }
         }
 
@@ -2282,14 +2288,20 @@ namespace NuGetGallery
                 };
 
                 packageRegistration1.Owners.Add(_user1);
+                _user1.PackageRegistrations.Add(packageRegistration1);
                 packageRegistration1.Owners.Add(user2);
+                user2.PackageRegistrations.Add(packageRegistration1);
                 packageRegistration1.RequiredSigners.Add(user2);
 
                 packageRegistration2.Owners.Add(_user1);
+                _user1.PackageRegistrations.Add(packageRegistration2);
                 packageRegistration2.Owners.Add(user2);
+                user2.PackageRegistrations.Add(packageRegistration2);
 
                 packageRegistration3.Owners.Add(user2);
+                user2.PackageRegistrations.Add(packageRegistration3);
                 packageRegistration3.Owners.Add(_user1);
+                _user1.PackageRegistrations.Add(packageRegistration3);
                 packageRegistration3.RequiredSigners.Add(_user1);
 
                 var packageRegistrations = new[] { packageRegistration1, packageRegistration2, packageRegistration3 };

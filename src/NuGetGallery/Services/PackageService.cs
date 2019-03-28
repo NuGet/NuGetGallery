@@ -266,7 +266,8 @@ namespace NuGetGallery
         {
             var packageRegistrationKeys = owners
                 .SelectMany(o => o.PackageRegistrations)
-                .Select(pr => pr.Key);
+                .Select(pr => pr.Key)
+                .Distinct();
 
             var packages = _packageRegistrationRepository.GetAll()
                 .Where(pr => packageRegistrationKeys.Contains(pr.Key))

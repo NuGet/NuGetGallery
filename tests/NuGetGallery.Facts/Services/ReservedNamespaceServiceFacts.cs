@@ -400,8 +400,11 @@ namespace NuGetGallery.Services
                 var pr2 = registrations.ToList().FirstOrDefault(pr => (pr.Id == "Microsoft.Package2"));
                 var pr3 = registrations.ToList().FirstOrDefault(pr => (pr.Id == "Microsoft.AspNet.Package2"));
                 pr1.Owners.Add(owner1);
+                owner1.PackageRegistrations.Add(pr1);
                 pr2.Owners.Add(owner1);
+                owner1.PackageRegistrations.Add(pr2);
                 pr3.Owners.Add(owner2);
+                owner2.PackageRegistrations.Add(pr3);
 
                 var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces, users: testUsers, packageRegistrations: registrations);
 
@@ -448,9 +451,13 @@ namespace NuGetGallery.Services
                 registrations.Add(pr4);
 
                 pr1.Owners.Add(owner1);
+                owner1.PackageRegistrations.Add(pr1);
                 pr2.Owners.Add(owner1);
+                owner1.PackageRegistrations.Add(pr2);
                 pr3.Owners.Add(owner1);
+                owner1.PackageRegistrations.Add(pr3);
                 pr4.Owners.Add(owner1);
+                owner1.PackageRegistrations.Add(pr4);
 
                 var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces, users: testUsers, packageRegistrations: registrations);
 
