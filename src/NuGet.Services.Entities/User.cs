@@ -52,6 +52,7 @@ namespace NuGet.Services.Entities
             Roles = new List<Role>();
             Username = username;
             UserCertificates = new List<UserCertificate>();
+            PackageRegistrations = new List<PackageRegistration>();
         }
 
         /// <summary>
@@ -136,6 +137,8 @@ namespace NuGet.Services.Entities
         /// Gets or sets the collection of user certificates.
         /// </summary>
         public virtual ICollection<UserCertificate> UserCertificates { get; set; }
+
+        public virtual ICollection<PackageRegistration> PackageRegistrations { get; set; }
 
         public void ConfirmEmailAddress()
         {

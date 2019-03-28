@@ -113,7 +113,7 @@ namespace NuGetGallery
                 .WillCascadeOnDelete(false);
 
             modelBuilder.Entity<Scope>()
-                .HasRequired<Credential>(sc => sc.Credential)
+                .HasRequired(sc => sc.Credential)
                 .WithMany(cr => cr.Scopes)
                 .HasForeignKey(sc => sc.CredentialKey)
                 .WillCascadeOnDelete(true);
@@ -133,12 +133,12 @@ namespace NuGetGallery
                 .HasKey(u => u.Key);
 
             modelBuilder.Entity<User>()
-                .HasMany<EmailMessage>(u => u.Messages)
+                .HasMany(u => u.Messages)
                 .WithRequired(em => em.ToUser)
                 .HasForeignKey(em => em.ToUserKey);
 
             modelBuilder.Entity<User>()
-                .HasMany<Role>(u => u.Roles)
+                .HasMany(u => u.Roles)
                 .WithMany(r => r.Users)
                 .Map(c => c.ToTable("UserRoles")
                            .MapLeftKey("UserKey")
@@ -194,7 +194,7 @@ namespace NuGetGallery
                 .HasKey(u => u.Key);
 
             modelBuilder.Entity<UserSecurityPolicy>()
-                .HasRequired<User>(p => p.User)
+                .HasRequired(p => p.User)
                 .WithMany(cr => cr.SecurityPolicies)
                 .HasForeignKey(p => p.UserKey)
                 .WillCascadeOnDelete(true);
@@ -203,14 +203,14 @@ namespace NuGetGallery
                 .HasKey(p => p.Key);
 
             modelBuilder.Entity<ReservedNamespace>()
-                .HasMany<PackageRegistration>(rn => rn.PackageRegistrations)
+                .HasMany(rn => rn.PackageRegistrations)
                 .WithMany(pr => pr.ReservedNamespaces)
                 .Map(prrn => prrn.ToTable("ReservedNamespaceRegistrations")
                                 .MapLeftKey("ReservedNamespaceKey")
                                 .MapRightKey("PackageRegistrationKey"));
 
             modelBuilder.Entity<ReservedNamespace>()
-                .HasMany<User>(pr => pr.Owners)
+                .HasMany(pr => pr.Owners)
                 .WithMany(u => u.ReservedNamespaces)
                 .Map(c => c.ToTable("ReservedNamespaceOwners")
                            .MapLeftKey("ReservedNamespaceKey")
@@ -223,7 +223,7 @@ namespace NuGetGallery
                 .HasKey(em => em.Key);
 
             modelBuilder.Entity<EmailMessage>()
-                .HasOptional<User>(em => em.FromUser)
+                .HasOptional(em => em.FromUser)
                 .WithMany()
                 .HasForeignKey(em => em.FromUserKey);
 
@@ -231,13 +231,13 @@ namespace NuGetGallery
                 .HasKey(pr => pr.Key);
 
             modelBuilder.Entity<PackageRegistration>()
-                .HasMany<Package>(pr => pr.Packages)
+                .HasMany(pr => pr.Packages)
                 .WithRequired(p => p.PackageRegistration)
                 .HasForeignKey(p => p.PackageRegistrationKey);
 
             modelBuilder.Entity<PackageRegistration>()
-                .HasMany<User>(pr => pr.Owners)
-                .WithMany()
+                .HasMany(pr => pr.Owners)
+                .WithMany(o => o.PackageRegistrations)
                 .Map(c => c.ToTable("PackageRegistrationOwners")
                            .MapLeftKey("PackageRegistrationKey")
                            .MapRightKey("UserKey"));
@@ -253,17 +253,17 @@ namespace NuGetGallery
                 .HasKey(p => p.Key);
 
             modelBuilder.Entity<Package>()
-                .HasMany<PackageAuthor>(p => p.Authors)
+                .HasMany(p => p.Authors)
                 .WithRequired(pa => pa.Package)
                 .HasForeignKey(pa => pa.PackageKey);
 
             modelBuilder.Entity<Package>()
-                .HasMany<PackageDependency>(p => p.Dependencies)
+                .HasMany(p => p.Dependencies)
                 .WithRequired(pd => pd.Package)
                 .HasForeignKey(pd => pd.PackageKey);
 
             modelBuilder.Entity<Package>()
-                .HasMany<PackageType>(p => p.PackageTypes)
+                .HasMany(p => p.PackageTypes)
                 .WithRequired(pt => pt.Package)
                 .HasForeignKey(pt => pt.PackageKey);
 
@@ -280,7 +280,7 @@ namespace NuGetGallery
                 .WillCascadeOnDelete(false);
 
             modelBuilder.Entity<PackageHistory>()
-                .HasRequired<Package>(pm => pm.Package)
+                .HasRequired(pm => pm.Package)
                 .WithMany(p => p.PackageHistories)
                 .HasForeignKey(pm => pm.PackageKey)
                 .WillCascadeOnDelete(true); // PackageHistories get deleted with their package.

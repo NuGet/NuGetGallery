@@ -441,7 +441,7 @@ namespace NuGetGallery
                 ActionsRequiringPermissions.UploadNewPackageId.IsAllowedOnBehalfOfAccount(currentUser, account),
                 ActionsRequiringPermissions.UploadNewPackageVersion.IsAllowedOnBehalfOfAccount(currentUser, account),
                 ActionsRequiringPermissions.UnlistOrRelistPackage.IsAllowedOnBehalfOfAccount(currentUser, account),
-                packageIds: PackageService.FindPackageRegistrationsByOwner(account)
+                packageIds: account.PackageRegistrations
                                 .Select(p => p.Id)
                                 .OrderBy(i => i)
                                 .ToList());

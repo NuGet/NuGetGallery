@@ -53,7 +53,7 @@ namespace NuGetGallery
             OrganizationName = user.Username;
             EmailAddress = user.EmailAddress;
             CurrentUserIsAdmin = isAdmin;
-            PackagesCount = packageService.FindPackageRegistrationsByOwner(user).Count();
+            PackagesCount = user.PackageRegistrations.Count();
             MemberCount = 0;
         }
 
