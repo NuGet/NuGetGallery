@@ -95,11 +95,6 @@ namespace NuGet.Services.Sql
         {
             var authResult = await AccessTokenCache.GetAsync(ConnectionString, clientCertificateData, Logger);
 
-            Logger?.LogInformation("Using access token {Token} for catalog {Catalog} which expires in {ExpirationMinutes}m.",
-                authResult.AccessToken.GetHashCode(),
-                ConnectionString.Sql.InitialCatalog,
-                (authResult.ExpiresOn - DateTimeOffset.Now).TotalMinutes.ToString("F2"));
-
             return authResult.AccessToken;
         }
     }
