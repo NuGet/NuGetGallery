@@ -390,10 +390,8 @@ namespace NuGetGallery
         {
             return users.Include(u => u.Roles)
                 .Include(u => u.Credentials)
-                .Include(u => u.PackageRegistrations)
                 .Include(u => u.Organizations.Select(m => m.Organization.Roles))
-                .Include(u => u.Organizations.Select(m => m.Organization.Members))
-                .Include(u => u.Organizations.Select(m => m.Organization.PackageRegistrations));
+                .Include(u => u.Organizations.Select(m => m.Organization.Members));
         }
 
         public async Task ChangeEmailAddress(User user, string newEmailAddress)
