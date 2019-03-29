@@ -627,7 +627,7 @@ namespace NuGetGallery
 
             Func<RouteValueDictionary, string> linkGenerator = rv => GetActionLink(
                 url,
-                "Profiles",
+                nameof(UsersController.Profiles),
                 "Users",
                 relativeUrl,
                 routeValues: rv);
@@ -642,7 +642,7 @@ namespace NuGetGallery
         {
             return GetActionLink(
                 url,
-                "Profiles",
+                nameof(UsersController.Profiles),
                 "Users",
                 relativeUrl,
                 routeValues:
@@ -922,7 +922,7 @@ namespace NuGetGallery
 
             Func<RouteValueDictionary, string> linkGenerator = rv => GetActionLink(
                 url,
-                "ManageOrganization",
+                nameof(OrganizationsController.ManageOrganization),
                 "Organizations",
                 relativeUrl,
                 routeValues: rv);
@@ -933,7 +933,7 @@ namespace NuGetGallery
         public static string ManageMyOrganization(this UrlHelper url, string accountName, bool relativeUrl = true)
         {
             return GetActionLink(url,
-                "ManageOrganization",
+                nameof(OrganizationsController.ManageOrganization),
                 "Organizations",
                 relativeUrl,
                 routeValues: new RouteValueDictionary
