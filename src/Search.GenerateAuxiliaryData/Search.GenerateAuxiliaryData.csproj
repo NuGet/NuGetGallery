@@ -52,6 +52,8 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RankingsExporter.cs" />
     <Compile Include="SqlExporter.cs" />
+    <Compile Include="Telemetry\ITelemetryService.cs" />
+    <Compile Include="Telemetry\TelemetryService.cs" />
     <Compile Include="VerifiedPackagesExporter.cs" />
   </ItemGroup>
   <ItemGroup>

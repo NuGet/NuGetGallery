@@ -41,6 +41,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="RankingsExporterTests.cs" />
+    <Compile Include="Telemetry\TelemetryServiceFacts.cs" />
     <Compile Include="VerifiedPackagesExporterTests.cs" />
   </ItemGroup>
   <ItemGroup>
