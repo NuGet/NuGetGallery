@@ -3,6 +3,10 @@
     var isOrganization = Model.User is Organization;
     var hasSingleOwnerMessage = isOrganization ? "You must transfer ownership of this package before you can delete your organization." : "After account deletion, this package will not have any owners.";
     var hasMultipleOwnersMessage = isOrganization ? "You do not need to transfer ownership of this package before you can delete your organization." : "After account deletion, this package will still have at least one owner.";
+    
+    var packageUrlTemplate = Url.PackageRegistrationTemplate();
+    var userTemplate = Url.UserTemplate();
+    var managePackageTemplate = Url.ManagePackageTemplate();
 }
 
 @if (!Model.Packages.Any())
@@ -31,10 +35,6 @@
                     <tbody>
                     @foreach (var package in @Model.Packages)
                     {
-                        var packageUrlTemplate = Url.PackageRegistrationTemplate();
-                        var userTemplate = Url.UserTemplate();
-                        var managePackageTemplate = Url.ManagePackageTemplate();
-
                         <tr class="manage-package-listing">
                             <td class="align-middle ">
                                 @if (package.WillBeOrphaned)

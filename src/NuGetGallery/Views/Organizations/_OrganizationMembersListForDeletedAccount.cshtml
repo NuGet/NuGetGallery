@@ -1,4 +1,7 @@
 ﻿@model DeleteOrganizationViewModel
+@{
+    var usernameTemplate = Url.UsernameTemplate();
+}
 
 <div class="row user-package-list align-left">
     <div class="col-md-12 align-left ">
@@ -20,7 +23,7 @@
                                     @GravatarHelper.Image(member.EmailAddress, 32)
                                 </td>
                                 <td class="align-middle package-id">
-                                    <a href="@Url.User(member.Username)">@member.Username.Abbreviate(35)</a>
+                                    <a href="@usernameTemplate.Resolve(member.Username)">@member.Username.Abbreviate(35)</a>
                                 </td>
                                 <td class="align-middle text-nowrap">@(member.IsAdmin ? "Administrator" : "Collaborator")</td>
                             </tr>

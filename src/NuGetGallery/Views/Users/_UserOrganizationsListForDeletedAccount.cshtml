@@ -1,4 +1,8 @@
 ﻿@model IEnumerable<ManageOrganizationsItemViewModel>
+@{ 
+    var usernameTemplate = Url.UsernameTemplate();
+    var manageOrganizationTemplate = Url.ManageMyOrganizationTemplate();
+}
 
 @if (!Model.Any())
 {
@@ -26,9 +30,6 @@
                     <tbody>
                         @foreach (var organization in Model)
                         {
-                            var usernameTemplate = Url.UsernameTemplate();
-                            var manageOrganizationTemplate = Url.ManageMyOrganizationTemplate();
-
                             <tr class="manage-package-listing">
                                 <td class="align-middle ">
                                     @if (organization.MemberCount == 1)
