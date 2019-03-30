@@ -19,7 +19,7 @@ namespace NuGetGallery
             : base(userToDelete, currentUser, packageService)
         {
             Organizations = userToDelete.Organizations
-                .Select(u => new ManageOrganizationsItemViewModel(u, packageService));
+                .Select(u => new ManageOrganizationsItemViewModel(u));
 
             HasPendingRequests = supportRequestService.GetIssues()
                 .Where(issue => 

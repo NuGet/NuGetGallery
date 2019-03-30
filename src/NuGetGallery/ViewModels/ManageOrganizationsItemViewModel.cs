@@ -48,7 +48,7 @@ namespace NuGetGallery
         /// </summary>
         public string ConfirmationToken { get; }
 
-        private ManageOrganizationsItemViewModel(User user, bool isAdmin, IPackageService packageService)
+        private ManageOrganizationsItemViewModel(User user, bool isAdmin)
         {
             OrganizationName = user.Username;
             EmailAddress = user.EmailAddress;
@@ -57,8 +57,8 @@ namespace NuGetGallery
             MemberCount = 0;
         }
 
-        public ManageOrganizationsItemViewModel(Organization organization, bool isAdmin, IPackageService packageService)
-            : this(organization as User, isAdmin, packageService)
+        public ManageOrganizationsItemViewModel(Organization organization, bool isAdmin)
+            : this(organization as User, isAdmin)
         {
             OrganizationName = organization.Username;
             EmailAddress = organization.EmailAddress ?? organization.UnconfirmedEmailAddress;
@@ -66,20 +66,20 @@ namespace NuGetGallery
             MemberCount = organization.Members.Count();
         }
 
-        public ManageOrganizationsItemViewModel(Membership membership, IPackageService packageService)
-            : this(membership.Organization, membership.IsAdmin, packageService)
+        public ManageOrganizationsItemViewModel(Membership membership)
+            : this(membership.Organization, membership.IsAdmin)
         {
         }
 
-        public ManageOrganizationsItemViewModel(MembershipRequest request, IPackageService packageService)
-            : this(request.Organization, request.IsAdmin, packageService)
+        public ManageOrganizationsItemViewModel(MembershipRequest request)
+            : this(request.Organization, request.IsAdmin)
         {
             IsPendingRequest = true;
             ConfirmationToken = request.ConfirmationToken;
         }
 
-        public ManageOrganizationsItemViewModel(OrganizationMigrationRequest request, IPackageService packageService)
-            : this(request.NewOrganization, true, packageService)
+        public ManageOrganizationsItemViewModel(OrganizationMigrationRequest request)
+            : this(request.NewOrganization, true)
         {
             IsPendingRequest = true;
             IsPendingTransformRequest = true;
