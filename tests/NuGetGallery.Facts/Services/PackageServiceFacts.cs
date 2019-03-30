@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -25,6 +26,7 @@ namespace NuGetGallery
             Mock<IEntityRepository<PackageRegistration>> packageRegistrationRepository = null,
             Mock<IEntityRepository<Package>> packageRepository = null,
             Mock<IEntityRepository<Certificate>> certificateRepository = null,
+            Mock<IEntityRepository<User>> userRepository = null,
             IAuditingService auditingService = null,
             Mock<ITelemetryService> telemetryService = null,
             Mock<ISecurityPolicyService> securityPolicyService = null,
@@ -33,6 +35,7 @@ namespace NuGetGallery
             packageRegistrationRepository = packageRegistrationRepository ?? new Mock<IEntityRepository<PackageRegistration>>();
             packageRepository = packageRepository ?? new Mock<IEntityRepository<Package>>();
             certificateRepository = certificateRepository ?? new Mock<IEntityRepository<Certificate>>();
+            userRepository = userRepository ?? new Mock<IEntityRepository<User>>();
             auditingService = auditingService ?? new TestAuditingService();
             telemetryService = telemetryService ?? new Mock<ITelemetryService>();
             securityPolicyService = securityPolicyService ?? new Mock<ISecurityPolicyService>();
@@ -41,6 +44,7 @@ namespace NuGetGallery
                 packageRegistrationRepository.Object,
                 packageRepository.Object,
                 certificateRepository.Object,
+                userRepository.Object,
                 auditingService,
                 telemetryService.Object,
                 securityPolicyService.Object);
@@ -975,10 +979,14 @@ namespace NuGetGallery
             {
                 get
                 {
-                    var roles = TheFindPackagesByOwnersMethodsBase.CreateTestUserRoles();
+                    var getAdmin = new Func<TheFindPackagesByOwnersMethodsUserRoles, User>(
+                        roles => roles.Admin);
 
-                    yield return new object[] { roles.Admin, roles.Admin };
-                    yield return new object[] { roles.Organization, roles.Organization };
+                    var getOrganization = new Func<TheFindPackagesByOwnersMethodsUserRoles, User>(
+                        roles => roles.Organization);
+
+                    yield return new object[] { getAdmin, getAdmin };
+                    yield return new object[] { getOrganization, getOrganization };
                 }
             }
 
@@ -986,46 +994,6 @@ namespace NuGetGallery
             {
                 return PackageService.FindPackagesByOwner(user, includeUnlisted, includeVersions);
             }
-
-            [MemberData(nameof(TestData_RoleVariants))]
-            public override void ReturnsAListedPackage(User currentUser, User packageOwner)
-              => base.ReturnsAListedPackage(currentUser, packageOwner);
-
-            [MemberData(nameof(TestData_RoleVariants))]
-            public override void ReturnsNoUnlistedPackagesWhenIncludeUnlistedIsFalse(User currentUser, User packageOwner)
-              => base.ReturnsNoUnlistedPackagesWhenIncludeUnlistedIsFalse(currentUser, packageOwner);
-
-            [MemberData(nameof(TestData_RoleVariants))]
-            public override void ReturnsAnUnlistedPackageWhenIncludeUnlistedIsTrue(User currentUser, User packageOwner)
-              => base.ReturnsAnUnlistedPackageWhenIncludeUnlistedIsTrue(currentUser, packageOwner);
-
-            [MemberData(nameof(TestData_RoleVariants))]
-            public override void ReturnsAPackageForEachPackageRegistration(User currentUser, User packageOwner)
-              => base.ReturnsAPackageForEachPackageRegistration(currentUser, packageOwner);
-
-            [MemberData(nameof(TestData_RoleVariants))]
-            public override void ReturnsOnlyLatestStableSemVer2PackageIfBothExist(User currentUser, User packageOwner)
-              => base.ReturnsOnlyLatestStableSemVer2PackageIfBothExist(currentUser, packageOwner);
-
-            [MemberData(nameof(TestData_RoleVariants))]
-            public override void ReturnsOnlyLatestStablePackageIfNoLatestStableSemVer2Exist(User currentUser, User packageOwner)
-              => base.ReturnsOnlyLatestStablePackageIfNoLatestStableSemVer2Exist(currentUser, packageOwner);
-
-            [MemberData(nameof(TestData_RoleVariants))]
-            public override void ReturnsCorrectLatestVersionForMixedSemVer2AndNonSemVer2PackageVersions_IncludeUnlistedTrue(User currentUser, User packageOwner)
-                => base.ReturnsCorrectLatestVersionForMixedSemVer2AndNonSemVer2PackageVersions_IncludeUnlistedTrue(currentUser, packageOwner);
-
-            [MemberData(nameof(TestData_RoleVariants))]
-            public override void ReturnsFirstIfMultiplePackagesSetToLatest(User currentUser, User packageOwner)
-              => base.ReturnsFirstIfMultiplePackagesSetToLatest(currentUser, packageOwner);
-
-            [MemberData(nameof(TestData_RoleVariants))]
-            public override void ReturnsVersionsWhenIncludedVersionsIsTrue_IncludeUnlistedTrue(User currentUser, User packageOwner)
-              => base.ReturnsVersionsWhenIncludedVersionsIsTrue_IncludeUnlistedTrue(currentUser, packageOwner);
-
-            [MemberData(nameof(TestData_RoleVariants))]
-            public override void ReturnsVersionsWhenIncludedVersionsIsTrue_IncludeUnlistedFalse(User currentUser, User packageOwner)
-              => base.ReturnsVersionsWhenIncludedVersionsIsTrue_IncludeUnlistedFalse(currentUser, packageOwner);
         }
 
         public class TheFindPackagesByAnyMatchingOwnerMethod : TheFindPackagesByOwnersMethodsBase
@@ -1034,11 +1002,18 @@ namespace NuGetGallery
             {
                 get
                 {
-                    var roles = TheFindPackagesByOwnersMethodsBase.CreateTestUserRoles();
+                    var getAdmin = new Func<TheFindPackagesByOwnersMethodsUserRoles, User>(
+                        roles => roles.Admin);
 
-                    yield return new object[] { roles.Admin, roles.Admin };
-                    yield return new object[] { roles.Admin, roles.Organization };
-                    yield return new object[] { roles.Collaborator, roles.Organization };
+                    var getCollaborator = new Func<TheFindPackagesByOwnersMethodsUserRoles, User>(
+                        roles => roles.Collaborator);
+
+                    var getOrganization = new Func<TheFindPackagesByOwnersMethodsUserRoles, User>(
+                        roles => roles.Organization);
+
+                    yield return new object[] { getAdmin, getAdmin };
+                    yield return new object[] { getAdmin, getOrganization };
+                    yield return new object[] { getCollaborator, getOrganization };
                 }
             }
 
@@ -1046,60 +1021,11 @@ namespace NuGetGallery
             {
                 return PackageService.FindPackagesByAnyMatchingOwner(user, includeUnlisted, includeVersions);
             }
-
-            [MemberData(nameof(TestData_RoleVariants))]
-            public override void ReturnsAListedPackage(User currentUser, User packageOwner)
-              => base.ReturnsAListedPackage(currentUser, packageOwner);
-
-            [MemberData(nameof(TestData_RoleVariants))]
-            public override void ReturnsNoUnlistedPackagesWhenIncludeUnlistedIsFalse(User currentUser, User packageOwner)
-              => base.ReturnsNoUnlistedPackagesWhenIncludeUnlistedIsFalse(currentUser, packageOwner);
-
-            [MemberData(nameof(TestData_RoleVariants))]
-            public override void ReturnsAnUnlistedPackageWhenIncludeUnlistedIsTrue(User currentUser, User packageOwner)
-              => base.ReturnsAnUnlistedPackageWhenIncludeUnlistedIsTrue(currentUser, packageOwner);
-
-            [MemberData(nameof(TestData_RoleVariants))]
-            public override void ReturnsAPackageForEachPackageRegistration(User currentUser, User packageOwner)
-              => base.ReturnsAPackageForEachPackageRegistration(currentUser, packageOwner);
-
-            [MemberData(nameof(TestData_RoleVariants))]
-            public override void ReturnsOnlyLatestStableSemVer2PackageIfBothExist(User currentUser, User packageOwner)
-              => base.ReturnsOnlyLatestStableSemVer2PackageIfBothExist(currentUser, packageOwner);
-
-            [MemberData(nameof(TestData_RoleVariants))]
-            public override void ReturnsOnlyLatestStablePackageIfNoLatestStableSemVer2Exist(User currentUser, User packageOwner)
-              => base.ReturnsOnlyLatestStablePackageIfNoLatestStableSemVer2Exist(currentUser, packageOwner);
-
-            [MemberData(nameof(TestData_RoleVariants))]
-            public override void ReturnsCorrectLatestVersionForMixedSemVer2AndNonSemVer2PackageVersions_IncludeUnlistedTrue(User currentUser, User packageOwner)
-                => base.ReturnsCorrectLatestVersionForMixedSemVer2AndNonSemVer2PackageVersions_IncludeUnlistedTrue(currentUser, packageOwner);
-
-            [MemberData(nameof(TestData_RoleVariants))]
-            public override void ReturnsFirstIfMultiplePackagesSetToLatest(User currentUser, User packageOwner)
-              => base.ReturnsFirstIfMultiplePackagesSetToLatest(currentUser, packageOwner);
-
-            [MemberData(nameof(TestData_RoleVariants))]
-            public override void ReturnsVersionsWhenIncludedVersionsIsTrue_IncludeUnlistedTrue(User currentUser, User packageOwner)
-              => base.ReturnsVersionsWhenIncludedVersionsIsTrue_IncludeUnlistedTrue(currentUser, packageOwner);
-
-            [MemberData(nameof(TestData_RoleVariants))]
-            public override void ReturnsVersionsWhenIncludedVersionsIsTrue_IncludeUnlistedFalse(User currentUser, User packageOwner)
-              => base.ReturnsVersionsWhenIncludedVersionsIsTrue_IncludeUnlistedFalse(currentUser, packageOwner);
         }
 
         public abstract class TheFindPackagesByOwnersMethodsBase : TestContainer
         {
-            public abstract IEnumerable<Package> InvokeFindPackagesByOwner(User user, bool includeUnlisted, bool includeVersions = false);
-
-            protected class TestUserRoles
-            {
-                public User Admin { get; set; }
-                public User Collaborator { get; set; }
-                public User Organization { get; set; }
-            }
-
-            protected static TestUserRoles CreateTestUserRoles()
+            public TheFindPackagesByOwnersMethodsBase()
             {
                 var organization = new Organization { Key = 0, Username = "organization" };
 
@@ -1123,13 +1049,24 @@ namespace NuGetGallery
                 organization.Members.Add(collaboratorMembership);
                 collaborator.Organizations.Add(collaboratorMembership);
 
-                return new TestUserRoles
+                UserRoles = new TheFindPackagesByOwnersMethodsUserRoles
                 {
                     Organization = organization,
                     Admin = admin,
                     Collaborator = collaborator
                 };
             }
+
+            public class TheFindPackagesByOwnersMethodsUserRoles
+            {
+                public User Admin { get; set; }
+                public User Collaborator { get; set; }
+                public User Organization { get; set; }
+            }
+
+            protected TheFindPackagesByOwnersMethodsUserRoles UserRoles { get; }
+
+            public abstract IEnumerable<Package> InvokeFindPackagesByOwner(User user, bool includeUnlisted, bool includeVersions = false);
 
             protected IPackageService PackageService
             {
@@ -1140,8 +1077,12 @@ namespace NuGetGallery
             }
 
             [Theory]
-            public virtual void ReturnsAListedPackage(User currentUser, User packageOwner)
+            [MemberData("TestData_RoleVariants")]
+            public virtual void ReturnsAListedPackage(Func<TheFindPackagesByOwnersMethodsUserRoles, User> getCurrentUser, Func<TheFindPackagesByOwnersMethodsUserRoles, User> getPackageOwner)
             {
+                var currentUser = getCurrentUser(UserRoles);
+                var packageOwner = getPackageOwner(UserRoles);
+
                 var packageRegistration = new PackageRegistration { Key = 5, Id = "theId", Owners = { packageOwner } };
                 packageOwner.PackageRegistrations.Add(packageRegistration);
                 var package = new Package { Version = "1.0", PackageRegistration = packageRegistration, PackageRegistrationKey = packageRegistration.Key, Listed = true, IsLatestSemVer2 = true, IsLatestStableSemVer2 = true };
@@ -1152,13 +1093,21 @@ namespace NuGetGallery
                 context.PackageRegistrations.Add(packageRegistration);
                 context.Packages.Add(package);
 
+                GetMock<IEntityRepository<User>>()
+                    .Setup(x => x.GetAll())
+                    .Returns(new[] { currentUser }.AsQueryable());
+
                 var packages = InvokeFindPackagesByOwner(currentUser, includeUnlisted: false);
                 Assert.Contains(package, packages);
             }
 
             [Theory]
-            public virtual void ReturnsNoUnlistedPackagesWhenIncludeUnlistedIsFalse(User currentUser, User packageOwner)
+            [MemberData("TestData_RoleVariants")]
+            public virtual void ReturnsNoUnlistedPackagesWhenIncludeUnlistedIsFalse(Func<TheFindPackagesByOwnersMethodsUserRoles, User> getCurrentUser, Func<TheFindPackagesByOwnersMethodsUserRoles, User> getPackageOwner)
             {
+                var currentUser = getCurrentUser(UserRoles);
+                var packageOwner = getPackageOwner(UserRoles);
+
                 var packageRegistration = new PackageRegistration { Key = 5, Id = "theId", Owners = { packageOwner } };
                 packageOwner.PackageRegistrations.Add(packageRegistration);
                 var package = new Package { Version = "1.0", PackageRegistration = packageRegistration, PackageRegistrationKey = packageRegistration.Key, Listed = false, IsLatest = false, IsLatestStable = false };
@@ -1168,14 +1117,22 @@ namespace NuGetGallery
                 context.Users.Add(currentUser);
                 context.PackageRegistrations.Add(packageRegistration);
                 context.Packages.Add(package);
+
+                GetMock<IEntityRepository<User>>()
+                    .Setup(x => x.GetAll())
+                    .Returns(new[] { currentUser }.AsQueryable());
 
                 var packages = InvokeFindPackagesByOwner(currentUser, includeUnlisted: false);
                 Assert.DoesNotContain(package, packages);
             }
 
             [Theory]
-            public virtual void ReturnsAnUnlistedPackageWhenIncludeUnlistedIsTrue(User currentUser, User packageOwner)
+            [MemberData("TestData_RoleVariants")]
+            public virtual void ReturnsAnUnlistedPackageWhenIncludeUnlistedIsTrue(Func<TheFindPackagesByOwnersMethodsUserRoles, User> getCurrentUser, Func<TheFindPackagesByOwnersMethodsUserRoles, User> getPackageOwner)
             {
+                var currentUser = getCurrentUser(UserRoles);
+                var packageOwner = getPackageOwner(UserRoles);
+
                 var packageRegistration = new PackageRegistration { Key = 5, Id = "theId", Owners = { packageOwner } };
                 packageOwner.PackageRegistrations.Add(packageRegistration);
                 var package = new Package { Version = "1.0", PackageRegistration = packageRegistration, PackageRegistrationKey = packageRegistration.Key, Listed = false, IsLatest = false, IsLatestStable = false };
@@ -1186,13 +1143,21 @@ namespace NuGetGallery
                 context.PackageRegistrations.Add(packageRegistration);
                 context.Packages.Add(package);
 
+                GetMock<IEntityRepository<User>>()
+                    .Setup(x => x.GetAll())
+                    .Returns(new[] { currentUser }.AsQueryable());
+
                 var packages = InvokeFindPackagesByOwner(currentUser, includeUnlisted: true);
                 Assert.Contains(package, packages);
             }
 
             [Theory]
-            public virtual void ReturnsAPackageForEachPackageRegistration(User currentUser, User packageOwner)
+            [MemberData("TestData_RoleVariants")]
+            public virtual void ReturnsAPackageForEachPackageRegistration(Func<TheFindPackagesByOwnersMethodsUserRoles, User> getCurrentUser, Func<TheFindPackagesByOwnersMethodsUserRoles, User> getPackageOwner)
             {
+                var currentUser = getCurrentUser(UserRoles);
+                var packageOwner = getPackageOwner(UserRoles);
+
                 var packageRegistrationA = new PackageRegistration { Key = 5, Id = "idA", Owners = { packageOwner } };
                 packageOwner.PackageRegistrations.Add(packageRegistrationA);
                 var packageRegistrationB = new PackageRegistration { Key = 1, Id = "idB", Owners = { packageOwner } };
@@ -1225,14 +1190,22 @@ namespace NuGetGallery
                 context.Packages.Add(packageA);
                 context.Packages.Add(packageB);
 
+                GetMock<IEntityRepository<User>>()
+                    .Setup(x => x.GetAll())
+                    .Returns(new[] { currentUser }.AsQueryable());
+
                 var packages = InvokeFindPackagesByOwner(currentUser, includeUnlisted: false).ToList();
                 Assert.Contains(packageA, packages);
                 Assert.Contains(packageB, packages);
             }
 
             [Theory]
-            public virtual void ReturnsOnlyLatestStableSemVer2PackageIfBothExist(User currentUser, User packageOwner)
+            [MemberData("TestData_RoleVariants")]
+            public virtual void ReturnsOnlyLatestStableSemVer2PackageIfBothExist(Func<TheFindPackagesByOwnersMethodsUserRoles, User> getCurrentUser, Func<TheFindPackagesByOwnersMethodsUserRoles, User> getPackageOwner)
             {
+                var currentUser = getCurrentUser(UserRoles);
+                var packageOwner = getPackageOwner(UserRoles);
+
                 var packageRegistration = new PackageRegistration { Key = 5, Id = "theId", Owners = { packageOwner } };
                 packageOwner.PackageRegistrations.Add(packageRegistration);
                 var latestPackage = new Package { Version = "2.0.0-alpha", PackageRegistration = packageRegistration, PackageRegistrationKey = packageRegistration.Key, Listed = true, IsLatest = true };
@@ -1246,13 +1219,21 @@ namespace NuGetGallery
                 context.Packages.Add(latestPackage);
                 context.Packages.Add(latestStablePackage);
 
+                GetMock<IEntityRepository<User>>()
+                    .Setup(x => x.GetAll())
+                    .Returns(new[] { currentUser }.AsQueryable());
+
                 var packages = InvokeFindPackagesByOwner(currentUser, includeUnlisted: false).ToList();
                 Assert.Contains(latestStablePackage, packages);
             }
 
             [Theory]
-            public virtual void ReturnsOnlyLatestStablePackageIfNoLatestStableSemVer2Exist(User currentUser, User packageOwner)
+            [MemberData("TestData_RoleVariants")]
+            public virtual void ReturnsOnlyLatestStablePackageIfNoLatestStableSemVer2Exist(Func<TheFindPackagesByOwnersMethodsUserRoles, User> getCurrentUser, Func<TheFindPackagesByOwnersMethodsUserRoles, User> getPackageOwner)
             {
+                var currentUser = getCurrentUser(UserRoles);
+                var packageOwner = getPackageOwner(UserRoles);
+
                 var packageRegistration = new PackageRegistration { Key = 5, Id = "theId", Owners = { packageOwner } };
                 packageOwner.PackageRegistrations.Add(packageRegistration);
                 var latestPackage = new Package { Version = "2.0.0-alpha", PackageRegistration = packageRegistration, PackageRegistrationKey = packageRegistration.Key, Listed = true, IsLatest = true };
@@ -1266,14 +1247,26 @@ namespace NuGetGallery
                 context.Packages.Add(latestPackage);
                 context.Packages.Add(latestStablePackage);
 
+                GetMock<IEntityRepository<User>>()
+                    .Setup(x => x.GetAll())
+                    .Returns(new[] { currentUser }.AsQueryable());
+
                 var packages = InvokeFindPackagesByOwner(currentUser, includeUnlisted: false).ToList();
                 Assert.Contains(latestStablePackage, packages);
             }
 
             [Theory]
-            public virtual void ReturnsCorrectLatestVersionForMixedSemVer2AndNonSemVer2PackageVersions_IncludeUnlistedTrue(User currentUser, User packageOwner)
+            [MemberData("TestData_RoleVariants")]
+            public virtual void ReturnsCorrectLatestVersionForMixedSemVer2AndNonSemVer2PackageVersions_IncludeUnlistedTrue(Func<TheFindPackagesByOwnersMethodsUserRoles, User> getCurrentUser, Func<TheFindPackagesByOwnersMethodsUserRoles, User> getPackageOwner)
             {
+                var currentUser = getCurrentUser(UserRoles);
+                var packageOwner = getPackageOwner(UserRoles);
+
                 var context = GetMixedVersioningPackagesContext(currentUser, packageOwner);
+
+                GetMock<IEntityRepository<User>>()
+                    .Setup(x => x.GetAll())
+                    .Returns(new[] { currentUser }.AsQueryable());
 
                 var packages = InvokeFindPackagesByOwner(currentUser, includeUnlisted: true).ToList();
 
@@ -1331,8 +1324,12 @@ namespace NuGetGallery
             }
 
             [Theory]
-            public virtual void ReturnsFirstIfMultiplePackagesSetToLatest(User currentUser, User packageOwner)
+            [MemberData("TestData_RoleVariants")]
+            public virtual void ReturnsFirstIfMultiplePackagesSetToLatest(Func<TheFindPackagesByOwnersMethodsUserRoles, User> getCurrentUser, Func<TheFindPackagesByOwnersMethodsUserRoles, User> getPackageOwner)
             {
+                var currentUser = getCurrentUser(UserRoles);
+                var packageOwner = getPackageOwner(UserRoles);
+
                 // Verify behavior to work around IsLatest concurrency issue: https://github.com/NuGet/NuGetGallery/issues/2514
                 var packageRegistration = new PackageRegistration { Key = 5, Id = "theId", Owners = { packageOwner } };
                 packageOwner.PackageRegistrations.Add(packageRegistration);
@@ -1347,14 +1344,22 @@ namespace NuGetGallery
                 context.Packages.Add(package2);
                 context.Packages.Add(package1);
 
+                GetMock<IEntityRepository<User>>()
+                    .Setup(x => x.GetAll())
+                    .Returns(new[] { currentUser }.AsQueryable());
+
                 var packages = InvokeFindPackagesByOwner(currentUser, includeUnlisted: false);
                 Assert.DoesNotContain(package1, packages);
                 Assert.Contains(package2, packages);
             }
 
             [Theory]
-            public virtual void ReturnsVersionsWhenIncludedVersionsIsTrue_IncludeUnlistedTrue(User currentUser, User packageOwner)
+            [MemberData("TestData_RoleVariants")]
+            public virtual void ReturnsVersionsWhenIncludedVersionsIsTrue_IncludeUnlistedTrue(Func<TheFindPackagesByOwnersMethodsUserRoles, User> getCurrentUser, Func<TheFindPackagesByOwnersMethodsUserRoles, User> getPackageOwner)
             {
+                var currentUser = getCurrentUser(UserRoles);
+                var packageOwner = getPackageOwner(UserRoles);
+
                 var packageRegistration = new PackageRegistration { Key = 5, Id = "theId", Owners = { packageOwner } };
                 packageOwner.PackageRegistrations.Add(packageRegistration);
 
@@ -1386,14 +1391,22 @@ namespace NuGetGallery
                 context.Packages.Add(package1);
                 context.Packages.Add(package2);
 
+                GetMock<IEntityRepository<User>>()
+                    .Setup(x => x.GetAll())
+                    .Returns(new[] { currentUser }.AsQueryable());
+
                 var packages = InvokeFindPackagesByOwner(currentUser, includeUnlisted: true, includeVersions: true);
                 Assert.Contains(package2, packages);
                 Assert.Contains(package1, packages);
             }
 
             [Theory]
-            public virtual void ReturnsVersionsWhenIncludedVersionsIsTrue_IncludeUnlistedFalse(User currentUser, User packageOwner)
+            [MemberData("TestData_RoleVariants")]
+            public virtual void ReturnsVersionsWhenIncludedVersionsIsTrue_IncludeUnlistedFalse(Func<TheFindPackagesByOwnersMethodsUserRoles, User> getCurrentUser, Func<TheFindPackagesByOwnersMethodsUserRoles, User> getPackageOwner)
             {
+                var currentUser = getCurrentUser(UserRoles);
+                var packageOwner = getPackageOwner(UserRoles);
+
                 var packageRegistration = new PackageRegistration { Key = 5, Id = "theId", Owners = { packageOwner } };
                 packageOwner.PackageRegistrations.Add(packageRegistration);
                 var package1 = new Package { Version = "1.0", PackageRegistration = packageRegistration, Listed = false, IsLatest = false, IsLatestStable = false };
@@ -1407,6 +1420,10 @@ namespace NuGetGallery
                 context.PackageRegistrations.Add(packageRegistration);
                 context.Packages.Add(package1);
                 context.Packages.Add(package2);
+
+                GetMock<IEntityRepository<User>>()
+                    .Setup(x => x.GetAll())
+                    .Returns(new[] { currentUser }.AsQueryable());
 
                 var packages = InvokeFindPackagesByOwner(currentUser, includeUnlisted: false, includeVersions: true);
                 Assert.Contains(package2, packages);

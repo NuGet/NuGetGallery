@@ -274,6 +274,7 @@ namespace NuGetGallery
         {
             var packages = owners
                 .SelectMany(o => o.PackageRegistrations)
+                .Distinct()
                 .SelectMany(pr => pr.Packages);
 
             if (!includeUnlisted)
