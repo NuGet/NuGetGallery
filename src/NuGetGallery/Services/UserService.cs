@@ -371,8 +371,7 @@ namespace NuGetGallery
             {
                 users = users.Where(u => !u.IsDeleted);
             }
-            return users.Include(u => u.Roles)
-                .Include(u => u.Credentials)
+            return IncludeUserFields(users)
                 .SingleOrDefault(u => u.Username == username);
         }
 
@@ -383,9 +382,18 @@ namespace NuGetGallery
             {
                 users = users.Where(u => !u.IsDeleted);
             }
+            return IncludeUserFields(users)
+                .SingleOrDefault(u => u.Key == key);
+        }
+
+        private IQueryable<User> IncludeUserFields(IQueryable<User> users)
+        {
             return users.Include(u => u.Roles)
                 .Include(u => u.Credentials)
-                .SingleOrDefault(u => u.Key == key);
+                .Include(u => u.PackageRegistrations)
+                .Include(u => u.Organizations.Select(m => m.Organization.Roles))
+                .Include(u => u.Organizations.Select(m => m.Organization.Members))
+                .Include(u => u.Organizations.Select(m => m.Organization.PackageRegistrations));
         }
 
         public async Task ChangeEmailAddress(User user, string newEmailAddress)

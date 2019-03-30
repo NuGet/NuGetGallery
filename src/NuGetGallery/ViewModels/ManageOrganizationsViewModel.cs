@@ -11,11 +11,11 @@ namespace NuGetGallery
     {
         public IEnumerable<ManageOrganizationsItemViewModel> Organizations { get; }
 
-        public ManageOrganizationsViewModel(User currentUser, IPackageService packageService)
+        public ManageOrganizationsViewModel(User currentUser)
         {
-            var organizations = currentUser.Organizations.Select(m => new ManageOrganizationsItemViewModel(m, packageService));
-            var pendingMemberships = currentUser.OrganizationRequests.Select(m => new ManageOrganizationsItemViewModel(m, packageService));
-            var pendingTransformations = currentUser.OrganizationMigrationRequests.Select(m => new ManageOrganizationsItemViewModel(m, packageService));
+            var organizations = currentUser.Organizations.Select(m => new ManageOrganizationsItemViewModel(m));
+            var pendingMemberships = currentUser.OrganizationRequests.Select(m => new ManageOrganizationsItemViewModel(m));
+            var pendingTransformations = currentUser.OrganizationMigrationRequests.Select(m => new ManageOrganizationsItemViewModel(m));
 
             Organizations = organizations.Concat(pendingMemberships).Concat(pendingTransformations);
         }
