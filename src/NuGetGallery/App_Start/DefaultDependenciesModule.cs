@@ -741,7 +741,6 @@ namespace NuGetGallery
                     services.AddHttpClient<IHttpClientWrapper, HttpClientWrapper>(searchClient.name, c =>
                          c.BaseAddress = searchClient.searchUri)
                     .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler() { AllowAutoRedirect = true })
-                    .AddHttpMessageHandler<TracingHttpHandler>()
                     .AddHttpMessageHandler<CorrelatingHttpClientHandler>()
                     .AddPolicyHandler(SearchClientPolicies.SearchClientFallBackCircuitBreakerPolicy(logger, searchClient.name, telemetryService))
                     .AddPolicyHandler(SearchClientPolicies.SearchClientWaitAndRetryPolicy(
