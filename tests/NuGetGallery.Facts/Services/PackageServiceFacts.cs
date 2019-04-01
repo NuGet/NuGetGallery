@@ -26,7 +26,6 @@ namespace NuGetGallery
             Mock<IEntityRepository<PackageRegistration>> packageRegistrationRepository = null,
             Mock<IEntityRepository<Package>> packageRepository = null,
             Mock<IEntityRepository<Certificate>> certificateRepository = null,
-            Mock<IEntityRepository<User>> userRepository = null,
             IAuditingService auditingService = null,
             Mock<ITelemetryService> telemetryService = null,
             Mock<ISecurityPolicyService> securityPolicyService = null,
@@ -35,7 +34,6 @@ namespace NuGetGallery
             packageRegistrationRepository = packageRegistrationRepository ?? new Mock<IEntityRepository<PackageRegistration>>();
             packageRepository = packageRepository ?? new Mock<IEntityRepository<Package>>();
             certificateRepository = certificateRepository ?? new Mock<IEntityRepository<Certificate>>();
-            userRepository = userRepository ?? new Mock<IEntityRepository<User>>();
             auditingService = auditingService ?? new TestAuditingService();
             telemetryService = telemetryService ?? new Mock<ITelemetryService>();
             securityPolicyService = securityPolicyService ?? new Mock<ISecurityPolicyService>();
@@ -44,7 +42,6 @@ namespace NuGetGallery
                 packageRegistrationRepository.Object,
                 packageRepository.Object,
                 certificateRepository.Object,
-                userRepository.Object,
                 auditingService,
                 telemetryService.Object,
                 securityPolicyService.Object);

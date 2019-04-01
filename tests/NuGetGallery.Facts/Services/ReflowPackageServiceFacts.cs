@@ -338,7 +338,6 @@ namespace NuGetGallery
             var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>();
             var packageRepository = new Mock<IEntityRepository<Package>>();
             var certificateRepository = new Mock<IEntityRepository<Certificate>>();
-            var userRepository = new Mock<IEntityRepository<User>>();
             var auditingService = new TestAuditingService();
             var telemetryService = new Mock<ITelemetryService>();
             var securityPolicyService = new Mock<ISecurityPolicyService>();
@@ -347,7 +346,6 @@ namespace NuGetGallery
                 packageRegistrationRepository.Object,
                 packageRepository.Object,
                 certificateRepository.Object,
-                userRepository.Object,
                 auditingService,
                 telemetryService.Object,
                 securityPolicyService.Object);
