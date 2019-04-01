@@ -47,7 +47,7 @@
             <div class="deprecation-section-header">
                 <b>Provide additional security details</b>
             </div>
-            <div data-bind="template: { name: 'deprecation-security-detail-list-input-template', data: cves }"></div>
+            <div data-bind="template: { name: 'deprecation-security-detail-list-input-template', data: chosenCves }"></div>
             <div class="security-detail panel panel-default">
                 <div>
                     <label>
@@ -61,7 +61,7 @@
                     <span data-bind="text: cvssRatingLabel, css: { 'text-danger': cvssRatingIsInvalid, 'cvss-bold': !cvssRatingIsInvalid() }"></span>
                 </div>
             </div>
-            <div data-bind="template: { name: 'deprecation-security-detail-list-input-template', data: cwes }"></div>
+            <div data-bind="template: { name: 'deprecation-security-detail-list-input-template', data: chosenCwes }"></div>
         </div>
         <div class="form-group unbolded-label">
             <label>

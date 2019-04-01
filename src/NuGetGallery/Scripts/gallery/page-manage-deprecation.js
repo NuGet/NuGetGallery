@@ -300,13 +300,22 @@ function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defau
     this.cvssRatingIsInvalid = ko.pureComputed(function () {
         return self.cvssRatingLabel() === invalidCvssRatingString;
     }, this);
-
-    // The CVSS rating to submit with the form.
-    this.cvssRating = ko.pureComputed(function () {
+    
+    this.chosenCvssRating = ko.pureComputed(function () {
         if (self.hasCvss()) {
             return self.selectedCvssRating();
         } else {
-            // If the CVSS section is unchecked, don't submit the CVSS rating with the form.
+            // If the CVSS section is unchecked, there is no CVSS rating chosen.
+            return null;
+        }
+    }, this);
+
+    // The CVSS rating to submit with the form.
+    this.cvssRating = ko.pureComputed(function () {
+        if (self.isVulnerable()) {
+            return self.chosenCvssRating();
+        } else {
+            // If the package is not vulnerable, don't submit the CVSS rating with the form.
             return null;
         }
     }, this);
@@ -328,7 +337,7 @@ function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defau
     };
 
     // The model for the CVEs view.
-    this.cves = new ManageDeprecationSecurityDetailListViewModel(
+    this.chosenCves = new ManageDeprecationSecurityDetailListViewModel(
         "cve",
         "CVE ID(s)",
         "Add one or more CVEs applicable to the vulnerability.",
@@ -350,8 +359,17 @@ function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defau
         "We could not find this CVE. Is it correct?",
         "NuGet.org refreshes its CVE data often and if we find this ID, your deprecation will be updated with the latest data.");
 
+    this.cves = ko.pureComputed(function () {
+        if (self.isVulnerable()) {
+            return self.chosenCves.exportIds();
+        } else {
+            // If the package is not vulnerable, do not submit the CVEs with the form.
+            return [];
+        }
+    }, this);
+
     // The model for the CWEs view
-    this.cwes = new ManageDeprecationSecurityDetailListViewModel(
+    this.chosenCwes = new ManageDeprecationSecurityDetailListViewModel(
         "cwe",
         "CWE(s)",
         "Add one or more CWEs applicable to the vulnerability.",
@@ -372,6 +390,15 @@ function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defau
         "We could not find a CWE with an ID of '{0}'. NuGet.org refreshes its CWE information often, but we might not have the latest data. Please enter a different CWE or wait and try again later.",
         null,
         null);
+
+    this.cwes = ko.pureComputed(function () {
+        if (self.isVulnerable()) {
+            return self.chosenCwes.exportIds();
+        } else {
+            // If the package is not vulnerable, do not submit the CWEs with the form.
+            return [];
+        }
+    }, this);
 
     // The ID entered into the alternate package ID textbox.
     this.chosenAlternatePackageId = ko.observable('');
@@ -481,9 +508,9 @@ function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defau
                 isVulnerable: self.isVulnerable(),
                 isLegacy: self.isLegacy(),
                 isOther: self.isOther(),
-                cveIds: self.cves.exportIds(),
+                cveIds: self.cves(),
                 cvssRating: self.cvssRating(),
-                cweIds: self.cwes.exportIds(),
+                cweIds: self.cwes(),
                 alternatePackageId: self.alternatePackageId(),
                 alternatePackageVersion: self.alternatePackageVersion(),
                 customMessage: self.customMessage()
@@ -512,9 +539,9 @@ function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defau
         versionData.IsVulnerable = self.isVulnerable();
         versionData.IsLegacy = self.isLegacy();
         versionData.IsOther = self.isOther();
-        versionData.CveIds = self.cves.export();
-        versionData.CvssRating = self.cvssRating();
-        versionData.CweIds = self.cwes.export();
+        versionData.CveIds = self.chosenCves.export();
+        versionData.CvssRating = self.chosenCvssRating();
+        versionData.CweIds = self.chosenCwes.export();
         versionData.AlternatePackageId = self.alternatePackageId();
         versionData.AlternatePackageVersion = self.alternatePackageVersion();
         versionData.CustomMessage = self.customMessage();
@@ -530,12 +557,12 @@ function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defau
         self.isLegacy(versionData.IsLegacy);
         self.isOther(versionData.IsOther);
 
-        self.cves.import(versionData.CveIds);
+        self.chosenCves.import(versionData.CveIds);
 
-        self.hasCvss(versionData.CvssRating);
+        self.hasCvss(!!versionData.CvssRating);
         self.selectedCvssRating(versionData.CvssRating);
 
-        self.cwes.import(versionData.CweIds);
+        self.chosenCwes.import(versionData.CweIds);
 
         self.chosenAlternatePackageId(versionData.AlternatePackageId);
         if (versionData.AlternatePackageVersion) {
