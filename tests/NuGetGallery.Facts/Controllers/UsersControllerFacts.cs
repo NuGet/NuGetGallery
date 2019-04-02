@@ -1348,7 +1348,7 @@ namespace NuGetGallery
                     .CreateExternalCredential("MicrosoftAccount", "blorg", "bloog"));
 
                 GetMock<AuthenticationService>()
-                    .Setup(a => a.RemoveCredential(user, cred))
+                    .Setup(a => a.RemoveCredential(user, cred, true))
                     .Completes()
                     .Verifiable();
                 var messageService = GetMock<IMessageService>();
@@ -1565,7 +1565,7 @@ namespace NuGetGallery
                     credentialBuilder.CreateExternalCredential("MicrosoftAccount", "blorg", "bloog"));
 
                 GetMock<AuthenticationService>()
-                    .Setup(a => a.RemoveCredential(user, cred))
+                    .Setup(a => a.RemoveCredential(user, cred, true))
                     .Completes()
                     .Verifiable();
 
@@ -1677,7 +1677,7 @@ namespace NuGetGallery
                     credentialBuilder.CreatePasswordCredential("password"));
 
                 GetMock<AuthenticationService>()
-                    .Setup(a => a.RemoveCredential(user, cred))
+                    .Setup(a => a.RemoveCredential(user, cred, true))
                     .Completes()
                     .Verifiable();
 
@@ -1952,8 +1952,8 @@ namespace NuGetGallery
                     .Verifiable();
 
                 GetMock<AuthenticationService>()
-                    .Setup(a => a.RemoveCredential(user, cred))
-                     .Callback<User, Credential>((u, c) => u.Credentials.Remove(c))
+                    .Setup(a => a.RemoveCredential(user, cred, true))
+                     .Callback<User, Credential, bool>((u, c, cc) => u.Credentials.Remove(c))
                     .Completes()
                     .Verifiable();
 
@@ -2056,7 +2056,7 @@ namespace NuGetGallery
 
                 var authenticationService = GetMock<AuthenticationService>();
                 authenticationService
-                    .Setup(x => x.RemoveCredential(It.IsAny<User>(), It.IsAny<Credential>()))
+                    .Setup(x => x.RemoveCredential(It.IsAny<User>(), It.IsAny<Credential>(), true))
                     .Verifiable();
 
                 var controller = GetController<UsersController>();

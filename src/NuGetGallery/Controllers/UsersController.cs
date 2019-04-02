@@ -334,7 +334,7 @@ namespace NuGetGallery
                 DeleteUserAccountStatus accountDeleteStatus = await _deleteAccountService.DeleteAccountAsync(userToBeDeleted: user,
                     userToExecuteTheDelete: user,
                     orphanPackagePolicy: AccountDeletionOrphanPackagePolicy.UnlistOrphans,
-                    commitAsTransaction: true);
+                    commitChanges: true);
                 if (!accountDeleteStatus.Success)
                 {
                     TempData["RequestFailedMessage"] = Strings.AccountSelfDelete_Fail;
@@ -394,7 +394,7 @@ namespace NuGetGallery
                     userToBeDeleted: user,
                     userToExecuteTheDelete: admin,
                     orphanPackagePolicy: model.ShouldUnlist ? AccountDeletionOrphanPackagePolicy.UnlistOrphans : AccountDeletionOrphanPackagePolicy.KeepOrphans,
-                    commitAsTransaction: true);
+                    commitChanges: true);
                 return View("DeleteUserAccountStatus", status);
             }
         }
