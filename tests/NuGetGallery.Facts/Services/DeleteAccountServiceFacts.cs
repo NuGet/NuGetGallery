@@ -38,7 +38,6 @@ namespace NuGetGallery.Services
                 await Assert.ThrowsAsync<ArgumentNullException>(() => deleteAccountService.DeleteAccountAsync(
                     null, 
                     new User("AdminUser") { Key = Key++ },
-                    commitChanges: false,
                     orphanPackagePolicy: AccountDeletionOrphanPackagePolicy.UnlistOrphans));
             }
 
@@ -57,7 +56,6 @@ namespace NuGetGallery.Services
                 await Assert.ThrowsAsync<ArgumentNullException>(() => deleteAccountService.DeleteAccountAsync(
                     new User("TestUser") { Key = Key++ },
                     null,
-                    commitChanges: false,
                     orphanPackagePolicy: AccountDeletionOrphanPackagePolicy.UnlistOrphans));
             }
 
@@ -77,11 +75,10 @@ namespace NuGetGallery.Services
                 var deleteAccountService = testableService.GetDeleteAccountService(isPackageOrphaned);
 
                 // Act
-                var result = await deleteAccountService.
-                    DeleteAccountAsync(userToBeDeleted: testUser,
-                                                userToExecuteTheDelete: testUser,
-                                                commitChanges: false,
-                                                orphanPackagePolicy: AccountDeletionOrphanPackagePolicy.UnlistOrphans);
+                var result = await deleteAccountService.DeleteAccountAsync(
+                    userToBeDeleted: testUser,
+                    userToExecuteTheDelete: testUser,
+                    orphanPackagePolicy: AccountDeletionOrphanPackagePolicy.UnlistOrphans);
                 string expected = $"The account '{testUser.Username}' was already deleted. No action was performed.";
                 Assert.Equal(expected, result.Description);
             }
@@ -122,11 +119,10 @@ namespace NuGetGallery.Services
                 var deleteAccountService = testableService.GetDeleteAccountService(isPackageOrphaned);
 
                 // Act
-                await deleteAccountService.
-                    DeleteAccountAsync(userToBeDeleted: testUser,
-                        userToExecuteTheDelete: testUser,
-                        commitChanges: false,
-                        orphanPackagePolicy: orphanPolicy);
+                await deleteAccountService.DeleteAccountAsync(
+                    userToBeDeleted: testUser,
+                    userToExecuteTheDelete: testUser,
+                    orphanPackagePolicy: orphanPolicy);
 
 
                 if (orphanPolicy == AccountDeletionOrphanPackagePolicy.DoNotAllowOrphans && isPackageOrphaned)
@@ -198,10 +194,10 @@ namespace NuGetGallery.Services
                 var deleteAccountService = testableService.GetDeleteAccountService(isPackageOrphaned);
 
                 //Act
-                var status = await deleteAccountService.DeleteAccountAsync(userToBeDeleted: testUser,
-                                                userToExecuteTheDelete: testUser,
-                                                commitChanges: false,
-                                                orphanPackagePolicy: AccountDeletionOrphanPackagePolicy.UnlistOrphans);
+                var status = await deleteAccountService.DeleteAccountAsync(
+                    userToBeDeleted: testUser,
+                    userToExecuteTheDelete: testUser,
+                    orphanPackagePolicy: AccountDeletionOrphanPackagePolicy.UnlistOrphans);
 
                 //Assert
                 Assert.True(status.Success);
@@ -251,12 +247,10 @@ namespace NuGetGallery.Services
                 var deleteAccountService = testableService.GetDeleteAccountService(isPackageOrphaned);
 
                 // Act
-                var status = await deleteAccountService.
-                    DeleteAccountAsync(
-                        organization,
-                        member,
-                        commitChanges: false,
-                        orphanPackagePolicy: orphanPolicy);
+                var status = await deleteAccountService.DeleteAccountAsync(
+                    organization,
+                    member,
+                    orphanPackagePolicy: orphanPolicy);
 
                 // Assert
                 if (orphanPolicy == AccountDeletionOrphanPackagePolicy.DoNotAllowOrphans && isPackageOrphaned)
@@ -329,12 +323,10 @@ namespace NuGetGallery.Services
                 var deleteAccountService = testableService.GetDeleteAccountService(isPackageOrphaned);
 
                 // Act
-                var status = await deleteAccountService.
-                    DeleteAccountAsync(
-                        organization,
-                        member,
-                        commitChanges: false,
-                        orphanPackagePolicy: AccountDeletionOrphanPackagePolicy.KeepOrphans);
+                var status = await deleteAccountService.DeleteAccountAsync(
+                    organization,
+                    member,
+                    orphanPackagePolicy: AccountDeletionOrphanPackagePolicy.KeepOrphans);
 
                 // Assert
                 Assert.True(status.Success);
@@ -365,8 +357,7 @@ namespace NuGetGallery.Services
                 // Act
                 var result = await deleteAccountService.DeleteAccountAsync(
                     userToBeDeleted: testUser,
-                    userToExecuteTheDelete: testUser,
-                    commitChanges: false);
+                    userToExecuteTheDelete: testUser);
 
                 // Assert
                 Assert.False(result.Success);
@@ -493,6 +484,7 @@ namespace NuGetGallery.Services
                 _user = user;
                 _user.ReservedNamespaces.Add(_reservedNamespace);
                 _user.Credentials.Add(_credential);
+                _credential.User = _user;
                 _user.SecurityPolicies.Add(_securityPolicy);
                 _userPackagesRegistration = userPackagesRegistration;
                 _userPackages = userPackagesRegistration.Packages;

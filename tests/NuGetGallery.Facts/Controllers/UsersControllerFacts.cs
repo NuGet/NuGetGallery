@@ -2473,7 +2473,7 @@ namespace NuGetGallery
                     .Returns(testUser);
 
                 GetMock<IDeleteAccountService>()
-                    .Setup(stub => stub.DeleteAccountAsync(testUser, It.IsAny<User>(), It.IsAny<bool>(), It.IsAny<AccountDeletionOrphanPackagePolicy>()))
+                    .Setup(stub => stub.DeleteAccountAsync(testUser, It.IsAny<User>(), It.IsAny<AccountDeletionOrphanPackagePolicy>()))
                     .Returns(value: Task.FromResult(new DeleteUserAccountStatus()
                     {
                         AccountName = userName,

@@ -246,7 +246,7 @@ namespace NuGetGallery
                 packageRegistrationsToMarkUnverified
                     .ForEach(pr => namespaceToModify.PackageRegistrations.Remove(pr));
 
-                await PackageService.UpdatePackageVerifiedStatusAsync(packageRegistrationsToMarkUnverified, isVerified: false);
+                await PackageService.UpdatePackageVerifiedStatusAsync(packageRegistrationsToMarkUnverified, isVerified: false, commitChanges: false);
             }
             
             if (commitChanges)

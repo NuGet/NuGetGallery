@@ -33,20 +33,20 @@ namespace NuGetGallery
         private readonly IAuditingService _auditingService;
         private readonly ITelemetryService _telemetryService;
 
-        public DeleteAccountService(IEntityRepository<AccountDelete> accountDeleteRepository,
-                                    IEntityRepository<User> userRepository,
-                                    IEntityRepository<Scope> scopeRepository,
-                                    IEntitiesContext entitiesContext,
-                                    IPackageService packageService,
-                                    IPackageOwnershipManagementService packageOwnershipManagementService,
-                                    IReservedNamespaceService reservedNamespaceService,
-                                    ISecurityPolicyService securityPolicyService,
-                                    AuthenticationService authService,
-                                    ISupportRequestService supportRequestService,
-                                    IEditableFeatureFlagStorageService featureFlagService,
-                                    IAuditingService auditingService,
-                                    ITelemetryService telemetryService
-            )
+        public DeleteAccountService(
+            IEntityRepository<AccountDelete> accountDeleteRepository,
+            IEntityRepository<User> userRepository,
+            IEntityRepository<Scope> scopeRepository,
+            IEntitiesContext entitiesContext,
+            IPackageService packageService,
+            IPackageOwnershipManagementService packageOwnershipManagementService,
+            IReservedNamespaceService reservedNamespaceService,
+            ISecurityPolicyService securityPolicyService,
+            AuthenticationService authService,
+            ISupportRequestService supportRequestService,
+            IEditableFeatureFlagStorageService featureFlagService,
+            IAuditingService auditingService,
+            ITelemetryService telemetryService)
         {
             _accountDeleteRepository = accountDeleteRepository ?? throw new ArgumentNullException(nameof(accountDeleteRepository));
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
@@ -65,7 +65,6 @@ namespace NuGetGallery
 
         public async Task<DeleteUserAccountStatus> DeleteAccountAsync(User userToBeDeleted,
             User userToExecuteTheDelete,
-            bool commitChanges,
             AccountDeletionOrphanPackagePolicy orphanPackagePolicy = AccountDeletionOrphanPackagePolicy.DoNotAllowOrphans)
         {
             if (userToBeDeleted == null)
@@ -96,8 +95,7 @@ namespace NuGetGallery
                     userToExecuteTheDelete,
                     orphanPackagePolicy),
                 userToBeDeleted,
-                userToExecuteTheDelete,
-                commitChanges);
+                userToExecuteTheDelete);
 
             _telemetryService.TrackAccountDeletionCompleted(userToBeDeleted, userToExecuteTheDelete, deleteUserAccountStatus.Success);
             return deleteUserAccountStatus;
@@ -302,7 +300,7 @@ namespace NuGetGallery
             _userRepository.DeleteOnCommit(user);
         }
 
-        private async Task<DeleteUserAccountStatus> RunAccountDeletionTask(Func<Task> getTask, User userToBeDeleted, User requestingUser, bool commitChanges)
+        private async Task<DeleteUserAccountStatus> RunAccountDeletionTask(Func<Task> getTask, User userToBeDeleted, User requestingUser)
         {
             try
             {
@@ -313,18 +311,11 @@ namespace NuGetGallery
                 await _featureFlagService.RemoveUserAsync(userToBeDeleted);
                 await RemoveSupportRequests(userToBeDeleted);
 
-                if (commitChanges)
-                {
-                    using (var strategy = new SuspendDbExecutionStrategy())
-                    using (var transaction = _entitiesContext.GetDatabase().BeginTransaction())
-                    {
-                        await getTask();
-                        transaction.Commit();
-                    }
-                }
-                else
+                using (var strategy = new SuspendDbExecutionStrategy())
+                using (var transaction = _entitiesContext.GetDatabase().BeginTransaction())
                 {
                     await getTask();
+                    transaction.Commit();
                 }
 
                 await _auditingService.SaveAuditRecordAsync(new DeleteAccountAuditRecord(username: userToBeDeleted.Username,
