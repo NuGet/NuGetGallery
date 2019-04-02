@@ -228,9 +228,9 @@
     <Compile Include="Migrations\201903020136235_CvesCanBeEmpty.Designer.cs">
       <DependentUpon>201903020136235_CvesCanBeEmpty.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\201904021848476_FixDeletedByCascades.cs" />
-    <Compile Include="Migrations\201904021848476_FixDeletedByCascades.Designer.cs">
-      <DependentUpon>201904021848476_FixDeletedByCascades.cs</DependentUpon>
+    <Compile Include="Migrations\201904022033029_FixOnDeleteSetNull.cs" />
+    <Compile Include="Migrations\201904022033029_FixOnDeleteSetNull.Designer.cs">
+      <DependentUpon>201904022033029_FixOnDeleteSetNull.cs</DependentUpon>
     </Compile>
     <Compile Include="Queries\AutocompleteCveIdQueryResults.cs" />
     <Compile Include="Queries\AutocompleteCweIdQueryResults.cs" />
@@ -1713,8 +1713,8 @@
     <EmbeddedResource Include="Migrations\201903020136235_CvesCanBeEmpty.resx">
       <DependentUpon>201903020136235_CvesCanBeEmpty.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201904021848476_FixDeletedByCascades.resx">
-      <DependentUpon>201904021848476_FixDeletedByCascades.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\201904022033029_FixOnDeleteSetNull.resx">
+      <DependentUpon>201904022033029_FixOnDeleteSetNull.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />

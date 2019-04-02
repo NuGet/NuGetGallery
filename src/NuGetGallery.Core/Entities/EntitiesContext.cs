@@ -110,7 +110,7 @@ namespace NuGetGallery
                 .HasOptional(sc => sc.Owner)
                 .WithMany()
                 .HasForeignKey(sc => sc.OwnerKey)
-                .WillCascadeOnDelete(false);
+                .WillCascadeOnDelete(true);
 
             modelBuilder.Entity<Scope>()
                 .HasRequired<Credential>(sc => sc.Credential)
@@ -131,11 +131,6 @@ namespace NuGetGallery
 
             modelBuilder.Entity<User>()
                 .HasKey(u => u.Key);
-
-            modelBuilder.Entity<User>()
-                .HasMany<EmailMessage>(u => u.Messages)
-                .WithRequired(em => em.ToUser)
-                .HasForeignKey(em => em.ToUserKey);
 
             modelBuilder.Entity<User>()
                 .HasMany<Role>(u => u.Roles)
@@ -170,7 +165,8 @@ namespace NuGetGallery
 
             modelBuilder.Entity<User>()
                 .HasOptional(u => u.OrganizationMigrationRequest)
-                .WithRequired(m => m.NewOrganization);
+                .WithRequired(m => m.NewOrganization)
+                .WillCascadeOnDelete(true);
 
             modelBuilder.Entity<User>()
                 .HasMany(u => u.OrganizationMigrationRequests)
@@ -218,14 +214,6 @@ namespace NuGetGallery
 
             modelBuilder.Entity<UserSecurityPolicy>()
                 .HasKey(p => p.Key);
-
-            modelBuilder.Entity<EmailMessage>()
-                .HasKey(em => em.Key);
-
-            modelBuilder.Entity<EmailMessage>()
-                .HasOptional<User>(em => em.FromUser)
-                .WithMany()
-                .HasForeignKey(em => em.FromUserKey);
 
             modelBuilder.Entity<PackageRegistration>()
                 .HasKey(pr => pr.Key);
@@ -303,7 +291,8 @@ namespace NuGetGallery
             modelBuilder.Entity<PackageDelete>()
                 .HasKey(pd => pd.Key)
                 .HasMany(pd => pd.Packages)
-                .WithOptional();
+                .WithOptional()
+                .WillCascadeOnDelete(false);
 
             modelBuilder.Entity<PackageDelete>()
                 .HasOptional(pd => pd.DeletedBy)

@@ -80,8 +80,6 @@ namespace NuGet.Services.Entities
         [StringLength(256)]
         public string UnconfirmedEmailAddress { get; set; }
 
-        public virtual ICollection<EmailMessage> Messages { get; set; }
-
         [StringLength(64)]
         [Required]
         public string Username { get; set; }

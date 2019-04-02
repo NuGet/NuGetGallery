@@ -56,7 +56,6 @@
     <Compile Include="CveStatus.cs" />
     <Compile Include="Cwe.cs" />
     <Compile Include="CweStatus.cs" />
-    <Compile Include="EmailMessage.cs" />
     <Compile Include="EmbeddedLicenseFileType.cs" />
     <Compile Include="EntityException.cs" />
     <Compile Include="Extensions\PackageExtensions.cs" />

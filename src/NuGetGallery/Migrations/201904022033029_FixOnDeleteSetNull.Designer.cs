@@ -7,13 +7,13 @@ namespace NuGetGallery.Migrations
     using System.Resources;
     
     [GeneratedCode("EntityFramework.Migrations", "6.1.3-40302")]
-    public sealed partial class FixDeletedByCascades : IMigrationMetadata
+    public sealed partial class FixOnDeleteSetNull : IMigrationMetadata
     {
-        private readonly ResourceManager Resources = new ResourceManager(typeof(FixDeletedByCascades));
+        private readonly ResourceManager Resources = new ResourceManager(typeof(FixOnDeleteSetNull));
         
         string IMigrationMetadata.Id
         {
-            get { return "201904021848476_FixDeletedByCascades"; }
+            get { return "201904022033029_FixOnDeleteSetNull"; }
         }
         
         string IMigrationMetadata.Source
