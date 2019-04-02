@@ -303,15 +303,22 @@ namespace NuGetGallery
             modelBuilder.Entity<PackageDelete>()
                 .HasKey(pd => pd.Key)
                 .HasMany(pd => pd.Packages)
-                    .WithOptional();
+                .WithOptional();
+
+            modelBuilder.Entity<PackageDelete>()
+                .HasOptional(pd => pd.DeletedBy)
+                .WithMany()
+                .HasForeignKey(pd => pd.DeletedByKey)
+                .WillCascadeOnDelete(false);
 
             modelBuilder.Entity<AccountDelete>()
                 .HasKey(a => a.Key)
                 .HasRequired(a => a.DeletedAccount);
 
             modelBuilder.Entity<AccountDelete>()
-                .HasRequired(a => a.DeletedBy)
+                .HasOptional(a => a.DeletedBy)
                 .WithMany()
+                .HasForeignKey(a => a.DeletedByKey)
                 .WillCascadeOnDelete(false);
 
             modelBuilder.Entity<Certificate>()
