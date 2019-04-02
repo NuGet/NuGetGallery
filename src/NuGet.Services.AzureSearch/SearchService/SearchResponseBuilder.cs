@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Azure.Search.Models;
 using Microsoft.Extensions.Options;
@@ -107,6 +108,57 @@ namespace NuGet.Services.AzureSearch.SearchService
                     result,
                     duration,
                     AuxiliaryData.Metadata),
+            };
+        }
+
+        public AutocompleteResponse AutocompleteFromSearch(
+            AutocompleteRequest request,
+            SearchParameters parameters,
+            string text,
+            DocumentSearchResult<SearchDocument.Full> result,
+            TimeSpan duration)
+        {
+            var results = result.Results;
+            result.Results = null;
+
+            List<string> data;
+            switch (request.Type)
+            {
+                case AutocompleteRequestType.PackageIds:
+                    data = results.Select(x => x.Document.PackageId).ToList();
+                    break;
+
+                case AutocompleteRequestType.PackageVersions:
+                    if (result.Count > 1 || results.Count > 1)
+                    {
+                        throw new ArgumentException(
+                            "Package version autocomplete queries should have a single document result",
+                            nameof(result));
+                    }
+
+                    data = results.SelectMany(x => x.Document.Versions).ToList();
+                    break;
+
+                default:
+                    throw new InvalidOperationException($"Unknown autocomplete request type '{request.Type}'");
+            }
+
+            return new AutocompleteResponse
+            {
+                Context = new AutocompleteContext
+                {
+                    Vocab = "http://schema.nuget.org/schema#",
+                },
+                TotalHits = result.Count.Value,
+                Data = data,
+                Debug = DebugInformation.CreateOrNull(
+                    request,
+                    _options.Value.SearchIndexName,
+                    parameters,
+                    text,
+                    result,
+                    duration,
+                    auxiliaryFilesMetadata: null),
             };
         }
 

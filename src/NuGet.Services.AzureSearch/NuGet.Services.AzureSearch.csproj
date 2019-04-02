@@ -116,6 +116,11 @@
     <Compile Include="SearchService\IAuxiliaryFileReloader.cs" />
     <Compile Include="SearchService\ISearchStatusService.cs" />
     <Compile Include="SearchService\ISearchTextBuilder.cs" />
+    <Compile Include="SearchService\InvalidSearchRequestException.cs" />
+    <Compile Include="SearchService\Models\AutocompleteContext.cs" />
+    <Compile Include="SearchService\Models\AutocompleteRequest.cs" />
+    <Compile Include="SearchService\Models\AutocompleteResponse.cs" />
+    <Compile Include="SearchService\Models\AutocompleteRequestType.cs" />
     <Compile Include="SearchService\Models\AuxiliaryFileMetadata.cs" />
     <Compile Include="SearchService\Models\AuxiliaryFilesMetadata.cs" />
     <Compile Include="SearchService\AzureSearchService.cs" />

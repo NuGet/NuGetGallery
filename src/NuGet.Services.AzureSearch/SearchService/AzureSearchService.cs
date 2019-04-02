@@ -58,6 +58,23 @@ namespace NuGet.Services.AzureSearch.SearchService
                 result.Duration);
         }
 
+        public async Task<AutocompleteResponse> AutocompleteAsync(AutocompleteRequest request)
+        {
+            var text = _textBuilder.Autocomplete(request);
+            var parameters = _parametersBuilder.Autocomplete(request);
+
+            var result = await Measure.DurationWithValueAsync(() => _searchIndex.Documents.SearchAsync<SearchDocument.Full>(
+                text,
+                parameters));
+
+            return _responseBuilder.AutocompleteFromSearch(
+                request,
+                parameters,
+                text,
+                result.Value,
+                result.Duration);
+        }
+
         private async Task<V2SearchResponse> UseHijackIndexAsync(V2SearchRequest request)
         {
             var text = _textBuilder.V2Search(request);

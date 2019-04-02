@@ -629,6 +629,115 @@ namespace NuGet.Services.AzureSearch.SearchService
             }
         }
 
+        public class AutocompleteFromSearch : BaseFacts
+        {
+            [Fact]
+            public void CanIncludeDebugInformation()
+            {
+                _autocompleteRequest.ShowDebug = true;
+
+                var response = _target.AutocompleteFromSearch(
+                    _autocompleteRequest,
+                    _searchParameters,
+                    _text,
+                    _searchResult,
+                    _duration);
+
+                Assert.NotNull(response.Debug);
+                var actualJson = JsonConvert.SerializeObject(response.Debug, _jsonSerializerSettings);
+                Assert.Equal(@"{
+  ""SearchRequest"": {
+    ""Type"": ""PackageIds"",
+    ""Skip"": 0,
+    ""Take"": 0,
+    ""IncludePrerelease"": true,
+    ""IncludeSemVer2"": true,
+    ""ShowDebug"": true
+  },
+  ""IndexName"": ""search-index"",
+  ""SearchParameters"": {
+    ""IncludeTotalResultCount"": false,
+    ""QueryType"": ""simple"",
+    ""SearchMode"": ""any""
+  },
+  ""SearchText"": ""azure storage sdk"",
+  ""DocumentSearchResult"": {
+    ""Count"": 1
+  },
+  ""QueryDuration"": ""00:00:00.2500000""
+}", actualJson);
+            }
+
+            [Fact]
+            public void ReturnsPackageIds()
+            {
+                _autocompleteRequest.Type = AutocompleteRequestType.PackageIds;
+
+                var response = _target.AutocompleteFromSearch(
+                    _autocompleteRequest,
+                    _searchParameters,
+                    _text,
+                    _searchResult,
+                    _duration);
+
+                Assert.NotNull(response);
+                Assert.Single(response.Data);
+                Assert.Equal("WindowsAzure.Storage", response.Data[0]);
+            }
+
+            [Fact]
+            public void ReturnsEmptyPackageVersions()
+            {
+                _autocompleteRequest.Type = AutocompleteRequestType.PackageVersions;
+
+                var response = _target.AutocompleteFromSearch(
+                    _autocompleteRequest,
+                    _searchParameters,
+                    _text,
+                    _emptySearchResult,
+                    _duration);
+
+                Assert.NotNull(response);
+                Assert.Empty(response.Data);
+            }
+
+            [Fact]
+            public void ReturnsPackageVersions()
+            {
+                _autocompleteRequest.Type = AutocompleteRequestType.PackageVersions;
+
+                var response = _target.AutocompleteFromSearch(
+                    _autocompleteRequest,
+                    _searchParameters,
+                    _text,
+                    _searchResult,
+                    _duration);
+
+                Assert.NotNull(response);
+                Assert.Equal(4, response.Data.Count);
+                Assert.Equal("1.0.0", response.Data[0]);
+                Assert.Equal("2.0.0+git", response.Data[1]);
+                Assert.Equal("3.0.0-alpha.1", response.Data[2]);
+                Assert.Equal("7.1.2-alpha+git", response.Data[3]);
+            }
+
+            [Fact]
+            public void PackageVersionsThrowsIfMultipleResults()
+            {
+                _autocompleteRequest.Type = AutocompleteRequestType.PackageVersions;
+
+                var exception = Assert.Throws<ArgumentException>(() => _target.AutocompleteFromSearch(
+                    _autocompleteRequest,
+                    _searchParameters,
+                    _text,
+                    _manySearchResults,
+                    _duration));
+
+                Assert.Equal("result", exception.ParamName);
+                Assert.Contains("Package version autocomplete queries should have a single document result", exception.Message);
+            }
+        }
+
         public abstract class BaseFacts
         {
             protected readonly Mock<IAuxiliaryData> _auxiliaryData;
@@ -636,10 +745,13 @@ namespace NuGet.Services.AzureSearch.SearchService
             protected readonly Mock<IOptionsSnapshot<SearchServiceConfiguration>> _options;
             protected readonly V2SearchRequest _v2Request;
             protected readonly V3SearchRequest _v3Request;
+            protected readonly AutocompleteRequest _autocompleteRequest;
             protected readonly SearchParameters _searchParameters;
             protected readonly string _text;
             protected readonly TimeSpan _duration;
             protected readonly DocumentSearchResult<SearchDocument.Full> _searchResult;
+            protected readonly DocumentSearchResult<SearchDocument.Full> _emptySearchResult;
+            protected readonly DocumentSearchResult<SearchDocument.Full> _manySearchResults;
             protected readonly DocumentSearchResult<HijackDocument.Full> _hijackResult;
             protected readonly JsonSerializerSettings _jsonSerializerSettings;
             protected readonly SearchResponseBuilder _target;
@@ -701,14 +813,39 @@ namespace NuGet.Services.AzureSearch.SearchService
                     IncludePrerelease = true,
                     IncludeSemVer2 = true
                 };
+                _autocompleteRequest = new AutocompleteRequest
+                {
+                    IncludePrerelease = true,
+                    IncludeSemVer2 = true,
+                };
                 _searchParameters = new SearchParameters();
                 _text = "azure storage sdk";
                 _duration = TimeSpan.FromMilliseconds(250);
+                _emptySearchResult = new DocumentSearchResult<SearchDocument.Full>
+                {
+                    Count = 0,
+                    Results = new List<SearchResult<SearchDocument.Full>>(),
+                };
                 _searchResult = new DocumentSearchResult<SearchDocument.Full>
                 {
                     Count = 1,
                     Results = new List<SearchResult<SearchDocument.Full>>
                     {
+                        new SearchResult<SearchDocument.Full>
+                        {
+                            Document = Data.SearchDocument,
+                        },
+                    },
+                };
+                _manySearchResults = new DocumentSearchResult<SearchDocument.Full>
+                {
+                    Count = 2,
+                    Results = new List<SearchResult<SearchDocument.Full>>
+                    {
+                        new SearchResult<SearchDocument.Full>
+                        {
+                            Document = Data.SearchDocument,
+                        },
                         new SearchResult<SearchDocument.Full>
                         {
                             Document = Data.SearchDocument,

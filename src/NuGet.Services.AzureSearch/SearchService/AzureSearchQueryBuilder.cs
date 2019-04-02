@@ -8,201 +8,222 @@ using System.Text;
 
 namespace NuGet.Services.AzureSearch.SearchService
 {
-    /// <summary>
-    /// Used to build Azure Search Service queries. Used by <see cref="SearchTextBuilder"/>.
-    /// Given the query "fieldA:value1 value2":
-    /// 
-    ///   * "value1" is a field-scoped value 
-    ///   * "value2" is a non-field scoped value
-    /// </summary>
-    internal class AzureSearchQueryBuilder
+    public partial class SearchTextBuilder
     {
         /// <summary>
-        /// Azure Search Queries must have less than 1024 clauses.
-        /// See: https://docs.microsoft.com/en-us/azure/search/query-lucene-syntax#bkmk_querysizelimits
+        /// Used to build Azure Search Service queries.
         /// </summary>
-        private const int MaxClauses = 1024;
-
-        /// <summary>
-        /// Terms in Azure Search Queries must be less than 32KB.
-        /// See: https://docs.microsoft.com/en-us/azure/search/query-lucene-syntax#bkmk_querysizelimits
-        /// </summary>
-        private const int MaxTermSizeBytes = 32 * 1024;
-
-        /// <summary>
-        /// These characters have special meaning in Azure Search and must be escaped if in user input.
-        /// See: https://docs.microsoft.com/en-us/azure/search/query-lucene-syntax#escaping-special-characters
-        /// </summary>
-        private static readonly HashSet<char> SpecialCharacters = new HashSet<char>
+        /// <remarks>
+        /// This generates Azure Search queries that use the Lucene query syntax.
+        /// See: https://docs.microsoft.com/en-us/azure/search/query-lucene-syntax
+        ///
+        /// Given the query "fieldA:value1 value2":
+        ///
+        ///   * "value1" is a field-scoped term
+        ///   * "value2" is an unscoped term
+        /// </remarks>
+        private class AzureSearchQueryBuilder
         {
-            '+', '-', '&', '|', '!', '(', ')', '{', '}', '[', ']', '^', '"', '~', '*', '?', ':', '\\', '/',
-        };
+            /// <summary>
+            /// Azure Search Queries must have less than 1024 clauses.
+            /// See: https://docs.microsoft.com/en-us/azure/search/query-lucene-syntax#bkmk_querysizelimits
+            /// </summary>
+            private const int MaxClauses = 1024;
 
-        private readonly List<string> _nonFieldScopedValues;
-        private readonly Dictionary<string, List<string>> _fieldScopedValues;
+            /// <summary>
+            /// Terms in Azure Search Queries must be less than 32KB.
+            /// See: https://docs.microsoft.com/en-us/azure/search/query-lucene-syntax#bkmk_querysizelimits
+            /// </summary>
+            private const int MaxTermSizeBytes = 32 * 1024;
 
-        public AzureSearchQueryBuilder()
-        {
-            _nonFieldScopedValues = new List<string>();
-            _fieldScopedValues = new Dictionary<string, List<string>>();
-        }
-
-        public void AddNonFieldScopedValues(IEnumerable<string> values)
-        {
-            _nonFieldScopedValues.AddRange(values);
-        }
-
-        public void AddFieldScopedValues(string fieldName, IEnumerable<string> values)
-        {
-            if (!_fieldScopedValues.ContainsKey(fieldName))
+            /// <summary>
+            /// These characters have special meaning in Azure Search and must be escaped if in user input.
+            /// See: https://docs.microsoft.com/en-us/azure/search/query-lucene-syntax#escaping-special-characters
+            /// </summary>
+            private static readonly HashSet<char> SpecialCharacters = new HashSet<char>
             {
-                _fieldScopedValues[fieldName] = new List<string>();
+                '+', '-', '&', '|', '!', '(', ')', '{', '}', '[', ']', '^', '"', '~', '*', '?', ':', '\\', '/',
+            };
+
+            private readonly StringBuilder _result;
+            private int _clauses;
+
+            public AzureSearchQueryBuilder()
+            {
+                _result = new StringBuilder();
+                _clauses = 0;
             }
 
-            _fieldScopedValues[fieldName].AddRange(values);
-        }
-
-        public override string ToString()
-        {
-            ValidateOrThrow();
-
-            var result = new StringBuilder();
-
-            foreach (var fieldScopedTerm in _fieldScopedValues)
+            /// <summary>
+            /// Append unscoped search terms to the query. This can be called many times.
+            /// </summary>
+            /// <param name="terms">
+            /// The terms to append to the search query. Each term will be escaped and will be wrapped
+            /// with quotes if it contains whitespaces.
+            /// </param>
+            public void AppendTerms(IReadOnlyList<string> terms)
             {
-                // At least one term from each field-scope must be matched. As Azure Search queries have an implicit "OR" between
-                // clauses, we must mark field-scoped term as required if there are multiple top-level clauses.
-                if (result.Length == 0)
+                ValidateOrThrow(terms, additionalClauses: terms.Count);
+
+                for (var i = 0; i < terms.Count; i++)
                 {
-                    // We are building the query's first clause, only add the required operator "+" if there are other top-level clauses.
-                    // We generate a top-level clause for each non-field-scoped term and one for each field-scopes.
-                    if (_nonFieldScopedValues.Count > 0 || _fieldScopedValues.Keys.Count > 1)
+                    if (_result.Length > 0)
                     {
-                        result.Append('+');
+                        _result.Append(' ');
                     }
+
+                    AppendEscapedString(terms[i], quoteWhiteSpace: true);
+                }
+            }
+
+            /// <summary>
+            /// Append search terms to the query. These terms will be scoped to the specified field. This can be called many times.
+            /// </summary>
+            /// <param name="fieldName">The field that these terms should be scoped to.</param>
+            /// <param name="terms">The terms to search for.</param>
+            /// <param name="required">Whether search results MUST match these terms.</param>
+            /// <param name="prefixSearch">If true, prefix matches are allowed for the terms.</param>
+            public void AppendScopedTerms(
+                string fieldName,
+                IReadOnlyList<string> terms,
+                bool required = false,
+                bool prefixSearch = false)
+            {
+                // We will only generate a single clause if this field-scope has a single term.
+                // Otherwise, we will generate a clause for each term and a clause to OR terms together.
+                var additionalClauses = 1;
+                if (terms.Count > 1)
+                {
+                    additionalClauses += terms.Count;
+                }
+
+                ValidateOrThrow(terms, additionalClauses);
+
+                if (_result.Length > 0)
+                {
+                    _result.Append(' ');
+                }
+
+                if (required)
+                {
+                    _result.Append('+');
+                }
+
+                _result.Append(fieldName);
+                _result.Append(':');
+
+                if (terms.Count == 1)
+                {
+                    AppendScopedTerm(terms[0], prefixSearch);
                 }
                 else
                 {
-                    // We are adding another top-level clause to the query, always add the required operator "+".
-                    result.Append(" +");
-                }
+                    _result.Append('(');
 
-                result.Append(fieldScopedTerm.Key);
-                result.Append(':');
-
-                if (fieldScopedTerm.Value.Count == 1)
-                {
-                    AppendEscapedString(result, fieldScopedTerm.Value[0]);
-                }
-                else
-                {
-                    result.Append('(');
-                    AppendEscapedValues(result, fieldScopedTerm.Value);
-                    result.Append(')');
-                }
-            }
-
-            if (_nonFieldScopedValues.Any())
-            {
-                if (result.Length > 0)
-                {
-                    result.Append(' ');
-                }
-
-                AppendEscapedValues(result, _nonFieldScopedValues);
-            }
-
-            return result.ToString();
-        }
-
-        private static void AppendEscapedValues(StringBuilder result, IReadOnlyList<string> values)
-        {
-            for (var i = 0; i < values.Count; i++)
-            {
-                if (i > 0)
-                {
-                    result.Append(' ');
-                }
-
-                AppendEscapedString(result, values[i]);
-            }
-        }
-
-        private static void AppendEscapedString(StringBuilder result, string input)
-        {
-            var originalLength = result.Length;
-
-            var wrapWithQuotes = input.Any(char.IsWhiteSpace);
-            if (wrapWithQuotes)
-            {
-                result.Append('"');
-            }
-
-            for (var i = 0; i < input.Length; i++)
-            {
-                var c = input[i];
-                if (SpecialCharacters.Contains(c))
-                {
-                    if (originalLength == result.Length)
+                    for (var i = 0; i < terms.Count; i++)
                     {
-                        result.Append(input.Substring(0, i));
+                        if (i > 0)
+                        {
+                            _result.Append(' ');
+                        }
+
+                        AppendScopedTerm(terms[i], prefixSearch);
                     }
 
-                    result.Append('\\');
-                    result.Append(c);
+                    _result.Append(')');
                 }
-                else if (result.Length != originalLength)
+            }
+
+            /// <summary>
+            /// Build the Azure Search Query string.
+            /// </summary>
+            /// <returns>The Azure Search Query string.</returns>
+            public override string ToString()
+            {
+                return _result.ToString();
+            }
+
+            private void AppendScopedTerm(string term, bool prefixSearch)
+            {
+                AppendEscapedString(term.Trim(), quoteWhiteSpace: !prefixSearch);
+
+                if (prefixSearch)
                 {
-                    result.Append(c);
+                    _result.Append('*');
                 }
             }
 
-            if (wrapWithQuotes)
+            /// <summary>
+            /// Escapes characters that are special for Azure Search so that the input
+            /// results in a single search term.
+            /// </summary>
+            /// <param name="input">The input to escape.</param>
+            /// <param name="quoteWhiteSpace">
+            /// If true, the input will be wrapped with quotes if it contains whitespace.
+            /// If false, the input's whitespace will be escaped with a backslash.
+            /// </param>
+            private void AppendEscapedString(string input, bool quoteWhiteSpace)
             {
-                result.Append('"');
+                var originalLength = _result.Length;
+
+                // Input containing whitespace must be escaped. If quoteWhiteSpace is true, we
+                // will wrap the input with quotes. Otherwise, we will escape whitespace characters
+                // with backslashes.
+                var wrapWithQuotes = quoteWhiteSpace && input.Any(char.IsWhiteSpace);
+                if (wrapWithQuotes)
+                {
+                    _result.Append('"');
+                }
+
+                for (var i = 0; i < input.Length; i++)
+                {
+                    var c = input[i];
+                    if (SpecialCharacters.Contains(c) || (!quoteWhiteSpace && char.IsWhiteSpace(c)))
+                    {
+                        if (originalLength == _result.Length)
+                        {
+                            _result.Append(input.Substring(0, i));
+                        }
+
+                        _result.Append('\\');
+                        _result.Append(c);
+                    }
+                    else if (_result.Length != originalLength)
+                    {
+                        _result.Append(c);
+                    }
+                }
+
+                if (wrapWithQuotes)
+                {
+                    _result.Append('"');
+                }
+
+                if (_result.Length == originalLength)
+                {
+                    _result.Append(input);
+                }
             }
 
-            if (result.Length == originalLength)
+            private void ValidateOrThrow(IReadOnlyList<string> terms, int additionalClauses)
             {
-                result.Append(input);
-            }
-        }
+                if ((_clauses + additionalClauses) > MaxClauses)
+                {
+                    throw new InvalidSearchRequestException($"A query can only have up to {MaxClauses} clauses");
+                }
 
-        private void ValidateOrThrow()
-        {
-            // Azure Search has a limit on the number of clauses in a single query.
-            // We generate a clause for each value in a field-scope, each field-scope,
-            // and each non-field-scoped value.
-            var fieldScopedClauses = _fieldScopedValues.Sum(CountFieldScopedClauses);
-            var nonFieldScopedClauses = _nonFieldScopedValues.Count;
+                if (terms.Any(TermExceedsMaxSize))
+                {
+                    throw new InvalidSearchRequestException($"Query terms cannot exceed {MaxTermSizeBytes} bytes");
+                }
 
-            if ((fieldScopedClauses + nonFieldScopedClauses) > MaxClauses)
-            {
-                throw new InvalidOperationException($"A query can only have up to {MaxClauses} clauses");
+                _clauses += additionalClauses;
             }
 
-            if (_fieldScopedValues.Values.Any(terms => terms.Any(TermExceedsMaxSize))
-                || _nonFieldScopedValues.Any(TermExceedsMaxSize))
+            private static bool TermExceedsMaxSize(string term)
             {
-                throw new InvalidOperationException($"Query terms cannot exceed {MaxTermSizeBytes} bytes");
+                return Encoding.Unicode.GetByteCount(term) > MaxTermSizeBytes;
             }
-        }
-
-        private static int CountFieldScopedClauses(KeyValuePair<string, List<string>> fieldScopedValues)
-        {
-            // We will only generate a single clause if this field-scope only has a single term.
-            if (fieldScopedValues.Value.Count == 1)
-            {
-                return 1;
-            }
-
-            // Otherwise, we will generate a clause for each term and a clause to OR the terms together.
-            return fieldScopedValues.Value.Count + 1;
-        }
-
-        private static bool TermExceedsMaxSize(string term)
-        {
-            return (Encoding.Unicode.GetByteCount(term) > MaxTermSizeBytes);
         }
     }
 }

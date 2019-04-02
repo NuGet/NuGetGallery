@@ -43,7 +43,7 @@ namespace NuGet.Services.AzureSearch.SearchService
 
                 if (shouldThrow)
                 {
-                    var e = Assert.Throws<InvalidOperationException>(() => _target.V2Search(request));
+                    var e = Assert.Throws<InvalidSearchRequestException>(() => _target.V2Search(request));
                     Assert.Equal("A query can only have up to 1024 clauses", e.Message);
                 }
                 else
@@ -57,7 +57,7 @@ namespace NuGet.Services.AzureSearch.SearchService
             public void ThrowsWhenTermIsTooBig(string query)
             {
                 var request = new V2SearchRequest { Query = query };
-                var e = Assert.Throws<InvalidOperationException>(() => _target.V2Search(request));
+                var e = Assert.Throws<InvalidSearchRequestException>(() => _target.V2Search(request));
 
                 Assert.Equal("Query terms cannot exceed 32768 bytes", e.Message);
             }
@@ -82,7 +82,7 @@ namespace NuGet.Services.AzureSearch.SearchService
 
                 if (shouldThrow)
                 {
-                    var e = Assert.Throws<InvalidOperationException>(() => _target.V3Search(request));
+                    var e = Assert.Throws<InvalidSearchRequestException>(() => _target.V3Search(request));
                     Assert.Equal("A query can only have up to 1024 clauses", e.Message);
                 }
                 else
@@ -96,9 +96,49 @@ namespace NuGet.Services.AzureSearch.SearchService
             public void ThrowsWhenTermIsTooBig(string query)
             {
                 var request = new V3SearchRequest { Query = query };
-                var e = Assert.Throws<InvalidOperationException>(() => _target.V3Search(request));
+                var e = Assert.Throws<InvalidSearchRequestException>(() => _target.V3Search(request));
 
                 Assert.Equal("Query terms cannot exceed 32768 bytes", e.Message);
+            }
+        }
+
+        public class Autocomplete : FactsBase
+        {
+            // TODO: This should use the autocomplete package id field
+            // See https://github.com/NuGet/NuGetGallery/issues/6972
+            [Theory]
+            [InlineData("Test", "packageId:Test*")]
+            [InlineData("Test ", "packageId:Test*")]
+            [InlineData("title:test", "packageId:title\\:test*")]
+            [InlineData("Hello world", "packageId:Hello\\ world*")]
+            [InlineData("Hello world ", "packageId:Hello\\ world*")]
+            public void PackageIdAutocomplete(string input, string expected)
+            {
+                var request = new AutocompleteRequest
+                {
+                    Query = input,
+                    Type = AutocompleteRequestType.PackageIds
+                };
+
+                var result = _target.Autocomplete(request);
+
+                Assert.Equal(expected, result);
+            }
+
+            [Theory]
+            [InlineData("Test", "packageId:Test")]
+            [InlineData("Hello world", @"packageId:""Hello world""")]
+            public void PackageVersionsAutocomplete(string input, string expected)
+            {
+                var request = new AutocompleteRequest
+                {
+                    Query = input,
+                    Type = AutocompleteRequestType.PackageVersions
+                };
+
+                var result = _target.Autocomplete(request);
+
+                Assert.Equal(expected, result);
             }
         }
 

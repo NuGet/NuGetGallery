@@ -73,6 +73,15 @@ namespace NuGet.Services.SearchService
                     action = nameof(SearchController.V3SearchAsync),
                 });
 
+            config.Routes.MapHttpRoute(
+                name: "Autocomplete",
+                routeTemplate: "autocomplete",
+                defaults: new
+                {
+                    controller = GetControllerName<SearchController>(),
+                    action = nameof(SearchController.AutocompleteAsync),
+                });
+
             config.EnsureInitialized();
 
             HostingEnvironment.QueueBackgroundWorkItem(token => ReloadAuxiliaryFilesAsync(dependencyResolver, token));

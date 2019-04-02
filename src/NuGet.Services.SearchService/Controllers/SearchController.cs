@@ -52,7 +52,8 @@ namespace NuGet.Services.SearchService.Controllers
         }
 
         [HttpGet]
-        public async Task<V2SearchResponse> V2SearchAsync(
+        [ResponseType(typeof(V2SearchResponse))]
+        public async Task<IHttpActionResult> V2SearchAsync(
             int skip = DefaultSkip,
             int take = DefaultTake,
             bool ignoreFilter = false,
@@ -80,11 +81,12 @@ namespace NuGet.Services.SearchService.Controllers
                 ShowDebug = debug,
             };
 
-            return await _searchService.V2SearchAsync(request);
+            return await ExecuteSearchAsync(() => _searchService.V2SearchAsync(request));
         }
 
         [HttpGet]
-        public async Task<V3SearchResponse> V3SearchAsync(
+        [ResponseType(typeof(V3SearchResponse))]
+        public async Task<IHttpActionResult> V3SearchAsync(
             int skip = DefaultSkip,
             int take = DefaultTake,
             bool prerelease = false,
@@ -104,7 +106,39 @@ namespace NuGet.Services.SearchService.Controllers
                 ShowDebug = debug,
             };
 
-            return await _searchService.V3SearchAsync(request);
+            return await ExecuteSearchAsync(() => _searchService.V3SearchAsync(request));
+        }
+
+        [HttpGet]
+        [ResponseType(typeof(AutocompleteResponse))]
+        public async Task<IHttpActionResult> AutocompleteAsync(
+            int skip = DefaultSkip,
+            int take = DefaultTake,
+            bool prerelease = false,
+            string semVerLevel = null,
+            string q = null,
+            string id = null,
+            bool debug = false)
+        {
+            await EnsureInitializedAsync();
+
+            // If only "id" is provided, find package versions. Otherwise, find package Ids.
+            var type = (q != null || id == null)
+                ? AutocompleteRequestType.PackageIds
+                : AutocompleteRequestType.PackageVersions;
+
+            var request = new AutocompleteRequest
+            {
+                Skip = skip,
+                Take = take,
+                IncludePrerelease = prerelease,
+                IncludeSemVer2 = GetIncludeSemVer2(semVerLevel),
+                Query = q ?? id,
+                Type = type,
+                ShowDebug = debug,
+            };
+
+            return await ExecuteSearchAsync(() => _searchService.AutocompleteAsync(request));
         }
 
         private async Task EnsureInitializedAsync()
@@ -134,6 +168,18 @@ namespace NuGet.Services.SearchService.Controllers
             else
             {
                 return SemVerHelpers.ShouldIncludeSemVer2Results(semVerLevelVersion);
+            }
+        }
+
+        private async Task<IHttpActionResult> ExecuteSearchAsync<TResponse>(Func<Task<TResponse>> searchAction)
+        {
+            try
+            {
+                return Json(await searchAction());
+            }
+            catch (InvalidSearchRequestException e)
+            {
+                return BadRequest(e.Message);
             }
         }
     }

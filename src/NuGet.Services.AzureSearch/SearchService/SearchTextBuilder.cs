@@ -10,7 +10,7 @@ using NuGet.Versioning;
 
 namespace NuGet.Services.AzureSearch.SearchService
 {
-    public class SearchTextBuilder : ISearchTextBuilder
+    public partial class SearchTextBuilder : ISearchTextBuilder
     {
         private const string MatchAllDocumentsQuery = "*";
 
@@ -53,20 +53,23 @@ namespace NuGet.Services.AzureSearch.SearchService
             return GetLuceneQuery(request.Query);
         }
 
-        private string GetLuceneQuery(string query)
+        public string Autocomplete(AutocompleteRequest request)
         {
-            if (string.IsNullOrWhiteSpace(query))
+            if (string.IsNullOrWhiteSpace(request.Query))
             {
                 return MatchAllDocumentsQuery;
             }
 
-            var grouping = _parser.ParseQuery(query.Trim());
-            if (!grouping.Any())
-            {
-                return MatchAllDocumentsQuery;
-            }
+            // Generate a query on package ids. This will be a prefix search
+            // if we are autocompleting package ids.
+            var builder = new AzureSearchQueryBuilder();
 
-            var result = ToAzureSearchQuery(grouping).ToString();
+            builder.AppendScopedTerms(
+                IndexFields.PackageId,
+                new[] { request.Query },
+                prefixSearch: request.Type == AutocompleteRequestType.PackageIds);
+
+            var result = builder.ToString();
             if (string.IsNullOrWhiteSpace(result))
             {
                 return MatchAllDocumentsQuery;
@@ -75,26 +78,48 @@ namespace NuGet.Services.AzureSearch.SearchService
             return result;
         }
 
-        private AzureSearchQueryBuilder ToAzureSearchQuery(Dictionary<QueryField, HashSet<string>> grouping)
+        private string GetLuceneQuery(string query)
         {
-            var result = new AzureSearchQueryBuilder();
-
-            foreach (var field in grouping)
+            if (string.IsNullOrWhiteSpace(query))
             {
-                // Add values that aren't scoped to a field.
-                if (field.Key == QueryField.Any)
-                {
-                    result.AddNonFieldScopedValues(field.Value);
-                }
-                else if (field.Key != QueryField.Invalid)
-                {
-                    // Add values that are scoped to a valid field.
-                    var fieldName = FieldNames[field.Key];
-                    var values = ProcessFieldValues(field.Key, field.Value);
+                return MatchAllDocumentsQuery;
+            }
 
-                    result.AddFieldScopedValues(fieldName, values);
-                }
-             }
+            // Parse the NuGet query.
+            var grouping = _parser.ParseQuery(query.Trim());
+            if (!grouping.Any())
+            {
+                return MatchAllDocumentsQuery;
+            }
+
+            // Generate a lucene query for Azure Search.
+            var builder = new AzureSearchQueryBuilder();
+            var scopedTerms = grouping.Where(g => g.Key != QueryField.Any && g.Key != QueryField.Invalid).ToList();
+            var unscopedTerms = grouping.Where(g => g.Key == QueryField.Any)
+                .Select(g => g.Value)
+                .SingleOrDefault();
+
+            var requireScopedTerms = unscopedTerms != null
+                || scopedTerms.Select(t => t.Key).Distinct().Count() > 1;
+
+            foreach (var scopedTerm in scopedTerms)
+            {
+                var fieldName = FieldNames[scopedTerm.Key];
+                var values = ProcessFieldValues(scopedTerm.Key, scopedTerm.Value).ToList();
+
+                builder.AppendScopedTerms(fieldName, values, required: requireScopedTerms);
+            }
+
+            if (unscopedTerms != null)
+            {
+                builder.AppendTerms(unscopedTerms.ToList());
+            }
+
+            var result = builder.ToString();
+            if (string.IsNullOrWhiteSpace(result))
+            {
+                return MatchAllDocumentsQuery;
+            }
 
             return result;
         }

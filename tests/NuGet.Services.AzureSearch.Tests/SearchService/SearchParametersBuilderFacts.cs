@@ -246,6 +246,134 @@ namespace NuGet.Services.AzureSearch.SearchService
             }
         }
 
+        public class Autocomplete : BaseFacts
+        {
+            [Fact]
+            public void PackageIdsDefaults()
+            {
+                var request = new AutocompleteRequest();
+                request.Type = AutocompleteRequestType.PackageIds;
+
+                var output = _target.Autocomplete(request);
+
+                Assert.Equal(QueryType.Full, output.QueryType);
+                Assert.True(output.IncludeTotalResultCount);
+                Assert.Null(output.OrderBy);
+                Assert.Equal(0, output.Skip);
+                Assert.Equal(0, output.Top);
+                Assert.Equal("searchFilters eq 'Default'", output.Filter);
+                Assert.Single(output.Select);
+                Assert.Equal(IndexFields.PackageId, output.Select[0]);
+            }
+
+            [Fact]
+            public void PackageVersionsDefaults()
+            {
+                var request = new AutocompleteRequest();
+                request.Type = AutocompleteRequestType.PackageVersions;
+
+                var output = _target.Autocomplete(request);
+
+                Assert.Equal(QueryType.Full, output.QueryType);
+                Assert.True(output.IncludeTotalResultCount);
+                Assert.Null(output.OrderBy);
+                Assert.Equal(0, output.Skip);
+                Assert.Equal(1, output.Top);
+                Assert.Equal("searchFilters eq 'Default'", output.Filter);
+                Assert.Single(output.Select);
+                Assert.Equal(IndexFields.Search.Versions, output.Select[0]);
+            }
+
+            [Fact]
+            public void Paging()
+            {
+                var request = new AutocompleteRequest
+                {
+                    Skip = 10,
+                    Take = 30,
+                    Type = AutocompleteRequestType.PackageIds,
+                };
+
+                var output = _target.Autocomplete(request);
+
+                Assert.Equal(10, output.Skip);
+                Assert.Equal(30, output.Top);
+            }
+
+            [Fact]
+            public void PackageVersionsPaging()
+            {
+                var request = new AutocompleteRequest
+                {
+                    Skip = 10,
+                    Take = 30,
+                    Type = AutocompleteRequestType.PackageVersions,
+                };
+
+                var output = _target.Autocomplete(request);
+
+                Assert.Equal(0, output.Skip);
+                Assert.Equal(1, output.Top);
+            }
+
+            [Fact]
+            public void NegativeSkip()
+            {
+                var request = new AutocompleteRequest
+                {
+                    Skip = -10,
+                    Type = AutocompleteRequestType.PackageIds,
+                };
+
+                var output = _target.Autocomplete(request);
+
+                Assert.Equal(0, output.Skip);
+            }
+
+            [Fact]
+            public void NegativeTake()
+            {
+                var request = new AutocompleteRequest
+                {
+                    Take = -20,
+                    Type = AutocompleteRequestType.PackageIds,
+                };
+
+                var output = _target.Autocomplete(request);
+
+                Assert.Equal(20, output.Top);
+            }
+
+            [Fact]
+            public void TooLargeTake()
+            {
+                var request = new AutocompleteRequest
+                {
+                    Type = AutocompleteRequestType.PackageIds,
+                    Take = 1001,
+                };
+
+                var output = _target.Autocomplete(request);
+
+                Assert.Equal(20, output.Top);
+            }
+
+            [Theory]
+            [MemberData(nameof(AllSearchFilters))]
+            public void SearchFilters(bool includePrerelease, bool includeSemVer2, string filter)
+            {
+                var request = new AutocompleteRequest
+                {
+                    IncludePrerelease = includePrerelease,
+                    IncludeSemVer2 = includeSemVer2,
+                };
+
+                var output = _target.Autocomplete(request);
+
+                Assert.Equal(filter, output.Filter);
+            }
+        }
+
         public abstract class BaseFacts
         {
             protected readonly SearchParametersBuilder _target;
