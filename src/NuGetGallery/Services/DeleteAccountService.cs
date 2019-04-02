@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
@@ -154,18 +155,20 @@ namespace NuGetGallery
         private async Task RemoveUserCredentials(User user)
         {
             // Remove any credential owned by this user.
-            foreach (var uc in user.Credentials.ToArray())
-            {
-                await _authService.RemoveCredential(user, uc, commitChanges: false);
-            }
+            var userCredentials = user.Credentials.ToList();
 
             // Remove any credential scoped to this user.
-            var userScopes = _scopeRepository
+            var credentialsScopedToUser = _scopeRepository
                 .GetAll()
                 .Where(s => s.OwnerKey == user.Key)
-                .ToArray();
+                .Select(s => s.Credential)
+                .ToList();
 
-            var credentials = userScopes.Select(s => s.Credential).Distinct().ToArray();
+            var credentials = userCredentials
+                .Concat(credentialsScopedToUser)
+                .Distinct()
+                .ToList();
+
             foreach (var credential in credentials)
             {
                 await _authService.RemoveCredential(credential.User, credential, commitChanges: false);
@@ -174,7 +177,7 @@ namespace NuGetGallery
 
         private async Task RemoveSecurityPolicies(User user)
         {
-            foreach (var usp in user.SecurityPolicies.ToArray())
+            foreach (var usp in user.SecurityPolicies.ToList())
             {
                 await _securityPolicyService.UnsubscribeAsync(user, usp.Subscription, commitChanges: false);
             }
@@ -182,7 +185,7 @@ namespace NuGetGallery
 
         private async Task RemoveReservedNamespaces(User user)
         {
-            foreach (var rn in user.ReservedNamespaces.ToArray())
+            foreach (var rn in user.ReservedNamespaces.ToList())
             {
                 await _reservedNamespaceService.DeleteOwnerFromReservedNamespaceAsync(rn.Value, user.Username, commitChanges: false);
             }
@@ -229,7 +232,7 @@ namespace NuGetGallery
         
         private async Task RemoveMemberships(User user, User requestingUser, AccountDeletionOrphanPackagePolicy orphanPackagePolicy)
         {
-            foreach (var membership in user.Organizations.ToArray())
+            foreach (var membership in user.Organizations.ToList())
             {
                 user.Organizations.Remove(membership);
                 var organization = membership.Organization;
@@ -252,12 +255,12 @@ namespace NuGetGallery
                 }
             }
 
-            foreach (var membershipRequest in user.OrganizationRequests.ToArray())
+            foreach (var membershipRequest in user.OrganizationRequests.ToList())
             {
                 user.OrganizationRequests.Remove(membershipRequest);
             }
 
-            foreach (var transformationRequest in user.OrganizationMigrationRequests.ToArray())
+            foreach (var transformationRequest in user.OrganizationMigrationRequests.ToList())
             {
                 user.OrganizationMigrationRequests.Remove(transformationRequest);
                 transformationRequest.NewOrganization.OrganizationMigrationRequest = null;
