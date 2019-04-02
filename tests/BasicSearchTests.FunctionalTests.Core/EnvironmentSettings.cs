@@ -54,7 +54,7 @@ namespace BasicSearchTests.FunctionalTests.Core
             {
                 if (string.IsNullOrEmpty(_configurationName))
                 {
-                    _configurationName = GetEnvironmentVariable("ConfigurationName", required: true);
+                    _configurationName = GetEnvironmentVariable("ConfigurationName", defaultValue: "Dev");
                 }
 
                 return _configurationName;

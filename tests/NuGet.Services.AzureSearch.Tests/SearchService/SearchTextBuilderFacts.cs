@@ -194,6 +194,15 @@ namespace NuGet.Services.AzureSearch.SearchService
                     { @"""a""", "a" },
                     { @"title:""a""", "title:a" },
 
+                    // Lucene keywords are removed unless quoted with other terms
+                    { @"AND OR", @"*" },
+                    { @"""AND"" ""OR""", @"*" },
+                    { @"""AND OR""", @"""AND OR""" },
+                    { @"hello AND world", @"hello world" },
+                    { @"hello OR world", @"hello world" },
+                    { @"title:""hello AND world""", @"title:""hello AND world""" },
+                    { @"title:""hello OR world""", @"title:""hello OR world""" },
+
                     // Special characters are escaped
                     { @"title:+ description:""+""", @"+title:\+ +description:\+" },
                     { @"title:- description:""-""", @"+title:\- +description:\-" },
@@ -214,6 +223,13 @@ namespace NuGet.Services.AzureSearch.SearchService
                     { @"title:"":""", @"title:\:" },
 
                     { @"+ - & | ! ( ) { } [ ] ~ * ? \ / "":""", @"\+ \- \& \| \! \( \) \{ \} \[ \] \~ \* \? \\ \/ \:" },
+
+                    // Unicode surrogate pairs
+                    { "A𠈓C", "A𠈓C" },
+                    { "packageId:A𠈓C", "packageId:A𠈓C" },
+                    { "A𠈓C packageId:A𠈓C A𠈓C packageId:A𠈓C hello packageId:hello", "+packageId:(A𠈓C hello) A𠈓C hello" },
+                    { @"""A𠈓C"" packageId:""A𠈓C""", "+packageId:A𠈓C A𠈓C" },
+                    { @"(𠈓) packageId:(𠈓)", @"+packageId:\(𠈓\) \(𠈓\)" },
                 };
 
                 foreach (var datum in data)

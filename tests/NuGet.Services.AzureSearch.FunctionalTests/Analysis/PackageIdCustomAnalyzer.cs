@@ -18,7 +18,9 @@ namespace NuGet.Services.AzureSearch.FunctionalTests
         }
 
         [AnalysisTheory]
-        [MemberData(nameof(ProducesExpectedTokensData))]
+        [MemberData(nameof(TokenizationData.LowercasesTokens), MemberType = typeof(TokenizationData))]
+        [MemberData(nameof(TokenizationData.SplitsTokensOnSpecialCharactersAndLowercases), MemberType = typeof(TokenizationData))]
+        [MemberData(nameof(TokenizationData.LowercasesAndAddsTokensOnCasingAndNonAlphaNumeric), MemberType = typeof(TokenizationData))]
         public async Task ProducesExpectedTokens(string input, string[] expectedTokens)
         {
             var actualTokens = new HashSet<string>(await AnalyzeAsync(AnalyzerName, input));
@@ -29,51 +31,6 @@ namespace NuGet.Services.AzureSearch.FunctionalTests
             }
 
             Assert.Equal(expectedTokens.Length, actualTokens.Count);
-        }
-
-        public static IEnumerable<object[]> ProducesExpectedTokensData()
-        {
-            var data = new Dictionary<string, string[]>
-            {
-                // Tokens should be lowercased
-                { "hello", new[] { "hello"} },
-                { "Hello", new[] { "hello" } },
-
-                // Tokens should be split on special characters
-                { "Foo.Bar", new[] { "foo", "bar" } },
-                { "Foo-Bar", new[] { "foo", "bar" } },
-                { "Foo,Bar", new[] { "foo", "bar" } },
-                { "Foo;Bar", new[] { "foo", "bar" } },
-                { "Foo:Bar", new[] { "foo", "bar" } },
-                { "Foo'Bar", new[] { "foo", "bar" } },
-                { "Foo*Bar", new[] { "foo", "bar" } },
-                { "Foo#Bar", new[] { "foo", "bar" } },
-                { "Foo!Bar", new[] { "foo", "bar" } },
-                { "Foo~Bar", new[] { "foo", "bar" } },
-                { "Foo+Bar", new[] { "foo", "bar" } },
-                { "Foo(Bar", new[] { "foo", "bar" } },
-                { "Foo)Bar", new[] { "foo", "bar" } },
-                { "Foo[Bar", new[] { "foo", "bar" } },
-                { "Foo]Bar", new[] { "foo", "bar" } },
-                { "Foo{Bar", new[] { "foo", "bar" } },
-                { "Foo}Bar", new[] { "foo", "bar" } },
-                { "Foo_Bar", new[] { "foo", "bar" } },
-
-                // Tokens should be also be split by non alphanumeric characters
-                // and by upper casing. However, these splits should not consume the
-                // original token
-                { "Hello World", new[] { "hello world", "hello", "world" } },
-                { "HelloWorld", new[] { "helloworld", "hello", "world" } },
-                { "foo2bar", new[] { "foo2bar", "foo", "2", "bar" } },
-                { "HTML", new[] { "html"} },
-                { "HTMLThing", new[] { "htmlthing" } },
-                { "HTMLThingA", new[] { "htmlthinga", "htmlthing", "a" } },
-            };
-
-            foreach (var datum in data)
-            {
-                yield return new object[] { datum.Key, datum.Value };
-            }
         }
     }
 }

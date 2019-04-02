@@ -58,6 +58,7 @@
     <Compile Include="Support\AnalysisFactAttribute.cs" />
     <Compile Include="Support\AnalysisTheoryAttribute.cs" />
     <Compile Include="Support\CommonFixture.cs" />
+    <Compile Include="Support\TokenizationData.cs" />
     <Compile Include="Support\TestSettings.cs" />
   </ItemGroup>
   <ItemGroup>

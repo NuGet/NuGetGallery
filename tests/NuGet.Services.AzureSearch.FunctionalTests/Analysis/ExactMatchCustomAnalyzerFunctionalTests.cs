@@ -19,10 +19,10 @@ namespace NuGet.Services.AzureSearch.FunctionalTests
         [AnalysisFact]
         public async Task LowercasesInput()
         {
-            var tokens = await AnalyzeAsync(AnalyzerName, "Hello world. FooBarBaz");
+            var tokens = await AnalyzeAsync(AnalyzerName, "Hello world. FooBarBaz 𠈓");
 
             var token = Assert.Single(tokens);
-            Assert.Equal("hello world. foobarbaz", token);
+            Assert.Equal("hello world. foobarbaz 𠈓", token);
         }
     }
 }
