@@ -10,7 +10,6 @@
   </metadata>
   <files>
     <file src="bin\$configuration$\*.*" target="Ng"/>
-    <file src="Scripts\*.cmd" />
     <file src="Scripts\*.ps1" />
     <file src="Scripts\nssm.exe" />
   </files>

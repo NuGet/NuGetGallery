@@ -11,6 +11,5 @@
   </metadata>
   <files>
     <file src="bin\$configuration$\*.*" target="Ng"/>
-    <file src="Scripts\*.cmd" />
   </files>
 </package>

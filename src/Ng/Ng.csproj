@@ -127,9 +127,6 @@
     <None Include="Ng.Operations.nuspec">
       <SubType>Designer</SubType>
     </None>
-    <None Include="Ng.nuspec">
-      <SubType>Designer</SubType>
-    </None>
     <None Include="Scripts\**" />
   </ItemGroup>
   <ItemGroup>
@@ -216,9 +213,6 @@
   </PropertyGroup>
   <Import Project="$(SignPath)\sign.targets" Condition="Exists('$(SignPath)\sign.targets')" />
   <Import Project="$(SignPath)\sign.microbuild.targets" Condition="Exists('$(SignPath)\sign.microbuild.targets')" />
-  <ItemGroup>
-    <PowerShellScriptsToSign Include="RunE2ETests.ps1" />
-  </ItemGroup>
   <Import Project="$(SignPath)\sign.scripts.targets" Condition="Exists('$(SignPath)\sign.scripts.targets')" />
   <Import Project="..\..\sign.thirdparty.targets" />
 </Project>

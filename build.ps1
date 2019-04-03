@@ -113,7 +113,6 @@ Invoke-BuildStep 'Creating artifacts' {
             "src\Ng\Feed2Catalog.nuspec", `
             "src\Ng\Monitoring2Monitoring.nuspec", `
             "src\Ng\MonitoringProcessor.nuspec", `
-            "src\Ng\Ng.nuspec", `
             "src\Ng\Ng.Operations.nuspec"
 
         $nuspecPackages | ForEach-Object {
