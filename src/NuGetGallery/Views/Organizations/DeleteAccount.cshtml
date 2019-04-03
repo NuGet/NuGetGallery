@@ -40,7 +40,7 @@
                     <p>
                         Before deleting your organization, you must remove any other members from it using the <a href="@Url.ManageMyOrganization(Model.AccountName)">manage organization</a> page.
                     </p>
-                    @Html.Partial("_OrganizationMembersListForDeletedAccount", Model)
+                    @Html.Partial("_OrganizationMembersListForDeletedAccount", Model.AdditionalMembers)
                 }
             }
             else

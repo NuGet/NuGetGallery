@@ -15,10 +15,17 @@ namespace NuGetGallery
             IPackageService packageService)
             : base(organizationToDelete, currentUser, packageService)
         {
+            Members = organizationToDelete.Members
+                .Select(m => new OrganizationMemberViewModel(m))
+                .ToList();
+
             AdditionalMembers = organizationToDelete.Members
                 .Where(m => !m.Member.MatchesUser(currentUser))
-                .Select(m => new OrganizationMemberViewModel(m));
+                .Select(m => new OrganizationMemberViewModel(m))
+                .ToList();
         }
+
+        public IEnumerable<OrganizationMemberViewModel> Members { get; set; }
         
         public IEnumerable<OrganizationMemberViewModel> AdditionalMembers { get; set; }
 

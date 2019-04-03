@@ -23,15 +23,15 @@
             </div>
             <div class="form-group">
                 @{
-                    var additionalMembersCount = Model.AdditionalMembers.Count();
-                    var additionalMembersPlural = additionalMembersCount == 1 ? "" : "s";
+                    var membersCount = Model.Members.Count();
+                    var membersPlural = membersCount == 1 ? "" : "s";
                 }
                 <p>
-                    This organization has @additionalMembersCount other member@(additionalMembersPlural).
+                    This organization has @membersCount member@(membersPlural).
                 </p>
-                @if (Model.HasAdditionalMembers)
+                @if (Model.Members.Any())
                 {
-                    @Html.Partial("_OrganizationMembersListForDeletedAccount", Model)
+                    @Html.Partial("_OrganizationMembersListForDeletedAccount", Model.Members)
                 }
             </div>
         </div>
