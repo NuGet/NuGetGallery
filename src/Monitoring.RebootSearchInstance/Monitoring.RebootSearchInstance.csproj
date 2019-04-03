@@ -56,12 +56,8 @@
     <None Include="App.config" />
     <None Include="Monitoring.RebootSearchInstance.nuspec" />
     <None Include="Scripts\Functions.ps1" />
-    <None Include="Scripts\Monitoring.RebootSearchInstance.cmd" />
     <None Include="Scripts\PostDeploy.ps1" />
     <None Include="Scripts\PreDeploy.ps1" />
-    <None Include="Settings\prod.json" />
-    <None Include="Settings\int.json" />
-    <None Include="Settings\dev.json" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NuGet.Jobs.Common\NuGet.Jobs.Common.csproj">

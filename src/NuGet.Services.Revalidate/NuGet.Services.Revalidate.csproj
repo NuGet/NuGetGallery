@@ -89,11 +89,6 @@
     <None Include="Scripts\Functions.ps1" />
     <None Include="Scripts\PostDeploy.ps1" />
     <None Include="Scripts\PreDeploy.ps1" />
-    <None Include="Scripts\NuGet.Services.Revalidate.cmd" />
-    <None Include="Scripts\NuGet.Services.Revalidate.Initialize.cmd" />
-    <None Include="Settings\dev.json" />
-    <None Include="Settings\int.json" />
-    <None Include="Settings\prod.json" />
     <None Include="NuGet.Services.Revalidate.nuspec" />
   </ItemGroup>
   <ItemGroup>

@@ -60,10 +60,6 @@
     <None Include="Scripts\Functions.ps1" />
     <None Include="Scripts\PostDeploy.ps1" />
     <None Include="Scripts\PreDeploy.ps1" />
-    <None Include="Scripts\Validation.PackageSigning.RevalidateCertificate.cmd" />
-    <None Include="Settings\dev.json" />
-    <None Include="Settings\int.json" />
-    <None Include="Settings\prod.json" />
     <None Include="Validation.PackageSigning.RevalidateCertificate.nuspec" />
   </ItemGroup>
   <ItemGroup>
@@ -99,9 +95,6 @@
   </PropertyGroup>
   <Import Project="$(SignPath)\sign.targets" Condition="Exists('$(SignPath)\sign.targets')" />
   <Import Project="$(SignPath)\sign.microbuild.targets" Condition="Exists('$(SignPath)\sign.microbuild.targets')" />
-  <ItemGroup>
-    <PowerShellScriptsToSign Include="RunE2ETests.ps1" />
-  </ItemGroup>
   <Import Project="$(SignPath)\sign.scripts.targets" Condition="Exists('$(SignPath)\sign.scripts.targets')" />
   <Import Project="..\..\sign.thirdparty.targets" />
 </Project>

@@ -56,9 +56,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="ReadMe.md" />
-    <None Include="Settings\chinadev.json" />
-    <None Include="Settings\chinaprod.json" />
+    <None Include="README.md" />
     <None Include="Stats.CDNLogsSanitizer.nuspec" />
   </ItemGroup>
   <ItemGroup>

@@ -124,7 +124,6 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Connected Services\Application Insights\ConnectedService.json" />
-    <None Include="NuGetCDNRedirect.nuspec" />
   </ItemGroup>
   <ItemGroup>
     <WCFMetadata Include="Connected Services\" />

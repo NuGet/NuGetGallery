@@ -12,14 +12,9 @@
   <files>
     <file src="bin\$configuration$\*.*" target="bin"/>
 
-    <file src="Scripts\Validation.PackageSigning.RevalidateCertificate.cmd" />
-
     <file src="Scripts\Functions.ps1" />
     <file src="Scripts\PreDeploy.ps1" />
     <file src="Scripts\PostDeploy.ps1" />
-    <file src="Scripts\RunE2ETests.ps1" />
     <file src="Scripts\nssm.exe" />
-
-    <file src="Settings\*.json" target="bin" />
   </files>
 </package>
