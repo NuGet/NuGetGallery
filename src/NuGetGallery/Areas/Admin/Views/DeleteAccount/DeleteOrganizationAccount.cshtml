@@ -1,0 +1,57 @@
+﻿@using NuGetGallery
+@model DeleteOrganizationViewModel
+@{
+    ViewBag.Title = "Delete Account " + Model.AccountName;
+    ViewBag.MdPageColumns = GalleryConstants.ColumnsFormMd;
+}
+
+<section role="main" class="container main-container page-delete-account">
+    <div class="form-group">
+        <div class="form-group">
+            @ViewHelpers.Breadcrumb(true, @<text><a href="@Url.User(@Model.User)">@Model.AccountName</a></text>, @<text>Delete organization</text>)
+
+            @ViewHelpers.AlertDanger(@<text>
+                <b class="keywords">Once the organization is deleted, it cannot be undone!</b> <br />
+                Deleting the organization will: <br />
+                1. Remove the account as an owner of any child packages.<br />
+                3. Dissociate all previously existent ID prefix reservations with this account.<br />
+                4. Remove all of its members.<br />
+            </text>)
+
+            <div class="form-group">
+                @Html.Partial("~/Views/Users/_UserPackagesListForDeletedAccount.cshtml", Model)
+            </div>
+            <div class="form-group">
+                @{
+                    var additionalMembersCount = Model.AdditionalMembers.Count();
+                    var additionalMembersPlural = additionalMembersCount == 1 ? "" : "s";
+                }
+                <p>
+                    This account has @additionalMembersCount other member@(additionalMembersPlural).
+                </p>
+                @if (Model.HasAdditionalMembers)
+                {
+                    @Html.Partial("_OrganizationMembersListForDeletedAccount", Model)
+                }
+            </div>
+        </div>
+        <div class="form-group danger-zone">
+            @using (Html.BeginForm("Delete", "Organizations", FormMethod.Post, new { id = "delete-form" }))
+            {
+                @Html.Partial("_DeleteUserAccountForm", new DeleteAccountAsAdminViewModel(Model))
+            }
+        </div>
+    </div>
+</section>
+
+@section BottomScripts {
+    <script type="text/javascript">
+        $(function () {
+            $('#delete-form').submit(function (e) {
+                if (!confirm('Are you sure you want to continue to delete this account?')) {
+                    e.preventDefault();
+                }
+            });
+        });
+    </script>
+}

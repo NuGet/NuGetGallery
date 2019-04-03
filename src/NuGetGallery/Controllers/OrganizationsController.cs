@@ -20,8 +20,6 @@ namespace NuGetGallery
     public class OrganizationsController
         : AccountsController<Organization, OrganizationAccountViewModel>
     {
-        public IDeleteAccountService DeleteAccountService { get; }
-
         public OrganizationsController(
             AuthenticationService authService,
             IMessageService messageService,
@@ -42,9 +40,9 @@ namespace NuGetGallery
                   securityPolicyService,
                   certificateService,
                   contentObjectService,
-                  messageServiceConfiguration)
+                  messageServiceConfiguration,
+                  deleteAccountService)
         {
-            DeleteAccountService = deleteAccountService;
         }
 
         public override string AccountAction => nameof(ManageOrganization);
@@ -324,6 +322,11 @@ namespace NuGetGallery
             {
                 return Json(HttpStatusCode.BadRequest, e.Message);
             }
+        }
+
+        protected override string GetDeleteAccountViewName()
+        {
+            return "DeleteOrganizationAccount";
         }
 
         protected override DeleteAccountViewModel<Organization> GetDeleteAccountViewModel(Organization account)

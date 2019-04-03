@@ -29,7 +29,6 @@ namespace NuGetGallery
         private readonly IPackageOwnerRequestService _packageOwnerRequestService;
         private readonly IAppConfiguration _config;
         private readonly ICredentialBuilder _credentialBuilder;
-        private readonly IDeleteAccountService _deleteAccountService;
         private readonly ISupportRequestService _supportRequestService;
 
         public UsersController(
@@ -56,12 +55,12 @@ namespace NuGetGallery
                   securityPolicyService,
                   certificateService,
                   contentObjectService,
-                  messageServiceConfiguration)
+                  messageServiceConfiguration,
+                  deleteAccountService)
         {
             _packageOwnerRequestService = packageOwnerRequestService ?? throw new ArgumentNullException(nameof(packageOwnerRequestService));
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _credentialBuilder = credentialBuilder ?? throw new ArgumentNullException(nameof(credentialBuilder));
-            _deleteAccountService = deleteAccountService ?? throw new ArgumentNullException(nameof(deleteAccountService));
             _supportRequestService = supportRequestService ?? throw new ArgumentNullException(nameof(supportRequestService));
         }
 
@@ -103,6 +102,11 @@ namespace NuGetGallery
                 return currentUser;
             }
             return null;
+        }
+
+        protected override string GetDeleteAccountViewName()
+        {
+            return "DeleteUserAccount";
         }
 
         protected override DeleteAccountViewModel<User> GetDeleteAccountViewModel(User account)
@@ -331,7 +335,7 @@ namespace NuGetGallery
             if (!user.Confirmed)
             {
                 // Unconfirmed users can be deleted immediately without creating a support request.
-                DeleteUserAccountStatus accountDeleteStatus = await _deleteAccountService.DeleteAccountAsync(userToBeDeleted: user,
+                DeleteUserAccountStatus accountDeleteStatus = await DeleteAccountService.DeleteAccountAsync(userToBeDeleted: user,
                     userToExecuteTheDelete: user,
                     orphanPackagePolicy: AccountDeletionOrphanPackagePolicy.UnlistOrphans,
                     commitAsTransaction: true);
@@ -356,47 +360,6 @@ namespace NuGetGallery
             }
 
             return RedirectToAction(nameof(DeleteRequest));
-        }
-
-        [HttpGet]
-        [UIAuthorize(Roles = "Admins")]
-        public virtual ActionResult Delete(string accountName)
-        {
-            var user = UserService.FindByUsername(accountName);
-            if (user == null || user.IsDeleted || (user is Organization))
-            {
-                return HttpNotFound();
-            }
-
-            return View("DeleteUserAccount", GetDeleteAccountViewModel(user));
-        }
-
-        [HttpDelete]
-        [UIAuthorize(Roles = "Admins")]
-        [RequiresAccountConfirmation("Delete account")]
-        [ValidateAntiForgeryToken]
-        public virtual async Task<ActionResult> Delete(DeleteAccountAsAdminViewModel model)
-        {
-            var user = UserService.FindByUsername(model.AccountName);
-            if (user == null || user.IsDeleted)
-            {
-                return View("DeleteUserAccountStatus", new DeleteUserAccountStatus()
-                {
-                    AccountName = model.AccountName,
-                    Description = $"Account {model.AccountName} not found.",
-                    Success = false
-                });
-            }
-            else
-            {
-                var admin = GetCurrentUser();
-                var status = await _deleteAccountService.DeleteAccountAsync(
-                    userToBeDeleted: user,
-                    userToExecuteTheDelete: admin,
-                    orphanPackagePolicy: model.ShouldUnlist ? AccountDeletionOrphanPackagePolicy.UnlistOrphans : AccountDeletionOrphanPackagePolicy.KeepOrphans,
-                    commitAsTransaction: true);
-                return View("DeleteUserAccountStatus", status);
-            }
         }
 
         [HttpGet]

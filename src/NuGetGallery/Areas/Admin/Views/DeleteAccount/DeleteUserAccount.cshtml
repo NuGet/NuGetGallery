@@ -26,7 +26,12 @@
                 @Html.Partial("_UserOrganizationsListForDeletedAccount", Model.Organizations)
             </div>
         </div>
-        @Html.Partial("_DeleteUserAccountForm", new DeleteAccountAsAdminViewModel(Model))
+        <div class="form-group danger-zone">
+            @using (Html.BeginForm("Delete", "Users", FormMethod.Post, new { id = "delete-form" }))
+            {
+                @Html.Partial("_DeleteUserAccountForm", new DeleteAccountAsAdminViewModel(Model))
+            }
+        </div>
     </div>
 </section>
 
