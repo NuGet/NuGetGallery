@@ -16,6 +16,8 @@ namespace NuGetGallery.Configuration.SecretReader
         internal const string CertificateThumbprintConfigurationKey = "CertificateThumbprint";
         private IGalleryConfigurationService _configurationService;
 
+        public SecretReaderFactory() { }
+
         public SecretReaderFactory(IGalleryConfigurationService configurationService)
         {
             _configurationService = configurationService ?? throw new ArgumentNullException(nameof(configurationService));
@@ -48,6 +50,25 @@ namespace NuGetGallery.Configuration.SecretReader
                 var certificateThumbprint = _configurationService.ReadRawSetting(ResolveKeyVaultSettingName(CertificateThumbprintConfigurationKey));
                 var certificate = CertificateUtility.FindCertificateByThumbprint(StoreName.My, StoreLocation.LocalMachine, certificateThumbprint, true);
 
+                var keyVaultConfiguration = new KeyVaultConfiguration(vaultName, clientId, certificate);
+
+                secretReader = new KeyVaultReader(keyVaultConfiguration);
+            }
+            else
+            {
+                secretReader = new EmptySecretReader();
+            }
+
+            return new CachingSecretReader(secretReader);
+        }
+
+        public ISecretReader CreateSecretReader(string vaultName, string clientId, string certificateThumbprint)
+        {
+            // check validation of input arguments
+            ISecretReader secretReader;
+            if (!string.IsNullOrEmpty(vaultName))
+            {
+                var certificate = CertificateUtility.FindCertificateByThumbprint(StoreName.My, StoreLocation.LocalMachine, certificateThumbprint, true);
                 var keyVaultConfiguration = new KeyVaultConfiguration(vaultName, clientId, certificate);
 
                 secretReader = new KeyVaultReader(keyVaultConfiguration);

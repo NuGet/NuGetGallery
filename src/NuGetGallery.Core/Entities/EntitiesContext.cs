@@ -1,15 +1,32 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Common;
 using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
 using System.Data.Entity.Infrastructure.Annotations;
 using System.Threading.Tasks;
 using NuGet.Services.Entities;
 
 namespace NuGetGallery
 {
+    public class EntitiesContextFactory : IDbContextFactory<EntitiesContext>
+    {
+        public static Func<EntitiesContext> Factory;
+        public EntitiesContext Create()
+        {
+            var factory = Factory;
+            if (factory != null)
+            {
+                return factory();
+            }
+
+            return new EntitiesContext("Gallery.SqlServer", false);
+        }
+    }
+
     [DbConfigurationType(typeof(EntitiesConfiguration))]
     public class EntitiesContext
         : ObjectMaterializedInterceptingDbContext, IEntitiesContext
@@ -27,10 +44,10 @@ namespace NuGetGallery
         /// or any other scenario where a connection string will be set after the EntitiesContext is created
         /// (and read only mode is don't care).
         /// </summary>
-        public EntitiesContext()
-            : this("Gallery.SqlServer", false) // Use the connection string in a web.config (if one is found)
-        {
-        }
+        //public EntitiesContext()
+        //    : this("Gallery.SqlServer", false) // Use the connection string in a web.config (if one is found)
+        //{
+        //}
 
         /// <summary>
         /// The NuGet Gallery code should usually use this constructor, in order to respect read only mode.
