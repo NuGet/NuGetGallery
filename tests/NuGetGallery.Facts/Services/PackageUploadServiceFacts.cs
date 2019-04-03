@@ -996,32 +996,7 @@ namespace NuGetGallery
                     licenseFilename: licenseFilename,
                     licenseFileContents: licenseFileContents);
 
-                var buffer = packageStream.GetBuffer();
-
-                var licenseFilenameBytes = Encoding.ASCII.GetBytes(licenseFilename);
-
-                // the file name should appear twice in the zip stream:
-                // 1. where the compressed stream is saved.
-                // 2. in the central directory
-                // we'll need to patch stream length in both places
-
-                var firstInstanceOffset = FindSequenceIndex(licenseFilenameBytes, buffer);
-                Assert.True(firstInstanceOffset > 0);
-                var firstSizeOffset = firstInstanceOffset - 8;
-                Assert.True(firstSizeOffset > 0);
-                var firstLength = BitConverter.ToInt32(buffer, firstSizeOffset);
-                Assert.Equal(licenseFileContents.Length, firstLength);
-
-                var secondInstanceOffset = FindSequenceIndex(licenseFilenameBytes, buffer, firstInstanceOffset + licenseFilename.Length);
-                Assert.True(secondInstanceOffset > 0);
-                var secondSizeOffset = secondInstanceOffset - 22;
-                Assert.True(secondSizeOffset > 0);
-                var secondLength = BitConverter.ToInt32(buffer, secondSizeOffset);
-                Assert.Equal(licenseFileContents.Length, secondLength);
-
-                // now that we have offsets, we'll just patch them
-                buffer[firstSizeOffset] = 1;
-                buffer[secondSizeOffset] = 1;
+                PatchFileSizeInPackageStream(licenseFilename, licenseFileContents, packageStream);
 
                 _nuGetPackage = PackageServiceUtility.CreateNuGetPackage(packageStream);
 
@@ -1045,32 +1020,7 @@ namespace NuGetGallery
                 // Arrange
                 var packageStream = GeneratePackageStream();
 
-                var buffer = packageStream.GetBuffer();
-
-                var nuspecFilenameBytes = Encoding.ASCII.GetBytes(nuspecFilename);
-
-                // the file name should appear twice in the zip stream:
-                // 1. where the compressed stream is saved.
-                // 2. in the central directory
-                // we'll need to patch stream length in both places
-
-                var firstInstanceOffset = FindSequenceIndex(nuspecFilenameBytes, buffer);
-                Assert.True(firstInstanceOffset > 0);
-                var firstSizeOffset = firstInstanceOffset - 8;
-                Assert.True(firstSizeOffset > 0);
-                var firstLength = BitConverter.ToInt32(buffer, firstSizeOffset);
-                Assert.Equal(nuspecFileContents.Length, firstLength);
-
-                var secondInstanceOffset = FindSequenceIndex(nuspecFilenameBytes, buffer, firstInstanceOffset + nuspecFilename.Length);
-                Assert.True(secondInstanceOffset > 0);
-                var secondSizeOffset = secondInstanceOffset - 22;
-                Assert.True(secondSizeOffset > 0);
-                var secondLength = BitConverter.ToInt32(buffer, secondSizeOffset);
-                Assert.Equal(nuspecFileContents.Length, secondLength);
-
-                // now that we have offsets, we'll just patch them
-                buffer[firstSizeOffset] = 1;
-                buffer[secondSizeOffset] = 1;
+                PatchFileSizeInPackageStream(nuspecFilename, nuspecFileContents, packageStream);
 
                 _nuGetPackage = PackageServiceUtility.CreateNuGetPackage(packageStream);
 
@@ -1083,6 +1033,36 @@ namespace NuGetGallery
                 Assert.Equal(PackageValidationResultType.Invalid, result.Type);
                 Assert.Contains("corrupt", result.Message.PlainTextMessage);
                 Assert.Empty(result.Warnings);
+            }
+
+            private static void PatchFileSizeInPackageStream(string fileName, string fileContents, MemoryStream packageStream)
+            {
+                var buffer = packageStream.GetBuffer();
+
+                var fileNameInBytes = Encoding.ASCII.GetBytes(fileName);
+
+                // the file name should appear twice in the zip stream:
+                // 1. where the compressed stream is saved.
+                // 2. in the central directory
+                // we'll need to patch stream length in both places
+
+                var firstInstanceOffset = FindSequenceIndex(fileNameInBytes, buffer);
+                Assert.True(firstInstanceOffset > 0);
+                var firstSizeOffset = firstInstanceOffset - 8;
+                Assert.True(firstSizeOffset > 0);
+                var firstLength = BitConverter.ToInt32(buffer, firstSizeOffset);
+                Assert.Equal(fileContents.Length, firstLength);
+
+                var secondInstanceOffset = FindSequenceIndex(fileNameInBytes, buffer, firstInstanceOffset + fileName.Length);
+                Assert.True(secondInstanceOffset > 0);
+                var secondSizeOffset = secondInstanceOffset - 22;
+                Assert.True(secondSizeOffset > 0);
+                var secondLength = BitConverter.ToInt32(buffer, secondSizeOffset);
+                Assert.Equal(fileContents.Length, secondLength);
+
+                // now that we have offsets, we'll just patch them
+                buffer[firstSizeOffset] = 1;
+                buffer[secondSizeOffset] = 1;
             }
 
             [Theory]
