@@ -42,9 +42,9 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="prefix">The reserved namespace to modify</param>
         /// <param name="username">The user to remove the ownership for the namespace</param>
-        /// <param name="commitAsTransaction">True if the changes will be commited as a single transaction.</param>
+        /// <param name="commitChanges">Whether or not to commit the changes.</param>
         /// <returns>Awaitable Task</returns>
-        Task DeleteOwnerFromReservedNamespaceAsync(string prefix, string username, bool commitAsTransaction);
+        Task DeleteOwnerFromReservedNamespaceAsync(string prefix, string username, bool commitChanges);
 
         /// <summary>
         /// Add the specified package registration to the reserved namespace. It is the caller's reponsibility to

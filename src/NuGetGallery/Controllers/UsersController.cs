@@ -333,8 +333,7 @@ namespace NuGetGallery
                 // Unconfirmed users can be deleted immediately without creating a support request.
                 DeleteUserAccountStatus accountDeleteStatus = await _deleteAccountService.DeleteAccountAsync(userToBeDeleted: user,
                     userToExecuteTheDelete: user,
-                    orphanPackagePolicy: AccountDeletionOrphanPackagePolicy.UnlistOrphans,
-                    commitAsTransaction: true);
+                    orphanPackagePolicy: AccountDeletionOrphanPackagePolicy.UnlistOrphans);
                 if (!accountDeleteStatus.Success)
                 {
                     TempData["RequestFailedMessage"] = Strings.AccountSelfDelete_Fail;
@@ -393,8 +392,7 @@ namespace NuGetGallery
                 var status = await _deleteAccountService.DeleteAccountAsync(
                     userToBeDeleted: user,
                     userToExecuteTheDelete: admin,
-                    orphanPackagePolicy: model.ShouldUnlist ? AccountDeletionOrphanPackagePolicy.UnlistOrphans : AccountDeletionOrphanPackagePolicy.KeepOrphans,
-                    commitAsTransaction: true);
+                    orphanPackagePolicy: model.ShouldUnlist ? AccountDeletionOrphanPackagePolicy.UnlistOrphans : AccountDeletionOrphanPackagePolicy.KeepOrphans);
                 return View("DeleteUserAccountStatus", status);
             }
         }
