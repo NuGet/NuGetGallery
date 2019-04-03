@@ -101,7 +101,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
         {
             try
             {
-                await _reservedNamespaceService.DeleteOwnerFromReservedNamespaceAsync(prefix.Value, owner, commitAsTransaction:true);
+                await _reservedNamespaceService.DeleteOwnerFromReservedNamespaceAsync(prefix.Value, owner, commitChanges: true);
                 return Json(new { success = true, message = string.Format(Strings.ReservedNamespace_OwnerRemoved, owner, prefix.Value) });
             }
             catch (Exception ex) when (ex is InvalidOperationException || ex is ArgumentException)

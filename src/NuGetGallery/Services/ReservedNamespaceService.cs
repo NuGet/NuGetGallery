@@ -180,7 +180,7 @@ namespace NuGetGallery
             }
         }
 
-        public async Task DeleteOwnerFromReservedNamespaceAsync(string prefix, string username, bool commitAsTransaction = true)
+        public async Task DeleteOwnerFromReservedNamespaceAsync(string prefix, string username, bool commitChanges = true)
         {
             if (string.IsNullOrWhiteSpace(prefix))
             {
@@ -195,7 +195,7 @@ namespace NuGetGallery
                    ?? throw new InvalidOperationException(string.Format(
                        CultureInfo.CurrentCulture, Strings.ReservedNamespace_NamespaceNotFound, prefix));
             List<PackageRegistration> packageRegistrationsToMarkUnverified;
-            if (commitAsTransaction)
+            if (commitChanges)
             {
                 using (var strategy = new SuspendDbExecutionStrategy())
                 using (var transaction = EntitiesContext.GetDatabase().BeginTransaction())
@@ -206,13 +206,14 @@ namespace NuGetGallery
             }
             else
             {
-                packageRegistrationsToMarkUnverified = await DeleteOwnerFromReservedNamespaceImplAsync(prefix, username, namespaceToModify);
+                packageRegistrationsToMarkUnverified = await DeleteOwnerFromReservedNamespaceImplAsync(prefix, username, namespaceToModify, commitChanges: false);
             }
+
             await AuditingService.SaveAuditRecordAsync(
                   new ReservedNamespaceAuditRecord(namespaceToModify, AuditedReservedNamespaceAction.RemoveOwner, username, packageRegistrationsToMarkUnverified));
         }
 
-        private async Task<List<PackageRegistration>> DeleteOwnerFromReservedNamespaceImplAsync(string prefix, string username, ReservedNamespace namespaceToModify)
+        private async Task<List<PackageRegistration>> DeleteOwnerFromReservedNamespaceImplAsync(string prefix, string username, ReservedNamespace namespaceToModify, bool commitChanges = true)
         {
             var userToRemove = UserService.FindByUsername(username)
                 ?? throw new InvalidOperationException(string.Format(
@@ -245,10 +246,13 @@ namespace NuGetGallery
                 packageRegistrationsToMarkUnverified
                     .ForEach(pr => namespaceToModify.PackageRegistrations.Remove(pr));
 
-                await PackageService.UpdatePackageVerifiedStatusAsync(packageRegistrationsToMarkUnverified, isVerified: false);
+                await PackageService.UpdatePackageVerifiedStatusAsync(packageRegistrationsToMarkUnverified, isVerified: false, commitChanges: false);
             }
             
-            await ReservedNamespaceRepository.CommitChangesAsync();
+            if (commitChanges)
+            {
+                await ReservedNamespaceRepository.CommitChangesAsync();
+            }
 
             return packageRegistrationsToMarkUnverified;
         }

@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+                <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+                    <metadata>
+                        <id>theId</id>
+                        <version>1.2.3-alpha.0</version>
+                        <title>theTitle</title>
+                        <summary>theSummary</summary>
+                        <description>theDescription</description>
+                        <tags>theTags</tags>
+                        <requireLicenseAcceptance>True</requireLicenseAcceptance>
+                        <authors>theFirstAuthor, theSecondAuthor</authors>
+                        <owners>Package owners</owners>
+                        <language></language>
+                        <copyright>theCopyright</copyright>
+                        <releaseNotes>theReleaseNotes</releaseNotes>
+                        <licenseUrl></licenseUrl>
+                        
+                        <projectUrl></projectUrl>
+                        <iconUrl></iconUrl>
+                        <packageTypes><packageType name="dependency" version="1.0.0"/><packageType name="DotNetCliTool" version="2.1.1"/></packageTypes>
+                        <dependencies><group targetFramework="net40"><dependency id="theFirstDependency" version="[1.0.0, 2.0.0)"></dependency><dependency id="theSecondDependency" version="[1.0.0, 1.0.0]"></dependency><dependency id="theThirdDependency" version="(, )"></dependency></group><group targetFramework="net35"><dependency id="theFourthDependency" version="[1.0.0, 1.0.0]"></dependency></group></dependencies>
+                        
+                        
+                    </metadata>
+                </package>

@@ -100,6 +100,15 @@ namespace NuGetGallery
                 return result;
             }
 
+            var nuspecFileEntry = nuGetPackage.GetEntry(nuGetPackage.GetNuspecFile());
+            using (var nuspecFileStream = await nuGetPackage.GetNuspecAsync(CancellationToken.None))
+            {
+                if (!await IsStreamLengthMatchesReportedAsync(nuspecFileStream, nuspecFileEntry.Length))
+                {
+                    return PackageValidationResult.Invalid(Strings.UploadPackage_CorruptNupkg);
+                }
+            }
+
             result = await CheckForUnsignedPushAfterAuthorSignedAsync(
                 nuGetPackage,
                 warnings);
@@ -225,7 +234,7 @@ namespace NuGetGallery
                 {
                     return PackageValidationResult.Invalid(new InvalidUrlEncodingForLicenseUrlValidationMessage());
                 }
-                
+
                 if (licenseMetadata.Type == LicenseType.File)
                 {
                     return PackageValidationResult.Invalid(
