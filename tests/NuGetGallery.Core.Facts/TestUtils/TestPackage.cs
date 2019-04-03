@@ -106,9 +106,9 @@ namespace NuGetGallery
         {
             return repositoryMetadata == null
                 ? string.Empty
-                : "<repository type=\"" + repositoryMetadata.Type + "\" " + 
-                                "url =\"" + repositoryMetadata.Url + "\" " + 
-                                "commit=\"" + repositoryMetadata.Commit + "\" " + 
+                : "<repository type=\"" + repositoryMetadata.Type + "\" " +
+                                "url =\"" + repositoryMetadata.Url + "\" " +
+                                "commit=\"" + repositoryMetadata.Commit + "\" " +
                                 "branch=\"" + repositoryMetadata.Branch + "\"/>";
         }
 
@@ -120,7 +120,7 @@ namespace NuGetGallery
             }
 
             var output = new StringBuilder();
-            foreach(var packageType in packageTypes)
+            foreach (var packageType in packageTypes)
             {
                 output.Append("<packageType");
                 if (packageType.Name != null)
@@ -233,10 +233,10 @@ namespace NuGetGallery
         {
             var packageTypes = new List<ClientPackageType>();
             packageTypes.Add(new ClientPackageType(name: "SymbolsPackage", version: ClientPackageType.EmptyVersion));
-            return CreateTestPackageStream(id, 
-                version, 
-                packageTypes: packageTypes, 
-                populatePackage: populatePackage, 
+            return CreateTestPackageStream(id,
+                version,
+                packageTypes: packageTypes,
+                populatePackage: populatePackage,
                 isSymbolPackage: true);
         }
 

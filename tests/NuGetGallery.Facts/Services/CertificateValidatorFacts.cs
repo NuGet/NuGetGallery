@@ -183,19 +183,9 @@ namespace NuGetGallery.Services
             }
         }
 
-        private byte[] GetResourceBytes(string name)
-        {
-            var resourceName = $"NuGetGallery.TestData.{name}";
-
-            using (var reader = new BinaryReader(GetType().Assembly.GetManifestResourceStream(resourceName)))
-            {
-                return reader.ReadBytes((int)reader.BaseStream.Length);
-            }
-        }
-
         private X509Certificate2 GetCertificate()
         {
-            return new X509Certificate2(GetResourceBytes("certificate.cer"));
+            return new X509Certificate2(TestDataResourceUtility.GetResourceBytes("certificate.cer"));
         }
 
         private MemoryStream GetDerEncodedCertificateStream()

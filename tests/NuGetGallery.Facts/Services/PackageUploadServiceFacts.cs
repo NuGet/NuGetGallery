@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -118,7 +118,8 @@ namespace NuGetGallery
                 var matchingNamepsaces = testNamespaces
                     .Where(rn => prefixes.Any(pr => id.StartsWith(pr, StringComparison.OrdinalIgnoreCase)))
                     .ToList();
-                prefixes.ForEach(p => {
+                prefixes.ForEach(p =>
+                {
                     var existingNamespace = testNamespaces.FirstOrDefault(rn => rn.Value.Equals(p, StringComparison.OrdinalIgnoreCase));
                     existingNamespace.Owners.Add(firstUser);
                 });
@@ -149,7 +150,8 @@ namespace NuGetGallery
                 var testUsers = ReservedNamespaceServiceTestData.GetTestUsers();
                 var firstUser = testUsers.First();
                 var lastUser = testUsers.Last();
-                prefixes.ForEach(p => {
+                prefixes.ForEach(p =>
+                {
                     var existingNamespace = testNamespaces.FirstOrDefault(rn => rn.Value.Equals(p, StringComparison.OrdinalIgnoreCase));
                     existingNamespace.IsSharedNamespace = true;
                     existingNamespace.Owners.Add(firstUser);
@@ -257,7 +259,7 @@ namespace NuGetGallery
                 });
 
                 var result = await _target.ValidateBeforeGeneratePackageAsync(
-                    _nuGetPackage.Object, 
+                    _nuGetPackage.Object,
                     GetPackageMetadata(_nuGetPackage));
 
                 Assert.Equal(PackageValidationResultType.Accepted, result.Type);
@@ -320,7 +322,7 @@ namespace NuGetGallery
                     Times.Once);
             }
 
-            public static IEnumerable<object[]> WarnsOnMalformedRepositoryMetadata_Data = new []
+            public static IEnumerable<object[]> WarnsOnMalformedRepositoryMetadata_Data = new[]
             {
                 new object[] { null, null, null },
                 new object[] { "git", null, null },
@@ -983,7 +985,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task RejectsNupkgsReportingIncorrectFileLength()
+            public async Task RejectsNupkgsReportingIncorrectFileLengthForLicenseFile()
             {
                 const string licenseFilename = "license.txt";
                 const string licenseFileContents = "abcdefghijklnopqrstuvwxyz";
@@ -994,32 +996,7 @@ namespace NuGetGallery
                     licenseFilename: licenseFilename,
                     licenseFileContents: licenseFileContents);
 
-                var buffer = packageStream.GetBuffer();
-
-                var licenseFilenameBytes = Encoding.ASCII.GetBytes(licenseFilename);
-
-                // the file name should appear twice in the zip stream:
-                // 1. where the compressed stream is saved.
-                // 2. in the central directory
-                // we'll need to patch stream length in both places
-
-                var firstInstanceOffset = FindSequenceIndex(licenseFilenameBytes, buffer);
-                Assert.True(firstInstanceOffset > 0);
-                var firstSizeOffset = firstInstanceOffset - 8;
-                Assert.True(firstSizeOffset > 0);
-                var firstLength = BitConverter.ToInt32(buffer, firstSizeOffset);
-                Assert.Equal(licenseFileContents.Length, firstLength);
-
-                var secondInstanceOffset = FindSequenceIndex(licenseFilenameBytes, buffer, firstInstanceOffset + licenseFilename.Length);
-                Assert.True(secondInstanceOffset > 0);
-                var secondSizeOffset = secondInstanceOffset - 22;
-                Assert.True(secondSizeOffset > 0);
-                var secondLength = BitConverter.ToInt32(buffer, secondSizeOffset);
-                Assert.Equal(licenseFileContents.Length, secondLength);
-
-                // now that we have offsets, we'll just patch them
-                buffer[firstSizeOffset] = 1;
-                buffer[secondSizeOffset] = 1;
+                PatchFileSizeInPackageStream(licenseFilename, licenseFileContents, packageStream);
 
                 _nuGetPackage = PackageServiceUtility.CreateNuGetPackage(packageStream);
 
@@ -1032,6 +1009,60 @@ namespace NuGetGallery
                 Assert.Equal(PackageValidationResultType.Invalid, result.Type);
                 Assert.Contains("corrupt", result.Message.PlainTextMessage);
                 Assert.Empty(result.Warnings);
+            }
+
+            [Fact]
+            public async Task RejectsNupkgsReportingIncorrectFileLengthForNuspecFile()
+            {
+                const string nuspecFilename = "theId.nuspec";
+                var nuspecFileContents = TestDataResourceUtility.GetResourceString(nuspecFilename);
+
+                // Arrange
+                var packageStream = GeneratePackageStream();
+
+                PatchFileSizeInPackageStream(nuspecFilename, nuspecFileContents, packageStream);
+
+                _nuGetPackage = PackageServiceUtility.CreateNuGetPackage(packageStream);
+
+                // Act
+                var result = await _target.ValidateBeforeGeneratePackageAsync(
+                    _nuGetPackage.Object,
+                    GetPackageMetadata(_nuGetPackage));
+
+                // Assert
+                Assert.Equal(PackageValidationResultType.Invalid, result.Type);
+                Assert.Contains("corrupt", result.Message.PlainTextMessage);
+                Assert.Empty(result.Warnings);
+            }
+
+            private static void PatchFileSizeInPackageStream(string fileName, string fileContents, MemoryStream packageStream)
+            {
+                var buffer = packageStream.GetBuffer();
+
+                var fileNameInBytes = Encoding.ASCII.GetBytes(fileName);
+
+                // the file name should appear twice in the zip stream:
+                // 1. where the compressed stream is saved.
+                // 2. in the central directory
+                // we'll need to patch stream length in both places
+
+                var firstInstanceOffset = FindSequenceIndex(fileNameInBytes, buffer);
+                Assert.True(firstInstanceOffset > 0);
+                var firstSizeOffset = firstInstanceOffset - 8;
+                Assert.True(firstSizeOffset > 0);
+                var firstLength = BitConverter.ToInt32(buffer, firstSizeOffset);
+                Assert.Equal(fileContents.Length, firstLength);
+
+                var secondInstanceOffset = FindSequenceIndex(fileNameInBytes, buffer, firstInstanceOffset + fileName.Length);
+                Assert.True(secondInstanceOffset > 0);
+                var secondSizeOffset = secondInstanceOffset - 22;
+                Assert.True(secondSizeOffset > 0);
+                var secondLength = BitConverter.ToInt32(buffer, secondSizeOffset);
+                Assert.Equal(fileContents.Length, secondLength);
+
+                // now that we have offsets, we'll just patch them
+                buffer[firstSizeOffset] = 1;
+                buffer[secondSizeOffset] = 1;
             }
 
             [Theory]
@@ -1418,7 +1449,7 @@ namespace NuGetGallery
             public async Task RejectIsTyposquattingNewVersion()
             {
                 _isNewPackageRegistration = true;
-                _typosquattingCheckCollisionIds = new List<string>{ "typosquatting_package_Id" };
+                _typosquattingCheckCollisionIds = new List<string> { "typosquatting_package_Id" };
                 _typosquattingService
                     .Setup(x => x.IsUploadedPackageIdTyposquatting(It.IsAny<string>(), It.IsAny<User>(), out _typosquattingCheckCollisionIds))
                     .Returns(true);
