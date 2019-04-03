@@ -104,10 +104,7 @@ namespace NuGetGallery
             return null;
         }
 
-        protected override string GetDeleteAccountViewName()
-        {
-            return "DeleteUserAccount";
-        }
+        protected override string GetDeleteAccountViewName() => "DeleteUserAccount";
 
         protected override DeleteAccountViewModel<User> GetDeleteAccountViewModel(User account)
         {

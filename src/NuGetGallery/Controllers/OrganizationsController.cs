@@ -324,10 +324,7 @@ namespace NuGetGallery
             }
         }
 
-        protected override string GetDeleteAccountViewName()
-        {
-            return "DeleteOrganizationAccount";
-        }
+        protected override string GetDeleteAccountViewName() => "DeleteOrganizationAccount";
 
         protected override DeleteAccountViewModel<Organization> GetDeleteAccountViewModel(Organization account)
         {
