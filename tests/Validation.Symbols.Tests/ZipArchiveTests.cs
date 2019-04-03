@@ -7,7 +7,9 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using Microsoft.Extensions.Logging;
 using NuGet.Jobs.Validation.Symbols.Core;
+using Moq;
 using Xunit;
 
 
@@ -78,7 +80,8 @@ namespace Validation.Symbols.Tests
             {
                 // Arrange
                 IReadOnlyCollection<ZipArchiveEntry> input = new ReadOnlyCollection<ZipArchiveEntry>(new List<ZipArchiveEntry>());
-                var service = new ZipArchiveService();
+                Mock<ILogger<ZipArchiveService>> zipServiceLogger = new Mock<ILogger<ZipArchiveService>>();
+                var service = new ZipArchiveService(zipServiceLogger.Object);
 
                 // Act + Assert
                 Assert.Throws<ArgumentNullException>(() => service.Extract(null, "Dir1", new List<string> {".pdb"}));
@@ -148,6 +151,10 @@ namespace Validation.Symbols.Tests
 
         private class TestZipArchiveService : ZipArchiveService
         {
+            public TestZipArchiveService( ) : base(new Mock<ILogger<ZipArchiveService>>().Object)
+            {
+            }
+
             public bool OnExtractInvoked = false;
 
             public override void OnExtract(ZipArchiveEntry entry, string targetDirectory)
