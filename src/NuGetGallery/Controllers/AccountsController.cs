@@ -350,8 +350,7 @@ namespace NuGetGallery
                 var status = await DeleteAccountService.DeleteAccountAsync(
                     userToBeDeleted: accountToDelete,
                     userToExecuteTheDelete: admin,
-                    orphanPackagePolicy: model.ShouldUnlist ? AccountDeletionOrphanPackagePolicy.UnlistOrphans : AccountDeletionOrphanPackagePolicy.KeepOrphans,
-                    commitAsTransaction: true);
+                    orphanPackagePolicy: model.ShouldUnlist ? AccountDeletionOrphanPackagePolicy.UnlistOrphans : AccountDeletionOrphanPackagePolicy.KeepOrphans);
                 return View("DeleteAccountStatus", status);
             }
         }

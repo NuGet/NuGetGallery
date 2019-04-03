@@ -863,7 +863,6 @@ namespace NuGetGallery
                     .Setup(stub => stub.DeleteAccountAsync(
                         testUser, 
                         adminUser, 
-                        true, 
                         shouldUnlist ? AccountDeletionOrphanPackagePolicy.UnlistOrphans : AccountDeletionOrphanPackagePolicy.KeepOrphans))
                     .ReturnsAsync(expectedStatus);
 
