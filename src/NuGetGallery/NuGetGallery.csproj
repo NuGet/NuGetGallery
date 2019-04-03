@@ -1718,7 +1718,7 @@
     <Content Include="Areas\Admin\Views\ReservedNamespace\Index.cshtml" />
     <Content Include="Areas\Admin\Views\DeleteAccount\Index.cshtml" />
     <Content Include="Areas\Admin\Views\Validation\Index.cshtml" />
-    <Content Include="Areas\Admin\Views\DeleteAccount\DeleteUserAccountStatus.cshtml" />
+    <Content Include="Areas\Admin\Views\DeleteAccount\DeleteAccountStatus.cshtml" />
     <Content Include="Areas\Admin\Views\Delete\Reflow.cshtml" />
     <Content Include="Areas\Admin\Views\Delete\_ReflowBulk.cshtml" />
     <Content Include="Areas\Admin\Views\Delete\_ReflowBulkConfirm.cshtml" />

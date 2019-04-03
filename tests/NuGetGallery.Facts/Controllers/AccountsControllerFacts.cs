@@ -9,6 +9,7 @@ using System.Web.Mvc;
 using Moq;
 using NuGet.Services.Entities;
 using NuGet.Services.Messaging.Email;
+using NuGetGallery.Areas.Admin.ViewModels;
 using NuGetGallery.Framework;
 using NuGetGallery.Infrastructure.Mail.Messages;
 using Xunit;
@@ -745,6 +746,139 @@ namespace NuGetGallery
 
                 // Act
                 return controller.Confirm(account.Username, token);
+            }
+        }
+
+        public abstract class TheDeleteAccountAction : AccountsControllerTestContainer
+        {
+            [Fact]
+            public void DeleteNotExistentAccount()
+            {
+                // Arrange
+                var controller = GetController();
+
+                // Act
+                var result = controller.Delete(accountName: "NotFoundUser");
+
+                // Assert
+                ResultAssert.IsNotFound(result);
+            }
+
+            [Fact]
+            public void DeleteDeletedAccount()
+            {
+                // Arrange
+                string userName = "DeletedUser";
+                var controller = GetController();
+
+                var fakes = Get<Fakes>();
+                var testUser = fakes.CreateUser(userName);
+                testUser.IsDeleted = true;
+
+                GetMock<IUserService>()
+                    .Setup(stub => stub.FindByUsername(userName, false))
+                    .Returns(testUser);
+
+                // act
+                var result = controller.Delete(accountName: userName);
+
+                // Assert
+                ResultAssert.IsNotFound(result);
+            }
+        }
+
+        public abstract class TheDeleteAccountPostAction : AccountsControllerTestContainer
+        {
+            [Fact]
+            public async Task DeleteNotExistentAccount()
+            {
+                // Arrange
+                var username = "NotFoundUser";
+                var controller = GetController();
+
+                var model = new DeleteAccountAsAdminViewModel()
+                {
+                    AccountName = username
+                };
+
+                // Act
+                var result = await controller.Delete(model);
+
+                // Assert
+                AssertNotFoundResult(result, username);
+            }
+
+            [Fact]
+            public async Task DeleteDeletedAccount()
+            {
+                // Arrange
+                string username = "DeletedUser";
+                var controller = GetController();
+
+                var fakes = Get<Fakes>();
+                var testUser = fakes.CreateUser(username);
+                testUser.IsDeleted = true;
+
+                GetMock<IUserService>()
+                    .Setup(stub => stub.FindByUsername(username, false))
+                    .Returns(testUser);
+
+                var model = new DeleteAccountAsAdminViewModel()
+                {
+                    AccountName = username
+                };
+
+                // act
+                var result = await controller.Delete(model);
+
+                // Assert
+                AssertNotFoundResult(result, username);
+            }
+
+            private void AssertNotFoundResult(ActionResult result, string username)
+            {
+                var status = ResultAssert.IsView<DeleteAccountStatus>(result, "DeleteAccountStatus");
+                Assert.Equal(username, status.AccountName);
+                Assert.False(status.Success);
+                Assert.Equal($"Account {username} not found.", status.Description);
+            }
+
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public async Task DeleteHappyAccount(bool shouldUnlist)
+            {
+                // Arrange
+                string username = "RegularUser";
+                var controller = GetController();
+                var fakes = Get<Fakes>();
+                var testUser = fakes.CreateUser(username);
+                testUser.IsDeleted = false;
+                testUser.Key = 1;
+                var adminUser = fakes.Admin;
+                controller.SetCurrentUser(adminUser);
+
+                var expectedStatus = new DeleteAccountStatus();
+                GetMock<IDeleteAccountService>()
+                    .Setup(stub => stub.DeleteAccountAsync(
+                        testUser, 
+                        adminUser, 
+                        true, 
+                        shouldUnlist ? AccountDeletionOrphanPackagePolicy.UnlistOrphans : AccountDeletionOrphanPackagePolicy.KeepOrphans))
+                    .ReturnsAsync(expectedStatus);
+
+                var model = new DeleteAccountAsAdminViewModel()
+                {
+                    AccountName = username,
+                    ShouldUnlist = shouldUnlist
+                };
+
+                // act
+                var result = await controller.Delete(model);
+                var status = ResultAssert.IsView<DeleteAccountStatus>(result, "DeleteAccountStatus");
+
+                // Assert
+                Assert.Equal(expectedStatus, status);
             }
         }
     }

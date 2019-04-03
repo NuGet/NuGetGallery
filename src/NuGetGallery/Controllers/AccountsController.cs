@@ -337,7 +337,7 @@ namespace NuGetGallery
             var accountToDelete = UserService.FindByUsername(model.AccountName) as TUser;
             if (accountToDelete == null || accountToDelete.IsDeleted)
             {
-                return View("DeleteUserAccountStatus", new DeleteUserAccountStatus()
+                return View("DeleteAccountStatus", new DeleteAccountStatus()
                 {
                     AccountName = model.AccountName,
                     Description = $"Account {model.AccountName} not found.",
@@ -352,7 +352,7 @@ namespace NuGetGallery
                     userToExecuteTheDelete: admin,
                     orphanPackagePolicy: model.ShouldUnlist ? AccountDeletionOrphanPackagePolicy.UnlistOrphans : AccountDeletionOrphanPackagePolicy.KeepOrphans,
                     commitAsTransaction: true);
-                return View("DeleteUserAccountStatus", status);
+                return View("DeleteAccountStatus", status);
             }
         }
 

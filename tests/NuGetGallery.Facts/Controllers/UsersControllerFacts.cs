@@ -2203,106 +2203,6 @@ namespace NuGetGallery
             }
         }
 
-        public class TheDeleteAccountAction : TestContainer
-        {
-            [Fact]
-            public void DeleteNotExistentAccount()
-            {
-                // Arrange
-                var controller = GetController<UsersController>();
-
-                // Act
-                var result = controller.Delete(accountName: "NotFoundUser");
-
-                // Assert
-                ResultAssert.IsNotFound(result);
-            }
-
-            [Fact]
-            public void DeleteDeletedAccount()
-            {
-                // Arrange
-                string userName = "DeletedUser";
-                var controller = GetController<UsersController>();
-
-                var fakes = Get<Fakes>();
-                var testUser = fakes.CreateUser(userName);
-                testUser.IsDeleted = true;
-
-                GetMock<IUserService>()
-                    .Setup(stub => stub.FindByUsername(userName, false))
-                    .Returns(testUser);
-
-                // act
-                var result = controller.Delete(accountName: userName);
-
-                // Assert
-                ResultAssert.IsNotFound(result);
-            }
-
-            [Theory]
-            [InlineData(false)]
-            [InlineData(true)]
-            public void DeleteHappyAccount(bool withPendingIssues)
-            {
-                // Arrange
-                string userName = "DeletedUser";
-                var controller = GetController<UsersController>();
-                var fakes = Get<Fakes>();
-                var testUser = fakes.CreateUser(userName);
-                testUser.IsDeleted = false;
-                testUser.Key = 1;
-                controller.SetCurrentUser(fakes.Admin);
-
-                PackageRegistration packageRegistration = new PackageRegistration();
-                packageRegistration.Owners.Add(testUser);
-
-                Package userPackage = new Package()
-                {
-                    Description = "TestPackage",
-                    Key = 1,
-                    Version = "1.0.0",
-                    PackageRegistration = packageRegistration
-                };
-                packageRegistration.Packages.Add(userPackage);
-
-                List<Package> userPackages = new List<Package>() { userPackage };
-                List<Issue> issues = new List<Issue>();
-                if (withPendingIssues)
-                {
-                    issues.Add(new Issue()
-                    {
-                        IssueTitle = Strings.AccountDelete_SupportRequestTitle,
-                        OwnerEmail = testUser.EmailAddress,
-                        CreatedBy = userName,
-                        UserKey = testUser.Key,
-                        IssueStatus = new IssueStatus() { Key = IssueStatusKeys.New, Name = "OneIssue" }
-                    });
-                }
-
-                GetMock<IUserService>()
-                    .Setup(stub => stub.FindByUsername(userName, false))
-                    .Returns(testUser);
-                GetMock<IPackageService>()
-                    .Setup(stub => stub.FindPackagesByAnyMatchingOwner(testUser, It.IsAny<bool>(), false))
-                    .Returns(userPackages);
-                GetMock<IPackageService>()
-                    .Setup(stub => stub.FindPackagesByAnyMatchingOwner(testUser, It.IsAny<bool>(), false))
-                    .Returns(userPackages);
-                GetMock<ISupportRequestService>()
-                    .Setup(stub => stub.GetIssues(null, null, null, null))
-                    .Returns(issues);
-
-                // act
-                var model = ResultAssert.IsView<DeleteUserViewModel>(controller.Delete(accountName: userName), viewName: "DeleteUserAccount");
-
-                // Assert
-                Assert.Equal(userName, model.AccountName);
-                Assert.Single(model.Packages);
-                Assert.Equal(withPendingIssues, model.HasPendingRequests);
-            }
-        }
-
         public class TheDeleteAccountRequestAction : TestContainer
         {
             [Theory]
@@ -2474,7 +2374,7 @@ namespace NuGetGallery
 
                 GetMock<IDeleteAccountService>()
                     .Setup(stub => stub.DeleteAccountAsync(testUser, It.IsAny<User>(), It.IsAny<bool>(), It.IsAny<AccountDeletionOrphanPackagePolicy>()))
-                    .Returns(value: Task.FromResult(new DeleteUserAccountStatus()
+                    .Returns(value: Task.FromResult(new DeleteAccountStatus()
                     {
                         AccountName = userName,
                         Description = "Delete user",
@@ -3437,6 +3337,68 @@ namespace NuGetGallery
 
                 Assert.NotNull(response);
                 Assert.Equal((int)HttpStatusCode.OK, _controller.Response.StatusCode);
+            }
+        }
+
+        public class TheDeleteUserAccountAction : TestContainer
+        {
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public void DeleteHappyAccount(bool withPendingIssues)
+            {
+                // Arrange
+                string userName = "RegularUser";
+                var controller = GetController<UsersController>();
+                var fakes = Get<Fakes>();
+                var testUser = fakes.CreateUser(userName);
+                testUser.IsDeleted = false;
+                testUser.Key = 1;
+                controller.SetCurrentUser(fakes.Admin);
+
+                PackageRegistration packageRegistration = new PackageRegistration();
+                packageRegistration.Owners.Add(testUser);
+
+                Package userPackage = new Package()
+                {
+                    Description = "TestPackage",
+                    Key = 1,
+                    Version = "1.0.0",
+                    PackageRegistration = packageRegistration
+                };
+                packageRegistration.Packages.Add(userPackage);
+
+                List<Package> userPackages = new List<Package>() { userPackage };
+                List<Issue> issues = new List<Issue>();
+                if (withPendingIssues)
+                {
+                    issues.Add(new Issue()
+                    {
+                        IssueTitle = Strings.AccountDelete_SupportRequestTitle,
+                        OwnerEmail = testUser.EmailAddress,
+                        CreatedBy = userName,
+                        UserKey = testUser.Key,
+                        IssueStatus = new IssueStatus() { Key = IssueStatusKeys.New, Name = "OneIssue" }
+                    });
+                }
+
+                GetMock<IUserService>()
+                    .Setup(stub => stub.FindByUsername(userName, false))
+                    .Returns(testUser);
+                GetMock<IPackageService>()
+                    .Setup(stub => stub.FindPackagesByAnyMatchingOwner(testUser, It.IsAny<bool>(), false))
+                    .Returns(userPackages);
+                GetMock<ISupportRequestService>()
+                    .Setup(stub => stub.GetIssues(null, null, null, null))
+                    .Returns(issues);
+
+                // act
+                var model = ResultAssert.IsView<DeleteUserViewModel>(controller.Delete(accountName: userName), viewName: "DeleteUserAccount");
+
+                // Assert
+                Assert.Equal(userName, model.AccountName);
+                Assert.Single(model.Packages);
+                Assert.Equal(withPendingIssues, model.HasPendingRequests);
             }
         }
     }

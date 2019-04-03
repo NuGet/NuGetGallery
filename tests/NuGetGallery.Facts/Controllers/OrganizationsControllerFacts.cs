@@ -1439,7 +1439,7 @@ namespace NuGetGallery
 
                 GetMock<IDeleteAccountService>()
                     .Setup(x => x.DeleteAccountAsync(testOrganization, currentUser, true, AccountDeletionOrphanPackagePolicy.DoNotAllowOrphans))
-                    .Returns(Task.FromResult(new DeleteUserAccountStatus { Success = false }));
+                    .Returns(Task.FromResult(new DeleteAccountStatus { Success = false }));
 
                 // Act & Assert
                 await RedirectsToDeleteRequest(
@@ -1462,7 +1462,7 @@ namespace NuGetGallery
 
                 GetMock<IDeleteAccountService>()
                     .Setup(x => x.DeleteAccountAsync(testOrganization, currentUser, true, AccountDeletionOrphanPackagePolicy.DoNotAllowOrphans))
-                    .Returns(Task.FromResult(new DeleteUserAccountStatus { Success = true }));
+                    .Returns(Task.FromResult(new DeleteAccountStatus { Success = true }));
 
                 // Act
                 var result = await Invoke(controller, testOrganization.Username);
@@ -2149,6 +2149,52 @@ namespace NuGetGallery
 
                 Assert.NotNull(response);
                 Assert.Equal((int)HttpStatusCode.OK, _controller.Response.StatusCode);
+            }
+        }
+
+        public class TheDeleteOrganizationAccountAction : TestContainer
+        {
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public void DeleteHappyAccount(bool withPendingIssues)
+            {
+                // Arrange
+                var controller = GetController<OrganizationsController>();
+                var fakes = Get<Fakes>();
+                var testUser = fakes.Organization;
+                var username = testUser.Username;
+                controller.SetCurrentUser(fakes.OrganizationAdmin);
+
+                PackageRegistration packageRegistration = new PackageRegistration();
+                packageRegistration.Owners.Add(testUser);
+
+                Package userPackage = new Package()
+                {
+                    Description = "TestPackage",
+                    Key = 1,
+                    Version = "1.0.0",
+                    PackageRegistration = packageRegistration
+                };
+                packageRegistration.Packages.Add(userPackage);
+
+                List<Package> userPackages = new List<Package>() { userPackage };
+
+                GetMock<IUserService>()
+                    .Setup(stub => stub.FindByUsername(username, false))
+                    .Returns(testUser);
+                GetMock<IPackageService>()
+                    .Setup(stub => stub.FindPackagesByAnyMatchingOwner(testUser, It.IsAny<bool>(), false))
+                    .Returns(userPackages);
+
+                // act
+                var model = ResultAssert.IsView<DeleteOrganizationViewModel>(controller.Delete(accountName: username), viewName: "DeleteOrganizationAccount");
+
+                // Assert
+                Assert.Equal(username, model.AccountName);
+                Assert.Single(model.Packages);
+                Assert.Single(model.AdditionalMembers);
+                Assert.True(model.HasAdditionalMembers);
             }
         }
     }

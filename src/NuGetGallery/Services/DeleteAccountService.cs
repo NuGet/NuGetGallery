@@ -62,7 +62,7 @@ namespace NuGetGallery
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
         }
 
-        public async Task<DeleteUserAccountStatus> DeleteAccountAsync(User userToBeDeleted,
+        public async Task<DeleteAccountStatus> DeleteAccountAsync(User userToBeDeleted,
             User userToExecuteTheDelete,
             bool commitAsTransaction,
             AccountDeletionOrphanPackagePolicy orphanPackagePolicy = AccountDeletionOrphanPackagePolicy.DoNotAllowOrphans)
@@ -79,7 +79,7 @@ namespace NuGetGallery
 
             if (userToBeDeleted.IsDeleted)
             {
-                return new DeleteUserAccountStatus()
+                return new DeleteAccountStatus()
                 {
                     Success = false,
                     Description = string.Format(CultureInfo.CurrentCulture,
@@ -89,7 +89,7 @@ namespace NuGetGallery
                 };
             }
             
-            var deleteUserAccountStatus = await RunAccountDeletionTask(
+            var status = await RunAccountDeletionTask(
                 () => DeleteAccountImplAsync(
                     userToBeDeleted, 
                     userToExecuteTheDelete,
@@ -98,8 +98,8 @@ namespace NuGetGallery
                 userToExecuteTheDelete,
                 commitAsTransaction);
 
-            _telemetryService.TrackAccountDeletionCompleted(userToBeDeleted, userToExecuteTheDelete, deleteUserAccountStatus.Success);
-            return deleteUserAccountStatus;
+            _telemetryService.TrackAccountDeletionCompleted(userToBeDeleted, userToExecuteTheDelete, status.Success);
+            return status;
         }
 
         private async Task DeleteAccountImplAsync(User userToBeDeleted, User userToExecuteTheDelete, AccountDeletionOrphanPackagePolicy orphanPackagePolicy)
@@ -295,7 +295,7 @@ namespace NuGetGallery
             await _userRepository.CommitChangesAsync();
         }
 
-        private async Task<DeleteUserAccountStatus> RunAccountDeletionTask(Func<Task> getTask, User userToBeDeleted, User requestingUser, bool commitAsTransaction)
+        private async Task<DeleteAccountStatus> RunAccountDeletionTask(Func<Task> getTask, User userToBeDeleted, User requestingUser, bool commitAsTransaction)
         {
             try
             {
@@ -325,7 +325,7 @@ namespace NuGetGallery
                     action: AuditedDeleteAccountAction.DeleteAccount,
                     adminUsername: requestingUser.Username));
 
-                return new DeleteUserAccountStatus()
+                return new DeleteAccountStatus()
                 {
                     Success = true,
                     Description = string.Format(CultureInfo.CurrentCulture,
@@ -337,7 +337,7 @@ namespace NuGetGallery
             catch (Exception e)
             {
                 QuietLog.LogHandledException(e);
-                return new DeleteUserAccountStatus()
+                return new DeleteAccountStatus()
                 {
                     Success = false,
                     Description = string.Format(CultureInfo.CurrentCulture,
