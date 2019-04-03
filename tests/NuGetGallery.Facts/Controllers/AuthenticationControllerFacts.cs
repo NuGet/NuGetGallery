@@ -395,7 +395,7 @@ namespace NuGetGallery.Controllers
                     .Verify(x => x.CreateSessionAsync(controller.OwinContext, authUser, false));
 
                 GetMock<AuthenticationService>()
-                    .Verify(x => x.RemoveCredential(user, passwordCredential));
+                    .Verify(x => x.RemoveCredential(user, passwordCredential, true));
 
                 GetMock<IMessageService>()
                     .Verify(x => x.SendMessageAsync(It.IsAny<CredentialAddedMessage>(), false, false));
@@ -1341,7 +1341,7 @@ namespace NuGetGallery.Controllers
                     .Verifiable();
 
                 serviceMock
-                    .Setup(x => x.RemoveCredential(user, passwordCred))
+                    .Setup(x => x.RemoveCredential(user, passwordCred, true))
                     .Completes()
                     .Verifiable();
 
@@ -1567,7 +1567,7 @@ namespace NuGetGallery.Controllers
                     });
 
                 GetMock<AuthenticationService>()
-                    .Setup(x => x.RemoveCredential(user, passwordCred))
+                    .Setup(x => x.RemoveCredential(user, passwordCred, true))
                     .Completes()
                     .Verifiable();
 
@@ -1590,7 +1590,7 @@ namespace NuGetGallery.Controllers
                 // Assert
                 ResultAssert.IsSafeRedirectTo(result, "theReturnUrl");
                 GetMock<AuthenticationService>()
-                    .Verify(x => x.RemoveCredential(user, passwordCred), discontinuedLogin ? Times.Once() : Times.Never());
+                    .Verify(x => x.RemoveCredential(user, passwordCred, true), discontinuedLogin ? Times.Once() : Times.Never());
             }
 
             [Fact]

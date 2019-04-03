@@ -92,6 +92,7 @@
     <Compile Include="Helpers\StreamHelperFacts.cs" />
     <Compile Include="Queries\AutocompleteCweIdsQueryFacts.cs" />
     <Compile Include="Services\PackageDeprecationServiceFacts.cs" />
+    <Compile Include="TestData\TestDataResourceUtility.cs" />
     <Compile Include="UsernameValidationRegex.cs" />
     <Compile Include="Extensions\NumberExtensionsFacts.cs" />
     <Compile Include="Extensions\RouteExtensionsFacts.cs" />
@@ -297,6 +298,7 @@
       <SubType>Designer</SubType>
     </None>
     <EmbeddedResource Include="TestData\certificate.cer" />
+    <EmbeddedResource Include="TestData\theId.nuspec" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\NuGet.Services.Search.Client\NuGet.Services.Search.Client.csproj">

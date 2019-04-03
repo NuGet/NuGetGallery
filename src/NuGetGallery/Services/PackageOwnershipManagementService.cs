@@ -113,7 +113,7 @@ namespace NuGetGallery
             return _packageOwnerRequestService.GetPackageOwnershipRequests(package, requestingOwner, newOwner);
         }
 
-        public async Task RemovePackageOwnerAsync(PackageRegistration packageRegistration, User requestingOwner, User ownerToBeRemoved, bool commitAsTransaction = true)
+        public async Task RemovePackageOwnerAsync(PackageRegistration packageRegistration, User requestingOwner, User ownerToBeRemoved, bool commitChanges = true)
         {
             if (packageRegistration == null)
             {
@@ -132,7 +132,7 @@ namespace NuGetGallery
 
             if (OwnerHasPermissionsToRemove(requestingOwner, ownerToBeRemoved, packageRegistration))
             {
-                if (commitAsTransaction)
+                if (commitChanges)
                 {
                     using (var strategy = new SuspendDbExecutionStrategy())
                     using (var transaction = _entitiesContext.GetDatabase().BeginTransaction())
@@ -143,7 +143,7 @@ namespace NuGetGallery
                 }
                 else
                 {
-                    await RemovePackageOwnerImplAsync(packageRegistration, ownerToBeRemoved);
+                    await RemovePackageOwnerImplAsync(packageRegistration, ownerToBeRemoved, commitChanges: false);
                 }
 
                 await _auditingService.SaveAuditRecordAsync(
@@ -155,7 +155,7 @@ namespace NuGetGallery
             }
         }
 
-        private async Task RemovePackageOwnerImplAsync(PackageRegistration packageRegistration, User ownerToBeRemoved)
+        private async Task RemovePackageOwnerImplAsync(PackageRegistration packageRegistration, User ownerToBeRemoved, bool commitChanges = true)
         {
             // Remove the user from owners list of package registration
             await _packageService.RemovePackageOwnerAsync(packageRegistration, ownerToBeRemoved, commitChanges: false);
@@ -177,7 +177,10 @@ namespace NuGetGallery
                 await _packageService.UpdatePackageVerifiedStatusAsync(new List<PackageRegistration> { packageRegistration }, isVerified: false, commitChanges: false);
             }
 
-            await _entitiesContext.SaveChangesAsync();
+            if (commitChanges)
+            {
+                await _entitiesContext.SaveChangesAsync();
+            }
         }
 
         public async Task DeletePackageOwnershipRequestAsync(PackageRegistration packageRegistration, User newOwner, bool commitChanges = true)

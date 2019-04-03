@@ -367,7 +367,7 @@ namespace NuGetGallery
                 return RedirectToAction(nameof(DeleteRequest));
             }
 
-            var result = await DeleteAccountService.DeleteAccountAsync(account, currentUser, commitAsTransaction: true);
+            var result = await DeleteAccountService.DeleteAccountAsync(account, currentUser);
 
             if (result.Success)
             {
