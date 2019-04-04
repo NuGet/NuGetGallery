@@ -599,12 +599,16 @@ namespace NuGetGallery.Authentication
             return credentialViewModel;
         }
 
-        public virtual async Task RemoveCredential(User user, Credential cred)
+        public virtual async Task RemoveCredential(User user, Credential cred, bool commitChanges = true)
         {
             await Auditing.SaveAuditRecordAsync(new UserAuditRecord(user, AuditedUserAction.RemoveCredential, cred));
             user.Credentials.Remove(cred);
             Entities.Credentials.Remove(cred);
-            await Entities.SaveChangesAsync();
+
+            if (commitChanges)
+            {
+                await Entities.SaveChangesAsync();
+            }
         }
 
         public virtual async Task EditCredentialScopes(User user, Credential cred, ICollection<Scope> newScopes)

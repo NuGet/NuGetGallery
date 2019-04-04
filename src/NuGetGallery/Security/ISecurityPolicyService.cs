@@ -41,12 +41,12 @@ namespace NuGetGallery.Security
         /// <summary>
         /// Unsubscribe a user from one or more security policies.
         /// </summary>
-        Task UnsubscribeAsync(User user, string subscriptionName);
+        Task UnsubscribeAsync(User user, string subscriptionName, bool commitChanges = true);
 
         /// <summary>
         /// Unsubscribe a user from one or more security policies.
         /// </summary>
-        Task UnsubscribeAsync(User user, IUserSecurityPolicySubscription subscription);
+        Task UnsubscribeAsync(User user, IUserSecurityPolicySubscription subscription, bool commitChanges = true);
 
         /// <summary>
         /// Evaluate any security policies that may apply to the current context.

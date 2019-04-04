@@ -2107,8 +2107,8 @@ namespace NuGetGallery
                     .Returns(Task.CompletedTask);
 
                 controller.MockAuthenticationService
-                    .Setup(s => s.RemoveCredential(It.IsAny<User>(), It.IsAny<Credential>()))
-                    .Callback<User, Credential>((u, c) => u.Credentials.Remove(c))
+                    .Setup(s => s.RemoveCredential(It.IsAny<User>(), It.IsAny<Credential>(), true))
+                    .Callback<User, Credential, bool>((u, c, cc) => u.Credentials.Remove(c))
                     .Returns(Task.CompletedTask);
 
                 var id = package?.PackageRegistration?.Id ?? PackageId;
@@ -2265,7 +2265,7 @@ namespace NuGetGallery
                     HttpStatusCode.NotFound,
                     String.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, PackageId, PackageVersion));
 
-                controller.MockAuthenticationService.Verify(s => s.RemoveCredential(It.IsAny<User>(), It.IsAny<Credential>()),
+                controller.MockAuthenticationService.Verify(s => s.RemoveCredential(It.IsAny<User>(), It.IsAny<Credential>(), true),
                     CredentialTypes.IsPackageVerificationApiKey(credentialType) ? Times.Once() : Times.Never());
 
                 controller.MockTelemetryService.Verify(x => x.TrackVerifyPackageKeyEvent(PackageId, PackageVersion,
@@ -2333,7 +2333,7 @@ namespace NuGetGallery
                     expectedStatusCode,
                     description);
 
-                controller.MockAuthenticationService.Verify(s => s.RemoveCredential(It.IsAny<User>(), It.IsAny<Credential>()),
+                controller.MockAuthenticationService.Verify(s => s.RemoveCredential(It.IsAny<User>(), It.IsAny<Credential>(), true),
                     CredentialTypes.IsPackageVerificationApiKey(credentialType) ? Times.Once() : Times.Never());
 
                 controller.MockTelemetryService.Verify(x => x.TrackVerifyPackageKeyEvent(PackageId, PackageVersion,
@@ -2369,7 +2369,7 @@ namespace NuGetGallery
                 // Assert
                 ResultAssert.IsEmpty(result);
 
-                controller.MockAuthenticationService.Verify(s => s.RemoveCredential(It.IsAny<User>(), It.IsAny<Credential>()), isRemoved ? Times.Once() : Times.Never());
+                controller.MockAuthenticationService.Verify(s => s.RemoveCredential(It.IsAny<User>(), It.IsAny<Credential>(), true), isRemoved ? Times.Once() : Times.Never());
 
                 controller.MockTelemetryService.Verify(x => x.TrackVerifyPackageKeyEvent(PackageId, PackageVersion,
                     It.IsAny<User>(), controller.OwinContext.Request.User.Identity, 200), Times.Once);

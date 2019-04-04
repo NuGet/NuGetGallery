@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
@@ -32,20 +33,20 @@ namespace NuGetGallery
         private readonly IAuditingService _auditingService;
         private readonly ITelemetryService _telemetryService;
 
-        public DeleteAccountService(IEntityRepository<AccountDelete> accountDeleteRepository,
-                                    IEntityRepository<User> userRepository,
-                                    IEntityRepository<Scope> scopeRepository,
-                                    IEntitiesContext entitiesContext,
-                                    IPackageService packageService,
-                                    IPackageOwnershipManagementService packageOwnershipManagementService,
-                                    IReservedNamespaceService reservedNamespaceService,
-                                    ISecurityPolicyService securityPolicyService,
-                                    AuthenticationService authService,
-                                    ISupportRequestService supportRequestService,
-                                    IEditableFeatureFlagStorageService featureFlagService,
-                                    IAuditingService auditingService,
-                                    ITelemetryService telemetryService
-            )
+        public DeleteAccountService(
+            IEntityRepository<AccountDelete> accountDeleteRepository,
+            IEntityRepository<User> userRepository,
+            IEntityRepository<Scope> scopeRepository,
+            IEntitiesContext entitiesContext,
+            IPackageService packageService,
+            IPackageOwnershipManagementService packageOwnershipManagementService,
+            IReservedNamespaceService reservedNamespaceService,
+            ISecurityPolicyService securityPolicyService,
+            AuthenticationService authService,
+            ISupportRequestService supportRequestService,
+            IEditableFeatureFlagStorageService featureFlagService,
+            IAuditingService auditingService,
+            ITelemetryService telemetryService)
         {
             _accountDeleteRepository = accountDeleteRepository ?? throw new ArgumentNullException(nameof(accountDeleteRepository));
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
@@ -64,7 +65,6 @@ namespace NuGetGallery
 
         public async Task<DeleteUserAccountStatus> DeleteAccountAsync(User userToBeDeleted,
             User userToExecuteTheDelete,
-            bool commitAsTransaction,
             AccountDeletionOrphanPackagePolicy orphanPackagePolicy = AccountDeletionOrphanPackagePolicy.DoNotAllowOrphans)
         {
             if (userToBeDeleted == null)
@@ -95,14 +95,13 @@ namespace NuGetGallery
                     userToExecuteTheDelete,
                     orphanPackagePolicy),
                 userToBeDeleted,
-                userToExecuteTheDelete,
-                commitAsTransaction);
+                userToExecuteTheDelete);
 
             _telemetryService.TrackAccountDeletionCompleted(userToBeDeleted, userToExecuteTheDelete, deleteUserAccountStatus.Success);
             return deleteUserAccountStatus;
         }
 
-        private async Task DeleteAccountImplAsync(User userToBeDeleted, User userToExecuteTheDelete, AccountDeletionOrphanPackagePolicy orphanPackagePolicy)
+        private async Task DeleteAccountImplAsync(User userToBeDeleted, User userToExecuteTheDelete, AccountDeletionOrphanPackagePolicy orphanPackagePolicy, bool commitChanges = true)
         {
             await RemoveReservedNamespaces(userToBeDeleted);
             await RemovePackageOwnership(userToBeDeleted, userToExecuteTheDelete, orphanPackagePolicy);
@@ -114,27 +113,32 @@ namespace NuGetGallery
             var organizationToBeDeleted = userToBeDeleted as Organization;
             if (organizationToBeDeleted != null)
             {
-                await RemoveMembers(organizationToBeDeleted);
+                RemoveMembers(organizationToBeDeleted);
             }
 
             if (!userToBeDeleted.Confirmed)
             {
                 // Unconfirmed users should be hard-deleted.
                 // Another account with the same username can be created.
-                await RemoveUser(userToBeDeleted);
+                RemoveUser(userToBeDeleted);
             }
             else
             {
                 // Confirmed users should be soft-deleted.
                 // Another account with the same username cannot be created.
-                await RemoveUserDataInUserTable(userToBeDeleted);
-                await InsertDeleteAccount(
+                RemoveUserDataInUserTable(userToBeDeleted);
+                InsertDeleteAccount(
                     userToBeDeleted, 
                     userToExecuteTheDelete);
             }
+
+            if (commitChanges)
+            {
+                await _entitiesContext.SaveChangesAsync();
+            }
         }
 
-        private async Task InsertDeleteAccount(User user, User admin)
+        private void InsertDeleteAccount(User user, User admin)
         {
             var accountDelete = new AccountDelete
             {
@@ -142,44 +146,46 @@ namespace NuGetGallery
                 DeletedAccountKey = user.Key,
                 DeletedByKey = admin.Key,
             };
+
             _accountDeleteRepository.InsertOnCommit(accountDelete);
-            await _accountDeleteRepository.CommitChangesAsync();
         }
 
         private async Task RemoveUserCredentials(User user)
         {
             // Remove any credential owned by this user.
-            foreach (var uc in user.Credentials.ToArray())
-            {
-                await _authService.RemoveCredential(user, uc);
-            }
+            var userCredentials = user.Credentials.ToList();
 
             // Remove any credential scoped to this user.
-            var userScopes = _scopeRepository
+            var credentialsScopedToUser = _scopeRepository
                 .GetAll()
                 .Where(s => s.OwnerKey == user.Key)
-                .ToArray();
+                .Select(s => s.Credential)
+                .ToList();
 
-            var credentials = userScopes.Select(s => s.Credential).Distinct().ToArray();
+            var credentials = userCredentials
+                .Concat(credentialsScopedToUser)
+                .Distinct()
+                .ToList();
+
             foreach (var credential in credentials)
             {
-                await _authService.RemoveCredential(credential.User, credential);
+                await _authService.RemoveCredential(credential.User, credential, commitChanges: false);
             }
         }
 
         private async Task RemoveSecurityPolicies(User user)
         {
-            foreach (var usp in user.SecurityPolicies.ToArray())
+            foreach (var usp in user.SecurityPolicies.ToList())
             {
-                await _securityPolicyService.UnsubscribeAsync(user, usp.Subscription);
+                await _securityPolicyService.UnsubscribeAsync(user, usp.Subscription, commitChanges: false);
             }
         }
 
         private async Task RemoveReservedNamespaces(User user)
         {
-            foreach (var rn in user.ReservedNamespaces.ToArray())
+            foreach (var rn in user.ReservedNamespaces.ToList())
             {
-                await _reservedNamespaceService.DeleteOwnerFromReservedNamespaceAsync(rn.Value, user.Username, commitAsTransaction:false);
+                await _reservedNamespaceService.DeleteOwnerFromReservedNamespaceAsync(rn.Value, user.Username, commitChanges: false);
             }
         }
 
@@ -195,31 +201,36 @@ namespace NuGetGallery
                     }
                     else if (orphanPackagePolicy == AccountDeletionOrphanPackagePolicy.UnlistOrphans)
                     {
-                        await _packageService.MarkPackageUnlistedAsync(package, commitChanges: true);
+                        await _packageService.MarkPackageUnlistedAsync(package, commitChanges: false);
                     }
                 }
 
-                await _packageOwnershipManagementService.RemovePackageOwnerAsync(package.PackageRegistration, requestingUser, user, commitAsTransaction:false);
+                await _packageOwnershipManagementService.RemovePackageOwnerAsync(package.PackageRegistration, requestingUser, user, commitChanges: false);
             }
         }
 
         private List<Package> GetPackagesOwnedByUser(User user)
         {
-            return _packageService.FindPackagesByAnyMatchingOwner(user, includeUnlisted: true, includeVersions: true).ToList();
+            return _packageService
+                .FindPackagesByAnyMatchingOwner(user, includeUnlisted: true, includeVersions: true)
+                .ToList();
         }
 
         private async Task RemovePackageOwnershipRequests(User user)
         {
-            var requests = _packageOwnershipManagementService.GetPackageOwnershipRequests(newOwner: user).ToList();
+            var requests = _packageOwnershipManagementService
+                .GetPackageOwnershipRequests(newOwner: user)
+                .ToList();
+
             foreach (var request in requests)
             {
-                await _packageOwnershipManagementService.DeletePackageOwnershipRequestAsync(request.PackageRegistration, request.NewOwner);
+                await _packageOwnershipManagementService.DeletePackageOwnershipRequestAsync(request.PackageRegistration, request.NewOwner, commitChanges: false);
             }
         }
         
         private async Task RemoveMemberships(User user, User requestingUser, AccountDeletionOrphanPackagePolicy orphanPackagePolicy)
         {
-            foreach (var membership in user.Organizations.ToArray())
+            foreach (var membership in user.Organizations.ToList())
             {
                 user.Organizations.Remove(membership);
                 var organization = membership.Organization;
@@ -230,7 +241,7 @@ namespace NuGetGallery
                 {
                     // The user we are deleting is the only member of the organization.
                     // We should delete the entire organization.
-                    await DeleteAccountImplAsync(organization, requestingUser, orphanPackagePolicy);
+                    await DeleteAccountImplAsync(organization, requestingUser, orphanPackagePolicy, commitChanges: false);
                 }
                 else if (otherMembers.All(m => !m.IsAdmin))
                 {
@@ -242,12 +253,12 @@ namespace NuGetGallery
                 }
             }
 
-            foreach (var membershipRequest in user.OrganizationRequests.ToArray())
+            foreach (var membershipRequest in user.OrganizationRequests.ToList())
             {
                 user.OrganizationRequests.Remove(membershipRequest);
             }
 
-            foreach (var transformationRequest in user.OrganizationMigrationRequests.ToArray())
+            foreach (var transformationRequest in user.OrganizationMigrationRequests.ToList())
             {
                 user.OrganizationMigrationRequests.Remove(transformationRequest);
                 transformationRequest.NewOrganization.OrganizationMigrationRequest = null;
@@ -259,11 +270,9 @@ namespace NuGetGallery
             {
                 migrationRequest.AdminUser.OrganizationMigrationRequests.Remove(migrationRequest);
             }
-
-            await _entitiesContext.SaveChangesAsync();
         }
 
-        private async Task RemoveMembers(Organization organization)
+        private void RemoveMembers(Organization organization)
         {
             foreach (var membership in organization.Members.ToList())
             {
@@ -274,14 +283,11 @@ namespace NuGetGallery
             {
                 organization.MemberRequests.Remove(memberRequest);
             }
-
-            await _entitiesContext.SaveChangesAsync();
         }
 
-        private async Task RemoveUserDataInUserTable(User user)
+        private void RemoveUserDataInUserTable(User user)
         {
             user.SetAccountAsDeleted();
-            await _userRepository.CommitChangesAsync();
         }
 
         private async Task RemoveSupportRequests(User user)
@@ -289,13 +295,12 @@ namespace NuGetGallery
             await _supportRequestService.DeleteSupportRequestsAsync(user);
         }
 
-        private async Task RemoveUser(User user)
+        private void RemoveUser(User user)
         {
             _userRepository.DeleteOnCommit(user);
-            await _userRepository.CommitChangesAsync();
         }
 
-        private async Task<DeleteUserAccountStatus> RunAccountDeletionTask(Func<Task> getTask, User userToBeDeleted, User requestingUser, bool commitAsTransaction)
+        private async Task<DeleteUserAccountStatus> RunAccountDeletionTask(Func<Task> getTask, User userToBeDeleted, User requestingUser)
         {
             try
             {
@@ -306,18 +311,11 @@ namespace NuGetGallery
                 await _featureFlagService.RemoveUserAsync(userToBeDeleted);
                 await RemoveSupportRequests(userToBeDeleted);
 
-                if (commitAsTransaction)
-                {
-                    using (var strategy = new SuspendDbExecutionStrategy())
-                    using (var transaction = _entitiesContext.GetDatabase().BeginTransaction())
-                    {
-                        await getTask();
-                        transaction.Commit();
-                    }
-                }
-                else
+                using (var strategy = new SuspendDbExecutionStrategy())
+                using (var transaction = _entitiesContext.GetDatabase().BeginTransaction())
                 {
                     await getTask();
+                    transaction.Commit();
                 }
 
                 await _auditingService.SaveAuditRecordAsync(new DeleteAccountAuditRecord(username: userToBeDeleted.Username,

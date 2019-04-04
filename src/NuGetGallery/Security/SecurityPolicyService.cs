@@ -426,7 +426,7 @@ namespace NuGetGallery.Security
         /// <summary>
         /// Unsubscribe a user from one or more security policies.
         /// </summary>
-        public Task UnsubscribeAsync(User user, string subscriptionName)
+        public Task UnsubscribeAsync(User user, string subscriptionName, bool commitChanges = true)
         {
             if (string.IsNullOrEmpty(subscriptionName))
             {
@@ -439,13 +439,13 @@ namespace NuGetGallery.Security
                 throw new NotSupportedException($"Subscription '{subscriptionName}' not found.");
             }
 
-            return UnsubscribeAsync(user, subscription);
+            return UnsubscribeAsync(user, subscription, commitChanges);
         }
 
         /// <summary>
         /// Unsubscribe a user from one or more security policies.
         /// </summary>
-        public async Task UnsubscribeAsync(User user, IUserSecurityPolicySubscription subscription)
+        public async Task UnsubscribeAsync(User user, IUserSecurityPolicySubscription subscription, bool commitChanges = true)
         {
             if (user == null)
             {
@@ -471,7 +471,10 @@ namespace NuGetGallery.Security
                 await Auditing.SaveAuditRecordAsync(
                     new UserAuditRecord(user, AuditedUserAction.UnsubscribeFromPolicies, subscription.Policies));
 
-                await EntitiesContext.SaveChangesAsync();
+                if (commitChanges)
+                {
+                    await EntitiesContext.SaveChangesAsync();
+                }
 
                 Diagnostics.Information($"User is now unsubscribed from '{subscription.SubscriptionName}'.");
             }
