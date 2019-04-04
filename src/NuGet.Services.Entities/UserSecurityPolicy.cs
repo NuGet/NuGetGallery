@@ -3,6 +3,7 @@
 
 using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace NuGet.Services.Entities
 {
@@ -31,10 +32,11 @@ namespace NuGet.Services.Entities
         /// Policy key.
         /// </summary>
         public int Key { get; set; }
-        
+
         /// <summary>
         /// User key.
         /// </summary>
+        [Index("IX_UserSecurityPolicy_UserKeyNameSubscription", IsUnique = true, Order = 0)]
         public int UserKey { get; set; }
 
         /// <summary>
@@ -47,6 +49,7 @@ namespace NuGet.Services.Entities
         /// </summary>
         [Required]
         [StringLength(256)]
+        [Index("IX_UserSecurityPolicy_UserKeyNameSubscription", IsUnique = true, Order = 1)]
         public string Name { get; set; }
 
         /// <summary>
@@ -54,6 +57,7 @@ namespace NuGet.Services.Entities
         /// </summary>
         [Required]
         [StringLength(256)]
+        [Index("IX_UserSecurityPolicy_UserKeyNameSubscription", IsUnique = true, Order = 2)]
         public string Subscription { get; set; }
 
         /// <summary>
