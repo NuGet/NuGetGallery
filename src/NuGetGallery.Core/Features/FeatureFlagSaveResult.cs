@@ -17,11 +17,6 @@ namespace NuGetGallery.Features
         public static readonly FeatureFlagSaveResult Ok = new FeatureFlagSaveResult(FeatureFlagSaveResultType.Ok);
         public static readonly FeatureFlagSaveResult Conflict = new FeatureFlagSaveResult(FeatureFlagSaveResultType.Conflict);
 
-        public static FeatureFlagSaveResult Invalid(string message)
-        {
-            return new FeatureFlagSaveResult(FeatureFlagSaveResultType.Invalid, message);
-        }
-
         /// <summary>
         /// An error code explaining whether the save operation succeeded.
         /// </summary>

@@ -1,5 +1,4 @@
-﻿@using NuGetGallery
-@model FeatureFlagsViewModel
+﻿@model FeatureFlagsViewModel
 @{
     ViewBag.Title = "Feature Flags";
 }
@@ -31,22 +30,128 @@
     }
 
     <div class="form-group danger-zone">
-        <text>
-            @using (Html.BeginForm("Index", "Features", FormMethod.Post))
-            {
-                @Html.AntiForgeryToken()
-                @Html.Hidden("ContentId", Model.ContentId)
+        @ViewHelpers.Section(
+            this,
+            "features-expander",
+            @<text>Features</text>,
+            @<text><p>View and edit features.</p></text>,
+            @<text>
+                <table class="table">
+                    <tr>
+                        <th>Name</th>
+                        <th>Current Status</th>
+                        <th>Update Status</th>
+                        <th>Delete</th>
+                    </tr>
+                    <tbody>
+                        @foreach (var feature in Model.Features)
+                        {
+                            @Html.Partial("_EditFeature", new ModifyFeatureFlagsFeatureViewModel(feature, Model.ContentId))
+                        }
+                    </tbody>
+                </table>
 
-                <div class="form-group @Html.HasErrorFor(m => m.Flags)">
-                    @Html.ShowLabelFor(m => m.Flags)
-                    @Html.ShowTextAreaFor(m => m.Flags, rows: 30, columns: 50)
-                    @Html.ShowValidationMessagesFor(m => m.Flags)
-                </div>
+                @Html.Partial("_AddFeature", new ModifyFeatureFlagsFeatureViewModel { ContentId = Model.ContentId })
+            </text>,
+            expanded: true)
+        
+        @ViewHelpers.Section(
+            this,
+            "flights-expander",
+            @<text>Flights</text>,
+            @<text><p>View and edit flights.</p></text>,
+            @<text>
+                <table class="table">
+                    <tr>
+                        <th>Name</th>
+                        <th>All</th>
+                        <th>Site Admins</th>
+                        <th>Accounts</th>
+                        <th>Domains</th>
+                        <th>Update</th>
+                        <th>Delete</th>
+                    </tr>
+                    <tbody>
+                        @foreach (var flight in Model.Flights)
+                        {
+                            @Html.Partial("_EditFlight", new ModifyFeatureFlagsFlightViewModel(flight, Model.ContentId))
+                        }
+                    </tbody>
+                </table>
 
-                <div class="form-group">
-                    <input id="Submit" type="submit" class="btn btn-primary form-control" value="Save" />
-                </div>
-            }
-        </text>
+                @Html.Partial("_AddFlight", new ModifyFeatureFlagsFlightViewModel { ContentId = Model.ContentId })
+            </text>,
+            expanded: true)
     </div>
 </section>
+
+@section BottomScripts
+{
+    <script type="text/html" id="flight-array">
+        <div class="form-group">
+            <h5 data-bind="text: name"></h5>
+
+            <!-- ko foreach: items -->
+            <input type="hidden" data-bind="value: $data, attr: { name: $parent.name + '[]' }" />
+            <!-- /ko -->
+
+            <ul data-bind="foreach: items">
+                <li>
+                    <span data-bind="text: $data"></span>
+                    <a class="icon-link" data-bind="click: $parent.remove.bind(this, $data)">
+                        <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
+                    </a>
+                </li>
+            </ul>
+
+            <input type="text" data-bind="value: toAdd" />
+            <input type="submit" class="btn btn-primary" data-bind="click: add" value="Add" />
+        </div>
+    </script>
+    <script type="text/javascript">
+        function FlightFormToggleAll(id) {
+            var $element = $('#' + id);
+            var $input = $element.find('input');
+            if ($input.attr('disabled')) {
+                $input.removeAttr('disabled');
+            } else {
+                $input.attr('disabled', true);
+            }
+
+            $element.toggle();
+        }
+
+        function FlightArrayViewModel(name, initialItems) {
+            var self = this;
+
+            this.name = name;
+            this.items = ko.observableArray(initialItems);
+
+            this.toAdd = ko.observable();
+            this.add = function () {
+                if (self.toAdd()) {
+                    self.items.push(self.toAdd());
+                    self.toAdd('');
+                }
+            }
+
+            this.remove = function (value) {
+                self.items.remove(value);
+            }
+        }
+
+        $(function () {
+            $('.flight-array').each(function (index, object) {
+                var $object = $(object);
+                var name = $object.attr('name');
+                var items = $object.attr('data-items').split(';');
+                items = ko.utils.arrayFilter(items, function (item) {
+                    return !!item
+                });
+                var model = new FlightArrayViewModel(name, items);
+                ko.applyBindings(model, object);
+            });
+        });
+    </script>
+    @ViewHelpers.SectionsScript(this)
+}

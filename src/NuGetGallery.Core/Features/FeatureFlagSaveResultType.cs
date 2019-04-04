@@ -14,11 +14,6 @@ namespace NuGetGallery.Features
         Ok,
 
         /// <summary>
-        /// The flags are malformed.
-        /// </summary>
-        Invalid,
-
-        /// <summary>
         /// The flags were modified by someone else.
         /// </summary>
         Conflict,

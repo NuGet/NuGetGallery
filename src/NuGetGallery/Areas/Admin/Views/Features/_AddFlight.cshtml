@@ -1,0 +1,45 @@
+﻿@using NuGetGallery
+@model ModifyFeatureFlagsFlightViewModel
+@{
+    var formNotAllId = "flight-form-notall";
+}
+
+<h3>
+    Add
+</h3>
+
+@using (Html.BeginForm("AddFlight", "Features", FormMethod.Post))
+{
+    @Html.AntiForgeryToken()
+    @Html.Hidden("ContentId", Model.ContentId)
+
+    <div class="row">
+        <div class="col-sm-3 form-group @Html.HasErrorFor(m => m.Name)">
+            @Html.ShowLabelFor(m => m.Name)<br />
+            @Html.ShowTextBoxFor(m => m.Name)
+            @Html.ShowValidationMessagesFor(m => m.Name)
+        </div>
+
+        <div class="col-sm-1 form-group @Html.HasErrorFor(m => m.All)" onchange="FlightFormToggleAll('@formNotAllId')">
+            @Html.ShowLabelFor(m => m.All)<br />
+            @Html.ShowCheckboxFor(m => m.All)
+            @Html.ShowValidationMessagesFor(m => m.All)
+        </div>
+
+        <div id="@formNotAllId" style="@(Model.All ? "display: none" : "")">
+            <div class="col-sm-1 form-group @Html.HasErrorFor(m => m.SiteAdmins)">
+                @Html.ShowLabelFor(m => m.SiteAdmins)<br />
+                @Html.ShowCheckboxFor(m => m.SiteAdmins)
+                @Html.ShowValidationMessagesFor(m => m.SiteAdmins)
+            </div>
+
+            <div class="flight-array col-sm-3" name="Accounts" data-items="@string.Join(";", Model.Accounts ?? new string[0])" data-bind="template: { name: 'flight-array', data: $data }"></div>
+            <div class="flight-array col-sm-3" name="Domains" data-items="@string.Join(";", Model.Domains ?? new string[0])" data-bind="template: { name: 'flight-array', data: $data }"></div>
+        </div>
+
+        <div class="col-sm-1">
+            <br />
+            <input id="Add" type="submit" class="btn btn-primary form-control" value="Add" />
+        </div>
+    </div>
+}
