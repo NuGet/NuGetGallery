@@ -9,12 +9,14 @@ using NuGetGallery.Configuration.SecretReader;
 using NuGetGallery.Migrations;
 using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Data.Entity.Core.EntityClient;
 using System.Data.Entity.Core.Metadata.Edm;
 using System.Data.Entity.Migrations;
 using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -52,27 +54,38 @@ namespace DatabaseMigrationTools
             var secretReader = secretReaderFactory.CreateSecretReader(vaultName, clientId, certificateThumbprint);
             var secretInjector = secretReaderFactory.CreateSecretInjector(secretReader);
 
-            // Used to build the sqlConnection;
             var sqlConnectionFactory = new AzureSqlConnectionFactory(connectionString, secretInjector, new StupidLogger());
+            var conn = sqlConnectionFactory.CreateAsync().Result;
 
-            EntitiesContextFactory.Factory = () =>
+            using (var connection = new SqlConnection(conn.ConnectionString))
             {
-                // var conn = sqlConnectionFactory.CreateAsync().Result;
-                var conn = sqlConnectionFactory.OpenAsync().Result;
-                return new EntitiesContext(conn, true);
-            };
+                EntitiesContextFactory.Factory = () =>
+                {
+                    connection.AccessToken = conn.AccessToken;
+                    return new EntitiesContext(connection, true);
+                };
 
-            var configuration = new MigrationsConfiguration();
-
-            try
-            {
+                var configuration = new MigrationsConfiguration();
                 var migrator = new DbMigrator(configuration);
-                var localMigration = migrator.GetLocalMigrations();
 
+                var historyRepository = typeof(DbMigrator).GetField(
+                                        "_historyRepository",
+                                        BindingFlags.NonPublic | BindingFlags.Instance)
+                                        .GetValue(migrator);
+
+                var connectionField = historyRepository.GetType().BaseType.GetField(
+                                            "_existingConnection",
+                                            BindingFlags.NonPublic | BindingFlags.Instance);
+
+                connection.AccessToken = conn.AccessToken;
+                connection.Open();
+                connectionField.SetValue(historyRepository, connection);
+
+                var localMigration = migrator.GetLocalMigrations();
                 var databaseMigration = migrator.GetDatabaseMigrations();
-            } catch (Exception exception)
-            {
-                Console.WriteLine(exception.Message);
+                var migrations = migrator.GetPendingMigrations();
+
+                migrator.Update();
             }
         }
     }
