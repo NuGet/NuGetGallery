@@ -32,6 +32,8 @@ namespace NuGetGallery.FunctionalTests.ErrorHandling
         /// Verify the behavior when a corrupted cookie is sent back to the server.
         /// </summary>
         [Theory]
+        [Priority(2)]
+        [Category("P2Tests")]
         [InlineData("__Controller::TempData", "Message=You successfully uploaded z̡̜͍̈̍̐̃̊͋́a̜̣͍̬̞̝͉̽ͧ͗l̸̖͕̤̠̹̘͖̃̌ͤg͓̝͓̰̀ͪo͈͌ 1.0.0.")]
         public async Task RejectedCookie(string name, string value)
         {
@@ -54,6 +56,8 @@ namespace NuGetGallery.FunctionalTests.ErrorHandling
         /// Verify the behavior when a URL with restricted characters is used.
         /// </summary>
         [Theory]
+        [Priority(2)]
+        [Category("P2Tests")]
         [InlineData("/api/v2/lazy/%3E=1.0.5%20%3C1.1")]
         [InlineData("/api/v2/mysql/*")]
         [InlineData("/api/v2/comb/%3E=0.0.2")]
@@ -67,13 +71,15 @@ namespace NuGetGallery.FunctionalTests.ErrorHandling
             // Assert
             // Since the HTTP client is configured to not follow redirects, the response we get back is not the
             // error page itself but instead a redirect to an error page.
-            Validator.Redirect("500")(response);
+            Validator.Redirect("400")(response);
         }
 
         /// <summary>
         /// Verify simple 404 behavior.
         /// </summary>
         [Theory]
+        [Priority(2)]
+        [Category("P2Tests")]
         [InlineData("/api/does-not-exist")]
         [InlineData("/pages/does-not-exist")]
         [InlineData("/api/v2/curated-feed/microsoftdotnet/DoesNotExist()")]
@@ -91,6 +97,8 @@ namespace NuGetGallery.FunctionalTests.ErrorHandling
         /// Simulate cases where application code throws different sorts of exceptions.
         /// </summary>
         [Theory]
+        [Priority(2)]
+        [Category("P2Tests")]
         [MemberData(nameof(AllTestData))]
         public async Task SimulateError(EndpointType endpointType, SimulatedErrorType simulatedErrorType)
         {
@@ -160,7 +168,7 @@ namespace NuGetGallery.FunctionalTests.ErrorHandling
             { SER(EndpointType.OData, SimulatedErrorType.Result500), Validator.Empty(HttpStatusCode.InternalServerError, SimulatedErrorType.Result500) },
             { SER(EndpointType.OData, SimulatedErrorType.Result503), Validator.Empty(HttpStatusCode.ServiceUnavailable, SimulatedErrorType.Result503) },
             { SER(EndpointType.OData, SimulatedErrorType.UserSafeException), Validator.Xml() },
-            { SER(EndpointType.Pages, SimulatedErrorType.HttpException400), Validator.Redirect("500") },
+            { SER(EndpointType.Pages, SimulatedErrorType.HttpException400), Validator.Redirect("400") },
             { SER(EndpointType.Pages, SimulatedErrorType.HttpException404), Validator.Redirect("404") },
             { SER(EndpointType.Pages, SimulatedErrorType.HttpException503), Validator.Redirect("500") },
             { SER(EndpointType.Pages, SimulatedErrorType.ReadOnlyMode), Validator.PrettyHtml(HttpStatusCode.ServiceUnavailable) },
