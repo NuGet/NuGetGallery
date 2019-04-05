@@ -67,11 +67,6 @@ namespace NuGetGallery.Controllers
                     Flags.Flights);
             }
 
-            public static object[] GetValidModelDataSet(ModifyFeatureFlagsFeatureViewModel model) =>
-                MemberDataHelper.AsData(
-                        model,
-                        GetValidFlags(model));
-
             public static IEnumerable<ModifyFeatureFlagsFeatureViewModel> ValidModels = 
                 new[] { ValidDisabledModel, ValidEnabledModel };
 
@@ -147,11 +142,6 @@ namespace NuGetGallery.Controllers
                     Flags.Flights);
             }
 
-            public static object[] GetValidModelDataSet(ModifyFeatureFlagsFeatureViewModel model) =>
-                MemberDataHelper.AsData(
-                        model,
-                        GetValidFlags(model));
-
             public static IEnumerable<ModifyFeatureFlagsFeatureViewModel> ValidModels =
                 new[] { ValidEditFeature1Model, ValidEditFeature2Model };
 
@@ -223,11 +213,6 @@ namespace NuGetGallery.Controllers
                     Flags.Flights);
             }
 
-            public static object[] GetValidModelDataSet(ModifyFeatureFlagsFeatureViewModel model) =>
-                MemberDataHelper.AsData(
-                        model,
-                        GetValidFlags(model));
-
             public static IEnumerable<ModifyFeatureFlagsFeatureViewModel> ValidModels =
                 new[] { ValidDeleteFeature1Model, ValidDeleteFeature2Model };
 
@@ -280,13 +265,261 @@ namespace NuGetGallery.Controllers
             // If there was validation for features, a test for it would go here.
         }
 
+        public class TheAddFlightMethod : FlightBase
+        {
+            public static ModifyFeatureFlagsFlightViewModel ValidDisabledModel =
+                new ModifyFeatureFlagsFlightViewModel
+                {
+                    Name = "MyNewDisabledFlight",
+                    All = false,
+                    SiteAdmins = false,
+                    Accounts = null,
+                    Domains = null,
+                    ContentId = "a"
+                };
+
+            public static ModifyFeatureFlagsFlightViewModel ValidEnabledModel =
+                new ModifyFeatureFlagsFlightViewModel
+                {
+                    Name = "MyNewEnabledFlight",
+                    All = true,
+                    SiteAdmins = true,
+                    Accounts = new[] { ExistingAccount },
+                    Domains = new[] { "new1.org", "new2.io" },
+                    ContentId = "b"
+                };
+
+            public static FeatureFlags GetValidFlags(ModifyFeatureFlagsFlightViewModel model)
+            {
+                var flights = Flags.Flights.ToDictionary(f => f.Key, f => f.Value);
+                var flight = new Flight(
+                    model.All,
+                    model.SiteAdmins,
+                    model.Accounts?.ToList() ?? new List<string>(),
+                    model.Domains?.ToList() ?? new List<string>());
+
+                flights.Add(model.Name, flight);
+
+                return new FeatureFlags(
+                    Flags.Features,
+                    flights);
+            }
+
+            public static IEnumerable<ModifyFeatureFlagsFlightViewModel> ValidModels =
+                new[] { ValidDisabledModel, ValidEnabledModel };
+
+            public static IEnumerable<object[]> ValidModelsWithLastUpdated_Data
+            {
+                get
+                {
+                    foreach (var hasLastUpdated in new[] { false, true })
+                    {
+                        foreach (var model in ValidModels)
+                        {
+                            yield return MemberDataHelper.AsData(hasLastUpdated, model, GetValidFlags(model));
+                        }
+                    }
+                }
+            }
+
+            public static IEnumerable<object[]> ReturnsViewWithFailureForExisting_Data =>
+                MemberDataHelper
+                    .Combine(
+                        MemberDataHelper.BooleanDataSet(),
+                        MemberDataHelper.EnumDataSet<FeatureStatus>())
+                    .ToList();
+
+            [Theory]
+            [MemberData(nameof(ReturnsViewWithFailureForExisting_Data))]
+            public Task ReturnsViewWithFailureForExisting(bool hasLastUpdated, FeatureStatus status)
+            {
+                var model = new ModifyFeatureFlagsFlightViewModel
+                {
+                    Name = Flight1Name,
+                    ContentId = "c"
+                };
+
+                return AssertFailure(
+                    hasLastUpdated,
+                    model,
+                    GetTryAddExistingErrorMessage(model));
+            }
+
+            protected override Task<ActionResult> InvokeAsync(FeaturesController controller, ModifyFeatureFlagsFlightViewModel model)
+            {
+                return controller.AddFlight(model);
+            }
+        }
+
+        public class TheEditFlightMethod : FlightBase
+        {
+            public static ModifyFeatureFlagsFlightViewModel ValidEditFlight1Model =
+                new ModifyFeatureFlagsFlightViewModel
+                {
+                    Name = Flight1Name,
+                    All = true,
+                    SiteAdmins = true,
+                    Accounts = new[] { ExistingAccount },
+                    Domains = new[] { "g.com", "f.com" },
+                    ContentId = "a"
+                };
+
+            public static ModifyFeatureFlagsFlightViewModel ValidEditFlight2Model =
+                new ModifyFeatureFlagsFlightViewModel
+                {
+                    Name = Flight2Name,
+                    All = false,
+                    SiteAdmins = false,
+                    Accounts = null,
+                    Domains = null,
+                    ContentId = "b"
+                };
+
+            public static FeatureFlags GetValidFlags(ModifyFeatureFlagsFlightViewModel model)
+            {
+                var flights = Flags.Flights.ToDictionary(f => f.Key, f => f.Value);
+                var flight = new Flight(
+                    model.All, 
+                    model.SiteAdmins, 
+                    model.Accounts?.ToList() ?? new List<string>(), 
+                    model.Domains?.ToList() ?? new List<string>());
+
+                flights[model.Name] = flight;
+
+                return new FeatureFlags(
+                    Flags.Features,
+                    flights);
+            }
+
+            public static IEnumerable<ModifyFeatureFlagsFlightViewModel> ValidModels =
+                new[] { ValidEditFlight1Model, ValidEditFlight2Model };
+
+            public static IEnumerable<object[]> ValidModelsWithLastUpdated_Data
+            {
+                get
+                {
+                    foreach (var hasLastUpdated in new[] { false, true })
+                    {
+                        foreach (var model in ValidModels)
+                        {
+                            yield return MemberDataHelper.AsData(hasLastUpdated, model, GetValidFlags(model));
+                        }
+                    }
+                }
+            }
+
+            public static IEnumerable<object[]> ReturnsViewWithFailureForExisting_Data =>
+                MemberDataHelper.Combine(
+                    MemberDataHelper.BooleanDataSet(),
+                    MemberDataHelper.EnumDataSet<FeatureStatus>());
+
+            [Theory]
+            [MemberData(nameof(ReturnsViewWithFailureForExisting_Data))]
+            public Task ReturnsViewWithFailureForMissing(bool hasLastUpdated, FeatureStatus status)
+            {
+                var model = new ModifyFeatureFlagsFlightViewModel
+                {
+                    Name = "NotAFlight",
+                    All = true,
+                    SiteAdmins = true,
+                    Accounts = new[] { ExistingAccount },
+                    Domains = new[] { "a.com", "b.com" },
+                    ContentId = "c"
+                };
+
+                return AssertFailure(
+                    hasLastUpdated,
+                    model,
+                    GetTryEditMissingErrorMessage(model));
+            }
+
+            protected override Task<ActionResult> InvokeAsync(FeaturesController controller, ModifyFeatureFlagsFlightViewModel model)
+            {
+                return controller.EditFlight(model);
+            }
+        }
+
+        public class TheDeleteFlightMethod : FlightBase
+        {
+            public static ModifyFeatureFlagsFlightViewModel ValidDeleteFlight1Model =
+                new ModifyFeatureFlagsFlightViewModel
+                {
+                    Name = Flight1Name,
+                    ContentId = "a"
+                };
+
+            public static ModifyFeatureFlagsFlightViewModel ValidDeleteFlight2Model =
+                new ModifyFeatureFlagsFlightViewModel
+                {
+                    Name = Flight2Name,
+                    ContentId = "b"
+                };
+
+            public static FeatureFlags GetValidFlags(ModifyFeatureFlagsFlightViewModel model)
+            {
+                var flights = Flags.Flights.ToDictionary(f => f.Key, f => f.Value);
+                flights.Remove(model.Name);
+
+                return new FeatureFlags(
+                    Flags.Features,
+                    flights);
+            }
+
+            public static IEnumerable<ModifyFeatureFlagsFlightViewModel> ValidModels =
+                new[] { ValidDeleteFlight1Model, ValidDeleteFlight2Model };
+
+            public static IEnumerable<object[]> ValidModelsWithLastUpdated_Data
+            {
+                get
+                {
+                    foreach (var hasLastUpdated in new[] { false, true })
+                    {
+                        foreach (var model in ValidModels)
+                        {
+                            yield return MemberDataHelper.AsData(hasLastUpdated, model, GetValidFlags(model));
+                        }
+                    }
+                }
+            }
+
+            public static IEnumerable<object[]> ReturnsViewWithFailureForExisting_Data =>
+                MemberDataHelper.Combine(
+                    MemberDataHelper.BooleanDataSet(),
+                    MemberDataHelper.EnumDataSet<FeatureStatus>());
+
+            [Theory]
+            [MemberData(nameof(ReturnsViewWithFailureForExisting_Data))]
+            public Task ReturnsViewWithFailureForMissing(bool hasLastUpdated, FeatureStatus status)
+            {
+                var model = new ModifyFeatureFlagsFlightViewModel
+                {
+                    Name = "MissingFlight",
+                    All = true,
+                    SiteAdmins = true,
+                    Accounts = new[] { ExistingAccount },
+                    Domains = new[] { "a.com", "b.com" },
+                    ContentId = "c"
+                };
+
+                return AssertFailure(
+                    hasLastUpdated,
+                    model,
+                    GetTryDeleteMissingErrorMessage(model));
+            }
+
+            protected override Task<ActionResult> InvokeAsync(FeaturesController controller, ModifyFeatureFlagsFlightViewModel model)
+            {
+                return controller.DeleteFlight(model);
+            }
+        }
+
         public abstract class FlightBase : ModifyMethodBase<ModifyFeatureFlagsFlightViewModel>
         {
             public const string ExistingAccount = "account";
 
             public FlightBase()
             {
-                GetMock<UserService>()
+                GetMock<IUserService>()
                     .Setup(x => x.FindByUsername(ExistingAccount, false))
                     .Returns(new User(ExistingAccount));
             }
