@@ -269,27 +269,33 @@ namespace NuGetGallery.Areas.Admin.Controllers
         {
             var model = await GetModel();
 
-            if (ModelState.IsValid)
+            var errorMessage = ValidateModelState() ?? applyChange(model) ?? await TrySaveFlags(model, changes.ContentId);
+            if (errorMessage != null)
             {
-                var errorMessage = applyChange(model);
-                if (errorMessage == null)
-                {
-                    var result = await TrySaveFlags(model, changes.ContentId);
-                    if (result != null)
-                    {
-                        return result;
-                    }
-                }
-                else
-                {
-                    TempData["ErrorMessage"] = errorMessage;
-                }
+                TempData["ErrorMessage"] = errorMessage;
             }
 
-            return View(nameof(Index), model);
+            return RedirectToAction(nameof(Index));
         }
 
-        private async Task<ActionResult> TrySaveFlags(FeatureFlagsViewModel model, string contentId)
+        private string ValidateModelState()
+        {
+            if (ModelState.IsValid)
+            {
+                return null;
+            }
+
+            var errorMessages = ModelState
+                .SelectMany(s => s.Value.Errors)
+                .Where(e => !string.IsNullOrWhiteSpace(e.ErrorMessage))
+                .Select(e => e.ErrorMessage);
+
+            return errorMessages.Any()
+                ? "The model submitted was invalid: " + string.Join(" ", errorMessages)
+                : "The model submitted was invalid.";
+        }
+
+        private async Task<string> TrySaveFlags(FeatureFlagsViewModel model, string contentId)
         {
             var flags = new FeatureFlags(
                 model.Features.ToDictionary(f => f.Name, f => f.Status),
@@ -304,21 +310,15 @@ namespace NuGetGallery.Areas.Admin.Controllers
                     await _cache.RefreshAsync();
 
                     var refreshSeconds = _config.FeatureFlagsRefreshInterval.TotalSeconds;
-
                     TempData["Message"] = $"Your feature flags have been saved! It may take up to {refreshSeconds} seconds for this change to propagate everywhere.";
-                    return Redirect(Url.Action(actionName: "Index", controllerName: "Features"));
+                    return null;
 
                 case FeatureFlagSaveResultType.Conflict:
-                    TempData["ErrorMessage"] = "Your changes were not applied as the feature flags were modified by someone else. " +
-                        "Please reload the page and try again.";
-                    break;
+                    return "Your changes were not applied as the feature flags were modified by someone else. Please reload the page and try again.";
 
                 default:
-                    TempData["ErrorMessage"] = $"Unknown save result '{result}': {result.Message}.";
-                    break;
+                    return $"Unknown save result '{result}': {result.Message}.";
             }
-
-            return null;
         }
 
         private async Task<FeatureFlagsViewModel> GetModel()

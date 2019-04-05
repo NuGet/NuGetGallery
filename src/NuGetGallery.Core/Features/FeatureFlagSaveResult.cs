@@ -8,7 +8,7 @@ namespace NuGetGallery.Features
     /// </summary>
     public class FeatureFlagSaveResult
     {
-        private FeatureFlagSaveResult(FeatureFlagSaveResultType type, string message = null)
+        public FeatureFlagSaveResult(FeatureFlagSaveResultType type, string message = null)
         {
             Type = type;
             Message = message ?? string.Empty;
