@@ -3,6 +3,7 @@
 @{ 
     var rowClass = "flight-" + Model.Name.Replace('.', '_');
     var rowFormId = rowClass + "-form";
+    var rowFormSubmitId = rowClass + "-form-submit";
     var rowFormNotAllId = rowClass + "-form-notall";
 }
 
@@ -37,7 +38,7 @@
             @Html.Hidden("Name", Model.Name)
 
             <div class="row">
-                <div class="col-sm-2 form-group @Html.HasErrorFor(m => m.All)" onchange="$('#@rowFormNotAllId').toggle()">
+                <div class="col-sm-2 form-group @Html.HasErrorFor(m => m.All)" onchange="FlightFormToggleAll('@rowFormNotAllId', '@rowFormSubmitId')">
                     @Html.ShowLabelFor(m => m.All)
                     @Html.ShowCheckboxFor(m => m.All)
                     @Html.ShowValidationMessagesFor(m => m.All)
@@ -54,7 +55,7 @@
                     <div class="flight-array col-sm-3" name="Domains" data-items="@string.Join(";", Model.Domains ?? new string[0])" data-bind="template: { name: 'flight-array', data: $data }"></div>
                 </div>
 
-                <div class="col-sm-2">
+                <div class="col-sm-2 @(Model.All ? "col-sm-offset-7" : "")" id="@rowFormSubmitId">
                     <div class="form-group">
                         <input id="Update" type="submit" class="btn btn-primary form-control" value="Update" />
                     </div>

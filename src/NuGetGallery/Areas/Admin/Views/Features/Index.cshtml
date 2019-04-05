@@ -109,16 +109,21 @@
         </div>
     </script>
     <script type="text/javascript">
-        function FlightFormToggleAll(id) {
-            var $element = $('#' + id);
-            var $input = $element.find('input');
-            if ($input.attr('disabled')) {
-                $input.removeAttr('disabled');
-            } else {
+        function FlightFormToggleAll(notAllId, submitId) {
+            var $notAll = $('#' + notAllId);
+            var isAll = $notAll.is(':visible');
+            $notAll.toggle();
+            
+            var $input = $notAll.find('input');
+            var $submit = $('#' + submitId);
+            var offsetClass = 'col-sm-offset-7';
+            if (isAll) {
                 $input.attr('disabled', true);
+                $submit.addClass(offsetClass);
+            } else {
+                $input.removeAttr('disabled');
+                $submit.removeClass(offsetClass);
             }
-
-            $element.toggle();
         }
 
         function FlightArrayViewModel(name, initialItems) {

@@ -1,6 +1,7 @@
 ﻿@using NuGetGallery
 @model ModifyFeatureFlagsFlightViewModel
 @{
+    var formAddId = "flight-form-add";
     var formNotAllId = "flight-form-notall";
 }
 
@@ -20,7 +21,7 @@
             @Html.ShowValidationMessagesFor(m => m.Name)
         </div>
 
-        <div class="col-sm-1 form-group @Html.HasErrorFor(m => m.All)" onchange="FlightFormToggleAll('@formNotAllId')">
+        <div class="col-sm-1 form-group @Html.HasErrorFor(m => m.All)" onchange="FlightFormToggleAll('@formNotAllId', '@formAddId')">
             @Html.ShowLabelFor(m => m.All)<br />
             @Html.ShowCheckboxFor(m => m.All)
             @Html.ShowValidationMessagesFor(m => m.All)
@@ -37,7 +38,7 @@
             <div class="flight-array col-sm-3" name="Domains" data-items="@string.Join(";", Model.Domains ?? new string[0])" data-bind="template: { name: 'flight-array', data: $data }"></div>
         </div>
 
-        <div class="col-sm-1">
+        <div class="col-sm-1 @(Model.All ? "col-sm-offset-7" : "")" id="@formAddId">
             <br />
             <input id="Add" type="submit" class="btn btn-primary form-control" value="Add" />
         </div>
