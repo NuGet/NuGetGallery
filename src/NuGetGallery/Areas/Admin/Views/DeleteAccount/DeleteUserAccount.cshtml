@@ -8,15 +8,15 @@
 <section role="main" class="container main-container page-delete-account">
     <div class="form-group">
         <div class="form-group">
-            @ViewHelpers.Breadcrumb(true, @<text><a href="@Url.User(@Model.User)">@Model.AccountName</a></text>, @<text>Delete account</text>)
+            @ViewHelpers.Breadcrumb(true, @<text><a href="@Url.User(@Model.User)">@Model.AccountName</a></text>, @<text>Delete user</text>)
 
             @ViewHelpers.AlertDanger(@<text>
-                <b class="keywords">Once the account is deleted, it cannot be undone!</b> <br />
-                Deleting the account will: <br />
-                1. Revoke associated API key(s). <br />
-                2. Remove the account as an owner for any child packages.<br />
-                3. Dissociate all previously existent ID prefix reservations with this account.<br />
-                4. Remove the account as a member of any organizations.<br />
+                <b class="keywords">Once this user is deleted, it cannot be undone!</b> <br />
+                Deleting this user will: <br />
+                1. Revoke any associated API key(s). <br />
+                2. Remove the user as an owner for any child packages.<br />
+                3. Dissociate all previously existent ID prefix reservations with this user.<br />
+                4. Remove the user as a member of any organizations.<br />
             </text>)
 
             <div class="form-group">
@@ -39,7 +39,7 @@
     <script type="text/javascript">
         $(function () {
             $('#delete-form').submit(function (e) {
-                if (!confirm('Are you sure you want to continue to delete this account?')) {
+                if (!confirm('Are you sure you want to continue to delete this user?')) {
                     e.preventDefault();
                 }
             });

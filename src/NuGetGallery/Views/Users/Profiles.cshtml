@@ -49,7 +49,7 @@
                     @if (User.IsAdministrator())
                     {
                         var deleteUrl = Model.UserIsOrganization ? Url.AdminDeleteOrganization(Model.Username) : Url.AdminDeleteAccount(Model.Username);
-                        <a href="@deleteUrl" aria-label="Delete this account"><i class="ms-Icon ms-Icon--Delete ms-font-xl"></i></a>
+                        <a href="@deleteUrl" aria-label="Delete this account"><i class="ms-Icon ms-Icon--Delete ms-font-xl" aria-hidden="true"></i></a>
                     }
                 </h1>
                 <span>
