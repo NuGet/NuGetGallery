@@ -15,6 +15,7 @@ using NuGet.Protocol.Catalog;
 using NuGet.Protocol.Registration;
 using NuGet.Services.AzureSearch.Catalog2AzureSearch;
 using NuGet.Services.AzureSearch.Db2AzureSearch;
+using NuGet.Services.AzureSearch.Owners2AzureSearch;
 using NuGet.Services.AzureSearch.SearchService;
 using NuGet.Services.AzureSearch.Wrappers;
 using NuGet.Services.Metadata.Catalog;
@@ -221,6 +222,7 @@ namespace NuGet.Services.AzureSearch
             services.AddTransient<IHijackDocumentBuilder, HijackDocumentBuilder>();
             services.AddTransient<IIndexBuilder, IndexBuilder>();
             services.AddTransient<INewPackageRegistrationProducer, NewPackageRegistrationProducer>();
+            services.AddTransient<IOwnerDataClient, OwnerDataClient>();
             services.AddTransient<IPackageEntityIndexActionBuilder, PackageEntityIndexActionBuilder>();
             services.AddTransient<IRegistrationClient, RegistrationClient>();
             services.AddTransient<ISearchDocumentBuilder, SearchDocumentBuilder>();

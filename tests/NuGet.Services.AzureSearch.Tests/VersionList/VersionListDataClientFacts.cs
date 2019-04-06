@@ -142,6 +142,15 @@ namespace NuGet.Services.AzureSearch
             }
 
             [Fact]
+            public async Task SerializesWithIndentation()
+            {
+                await _target.ReplaceAsync(_id, _versionList, _accessCondition.Object);
+
+                var json = Assert.Single(_savedStrings);
+                Assert.Contains("\n", json);
+            }
+
+            [Fact]
             public async Task SerializesVersionsInSemVerOrder()
             {
                 var versionList = new VersionListData(new Dictionary<string, VersionPropertiesData>
@@ -154,7 +163,7 @@ namespace NuGet.Services.AzureSearch
 
                 await _target.ReplaceAsync(_id, versionList, _accessCondition.Object);
 
-                Assert.Single(_savedStrings);
+                var json = Assert.Single(_savedStrings);
                 Assert.Equal(@"{
   ""VersionProperties"": {
     ""1.0.0-beta.2"": {
@@ -170,7 +179,7 @@ namespace NuGet.Services.AzureSearch
     },
     ""10.0.0"": {}
   }
-}", _savedStrings[0]);
+}", json);
             }
         }
 

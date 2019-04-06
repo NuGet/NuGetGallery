@@ -58,6 +58,7 @@
     <Compile Include="HijackDocumentBuilderFacts.cs" />
     <Compile Include="IndexBuilderFacts.cs" />
     <Compile Include="Models\CommittedDocumentFacts.cs" />
+    <Compile Include="Owners2AzureSearch\OwnerDataClientFacts.cs" />
     <Compile Include="Registration\RegistrationUrlBuilderFacts.cs" />
     <Compile Include="SearchDocumentBuilderFacts.cs" />
     <Compile Include="Registration\RegistrationClientFacts.cs" />
