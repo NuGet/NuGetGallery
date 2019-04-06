@@ -379,7 +379,7 @@ namespace NuGet.Services.AzureSearch.Owners2AzureSearch
                 CloudBlobContainer = new Mock<ICloudBlobContainer>();
                 CloudBlob = new Mock<ISimpleCloudBlob>();
                 Options = new Mock<IOptionsSnapshot<AzureSearchJobConfiguration>>();
-                Logger = output.GetLogger<VersionListDataClient>();
+                Logger = output.GetLogger<OwnerDataClient>();
                 Config = new AzureSearchJobConfiguration
                 {
                     StorageContainer = "unit-test-container",
@@ -422,7 +422,7 @@ namespace NuGet.Services.AzureSearch.Owners2AzureSearch
             public Mock<ICloudBlobContainer> CloudBlobContainer { get; }
             public Mock<ISimpleCloudBlob> CloudBlob { get; }
             public Mock<IOptionsSnapshot<AzureSearchJobConfiguration>> Options { get; }
-            public RecordingLogger<VersionListDataClient> Logger { get; }
+            public RecordingLogger<OwnerDataClient> Logger { get; }
             public AzureSearchJobConfiguration Config { get; }
             public string ETag { get; }
             public Mock<IAccessCondition> AccessCondition { get; }

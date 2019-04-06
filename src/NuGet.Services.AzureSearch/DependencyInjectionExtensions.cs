@@ -139,6 +139,12 @@ namespace NuGet.Services.AzureSearch
                     c.Resolve<ILogger<BlobContainerBuilder>>()));
 
             containerBuilder
+                .Register<IOwnerDataClient>(c => new OwnerDataClient(
+                    c.ResolveKeyed<ICloudBlobClient>(key),
+                    c.Resolve<IOptionsSnapshot<AzureSearchJobConfiguration>>(),
+                    c.Resolve<ILogger<OwnerDataClient>>()));
+
+            containerBuilder
                 .Register(c => new Catalog2AzureSearchCommand(
                     c.Resolve<ICollector>(),
                     c.ResolveKeyed<IStorageFactory>(key),
@@ -217,12 +223,12 @@ namespace NuGet.Services.AzureSearch
             services.AddTransient<ICatalogLeafFetcher, CatalogLeafFetcher>();
             services.AddTransient<ICollector, AzureSearchCollector>();
             services.AddTransient<ICommitCollectorLogic, AzureSearchCollectorLogic>();
+            services.AddTransient<IDatabaseOwnerFetcher, DatabaseOwnerFetcher>();
             services.AddTransient<IDiagnosticsService, LoggerDiagnosticsService>();
             services.AddTransient<IEntitiesContextFactory, EntitiesContextFactory>();
             services.AddTransient<IHijackDocumentBuilder, HijackDocumentBuilder>();
             services.AddTransient<IIndexBuilder, IndexBuilder>();
             services.AddTransient<INewPackageRegistrationProducer, NewPackageRegistrationProducer>();
-            services.AddTransient<IOwnerDataClient, OwnerDataClient>();
             services.AddTransient<IOwnerSetComparer, OwnerSetComparer>();
             services.AddTransient<IPackageEntityIndexActionBuilder, PackageEntityIndexActionBuilder>();
             services.AddTransient<IRegistrationClient, RegistrationClient>();

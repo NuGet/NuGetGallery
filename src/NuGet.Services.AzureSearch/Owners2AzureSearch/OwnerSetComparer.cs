@@ -12,9 +12,9 @@ namespace NuGet.Services.AzureSearch.Owners2AzureSearch
     {
         private static readonly string[] EmptyStringArray = new string[0];
 
-        private readonly ILogger _logger;
+        private readonly ILogger<OwnerSetComparer> _logger;
 
-        public OwnerSetComparer(ILogger logger)
+        public OwnerSetComparer(ILogger<OwnerSetComparer> logger)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }

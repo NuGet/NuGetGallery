@@ -47,6 +47,8 @@
     <Compile Include="Analysis\IdentifierCustomTokenFilter.cs" />
     <Compile Include="Analysis\PackageIdCustomAnalyzer.cs" />
     <Compile Include="Analysis\PackageIdCustomTokenizer.cs" />
+    <Compile Include="Owners2AzureSearch\DatabaseOwnerFetcher.cs" />
+    <Compile Include="Owners2AzureSearch\IDatabaseOwnerFetcher.cs" />
     <Compile Include="Owners2AzureSearch\IOwnerSetComparer.cs" />
     <Compile Include="Owners2AzureSearch\OwnerSetComparer.cs" />
     <Compile Include="Owners2AzureSearch\PackageIdToOwnersBuilder.cs" />

@@ -20,13 +20,13 @@ namespace NuGet.Services.AzureSearch.Owners2AzureSearch
 
         private readonly ICloudBlobClient _cloudBlobClient;
         private readonly IOptionsSnapshot<AzureSearchJobConfiguration> _options;
-        private readonly ILogger<VersionListDataClient> _logger;
+        private readonly ILogger<OwnerDataClient> _logger;
         private readonly Lazy<ICloudBlobContainer> _lazyContainer;
 
         public OwnerDataClient(
             ICloudBlobClient cloudBlobClient,
             IOptionsSnapshot<AzureSearchJobConfiguration> options,
-            ILogger<VersionListDataClient> logger)
+            ILogger<OwnerDataClient> logger)
         {
             _cloudBlobClient = cloudBlobClient ?? throw new ArgumentNullException(nameof(cloudBlobClient));
             _options = options ?? throw new ArgumentNullException(nameof(cloudBlobClient));
