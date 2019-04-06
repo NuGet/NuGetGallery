@@ -46,10 +46,8 @@
     <None Include="App.config" />
     <None Include="NuGet.Jobs.Catalog2AzureSearch.nuspec" />
     <None Include="Scripts\Functions.ps1" />
-    <None Include="Scripts\NuGet.Jobs.Catalog2AzureSearch.cmd" />
     <None Include="Scripts\PostDeploy.ps1" />
     <None Include="Scripts\PreDeploy.ps1" />
-    <None Include="Scripts\RunE2ETests.ps1" />
     <None Include="Settings\octopus.json" />
     <None Include="Scripts\nssm.exe" />
   </ItemGroup>
@@ -83,9 +81,6 @@
   </PropertyGroup>
   <Import Project="$(SignPath)\sign.targets" Condition="Exists('$(SignPath)\sign.targets')" />
   <Import Project="$(SignPath)\sign.microbuild.targets" Condition="Exists('$(SignPath)\sign.microbuild.targets')" />
-  <ItemGroup>
-    <PowerShellScriptsToSign Include="RunE2ETests.ps1" />
-  </ItemGroup>
   <Import Project="$(SignPath)\sign.scripts.targets" Condition="Exists('$(SignPath)\sign.scripts.targets')" />
   <Import Project="..\..\sign.thirdparty.targets" />
 </Project>
