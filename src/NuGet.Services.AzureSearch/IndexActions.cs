@@ -26,5 +26,7 @@ namespace NuGet.Services.AzureSearch
         public IReadOnlyList<IndexAction<KeyedDocument>> Search { get; }
         public IReadOnlyList<IndexAction<KeyedDocument>> Hijack { get; }
         public ResultAndAccessCondition<VersionListData> VersionListDataResult { get; }
+
+        public bool IsEmpty => Search.Count == 0 && Hijack.Count == 0;
     }
 }

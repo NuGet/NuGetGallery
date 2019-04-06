@@ -69,7 +69,7 @@ namespace NuGet.Services.AzureSearch
                 throw new ArgumentException("This package ID has already been enqueued.", nameof(packageId));
             }
 
-            if (!indexActions.Hijack.Any() && !indexActions.Search.Any())
+            if (indexActions.IsEmpty)
             {
                 throw new ArgumentException("There must be at least one index action.", nameof(indexActions));
             }

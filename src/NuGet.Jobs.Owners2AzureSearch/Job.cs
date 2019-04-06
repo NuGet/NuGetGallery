@@ -7,6 +7,7 @@ using Autofac;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NuGet.Services.AzureSearch;
+using NuGet.Services.AzureSearch.Owners2AzureSearch;
 
 namespace NuGet.Jobs
 {
@@ -19,7 +20,9 @@ namespace NuGet.Jobs
             ServicePointManager.DefaultConnectionLimit = 64;
             ServicePointManager.MaxServicePointIdleTime = 10000;
 
-            await Task.Yield();
+            await _serviceProvider
+                .GetRequiredService<Owners2AzureSearchCommand>()
+                .ExecuteAsync();
         }
 
         protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder)

@@ -165,6 +165,16 @@ namespace NuGet.Services.AzureSearch
                     c.ResolveKeyed<IStorageFactory>(key),
                     c.Resolve<IOptionsSnapshot<Db2AzureSearchConfiguration>>(),
                     c.Resolve<ILogger<Db2AzureSearchCommand>>()));
+
+            containerBuilder
+                .Register(c => new Owners2AzureSearchCommand(
+                    c.Resolve<IDatabaseOwnerFetcher>(),
+                    c.Resolve<IOwnerDataClient>(),
+                    c.Resolve<IOwnerSetComparer>(),
+                    c.Resolve<IOwnerIndexActionBuilder>(),
+                    c.Resolve<Func<IBatchPusher>>(),
+                    c.Resolve<IOptionsSnapshot<AzureSearchJobConfiguration>>(),
+                    c.Resolve<ILogger<Owners2AzureSearchCommand>>()));
         }
 
         private static void RegisterAuxiliaryDataStorageServices(ContainerBuilder containerBuilder, string key)
@@ -229,6 +239,7 @@ namespace NuGet.Services.AzureSearch
             services.AddTransient<IHijackDocumentBuilder, HijackDocumentBuilder>();
             services.AddTransient<IIndexBuilder, IndexBuilder>();
             services.AddTransient<INewPackageRegistrationProducer, NewPackageRegistrationProducer>();
+            services.AddTransient<IOwnerIndexActionBuilder, OwnerIndexActionBuilder>();
             services.AddTransient<IOwnerSetComparer, OwnerSetComparer>();
             services.AddTransient<IPackageEntityIndexActionBuilder, PackageEntityIndexActionBuilder>();
             services.AddTransient<IRegistrationClient, RegistrationClient>();
