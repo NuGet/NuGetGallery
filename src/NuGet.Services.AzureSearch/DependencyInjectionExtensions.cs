@@ -223,6 +223,7 @@ namespace NuGet.Services.AzureSearch
             services.AddTransient<IIndexBuilder, IndexBuilder>();
             services.AddTransient<INewPackageRegistrationProducer, NewPackageRegistrationProducer>();
             services.AddTransient<IOwnerDataClient, OwnerDataClient>();
+            services.AddTransient<IOwnerSetComparer, OwnerSetComparer>();
             services.AddTransient<IPackageEntityIndexActionBuilder, PackageEntityIndexActionBuilder>();
             services.AddTransient<IRegistrationClient, RegistrationClient>();
             services.AddTransient<ISearchDocumentBuilder, SearchDocumentBuilder>();
