@@ -34,7 +34,6 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
 
                 var ex = await Assert.ThrowsAsync<ArgumentException>(() => _target.AddCatalogEntriesAsync(
                     _packageId,
-                    _versionListDataResult,
                     _latestEntries,
                     _entryToLeaf));
                 Assert.Contains("There must be at least one catalog item to process.", ex.Message);
@@ -46,7 +45,6 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
             {
                 var indexActions = await _target.AddCatalogEntriesAsync(
                     _packageId,
-                    _versionListDataResult,
                     _latestEntries,
                     _entryToLeaf);
 
@@ -80,7 +78,6 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
 
                 var indexActions = await _target.AddCatalogEntriesAsync(
                     _packageId,
-                    _versionListDataResult,
                     _latestEntries,
                     _entryToLeaf);
 
@@ -120,7 +117,6 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
 
                 var indexActions = await _target.AddCatalogEntriesAsync(
                     _packageId,
-                    _versionListDataResult,
                     _latestEntries,
                     _entryToLeaf);
 
@@ -177,7 +173,6 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
 
                 var indexActions = await _target.AddCatalogEntriesAsync(
                     _packageId,
-                    _versionListDataResult,
                     _latestEntries,
                     _entryToLeaf);
 
@@ -253,7 +248,6 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
 
                 var indexActions = await _target.AddCatalogEntriesAsync(
                     _packageId,
-                    _versionListDataResult,
                     _latestEntries,
                     _entryToLeaf);
 
@@ -321,7 +315,6 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
 
                 var indexActions = await _target.AddCatalogEntriesAsync(
                     _packageId,
-                    _versionListDataResult,
                     _latestEntries,
                     _entryToLeaf);
 
@@ -419,7 +412,6 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
 
                 var indexActions = await _target.AddCatalogEntriesAsync(
                     _packageId,
-                    _versionListDataResult,
                     _latestEntries,
                     _entryToLeaf);
 
@@ -478,7 +470,6 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
 
                 var indexActions = await _target.AddCatalogEntriesAsync(
                     _packageId,
-                    _versionListDataResult,
                     _latestEntries,
                     _entryToLeaf);
 
@@ -522,7 +513,6 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
 
                 var indexActions = await _target.AddCatalogEntriesAsync(
                     _packageId,
-                    _versionListDataResult,
                     _latestEntries,
                     _entryToLeaf);
 
@@ -553,7 +543,6 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
 
                 var indexActions = await _target.AddCatalogEntriesAsync(
                     _packageId,
-                    _versionListDataResult,
                     _latestEntries,
                     _entryToLeaf);
 
@@ -577,6 +566,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
 
         public abstract class BaseFacts
         {
+            protected readonly Mock<IVersionListDataClient> _versionListDataClient;
             protected readonly Mock<ICatalogLeafFetcher> _fetcher;
             protected readonly Mock<ISearchDocumentBuilder> _search;
             protected readonly Mock<IHijackDocumentBuilder> _hijack;
@@ -593,6 +583,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
 
             public BaseFacts(ITestOutputHelper output)
             {
+                _versionListDataClient = new Mock<IVersionListDataClient>();
                 _fetcher = new Mock<ICatalogLeafFetcher>();
                 _search = new Mock<ISearchDocumentBuilder>();
                 _hijack = new Mock<IHijackDocumentBuilder>();
@@ -620,6 +611,10 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                 _latestCatalogLeaves = new LatestCatalogLeaves(
                     new HashSet<NuGetVersion>(),
                     new Dictionary<NuGetVersion, PackageDetailsCatalogLeaf>());
+
+                _versionListDataClient
+                    .Setup(x => x.ReadAsync(It.IsAny<string>()))
+                    .ReturnsAsync(() => _versionListDataResult);
 
                 _search
                     .Setup(x => x.LatestFlagsOrNull(It.IsAny<VersionLists>(), It.IsAny<SearchFilters>()))
@@ -677,6 +672,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                     .ReturnsAsync(() => _latestCatalogLeaves);
 
                 _target = new CatalogIndexActionBuilder(
+                    _versionListDataClient.Object,
                     _fetcher.Object,
                     _search.Object,
                     _hijack.Object,

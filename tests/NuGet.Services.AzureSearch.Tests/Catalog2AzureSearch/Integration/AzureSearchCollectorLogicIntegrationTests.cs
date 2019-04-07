@@ -51,6 +51,11 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
             _options = new Mock<IOptionsSnapshot<Catalog2AzureSearchConfiguration>>();
             _options.Setup(x => x.Value).Returns(() => _config);
 
+            _cloudBlobClient = new InMemoryCloudBlobClient();
+            _versionListDataClient = new VersionListDataClient(
+                _cloudBlobClient,
+                _options.Object,
+                output.GetLogger<VersionListDataClient>());
             _registrationClient = new InMemoryRegistrationClient();
             _catalogClient = new InMemoryCatalogClient();
             _fetcher = new CatalogLeafFetcher(
@@ -61,15 +66,11 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
             _search = new SearchDocumentBuilder();
             _hijack = new HijackDocumentBuilder();
             _builder = new CatalogIndexActionBuilder(
+                _versionListDataClient,
                 _fetcher,
                 _search,
                 _hijack,
                 output.GetLogger<CatalogIndexActionBuilder>());
-            _cloudBlobClient = new InMemoryCloudBlobClient();
-            _versionListDataClient = new VersionListDataClient(
-                _cloudBlobClient,
-                _options.Object,
-                output.GetLogger<VersionListDataClient>());
 
             _searchIndex = new Mock<ISearchIndexClientWrapper>();
             _searchDocuments = new InMemoryDocumentsOperations();
@@ -80,7 +81,6 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
 
             _collector = new AzureSearchCollectorLogic(
                 _catalogClient,
-                _versionListDataClient,
                 _builder,
                 () => new BatchPusher(
                     _searchIndex.Object,

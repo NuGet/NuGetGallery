@@ -16,7 +16,6 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
     public class AzureSearchCollectorLogic : ICommitCollectorLogic
     {
         private readonly ICatalogClient _catalogClient;
-        private readonly IVersionListDataClient _versionListDataClient;
         private readonly ICatalogIndexActionBuilder _indexActionBuilder;
         private readonly Func<IBatchPusher> _batchPusherFactory;
         private readonly IOptionsSnapshot<Catalog2AzureSearchConfiguration> _options;
@@ -24,14 +23,12 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
 
         public AzureSearchCollectorLogic(
             ICatalogClient catalogClient,
-            IVersionListDataClient versionListDataClient,
             ICatalogIndexActionBuilder indexActionBuilder,
             Func<IBatchPusher> batchPusherFactory,
             IOptionsSnapshot<Catalog2AzureSearchConfiguration> options,
             ILogger<AzureSearchCollectorLogic> logger)
         {
             _catalogClient = catalogClient ?? throw new ArgumentNullException(nameof(catalogClient));
-            _versionListDataClient = versionListDataClient ?? throw new ArgumentNullException(nameof(versionListDataClient));
             _indexActionBuilder = indexActionBuilder ?? throw new ArgumentNullException(nameof(indexActionBuilder));
             _batchPusherFactory = batchPusherFactory ?? throw new ArgumentNullException(nameof(batchPusherFactory));
             _options = options ?? throw new ArgumentNullException(nameof(options));
@@ -208,11 +205,8 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                 .Distinct(StringComparer.OrdinalIgnoreCase)
                 .Single();
 
-            var versionListDataResult = await _versionListDataClient.ReadAsync(packageId);
-
             return await _indexActionBuilder.AddCatalogEntriesAsync(
                 packageId,
-                versionListDataResult,
                 entries,
                 entryToLeaf);
         }

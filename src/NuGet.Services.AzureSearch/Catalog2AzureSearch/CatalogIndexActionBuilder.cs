@@ -17,17 +17,21 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
     public class CatalogIndexActionBuilder : ICatalogIndexActionBuilder
     {
         private static readonly int SearchFiltersCount = Enum.GetValues(typeof(SearchFilters)).Length;
+
+        private readonly IVersionListDataClient _versionListDataClient;
         private readonly ICatalogLeafFetcher _leafFetcher;
         private readonly ISearchDocumentBuilder _search;
         private readonly IHijackDocumentBuilder _hijack;
         private readonly ILogger<CatalogIndexActionBuilder> _logger;
 
         public CatalogIndexActionBuilder(
+            IVersionListDataClient versionListDataClient,
             ICatalogLeafFetcher leafFetcher,
             ISearchDocumentBuilder search,
             IHijackDocumentBuilder hijack,
             ILogger<CatalogIndexActionBuilder> logger)
         {
+            _versionListDataClient = versionListDataClient ?? throw new ArgumentNullException(nameof(versionListDataClient));
             _leafFetcher = leafFetcher ?? throw new ArgumentNullException(nameof(leafFetcher));
             _search = search ?? throw new ArgumentNullException(nameof(search));
             _hijack = hijack ?? throw new ArgumentNullException(nameof(hijack));
@@ -36,7 +40,6 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
 
         public async Task<IndexActions> AddCatalogEntriesAsync(
             string packageId,
-            ResultAndAccessCondition<VersionListData> versionListDataResult,
             IReadOnlyList<CatalogCommitItem> latestEntries,
             IReadOnlyDictionary<CatalogCommitItem, PackageDetailsCatalogLeaf> entryToLeaf)
         {
@@ -44,6 +47,8 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
             {
                 throw new ArgumentException("There must be at least one catalog item to process.", nameof(latestEntries));
             }
+
+            var versionListDataResult = await _versionListDataClient.ReadAsync(packageId);
 
             var context = new Context(
                 packageId,

@@ -98,14 +98,9 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                 _catalogClient.Verify(x => x.GetPackageDetailsLeafAsync(It.IsAny<string>()), Times.Exactly(1));
                 _catalogClient.Verify(x => x.GetPackageDeleteLeafAsync(It.IsAny<string>()), Times.Never);
 
-                _versionListDataClient.Verify(x => x.ReadAsync("NuGet.Versioning"), Times.Once);
-                _versionListDataClient.Verify(x => x.ReadAsync("NuGet.Frameworks"), Times.Once);
-                _versionListDataClient.Verify(x => x.ReadAsync(It.IsAny<string>()), Times.Exactly(2));
-
                 _catalogIndexActionBuilder.Verify(
                     x => x.AddCatalogEntriesAsync(
                         "NuGet.Versioning",
-                        It.IsAny<ResultAndAccessCondition<VersionListData>>(),
                         It.Is<IReadOnlyList<CatalogCommitItem>>(
                             y => y.Count == 1),
                         It.Is<IReadOnlyDictionary<CatalogCommitItem, PackageDetailsCatalogLeaf>>(
@@ -114,7 +109,6 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                 _catalogIndexActionBuilder.Verify(
                     x => x.AddCatalogEntriesAsync(
                         "NuGet.Frameworks",
-                        It.IsAny<ResultAndAccessCondition<VersionListData>>(),
                         It.Is<IReadOnlyList<CatalogCommitItem>>(
                             y => y.Count == 1),
                         It.Is<IReadOnlyDictionary<CatalogCommitItem, PackageDetailsCatalogLeaf>>(
@@ -176,14 +170,9 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                 _catalogClient.Verify(x => x.GetPackageDetailsLeafAsync("https://example/3"), Times.Once);
                 _catalogClient.Verify(x => x.GetPackageDetailsLeafAsync(It.IsAny<string>()), Times.Exactly(3));
 
-                _versionListDataClient.Verify(x => x.ReadAsync("NuGet.Versioning"), Times.Once);
-                _versionListDataClient.Verify(x => x.ReadAsync("NuGet.Frameworks"), Times.Once);
-                _versionListDataClient.Verify(x => x.ReadAsync(It.IsAny<string>()), Times.Exactly(2));
-
                 _catalogIndexActionBuilder.Verify(
                     x => x.AddCatalogEntriesAsync(
                         "NuGet.Versioning",
-                        It.IsAny<ResultAndAccessCondition<VersionListData>>(),
                         It.Is<IReadOnlyList<CatalogCommitItem>>(
                             y => y.Count == 2),
                         It.Is<IReadOnlyDictionary<CatalogCommitItem, PackageDetailsCatalogLeaf>>(
@@ -192,7 +181,6 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                 _catalogIndexActionBuilder.Verify(
                     x => x.AddCatalogEntriesAsync(
                         "NuGet.Frameworks",
-                        It.IsAny<ResultAndAccessCondition<VersionListData>>(),
                         It.Is<IReadOnlyList<CatalogCommitItem>>(
                             y => y.Count == 1),
                         It.Is<IReadOnlyDictionary<CatalogCommitItem, PackageDetailsCatalogLeaf>>(
@@ -248,7 +236,6 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
         public abstract class BaseFacts
         {
             protected readonly Mock<ICatalogClient> _catalogClient;
-            protected readonly Mock<IVersionListDataClient> _versionListDataClient;
             protected readonly Mock<ICatalogIndexActionBuilder> _catalogIndexActionBuilder;
             protected readonly Mock<IBatchPusher> _batchPusher;
             protected readonly Mock<IOptionsSnapshot<Catalog2AzureSearchConfiguration>> _options;
@@ -259,7 +246,6 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
             public BaseFacts(ITestOutputHelper output)
             {
                 _catalogClient = new Mock<ICatalogClient>();
-                _versionListDataClient = new Mock<IVersionListDataClient>();
                 _catalogIndexActionBuilder = new Mock<ICatalogIndexActionBuilder>();
                 _batchPusher = new Mock<IBatchPusher>();
                 _options = new Mock<IOptionsSnapshot<Catalog2AzureSearchConfiguration>>();
@@ -271,7 +257,6 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
 
                 _target = new AzureSearchCollectorLogic(
                     _catalogClient.Object,
-                    _versionListDataClient.Object,
                     _catalogIndexActionBuilder.Object,
                     () => _batchPusher.Object,
                     _options.Object,
