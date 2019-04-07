@@ -138,6 +138,42 @@ namespace NuGet.Services.AzureSearch
             }
         }
 
+        public class UpdateOwners : BaseFacts
+        {
+            public UpdateOwners(ITestOutputHelper output) : base(output)
+            {
+            }
+
+            [Fact]
+            public async Task SetsExpectedProperties()
+            {
+                var document = _target.UpdateOwners(
+                    Data.PackageId,
+                    Data.SearchFilters,
+                    Data.Owners);
+
+                SetDocumentLastUpdated(document);
+                var json = await SerializationUtilities.SerializeToJsonAsync(document);
+                Assert.Equal(@"{
+  ""value"": [
+    {
+      ""@search.action"": ""upload"",
+      ""owners"": [
+        ""Microsoft"",
+        ""azure-sdk""
+      ],
+      ""lastUpdatedDocument"": ""2018-12-14T09:30:00+00:00"",
+      ""lastDocumentType"": ""NuGet.Services.AzureSearch.SearchDocument+UpdateOwners"",
+      ""lastUpdatedFromCatalog"": false,
+      ""lastCommitTimestamp"": null,
+      ""lastCommitId"": null,
+      ""key"": ""windowsazure_storage-d2luZG93c2F6dXJlLnN0b3JhZ2U1-IncludePrereleaseAndSemVer2""
+    }
+  ]
+}", json);
+            }
+        }
+
         public class UpdateVersionListFromCatalog : BaseFacts
         {
             public UpdateVersionListFromCatalog(ITestOutputHelper output) : base(output)

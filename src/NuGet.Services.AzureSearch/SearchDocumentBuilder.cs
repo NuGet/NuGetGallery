@@ -186,7 +186,11 @@ namespace NuGet.Services.AzureSearch
             bool isLatest) where T : KeyedDocument, SearchDocument.IVersions
         {
             PopulateKey(document, packageId, searchFilters);
-            DocumentUtilities.PopulateCommitted(document, lastUpdatedFromCatalog, lastCommitTimestamp, lastCommitId);
+            DocumentUtilities.PopulateCommitted(
+                document,
+                lastUpdatedFromCatalog,
+                lastCommitTimestamp,
+                lastCommitId);
             document.Versions = versions;
             document.IsLatestStable = isLatestStable;
             document.IsLatest = isLatest;
@@ -247,7 +251,34 @@ namespace NuGet.Services.AzureSearch
                 isLatestStable,
                 isLatest,
                 fullVersion);
+            PopulateOwners(
+                document,
+                owners);
+        }
+
+        private static void PopulateOwners<T>(
+            T document,
+            string[] owners) where T : KeyedDocument, SearchDocument.IOwners
+        {
             document.Owners = owners;
+        }
+
+        public SearchDocument.UpdateOwners UpdateOwners(
+            string packageId,
+            SearchFilters searchFilters,
+            string[] owners)
+        {
+            var document = new SearchDocument.UpdateOwners();
+
+            PopulateKey(document, packageId, searchFilters);
+            DocumentUtilities.PopulateCommitted(
+                document,
+                lastUpdatedFromCatalog: false,
+                lastCommitTimestamp: null,
+                lastCommitId: null);
+            PopulateOwners(document, owners);
+
+            return document;
         }
     }
 }

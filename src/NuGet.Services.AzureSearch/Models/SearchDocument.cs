@@ -27,7 +27,7 @@ namespace NuGet.Services.AzureSearch
         /// Used when processing <see cref="SearchIndexChangeType.AddFirst"/>.
         /// </summary>
         [SerializePropertyNamesAsCamelCase]
-        public class AddFirst : UpdateLatest
+        public class AddFirst : UpdateLatest, IOwners
         {
             [IsSearchable]
             [Analyzer(ExactMatchCustomAnalyzer.Name)]
@@ -62,6 +62,17 @@ namespace NuGet.Services.AzureSearch
         }
 
         /// <summary>
+        /// Used when updating just the owners of a document. Note that this model does not need any analyzer or
+        /// other Azure Search attributes since it is not used for index creation. The <see cref="Full"/> and its
+        /// parent classes handle this.
+        /// </summary>
+        [SerializePropertyNamesAsCamelCase]
+        public class UpdateOwners : CommittedDocument, IOwners
+        {
+            public string[] Owners { get; set; }
+        }
+
+        /// <summary>
         /// Allows index updating code to apply a new version list to a document.
         /// </summary>
         public interface IVersions : ICommittedDocument
@@ -69,6 +80,14 @@ namespace NuGet.Services.AzureSearch
             string[] Versions { get; set; }
             bool? IsLatestStable { get; set; }
             bool? IsLatest { get; set; }
+        }
+
+        /// <summary>
+        /// Allows index updating code to apply a new list of owners to a document.
+        /// </summary>
+        public interface IOwners : ICommittedDocument
+        {
+            string[] Owners { get; set; }
         }
 
         /// <summary>

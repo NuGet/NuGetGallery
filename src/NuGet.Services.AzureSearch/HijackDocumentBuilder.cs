@@ -93,7 +93,11 @@ namespace NuGet.Services.AzureSearch
             HijackDocumentChanges changes) where T : KeyedDocument, HijackDocument.ILatest
         {
             PopulateKey(document, packageId, normalizedVersion);
-            DocumentUtilities.PopulateCommitted(document, lastUpdatedFromCatalog, lastCommitTimestamp, lastCommitId);
+            DocumentUtilities.PopulateCommitted(
+                document,
+                lastUpdatedFromCatalog,
+                lastCommitTimestamp,
+                lastCommitId);
             document.IsLatestStableSemVer1 = changes.LatestStableSemVer1;
             document.IsLatestSemVer1 = changes.LatestSemVer1;
             document.IsLatestStableSemVer2 = changes.LatestStableSemVer2;

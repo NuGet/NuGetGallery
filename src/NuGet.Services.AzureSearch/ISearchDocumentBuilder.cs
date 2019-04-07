@@ -17,6 +17,11 @@ namespace NuGet.Services.AzureSearch
             string packageId,
             SearchFilters searchFilters);
 
+        SearchDocument.UpdateOwners UpdateOwners(
+            string packageId,
+            SearchFilters searchFilters,
+            string[] owners);
+
         SearchDocument.UpdateVersionList UpdateVersionListFromCatalog(
             string packageId,
             SearchFilters searchFilters,
