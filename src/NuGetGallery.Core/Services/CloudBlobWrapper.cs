@@ -54,6 +54,14 @@ namespace NuGetGallery
                 operationContext: null);
         }
 
+        public async Task<Stream> OpenWriteAsync(AccessCondition accessCondition)
+        {
+            return await _blob.OpenWriteAsync(
+                accessCondition: accessCondition,
+                options: null,
+                operationContext: null);
+        }
+
         public async Task DeleteIfExistsAsync()
         {
             await _blob.DeleteIfExistsAsync(

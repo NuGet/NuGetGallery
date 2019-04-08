@@ -22,6 +22,7 @@ namespace NuGetGallery
         string ETag { get; }
 
         Task<Stream> OpenReadAsync(AccessCondition accessCondition);
+        Task<Stream> OpenWriteAsync(AccessCondition accessCondition);
 
         Task DeleteIfExistsAsync();
         Task DownloadToStreamAsync(Stream target);
