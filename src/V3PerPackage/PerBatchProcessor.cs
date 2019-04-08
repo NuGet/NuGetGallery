@@ -282,6 +282,7 @@ namespace NuGet.Services.V3PerPackage
                     commitEachBatch,
                     commitTimeout,
                     baseAddress,
+                    context.Global.GalleryBaseAddress,
                     serviceProvider.GetRequiredService<ITelemetryService>(),
                     serviceProvider.GetRequiredService<ILogger>(),
                     () => serviceProvider.GetRequiredService<HttpMessageHandler>());

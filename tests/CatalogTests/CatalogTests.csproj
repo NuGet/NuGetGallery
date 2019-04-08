@@ -91,6 +91,7 @@
     <Compile Include="Helpers\CatalogPropertiesTests.cs" />
     <Compile Include="Helpers\FeedHelpersTests.cs" />
     <Compile Include="Helpers\FeedPackageIdentityTests.cs" />
+    <Compile Include="Helpers\LicenseHelperTests.cs" />
     <Compile Include="Helpers\NuGetVersionUtilityTests.cs" />
     <Compile Include="Helpers\CatalogIndependentPackageDetails.cs" />
     <Compile Include="Helpers\PackageUtilityTests.cs" />
@@ -103,6 +104,7 @@
     <Compile Include="Helpers\UtilsTests.cs" />
     <Compile Include="PackageCatalogItemCreatorTests.cs" />
     <Compile Include="PackageCatalogItemTests.cs" />
+    <Compile Include="PackageEntryTests.cs" />
     <Compile Include="Persistence\AggregateStorageTests.cs" />
     <Compile Include="Persistence\AzureCloudBlockBlobTests.cs" />
     <Compile Include="Persistence\FileStorageTests.cs" />

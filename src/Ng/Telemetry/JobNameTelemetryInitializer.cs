@@ -10,17 +10,21 @@ namespace Ng
     public class JobNameTelemetryInitializer : ITelemetryInitializer
     {
         private const string JobNameKey = "JobName";
+        private const string InstanceNameKey = "InstanceName";
 
         private readonly string _jobName;
+        private readonly string _instanceName;
 
-        public JobNameTelemetryInitializer(string jobName)
+        public JobNameTelemetryInitializer(string jobName, string instanceName)
         {
             _jobName = jobName ?? throw new ArgumentNullException(nameof(jobName));
+            _instanceName = instanceName ?? throw new ArgumentNullException(nameof(instanceName));
         }
 
         public void Initialize(ITelemetry telemetry)
         {
             telemetry.Context.Properties[JobNameKey] = _jobName;
+            telemetry.Context.Properties[InstanceNameKey] = _instanceName;
         }
     }
 }

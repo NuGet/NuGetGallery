@@ -101,6 +101,7 @@
     <Compile Include="Dnx\DnxEntry.cs" />
     <Compile Include="GetCatalogCommitItemKey.cs" />
     <Compile Include="Helpers\AsyncExtensions.cs" />
+    <Compile Include="Helpers\LicenseHelper.cs" />
     <Compile Include="Helpers\PackageUtility.cs" />
     <Compile Include="ICatalogIndexProcessor.cs" />
     <Compile Include="IPackageCatalogItemCreator.cs" />

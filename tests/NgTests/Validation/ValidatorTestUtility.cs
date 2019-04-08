@@ -3,8 +3,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Reflection;
+using System.Threading.Tasks;
+using Newtonsoft.Json;
+using NgTests.Infrastructure;
 using NgTests.Validation;
 using NuGet.Packaging.Core;
 using NuGet.Services.Metadata.Catalog.Monitoring;
@@ -16,9 +22,9 @@ namespace NgTests
     {
         public static ValidatorConfiguration CreateValidatorConfig(
             string packageBaseAddress = "https://nuget.test/packages",
-            bool requirePackageSignature = false)
+            bool requireRepositorySignature = false)
         {
-            return new ValidatorConfiguration(packageBaseAddress, requirePackageSignature);
+            return new ValidatorConfiguration(packageBaseAddress, requireRepositorySignature);
         }
 
         public static IEnumerable<Tuple<T, T>> GetPairs<T>(IEnumerable<Func<T>> valueFactories)
@@ -97,6 +103,35 @@ namespace NgTests
         public static ValidationContext GetFakeValidationContext()
         {
             return ValidationContextStub.Create(new PackageIdentity("testPackage", new NuGetVersion(1, 0, 0)));
+        }
+
+        internal static void AddPackageToMockServer(MockServerHttpClientHandler clientHandler, PackageIdentity packageIdentity, string filePath)
+        {
+            string packageId = packageIdentity.Id.ToLowerInvariant();
+            string packageVersion = packageIdentity.Version.ToNormalizedString().ToLowerInvariant();
+
+            clientHandler.SetAction($"/packages/{packageId}/{packageVersion}/{packageId}.{packageVersion}.nupkg", request =>
+            {
+                byte[] bytes = File.ReadAllBytes(filePath);
+
+                return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new ByteArrayContent(bytes)
+                });
+            });
+        }
+
+        internal static void AddCatalogLeafToMockServer(MockServerHttpClientHandler clientHandler, Uri uri, CatalogLeaf leaf)
+        {
+            string relativeUrl = uri.IsAbsoluteUri ? uri.AbsolutePath : uri.ToString();
+
+            clientHandler.SetAction(relativeUrl, request =>
+            {
+                return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent(JsonConvert.SerializeObject(leaf))
+                });
+            });
         }
     }
 }

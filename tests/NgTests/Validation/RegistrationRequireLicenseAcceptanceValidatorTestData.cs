@@ -13,7 +13,7 @@ namespace NgTests
         protected override RegistrationRequireLicenseAcceptanceValidator CreateValidator(
             ILogger<RegistrationRequireLicenseAcceptanceValidator> logger)
         {
-            var config = new ValidatorConfiguration("https://nuget.test/packages", requirePackageSignature: false);
+            var config = new ValidatorConfiguration("https://nuget.test/packages", requireRepositorySignature: false);
 
             return new RegistrationRequireLicenseAcceptanceValidator(config, logger);
         }

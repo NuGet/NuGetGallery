@@ -113,7 +113,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             cancellationToken.ThrowIfCancellationRequested();
 
             string blobName = GetName(resourceUri);
-            CloudBlockBlob blob = _directory.GetBlockBlobReference(blobName);
+            CloudBlockBlob blob = GetBlockBlobReference(blobName);
 
             await blob.FetchAttributesAsync(cancellationToken);
 
@@ -137,7 +137,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             Uri packageRegistrationUri = ResolveUri(fileName);
             string blobName = GetName(packageRegistrationUri);
 
-            CloudBlockBlob blob = _directory.GetBlockBlobReference(blobName);
+            CloudBlockBlob blob = GetBlockBlobReference(blobName);
 
             if (blob.Exists())
             {
@@ -181,8 +181,8 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             string sourceName = GetName(sourceUri);
             string destinationName = azureDestinationStorage.GetName(destinationUri);
 
-            CloudBlockBlob sourceBlob = _directory.GetBlockBlobReference(sourceName);
-            CloudBlockBlob destinationBlob = azureDestinationStorage._directory.GetBlockBlobReference(destinationName);
+            CloudBlockBlob sourceBlob = GetBlockBlobReference(sourceName);
+            CloudBlockBlob destinationBlob = azureDestinationStorage.GetBlockBlobReference(destinationName);
 
             var context = new SingleTransferContext();
 
@@ -223,7 +223,8 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         {
             string name = GetName(resourceUri);
 
-            CloudBlockBlob blob = _directory.GetBlockBlobReference(name);
+            CloudBlockBlob blob = GetBlockBlobReference(name);
+
             blob.Properties.ContentType = content.ContentType;
             blob.Properties.CacheControl = content.CacheControl;
 
@@ -305,7 +306,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             // trim the starting slash to treat it as a relative path
             string name = GetName(resourceUri).TrimStart('/');
 
-            CloudBlockBlob blob = _directory.GetBlockBlobReference(name);
+            CloudBlockBlob blob = GetBlockBlobReference(name);
 
             if (blob.Exists())
             {
@@ -351,7 +352,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         {
             string name = GetName(resourceUri);
 
-            CloudBlockBlob blob = _directory.GetBlockBlobReference(name);
+            CloudBlockBlob blob = GetBlockBlobReference(name);
             await blob.DeleteAsync(deleteSnapshotsOption: DeleteSnapshotsOption.IncludeSnapshots,
                                    accessCondition: null,
                                    options: null,
@@ -378,8 +379,12 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
         public override async Task<bool> AreSynchronized(Uri firstResourceUri, Uri secondResourceUri)
         {
-            var destination = _directory.GetBlockBlobReference(GetName(secondResourceUri));
+            var destination = GetBlockBlobReference(GetName(secondResourceUri));
             var source = new CloudBlockBlob(firstResourceUri);
+
+            // For interacting with the source, we just use the same blob request options as the destination blob.
+            ApplyBlobRequestOptions(source);
+
             if (await destination.ExistsAsync())
             {
                 if (await source.ExistsAsync())
@@ -394,7 +399,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         public async Task<ICloudBlockBlob> GetCloudBlockBlobReferenceAsync(Uri blobUri)
         {
             string blobName = GetName(blobUri);
-            CloudBlockBlob blob = _directory.GetBlockBlobReference(blobName);
+            CloudBlockBlob blob = GetBlockBlobReference(blobName);
             var blobExists = await blob.ExistsAsync();
 
             if (Verbose && !blobExists)
@@ -408,7 +413,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         public async Task<bool> HasPropertiesAsync(Uri blobUri, string contentType, string cacheControl)
         {
             var blobName = GetName(blobUri);
-            var blob = _directory.GetBlockBlobReference(blobName);
+            var blob = GetBlockBlobReference(blobName);
 
             if (await blob.ExistsAsync())
             {
@@ -419,6 +424,20 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             }
 
             return false;
+        }
+
+        private CloudBlockBlob GetBlockBlobReference(string blobName)
+        {
+            var blob = _directory.GetBlockBlobReference(blobName);
+
+            ApplyBlobRequestOptions(blob);
+
+            return blob;
+        }
+
+        private void ApplyBlobRequestOptions(CloudBlockBlob blob)
+        {
+            blob.ServiceClient.DefaultRequestOptions = _directory.ServiceClient.DefaultRequestOptions;
         }
     }
 }

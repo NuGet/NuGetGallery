@@ -9,7 +9,7 @@ param (
     [string]$SemanticVersion = '1.0.0-zlocal',
     [string]$Branch,
     [string]$CommitSHA,
-    [string]$BuildBranch = '0ca7db071c51b359996a03e01dbd069ef2f25f71'
+    [string]$BuildBranch = '2d8feecabe3aeaed7f5b4d50b9be78c94faf39ec'
 )
 
 # For TeamCity - If any issue occurs, this script fails the build. - By default, TeamCity returns an exit code of 0 for all powershell scripts, even if they fail
@@ -112,7 +112,13 @@ Invoke-BuildStep 'Creating artifacts' {
         }
 
         $nuspecPackages = `
-            "src\Ng\Ng.nuspec", `
+            "src\Ng\Catalog2Dnx.nuspec", `
+            "src\Ng\Catalog2Lucene.nuspec", `
+            "src\Ng\Catalog2Monitoring.nuspec", `
+            "src\Ng\Catalog2Registration.nuspec", `
+            "src\Ng\Feed2Catalog.nuspec", `
+            "src\Ng\Monitoring2Monitoring.nuspec", `
+            "src\Ng\MonitoringProcessor.nuspec", `
             "src\Ng\Ng.Operations.nuspec", `
             "src\NuGet.Jobs.Db2AzureSearch\NuGet.Jobs.Db2AzureSearch.nuspec", `
             "src\NuGet.Jobs.Catalog2AzureSearch\NuGet.Jobs.Catalog2AzureSearch.nuspec"
@@ -120,6 +126,11 @@ Invoke-BuildStep 'Creating artifacts' {
         $nuspecPackages | ForEach-Object {
             New-Package (Join-Path $PSScriptRoot $_) -Configuration $Configuration -BuildNumber $BuildNumber -Version $SemanticVersion -Branch $Branch
         }
+    } `
+    -ev +BuildErrors
+
+Invoke-BuildStep 'Signing the packages' {
+        Sign-Packages -Configuration $Configuration -BuildNumber $BuildNumber -MSBuildVersion "15" `
     } `
     -ev +BuildErrors
 

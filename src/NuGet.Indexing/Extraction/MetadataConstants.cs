@@ -72,6 +72,8 @@ namespace NuGet.Indexing
         public const string LanguagePropertyName = "language";
         public const string LastEditedPropertyName = "lastEdited";
         public const string LicenseUrlPropertyName = "licenseUrl";
+        public const string LicenseExpressionPropertyName = "licenseExpression";
+        public const string LicenseFilePropertyName = "licenseFile";
         public const string ListedPropertyName = "listed";
         public const string MinClientVersionPropertyName = "minClientVersion";
         public const string NormalizedVersionPropertyName = "version";

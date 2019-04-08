@@ -17,7 +17,7 @@ using NuGet.Services.Metadata.Catalog.Monitoring;
 using NuGet.Versioning;
 using Xunit;
 
-namespace NgTests.Validators
+namespace NgTests.Validation
 {
     public class ValidationContextTests
     {

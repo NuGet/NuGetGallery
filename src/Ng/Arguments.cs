@@ -18,6 +18,7 @@ namespace Ng
         public const string Path = "path";
         public const string Source = "source";
         public const string Verbose = "verbose";
+        public const string InstanceName = "instanceName";
 
         public const int DefaultInterval = 3; // seconds
         public const string Interval = "interval";
@@ -59,6 +60,8 @@ namespace Ng
         public const string PreferAlternatePackageSourceStorage = "preferAlternatePackageSourceStorage";
 
         public const string StorageUseServerSideCopy = "storageUseServerSideCopy";
+        public const string MaxConcurrentBatches = "maxConcurrentBatches";
+
         #endregion
 
         #region Catalog2Lucene
@@ -86,6 +89,7 @@ namespace Ng
         public const string ContentIsFlatContainer = "contentIsFlatContainer";
         public const string CursorUri = "cursorUri";
         public const string FlatContainerName = "flatContainerName";
+
         #endregion
 
         #region Catalog2PackageFixup
@@ -154,7 +158,7 @@ namespace Ng
         /// <summary>
         /// If true, packages are expected to have at least a repository signature.
         /// </summary>
-        public const string RequireSignature = "requireSignature";
+        public const string RequireRepositorySignature = "requireRepositorySignature";
         #endregion
 
         #region KeyVault

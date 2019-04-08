@@ -15,7 +15,7 @@ using NuGet.Services.Metadata.Catalog.Monitoring;
 using NuGet.Versioning;
 using Xunit;
 
-namespace NgTests
+namespace NgTests.Validation
 {
     public class PackageTimestampMetadataTests
     {

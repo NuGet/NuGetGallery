@@ -117,10 +117,14 @@
     <None Include="App.config">
       <SubType>Designer</SubType>
     </None>
+    <None Include="Catalog2Dnx.nuspec" />
+    <None Include="Catalog2Lucene.nuspec" />
+    <None Include="Catalog2Monitoring.nuspec" />
+    <None Include="Catalog2Registration.nuspec" />
+    <None Include="Feed2Catalog.nuspec" />
+    <None Include="Monitoring2Monitoring.nuspec" />
+    <None Include="MonitoringProcessor.nuspec" />
     <None Include="Ng.Operations.nuspec">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="Ng.nuspec">
       <SubType>Designer</SubType>
     </None>
     <None Include="Scripts\**" />
@@ -209,9 +213,6 @@
   </PropertyGroup>
   <Import Project="$(SignPath)\sign.targets" Condition="Exists('$(SignPath)\sign.targets')" />
   <Import Project="$(SignPath)\sign.microbuild.targets" Condition="Exists('$(SignPath)\sign.microbuild.targets')" />
-  <ItemGroup>
-    <PowerShellScriptsToSign Include="RunE2ETests.ps1" />
-  </ItemGroup>
   <Import Project="$(SignPath)\sign.scripts.targets" Condition="Exists('$(SignPath)\sign.scripts.targets')" />
   <Import Project="..\..\sign.thirdparty.targets" />
 </Project>

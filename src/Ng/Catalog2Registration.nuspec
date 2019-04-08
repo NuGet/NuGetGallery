@@ -1,15 +1,16 @@
 <?xml version="1.0"?>
 <package >
   <metadata>
-    <id>Ng.Operations</id>
+    <id>Catalog2Registration</id>
     <version>$version$</version>
-    <title>Ng.Operations</title>
     <authors>.NET Foundation</authors>
     <owners>.NET Foundation</owners>
-    <description>Ng package, but without the service scripts. Intended for ops tools that are manually ran.</description>
+    <description>The Catalog2Registration job.</description>
     <copyright>Copyright .NET Foundation</copyright>
   </metadata>
   <files>
     <file src="bin\$configuration$\*.*" target="Ng"/>
+    <file src="Scripts\*.ps1" />
+    <file src="Scripts\nssm.exe" />
   </files>
 </package>

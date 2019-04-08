@@ -24,6 +24,7 @@ namespace Ng
     public class SearchIndexFromCatalogCollector : CommitCollector
     {
         private readonly string _baseAddress;
+        private readonly Uri _galleryBaseAddress;
 
         private readonly IndexWriter _indexWriter;
         private readonly bool _commitEachBatch;
@@ -38,6 +39,7 @@ namespace Ng
             bool commitEachBatch,
             TimeSpan? commitTimeout,
             string baseAddress,
+            Uri galleryBaseAddress,
             ITelemetryService telemetryService,
             ILogger logger,
             Func<HttpMessageHandler> handlerFunc = null,
@@ -48,6 +50,7 @@ namespace Ng
             _commitEachBatch = commitEachBatch;
             _commitTimeout = commitTimeout;
             _baseAddress = baseAddress;
+            _galleryBaseAddress = galleryBaseAddress;
             _logger = logger;
         }
 
@@ -264,7 +267,7 @@ namespace Ng
 
             indexWriter.DeleteDocuments(CreateDeleteQuery(catalogItem));
 
-            var package = CatalogPackageMetadataExtraction.MakePackageMetadata(catalogItem);
+            var package = CatalogPackageMetadataExtraction.MakePackageMetadata(catalogItem, _galleryBaseAddress);
             var document = DocumentCreator.CreateDocument(package);
             indexWriter.AddDocument(document);
         }

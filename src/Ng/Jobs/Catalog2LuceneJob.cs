@@ -23,6 +23,7 @@ namespace Ng.Jobs
         private Lucene.Net.Store.Directory _directory;
         private string _catalogBaseAddress;
         private string _storageBaseAddress;
+        private string _galleryBaseAddress;
         private TimeSpan? _commitTimeout;
         private Func<HttpMessageHandler> _handlerFunc;
         private string _destination;
@@ -49,7 +50,8 @@ namespace Ng.Jobs
                    + $"-{Arguments.CertificateThumbprint} <keyvault-certificate-thumbprint> "
                    + $"[-{Arguments.ValidateCertificate} true|false]]] "
                    + $"[-{Arguments.Verbose} true|false] "
-                   + $"[-{Arguments.Interval} <seconds>]";
+                   + $"[-{Arguments.Interval} <seconds>] "
+                   + $"[-{Arguments.GalleryBaseAddress} <gallery-base-address>]";
         }
 
         protected override void Init(IDictionary<string, string> arguments, CancellationToken cancellationToken)
@@ -71,6 +73,7 @@ namespace Ng.Jobs
             }
 
             _storageBaseAddress = arguments.GetOrDefault<string>(Arguments.StorageBaseAddress);
+            _galleryBaseAddress = arguments.GetOrDefault<string>(Arguments.GalleryBaseAddress);
 
             var commitTimeoutInSeconds = arguments.GetOrDefault<int?>(Arguments.CommitTimeoutInSeconds);
             if (commitTimeoutInSeconds.HasValue)
@@ -88,6 +91,7 @@ namespace Ng.Jobs
                                    _registration ?? "(null)",
                                    _catalogBaseAddress ?? "(null)",
                                    _storageBaseAddress ?? "(null)",
+                                   _galleryBaseAddress ?? "(null)",
                                    _commitTimeout?.ToString() ?? "(null)");
 
             _handlerFunc = CommandHelpers.GetHttpMessageHandlerFactory(
@@ -112,6 +116,7 @@ namespace Ng.Jobs
                     commitEachBatch: false,
                     commitTimeout: _commitTimeout,
                     baseAddress: _catalogBaseAddress,
+                    galleryBaseAddress: _galleryBaseAddress == null ? null : new Uri(_galleryBaseAddress),
                     telemetryService: TelemetryService,
                     logger: Logger,
                     handlerFunc: _handlerFunc);

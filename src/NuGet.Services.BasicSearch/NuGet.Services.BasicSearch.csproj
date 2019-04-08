@@ -75,13 +75,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <SubType>Designer</SubType>
     </Content>
-    <None Include="Properties\PublishProfiles\nuget-int-0-v3search - FTP.pubxml" />
-    <None Include="Properties\PublishProfiles\nuget-int-0-v3search - Web Deploy.pubxml" />
-    <None Include="Properties\PublishProfiles\nuget-prod-0-v3search.pubxml" />
-    <None Include="Properties\PublishProfiles\nuget-prod-1-v3search.pubxml" />
-    <None Include="Properties\PublishProfiles\nuget-v3-test-search - FTP.pubxml" />
-    <None Include="Properties\PublishProfiles\nuget-v3-test-search - Web Deploy.pubxml" />
-    <None Include="Properties\PublishProfiles\NuGetServicesBasicSearch.pubxml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

@@ -42,7 +42,7 @@ namespace Ng.Jobs
             var index = arguments.GetOrThrow<string>(Arguments.Index);
             var packageBaseAddress = arguments.GetOrThrow<string>(Arguments.ContentBaseAddress);
             var source = arguments.GetOrThrow<string>(Arguments.Source);
-            var requireSignature = arguments.GetOrDefault(Arguments.RequireSignature, false);
+            var requireRepositorySignature = arguments.GetOrDefault(Arguments.RequireRepositorySignature, false);
             var verbose = arguments.GetOrDefault(Arguments.Verbose, false);
 
             CommandHelpers.AssertAzureStorage(arguments);
@@ -59,7 +59,7 @@ namespace Ng.Jobs
 
             var validatorConfig = new ValidatorConfiguration(
                 packageBaseAddress,
-                requireSignature);
+                requireRepositorySignature);
 
             _packageValidator = ValidationFactory.CreatePackageValidator(
                 gallery, 
