@@ -6,7 +6,7 @@ using NuGet.Services.FeatureFlags;
 
 namespace NuGetGallery.Areas.Admin.ViewModels
 {
-    public class FeatureFlagsFeatureViewModel : IFeatureFlagsViewModel
+    public class FeatureFlagsFeatureViewModel : IFeatureFlagsObjectViewModel
     {
         public FeatureFlagsFeatureViewModel()
         {

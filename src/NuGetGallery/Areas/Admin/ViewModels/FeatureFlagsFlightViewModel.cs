@@ -8,7 +8,7 @@ using NuGet.Services.FeatureFlags;
 
 namespace NuGetGallery.Areas.Admin.ViewModels
 {
-    public class FeatureFlagsFlightViewModel : IFeatureFlagsViewModel
+    public class FeatureFlagsFlightViewModel : IFeatureFlagsObjectViewModel
     {
         public FeatureFlagsFlightViewModel()
         {

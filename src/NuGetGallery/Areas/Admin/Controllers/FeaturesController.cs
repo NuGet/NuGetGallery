@@ -92,12 +92,31 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 ChangeType.Delete);
         }
 
+        private async Task<ActionResult> MergeChangesAndTrySave<TModify, TBase>(
+            TModify change,
+            ChangeType type)
+            where TModify : IModifyFeatureFlagsViewModel<TBase>, TBase
+            where TBase : IFeatureFlagsObjectViewModel
+        {
+            var model = await GetModel();
+
+            var errorMessage = ValidateModelState() 
+                ?? ApplyChange<TModify, TBase>(model, change, type) 
+                ?? await TrySaveFlags(model, change.ContentId);
+            if (errorMessage != null)
+            {
+                TempData["ErrorMessage"] = errorMessage;
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
         private string ApplyChange<TModify, TBase>(
             FeatureFlagsViewModel model,
             TModify change,
             ChangeType type)
             where TModify : IModifyFeatureFlagsViewModel<TBase>, TBase
-            where TBase : IFeatureFlagsViewModel
+            where TBase : IFeatureFlagsObjectViewModel
         {
             var validationError = change.GetValidationError(_userService);
             if (validationError != null)
@@ -150,25 +169,6 @@ namespace NuGetGallery.Areas.Admin.Controllers
             }
         }
 
-        private async Task<ActionResult> MergeChangesAndTrySave<TModify, TBase>(
-            TModify change,
-            ChangeType type)
-            where TModify : IModifyFeatureFlagsViewModel<TBase>, TBase
-            where TBase : IFeatureFlagsViewModel
-        {
-            var model = await GetModel();
-
-            var errorMessage = ValidateModelState() 
-                ?? ApplyChange<TModify, TBase>(model, change, type) 
-                ?? await TrySaveFlags(model, change.ContentId);
-            if (errorMessage != null)
-            {
-                TempData["ErrorMessage"] = errorMessage;
-            }
-
-            return RedirectToAction(nameof(Index));
-        }
-
         private string ValidateModelState()
         {
             if (ModelState.IsValid)
@@ -194,9 +194,9 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
             var result = await _storage.TrySaveAsync(flags, contentId);
 
-            switch (result.Type)
+            switch (result)
             {
-                case FeatureFlagSaveResultType.Ok:
+                case FeatureFlagSaveResult.Ok:
                     // The flags have been persisted. Refresh this instance's cache immediately.
                     await _cache.RefreshAsync();
 
@@ -204,11 +204,11 @@ namespace NuGetGallery.Areas.Admin.Controllers
                     TempData["Message"] = $"Your feature flags have been saved! It may take up to {refreshSeconds} seconds for this change to propagate everywhere.";
                     return null;
 
-                case FeatureFlagSaveResultType.Conflict:
+                case FeatureFlagSaveResult.Conflict:
                     return "Your changes were not applied as the feature flags were modified by someone else. Please reload the page and try again.";
 
                 default:
-                    return $"Unknown save result '{result}': {result.Message}.";
+                    return $"Unknown save result '{result}'.";
             }
         }
 

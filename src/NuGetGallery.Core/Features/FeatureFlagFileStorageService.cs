@@ -102,7 +102,7 @@ namespace NuGetGallery.Features
                            f => RemoveUser(f.Value, user)));
 
                 var saveResult = await TrySaveAsync(result, reference.ContentId);
-                if (saveResult.Type == FeatureFlagSaveResultType.Ok)
+                if (saveResult == FeatureFlagSaveResult.Ok)
                 {
                     return;
                 }

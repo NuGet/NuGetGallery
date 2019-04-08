@@ -550,7 +550,7 @@ namespace NuGetGallery.Controllers
 
         public abstract class ModifyMethodBase<TModify, TBase> : FeaturesControllerFactsBase
             where TModify : IModifyFeatureFlagsViewModel<TBase>
-            where TBase : IFeatureFlagsViewModel
+            where TBase : IFeatureFlagsObjectViewModel
         {
             protected abstract string PrettyName { get; }
             protected abstract Task<ActionResult> InvokeAsync(FeaturesController controller, TModify model);
@@ -586,10 +586,10 @@ namespace NuGetGallery.Controllers
                 get
                 {
                     yield return MemberDataHelper.AsData(
-                        FeatureFlagSaveResultType.Conflict,
+                        FeatureFlagSaveResult.Conflict,
                         "Your changes were not applied as the feature flags were modified by someone else. Please reload the page and try again.");
                     yield return MemberDataHelper.AsData(
-                        (FeatureFlagSaveResultType)99,
+                        (FeatureFlagSaveResult)99,
                         "Unknown save result 'NuGetGallery.Features.FeatureFlagSaveResult': message.");
                 }
             }
@@ -604,7 +604,7 @@ namespace NuGetGallery.Controllers
                 return ReturnsViewWithSaveErrorConflict(
                     hasLastUpdated,
                     validModel,
-                    FeatureFlagSaveResultType.Conflict,
+                    FeatureFlagSaveResult.Conflict,
                     "Your changes were not applied as the feature flags were modified by someone else. Please reload the page and try again.");
             }
 
@@ -618,14 +618,14 @@ namespace NuGetGallery.Controllers
                 return ReturnsViewWithSaveErrorConflict(
                     hasLastUpdated,
                     validModel,
-                    (FeatureFlagSaveResultType)99,
-                    "Unknown save result 'NuGetGallery.Features.FeatureFlagSaveResult': message.");
+                    (FeatureFlagSaveResult)99,
+                    "Unknown save result '99'.");
             }
 
             private async Task ReturnsViewWithSaveErrorConflict(
                 bool hasLastUpdated,
                 TModify validModel,
-                FeatureFlagSaveResultType resultType,
+                FeatureFlagSaveResult saveResult,
                 string errorMessage)
             {
                 // Arrange
@@ -637,7 +637,7 @@ namespace NuGetGallery.Controllers
                     .Setup(x => x.TrySaveAsync(
                         It.IsAny<FeatureFlags>(),
                         validModel.ContentId))
-                    .ReturnsAsync(new FeatureFlagSaveResult(resultType, "message"));
+                    .ReturnsAsync(saveResult);
 
                 // Act
                 var result = await InvokeAsync(controller, validModel);

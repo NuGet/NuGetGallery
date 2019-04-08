@@ -5,8 +5,8 @@ using System.Collections.Generic;
 
 namespace NuGetGallery.Areas.Admin.ViewModels
 {
-    public interface IModifyFeatureFlagsViewModel<TBase> : IFeatureFlagsViewModel
-        where TBase : IFeatureFlagsViewModel
+    public interface IModifyFeatureFlagsViewModel<TBase> : IFeatureFlagsObjectViewModel
+        where TBase : IFeatureFlagsObjectViewModel
     {
         string ContentId { get; set; }
 

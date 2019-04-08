@@ -3,7 +3,7 @@
 
 namespace NuGetGallery.Areas.Admin.ViewModels
 {
-    public interface IFeatureFlagsViewModel
+    public interface IFeatureFlagsObjectViewModel
     {
         string Name { get; set; }
     }
