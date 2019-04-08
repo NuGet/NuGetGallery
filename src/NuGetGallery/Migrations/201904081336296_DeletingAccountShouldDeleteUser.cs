@@ -26,6 +26,17 @@ JOIN Users u ON d.[DeletedAccountKey] = u.[Key]");
             CreateIndex("dbo.AccountDeletes", "DeletedByKey");
             CreateIndex("dbo.PackageDeletes", "DeletedByKey");
             AddForeignKey("dbo.PackageDeletes", "DeletedByKey", "dbo.Users", "Key");
+
+            // Delete deleted users from Users and Organizations tables
+            Sql(@"
+DELETE o 
+FROM Organizations o
+JOIN Users u ON o.[Key] = u.[Key]
+WHERE u.IsDeleted = 1
+
+DELETE FROM Users
+WHERE IsDeleted = 1");
+
             DropColumn("dbo.Users", "IsDeleted");
             DropColumn("dbo.AccountDeletes", "DeletedAccountKey");
         }
