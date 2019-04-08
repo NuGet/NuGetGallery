@@ -1804,6 +1804,10 @@ namespace NuGetGallery
                     .Setup(x => x.Users)
                     .Returns(new[] { new User(conflictUsername) }.MockDbSet().Object);
 
+                _service.MockEntitiesContext
+                    .Setup(x => x.AccountDeletes)
+                    .Returns(Enumerable.Empty<AccountDelete>().MockDbSet().Object);
+
                 return AssertUsernameConflict(conflictUsername, confirmEmailAddresses);
             }
 
@@ -1812,6 +1816,10 @@ namespace NuGetGallery
             public Task WithUsernameConflictWithDeletedAccount_ThrowsEntityException(bool confirmEmailAddresses)
             {
                 var conflictUsername = "ialreadyexist";
+
+                _service.MockEntitiesContext
+                    .Setup(x => x.Users)
+                    .Returns(Enumerable.Empty<User>().MockDbSet().Object);
 
                 _service.MockEntitiesContext
                     .Setup(x => x.AccountDeletes)
