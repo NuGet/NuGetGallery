@@ -228,6 +228,10 @@
     <Compile Include="Migrations\201903020136235_CvesCanBeEmpty.Designer.cs">
       <DependentUpon>201903020136235_CvesCanBeEmpty.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201904081230004_AddIndexToUserSecurityPolicy.cs" />
+    <Compile Include="Migrations\201904081230004_AddIndexToUserSecurityPolicy.Designer.cs">
+      <DependentUpon>201904081230004_AddIndexToUserSecurityPolicy.cs</DependentUpon>
+    </Compile>
     <Compile Include="Queries\AutocompleteCveIdQueryResults.cs" />
     <Compile Include="Queries\AutocompleteCweIdQueryResults.cs" />
     <Compile Include="Queries\AutocompleteCveIdQueryResult.cs" />
@@ -1708,6 +1712,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201903020136235_CvesCanBeEmpty.resx">
       <DependentUpon>201903020136235_CvesCanBeEmpty.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201904081230004_AddIndexToUserSecurityPolicy.resx">
+      <DependentUpon>201904081230004_AddIndexToUserSecurityPolicy.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
