@@ -109,6 +109,10 @@
         </div>
     </script>
     <script type="text/javascript">
+        function FormDeleteConfirmation(event, name, typeName) {
+            return confirm("Are you sure you would like to delete the " + typeName + " named '" + name + "'?");
+        }
+
         function FlightFormToggleAll(notAllId, submitId) {
             var $notAll = $('#' + notAllId);
             var isAll = $notAll.is(':visible');

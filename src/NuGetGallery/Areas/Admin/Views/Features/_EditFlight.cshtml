@@ -74,7 +74,7 @@
             @Html.Hidden("Name", Model.Name)
 
             <div class="form-group">
-                <input id="Delete" type="submit" class="btn btn-danger form-control" value="Delete" />
+                <input id="Delete" type="submit" class="btn btn-danger form-control" value="Delete" onclick="return FormDeleteConfirmation(event, '@Model.Name', 'flight')" />
             </div>
         }
     </td>

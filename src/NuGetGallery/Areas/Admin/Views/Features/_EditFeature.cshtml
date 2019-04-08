@@ -28,7 +28,7 @@
             @Html.Hidden("ContentId", Model.ContentId)
             @Html.Hidden("Name", Model.Name)
 
-            <input id="Delete" type="submit" class="btn btn-danger" value="Delete" />
+            <input id="Delete" type="submit" class="btn btn-danger" value="Delete" onclick="return FormDeleteConfirmation(event, '@Model.Name', 'feature')" />
         }
     </td>
 </tr>
