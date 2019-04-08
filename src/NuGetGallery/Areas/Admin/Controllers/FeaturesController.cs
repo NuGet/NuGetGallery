@@ -42,234 +42,125 @@ namespace NuGetGallery.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public Task<ActionResult> AddFeature(ModifyFeatureFlagsFeatureViewModel feature)
         {
-            return MergeChangesAndTrySave(
+            return MergeChangesAndTrySave<ModifyFeatureFlagsFeatureViewModel, FeatureFlagsFeatureViewModel>(
                 feature,
-                GetAdd(
-                    feature,
-                    ValidateFeature,
-                    GetFeatures,
-                    PrettyFeatureName));
+                ChangeType.Add);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public Task<ActionResult> EditFeature(ModifyFeatureFlagsFeatureViewModel feature)
         {
-            return MergeChangesAndTrySave(
+            return MergeChangesAndTrySave<ModifyFeatureFlagsFeatureViewModel, FeatureFlagsFeatureViewModel>(
                 feature,
-                GetEdit(
-                    feature,
-                    ValidateFeature,
-                    GetFeatures,
-                    (existingFeatures, existingFeature) =>
-                    {
-                        existingFeature.Status = feature.Status;
-
-                        return null;
-                    },
-                    PrettyFeatureName));
+                ChangeType.Edit);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public Task<ActionResult> DeleteFeature(ModifyFeatureFlagsFeatureViewModel feature)
         {
-            return MergeChangesAndTrySave(
+            return MergeChangesAndTrySave<ModifyFeatureFlagsFeatureViewModel, FeatureFlagsFeatureViewModel>(
                 feature,
-                GetDelete(
-                    feature,
-                    ValidateFeature,
-                    GetFeatures,
-                    PrettyFeatureName));
+                ChangeType.Delete);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public Task<ActionResult> AddFlight(ModifyFeatureFlagsFlightViewModel flight)
         {
-            return MergeChangesAndTrySave(
+            return MergeChangesAndTrySave<ModifyFeatureFlagsFlightViewModel, FeatureFlagsFlightViewModel>(
                 flight,
-                GetAdd(
-                    flight,
-                    ValidateFlight,
-                    GetFlights,
-                    PrettyFlightName));
+                ChangeType.Add);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public Task<ActionResult> EditFlight(ModifyFeatureFlagsFlightViewModel flight)
         {
-            return MergeChangesAndTrySave(
+            return MergeChangesAndTrySave<ModifyFeatureFlagsFlightViewModel, FeatureFlagsFlightViewModel>(
                 flight,
-                GetEdit(
-                    flight,
-                    ValidateFlight,
-                    GetFlights,
-                    (existingFlights, existingFlight) =>
-                    {
-                        existingFlight.All = flight.All;
-                        existingFlight.SiteAdmins = flight.SiteAdmins;
-                        existingFlight.Accounts = flight.Accounts;
-                        existingFlight.Domains = flight.Domains;
-
-                        return null;
-                    },
-                    PrettyFlightName));
+                ChangeType.Edit);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public Task<ActionResult> DeleteFlight(ModifyFeatureFlagsFlightViewModel flight)
         {
-            return MergeChangesAndTrySave(
+            return MergeChangesAndTrySave<ModifyFeatureFlagsFlightViewModel, FeatureFlagsFlightViewModel>(
                 flight,
-                GetDelete(
-                    flight,
-                    ValidateFlight,
-                    GetFlights,
-                    PrettyFlightName));
+                ChangeType.Delete);
         }
 
-        private delegate string ApplyChange(FeatureFlagsViewModel model);
-
-        private const string PrettyFeatureName = "feature";
-        private const string PrettyFlightName = "flight";
-
-        private ApplyChange GetAdd<TModify, TBase>(
+        private string ApplyChange<TModify, TBase>(
+            FeatureFlagsViewModel model,
             TModify change,
-            ValidateChanges<TModify> validateChanges,
-            GetExistingList<TBase> getExistingList,
-            string prettyChangeName)
-            where TModify : class, IModifyFeatureFlagsViewModel, TBase
-            where TBase : class, IFeatureFlagsViewModel
+            ChangeType type)
+            where TModify : IModifyFeatureFlagsViewModel<TBase>, TBase
+            where TBase : IFeatureFlagsViewModel
         {
-            return GetApplyChange(
-                change,
-                validateChanges,
-                getExistingList,
-                (existingList, existing) => $"The {prettyChangeName} '{change.Name}' already exists. You cannot add a {prettyChangeName} that already exists.",
-                existingList =>
-                {
-                    existingList.Add(change);
-                    return null;
-                });
-        }
-
-        private ApplyChange GetEdit<TModify, TBase>(
-            TModify change,
-            ValidateChanges<TModify> validateChanges,
-            GetExistingList<TBase> getExistingList,
-            HandleExisting<TBase> editExisting,
-            string prettyChangeName)
-            where TModify : class, IModifyFeatureFlagsViewModel, TBase
-            where TBase : class, IFeatureFlagsViewModel
-        {
-            return GetApplyChange(
-                change,
-                validateChanges,
-                getExistingList,
-                editExisting,
-                existingList => $"The {prettyChangeName} '{change.Name}' does not exist. You cannot edit a {prettyChangeName} that does not exist.");
-        }
-
-        private ApplyChange GetDelete<TModify, TBase>(
-            TModify change,
-            ValidateChanges<TModify> validateChanges,
-            GetExistingList<TBase> getExistingList,
-            string prettyChangeName)
-            where TModify : class, IModifyFeatureFlagsViewModel, TBase
-            where TBase : class, IFeatureFlagsViewModel
-        {
-            return GetApplyChange(
-                change,
-                validateChanges,
-                getExistingList,
-                (existingList, existing) =>
-                {
-                    existingList.Remove(existing);
-                    return null;
-                },
-                existingList => $"The {prettyChangeName} '{change.Name}' does not exist. You cannot delete a {prettyChangeName} that does not exist.");
-        }
-
-        private ApplyChange GetApplyChange<TModify, TBase>(
-            TModify change,
-            ValidateChanges<TModify> validateChanges, 
-            GetExistingList<TBase> getExistingList, 
-            HandleExisting<TBase> handleExisting, 
-            HandleMissing<TBase> handleMissing)
-            where TModify : class, IModifyFeatureFlagsViewModel, TBase
-            where TBase : class, IFeatureFlagsViewModel
-        {
-            return (model) =>
+            var validationError = change.GetValidationError(_userService);
+            if (validationError != null)
             {
-                var validationError = validateChanges(change);
-                if (validationError != null)
-                {
-                    return validationError;
-                }
-
-                var existingList = getExistingList(model);
-                var existing = existingList.SingleOrDefault(f => f.Name == change.Name);
-                return existing == null ? handleMissing(existingList) : handleExisting(existingList, existing);
-            };
-        }
-
-        private delegate string ValidateChanges<TModify>(TModify change);
-
-        /// <remarks>
-        /// There are no validations on features yet.
-        /// </remarks>
-        private string ValidateFeature(ModifyFeatureFlagsFeatureViewModel feature)
-        {
-            return null;
-        }
-
-        private string ValidateFlight(ModifyFeatureFlagsFlightViewModel flight)
-        {
-            if (flight.Accounts?.Any() ?? false)
-            {
-                var missingAccounts = new List<string>();
-                foreach (var accountName in flight.Accounts)
-                {
-                    var user = _userService.FindByUsername(accountName);
-                    if (user == null)
-                    {
-                        missingAccounts.Add(accountName);
-                    }
-                }
-
-                if (missingAccounts.Any())
-                {
-                    return $"Some accounts specified by the flight '{flight.Name}' ({string.Join(", ", missingAccounts)}) do not exist. A flight cannot specify accounts that do not exist.";
-                }
+                return validationError;
             }
 
-            return null;
+            var existingList = change.GetExistingList(model);
+            var existing = existingList.SingleOrDefault(f => f.Name == change.Name);
+            switch (type)
+            {
+                case ChangeType.Add:
+                    if (existing == null)
+                    {
+                        existingList.Add(change);
+                        return null;
+                    }
+                    else
+                    {
+                        return $"The {change.PrettyName} '{change.Name}' already exists. " +
+                            $"You cannot add a {change.PrettyName} that already exists.";
+                    }
+
+                case ChangeType.Edit:
+                    if (existing == null)
+                    {
+                        return $"The {change.PrettyName} '{change.Name}' does not exist. " +
+                            $"You cannot edit a {change.PrettyName} that does not exist.";
+                    }
+                    else
+                    {
+                        change.ApplyTo(existing);
+                        return null;
+                    }
+
+                case ChangeType.Delete:
+                    if (existing == null)
+                    {
+                        return $"The {change.PrettyName} '{change.Name}' does not exist. " +
+                            $"You cannot delete a {change.PrettyName} that does not exist.";
+                    }
+                    else
+                    {
+                        existingList.Remove(existing);
+                        return null;
+                    }
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(type));
+            }
         }
 
-        private delegate List<TBase> GetExistingList<TBase>(FeatureFlagsViewModel model);
-
-        private List<FeatureFlagsFeatureViewModel> GetFeatures(FeatureFlagsViewModel model)
-        {
-            return model.Features;
-        }
-
-        private List<FeatureFlagsFlightViewModel> GetFlights(FeatureFlagsViewModel model)
-        {
-            return model.Flights;
-        }
-
-        private delegate string HandleExisting<TBase>(List<TBase> existingList, TBase existing);
-        private delegate string HandleMissing<TBase>(List<TBase> existingList);
-
-        private async Task<ActionResult> MergeChangesAndTrySave<T>(T changes, ApplyChange applyChange)
-            where T : IModifyFeatureFlagsViewModel
+        private async Task<ActionResult> MergeChangesAndTrySave<TModify, TBase>(
+            TModify change,
+            ChangeType type)
+            where TModify : IModifyFeatureFlagsViewModel<TBase>, TBase
+            where TBase : IFeatureFlagsViewModel
         {
             var model = await GetModel();
 
-            var errorMessage = ValidateModelState() ?? applyChange(model) ?? await TrySaveFlags(model, changes.ContentId);
+            var errorMessage = ValidateModelState() 
+                ?? ApplyChange<TModify, TBase>(model, change, type) 
+                ?? await TrySaveFlags(model, change.ContentId);
             if (errorMessage != null)
             {
                 TempData["ErrorMessage"] = errorMessage;
@@ -287,8 +178,8 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
             var errorMessages = ModelState
                 .SelectMany(s => s.Value.Errors)
-                .Where(e => !string.IsNullOrWhiteSpace(e.ErrorMessage))
-                .Select(e => e.ErrorMessage);
+                .Select(e => e.ErrorMessage)
+                .Where(e => !string.IsNullOrWhiteSpace(e));
 
             return errorMessages.Any()
                 ? "The model submitted was invalid: " + string.Join(" ", errorMessages)
@@ -299,7 +190,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
         {
             var flags = new FeatureFlags(
                 model.Features.ToDictionary(f => f.Name, f => f.Status),
-                model.Flights.ToDictionary(f => f.Name, GetFlightFromModel));
+                model.Flights.ToDictionary(f => f.Name, f => f.AsFlight()));
 
             var result = await _storage.TrySaveAsync(flags, contentId);
 
@@ -319,6 +210,13 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 default:
                     return $"Unknown save result '{result}': {result.Message}.";
             }
+        }
+
+        private enum ChangeType
+        {
+            Add,
+            Edit,
+            Delete
         }
 
         private async Task<FeatureFlagsViewModel> GetModel()
@@ -350,15 +248,6 @@ namespace NuGetGallery.Areas.Admin.Controllers
         private List<FeatureFlagsFlightViewModel> GetFlightsFromFlags(FeatureFlags flags)
         {
             return flags.Flights.Select(f => new FeatureFlagsFlightViewModel(f.Key, f.Value)).ToList();
-        }
-
-        private Flight GetFlightFromModel(FeatureFlagsFlightViewModel flight)
-        {
-            return new Flight(
-                flight.All,
-                flight.SiteAdmins,
-                flight.Accounts?.ToList() ?? new List<string>(),
-                flight.Domains?.ToList() ?? new List<string>());
         }
     }
 }

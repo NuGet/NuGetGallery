@@ -258,7 +258,7 @@ namespace NuGetGallery.Controllers
             }
         }
 
-        public abstract class FeatureBase : ModifyMethodBase<ModifyFeatureFlagsFeatureViewModel>
+        public abstract class FeatureBase : ModifyMethodBase<ModifyFeatureFlagsFeatureViewModel, FeatureFlagsFeatureViewModel>
         {
             protected override string PrettyName => "feature";
 
@@ -513,7 +513,7 @@ namespace NuGetGallery.Controllers
             }
         }
 
-        public abstract class FlightBase : ModifyMethodBase<ModifyFeatureFlagsFlightViewModel>
+        public abstract class FlightBase : ModifyMethodBase<ModifyFeatureFlagsFlightViewModel, FeatureFlagsFlightViewModel>
         {
             public const string ExistingAccount = "account";
 
@@ -548,8 +548,9 @@ namespace NuGetGallery.Controllers
             }
         }
 
-        public abstract class ModifyMethodBase<TModify> : FeaturesControllerFactsBase
-            where TModify : class, IModifyFeatureFlagsViewModel
+        public abstract class ModifyMethodBase<TModify, TBase> : FeaturesControllerFactsBase
+            where TModify : IModifyFeatureFlagsViewModel<TBase>
+            where TBase : IFeatureFlagsViewModel
         {
             protected abstract string PrettyName { get; }
             protected abstract Task<ActionResult> InvokeAsync(FeaturesController controller, TModify model);

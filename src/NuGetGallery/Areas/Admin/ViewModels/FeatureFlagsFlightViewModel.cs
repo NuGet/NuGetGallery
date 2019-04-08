@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using NuGet.Services.FeatureFlags;
 
 namespace NuGetGallery.Areas.Admin.ViewModels
@@ -45,5 +46,14 @@ namespace NuGetGallery.Areas.Admin.ViewModels
         public IEnumerable<string> Accounts { get; set; }
 
         public IEnumerable<string> Domains { get; set; }
+
+        public Flight AsFlight()
+        {
+            return new Flight(
+                All,
+                SiteAdmins,
+                Accounts?.ToList() ?? new List<string>(),
+                Domains?.ToList() ?? new List<string>());
+        }
     }
 }
