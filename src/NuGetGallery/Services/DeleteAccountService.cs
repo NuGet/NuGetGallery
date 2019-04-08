@@ -76,18 +76,6 @@ namespace NuGetGallery
             {
                 throw new ArgumentNullException(nameof(userToExecuteTheDelete));
             }
-
-            if (userToBeDeleted.IsDeleted)
-            {
-                return new DeleteAccountStatus()
-                {
-                    Success = false,
-                    Description = string.Format(CultureInfo.CurrentCulture,
-                        Strings.AccountDelete_AccountAlreadyDeleted,
-                        userToBeDeleted.Username),
-                    AccountName = userToBeDeleted.Username
-                };
-            }
             
             var status = await RunAccountDeletionTask(
                 () => DeleteAccountImplAsync(
@@ -116,21 +104,14 @@ namespace NuGetGallery
                 RemoveMembers(organizationToBeDeleted);
             }
 
-            if (!userToBeDeleted.Confirmed)
+            if (userToBeDeleted.Confirmed)
             {
-                // Unconfirmed users should be hard-deleted.
-                // Another account with the same username can be created.
-                RemoveUser(userToBeDeleted);
-            }
-            else
-            {
-                // Confirmed users should be soft-deleted.
-                // Another account with the same username cannot be created.
-                RemoveUserDataInUserTable(userToBeDeleted);
                 InsertDeleteAccount(
-                    userToBeDeleted, 
+                    userToBeDeleted,
                     userToExecuteTheDelete);
             }
+
+            RemoveUser(userToBeDeleted);
 
             if (commitChanges)
             {
@@ -143,7 +124,7 @@ namespace NuGetGallery
             var accountDelete = new AccountDelete
             {
                 DeletedOn = DateTime.UtcNow,
-                DeletedAccountKey = user.Key,
+                Username = user.Username,
                 DeletedByKey = admin.Key,
             };
 
@@ -283,11 +264,6 @@ namespace NuGetGallery
             {
                 organization.MemberRequests.Remove(memberRequest);
             }
-        }
-
-        private void RemoveUserDataInUserTable(User user)
-        {
-            user.SetAccountAsDeleted();
         }
 
         private async Task RemoveSupportRequests(User user)

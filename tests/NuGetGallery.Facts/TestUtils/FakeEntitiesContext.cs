@@ -18,6 +18,18 @@ namespace NuGetGallery
         private readonly Dictionary<Type, object> dbSets = new Dictionary<Type, object>();
         private bool _areChangesSaved;
 
+        public DbSet<AccountDelete> AccountDeletes
+        {
+            get
+            {
+                return Set<AccountDelete>();
+            }
+            set
+            {
+                throw new NotSupportedException();
+            }
+        }
+
         public DbSet<PackageRegistration> PackageRegistrations
         {
             get

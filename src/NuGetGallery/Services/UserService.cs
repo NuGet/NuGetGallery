@@ -364,25 +364,17 @@ namespace NuGetGallery
             }
         }
 
-        public virtual User FindByUsername(string username, bool includeDeleted = false)
+        public virtual User FindByUsername(string username)
         {
             var users = UserRepository.GetAll();
-            if (!includeDeleted)
-            {
-                users = users.Where(u => !u.IsDeleted);
-            }
             return users.Include(u => u.Roles)
                 .Include(u => u.Credentials)
                 .SingleOrDefault(u => u.Username == username);
         }
 
-        public virtual User FindByKey(int key, bool includeDeleted = false)
+        public virtual User FindByKey(int key)
         {
             var users = UserRepository.GetAll();
-            if (!includeDeleted)
-            {
-                users = users.Where(u => !u.IsDeleted);
-            }
             return users.Include(u => u.Roles)
                 .Include(u => u.Credentials)
                 .SingleOrDefault(u => u.Key == key);
@@ -548,19 +540,15 @@ namespace NuGetGallery
 
         public async Task<Organization> AddOrganizationAsync(string username, string emailAddress, User adminUser)
         {
-            var existingUserWithIdentity = EntitiesContext.Users
-                .FirstOrDefault(u => u.Username == username || u.EmailAddress == emailAddress);
-            if (existingUserWithIdentity != null)
+            if (EntitiesContext.Users.Any(u => u.EmailAddress == emailAddress))
             {
-                if (existingUserWithIdentity.Username.Equals(username, StringComparison.OrdinalIgnoreCase))
-                {
-                    throw new EntityException(Strings.UsernameNotAvailable, username);
-                }
+                throw new EntityException(Strings.EmailAddressBeingUsed, emailAddress);
+            }
 
-                if (string.Equals(existingUserWithIdentity.EmailAddress, emailAddress, StringComparison.OrdinalIgnoreCase))
-                {
-                    throw new EntityException(Strings.EmailAddressBeingUsed, emailAddress);
-                }
+            if (EntitiesContext.Users.Any(u => u.Username == username)
+                || EntitiesContext.AccountDeletes.Any(d => d.Username == username))
+            {
+                throw new EntityException(Strings.UsernameNotAvailable, username);
             }
 
             var organization = new Organization(username)

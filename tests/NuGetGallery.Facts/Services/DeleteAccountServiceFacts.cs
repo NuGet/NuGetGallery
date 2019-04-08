@@ -59,30 +59,6 @@ namespace NuGetGallery.Services
                     orphanPackagePolicy: AccountDeletionOrphanPackagePolicy.UnlistOrphans));
             }
 
-            /// <summary>
-            /// The action to delete a deleted user will be a no-op.
-            /// </summary>
-            [Theory]
-            [InlineData(false)]
-            [InlineData(true)]
-            public async Task DeleteDeletedUser(bool isPackageOrphaned)
-            {
-                // Arrange
-                PackageRegistration registration = null;
-                var testUser = CreateTestUser(ref registration);
-                testUser.IsDeleted = true;
-                var testableService = new DeleteAccountTestService(testUser, registration);
-                var deleteAccountService = testableService.GetDeleteAccountService(isPackageOrphaned);
-
-                // Act
-                var result = await deleteAccountService.DeleteAccountAsync(
-                    userToBeDeleted: testUser,
-                    userToExecuteTheDelete: testUser,
-                    orphanPackagePolicy: AccountDeletionOrphanPackagePolicy.UnlistOrphans);
-                string expected = $"The account '{testUser.Username}' was already deleted. No action was performed.";
-                Assert.Equal(expected, result.Description);
-            }
-
             public static IEnumerable<object[]> DeleteAccount_Data
             {
                 get
@@ -143,12 +119,12 @@ namespace NuGetGallery.Services
                 else
                 {
                     Assert.False(registration.Owners.Any(o => o.MatchesUser(testUser)));
+                    Assert.Null(testableService.User);
                     Assert.Empty(testUser.SecurityPolicies);
                     Assert.Equal(
                         orphanPolicy == AccountDeletionOrphanPackagePolicy.UnlistOrphans && isPackageOrphaned,
                         !registration.Packages.Single().Listed);
-                    Assert.Null(testUser.EmailAddress);
-                    Assert.Single(testableService.DeletedAccounts);
+                    Assert.Equal(3, testableService.DeletedAccounts.Count); // This account will be deleted along with the two organizations that it is the only member of.
                     Assert.Empty(testableService.PackageOwnerRequests);
                     Assert.True(testableService.HasDeletedOwnerScope);
                     Assert.Single(testableService.AuditService.Records);
@@ -208,6 +184,7 @@ namespace NuGetGallery.Services
                 Assert.NotNull(deleteAccountAuditRecord);
                 Assert.Equal(testUser.Username, deleteAccountAuditRecord.AdminUsername);
                 Assert.Equal(testUser.Username, deleteAccountAuditRecord.Username);
+                Assert.Empty(testableService.DeletedAccounts);
                 Assert.Equal(DeleteAccountAuditRecord.ActionStatus.Success, deleteAccountAuditRecord.Status);
             }
 
@@ -268,7 +245,7 @@ namespace NuGetGallery.Services
                 else
                 {
                     Assert.True(status.Success);
-                    Assert.Null(organization.EmailAddress);
+                    Assert.Null(testableService.User);
                     Assert.Equal(
                         orphanPolicy == AccountDeletionOrphanPackagePolicy.UnlistOrphans && isPackageOrphaned,
                         !registration.Packages.Single().Listed);

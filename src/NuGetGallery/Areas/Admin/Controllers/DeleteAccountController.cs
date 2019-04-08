@@ -30,7 +30,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             if (!string.IsNullOrWhiteSpace(query))
             {
                 var user = _userService.FindByUsername(query);
-                if (user !=  null && user.Username != null && !user.IsDeleted)
+                if (user !=  null && user.Username != null)
                 {
                     var result = new DeleteAccountSearchResult(user.Username);
                     results.Add(result);

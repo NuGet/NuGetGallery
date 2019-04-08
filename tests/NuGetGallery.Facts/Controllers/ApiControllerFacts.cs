@@ -1331,7 +1331,8 @@ namespace NuGetGallery
                     };
 
                     _userServiceMock = new Mock<IUserService>(MockBehavior.Strict);
-                    _userServiceMock.Setup(m => m.FindByUsername(MicrosoftTeamSubscription.MicrosoftUsername, false))
+                    _userServiceMock
+                        .Setup(m => m.FindByUsername(MicrosoftTeamSubscription.MicrosoftUsername))
                         .Returns(_requiredCoOwner)
                         .Verifiable();
                 }
@@ -2118,7 +2119,7 @@ namespace NuGetGallery
                     .Returns(package);
 
                 controller.MockUserService
-                    .Setup(x => x.FindByKey(user.Key, false))
+                    .Setup(x => x.FindByKey(user.Key))
                     .Returns(user);
 
                 controller.SetCurrentUser(user, credential);

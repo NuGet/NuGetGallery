@@ -307,18 +307,15 @@ namespace NuGetGallery.Authentication
                 throw new FeedOnlyModeException(FeedOnlyModeException.FeedOnlyModeError);
             }
 
-            var existingUser = Entities.Users
-                .FirstOrDefault(u => u.Username == username || u.EmailAddress == emailAddress);
-            if (existingUser != null)
+            if (Entities.Users.Any(u => u.EmailAddress == emailAddress))
             {
-                if (string.Equals(existingUser.Username, username, StringComparison.OrdinalIgnoreCase))
-                {
-                    throw new EntityException(Strings.UsernameNotAvailable, username);
-                }
-                else
-                {
-                    throw new EntityException(Strings.EmailAddressBeingUsed, emailAddress);
-                }
+                throw new EntityException(Strings.EmailAddressBeingUsed, emailAddress);
+            }
+
+            if (Entities.Users.Any(u => u.Username == username) 
+                || Entities.AccountDeletes.Any(d => d.Username == username))
+            {
+                throw new EntityException(Strings.UsernameNotAvailable, username);
             }
 
             var newUser = new User(username)

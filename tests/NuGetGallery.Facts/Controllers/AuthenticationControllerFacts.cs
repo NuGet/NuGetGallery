@@ -129,7 +129,7 @@ namespace NuGetGallery.Controllers
 
                 GetMock<AuthenticationService>(); // Force a mock to be created
                 GetMock<IUserService>()
-                    .Setup(u => u.FindByUsername(It.IsAny<string>(), false))
+                    .Setup(u => u.FindByUsername(It.IsAny<string>()))
                     .Returns(existingUser);
 
                 var controller = GetController<AuthenticationController>();
@@ -152,7 +152,7 @@ namespace NuGetGallery.Controllers
 
                 GetMock<AuthenticationService>(); // Force a mock to be created
                 GetMock<IUserService>()
-                    .Setup(u => u.FindByUsername(It.IsAny<string>(), false))
+                    .Setup(u => u.FindByUsername(It.IsAny<string>()))
                     .Returns(existingUser);
 
                 var controller = GetController<AuthenticationController>();
@@ -174,7 +174,7 @@ namespace NuGetGallery.Controllers
 
                 GetMock<AuthenticationService>(); // Force a mock to be created
                 GetMock<IUserService>()
-                    .Setup(u => u.FindByUsername(It.IsAny<string>(), false))
+                    .Setup(u => u.FindByUsername(It.IsAny<string>()))
                     .Returns(existingUser);
 
                 var controller = GetController<AuthenticationController>();
@@ -194,7 +194,7 @@ namespace NuGetGallery.Controllers
 
                 GetMock<AuthenticationService>(); // Force a mock to be created
                 GetMock<IUserService>()
-                    .Setup(u => u.FindByUsername(It.IsAny<string>(), false))
+                    .Setup(u => u.FindByUsername(It.IsAny<string>()))
                     .Returns(existingUser);
                 var messageServiceMock = GetMock<IMessageService>();
                 messageServiceMock

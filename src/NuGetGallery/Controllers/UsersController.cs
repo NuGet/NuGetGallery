@@ -323,7 +323,7 @@ namespace NuGetGallery
         {
             var user = GetAccount(accountName);
 
-            if (user == null || user.IsDeleted)
+            if (user == null)
             {
                 return HttpNotFound();
             }
@@ -605,7 +605,7 @@ namespace NuGetGallery
         {
             var currentUser = GetCurrentUser();
             var user = UserService.FindByUsername(username);
-            if (user == null || user.IsDeleted)
+            if (user == null)
             {
                 return HttpNotFound();
             }

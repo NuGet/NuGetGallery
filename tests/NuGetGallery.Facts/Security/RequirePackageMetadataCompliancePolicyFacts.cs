@@ -63,7 +63,7 @@ namespace NuGetGallery.Security
 
             var userService = new Mock<IUserService>(MockBehavior.Strict);
             userService
-                .Setup(m => m.FindByUsername(MicrosoftTeamSubscription.MicrosoftUsername, It.IsAny<bool>()))
+                .Setup(m => m.FindByUsername(MicrosoftTeamSubscription.MicrosoftUsername))
                 .Returns(Fakes.RequiredCoOwner)
                 .Verifiable();
 
@@ -330,18 +330,9 @@ namespace NuGetGallery.Security
             IReservedNamespaceService reservedNamespaceService = null)
         {
             var userService = new Mock<IUserService>(MockBehavior.Strict);
-            if (microsoftUserExists)
-            {
-                userService
-                    .Setup(m => m.FindByUsername(MicrosoftTeamSubscription.MicrosoftUsername, false))
-                    .Returns(Fakes.RequiredCoOwner);
-            }
-            else
-            {
-                userService
-                    .Setup(m => m.FindByUsername(MicrosoftTeamSubscription.MicrosoftUsername, false))
-                    .Returns((User)null);
-            }
+            userService
+                .Setup(m => m.FindByUsername(MicrosoftTeamSubscription.MicrosoftUsername))
+                .Returns(microsoftUserExists ? Fakes.RequiredCoOwner : null);
 
             var telemetryServiceMock = new Mock<ITelemetryService>();
 

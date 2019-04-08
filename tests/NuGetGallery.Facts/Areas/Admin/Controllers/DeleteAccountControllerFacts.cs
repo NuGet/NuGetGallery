@@ -63,21 +63,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             public void WhenNotFound_ReturnsEmpty()
             {
                 // Arrange & Act
-                _fakes.ShaUser.IsDeleted = true;
-
                 var searchResult = SearchAccount("UserNotFound");
-
-                // Assert
-                Assert.Empty(searchResult);
-            }
-
-            [Fact]
-            public void WhenDeletedUser_ReturnsEmpty()
-            {
-                // Arrange & Act
-                _fakes.ShaUser.IsDeleted = true;
-
-                var searchResult = SearchAccount(_fakes.ShaUser.Username);
 
                 // Assert
                 Assert.Empty(searchResult);
@@ -88,7 +74,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 // Arrange
                 var userService = new Mock<IUserService>();
 
-                userService.Setup(m => m.FindByUsername(It.IsAny<string>(), It.IsAny<bool>()))
+                userService.Setup(m => m.FindByUsername(It.IsAny<string>()))
                     .Returns(findByUsernameResult)
                     .Verifiable();
 
@@ -98,7 +84,9 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 var result = controller.Search(userName) as JsonResult;
 
                 // Assert
-                userService.Verify(m => m.FindByUsername(userName, false), Times.Exactly(findByUsernameTimes));
+                userService.Verify(
+                    m => m.FindByUsername(userName), 
+                    Times.Exactly(findByUsernameTimes));
 
                 Assert.NotNull(result);
                 return result.Data as List<DeleteAccountSearchResult>;

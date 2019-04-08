@@ -1619,7 +1619,9 @@ namespace NuGetGallery
                 var currentUser = new User { Username = "userB", Key = _key++ };
 
                 var userService = new Mock<IUserService>();
-                userService.Setup(x => x.FindByUsername(requestedUser.Username, false)).Returns(requestedUser);
+                userService
+                    .Setup(x => x.FindByUsername(requestedUser.Username))
+                    .Returns(requestedUser);
 
                 var controller = CreateController(GetConfigurationService(), userService: userService);
                 controller.SetCurrentUser(currentUser);
@@ -1658,7 +1660,9 @@ namespace NuGetGallery
                 packageService.Setup(p => p.FindPackageRegistrationById(package.Id)).Returns(package);
 
                 var userService = new Mock<IUserService>();
-                userService.Setup(x => x.FindByUsername(owner.Username, false)).Returns(owner);
+                userService
+                    .Setup(x => x.FindByUsername(owner.Username))
+                    .Returns(owner);
 
                 var controller = CreateController(
                     GetConfigurationService(),
@@ -1685,7 +1689,9 @@ namespace NuGetGallery
                 var currentUser = new User { Username = "username", Key = _key++ };
 
                 var userService = new Mock<IUserService>();
-                userService.Setup(x => x.FindByUsername(currentUser.Username, false)).Returns(currentUser);
+                userService
+                    .Setup(x => x.FindByUsername(currentUser.Username))
+                    .Returns(currentUser);
 
                 var controller = CreateController(GetConfigurationService(), userService: userService);
                 controller.SetCurrentUser(currentUser);
@@ -1709,7 +1715,9 @@ namespace NuGetGallery
                 var packageService = new Mock<IPackageService>();
                 packageService.Setup(p => p.FindPackageRegistrationById(package.Id)).Returns(package);
                 var userService = new Mock<IUserService>();
-                userService.Setup(x => x.FindByUsername(user.Username, false)).Returns(user);
+                userService
+                    .Setup(x => x.FindByUsername(user.Username))
+                    .Returns(user);
                 var packageOwnershipManagementService = new Mock<IPackageOwnershipManagementService>();
                 var controller = CreateController(
                     GetConfigurationService(),
@@ -1866,7 +1874,9 @@ namespace NuGetGallery
                 var messageService = new Mock<IMessageService>();
 
                 var userService = new Mock<IUserService>();
-                userService.Setup(x => x.FindByUsername(newOwner.Username, false)).Returns(newOwner);
+                userService
+                    .Setup(x => x.FindByUsername(newOwner.Username))
+                    .Returns(newOwner);
 
                 var controller = CreateController(
                     configurationService,
@@ -2003,8 +2013,12 @@ namespace NuGetGallery
                     var userB = new User { Username = userBName };
 
                     var userService = new Mock<IUserService>();
-                    userService.Setup(u => u.FindByUsername(userAName, false)).Returns(userA);
-                    userService.Setup(u => u.FindByUsername(userBName, false)).Returns(userB);
+                    userService
+                        .Setup(u => u.FindByUsername(userAName))
+                        .Returns(userA);
+                    userService
+                        .Setup(u => u.FindByUsername(userBName))
+                        .Returns(userB);
 
                     var controller = CreateController(
                         GetConfigurationService(),
@@ -2037,8 +2051,12 @@ namespace NuGetGallery
                     packageService.Setup(p => p.FindPackageRegistrationById(packageId)).Returns(package);
 
                     var userService = new Mock<IUserService>();
-                    userService.Setup(u => u.FindByUsername(userAName, false)).Returns(userA);
-                    userService.Setup(u => u.FindByUsername(userBName, false)).Returns(userB);
+                    userService
+                        .Setup(u => u.FindByUsername(userAName))
+                        .Returns(userA);
+                    userService
+                        .Setup(u => u.FindByUsername(userBName))
+                        .Returns(userB);
 
                     var request = new PackageOwnerRequest() { RequestingOwner = userA, NewOwner = userB };
                     var packageOwnershipManagementRequestService = new Mock<IPackageOwnershipManagementService>();
@@ -4553,7 +4571,9 @@ namespace NuGetGallery
                     fakeUploadFileService.Setup(x => x.SaveUploadFileAsync(It.IsAny<int>(), It.IsAny<Stream>())).Returns(Task.FromResult(0));
 
                     var fakeUserService = new Mock<IUserService>();
-                    fakeUserService.Setup(x => x.FindByUsername(currentUser.Username, false)).Returns(currentUser);
+                    fakeUserService
+                        .Setup(x => x.FindByUsername(currentUser.Username))
+                        .Returns(currentUser);
                     var fakeNuGetPackage = isSymbolsPackage ? TestPackage.CreateTestSymbolPackageStream("theId", "1.0.42") : null;
 
                     var controller = CreateController(
@@ -4602,7 +4622,9 @@ namespace NuGetGallery
                     fakeUploadFileService.Setup(x => x.SaveUploadFileAsync(It.IsAny<int>(), It.IsAny<Stream>())).Returns(Task.FromResult(0));
 
                     var fakeUserService = new Mock<IUserService>();
-                    fakeUserService.Setup(x => x.FindByUsername(currentUser.Username, false)).Returns(currentUser);
+                    fakeUserService
+                        .Setup(x => x.FindByUsername(currentUser.Username))
+                        .Returns(currentUser);
 
                     var fakeReservedNamespaceService = new Mock<IReservedNamespaceService>();
                     fakeReservedNamespaceService
@@ -4661,7 +4683,9 @@ namespace NuGetGallery
                     .Returns(new PackageRegistration { Id = packageId, Owners = new[] { existingPackageOwner } });
 
                 var fakeUserService = new Mock<IUserService>();
-                fakeUserService.Setup(x => x.FindByUsername(currentUser.Username, false)).Returns(currentUser);
+                fakeUserService
+                    .Setup(x => x.FindByUsername(currentUser.Username))
+                    .Returns(currentUser);
 
                 var controller = CreateController(
                     GetConfigurationService(),
@@ -4704,7 +4728,7 @@ namespace NuGetGallery
 
                 var fakeUserService = new Mock<IUserService>();
                 fakeUserService
-                    .Setup(x => x.FindByUsername(currentUser.Username, false))
+                    .Setup(x => x.FindByUsername(currentUser.Username))
                     .Returns(currentUser);
 
                 var fakeUploadFileService = new Mock<IUploadFileService>();
@@ -4738,7 +4762,7 @@ namespace NuGetGallery
 
                 var fakeUserService = new Mock<IUserService>();
                 fakeUserService
-                    .Setup(x => x.FindByUsername(currentUser.Username, false))
+                    .Setup(x => x.FindByUsername(currentUser.Username))
                     .Returns(currentUser);
 
                 var fakeUploadFileService = new Mock<IUploadFileService>();
@@ -4774,7 +4798,7 @@ namespace NuGetGallery
 
                 var fakeUserService = new Mock<IUserService>();
                 fakeUserService
-                    .Setup(x => x.FindByUsername(currentUser.Username, false))
+                    .Setup(x => x.FindByUsername(currentUser.Username))
                     .Returns(currentUser);
 
                 var fakeUploadFileService = new Mock<IUploadFileService>();
@@ -5332,7 +5356,9 @@ namespace NuGetGallery
                 fakeUploadFileService.Setup(x => x.SaveUploadFileAsync(TestUtility.FakeUser.Key, It.IsAny<Stream>())).Returns(Task.FromResult(0));
 
                 var fakeUserService = new Mock<IUserService>();
-                fakeUserService.Setup(x => x.FindByUsername(TestUtility.FakeUser.Username, false)).Returns(TestUtility.FakeUser);
+                fakeUserService
+                    .Setup(x => x.FindByUsername(TestUtility.FakeUser.Username))
+                    .Returns(TestUtility.FakeUser);
 
                 var controller = CreateController(
                     GetConfigurationService(),
@@ -5721,7 +5747,9 @@ namespace NuGetGallery
                     .ReturnsAsync(SymbolPackageValidationResult.AcceptedForPackage(package));
 
                 var fakeUserService = new Mock<IUserService>();
-                fakeUserService.Setup(x => x.FindByUsername(TestUtility.FakeUser.Username, false)).Returns(TestUtility.FakeUser);
+                fakeUserService
+                    .Setup(x => x.FindByUsername(TestUtility.FakeUser.Username))
+                    .Returns(TestUtility.FakeUser);
 
                 var controller = CreateController(
                     GetConfigurationService(),
@@ -5749,7 +5777,7 @@ namespace NuGetGallery
                 // Arrange
                 var fakeUserService = new Mock<IUserService>();
                 fakeUserService
-                    .Setup(x => x.FindByUsername(It.IsAny<string>(), false))
+                    .Setup(x => x.FindByUsername(It.IsAny<string>()))
                     .Throws<Exception>();
                 var fakeTelemetryService = new Mock<ITelemetryService>();
                 var controller = CreateController(
@@ -5787,7 +5815,9 @@ namespace NuGetGallery
                     var fakeNuGetPackage = TestPackage.CreateTestPackageStream(PackageId, PackageVersion);
 
                     var fakeUserService = new Mock<IUserService>();
-                    fakeUserService.Setup(x => x.FindByUsername(ownerInForm.Username, false)).Returns(ownerInForm);
+                    fakeUserService
+                        .Setup(x => x.FindByUsername(ownerInForm.Username))
+                        .Returns(ownerInForm);
 
                     var fakeTelemetryService = new Mock<ITelemetryService>();
 
@@ -5843,7 +5873,9 @@ namespace NuGetGallery
                     var fakeNuGetPackage = TestPackage.CreateTestPackageStream(PackageId, PackageVersion);
 
                     var fakeUserService = new Mock<IUserService>();
-                    fakeUserService.Setup(x => x.FindByUsername(TestUtility.FakeUser.Username, false)).Returns(TestUtility.FakeUser);
+                    fakeUserService
+                        .Setup(x => x.FindByUsername(TestUtility.FakeUser.Username))
+                        .Returns(TestUtility.FakeUser);
 
                     var controller = CreateController(
                         GetConfigurationService(),
@@ -5897,7 +5929,9 @@ namespace NuGetGallery
 
                     var fakeUserService = new Mock<IUserService>();
                     var owner = new User { Key = 999, Username = "invalidOwner" };
-                    fakeUserService.Setup(x => x.FindByUsername(owner.Username, false)).Returns(owner);
+                    fakeUserService
+                        .Setup(x => x.FindByUsername(owner.Username))
+                        .Returns(owner);
 
                     var controller = CreateController(
                         GetConfigurationService(),
@@ -5931,7 +5965,9 @@ namespace NuGetGallery
                     var fakeNuGetPackage = TestPackage.CreateTestPackageStream(PackageId, PackageVersion);
 
                     var fakeUserService = new Mock<IUserService>();
-                    fakeUserService.Setup(x => x.FindByUsername(TestUtility.FakeUser.Username, false)).Returns(TestUtility.FakeUser);
+                    fakeUserService
+                        .Setup(x => x.FindByUsername(TestUtility.FakeUser.Username))
+                        .Returns(TestUtility.FakeUser);
 
                     var controller = CreateController(
                         GetConfigurationService(),
@@ -5977,7 +6013,9 @@ namespace NuGetGallery
                     var fakeNuGetPackage = TestPackage.CreateTestPackageStream(PackageId, PackageVersion);
 
                     var fakeUserService = new Mock<IUserService>();
-                    fakeUserService.Setup(x => x.FindByUsername(TestUtility.FakeUser.Username, false)).Returns(TestUtility.FakeUser);
+                    fakeUserService
+                        .Setup(x => x.FindByUsername(TestUtility.FakeUser.Username))
+                        .Returns(TestUtility.FakeUser);
 
                     var controller = CreateController(
                         GetConfigurationService(),
@@ -6185,7 +6223,9 @@ namespace NuGetGallery
                     var fakeNuGetPackage = TestPackage.CreateTestPackageStream(PackageId, PackageVersion);
 
                     var fakeUserService = new Mock<IUserService>();
-                    fakeUserService.Setup(x => x.FindByUsername(TestUtility.FakeUser.Username, false)).Returns(TestUtility.FakeUser);
+                    fakeUserService
+                        .Setup(x => x.FindByUsername(TestUtility.FakeUser.Username))
+                        .Returns(TestUtility.FakeUser);
 
                     var securityPolicyService = new Mock<ISecurityPolicyService>();
                     securityPolicyService
@@ -6254,7 +6294,9 @@ namespace NuGetGallery
                     var fakeNuGetPackage = TestPackage.CreateTestPackageStream(PackageId, PackageVersion);
 
                     var fakeUserService = new Mock<IUserService>();
-                    fakeUserService.Setup(x => x.FindByUsername(TestUtility.FakeUser.Username, false)).Returns(TestUtility.FakeUser);
+                    fakeUserService
+                        .Setup(x => x.FindByUsername(TestUtility.FakeUser.Username))
+                        .Returns(TestUtility.FakeUser);
 
                     var controller = CreateController(
                         GetConfigurationService(),
@@ -6310,7 +6352,9 @@ namespace NuGetGallery
                     var fakeNuGetPackage = TestPackage.CreateTestPackageStream(PackageId, PackageVersion);
 
                     var fakeUserService = new Mock<IUserService>();
-                    fakeUserService.Setup(x => x.FindByUsername(TestUtility.FakeUser.Username, false)).Returns(TestUtility.FakeUser);
+                    fakeUserService
+                        .Setup(x => x.FindByUsername(TestUtility.FakeUser.Username))
+                        .Returns(TestUtility.FakeUser);
 
                     var controller = CreateController(
                         GetConfigurationService(),
@@ -6377,7 +6421,9 @@ namespace NuGetGallery
                     fakeReservedNamespaceService.Setup(x => x.GetReservedNamespacesForId(PackageId)).Returns(matchingReservedNamespaces.ToList().AsReadOnly());
 
                     var fakeUserService = new Mock<IUserService>();
-                    fakeUserService.Setup(x => x.FindByUsername(ownerInForm.Username, false)).Returns(ownerInForm);
+                    fakeUserService
+                        .Setup(x => x.FindByUsername(ownerInForm.Username))
+                        .Returns(ownerInForm);
 
                     var controller = CreateController(
                         GetConfigurationService(),
@@ -6441,7 +6487,9 @@ namespace NuGetGallery
                     fakeIndexingService.Setup(f => f.UpdateIndex()).Verifiable();
 
                     var fakeUserService = new Mock<IUserService>();
-                    fakeUserService.Setup(x => x.FindByUsername(TestUtility.FakeUser.Username, false)).Returns(TestUtility.FakeUser);
+                    fakeUserService
+                        .Setup(x => x.FindByUsername(TestUtility.FakeUser.Username))
+                        .Returns(TestUtility.FakeUser);
 
                     var controller = CreateController(
                         GetConfigurationService(),
@@ -6493,7 +6541,9 @@ namespace NuGetGallery
                     var fakeNuGetPackage = TestPackage.CreateTestPackageStream(PackageId, PackageVersion);
 
                     var fakeUserService = new Mock<IUserService>();
-                    fakeUserService.Setup(x => x.FindByUsername(TestUtility.FakeUser.Username, false)).Returns(TestUtility.FakeUser);
+                    fakeUserService
+                        .Setup(x => x.FindByUsername(TestUtility.FakeUser.Username))
+                        .Returns(TestUtility.FakeUser);
 
                     var controller = CreateController(
                         GetConfigurationService(),
@@ -6534,7 +6584,9 @@ namespace NuGetGallery
                     var fakeNuGetPackage = TestPackage.CreateTestPackageStream(PackageId, PackageVersion);
 
                     var fakeUserService = new Mock<IUserService>();
-                    fakeUserService.Setup(x => x.FindByUsername(TestUtility.FakeUser.Username, false)).Returns(TestUtility.FakeUser);
+                    fakeUserService
+                        .Setup(x => x.FindByUsername(TestUtility.FakeUser.Username))
+                        .Returns(TestUtility.FakeUser);
 
                     var controller = CreateController(
                         GetConfigurationService(),
@@ -6572,7 +6624,9 @@ namespace NuGetGallery
                     var fakeNuGetPackage = TestPackage.CreateTestPackageStream(PackageId, PackageVersion);
 
                     var fakeUserService = new Mock<IUserService>();
-                    fakeUserService.Setup(x => x.FindByUsername(TestUtility.FakeUser.Username, false)).Returns(TestUtility.FakeUser);
+                    fakeUserService
+                        .Setup(x => x.FindByUsername(TestUtility.FakeUser.Username))
+                        .Returns(TestUtility.FakeUser);
 
                     var controller = CreateController(
                         GetConfigurationService(),
@@ -6605,7 +6659,9 @@ namespace NuGetGallery
                     var fakeNuGetPackage = TestPackage.CreateTestPackageStream(PackageId, PackageVersion);
 
                     var fakeUserService = new Mock<IUserService>();
-                    fakeUserService.Setup(x => x.FindByUsername(TestUtility.FakeUser.Username, false)).Returns(TestUtility.FakeUser);
+                    fakeUserService
+                        .Setup(x => x.FindByUsername(TestUtility.FakeUser.Username))
+                        .Returns(TestUtility.FakeUser);
 
                     var controller = CreateController(
                         GetConfigurationService(),
@@ -6642,7 +6698,9 @@ namespace NuGetGallery
                     var fakeNuGetPackage = TestPackage.CreateTestPackageStream(PackageId, PackageVersion);
 
                     var fakeUserService = new Mock<IUserService>();
-                    fakeUserService.Setup(x => x.FindByUsername(TestUtility.FakeUser.Username, false)).Returns(TestUtility.FakeUser);
+                    fakeUserService
+                        .Setup(x => x.FindByUsername(TestUtility.FakeUser.Username))
+                        .Returns(TestUtility.FakeUser);
 
                     var controller = CreateController(
                         GetConfigurationService(),
@@ -6671,7 +6729,9 @@ namespace NuGetGallery
                     var fakeNuGetPackage = TestPackage.CreateTestPackageStream(PackageId, PackageVersion);
 
                     var fakeUserService = new Mock<IUserService>();
-                    fakeUserService.Setup(x => x.FindByUsername(TestUtility.FakeUser.Username, false)).Returns(TestUtility.FakeUser);
+                    fakeUserService
+                        .Setup(x => x.FindByUsername(TestUtility.FakeUser.Username))
+                        .Returns(TestUtility.FakeUser);
 
                     var controller = CreateController(
                         GetConfigurationService(),
@@ -6699,7 +6759,9 @@ namespace NuGetGallery
                     var fakeNuGetPackage = TestPackage.CreateTestPackageStream(PackageId, PackageVersion);
 
                     var fakeUserService = new Mock<IUserService>();
-                    fakeUserService.Setup(x => x.FindByUsername(TestUtility.FakeUser.Username, false)).Returns(TestUtility.FakeUser);
+                    fakeUserService
+                        .Setup(x => x.FindByUsername(TestUtility.FakeUser.Username))
+                        .Returns(TestUtility.FakeUser);
 
                     var controller = CreateController(
                         GetConfigurationService(),
@@ -6742,7 +6804,9 @@ namespace NuGetGallery
                     var fakeNuGetPackage = TestPackage.CreateTestPackageStream(PackageId, PackageVersion);
 
                     var fakeUserService = new Mock<IUserService>();
-                    fakeUserService.Setup(x => x.FindByUsername(TestUtility.FakeUser.Username, false)).Returns(TestUtility.FakeUser);
+                    fakeUserService
+                        .Setup(x => x.FindByUsername(TestUtility.FakeUser.Username))
+                        .Returns(TestUtility.FakeUser);
 
                     var auditingService = new TestAuditingService();
 
@@ -6802,7 +6866,9 @@ namespace NuGetGallery
                     var fakeTelemetryService = new Mock<ITelemetryService>();
 
                     var fakeUserService = new Mock<IUserService>();
-                    fakeUserService.Setup(x => x.FindByUsername(TestUtility.FakeUser.Username, false)).Returns(TestUtility.FakeUser);
+                    fakeUserService
+                        .Setup(x => x.FindByUsername(TestUtility.FakeUser.Username))
+                        .Returns(TestUtility.FakeUser);
 
                     var fakeReadMeService = new Mock<IReadMeService>();
 
@@ -6859,7 +6925,9 @@ namespace NuGetGallery
                     var fakeTelemetryService = new Mock<ITelemetryService>();
 
                     var fakeUserService = new Mock<IUserService>();
-                    fakeUserService.Setup(x => x.FindByUsername(TestUtility.FakeUser.Username, false)).Returns(TestUtility.FakeUser);
+                    fakeUserService
+                        .Setup(x => x.FindByUsername(TestUtility.FakeUser.Username))
+                        .Returns(TestUtility.FakeUser);
 
                     var controller = CreateController(
                         GetConfigurationService(),
@@ -6912,7 +6980,9 @@ namespace NuGetGallery
                     var fakeMessageService = new Mock<IMessageService>();
 
                     var fakeUserService = new Mock<IUserService>();
-                    fakeUserService.Setup(x => x.FindByUsername(TestUtility.FakeUser.Username, false)).Returns(TestUtility.FakeUser);
+                    fakeUserService
+                        .Setup(x => x.FindByUsername(TestUtility.FakeUser.Username))
+                        .Returns(TestUtility.FakeUser);
 
                     var controller = CreateController(
                         configurationService,
@@ -6974,7 +7044,9 @@ namespace NuGetGallery
                     fakePackageFileService.Setup(x => x.SaveReadMeMdFileAsync(fakePackage, It.IsAny<string>())).Returns(Task.CompletedTask);
 
                     var fakeUserService = new Mock<IUserService>();
-                    fakeUserService.Setup(x => x.FindByUsername(TestUtility.FakeUser.Username, false)).Returns(TestUtility.FakeUser);
+                    fakeUserService
+                        .Setup(x => x.FindByUsername(TestUtility.FakeUser.Username))
+                        .Returns(TestUtility.FakeUser);
 
                     var controller = CreateController(
                         GetConfigurationService(),
@@ -7010,7 +7082,9 @@ namespace NuGetGallery
                     var fakeNuGetPackage = TestPackage.CreateTestSymbolPackageStream(PackageId, PackageVersion);
 
                     var fakeUserService = new Mock<IUserService>();
-                    fakeUserService.Setup(x => x.FindByUsername(TestUtility.FakeUser.Username, false)).Returns(TestUtility.FakeUser);
+                    fakeUserService
+                        .Setup(x => x.FindByUsername(TestUtility.FakeUser.Username))
+                        .Returns(TestUtility.FakeUser);
 
                     var controller = CreateController(
                         GetConfigurationService(),
@@ -7050,7 +7124,9 @@ namespace NuGetGallery
                     var fakeNuGetPackage = TestPackage.CreateTestSymbolPackageStream(PackageId, PackageVersion);
 
                     var fakeUserService = new Mock<IUserService>();
-                    fakeUserService.Setup(x => x.FindByUsername(TestUtility.FakeUser.Username, false)).Returns(TestUtility.FakeUser);
+                    fakeUserService
+                        .Setup(x => x.FindByUsername(TestUtility.FakeUser.Username))
+                        .Returns(TestUtility.FakeUser);
 
                     var controller = CreateController(
                         GetConfigurationService(),
@@ -7090,7 +7166,9 @@ namespace NuGetGallery
                     var fakeNuGetPackage = TestPackage.CreateTestSymbolPackageStream(PackageId, PackageVersion);
 
                     var fakeUserService = new Mock<IUserService>();
-                    fakeUserService.Setup(x => x.FindByUsername(TestUtility.FakeUser.Username, false)).Returns(TestUtility.FakeUser);
+                    fakeUserService
+                        .Setup(x => x.FindByUsername(TestUtility.FakeUser.Username))
+                        .Returns(TestUtility.FakeUser);
 
                     var controller = CreateController(
                         GetConfigurationService(),
@@ -7125,7 +7203,9 @@ namespace NuGetGallery
                         .ThrowsAsync(new Exception());
                     var fakeNuGetPackage = TestPackage.CreateTestSymbolPackageStream(PackageId, PackageVersion);
                     var fakeUserService = new Mock<IUserService>();
-                    fakeUserService.Setup(x => x.FindByUsername(TestUtility.FakeUser.Username, false)).Returns(TestUtility.FakeUser);
+                    fakeUserService
+                        .Setup(x => x.FindByUsername(TestUtility.FakeUser.Username))
+                        .Returns(TestUtility.FakeUser);
                     var telemetryService = new Mock<ITelemetryService>();
 
                     var controller = CreateController(
@@ -7161,7 +7241,9 @@ namespace NuGetGallery
                     var fakeSymbolsPackageUploadService = GetValidSymbolPackageUploadService(PackageId, PackageVersion, TestUtility.FakeUser);
                     var fakeNuGetPackage = TestPackage.CreateTestSymbolPackageStream(PackageId, PackageVersion);
                     var fakeUserService = new Mock<IUserService>();
-                    fakeUserService.Setup(x => x.FindByUsername(TestUtility.FakeUser.Username, false)).Returns(TestUtility.FakeUser);
+                    fakeUserService
+                        .Setup(x => x.FindByUsername(TestUtility.FakeUser.Username))
+                        .Returns(TestUtility.FakeUser);
                     var telemetryService = new Mock<ITelemetryService>();
                     var auditingService = new TestAuditingService();
 
@@ -7629,7 +7711,8 @@ namespace NuGetGallery
                 packageService.Setup(x => x.FindPackageRegistrationById(
                         It.Is<string>(id => id == _packageRegistration.Id)))
                     .Returns(_packageRegistration);
-                userService.Setup(x => x.FindByUsername(It.Is<string>(username => username == _signer.Username), false))
+                userService
+                    .Setup(x => x.FindByUsername(It.Is<string>(username => username == _signer.Username)))
                     .Returns<User>(null);
 
                 controller.SetCurrentUser(currentUser);
@@ -7674,7 +7757,8 @@ namespace NuGetGallery
                 packageService.Setup(x => x.FindPackageRegistrationById(
                         It.Is<string>(id => id == _packageRegistration.Id)))
                     .Returns(_packageRegistration);
-                userService.Setup(x => x.FindByUsername(It.Is<string>(username => username == _signer.Username), false))
+                userService
+                    .Setup(x => x.FindByUsername(It.Is<string>(username => username == _signer.Username)))
                     .Returns(_signer);
 
                 _packageRegistration.Owners.Add(_signer);
@@ -7699,7 +7783,8 @@ namespace NuGetGallery
                 packageService.Setup(x => x.FindPackageRegistrationById(
                         It.Is<string>(id => id == _packageRegistration.Id)))
                     .Returns(_packageRegistration);
-                userService.Setup(x => x.FindByUsername(It.Is<string>(username => username == _signer.Username), false))
+                userService
+                    .Setup(x => x.FindByUsername(It.Is<string>(username => username == _signer.Username)))
                     .Returns(_signer);
 
                 controller.SetCurrentUser(_signer);
@@ -7727,7 +7812,8 @@ namespace NuGetGallery
                 packageService.Setup(x => x.FindPackageRegistrationById(
                         It.Is<string>(id => id == _packageRegistration.Id)))
                     .Returns(_packageRegistration);
-                userService.Setup(x => x.FindByUsername(It.Is<string>(username => username == _signer.Username), false))
+                userService
+                    .Setup(x => x.FindByUsername(It.Is<string>(username => username == _signer.Username)))
                     .Returns(_signer);
 
                 controller.SetCurrentUser(_signer);

@@ -18,22 +18,17 @@ namespace NuGet.Services.Entities
         public DateTime DeletedOn { get; set; }
 
         /// <summary>
-        /// The deleted account key.
+        /// The username that the account deleted had.
         /// </summary>
-        public int DeletedAccountKey { get; set; }
+        public string Username { get; set; }
 
         /// <summary>
-        /// The deleted account.
+        /// The <see cref="User"/> (admin) key that deleted the account.
         /// </summary>
-        public User DeletedAccount { get; set; }
+        public int? DeletedByKey { get; set; }
 
         /// <summary>
-        /// The User(admin) key that executed the delete action.
-        /// </summary>
-        public int DeletedByKey { get; set; }
-
-        /// <summary>
-        /// The User(admin) that executed the delete action.
+        /// The <see cref="User"/> (admin) that deleted the account
         /// </summary>
         public User DeletedBy { get; set; }
 

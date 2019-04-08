@@ -9,6 +9,7 @@ namespace NuGetGallery
 {
     public interface IEntitiesContext
     {
+        DbSet<AccountDelete> AccountDeletes { get; set; }
         DbSet<Certificate> Certificates { get; set; }
         DbSet<PackageRegistration> PackageRegistrations { get; set; }
         DbSet<Credential> Credentials { get; set; }

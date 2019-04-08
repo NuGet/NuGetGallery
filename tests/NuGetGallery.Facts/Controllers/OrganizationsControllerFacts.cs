@@ -553,7 +553,7 @@ namespace NuGetGallery
                 controller.SetCurrentUser(getCurrentUser(Fakes));
 
                 var userService = GetMock<IUserService>();
-                userService.Setup(u => u.FindByUsername(account.Username, false))
+                userService.Setup(u => u.FindByUsername(account.Username))
                     .Returns(account as User);
                 var setup = userService.Setup(u => u.AddMembershipRequestAsync(It.IsAny<Organization>(), memberName, isAdmin));
                 if (exception != null)
@@ -681,7 +681,7 @@ namespace NuGetGallery
                 var userService = GetMock<IUserService>();
                 if (account != null)
                 {
-                    userService.Setup(u => u.FindByUsername(account.Username, false))
+                    userService.Setup(u => u.FindByUsername(account.Username))
                         .Returns(account as User);
                 }
                 var setup = userService.Setup(u => u.AddMemberAsync(It.IsAny<Organization>(), currentUser.Username, confirmationToken));
@@ -809,7 +809,7 @@ namespace NuGetGallery
                 var userService = GetMock<IUserService>();
                 if (account != null)
                 {
-                    userService.Setup(u => u.FindByUsername(account.Username, false))
+                    userService.Setup(u => u.FindByUsername(account.Username))
                         .Returns(account as User);
                 }
                 var setup = userService.Setup(u => u.RejectMembershipRequestAsync(It.IsAny<Organization>(), currentUser.Username, confirmationToken));
@@ -970,7 +970,7 @@ namespace NuGetGallery
                 controller.SetCurrentUser(getCurrentUser(Fakes));
 
                 var userService = GetMock<IUserService>();
-                userService.Setup(u => u.FindByUsername(account.Username, false))
+                userService.Setup(u => u.FindByUsername(account.Username))
                     .Returns(account as User);
                 var setup = userService.Setup(u => u.UpdateMemberAsync(It.IsAny<Organization>(), memberName, isAdmin));
                 if (exception != null)
@@ -1144,7 +1144,7 @@ namespace NuGetGallery
                 controller.SetCurrentUser(getCurrentUser(Fakes));
 
                 var userService = GetMock<IUserService>();
-                userService.Setup(u => u.FindByUsername(account.Username, false))
+                userService.Setup(u => u.FindByUsername(account.Username))
                     .Returns(account as User);
                 var setup = userService.Setup(u => u.DeleteMemberAsync(account, memberName));
                 if (exception != null)
@@ -1269,7 +1269,7 @@ namespace NuGetGallery
                 controller.SetCurrentUser(getCurrentUser(Fakes));
 
                 var userService = GetMock<IUserService>();
-                userService.Setup(u => u.FindByUsername(account.Username, false))
+                userService.Setup(u => u.FindByUsername(account.Username))
                     .Returns(account as User);
                 var setup = userService.Setup(u => u.CancelMembershipRequestAsync(account, memberName));
                 if (exception != null)
@@ -1310,7 +1310,7 @@ namespace NuGetGallery
                 controller.SetCurrentUser(getCurrentUser(fakes));
 
                 GetMock<IUserService>()
-                    .Setup(stub => stub.FindByUsername(testOrganization.Username, false))
+                    .Setup(stub => stub.FindByUsername(testOrganization.Username))
                     .Returns(testOrganization);
 
                 // Act
@@ -1358,7 +1358,7 @@ namespace NuGetGallery
                 List<Package> userPackages = new List<Package>() { userPackage };
 
                 GetMock<IUserService>()
-                    .Setup(stub => stub.FindByUsername(testOrganization.Username, false))
+                    .Setup(stub => stub.FindByUsername(testOrganization.Username))
                     .Returns(testOrganization);
                 GetMock<IPackageService>()
                     .Setup(stub => stub.FindPackagesByAnyMatchingOwner(testOrganization, It.IsAny<bool>(), false))
@@ -1525,7 +1525,7 @@ namespace NuGetGallery
                     IsAdmin = true
                 });
 
-                _userService.Setup(x => x.FindByUsername(It.Is<string>(username => username == _organization.Username), false))
+                _userService.Setup(x => x.FindByUsername(It.Is<string>(username => username == _organization.Username)))
                     .Returns(_organization);
             }
 
@@ -1704,7 +1704,7 @@ namespace NuGetGallery
                     IsAdmin = true
                 });
 
-                _userService.Setup(x => x.FindByUsername(It.Is<string>(username => username == _organization.Username), false))
+                _userService.Setup(x => x.FindByUsername(It.Is<string>(username => username == _organization.Username)))
                     .Returns(_organization);
             }
 
@@ -1874,7 +1874,7 @@ namespace NuGetGallery
                     IsAdmin = true
                 });
 
-                _userService.Setup(x => x.FindByUsername(It.Is<string>(username => username == _organization.Username), false))
+                _userService.Setup(x => x.FindByUsername(It.Is<string>(username => username == _organization.Username)))
                     .Returns(_organization);
             }
 
@@ -2063,7 +2063,7 @@ namespace NuGetGallery
                     IsAdmin = true
                 });
 
-                _userService.Setup(x => x.FindByUsername(It.Is<string>(username => username == _organization.Username), false))
+                _userService.Setup(x => x.FindByUsername(It.Is<string>(username => username == _organization.Username)))
                     .Returns(_organization);
             }
 
@@ -2181,7 +2181,7 @@ namespace NuGetGallery
                 List<Package> userPackages = new List<Package>() { userPackage };
 
                 GetMock<IUserService>()
-                    .Setup(stub => stub.FindByUsername(username, false))
+                    .Setup(stub => stub.FindByUsername(username))
                     .Returns(testUser);
                 GetMock<IPackageService>()
                     .Setup(stub => stub.FindPackagesByAnyMatchingOwner(testUser, It.IsAny<bool>(), false))

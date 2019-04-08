@@ -64,7 +64,7 @@ namespace NuGetGallery
                 var account = GetAccount(controller);
                 controller.SetCurrentUser(getCurrentUser(Fakes));
                 var userService = GetMock<IUserService>();
-                userService.Setup(u => u.FindByUsername(account.Username, false))
+                userService.Setup(u => u.FindByUsername(account.Username))
                     .Returns(account as User);
 
                 return InvokeAccount(controller);
@@ -119,7 +119,7 @@ namespace NuGetGallery
                 controller.SetCurrentUser(getCurrentUser(Fakes));
 
                 var userService = GetMock<IUserService>();
-                userService.Setup(u => u.FindByUsername(account.Username, false))
+                userService.Setup(u => u.FindByUsername(account.Username))
                     .Returns(account as User);
                 userService.Setup(u => u.CancelChangeEmailAddress(account))
                     .Returns(Task.CompletedTask)
@@ -281,7 +281,7 @@ namespace NuGetGallery
                     .Verifiable();
 
                 var userService = GetMock<IUserService>();
-                userService.Setup(u => u.FindByUsername(account.Username, false))
+                userService.Setup(u => u.FindByUsername(account.Username))
                     .Returns(account as User);
 
                 var setup = userService.Setup(u => u.ChangeEmailAddress(It.IsAny<User>(), It.IsAny<string>()))
@@ -380,7 +380,7 @@ namespace NuGetGallery
                 account.NotifyPackagePushed = !notifyPackagePushed;
 
                 var userService = GetMock<IUserService>();
-                userService.Setup(u => u.FindByUsername(account.Username, false))
+                userService.Setup(u => u.FindByUsername(account.Username))
                     .Returns(account as User);
                 userService.Setup(u => u.ChangeEmailSubscriptionAsync(account, emailAllowed, notifyPackagePushed))
                     .Returns(Task.CompletedTask);
@@ -447,7 +447,7 @@ namespace NuGetGallery
                 // Arrange
                 controller.SetCurrentUser(getCurrentUser(Fakes));
                 var userService = GetMock<IUserService>();
-                userService.Setup(u => u.FindByUsername(account.Username, false))
+                userService.Setup(u => u.FindByUsername(account.Username))
                     .Returns(account as User);
 
                 // Act
@@ -511,7 +511,7 @@ namespace NuGetGallery
                 // Arrange
                 controller.SetCurrentUser(getCurrentUser(Fakes));
                 var userService = GetMock<IUserService>();
-                userService.Setup(u => u.FindByUsername(account.Username, false))
+                userService.Setup(u => u.FindByUsername(account.Username))
                     .Returns(account as User);
 
                 GetMock<IMessageService>()
@@ -724,7 +724,7 @@ namespace NuGetGallery
                 // Arrange
                 controller.SetCurrentUser(getCurrentUser(Fakes));
                 var userService = GetMock<IUserService>();
-                userService.Setup(u => u.FindByUsername(account.Username, false))
+                userService.Setup(u => u.FindByUsername(account.Username))
                     .Returns(account as User);
                 var confirmSetup = userService.Setup(u => u.ConfirmEmailAddress(It.IsAny<User>(), It.IsAny<string>()));
                 if (exception == null)
@@ -763,28 +763,6 @@ namespace NuGetGallery
                 // Assert
                 ResultAssert.IsNotFound(result);
             }
-
-            [Fact]
-            public void DeleteDeletedAccount()
-            {
-                // Arrange
-                string userName = "DeletedUser";
-                var controller = GetController();
-
-                var fakes = Get<Fakes>();
-                var testUser = fakes.CreateUser(userName);
-                testUser.IsDeleted = true;
-
-                GetMock<IUserService>()
-                    .Setup(stub => stub.FindByUsername(userName, false))
-                    .Returns(testUser);
-
-                // act
-                var result = controller.Delete(accountName: userName);
-
-                // Assert
-                ResultAssert.IsNotFound(result);
-            }
         }
 
         public abstract class TheDeleteAccountPostAction : AccountsControllerTestContainer
@@ -802,33 +780,6 @@ namespace NuGetGallery
                 };
 
                 // Act
-                var result = await controller.Delete(model);
-
-                // Assert
-                AssertNotFoundResult(result, username);
-            }
-
-            [Fact]
-            public async Task DeleteDeletedAccount()
-            {
-                // Arrange
-                string username = "DeletedUser";
-                var controller = GetController();
-
-                var fakes = Get<Fakes>();
-                var testUser = fakes.CreateUser(username);
-                testUser.IsDeleted = true;
-
-                GetMock<IUserService>()
-                    .Setup(stub => stub.FindByUsername(username, false))
-                    .Returns(testUser);
-
-                var model = new DeleteAccountAsAdminViewModel()
-                {
-                    AccountName = username
-                };
-
-                // act
                 var result = await controller.Delete(model);
 
                 // Assert
@@ -853,7 +804,6 @@ namespace NuGetGallery
                 var controller = GetController();
                 var fakes = Get<Fakes>();
                 var testUser = fakes.CreateUser(username);
-                testUser.IsDeleted = false;
                 testUser.Key = 1;
                 var adminUser = fakes.Admin;
                 controller.SetCurrentUser(adminUser);

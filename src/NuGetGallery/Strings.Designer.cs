@@ -61,15 +61,6 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The account &apos;{0}&apos; was already deleted. No action was performed..
-        /// </summary>
-        public static string AccountDelete_AccountAlreadyDeleted {
-            get {
-                return ResourceManager.GetString("AccountDelete_AccountAlreadyDeleted", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The request failed to be submitted. Please try again or contact support..
         /// </summary>
         public static string AccountDelete_CreateSupportRequestFails {

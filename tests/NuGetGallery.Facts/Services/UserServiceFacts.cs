@@ -23,10 +23,8 @@ namespace NuGetGallery
 
         public class TheFindByKeyMethod
         {
-            [Theory]
-            [InlineData(false)]
-            [InlineData(true)]
-            public void ReturnsTheUserForTheKey(bool includedDeletedRecords)
+            [Fact]
+            public void ReturnsTheUserForTheKey()
             {
                 var user1 = new User { Username = "User1", Key = 1, EmailAddress = "new1@example.org" };
                 var user2 = new User { Username = "User2", Key = 2, EmailAddress = "new2@example.org" };
@@ -35,42 +33,15 @@ namespace NuGetGallery
                     Users = new[] { user1, user2 }
                 };
 
-                var result = service.FindByKey(1, includedDeletedRecords);
+                var result = service.FindByKey(1);
                 Assert.Equal("User1", result.Username);
-            }
-
-            [Theory]
-            [InlineData(false)]
-            [InlineData(true)]
-            public void ReturnsDeletedUserIfRequired(bool includedDeletedRecords)
-            {
-                var user1 = new User { Username = "User1", Key = 1, EmailAddress = "new1@example.org", IsDeleted = true };
-                var user2 = new User { Username = "User2", Key = 2, EmailAddress = "new2@example.org" };
-
-                var service = new TestableUserServiceWithDBFaking
-                {
-                    Users = new[] { user1, user2 }
-                };
-
-                var result = service.FindByKey(1, includedDeletedRecords);
-
-                if (includedDeletedRecords)
-                {
-                    Assert.Equal("User1", result.Username);
-                }
-                else
-                {
-                    Assert.Null(result);
-                }
             }
         }
 
         public class TheFindByUsernameMethod
         {
-            [Theory]
-            [InlineData(false)]
-            [InlineData(true)]
-            public void ReturnsTheUserForTheUsername(bool includedDeletedRecords)
+            [Fact]
+            public void ReturnsTheUserForTheUsername()
             {
                 var user1 = new User { Username = "User1", Key = 1, EmailAddress = "new1@example.org" };
                 var user2 = new User { Username = "User2", Key = 2, EmailAddress = "new2@example.org" };
@@ -79,33 +50,8 @@ namespace NuGetGallery
                     Users = new[] { user1, user2 }
                 };
 
-                var result = service.FindByUsername("User1", includedDeletedRecords);
+                var result = service.FindByUsername("User1");
                 Assert.Equal("User1", result.Username);
-            }
-
-            [Theory]
-            [InlineData(false)]
-            [InlineData(true)]
-            public void ReturnsDeletedUserIfRequired(bool includedDeletedRecords)
-            {
-                var user1 = new User { Username = "User1", Key = 1, EmailAddress = "new1@example.org", IsDeleted = true };
-                var user2 = new User { Username = "User2", Key = 2, EmailAddress = "new2@example.org" };
-
-                var service = new TestableUserServiceWithDBFaking
-                {
-                    Users = new[] { user1, user2 }
-                };
-
-                var result = service.FindByUsername("User1", includedDeletedRecords);
-
-                if (includedDeletedRecords)
-                {
-                    Assert.Equal("User1", result.Username);
-                }
-                else
-                {
-                    Assert.Null(result);
-                }
             }
         }
 
@@ -1850,15 +1796,33 @@ namespace NuGetGallery
 
             [Theory]
             [MemberData(nameof(ConfirmEmailAddresses_Config))]
-            public async Task WithUsernameConflict_ThrowsEntityException(bool confirmEmailAddresses)
+            public Task WithUsernameConflict_ThrowsEntityException(bool confirmEmailAddresses)
             {
                 var conflictUsername = "ialreadyexist";
-
-                SetUpConfirmEmailAddressesConfig(confirmEmailAddresses);
 
                 _service.MockEntitiesContext
                     .Setup(x => x.Users)
                     .Returns(new[] { new User(conflictUsername) }.MockDbSet().Object);
+
+                return AssertUsernameConflict(conflictUsername, confirmEmailAddresses);
+            }
+
+            [Theory]
+            [MemberData(nameof(ConfirmEmailAddresses_Config))]
+            public Task WithUsernameConflictWithDeletedAccount_ThrowsEntityException(bool confirmEmailAddresses)
+            {
+                var conflictUsername = "ialreadyexist";
+
+                _service.MockEntitiesContext
+                    .Setup(x => x.AccountDeletes)
+                    .Returns(new[] { new AccountDelete { Username = conflictUsername } }.MockDbSet().Object);
+
+                return AssertUsernameConflict(conflictUsername, confirmEmailAddresses);
+            }
+
+            private async Task AssertUsernameConflict(string conflictUsername, bool confirmEmailAddresses)
+            {
+                SetUpConfirmEmailAddressesConfig(confirmEmailAddresses);
 
                 var exception = await Assert.ThrowsAsync<EntityException>(() => InvokeAddOrganization(orgName: conflictUsername));
                 Assert.Equal(String.Format(CultureInfo.CurrentCulture, Strings.UsernameNotAvailable, conflictUsername), exception.Message);
@@ -1898,6 +1862,10 @@ namespace NuGetGallery
                     .Setup(x => x.Users)
                     .Returns(Enumerable.Empty<User>().MockDbSet().Object);
 
+                _service.MockEntitiesContext
+                    .Setup(x => x.AccountDeletes)
+                    .Returns(Enumerable.Empty<AccountDelete>().MockDbSet().Object);
+
                 SetUpConfirmEmailAddressesConfig(confirmEmailAddresses);
 
                 var org = await InvokeAddOrganization(admin: new User(AdminName) { Credentials = new Credential[0] });
@@ -1912,6 +1880,10 @@ namespace NuGetGallery
                 _service.MockEntitiesContext
                     .Setup(x => x.Users)
                     .Returns(Enumerable.Empty<User>().MockDbSet().Object);
+
+                _service.MockEntitiesContext
+                    .Setup(x => x.AccountDeletes)
+                    .Returns(Enumerable.Empty<AccountDelete>().MockDbSet().Object);
 
                 SetUpConfirmEmailAddressesConfig(confirmEmailAddresses);
 
@@ -1936,6 +1908,10 @@ namespace NuGetGallery
                 _service.MockEntitiesContext
                     .Setup(x => x.Users)
                     .Returns(Enumerable.Empty<User>().MockDbSet().Object);
+
+                _service.MockEntitiesContext
+                    .Setup(x => x.AccountDeletes)
+                    .Returns(Enumerable.Empty<AccountDelete>().MockDbSet().Object);
 
                 SetUpConfirmEmailAddressesConfig(confirmEmailAddresses);
 
@@ -1964,6 +1940,10 @@ namespace NuGetGallery
                 _service.MockEntitiesContext
                     .Setup(x => x.Users)
                     .Returns(Enumerable.Empty<User>().MockDbSet().Object);
+
+                _service.MockEntitiesContext
+                    .Setup(x => x.AccountDeletes)
+                    .Returns(Enumerable.Empty<AccountDelete>().MockDbSet().Object);
 
                 SetUpConfirmEmailAddressesConfig(confirmEmailAddresses);
 

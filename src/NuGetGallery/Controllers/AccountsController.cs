@@ -301,7 +301,7 @@ namespace NuGetGallery
         {
             var accountToDelete = GetAccount(accountName);
 
-            if (accountToDelete == null || accountToDelete.IsDeleted)
+            if (accountToDelete == null)
             {
                 return HttpNotFound();
             }
@@ -320,7 +320,7 @@ namespace NuGetGallery
         public virtual ActionResult Delete(string accountName)
         {
             var accountToDelete = UserService.FindByUsername(accountName) as TUser;
-            if (accountToDelete == null || accountToDelete.IsDeleted)
+            if (accountToDelete == null)
             {
                 return HttpNotFound();
             }
@@ -335,7 +335,7 @@ namespace NuGetGallery
         public virtual async Task<ActionResult> Delete(DeleteAccountAsAdminViewModel model)
         {
             var accountToDelete = UserService.FindByUsername(model.AccountName) as TUser;
-            if (accountToDelete == null || accountToDelete.IsDeleted)
+            if (accountToDelete == null)
             {
                 return View("DeleteAccountStatus", new DeleteAccountStatus()
                 {

@@ -19,10 +19,9 @@ namespace NuGet.Services.Entities
 
         [Required]
         public DateTime DeletedOn { get; set; }
-
-        [Required]
+        
         public User DeletedBy { get; set; }
-        public int DeletedByKey { get; set; }
+        public int? DeletedByKey { get; set; }
 
         [Required]
         public string Reason { get; set; }

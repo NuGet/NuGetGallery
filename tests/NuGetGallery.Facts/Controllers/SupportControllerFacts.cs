@@ -39,8 +39,7 @@ namespace NuGetGallery.Controllers
 
                 var users = new List<User>(){
                                                 admin,
-                                                new User(){ Username = "user1", EmailAddress = "email1.coldmail.com", Key = 1, EmailAllowed = true },
-                                                new User(){ Username = "", EmailAddress = "", Key = 2, EmailAllowed = false, IsDeleted = true }};
+                                                new User(){ Username = "user1", EmailAddress = "email1.coldmail.com", Key = 1, EmailAllowed = true }};
                 var issues = new List<Issue>(){
                                                 new Issue(){
                                                     UserKey = 1,

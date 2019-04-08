@@ -90,8 +90,6 @@ namespace NuGet.Services.Entities
 
         public bool EmailAllowed { get; set; }
 
-        public bool IsDeleted { get; set; }
-
         public bool EnableMultiFactorAuthentication { get; set; }
 
         public virtual ICollection<ReservedNamespace> ReservedNamespaces { get; set; }
