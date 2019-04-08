@@ -307,6 +307,7 @@ namespace NuGetGallery
                     .WithOptional();
 
             modelBuilder.Entity<AccountDelete>()
+                .HasKey(d => d.Key)
                 .HasOptional(a => a.DeletedBy)
                 .WithMany()
                 .WillCascadeOnDelete(false);
