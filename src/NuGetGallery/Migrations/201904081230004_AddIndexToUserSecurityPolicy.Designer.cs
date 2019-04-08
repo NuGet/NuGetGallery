@@ -13,7 +13,7 @@ namespace NuGetGallery.Migrations
         
         string IMigrationMetadata.Id
         {
-            get { return "201904040811561_AddIndexToUserSecurityPolicy"; }
+            get { return "201904081230004_AddIndexToUserSecurityPolicy"; }
         }
         
         string IMigrationMetadata.Source

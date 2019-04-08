@@ -15,6 +15,7 @@ namespace NuGetGallery
         : ObjectMaterializedInterceptingDbContext, IEntitiesContext
     {
         private const string CertificatesThumbprintIndex = "IX_Certificates_Thumbprint";
+        private const string UserSecurityPolicyUserKeyNameSubscriptionIndex = "IX_UserSecurityPolicy_UserKeyNameSubscription";
 
         static EntitiesContext()
         {
@@ -218,6 +219,50 @@ namespace NuGetGallery
 
             modelBuilder.Entity<UserSecurityPolicy>()
                 .HasKey(p => p.Key);
+
+            modelBuilder.Entity<UserSecurityPolicy>()
+                .Property(e => e.UserKey)
+                .IsRequired()
+                .HasColumnAnnotation(
+                    IndexAnnotation.AnnotationName,
+                    new IndexAnnotation(new[]
+                    {
+                        new IndexAttribute(UserSecurityPolicyUserKeyNameSubscriptionIndex, order: 0)
+                        {
+                            IsUnique = true
+                        }
+                    })
+                );
+
+            modelBuilder.Entity<UserSecurityPolicy>()
+               .Property(e => e.Name)
+               .HasMaxLength(256)
+               .IsRequired()
+               .HasColumnAnnotation(
+                   IndexAnnotation.AnnotationName,
+                   new IndexAnnotation(new[]
+                   {
+                        new IndexAttribute(UserSecurityPolicyUserKeyNameSubscriptionIndex, order: 1)
+                        {
+                            IsUnique = true
+                        }
+                   })
+               );
+
+            modelBuilder.Entity<UserSecurityPolicy>()
+               .Property(e => e.Subscription)
+               .HasMaxLength(256)
+               .IsRequired()
+               .HasColumnAnnotation(
+                   IndexAnnotation.AnnotationName,
+                   new IndexAnnotation(new[]
+                   {
+                        new IndexAttribute(UserSecurityPolicyUserKeyNameSubscriptionIndex, order: 2)
+                        {
+                            IsUnique = true
+                        }
+                   })
+               );
 
             modelBuilder.Entity<EmailMessage>()
                 .HasKey(em => em.Key);
