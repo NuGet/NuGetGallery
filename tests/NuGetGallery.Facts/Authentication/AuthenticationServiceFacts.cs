@@ -791,6 +791,27 @@ namespace NuGetGallery.Authentication
             }
 
             [Fact]
+            public async Task WillThrowIfTheUsernameMatchesDeletedAccount()
+            {
+                // Arrange
+                var auth = Get<AuthenticationService>();
+                var fakes = Get<Fakes>();
+                var context = GetFakeContext();
+                var deletedAccountUsername = "deletedAccount";
+                context.AccountDeletes.Add(new AccountDelete { Username = deletedAccountUsername });
+
+                // Act
+                var ex = await AssertEx.Throws<EntityException>(() =>
+                    auth.Register(
+                        deletedAccountUsername,
+                        "theEmailAddress",
+                        new CredentialBuilder().CreatePasswordCredential("thePassword")));
+
+                // Assert
+                Assert.Equal(string.Format(Strings.UsernameNotAvailable, deletedAccountUsername), ex.Message);
+            }
+
+            [Fact]
             public async Task WillThrowIfTheEmailAddressIsAlreadyInUse()
             {
                 // Arrange

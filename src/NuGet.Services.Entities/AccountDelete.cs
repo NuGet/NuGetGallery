@@ -18,7 +18,7 @@ namespace NuGet.Services.Entities
         public DateTime DeletedOn { get; set; }
 
         /// <summary>
-        /// The username that the account deleted had.
+        /// The username that the deleted account had.
         /// </summary>
         public string Username { get; set; }
 
