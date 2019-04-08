@@ -1125,7 +1125,7 @@ namespace NuGetGallery
 
                 // Assert
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
-                Assert.False(model.IsPackageDeprecationEnabled);
+                Assert.Equal(isDeprecationEnabled, model.IsPackageDeprecationEnabled);
 
                 deprecationService.Verify();
             }
