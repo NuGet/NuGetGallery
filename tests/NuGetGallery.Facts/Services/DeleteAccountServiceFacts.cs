@@ -124,7 +124,7 @@ namespace NuGetGallery.Services
                     Assert.Equal(
                         orphanPolicy == AccountDeletionOrphanPackagePolicy.UnlistOrphans && isPackageOrphaned,
                         !registration.Packages.Single().Listed);
-                    Assert.Equal(3, testableService.DeletedAccounts.Count); // This account will be deleted along with the two organizations that it is the only member of.
+                    Assert.Single(testableService.DeletedAccounts);
                     Assert.Empty(testableService.PackageOwnerRequests);
                     Assert.True(testableService.HasDeletedOwnerScope);
                     Assert.Single(testableService.AuditService.Records);
