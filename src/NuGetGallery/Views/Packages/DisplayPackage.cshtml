@@ -28,10 +28,9 @@
     {
         packageManagers = new PackageManagerViewModel[]
         {
-            new PackageManagerViewModel()
+            new PackageManagerViewModel(".NET CLI")
             {
                 Id = "dotnet-cli",
-                Name = ".NET CLI",
                 CommandPrefix = "> ",
                 InstallPackageCommand = string.Format("dotnet tool install --global {0} --version {1}", Model.Id, Model.Version),
                 AlertLevel = AlertLevel.Info,
@@ -43,36 +42,33 @@
     {
         packageManagers = new PackageManagerViewModel[]
         {
-            new PackageManagerViewModel()
+            new PackageManagerViewModel("Package Manager")
             {
                 Id = "package-manager",
-                Name = "Package Manager",
                 CommandPrefix = "PM> ",
                 InstallPackageCommand = string.Format("Install-Package {0} -Version {1}", Model.Id, Model.Version)
             },
 
-            new PackageManagerViewModel()
+            new PackageManagerViewModel(".NET CLI")
             {
                 Id = "dotnet-cli",
-                Name = ".NET CLI",
                 CommandPrefix = "> ",
                 InstallPackageCommand = string.Format("dotnet add package {0} --version {1}", Model.Id, Model.Version)
             },
 
-            new PackageManagerViewModel()
+            new PackageManagerViewModel("PackageReference")
             {
                 Id = "package-reference",
-                Name = "PackageReference",
                 InstallPackageCommand = string.Format("<PackageReference Include=\"{0}\" Version=\"{1}\" />", Model.Id, Model.Version),
                 AlertLevel = AlertLevel.Info,
                 AlertMessage = string.Format("For projects that support <a href=\"{0}\">PackageReference</a>, copy this XML node into the project file to reference the package.",
                                              "https://docs.microsoft.com/en-us/nuget/consume-packages/package-references-in-project-files"),
+                CopyLabel = "Copy the PackageReference XML node",
             },
 
-            new ThirdPartyPackageManagerViewModel("https://fsprojects.github.io/Paket/contact.html")
+            new ThirdPartyPackageManagerViewModel("Paket CLI", "https://fsprojects.github.io/Paket/contact.html")
             {
                 Id = "paket-cli",
-                Name = "Paket CLI",
                 CommandPrefix = "> ",
                 InstallPackageCommand = string.Format("paket add {0} --version {1}", Model.Id, Model.Version),
             }
@@ -136,7 +132,7 @@
             <div class="copy-button">
                 <button id="@packageManager.Id-button" class="btn btn-default btn-warning" type="button"
                         data-toggle="popover" data-placement="bottom" data-content="Copied."
-                        aria-label="Copy the @packageManager.Name command">
+                        aria-label="@packageManager.CopyLabel">
                     <span class="ms-Icon ms-Icon--Copy" aria-hidden="true"></span>
                 </button>
             </div>

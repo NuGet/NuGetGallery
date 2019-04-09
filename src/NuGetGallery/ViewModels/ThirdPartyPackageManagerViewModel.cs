@@ -15,7 +15,7 @@ namespace NuGetGallery
         /// </summary>
         public string ContactUrl { get; set; }
 
-        public ThirdPartyPackageManagerViewModel(string contactUrl)
+        public ThirdPartyPackageManagerViewModel(string name, string contactUrl) : base(name)
         {
             ContactUrl = contactUrl;
             AlertLevel = AlertLevel.Warning;
