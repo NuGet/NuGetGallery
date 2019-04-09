@@ -29,6 +29,7 @@ using NuGet.Services.Validation;
 using NuGet.Services.Validation.Issues;
 using NuGetGallery;
 using Test.Utility.Signing;
+using Tests.ContextHelpers;
 using Validation.PackageSigning.Core.Tests.Support;
 using Xunit;
 using Xunit.Abstractions;
@@ -93,29 +94,10 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             _output = output ?? throw new ArgumentNullException(nameof(output));
 
             _validationEntitiesContext = new Mock<IValidationEntitiesContext>();
-            _validationEntitiesContext
-                .Setup(x => x.PackageSigningStates)
-                .Returns(DbSetMockFactory.Create<PackageSigningState>());
-            _validationEntitiesContext
-                .Setup(x => x.ParentCertificates)
-                .Returns(DbSetMockFactory.Create<ParentCertificate>());
-            _validationEntitiesContext
-                .Setup(x => x.EndCertificates)
-                .Returns(DbSetMockFactory.Create<EndCertificate>());
-            _validationEntitiesContext
-                .Setup(x => x.CertificateChainLinks)
-                .Returns(DbSetMockFactory.Create<CertificateChainLink>());
-            _validationEntitiesContext
-                .Setup(x => x.PackageSignatures)
-                .Returns(DbSetMockFactory.Create<PackageSignature>());
-            _validationEntitiesContext
-                .Setup(x => x.TrustedTimestamps)
-                .Returns(DbSetMockFactory.Create<TrustedTimestamp>());
+            _validationEntitiesContext.Mock();
 
             _galleryEntitiesContext = new Mock<IEntitiesContext>();
-            _galleryEntitiesContext
-                .Setup(x => x.Certificates)
-                .Returns(DbSetMockFactory.Create<Certificate>());
+            _galleryEntitiesContext.Mock();
 
             var loggerFactory = new LoggerFactory();
             loggerFactory.AddXunit(output);

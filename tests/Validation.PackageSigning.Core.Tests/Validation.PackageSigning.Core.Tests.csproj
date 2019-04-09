@@ -45,9 +45,6 @@
     <Compile Include="Support\DbSetMockFactory.cs" />
     <Compile Include="Support\ExtensionMethods.cs" />
     <Compile Include="Support\RecordingLogger.cs" />
-    <Compile Include="Support\TestDbAsyncEnumerable.cs" />
-    <Compile Include="Support\TestDbAsyncEnumerator.cs" />
-    <Compile Include="Support\TestDbAsyncQueryProvider.cs" />
     <Compile Include="Support\X509V3CertificateGeneratorExtensions.cs" />
     <Compile Include="Support\XunitLogger.cs" />
     <Compile Include="Support\XunitLoggerFactoryExtensions.cs" />
@@ -62,6 +59,10 @@
     <ProjectReference Include="..\..\src\Validation.PackageSigning.Core\Validation.PackageSigning.Core.csproj">
       <Project>{91c060da-736f-4da9-a57f-cb3ac0e6cb10}</Project>
       <Name>Validation.PackageSigning.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Validation.PackageSigning.Helpers\Tests.ContextHelpers.csproj">
+      <Project>{2c5be067-adfd-49e3-ba9f-13a74436e5db}</Project>
+      <Name>Tests.ContextHelpers</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

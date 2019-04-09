@@ -11,11 +11,11 @@ using System.Threading.Tasks;
 namespace Tests.ContextHelpers
 {
     // Copied from https://msdn.microsoft.com/en-us/library/dn314429.aspx
-    internal class TestDbAsyncQueryProvider<TEntity> : IDbAsyncQueryProvider
+    public class TestDbAsyncQueryProvider<TEntity> : IDbAsyncQueryProvider
     {
         private readonly IQueryProvider _inner;
 
-        internal TestDbAsyncQueryProvider(IQueryProvider inner)
+        public TestDbAsyncQueryProvider(IQueryProvider inner)
         {
             _inner = inner;
         }
@@ -51,7 +51,7 @@ namespace Tests.ContextHelpers
         }
     }
 
-    internal class TestDbAsyncEnumerable<T> : EnumerableQuery<T>, IDbAsyncEnumerable<T>, IQueryable<T>
+    public class TestDbAsyncEnumerable<T> : EnumerableQuery<T>, IDbAsyncEnumerable<T>, IQueryable<T>
     {
         public TestDbAsyncEnumerable(IEnumerable<T> enumerable)
             : base(enumerable)
@@ -77,7 +77,7 @@ namespace Tests.ContextHelpers
         }
     }
 
-    internal class TestDbAsyncEnumerator<T> : IDbAsyncEnumerator<T>
+    public class TestDbAsyncEnumerator<T> : IDbAsyncEnumerator<T>
     {
         private readonly IEnumerator<T> _inner;
 

@@ -53,9 +53,6 @@
     <Compile Include="Telemetry\TelemetryServiceFacts.cs" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions">
-      <Version>1.1.2</Version>
-    </PackageReference>
     <PackageReference Include="Moq">
       <Version>4.7.145</Version>
     </PackageReference>
@@ -88,6 +85,10 @@
     <ProjectReference Include="..\Validation.PackageSigning.Core.Tests\Validation.PackageSigning.Core.Tests.csproj">
       <Project>{b4b7564a-965b-447b-927f-6749e2c08880}</Project>
       <Name>Validation.PackageSigning.Core.Tests</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Validation.PackageSigning.Helpers\Tests.ContextHelpers.csproj">
+      <Project>{2c5be067-adfd-49e3-ba9f-13a74436e5db}</Project>
+      <Name>Tests.ContextHelpers</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
