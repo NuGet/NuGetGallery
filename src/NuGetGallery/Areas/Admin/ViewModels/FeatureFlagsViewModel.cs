@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace NuGetGallery.Areas.Admin.ViewModels
@@ -21,7 +22,10 @@ namespace NuGetGallery.Areas.Admin.ViewModels
         }
 
         [Required]
-        public string Flags { get; set; }
+        public List<FeatureFlagsFeatureViewModel> Features { get; set; }
+
+        [Required]
+        public List<FeatureFlagsFlightViewModel> Flights { get; set; }
 
         [Required]
         public string ContentId { get; set; }

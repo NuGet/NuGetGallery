@@ -1,0 +1,34 @@
+﻿@using NuGetGallery
+@model ModifyFeatureFlagsFeatureViewModel
+
+<tr>
+    <td>@Model.Name</td>
+    <td>@Model.Status.ToString()</td>
+    <td>
+        @using (Html.BeginForm("EditFeature", "Features", FormMethod.Post))
+        {
+            @Html.AntiForgeryToken()
+            @Html.Hidden("ContentId", Model.ContentId)
+            @Html.Hidden("Name", Model.Name)
+
+            <div class="row">
+                <div class="col-sm-6 form-group">
+                    @Html.EnumDropDownListFor(m => m.Status)
+                </div>
+                <div class="col-sm-6 form-group">
+                    <input id="Update" type="submit" class="btn btn-primary" value="Update" />
+                </div>
+            </div>
+        }
+    </td>
+    <td>
+        @using (Html.BeginForm("DeleteFeature", "Features", FormMethod.Post))
+        {
+            @Html.AntiForgeryToken()
+            @Html.Hidden("ContentId", Model.ContentId)
+            @Html.Hidden("Name", Model.Name)
+
+            <input id="Delete" type="submit" class="btn btn-danger" value="Delete" onclick="return FormDeleteConfirmation(event, '@Model.Name', 'feature')" />
+        }
+    </td>
+</tr>

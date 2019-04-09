@@ -20,10 +20,10 @@ namespace NuGetGallery.Features
         /// <summary>
         /// Try to update the feature flags.
         /// </summary>
-        /// <param name="flags">The feature flags serialized in JSON.</param>
+        /// <param name="flags">The feature flags.</param>
         /// <param name="contentId">The feature flag's ETag.</param>
         /// <returns>The result of the save operation.</returns>
-        Task<FeatureFlagSaveResult> TrySaveAsync(string flags, string contentId);
+        Task<FeatureFlagSaveResult> TrySaveAsync(FeatureFlags flags, string contentId);
 
         /// <summary>
         /// Remove the user from the feature flags if needed. This may throw on failure.

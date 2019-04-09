@@ -81,7 +81,6 @@
     <Compile Include="Cookies\CookieComplianceServiceBaseFacts.cs" />
     <Compile Include="Features\FeatureFlagClientExtensionsFacts.cs" />
     <Compile Include="Features\FeatureFlagFileStorageServiceFacts.cs" />
-    <Compile Include="Features\FeatureFlagJsonHelper.cs" />
     <Compile Include="Infrastructure\ElmahExceptionFacts.cs" />
     <Compile Include="Extensions\UserExtensionsCoreFacts.cs" />
     <Compile Include="Infrastructure\Mail\Messages\MarkdownMessageBuilderFacts.cs" />

@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using NuGet.Services.FeatureFlags;
 
 namespace NuGetGallery.Features
 {
@@ -10,26 +11,21 @@ namespace NuGetGallery.Features
     /// </summary>
     public class FeatureFlagReference
     {
-        public FeatureFlagReference(string flagsJson, string contentId)
+        public FeatureFlagReference(FeatureFlags flags, string contentId)
         {
-            if (string.IsNullOrEmpty(flagsJson))
-            {
-                throw new ArgumentException(nameof(flagsJson));
-            }
-
             if (string.IsNullOrEmpty(contentId))
             {
                 throw new ArgumentException(nameof(contentId));
             }
 
-            FlagsJson = flagsJson;
+            Flags = flags ?? throw new ArgumentException(nameof(flags));
             ContentId = contentId;
         }
 
         /// <summary>
         /// The feature flag's content, serialized as JSON.
         /// </summary>
-        public string FlagsJson { get; }
+        public FeatureFlags Flags { get; }
 
         /// <summary>
         /// The feature flag's ETag.
