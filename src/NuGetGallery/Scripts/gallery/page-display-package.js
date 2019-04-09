@@ -19,6 +19,9 @@ $(function () {
             container.removeAttr(expanderAttributes[i]);
         }
 
+        // The expander should not be clickable when it doesn't have content
+        container.find('.deprecation-expander').removeAttr('role');
+
         $('#deprecation-expander-icon-right').hide();
     }
 

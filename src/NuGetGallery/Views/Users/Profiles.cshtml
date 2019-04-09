@@ -46,9 +46,10 @@
                     {
                         <a href="@(Model.UserIsOrganization ? Url.ManageMyOrganization(Model.Username) : Url.AccountSettings())" aria-label="Manage this account"><i class="ms-Icon ms-Icon--Edit ms-font-xl"></i></a>
                     }
-                    @if (User.IsAdministrator() && !Model.UserIsOrganization)
+                    @if (User.IsAdministrator())
                     {
-                        <a href="@Url.AdminDeleteAccount(@Model.Username)" aria-label="Delete this account"><i class="ms-Icon ms-Icon--Delete ms-font-xl"></i></a>
+                        var deleteUrl = Model.UserIsOrganization ? Url.AdminDeleteOrganization(Model.Username) : Url.AdminDeleteAccount(Model.Username);
+                        <a href="@deleteUrl" aria-label="Delete this account"><i class="ms-Icon ms-Icon--Delete ms-font-xl" aria-hidden="true"></i></a>
                     }
                 </h1>
                 <span>

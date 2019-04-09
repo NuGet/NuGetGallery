@@ -1,4 +1,4 @@
-﻿@model DeleteOrganizationViewModel
+﻿@model IEnumerable<OrganizationMemberViewModel>
 
 <div class="row user-package-list align-left">
     <div class="col-md-12 align-left ">
@@ -13,7 +13,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var member in @Model.AdditionalMembers)
+                        @foreach (var member in Model)
                         {
                             <tr class="manage-package-listing">
                                 <td class="align-middle hidden-xs">

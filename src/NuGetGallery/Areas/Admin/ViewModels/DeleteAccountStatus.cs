@@ -3,7 +3,7 @@
 
 namespace NuGetGallery.Areas.Admin.ViewModels
 {
-    public class DeleteUserAccountStatus
+    public class DeleteAccountStatus
     {
         public bool Success { get; set; }
 

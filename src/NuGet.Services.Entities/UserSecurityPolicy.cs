@@ -31,7 +31,7 @@ namespace NuGet.Services.Entities
         /// Policy key.
         /// </summary>
         public int Key { get; set; }
-        
+
         /// <summary>
         /// User key.
         /// </summary>
