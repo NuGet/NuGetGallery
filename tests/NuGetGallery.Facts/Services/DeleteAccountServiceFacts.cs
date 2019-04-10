@@ -147,7 +147,12 @@ namespace NuGetGallery.Services
                     Assert.Equal(
                         orphanPolicy == AccountDeletionOrphanPackagePolicy.UnlistOrphans && isPackageOrphaned,
                         !registration.Packages.Single().Listed);
-                    Assert.Null(testUser.EmailAddress);
+                    Assert.Null(testableService.User);
+                    Assert.Single(testableService.AddedUsers);
+                    var dummyUser = testableService.AddedUsers.Single();
+                    Assert.Null(dummyUser.EmailAddress);
+                    Assert.Null(dummyUser.UnconfirmedEmailAddress);
+                    Assert.Equal(testUser.Username, dummyUser.Username);
                     Assert.Single(testableService.DeletedAccounts);
                     Assert.Empty(testableService.PackageOwnerRequests);
                     Assert.True(testableService.HasDeletedOwnerScope);
@@ -268,7 +273,12 @@ namespace NuGetGallery.Services
                 else
                 {
                     Assert.True(status.Success);
-                    Assert.Null(organization.EmailAddress);
+                    Assert.Null(testableService.User);
+                    Assert.Single(testableService.AddedUsers);
+                    var dummyUser = testableService.AddedUsers.Single();
+                    Assert.Null(dummyUser.EmailAddress);
+                    Assert.Null(dummyUser.UnconfirmedEmailAddress);
+                    Assert.Equal(organization.Username, dummyUser.Username);
                     Assert.Equal(
                         orphanPolicy == AccountDeletionOrphanPackagePolicy.UnlistOrphans && isPackageOrphaned,
                         !registration.Packages.Single().Listed);
@@ -466,6 +476,7 @@ namespace NuGetGallery.Services
             
             public List<AccountDelete> DeletedAccounts = new List<AccountDelete>();
             public List<User> DeletedUsers = new List<User>();
+            public List<User> AddedUsers = new List<User>();
             public List<Issue> SupportRequests = new List<Issue>();
             public List<PackageOwnerRequest> PackageOwnerRequests = new List<PackageOwnerRequest>();
             public FakeAuditingService AuditService = new FakeAuditingService();
@@ -617,6 +628,12 @@ namespace NuGetGallery.Services
                         {
                             DeletedUsers.Add(user);
                         }
+                    });
+                userRepository
+                    .Setup(m => m.InsertOnCommit(It.IsAny<User>()))
+                    .Callback<User>(user =>
+                    {
+                        AddedUsers.Add(user);
                     });
                 return userRepository;
             }
