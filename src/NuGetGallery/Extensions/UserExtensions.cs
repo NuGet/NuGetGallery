@@ -128,19 +128,6 @@ namespace NuGetGallery
                 || user.Organizations.Any(o => o.OrganizationKey == accountKey);
         }
 
-        public static void SetAccountAsDeleted(this User user)
-        {
-            user.EmailAddress = null;
-            user.UnconfirmedEmailAddress = null;
-            user.EmailAllowed = false;
-            user.EmailConfirmationToken = null;
-            user.PasswordResetToken = null;
-            user.NotifyPackagePushed = false;
-            user.LastFailedLoginUtc = null;
-            user.FailedLoginCount = 0;
-            user.IsDeleted = true;
-        }
-
         public static bool IsRestrictedToOrganizationTenantPolicy(this User user)
         {
             return user.SecurityPolicies.Any(sp => string.Equals(sp.Name, RequireOrganizationTenantPolicy.PolicyName, StringComparison.OrdinalIgnoreCase));

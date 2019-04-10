@@ -116,21 +116,7 @@ namespace NuGetGallery
                 RemoveMembers(organizationToBeDeleted);
             }
 
-            if (!userToBeDeleted.Confirmed)
-            {
-                // Unconfirmed users should be hard-deleted.
-                // Another account with the same username can be created.
-                RemoveUser(userToBeDeleted);
-            }
-            else
-            {
-                // Confirmed users should be soft-deleted.
-                // Another account with the same username cannot be created.
-                RemoveUserDataInUserTable(userToBeDeleted);
-                InsertDeleteAccount(
-                    userToBeDeleted, 
-                    userToExecuteTheDelete);
-            }
+            RemoveUser(userToBeDeleted, userToExecuteTheDelete);
 
             if (commitChanges)
             {
@@ -285,19 +271,33 @@ namespace NuGetGallery
             }
         }
 
-        private void RemoveUserDataInUserTable(User user)
-        {
-            user.SetAccountAsDeleted();
-        }
-
         private async Task RemoveSupportRequests(User user)
         {
             await _supportRequestService.DeleteSupportRequestsAsync(user);
         }
 
-        private void RemoveUser(User user)
+        private void RemoveUser(User userToBeDeleted, User userToExecuteTheDelete)
         {
-            _userRepository.DeleteOnCommit(user);
+            var username = userToBeDeleted.Username;
+            var wasConfirmed = userToBeDeleted.Confirmed;
+
+            // Completely remove the user to guarantee that all user data is purged.
+            _userRepository.DeleteOnCommit(userToBeDeleted);
+
+            if (wasConfirmed)
+            {
+                // If the user was confirmed, recreate it to reserve its name.
+                var dummyUser = new User(username)
+                {
+                    IsDeleted = true
+                };
+
+                _userRepository.InsertOnCommit(dummyUser);
+
+                InsertDeleteAccount(
+                    dummyUser,
+                    userToExecuteTheDelete);
+            }
         }
 
         private async Task<DeleteAccountStatus> RunAccountDeletionTask(Func<Task> getTask, User userToBeDeleted, User requestingUser)
