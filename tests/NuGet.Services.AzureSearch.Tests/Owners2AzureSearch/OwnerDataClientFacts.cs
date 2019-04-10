@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using Microsoft.WindowsAzure.Storage;
@@ -401,19 +402,12 @@ namespace NuGet.Services.AzureSearch.Owners2AzureSearch
                     .Setup(x => x.ETag)
                     .Returns(ETag);
                 CloudBlob
-                    .Setup(x => x.UploadFromStreamAsync(It.IsAny<Stream>(), It.IsAny<AccessCondition>()))
-                    .Returns(Task.CompletedTask)
-                    .Callback<Stream, AccessCondition>((s, _) =>
+                    .Setup(x => x.OpenWriteAsync(It.IsAny<AccessCondition>()))
+                    .ReturnsAsync(() => new RecordingStream(bytes =>
                     {
-                        using (s)
-                        using (var buffer = new MemoryStream())
-                        {
-                            s.CopyTo(buffer);
-                            var bytes = buffer.ToArray();
-                            SavedBytes.Add(bytes);
-                            SavedStrings.Add(Encoding.UTF8.GetString(bytes));
-                        }
-                    });
+                        SavedBytes.Add(bytes);
+                        SavedStrings.Add(Encoding.UTF8.GetString(bytes));
+                    }));
                 CloudBlob
                     .Setup(x => x.Properties)
                     .Returns(new CloudBlockBlob(new Uri("https://example/blob")).Properties);
@@ -437,6 +431,31 @@ namespace NuGet.Services.AzureSearch.Owners2AzureSearch
             public List<string> BlobNames { get; } = new List<string>();
             public List<byte[]> SavedBytes { get; } = new List<byte[]>();
             public List<string> SavedStrings { get; } = new List<string>();
+        }
+
+        private class RecordingStream : MemoryStream
+        {
+            private readonly object _lock = new object();
+            private Action<byte[]> _onDispose;
+
+            public RecordingStream(Action<byte[]> onDispose)
+            {
+                _onDispose = onDispose;
+            }
+
+            protected override void Dispose(bool disposing)
+            {
+                lock (_lock)
+                {
+                    if (_onDispose != null)
+                    {
+                        _onDispose(ToArray());
+                        _onDispose = null;
+                    }
+                }
+
+                base.Dispose(disposing);
+            }
         }
     }
 }

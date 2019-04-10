@@ -109,6 +109,16 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
             }
         }
 
+        public Task<Stream> OpenReadStreamAsync(TimeSpan serverTimeout, TimeSpan maxExecutionTime, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<Stream> OpenWriteAsync(AccessCondition accessCondition)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task SetMetadataAsync(AccessCondition accessCondition)
         {
             throw new NotImplementedException();

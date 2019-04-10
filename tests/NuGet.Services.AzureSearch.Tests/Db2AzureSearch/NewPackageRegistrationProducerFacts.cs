@@ -25,8 +25,8 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             private readonly Mock<IOptionsSnapshot<Db2AzureSearchConfiguration>> _options;
             private readonly Db2AzureSearchConfiguration _config;
             private readonly RecordingLogger<NewPackageRegistrationProducer> _logger;
-            private readonly IDbSet<PackageRegistration> _packageRegistrations;
-            private readonly IDbSet<Package> _packages;
+            private readonly DbSet<PackageRegistration> _packageRegistrations;
+            private readonly DbSet<Package> _packages;
             private readonly ConcurrentBag<NewPackageRegistration> _work;
             private readonly CancellationToken _token;
             private readonly NewPackageRegistrationProducer _target;

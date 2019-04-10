@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -74,30 +73,18 @@ namespace NuGet.Services.AzureSearch.Owners2AzureSearch
                 throw new ArgumentException("The list of package IDs must have at least one element.", nameof(packageIds));
             }
 
-            using (var stream = new MemoryStream())
+            var timestamp = DateTimeOffset.UtcNow.ToString("yyyy-MM-dd-HH-mm-ss-FFFFFFF");
+            var blobName = $"{_options.Value.NormalizeStoragePath()}owners/changes/{timestamp}.json";
+            _logger.LogInformation("Uploading owner changes to {BlobName}.", blobName);
+
+            var blobReference = Container.GetBlobReference(blobName);
+
+            using (var stream = await blobReference.OpenWriteAsync(AccessCondition.GenerateIfNotExistsCondition()))
+            using (var streamWriter = new StreamWriter(stream))
+            using (var jsonTextWriter = new JsonTextWriter(streamWriter))
             {
-                using (var streamWriter = new StreamWriter(
-                    stream,
-                    encoding: new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true),
-                    bufferSize: 1024,
-                    leaveOpen: true))
-                using (var jsonTextWriter = new JsonTextWriter(streamWriter))
-                {
-                    Serializer.Serialize(jsonTextWriter, packageIds);
-                }
-
-                stream.Position = 0;
-
-                var timestamp = DateTimeOffset.UtcNow.ToString("yyyy-MM-dd-HH-mm-ss-FFFFFFF");
-                var blobName = $"{_options.Value.NormalizeStoragePath()}owners/changes/{timestamp}.json";
-                _logger.LogInformation("Uploading owner changes to {BlobName}.", blobName);
-
-                var blobReference = Container.GetBlobReference(blobName);
                 blobReference.Properties.ContentType = "application/json";
-
-                await blobReference.UploadFromStreamAsync(
-                    stream,
-                    AccessCondition.GenerateIfNotExistsCondition());
+                Serializer.Serialize(jsonTextWriter, packageIds);
             }
         }
 
@@ -105,35 +92,23 @@ namespace NuGet.Services.AzureSearch.Owners2AzureSearch
             SortedDictionary<string, SortedSet<string>> newData,
             IAccessCondition accessCondition)
         {
-            using (var stream = new MemoryStream())
+            var blobName = GetLatestIndexedBlobName();
+            _logger.LogInformation("Replacing the latest indexed owners from {BlobName}.", blobName);
+
+            var mappedAccessCondition = new AccessCondition
             {
-                using (var streamWriter = new StreamWriter(
-                    stream,
-                    encoding: new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true),
-                    bufferSize: 1024,
-                    leaveOpen: true))
-                using (var jsonTextWriter = new JsonTextWriter(streamWriter))
-                {
-                    Serializer.Serialize(jsonTextWriter, newData);
-                }
+                IfNoneMatchETag = accessCondition.IfNoneMatchETag,
+                IfMatchETag = accessCondition.IfMatchETag,
+            };
 
-                stream.Position = 0;
+            var blobReference = Container.GetBlobReference(blobName);
 
-                var blobName = GetLatestIndexedBlobName();
-                _logger.LogInformation("Replacing the latest indexed owners from {BlobName}.", blobName);
-
-                var mappedAccessCondition = new AccessCondition
-                {
-                    IfNoneMatchETag = accessCondition.IfNoneMatchETag,
-                    IfMatchETag = accessCondition.IfMatchETag,
-                };
-
-                var blobReference = Container.GetBlobReference(blobName);
+            using (var stream = await blobReference.OpenWriteAsync(mappedAccessCondition))
+            using (var streamWriter = new StreamWriter(stream))
+            using (var jsonTextWriter = new JsonTextWriter(streamWriter))
+            {
                 blobReference.Properties.ContentType = "application/json";
-
-                await blobReference.UploadFromStreamAsync(
-                    stream,
-                    mappedAccessCondition);
+                Serializer.Serialize(jsonTextWriter, newData);
             }
         }
 

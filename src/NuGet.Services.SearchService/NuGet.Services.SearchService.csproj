@@ -89,9 +89,6 @@
     <PackageReference Include="Microsoft.CodeDom.Providers.DotNetCompilerPlatform">
       <Version>2.0.1</Version>
     </PackageReference>
-    <PackageReference Include="NuGet.Services.Configuration">
-      <Version>2.41.0</Version>
-    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NuGet.Indexing\NuGet.Indexing.csproj">

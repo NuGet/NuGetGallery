@@ -78,8 +78,6 @@
     <Compile Include="Support\DbSetMockFactory.cs" />
     <Compile Include="Support\RecordingLogger.cs" />
     <Compile Include="Support\TestCursorStorage.cs" />
-    <Compile Include="Support\TestDbAsyncEnumerable.cs" />
-    <Compile Include="Support\TestDbAsyncEnumerator.cs" />
     <Compile Include="Support\TestDbAsyncQueryProvider.cs" />
     <Compile Include="Support\TestHttpMessageHandler.cs" />
     <Compile Include="Support\TestOutputHelperExtensions.cs" />

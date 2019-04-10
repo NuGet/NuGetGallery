@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
 using System.Linq;
 using Moq;
 
@@ -10,19 +11,28 @@ namespace NuGet.Services.AzureSearch.Support
 {
     public static class DbSetMockFactory
     {
-        public static IDbSet<T> Create<T>(params T[] sourceList) where T : class
+        public static DbSet<T> Create<T>(params T[] sourceList) where T : class
         {
             var list = new List<T>(sourceList);
 
-            var dbSet = new Mock<IDbSet<T>>();
-            dbSet.As<IQueryable<T>>().Setup(m => m.Provider).Returns(() => new TestDbAsyncQueryProvider<T>(list.AsQueryable().Provider));
-            dbSet.As<IQueryable<T>>().Setup(m => m.Expression).Returns(() => list.AsQueryable().Expression);
-            dbSet.As<IQueryable<T>>().Setup(m => m.ElementType).Returns(() => list.AsQueryable().ElementType);
-            dbSet.As<IQueryable<T>>().Setup(m => m.GetEnumerator()).Returns(() => list.GetEnumerator());
-            dbSet.Setup(m => m.Add(It.IsAny<T>())).Callback<T>(e => list.Add(e));
-            dbSet.Setup(m => m.Remove(It.IsAny<T>())).Callback<T>(e => list.Remove(e));
+            var mockSet = new Mock<DbSet<T>>();
+            mockSet.As<IDbAsyncEnumerable<T>>()
+                .Setup(m => m.GetAsyncEnumerator())
+                .Returns(() => new TestDbAsyncEnumerator<T>(list.AsQueryable().GetEnumerator()));
 
-            return dbSet.Object;
+            mockSet.As<IQueryable<T>>()
+                .Setup(m => m.Provider)
+                .Returns(() => new TestDbAsyncQueryProvider<T>(list.AsQueryable().Provider));
+
+            mockSet.As<IQueryable<T>>().Setup(m => m.Expression).Returns(() => list.AsQueryable().Expression);
+            mockSet.As<IQueryable<T>>().Setup(m => m.ElementType).Returns(() => list.AsQueryable().ElementType);
+            mockSet.As<IQueryable<T>>().Setup(m => m.GetEnumerator()).Returns(() => list.AsQueryable().GetEnumerator());
+
+            mockSet.Setup(m => m.Include(It.IsAny<string>())).Returns(() => mockSet.Object);
+            mockSet.Setup(m => m.Add(It.IsAny<T>())).Callback<T>(e => list.Add(e));
+            mockSet.Setup(m => m.Remove(It.IsAny<T>())).Callback<T>(e => list.Remove(e));
+
+            return mockSet.Object;
         }
     }
 }
