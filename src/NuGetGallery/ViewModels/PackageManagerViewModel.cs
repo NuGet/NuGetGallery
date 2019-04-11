@@ -8,6 +8,12 @@ namespace NuGetGallery
     /// </summary>
     public class PackageManagerViewModel
     {
+        public PackageManagerViewModel(string name)
+        {
+            Name = name;
+            CopyLabel = string.Format("Copy the {0} command", name);
+        }
+
         /// <summary>
         /// The package manager's name.
         /// </summary>
@@ -37,6 +43,11 @@ namespace NuGetGallery
         /// The level with which the above message will be displayed.
         /// </summary>
         public AlertLevel AlertLevel { get; set; }
+
+        /// <summary>
+        /// The label for the copy button.
+        /// </summary>
+        public string CopyLabel { get; set; }
     }
 
     public enum AlertLevel
