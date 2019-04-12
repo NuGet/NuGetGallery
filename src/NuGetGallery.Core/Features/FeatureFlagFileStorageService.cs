@@ -49,10 +49,8 @@ namespace NuGetGallery.Features
         public async Task<FeatureFlags> GetAsync()
         {
             using (var stream = await _storage.GetFileAsync(CoreConstants.Folders.ContentFolderName, CoreConstants.FeatureFlagsFileName))
-            using (var streamReader = new StreamReader(stream))
-            using (var reader = new JsonTextReader(streamReader))
             {
-                return Serializer.Deserialize<FeatureFlags>(reader);
+                return ReadFeatureFlagsFromStream(stream);
             }
         }
 
@@ -60,36 +58,18 @@ namespace NuGetGallery.Features
         {
             var reference = await _storage.GetFileReferenceAsync(CoreConstants.Folders.ContentFolderName, CoreConstants.FeatureFlagsFileName);
 
-            string json;
-            using (var stream = reference.OpenRead())
-            using (var streamReader = new StreamReader(stream))
-            {
-                json = await streamReader.ReadToEndAsync();
-            }
-
             return new FeatureFlagReference(
-                PrettifyJson(json),
+                ReadFeatureFlagsFromStream(reference.OpenRead()),
                 reference.ContentId);
         }
 
-        public async Task<FeatureFlagSaveResult> TrySaveAsync(string flagsJson, string contentId)
+        private FeatureFlags ReadFeatureFlagsFromStream(Stream stream)
         {
-            // Ensure the feature flags are valid before saving them.
-            FeatureFlags flags;
-            try
+            using (var streamReader = new StreamReader(stream))
+            using (var reader = new JsonTextReader(streamReader))
             {
-                using (var reader = new StringReader(flagsJson))
-                using (var jsonReader = new JsonTextReader(reader))
-                {
-                    flags = Serializer.Deserialize<FeatureFlags>(jsonReader);
-                }
+                return Serializer.Deserialize<FeatureFlags>(reader);
             }
-            catch (JsonException e)
-            {
-                return FeatureFlagSaveResult.Invalid(e.Message);
-            }
-
-            return await TrySaveAsync(flags, contentId);
         }
 
         public async Task RemoveUserAsync(User user)
@@ -122,7 +102,7 @@ namespace NuGetGallery.Features
                            f => RemoveUser(f.Value, user)));
 
                 var saveResult = await TrySaveAsync(result, reference.ContentId);
-                if (saveResult.Type == FeatureFlagSaveResultType.Ok)
+                if (saveResult == FeatureFlagSaveResult.Ok)
                 {
                     return;
                 }
@@ -137,7 +117,7 @@ namespace NuGetGallery.Features
             throw new InvalidOperationException($"Unable to remove user from feature flags after {MaxRemoveUserAttempts} attempts");
         }
 
-        private async Task<FeatureFlagSaveResult> TrySaveAsync(FeatureFlags flags, string contentId)
+        public async Task<FeatureFlagSaveResult> TrySaveAsync(FeatureFlags flags, string contentId)
         {
             var accessCondition = AccessConditionWrapper.GenerateIfMatchCondition(contentId);
 
@@ -169,11 +149,6 @@ namespace NuGetGallery.Features
                 flight.SiteAdmins,
                 flight.Accounts.Where(a => !a.Equals(user.Username, StringComparison.OrdinalIgnoreCase)).ToList(),
                 flight.Domains);
-        }
-
-        private string PrettifyJson(string json)
-        {
-            return JToken.Parse(json).ToString(Formatting.Indented);
         }
     }
 }

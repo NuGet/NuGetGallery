@@ -59,6 +59,10 @@ namespace NuGetGallery
                     return "The uploaded symbols package contains pdb(s) for a corresponding dll(s) not found in the nuget package.";
                 case ValidationIssueCode.SymbolErrorCode_PdbIsNotPortable:
                     return "The uploaded symbols package contains one or more pdbs that are not portable.";
+                case ValidationIssueCode.SymbolErrorCode_SnupkgDoesNotContainSymbols:
+                    return "The uploaded symbols package does not contain any symbol files.";
+                case ValidationIssueCode.SymbolErrorCode_SnupkgContainsEntriesNotSafeForExtraction:
+                    return "The uploaded symbols package contains entries that are not safe for extraction.";
                 default:
                     return "There was an unknown failure when validating your package.";
             }

@@ -1,39 +1,34 @@
 ﻿@model DeleteAccountAsAdminViewModel
 
-<div class="form-group danger-zone">
-    @using (Html.BeginForm("Delete", "Users", FormMethod.Post, new { id = "delete-form" }))
-    {
-        @Html.HttpMethodOverride(HttpVerbs.Delete)
-        @Html.AntiForgeryToken()
-        @Html.ValidationSummary(true)
-        <div>
-            <div class="form-group">
-                @Html.LabelFor(m => m.Signature)
-                @Html.EditorFor(m => m.Signature)
-                @Html.ValidationMessageFor(m => m.Signature)
-            </div>
+@Html.HttpMethodOverride(HttpVerbs.Delete)
+@Html.AntiForgeryToken()
+@Html.ValidationSummary(true)
+<div>
+    <div class="form-group">
+        @Html.LabelFor(m => m.Signature)
+        @Html.EditorFor(m => m.Signature)
+        @Html.ValidationMessageFor(m => m.Signature)
+    </div>
 
-            @if (Model.HasPackagesThatWillBeOrphaned)
-            {
-                <div class="form-group">
-                    @Html.EditorFor(m => m.ShouldUnlist)
-                    <label class="checkbox-inline">
-                        <b>Unlist the packages without any owner.</b>
-                    </label>
-                    <p>
-                        One or more packages do not have co-owners. If you choose to proceed without fixing this issue, these packages will be orphaned and a warning message will be displayed under owners on the package page.
-                    </p>
-                </div>
-            }
+    @if (Model.HasPackagesThatWillBeOrphaned)
+    {
+        <div class="form-group">
+            @Html.EditorFor(m => m.ShouldUnlist)
+            <label class="checkbox-inline">
+                <b>Unlist the packages without any owner.</b>
+            </label>
+            <p>
+                One or more packages do not have co-owners. If you choose to proceed without fixing this issue, these packages will be orphaned and a warning message will be displayed under owners on the package page.
+            </p>
         </div>
-        <hr />
-        <p>
-            This action <strong>CANNOT</strong> be undone. You will not be able to regain access to the account <b>@Model.AccountName</b> or any of its packages.
-        </p>
-        <hr />
-        @Html.HiddenFor(m => m.Signature)
-        @Html.HiddenFor(m => m.ShouldUnlist)
-        @Html.HiddenFor(m => m.AccountName)
-        <input id="btn-delete" type="submit" class="btn btn-danger form-control" value="I understand the consequences, delete this account" title="I understand the consequences, delete this account." />
     }
 </div>
+<hr />
+<p>
+    This action <strong>CANNOT</strong> be undone. You will not be able to regain access to the account <b>@Model.AccountName</b> or any of its packages.
+</p>
+<hr />
+@Html.HiddenFor(m => m.Signature)
+@Html.HiddenFor(m => m.ShouldUnlist)
+@Html.HiddenFor(m => m.AccountName)
+<input id="btn-delete" type="submit" class="btn btn-danger form-control" value="I understand the consequences, delete this account" title="I understand the consequences, delete this account." />

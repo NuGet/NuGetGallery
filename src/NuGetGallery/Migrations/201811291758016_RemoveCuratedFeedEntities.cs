@@ -28,9 +28,9 @@ namespace NuGetGallery.Migrations
                     DROP INDEX [IX_CuratedFeedKey] ON [dbo].[CuratedFeedManagers]
                 IF EXISTS (SELECT name FROM sys.indexes WHERE name = N'IX_UserKey' AND object_id = object_id(N'[dbo].[CuratedFeedManagers]', N'U'))
                     DROP INDEX [IX_UserKey] ON [dbo].[CuratedFeedManagers]
-                DROP TABLE [dbo].[CuratedFeeds]
                 DROP TABLE [dbo].[CuratedPackages]
                 DROP TABLE [dbo].[CuratedFeedManagers]
+                DROP TABLE [dbo].[CuratedFeeds]
 
             */
         }

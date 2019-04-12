@@ -24,7 +24,7 @@ namespace NuGetGallery.Configuration
             Secure = uri.Scheme.Equals("smtps", StringComparison.OrdinalIgnoreCase);
             if (!Secure && !uri.Scheme.Equals("smtp", StringComparison.OrdinalIgnoreCase))
             {
-                throw new FormatException("Invalid SMTP URL: " + uri.ToString());
+                throw new FormatException("Invalid SMTP URL");
             }
 
             var m = UserInfoParser.Match(uri.UserInfo);

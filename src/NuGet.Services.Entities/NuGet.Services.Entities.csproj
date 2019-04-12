@@ -50,8 +50,6 @@
     <Compile Include="Certificate.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="Credential.cs" />
-    <Compile Include="CuratedFeed.cs" />
-    <Compile Include="CuratedPackage.cs" />
     <Compile Include="Cve.cs" />
     <Compile Include="CveStatus.cs" />
     <Compile Include="Cwe.cs" />

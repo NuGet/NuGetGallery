@@ -1,0 +1,31 @@
+﻿@using NuGetGallery
+@model ModifyFeatureFlagsFeatureViewModel
+
+<h3>
+    Add
+</h3>
+
+@using (Html.BeginForm("AddFeature", "Features", FormMethod.Post))
+{
+    @Html.AntiForgeryToken()
+    @Html.Hidden("ContentId", Model.ContentId)
+
+    <div class="row">
+        <div class="col-sm-6 form-group @Html.HasErrorFor(m => m.Name)">
+            @Html.ShowLabelFor(m => m.Name)<br />
+            @Html.ShowTextBoxFor(m => m.Name)
+            @Html.ShowValidationMessagesFor(m => m.Name)
+        </div>
+
+        <div class="col-sm-3 form-group @Html.HasErrorFor(m => m.Status)">
+            @Html.ShowLabelFor(m => m.Status)<br />
+            @Html.EnumDropDownListFor(m => m.Status)
+            @Html.ShowValidationMessagesFor(m => m.Status)
+        </div>
+
+        <div class="col-sm-3">
+            <br />
+            <input id="Add" type="submit" class="btn btn-primary form-control" value="Add" />
+        </div>
+    </div>
+}

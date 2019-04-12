@@ -748,7 +748,7 @@ namespace NuGetGallery
             model.SymbolsPackageValidationIssues = _validationService.GetLatestPackageValidationIssues(model.LatestSymbolsPackage);
             model.IsCertificatesUIEnabled = _contentObjectService.CertificatesConfiguration?.IsUIEnabledForUser(currentUser) ?? false;
             model.IsAtomFeedEnabled = _featureFlagService.IsPackagesAtomFeedEnabled();
-            model.IsPackageDeprecationEnabled = currentUser != null && _featureFlagService.IsManageDeprecationEnabled(currentUser);
+            model.IsPackageDeprecationEnabled = _featureFlagService.IsManageDeprecationEnabled(currentUser);
 
             model.ReadMeHtml = await _readMeService.GetReadMeHtmlAsync(package);
 

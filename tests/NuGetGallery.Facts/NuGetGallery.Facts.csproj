@@ -78,6 +78,7 @@
     <Compile Include="Authentication\Providers\CommonAuth\AzureActiveDirectoryV2AuthenticatorFacts.cs" />
     <Compile Include="Authentication\TestCredentialHelper.cs" />
     <Compile Include="AutocompleteServiceQueryFacts.cs" />
+    <Compile Include="Controllers\FeaturesControllerFacts.cs" />
     <Compile Include="Controllers\ManageDeprecationJsonApiControllerFacts.cs" />
     <Compile Include="Queries\CweQueryStringValidatorFacts.cs" />
     <Compile Include="Queries\CweIdHelperFacts.cs" />
@@ -92,6 +93,7 @@
     <Compile Include="Helpers\StreamHelperFacts.cs" />
     <Compile Include="Queries\AutocompleteCweIdsQueryFacts.cs" />
     <Compile Include="Services\PackageDeprecationServiceFacts.cs" />
+    <Compile Include="TestData\TestDataResourceUtility.cs" />
     <Compile Include="UsernameValidationRegex.cs" />
     <Compile Include="Extensions\NumberExtensionsFacts.cs" />
     <Compile Include="Extensions\RouteExtensionsFacts.cs" />
@@ -297,6 +299,7 @@
       <SubType>Designer</SubType>
     </None>
     <EmbeddedResource Include="TestData\certificate.cer" />
+    <EmbeddedResource Include="TestData\theId.nuspec" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\NuGet.Services.Search.Client\NuGet.Services.Search.Client.csproj">
@@ -352,7 +355,7 @@
       <Version>2.3.1</Version>
     </PackageReference>
     <PackageReference Include="xunit.runner.visualstudio">
-      <Version>2.3.1</Version>
+      <Version>2.4.1</Version>
       <IncludeAssets>runtime; build; native; contentfiles</IncludeAssets>
       <ExcludeAssets>analyzers</ExcludeAssets>
       <PrivateAssets>all</PrivateAssets>

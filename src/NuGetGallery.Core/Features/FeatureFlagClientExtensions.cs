@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using NuGet.Services.Entities;
 using NuGet.Services.FeatureFlags;
 
@@ -15,12 +14,12 @@ namespace NuGetGallery.Features
             User user,
             bool defaultValue)
         {
-            if (user == null)
-            {
-                throw new ArgumentNullException(nameof(user));
-            }
+            // The user object is null if the user isn't logged in.
+            var flightUser = (user != null)
+                ? new FlightUser(user)
+                : null;
 
-            return client.IsEnabled(flight, new FlightUser(user), defaultValue);
+            return client.IsEnabled(flight, flightUser, defaultValue);
         }
 
         private class FlightUser : IFlightUser

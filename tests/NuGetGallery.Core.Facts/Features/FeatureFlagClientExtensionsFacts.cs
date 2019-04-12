@@ -24,6 +24,45 @@ namespace NuGetGallery.Features
                 Roles = new List<Role>()
             };
 
+            // Act
+            FeatureFlagClientExtensions.IsEnabled(client.Object, "flight", user, defaultValue: true);
+
+            // Assert
+            client.Verify(
+                c => c.IsEnabled(
+                    "flight",
+                    It.Is<IFlightUser>(u =>
+                        u.Username == "a" &&
+                        u.EmailAddress == "a@a.com" &&
+                        u.IsSiteAdmin == false),
+                    true));
+        }
+
+        [Fact]
+        public void ConvertsAnonymousUser()
+        {
+            // Arrange - anonymous users are represented as a null user object
+            var client = new Mock<IFeatureFlagClient>();
+
+            User user = null;
+
+            // Act
+            FeatureFlagClientExtensions.IsEnabled(client.Object, "flight", user, defaultValue: true);
+
+            // Assert
+            client.Verify(
+                c => c.IsEnabled(
+                    "flight",
+                    It.Is<IFlightUser>(u => u == null),
+                    true));
+        }
+
+        [Fact]
+        public void ConvertsAdmins()
+        {
+            // Arrange
+            var client = new Mock<IFeatureFlagClient>();
+
             var admin = new User
             {
                 Username = "b",
@@ -35,22 +74,12 @@ namespace NuGetGallery.Features
             };
 
             // Act
-            FeatureFlagClientExtensions.IsEnabled(client.Object, "flightA", user, defaultValue: true);
-            FeatureFlagClientExtensions.IsEnabled(client.Object, "flightB", admin, defaultValue: true);
+            FeatureFlagClientExtensions.IsEnabled(client.Object, "flight", admin, defaultValue: true);
 
             // Assert
             client.Verify(
                 c => c.IsEnabled(
-                    "flightA",
-                    It.Is<IFlightUser>(u =>
-                        u.Username == "a" &&
-                        u.EmailAddress == "a@a.com" &&
-                        u.IsSiteAdmin == false),
-                    true));
-
-            client.Verify(
-                c => c.IsEnabled(
-                    "flightB",
+                    "flight",
                     It.Is<IFlightUser>(u =>
                         u.Username == "b" &&
                         u.EmailAddress == "b@b.com" &&

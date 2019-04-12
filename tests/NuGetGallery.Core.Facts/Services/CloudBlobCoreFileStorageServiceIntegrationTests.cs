@@ -5,6 +5,7 @@ using System;
 using System.Collections.Concurrent;
 using System.IO;
 using System.Net;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -57,6 +58,110 @@ namespace NuGetGallery
 
             _targetA = new CloudBlobCoreFileStorageService(_clientA, Mock.Of<IDiagnosticsService>());
             _targetB = new CloudBlobCoreFileStorageService(_clientB, Mock.Of<IDiagnosticsService>());
+        }
+
+        [BlobStorageFact]
+        public async Task OpenWriteAsyncReturnsWritableStream()
+        {
+            // Arrange
+            var folderName = CoreConstants.Folders.ValidationFolderName;
+            var fileName = _prefixA;
+            var expectedContent = "Hello, world.";
+            var bytes = Encoding.UTF8.GetBytes(expectedContent);
+            string expectedContentMD5;
+            using (var md5 = MD5.Create())
+            {
+                expectedContentMD5 = Convert.ToBase64String(md5.ComputeHash(bytes));
+            }
+
+            var container = _clientA.GetContainerReference(folderName);
+            var file = container.GetBlobReference(fileName);
+
+            // Act
+            using (var stream = await file.OpenWriteAsync(accessCondition: null))
+            {
+                await stream.WriteAsync(bytes, 0, bytes.Length);
+            }
+
+            // Assert
+            // Reinitialize the blob to verify the metadata is fresh.
+            file = container.GetBlobReference(fileName);
+            using (var memoryStream = new MemoryStream())
+            {
+                await file.DownloadToStreamAsync(memoryStream);
+                var actualContent = Encoding.ASCII.GetString(memoryStream.ToArray());
+                Assert.Equal(expectedContent, actualContent);
+
+                Assert.NotNull(file.ETag);
+                Assert.NotEmpty(file.ETag);
+                Assert.Equal(expectedContentMD5, file.Properties.ContentMD5);
+            }
+        }
+
+        [BlobStorageFact]
+        public async Task OpenWriteAsyncRejectsETagMismatchFoundBeforeUploadStarts()
+        {
+            // Arrange
+            var folderName = CoreConstants.Folders.ValidationFolderName;
+            var fileName = _prefixA;
+            var expectedContent = "Hello, world.";
+
+            await _targetA.SaveFileAsync(
+                folderName,
+                fileName,
+                new MemoryStream(Encoding.ASCII.GetBytes(expectedContent)),
+                overwrite: false);
+
+            var container = _clientA.GetContainerReference(folderName);
+            var file = container.GetBlobReference(fileName);
+
+            // Act & Assert
+            var ex = await Assert.ThrowsAsync<StorageException>(
+                async () =>
+                {
+                    using (var stream = await file.OpenWriteAsync(AccessCondition.GenerateIfNotExistsCondition()))
+                    {
+                        await stream.WriteAsync(new byte[0], 0, 0);
+                    }
+                });
+            Assert.Equal(HttpStatusCode.Conflict, (HttpStatusCode)ex.RequestInformation.HttpStatusCode);
+        }
+
+        [BlobStorageFact]
+        public async Task OpenWriteAsyncRejectsETagMismatchFoundAfterUploadStarts()
+        {
+            // Arrange
+            var folderName = CoreConstants.Folders.ValidationFolderName;
+            var fileName = _prefixA;
+            var expectedContent = "Hello, world.";
+
+            var container = _clientA.GetContainerReference(folderName);
+            var file = container.GetBlobReference(fileName);
+            var writeCount = 0;
+
+            // Act & Assert
+            var ex = await Assert.ThrowsAsync<StorageException>(
+                async () =>
+                {
+                    using (var stream = await file.OpenWriteAsync(AccessCondition.GenerateIfNotExistsCondition()))
+                    {
+                        stream.Write(new byte[1], 0, 1);
+                        await stream.FlushAsync();
+                        writeCount++;
+
+                        await _targetA.SaveFileAsync(
+                            folderName,
+                            fileName,
+                            new MemoryStream(Encoding.ASCII.GetBytes(expectedContent)),
+                            overwrite: false);
+
+                        stream.Write(new byte[1], 0, 1);
+                        await stream.FlushAsync();
+                        writeCount++;
+                    }
+                });
+            Assert.Equal(HttpStatusCode.Conflict, (HttpStatusCode)ex.RequestInformation.HttpStatusCode);
+            Assert.Equal(2, writeCount);
         }
 
         [BlobStorageFact]

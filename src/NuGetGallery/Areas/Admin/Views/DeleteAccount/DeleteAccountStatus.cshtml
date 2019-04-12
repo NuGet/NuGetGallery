@@ -1,0 +1,22 @@
+﻿@using NuGetGallery
+@model NuGetGallery.Areas.Admin.ViewModels.DeleteAccountStatus
+@{
+    ViewBag.Title = "Delete Account Status" + Model.AccountName;
+    ViewBag.MdPageColumns = GalleryConstants.ColumnsFormMd;
+}
+
+<section role="main" class="container main-container ">
+    <div class="form-group">
+        <div class="form-group text-center">
+            @if (Model.Success)
+            {
+                @ViewHelpers.AlertInfo(@<text>@Model.Description</text>)
+            }
+            else
+            {
+                @ViewHelpers.AlertDanger(@<text>@Model.Description</text>)
+            }
+        </div>
+    </div>
+</section>
+

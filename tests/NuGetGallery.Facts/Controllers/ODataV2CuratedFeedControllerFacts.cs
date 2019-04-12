@@ -26,7 +26,6 @@ namespace NuGetGallery.Controllers
 
         public class TheGetMethod
         {
-            private readonly CuratedFeed _curatedFeed;
             private readonly Package _curatedFeedPackage;
             private readonly Package _mainFeedPackage;
             private readonly FeatureConfiguration _featureConfiguration;
@@ -41,7 +40,6 @@ namespace NuGetGallery.Controllers
 
             public TheGetMethod()
             {
-                _curatedFeed = new CuratedFeed { Name = _curatedFeedName };
                 _curatedFeedPackage = new Package
                 {
                     PackageRegistration = new PackageRegistration

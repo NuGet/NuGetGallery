@@ -9,6 +9,7 @@ using System.Web;
 using System.Web.Mvc;
 using NuGet.Services.Entities;
 using NuGet.Services.Messaging.Email;
+using NuGetGallery.Areas.Admin.ViewModels;
 using NuGetGallery.Authentication;
 using NuGetGallery.Filters;
 using NuGetGallery.Helpers;
@@ -48,6 +49,8 @@ namespace NuGetGallery
 
         public IMessageServiceConfiguration MessageServiceConfiguration { get; }
 
+        public IDeleteAccountService DeleteAccountService { get; }
+
         public AccountsController(
             AuthenticationService authenticationService,
             IPackageService packageService,
@@ -57,7 +60,8 @@ namespace NuGetGallery
             ISecurityPolicyService securityPolicyService,
             ICertificateService certificateService,
             IContentObjectService contentObjectService,
-            IMessageServiceConfiguration messageServiceConfiguration)
+            IMessageServiceConfiguration messageServiceConfiguration,
+            IDeleteAccountService deleteAccountService)
         {
             AuthenticationService = authenticationService ?? throw new ArgumentNullException(nameof(authenticationService));
             PackageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
@@ -68,6 +72,7 @@ namespace NuGetGallery
             CertificateService = certificateService ?? throw new ArgumentNullException(nameof(certificateService));
             ContentObjectService = contentObjectService ?? throw new ArgumentNullException(nameof(contentObjectService));
             MessageServiceConfiguration = messageServiceConfiguration ?? throw new ArgumentNullException(nameof(messageServiceConfiguration));
+            DeleteAccountService = deleteAccountService ?? throw new ArgumentNullException(nameof(deleteAccountService));
         }
 
         public abstract string AccountAction { get; }
@@ -309,6 +314,48 @@ namespace NuGetGallery
 
             return View("DeleteAccount", GetDeleteAccountViewModel(accountToDelete));
         }
+
+        [HttpGet]
+        [UIAuthorize(Roles = "Admins")]
+        public virtual ActionResult Delete(string accountName)
+        {
+            var accountToDelete = UserService.FindByUsername(accountName) as TUser;
+            if (accountToDelete == null || accountToDelete.IsDeleted)
+            {
+                return HttpNotFound();
+            }
+
+            return View(GetDeleteAccountViewName(), GetDeleteAccountViewModel(accountToDelete));
+        }
+
+        [HttpDelete]
+        [UIAuthorize(Roles = "Admins")]
+        [RequiresAccountConfirmation("Delete account")]
+        [ValidateAntiForgeryToken]
+        public virtual async Task<ActionResult> Delete(DeleteAccountAsAdminViewModel model)
+        {
+            var accountToDelete = UserService.FindByUsername(model.AccountName) as TUser;
+            if (accountToDelete == null || accountToDelete.IsDeleted)
+            {
+                return View("DeleteAccountStatus", new DeleteAccountStatus()
+                {
+                    AccountName = model.AccountName,
+                    Description = $"Account {model.AccountName} not found.",
+                    Success = false
+                });
+            }
+            else
+            {
+                var admin = GetCurrentUser();
+                var status = await DeleteAccountService.DeleteAccountAsync(
+                    userToBeDeleted: accountToDelete,
+                    userToExecuteTheDelete: admin,
+                    orphanPackagePolicy: model.ShouldUnlist ? AccountDeletionOrphanPackagePolicy.UnlistOrphans : AccountDeletionOrphanPackagePolicy.KeepOrphans);
+                return View("DeleteAccountStatus", status);
+            }
+        }
+
+        protected abstract string GetDeleteAccountViewName();
 
         protected abstract DeleteAccountViewModel<TUser> GetDeleteAccountViewModel(TUser account);
 
