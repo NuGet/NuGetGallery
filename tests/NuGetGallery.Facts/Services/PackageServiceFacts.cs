@@ -1985,29 +1985,45 @@ namespace NuGetGallery
 
         public class TheRemovePackageOwnerMethod
         {
-            [Fact]
-            public async Task RemovesPackageOwner()
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public async Task WillRemoveOneOfManyOwners(bool isRequiredSigner)
             {
                 var service = CreateService();
                 var owner1 = new User { Key = 1, Username = "Owner1" };
                 var owner2 = new User { Key = 2, Username = "Owner2" };
                 var package = new PackageRegistration { Owners = new List<User> { owner1, owner2 } };
 
+                if (isRequiredSigner)
+                {
+                    package.RequiredSigners.Add(owner1);
+                }
+
                 await service.RemovePackageOwnerAsync(package, owner1);
 
                 Assert.DoesNotContain(owner1, package.Owners);
+                Assert.DoesNotContain(owner1, package.RequiredSigners);
             }
 
-            [Fact]
-            public async Task WontRemoveLastOwner()
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public async Task WillRemoveLastOwner(bool isRequiredSigner)
             {
                 var service = CreateService();
                 var singleOwner = new User { Key = 1, Username = "Owner" };
                 var package = new PackageRegistration { Owners = new List<User> { singleOwner } };
 
+                if (isRequiredSigner)
+                {
+                    package.RequiredSigners.Add(singleOwner);
+                }
+
                 await service.RemovePackageOwnerAsync(package, singleOwner);
 
                 Assert.DoesNotContain(singleOwner, package.Owners);
+                Assert.DoesNotContain(singleOwner, package.RequiredSigners);
             }
         }
 

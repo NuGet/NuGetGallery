@@ -106,13 +106,14 @@ namespace NuGetGallery
         private async Task DeleteAccountImplAsync(User userToBeDeleted, User userToExecuteTheDelete, AccountDeletionOrphanPackagePolicy orphanPackagePolicy, bool commitChanges = true)
         {
             await RemoveReservedNamespaces(userToBeDeleted);
-            RemovePackagePushedBy(userToBeDeleted);
-            RemovePackageDeprecatedBy(userToBeDeleted);
             await RemovePackageOwnership(userToBeDeleted, userToExecuteTheDelete, orphanPackagePolicy);
             await RemoveMemberships(userToBeDeleted, userToExecuteTheDelete, orphanPackagePolicy);
             await RemoveSecurityPolicies(userToBeDeleted);
             await RemoveUserCredentials(userToBeDeleted);
             await RemovePackageOwnershipRequests(userToBeDeleted);
+
+            RemovePackagePushedBy(userToBeDeleted);
+            RemovePackageDeprecatedBy(userToBeDeleted);
 
             var organizationToBeDeleted = userToBeDeleted as Organization;
             if (organizationToBeDeleted != null)
@@ -215,7 +216,10 @@ namespace NuGetGallery
 
         private void RemovePackagePushedBy(User user)
         {
-            foreach (var package in _entitiesContext.Packages.Where(p => p.UserKey == user.Key).ToList())
+            foreach (var package in _entitiesContext
+                .Packages
+                .Where(p => p.UserKey == user.Key)
+                .ToList())
             {
                 package.User = null;
             }
