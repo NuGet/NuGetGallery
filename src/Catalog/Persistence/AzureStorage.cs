@@ -32,17 +32,17 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             Uri baseAddress,
             bool useServerSideCopy,
             bool compressContent,
-            bool verbose)
-            : this(
-                  account,
-                  containerName,
-                  path,
-                  baseAddress,
-                  DefaultMaxExecutionTime,
-                  DefaultServerTimeout,
-                  useServerSideCopy,
-                  compressContent,
-                  verbose)
+            bool verbose) : this(
+                account,
+                containerName,
+                path,
+                baseAddress,
+                DefaultMaxExecutionTime,
+                DefaultServerTimeout,
+                useServerSideCopy,
+                compressContent,
+                verbose,
+                initializeContainer: true)
         {
         }
 
@@ -55,19 +55,26 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             TimeSpan serverTimeout,
             bool useServerSideCopy,
             bool compressContent,
-            bool verbose)
-           : this(account.CreateCloudBlobClient().GetContainerReference(containerName).GetDirectoryReference(path),
-                 baseAddress,
-                 maxExecutionTime,
-                 serverTimeout)
+            bool verbose,
+            bool initializeContainer) : this(
+                account.CreateCloudBlobClient().GetContainerReference(containerName).GetDirectoryReference(path),
+                baseAddress,
+                maxExecutionTime,
+                serverTimeout,
+                initializeContainer)
         {
             _useServerSideCopy = useServerSideCopy;
             _compressContent = compressContent;
             Verbose = verbose;
         }
 
-        private AzureStorage(CloudBlobDirectory directory, Uri baseAddress, TimeSpan maxExecutionTime, TimeSpan serverTimeout)
-            : base(baseAddress ?? GetDirectoryUri(directory))
+        private AzureStorage(
+            CloudBlobDirectory directory,
+            Uri baseAddress,
+            TimeSpan maxExecutionTime,
+            TimeSpan serverTimeout,
+            bool initializeContainer) : base(
+                baseAddress ?? GetDirectoryUri(directory))
         {
             _directory = directory;
 
@@ -80,13 +87,16 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
                 RetryPolicy = new ExponentialRetry()
             };
 
-            if (_directory.Container.CreateIfNotExists())
+            if (initializeContainer)
             {
-                _directory.Container.SetPermissions(new BlobContainerPermissions { PublicAccess = BlobContainerPublicAccessType.Blob });
-
-                if (Verbose)
+                if (_directory.Container.CreateIfNotExists())
                 {
-                    Trace.WriteLine(string.Format("Created '{0}' publish container", _directory.Container.Name));
+                    _directory.Container.SetPermissions(new BlobContainerPermissions { PublicAccess = BlobContainerPublicAccessType.Blob });
+
+                    if (Verbose)
+                    {
+                        Trace.WriteLine(string.Format("Created '{0}' public container", _directory.Container.Name));
+                    }
                 }
             }
         }

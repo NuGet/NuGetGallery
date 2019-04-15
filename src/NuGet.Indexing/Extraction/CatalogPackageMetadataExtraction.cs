@@ -192,7 +192,7 @@ namespace NuGet.Indexing
                         // Add packages list
                         foreach (var packageDependency in dependencyGroup.Packages)
                         {
-                            AddFlattennedPackageDependency(dependencyGroup, packageDependency, builder);
+                            AddFlattenedPackageDependency(dependencyGroup, packageDependency, builder);
                         }
                     }
                     else
@@ -214,7 +214,7 @@ namespace NuGet.Indexing
                 }
             }
 
-            private void AddFlattennedPackageDependency(
+            private void AddFlattenedPackageDependency(
                 PackageDependencyGroup dependencyGroup,
                 Packaging.Core.PackageDependency packageDependency,
                 StringBuilder builder)

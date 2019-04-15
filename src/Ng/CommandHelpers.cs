@@ -269,7 +269,8 @@ namespace Ng
                     storageBaseAddress,
                     storageUseServerSideCopy,
                     compressed,
-                    verbose);
+                    verbose,
+                    initializeContainer: true);
             }
             throw new ArgumentException($"Unrecognized storageType \"{storageType}\"");
         }

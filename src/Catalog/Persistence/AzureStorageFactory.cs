@@ -15,6 +15,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         private readonly TimeSpan _maxExecutionTime;
         private readonly TimeSpan _serverTimeout;
         private readonly bool _useServerSideCopy;
+        private readonly bool _initializeContainer;
 
         public AzureStorageFactory(
             CloudStorageAccount account,
@@ -25,7 +26,8 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             Uri baseAddress,
             bool useServerSideCopy,
             bool compressContent,
-            bool verbose)
+            bool verbose,
+            bool initializeContainer)
         {
             _account = account;
             _containerName = containerName;
@@ -33,6 +35,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             _maxExecutionTime = maxExecutionTime;
             _serverTimeout = serverTimeout;
             _useServerSideCopy = useServerSideCopy;
+            _initializeContainer = initializeContainer;
 
             if (path != null)
             {
@@ -97,7 +100,8 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
                 _serverTimeout,
                 _useServerSideCopy,
                 CompressContent,
-                Verbose);
+                Verbose,
+                _initializeContainer);
         }
     }
 }

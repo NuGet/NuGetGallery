@@ -10,7 +10,7 @@ using FrameworkLogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace NuGet.Indexing
 {
-    internal static class VerifiedPackages
+    public static class VerifiedPackages
     {
         /// <summary>
         /// Load the verified packages auxiliary data.

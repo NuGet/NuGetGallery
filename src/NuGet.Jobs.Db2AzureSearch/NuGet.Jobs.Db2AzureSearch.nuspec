@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<package>
+  <metadata>
+    <id>NuGet.Jobs.Db2AzureSearch</id>
+    <version>$version$</version>
+    <authors>.NET Foundation</authors>
+    <owners>.NET Foundation</owners>
+    <description>NuGet.Jobs.Db2AzureSearch</description>
+    <copyright>Copyright .NET Foundation</copyright>
+  </metadata>
+  <files>
+    <file src="bin\$configuration$\*.*" target="bin" />
+    <file src="Scripts\*.ps1" />
+  </files>
+</package>

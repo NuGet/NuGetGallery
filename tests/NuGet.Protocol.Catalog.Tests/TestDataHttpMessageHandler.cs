@@ -18,6 +18,12 @@ namespace NuGet.Protocol.Catalog
             { TestData.CatalogPageUrl, () => TestData.CatalogPage },
             { TestData.PackageDeleteCatalogLeafUrl, () => TestData.PackageDeleteCatalogLeaf },
             { TestData.PackageDetailsCatalogLeafUrl, () => TestData.PackageDetailsCatalogLeaf },
+            { TestData.RegistrationIndexInlinedItemsUrl, () => TestData.RegistrationIndexInlinedItems },
+            { TestData.RegistrationIndexWithoutInlinedItemsUrl, () => TestData.RegistrationIndexWithoutInlinedItems },
+            { TestData.RegistrationLeafUnlistedUrl, () => TestData.RegistrationLeafUnlisted },
+            { TestData.RegistrationLeafListedUrl, () => TestData.RegistrationLeafListed },
+            { TestData.RegistrationPageUrl, () => TestData.RegistrationPage },
+            { TestData.CatalogLeafInvalidDependencyVersionRangeUrl, () => TestData.CatalogLeafInvalidDependencyVersionRange },
         };
 
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)

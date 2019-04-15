@@ -80,7 +80,12 @@ Invoke-BuildStep 'Set version metadata in AssemblyInfo.cs' {
             "src\NuGet.ApplicationInsights.Owin\Properties\AssemblyInfo.g.cs", `
             "src\Ng\Properties\AssemblyInfo.g.cs", `
             "src\NuGet.Services.Metadata.Catalog.Monitoring\Properties\AssemblyInfo.g.cs", `
-            "src\NuGet.Protocol.Catalog\Properties\AssemblyInfo.g.cs"
+            "src\NuGet.Protocol.Catalog\Properties\AssemblyInfo.g.cs", `
+            "src\NuGet.Services.AzureSearch\Properties\AssemblyInfo.g.cs", `
+            "src\NuGet.Jobs.Db2AzureSearch\Properties\AssemblyInfo.g.cs", `
+            "src\NuGet.Jobs.Catalog2AzureSearch\Properties\AssemblyInfo.g.cs", `
+            "src\NuGet.Jobs.Owners2AzureSearch\Properties\AssemblyInfo.g.cs", `
+            "src\NuGet.Services.SearchService\Properties\AssemblyInfo.g.cs"
 
         Foreach ($assemblyInfo in $assemblyInfos) {
             Set-VersionInfo -Path (Join-Path $PSScriptRoot $assemblyInfo) -Version $SimpleVersion -Branch $Branch -Commit $CommitSHA
@@ -93,13 +98,15 @@ Invoke-BuildStep 'Building solution' {
         Build-Solution $Configuration $BuildNumber -MSBuildVersion "15" $SolutionPath -SkipRestore:$SkipRestore `
     } `
     -ev +BuildErrors
-    
+
 Invoke-BuildStep 'Creating artifacts' {
         $csprojPackages = `
             "src\NuGet.Indexing\NuGet.Indexing.csproj", `
             "src\Catalog\NuGet.Services.Metadata.Catalog.csproj", `
             "src\NuGet.ApplicationInsights.Owin\NuGet.ApplicationInsights.Owin.csproj", `
-            "src\NuGet.Services.Metadata.Catalog.Monitoring\NuGet.Services.Metadata.Catalog.Monitoring.csproj"
+            "src\NuGet.Services.Metadata.Catalog.Monitoring\NuGet.Services.Metadata.Catalog.Monitoring.csproj", `
+            "src\NuGet.Protocol.Catalog\NuGet.Protocol.Catalog.csproj", `
+            "src\NuGet.Services.AzureSearch\NuGet.Services.AzureSearch.csproj"
 
         $csprojPackages | ForEach-Object {
             New-ProjectPackage (Join-Path $PSScriptRoot $_) -Configuration $Configuration -Symbols -BuildNumber $BuildNumber -Version $SemanticVersion -Branch $Branch
@@ -113,7 +120,10 @@ Invoke-BuildStep 'Creating artifacts' {
             "src\Ng\Feed2Catalog.nuspec", `
             "src\Ng\Monitoring2Monitoring.nuspec", `
             "src\Ng\MonitoringProcessor.nuspec", `
-            "src\Ng\Ng.Operations.nuspec"
+            "src\Ng\Ng.Operations.nuspec", `
+            "src\NuGet.Jobs.Db2AzureSearch\NuGet.Jobs.Db2AzureSearch.nuspec", `
+            "src\NuGet.Jobs.Catalog2AzureSearch\NuGet.Jobs.Catalog2AzureSearch.nuspec", `
+            "src\NuGet.Jobs.Owners2AzureSearch\NuGet.Jobs.Owners2AzureSearch.nuspec"
 
         $nuspecPackages | ForEach-Object {
             New-Package (Join-Path $PSScriptRoot $_) -Configuration $Configuration -BuildNumber $BuildNumber -Version $SemanticVersion -Branch $Branch
