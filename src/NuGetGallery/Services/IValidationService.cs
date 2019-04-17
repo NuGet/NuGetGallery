@@ -14,6 +14,24 @@ namespace NuGetGallery
     public interface IValidationService
     {
         /// <summary>
+        /// Updates the package with the expected <see cref="PackageStatus"/> that the package will
+        /// have after starting the validation.
+        /// The caller must also call <see cref="IValidationService.StartValidationAsync(Package)"/>
+        /// at later time.
+        /// </summary>
+        /// <param name="package">package to update</param>
+        Task UpdatePackageAsync(Package package);
+
+        /// <summary>
+        /// Updates the symbol package with the expected <see cref="PackageStatus"/> that the package will
+        /// have after starting the validation.
+        /// The caller must also call <see cref="IValidationService.StartValidationAsync(Package)"/>
+        /// at later time.
+        /// </summary>
+        /// <param name="package">package to update</param>
+        Task UpdatePackageAsync(SymbolPackage symbolPackage);
+
+        /// <summary>
         /// Starts the asynchronous validation for the provided new package and puts the package in the correct
         /// <see cref="Package.PackageStatusKey"/>. The commit to the database is the responsibility of the caller.
         /// </summary>

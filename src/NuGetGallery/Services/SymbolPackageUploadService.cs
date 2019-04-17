@@ -149,7 +149,7 @@ namespace NuGetGallery
             var previousSymbolsPackage = package.LatestSymbolPackage();
             var symbolPackage = _symbolPackageService.CreateSymbolPackage(package, packageStreamMetadata);
 
-            await _validationService.StartValidationAsync(symbolPackage);
+            await _validationService.UpdatePackageAsync(symbolPackage);
 
             if (symbolPackage.StatusKey != PackageStatus.Available
                 && symbolPackage.StatusKey != PackageStatus.Validating)
@@ -205,6 +205,8 @@ namespace NuGetGallery
                     // for saving files, however since it doesn't really affect nuget.org which happen have async validations flow I will leave it as is.
                     await _symbolPackageFileService.SavePackageFileAsync(symbolPackage.Package, symbolPackageFile, overwrite);
                 }
+
+                await _validationService.StartValidationAsync(symbolPackage);
 
                 try
                 {

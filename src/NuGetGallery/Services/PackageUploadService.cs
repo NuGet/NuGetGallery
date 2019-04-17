@@ -674,7 +674,7 @@ namespace NuGetGallery
 
         public async Task<PackageCommitResult> CommitPackageAsync(Package package, Stream packageFile)
         {
-            await _validationService.StartValidationAsync(package);
+            await _validationService.UpdatePackageAsync(package);
 
             if (package.PackageStatusKey != PackageStatus.Available
                 && package.PackageStatusKey != PackageStatus.Validating)
@@ -760,6 +760,8 @@ namespace NuGetGallery
                 ex.Log();
                 return PackageCommitResult.Conflict;
             }
+
+            await _validationService.StartValidationAsync(package);
 
             try
             {

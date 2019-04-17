@@ -13,6 +13,17 @@ namespace NuGetGallery
         where TPackageEntity: IPackageEntity
     {
         /// <summary>
+        /// Returns the package status that package should go into when validation is started.
+        /// Async validations typically return <see cref="PackageStatus.Validating"/>.
+        /// Sync, non-blocking or no validaiton typically return <see cref="PackageStatus.Available"/>.
+        /// Caller still must call <see cref="IPackageValidationInitiator{TPackageEntity}.StartValidationAsync(TPackageEntity)"/>
+        /// to start the actual validation.
+        /// </summary>
+        /// <param name="package">The <see cref="TPackageEntity"/> to get future validation status for.</param>
+        /// <returns></returns>
+        PackageStatus GetPackageStatus(TPackageEntity package);
+
+        /// <summary>
         /// Starts the validation for the specified IPackageEntity. The validation can be done asynchronously with respect
         /// to the gallery and therefore may not be complete when the returned <see cref="Task"/> completes. This
         /// pending validation state is indicated by the package having the <see cref="PackageStatus.Validating"/>

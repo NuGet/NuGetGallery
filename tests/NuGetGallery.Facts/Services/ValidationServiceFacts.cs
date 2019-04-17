@@ -52,6 +52,31 @@ namespace NuGetGallery
             }
         }
 
+        public class TheUpdatePackageAsyncMethod : FactsBase
+        {
+            public async Task UpdatesPackageStatus()
+            {
+                // Arrange
+                var packageStatus = PackageStatus.Validating;
+                _package.PackageStatusKey = PackageStatus.Available;
+                _packageInitiator
+                    .Setup(x => x.StartValidationAsync(It.IsAny<Package>()))
+                    .ReturnsAsync(packageStatus);
+
+                // Act
+                await _target.UpdatePackageAsync(_package);
+
+                // Assert
+                _packageService.Verify(
+                    x => x.UpdatePackageStatusAsync(_package, packageStatus, false),
+                    Times.Once);
+
+                /// The implementation should not change the package status on its own. It should depend on 
+                /// <see cref="IPackageService"/> to do this.
+                Assert.Equal(PackageStatus.Available, _package.PackageStatusKey);
+            }
+        }
+
         public class TheStartSymbolsPackageValidationAsyncMethod : FactsBase
         {
             [Fact]
@@ -84,6 +109,31 @@ namespace NuGetGallery
 
                 /// The implementation should not change the package status on its own. It should depend on 
                 /// <see cref="ISymbolPackageService"/> to do this.
+                Assert.Equal(PackageStatus.Available, _symbolPackage.StatusKey);
+            }
+        }
+
+        public class TheUpdateSymbolPackageAsyncMethod : FactsBase
+        {
+            public async Task UpdatesPackageStatus()
+            {
+                // Arrange
+                var packageStatus = PackageStatus.Validating;
+                _symbolPackage.StatusKey = PackageStatus.Available;
+                _symbolInitiator
+                    .Setup(x => x.StartValidationAsync(It.IsAny<SymbolPackage>()))
+                    .ReturnsAsync(packageStatus);
+
+                // Act
+                await _target.UpdatePackageAsync(_symbolPackage);
+
+                // Assert
+                _symbolPackageService.Verify(
+                    x => x.UpdateStatusAsync(_symbolPackage, packageStatus, false),
+                    Times.Once);
+
+                /// The implementation should not change the package status on its own. It should depend on 
+                /// <see cref="IPackageService"/> to do this.
                 Assert.Equal(PackageStatus.Available, _symbolPackage.StatusKey);
             }
         }

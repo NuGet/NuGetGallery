@@ -37,28 +37,19 @@ namespace NuGetGallery
             _diagnosticsSource = diagnosticsService.SafeGetSource(nameof(AsynchronousPackageValidationInitiator<TPackageEntity>));
         }
 
+        public PackageStatus GetPackageStatus(TPackageEntity package)
+        {
+            // Give an opportunity to the caller to fail early if StartValidationAsync is guaranteed to fail
+            ValidateAndGetType(package);
+
+            return TargetPackageStatus;
+        }
+
         public async Task<PackageStatus> StartValidationAsync(TPackageEntity package)
         {
-            if (_appConfiguration.ReadOnlyMode)
-            {
-                throw new ReadOnlyModeException(Strings.CannotEnqueueDueToReadOnly);
-            }
+            var validatingType = ValidateAndGetType(package);
 
-            ValidatingType validatingType;
             var entityKey = package.Key == default(int) ? (int?)null : package.Key;
-            if (package is Package)
-            {
-                validatingType = ValidatingType.Package;
-            }
-            else if (package is SymbolPackage)
-            {
-                validatingType = ValidatingType.SymbolPackage;
-            }
-            else
-            {
-                throw new ArgumentException($"Unknown IPackageEntity type: {nameof(package)}");
-            }
-
             var data = new PackageValidationMessageData(
                 package.Id,
                 package.Version,
@@ -75,12 +66,30 @@ namespace NuGetGallery
                 await _validationEnqueuer.StartValidationAsync(data, postponeProcessingTill);
             }
 
-            if (_appConfiguration.BlockingAsynchronousPackageValidationEnabled)
+            return TargetPackageStatus;
+        }
+
+        private PackageStatus TargetPackageStatus => _appConfiguration.BlockingAsynchronousPackageValidationEnabled
+                           ? PackageStatus.Validating
+                           : PackageStatus.Available;
+
+        private ValidatingType ValidateAndGetType(TPackageEntity package)
+        {
+            if (_appConfiguration.ReadOnlyMode)
             {
-                return PackageStatus.Validating;
+                throw new ReadOnlyModeException(Strings.CannotEnqueueDueToReadOnly);
             }
 
-            return PackageStatus.Available;
+            if (package is Package)
+            {
+                return ValidatingType.Package;
+            }
+            else if (package is SymbolPackage)
+            {
+                return ValidatingType.SymbolPackage;
+            }
+
+            throw new ArgumentException($"Unknown IPackageEntity type: {nameof(package)}");
         }
     }
 }
