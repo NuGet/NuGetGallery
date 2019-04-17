@@ -15,6 +15,7 @@ namespace NuGet.Services.AzureSearch
     {
         public const string Name = "nuget_description_analyzer";
 
+        // TODO: Add the whitespace split for the token filters: https://github.com/NuGet/NuGetGallery/issues/7045
         public static readonly CustomAnalyzer Instance = new CustomAnalyzer(
             Name,
             PackageIdCustomTokenizer.Name,
@@ -23,6 +24,7 @@ namespace NuGet.Services.AzureSearch
                 IdentifierCustomTokenFilter.Name,
                 TokenFilterName.Stopwords,
                 TokenFilterName.Lowercase,
+                TokenFilterName.Truncate
             });
     }
 }

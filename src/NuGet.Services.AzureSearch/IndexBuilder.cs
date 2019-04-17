@@ -8,6 +8,7 @@ using Microsoft.Azure.Search;
 using Microsoft.Azure.Search.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using NuGet.Services.AzureSearch.ScoringProfiles;
 using NuGet.Services.AzureSearch.Wrappers;
 
 namespace NuGet.Services.AzureSearch
@@ -94,18 +95,18 @@ namespace NuGet.Services.AzureSearch
         private Index InitializeSearchIndex()
         {
             return InitializeIndex<SearchDocument.Full>(
-                _options.Value.SearchIndexName);
+                _options.Value.SearchIndexName, addScoringProfile: true);
         }
 
         private Index InitializeHijackIndex()
         {
             return InitializeIndex<HijackDocument.Full>(
-                _options.Value.HijackIndexName);
+                _options.Value.HijackIndexName, addScoringProfile: false);
         }
 
-        private Index InitializeIndex<TDocument>(string name)
+        private Index InitializeIndex<TDocument>(string name, bool addScoringProfile)
         {
-            return new Index
+            var index = new Index
             {
                 Name = name,
                 Fields = FieldBuilder.BuildForType<TDocument>(),
@@ -122,8 +123,16 @@ namespace NuGet.Services.AzureSearch
                 TokenFilters = new List<TokenFilter>
                 {
                     IdentifierCustomTokenFilter.Instance,
-                }
+                },
             };
+
+            if (addScoringProfile)
+            {
+                index.ScoringProfiles = new List<ScoringProfile> { DownloadCountBoosterProfile.Instance };
+                index.DefaultScoringProfile = DownloadCountBoosterProfile.Name;
+            }
+
+            return index;
         }
     }
 }
