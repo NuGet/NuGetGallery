@@ -761,16 +761,20 @@ namespace NuGetGallery
                 return PackageCommitResult.Conflict;
             }
 
-            await _validationService.StartValidationAsync(package);
-
             try
             {
+                // Sending the validation request after copying to prevent multiple validation requests
+                // sent when several pushes for the same package happen concurrently. Copying the file
+                // resolves the race and only one request will "win" and reach this code.
+                await _validationService.StartValidationAsync(package);
+
                 // commit all changes to database as an atomic transaction
                 await _entitiesContext.SaveChangesAsync();
             }
             catch (Exception ex)
             {
-                // If saving to the DB fails for any reason we need to delete the package we just saved.
+                // If sending the validation request or saving to the DB fails for any reason
+                // we need to delete the package we just saved.
                 if (package.PackageStatusKey == PackageStatus.Validating)
                 {
                     await _packageFileService.DeleteValidationPackageFileAsync(
