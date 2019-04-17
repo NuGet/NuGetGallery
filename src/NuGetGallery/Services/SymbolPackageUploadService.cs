@@ -208,6 +208,8 @@ namespace NuGetGallery
 
                 try
                 {
+                    // Sending the validation request right before updating the database, so all file operations
+                    // are complete by that time and all possible conflicts are resolved.
                     await _validationService.StartValidationAsync(symbolPackage);
 
                     // commit all changes to database as an atomic transaction
