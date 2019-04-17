@@ -19,6 +19,7 @@ namespace NuGet.Services.AzureSearch
         [SerializePropertyNamesAsCamelCase]
         public class Full : AddFirst
         {
+            [IsFilterable]
             public long? TotalDownloadCount { get; set; }
         }
 
