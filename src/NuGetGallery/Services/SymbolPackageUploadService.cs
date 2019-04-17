@@ -206,10 +206,10 @@ namespace NuGetGallery
                     await _symbolPackageFileService.SavePackageFileAsync(symbolPackage.Package, symbolPackageFile, overwrite);
                 }
 
-                await _validationService.StartValidationAsync(symbolPackage);
-
                 try
                 {
+                    await _validationService.StartValidationAsync(symbolPackage);
+
                     // commit all changes to database as an atomic transaction
                     await _entitiesContext.SaveChangesAsync();
                 }
@@ -217,7 +217,8 @@ namespace NuGetGallery
                 {
                     ex.Log();
 
-                    // If saving to the DB fails for any reason we need to delete the package we just saved.
+                    // If sending the validation request or saving to the DB fails for any reason
+                    // we need to delete the package we just saved.
                     if (symbolPackage.StatusKey == PackageStatus.Validating)
                     {
                         await _symbolPackageFileService.DeleteValidationPackageFileAsync(
