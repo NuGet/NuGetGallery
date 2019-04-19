@@ -149,7 +149,7 @@ namespace NuGetGallery
             var previousSymbolsPackage = package.LatestSymbolPackage();
             var symbolPackage = _symbolPackageService.CreateSymbolPackage(package, packageStreamMetadata);
 
-            await _validationService.StartValidationAsync(symbolPackage);
+            await _validationService.UpdatePackageAsync(symbolPackage);
 
             if (symbolPackage.StatusKey != PackageStatus.Available
                 && symbolPackage.StatusKey != PackageStatus.Validating)
@@ -208,6 +208,10 @@ namespace NuGetGallery
 
                 try
                 {
+                    // Sending the validation request right before updating the database, so all file operations
+                    // are complete by that time and all possible conflicts are resolved.
+                    await _validationService.StartValidationAsync(symbolPackage);
+
                     // commit all changes to database as an atomic transaction
                     await _entitiesContext.SaveChangesAsync();
                 }
@@ -215,7 +219,8 @@ namespace NuGetGallery
                 {
                     ex.Log();
 
-                    // If saving to the DB fails for any reason we need to delete the package we just saved.
+                    // If sending the validation request or saving to the DB fails for any reason
+                    // we need to delete the package we just saved.
                     if (symbolPackage.StatusKey == PackageStatus.Validating)
                     {
                         await _symbolPackageFileService.DeleteValidationPackageFileAsync(

@@ -1489,7 +1489,7 @@ namespace NuGetGallery
                 _package.PackageStatusKey = PackageStatus.FailedValidation;
 
                 _validationService
-                    .Setup(vs => vs.StartValidationAsync(_package))
+                    .Setup(vs => vs.UpdatePackageAsync(_package))
                     .Returns(Task.CompletedTask)
                     .Callback(() => _package.PackageStatusKey = packageStatus);
 
@@ -1508,7 +1508,7 @@ namespace NuGetGallery
                 _package.PackageStatusKey = PackageStatus.Available;
 
                 _validationService
-                    .Setup(vs => vs.StartValidationAsync(_package))
+                    .Setup(vs => vs.UpdatePackageAsync(_package))
                     .Returns(Task.CompletedTask)
                     .Callback(() => _package.PackageStatusKey = packageStatus);
 
@@ -1538,33 +1538,34 @@ namespace NuGetGallery
 
             [Theory]
             [MemberData(nameof(SupportedPackageStatuses))]
-            public async Task StartsValidationBeforeOtherPackageOperations(PackageStatus packageStatus)
+            public async Task StartsValidationAfterSavingPackage(PackageStatus packageStatus)
             {
                 _package.PackageStatusKey = packageStatus;
 
-                bool otherOperationsDone = false;
+                bool contextSaveDone = false;
+                bool packageSaved = false;
                 _validationService
-                    .Setup(vs => vs.StartValidationAsync(It.IsAny<Package>()))
+                    .Setup(vs => vs.StartValidationAsync(_package))
                     .Returns(Task.CompletedTask)
-                    .Callback(() => Assert.False(otherOperationsDone));
+                    .Callback(() => Assert.True(packageSaved && !contextSaveDone));
 
                 _entitiesContext
                     .Setup(ec => ec.SaveChangesAsync())
                     .Returns(Task.FromResult(1))
-                    .Callback(() => otherOperationsDone = true);
+                    .Callback(() => contextSaveDone = true);
                 _packageFileService
                     .Setup(pfs => pfs.SaveValidationPackageFileAsync(It.IsAny<Package>(), It.IsAny<Stream>()))
                     .Returns(Task.CompletedTask)
-                    .Callback(() => otherOperationsDone = true);
+                    .Callback(() => packageSaved = true);
                 _packageFileService
                     .Setup(x => x.SavePackageFileAsync(It.IsAny<Package>(), It.IsAny<Stream>()))
                     .Returns(Task.CompletedTask)
-                    .Callback(() => otherOperationsDone = true);
+                    .Callback(() => packageSaved = true);
 
                 var result = await _target.CommitPackageAsync(_package, _packageFile);
 
                 _validationService
-                    .Verify(vs => vs.StartValidationAsync(It.IsAny<Package>()),
+                    .Verify(vs => vs.StartValidationAsync(_package),
                     Times.AtLeastOnce);
                 _entitiesContext.Verify(
                     x => x.SaveChangesAsync(),

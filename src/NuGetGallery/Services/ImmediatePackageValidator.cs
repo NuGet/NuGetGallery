@@ -13,6 +13,9 @@ namespace NuGetGallery
     public class ImmediatePackageValidator<TPackageEntity> : IPackageValidationInitiator<TPackageEntity> 
         where TPackageEntity: IPackageEntity
     {
+        public PackageStatus GetPackageStatus(TPackageEntity package)
+            => PackageStatus.Available;
+
         public Task<PackageStatus> StartValidationAsync(TPackageEntity package)
         {
             return Task.FromResult(PackageStatus.Available);
