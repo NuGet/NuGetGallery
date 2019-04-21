@@ -45,6 +45,7 @@
     <Compile Include="Configuration\AggregateCdnDownloadsConfiguration.cs" />
     <Compile Include="DownloadCountData.cs" />
     <Compile Include="AggregateCdnDownloadsJob.cs" />
+    <Compile Include="LogEvents.cs" />
     <Compile Include="PackageRegistrationData.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
