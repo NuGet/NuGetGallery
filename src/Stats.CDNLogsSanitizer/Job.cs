@@ -16,16 +16,19 @@ using NuGet.Jobs;
 using Stats.AzureCdnLogs.Common;
 using Stats.AzureCdnLogs.Common.Collect;
 
-namespace Stats.CollectAzureChinaCDNLogs
+namespace Stats.CDNLogsSanitizer
 {
     public class Job : JsonConfigurationJob
     {
-        private const int DefaultExecutionTimeoutInSeconds = 14400; // 4 hours
-        private const int MaxFilesToProcess = 4;
-        
-        private CollectAzureChinaCdnLogsConfiguration _configuration;
+        private const int DefaultExecutionTimeoutInSeconds = 345600; // 10 days
+        private const int DefaultMaxBlobsToProcess = 4;
+
+        private JobConfiguration _configuration;
         private int _executionTimeoutInSeconds;
-        private Collector _chinaCollector;
+        private int _maxBlobsToProcess;
+        private LogHeaderMetadata _logHeaderMetadata;
+        private Processor _processor;
+        private string _blobPrefix;
 
         public override void Init(IServiceContainer serviceContainer, IDictionary<string, string> jobArgsDictionary)
         {
@@ -36,15 +39,19 @@ namespace Stats.CollectAzureChinaCDNLogs
 
         public void InitializeJobConfiguration(IServiceProvider serviceProvider)
         {
-            _configuration = serviceProvider.GetRequiredService<IOptionsSnapshot<CollectAzureChinaCdnLogsConfiguration>>().Value;
+            _configuration = serviceProvider.GetRequiredService<IOptionsSnapshot<JobConfiguration>>().Value;
             _executionTimeoutInSeconds = _configuration.ExecutionTimeoutInSeconds ?? DefaultExecutionTimeoutInSeconds;
-
+            _maxBlobsToProcess = _configuration.MaxBlobsToProcess ?? DefaultMaxBlobsToProcess;
+            var logHeader = _configuration.LogHeader ?? throw new ArgumentNullException(nameof(_configuration.LogHeader));
+            var logHeaderDelimiter = _configuration.LogHeaderDelimiter ?? throw new ArgumentNullException(nameof(_configuration.LogHeaderDelimiter));
+            _logHeaderMetadata = new LogHeaderMetadata(logHeader, logHeaderDelimiter);
+            _blobPrefix = _configuration.BlobPrefix ;
             var blobLeaseManager = new AzureBlobLeaseManager(serviceProvider.GetRequiredService<ILogger<AzureBlobLeaseManager>>());
 
             var source = new AzureStatsLogSource(
                 ValidateAzureCloudStorageAccount(_configuration.AzureAccountConnectionStringSource),
                 _configuration.AzureContainerNameSource,
-                _executionTimeoutInSeconds / MaxFilesToProcess,
+                _executionTimeoutInSeconds / _maxBlobsToProcess,
                 blobLeaseManager,
                 serviceProvider.GetRequiredService<ILogger<AzureStatsLogSource>>());
 
@@ -53,30 +60,22 @@ namespace Stats.CollectAzureChinaCDNLogs
                 _configuration.AzureContainerNameDestination,
                 serviceProvider.GetRequiredService<ILogger<AzureStatsLogDestination>>());
 
-            _chinaCollector = new ChinaStatsCollector(source, dest, serviceProvider.GetRequiredService<ILogger<ChinaStatsCollector>>());
+            var sanitizers = new List<ISanitizer>{ new ClientIPSanitizer(_logHeaderMetadata) };
+
+            _processor = new Processor(source, dest, _maxBlobsToProcess, sanitizers, serviceProvider.GetRequiredService<ILogger<Processor>>());
         }
 
         public override async Task Run()
         {
-            CancellationTokenSource cts = new CancellationTokenSource();
-            cts.CancelAfter(_executionTimeoutInSeconds*1000);
-            var aggregateExceptions = await _chinaCollector.TryProcessAsync(maxFileCount: MaxFilesToProcess,
-                 fileNameTransform: s => $"{_configuration.DestinationFilePrefix}_{s}",
-                 sourceContentType: ContentType.GZip,
-                 destinationContentType: ContentType.GZip,
-                 token: cts.Token);
-
-            if (aggregateExceptions != null)
+            using (var cts = new CancellationTokenSource())
             {
-                foreach(var ex in aggregateExceptions.InnerExceptions)
+                cts.CancelAfter(_executionTimeoutInSeconds * 1000);
+                await _processor.ProcessAsync(cts.Token, _blobPrefix);
+
+                if (cts.IsCancellationRequested)
                 {
-                    Logger.LogError(LogEvents.JobRunFailed, ex, ex.Message);
+                    Logger.LogInformation("Execution exceeded the timeout of {ExecutionTimeoutInSeconds} seconds and it was cancelled.", _executionTimeoutInSeconds);
                 }
-            }
-
-            if(cts.IsCancellationRequested)
-            {
-                Logger.LogInformation("Execution exceeded the timeout of {ExecutionTimeoutInSeconds} seconds and it was cancelled.", _executionTimeoutInSeconds);
             }
         }
 
@@ -101,7 +100,7 @@ namespace Stats.CollectAzureChinaCDNLogs
 
         protected override void ConfigureJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
         {
-            ConfigureInitializationSection<CollectAzureChinaCdnLogsConfiguration>(services, configurationRoot);
+            ConfigureInitializationSection<JobConfiguration>(services, configurationRoot);
         }
     }
 }

@@ -20,6 +20,7 @@ namespace Stats.AzureCdnLogs.Common.Collect
     public class AzureStatsLogSource : ILogSource
     {
         private const ushort GzipLeadBytes = 0x8b1f;
+        private const int CopyBlobLeaseTimeInSeconds = 120;
 
         private string _deadletterContainerName = "-deadletter";
         private string _archiveContainerName = "-archive";
@@ -58,7 +59,7 @@ namespace Stats.AzureCdnLogs.Common.Collect
         /// <param name="maxResults">The max number of files to be returned.</param>
         /// <param name="token">A token to be used for cancellation.</param>
         /// <returns></returns>
-        public async Task<IEnumerable<Uri>> GetFilesAsync(int maxResults, CancellationToken token)
+        public async Task<IEnumerable<Uri>> GetFilesAsync(int maxResults, CancellationToken token, string prefix = null)
         {
             if (maxResults<= 0)
             {
@@ -68,7 +69,7 @@ namespace Stats.AzureCdnLogs.Common.Collect
             var result = new List<Uri>();
             do
             {
-                var resultsInternal = await _container.ListBlobsSegmentedAsync(prefix: null,
+                var resultsInternal = await _container.ListBlobsSegmentedAsync(prefix: prefix,
                     useFlatBlobListing: true,
                     blobListingDetails: BlobListingDetails.Metadata,
                     maxResults: null,
@@ -135,72 +136,86 @@ namespace Stats.AzureCdnLogs.Common.Collect
         /// <param name="blobUri">The blob uri.</param>
         /// <param name="token">A token to be used for cancellation.</param>
         /// <returns>True if the lock was taken. False otherwise. And the task that renews the lock overtime.</returns>
-        public async Task<Tuple<bool, Task>> TakeLockAsync(Uri blobUri, CancellationToken token)
+        public async Task<AzureBlobLockResult> TakeLockAsync(Uri blobUri, CancellationToken token)
         {
             var blob = await GetBlobAsync(blobUri);
             if (blob == null)
             {
-                return new Tuple<bool, Task>(false, null);
+                return AzureBlobLockResult.FailedLockResult(blob);
             }
-            Task<bool> renewStateTask;
-            return new Tuple<bool,Task>(_blobLeaseManager.AcquireLease(blob, token, out renewStateTask), renewStateTask);
+            return _blobLeaseManager.AcquireLease(blob, token);
         }
 
         /// <summary>
         /// Release the lock on the blob.
         /// </summary>
-        /// <param name="blobUri">The blob uri to be released.</param>
+        /// <param name="blobLock">The blobLock as was taken at the begining of the operation.</param>
         /// <param name="token">A token to be used for cancellation. For this implemention the token is ignored.</param>
         /// <returns>True if the lease was released or the blob does not exist.</returns>
-        public async Task<bool> ReleaseLockAsync(Uri blobUri, CancellationToken token)
+        public async Task<AsyncOperationResult> TryReleaseLockAsync(AzureBlobLockResult blobLock, CancellationToken token)
         {
-            var blob = await GetBlobAsync(blobUri);
-            if (blob != null)
+            if (token.IsCancellationRequested)
             {
-                bool tryReleaseLease = _blobLeaseManager.TryReleaseLease(blob);
-                _logger.LogInformation("ReleaseLockAsync: ReleaseLeaseStatus: {LeaseReleased} on the {BlobUri}.", tryReleaseLease, blobUri.AbsoluteUri);
-                return tryReleaseLease;
+                _logger.LogInformation("TryReleaseLockAsync: The operation was cancelled. BlobUri {BlobUri}.", blobLock.Blob.Uri);
+                new AsyncOperationResult(false, new OperationCanceledException(token));
             }
-            return true;
+            if ( await blobLock.Blob.ExistsAsync() )
+            {
+                return await _blobLeaseManager.TryReleaseLockAsync(blobLock);
+            }
+            return new AsyncOperationResult(false, null);
         }
 
         /// <summary>
         /// It will perform the clean up steps.
         /// In this case it will copy the blob in the archive or dead-letter and delete the blob.
+        /// This method will not throw an exception. 
+        /// Use the <see cref="AsyncOperationResult.OperationException"/> for any exception during this execution.
         /// </summary>
-        /// <param name="blobUri">The blob uri to be cleaned.</param>
+        /// <param name="blobLock">The <see cref="AzureBlobLockResult"/> for the blob that needs clean-up.</param>
         /// <param name="onError">Flag to indicate if the cleanup is done because an error or not. </param>
         /// <param name="token">A token to be used for cancellation.</param>
-        /// <returns>True is the cleanup was sucessful. If the blob does not exist the return value is false.</returns>
-        public async Task<bool> CleanAsync(Uri blobUri, bool onError, CancellationToken token)
+        /// <returns>True is the cleanup was successful. If the blob does not exist the return value is false.</returns>
+        public async Task<AsyncOperationResult> TryCleanAsync(AzureBlobLockResult blobLock, bool onError, CancellationToken token)
         {
-            _logger.LogInformation("CleanAsync:Start cleanup for {Blob}", blobUri.AbsoluteUri);
+            _logger.LogInformation("CleanAsync:Start cleanup for {Blob}", blobLock.Blob.Uri);
             if (token.IsCancellationRequested)
             {
-                _logger.LogInformation("CleanAsync: The operation was cancelled.");
-                return false;
+                _logger.LogInformation("CleanAsync: The operation was cancelled. BlobUri {BlobUri}.", blobLock.Blob.Uri);
+                new AsyncOperationResult(false, new OperationCanceledException(token));
             }
-
-            var sourceBlob = await GetBlobAsync(blobUri);
-            if(sourceBlob == null)
+            try
             {
-                _logger.LogError("CleanAsync: The blob {Blob} was not found.", blobUri.AbsoluteUri);
-                return false;
+                var sourceBlob = await GetBlobAsync(blobLock.Blob.Uri);
+                if (sourceBlob == null)
+                {
+                    _logger.LogError("CleanAsync: The blob {Blob} was not found.", blobLock.Blob.Uri);
+                    return new AsyncOperationResult(false, null);
+                }
+                string archiveTargetContainerName = onError ? _deadletterContainerName : _archiveContainerName;
+                _logger.LogInformation("CleanAsync: Blob {Blob} will be copied to container {Container}", blobLock.Blob.Uri, archiveTargetContainerName);
+                var archiveTargetContainer = await CreateContainerAsync(archiveTargetContainerName);
+                if (await CopyBlobToContainerAsync(blobLock, archiveTargetContainer, token))
+                {
+                    _logger.LogInformation("CleanAsync: Blob {Blob} was copied to container {Container}", blobLock.Blob.Uri, archiveTargetContainerName);
+                    var accessCondition = new AccessCondition { LeaseId = blobLock.LeaseId };
+                    // The operation will throw if the lease does not match
+                    bool deleteResult = await sourceBlob.DeleteIfExistsAsync(deleteSnapshotsOption: DeleteSnapshotsOption.IncludeSnapshots,
+                        accessCondition: accessCondition,
+                        options: _blobRequestOptions,
+                        operationContext: null,
+                        cancellationToken: token);
+                    _logger.LogInformation("CleanAsync: Blob {Blob} was deleted {DeletedResult}. The leaseId: {LeaseId}", blobLock.Blob.Uri, deleteResult, blobLock.LeaseId);
+                    return new AsyncOperationResult(deleteResult, null);
+                }
+                _logger.LogWarning("CleanAsync: Blob {Blob} failed to be copied to container {Container}", blobLock.Blob.Uri, archiveTargetContainerName);
+                return new AsyncOperationResult(false, null);
             }
-            string archiveTargetContainerName = onError ? _deadletterContainerName : _archiveContainerName;
-            _logger.LogInformation("CleanAsync: Blob {Blob} will be copied to container {Container}", blobUri.AbsoluteUri, archiveTargetContainerName);
-            var archiveTargetContainer = await CreateContainerAsync(archiveTargetContainerName);
-            if (await CopyBlobToContainerAsync(blobUri, archiveTargetContainer))
+            catch (Exception exception)
             {
-                _logger.LogInformation("CleanAsync: Blob {Blob} was copied to container {Container}", blobUri.AbsoluteUri, archiveTargetContainerName);
-                string leaseId = string.Empty;
-                AccessCondition acc = _blobLeaseManager.HasLease(sourceBlob, out leaseId) ? new AccessCondition() { LeaseId = leaseId } : null;
-                bool deleteResult = await sourceBlob.DeleteIfExistsAsync(deleteSnapshotsOption: DeleteSnapshotsOption.IncludeSnapshots, accessCondition: acc, options: _blobRequestOptions, operationContext: null);
-                _logger.LogInformation("CleanAsync: Blob {Blob} was deleted {DeletedResult}. The leaseId: {LeaseId}", blobUri.AbsoluteUri, deleteResult, leaseId);
-                return deleteResult;
+                _logger.LogCritical(LogEvents.FailedBlobDelete, exception, "CleanAsync: Blob {Blob} failed the clean-up. The current leaseId: {LeaseId}", blobLock.Blob.Uri, blobLock.LeaseId);
+                return new AsyncOperationResult(null, exception);
             }
-            _logger.LogWarning("CleanAsync: Blob {Blob} failed to be copied to container {Container}", blobUri.AbsoluteUri, archiveTargetContainerName);
-            return false;
         }
 
         private async Task<CloudBlob> GetBlobAsync(Uri blobUri)
@@ -216,25 +231,75 @@ namespace Stats.AzureCdnLogs.Common.Collect
             }
         }
 
-        private async Task<bool> CopyBlobToContainerAsync(Uri sourceblobUri, CloudBlobContainer destcontainer)
+        /// <summary>
+        /// Copy the blob from souurce to the destination 
+        /// </summary>
+        /// <param name="sourceBlobInformation">The source blobLock as was taken at the begining of the operation.</param>
+        /// <param name="destinationContainer">The destination Container.</param>
+        /// <returns></returns>
+        private async Task<bool> CopyBlobToContainerAsync(AzureBlobLockResult sourceBlobInformation, CloudBlobContainer destinationContainer, CancellationToken token)
         {
-            //just get a reference to the future blob
-            var destinationBlob = destcontainer.GetBlobReference(GetBlobNameFromUri(sourceblobUri));
-            if (!await destinationBlob.ExistsAsync())
+            if (token.IsCancellationRequested)
             {
-                await destinationBlob.StartCopyAsync(sourceblobUri);
-
-                //round-trip to the server and get the information 
-                destinationBlob = (CloudBlob)destcontainer.GetBlobReferenceFromServer(GetBlobNameFromUri(sourceblobUri));
-
-                while (destinationBlob.CopyState.Status == CopyStatus.Pending)
-                {
-                    Task.Delay(TimeSpan.FromSeconds(1)).Wait();
-                    destinationBlob = (CloudBlob)destcontainer.GetBlobReference(GetBlobNameFromUri(sourceblobUri));
-                }
-                return true;
+                _logger.LogInformation("CopyBlobToContainerAsync: The operation was cancelled.");
+                return false;
             }
-            return false;
+
+            //just get a reference to the future blob
+            var destinationBlob = destinationContainer.GetBlobReference(GetBlobNameFromUri(sourceBlobInformation.Blob.Uri));
+            try
+            {
+                if (!await destinationBlob.ExistsAsync(token))
+                {
+                    return await TryCopyInternalAsync(sourceBlobInformation.Blob.Uri, destinationBlob, destinationContainer);
+                }
+                else
+                {
+                    _logger.LogInformation("CopyBlobToContainerAsync: Blob already exists DestinationUri {DestinationUri}.", destinationBlob.Uri);
+
+                    // Overwrite
+                    var lease = destinationBlob.AcquireLease(TimeSpan.FromSeconds(CopyBlobLeaseTimeInSeconds), sourceBlobInformation.LeaseId);
+                    var destinationAccessCondition = new AccessCondition { LeaseId = lease };
+                    await destinationBlob.DeleteAsync(deleteSnapshotsOption: DeleteSnapshotsOption.IncludeSnapshots, accessCondition: destinationAccessCondition, options: null, operationContext: null);
+                    var result = await TryCopyInternalAsync(sourceBlobInformation.Blob.Uri, destinationBlob, destinationContainer, destinationAccessCondition: destinationAccessCondition);
+                    try
+                    {
+                        destinationBlob.ReleaseLease(destinationAccessCondition);
+                    }
+                    catch (StorageException)
+                    {
+                        // do not do anything the lease will be released anyway
+                    }
+                    return result;
+                }
+            }
+            catch (StorageException exception)
+            {
+                _logger.LogCritical(LogEvents.FailedBlobCopy, exception, "CopyBlobToContainerAsync: Blob Copy Failed. SourceUri: {SourceUri}. DestinationUri {DestinationUri}", sourceBlobInformation.Blob.Uri, destinationBlob.Uri);
+                return false;
+            }
+        }
+
+        private async Task<bool> TryCopyInternalAsync(Uri sourceblobUri,
+            CloudBlob destinationBlob,
+            CloudBlobContainer destinationContainer,
+            AccessCondition destinationAccessCondition = null)
+        {
+            await destinationBlob.StartCopyAsync(sourceblobUri,
+                sourceAccessCondition: null,
+                destAccessCondition: destinationAccessCondition,
+                options: null,
+                operationContext: null);
+
+            //round-trip to the server and get the information 
+            destinationBlob = (CloudBlob)destinationContainer.GetBlobReferenceFromServer(GetBlobNameFromUri(sourceblobUri));
+
+            while (destinationBlob.CopyState.Status == CopyStatus.Pending)
+            {
+                Task.Delay(TimeSpan.FromSeconds(1)).Wait();
+                destinationBlob = (CloudBlob)destinationContainer.GetBlobReference(GetBlobNameFromUri(sourceblobUri));
+            }
+            return true;
         }
 
         private string GetBlobNameFromUri(Uri blobUri)

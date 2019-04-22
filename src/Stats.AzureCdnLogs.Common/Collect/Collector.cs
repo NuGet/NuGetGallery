@@ -58,62 +58,47 @@ namespace Stats.AzureCdnLogs.Common.Collect
         public virtual async Task<AggregateException> TryProcessAsync(int maxFileCount, Func<string,string> fileNameTransform, ContentType sourceContentType, ContentType destinationContentType, CancellationToken token)
         {
             ConcurrentBag<Exception> exceptions = new ConcurrentBag<Exception>();
+            var files = (await _source.GetFilesAsync(maxFileCount, token)).ToArray();
+            var workers = Enumerable.Range(0, files.Length).Select(i => TryProcessBlobAsync(files[i], fileNameTransform, sourceContentType, destinationContentType, exceptions, token));
+            await Task.WhenAll(workers);
+            return exceptions.Count() > 0 ? new AggregateException(exceptions.ToArray()) : null;
+        }
+
+        private async Task TryProcessBlobAsync(Uri file, Func<string, string> fileNameTransform, ContentType sourceContentType, ContentType destinationContentType, ConcurrentBag<Exception> exceptions, CancellationToken token)
+        {
+            _logger.LogInformation("TryProcessAsync: {File} ", file.AbsoluteUri);
+            if (token.IsCancellationRequested)
+            {
+                _logger.LogInformation("TryProcessAsync: The operation was cancelled.");
+            }
             try
             {
-                var files = await _source.GetFilesAsync(maxFileCount, token);
-                var parallelResult = Parallel.ForEach(files, (file) =>
+                using (var lockResult = _source.TakeLockAsync(file, token).Result)
                 {
-                    _logger.LogInformation("TryProcessAsync: {File} ", file.AbsoluteUri);
-                    if (token.IsCancellationRequested)
+                    var blobOperationToken = lockResult.BlobOperationToken.Token;
+                    if (lockResult.LockIsTaken /*lockResult*/)
                     {
-                        _logger.LogInformation("TryProcessAsync: The operation was cancelled.");
-                        return;
-                    }
-                    var lockResult = _source.TakeLockAsync(file, token).Result;
-                    if (lockResult.Item1 /*lockResult*/)
-                    {
-                        using (var inputStream = _source.OpenReadAsync(file, sourceContentType, token).Result)
+                        using (var inputStream = await _source.OpenReadAsync(file, sourceContentType, blobOperationToken))
                         {
-                            var writeAction = VerifyStreamInternalAsync(file, sourceContentType, token).
-                            ContinueWith(t =>
+                            var blobToDeadLetter = ! await VerifyStreamInternalAsync(file, sourceContentType, blobOperationToken);
+                            // If verification passed continue with the rest of the action 
+                            // If not just move the blob to deadletter
+                            if (!blobToDeadLetter)
                             {
-                                //if validation failed clean the file to not continue processing over and over 
-                                if (!t.Result)
-                                {
-                                    throw new ApplicationException($"File {file} failed validation.");
-                                }
-                                return _destination.WriteAsync(inputStream, ProcessLogStream, fileNameTransform(file.Segments.Last()), destinationContentType, token).Result;
-                            }).
-                            ContinueWith(t =>
-                            {
-                                AddException(exceptions, t.Exception, $"Method:WriteAsync File:{file.AbsoluteUri}");
-                                return _source.CleanAsync(file, onError: t.IsFaulted, token: token).Result;
-                            }).
-                            ContinueWith(t =>
-                            {
-                                AddException(exceptions, t.Exception, $"Method:CleanAsync File:{file.AbsoluteUri}");
-                                return _source.ReleaseLockAsync(file, token).Result;
-                            }).
-                            ContinueWith(t =>
-                            {
-                                AddException(exceptions, t.Exception, $"Method:ReleaseLockAsync File:{file.AbsoluteUri}");
-                                return t.Result;
-                            }).Result;
+                                var writeOperationResult = await _destination.TryWriteAsync(inputStream, ProcessLogStream, fileNameTransform(file.Segments.Last()), destinationContentType, blobOperationToken);
+                                blobToDeadLetter = writeOperationResult.OperationException != null;
+                            }
+                            await _source.TryCleanAsync(lockResult, onError: blobToDeadLetter, token: blobOperationToken);
+                            await _source.TryReleaseLockAsync(lockResult, token: blobOperationToken);
                         }
                     }
-                    //log any exceptions from the renewlease task if faulted
-                    //if the task is still running at this moment any future failure would not matter 
-                    if(lockResult.Item2 != null && lockResult.Item2.IsFaulted)
-                    {
-                        AddException(exceptions, lockResult.Item2.Exception, $"Method:AcquireLease File:{file.AbsoluteUri}");
-                    }
-                });
+                }
             }
-            catch (Exception e)
+            catch (Exception exception)
             {
-                AddException(exceptions, e);
+                // Add any exceptions
+                AddException(exceptions, exception);
             }
-            return exceptions.Count() > 0 ? new AggregateException(exceptions.ToArray()) : null;
         }
 
         private void AddException(ConcurrentBag<Exception> exceptions, Exception e, string fileUri = "")

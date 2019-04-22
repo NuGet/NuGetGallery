@@ -44,7 +44,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AzureHelpers\AsyncOperationResult.cs" />
     <Compile Include="AzureHelpers\AzureBlobLeaseManager.cs" />
+    <Compile Include="AzureHelpers\AzureBlobLockResult.cs" />
     <Compile Include="CdnStatistics.cs" />
     <Compile Include="Collect\AzureStatsLogDestination.cs" />
     <Compile Include="Collect\AzureStatsLogSource.cs" />
@@ -55,6 +57,7 @@
     <Compile Include="Collect\OutputLogLine.cs" />
     <Compile Include="DictionaryExtensions.cs" />
     <Compile Include="EnumerableExtensions.cs" />
+    <Compile Include="ExtensionsUtils.cs" />
     <Compile Include="ITrackEdgeServerIpAddress.cs" />
     <Compile Include="ITrackUserAgent.cs" />
     <Compile Include="LogEvents.cs" />
