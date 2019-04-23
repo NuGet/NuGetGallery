@@ -45,9 +45,6 @@
     <PackageReference Include="EntityFramework">
       <Version>6.1.3</Version>
     </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions">
-      <Version>1.1.2</Version>
-    </PackageReference>
     <PackageReference Include="moq">
       <Version>4.7.145</Version>
     </PackageReference>

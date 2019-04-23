@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography.Pkcs;
@@ -21,6 +22,7 @@ using NuGet.Services.Validation;
 using NuGetGallery;
 using Org.BouncyCastle.Cms;
 using Org.BouncyCastle.X509.Store;
+using Tests.ContextHelpers;
 using Validation.PackageSigning.Core.Tests.Support;
 using Xunit;
 
@@ -146,26 +148,10 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                     .Callback<X509Certificate2, CancellationToken>((cert, _) => _savedCertificates.Add(new X509Certificate2(cert.RawData)));
 
                 _validationEntitiesContext = new Mock<IValidationEntitiesContext>();
-                _validationEntitiesContext
-                    .Setup(x => x.ParentCertificates)
-                    .Returns(DbSetMockFactory.Create<ParentCertificate>());
-                _validationEntitiesContext
-                    .Setup(x => x.EndCertificates)
-                    .Returns(DbSetMockFactory.Create<EndCertificate>());
-                _validationEntitiesContext
-                    .Setup(x => x.CertificateChainLinks)
-                    .Returns(DbSetMockFactory.Create<CertificateChainLink>());
-                _validationEntitiesContext
-                    .Setup(x => x.PackageSignatures)
-                    .Returns(DbSetMockFactory.Create<PackageSignature>());
-                _validationEntitiesContext
-                    .Setup(x => x.TrustedTimestamps)
-                    .Returns(DbSetMockFactory.Create<TrustedTimestamp>());
+                _validationEntitiesContext.Mock();
 
                 _galleryEntitiesContext = new Mock<IEntitiesContext>();
-                _galleryEntitiesContext
-                    .Setup(x => x.Certificates)
-                    .Returns(DbSetMockFactory.Create<Certificate>());
+                _galleryEntitiesContext.Mock();
 
                 _configAccessor = new Mock<IOptionsSnapshot<ProcessSignatureConfiguration>>();
                 _config = new ProcessSignatureConfiguration

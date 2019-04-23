@@ -70,13 +70,13 @@ namespace Stats.CollectAzureChinaCDNLogs
             {
                 foreach(var ex in aggregateExceptions.InnerExceptions)
                 {
-                    Logger.LogError(Stats.AzureCdnLogs.Common.LogEvents.JobRunFailed, ex, ex.Message);
+                    Logger.LogError(LogEvents.JobRunFailed, ex, ex.Message);
                 }
             }
 
             if(cts.IsCancellationRequested)
             {
-                Logger.LogInformation($"Execution exceeded the timeout of {_executionTimeoutInSeconds} seconds and it was cancelled.");
+                Logger.LogInformation("Execution exceeded the timeout of {ExecutionTimeoutInSeconds} seconds and it was cancelled.", _executionTimeoutInSeconds);
             }
         }
 

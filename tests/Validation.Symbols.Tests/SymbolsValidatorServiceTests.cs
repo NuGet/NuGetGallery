@@ -3,6 +3,7 @@
 
 using System;
 using System.IO;
+using System.IO.Compression;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
@@ -62,7 +63,6 @@ namespace Validation.Symbols.Tests
             }
 
             [Fact]
-
             public async Task ValidateSymbolsAsyncWillFailIfTheSnupkgNotSubsetOfNupkg()
             {
                 // Arrange
@@ -102,10 +102,12 @@ namespace Validation.Symbols.Tests
                     Setup(sfs => sfs.DownloadSnupkgFileAsync(It.IsAny<string>(), It.IsAny<CancellationToken>())).
                     ReturnsAsync(new MemoryStream());
 
+                _zipService.Setup(s => s.ValidateZipAsync(It.IsAny<Stream>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync(true);
+
                 _zipService.Setup(s => s.ReadFilesFromZipStream(It.IsAny<Stream>(), It.IsAny<string[]>())).Returns(new List<string>()
                 { "foo.dll" });
 
-                _zipService.Setup(s => s.ReadFilesFromZipStream(It.IsAny<Stream>(), It.IsAny<string[]>())).Returns(new List<string>()
+                _zipService.Setup(s => s.ReadFilesFromZipStream(It.IsAny<Stream>(), ".pdb")).Returns(new List<string>()
                 { "foo.pdb" });
 
                 var service = new TestSymbolsValidatorService(_symbolsFileService.Object, _zipService.Object, _telemetryService.Object, _logger.Object);
@@ -116,6 +118,82 @@ namespace Validation.Symbols.Tests
                 // Assert 
                 Assert.Equal(ValidationResult.Succeeded.Status, result.Status);
                 Assert.True(service.ValidateSymbolMatchingInvoked);
+            }
+
+            [Fact]
+            public async Task ValidateSymbolsAsyncWillFailIfSnupkgIsNotSafeForExtract()
+            {
+                // Arrange
+                _symbolsFileService.
+                    Setup(sfs => sfs.DownloadSnupkgFileAsync(It.IsAny<string>(), It.IsAny<CancellationToken>())).
+                    ReturnsAsync(CreateZipSlipStream());
+                var zipService = new ZipArchiveService(new Mock<ILogger<ZipArchiveService>>().Object);
+                var service = new TestSymbolsValidatorService(_symbolsFileService.Object, zipService, _telemetryService.Object, _logger.Object);
+
+                // Act 
+                var result = await service.ValidateSymbolsAsync(Message, CancellationToken.None);
+
+                // Assert 
+                Assert.Equal(ValidationResult.Failed.Status, result.Status);
+                Assert.Equal(1, result.Issues.Count);
+            }
+
+            [Fact]
+            public async Task ValidateSymbolsAsyncWillFailIfSnupkgDoesNotHavePDBs()
+            {
+                // Arrange
+                _symbolsFileService.
+                    Setup(sfs => sfs.DownloadNupkgFileAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).
+                    ReturnsAsync(new MemoryStream());
+
+                _symbolsFileService.
+                    Setup(sfs => sfs.DownloadSnupkgFileAsync(It.IsAny<string>(), It.IsAny<CancellationToken>())).
+                    ReturnsAsync(new MemoryStream());
+
+                _zipService.Setup(s => s.ValidateZipAsync(It.IsAny<Stream>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync(true);
+
+                _zipService.Setup(s => s.ReadFilesFromZipStream(It.IsAny<Stream>(), It.IsAny<string[]>())).Returns(new List<string>());
+
+                var service = new TestSymbolsValidatorService(_symbolsFileService.Object, _zipService.Object, _telemetryService.Object, _logger.Object);
+
+                // Act 
+                var result = await service.ValidateSymbolsAsync(Message, CancellationToken.None);
+
+                // Assert 
+                Assert.Equal(ValidationResult.Failed.Status, result.Status);
+                Assert.Equal(1, result.Issues.Count);
+            }
+
+            private Stream CreateZipSlipStream()
+            {
+                string text =
+                               "<package xmlns = \"http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd\"> " +
+                               "<metadata>" +
+                               "<id>OneId</id> " +
+                               "<version>1.0.0</version>" +
+                               "<authors>xxx yyy</authors>" +
+                               "<description>Test.</description>" +
+                               "<language>en-US</language>" +
+                               "</metadata>" +
+                               "</package>";
+
+                var memoryStream = new MemoryStream();
+                using (var archive = new ZipArchive(memoryStream, ZipArchiveMode.Create, leaveOpen: true))
+                {
+                    var entryNuspec = archive.CreateEntry(@"foo.nuspec");
+                    using (var entryNuspecStream = entryNuspec.Open())
+                    using (var streamWriter = new StreamWriter(entryNuspecStream))
+                    {
+                        streamWriter.Write(text);
+                    }
+                    var entryEvil = archive.CreateEntry(@"../../evil.txt");
+                    using (var entryEvilStream = entryEvil.Open())
+                    using (var streamWriter = new StreamWriter(entryEvilStream))
+                    {
+                        streamWriter.Write("Evil stuff");
+                    }
+                }
+                return memoryStream;
             }
         }
 

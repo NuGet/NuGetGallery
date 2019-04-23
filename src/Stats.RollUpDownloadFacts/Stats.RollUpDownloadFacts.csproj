@@ -79,12 +79,6 @@
     <PackageReference Include="Microsoft.Data.Services.Client">
       <Version>5.7.0</Version>
     </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.Logging">
-      <Version>1.0.0</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions">
-      <Version>1.0.0</Version>
-    </PackageReference>
     <PackageReference Include="MicroBuild.Core">
       <Version>0.3.0</Version>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>

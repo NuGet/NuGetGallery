@@ -45,12 +45,18 @@ namespace Gallery.CredentialExpiration
             var serializer = new ServiceBusMessageSerializer();
             var topicClient = new TopicClientWrapper(InitializationConfiguration.EmailPublisherConnectionString, InitializationConfiguration.EmailPublisherTopicName);
             var enqueuer = new EmailMessageEnqueuer(topicClient, serializer, LoggerFactory.CreateLogger<EmailMessageEnqueuer>());
-            EmailService = new AsynchronousEmailMessageService(enqueuer, LoggerFactory.CreateLogger<AsynchronousEmailMessageService>());
+            EmailService = new AsynchronousEmailMessageService(
+                enqueuer,
+                LoggerFactory.CreateLogger<AsynchronousEmailMessageService>(),
+                InitializationConfiguration);
 
             FromAddress = new MailAddress(InitializationConfiguration.MailFrom);
             
             var storageAccount = CloudStorageAccount.Parse(InitializationConfiguration.DataStorageAccount);
-            var storageFactory = new AzureStorageFactory(storageAccount, InitializationConfiguration.ContainerName, LoggerFactory);
+            var storageFactory = new AzureStorageFactory(
+                storageAccount,
+                InitializationConfiguration.ContainerName,
+                LoggerFactory.CreateLogger<AzureStorage>());
             Storage = storageFactory.Create();
         }
 
@@ -120,7 +126,11 @@ namespace Gallery.CredentialExpiration
 
                 string json = JsonConvert.SerializeObject(newCursor);
                 var content = new StringStorageContent(json, "application/json");
-                await Storage.Save(Storage.ResolveUri(_cursorFile), content, CancellationToken.None);
+                await Storage.Save(
+                    Storage.ResolveUri(_cursorFile),
+                    content,
+                    overwrite: true,
+                    cancellationToken: CancellationToken.None);
             }
         }
 

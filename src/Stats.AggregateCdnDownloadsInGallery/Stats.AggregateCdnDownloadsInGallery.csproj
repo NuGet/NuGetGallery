@@ -45,6 +45,7 @@
     <Compile Include="Configuration\AggregateCdnDownloadsConfiguration.cs" />
     <Compile Include="DownloadCountData.cs" />
     <Compile Include="AggregateCdnDownloadsJob.cs" />
+    <Compile Include="LogEvents.cs" />
     <Compile Include="PackageRegistrationData.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -75,9 +76,6 @@
     </PackageReference>
     <PackageReference Include="Microsoft.Data.Services.Client">
       <Version>5.7.0</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions">
-      <Version>1.0.0</Version>
     </PackageReference>
     <PackageReference Include="Newtonsoft.Json">
       <Version>9.0.1</Version>

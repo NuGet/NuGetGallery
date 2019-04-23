@@ -24,7 +24,10 @@ namespace Stats.AzureCdnLogs.Common
         public static EventId FailedToCheckAlreadyProcessedLogFileToolStatistics = new EventId(514, "Failed to check already processed tool statistics for log file");
         public static EventId MultiplePackageIDVersionParseOptions = new EventId(515, "Multiple package id/version parse options");
         public static EventId TranslatedPackageIdVersion = new EventId(516, "Translated package id and version");
+        public static EventId FailedBlobCopy = new EventId(517, "Failed to copy blob.");
+        public static EventId FailedBlobReleaseLease = new EventId(518, "Failed to release lease for blob.");
         public static EventId JobRunFailed = new EventId(550, "Job run failed");
-        public static EventId JobInitFailed = new EventId(551, "Job initialization failed");
+        public static EventId JobInitFailed = new EventId(551, "Job initialization failed");       
+        public static EventId FailedToProcessStream = new EventId(560, "Failed to process the stream.");
     }
 }

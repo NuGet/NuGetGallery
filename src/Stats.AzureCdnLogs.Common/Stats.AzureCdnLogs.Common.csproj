@@ -44,7 +44,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AzureHelpers\AsyncOperationResult.cs" />
     <Compile Include="AzureHelpers\AzureBlobLeaseManager.cs" />
+    <Compile Include="AzureHelpers\AzureBlobLockResult.cs" />
     <Compile Include="CdnStatistics.cs" />
     <Compile Include="Collect\AzureStatsLogDestination.cs" />
     <Compile Include="Collect\AzureStatsLogSource.cs" />
@@ -55,6 +57,7 @@
     <Compile Include="Collect\OutputLogLine.cs" />
     <Compile Include="DictionaryExtensions.cs" />
     <Compile Include="EnumerableExtensions.cs" />
+    <Compile Include="ExtensionsUtils.cs" />
     <Compile Include="ITrackEdgeServerIpAddress.cs" />
     <Compile Include="ITrackUserAgent.cs" />
     <Compile Include="LogEvents.cs" />
@@ -92,7 +95,7 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions">
-      <Version>1.0.0</Version>
+      <Version>1.1.2</Version>
     </PackageReference>
     <PackageReference Include="Newtonsoft.Json">
       <Version>9.0.1</Version>

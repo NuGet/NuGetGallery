@@ -110,9 +110,6 @@
     <PackageReference Include="Newtonsoft.Json">
       <Version>9.0.1</Version>
     </PackageReference>
-    <PackageReference Include="NuGet.Services.Messaging.Email">
-      <Version>2.39.0</Version>
-    </PackageReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

@@ -8,5 +8,6 @@ namespace Stats.AggregateCdnDownloadsInGallery
         public string Key { get; set; }
         public string LowercasedId { get; set; }
         public string OriginalId { get; set; }
+        public string DownloadCount { get; set; }
     }
 }

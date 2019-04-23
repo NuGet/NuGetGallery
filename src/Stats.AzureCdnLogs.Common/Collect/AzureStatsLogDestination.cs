@@ -44,47 +44,60 @@ namespace Stats.AzureCdnLogs.Common.Collect
         /// <param name="destinationFileName">The destination file name.</param>
         /// <param name="destinationContentType">The destination content type.</param>
         /// <param name="token">A token to cancel the operation.</param>
-        /// <returns>Returns true if the action to write the destination file was successful. If the destination file was already present, the operation will return false without any action taken.</returns>
-        public async Task<bool> WriteAsync(Stream inputStream, Action<Stream, Stream> writeAction, string destinationFileName, ContentType destinationContentType, CancellationToken token)
+        /// <returns>Returns true if the action to write the destination file was successful. If the destination file was already present, the operationResult will be false.
+        /// If an Exception is thrown the exception will be stored under <see cref="AsyncOperationResult.OperationException"/>.
+        /// </returns>
+
+        public async Task<AsyncOperationResult> TryWriteAsync(Stream inputStream, Action<Stream, Stream> writeAction, string destinationFileName, ContentType destinationContentType, CancellationToken token)
         {
             _logger.LogInformation("WriteAsync: Start to write to {DestinationFileName}. ContentType is {ContentType}.", 
                 $"{_cloudBlobContainer.StorageUri}{_cloudBlobContainer.Name}{destinationFileName}",
                 destinationContentType);
             if (token.IsCancellationRequested)
             {
-                _logger.LogInformation("WriteAsync: The operation was cancelled.");
-                return false;
+                _logger.LogInformation("WriteAsync: The operation was cancelled. DestinationFileName {DestinationFileName}", destinationFileName);
+                return new AsyncOperationResult(false, new OperationCanceledException(token));
             }
-            var blob = _cloudBlobContainer.GetBlockBlobReference(destinationFileName);
-            blob.Properties.ContentType = GetContentType(destinationContentType);
-
-            // If the blob was written already to the destination do not do anything.
-            // This should not happen if the renew task was correctly scheduled. Add the check just in case that the renew task was not scheduled in time and a different process already processed the file.
-            if (!(await blob.ExistsAsync()))
+            try
             {
-                var resultStream = await blob.OpenWriteAsync();
-                if (destinationContentType == ContentType.GZip)
-                {
-                    using (var resultGzipStream = new GZipOutputStream(resultStream))
-                    {
-                        resultGzipStream.IsStreamOwner = false;
-                        writeAction(inputStream, resultGzipStream);
-                        await resultGzipStream.FlushAsync();
-                    }
-                }
-                else
-                {
-                    writeAction(inputStream, resultStream);
-                }
+                var blob = _cloudBlobContainer.GetBlockBlobReference(destinationFileName);
+                blob.Properties.ContentType = GetContentType(destinationContentType);
+
+                // If the blob was written already to the destination do not do anything.
+                // This should not happen if the renew task was correctly scheduled. Add the check just in case that the renew task was not scheduled in time and a different process already processed the file.
                 if (!(await blob.ExistsAsync()))
                 {
-                    resultStream.Commit();
-                    _logger.LogInformation("WriteAsync: End write to {DestinationFileName}", destinationFileName);
-                    return true;
+                    // Do not use using to not automatically commit on dispose
+                    // https://github.com/Azure/azure-storage-net/issues/832
+                    var resultStream = await blob.OpenWriteAsync();
+                    if (destinationContentType == ContentType.GZip)
+                    {
+                        using (var resultGzipStream = new GZipOutputStream(resultStream))
+                        {
+                            resultGzipStream.IsStreamOwner = false;
+                            writeAction(inputStream, resultGzipStream);
+                            await resultGzipStream.FlushAsync();
+                        }
+                    }
+                    else
+                    {
+                        writeAction(inputStream, resultStream);
+                    }
+                    if (!(await blob.ExistsAsync()))
+                    {
+                        resultStream.Commit();
+                        _logger.LogInformation("WriteAsync: End write to {DestinationFileName}", destinationFileName);
+                        return new AsyncOperationResult(true, null);
+                    }
                 }
+                _logger.LogInformation("WriteAsync: The destination file {DestinationFileName}, was already present.", destinationFileName);
+                return new AsyncOperationResult(false, null);
             }
-            _logger.LogInformation("WriteAsync: The destination file {DestinationFileName}, was already present.", destinationFileName);
-            return false;
+            catch (Exception exception)
+            {
+                _logger.LogCritical(LogEvents.FailedBlobUpload, exception, "WriteAsync: The destination file {DestinationFileName}, failed to be written.", destinationFileName);
+                return new AsyncOperationResult(null, exception);
+            }
         }
 
         private string GetContentType(ContentType contentType)
