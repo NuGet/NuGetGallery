@@ -62,6 +62,11 @@
     <None Include="Stats.CDNLogsSanitizer.nuspec" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="MicroBuild.Core">
+      <Version>0.3.0</Version>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Logging">
       <Version>1.0.0</Version>
     </PackageReference>
