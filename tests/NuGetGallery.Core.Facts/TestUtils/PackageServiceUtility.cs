@@ -126,7 +126,9 @@ namespace NuGetGallery.TestUtils
             Func<string> getCustomNuspecNodes = null,
             string licenseExpression = null,
             string licenseFilename = null,
-            byte[] licenseFileContents = null)
+            byte[] licenseFileContents = null,
+            string iconFilename = null,
+            byte[] iconFileBinaryContents = null)
         {
             if (packageDependencyGroups == null)
             {
@@ -188,7 +190,9 @@ namespace NuGetGallery.TestUtils
                 getCustomNuspecNodes: getCustomNuspecNodes,
                 licenseExpression: licenseExpression,
                 licenseFilename: licenseFilename,
-                licenseFileContents: licenseFileContents);
+                licenseFileContents: licenseFileContents,
+                iconFilename: iconFilename,
+                iconFileContents: iconFileBinaryContents);
         }
 
         public static PackageArchiveReader CreateArchiveReader(Stream stream)

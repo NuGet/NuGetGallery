@@ -458,7 +458,7 @@ namespace NuGetGallery
             [InlineData(true, true)]
             public async Task HandlesMissingLicenseAccordingToSettings(bool allowLicenselessPackages, bool expectedSuccess)
             {
-                _nuGetPackage = GeneratePackageWithLicense(licenseUrl: null, licenseExpression: null, licenseFilename: null);
+                _nuGetPackage = GeneratePackageWithUserContent(licenseUrl: null, licenseExpression: null, licenseFilename: null);
                 _config
                     .Setup(x => x.AllowLicenselessPackages)
                     .Returns(allowLicenselessPackages);
@@ -493,7 +493,7 @@ namespace NuGetGallery
             [InlineData(RegularLicenseUrl)]
             public async Task RejectsPackageWithBothLicenseExpressionAndFile(string licenseUrl)
             {
-                _nuGetPackage = GeneratePackageWithLicense(
+                _nuGetPackage = GeneratePackageWithUserContent(
                     licenseExpression: "MIT",
                     licenseFilename: "license.txt",
                     licenseUrl: licenseUrl == null ? null : new Uri(licenseUrl));
@@ -511,7 +511,7 @@ namespace NuGetGallery
             [InlineData(true, false)]
             public async Task HandlesLegacyLicenseUrlPackageAccordingToSettings(bool blockLegacyLicenseUrl, bool expectedSuccess)
             {
-                _nuGetPackage = GeneratePackageWithLicense(licenseUrl: new Uri(RegularLicenseUrl), licenseExpression: null, licenseFilename: null);
+                _nuGetPackage = GeneratePackageWithUserContent(licenseUrl: new Uri(RegularLicenseUrl), licenseExpression: null, licenseFilename: null);
                 _config
                     .Setup(x => x.BlockLegacyLicenseUrl)
                     .Returns(blockLegacyLicenseUrl);
@@ -540,7 +540,7 @@ namespace NuGetGallery
             [Fact]
             public async Task RejectsLicenseDeprecationUrlWithoutLicense()
             {
-                _nuGetPackage = GeneratePackageWithLicense(licenseUrl: new Uri(LicenseDeprecationUrl), licenseExpression: null, licenseFilename: null);
+                _nuGetPackage = GeneratePackageWithUserContent(licenseUrl: new Uri(LicenseDeprecationUrl), licenseExpression: null, licenseFilename: null);
 
                 var result = await _target.ValidateBeforeGeneratePackageAsync(
                     _nuGetPackage.Object,
@@ -556,7 +556,7 @@ namespace NuGetGallery
             [InlineData(RegularLicenseUrl)]
             public async Task RejectsAlternativeLicenseUrlForLicenseFiles(string licenseUrl)
             {
-                _nuGetPackage = GeneratePackageWithLicense(
+                _nuGetPackage = GeneratePackageWithUserContent(
                     licenseUrl: licenseUrl == null ? null : new Uri(licenseUrl),
                     licenseExpression: null,
                     licenseFilename: "license.txt",
@@ -580,7 +580,7 @@ namespace NuGetGallery
             [InlineData("MIT", "Apache-1.0%2B+OR+MIT")]
             public async Task RejectsAlternativeLicenseUrlForLicenseExpressions(string licenseExpression, string licenseUrlPostfix)
             {
-                _nuGetPackage = GeneratePackageWithLicense(
+                _nuGetPackage = GeneratePackageWithUserContent(
                     licenseUrl: new Uri($"https://licenses.nuget.org/{licenseUrlPostfix}"),
                     licenseExpression: licenseExpression,
                     licenseFilename: null,
@@ -600,7 +600,7 @@ namespace NuGetGallery
             [InlineData(RegularLicenseUrl)]
             public async Task ErrorsWhenInvalidLicenseUrlSpecifiedWithLicenseExpression(string licenseUrl)
             {
-                _nuGetPackage = GeneratePackageWithLicense(
+                _nuGetPackage = GeneratePackageWithUserContent(
                     licenseUrl: licenseUrl == null ? null : new Uri(licenseUrl),
                     licenseExpression: "MIT",
                     licenseFilename: null);
@@ -618,7 +618,7 @@ namespace NuGetGallery
             [Fact]
             public async Task RejectsUnlicensedPackages()
             {
-                _nuGetPackage = GeneratePackageWithLicense(licenseUrl: new Uri(LicenseDeprecationUrl), licenseExpression: "UNLICENSED", licenseFilename: null);
+                _nuGetPackage = GeneratePackageWithUserContent(licenseUrl: new Uri(LicenseDeprecationUrl), licenseExpression: "UNLICENSED", licenseFilename: null);
 
                 var result = await _target.ValidateBeforeGeneratePackageAsync(
                     _nuGetPackage.Object,
@@ -649,7 +649,7 @@ namespace NuGetGallery
             [InlineData("(EUPL-1.1+ OR (SPL-1.0 WITH Nokia-Qt-exception-1.1) AND Sleepycat)", true)]
             public async Task ChecksLicenseExpressionCorrectness(string licenseExpression, bool expectedSuccess)
             {
-                _nuGetPackage = GeneratePackageWithLicense(licenseUrl: GetLicenseExpressionDeprecationUrl(licenseExpression), licenseExpression: licenseExpression, licenseFilename: null);
+                _nuGetPackage = GeneratePackageWithUserContent(licenseUrl: GetLicenseExpressionDeprecationUrl(licenseExpression), licenseExpression: licenseExpression, licenseFilename: null);
 
                 var result = await _target.ValidateBeforeGeneratePackageAsync(
                     _nuGetPackage.Object,
@@ -675,7 +675,7 @@ namespace NuGetGallery
             [InlineData("mit")]
             public async Task RejectsUnknownLicense(string licenseExpression)
             {
-                _nuGetPackage = GeneratePackageWithLicense(licenseUrl: new Uri(LicenseDeprecationUrl), licenseExpression: licenseExpression, licenseFilename: null);
+                _nuGetPackage = GeneratePackageWithUserContent(licenseUrl: new Uri(LicenseDeprecationUrl), licenseExpression: licenseExpression, licenseFilename: null);
 
                 var result = await _target.ValidateBeforeGeneratePackageAsync(
                     _nuGetPackage.Object,
@@ -698,7 +698,7 @@ namespace NuGetGallery
             public async Task RejectsNonOsiFsfLicenses(string licenseExpression, string[] unapprovedLicenses)
             {
                 var licenseUri = new Uri($"https://licenses.nuget.org/{licenseExpression}");
-                _nuGetPackage = GeneratePackageWithLicense(licenseUrl: licenseUri, licenseExpression: licenseExpression, licenseFilename: null);
+                _nuGetPackage = GeneratePackageWithUserContent(licenseUrl: licenseUri, licenseExpression: licenseExpression, licenseFilename: null);
 
                 var result = await _target.ValidateBeforeGeneratePackageAsync(
                     _nuGetPackage.Object,
@@ -719,7 +719,7 @@ namespace NuGetGallery
             [InlineData("GPL-1.0+")]
             public async Task RejectsDeprecatedLicense(string licenseName)
             {
-                _nuGetPackage = GeneratePackageWithLicense(licenseUrl: new Uri(LicenseDeprecationUrl), licenseExpression: licenseName, licenseFilename: null);
+                _nuGetPackage = GeneratePackageWithUserContent(licenseUrl: new Uri(LicenseDeprecationUrl), licenseExpression: licenseName, licenseFilename: null);
 
                 var result = await _target.ValidateBeforeGeneratePackageAsync(
                     _nuGetPackage.Object,
@@ -735,7 +735,7 @@ namespace NuGetGallery
             {
                 const string licenseFileName = "license.txt";
 
-                _nuGetPackage = GeneratePackageWithLicense(
+                _nuGetPackage = GeneratePackageWithUserContent(
                     licenseUrl: new Uri(LicenseDeprecationUrl),
                     licenseExpression: null,
                     licenseFilename: licenseFileName,
@@ -764,7 +764,7 @@ namespace NuGetGallery
             {
                 string licenseFileName = $"sdfzklgj{extension}";
 
-                _nuGetPackage = GeneratePackageWithLicense(
+                _nuGetPackage = GeneratePackageWithUserContent(
                     licenseUrl: new Uri(LicenseDeprecationUrl),
                     licenseExpression: null,
                     licenseFilename: licenseFileName,
@@ -803,7 +803,7 @@ namespace NuGetGallery
             [MemberData(nameof(RejectsBinaryLicenseFiles_Smoke))]
             public async Task RejectsBinaryLicenseFiles(byte[] licenseFileContent, bool expectedFailure)
             {
-                _nuGetPackage = GeneratePackageWithLicense(
+                _nuGetPackage = GeneratePackageWithUserContent(
                     licenseUrl: new Uri(LicenseDeprecationUrl),
                     licenseExpression: null,
                     licenseFilename: "license.txt",
@@ -863,7 +863,7 @@ namespace NuGetGallery
                 _config
                     .SetupGet(x => x.RejectPackagesWithLicense)
                     .Returns(rejectPackagesWithLicense);
-                _nuGetPackage = GeneratePackageWithLicense(getCustomNuspecNodes: () => licenseNode);
+                _nuGetPackage = GeneratePackageWithUserContent(getCustomNuspecNodes: () => licenseNode);
 
                 var result = await _target.ValidateBeforeGeneratePackageAsync(
                     _nuGetPackage.Object,
@@ -895,7 +895,7 @@ namespace NuGetGallery
                     licenseTextBuilder.AppendLine("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.");
                 }
 
-                _nuGetPackage = GeneratePackageWithLicense(
+                _nuGetPackage = GeneratePackageWithUserContent(
                     licenseUrl: new Uri(LicenseDeprecationUrl),
                     licenseFilename: "license.txt",
                     licenseFileContents: licenseTextBuilder.ToString());
@@ -920,7 +920,7 @@ namespace NuGetGallery
             [InlineData("<license type='expression'>M<I>I</I>T</license>")]
             public async Task RejectsLicensesWithChildNodes(string licenseNodeText)
             {
-                _nuGetPackage = GeneratePackageWithLicense(getCustomNuspecNodes: () => licenseNodeText);
+                _nuGetPackage = GeneratePackageWithUserContent(getCustomNuspecNodes: () => licenseNodeText);
 
                 var result = await _target.ValidateBeforeGeneratePackageAsync(
                     _nuGetPackage.Object,
@@ -939,7 +939,7 @@ namespace NuGetGallery
             [InlineData("2.0.0", false)]
             public async Task RejectsPackagesWithInvalidLicenseVersion(string version, bool expectedSuccess)
             {
-                _nuGetPackage = GeneratePackageWithLicense(
+                _nuGetPackage = GeneratePackageWithUserContent(
                     licenseUrl: new Uri("https://licenses.nuget.org/MIT"),
                     getCustomNuspecNodes: () => $"<license type='expression' version='{version}'>MIT</license>");
 
@@ -971,7 +971,7 @@ namespace NuGetGallery
             [MemberData(nameof(LongLicenseNodeValues_Input))]
             public async Task RejectsLongLicenseNodeValues(string licenseNodeValue)
             {
-                _nuGetPackage = GeneratePackageWithLicense(
+                _nuGetPackage = GeneratePackageWithUserContent(
                     licenseUrl: new Uri(LicenseDeprecationUrl),
                     getCustomNuspecNodes: () => licenseNodeValue);
 
@@ -1070,7 +1070,7 @@ namespace NuGetGallery
             [InlineData("<license type='foo'>bar</license>")]
             public async Task RejectsNupkgsWithUnknownLicenseTypes(string licenseNode)
             {
-                _nuGetPackage = GeneratePackageWithLicense(
+                _nuGetPackage = GeneratePackageWithUserContent(
                     licenseUrl: new Uri(LicenseDeprecationUrl),
                     getCustomNuspecNodes: () => licenseNode);
 
@@ -1090,7 +1090,7 @@ namespace NuGetGallery
             [InlineData("./license/lessthing.txt")]
             public async Task AcceptsLicenseFileInSubdirectories(string licensePath)
             {
-                _nuGetPackage = GeneratePackageWithLicense(
+                _nuGetPackage = GeneratePackageWithUserContent(
                     licenseFilename: licensePath,
                     licenseUrl: new Uri(LicenseDeprecationUrl),
                     licenseFileContents: "some license");
@@ -1104,6 +1104,20 @@ namespace NuGetGallery
                 Assert.Empty(result.Warnings);
             }
 
+            [Fact]
+            public async Task RejectsPackagesWithEmbeddedIcon()
+            {
+                _nuGetPackage = GeneratePackageWithUserContent(
+                    iconFilename: "icon.png",
+                    iconFileBinaryContents: new byte[] { 1, 2, 3 });
+
+                var result = await _target.ValidateBeforeGeneratePackageAsync(
+                    _nuGetPackage.Object,
+                    GetPackageMetadata(_nuGetPackage));
+
+                Assert.Equal(PackageValidationResultType.Invalid, result.Type);
+                Assert.Contains("icon", result.Message.PlainTextMessage);
+            }
 
             /// <summary>
             /// A (quite ineffective) method to search for a sequence in an array
@@ -1769,7 +1783,7 @@ namespace NuGetGallery
                 _package.PackageStatusKey = packageStatus;
                 _package.EmbeddedLicenseType = EmbeddedLicenseFileType.PlainText;
 
-                _packageFile = GeneratePackageWithLicense(licenseFilename: "license.txt", licenseFileContents: "some license").Object.GetStream();
+                _packageFile = GeneratePackageWithUserContent(licenseFilename: "license.txt", licenseFileContents: "some license").Object.GetStream();
 
                 var result = await _target.CommitPackageAsync(_package, _packageFile);
 
@@ -1787,7 +1801,7 @@ namespace NuGetGallery
                 _package.EmbeddedLicenseType = EmbeddedLicenseFileType.PlainText;
                 _package.NormalizedVersion = "3.2.1";
 
-                _packageFile = GeneratePackageWithLicense(licenseFilename: "license.txt", licenseFileContents: "some license").Object.GetStream();
+                _packageFile = GeneratePackageWithUserContent(licenseFilename: "license.txt", licenseFileContents: "some license").Object.GetStream();
 
                 _packageFileService
                     .Setup(pfs => pfs.SavePackageFileAsync(_package, It.IsAny<Stream>()))
@@ -1812,7 +1826,7 @@ namespace NuGetGallery
                 _package.EmbeddedLicenseType = EmbeddedLicenseFileType.PlainText;
                 _package.NormalizedVersion = "3.2.1";
 
-                _packageFile = GeneratePackageWithLicense(licenseFilename: "license.txt", licenseFileContents: "some license").Object.GetStream();
+                _packageFile = GeneratePackageWithUserContent(licenseFilename: "license.txt", licenseFileContents: "some license").Object.GetStream();
 
                 _entitiesContext
                     .Setup(ec => ec.SaveChangesAsync())
@@ -1897,7 +1911,7 @@ namespace NuGetGallery
                 bool isSigned = true,
                 int? desiredTotalEntryCount = null,
                 Func<string> getCustomNuspecNodes = null)
-                => GeneratePackageWithLicense(
+                => GeneratePackageWithUserContent(
                     version: version,
                     repositoryMetadata: repositoryMetadata,
                     isSigned: isSigned,
@@ -1909,7 +1923,7 @@ namespace NuGetGallery
                     licenseFileContents: null,
                     licenseFileBinaryContents: null);
 
-            protected static Mock<TestPackageReader> GeneratePackageWithLicense(
+            protected static Mock<TestPackageReader> GeneratePackageWithUserContent(
                 string version = "1.2.3-alpha.0",
                 RepositoryMetadata repositoryMetadata = null,
                 bool isSigned = true,
@@ -1919,7 +1933,9 @@ namespace NuGetGallery
                 string licenseExpression = null,
                 string licenseFilename = null,
                 string licenseFileContents = null,
-                byte[] licenseFileBinaryContents = null)
+                byte[] licenseFileBinaryContents = null,
+                string iconFilename = null,
+                byte[] iconFileBinaryContents = null)
             {
                 var packageStream = GeneratePackageStream(
                     version: version,
@@ -1931,7 +1947,9 @@ namespace NuGetGallery
                     licenseExpression: licenseExpression,
                     licenseFilename: licenseFilename,
                     licenseFileContents: licenseFileContents,
-                    licenseFileBinaryContents: licenseFileBinaryContents);
+                    licenseFileBinaryContents: licenseFileBinaryContents,
+                    iconFilename: iconFilename,
+                    iconFileBinaryContents: iconFileBinaryContents);
 
                 return PackageServiceUtility.CreateNuGetPackage(packageStream);
             }
@@ -1946,7 +1964,9 @@ namespace NuGetGallery
                 string licenseExpression = null,
                 string licenseFilename = null,
                 string licenseFileContents = null,
-                byte[] licenseFileBinaryContents = null)
+                byte[] licenseFileBinaryContents = null,
+                string iconFilename = null,
+                byte[] iconFileBinaryContents = null)
             {
                 return PackageServiceUtility.CreateNuGetPackageStream(
                     id: "theId",
@@ -1958,7 +1978,9 @@ namespace NuGetGallery
                     licenseUrl: licenseUrl,
                     licenseExpression: licenseExpression,
                     licenseFilename: licenseFilename,
-                    licenseFileContents: GetBinaryLicenseFileContents(licenseFileBinaryContents, licenseFileContents));
+                    licenseFileContents: GetBinaryLicenseFileContents(licenseFileBinaryContents, licenseFileContents),
+                    iconFilename: iconFilename,
+                    iconFileBinaryContents: iconFileBinaryContents);
             }
 
             private static byte[] GetBinaryLicenseFileContents(byte[] binaryContents, string stringContents)

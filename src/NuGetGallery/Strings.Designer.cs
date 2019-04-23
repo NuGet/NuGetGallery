@@ -2400,6 +2400,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The &lt;icon&gt; element is not currently supported..
+        /// </summary>
+        public static string UploadPackage_EmbeddedIconNotAccepted {
+            get {
+                return ResourceManager.GetString("UploadPackage_EmbeddedIconNotAccepted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to This package ID has been reserved. Please request access to upload to this reserved namespace from the owner of the reserved prefix, or re-upload the package with a different ID..
         /// </summary>
         public static string UploadPackage_IdNamespaceConflict {

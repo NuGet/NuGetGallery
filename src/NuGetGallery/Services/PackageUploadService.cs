@@ -47,6 +47,7 @@ namespace NuGetGallery
         private const long MaxAllowedLicenseLengthForUploading = 1024 * 1024; // 1 MB
         private const int MaxAllowedLicenseNodeValueLength = 500;
         private const string LicenseNodeName = "license";
+        private const string IconNodeName = "icon";
         private const string AllowedLicenseVersion = "1.0.0";
         private const string Unlicensed = "UNLICENSED";
 
@@ -183,6 +184,11 @@ namespace NuGetGallery
             var licenseUrl = nuspecReader.GetLicenseUrl();
             var licenseMetadata = nuspecReader.GetLicenseMetadata();
             var licenseDeprecationUrl = GetExpectedLicenseUrl(licenseMetadata);
+
+            if (nuspecReader.IconExists)
+            {
+                return PackageValidationResult.Invalid(Strings.UploadPackage_EmbeddedIconNotAccepted);
+            }
 
             if (licenseMetadata == null)
             {
@@ -443,6 +449,7 @@ namespace NuGetGallery
             }
 
             public XElement LicenseElement => MetadataNode.Element(MetadataNode.Name.Namespace + LicenseNodeName);
+            public bool IconExists => MetadataNode.Element(MetadataNode.Name.Namespace + IconNodeName) != null;
         }
 
         private async Task<PackageValidationResult> CheckPackageEntryCountAsync(
