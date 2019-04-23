@@ -369,12 +369,6 @@ namespace NuGetGallery
             // To support the delete account scenario, the admin can delete the last owner of a package.
             package.Owners.Remove(user);
 
-            // If the package's required signer is the user, remove them.
-            if (package.RequiredSigners.Any(s => s.MatchesUser(user)))
-            {
-                await SetRequiredSignerAsync(package, null, false);
-            }
-
             if (commitChanges)
             {
                 await _packageRepository.CommitChangesAsync();

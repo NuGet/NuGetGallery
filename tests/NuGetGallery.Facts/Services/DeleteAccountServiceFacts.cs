@@ -128,7 +128,6 @@ namespace NuGetGallery.Services
                 if (orphanPolicy == AccountDeletionOrphanPackagePolicy.DoNotAllowOrphans && isPackageOrphaned)
                 {
                     Assert.True(registration.Owners.Any(o => o.MatchesUser(testUser)));
-                    Assert.True(registration.RequiredSigners.Any(o => o.MatchesUser(testUser)));
                     Assert.NotEmpty(testUser.SecurityPolicies);
                     Assert.True(registration.Packages.Single().Listed);
                     Assert.NotNull(testUser.EmailAddress);
@@ -146,7 +145,6 @@ namespace NuGetGallery.Services
                 else
                 {
                     Assert.False(registration.Owners.Any(o => o.MatchesUser(testUser)));
-                    Assert.Empty(registration.RequiredSigners);
                     Assert.Empty(testUser.SecurityPolicies);
                     Assert.Equal(
                         orphanPolicy == AccountDeletionOrphanPackagePolicy.UnlistOrphans && isPackageOrphaned,
@@ -240,7 +238,6 @@ namespace NuGetGallery.Services
 
                 PackageRegistration registration = new PackageRegistration();
                 registration.Owners.Add(organization);
-                registration.RequiredSigners.Add(organization);
 
                 Package p = new Package()
                 {
@@ -265,7 +262,6 @@ namespace NuGetGallery.Services
                     Assert.False(status.Success);
                     Assert.Equal(organization.Confirmed, organization.EmailAddress != null);
                     Assert.True(registration.Owners.Any(o => o.MatchesUser(organization)));
-                    Assert.True(registration.RequiredSigners.Any(o => o.MatchesUser(organization)));
                     Assert.NotEmpty(organization.SecurityPolicies);
                     Assert.NotNull(testableService.PackagePushedByUser.User);
                     Assert.NotNull(testableService.DeprecationDeprecatedByUser.DeprecatedByUser);
@@ -283,7 +279,6 @@ namespace NuGetGallery.Services
                         orphanPolicy == AccountDeletionOrphanPackagePolicy.UnlistOrphans && isPackageOrphaned,
                         !registration.Packages.Single().Listed);
                     Assert.False(registration.Owners.Any(o => o.MatchesUser(organization)));
-                    Assert.Empty(registration.RequiredSigners);
                     Assert.Empty(organization.SecurityPolicies);
                     Assert.Null(testableService.PackagePushedByUser.User);
                     Assert.Null(testableService.DeprecationDeprecatedByUser.DeprecatedByUser);
@@ -323,7 +318,6 @@ namespace NuGetGallery.Services
 
                 PackageRegistration registration = new PackageRegistration();
                 registration.Owners.Add(organization);
-                registration.RequiredSigners.Add(organization);
 
                 Package p = new Package()
                 {
@@ -346,8 +340,6 @@ namespace NuGetGallery.Services
                 Assert.True(status.Success);
                 Assert.Null(testableService.User);
                 Assert.Empty(registration.Owners);
-                Assert.Empty(registration.RequiredSigners);
-                Assert.Empty(registration.RequiredSigners);
                 Assert.Empty(organization.SecurityPolicies);
                 Assert.Empty(organization.ReservedNamespaces);
                 Assert.Null(testableService.PackagePushedByUser.User);
@@ -406,7 +398,6 @@ namespace NuGetGallery.Services
 
                 registration = new PackageRegistration();
                 registration.Owners.Add(testUser);
-                registration.RequiredSigners.Add(testUser);
 
                 var p = new Package()
                 {
@@ -789,7 +780,6 @@ namespace NuGetGallery.Services
                         {
                             _userPackagesRegistration.Owners.Remove(_user);
                             _userPackagesRegistration.ReservedNamespaces.Remove(_reservedNamespace);
-                            _userPackagesRegistration.RequiredSigners.Clear();
                         });
 
                     packageOwnershipManagementService.Setup(m => m.GetPackageOwnershipRequests(null, null, _user))
