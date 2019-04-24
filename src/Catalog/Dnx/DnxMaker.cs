@@ -63,7 +63,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             var storage = _storageFactory.Create(packageId);
             var nuspecUri = await SaveNuspecAsync(storage, packageId, normalizedPackageVersion, nuspec, cancellationToken);
             var nupkgUri = await SaveNupkgAsync(nupkgStream, storage, packageId, normalizedPackageVersion, cancellationToken);
-            // TODO: copy Icon for the HTTP source case
+            nupkgStream.Seek(0, SeekOrigin.Begin);
             await CopyIconFromNupkgStreamAsync(nupkgStream, nuspec, storage, packageId, normalizedPackageVersion, cancellationToken);
 
             return new DnxEntry(nupkgUri, nuspecUri);
