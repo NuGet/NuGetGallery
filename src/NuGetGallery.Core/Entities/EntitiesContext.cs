@@ -23,13 +23,7 @@ namespace NuGetGallery
         public static Func<EntitiesContext> EntitiesContextFactory;
         public EntitiesContext Create()
         {
-            var entitiesContextFactory = EntitiesContextFactory;
-            if (entitiesContextFactory != null)
-            {
-                return entitiesContextFactory();
-            }
-
-            return new EntitiesContext("Gallery.SqlServer", false);
+            return EntitiesContextFactory == null ? new EntitiesContext("Gallery.SqlServer", false) : EntitiesContextFactory();
         }
     }
 
