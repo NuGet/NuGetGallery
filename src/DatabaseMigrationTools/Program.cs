@@ -3,7 +3,7 @@
 
 using NuGet.Jobs;
 
-namespace DatabaseMigrationTools
+namespace NuGetGallery.DatabaseMigrationTools
 {
     class Program
     {

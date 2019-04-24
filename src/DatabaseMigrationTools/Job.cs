@@ -12,12 +12,11 @@ using System.Linq;
 using System.Reflection;
 using System.Data.SqlClient;
 using System.Data.Entity.Migrations;
-using NuGetGallery;
 using NuGetGallery.Migrations;
 using NuGet.Jobs;
 using NuGet.Jobs.Configuration;
 
-namespace DatabaseMigrationTools
+namespace NuGetGallery.DatabaseMigrationTools
 {
     class Job : JsonConfigurationJob
     {
@@ -25,27 +24,43 @@ namespace DatabaseMigrationTools
         {
             using (var sqlConnection = await _serviceProvider.GetRequiredService<ISqlConnectionFactory<GalleryDbConfiguration>>().CreateAsync())
             {
-                var accessToken = sqlConnection.AccessToken;
-                DbContextFactory.EntitiesContextFactory = () =>
-                {
-                    if (sqlConnection.State == ConnectionState.Closed)
-                    {
-                        sqlConnection.AccessToken = accessToken;
-                    }
-
-                    return new EntitiesContext(sqlConnection, true);
-                };
-
-                Logger.LogInformation("Initializing DbMigrator...");
-                var migrationsConfiguration = new MigrationsConfiguration();
-                var migrator = new DbMigrator(migrationsConfiguration);
-
-                ExecuteDatabaseMigration(migrator, sqlConnection, accessToken);
+                RunDatabaseMigration(sqlConnection, sqlConnection.AccessToken);
             }
+        }
+
+        private void RunDatabaseMigration(SqlConnection sqlConnection, string accessToken)
+        {
+            SetDbContextFactory(sqlConnection, accessToken);
+            var migrator = SetDbMigrator();
+
+            ExecuteDatabaseMigration(migrator, sqlConnection, accessToken);
+        }
+
+        private DbMigrator SetDbMigrator()
+        {
+            Logger.LogInformation("Initializing DbMigrator...");
+            var migrationsConfiguration = new MigrationsConfiguration();
+            return new DbMigrator(migrationsConfiguration);
+        }
+
+        private void SetDbContextFactory(SqlConnection sqlConnection, string accessToken)
+        {
+            // Reset the access token if the connection is closed to ensure connection authorization.
+            DbContextFactory.EntitiesContextFactory = () =>
+            {
+                if (sqlConnection.State == ConnectionState.Closed)
+                {
+                    sqlConnection.AccessToken = accessToken;
+                }
+
+                return new EntitiesContext(sqlConnection, true);
+            };
         }
 
         private void ExecuteDatabaseMigration(DbMigrator migrator, SqlConnection sqlConnection, string accessToken)
         {
+            // Overwrite the database connection of DbMigrator.
+            // Consider updating this section when the new Entity Framework 6.3 or higher version is released.
             var historyRepository = typeof(DbMigrator).GetField(
                                     "_historyRepository",
                                     BindingFlags.NonPublic | BindingFlags.Instance)
@@ -62,13 +77,13 @@ namespace DatabaseMigrationTools
             var pendingMigrations = migrator.GetPendingMigrations();
             if (pendingMigrations.Count() > 0)
             {
-                Logger.LogInformation("Execute the pending migrations: \n {PendingMigrations}", String.Join("\n", pendingMigrations));
+                Logger.LogInformation("Executing pending migrations: \n {PendingMigrations}", String.Join("\n", pendingMigrations));
                 migrator.Update();
-                Logger.LogInformation("Finish executing {pendingMigrationsCount} migrations successfully.", pendingMigrations.Count());
+                Logger.LogInformation("Finished executing {pendingMigrationsCount} migrations successfully.", pendingMigrations.Count());
             }
             else
             {
-                Logger.LogInformation("No pending migrations to be executed.");
+                Logger.LogInformation("There are no pending migrations to execute.");
             }
         }
 
