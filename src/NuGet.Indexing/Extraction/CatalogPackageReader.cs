@@ -87,5 +87,20 @@ namespace NuGet.Indexing
         {
             throw new NotImplementedException();
         }
+
+        public override bool CanVerifySignedPackages(SignedPackageVerifierSettings verifierSettings)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override string GetContentHashForSignedPackage(CancellationToken token)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override string GetContentHash(CancellationToken token)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

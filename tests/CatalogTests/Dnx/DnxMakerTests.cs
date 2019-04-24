@@ -314,7 +314,7 @@ namespace CatalogTests.Dnx
 
             var exception = await Assert.ThrowsAsync<ArgumentException>(
                 () => maker.AddPackageAsync(
-                    Mock.Of<IStorage>(),
+                    Mock.Of<IAzureStorage>(),
                     nuspec,
                     packageId: "a",
                     normalizedPackageVersion: "b",
@@ -333,7 +333,7 @@ namespace CatalogTests.Dnx
 
             var exception = await Assert.ThrowsAsync<ArgumentException>(
                 () => maker.AddPackageAsync(
-                    Mock.Of<IStorage>(),
+                    Mock.Of<IAzureStorage>(),
                     nuspec: "a",
                     packageId: id,
                     normalizedPackageVersion: "b",
@@ -352,7 +352,7 @@ namespace CatalogTests.Dnx
 
             var exception = await Assert.ThrowsAsync<ArgumentException>(
                 () => maker.AddPackageAsync(
-                    Mock.Of<IStorage>(),
+                    Mock.Of<IAzureStorage>(),
                     nuspec: "a",
                     packageId: "b",
                     normalizedPackageVersion: version,
@@ -369,7 +369,7 @@ namespace CatalogTests.Dnx
 
             await Assert.ThrowsAsync<OperationCanceledException>(
                 () => maker.AddPackageAsync(
-                    Mock.Of<IStorage>(),
+                    Mock.Of<IAzureStorage>(),
                     nuspec: "a",
                     packageId: "b",
                     normalizedPackageVersion: "c",
