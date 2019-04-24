@@ -108,9 +108,9 @@ namespace NuGetGallery.Controllers
                     GetTryAddExistingErrorMessage(model));
             }
 
-            protected override Task<ActionResult> InvokeAsync(FeaturesController controller, ModifyFeatureFlagsFeatureViewModel model)
+            protected override Task<ActionResult> InvokeAsync(FeaturesController controller, IModifyFeatureFlagsViewModel model)
             {
-                return controller.AddFeature(model);
+                return controller.AddFeature(model as ModifyFeatureFlagsFeatureViewModel);
             }
         }
 
@@ -181,9 +181,9 @@ namespace NuGetGallery.Controllers
                     GetTryEditMissingErrorMessage(model));
             }
 
-            protected override Task<ActionResult> InvokeAsync(FeaturesController controller, ModifyFeatureFlagsFeatureViewModel model)
+            protected override Task<ActionResult> InvokeAsync(FeaturesController controller, IModifyFeatureFlagsViewModel model)
             {
-                return controller.EditFeature(model);
+                return controller.EditFeature(model as ModifyFeatureFlagsFeatureViewModel);
             }
         }
 
@@ -252,13 +252,13 @@ namespace NuGetGallery.Controllers
                     GetTryDeleteMissingErrorMessage(model));
             }
 
-            protected override Task<ActionResult> InvokeAsync(FeaturesController controller, ModifyFeatureFlagsFeatureViewModel model)
+            protected override Task<ActionResult> InvokeAsync(FeaturesController controller, IModifyFeatureFlagsViewModel model)
             {
-                return controller.DeleteFeature(model);
+                return controller.DeleteFeature(model as ModifyFeatureFlagsFeatureViewModel);
             }
         }
 
-        public abstract class FeatureBase : ModifyMethodBase<ModifyFeatureFlagsFeatureViewModel, FeatureFlagsFeatureViewModel>
+        public abstract class FeatureBase : ModifyMethodBase
         {
             protected override string PrettyName => "feature";
 
@@ -345,9 +345,9 @@ namespace NuGetGallery.Controllers
                     GetTryAddExistingErrorMessage(model));
             }
 
-            protected override Task<ActionResult> InvokeAsync(FeaturesController controller, ModifyFeatureFlagsFlightViewModel model)
+            protected override Task<ActionResult> InvokeAsync(FeaturesController controller, IModifyFeatureFlagsViewModel model)
             {
-                return controller.AddFlight(model);
+                return controller.AddFlight(model as ModifyFeatureFlagsFlightViewModel);
             }
         }
 
@@ -433,9 +433,9 @@ namespace NuGetGallery.Controllers
                     GetTryEditMissingErrorMessage(model));
             }
 
-            protected override Task<ActionResult> InvokeAsync(FeaturesController controller, ModifyFeatureFlagsFlightViewModel model)
+            protected override Task<ActionResult> InvokeAsync(FeaturesController controller, IModifyFeatureFlagsViewModel model)
             {
-                return controller.EditFlight(model);
+                return controller.EditFlight(model as ModifyFeatureFlagsFlightViewModel);
             }
         }
 
@@ -507,13 +507,13 @@ namespace NuGetGallery.Controllers
                     GetTryDeleteMissingErrorMessage(model));
             }
 
-            protected override Task<ActionResult> InvokeAsync(FeaturesController controller, ModifyFeatureFlagsFlightViewModel model)
+            protected override Task<ActionResult> InvokeAsync(FeaturesController controller, IModifyFeatureFlagsViewModel model)
             {
-                return controller.DeleteFlight(model);
+                return controller.DeleteFlight(model as ModifyFeatureFlagsFlightViewModel);
             }
         }
 
-        public abstract class FlightBase : ModifyMethodBase<ModifyFeatureFlagsFlightViewModel, FeatureFlagsFlightViewModel>
+        public abstract class FlightBase : ModifyMethodBase
         {
             public const string ExistingAccount = "account";
 
@@ -548,18 +548,16 @@ namespace NuGetGallery.Controllers
             }
         }
 
-        public abstract class ModifyMethodBase<TModify, TBase> : FeaturesControllerFactsBase
-            where TModify : IModifyFeatureFlagsViewModel<TBase>
-            where TBase : IFeatureFlagsObjectViewModel
+        public abstract class ModifyMethodBase : FeaturesControllerFactsBase
         {
             protected abstract string PrettyName { get; }
-            protected abstract Task<ActionResult> InvokeAsync(FeaturesController controller, TModify model);
+            protected abstract Task<ActionResult> InvokeAsync(FeaturesController controller, IModifyFeatureFlagsViewModel model);
 
             [Theory]
             [MemberData("ValidModelsWithLastUpdated_Data")]
             public async Task ReturnsViewWithChange(
                 bool hasLastUpdated,
-                TModify model,
+                IModifyFeatureFlagsViewModel model,
                 FeatureFlags flags)
             {
                 // Arrange
@@ -598,7 +596,7 @@ namespace NuGetGallery.Controllers
             [MemberData("ValidModelsWithLastUpdated_Data")]
             public Task ReturnsViewWithSaveErrorConflict(
                 bool hasLastUpdated,
-                TModify validModel,
+                IModifyFeatureFlagsViewModel validModel,
                 FeatureFlags flags)
             {
                 return ReturnsViewWithSaveErrorConflict(
@@ -612,7 +610,7 @@ namespace NuGetGallery.Controllers
             [MemberData("ValidModelsWithLastUpdated_Data")]
             public Task ReturnsViewWithSaveErrorUnknown(
                 bool hasLastUpdated,
-                TModify validModel,
+                IModifyFeatureFlagsViewModel validModel,
                 FeatureFlags flags)
             {
                 return ReturnsViewWithSaveErrorConflict(
@@ -624,7 +622,7 @@ namespace NuGetGallery.Controllers
 
             private async Task ReturnsViewWithSaveErrorConflict(
                 bool hasLastUpdated,
-                TModify validModel,
+                IModifyFeatureFlagsViewModel validModel,
                 FeatureFlagSaveResult saveResult,
                 string errorMessage)
             {
@@ -651,7 +649,7 @@ namespace NuGetGallery.Controllers
             [MemberData("ValidModelsWithLastUpdated_Data")]
             public Task ReturnsViewWithModelErrors(
                 bool hasLastUpdated,
-                TModify model,
+                IModifyFeatureFlagsViewModel model,
                 FeatureFlags flags) // I have kept this parameter to reduce the need to make another data function without it.
             {
                 var modelState = GetController<FeaturesController>().ModelState;
@@ -668,7 +666,7 @@ namespace NuGetGallery.Controllers
             [MemberData("ValidModelsWithLastUpdated_Data")]
             public Task ReturnsViewWithModelErrorWithNoMessage(
                 bool hasLastUpdated,
-                TModify model,
+                IModifyFeatureFlagsViewModel model,
                 FeatureFlags flags) // I have kept this parameter to reduce the need to make another data function without it.
             {
                 var modelState = GetController<FeaturesController>().ModelState;
@@ -680,18 +678,18 @@ namespace NuGetGallery.Controllers
                     "The model submitted was invalid.");
             }
 
-            protected string GetTryAddExistingErrorMessage(TModify model) =>
+            protected string GetTryAddExistingErrorMessage(IModifyFeatureFlagsViewModel model) =>
                 $"The {PrettyName} '{model.Name}' already exists. You cannot add a {PrettyName} that already exists.";
 
-            protected string GetTryEditMissingErrorMessage(TModify model) =>
+            protected string GetTryEditMissingErrorMessage(IModifyFeatureFlagsViewModel model) =>
                 $"The {PrettyName} '{model.Name}' does not exist. You cannot edit a {PrettyName} that does not exist.";
 
-            protected string GetTryDeleteMissingErrorMessage(TModify model) =>
+            protected string GetTryDeleteMissingErrorMessage(IModifyFeatureFlagsViewModel model) =>
                 $"The {PrettyName} '{model.Name}' does not exist. You cannot delete a {PrettyName} that does not exist.";
 
             protected async Task AssertFailure(
                 bool hasLastUpdated,
-                TModify model,
+                IModifyFeatureFlagsViewModel model,
                 string expectedMessage)
             {
                 // Arrange

@@ -5,14 +5,18 @@ using System.Collections.Generic;
 
 namespace NuGetGallery.Areas.Admin.ViewModels
 {
-    public interface IModifyFeatureFlagsViewModel<TBase> : IFeatureFlagsObjectViewModel
+    public interface IModifyFeatureFlagsViewModel<TBase> : IModifyFeatureFlagsViewModel
         where TBase : IFeatureFlagsObjectViewModel
+    {
+        void ApplyTo(TBase target);
+        List<TBase> GetExistingList(FeatureFlagsViewModel model);
+        string GetValidationError(IUserService userService);
+    }
+
+    public interface IModifyFeatureFlagsViewModel : IFeatureFlagsObjectViewModel
     {
         string ContentId { get; set; }
 
         string PrettyName { get; }
-        void ApplyTo(TBase target);
-        List<TBase> GetExistingList(FeatureFlagsViewModel model);
-        string GetValidationError(IUserService userService);
     }
 }
