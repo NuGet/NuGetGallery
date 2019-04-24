@@ -38,6 +38,11 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
                 throw new ArgumentNullException(nameof(nupkgStream));
             }
 
+            if (!nupkgStream.CanSeek)
+            {
+                throw new ArgumentException($"{nameof(nupkgStream)} must be seekable stream", nameof(nupkgStream));
+            }
+
             if (string.IsNullOrEmpty(nuspec))
             {
                 throw new ArgumentException(Strings.ArgumentMustNotBeNullOrEmpty, nameof(nuspec));
@@ -59,6 +64,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             var nuspecUri = await SaveNuspecAsync(storage, packageId, normalizedPackageVersion, nuspec, cancellationToken);
             var nupkgUri = await SaveNupkgAsync(nupkgStream, storage, packageId, normalizedPackageVersion, cancellationToken);
             // TODO: copy Icon for the HTTP source case
+            await CopyIconFromNupkgStreamAsync(nupkgStream, nuspec, storage, packageId, normalizedPackageVersion, cancellationToken);
 
             return new DnxEntry(nupkgUri, nuspecUri);
         }
@@ -273,6 +279,43 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             string nuspec,
             CancellationToken cancellationToken)
         {
+            await CopyIconAsync(
+                nuspec,
+                destinationStorage,
+                packageId,
+                normalizedPackageVersion,
+                cancellationToken,
+                () => GetPackageStreamAsync(sourceStorage, packageId, normalizedPackageVersion, cancellationToken),
+                disposeOfPackageStream: true);
+        }
+
+        private async Task CopyIconFromNupkgStreamAsync(
+            Stream nupkgStream,
+            string nuspec,
+            Storage destinationStorage,
+            string packageId,
+            string normalizedPackageVersion,
+            CancellationToken cancellationToken)
+        {
+            await CopyIconAsync(
+                nuspec,
+                destinationStorage,
+                packageId,
+                normalizedPackageVersion,
+                cancellationToken,
+                () => Task.FromResult(nupkgStream),
+                disposeOfPackageStream: false);
+        }
+
+        private async Task CopyIconAsync(
+            string nuspec,
+            Storage destinationStorage,
+            string packageId,
+            string normalizedPackageVersion,
+            CancellationToken cancellationToken,
+            Func<Task<Stream>> getPackageStream,
+            bool disposeOfPackageStream)
+        {
             using (var nuspecStream = new MemoryStream(Encoding.UTF8.GetBytes(nuspec)))
             {
                 var iconReader = new IconNuspecReader(nuspecStream);
@@ -285,26 +328,55 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
                 var iconPath = PathUtility.StripLeadingDirectorySeparators(iconReader.IconPath);
 
                 // TODO: check iconReader.GetIconUrl() and copy it to the flat container. Will be implemented in the future.
-                var packageFileName = PackageUtility.GetPackageFileName(packageId, normalizedPackageVersion);
-                var sourceUri = sourceStorage.ResolveUri(packageFileName);
                 var destinationRelativeUri = GetRelativeAddressIcon(packageId, normalizedPackageVersion);
                 var destinationUri = destinationStorage.ResolveUri(destinationRelativeUri);
 
-                var packageSourceBlob = await sourceStorage.GetCloudBlockBlobReferenceAsync(sourceUri);
-                using (var packageStream = await packageSourceBlob.GetStreamAsync(cancellationToken))
-                using (var zipArchive = new ZipArchive(packageStream, ZipArchiveMode.Read, leaveOpen: true))
+                if (disposeOfPackageStream)
                 {
-                    var iconEntry = zipArchive.Entries.FirstOrDefault(e => e.FullName.Equals(iconPath, StringComparison.InvariantCultureIgnoreCase));
-                    if (iconEntry != null)
+                    using (var packageStream = await getPackageStream())
                     {
-                        using (var iconStream = iconEntry.Open())
-                        {
-                            var iconContent = new StreamStorageContent(iconStream, GetIconContentType(iconPath), cacheControl: "max-age=120");
-                            await destinationStorage.SaveAsync(destinationUri, iconContent, cancellationToken);
-                        }
+                        await ExtractAndStoreIconAsync(packageStream, iconPath, destinationStorage, destinationUri, cancellationToken);
+                    }
+                }
+                else
+                {
+                    var packageStream = await getPackageStream();
+                    await ExtractAndStoreIconAsync(packageStream, iconPath, destinationStorage, destinationUri, cancellationToken);
+                }
+            }
+        }
+
+        private async Task ExtractAndStoreIconAsync(
+            Stream packageStream,
+            string iconPath,
+            Storage destinationStorage,
+            Uri destinationUri,
+            CancellationToken cancellationToken)
+        {
+            using (var zipArchive = new ZipArchive(packageStream, ZipArchiveMode.Read, leaveOpen: true))
+            {
+                var iconEntry = zipArchive.Entries.FirstOrDefault(e => e.FullName.Equals(iconPath, StringComparison.InvariantCultureIgnoreCase));
+                if (iconEntry != null)
+                {
+                    using (var iconStream = iconEntry.Open())
+                    {
+                        var iconContent = new StreamStorageContent(iconStream, GetIconContentType(iconPath), cacheControl: "max-age=120");
+                        await destinationStorage.SaveAsync(destinationUri, iconContent, cancellationToken);
                     }
                 }
             }
+        }
+
+        private async Task<Stream> GetPackageStreamAsync(
+            IAzureStorage sourceStorage,
+            string packageId,
+            string normalizedPackageVersion,
+            CancellationToken cancellationToken)
+        {
+            var packageFileName = PackageUtility.GetPackageFileName(packageId, normalizedPackageVersion);
+            var sourceUri = sourceStorage.ResolveUri(packageFileName);
+            var packageSourceBlob = await sourceStorage.GetCloudBlockBlobReferenceAsync(sourceUri);
+            return await packageSourceBlob.GetStreamAsync(cancellationToken);
         }
 
         private string GetIconContentType(string iconPath)
