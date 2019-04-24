@@ -276,16 +276,15 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             using (var nuspecStream = new MemoryStream(Encoding.UTF8.GetBytes(nuspec)))
             {
                 var iconReader = new IconNuspecReader(nuspecStream);
-                var iconPath = PathUtility.StripLeadingDirectorySeparators(iconReader.IconPath);
-
-                // TODO: check iconReader.GetIconUrl() and copy it to the flat container. Will be implemented in the future.
-
-                if (string.IsNullOrWhiteSpace(iconPath))
+                if (string.IsNullOrWhiteSpace(iconReader.IconPath))
                 {
                     // no embedded icon, bail out
                     return;
                 }
 
+                var iconPath = PathUtility.StripLeadingDirectorySeparators(iconReader.IconPath);
+
+                // TODO: check iconReader.GetIconUrl() and copy it to the flat container. Will be implemented in the future.
                 var packageFileName = PackageUtility.GetPackageFileName(packageId, normalizedPackageVersion);
                 var sourceUri = sourceStorage.ResolveUri(packageFileName);
                 var destinationRelativeUri = GetRelativeAddressIcon(packageId, normalizedPackageVersion);
@@ -295,11 +294,30 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
                 using (var packageStream = await packageSourceBlob.GetStreamAsync(cancellationToken))
                 using (var zipArchive = new ZipArchive(packageStream, ZipArchiveMode.Read, leaveOpen: true))
                 {
-                    zipArchive.GetEntry(iconPath);
+                    var iconEntry = zipArchive.Entries.FirstOrDefault(e => e.FullName.Equals(iconPath, StringComparison.InvariantCultureIgnoreCase));
+                    if (iconEntry != null)
+                    {
+                        using (var iconStream = iconEntry.Open())
+                        {
+                            var iconContent = new StreamStorageContent(iconStream, GetIconContentType(iconPath), cacheControl: "max-age=120");
+                            await destinationStorage.SaveAsync(destinationUri, iconContent, cancellationToken);
+                        }
+                    }
                 }
             }
+        }
 
-            throw new NotImplementedException();
+        private string GetIconContentType(string iconPath)
+        {
+            if (iconPath.EndsWith(".png", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return "image/png";
+            }
+            if (iconPath.EndsWith(".jpg", StringComparison.InvariantCultureIgnoreCase) || iconPath.EndsWith(".jpeg", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return "image/jpeg";
+            }
+            return "image/jpeg";
         }
 
         private async Task DeleteNuspecAsync(Storage storage, string id, string version, CancellationToken cancellationToken)
