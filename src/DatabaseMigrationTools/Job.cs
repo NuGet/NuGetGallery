@@ -24,51 +24,39 @@ namespace NuGetGallery.DatabaseMigrationTools
         {
             using (var sqlConnection = await _serviceProvider.GetRequiredService<ISqlConnectionFactory<GalleryDbConfiguration>>().CreateAsync())
             {
-                RunDatabaseMigration(sqlConnection, sqlConnection.AccessToken);
-            }
-        }
-
-        private void RunDatabaseMigration(SqlConnection sqlConnection, string accessToken)
-        {
-            SetDbContextFactory(sqlConnection, accessToken);
-            var migrator = SetDbMigrator();
-
-            ExecuteDatabaseMigration(migrator, sqlConnection, accessToken);
-        }
-
-        private DbMigrator SetDbMigrator()
-        {
-            Logger.LogInformation("Initializing DbMigrator...");
-            var migrationsConfiguration = new MigrationsConfiguration();
-            return new DbMigrator(migrationsConfiguration);
-        }
-
-        private void SetDbContextFactory(SqlConnection sqlConnection, string accessToken)
-        {
-            // Reset the access token if the connection is closed to ensure connection authorization.
-            DbContextFactory.EntitiesContextFactory = () =>
-            {
-                if (sqlConnection.State == ConnectionState.Closed)
+                var accessToken = sqlConnection.AccessToken;
+                DbContextFactory.EntitiesContextFactory = () =>
                 {
-                    sqlConnection.AccessToken = accessToken;
-                }
+                    if (sqlConnection.State == ConnectionState.Closed)
+                    {
+                        // Reset the access token if the connection is closed to ensure connection authorization.
+                        sqlConnection.AccessToken = accessToken;
+                    }
 
-                return new EntitiesContext(sqlConnection, true);
-            };
+                    return new EntitiesContext(sqlConnection, readOnly: false);
+                };
+
+                Logger.LogInformation("Initializing DbMigrator...");
+                var migrationsConfiguration = new MigrationsConfiguration();
+                var migrator = new DbMigrator(migrationsConfiguration);
+
+                ExecuteDatabaseMigration(migrator, sqlConnection, accessToken);
+            }
         }
 
         private void ExecuteDatabaseMigration(DbMigrator migrator, SqlConnection sqlConnection, string accessToken)
         {
             // Overwrite the database connection of DbMigrator.
+            // Hit the bug:  https://github.com/aspnet/EntityFramework6/issues/522
             // Consider updating this section when the new Entity Framework 6.3 or higher version is released.
             var historyRepository = typeof(DbMigrator).GetField(
-                                    "_historyRepository",
-                                    BindingFlags.NonPublic | BindingFlags.Instance)
-                                    .GetValue(migrator);
+                "_historyRepository",
+                BindingFlags.NonPublic | BindingFlags.Instance)
+                .GetValue(migrator);
 
             var connectionField = historyRepository.GetType().BaseType.GetField(
-                                        "_existingConnection",
-                                        BindingFlags.NonPublic | BindingFlags.Instance);
+                "_existingConnection",
+                BindingFlags.NonPublic | BindingFlags.Instance);
 
             sqlConnection.AccessToken = accessToken;
             sqlConnection.Open();
