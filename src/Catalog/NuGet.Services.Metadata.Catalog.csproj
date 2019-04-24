@@ -95,6 +95,7 @@
     <Compile Include="CatalogCommitUtilities.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="CreateCommitItemBatchesAsync.cs" />
+    <Compile Include="Dnx\IconNuspecReader.cs" />
     <Compile Include="FetchCatalogCommitsAsync.cs" />
     <Compile Include="FixPackageHashHandler.cs" />
     <Compile Include="Dnx\DnxConstants.cs" />
@@ -251,6 +252,9 @@
     <PackageReference Include="dotNetRDF">
       <Version>1.0.8.3533</Version>
     </PackageReference>
+    <PackageReference Include="NuGet.Packaging">
+      <Version>5.0.0-preview1.5665</Version>
+    </PackageReference>
     <PackageReference Include="NuGet.StrongName.json-ld.net">
       <Version>1.0.6</Version>
     </PackageReference>
@@ -269,7 +273,7 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="NuGet.Packaging.Core">
-      <Version>4.8.0</Version>
+      <Version>5.0.0-preview1.5665</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Logging">
       <Version>2.25.0-master-30088</Version>

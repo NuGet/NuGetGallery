@@ -164,7 +164,7 @@
       <Version>3.0.1</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Logging">
-      <Version>2.2.3</Version>
+      <Version>2.25.0-master-30088</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Owin">
       <Version>2.2.3</Version>

@@ -4,10 +4,13 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
+using NuGet.Common;
 using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using NuGet.Versioning;
@@ -55,12 +58,13 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             var storage = _storageFactory.Create(packageId);
             var nuspecUri = await SaveNuspecAsync(storage, packageId, normalizedPackageVersion, nuspec, cancellationToken);
             var nupkgUri = await SaveNupkgAsync(nupkgStream, storage, packageId, normalizedPackageVersion, cancellationToken);
+            // TODO: copy Icon for the HTTP source case
 
             return new DnxEntry(nupkgUri, nuspecUri);
         }
 
         public async Task<DnxEntry> AddPackageAsync(
-            IStorage sourceStorage,
+            IAzureStorage sourceStorage,
             string nuspec,
             string packageId,
             string normalizedPackageVersion,
@@ -91,6 +95,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             var destinationStorage = _storageFactory.Create(packageId);
             var nuspecUri = await SaveNuspecAsync(destinationStorage, packageId, normalizedPackageVersion, nuspec, cancellationToken);
             var nupkgUri = await CopyNupkgAsync(sourceStorage, destinationStorage, packageId, normalizedPackageVersion, cancellationToken);
+            await CopyIconFromAzureStorageIfExistAsync(sourceStorage, destinationStorage, packageId, normalizedPackageVersion, nuspec, cancellationToken);
 
             return new DnxEntry(nupkgUri, nuspecUri);
         }
@@ -260,6 +265,43 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             return destinationUri;
         }
 
+        private async Task CopyIconFromAzureStorageIfExistAsync(
+            IAzureStorage sourceStorage,
+            Storage destinationStorage,
+            string packageId,
+            string normalizedPackageVersion,
+            string nuspec,
+            CancellationToken cancellationToken)
+        {
+            using (var nuspecStream = new MemoryStream(Encoding.UTF8.GetBytes(nuspec)))
+            {
+                var iconReader = new IconNuspecReader(nuspecStream);
+                var iconPath = PathUtility.StripLeadingDirectorySeparators(iconReader.IconPath);
+
+                // TODO: check iconReader.GetIconUrl() and copy it to the flat container. Will be implemented in the future.
+
+                if (string.IsNullOrWhiteSpace(iconPath))
+                {
+                    // no embedded icon, bail out
+                    return;
+                }
+
+                var packageFileName = PackageUtility.GetPackageFileName(packageId, normalizedPackageVersion);
+                var sourceUri = sourceStorage.ResolveUri(packageFileName);
+                var destinationRelativeUri = GetRelativeAddressIcon(packageId, normalizedPackageVersion);
+                var destinationUri = destinationStorage.ResolveUri(destinationRelativeUri);
+
+                var packageSourceBlob = await sourceStorage.GetCloudBlockBlobReferenceAsync(sourceUri);
+                using (var packageStream = await packageSourceBlob.GetStreamAsync(cancellationToken))
+                using (var zipArchive = new ZipArchive(packageStream, ZipArchiveMode.Read, leaveOpen: true))
+                {
+                    zipArchive.GetEntry(iconPath);
+                }
+            }
+
+            throw new NotImplementedException();
+        }
+
         private async Task DeleteNuspecAsync(Storage storage, string id, string version, CancellationToken cancellationToken)
         {
             string relativeAddress = GetRelativeAddressNuspec(id, version);
@@ -300,6 +342,13 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             var normalizedVersion = NuGetVersion.Parse(version).ToNormalizedString();
 
             return $"{normalizedVersion}/{id}.{normalizedVersion}.nupkg";
+        }
+
+        private static string GetRelativeAddressIcon(string id, string version)
+        {
+            var normalizedVersion = NuGetVersion.Parse(version).ToNormalizedString();
+
+            return $"{normalizedVersion}/icon";
         }
 
         private class VersionsResult
