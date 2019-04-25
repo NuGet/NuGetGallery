@@ -425,7 +425,7 @@ namespace CatalogTests.Dnx
                 _nuspecData,
                 _packageId,
                 normalizedVersion,
-                iconFilename: null,
+                null,
                 CancellationToken.None);
 
             var expectedNuspecUri = new Uri($"{catalogToDnxStorage.BaseAddress}{_packageId}/{normalizedVersion}/{_packageId}.nuspec");
