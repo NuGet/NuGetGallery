@@ -90,17 +90,17 @@ $(function () {
 
     var storage = window['localStorage'];
     if (storage) {
-		var key = 'preferred_tab';
-		
+        var key = 'preferred_tab';
+
         // Restore preferred tab selection from localStorage.
         var preferredTab = storage.getItem(key);
         if (preferredTab) {
-            $('.nav-tabs a[aria-controls="' + preferredTab + '"]').tab('show');
+            $('#' + preferredTab).tab('show');
         }
 
         // Make sure we save the user's preferred tab to localStorage.
-        $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
-            storage.setItem(key, e.target.getAttribute("aria-controls"));
+        $('.package-manager-tab').on('shown.bs.tab', function (e) {
+            storage.setItem(key, e.target.id);
         });
     }
 
