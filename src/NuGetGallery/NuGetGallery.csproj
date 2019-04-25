@@ -242,6 +242,10 @@
     <Compile Include="Migrations\201904252152567_DeletedByOptional.Designer.cs">
       <DependentUpon>201904252152567_DeletedByOptional.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201905020719236_DevelopmentDependencyMetadata.cs" />
+    <Compile Include="Migrations\201905020719236_DevelopmentDependencyMetadata.Designer.cs">
+      <DependentUpon>201905020719236_DevelopmentDependencyMetadata.cs</DependentUpon>
+    </Compile>
     <Compile Include="Queries\AutocompleteCveIdQueryResults.cs" />
     <Compile Include="Queries\AutocompleteCweIdQueryResults.cs" />
     <Compile Include="Queries\AutocompleteCveIdQueryResult.cs" />
@@ -1728,6 +1732,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201904252152567_DeletedByOptional.resx">
       <DependentUpon>201904252152567_DeletedByOptional.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201905020719236_DevelopmentDependencyMetadata.resx">
+      <DependentUpon>201905020719236_DevelopmentDependencyMetadata.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />

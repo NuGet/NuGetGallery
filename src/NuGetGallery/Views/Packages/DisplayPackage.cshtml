@@ -59,7 +59,7 @@
             new PackageManagerViewModel("PackageReference")
             {
                 Id = "package-reference",
-                InstallPackageCommand = string.Format("<PackageReference Include=\"{0}\" Version=\"{1}\" />", Model.Id, Model.Version),
+                InstallPackageCommand = string.Format("<PackageReference Include=\"{0}\" Version=\"{1}\"{2} />", Model.Id, Model.Version, Model.DevelopmentDependency ? " PrivateAssets=\"All\"" : string.Empty),
                 AlertLevel = AlertLevel.Info,
                 AlertMessage = string.Format("For projects that support <a href=\"{0}\">PackageReference</a>, copy this XML node into the project file to reference the package.",
                                              "https://docs.microsoft.com/en-us/nuget/consume-packages/package-references-in-project-files"),

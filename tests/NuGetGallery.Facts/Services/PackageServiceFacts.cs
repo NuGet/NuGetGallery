@@ -224,6 +224,7 @@ namespace NuGetGallery
                 Assert.Equal("http://thelicenseurl/", package.LicenseUrl);
                 Assert.Equal("http://theprojecturl/", package.ProjectUrl);
                 Assert.True(package.RequiresLicenseAcceptance);
+                Assert.True(package.DevelopmentDependency);
                 Assert.Equal("theSummary", package.Summary);
                 Assert.Equal("theTags", package.Tags);
                 Assert.Equal("theTitle", package.Title);
