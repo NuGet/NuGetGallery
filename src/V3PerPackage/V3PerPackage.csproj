@@ -78,6 +78,10 @@
       <Project>{5234D86F-2C0E-4181-AAB7-BBDA3253B4E1}</Project>
       <Name>Ng</Name>
     </ProjectReference>
+    <ProjectReference Include="..\NuGet.Protocol.Catalog\NuGet.Protocol.Catalog.csproj">
+      <Project>{d44c2e89-2d98-44bd-8712-8ccbe4e67c9c}</Project>
+      <Name>NuGet.Protocol.Catalog</Name>
+    </ProjectReference>
     <ProjectReference Include="..\NuGet.Services.Metadata.Catalog.Monitoring\NuGet.Services.Metadata.Catalog.Monitoring.csproj">
       <Project>{1745A383-D0BE-484B-81EB-27B20F6AC6C5}</Project>
       <Name>NuGet.Services.Metadata.Catalog.Monitoring</Name>

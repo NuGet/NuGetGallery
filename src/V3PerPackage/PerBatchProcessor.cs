@@ -14,6 +14,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Ng;
 using Ng.Jobs;
+using NuGet.Protocol.Catalog;
 using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Dnx;
 using NuGet.Services.Metadata.Catalog.Helpers;
@@ -228,8 +229,9 @@ namespace NuGet.Services.V3PerPackage
                 preferredPackageSourceStorage,
                 context.Global.ContentBaseAddress,
                 serviceProvider.GetRequiredService<ITelemetryService>(),
-                serviceProvider.GetRequiredService<ILogger>(),
+                serviceProvider.GetRequiredService<ILogger<DnxCatalogCollector>>(),
                 maxDegreeOfParallelism,
+                httpClient => new CatalogClient(new SimpleHttpClient(httpClient, serviceProvider.GetRequiredService<ILogger<SimpleHttpClient>>()), serviceProvider.GetRequiredService<ILogger<CatalogClient>>()),
                 () => serviceProvider.GetRequiredService<HttpMessageHandler>(),
                 httpClientTimeout);
 
