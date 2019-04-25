@@ -184,6 +184,7 @@ namespace CatalogTests.Dnx
                     nuspec: "a",
                     packageId: "b",
                     normalizedPackageVersion: "c",
+                    iconFilename: null,
                     cancellationToken: CancellationToken.None));
 
             Assert.Equal("nupkgStream", exception.ParamName);
@@ -202,6 +203,7 @@ namespace CatalogTests.Dnx
                     nuspec,
                     packageId: "a",
                     normalizedPackageVersion: "b",
+                    iconFilename: null,
                     cancellationToken: CancellationToken.None));
 
             Assert.Equal("nuspec", exception.ParamName);
@@ -221,6 +223,7 @@ namespace CatalogTests.Dnx
                     nuspec: "a",
                     packageId: packageId,
                     normalizedPackageVersion: "b",
+                    iconFilename: null,
                     cancellationToken: CancellationToken.None));
 
             Assert.Equal("packageId", exception.ParamName);
@@ -240,6 +243,7 @@ namespace CatalogTests.Dnx
                     nuspec: "a",
                     packageId: "b",
                     normalizedPackageVersion: normalizedPackageVersion,
+                    iconFilename: null,
                     cancellationToken: CancellationToken.None));
 
             Assert.Equal("normalizedPackageVersion", exception.ParamName);
@@ -257,6 +261,7 @@ namespace CatalogTests.Dnx
                     nuspec: "a",
                     packageId: "b",
                     normalizedPackageVersion: "c",
+                    iconFilename: null,
                     cancellationToken: new CancellationToken(canceled: true)));
         }
 
@@ -271,7 +276,7 @@ namespace CatalogTests.Dnx
 
             using (var nupkgStream = CreateFakePackageStream(_nupkgData))
             {
-                var dnxEntry = await maker.AddPackageAsync(nupkgStream, _nuspecData, _packageId, version, CancellationToken.None);
+                var dnxEntry = await maker.AddPackageAsync(nupkgStream, _nuspecData, _packageId, version, null, CancellationToken.None);
 
                 var expectedNuspec = new Uri($"{catalogToDnxStorage.BaseAddress}{_packageId}/{normalizedVersion}/{_packageId}.nuspec");
                 var expectedNupkg = new Uri($"{catalogToDnxStorage.BaseAddress}{_packageId}/{normalizedVersion}/{_packageId}.{normalizedVersion}.nupkg");
@@ -300,6 +305,7 @@ namespace CatalogTests.Dnx
                     nuspec: "a",
                     packageId: "b",
                     normalizedPackageVersion: "c",
+                    iconFilename: null,
                     cancellationToken: CancellationToken.None));
 
             Assert.Equal("sourceStorage", exception.ParamName);
@@ -318,6 +324,7 @@ namespace CatalogTests.Dnx
                     nuspec,
                     packageId: "a",
                     normalizedPackageVersion: "b",
+                    iconFilename: null,
                     cancellationToken: CancellationToken.None));
 
             Assert.Equal("nuspec", exception.ParamName);
@@ -337,6 +344,7 @@ namespace CatalogTests.Dnx
                     nuspec: "a",
                     packageId: id,
                     normalizedPackageVersion: "b",
+                    iconFilename: null,
                     cancellationToken: CancellationToken.None));
 
             Assert.Equal("packageId", exception.ParamName);
@@ -356,6 +364,7 @@ namespace CatalogTests.Dnx
                     nuspec: "a",
                     packageId: "b",
                     normalizedPackageVersion: version,
+                    iconFilename: null,
                     cancellationToken: CancellationToken.None));
 
             Assert.Equal("normalizedPackageVersion", exception.ParamName);
@@ -373,6 +382,7 @@ namespace CatalogTests.Dnx
                     nuspec: "a",
                     packageId: "b",
                     normalizedPackageVersion: "c",
+                    iconFilename: null,
                     cancellationToken: new CancellationToken(canceled: true)));
         }
 
@@ -391,6 +401,7 @@ namespace CatalogTests.Dnx
                 _nuspecData,
                 _packageId,
                 normalizedVersion,
+                iconFilename: null,
                 CancellationToken.None);
 
             var expectedNuspecUri = new Uri($"{catalogToDnxStorage.BaseAddress}{_packageId}/{normalizedVersion}/{_packageId}.nuspec");
@@ -465,7 +476,7 @@ namespace CatalogTests.Dnx
 
             using (var nupkgStream = CreateFakePackageStream(_nupkgData))
             {
-                var dnxEntry = await maker.AddPackageAsync(nupkgStream, _nuspecData, _packageId, version, CancellationToken.None);
+                var dnxEntry = await maker.AddPackageAsync(nupkgStream, _nuspecData, _packageId, version, null, CancellationToken.None);
 
                 var storageForPackage = (MemoryStorage)catalogToDnxStorageFactory.Create(_packageId);
 

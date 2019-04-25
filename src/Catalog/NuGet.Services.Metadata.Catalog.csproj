@@ -95,7 +95,6 @@
     <Compile Include="CatalogCommitUtilities.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="CreateCommitItemBatchesAsync.cs" />
-    <Compile Include="Dnx\IconNuspecReader.cs" />
     <Compile Include="FetchCatalogCommitsAsync.cs" />
     <Compile Include="FixPackageHashHandler.cs" />
     <Compile Include="Dnx\DnxConstants.cs" />
@@ -284,6 +283,12 @@
     <PackageReference Include="WindowsAzure.Storage">
       <Version>8.2.1</Version>
     </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NuGet.Protocol.Catalog\NuGet.Protocol.Catalog.csproj">
+      <Project>{d44c2e89-2d98-44bd-8712-8ccbe4e67c9c}</Project>
+      <Name>NuGet.Protocol.Catalog</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

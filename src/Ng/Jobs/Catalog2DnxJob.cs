@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using NuGet.Protocol.Catalog;
 using NuGet.Services.Configuration;
 using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Dnx;
@@ -89,6 +90,7 @@ namespace Ng.Jobs
                 TelemetryService,
                 Logger,
                 MaxDegreeOfParallelism,
+                httpClient => new CatalogClient(new SimpleHttpClient(httpClient, LoggerFactory.CreateLogger<SimpleHttpClient>()), LoggerFactory.CreateLogger<CatalogClient>()),
                 CommandHelpers.GetHttpMessageHandlerFactory(TelemetryService, verbose),
                 httpClientTimeout);
 

@@ -31,6 +31,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             string nuspec,
             string packageId,
             string normalizedPackageVersion,
+            string iconFilename,
             CancellationToken cancellationToken)
         {
             if (nupkgStream == null)
@@ -64,7 +65,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             var nuspecUri = await SaveNuspecAsync(storage, packageId, normalizedPackageVersion, nuspec, cancellationToken);
             var nupkgUri = await SaveNupkgAsync(nupkgStream, storage, packageId, normalizedPackageVersion, cancellationToken);
             nupkgStream.Seek(0, SeekOrigin.Begin);
-            await CopyIconFromNupkgStreamAsync(nupkgStream, nuspec, storage, packageId, normalizedPackageVersion, cancellationToken);
+            await CopyIconFromNupkgStreamAsync(nupkgStream, iconFilename, storage, packageId, normalizedPackageVersion, cancellationToken);
 
             return new DnxEntry(nupkgUri, nuspecUri);
         }
@@ -74,6 +75,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             string nuspec,
             string packageId,
             string normalizedPackageVersion,
+            string iconFilename,
             CancellationToken cancellationToken)
         {
             if (sourceStorage == null)
@@ -101,7 +103,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             var destinationStorage = _storageFactory.Create(packageId);
             var nuspecUri = await SaveNuspecAsync(destinationStorage, packageId, normalizedPackageVersion, nuspec, cancellationToken);
             var nupkgUri = await CopyNupkgAsync(sourceStorage, destinationStorage, packageId, normalizedPackageVersion, cancellationToken);
-            await CopyIconFromAzureStorageIfExistAsync(sourceStorage, destinationStorage, packageId, normalizedPackageVersion, nuspec, cancellationToken);
+            await CopyIconFromAzureStorageIfExistAsync(sourceStorage, destinationStorage, packageId, normalizedPackageVersion, iconFilename, cancellationToken);
 
             return new DnxEntry(nupkgUri, nuspecUri);
         }
@@ -276,11 +278,11 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             Storage destinationStorage,
             string packageId,
             string normalizedPackageVersion,
-            string nuspec,
+            string iconFilename,
             CancellationToken cancellationToken)
         {
             await CopyIconAsync(
-                nuspec,
+                iconFilename,
                 destinationStorage,
                 packageId,
                 normalizedPackageVersion,
@@ -291,14 +293,14 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
 
         private async Task CopyIconFromNupkgStreamAsync(
             Stream nupkgStream,
-            string nuspec,
+            string iconFilename,
             Storage destinationStorage,
             string packageId,
             string normalizedPackageVersion,
             CancellationToken cancellationToken)
         {
             await CopyIconAsync(
-                nuspec,
+                iconFilename,
                 destinationStorage,
                 packageId,
                 normalizedPackageVersion,
@@ -308,7 +310,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
         }
 
         private async Task CopyIconAsync(
-            string nuspec,
+            string iconFilename,
             Storage destinationStorage,
             string packageId,
             string normalizedPackageVersion,
@@ -316,33 +318,29 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             Func<Task<Stream>> getPackageStream,
             bool disposeOfPackageStream)
         {
-            using (var nuspecStream = new MemoryStream(Encoding.UTF8.GetBytes(nuspec)))
+            if (string.IsNullOrWhiteSpace(iconFilename))
             {
-                var iconReader = new IconNuspecReader(nuspecStream);
-                if (string.IsNullOrWhiteSpace(iconReader.IconPath))
-                {
-                    // no embedded icon, bail out
-                    return;
-                }
+                // no embedded icon, bail out
+                return;
+            }
 
-                var iconPath = PathUtility.StripLeadingDirectorySeparators(iconReader.IconPath);
+            var iconPath = PathUtility.StripLeadingDirectorySeparators(iconFilename);
 
-                // TODO: check iconReader.GetIconUrl() and copy it to the flat container. Will be implemented in the future.
-                var destinationRelativeUri = GetRelativeAddressIcon(packageId, normalizedPackageVersion);
-                var destinationUri = destinationStorage.ResolveUri(destinationRelativeUri);
+            // TODO: check iconReader.GetIconUrl() and copy it to the flat container. Will be implemented in the future.
+            var destinationRelativeUri = GetRelativeAddressIcon(packageId, normalizedPackageVersion);
+            var destinationUri = destinationStorage.ResolveUri(destinationRelativeUri);
 
-                if (disposeOfPackageStream)
+            if (disposeOfPackageStream)
+            {
+                using (var packageStream = await getPackageStream())
                 {
-                    using (var packageStream = await getPackageStream())
-                    {
-                        await ExtractAndStoreIconAsync(packageStream, iconPath, destinationStorage, destinationUri, cancellationToken);
-                    }
-                }
-                else
-                {
-                    var packageStream = await getPackageStream();
                     await ExtractAndStoreIconAsync(packageStream, iconPath, destinationStorage, destinationUri, cancellationToken);
                 }
+            }
+            else
+            {
+                var packageStream = await getPackageStream();
+                await ExtractAndStoreIconAsync(packageStream, iconPath, destinationStorage, destinationUri, cancellationToken);
             }
         }
 

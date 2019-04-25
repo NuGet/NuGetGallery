@@ -13,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
+using NuGet.Protocol.Catalog;
 using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using NuGet.Versioning;
@@ -24,6 +25,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
         private readonly StorageFactory _storageFactory;
         private readonly IAzureStorage _sourceStorage;
         private readonly DnxMaker _dnxMaker;
+        private readonly Func<HttpClient, ICatalogClient> _catalogClientFactory;
         private readonly ILogger _logger;
         private readonly int _maxConcurrentBatches;
         private readonly int _maxConcurrentCommitItemsWithinBatch;
@@ -37,6 +39,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             ITelemetryService telemetryService,
             ILogger logger,
             int maxDegreeOfParallelism,
+            Func<HttpClient, ICatalogClient> catalogClientFactory,
             Func<HttpMessageHandler> handlerFunc = null,
             TimeSpan? httpClientTimeout = null)
             : base(index, telemetryService, handlerFunc, httpClientTimeout)
@@ -45,6 +48,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             _sourceStorage = preferredPackageSourceStorage;
             _contentBaseAddress = contentBaseAddress;
             _dnxMaker = new DnxMaker(storageFactory);
+            _catalogClientFactory = catalogClientFactory ?? throw new ArgumentNullException(nameof(catalogClientFactory));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
             if (maxDegreeOfParallelism < 1)
@@ -165,6 +169,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
                                 packageId,
                                 normalizedPackageVersion,
                                 sourceUri,
+                                catalogEntry.Uri,
                                 telemetryProperties,
                                 cancellationToken))
                         {
@@ -248,12 +253,17 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             string packageId,
             string normalizedPackageVersion,
             Uri sourceUri,
+            Uri catalogLeafUri,
             Dictionary<string, string> telemetryProperties,
             CancellationToken cancellationToken)
         {
+            var catalogClient = _catalogClientFactory(client);
+            var catalogPage = await catalogClient.GetPackageDetailsLeafAsync(catalogLeafUri.AbsoluteUri);
+
             if (await ProcessPackageDetailsViaStorageAsync(
                 packageId,
                 normalizedPackageVersion,
+                catalogPage,
                 telemetryProperties,
                 cancellationToken))
             {
@@ -270,6 +280,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
                 packageId,
                 normalizedPackageVersion,
                 sourceUri,
+                catalogPage,
                 telemetryProperties,
                 cancellationToken);
         }
@@ -277,6 +288,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
         private async Task<bool> ProcessPackageDetailsViaStorageAsync(
             string packageId,
             string normalizedPackageVersion,
+            PackageDetailsCatalogLeaf catalogLeaf,
             Dictionary<string, string> telemetryProperties,
             CancellationToken cancellationToken)
         {
@@ -316,6 +328,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
                         nuspec,
                         packageId,
                         normalizedPackageVersion,
+                        catalogLeaf.IconFilename,
                         cancellationToken);
 
                     var token2 = await _sourceStorage.GetOptimisticConcurrencyControlTokenAsync(sourceUri, cancellationToken);
@@ -351,6 +364,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             string id,
             string version,
             Uri sourceUri,
+            PackageDetailsCatalogLeaf catalogLeaf,
             Dictionary<string, string> telemetryProperties,
             CancellationToken cancellationToken)
         {
@@ -384,6 +398,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
                     nuspec,
                     id,
                     version,
+                    catalogLeaf.IconFilename,
                     cancellationToken);
             }
 
@@ -520,13 +535,15 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             internal string PackageId { get; }
             internal string NormalizedPackageVersion { get; }
             internal Uri Type { get; }
+            internal Uri Uri { get; }
 
-            private CatalogEntry(DateTime commitTimeStamp, string packageId, string normalizedPackageVersion, Uri type)
+            private CatalogEntry(DateTime commitTimeStamp, string packageId, string normalizedPackageVersion, Uri type, Uri uri)
             {
                 CommitTimeStamp = commitTimeStamp;
                 PackageId = packageId;
                 NormalizedPackageVersion = normalizedPackageVersion;
                 Type = type;
+                Uri = uri;
             }
 
             internal static CatalogEntry Create(CatalogCommitItem item)
@@ -539,7 +556,8 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
                     item.CommitTimeStamp,
                     item.PackageIdentity.Id.ToLowerInvariant(),
                     item.PackageIdentity.Version.ToNormalizedString().ToLowerInvariant(),
-                    typeUri);
+                    typeUri,
+                    item.Uri);
             }
         }
     }
