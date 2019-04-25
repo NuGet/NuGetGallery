@@ -112,6 +112,7 @@ namespace NuGetGallery
             await RemoveSecurityPolicies(userToBeDeleted);
             await RemoveUserCredentials(userToBeDeleted);
             await RemovePackageOwnershipRequests(userToBeDeleted);
+            ResetPackagesAndAccountsDeletedBy(userToBeDeleted);
 
             var organizationToBeDeleted = userToBeDeleted as Organization;
             if (organizationToBeDeleted != null)
