@@ -18,8 +18,6 @@ namespace NuGetGallery
         DbSet<ReservedNamespace> ReservedNamespaces { get; set; }
         DbSet<UserCertificate> UserCertificates { get; set; }
         DbSet<SymbolPackage> SymbolPackages { get; set; }
-        DbSet<Cve> Cves { get; set; }
-        DbSet<Cwe> Cwes { get; set; }
 
         Task<int> SaveChangesAsync();
         DbSet<T> Set<T>() where T : class;

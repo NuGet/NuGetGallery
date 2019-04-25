@@ -1,13 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using System.Web.Mvc;
-using Moq;
 using Newtonsoft.Json.Linq;
 using NuGet.Services.Entities;
 using NuGetGallery.Framework;
@@ -17,168 +15,6 @@ namespace NuGetGallery.Controllers
 {
     public class ManageDeprecationJsonApiControllerFacts
     {
-        public class TheGetCweIdsMethod : TestContainer
-        {
-            [Theory]
-            [InlineData(null)]
-            [InlineData("")]
-            [InlineData("0")]
-            [InlineData("cWe-0")]
-            [InlineData("abc")]
-            public void ReturnsHttp400ForValidationErrors(string queryString)
-            {
-                var result = InvokeAndAssertStatusCode(queryString, HttpStatusCode.BadRequest);
-
-                Assert.False(result.Success);
-                Assert.Equal(Strings.AutocompleteCweIds_ValidationError, result.ErrorMessage);
-            }
-
-            [Theory]
-            [InlineData("CWE-01", "CWE-01")]
-            [InlineData("cWe-01", "CWE-01")]
-            [InlineData("01", "CWE-01")]
-            public void ReturnsHttp200AndExpectedBodyForValidRequests(string queryString, string expectedCweIdStartString)
-            {
-                var cweRepositoryMock = GetMock<IEntityRepository<Cwe>>();
-
-                var expectedResult1 = new Cwe { CweId = "CWE-011", Name = "Name A: listed", Description = "Description A: listed.", Listed = true };
-                var notExpectedResult1 = new Cwe { CweId = "CWE-012", Name = "Name A: unlisted", Description = "Description A: unlisted.", Listed = false };
-                var expectedResult2 = new Cwe { CweId = "CWE-013", Name = "Name B", Description = "description B", Listed = true };
-                var expectedResult3 = new Cwe { CweId = "CWE-014", Name = "Name C", Description = "description C", Listed = true };
-                var expectedResult4 = new Cwe { CweId = "CWE-015", Name = "Name D", Description = "description D", Listed = true };
-                var expectedResult5 = new Cwe { CweId = "CWE-016", Name = "Name E", Description = "description E", Listed = true };
-                var notExpectedResult2 = new Cwe { CweId = "CWE-017", Name = "Name F", Description = "description F", Listed = true };
-
-                cweRepositoryMock
-                    .Setup(x => x.GetAll())
-                    .Returns(new[] 
-                    {
-                        expectedResult1,
-                        notExpectedResult1,
-                        expectedResult2,
-                        expectedResult3,
-                        expectedResult4,
-                        expectedResult5,
-                        notExpectedResult2
-                    }.AsQueryable());
-
-                var queryResults = InvokeAndAssertStatusCode(queryString, HttpStatusCode.OK);
-
-                Assert.True(queryResults.Success);
-                Assert.Null(queryResults.ErrorMessage);
-
-                Assert.Equal(5, queryResults.Results.Count);
-                Assert.True(queryResults.Success);
-                Assert.Null(queryResults.ErrorMessage);
-                Assert.All(
-                    queryResults.Results,
-                    r =>
-                    {
-                        Assert.StartsWith(expectedCweIdStartString, r.CweId, StringComparison.OrdinalIgnoreCase);
-
-                        // Only the listed elements with CWE-ID starting with the query string should be returned (up to 5 elements).
-                        Assert.NotEqual(notExpectedResult1.CweId, r.CweId, StringComparer.OrdinalIgnoreCase);
-
-                        // Sorted numerically, this is the 6th element in the resultset and should be filtered out (max 5).
-                        Assert.NotEqual(notExpectedResult2.CweId, r.CweId, StringComparer.OrdinalIgnoreCase);
-                    });
-            }
-
-            private AutocompleteCweIdQueryResults InvokeAndAssertStatusCode(string queryString, HttpStatusCode expectedStatusCode)
-            {
-                var fakes = Get<Fakes>();
-                var controller = GetController<ManageDeprecationJsonApiController>();
-                controller.SetCurrentUser(fakes.User);
-
-                var result = controller.GetCweIds(queryString);
-                Assert.Equal((int)expectedStatusCode, controller.Response.StatusCode);
-
-                return result.Data as AutocompleteCweIdQueryResults;
-            }
-        }
-
-        public class TheGetCveIdsMethod : TestContainer
-        {
-            [Theory]
-            [InlineData(null)]
-            [InlineData("")]
-            [InlineData("0")]
-            [InlineData("cVe-0")]
-            [InlineData("abc")]
-            public void ReturnsHttp400ForValidationErrors(string queryString)
-            {
-                var result = InvokeAndAssertStatusCode(queryString, HttpStatusCode.BadRequest);
-
-                Assert.False(result.Success);
-                Assert.Equal(Strings.AutocompleteCveIds_ValidationError, result.ErrorMessage);
-            }
-
-            [Theory]
-            [InlineData("CVE-2000-01", "CVE-2000-01")]
-            [InlineData("cVe-2000-01", "CVE-2000-01")]
-            [InlineData("2000-01", "CVE-2000-01")]
-            [InlineData("2000", "CVE-2000")]
-            public void ReturnsHttp200AndExpectedBodyForValidRequests(string queryString, string expectedCveIdStartString)
-            {
-                var cveRepositoryMock = GetMock<IEntityRepository<Cve>>();
-
-                var expectedResult1 = new Cve { CveId = "CVE-2000-011", Description = "Description A: listed.", Listed = true };
-                var notExpectedResult1 = new Cve { CveId = "CVE-2000-012", Description = "Description A: unlisted.", Listed = false };
-                var expectedResult2 = new Cve { CveId = "CVE-2000-013", Description = "description B", Listed = true };
-                var expectedResult3 = new Cve { CveId = "CVE-2000-014", Description = "description C", Listed = true };
-                var expectedResult4 = new Cve { CveId = "CVE-2000-015", Description = "description D", Listed = true };
-                var expectedResult5 = new Cve { CveId = "CVE-2000-016", Description = "description E", Listed = true };
-                var notExpectedResult2 = new Cve { CveId = "CVE-2000-017", Description = "description F", Listed = true };
-
-                cveRepositoryMock
-                    .Setup(x => x.GetAll())
-                    .Returns(new[]
-                    {
-                        expectedResult1,
-                        notExpectedResult1,
-                        expectedResult2,
-                        expectedResult3,
-                        expectedResult4,
-                        expectedResult5,
-                        notExpectedResult2
-                    }.AsQueryable());
-
-                var queryResults = InvokeAndAssertStatusCode(queryString, HttpStatusCode.OK);
-
-                Assert.True(queryResults.Success);
-                Assert.Null(queryResults.ErrorMessage);
-
-                Assert.Equal(5, queryResults.Results.Count);
-                Assert.True(queryResults.Success);
-                Assert.Null(queryResults.ErrorMessage);
-                Assert.All(
-                    queryResults.Results,
-                    r =>
-                    {
-                        Assert.StartsWith(expectedCveIdStartString, r.CveId, StringComparison.OrdinalIgnoreCase);
-
-                        // Only the listed elements with CWE-ID starting with the query string should be returned (up to 5 elements).
-                        Assert.NotEqual(notExpectedResult1.CveId, r.CveId, StringComparer.OrdinalIgnoreCase);
-
-                        // Sorted numerically, this is the 6th element in the resultset and should be filtered out (max 5).
-                        Assert.NotEqual(notExpectedResult2.CveId, r.CveId, StringComparer.OrdinalIgnoreCase);
-                    });
-            }
-
-            private AutocompleteCveIdQueryResults InvokeAndAssertStatusCode(string queryString, HttpStatusCode expectedStatusCode)
-            {
-                var fakes = Get<Fakes>();
-
-                var controller = GetController<ManageDeprecationJsonApiController>();
-                controller.SetCurrentUser(fakes.User);
-
-                var result = controller.GetCveIds(queryString);
-                Assert.Equal((int)expectedStatusCode, controller.Response.StatusCode);
-
-                return result.Data as AutocompleteCveIdQueryResults;
-            }
-        }
-
         public class TheGetAlternatePackageVersionsMethod : TestContainer
         {
             [Fact]
@@ -289,14 +125,14 @@ namespace NuGetGallery.Controllers
 
                 // Act
                 var result = await controller.Deprecate(
-                    "id", null, false, false, false, null, null, null, null, null, null);
+                    "id", null, false, false, null, null, null);
 
                 // Assert
                 AssertErrorResponse(controller, result, HttpStatusCode.Forbidden, Strings.DeprecatePackage_Forbidden);
                 featureFlagService.Verify();
             }
 
-            public static IEnumerable<object[]> ReturnsBadRequestIfNoVersions_Data = 
+            public static IEnumerable<object[]> ReturnsBadRequestIfNoVersions_Data =
                 MemberDataHelper.AsDataSet(null, new string[0]);
 
             [Theory]
@@ -317,7 +153,7 @@ namespace NuGetGallery.Controllers
 
                 // Act
                 var result = await controller.Deprecate(
-                    "id", versions, false, false, false, null, null, null, null, null, null);
+                    "id", versions, false, false, null, null, null);
 
                 // Assert
                 AssertErrorResponse(controller, result, HttpStatusCode.BadRequest, Strings.DeprecatePackage_NoVersions);
@@ -330,98 +166,9 @@ namespace NuGetGallery.Controllers
                 {
                     var packageWithNullRegistration = new Package();
                     return MemberDataHelper.AsDataSet(
-                        new Package[0], 
+                        new Package[0],
                         new[] { packageWithNullRegistration });
                 }
-            }
-
-            [Theory]
-            [InlineData("yabba-dabba-doo")] // Doesn't match at all
-            [InlineData("CVE-2019")] // Missing number
-            [InlineData("CVE-2019-234")] // Number not long enough
-            [InlineData("CVE-1998-43244")] // Year too old
-            [InlineData("CVE-9999-1323")] // Year in the future...if NuGet.org has lasted 7980 years since the creation of this unit test, congratulations!
-            public async Task ReturnsBadRequestIfCveIdInvalid(string invalidId)
-            {
-                // Arrange
-                var currentUser = TestUtility.FakeUser;
-
-                var featureFlagService = GetMock<IFeatureFlagService>();
-                featureFlagService
-                    .Setup(x => x.IsManageDeprecationEnabled(currentUser))
-                    .Returns(true)
-                    .Verifiable();
-
-                var controller = GetController<ManageDeprecationJsonApiController>();
-                controller.SetCurrentUser(currentUser);
-
-                // Act
-                var result = await controller.Deprecate(
-                    "id", new[] { "1.0.0" }, false, false, false, new[] { "CVE-2019-1111", invalidId }, null, null, null, null, null);
-
-                // Assert
-                AssertErrorResponse(
-                    controller,
-                    result,
-                    HttpStatusCode.BadRequest,
-                    string.Format(Strings.DeprecatePackage_InvalidCve, invalidId));
-                featureFlagService.Verify();
-            }
-
-            [Fact]
-            public async Task ReturnsBadRequestIfCweIdInvalid()
-            {
-                // Arrange
-                var currentUser = TestUtility.FakeUser;
-
-                var featureFlagService = GetMock<IFeatureFlagService>();
-                featureFlagService
-                    .Setup(x => x.IsManageDeprecationEnabled(currentUser))
-                    .Returns(true)
-                    .Verifiable();
-
-                var controller = GetController<ManageDeprecationJsonApiController>();
-                controller.SetCurrentUser(currentUser);
-
-                var invalidId = "yabba-dabba-doo";
-
-                // Act
-                var result = await controller.Deprecate(
-                    "id", new[] { "1.0.0" }, false, false, false, null, null, new[] { "CWE-1", invalidId }, null, null, null);
-
-                // Assert
-                AssertErrorResponse(
-                    controller,
-                    result,
-                    HttpStatusCode.BadRequest,
-                    string.Format(Strings.DeprecatePackage_InvalidCwe, invalidId));
-                featureFlagService.Verify();
-            }
-
-            [Theory]
-            [InlineData(-1)]
-            [InlineData(11)]
-            public async Task ReturnsBadRequestIfCvssInvalid(decimal cvss)
-            {
-                // Arrange
-                var currentUser = TestUtility.FakeUser;
-
-                var featureFlagService = GetMock<IFeatureFlagService>();
-                featureFlagService
-                    .Setup(x => x.IsManageDeprecationEnabled(currentUser))
-                    .Returns(true)
-                    .Verifiable();
-
-                var controller = GetController<ManageDeprecationJsonApiController>();
-                controller.SetCurrentUser(currentUser);
-
-                // Act
-                var result = await controller.Deprecate(
-                    "id", new[] { "1.0.0" }, false, false, false, null, cvss, null, null, null, null);
-
-                // Assert
-                AssertErrorResponse(controller, result, HttpStatusCode.BadRequest, Strings.DeprecatePackage_InvalidCvss);
-                featureFlagService.Verify();
             }
 
             [Theory]
@@ -449,7 +196,7 @@ namespace NuGetGallery.Controllers
 
                 // Act
                 var result = await controller.Deprecate(
-                    id, new[] { "1.0.0" }, false, false, false, null, null, null, null, null, null);
+                    id, new[] { "1.0.0" }, false, false, null, null, null);
 
                 // Assert
                 AssertErrorResponse(controller, result, HttpStatusCode.NotFound, string.Format(Strings.DeprecatePackage_MissingRegistration, id));
@@ -511,7 +258,7 @@ namespace NuGetGallery.Controllers
 
                 // Act
                 var result = await controller.Deprecate(
-                    id, new[] { "1.0.0" }, false, false, false, null, null, null, null, null, null);
+                    id, new[] { "1.0.0" }, false, false, null, null, null);
 
                 // Assert
                 AssertErrorResponse(controller, result, HttpStatusCode.Forbidden, Strings.DeprecatePackage_Forbidden);
@@ -586,13 +333,13 @@ namespace NuGetGallery.Controllers
 
                 // Act
                 var result = await controller.Deprecate(
-                    id, new[] { "1.0.0" }, false, false, false, null, null, null, null, null, null);
+                    id, new[] { "1.0.0" }, false, false, null, null, null);
 
                 // Assert
                 AssertErrorResponse(
-                    controller, 
-                    result, 
-                    HttpStatusCode.Forbidden, 
+                    controller,
+                    result,
+                    HttpStatusCode.Forbidden,
                     string.Format(Strings.DeprecatePackage_Locked, id));
                 featureFlagService.Verify();
                 packageService.Verify();
@@ -640,7 +387,7 @@ namespace NuGetGallery.Controllers
 
                 // Act
                 var result = await controller.Deprecate(
-                    id, new[] { "1.0.0" }, false, false, false, null, null, null, alternatePackageId, null, null);
+                    id, new[] { "1.0.0" }, false, false, alternatePackageId, null, null);
 
                 // Assert
                 AssertErrorResponse(
@@ -695,7 +442,7 @@ namespace NuGetGallery.Controllers
 
                 // Act
                 var result = await controller.Deprecate(
-                    id, new[] { "1.0.0" }, false, false, false, null, null, null, alternatePackageId, alternatePackageVersion, null);
+                    id, new[] { "1.0.0" }, false, false, alternatePackageId, alternatePackageVersion, null);
 
                 // Assert
                 AssertErrorResponse(
@@ -744,7 +491,7 @@ namespace NuGetGallery.Controllers
 
                 // Act
                 var result = await controller.Deprecate(
-                    id, new[] { "1.0.0" }, false, false, false, null, null, null, null, null, null);
+                    id, new[] { "1.0.0" }, false, false, null, null, null);
 
                 // Assert
                 AssertErrorResponse(
@@ -793,7 +540,7 @@ namespace NuGetGallery.Controllers
 
                 // Act
                 var result = await controller.Deprecate(
-                    id, new[] { package.NormalizedVersion, "1.0.0" }, false, false, false, null, null, null, null, null, null);
+                    id, new[] { package.NormalizedVersion, "1.0.0" }, false, false, null, null, null);
 
                 // Assert
                 AssertErrorResponse(
@@ -801,68 +548,6 @@ namespace NuGetGallery.Controllers
                     result,
                     HttpStatusCode.NotFound,
                     string.Format(Strings.DeprecatePackage_MissingVersion, id));
-                featureFlagService.Verify();
-                packageService.Verify();
-            }
-
-            [Theory]
-            [MemberData(nameof(Owner_Data))]
-            public async Task ReturnsNotFoundIfGetCwesByIdThrowsArgumentException(User currentUser, User owner)
-            {
-                // Arrange
-                var id = "id";
-
-                var featureFlagService = GetMock<IFeatureFlagService>();
-                featureFlagService
-                    .Setup(x => x.IsManageDeprecationEnabled(currentUser))
-                    .Returns(true)
-                    .Verifiable();
-
-                var registration = new PackageRegistration
-                {
-                    Id = id
-                };
-
-                registration.Owners.Add(owner);
-
-                var package = new Package
-                {
-                    NormalizedVersion = "2.3.4",
-                    PackageRegistration = registration
-                };
-
-                var packageService = GetMock<IPackageService>();
-                packageService
-                    .Setup(x => x.FindPackagesById(id, PackageDeprecationFieldsToInclude.DeprecationAndRelationships))
-                    .Returns(new[] { package })
-                    .Verifiable();
-
-                var deprecationService = GetMock<IPackageDeprecationService>();
-
-                var cves = new Cve[0];
-                deprecationService
-                    .Setup(x => x.GetOrCreateCvesByIdAsync(Enumerable.Empty<string>(), false))
-                    .CompletesWith(cves)
-                    .Verifiable();
-
-                deprecationService
-                    .Setup(x => x.GetCwesById(Enumerable.Empty<string>()))
-                    .Throws(new ArgumentException())
-                    .Verifiable();
-
-                var controller = GetController<ManageDeprecationJsonApiController>();
-                controller.SetCurrentUser(currentUser);
-
-                // Act
-                var result = await controller.Deprecate(
-                    id, new[] { package.NormalizedVersion }, false, false, false, null, null, null, null, null, null);
-
-                // Assert
-                AssertErrorResponse(
-                    controller,
-                    result,
-                    HttpStatusCode.NotFound,
-                    Strings.DeprecatePackage_CweMissing);
                 featureFlagService.Verify();
                 packageService.Verify();
             }
@@ -885,22 +570,14 @@ namespace NuGetGallery.Controllers
             {
                 get
                 {
-                    yield return MemberDataHelper.AsData(false, false, false, 
+                    yield return MemberDataHelper.AsData(false, false,
                         PackageDeprecationStatus.NotDeprecated);
-                    yield return MemberDataHelper.AsData(false, false, true, 
+                    yield return MemberDataHelper.AsData(false, true,
                         PackageDeprecationStatus.Other);
-                    yield return MemberDataHelper.AsData(false, true, false, 
+                    yield return MemberDataHelper.AsData(true, false,
                         PackageDeprecationStatus.Legacy);
-                    yield return MemberDataHelper.AsData(false, true, true, 
+                    yield return MemberDataHelper.AsData(true, true,
                         PackageDeprecationStatus.Legacy | PackageDeprecationStatus.Other);
-                    yield return MemberDataHelper.AsData(true, false, false, 
-                        PackageDeprecationStatus.Vulnerable);
-                    yield return MemberDataHelper.AsData(true, false, true, 
-                        PackageDeprecationStatus.Vulnerable | PackageDeprecationStatus.Other);
-                    yield return MemberDataHelper.AsData(true, true, false, 
-                        PackageDeprecationStatus.Vulnerable | PackageDeprecationStatus.Legacy);
-                    yield return MemberDataHelper.AsData(true, true, true, 
-                        PackageDeprecationStatus.Vulnerable | PackageDeprecationStatus.Legacy | PackageDeprecationStatus.Other);
                 }
             }
 
@@ -921,13 +598,12 @@ namespace NuGetGallery.Controllers
             [Theory]
             [MemberData(nameof(ReturnsSuccessful_Data))]
             public async Task ReturnsSuccessful(
-                User currentUser, 
-                User owner, 
-                bool isVulnerable, 
-                bool isLegacy, 
-                bool isOther, 
-                PackageDeprecationStatus expectedStatus, 
-                ReturnsSuccessful_AlternatePackage_State alternatePackageState, 
+                User currentUser,
+                User owner,
+                bool isLegacy,
+                bool isOther,
+                PackageDeprecationStatus expectedStatus,
+                ReturnsSuccessful_AlternatePackage_State alternatePackageState,
                 bool hasAdditionalData)
             {
                 // Arrange
@@ -990,7 +666,8 @@ namespace NuGetGallery.Controllers
                         .Setup(x => x.FindPackageRegistrationById(alternatePackageId))
                         .Returns(alternatePackageRegistration)
                         .Verifiable();
-                } else if (alternatePackageState == ReturnsSuccessful_AlternatePackage_State.Package)
+                }
+                else if (alternatePackageState == ReturnsSuccessful_AlternatePackage_State.Package)
                 {
                     packageService
                         .Setup(x => x.FindPackageByIdAndVersionStrict(alternatePackageId, alternatePackageVersion))
@@ -1000,52 +677,29 @@ namespace NuGetGallery.Controllers
 
                 var deprecationService = GetMock<IPackageDeprecationService>();
 
-                var cveIds = hasAdditionalData ? new[] { "CVE-2019-1111", "CVE-2019-22222", "CVE-2019-333333" } : null;
-                var cves = cveIds?.Select(i => new Cve { CveId = i }).ToArray() ?? new Cve[0];
-                deprecationService
-                    .Setup(x => x.GetOrCreateCvesByIdAsync(cveIds ?? Enumerable.Empty<string>(), false))
-                    .CompletesWith(cves)
-                    .Verifiable();
-
-                var cvss = hasAdditionalData ? (decimal?)5.5 : null;
-
-                var cweIds = hasAdditionalData ? new[] { "CWE-1", "CWE-2", "CWE-3" } : null;
-                var cwes = cweIds?.Select(i => new Cwe { CweId = i }).ToArray() ?? new Cwe[0];
-                deprecationService
-                    .Setup(x => x.GetCwesById(cweIds ?? Enumerable.Empty<string>()))
-                    .Returns(cwes)
-                    .Verifiable();
-
                 var customMessage = hasAdditionalData ? "message" : null;
 
                 deprecationService
                     .Setup(x => x.UpdateDeprecation(
                         new[] { package, package2 },
                         expectedStatus,
-                        cves,
-                        cvss,
-                        cwes,
                         alternatePackageState == ReturnsSuccessful_AlternatePackage_State.Registration ? alternatePackageRegistration : null,
                         alternatePackageState == ReturnsSuccessful_AlternatePackage_State.Package ? alternatePackage : null,
                         customMessage))
                     .Completes()
                     .Verifiable();
-                    
+
                 var controller = GetController<ManageDeprecationJsonApiController>();
                 controller.SetCurrentUser(currentUser);
 
                 // Act
                 var result = await controller.Deprecate(
-                    id, 
-                    new[] { package.NormalizedVersion, package2.NormalizedVersion }, 
-                    isVulnerable, 
-                    isLegacy, 
+                    id,
+                    new[] { package.NormalizedVersion, package2.NormalizedVersion },
+                    isLegacy,
                     isOther,
-                    cveIds, 
-                    cvss,
-                    cweIds,
-                    alternatePackageId, 
-                    alternatePackageVersion, 
+                    alternatePackageId,
+                    alternatePackageVersion,
                     customMessage);
 
                 // Assert
