@@ -327,7 +327,6 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
 
             var iconPath = PathUtility.StripLeadingDirectorySeparators(iconFilename);
 
-            // TODO: check iconReader.GetIconUrl() and copy it to the flat container. Will be implemented in the future.
             var destinationRelativeUri = GetRelativeAddressIcon(packageId, normalizedPackageVersion);
             var destinationUri = destinationStorage.ResolveUri(destinationRelativeUri);
 

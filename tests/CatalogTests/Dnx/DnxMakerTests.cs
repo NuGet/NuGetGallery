@@ -5,6 +5,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -294,6 +295,29 @@ namespace CatalogTests.Dnx
             }
         }
 
+        [Theory]
+        [InlineData("ahgjghaa.png", "image/png")]
+        [InlineData("sdfgd.jpg", "image/jpeg")]
+        [InlineData("csdfsd.jpeg", "image/jpeg")]
+        public async Task AddPackageAsync_WhenEmbeddedIconPresent_SavesIcon(string iconFilename, string expectedContentType)
+        {
+            const string version = "1.2.3";
+            const string imageContent = "Test image data";
+            var imageDataBuffer = Encoding.UTF8.GetBytes(imageContent);
+
+            var catalogToDnxStorage = new MemoryStorage();
+            var catalogToDnxStorageFactory = new TestStorageFactory(name => catalogToDnxStorage.WithName(name));
+            var maker = new DnxMaker(catalogToDnxStorageFactory);
+
+            using (var nupkgStream = await CreateNupkgStreamWithIcon(iconFilename, imageDataBuffer))
+            {
+                await maker.AddPackageAsync(nupkgStream, _nuspecData, _packageId, version, iconFilename, CancellationToken.None);
+
+                var expectedIconUrl = new Uri($"{catalogToDnxStorage.BaseAddress}{_packageId}/{version}/icon");
+                Verify(catalogToDnxStorage, expectedIconUrl, imageContent, _expectedCacheControl, expectedContentType);
+            }
+        }
+
         [Fact]
         public async Task AddPackageAsync_WithStorage_WhenSourceStorageIsNull_Throws()
         {
@@ -418,6 +442,38 @@ namespace CatalogTests.Dnx
             Verify(catalogToDnxStorage, expectedNuspecUri, _nuspecData, _expectedCacheControl, _expectedNuspecContentType);
             Verify(storageForPackage, expectedNupkgUri, expectedSourceUri.AbsoluteUri, _expectedCacheControl, _expectedPackageContentType);
             Verify(storageForPackage, expectedNuspecUri, _nuspecData, _expectedCacheControl, _expectedNuspecContentType);
+        }
+
+        [Theory]
+        [InlineData("sdafs.png", "image/png")]
+        [InlineData("hjy.jpg", "image/jpeg")]
+        [InlineData("vfdg.jpeg", "image/jpeg")]
+        public async Task AddPackageAsync_WithStorage_WhenEmbeddedIconPresent_SavesIcon(string iconFilename, string expectedContentType)
+        {
+            const string version = "1.2.3";
+            const string imageContent = "Test image data";
+            var imageDataBuffer = Encoding.UTF8.GetBytes(imageContent);
+
+            var catalogToDnxStorage = new AzureStorageStub();
+            var catalogToDnxStorageFactory = new TestStorageFactory(name => catalogToDnxStorage.WithName(name));
+            var maker = new DnxMaker(catalogToDnxStorageFactory);
+            var sourceStorageMock = new Mock<IAzureStorage>();
+            using (var nupkgStream = await CreateNupkgStreamWithIcon(iconFilename, imageDataBuffer))
+            {
+                var cloudBlobMock = new Mock<ICloudBlockBlob>();
+                cloudBlobMock
+                    .Setup(cb => cb.GetStreamAsync(It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(nupkgStream);
+
+                sourceStorageMock
+                    .Setup(ss => ss.GetCloudBlockBlobReferenceAsync(It.IsAny<Uri>()))
+                    .ReturnsAsync(cloudBlobMock.Object);
+
+                await maker.AddPackageAsync(sourceStorageMock.Object, _nuspecData, _packageId, version, iconFilename, CancellationToken.None);
+
+                var expectedIconUrl = new Uri($"{catalogToDnxStorage.BaseAddress}{_packageId}/{version}/icon");
+                Verify(catalogToDnxStorage, expectedIconUrl, imageContent, _expectedCacheControl, expectedContentType);
+            }
         }
 
         [Theory]
@@ -713,6 +769,22 @@ namespace CatalogTests.Dnx
                 Assert.NotNull(list.LastModifiedUtc);
                 Assert.InRange(list.LastModifiedUtc.Value, utc.AddMinutes(-1), utc);
             }
+        }
+
+        private static async Task<Stream> CreateNupkgStreamWithIcon(string iconFilename, byte[] imageDataBuffer)
+        {
+            var nupkgStream = new MemoryStream();
+            using (var archive = new ZipArchive(nupkgStream, ZipArchiveMode.Create, leaveOpen: true))
+            {
+                var entry = archive.CreateEntry(iconFilename);
+                using (var entryStream = entry.Open())
+                {
+                    await entryStream.WriteAsync(imageDataBuffer, 0, imageDataBuffer.Length);
+                }
+            }
+
+            nupkgStream.Seek(0, SeekOrigin.Begin);
+            return nupkgStream;
         }
 
         private sealed class AzureStorageStub : MemoryStorage, IAzureStorage
