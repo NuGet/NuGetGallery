@@ -139,6 +139,8 @@ namespace NuGetGallery.Services
                     Assert.NotEmpty(testUser.OrganizationMigrationRequests);
                     Assert.NotEmpty(testUser.OrganizationRequests);
                     Assert.NotEmpty(testUser.Organizations);
+                    Assert.NotNull(testableService.PackageDeletedByUser.DeletedBy);
+                    Assert.NotNull(testableService.AccountDeletedByUser.DeletedBy);
                 }
                 else
                 {
@@ -155,6 +157,8 @@ namespace NuGetGallery.Services
                     Assert.Null(testUser.OrganizationMigrationRequest);
                     Assert.Empty(testUser.OrganizationMigrationRequests);
                     Assert.Empty(testUser.OrganizationRequests);
+                    Assert.Null(testableService.PackageDeletedByUser.DeletedBy);
+                    Assert.Null(testableService.AccountDeletedByUser.DeletedBy);
 
                     Assert.Empty(testUser.Organizations);
                     foreach (var testUserOrganization in testUserOrganizations)
@@ -264,6 +268,8 @@ namespace NuGetGallery.Services
                     Assert.Empty(testableService.AuditService.Records);
                     Assert.False(testableService.HasDeletedOwnerScope);
                     Assert.Empty(testableService.AuditService.Records);
+                    Assert.NotNull(testableService.PackageDeletedByUser.DeletedBy);
+                    Assert.NotNull(testableService.AccountDeletedByUser.DeletedBy);
                 }
                 else
                 {
@@ -278,6 +284,8 @@ namespace NuGetGallery.Services
                     Assert.Empty(testableService.PackageOwnerRequests);
                     Assert.Single(testableService.AuditService.Records);
                     Assert.True(testableService.HasDeletedOwnerScope);
+                    Assert.Null(testableService.PackageDeletedByUser.DeletedBy);
+                    Assert.Null(testableService.AccountDeletedByUser.DeletedBy);
 
                     var deleteRecord = testableService.AuditService.Records[0] as DeleteAccountAuditRecord;
                     Assert.True(deleteRecord != null);
@@ -463,13 +471,16 @@ namespace NuGetGallery.Services
             private PackageRegistration _userPackagesRegistration = null;
             private ICollection<Package> _userPackages;
             private bool _hasDeletedCredentialWithOwnerScope = false;
-            
+
             public List<AccountDelete> DeletedAccounts = new List<AccountDelete>();
             public List<User> DeletedUsers = new List<User>();
             public List<Issue> SupportRequests = new List<Issue>();
             public List<PackageOwnerRequest> PackageOwnerRequests = new List<PackageOwnerRequest>();
             public FakeAuditingService AuditService = new FakeAuditingService();
             public bool HasDeletedOwnerScope => _hasDeletedCredentialWithOwnerScope;
+
+            public AccountDelete AccountDeletedByUser { get; }
+            public PackageDelete PackageDeletedByUser { get; }
 
             public DeleteAccountTestService(User user)
             {
@@ -520,6 +531,9 @@ namespace NuGetGallery.Services
                     PackageRegistration = new PackageRegistration() { Id = $"{user.Username}_second" },
                     NewOwner = _user
                 });
+
+                AccountDeletedByUser = new AccountDelete { DeletedBy = _user, DeletedByKey = _user.Key };
+                PackageDeletedByUser = new PackageDelete { DeletedBy = _user, DeletedByKey = _user.Key };
             }
 
             public DeleteAccountTestService()
@@ -528,7 +542,9 @@ namespace NuGetGallery.Services
 
             public DeleteAccountService GetDeleteAccountService(bool isPackageOrphaned, bool isFeatureFlagsRemovalSuccessful = true)
             {
-                return new DeleteAccountService(SetupAccountDeleteRepository().Object,
+                return new DeleteAccountService(
+                    SetupAccountDeleteRepository().Object,
+                    SetupPackageDeleteRepository().Object,
                     SetupUserRepository().Object,
                     SetupScopeRepository().Object,
                     SetupEntitiesContext().Object,
@@ -597,9 +613,27 @@ namespace NuGetGallery.Services
             private Mock<IEntityRepository<AccountDelete>> SetupAccountDeleteRepository()
             {
                 var accountDeleteRepository = new Mock<IEntityRepository<AccountDelete>>();
-                accountDeleteRepository.Setup(m => m.InsertOnCommit(It.IsAny<AccountDelete>()))
-                                      .Callback<AccountDelete>(account => DeletedAccounts.Add(account));
+
+                accountDeleteRepository
+                    .Setup(m => m.GetAll())
+                    .Returns(new[] { AccountDeletedByUser }.AsQueryable());
+
+                accountDeleteRepository
+                    .Setup(m => m.InsertOnCommit(It.IsAny<AccountDelete>()))
+                    .Callback<AccountDelete>(account => DeletedAccounts.Add(account));
+
                 return accountDeleteRepository;
+            }
+
+            private Mock<IEntityRepository<PackageDelete>> SetupPackageDeleteRepository()
+            {
+                var packageDeleteRepository = new Mock<IEntityRepository<PackageDelete>>();
+
+                packageDeleteRepository
+                    .Setup(m => m.GetAll())
+                    .Returns(new[] { PackageDeletedByUser }.AsQueryable());
+
+                return packageDeleteRepository;
             }
 
             private Mock<IEntityRepository<User>> SetupUserRepository()

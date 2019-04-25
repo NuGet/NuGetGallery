@@ -30,7 +30,7 @@ namespace NuGet.Services.Entities
         /// <summary>
         /// The User(admin) key that executed the delete action.
         /// </summary>
-        public int DeletedByKey { get; set; }
+        public int? DeletedByKey { get; set; }
 
         /// <summary>
         /// The User(admin) that executed the delete action.

@@ -20,6 +20,7 @@ namespace NuGetGallery
     public class DeleteAccountService : IDeleteAccountService
     {
         private readonly IEntityRepository<AccountDelete> _accountDeleteRepository;
+        private readonly IEntityRepository<PackageDelete> _packageDeleteRepository;
         private readonly IEntitiesContext _entitiesContext;
         private readonly IPackageService _packageService;
         private readonly IPackageOwnershipManagementService _packageOwnershipManagementService;
@@ -35,6 +36,7 @@ namespace NuGetGallery
 
         public DeleteAccountService(
             IEntityRepository<AccountDelete> accountDeleteRepository,
+            IEntityRepository<PackageDelete> packageDeleteRepository,
             IEntityRepository<User> userRepository,
             IEntityRepository<Scope> scopeRepository,
             IEntitiesContext entitiesContext,
@@ -49,6 +51,7 @@ namespace NuGetGallery
             ITelemetryService telemetryService)
         {
             _accountDeleteRepository = accountDeleteRepository ?? throw new ArgumentNullException(nameof(accountDeleteRepository));
+            _packageDeleteRepository = packageDeleteRepository ?? throw new ArgumentNullException(nameof(packageDeleteRepository));
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
             _scopeRepository = scopeRepository ?? throw new ArgumentNullException(nameof(scopeRepository));
             _entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
@@ -282,6 +285,25 @@ namespace NuGetGallery
             foreach (var memberRequest in organization.MemberRequests.ToList())
             {
                 organization.MemberRequests.Remove(memberRequest);
+            }
+        }
+
+        private void ResetPackagesAndAccountsDeletedBy(User user)
+        {
+            foreach (var deletedPackage in _packageDeleteRepository
+                .GetAll()
+                .Where(d => d.DeletedByKey == user.Key)
+                .ToList())
+            {
+                deletedPackage.DeletedBy = null;
+            }
+
+            foreach (var deletedAccount in _accountDeleteRepository
+                .GetAll()
+                .Where(d => d.DeletedByKey == user.Key)
+                .ToList())
+            {
+                deletedAccount.DeletedBy = null;
             }
         }
 
