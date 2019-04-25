@@ -127,6 +127,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
 
             await DeleteNuspecAsync(storage, id, normalizedVersion, cancellationToken);
             await DeleteNupkgAsync(storage, id, normalizedVersion, cancellationToken);
+            await DeleteIconAsync(storage, id, normalizedVersion, cancellationToken);
         }
 
         public async Task<bool> HasPackageInIndexAsync(Storage storage, string id, string version, CancellationToken cancellationToken)
@@ -358,7 +359,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
                 {
                     using (var iconStream = iconEntry.Open())
                     {
-                        var iconContent = new StreamStorageContent(iconStream, GetIconContentType(iconPath), cacheControl: "max-age=120");
+                        var iconContent = new StreamStorageContent(iconStream, GetIconContentType(iconPath), DnxConstants.DefaultCacheControl);
                         await destinationStorage.SaveAsync(destinationUri, iconContent, cancellationToken);
                     }
                 }
@@ -407,6 +408,16 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             if (storage.Exists(relativeAddress))
             {
                 await storage.DeleteAsync(nupkgUri, cancellationToken);
+            }
+        }
+
+        private async Task DeleteIconAsync(Storage storage, string id, string version, CancellationToken cancellationToken)
+        {
+            string relativeAddress = GetRelativeAddressIcon(id, version);
+            Uri iconUri = new Uri(storage.BaseAddress, relativeAddress);
+            if (storage.Exists(relativeAddress))
+            {
+                await storage.DeleteAsync(iconUri, cancellationToken);
             }
         }
 
