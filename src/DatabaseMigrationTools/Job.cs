@@ -15,6 +15,7 @@ using System.Data.Entity.Migrations;
 using NuGetGallery.Migrations;
 using NuGet.Jobs;
 using NuGet.Jobs.Configuration;
+using System.Data.Entity.Migrations.Infrastructure;
 
 namespace NuGetGallery.DatabaseMigrationTools
 {
@@ -39,16 +40,51 @@ namespace NuGetGallery.DatabaseMigrationTools
                 Logger.LogInformation("Initializing DbMigrator...");
                 var migrationsConfiguration = new MigrationsConfiguration();
                 var migrator = new DbMigrator(migrationsConfiguration);
+                var migratorForScripting = new DbMigrator(migrationsConfiguration);
 
-                ExecuteDatabaseMigration(migrator, sqlConnection, accessToken);
+                ExecuteDatabaseMigration(migrator, migratorForScripting, sqlConnection, accessToken);
             }
         }
 
-        private void ExecuteDatabaseMigration(DbMigrator migrator, SqlConnection sqlConnection, string accessToken)
+        private void ExecuteDatabaseMigration(DbMigrator migrator, DbMigrator migratorForScripting, SqlConnection sqlConnection, string accessToken)
         {
-            // Overwrite the database connection of DbMigrator.
-            // Hit the bug:  https://github.com/aspnet/EntityFramework6/issues/522
-            // Consider updating this section when the new Entity Framework 6.3 or higher version is released.
+            OverWriteSqlConnection(migrator, sqlConnection, accessToken);
+            OverWriteSqlConnection(migratorForScripting, sqlConnection, accessToken);
+
+            var pendingMigrations = migrator.GetPendingMigrations();
+            if (pendingMigrations.Count() > 0)
+            {
+                Logger.LogInformation("Target database is: {DataSource}/{Database}", sqlConnection.DataSource, sqlConnection.Database);
+                Logger.LogInformation("Applying pending migrations: \n {PendingMigrations}", String.Join("\n", pendingMigrations));
+
+                var migratorScripter = new MigratorScriptingDecorator(migratorForScripting);
+                var migrationScripts = migratorScripter.ScriptUpdate(null, null);
+                Logger.LogInformation("Applying explicit migration SQL scripts: \n {migrationScripts}", migrationScripts);
+
+                try
+                {
+                    Logger.LogInformation("Executing migrations...");
+                    migrator.Update();
+                }
+                catch (Exception e)
+                {
+                    Logger.LogError(0, e, "Failed to execute migrations on the target database {DataSource}/{Database}", sqlConnection.DataSource, sqlConnection.Database);
+                    throw;
+                }
+
+                Logger.LogInformation("Finished executing {pendingMigrationsCount} migrations successfully.", pendingMigrations.Count());
+            }
+            else
+            {
+                Logger.LogInformation("There are no pending migrations to execute.");
+            }
+        }
+
+        // Overwrite the database connection of DbMigrator.
+        // Hit the bug:  https://github.com/aspnet/EntityFramework6/issues/522
+        // Consider deleting/updating this section when the new Entity Framework 6.3 or higher version is released.
+        private void OverWriteSqlConnection(DbMigrator migrator, SqlConnection sqlConnection, string accessToken)
+        {
             var historyRepository = typeof(DbMigrator).GetField(
                 "_historyRepository",
                 BindingFlags.NonPublic | BindingFlags.Instance)
@@ -59,20 +95,7 @@ namespace NuGetGallery.DatabaseMigrationTools
                 BindingFlags.NonPublic | BindingFlags.Instance);
 
             sqlConnection.AccessToken = accessToken;
-            sqlConnection.Open();
             connectionField.SetValue(historyRepository, sqlConnection);
-
-            var pendingMigrations = migrator.GetPendingMigrations();
-            if (pendingMigrations.Count() > 0)
-            {
-                Logger.LogInformation("Executing pending migrations: \n {PendingMigrations}", String.Join("\n", pendingMigrations));
-                migrator.Update();
-                Logger.LogInformation("Finished executing {pendingMigrationsCount} migrations successfully.", pendingMigrations.Count());
-            }
-            else
-            {
-                Logger.LogInformation("There are no pending migrations to execute.");
-            }
         }
 
         protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder)
