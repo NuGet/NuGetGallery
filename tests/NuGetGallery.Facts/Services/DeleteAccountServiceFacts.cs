@@ -614,9 +614,12 @@ namespace NuGetGallery.Services
             {
                 var accountDeleteRepository = new Mock<IEntityRepository<AccountDelete>>();
 
-                accountDeleteRepository
-                    .Setup(m => m.GetAll())
-                    .Returns(new[] { AccountDeletedByUser }.AsQueryable());
+                if (AccountDeletedByUser != null)
+                {
+                    accountDeleteRepository
+                        .Setup(m => m.GetAll())
+                        .Returns(new[] { AccountDeletedByUser }.AsQueryable());
+                }
 
                 accountDeleteRepository
                     .Setup(m => m.InsertOnCommit(It.IsAny<AccountDelete>()))
@@ -629,9 +632,12 @@ namespace NuGetGallery.Services
             {
                 var packageDeleteRepository = new Mock<IEntityRepository<PackageDelete>>();
 
-                packageDeleteRepository
-                    .Setup(m => m.GetAll())
-                    .Returns(new[] { PackageDeletedByUser }.AsQueryable());
+                if (PackageDeletedByUser != null)
+                {
+                    packageDeleteRepository
+                        .Setup(m => m.GetAll())
+                        .Returns(new[] { PackageDeletedByUser }.AsQueryable());
+                }
 
                 return packageDeleteRepository;
             }
