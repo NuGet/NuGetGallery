@@ -35,6 +35,7 @@ namespace NuGetGallery
             Uri projectUrl = null,
             Uri iconUrl = null,
             bool requireLicenseAcceptance = false,
+            bool developmentDependency = false,
             IEnumerable<PackageDependencyGroup> packageDependencyGroups = null,
             IEnumerable<ClientPackageType> packageTypes = null,
             bool isSymbolPackage = false,
@@ -54,6 +55,7 @@ namespace NuGetGallery
                         <description>" + description + @"</description>
                         <tags>" + tags + @"</tags>
                         <requireLicenseAcceptance>" + requireLicenseAcceptance + @"</requireLicenseAcceptance>
+                        <developmentDependency>" + developmentDependency + @"</developmentDependency>
                         <authors>" + authors + @"</authors>
                         <owners>" + owners + @"</owners>
                         <language>" + (language ?? string.Empty) + @"</language>
@@ -201,6 +203,7 @@ namespace NuGetGallery
             Uri projectUrl = null,
             Uri iconUrl = null,
             bool requireLicenseAcceptance = false,
+            bool developmentDependency = false,
             IEnumerable<PackageDependencyGroup> packageDependencyGroups = null,
             IEnumerable<ClientPackageType> packageTypes = null,
             RepositoryMetadata repositoryMetadata = null,
@@ -221,7 +224,7 @@ namespace NuGetGallery
                 {
                     WriteNuspec(stream, true, id, version, title, summary, authors, owners, description, tags, language,
                         copyright, releaseNotes, minClientVersion, licenseUrl, projectUrl, iconUrl,
-                        requireLicenseAcceptance, packageDependencyGroups, packageTypes, isSymbolPackage, repositoryMetadata,
+                        requireLicenseAcceptance, developmentDependency, packageDependencyGroups, packageTypes, isSymbolPackage, repositoryMetadata,
                         getCustomNuspecNodes, licenseExpression, licenseFilename, iconFilename);
                 }
 

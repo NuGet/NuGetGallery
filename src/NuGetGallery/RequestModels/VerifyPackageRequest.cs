@@ -31,7 +31,7 @@ namespace NuGetGallery
             MinClientVersionDisplay = packageMetadata.MinClientVersion.ToFullStringSafe();
             FrameworkReferenceGroups = packageMetadata.GetFrameworkReferenceGroups();
             Dependencies = new DependencySetsViewModel(packageMetadata.GetDependencyGroups().AsPackageDependencyEnumerable());
-            DevelopmentDependency = packageMetadata.GetValueFromMetadata("developmentDependency");
+            DevelopmentDependency = packageMetadata.GetValueFromMetadata(PackageMetadataStrings.DevelopmentDependency);
             Authors = packageMetadata.Authors.Flatten();
             Copyright = packageMetadata.Copyright;
             Description = packageMetadata.Description;

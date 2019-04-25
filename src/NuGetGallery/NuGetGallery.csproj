@@ -246,6 +246,10 @@
     <Compile Include="Migrations\201904292139301_RemoveVulnerabilityDataFromPackageDeprecationModel.Designer.cs">
       <DependentUpon>201904292139301_RemoveVulnerabilityDataFromPackageDeprecationModel.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201905020719236_DevelopmentDependencyMetadata.cs" />
+    <Compile Include="Migrations\201905020719236_DevelopmentDependencyMetadata.Designer.cs">
+      <DependentUpon>201905020719236_DevelopmentDependencyMetadata.cs</DependentUpon>
+    </Compile>
     <Compile Include="Services\IPackageDeprecationService.cs" />
     <Compile Include="Queries\AutocompleteDatabasePackageIdsQuery.cs" />
     <Compile Include="Queries\AutocompleteDatabasePackageVersionsQuery.cs" />
@@ -1722,6 +1726,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201904292139301_RemoveVulnerabilityDataFromPackageDeprecationModel.resx">
       <DependentUpon>201904292139301_RemoveVulnerabilityDataFromPackageDeprecationModel.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201905020719236_DevelopmentDependencyMetadata.resx">
+      <DependentUpon>201905020719236_DevelopmentDependencyMetadata.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
