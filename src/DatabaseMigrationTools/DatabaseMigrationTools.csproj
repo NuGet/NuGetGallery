@@ -43,7 +43,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="MigrationTargetDatabaseType.cs" />
+    <Compile Include="JobArgumentNames.cs" />
+    <Compile Include="SupportRequestDbMigrationContext.cs" />
+    <Compile Include="IMigrationContext.cs" />
+    <Compile Include="IMigrationContextFactory.cs" />
     <Compile Include="Job.cs" />
+    <Compile Include="GalleryDbMigrationContext.cs" />
+    <Compile Include="MigrationContextFactory.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
