@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Data.Entity;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
@@ -27,6 +26,7 @@ namespace NuGetGallery
         private readonly IReservedNamespaceService _reservedNamespaceService;
         private readonly ISecurityPolicyService _securityPolicyService;
         private readonly AuthenticationService _authService;
+        private readonly IEntityRepository<PackageDeprecation> _deprecationRepository;
         private readonly IEntityRepository<User> _userRepository;
         private readonly IEntityRepository<Scope> _scopeRepository;
         private readonly ISupportRequestService _supportRequestService;
@@ -37,6 +37,7 @@ namespace NuGetGallery
         public DeleteAccountService(
             IEntityRepository<AccountDelete> accountDeleteRepository,
             IEntityRepository<PackageDelete> packageDeleteRepository,
+            IEntityRepository<PackageDeprecation> deprecationRepository,
             IEntityRepository<User> userRepository,
             IEntityRepository<Scope> scopeRepository,
             IEntitiesContext entitiesContext,
@@ -52,6 +53,7 @@ namespace NuGetGallery
         {
             _accountDeleteRepository = accountDeleteRepository ?? throw new ArgumentNullException(nameof(accountDeleteRepository));
             _packageDeleteRepository = packageDeleteRepository ?? throw new ArgumentNullException(nameof(packageDeleteRepository));
+            _deprecationRepository = deprecationRepository ?? throw new ArgumentNullException(nameof(deprecationRepository));
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
             _scopeRepository = scopeRepository ?? throw new ArgumentNullException(nameof(scopeRepository));
             _entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
@@ -113,6 +115,9 @@ namespace NuGetGallery
             await RemoveUserCredentials(userToBeDeleted);
             await RemovePackageOwnershipRequests(userToBeDeleted);
             ResetPackagesAndAccountsDeletedBy(userToBeDeleted);
+
+            RemovePackagePushedBy(userToBeDeleted);
+            RemovePackageDeprecatedBy(userToBeDeleted);
 
             var organizationToBeDeleted = userToBeDeleted as Organization;
             if (organizationToBeDeleted != null)
@@ -213,6 +218,17 @@ namespace NuGetGallery
             }
         }
 
+        private void RemovePackagePushedBy(User user)
+        {
+            foreach (var package in _entitiesContext
+                .Packages
+                .Where(p => p.UserKey == user.Key)
+                .ToList())
+            {
+                package.User = null;
+            }
+        }
+
         private List<Package> GetPackagesOwnedByUser(User user)
         {
             return _packageService
@@ -222,13 +238,30 @@ namespace NuGetGallery
 
         private async Task RemovePackageOwnershipRequests(User user)
         {
-            var requests = _packageOwnershipManagementService
+            var toRequests = _packageOwnershipManagementService
                 .GetPackageOwnershipRequests(newOwner: user)
                 .ToList();
+
+            var fromRequests = _packageOwnershipManagementService
+                .GetPackageOwnershipRequests(requestingOwner: user)
+                .ToList();
+
+            var requests = toRequests.Concat(fromRequests).ToList();
 
             foreach (var request in requests)
             {
                 await _packageOwnershipManagementService.DeletePackageOwnershipRequestAsync(request.PackageRegistration, request.NewOwner, commitChanges: false);
+            }
+        }
+
+        private void RemovePackageDeprecatedBy(User user)
+        {
+            foreach (var deprecation in _deprecationRepository
+                .GetAll()
+                .Where(d => d.DeprecatedByUserKey == user.Key)
+                .ToList())
+            {
+                deprecation.DeprecatedByUser = null;
             }
         }
         
