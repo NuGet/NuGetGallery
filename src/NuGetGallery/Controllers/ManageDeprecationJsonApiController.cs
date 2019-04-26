@@ -52,7 +52,7 @@ namespace NuGetGallery
             string id,
             IEnumerable<string> versions,
             bool isLegacy,
-            bool isUnusable,
+            bool hasCriticalBugs,
             bool isOther,
             string alternatePackageId,
             string alternatePackageVersion,
@@ -142,9 +142,9 @@ namespace NuGetGallery
                 status |= PackageDeprecationStatus.Legacy;
             }
 
-            if (isUnusable)
+            if (hasCriticalBugs)
             {
-                status |= PackageDeprecationStatus.Unusable;
+                status |= PackageDeprecationStatus.CriticalBugs;
             }
 
             if (isOther)

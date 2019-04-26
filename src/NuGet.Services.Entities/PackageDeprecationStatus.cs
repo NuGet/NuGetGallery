@@ -27,8 +27,8 @@ namespace NuGet.Services.Entities
         Legacy = 2,
 
         /// <summary>
-        /// The package is deprecated because it has bugs/issues that makes it unusable.
+        /// The package is deprecated because it has critical bugs.
         /// </summary>
-        Unusable = 4
+        CriticalBugs = 4
     }
 }

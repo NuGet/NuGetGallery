@@ -191,9 +191,9 @@ namespace NuGetGallery
                     deprecationReasons.Add("Legacy");
                 }
 
-                if (deprecation.Status.HasFlag(PackageDeprecationStatus.Unusable))
+                if (deprecation.Status.HasFlag(PackageDeprecationStatus.CriticalBugs))
                 {
-                    deprecationReasons.Add("Unusable");
+                    deprecationReasons.Add("Critical Bugs");
                 }
 
                 if (deprecation.Status.HasFlag(PackageDeprecationStatus.Other))

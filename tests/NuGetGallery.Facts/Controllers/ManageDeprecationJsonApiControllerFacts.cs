@@ -575,17 +575,17 @@ namespace NuGetGallery.Controllers
                     yield return MemberDataHelper.AsData(false, false, true,
                         PackageDeprecationStatus.Other);
                     yield return MemberDataHelper.AsData(false, true, false,
-                        PackageDeprecationStatus.Unusable);
+                        PackageDeprecationStatus.CriticalBugs);
                     yield return MemberDataHelper.AsData(true, false, false,
                         PackageDeprecationStatus.Legacy);
                     yield return MemberDataHelper.AsData(true, false, true,
                         PackageDeprecationStatus.Legacy | PackageDeprecationStatus.Other);
                     yield return MemberDataHelper.AsData(true, true, false,
-                        PackageDeprecationStatus.Legacy | PackageDeprecationStatus.Unusable);
+                        PackageDeprecationStatus.Legacy | PackageDeprecationStatus.CriticalBugs);
                     yield return MemberDataHelper.AsData(false, true, true,
-                        PackageDeprecationStatus.Unusable | PackageDeprecationStatus.Other);
+                        PackageDeprecationStatus.CriticalBugs | PackageDeprecationStatus.Other);
                     yield return MemberDataHelper.AsData(true, true, true,
-                        PackageDeprecationStatus.Legacy | PackageDeprecationStatus.Unusable | PackageDeprecationStatus.Other);
+                        PackageDeprecationStatus.Legacy | PackageDeprecationStatus.CriticalBugs | PackageDeprecationStatus.Other);
                 }
             }
 
@@ -609,7 +609,7 @@ namespace NuGetGallery.Controllers
                 User currentUser,
                 User owner,
                 bool isLegacy,
-                bool isUnusable,
+                bool hasCriticalBugs,
                 bool isOther,
                 PackageDeprecationStatus expectedStatus,
                 ReturnsSuccessful_AlternatePackage_State alternatePackageState,
@@ -706,7 +706,7 @@ namespace NuGetGallery.Controllers
                     id,
                     new[] { package.NormalizedVersion, package2.NormalizedVersion },
                     isLegacy,
-                    isUnusable,
+                    hasCriticalBugs,
                     isOther,
                     alternatePackageId,
                     alternatePackageVersion,

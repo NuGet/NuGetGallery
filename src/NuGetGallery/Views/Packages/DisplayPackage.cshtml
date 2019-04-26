@@ -582,14 +582,21 @@
                                         {
                                             var deprecationTitle = packageVersion.Version;
                                             var isLegacy = packageVersion.DeprecationStatus.HasFlag(PackageDeprecationStatus.Legacy);
-                                            var isUnusable = packageVersion.DeprecationStatus.HasFlag(PackageDeprecationStatus.Unusable);
-                                            if (isUnusable)
+                                            var hasCriticalBugs = packageVersion.DeprecationStatus.HasFlag(PackageDeprecationStatus.CriticalBugs);
+                                            if (hasCriticalBugs)
                                             {
-                                                deprecationTitle += " is deprecated because it has bugs/issues that makes it unusable.";
+                                                if (isLegacy)
+                                                {
+                                                    deprecationTitle += " is deprecated because it's legacy. It also has critical bugs.";
+                                                }
+                                                else
+                                                {
+                                                    deprecationTitle += " is deprecated because it has critical bugs.";
+                                                }
                                             }
                                             else if (isLegacy)
                                             {
-                                                deprecationTitle += " is deprecated because it is legacy and is no longer maintained.";
+                                                deprecationTitle += " is deprecated because it's legacy and no longer maintained.";
                                             }
                                             else
                                             {
