@@ -13,17 +13,17 @@ using NuGet.Services.Entities;
 namespace NuGetGallery
 {
     /// <summary>
-    /// This EntitiesContextFactory is provided for running migrations in a flexible way as follows:
+    /// This GalleryDbContextFactory is provided for running migrations in a flexible way as follows:
     /// 1. Run migration using DbConnection; (For DatabaseMigrationTools with AAD token)
     /// 2. Run migration using connection string;
     /// 3. Run migration using default connection string ("Gallery.SqlServer") in a web.config; (For command-line migration with integrated AAD/username+password)
     /// </summary>
-    public class DbContextFactory : IDbContextFactory<EntitiesContext>
+    public class GalleryDbContextFactory : IDbContextFactory<EntitiesContext>
     {
-        public static Func<EntitiesContext> EntitiesContextFactory;
+        public static Func<EntitiesContext> GalleryEntitiesContextFactory;
         public EntitiesContext Create()
         {
-            return EntitiesContextFactory == null ? new EntitiesContext("Gallery.SqlServer", readOnly: false) : EntitiesContextFactory();
+            return GalleryEntitiesContextFactory == null ? new EntitiesContext("Gallery.SqlServer", readOnly: false) : GalleryEntitiesContextFactory();
         }
     }
 
