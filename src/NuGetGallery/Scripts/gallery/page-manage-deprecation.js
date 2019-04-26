@@ -11,13 +11,14 @@ function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defau
             versionData.Text,
             version,
             version === defaultVersion,
-            versionData.IsLegacy || versionData.IsOther);
+            versionData.IsLegacy || versionData.IsUnusable || versionData.IsOther);
     });
 
     this.dropdown = new MultiSelectDropdown(items, "version", "versions");
     this.chosenItemsConflictWarning = ko.pureComputed(function () {
         var chosenItems = self.dropdown.chosenItems();
         var isLegacy = self.isLegacy();
+        var isUnusable = self.isUnusable();
         var isOther = self.isOther();
         var warningMessage = null;
         var areMultipleVersionsSelected = chosenItems.length > 1;
@@ -38,13 +39,13 @@ function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defau
                 continue;
             }
 
-            if (versionData.IsLegacy || versionData.IsOther) {
+            if (versionData.IsLegacy || versionData.IsUnusable || versionData.IsOther) {
                 hasVersionsWithExistingDeprecationState = true;
                 break;
             }
         }
 
-        if (isLegacy || isOther) {
+        if (isLegacy || isUnusable || isOther) {
             if (areMultipleVersionsSelected && hasVersionsWithExistingDeprecationState) {
                 // Show a warning if multiple versions are selected and at least one has an existing deprecation
                 // The user should be aware they are replacing existing deprecations
@@ -63,6 +64,7 @@ function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defau
     }, this);
 
     this.isLegacy = ko.observable(false);
+    this.isUnusable = ko.observable(false);
     this.isOther = ko.observable(false);
 
     // The ID entered into the alternate package ID textbox.
@@ -171,6 +173,7 @@ function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defau
                 id: id,
                 versions: self.dropdown.chosenItems(),
                 isLegacy: self.isLegacy(),
+                isUnusable: self.isUnusable(),
                 isOther: self.isOther(),
                 alternatePackageId: self.alternatePackageId(),
                 alternatePackageVersion: self.alternatePackageVersion(),
@@ -198,6 +201,7 @@ function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defau
         }
 
         versionData.IsLegacy = self.isLegacy();
+        versionData.IsUnusable = self.isUnusable();
         versionData.IsOther = self.isOther();
         versionData.AlternatePackageId = self.alternatePackageId();
         versionData.AlternatePackageVersion = self.alternatePackageVersion();
@@ -211,6 +215,7 @@ function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defau
         }
 
         self.isLegacy(versionData.IsLegacy);
+        self.isUnusable(versionData.IsUnusable);
         self.isOther(versionData.IsOther);
 
         self.chosenAlternatePackageId(versionData.AlternatePackageId);

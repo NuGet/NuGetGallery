@@ -26,15 +26,23 @@ namespace NuGetGallery.Helpers
             public const string Version = "1.0.1+build";
 
             [Theory]
-            [InlineData(false, false, false, Version)]
-            [InlineData(false, false, true, Version + " (Deprecated - Other)")]
-            [InlineData(false, true, false, Version + " (Deprecated - Legacy)")]
-            [InlineData(false, true, true, Version + " (Deprecated - Legacy, Other)")]
-            [InlineData(true, false, false, Version + " (Latest)")]
-            [InlineData(true, false, true, Version + " (Latest, Deprecated - Other)")]
-            [InlineData(true, true, false, Version + " (Latest, Deprecated - Legacy)")]
-            [InlineData(true, true, true, Version + " (Latest, Deprecated - Legacy, Other)")]
-            public void ReturnsCorrectSelectListText(bool latest, bool isLegacy, bool isOther, string expected)
+            [InlineData(false, false, false, false, Version)]
+            [InlineData(false, false, false, true, Version + " (Deprecated - Other)")]
+            [InlineData(false, true, false, false, Version + " (Deprecated - Legacy)")]
+            [InlineData(false, true, false, true, Version + " (Deprecated - Legacy, Other)")]
+            [InlineData(false, false, true, false, Version + " (Deprecated - Unusable)")]
+            [InlineData(false, false, true, true, Version + " (Deprecated - Unusable, Other)")]
+            [InlineData(false, true, true, false, Version + " (Deprecated - Legacy, Unusable)")]
+            [InlineData(false, true, true, true, Version + " (Deprecated - Legacy, Unusable, Other)")]
+            [InlineData(true, false, false, false, Version + " (Latest)")]
+            [InlineData(true, false, false, true, Version + " (Latest, Deprecated - Other)")]
+            [InlineData(true, true, false, false, Version + " (Latest, Deprecated - Legacy)")]
+            [InlineData(true, true, false, true, Version + " (Latest, Deprecated - Legacy, Other)")]
+            [InlineData(true, false, true, false, Version + " (Latest, Deprecated - Unusable)")]
+            [InlineData(true, false, true, true, Version + " (Latest, Deprecated - Unusable, Other)")]
+            [InlineData(true, true, true, false, Version + " (Latest, Deprecated - Legacy, Unusable)")]
+            [InlineData(true, true, true, true, Version + " (Latest, Deprecated - Legacy, Unusable, Other)")]
+            public void ReturnsCorrectSelectListText(bool latest, bool isLegacy, bool isUnusable, bool isOther, string expected)
             {
                 var package = new Package
                 {
@@ -42,18 +50,23 @@ namespace NuGetGallery.Helpers
                     IsLatestSemVer2 = latest
                 };
 
-                if (isLegacy || isOther)
+                if (isLegacy || isUnusable || isOther)
                 {
                     var status = PackageDeprecationStatus.NotDeprecated;
 
                     if (isLegacy)
                     {
-                        status = status | PackageDeprecationStatus.Legacy;
+                        status |= PackageDeprecationStatus.Legacy;
+                    }
+
+                    if (isUnusable)
+                    {
+                        status |= PackageDeprecationStatus.Unusable;
                     }
 
                     if (isOther)
                     {
-                        status = status | PackageDeprecationStatus.Other;
+                        status |= PackageDeprecationStatus.Other;
                     }
 
                     var deprecation = new PackageDeprecation

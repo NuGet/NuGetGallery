@@ -582,7 +582,12 @@
                                         {
                                             var deprecationTitle = packageVersion.Version;
                                             var isLegacy = packageVersion.DeprecationStatus.HasFlag(PackageDeprecationStatus.Legacy);
-                                            if (isLegacy)
+                                            var isUnusable = packageVersion.DeprecationStatus.HasFlag(PackageDeprecationStatus.Unusable);
+                                            if (isUnusable)
+                                            {
+                                                deprecationTitle += " is deprecated because it has bugs/issues that makes it unusable.";
+                                            }
+                                            else if (isLegacy)
                                             {
                                                 deprecationTitle += " is deprecated because it is legacy and is no longer maintained.";
                                             }

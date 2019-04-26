@@ -60,13 +60,19 @@
         </div>
         <div class="form-group unbolded-label">
             <label>
+                <input name="isUnusable" type="checkbox" value="true" data-bind="checked: isUnusable" />
+                This package has bugs/issues that make it <b>unusable</b>
+            </label>
+        </div>
+        <div class="form-group unbolded-label">
+            <label>
                 <input name="isOther" type="checkbox" value="true" data-bind="checked: isOther" />
                 This package should be deprecated for <b>other</b> reasons
             </label>
         </div>
     </div>
 
-    <div data-bind="visible: isLegacy() || isOther()">
+    <div data-bind="visible: isUnusable() || isLegacy() || isOther()">
         <div class="deprecation-section form-group">
             <label for="customMessage" class="deprecation-section-header">Provide custom message</label>
             <textarea id="customMessage" name="customMessage" class="form-control full-line" data-bind="textInput: customMessage" rows="2"></textarea>
