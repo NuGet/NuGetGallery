@@ -217,9 +217,11 @@ namespace NuGet.Services.Entities
         public string MinClientVersion { get; set; }
 
         /// <summary>
-        /// The logged in user when this package version was created.
-        /// NULL for older packages.
+        /// The user that uploaded this package or <c>null</c> if the user was deleted.
         /// </summary>
+        /// <remarks>
+        /// Packages uploaded before this field was added have <c>null</c>.
+        /// </remarks>
         public User User { get; set; }
         public int? UserKey { get; set; }
 

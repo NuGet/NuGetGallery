@@ -49,6 +49,7 @@ namespace NuGetGallery
         }
 
         public bool ReadOnly { get; private set; }
+        public DbSet<Package> Packages { get; set; }
         public DbSet<PackageRegistration> PackageRegistrations { get; set; }
         public DbSet<Credential> Credentials { get; set; }
         public DbSet<Scope> Scopes { get; set; }
