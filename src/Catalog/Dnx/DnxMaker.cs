@@ -75,7 +75,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             }
             else
             {
-                _logger.LogInformation("Package {PackageId} {PackageVersion} don't have icon file specified in fallback to package stream case.",
+                _logger.LogInformation("Package {PackageId} {PackageVersion} doesn't have icon file specified in fallback to package stream case.",
                     packageId,
                     normalizedPackageVersion);
             }
@@ -122,7 +122,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             }
             else
             {
-                _logger.LogInformation("Package {PackageId} {PackageVersion} don't have icon file specified in Azure Storage stream case",
+                _logger.LogInformation("Package {PackageId} {PackageVersion} doesn't have icon file specified in Azure Storage stream case",
                     packageId,
                     normalizedPackageVersion);
             }

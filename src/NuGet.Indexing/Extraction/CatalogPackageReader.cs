@@ -90,7 +90,7 @@ namespace NuGet.Indexing
 
         public override bool CanVerifySignedPackages(SignedPackageVerifierSettings verifierSettings)
         {
-            throw new NotImplementedException();
+            return false;
         }
 
         public override string GetContentHashForSignedPackage(CancellationToken token)
