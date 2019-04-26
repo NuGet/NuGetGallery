@@ -6,24 +6,28 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using NuGet.Common;
+using Microsoft.Extensions.Logging;
 using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using NuGet.Versioning;
+
+using ILogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace NuGet.Services.Metadata.Catalog.Dnx
 {
     public class DnxMaker
     {
         private readonly StorageFactory _storageFactory;
+        private readonly ILogger _logger;
 
-        public DnxMaker(StorageFactory storageFactory)
+        public DnxMaker(StorageFactory storageFactory, ILogger logger)
         {
             _storageFactory = storageFactory ?? throw new ArgumentNullException(nameof(storageFactory));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         public async Task<DnxEntry> AddPackageAsync(
@@ -321,9 +325,17 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
         {
             if (string.IsNullOrWhiteSpace(iconFilename))
             {
+                _logger.LogInformation("Package {PackageId} {PackageVersion} don't have icon file specified",
+                    packageId,
+                    normalizedPackageVersion);
                 // no embedded icon, bail out
                 return;
             }
+
+            _logger.LogInformation("Processing icon {IconFilename} for the package {PackageId} {PackageVersion}",
+                iconFilename,
+                packageId,
+                normalizedPackageVersion);
 
             var iconPath = PathUtility.StripLeadingDirectorySeparators(iconFilename);
 
@@ -332,6 +344,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
 
             if (disposeOfPackageStream)
             {
+                _logger.LogInformation("Going to dispose of the package stream");
                 using (var packageStream = await getPackageStream())
                 {
                     await ExtractAndStoreIconAsync(packageStream, iconPath, destinationStorage, destinationUri, cancellationToken);
@@ -339,6 +352,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             }
             else
             {
+                _logger.LogInformation("Going to not dispose of the package stream");
                 var packageStream = await getPackageStream();
                 await ExtractAndStoreIconAsync(packageStream, iconPath, destinationStorage, destinationUri, cancellationToken);
             }
@@ -358,9 +372,15 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
                 {
                     using (var iconStream = iconEntry.Open())
                     {
+                        _logger.LogInformation("Extracting icon to destination storage {DestinationUri}", destinationUri);
                         var iconContent = new StreamStorageContent(iconStream, GetIconContentType(iconPath), DnxConstants.DefaultCacheControl);
                         await destinationStorage.SaveAsync(destinationUri, iconContent, cancellationToken);
+                        _logger.LogInformation("Done");
                     }
+                }
+                else
+                {
+                    _logger.LogInformation("Zip archive entry {IconPath} does not exist", iconPath);
                 }
             }
         }

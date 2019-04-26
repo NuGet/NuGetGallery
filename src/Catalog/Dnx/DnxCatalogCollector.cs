@@ -47,7 +47,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             _storageFactory = storageFactory ?? throw new ArgumentNullException(nameof(storageFactory));
             _sourceStorage = preferredPackageSourceStorage;
             _contentBaseAddress = contentBaseAddress;
-            _dnxMaker = new DnxMaker(storageFactory);
+            _dnxMaker = new DnxMaker(storageFactory, logger);
             _catalogClientFactory = catalogClientFactory ?? throw new ArgumentNullException(nameof(catalogClientFactory));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
