@@ -115,40 +115,40 @@
   </PropertyGroup>
   <Import Project="$(SignPath)\sign.targets" Condition="Exists('$(SignPath)\sign.targets')" />
   <ItemGroup>
-    <ThirdPartyBinaries Include="AnglicanGeek.MarkdownMailer.dll" />
-    <ThirdPartyBinaries Include="Autofac.dll" />
-    <ThirdPartyBinaries Include="Autofac.Extensions.DependencyInjection.dll" />
-    <ThirdPartyBinaries Include="Autofac.Integration.WebApi.dll" />
-    <ThirdPartyBinaries Include="Dapper.StrongName.dll" />
-    <ThirdPartyBinaries Include="dotNetRDF.dll" />
-    <ThirdPartyBinaries Include="Elmah.dll" />
-    <ThirdPartyBinaries Include="HtmlAgilityPack.dll" />
-    <ThirdPartyBinaries Include="ICSharpCode.SharpZipLib.dll" />
-    <ThirdPartyBinaries Include="json-ld.net.StrongName.dll" />
-    <ThirdPartyBinaries Include="Lucene.Net.Contrib.Analyzers.dll" />
-    <ThirdPartyBinaries Include="Lucene.Net.Contrib.Core.dll" />
-    <ThirdPartyBinaries Include="Lucene.Net.Contrib.FastVectorHighlighter.dll" />
-    <ThirdPartyBinaries Include="Lucene.Net.Contrib.Highlighter.dll" />
-    <ThirdPartyBinaries Include="Lucene.Net.Contrib.Memory.dll" />
-    <ThirdPartyBinaries Include="Lucene.Net.Contrib.Queries.dll" />
-    <ThirdPartyBinaries Include="Lucene.Net.Contrib.Regex.dll" />
-    <ThirdPartyBinaries Include="Lucene.Net.Contrib.SimpleFacetedSearch.dll" />
-    <ThirdPartyBinaries Include="Lucene.Net.Contrib.Snowball.dll" />
-    <ThirdPartyBinaries Include="Lucene.Net.Contrib.SpellChecker.dll" />
-    <ThirdPartyBinaries Include="Lucene.Net.dll" />
-    <ThirdPartyBinaries Include="Lucene.Net.Store.Azure.dll" />
-    <ThirdPartyBinaries Include="Markdig.dll" />
-    <ThirdPartyBinaries Include="MarkdownSharp.dll" />
-    <ThirdPartyBinaries Include="Newtonsoft.Json.dll" />
-    <ThirdPartyBinaries Include="Serilog.dll" />
-    <ThirdPartyBinaries Include="Serilog.Enrichers.Environment.dll" />
-    <ThirdPartyBinaries Include="Serilog.Enrichers.Process.dll" />
-    <ThirdPartyBinaries Include="Serilog.Extensions.Logging.dll" />
-    <ThirdPartyBinaries Include="Serilog.Sinks.ApplicationInsights.dll" />
-    <ThirdPartyBinaries Include="Serilog.Sinks.ColoredConsole.dll" />
-    <ThirdPartyBinaries Include="Serilog.Sinks.File.dll" />
-    <ThirdPartyBinaries Include="SerilogTraceListener.dll" />
-    <ThirdPartyBinaries Include="VDS.Common.dll" />
+    <ThirdPartyBinaries Include="AnglicanGeek.MarkdownMailer.dll" Visible="false" />
+    <ThirdPartyBinaries Include="Autofac.dll" Visible="false" />
+    <ThirdPartyBinaries Include="Autofac.Extensions.DependencyInjection.dll" Visible="false" />
+    <ThirdPartyBinaries Include="Autofac.Integration.WebApi.dll" Visible="false" />
+    <ThirdPartyBinaries Include="Dapper.StrongName.dll" Visible="false" />
+    <ThirdPartyBinaries Include="dotNetRDF.dll" Visible="false" />
+    <ThirdPartyBinaries Include="Elmah.dll" Visible="false" />
+    <ThirdPartyBinaries Include="HtmlAgilityPack.dll" Visible="false" />
+    <ThirdPartyBinaries Include="ICSharpCode.SharpZipLib.dll" Visible="false" />
+    <ThirdPartyBinaries Include="json-ld.net.StrongName.dll" Visible="false" />
+    <ThirdPartyBinaries Include="Lucene.Net.Contrib.Analyzers.dll" Visible="false" />
+    <ThirdPartyBinaries Include="Lucene.Net.Contrib.Core.dll" Visible="false" />
+    <ThirdPartyBinaries Include="Lucene.Net.Contrib.FastVectorHighlighter.dll" Visible="false" />
+    <ThirdPartyBinaries Include="Lucene.Net.Contrib.Highlighter.dll" Visible="false" />
+    <ThirdPartyBinaries Include="Lucene.Net.Contrib.Memory.dll" Visible="false" />
+    <ThirdPartyBinaries Include="Lucene.Net.Contrib.Queries.dll" Visible="false" />
+    <ThirdPartyBinaries Include="Lucene.Net.Contrib.Regex.dll" Visible="false" />
+    <ThirdPartyBinaries Include="Lucene.Net.Contrib.SimpleFacetedSearch.dll" Visible="false" />
+    <ThirdPartyBinaries Include="Lucene.Net.Contrib.Snowball.dll" Visible="false" />
+    <ThirdPartyBinaries Include="Lucene.Net.Contrib.SpellChecker.dll" Visible="false" />
+    <ThirdPartyBinaries Include="Lucene.Net.dll" Visible="false" />
+    <ThirdPartyBinaries Include="Lucene.Net.Store.Azure.dll" Visible="false" />
+    <ThirdPartyBinaries Include="Markdig.dll" Visible="false" />
+    <ThirdPartyBinaries Include="MarkdownSharp.dll" Visible="false" />
+    <ThirdPartyBinaries Include="Newtonsoft.Json.dll" Visible="false" />
+    <ThirdPartyBinaries Include="Serilog.dll" Visible="false" />
+    <ThirdPartyBinaries Include="Serilog.Enrichers.Environment.dll" Visible="false" />
+    <ThirdPartyBinaries Include="Serilog.Enrichers.Process.dll" Visible="false" />
+    <ThirdPartyBinaries Include="Serilog.Extensions.Logging.dll" Visible="false" />
+    <ThirdPartyBinaries Include="Serilog.Sinks.ApplicationInsights.dll" Visible="false" />
+    <ThirdPartyBinaries Include="Serilog.Sinks.ColoredConsole.dll" Visible="false" />
+    <ThirdPartyBinaries Include="Serilog.Sinks.File.dll" Visible="false" />
+    <ThirdPartyBinaries Include="SerilogTraceListener.dll" Visible="false" />
+    <ThirdPartyBinaries Include="VDS.Common.dll" Visible="false" />
   </ItemGroup>
   <Import Project="$(SignPath)\sign.microbuild.targets" Condition="Exists('$(SignPath)\sign.microbuild.targets')" />
   <Import Project="$(VSToolsPath)\WebApplications\Microsoft.WebApplication.targets" Condition="'$(VSToolsPath)' != ''" />
