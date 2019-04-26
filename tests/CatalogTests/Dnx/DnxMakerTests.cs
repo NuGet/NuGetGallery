@@ -35,7 +35,7 @@ namespace CatalogTests.Dnx
         [Fact]
         public void Constructor_WhenStorageFactoryIsNull_Throws()
         {
-            var exception = Assert.Throws<ArgumentNullException>(() => new DnxMaker(storageFactory: null, Mock.Of<ILogger>()));
+            var exception = Assert.Throws<ArgumentNullException>(() => new DnxMaker(storageFactory: null, logger: Mock.Of<ILogger>()));
 
             Assert.Equal("storageFactory", exception.ParamName);
         }
