@@ -258,12 +258,12 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             CancellationToken cancellationToken)
         {
             var catalogClient = _catalogClientFactory(client);
-            var catalogPage = await catalogClient.GetPackageDetailsLeafAsync(catalogLeafUri.AbsoluteUri);
+            var catalogLeaf = await catalogClient.GetPackageDetailsLeafAsync(catalogLeafUri.AbsoluteUri);
 
             if (await ProcessPackageDetailsViaStorageAsync(
                 packageId,
                 normalizedPackageVersion,
-                catalogPage,
+                catalogLeaf,
                 telemetryProperties,
                 cancellationToken))
             {
@@ -280,7 +280,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
                 packageId,
                 normalizedPackageVersion,
                 sourceUri,
-                catalogPage,
+                catalogLeaf,
                 telemetryProperties,
                 cancellationToken);
         }
