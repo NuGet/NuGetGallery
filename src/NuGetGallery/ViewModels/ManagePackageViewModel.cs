@@ -16,7 +16,7 @@ namespace NuGetGallery
             : base(package, currentUser)
         {
             IsCurrentUserAnAdmin = currentUser != null && currentUser.IsAdministrator;
-            
+
             DeletePackagesRequest = new DeletePackagesRequest
             {
                 Packages = new List<string>
@@ -58,12 +58,12 @@ namespace NuGetGallery
                 });
 
                 VersionListedStateDictionary.Add(
-                    value, 
+                    value,
                     new VersionListedState(versionSelectPackage));
 
                 var model = new TrivialPackageVersionModel(versionSelectPackage);
                 VersionReadMeStateDictionary.Add(
-                    value, 
+                    value,
                     new VersionReadMeState(
                         submitUrlTemplate.Resolve(model),
                         getReadMeUrlTemplate.Resolve(model),
@@ -98,7 +98,7 @@ namespace NuGetGallery
         public Dictionary<string, VersionReadMeState> VersionReadMeStateDictionary { get; set; }
 
         public bool IsManageDeprecationEnabled { get; }
-        
+
         public Dictionary<string, VersionDeprecationState> VersionDeprecationStateDictionary { get; set; }
 
         /// <remarks>
@@ -148,13 +148,8 @@ namespace NuGetGallery
                 var deprecation = package.Deprecations.SingleOrDefault();
                 if (deprecation != null)
                 {
-                    IsVulnerable = deprecation.Status.HasFlag(PackageDeprecationStatus.Vulnerable);
                     IsLegacy = deprecation.Status.HasFlag(PackageDeprecationStatus.Legacy);
                     IsOther = deprecation.Status.HasFlag(PackageDeprecationStatus.Other);
-
-                    CveIds = deprecation.Cves?.Select(c => new VulnerabilityDetailState(c)).ToList();
-                    CvssRating = deprecation.CvssRating;
-                    CweIds = deprecation.Cwes?.Select(c => new VulnerabilityDetailState(c)).ToList();
 
                     AlternatePackageId = deprecation.AlternatePackageRegistration?.Id;
 
@@ -172,47 +167,11 @@ namespace NuGetGallery
             }
 
             public string Text { get; }
-            public bool IsVulnerable { get; }
             public bool IsLegacy { get; }
             public bool IsOther { get; }
-            public IReadOnlyCollection<VulnerabilityDetailState> CveIds { get; }
-            public decimal? CvssRating { get; }
-            public IReadOnlyCollection<VulnerabilityDetailState> CweIds { get; }
             public string AlternatePackageId { get; }
             public string AlternatePackageVersion { get; }
             public string CustomMessage { get; }
-
-            /// <remarks>
-            /// Ideally, the fields of this class would be pascal-case.
-            /// Unfortunately, however, the serializer that MVC uses interally (JavaScriptSerializer) does not support changing the serialized name of a property.
-            /// The JS on the client-side depends on the exact naming of these fields, and it would add unnecessary complexity to do the conversion on the client-side.
-            /// </remarks>
-            public class VulnerabilityDetailState
-            {
-                public VulnerabilityDetailState(Cve cve)
-                    : this(cve.CveId, cve.Description)
-                {
-                    cvss = cve.CvssRating;
-                }
-
-                public VulnerabilityDetailState(Cwe cwe)
-                    : this (cwe.CweId, cwe.Description)
-                {
-                    name = cwe.Name;
-                }
-
-                private VulnerabilityDetailState(string id, string description)
-                {
-                    this.id = id;
-                    this.description = description;
-                }
-
-                public string id { get; }
-                public string name { get; }
-                public string description { get; }
-                public decimal? cvss { get; }
-                public bool fromAutocomplete => true;
-            }
         }
     }
 }

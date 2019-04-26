@@ -19,7 +19,7 @@ namespace NuGetGallery {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     public class Strings {
@@ -506,24 +506,6 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid CVE ID format. The CVE ID should be formatted as \&quot;CVE-{year}-xxxxxxx\&quot; or just \&quot;{year}-xxxxxxx\&quot; with a minimum of 4 digits..
-        /// </summary>
-        public static string AutocompleteCveIds_ValidationError {
-            get {
-                return ResourceManager.GetString("AutocompleteCveIds_ValidationError", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid CWE ID format. The CWE ID should be formatted as \&quot;CWE-xxx\&quot; with a minimum of 2 digits, or have a minimum length of 4 characters for a textual query..
-        /// </summary>
-        public static string AutocompleteCweIds_ValidationError {
-            get {
-                return ResourceManager.GetString("AutocompleteCweIds_ValidationError", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to (automated).
         /// </summary>
         public static string AutomatedPackageDeleteSignature {
@@ -785,65 +767,11 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to https://cve.mitre.org/cgi-bin/cvename.cgi?name={0}.
-        /// </summary>
-        public static string DeprecatePackage_CveUrlFormat {
-            get {
-                return ResourceManager.GetString("DeprecatePackage_CveUrlFormat", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to At least one CWE provided was not found!.
-        /// </summary>
-        public static string DeprecatePackage_CweMissing {
-            get {
-                return ResourceManager.GetString("DeprecatePackage_CweMissing", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to https://cwe.mitre.org/data/definitions/{0}.html.
-        /// </summary>
-        public static string DeprecatePackage_CweUrlFormat {
-            get {
-                return ResourceManager.GetString("DeprecatePackage_CweUrlFormat", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to You do not have permission to deprecate this package..
         /// </summary>
         public static string DeprecatePackage_Forbidden {
             get {
                 return ResourceManager.GetString("DeprecatePackage_Forbidden", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The CVE ID &apos;{0}&apos; is invalid. CVE IDs have the form &apos;CVE-YYYY-NNNN&apos;, where &apos;YYYY&apos; is a year (exactly 4 digits) and &apos;NNNN&apos; is a number (with at least 4 digits)..
-        /// </summary>
-        public static string DeprecatePackage_InvalidCve {
-            get {
-                return ResourceManager.GetString("DeprecatePackage_InvalidCve", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The CVSS rating specified is invalid..
-        /// </summary>
-        public static string DeprecatePackage_InvalidCvss {
-            get {
-                return ResourceManager.GetString("DeprecatePackage_InvalidCvss", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The CWE ID &apos;{0}&apos; is invalid. CWE IDs have the form &apos;CWE-N&apos;, where N is a number..
-        /// </summary>
-        public static string DeprecatePackage_InvalidCwe {
-            get {
-                return ResourceManager.GetString("DeprecatePackage_InvalidCwe", resourceCulture);
             }
         }
         

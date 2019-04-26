@@ -26,9 +26,10 @@ namespace NuGet.Services.Entities
         /// </summary>
         Legacy = 2,
 
+        // Note: the below is commented out for future reference so we keep track of the original enum value for PackageDeprecationStatus.Vulnerable = 4
         /// <summary>
         /// The package is deprecated because it is vulnerable.
         /// </summary>
-        Vulnerable = 4
+        // Vulnerable = 4
     }
 }

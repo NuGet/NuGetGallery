@@ -235,16 +235,6 @@ namespace NuGetGallery
                 .As<IEntityRepository<PackageDeprecation>>()
                 .InstancePerLifetimeScope();
 
-            builder.RegisterType<EntityRepository<Cve>>()
-               .AsSelf()
-               .As<IEntityRepository<Cve>>()
-               .InstancePerLifetimeScope();
-
-            builder.RegisterType<EntityRepository<Cwe>>()
-               .AsSelf()
-               .As<IEntityRepository<Cwe>>()
-               .InstancePerLifetimeScope();
-
             var supportDbConnectionFactory = CreateDbConnectionFactory(
                 diagnosticsService,
                 nameof(SupportRequestDbContext),
@@ -709,7 +699,7 @@ namespace NuGetGallery
             }
         }
 
-        private static List<(string name,Uri searchUri)> GetSearchClientsFromConfiguration(IGalleryConfigurationService configuration)
+        private static List<(string name, Uri searchUri)> GetSearchClientsFromConfiguration(IGalleryConfigurationService configuration)
         {
             List<(string name, Uri searchUri)> searchClients = new List<(string name, Uri searchUri)>();
             if (configuration.Current.SearchServiceUriPrimary != null)
@@ -734,7 +724,7 @@ namespace NuGetGallery
                 services.AddTransient<CorrelatingHttpClientHandler>();
                 services.AddTransient((s) => new TracingHttpHandler(DependencyResolver.Current.GetService<IDiagnosticsService>().SafeGetSource("ExternalSearchService")));
 
-                foreach(var searchClient in searchClients)
+                foreach (var searchClient in searchClients)
                 {
                     // The policy handlers will be applied from the bottom to the top.
                     // The most inner one is the one added last.
@@ -789,19 +779,6 @@ namespace NuGetGallery
                     .As<IAutocompletePackageVersionsQuery>()
                     .InstancePerLifetimeScope();
             }
-
-            // Vulnerability Autocomplete
-            builder.RegisterType<AutocompleteCveIdsQuery>()
-                .As<IAutocompleteCveIdsQuery>()
-                .InstancePerLifetimeScope();
-
-            builder.RegisterType<AutocompleteCweIdsQuery>()
-                .As<IAutocompleteCweIdsQuery>()
-                .InstancePerLifetimeScope();
-
-            builder.RegisterType<VulnerabilityAutocompleteService>()
-                .As<IVulnerabilityAutocompleteService>()
-                .InstancePerLifetimeScope();
         }
 
         private static void ConfigureForLocalFileSystem(ContainerBuilder builder, IGalleryConfigurationService configuration)

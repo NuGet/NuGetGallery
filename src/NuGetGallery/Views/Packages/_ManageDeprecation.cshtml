@@ -39,32 +39,6 @@
         </div>
         <div class="form-group unbolded-label">
             <label>
-                <input name="isVulnerable" type="checkbox" value="true" data-bind="checked: isVulnerable" />
-                This package has <b>security vulnerabilities</b>
-            </label>
-        </div>
-        <div class="deprecation-subsection" data-bind="visible: isVulnerable">
-            <div class="deprecation-section-header">
-                <b>Provide additional security details</b>
-            </div>
-            <div data-bind="template: { name: 'deprecation-security-detail-list-input-template', data: chosenCves }"></div>
-            <div class="security-detail panel panel-default">
-                <div>
-                    <label>
-                        <input name="hasCvss" type="checkbox" value="true" data-bind="checked: hasCvss" />
-                        CVSS Quality Severity Rating
-                    </label>
-                    <label class="security-detail-input-label" for="selectedCvssRating">Enter the vulnerability rating (0-10) applicable to the vulnerabilities.</label>
-                </div>
-                <div class="security-detail-input">
-                    <input id="selectedCvssRating" class="form-control cvss-input" name="selectedCvssRating" type="text" placeholder="0.0" size="4" maxlength="4" data-bind="textInput: selectedCvssRating, disable: !hasCvss()" />
-                    <span data-bind="text: cvssRatingLabel, css: { 'text-danger': cvssRatingIsInvalid, 'cvss-bold': !cvssRatingIsInvalid() }"></span>
-                </div>
-            </div>
-            <div data-bind="template: { name: 'deprecation-security-detail-list-input-template', data: chosenCwes }"></div>
-        </div>
-        <div class="form-group unbolded-label">
-            <label>
                 <input name="isLegacy" type="checkbox" value="true" data-bind="checked: isLegacy" />
                 This package is <b>legacy</b> and is no longer maintained
             </label>
@@ -92,7 +66,7 @@
         </div>
     </div>
 
-    <div data-bind="visible: isVulnerable() || isLegacy() || isOther()">
+    <div data-bind="visible: isLegacy() || isOther()">
         <div class="deprecation-section form-group">
             <label for="customMessage" class="deprecation-section-header">Provide custom message</label>
             <textarea id="customMessage" name="customMessage" class="form-control full-line" data-bind="textInput: customMessage" rows="2"></textarea>
@@ -107,66 +81,3 @@
         <button class="btn btn-primary full-line" type="submit" aria-label="Save package deprecation information" data-bind="click: submit">Save</button>
     </div>
 </script>
-
-<script type="text/html" id="deprecation-security-detail-list-input-template">
-    <div class="security-detail panel panel-default">
-        <div>
-            <label>
-                <input name="hasIds" type="checkbox" value="true" data-bind="checked: hasIds" />
-                <span data-bind="text: title"></span>
-            </label>
-            <label class="security-detail-input-label" data-bind="text: label"></label>
-        </div>
-        <div class="security-detail-input security-detail-list-input">
-            <div class="security-detail-list-autocomplete" data-bind="attr: { id: id + '-autocomplete' }">
-                <input class="form-control" name="addId" type="text" data-bind="textInput: addId, disable: !hasIds(), attr: { placeholder: placeholder, 'aria-label': label }, event: { keydown: addWithoutAutocompleteKeyDown }" />
-                <div class="security-detail-list-autocomplete-content panel panel-default" data-bind="foreach: autocompleteResults, visible: showAutocompleteResults">
-                    <a class="icon-link"
-                       href="#"
-                       data-bind="click: $parent.addWithAutocomplete.bind($data), attr: { 'aria-label': 'Add ' + id }">
-                        <div class="security-detail-list-item">
-                            <span class="security-detail-list-item-existing" data-bind="text: id"></span>
-                            <span data-bind="visible: name">
-                                &nbsp;-&nbsp;
-                                <span data-bind="text: name"></span>
-                            </span>
-                            <span data-bind="visible: description">
-                                &nbsp;-&nbsp;
-                                <span data-bind="text: description"></span>
-                            </span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <button class="btn btn-primary" data-bind="click: addWithoutAutocomplete, disable: !hasIds(), attr: { 'aria-label': addLabel }">Add</button>
-        </div>
-
-        <div data-bind="visible: addError">
-            @ViewHelpers.AlertDanger(@<text><span data-bind="text: addError"></span></text>)
-        </div>
-
-        <div class="security-detail-list" data-bind="visible: $data, foreach: ids">
-            <div class="security-detail-list-item alert-info">
-                <div class="security-detail-list-item-header">
-                    <div>
-                        <a data-bind="text: id, attr: { href: $parent.getUrlFromId(id) }, css: { 'security-detail-list-item-existing': fromAutocomplete, 'security-detail-list-item-missing': !fromAutocomplete }" target="_blank"></a>
-                        <span data-bind="visible: name || !fromAutocomplete">
-                            &nbsp;-&nbsp;
-                            <span data-bind="visible: name, text: name"></span>
-                            <i data-bind="visible: !fromAutocomplete, text: $parent.missingAutocompleteName"></i>
-                        </span>
-                    </div>
-                    <a class="icon-link"
-                       href="#"
-                       data-bind="click: $parent.remove.bind(id), attr: { 'aria-label': 'Remove ' + id }, clickBubble: false">
-                        <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
-                    </a>
-                </div>
-                <div class="security-detail-list-item-description">
-                    <span data-bind="visible: description, text: description"></span>
-                    <i data-bind="visible: !fromAutocomplete, text: $parent.missingAutocompleteDescription"></i>
-                </div>
-            </div>
-        </div>
-    </div>
-</script> 

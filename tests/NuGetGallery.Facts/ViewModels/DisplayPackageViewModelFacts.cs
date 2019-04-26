@@ -736,21 +736,9 @@ namespace NuGetGallery.ViewModels
             }
         }
 
-        public enum SeverityString_State
-        {
-            None,
-            Low,
-            Medium,
-            High,
-            Critical
-        }
-
         public static IEnumerable<object[]> DeprecationFieldsAreSetAsExpected_Data =
             MemberDataHelper.Combine(
                 MemberDataHelper.FlagEnumDataSet<PackageDeprecationStatus>(),
-                MemberDataHelper.EnumDataSet<SeverityString_State>(),
-                MemberDataHelper.BooleanDataSet(),
-                MemberDataHelper.BooleanDataSet(),
                 MemberDataHelper.BooleanDataSet(),
                 MemberDataHelper.BooleanDataSet());
 
@@ -758,68 +746,14 @@ namespace NuGetGallery.ViewModels
         [MemberData(nameof(DeprecationFieldsAreSetAsExpected_Data))]
         public void DeprecationFieldsAreSetAsExpected(
             PackageDeprecationStatus status,
-            SeverityString_State severity,
-            bool hasCves,
-            bool hasCwes,
             bool hasAlternateRegistration,
             bool hasAlternatePackage)
         {
             // Arrange
-            decimal? cvss;
-            switch (severity)
-            {
-                case SeverityString_State.Critical:
-                    cvss = (decimal)9.5;
-                    break;
-                case SeverityString_State.High:
-                    cvss = (decimal)7.5;
-                    break;
-                case SeverityString_State.Medium:
-                    cvss = (decimal)5;
-                    break;
-                case SeverityString_State.Low:
-                    cvss = (decimal)2;
-                    break;
-                case SeverityString_State.None:
-                    cvss = null;
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(severity));
-            }
-
             var deprecation = new PackageDeprecation
             {
-                CvssRating = cvss,
                 CustomMessage = "hello"
             };
-
-            var cveIds = new[] { "CVE-2019-1111", "CVE-2019-2222" };
-            if (hasCves)
-            {
-                foreach (var cveId in cveIds)
-                {
-                    var cve = new Cve
-                    {
-                        CveId = cveId
-                    };
-
-                    deprecation.Cves.Add(cve);
-                }
-            }
-
-            var cweIds = new[] { "CWE-1", "CWE-2" };
-            if (hasCwes)
-            {
-                foreach (var cweId in cweIds)
-                {
-                    var cwe = new Cwe
-                    {
-                        CweId = cweId
-                    };
-
-                    deprecation.Cwes.Add(cwe);
-                }
-            }
 
             var alternateRegistrationId = "alternateRegistrationId";
             if (hasAlternateRegistration)
@@ -866,48 +800,6 @@ namespace NuGetGallery.ViewModels
             Assert.Equal(status, model.DeprecationStatus);
             Assert.Equal(deprecation.CustomMessage, model.CustomMessage);
 
-            string expectedString;
-            switch (severity)
-            {
-                case SeverityString_State.Critical:
-                    expectedString = "Critical";
-                    break;
-                case SeverityString_State.High:
-                    expectedString = "High";
-                    break;
-                case SeverityString_State.Medium:
-                    expectedString = "Medium";
-                    break;
-                case SeverityString_State.Low:
-                    expectedString = "Low";
-                    break;
-                case SeverityString_State.None:
-                    expectedString = null;
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(severity));
-            }
-
-            Assert.Equal(expectedString, model.Severity);
-
-            if (hasCves)
-            {
-                Assert.Equal(cveIds, model.CveIds);
-            }
-            else
-            {
-                Assert.Empty(model.CveIds);
-            }
-
-            if (hasCwes)
-            {
-                Assert.Equal(cweIds, model.CweIds);
-            }
-            else
-            {
-                Assert.Empty(model.CweIds);
-            }
-
             if (hasAlternatePackage)
             {
                 Assert.Equal(alternatePackageRegistrationId, model.AlternatePackageId);
@@ -926,9 +818,6 @@ namespace NuGetGallery.ViewModels
 
             var versionModel = model.PackageVersions.Single();
             Assert.Equal(status, versionModel.DeprecationStatus);
-            Assert.Null(versionModel.Severity);
-            Assert.Null(versionModel.CveIds);
-            Assert.Null(versionModel.CweIds);
             Assert.Null(versionModel.AlternatePackageId);
             Assert.Null(versionModel.AlternatePackageVersion);
             Assert.Null(versionModel.CustomMessage);

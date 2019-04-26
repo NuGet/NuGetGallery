@@ -306,9 +306,7 @@ namespace NuGetGallery
             {
                 packages = packages
                     .Include(p => p.Deprecations.Select(d => d.AlternatePackage.PackageRegistration))
-                    .Include(p => p.Deprecations.Select(d => d.AlternatePackageRegistration))
-                    .Include(p => p.Deprecations.Select(d => d.Cves))
-                    .Include(p => p.Deprecations.Select(d => d.Cwes));
+                    .Include(p => p.Deprecations.Select(d => d.AlternatePackageRegistration));
             }
 
             return packages;

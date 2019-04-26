@@ -185,10 +185,6 @@ namespace NuGetGallery
             if (deprecation != null)
             {
                 var deprecationReasons = new List<string>();
-                if (deprecation.Status.HasFlag(PackageDeprecationStatus.Vulnerable))
-                {
-                    deprecationReasons.Add("Vulnerable");
-                }
 
                 if (deprecation.Status.HasFlag(PackageDeprecationStatus.Legacy))
                 {

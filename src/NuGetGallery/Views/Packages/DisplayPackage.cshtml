@@ -581,20 +581,8 @@
                                         @if (Model.IsPackageDeprecationEnabled && packageVersion.DeprecationStatus != PackageDeprecationStatus.NotDeprecated)
                                         {
                                             var deprecationTitle = packageVersion.Version;
-                                            var isVulnerable = packageVersion.DeprecationStatus.HasFlag(PackageDeprecationStatus.Vulnerable);
                                             var isLegacy = packageVersion.DeprecationStatus.HasFlag(PackageDeprecationStatus.Legacy);
-                                            if (isVulnerable)
-                                            {
-                                                deprecationTitle += " is deprecated because it has vulnerabilities";
-
-                                                if (isLegacy)
-                                                {
-                                                    deprecationTitle += " and is legacy and is no longer maintained";
-                                                }
-
-                                                deprecationTitle += ".";
-                                            }
-                                            else if (isLegacy)
+                                            if (isLegacy)
                                             {
                                                 deprecationTitle += " is deprecated because it is legacy and is no longer maintained.";
                                             }

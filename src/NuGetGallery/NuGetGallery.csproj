@@ -238,12 +238,11 @@
     <Compile Include="Migrations\201904081230004_AddIndexToUserSecurityPolicy.Designer.cs">
       <DependentUpon>201904081230004_AddIndexToUserSecurityPolicy.cs</DependentUpon>
     </Compile>
-    <Compile Include="Queries\AutocompleteCveIdQueryResults.cs" />
-    <Compile Include="Queries\AutocompleteCweIdQueryResults.cs" />
-    <Compile Include="Queries\AutocompleteCveIdQueryResult.cs" />
-    <Compile Include="Queries\AutocompleteCweIdQueryResult.cs" />
+    <Compile Include="Migrations\201904251233185_RemoveVulnerabilityDataFromPackageDeprecationModel.cs" />
+    <Compile Include="Migrations\201904251233185_RemoveVulnerabilityDataFromPackageDeprecationModel.Designer.cs">
+      <DependentUpon>201904251233185_RemoveVulnerabilityDataFromPackageDeprecationModel.cs</DependentUpon>
+    </Compile>
     <Compile Include="Services\IPackageDeprecationService.cs" />
-    <Compile Include="Services\IVulnerabilityAutocompleteService.cs" />
     <Compile Include="Queries\AutocompleteDatabasePackageIdsQuery.cs" />
     <Compile Include="Queries\AutocompleteDatabasePackageVersionsQuery.cs" />
     <Compile Include="Queries\AutocompleteDatabaseQuery.cs" />
@@ -252,13 +251,6 @@
     <Compile Include="Queries\AutocompleteServiceQuery.cs" />
     <Compile Include="Queries\IAutocompletePackageVersionsQuery.cs" />
     <Compile Include="Queries\IAutocompletePackageIdsQuery.cs" />
-    <Compile Include="Queries\IAutocompleteCweIdsQuery.cs" />
-    <Compile Include="Queries\CweIdHelper.cs" />
-    <Compile Include="Queries\CweQueryStringValidator.cs" />
-    <Compile Include="Queries\CweQueryMethod.cs" />
-    <Compile Include="Queries\AutocompleteCveIdsQuery.cs" />
-    <Compile Include="Queries\AutocompleteCweIdsQuery.cs" />
-    <Compile Include="Queries\IAutocompleteCveIdsQuery.cs" />
     <Compile Include="Diagnostics\TraceDiagnosticsSourceScope.cs" />
     <Compile Include="Extensions\ClaimsExtensions.cs" />
     <Compile Include="Configuration\IGalleryConfigurationService.cs" />
@@ -762,7 +754,6 @@
     <Compile Include="ViewModels\ListPackageItemRequiredSignerViewModel.cs" />
     <Compile Include="ViewModels\ManagePackageViewModel.cs" />
     <Compile Include="ViewModels\SignerViewModel.cs" />
-    <Compile Include="Services\VulnerabilityAutocompleteService.cs" />
     <Compile Include="WebRole.cs" />
     <Compile Include="Areas\Admin\AdminAreaRegistration.cs" />
     <Compile Include="Areas\Admin\Controllers\AdminControllerBase.cs" />
@@ -1721,6 +1712,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201904081230004_AddIndexToUserSecurityPolicy.resx">
       <DependentUpon>201904081230004_AddIndexToUserSecurityPolicy.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201904251233185_RemoveVulnerabilityDataFromPackageDeprecationModel.resx">
+      <DependentUpon>201904251233185_RemoveVulnerabilityDataFromPackageDeprecationModel.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
