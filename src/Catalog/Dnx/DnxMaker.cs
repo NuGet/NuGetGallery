@@ -69,7 +69,16 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             var nuspecUri = await SaveNuspecAsync(storage, packageId, normalizedPackageVersion, nuspec, cancellationToken);
             var nupkgUri = await SaveNupkgAsync(nupkgStream, storage, packageId, normalizedPackageVersion, cancellationToken);
             nupkgStream.Seek(0, SeekOrigin.Begin);
-            await CopyIconFromNupkgStreamAsync(nupkgStream, iconFilename, storage, packageId, normalizedPackageVersion, cancellationToken);
+            if (!string.IsNullOrWhiteSpace(iconFilename))
+            {
+                await CopyIconFromNupkgStreamAsync(nupkgStream, iconFilename, storage, packageId, normalizedPackageVersion, cancellationToken);
+            }
+            else
+            {
+                _logger.LogInformation("Package {PackageId} {PackageVersion} don't have icon file specified in fallback to package stream case.",
+                    packageId,
+                    normalizedPackageVersion);
+            }
 
             return new DnxEntry(nupkgUri, nuspecUri);
         }
@@ -107,7 +116,16 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             var destinationStorage = _storageFactory.Create(packageId);
             var nuspecUri = await SaveNuspecAsync(destinationStorage, packageId, normalizedPackageVersion, nuspec, cancellationToken);
             var nupkgUri = await CopyNupkgAsync(sourceStorage, destinationStorage, packageId, normalizedPackageVersion, cancellationToken);
-            await CopyIconFromAzureStorageIfExistAsync(sourceStorage, destinationStorage, packageId, normalizedPackageVersion, iconFilename, cancellationToken);
+            if (!string.IsNullOrWhiteSpace(iconFilename))
+            {
+                await CopyIconFromAzureStorageIfExistAsync(sourceStorage, destinationStorage, packageId, normalizedPackageVersion, iconFilename, cancellationToken);
+            }
+            else
+            {
+                _logger.LogInformation("Package {PackageId} {PackageVersion} don't have icon file specified in Azure Storage stream case",
+                    packageId,
+                    normalizedPackageVersion);
+            }
 
             return new DnxEntry(nupkgUri, nuspecUri);
         }
@@ -286,14 +304,16 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             string iconFilename,
             CancellationToken cancellationToken)
         {
-            await CopyIconAsync(
-                iconFilename,
-                destinationStorage,
-                packageId,
-                normalizedPackageVersion,
-                cancellationToken,
-                () => GetPackageStreamAsync(sourceStorage, packageId, normalizedPackageVersion, cancellationToken),
-                disposeOfPackageStream: true);
+            using (var packageStream = await GetPackageStreamAsync(sourceStorage, packageId, normalizedPackageVersion, cancellationToken))
+            {
+                await CopyIconAsync(
+                    packageStream,
+                    iconFilename,
+                    destinationStorage,
+                    packageId,
+                    normalizedPackageVersion,
+                    cancellationToken);
+            }
         }
 
         private async Task CopyIconFromNupkgStreamAsync(
@@ -305,33 +325,22 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             CancellationToken cancellationToken)
         {
             await CopyIconAsync(
+                nupkgStream,
                 iconFilename,
                 destinationStorage,
                 packageId,
                 normalizedPackageVersion,
-                cancellationToken,
-                () => Task.FromResult(nupkgStream),
-                disposeOfPackageStream: false);
+                cancellationToken);
         }
 
         private async Task CopyIconAsync(
+            Stream packageStream,
             string iconFilename,
             Storage destinationStorage,
             string packageId,
             string normalizedPackageVersion,
-            CancellationToken cancellationToken,
-            Func<Task<Stream>> getPackageStream,
-            bool disposeOfPackageStream)
+            CancellationToken cancellationToken)
         {
-            if (string.IsNullOrWhiteSpace(iconFilename))
-            {
-                _logger.LogInformation("Package {PackageId} {PackageVersion} don't have icon file specified",
-                    packageId,
-                    normalizedPackageVersion);
-                // no embedded icon, bail out
-                return;
-            }
-
             _logger.LogInformation("Processing icon {IconFilename} for the package {PackageId} {PackageVersion}",
                 iconFilename,
                 packageId,
@@ -342,20 +351,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             var destinationRelativeUri = GetRelativeAddressIcon(packageId, normalizedPackageVersion);
             var destinationUri = destinationStorage.ResolveUri(destinationRelativeUri);
 
-            if (disposeOfPackageStream)
-            {
-                _logger.LogInformation("Going to dispose of the package stream");
-                using (var packageStream = await getPackageStream())
-                {
-                    await ExtractAndStoreIconAsync(packageStream, iconPath, destinationStorage, destinationUri, cancellationToken);
-                }
-            }
-            else
-            {
-                _logger.LogInformation("Going to not dispose of the package stream");
-                var packageStream = await getPackageStream();
-                await ExtractAndStoreIconAsync(packageStream, iconPath, destinationStorage, destinationUri, cancellationToken);
-            }
+            await ExtractAndStoreIconAsync(packageStream, iconPath, destinationStorage, destinationUri, cancellationToken);
         }
 
         private async Task ExtractAndStoreIconAsync(
@@ -372,7 +368,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
                 {
                     using (var iconStream = iconEntry.Open())
                     {
-                        _logger.LogInformation("Extracting icon to destination storage {DestinationUri}", destinationUri);
+                        _logger.LogInformation("Extracting icon to the destination storage {DestinationUri}", destinationUri);
                         var iconContent = new StreamStorageContent(iconStream, GetIconContentType(iconPath), DnxConstants.DefaultCacheControl);
                         await destinationStorage.SaveAsync(destinationUri, iconContent, cancellationToken);
                         _logger.LogInformation("Done");
@@ -380,7 +376,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
                 }
                 else
                 {
-                    _logger.LogInformation("Zip archive entry {IconPath} does not exist", iconPath);
+                    _logger.LogWarning("Zip archive entry {IconPath} does not exist", iconPath);
                 }
             }
         }
