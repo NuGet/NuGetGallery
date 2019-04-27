@@ -15,6 +15,6 @@ namespace NuGetGallery.DatabaseMigrationTools
         /// </summary>
         /// <param name="targetDatabseType">The target database for migration <see cref="MigrationTargetDatabaseType"/></param>
         /// <returns>The migration context</returns>
-        Task<IMigrationContext> CreateMigrationContext(MigrationTargetDatabaseType migrationTargetDatabaseType);
+        Task<IMigrationContext> CreateMigrationContextAsync(MigrationTargetDatabaseType migrationTargetDatabaseType);
     }
 }
