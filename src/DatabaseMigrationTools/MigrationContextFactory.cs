@@ -18,7 +18,7 @@ namespace NuGetGallery.DatabaseMigrationTools
             _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
         }
 
-        public async Task<IMigrationContext> CreateMigrationContext(MigrationTargetDatabaseType migrationTargetDatabaseType)
+        public async Task<IMigrationContext> CreateMigrationContextAsync(MigrationTargetDatabaseType migrationTargetDatabaseType)
         {
             SqlConnection sqlConnection;
             switch (migrationTargetDatabaseType)

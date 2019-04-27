@@ -47,7 +47,7 @@ namespace NuGetGallery.DatabaseMigrationTools
         {
             Logger.LogInformation("Initializing DbMigrator...");
             var migrationContextFactory = _serviceProvider.GetRequiredService<IMigrationContextFactory>();
-            var migrationContext = await migrationContextFactory.CreateMigrationContext(_migrationTargetDatabaseType);
+            var migrationContext = await migrationContextFactory.CreateMigrationContextAsync(_migrationTargetDatabaseType);
 
             ExecuteDatabaseMigration(migrationContext.Migrator,
                                      migrationContext.MigratorForScripting,
