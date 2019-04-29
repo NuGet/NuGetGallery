@@ -151,6 +151,8 @@ namespace NuGet.Services.Metadata.Catalog
 
             public static readonly Uri LicenseExpression = new Uri(Prefixes.NuGet + "licenseExpression");
             public static readonly Uri LicenseFile = new Uri(Prefixes.NuGet + "licenseFile");
+
+            public static readonly Uri IconFile = new Uri(Prefixes.NuGet + "iconFile");
         }
     }
 }
