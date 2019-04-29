@@ -189,6 +189,9 @@ namespace NuGetGallery.Services
                 // In production, they would not be deleted because the transaction they were deleted in would fail.
                 Assert.Single(testableService.SupportRequests);
                 Assert.Empty(testUser.ReservedNamespaces);
+
+                Assert.NotNull(testableService.PackageDeletedByDifferentUser.DeletedBy);
+                Assert.NotNull(testableService.AccountDeletedByDifferentUser.DeletedBy);
             }
 
             [Theory]
@@ -304,6 +307,9 @@ namespace NuGetGallery.Services
                 // In production, they would not be deleted because the transaction they were deleted in would fail.
                 Assert.Empty(organization.ReservedNamespaces);
                 Assert.Single(testableService.SupportRequests);
+
+                Assert.NotNull(testableService.PackageDeletedByDifferentUser.DeletedBy);
+                Assert.NotNull(testableService.AccountDeletedByDifferentUser.DeletedBy);
             }
 
             [Theory]
@@ -492,7 +498,10 @@ namespace NuGetGallery.Services
             public bool HasDeletedOwnerScope => _hasDeletedCredentialWithOwnerScope;
 
             public AccountDelete AccountDeletedByUser { get; }
+            public AccountDelete AccountDeletedByDifferentUser { get; }
             public PackageDelete PackageDeletedByUser { get; }
+            public PackageDelete PackageDeletedByDifferentUser { get; }
+
 
             public DeleteAccountTestService(User user)
             {
@@ -545,7 +554,10 @@ namespace NuGetGallery.Services
                 });
 
                 AccountDeletedByUser = new AccountDelete { DeletedBy = _user, DeletedByKey = _user.Key };
+                AccountDeletedByDifferentUser = new AccountDelete { DeletedBy = new User { Key = 1111 }, DeletedByKey = 1111 };
                 PackageDeletedByUser = new PackageDelete { DeletedBy = _user, DeletedByKey = _user.Key };
+                PackageDeletedByDifferentUser = new PackageDelete { DeletedBy = new User { Key = 1111 }, DeletedByKey = 1111 };
+
                 PackagePushedByUser = new Package
                 {
                     User = _user,
@@ -658,7 +670,7 @@ namespace NuGetGallery.Services
                 {
                     accountDeleteRepository
                         .Setup(m => m.GetAll())
-                        .Returns(new[] { AccountDeletedByUser }.AsQueryable());
+                        .Returns(new[] { AccountDeletedByUser, AccountDeletedByDifferentUser }.AsQueryable());
                 }
 
                 accountDeleteRepository
@@ -676,7 +688,7 @@ namespace NuGetGallery.Services
                 {
                     packageDeleteRepository
                         .Setup(m => m.GetAll())
-                        .Returns(new[] { PackageDeletedByUser }.AsQueryable());
+                        .Returns(new[] { PackageDeletedByUser, PackageDeletedByDifferentUser }.AsQueryable());
                 }
 
                 return packageDeleteRepository;
