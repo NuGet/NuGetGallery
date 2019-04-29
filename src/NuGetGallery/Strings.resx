@@ -1112,6 +1112,9 @@ The {1} Team</value>
   <data name="DeprecatePackage_MissingRegistration" xml:space="preserve">
     <value>Package '{0}' could not be found.</value>
   </data>
+  <data name="DeprecatePackage_CustomMessageRequired" xml:space="preserve">
+    <value>You must add a custom message if you are deprecating a package due to another reason!</value>
+  </data>
   <data name="SymbolsPackage_NoSymbols" xml:space="preserve">
     <value>The package does not contain any symbol (.pdb) files.</value>
   </data>

@@ -109,6 +109,20 @@ namespace NuGetGallery.Controllers
         public class TheDeprecateMethod : TestContainer
         {
             [Fact]
+            public async Task ReturnsBadRequestIfOtherAndNoCustomMessage()
+            {
+                // Arrange
+                var controller = GetController<ManageDeprecationJsonApiController>();
+
+                // Act
+                var result = await controller.Deprecate(
+                    "id", null, false, false, true, null, null, null);
+
+                // Assert
+                AssertErrorResponse(controller, result, HttpStatusCode.BadRequest, Strings.DeprecatePackage_CustomMessageRequired);
+            }
+
+            [Fact]
             public async Task ReturnsForbiddenIfFeatureFlagDisabled()
             {
                 // Arrange
@@ -600,12 +614,59 @@ namespace NuGetGallery.Controllers
                 MemberDataHelper.Combine(
                     Owner_Data,
                     PackageDeprecationStates_Data,
-                    MemberDataHelper.EnumDataSet<ReturnsSuccessful_AlternatePackage_State>(),
-                    MemberDataHelper.BooleanDataSet()).ToList();
+                    MemberDataHelper.EnumDataSet<ReturnsSuccessful_AlternatePackage_State>()).ToList();
 
             [Theory]
             [MemberData(nameof(ReturnsSuccessful_Data))]
-            public async Task ReturnsSuccessful(
+            public Task ReturnsSuccessfulWithCustomMessage(
+                User currentUser,
+                User owner,
+                bool isLegacy,
+                bool hasCriticalBugs,
+                bool isOther,
+                PackageDeprecationStatus expectedStatus,
+                ReturnsSuccessful_AlternatePackage_State alternatePackageState)
+            {
+                return AssertSuccessful(
+                    currentUser,
+                    owner,
+                    isLegacy,
+                    hasCriticalBugs,
+                    isOther,
+                    expectedStatus,
+                    alternatePackageState,
+                    true);
+            }
+
+            /// <remarks>
+            /// Deprecations where the only reason is "other" must have a custom message.
+            /// </remarks>
+            public static IEnumerable<object[]> ReturnsSuccessfulWithoutCustomMessage_Data =
+                ReturnsSuccessful_Data.Where(x => !(bool)x[4]);
+
+            [Theory]
+            [MemberData(nameof(ReturnsSuccessfulWithoutCustomMessage_Data))]
+            public Task ReturnsSuccessfulWithoutCustomMessage(
+                User currentUser,
+                User owner,
+                bool isLegacy,
+                bool hasCriticalBugs,
+                bool isOther,
+                PackageDeprecationStatus expectedStatus,
+                ReturnsSuccessful_AlternatePackage_State alternatePackageState)
+            {
+                return AssertSuccessful(
+                    currentUser,
+                    owner,
+                    isLegacy,
+                    hasCriticalBugs,
+                    isOther,
+                    expectedStatus,
+                    alternatePackageState,
+                    false);
+            }
+
+            private async Task AssertSuccessful(
                 User currentUser,
                 User owner,
                 bool isLegacy,
@@ -613,7 +674,7 @@ namespace NuGetGallery.Controllers
                 bool isOther,
                 PackageDeprecationStatus expectedStatus,
                 ReturnsSuccessful_AlternatePackage_State alternatePackageState,
-                bool hasAdditionalData)
+                bool hasCustomMessage)
             {
                 // Arrange
                 var id = "id";
@@ -686,7 +747,7 @@ namespace NuGetGallery.Controllers
 
                 var deprecationService = GetMock<IPackageDeprecationService>();
 
-                var customMessage = hasAdditionalData ? "message" : null;
+                var customMessage = hasCustomMessage ? "message" : null;
 
                 deprecationService
                     .Setup(x => x.UpdateDeprecation(

@@ -767,6 +767,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to You must add a custom message if you are deprecating a package due to another reason!.
+        /// </summary>
+        public static string DeprecatePackage_CustomMessageRequired {
+            get {
+                return ResourceManager.GetString("DeprecatePackage_CustomMessageRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to You do not have permission to deprecate this package..
         /// </summary>
         public static string DeprecatePackage_Forbidden {

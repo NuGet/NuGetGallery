@@ -58,6 +58,28 @@ namespace NuGetGallery
             string alternatePackageVersion,
             string customMessage)
         {
+            var status = PackageDeprecationStatus.NotDeprecated;
+
+            if (isLegacy)
+            {
+                status |= PackageDeprecationStatus.Legacy;
+            }
+
+            if (hasCriticalBugs)
+            {
+                status |= PackageDeprecationStatus.CriticalBugs;
+            }
+
+            if (isOther)
+            {
+                if (string.IsNullOrWhiteSpace(customMessage))
+                {
+                    return DeprecateErrorResponse(HttpStatusCode.BadRequest, Strings.DeprecatePackage_CustomMessageRequired);
+                }
+
+                status |= PackageDeprecationStatus.Other;
+            }
+
             var currentUser = GetCurrentUser();
             if (!_featureFlagService.IsManageDeprecationEnabled(GetCurrentUser()))
             {
@@ -133,23 +155,6 @@ namespace NuGetGallery
                 {
                     packagesToUpdate.Add(package);
                 }
-            }
-
-            var status = PackageDeprecationStatus.NotDeprecated;
-
-            if (isLegacy)
-            {
-                status |= PackageDeprecationStatus.Legacy;
-            }
-
-            if (hasCriticalBugs)
-            {
-                status |= PackageDeprecationStatus.CriticalBugs;
-            }
-
-            if (isOther)
-            {
-                status |= PackageDeprecationStatus.Other;
             }
 
             await _deprecationService.UpdateDeprecation(

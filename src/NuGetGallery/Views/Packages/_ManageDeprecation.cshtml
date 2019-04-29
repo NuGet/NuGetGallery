@@ -77,6 +77,9 @@
             <label for="customMessage" class="deprecation-section-header">Provide custom message</label>
             <textarea id="customMessage" name="customMessage" class="form-control full-line" data-bind="textInput: customMessage" rows="2"></textarea>
         </div>
+        <div data-bind="visible: requiresCustomMessage()">
+            @ViewHelpers.AlertDanger(@<text>You must add a custom message if you are deprecating a package due to another reason!</text>)
+        </div>
     </div>
 
     <div data-bind="visible: submitError">
@@ -84,6 +87,6 @@
     </div>
 
     <div class="deprecation-section form-group">
-        <button class="btn btn-primary full-line" type="submit" aria-label="Save package deprecation information" data-bind="click: submit">Save</button>
+        <button class="btn btn-primary full-line" type="submit" aria-label="Save package deprecation information" data-bind="click: submit, disable: requiresCustomMessage">Save</button>
     </div>
 </script>
