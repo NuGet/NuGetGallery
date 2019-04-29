@@ -238,13 +238,13 @@
     <Compile Include="Migrations\201904081230004_AddIndexToUserSecurityPolicy.Designer.cs">
       <DependentUpon>201904081230004_AddIndexToUserSecurityPolicy.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\201904251233185_RemoveVulnerabilityDataFromPackageDeprecationModel.cs" />
-    <Compile Include="Migrations\201904251233185_RemoveVulnerabilityDataFromPackageDeprecationModel.Designer.cs">
-      <DependentUpon>201904251233185_RemoveVulnerabilityDataFromPackageDeprecationModel.cs</DependentUpon>
-    </Compile>
     <Compile Include="Migrations\201904252152567_DeletedByOptional.cs" />
     <Compile Include="Migrations\201904252152567_DeletedByOptional.Designer.cs">
       <DependentUpon>201904252152567_DeletedByOptional.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201904292139301_RemoveVulnerabilityDataFromPackageDeprecationModel.cs" />
+    <Compile Include="Migrations\201904292139301_RemoveVulnerabilityDataFromPackageDeprecationModel.Designer.cs">
+      <DependentUpon>201904292139301_RemoveVulnerabilityDataFromPackageDeprecationModel.cs</DependentUpon>
     </Compile>
     <Compile Include="Services\IPackageDeprecationService.cs" />
     <Compile Include="Queries\AutocompleteDatabasePackageIdsQuery.cs" />
@@ -1717,11 +1717,11 @@
     <EmbeddedResource Include="Migrations\201904081230004_AddIndexToUserSecurityPolicy.resx">
       <DependentUpon>201904081230004_AddIndexToUserSecurityPolicy.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201904251233185_RemoveVulnerabilityDataFromPackageDeprecationModel.resx">
-      <DependentUpon>201904251233185_RemoveVulnerabilityDataFromPackageDeprecationModel.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201904252152567_DeletedByOptional.resx">
       <DependentUpon>201904252152567_DeletedByOptional.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201904292139301_RemoveVulnerabilityDataFromPackageDeprecationModel.resx">
+      <DependentUpon>201904292139301_RemoveVulnerabilityDataFromPackageDeprecationModel.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
