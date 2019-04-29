@@ -150,8 +150,8 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             var normalizedVersion = NuGetVersionUtility.NormalizeVersion(version);
 
             await DeleteNuspecAsync(storage, id, normalizedVersion, cancellationToken);
-            await DeleteNupkgAsync(storage, id, normalizedVersion, cancellationToken);
             await DeleteIconAsync(storage, id, normalizedVersion, cancellationToken);
+            await DeleteNupkgAsync(storage, id, normalizedVersion, cancellationToken);
         }
 
         public async Task<bool> HasPackageInIndexAsync(Storage storage, string id, string version, CancellationToken cancellationToken)

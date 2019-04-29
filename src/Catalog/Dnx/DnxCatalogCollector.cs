@@ -328,7 +328,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
                         nuspec,
                         packageId,
                         normalizedPackageVersion,
-                        catalogLeaf.IconFilename,
+                        catalogLeaf.IconFile,
                         cancellationToken);
 
                     var token2 = await _sourceStorage.GetOptimisticConcurrencyControlTokenAsync(sourceUri, cancellationToken);
@@ -398,7 +398,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
                     nuspec,
                     id,
                     version,
-                    catalogLeaf.IconFilename,
+                    catalogLeaf.IconFile,
                     cancellationToken);
             }
 
