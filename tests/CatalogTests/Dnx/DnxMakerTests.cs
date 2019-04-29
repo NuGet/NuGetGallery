@@ -326,9 +326,9 @@ namespace CatalogTests.Dnx
         }
 
         [Theory]
-        [InlineData("ahgjghaa.png", "image/png")]
-        [InlineData("sdfgd.jpg", "image/jpeg")]
-        [InlineData("csdfsd.jpeg", "image/jpeg")]
+        [InlineData("ahgjghaa.png", "")]
+        [InlineData("sdfgd.jpg", "")]
+        [InlineData("csdfsd.jpeg", "")]
         public async Task AddPackageAsync_WhenEmbeddedIconPresent_SavesIcon(string iconFilename, string expectedContentType)
         {
             const string version = "1.2.3";
@@ -475,9 +475,9 @@ namespace CatalogTests.Dnx
         }
 
         [Theory]
-        [InlineData("sdafs.png", "image/png")]
-        [InlineData("hjy.jpg", "image/jpeg")]
-        [InlineData("vfdg.jpeg", "image/jpeg")]
+        [InlineData("sdafs.png", "")]
+        [InlineData("hjy.jpg", "")]
+        [InlineData("vfdg.jpeg", "")]
         public async Task AddPackageAsync_WithStorage_WhenEmbeddedIconPresent_SavesIcon(string iconFilename, string expectedContentType)
         {
             const string version = "1.2.3";
