@@ -43,21 +43,6 @@
                 This package is <b>legacy</b> and is no longer maintained
             </label>
         </div>
-        <div class="deprecation-subsection" data-bind="visible: isLegacy">
-            <div class="row">
-                <div class="col-sm-8 form-group alternate-package-registration-container" data-bind="css: { 'has-error': chosenAlternatePackageIdError }">
-                    <label for="alternatePackageId" class="deprecation-section-header">Alternate package</label>
-                    <input name="alternatePackageId" class="form-control full-line" type="text" aria-label="Alternate package ID" data-bind="textInput: chosenAlternatePackageId" />
-                </div>
-                <div class="col-sm-4 form-group alternate-package-container">
-                    <label for="alternatePackageVersion" class="deprecation-section-header">Version</label>
-                    <select class="form-control full-line" name="alternatePackageVersion" aria-label="Alternate package version" data-bind="options: alternatePackageVersions, value: chosenAlternatePackageVersion, enable: hasAlternatePackageVersions" size="1"></select>
-                </div>
-            </div>
-            <div data-bind="visible: chosenAlternatePackageIdError">
-                @ViewHelpers.AlertDanger(@<text><span data-bind="text: chosenAlternatePackageIdError"></span></text>)
-            </div>
-        </div>
         <div class="form-group unbolded-label">
             <label>
                 <input name="hasCriticalBugs" type="checkbox" value="true" data-bind="checked: hasCriticalBugs" />
@@ -73,6 +58,21 @@
     </div>
 
     <div data-bind="visible: hasCriticalBugs() || isLegacy() || isOther()">
+        <div class="deprecation-section">
+            <div class="row">
+                <div class="col-sm-8 form-group alternate-package-registration-container" data-bind="css: { 'has-error': chosenAlternatePackageIdError }">
+                    <label for="alternatePackageId" class="deprecation-section-header">Alternate package</label>
+                    <input name="alternatePackageId" class="form-control full-line" type="text" aria-label="Alternate package ID" data-bind="textInput: chosenAlternatePackageId" />
+                </div>
+                <div class="col-sm-4 form-group alternate-package-container">
+                    <label for="alternatePackageVersion" class="deprecation-section-header">Version</label>
+                    <select class="form-control full-line" name="alternatePackageVersion" aria-label="Alternate package version" data-bind="options: alternatePackageVersions, value: chosenAlternatePackageVersion, enable: hasAlternatePackageVersions" size="1"></select>
+                </div>
+            </div>
+            <div data-bind="visible: chosenAlternatePackageIdError">
+                @ViewHelpers.AlertDanger(@<text><span data-bind="text: chosenAlternatePackageIdError"></span></text>)
+            </div>
+        </div>
         <div class="deprecation-section form-group">
             <label for="customMessage" class="deprecation-section-header">Provide custom message</label>
             <textarea id="customMessage" name="customMessage" class="form-control full-line" data-bind="textInput: customMessage" rows="2"></textarea>
