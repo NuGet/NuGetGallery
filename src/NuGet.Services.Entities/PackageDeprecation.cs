@@ -83,6 +83,15 @@ namespace NuGet.Services.Entities
         public DateTime DeprecatedOn { get; set; }
 
         /// <summary>
+        /// The date when the package deprecation information was last modified. Or NULL. In UTC.
+        /// 
+        /// This field is updated by a trigger on the database if the entity is edited.
+        /// This trigger is defined by a migration named "AddLastEditedColumnToPackageDeprecation".
+        /// The trigger guarantees that the timestamps of multiple instances of the gallery do not conflict.
+        /// </summary>
+        public DateTime? LastEdited { get; set; }
+
+        /// <summary>
         /// Gets or sets the user-provided custom message for this package deprecation.
         /// </summary>
         public string CustomMessage { get; set; }

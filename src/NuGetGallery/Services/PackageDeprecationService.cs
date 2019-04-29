@@ -64,6 +64,8 @@ namespace NuGetGallery
                     deprecation.AlternatePackage = alternatePackage;
 
                     deprecation.CustomMessage = customMessage;
+
+                    deprecation.LastEdited = DateTime.UtcNow;
                 }
             }
 
