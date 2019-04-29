@@ -78,7 +78,7 @@
             <textarea id="customMessage" name="customMessage" class="form-control full-line" data-bind="textInput: customMessage" rows="2"></textarea>
         </div>
         <div data-bind="visible: requiresCustomMessage()">
-            @ViewHelpers.AlertDanger(@<text>You must add a custom message if you are deprecating a package due to another reason!</text>)
+            @ViewHelpers.AlertDanger(@<text>You must add a custom message if <b>other</b> is selected.</text>)
         </div>
     </div>
 
