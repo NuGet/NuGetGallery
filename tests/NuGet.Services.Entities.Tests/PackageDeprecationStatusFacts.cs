@@ -18,7 +18,8 @@ namespace NuGet.Services.Entities.Tests
         {
             { PackageDeprecationStatus.NotDeprecated, 0 },
             { PackageDeprecationStatus.Other, 1 },
-            { PackageDeprecationStatus.Legacy, 2 }
+            { PackageDeprecationStatus.Legacy, 2 },
+            { PackageDeprecationStatus.CriticalBugs, 4 }
         };
 
         [Fact]

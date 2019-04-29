@@ -149,6 +149,7 @@ namespace NuGetGallery
                 if (deprecation != null)
                 {
                     IsLegacy = deprecation.Status.HasFlag(PackageDeprecationStatus.Legacy);
+                    HasCriticalBugs = deprecation.Status.HasFlag(PackageDeprecationStatus.CriticalBugs);
                     IsOther = deprecation.Status.HasFlag(PackageDeprecationStatus.Other);
 
                     AlternatePackageId = deprecation.AlternatePackageRegistration?.Id;
@@ -168,6 +169,7 @@ namespace NuGetGallery
 
             public string Text { get; }
             public bool IsLegacy { get; }
+            public bool HasCriticalBugs { get; }
             public bool IsOther { get; }
             public string AlternatePackageId { get; }
             public string AlternatePackageVersion { get; }

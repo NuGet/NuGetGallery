@@ -11,13 +11,14 @@ function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defau
             versionData.Text,
             version,
             version === defaultVersion,
-            versionData.IsLegacy || versionData.IsOther);
+            versionData.IsLegacy || versionData.HasCriticalBugs || versionData.IsOther);
     });
 
     this.dropdown = new MultiSelectDropdown(items, "version", "versions");
     this.chosenItemsConflictWarning = ko.pureComputed(function () {
         var chosenItems = self.dropdown.chosenItems();
         var isLegacy = self.isLegacy();
+        var hasCriticalBugs = self.hasCriticalBugs();
         var isOther = self.isOther();
         var warningMessage = null;
         var areMultipleVersionsSelected = chosenItems.length > 1;
@@ -38,13 +39,13 @@ function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defau
                 continue;
             }
 
-            if (versionData.IsLegacy || versionData.IsOther) {
+            if (versionData.IsLegacy || versionData.HasCriticalBugs || versionData.IsOther) {
                 hasVersionsWithExistingDeprecationState = true;
                 break;
             }
         }
 
-        if (isLegacy || isOther) {
+        if (isLegacy || hasCriticalBugs || isOther) {
             if (areMultipleVersionsSelected && hasVersionsWithExistingDeprecationState) {
                 // Show a warning if multiple versions are selected and at least one has an existing deprecation
                 // The user should be aware they are replacing existing deprecations
@@ -63,6 +64,7 @@ function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defau
     }, this);
 
     this.isLegacy = ko.observable(false);
+    this.hasCriticalBugs = ko.observable(false);
     this.isOther = ko.observable(false);
 
     // The ID entered into the alternate package ID textbox.
@@ -76,8 +78,8 @@ function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defau
 
     // The list of options in the alternate package version dropdown.
     this.alternatePackageVersions = ko.pureComputed(function () {
-        // Include an "Any Version" option in case users want to select the package registration.
-        return [strings_AnyVersion].concat(self.alternatePackageVersionsCached());
+        // Include a "Latest" selection label in case users want to select the package registration.
+        return [strings_SelectAlternateVersionOption].concat(self.alternatePackageVersionsCached());
     }, this);
 
     // Whether or not the versions of the currently entered alternate package ID have been loaded.
@@ -141,8 +143,8 @@ function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defau
     this.alternatePackageVersion = ko.pureComputed(function () {
         if (self.alternatePackageId()) {
             var version = self.chosenAlternatePackageVersion();
-            // If the chosen version is the "Any Version" string, don't submit it with the form.
-            if (version !== strings_AnyVersion) {
+            // If the chosen version string is the selection label, don't submit it with the form.
+            if (version !== strings_SelectAlternateVersionOption) {
                 return version;
             }
         }
@@ -171,6 +173,7 @@ function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defau
                 id: id,
                 versions: self.dropdown.chosenItems(),
                 isLegacy: self.isLegacy(),
+                hasCriticalBugs: self.hasCriticalBugs(),
                 isOther: self.isOther(),
                 alternatePackageId: self.alternatePackageId(),
                 alternatePackageVersion: self.alternatePackageVersion(),
@@ -198,6 +201,7 @@ function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defau
         }
 
         versionData.IsLegacy = self.isLegacy();
+        versionData.HasCriticalBugs = self.hasCriticalBugs();
         versionData.IsOther = self.isOther();
         versionData.AlternatePackageId = self.alternatePackageId();
         versionData.AlternatePackageVersion = self.alternatePackageVersion();
@@ -211,6 +215,7 @@ function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defau
         }
 
         self.isLegacy(versionData.IsLegacy);
+        self.hasCriticalBugs(versionData.HasCriticalBugs);
         self.isOther(versionData.IsOther);
 
         self.chosenAlternatePackageId(versionData.AlternatePackageId);

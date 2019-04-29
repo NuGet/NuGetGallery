@@ -125,7 +125,7 @@ namespace NuGetGallery.Controllers
 
                 // Act
                 var result = await controller.Deprecate(
-                    "id", null, false, false, null, null, null);
+                    "id", null, false, false, false, null, null, null);
 
                 // Assert
                 AssertErrorResponse(controller, result, HttpStatusCode.Forbidden, Strings.DeprecatePackage_Forbidden);
@@ -153,7 +153,7 @@ namespace NuGetGallery.Controllers
 
                 // Act
                 var result = await controller.Deprecate(
-                    "id", versions, false, false, null, null, null);
+                    "id", versions, false, false, false, null, null, null);
 
                 // Assert
                 AssertErrorResponse(controller, result, HttpStatusCode.BadRequest, Strings.DeprecatePackage_NoVersions);
@@ -196,7 +196,7 @@ namespace NuGetGallery.Controllers
 
                 // Act
                 var result = await controller.Deprecate(
-                    id, new[] { "1.0.0" }, false, false, null, null, null);
+                    id, new[] { "1.0.0" }, false, false, false, null, null, null);
 
                 // Assert
                 AssertErrorResponse(controller, result, HttpStatusCode.NotFound, string.Format(Strings.DeprecatePackage_MissingRegistration, id));
@@ -258,7 +258,7 @@ namespace NuGetGallery.Controllers
 
                 // Act
                 var result = await controller.Deprecate(
-                    id, new[] { "1.0.0" }, false, false, null, null, null);
+                    id, new[] { "1.0.0" }, false, false, false, null, null, null);
 
                 // Assert
                 AssertErrorResponse(controller, result, HttpStatusCode.Forbidden, Strings.DeprecatePackage_Forbidden);
@@ -333,7 +333,7 @@ namespace NuGetGallery.Controllers
 
                 // Act
                 var result = await controller.Deprecate(
-                    id, new[] { "1.0.0" }, false, false, null, null, null);
+                    id, new[] { "1.0.0" }, false, false, false, null, null, null);
 
                 // Assert
                 AssertErrorResponse(
@@ -387,7 +387,7 @@ namespace NuGetGallery.Controllers
 
                 // Act
                 var result = await controller.Deprecate(
-                    id, new[] { "1.0.0" }, false, false, alternatePackageId, null, null);
+                    id, new[] { "1.0.0" }, false, false, false, alternatePackageId, null, null);
 
                 // Assert
                 AssertErrorResponse(
@@ -442,7 +442,7 @@ namespace NuGetGallery.Controllers
 
                 // Act
                 var result = await controller.Deprecate(
-                    id, new[] { "1.0.0" }, false, false, alternatePackageId, alternatePackageVersion, null);
+                    id, new[] { "1.0.0" }, false, false, false, alternatePackageId, alternatePackageVersion, null);
 
                 // Assert
                 AssertErrorResponse(
@@ -491,7 +491,7 @@ namespace NuGetGallery.Controllers
 
                 // Act
                 var result = await controller.Deprecate(
-                    id, new[] { "1.0.0" }, false, false, null, null, null);
+                    id, new[] { "1.0.0" }, false, false, false, null, null, null);
 
                 // Assert
                 AssertErrorResponse(
@@ -540,7 +540,7 @@ namespace NuGetGallery.Controllers
 
                 // Act
                 var result = await controller.Deprecate(
-                    id, new[] { package.NormalizedVersion, "1.0.0" }, false, false, null, null, null);
+                    id, new[] { package.NormalizedVersion, "1.0.0" }, false, false, false, null, null, null);
 
                 // Assert
                 AssertErrorResponse(
@@ -570,14 +570,22 @@ namespace NuGetGallery.Controllers
             {
                 get
                 {
-                    yield return MemberDataHelper.AsData(false, false,
+                    yield return MemberDataHelper.AsData(false, false, false,
                         PackageDeprecationStatus.NotDeprecated);
-                    yield return MemberDataHelper.AsData(false, true,
+                    yield return MemberDataHelper.AsData(false, false, true,
                         PackageDeprecationStatus.Other);
-                    yield return MemberDataHelper.AsData(true, false,
+                    yield return MemberDataHelper.AsData(false, true, false,
+                        PackageDeprecationStatus.CriticalBugs);
+                    yield return MemberDataHelper.AsData(true, false, false,
                         PackageDeprecationStatus.Legacy);
-                    yield return MemberDataHelper.AsData(true, true,
+                    yield return MemberDataHelper.AsData(true, false, true,
                         PackageDeprecationStatus.Legacy | PackageDeprecationStatus.Other);
+                    yield return MemberDataHelper.AsData(true, true, false,
+                        PackageDeprecationStatus.Legacy | PackageDeprecationStatus.CriticalBugs);
+                    yield return MemberDataHelper.AsData(false, true, true,
+                        PackageDeprecationStatus.CriticalBugs | PackageDeprecationStatus.Other);
+                    yield return MemberDataHelper.AsData(true, true, true,
+                        PackageDeprecationStatus.Legacy | PackageDeprecationStatus.CriticalBugs | PackageDeprecationStatus.Other);
                 }
             }
 
@@ -601,6 +609,7 @@ namespace NuGetGallery.Controllers
                 User currentUser,
                 User owner,
                 bool isLegacy,
+                bool hasCriticalBugs,
                 bool isOther,
                 PackageDeprecationStatus expectedStatus,
                 ReturnsSuccessful_AlternatePackage_State alternatePackageState,
@@ -697,6 +706,7 @@ namespace NuGetGallery.Controllers
                     id,
                     new[] { package.NormalizedVersion, package2.NormalizedVersion },
                     isLegacy,
+                    hasCriticalBugs,
                     isOther,
                     alternatePackageId,
                     alternatePackageVersion,

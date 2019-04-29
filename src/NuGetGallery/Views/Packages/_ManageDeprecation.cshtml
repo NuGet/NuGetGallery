@@ -43,7 +43,22 @@
                 This package is <b>legacy</b> and is no longer maintained
             </label>
         </div>
-        <div class="deprecation-subsection" data-bind="visible: isLegacy">
+        <div class="form-group unbolded-label">
+            <label>
+                <input name="hasCriticalBugs" type="checkbox" value="true" data-bind="checked: hasCriticalBugs" />
+                This package has <b>critical bugs</b> that make it unusable.
+            </label>
+        </div>
+        <div class="form-group unbolded-label">
+            <label>
+                <input name="isOther" type="checkbox" value="true" data-bind="checked: isOther" />
+                This package should be deprecated for <b>other</b> reasons
+            </label>
+        </div>
+    </div>
+
+    <div data-bind="visible: hasCriticalBugs() || isLegacy() || isOther()">
+        <div class="deprecation-section">
             <div class="row">
                 <div class="col-sm-8 form-group alternate-package-registration-container" data-bind="css: { 'has-error': chosenAlternatePackageIdError }">
                     <label for="alternatePackageId" class="deprecation-section-header">Alternate package</label>
@@ -58,15 +73,6 @@
                 @ViewHelpers.AlertDanger(@<text><span data-bind="text: chosenAlternatePackageIdError"></span></text>)
             </div>
         </div>
-        <div class="form-group unbolded-label">
-            <label>
-                <input name="isOther" type="checkbox" value="true" data-bind="checked: isOther" />
-                This package should be deprecated for <b>other</b> reasons
-            </label>
-        </div>
-    </div>
-
-    <div data-bind="visible: isLegacy() || isOther()">
         <div class="deprecation-section form-group">
             <label for="customMessage" class="deprecation-section-header">Provide custom message</label>
             <textarea id="customMessage" name="customMessage" class="form-control full-line" data-bind="textInput: customMessage" rows="2"></textarea>
