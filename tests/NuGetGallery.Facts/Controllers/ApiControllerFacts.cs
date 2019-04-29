@@ -113,7 +113,7 @@ namespace NuGetGallery
 
             MockPackageUploadService
                 .Setup(x => x.ValidateBeforeGeneratePackageAsync(
-                    It.IsAny<PackageArchiveReader>(), It.IsAny<PackageMetadata>()))
+                    It.IsAny<PackageArchiveReader>(), It.IsAny<PackageMetadata>(), It.IsAny<User>()))
                 .ReturnsAsync(PackageValidationResult.Accepted());
 
             MockPackageUploadService.Setup(x => x.GeneratePackageAsync(It.IsAny<string>(), It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), It.IsAny<User>()))
@@ -905,7 +905,7 @@ namespace NuGetGallery
                 controller
                     .MockPackageUploadService
                     .Setup(x => x.ValidateBeforeGeneratePackageAsync(
-                        It.IsAny<PackageArchiveReader>(), It.IsAny<PackageMetadata>()))
+                        It.IsAny<PackageArchiveReader>(), It.IsAny<PackageMetadata>(), It.IsAny<User>()))
                     .ReturnsAsync(PackageValidationResult.AcceptedWithWarnings(new[] { new PlainTextOnlyValidationMessage(messageA) }));
                 controller
                     .MockPackageUploadService
@@ -974,14 +974,14 @@ namespace NuGetGallery
                 controller.SetupPackageFromInputStream(nuGetPackage);
                 controller.MockPackageUploadService
                     .Setup(x => x.ValidateBeforeGeneratePackageAsync(
-                        It.IsAny<PackageArchiveReader>(), It.IsAny<PackageMetadata>()))
+                        It.IsAny<PackageArchiveReader>(), It.IsAny<PackageMetadata>(), It.IsAny<User>()))
                     .ReturnsAsync(new PackageValidationResult(type, string.Empty));
 
                 await controller.CreatePackagePut();
 
                 controller.MockPackageUploadService.Verify(
                     x => x.ValidateBeforeGeneratePackageAsync(
-                        It.IsAny<PackageArchiveReader>(), It.IsAny<PackageMetadata>()),
+                        It.IsAny<PackageArchiveReader>(), It.IsAny<PackageMetadata>(), It.IsAny<User>()),
                     Times.Once);
             }
 

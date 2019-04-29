@@ -128,7 +128,8 @@ namespace NuGetGallery
                 packageUploadService
                     .Setup(x => x.ValidateBeforeGeneratePackageAsync(
                         It.IsAny<PackageArchiveReader>(),
-                        It.IsAny<PackageMetadata>()))
+                        It.IsAny<PackageMetadata>(),
+                        It.IsAny<User>()))
                     .ReturnsAsync(PackageValidationResult.Accepted());
 
                 packageUploadService
@@ -284,7 +285,8 @@ namespace NuGetGallery
             fakePackageUploadService
                 .Setup(x => x.ValidateBeforeGeneratePackageAsync(
                     It.IsAny<PackageArchiveReader>(),
-                    It.IsAny<PackageMetadata>()))
+                    It.IsAny<PackageMetadata>(),
+                        It.IsAny<User>()))
                 .ReturnsAsync(PackageValidationResult.Accepted());
 
             fakePackageUploadService
@@ -4712,7 +4714,7 @@ namespace NuGetGallery
 
                 var fakePackageUploadService = new Mock<IPackageUploadService>();
                 fakePackageUploadService
-                    .Setup(x => x.ValidateBeforeGeneratePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageMetadata>()))
+                    .Setup(x => x.ValidateBeforeGeneratePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageMetadata>(), It.IsAny<User>()))
                     .ReturnsAsync(PackageValidationResult.Invalid(expectedMessage));
 
                 var controller = CreateController(
@@ -4746,7 +4748,7 @@ namespace NuGetGallery
 
                 var fakePackageUploadService = new Mock<IPackageUploadService>();
                 fakePackageUploadService
-                    .Setup(x => x.ValidateBeforeGeneratePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageMetadata>()))
+                    .Setup(x => x.ValidateBeforeGeneratePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageMetadata>(), It.IsAny<User>()))
                     .ReturnsAsync(PackageValidationResult.AcceptedWithWarnings(new[] { new PlainTextOnlyValidationMessage(expectedMessage) }));
 
                 var controller = CreateController(
@@ -5387,7 +5389,7 @@ namespace NuGetGallery
 
                 var fakePackageUploadService = GetValidPackageUploadService(PackageId, PackageVersion);
                 fakePackageUploadService
-                    .Setup(x => x.ValidateBeforeGeneratePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageMetadata>()))
+                    .Setup(x => x.ValidateBeforeGeneratePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageMetadata>(), It.IsAny<User>()))
                     .ReturnsAsync(PackageValidationResult.Invalid(expectedMessage));
 
                 var controller = CreateController(
@@ -5428,7 +5430,7 @@ namespace NuGetGallery
 
                 var fakePackageUploadService = GetValidPackageUploadService(PackageId, PackageVersion);
                 fakePackageUploadService
-                    .Setup(x => x.ValidateBeforeGeneratePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageMetadata>()))
+                    .Setup(x => x.ValidateBeforeGeneratePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageMetadata>(), It.IsAny<User>()))
                     .ReturnsAsync(PackageValidationResult.Invalid(expectedMessage));
 
                 var controller = CreateController(
@@ -5467,7 +5469,7 @@ namespace NuGetGallery
 
                 var fakePackageUploadService = GetValidPackageUploadService(PackageId, PackageVersion);
                 fakePackageUploadService
-                    .Setup(x => x.ValidateBeforeGeneratePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageMetadata>()))
+                    .Setup(x => x.ValidateBeforeGeneratePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageMetadata>(), It.IsAny<User>()))
                     .ThrowsAsync(new Exception("TestExceptionMessage"));
 
                 var controller = CreateController(
@@ -5499,7 +5501,7 @@ namespace NuGetGallery
 
                 var fakePackageUploadService = GetValidPackageUploadService(PackageId, PackageVersion);
                 fakePackageUploadService
-                    .Setup(x => x.ValidateBeforeGeneratePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageMetadata>()))
+                    .Setup(x => x.ValidateBeforeGeneratePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageMetadata>(), It.IsAny<User>()))
                     .ReturnsAsync(PackageValidationResult.AcceptedWithWarnings(new[] { new PlainTextOnlyValidationMessage(expectedMessage) }));
 
                 var controller = CreateController(
@@ -6305,7 +6307,8 @@ namespace NuGetGallery
                     fakePackageUploadService
                         .Setup(x => x.ValidateBeforeGeneratePackageAsync(
                             It.IsAny<PackageArchiveReader>(),
-                            It.IsAny<PackageMetadata>()))
+                            It.IsAny<PackageMetadata>(),
+                            It.IsAny<User>()))
                         .ReturnsAsync(expectedResult);
                     var fakeNuGetPackage = TestPackage.CreateTestPackageStream(PackageId, PackageVersion);
 

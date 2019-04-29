@@ -61,6 +61,7 @@ namespace NuGetGallery
         private readonly ITelemetryService _telemetryService;
         private readonly ICoreLicenseFileService _coreLicenseFileService;
         private readonly IDiagnosticsSource _trace;
+        private readonly IFeatureFlagService _featureFlagService;
 
         public PackageUploadService(
             IPackageService packageService,
@@ -72,7 +73,8 @@ namespace NuGetGallery
             ITyposquattingService typosquattingService,
             ITelemetryService telemetryService,
             ICoreLicenseFileService coreLicenseFileService,
-            IDiagnosticsService diagnosticsService)
+            IDiagnosticsService diagnosticsService,
+            IFeatureFlagService featureFlagService)
         {
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
             _packageFileService = packageFileService ?? throw new ArgumentNullException(nameof(packageFileService));
@@ -88,9 +90,13 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(diagnosticsService));
             }
             _trace = diagnosticsService.GetSource(nameof(PackageUploadService));
+            _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
         }
 
-        public async Task<PackageValidationResult> ValidateBeforeGeneratePackageAsync(PackageArchiveReader nuGetPackage, PackageMetadata packageMetadata)
+        public async Task<PackageValidationResult> ValidateBeforeGeneratePackageAsync(
+            PackageArchiveReader nuGetPackage,
+            PackageMetadata packageMetadata,
+            User user)
         {
             var warnings = new List<IValidationMessage>();
 
@@ -126,7 +132,7 @@ namespace NuGetGallery
                 return result;
             }
 
-            result = await CheckLicenseMetadataAsync(nuGetPackage, warnings);
+            result = await CheckLicenseMetadataAsync(nuGetPackage, warnings, user);
             if (result != null)
             {
                 _telemetryService.TrackLicenseValidationFailure();
@@ -136,13 +142,9 @@ namespace NuGetGallery
             return PackageValidationResult.AcceptedWithWarnings(warnings);
         }
 
-        private async Task<PackageValidationResult> CheckLicenseMetadataAsync(PackageArchiveReader nuGetPackage, List<IValidationMessage> warnings)
+        private async Task<PackageValidationResult> CheckLicenseMetadataAsync(PackageArchiveReader nuGetPackage, List<IValidationMessage> warnings, User user)
         {
-            LicenseCheckingNuspecReader nuspecReader = null;
-            using (var nuspec = nuGetPackage.GetNuspec())
-            {
-                nuspecReader = new LicenseCheckingNuspecReader(nuspec);
-            }
+            var nuspecReader = GetNuspecReader(nuGetPackage);
 
             var licenseElement = nuspecReader.LicenseElement;
 
@@ -185,7 +187,8 @@ namespace NuGetGallery
             var licenseMetadata = nuspecReader.GetLicenseMetadata();
             var licenseDeprecationUrl = GetExpectedLicenseUrl(licenseMetadata);
 
-            if (nuspecReader.IconExists)
+            // TODO: move out when full blown validation is implemented
+            if (nuspecReader.IconExists && !_featureFlagService.IsEmbeddedIconsEnabled(user))
             {
                 return PackageValidationResult.Invalid(Strings.UploadPackage_EmbeddedIconNotAccepted);
             }
@@ -335,6 +338,14 @@ namespace NuGetGallery
             return null;
         }
 
+        private static UserContentEnabledNuspecReader GetNuspecReader(PackageArchiveReader nuGetPackage)
+        {
+            using (var nuspec = nuGetPackage.GetNuspec())
+            {
+                return new UserContentEnabledNuspecReader(nuspec);
+            }
+        }
+
         private bool IsMalformedDeprecationUrl(string licenseUrl)
         {
             // nuget.exe 4.9.0 and its dotnet and msbuild counterparts encode spaces as "+"
@@ -441,9 +452,9 @@ namespace NuGetGallery
             => licenseElement
                 .GetOptionalAttributeValue("type");
 
-        private class LicenseCheckingNuspecReader : NuspecReader
+        private class UserContentEnabledNuspecReader : NuspecReader
         {
-            public LicenseCheckingNuspecReader(Stream stream)
+            public UserContentEnabledNuspecReader(Stream stream)
                 : base(stream)
             {
             }
