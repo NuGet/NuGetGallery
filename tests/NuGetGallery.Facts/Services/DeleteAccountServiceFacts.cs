@@ -141,6 +141,8 @@ namespace NuGetGallery.Services
                     Assert.NotEmpty(testUser.OrganizationMigrationRequests);
                     Assert.NotEmpty(testUser.OrganizationRequests);
                     Assert.NotEmpty(testUser.Organizations);
+                    Assert.NotNull(testableService.PackageDeletedByUser.DeletedBy);
+                    Assert.NotNull(testableService.AccountDeletedByUser.DeletedBy);
                 }
                 else
                 {
@@ -159,6 +161,8 @@ namespace NuGetGallery.Services
                     Assert.Null(testUser.OrganizationMigrationRequest);
                     Assert.Empty(testUser.OrganizationMigrationRequests);
                     Assert.Empty(testUser.OrganizationRequests);
+                    Assert.Null(testableService.PackageDeletedByUser.DeletedBy);
+                    Assert.Null(testableService.AccountDeletedByUser.DeletedBy);
 
                     Assert.Empty(testUser.Organizations);
                     foreach (var testUserOrganization in testUserOrganizations)
@@ -185,6 +189,9 @@ namespace NuGetGallery.Services
                 // In production, they would not be deleted because the transaction they were deleted in would fail.
                 Assert.Single(testableService.SupportRequests);
                 Assert.Empty(testUser.ReservedNamespaces);
+
+                Assert.NotNull(testableService.PackageDeletedByDifferentUser.DeletedBy);
+                Assert.NotNull(testableService.AccountDeletedByDifferentUser.DeletedBy);
             }
 
             [Theory]
@@ -270,6 +277,8 @@ namespace NuGetGallery.Services
                     Assert.Empty(testableService.AuditService.Records);
                     Assert.False(testableService.HasDeletedOwnerScope);
                     Assert.Empty(testableService.AuditService.Records);
+                    Assert.NotNull(testableService.PackageDeletedByUser.DeletedBy);
+                    Assert.NotNull(testableService.AccountDeletedByUser.DeletedBy);
                 }
                 else
                 {
@@ -286,6 +295,8 @@ namespace NuGetGallery.Services
                     Assert.Empty(testableService.PackageOwnerRequests);
                     Assert.Single(testableService.AuditService.Records);
                     Assert.True(testableService.HasDeletedOwnerScope);
+                    Assert.Null(testableService.PackageDeletedByUser.DeletedBy);
+                    Assert.Null(testableService.AccountDeletedByUser.DeletedBy);
 
                     var deleteRecord = testableService.AuditService.Records[0] as DeleteAccountAuditRecord;
                     Assert.True(deleteRecord != null);
@@ -296,6 +307,9 @@ namespace NuGetGallery.Services
                 // In production, they would not be deleted because the transaction they were deleted in would fail.
                 Assert.Empty(organization.ReservedNamespaces);
                 Assert.Single(testableService.SupportRequests);
+
+                Assert.NotNull(testableService.PackageDeletedByDifferentUser.DeletedBy);
+                Assert.NotNull(testableService.AccountDeletedByDifferentUser.DeletedBy);
             }
 
             [Theory]
@@ -473,7 +487,7 @@ namespace NuGetGallery.Services
             private PackageRegistration _userPackagesRegistration = null;
             private ICollection<Package> _userPackages;
             private bool _hasDeletedCredentialWithOwnerScope = false;
-            
+
             public List<AccountDelete> DeletedAccounts = new List<AccountDelete>();
             public List<User> DeletedUsers = new List<User>();
             public List<Issue> SupportRequests = new List<Issue>();
@@ -482,6 +496,12 @@ namespace NuGetGallery.Services
             public List<PackageOwnerRequest> PackageOwnerRequests = new List<PackageOwnerRequest>();
             public FakeAuditingService AuditService = new FakeAuditingService();
             public bool HasDeletedOwnerScope => _hasDeletedCredentialWithOwnerScope;
+
+            public AccountDelete AccountDeletedByUser { get; }
+            public AccountDelete AccountDeletedByDifferentUser { get; }
+            public PackageDelete PackageDeletedByUser { get; }
+            public PackageDelete PackageDeletedByDifferentUser { get; }
+
 
             public DeleteAccountTestService(User user)
             {
@@ -533,6 +553,11 @@ namespace NuGetGallery.Services
                     NewOwner = _user
                 });
 
+                AccountDeletedByUser = new AccountDelete { DeletedBy = _user, DeletedByKey = _user.Key };
+                AccountDeletedByDifferentUser = new AccountDelete { DeletedBy = new User { Key = 1111 }, DeletedByKey = 1111 };
+                PackageDeletedByUser = new PackageDelete { DeletedBy = _user, DeletedByKey = _user.Key };
+                PackageDeletedByDifferentUser = new PackageDelete { DeletedBy = new User { Key = 1111 }, DeletedByKey = 1111 };
+
                 PackagePushedByUser = new Package
                 {
                     User = _user,
@@ -554,6 +579,7 @@ namespace NuGetGallery.Services
             {
                 return new DeleteAccountService(
                     SetupAccountDeleteRepository().Object,
+                    SetupPackageDeleteRepository().Object,
                     SetupDeprecationRepository().Object,
                     SetupUserRepository().Object,
                     SetupScopeRepository().Object,
@@ -639,6 +665,14 @@ namespace NuGetGallery.Services
             private Mock<IEntityRepository<AccountDelete>> SetupAccountDeleteRepository()
             {
                 var accountDeleteRepository = new Mock<IEntityRepository<AccountDelete>>();
+
+                if (AccountDeletedByUser != null)
+                {
+                    accountDeleteRepository
+                        .Setup(m => m.GetAll())
+                        .Returns(new[] { AccountDeletedByUser, AccountDeletedByDifferentUser }.AsQueryable());
+                }
+
                 accountDeleteRepository
                     .Setup(m => m.InsertOnCommit(It.IsAny<AccountDelete>()))
                     .Callback<AccountDelete>(account => DeletedAccounts.Add(account));
@@ -646,6 +680,20 @@ namespace NuGetGallery.Services
                 return accountDeleteRepository;
             }
 
+            private Mock<IEntityRepository<PackageDelete>> SetupPackageDeleteRepository()
+            {
+                var packageDeleteRepository = new Mock<IEntityRepository<PackageDelete>>();
+
+                if (PackageDeletedByUser != null)
+                {
+                    packageDeleteRepository
+                        .Setup(m => m.GetAll())
+                        .Returns(new[] { PackageDeletedByUser, PackageDeletedByDifferentUser }.AsQueryable());
+                }
+
+                return packageDeleteRepository;
+            }
+          
             private Mock<IEntityRepository<PackageDeprecation>> SetupDeprecationRepository()
             {
                 var deprecationRepository = new Mock<IEntityRepository<PackageDeprecation>>();

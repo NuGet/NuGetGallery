@@ -356,7 +356,7 @@ namespace NuGetGallery
                 .HasRequired(a => a.DeletedAccount);
 
             modelBuilder.Entity<AccountDelete>()
-                .HasRequired(a => a.DeletedBy)
+                .HasOptional(a => a.DeletedBy)
                 .WithMany()
                 .WillCascadeOnDelete(false);
 
