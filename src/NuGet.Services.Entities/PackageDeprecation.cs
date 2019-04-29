@@ -69,6 +69,9 @@ namespace NuGet.Services.Entities
         /// <summary>
         /// Gets or sets the user that executed the package deprecation.
         /// </summary>
+        /// <remarks>
+        /// This field will be <c>null</c> if the user that deprecated the package has been deleted.
+        /// </remarks>
         public virtual User DeprecatedByUser { get; set; }
 
         /// <summary>
