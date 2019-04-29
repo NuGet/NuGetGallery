@@ -78,8 +78,8 @@ function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defau
 
     // The list of options in the alternate package version dropdown.
     this.alternatePackageVersions = ko.pureComputed(function () {
-        // Include a "Latest" option in case users want to select the package registration.
-        return [strings_Latest].concat(self.alternatePackageVersionsCached());
+        // Include a "Latest" selection label in case users want to select the package registration.
+        return [strings_SelectAlternateVersionOption].concat(self.alternatePackageVersionsCached());
     }, this);
 
     // Whether or not the versions of the currently entered alternate package ID have been loaded.
@@ -143,8 +143,8 @@ function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defau
     this.alternatePackageVersion = ko.pureComputed(function () {
         if (self.alternatePackageId()) {
             var version = self.chosenAlternatePackageVersion();
-            // If the chosen version is the "Latest" string, don't submit it with the form.
-            if (version !== strings_Latest) {
+            // If the chosen version string is the selection label, don't submit it with the form.
+            if (version !== strings_SelectAlternateVersionOption) {
                 return version;
             }
         }
