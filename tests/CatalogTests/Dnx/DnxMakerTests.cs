@@ -13,6 +13,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using Newtonsoft.Json.Linq;
 using NgTests.Infrastructure;
+using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Dnx;
 using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGet.Services.Metadata.Catalog.Persistence;
@@ -35,15 +36,35 @@ namespace CatalogTests.Dnx
         [Fact]
         public void Constructor_WhenStorageFactoryIsNull_Throws()
         {
-            var exception = Assert.Throws<ArgumentNullException>(() => new DnxMaker(storageFactory: null, logger: Mock.Of<ILogger>()));
+            var exception = Assert.Throws<ArgumentNullException>(
+                () => new DnxMaker(
+                    storageFactory: null,
+                    telemetryService: Mock.Of<ITelemetryService>(),
+                    logger: Mock.Of<ILogger>()));
 
             Assert.Equal("storageFactory", exception.ParamName);
         }
 
         [Fact]
+        public void Constructor_WhenTelemetryServiceIsNull_Throws()
+        {
+            var exception = Assert.Throws<ArgumentNullException>(
+                () => new DnxMaker(
+                    storageFactory: Mock.Of<StorageFactory>(),
+                    telemetryService: null,
+                    logger: Mock.Of<ILogger>()));
+
+            Assert.Equal("telemetryService", exception.ParamName);
+        }
+
+        [Fact]
         public void Constructor_WhenLoggerIsNull_Throws()
         {
-            var exception = Assert.Throws<ArgumentNullException>(() => new DnxMaker(storageFactory: Mock.Of<StorageFactory>(), logger: null));
+            var exception = Assert.Throws<ArgumentNullException>(
+                () => new DnxMaker(
+                    storageFactory: Mock.Of<StorageFactory>(),
+                    telemetryService: Mock.Of<ITelemetryService>(),
+                    logger: null));
 
             Assert.Equal("logger", exception.ParamName);
         }
@@ -141,7 +162,7 @@ namespace CatalogTests.Dnx
         {
             var catalogToDnxStorage = new MemoryStorage();
             var catalogToDnxStorageFactory = new TestStorageFactory(name => catalogToDnxStorage.WithName(name));
-            var maker = new DnxMaker(catalogToDnxStorageFactory, Mock.Of<ILogger>());
+            var maker = new DnxMaker(catalogToDnxStorageFactory, Mock.Of<ITelemetryService>(), Mock.Of<ILogger>());
             var storageForPackage = (MemoryStorage)catalogToDnxStorageFactory.Create(_packageId);
 
             var hasPackageInIndex = await maker.HasPackageInIndexAsync(storageForPackage, _packageId, "1.0.0", CancellationToken.None);
@@ -154,7 +175,7 @@ namespace CatalogTests.Dnx
         {
             var catalogToDnxStorage = new MemoryStorage();
             var catalogToDnxStorageFactory = new TestStorageFactory(name => catalogToDnxStorage.WithName(name));
-            var maker = new DnxMaker(catalogToDnxStorageFactory, Mock.Of<ILogger>());
+            var maker = new DnxMaker(catalogToDnxStorageFactory, Mock.Of<ITelemetryService>(), Mock.Of<ILogger>());
 
             await maker.UpdatePackageVersionIndexAsync(_packageId, v => v.Add(NuGetVersion.Parse("1.0.0")), CancellationToken.None);
 
@@ -170,7 +191,7 @@ namespace CatalogTests.Dnx
         {
             var catalogToDnxStorage = new MemoryStorage();
             var catalogToDnxStorageFactory = new TestStorageFactory(name => catalogToDnxStorage.WithName(name));
-            var maker = new DnxMaker(catalogToDnxStorageFactory, Mock.Of<ILogger>());
+            var maker = new DnxMaker(catalogToDnxStorageFactory, Mock.Of<ITelemetryService>(), Mock.Of<ILogger>());
 
             const string version = "1.0.0";
 
@@ -281,7 +302,7 @@ namespace CatalogTests.Dnx
         {
             var catalogToDnxStorage = new MemoryStorage();
             var catalogToDnxStorageFactory = new TestStorageFactory(name => catalogToDnxStorage.WithName(name));
-            var maker = new DnxMaker(catalogToDnxStorageFactory, Mock.Of<ILogger>());
+            var maker = new DnxMaker(catalogToDnxStorageFactory, Mock.Of<ITelemetryService>(), Mock.Of<ILogger>());
             var normalizedVersion = NuGetVersionUtility.NormalizeVersion(version);
 
             using (var nupkgStream = CreateFakePackageStream(_nupkgData))
@@ -316,7 +337,7 @@ namespace CatalogTests.Dnx
 
             var catalogToDnxStorage = new MemoryStorage();
             var catalogToDnxStorageFactory = new TestStorageFactory(name => catalogToDnxStorage.WithName(name));
-            var maker = new DnxMaker(catalogToDnxStorageFactory, Mock.Of<ILogger>());
+            var maker = new DnxMaker(catalogToDnxStorageFactory, Mock.Of<ITelemetryService>(), Mock.Of<ILogger>());
 
             using (var nupkgStream = await CreateNupkgStreamWithIcon(iconFilename, imageDataBuffer))
             {
@@ -425,7 +446,7 @@ namespace CatalogTests.Dnx
         {
             var catalogToDnxStorage = new AzureStorageStub();
             var catalogToDnxStorageFactory = new TestStorageFactory(name => catalogToDnxStorage.WithName(name));
-            var maker = new DnxMaker(catalogToDnxStorageFactory, Mock.Of<ILogger>());
+            var maker = new DnxMaker(catalogToDnxStorageFactory, Mock.Of<ITelemetryService>(), Mock.Of<ILogger>());
             var normalizedVersion = NuGetVersionUtility.NormalizeVersion(version);
             var sourceStorage = new AzureStorageStub();
 
@@ -465,7 +486,7 @@ namespace CatalogTests.Dnx
 
             var catalogToDnxStorage = new AzureStorageStub();
             var catalogToDnxStorageFactory = new TestStorageFactory(name => catalogToDnxStorage.WithName(name));
-            var maker = new DnxMaker(catalogToDnxStorageFactory, Mock.Of<ILogger>());
+            var maker = new DnxMaker(catalogToDnxStorageFactory, Mock.Of<ITelemetryService>(), Mock.Of<ILogger>());
             var sourceStorageMock = new Mock<IAzureStorage>();
             using (var nupkgStream = await CreateNupkgStreamWithIcon(iconFilename, imageDataBuffer))
             {
@@ -537,7 +558,7 @@ namespace CatalogTests.Dnx
         {
             var catalogToDnxStorage = new MemoryStorage();
             var catalogToDnxStorageFactory = new TestStorageFactory(name => catalogToDnxStorage.WithName(name));
-            var maker = new DnxMaker(catalogToDnxStorageFactory, Mock.Of<ILogger>());
+            var maker = new DnxMaker(catalogToDnxStorageFactory, Mock.Of<ITelemetryService>(), Mock.Of<ILogger>());
 
             using (var nupkgStream = CreateFakePackageStream(_nupkgData))
             {
@@ -604,7 +625,7 @@ namespace CatalogTests.Dnx
         {
             var catalogToDnxStorage = new MemoryStorage();
             var catalogToDnxStorageFactory = new TestStorageFactory(name => catalogToDnxStorage.WithName(name));
-            var maker = new DnxMaker(catalogToDnxStorageFactory, Mock.Of<ILogger>());
+            var maker = new DnxMaker(catalogToDnxStorageFactory, Mock.Of<ITelemetryService>(), Mock.Of<ILogger>());
             var normalizedVersion = NuGetVersionUtility.NormalizeVersion(version);
 
             await maker.UpdatePackageVersionIndexAsync(_packageId, v => v.Add(NuGetVersion.Parse(version)), CancellationToken.None);
@@ -631,7 +652,7 @@ namespace CatalogTests.Dnx
             var version = NuGetVersion.Parse("1.0.0");
             var catalogToDnxStorage = new MemoryStorage();
             var catalogToDnxStorageFactory = new TestStorageFactory(name => catalogToDnxStorage.WithName(name));
-            var maker = new DnxMaker(catalogToDnxStorageFactory, Mock.Of<ILogger>());
+            var maker = new DnxMaker(catalogToDnxStorageFactory, Mock.Of<ITelemetryService>(), Mock.Of<ILogger>());
 
             await maker.UpdatePackageVersionIndexAsync(_packageId, v => v.Add(version), CancellationToken.None);
 
@@ -657,7 +678,7 @@ namespace CatalogTests.Dnx
         {
             var catalogToDnxStorage = new MemoryStorage();
             var catalogToDnxStorageFactory = new TestStorageFactory(name => catalogToDnxStorage.WithName(name));
-            var maker = new DnxMaker(catalogToDnxStorageFactory, Mock.Of<ILogger>());
+            var maker = new DnxMaker(catalogToDnxStorageFactory, Mock.Of<ITelemetryService>(), Mock.Of<ILogger>());
 
             await maker.UpdatePackageVersionIndexAsync(_packageId, v => { }, CancellationToken.None);
 
@@ -684,7 +705,7 @@ namespace CatalogTests.Dnx
             };
             var catalogToDnxStorage = new MemoryStorage();
             var catalogToDnxStorageFactory = new TestStorageFactory(name => catalogToDnxStorage.WithName(name));
-            var maker = new DnxMaker(catalogToDnxStorageFactory, Mock.Of<ILogger>());
+            var maker = new DnxMaker(catalogToDnxStorageFactory, Mock.Of<ITelemetryService>(), Mock.Of<ILogger>());
 
             await maker.UpdatePackageVersionIndexAsync(_packageId, v => v.UnionWith(unorderedVersions), CancellationToken.None);
 
@@ -729,7 +750,7 @@ namespace CatalogTests.Dnx
             var catalogToDnxStorage = new MemoryStorage();
             var catalogToDnxStorageFactory = new TestStorageFactory(name => catalogToDnxStorage.WithName(name));
 
-            return new DnxMaker(catalogToDnxStorageFactory, Mock.Of<ILogger>());
+            return new DnxMaker(catalogToDnxStorageFactory, Mock.Of<ITelemetryService>(), Mock.Of<ILogger>());
         }
 
         private static MemoryStream CreateFakePackageStream(string content)

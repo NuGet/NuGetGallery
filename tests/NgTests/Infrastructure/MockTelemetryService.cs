@@ -76,5 +76,9 @@ namespace NgTests.Infrastructure
                 _trackMetricCalls.Add(new TrackMetricCall(name, metric, properties));
             }
         }
+
+        public void TrackIconExtractionFailure(string packageId, string normalizedPackageVersion)
+        {
+        }
     }
 }
