@@ -96,7 +96,7 @@ namespace NuGetGallery
         public async Task<PackageValidationResult> ValidateBeforeGeneratePackageAsync(
             PackageArchiveReader nuGetPackage,
             PackageMetadata packageMetadata,
-            User user)
+            User currentUser)
         {
             var warnings = new List<IValidationMessage>();
 
@@ -132,7 +132,7 @@ namespace NuGetGallery
                 return result;
             }
 
-            result = await CheckLicenseMetadataAsync(nuGetPackage, warnings, user);
+            result = await CheckLicenseMetadataAsync(nuGetPackage, warnings, currentUser);
             if (result != null)
             {
                 _telemetryService.TrackLicenseValidationFailure();
