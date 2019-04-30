@@ -188,7 +188,7 @@ namespace NuGetGallery
             var licenseDeprecationUrl = GetExpectedLicenseUrl(licenseMetadata);
 
             // TODO: move out when full blown validation is implemented
-            if (nuspecReader.IconExists && !_featureFlagService.IsEmbeddedIconsEnabled(user))
+            if (nuspecReader.IconExists && !_featureFlagService.AreEmbeddedIconsEnabled(user))
             {
                 return PackageValidationResult.Invalid(Strings.UploadPackage_EmbeddedIconNotAccepted);
             }

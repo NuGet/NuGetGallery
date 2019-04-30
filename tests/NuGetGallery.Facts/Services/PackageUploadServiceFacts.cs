@@ -1179,7 +1179,7 @@ namespace NuGetGallery
                     licenseExpression: "MIT",
                     licenseUrl: new Uri("https://licenses.nuget.org/MIT"));
                 _featureFlagService
-                    .Setup(ffs => ffs.IsEmbeddedIconsEnabled(_currentUser))
+                    .Setup(ffs => ffs.AreEmbeddedIconsEnabled(_currentUser))
                     .Returns(true);
 
                 var result = await _target.ValidateBeforeGeneratePackageAsync(
@@ -1970,7 +1970,7 @@ namespace NuGetGallery
 
                 _featureFlagService = new Mock<IFeatureFlagService>();
                 _featureFlagService
-                    .Setup(ffs => ffs.IsEmbeddedIconsEnabled(It.IsAny<User>()))
+                    .Setup(ffs => ffs.AreEmbeddedIconsEnabled(It.IsAny<User>()))
                     .Returns(false);
 
                 _target = new PackageUploadService(

@@ -49,7 +49,7 @@ namespace NuGetGallery
             return _client.IsEnabled(ManageDeprecationFeatureName, user, defaultValue: false);
         }
 
-        public bool IsEmbeddedIconsEnabled(User user)
+        public bool AreEmbeddedIconsEnabled(User user)
         {
             return _client.IsEnabled(EmbeddedIconFlightName, user, defaultValue: false);
         }
