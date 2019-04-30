@@ -155,6 +155,9 @@ function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defau
 
     // The custom message to submit with the form.
     this.customMessage = ko.observable('');
+    this.requiresCustomMessage = ko.pureComputed(function () {
+        return self.isOther() && !self.customMessage();
+    }, this);
 
     this.submitError = ko.observable();
     this.submit = function () {
