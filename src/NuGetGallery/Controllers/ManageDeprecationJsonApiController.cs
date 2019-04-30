@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Web.Mvc;
 using NuGet.Services.Entities;
 using NuGet.Versioning;
+using NuGetGallery.Auditing;
 using NuGetGallery.Filters;
 
 namespace NuGetGallery
@@ -16,15 +17,18 @@ namespace NuGetGallery
     public partial class ManageDeprecationJsonApiController
         : AppController
     {
+        private readonly IAuditingService _auditingService;
         private readonly IPackageService _packageService;
         private readonly IPackageDeprecationService _deprecationService;
         private readonly IFeatureFlagService _featureFlagService;
 
         public ManageDeprecationJsonApiController(
+            IAuditingService auditingService,
             IPackageService packageService,
             IPackageDeprecationService deprecationService,
             IFeatureFlagService featureFlagService)
         {
+            _auditingService = auditingService ?? throw new ArgumentNullException(nameof(auditingService));
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
             _deprecationService = deprecationService ?? throw new ArgumentNullException(nameof(deprecationService));
             _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
@@ -158,6 +162,16 @@ namespace NuGetGallery
                 alternatePackageRegistration,
                 alternatePackage,
                 customMessage);
+
+            foreach (var packageToUpdate in packagesToUpdate)
+            {
+                await _auditingService.SaveAuditRecordAsync(
+                    new PackageAuditRecord(
+                        packageToUpdate,
+                        status == PackageDeprecationStatus.NotDeprecated ? AuditedPackageAction.Undeprecate : AuditedPackageAction.Deprecate,
+                        PackageDeletedVia.Web));
+
+            }
 
             return Json(HttpStatusCode.OK);
         }

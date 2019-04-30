@@ -84,6 +84,8 @@ namespace NuGetGallery.Auditing
 #pragma warning restore
                 data.Add(new object[] { CreatePackageAuditRecord(AuditedPackageAction.Unlist), false });
                 data.Add(new object[] { CreatePackageAuditRecord(AuditedPackageAction.Verify), false });
+                data.Add(new object[] { CreatePackageAuditRecord(AuditedPackageAction.Deprecate), false });
+                data.Add(new object[] { CreatePackageAuditRecord(AuditedPackageAction.Undeprecate), false });
 
                 return data;
             }

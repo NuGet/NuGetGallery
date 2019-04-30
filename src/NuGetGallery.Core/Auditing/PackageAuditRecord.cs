@@ -3,6 +3,7 @@
 
 using NuGet.Services.Entities;
 using NuGetGallery.Auditing.AuditedEntities;
+using System.Linq;
 
 namespace NuGetGallery.Auditing
 {
@@ -14,12 +15,15 @@ namespace NuGetGallery.Auditing
 
         public AuditedPackage PackageRecord { get; }
         public AuditedPackageRegistration RegistrationRecord { get; }
+        public AuditedPackageDeprecation[] DeprecationRecords { get; }
 
         public string Reason { get; }
 
         public PackageAuditRecord(
             string id, string version, string hash,
-            AuditedPackage packageRecord, AuditedPackageRegistration registrationRecord,
+            AuditedPackage packageRecord,
+            AuditedPackageRegistration registrationRecord,
+            AuditedPackageDeprecation[] deprecationRecords,
             AuditedPackageAction action, string reason)
             : base(action)
         {
@@ -28,6 +32,7 @@ namespace NuGetGallery.Auditing
             Hash = hash;
             PackageRecord = packageRecord;
             RegistrationRecord = registrationRecord;
+            DeprecationRecords = deprecationRecords;
             Reason = reason;
         }
 
@@ -37,6 +42,7 @@ namespace NuGetGallery.Auditing
                   hash: "",
                   packageRecord: null,
                   registrationRecord: null,
+                  deprecationRecords: null,
                   action: action,
                   reason: reason)
         { }
@@ -47,11 +53,15 @@ namespace NuGetGallery.Auditing
                   package.Hash,
                   packageRecord: null,
                   registrationRecord: null,
+                  deprecationRecords: null,
                   action: action,
                   reason: reason)
         {
             PackageRecord = AuditedPackage.CreateFrom(package);
             RegistrationRecord = AuditedPackageRegistration.CreateFrom(package.PackageRegistration);
+            DeprecationRecords = package.Deprecations
+                .Select(d => AuditedPackageDeprecation.CreateFrom(d))
+                .ToArray();
         }
 
         public PackageAuditRecord(Package package, AuditedPackageAction action)
@@ -60,11 +70,15 @@ namespace NuGetGallery.Auditing
                   package.Hash,
                   packageRecord: null,
                   registrationRecord: null,
+                  deprecationRecords: null,
                   action: action,
                   reason: null)
         {
             PackageRecord = AuditedPackage.CreateFrom(package);
             RegistrationRecord = AuditedPackageRegistration.CreateFrom(package.PackageRegistration);
+            DeprecationRecords = package.Deprecations
+                .Select(d => AuditedPackageDeprecation.CreateFrom(d))
+                .ToArray();
         }
 
         public override string GetPath()
