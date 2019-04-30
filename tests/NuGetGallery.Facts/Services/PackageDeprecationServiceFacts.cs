@@ -24,13 +24,15 @@ namespace NuGetGallery.Services
             {
                 var service = Get<PackageDeprecationService>();
 
+                var user = new User { Key = 1 };
                 await Assert.ThrowsAsync<ArgumentException>(() =>
                     service.UpdateDeprecation(
                         packages,
                         PackageDeprecationStatus.NotDeprecated,
-                        null,
-                        null,
-                        null));
+                        alternatePackageRegistration: null,
+                        alternatePackage: null,
+                        customMessage: null,
+                        user: user));
             }
 
             [Fact]
@@ -70,15 +72,17 @@ namespace NuGetGallery.Services
                     .Completes()
                     .Verifiable();
 
+                var user = new User { Key = 1 };
                 var service = Get<PackageDeprecationService>();
 
                 // Act
                 await service.UpdateDeprecation(
                     packages,
                     PackageDeprecationStatus.NotDeprecated,
-                    null,
-                    null,
-                    null);
+                    alternatePackageRegistration: null,
+                    alternatePackage: null,
+                    customMessage: null,
+                    user: user);
 
                 // Assert
                 deprecationRepository.Verify();
@@ -166,6 +170,7 @@ namespace NuGetGallery.Services
                 var alternatePackage = new Package();
 
                 var customMessage = "message";
+                var user = new User { Key = 1 };
 
                 // Act
                 await service.UpdateDeprecation(
@@ -173,7 +178,8 @@ namespace NuGetGallery.Services
                     status,
                     alternatePackageRegistration,
                     alternatePackage,
-                    customMessage);
+                    customMessage,
+                    user);
 
                 // Assert
                 deprecationRepository.Verify();

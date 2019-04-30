@@ -694,7 +694,8 @@ namespace NuGetGallery.Controllers
                         expectedStatus,
                         alternatePackageState == ReturnsSuccessful_AlternatePackage_State.Registration ? alternatePackageRegistration : null,
                         alternatePackageState == ReturnsSuccessful_AlternatePackage_State.Package ? alternatePackage : null,
-                        customMessage))
+                        customMessage,
+                        currentUser))
                     .Completes()
                     .Verifiable();
 
