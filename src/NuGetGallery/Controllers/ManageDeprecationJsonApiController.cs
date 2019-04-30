@@ -170,7 +170,7 @@ namespace NuGetGallery
                     new PackageAuditRecord(
                         packageToUpdate,
                         status == PackageDeprecationStatus.NotDeprecated ? AuditedPackageAction.Undeprecate : AuditedPackageAction.Deprecate,
-                        PackageDeletedVia.Web));
+                        status == PackageDeprecationStatus.NotDeprecated ? PackageUndeprecatedVia.Web : PackageDeprecatedVia.Web));
 
             }
 
