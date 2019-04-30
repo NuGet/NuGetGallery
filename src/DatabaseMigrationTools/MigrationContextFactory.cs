@@ -1,19 +1,19 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using NuGet.Jobs;
 using NuGet.Jobs.Configuration;
 using NuGet.Services.DatabaseMigration;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace NuGetGallery.DatabaseMigrationTools
 {
     public class MigrationContextFactory : IMigrationContextFactory
     {
-        private IDictionary<string, Func<IServiceProvider, Task<IMigrationContext>>> _dictionary = new Dictionary<string, Func<IServiceProvider, Task<IMigrationContext>>>
+        private static IReadOnlyDictionary<string, Func<IServiceProvider, Task<IMigrationContext>>> _dictionary = new Dictionary<string, Func<IServiceProvider, Task<IMigrationContext>>>
         {
             {
                 JobArgumentNames.GalleryDatabase, async(IServiceProvider serviceProvider) =>
@@ -33,7 +33,15 @@ namespace NuGetGallery.DatabaseMigrationTools
 
         public async Task<IMigrationContext> CreateMigrationContextAsync(string migrationTargetDatabase, IServiceProvider serviceProvider)
         {
-            return await _dictionary[migrationTargetDatabase](serviceProvider);
+            Func<IServiceProvider, Task<IMigrationContext>> migrationContext;
+            if (_dictionary.TryGetValue(migrationTargetDatabase, out migrationContext))
+            {
+                return await _dictionary[migrationTargetDatabase](serviceProvider);
+            }
+            else
+            {
+                throw new ArgumentException($"Invalid migration target database: {migrationTargetDatabase}", nameof(migrationTargetDatabase));
+            }
         }
     }
 }
