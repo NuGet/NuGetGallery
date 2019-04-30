@@ -241,10 +241,10 @@ namespace NuGetGallery
             {
                 // enforce directory separators the same way as the client (see PackageArchiveReader.GetStream)
                 filename = PathUtility.StripLeadingDirectorySeparators(filename);
-                var licenseEntry = archive.CreateEntry(filename, CompressionLevel.Fastest);
-                using (var licenseStream = licenseEntry.Open())
+                var fileEntry = archive.CreateEntry(filename, CompressionLevel.Fastest);
+                using (var fileStream = fileEntry.Open())
                 {
-                    licenseStream.Write(fileContents, 0, fileContents.Length);
+                    fileStream.Write(fileContents, 0, fileContents.Length);
                 }
             }
 
