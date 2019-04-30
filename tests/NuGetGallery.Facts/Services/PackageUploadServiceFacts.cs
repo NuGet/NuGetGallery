@@ -1953,7 +1953,7 @@ namespace NuGetGallery
                 {
                     PackageRegistration = new PackageRegistration
                     {
-                        Id = PackageId,
+                        Id = Id,
                     },
                     Version = Version,
                 };
