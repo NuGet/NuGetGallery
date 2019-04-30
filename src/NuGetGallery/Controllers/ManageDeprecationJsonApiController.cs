@@ -161,7 +161,8 @@ namespace NuGetGallery
                 status,
                 alternatePackageRegistration,
                 alternatePackage,
-                customMessage);
+                customMessage,
+                currentUser);
 
             foreach (var packageToUpdate in packagesToUpdate)
             {
