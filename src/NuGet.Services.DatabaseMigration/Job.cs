@@ -16,49 +16,43 @@ using System.ComponentModel.Design;
 using System.Collections.Generic;
 using NuGet.Jobs;
 
-namespace NuGetGallery.DatabaseMigrationTools
+namespace NuGet.Services.DatabaseMigration
 {
-    class Job : JsonConfigurationJob
+    public class Job : JsonConfigurationJob
     {
-        private MigrationTargetDatabaseType _migrationTargetDatabaseType;
+        private const string MigrationTargetDatabaseArgument = "MigrationTargetDatabase";
+
+        private string _migrationTargetDatabase;
+        private IMigrationContextFactory _migrationContextFactory;
+
+        public Job(IMigrationContextFactory migrationContextFactory)
+        {
+            _migrationContextFactory = migrationContextFactory;
+        }
 
         public override void Init(IServiceContainer serviceContainer, IDictionary<string, string> jobArgsDictionary)
         {
             base.Init(serviceContainer, jobArgsDictionary);
-
-            var migrationTargetDatabase = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.MigrationTargetDatabase);
-            switch (migrationTargetDatabase)
-            {
-                case (JobArgumentNames.GalleryDatabase):
-                    _migrationTargetDatabaseType = MigrationTargetDatabaseType.GalleryDatabase;
-                    break;
-                case (JobArgumentNames.SupportRequestDatabase):
-                    _migrationTargetDatabaseType = MigrationTargetDatabaseType.SupportRequestDatabase;
-                    break;
-                case (JobArgumentNames.ValidationDatabase):
-                    _migrationTargetDatabaseType = MigrationTargetDatabaseType.ValidationDatabase;
-                    break;
-                default:
-                    throw new ArgumentException("Invalidate target database for migrations: " + migrationTargetDatabase);
-            }
+            _migrationTargetDatabase = JobConfigurationManager.GetArgument(jobArgsDictionary, MigrationTargetDatabaseArgument);
         }
 
         public override async Task Run()
         {
-            Logger.LogInformation("Initializing DbMigrator...");
-            var migrationContextFactory = _serviceProvider.GetRequiredService<IMigrationContextFactory>();
-            var migrationContext = await migrationContextFactory.CreateMigrationContextAsync(_migrationTargetDatabaseType);
+            Logger.LogInformation("Initializing database migration context...");
+            var migrationContext = await _migrationContextFactory.CreateMigrationContextAsync(_migrationTargetDatabase, _serviceProvider);
 
-            ExecuteDatabaseMigration(migrationContext.Migrator,
-                                     migrationContext.MigratorForScripting,
+            ExecuteDatabaseMigration(migrationContext.GetDbMigrator,
                                      migrationContext.SqlConnection,
                                      migrationContext.SqlConnectionAccessToken);
 
             migrationContext.SqlConnection.Dispose();
         }
 
-        private void ExecuteDatabaseMigration(DbMigrator migrator, DbMigrator migratorForScripting, SqlConnection sqlConnection, string accessToken)
+        private void ExecuteDatabaseMigration(Func<DbMigrator> getMigrator, SqlConnection sqlConnection, string accessToken)
         {
+            var migrator = getMigrator();
+            var migratorForScripting = getMigrator();
+
             OverWriteSqlConnection(migrator, sqlConnection, accessToken);
             OverWriteSqlConnection(migratorForScripting, sqlConnection, accessToken);
 
@@ -121,7 +115,7 @@ namespace NuGetGallery.DatabaseMigrationTools
 
         protected override void ConfigureJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
         {
-            services.AddTransient<IMigrationContextFactory, MigrationContextFactory>();
         }
     }
 }
+

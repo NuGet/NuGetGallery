@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using NuGet.Jobs;
+using NuGet.Services.DatabaseMigration;
 
 namespace NuGetGallery.DatabaseMigrationTools
 {
@@ -9,7 +10,8 @@ namespace NuGetGallery.DatabaseMigrationTools
     {
         static void Main(string[] args)
         {
-            var job = new Job();
+            var migrationContextFactory = new MigrationContextFactory();
+            var job = new Job(migrationContextFactory);
             JobRunner.RunOnce(job, args).GetAwaiter().GetResult();
         }
     }

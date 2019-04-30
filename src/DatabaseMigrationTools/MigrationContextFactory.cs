@@ -4,35 +4,36 @@
 using Microsoft.Extensions.DependencyInjection;
 using NuGet.Jobs;
 using NuGet.Jobs.Configuration;
+using NuGet.Services.DatabaseMigration;
 using System;
-using System.Data.SqlClient;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace NuGetGallery.DatabaseMigrationTools
 {
     public class MigrationContextFactory : IMigrationContextFactory
     {
-        private IServiceProvider _serviceProvider;
-        public MigrationContextFactory(IServiceProvider serviceProvider)
+        private IDictionary<string, Func<IServiceProvider, Task<IMigrationContext>>> _dictionary = new Dictionary<string, Func<IServiceProvider, Task<IMigrationContext>>>
         {
-            _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
-        }
-
-        public async Task<IMigrationContext> CreateMigrationContextAsync(MigrationTargetDatabaseType migrationTargetDatabaseType)
-        {
-            SqlConnection sqlConnection;
-            switch (migrationTargetDatabaseType)
             {
-                case MigrationTargetDatabaseType.GalleryDatabase:
-                    sqlConnection = await _serviceProvider.GetRequiredService<ISqlConnectionFactory<GalleryDbConfiguration>>().CreateAsync();
+                JobArgumentNames.GalleryDatabase, async(IServiceProvider serviceProvider) =>
+                {
+                    var sqlConnection = await serviceProvider.GetRequiredService<ISqlConnectionFactory<GalleryDbConfiguration>>().CreateAsync();
                     return new GalleryDbMigrationContext(sqlConnection);
-                case MigrationTargetDatabaseType.SupportRequestDatabase:
-                    sqlConnection = await _serviceProvider.GetRequiredService<ISqlConnectionFactory<SupportRequestDbConfiguration>>().CreateAsync();
-                    return new SupportRequestDbMigrationContext(sqlConnection);
-                default:
-                    throw new ArgumentException("Invalidate target database for migrations: "
-                        + Enum.GetName(typeof(MigrationTargetDatabaseType), migrationTargetDatabaseType));
+                }
+            },
+            {
+                JobArgumentNames.SupportRequestDatabase, async(IServiceProvider serviceProvider) =>
+                {
+                    var sqlConnection = await serviceProvider.GetRequiredService<ISqlConnectionFactory<GalleryDbConfiguration>>().CreateAsync();
+                    return new GalleryDbMigrationContext(sqlConnection);
+                }
             }
+        };
+
+        public async Task<IMigrationContext> CreateMigrationContextAsync(string migrationTargetDatabase, IServiceProvider serviceProvider)
+        {
+            return await _dictionary[migrationTargetDatabase](serviceProvider);
         }
     }
 }
