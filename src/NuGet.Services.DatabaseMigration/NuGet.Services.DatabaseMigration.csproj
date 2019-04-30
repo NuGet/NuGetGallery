@@ -4,17 +4,16 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{DCED7162-A24C-4579-96C8-544BFAF4C305}</ProjectGuid>
-    <OutputType>Exe</OutputType>
-    <RootNamespace>DatabaseMigrationTools</RootNamespace>
-    <AssemblyName>DatabaseMigrationTools</AssemblyName>
+    <ProjectGuid>{F4C8C34F-72A9-4773-A315-8FA3F2D5CE4E}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>NuGet.Services.DatabaseMigration</RootNamespace>
+    <AssemblyName>NuGet.Services.DatabaseMigration</AssemblyName>
     <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -24,7 +23,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
@@ -34,6 +32,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -43,11 +42,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="JobArgumentNames.cs" />
-    <Compile Include="SupportRequestDbMigrationContext.cs" />
-    <Compile Include="GalleryDbMigrationContext.cs" />
-    <Compile Include="MigrationContextFactory.cs" />
-    <Compile Include="Program.cs" />
+    <Compile Include="IMigrationContext.cs" />
+    <Compile Include="IMigrationContextFactory.cs" />
+    <Compile Include="Job.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -93,20 +90,6 @@
     <PackageReference Include="NuGet.Services.Configuration">
       <Version>2.46.0</Version>
     </PackageReference>
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\NuGet.Services.DatabaseMigration\NuGet.Services.DatabaseMigration.csproj">
-      <Project>{f4c8c34f-72a9-4773-a315-8fa3f2d5ce4e}</Project>
-      <Name>NuGet.Services.DatabaseMigration</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\NuGetGallery.Core\NuGetGallery.Core.csproj">
-      <Project>{097b2cdd-9623-4c34-93c2-d373d51f5b4e}</Project>
-      <Name>NuGetGallery.Core</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\NuGetGallery\NuGetGallery.csproj">
-      <Project>{1dacf781-5cd0-4123-8bac-cd385d864be5}</Project>
-      <Name>NuGetGallery</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

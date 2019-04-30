@@ -5,6 +5,7 @@ using System;
 using System.Data;
 using System.Data.Entity.Migrations;
 using System.Data.SqlClient;
+using NuGet.Services.DatabaseMigration;
 using NuGetGallery.Migrations;
 
 namespace NuGetGallery.DatabaseMigrationTools
@@ -13,8 +14,7 @@ namespace NuGetGallery.DatabaseMigrationTools
     {
         public SqlConnection SqlConnection { get; }
         public string SqlConnectionAccessToken { get; }
-        public DbMigrator Migrator { get; }
-        public DbMigrator MigratorForScripting { get; }
+        public Func<DbMigrator> GetDbMigrator { get; }
 
         public GalleryDbMigrationContext(SqlConnection sqlConnection)
         {
@@ -25,7 +25,7 @@ namespace NuGetGallery.DatabaseMigrationTools
             {
                 if (SqlConnection.State == ConnectionState.Closed)
                 {
-                    // Reset the access token if the connection is closed to ensure connection authorization.
+                    // Reset the access token if the connection is closed to ensure connection authentication.
                     SqlConnection.AccessToken = SqlConnectionAccessToken;
                 }
 
@@ -33,8 +33,7 @@ namespace NuGetGallery.DatabaseMigrationTools
             };
 
             var migrationsConfiguration = new MigrationsConfiguration();
-            Migrator = new DbMigrator(migrationsConfiguration);
-            MigratorForScripting = new DbMigrator(migrationsConfiguration);
+            GetDbMigrator = () => new DbMigrator(migrationsConfiguration);
         }
     }
 }
