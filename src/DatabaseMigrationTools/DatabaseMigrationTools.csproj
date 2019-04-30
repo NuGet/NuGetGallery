@@ -43,6 +43,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BaseDbMigrationContext.cs" />
     <Compile Include="JobArgumentNames.cs" />
     <Compile Include="SupportRequestDbMigrationContext.cs" />
     <Compile Include="GalleryDbMigrationContext.cs" />

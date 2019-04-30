@@ -1,19 +1,19 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Autofac;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using System.Threading.Tasks;
 using System;
 using System.Linq;
 using System.Reflection;
 using System.Data.SqlClient;
+using System.Threading.Tasks;
 using System.Data.Entity.Migrations;
 using System.Data.Entity.Migrations.Infrastructure;
 using System.ComponentModel.Design;
 using System.Collections.Generic;
+using Autofac;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using NuGet.Jobs;
 
 namespace NuGet.Services.DatabaseMigration
