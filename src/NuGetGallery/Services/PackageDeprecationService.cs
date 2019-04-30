@@ -25,11 +25,17 @@ namespace NuGetGallery
            PackageDeprecationStatus status,
            PackageRegistration alternatePackageRegistration,
            Package alternatePackage,
-           string customMessage)
+           string customMessage,
+           User user)
         {
             if (packages == null || !packages.Any())
             {
                 throw new ArgumentException(nameof(packages));
+            }
+
+            if (user == null)
+            {
+                throw new ArgumentNullException(nameof(user));
             }
 
             var shouldDelete = status == PackageDeprecationStatus.NotDeprecated;
@@ -59,6 +65,7 @@ namespace NuGetGallery
                     }
 
                     deprecation.Status = status;
+                    deprecation.DeprecatedByUser = user;
 
                     deprecation.AlternatePackageRegistration = alternatePackageRegistration;
                     deprecation.AlternatePackage = alternatePackage;

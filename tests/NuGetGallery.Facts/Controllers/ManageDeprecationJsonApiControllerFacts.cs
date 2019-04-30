@@ -6,8 +6,10 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using Moq;
 using Newtonsoft.Json.Linq;
 using NuGet.Services.Entities;
+using NuGetGallery.Auditing;
 using NuGetGallery.Framework;
 using Xunit;
 
@@ -825,17 +827,22 @@ namespace NuGetGallery.Controllers
                         expectedStatus,
                         alternatePackageState == ReturnsSuccessful_AlternatePackage_State.Registration ? alternatePackageRegistration : null,
                         alternatePackageState == ReturnsSuccessful_AlternatePackage_State.Package ? alternatePackage : null,
-                        customMessage))
+                        customMessage,
+                        currentUser))
                     .Completes()
                     .Verifiable();
+
+                var auditingService = GetService<IAuditingService>();
 
                 var controller = GetController<ManageDeprecationJsonApiController>();
                 controller.SetCurrentUser(currentUser);
 
+                var packageNormalizedVersions = new[] { package.NormalizedVersion, package2.NormalizedVersion };
+
                 // Act
                 var result = await controller.Deprecate(
                     id,
-                    new[] { package.NormalizedVersion, package2.NormalizedVersion },
+                    packageNormalizedVersions,
                     isLegacy,
                     hasCriticalBugs,
                     isOther,
@@ -845,6 +852,32 @@ namespace NuGetGallery.Controllers
 
                 // Assert
                 AssertSuccessResponse(controller);
+
+                if (expectedStatus == PackageDeprecationStatus.NotDeprecated)
+                {
+                    foreach (var normalizedVersion in packageNormalizedVersions)
+                    {
+                        auditingService.WroteRecord<PackageAuditRecord>(
+                            r => r.Action == AuditedPackageAction.Undeprecate
+                            && r.Reason == PackageUndeprecatedVia.Web
+                            && r.DeprecationRecord == null
+                            && r.Id == id
+                            && r.PackageRecord.NormalizedVersion == normalizedVersion);
+                    }
+                }
+                else
+                {
+                    foreach (var normalizedVersion in packageNormalizedVersions)
+                    {
+                        auditingService.WroteRecord<PackageAuditRecord>(
+                            r => r.Action == AuditedPackageAction.Deprecate
+                            && r.Reason == PackageDeprecatedVia.Web
+                            && r.DeprecationRecord.Status == (int)expectedStatus
+                            && r.Id == id
+                            && r.PackageRecord.NormalizedVersion == normalizedVersion);
+                    }
+                }
+
                 featureFlagService.Verify();
                 packageService.Verify();
                 deprecationService.Verify();

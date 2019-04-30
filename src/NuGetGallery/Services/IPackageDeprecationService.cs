@@ -21,7 +21,8 @@ namespace NuGetGallery
             PackageDeprecationStatus status,
             PackageRegistration alternatePackageRegistration,
             Package alternatePackage,
-            string customMessage);
+            string customMessage,
+            User user);
 
         PackageDeprecation GetDeprecationByPackage(Package package);
     }
