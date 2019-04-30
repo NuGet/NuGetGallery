@@ -18,6 +18,7 @@ namespace NuGetGallery.Auditing
                 "NuGetGallery.Auditing.CertificateAuditRecord",
                 "NuGetGallery.Auditing.DeleteAccountAuditRecord",
                 "NuGetGallery.Auditing.FailedAuthenticatedOperationAuditRecord",
+                "NuGetGallery.Auditing.FeatureFlagsAuditRecord",
                 "NuGetGallery.Auditing.PackageAuditRecord",
                 "NuGetGallery.Auditing.PackageRegistrationAuditRecord",
                 "NuGetGallery.Auditing.ReservedNamespaceAuditRecord",

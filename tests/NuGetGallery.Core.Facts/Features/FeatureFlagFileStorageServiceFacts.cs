@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,6 +14,7 @@ using Moq;
 using Newtonsoft.Json;
 using NuGet.Services.Entities;
 using NuGet.Services.FeatureFlags;
+using NuGetGallery.Auditing;
 using Xunit;
 
 namespace NuGetGallery.Features
@@ -136,8 +138,10 @@ namespace NuGetGallery.Features
             [Fact]
             public async Task ReturnsOk()
             {
+                var contentId = "123";
+
                 // Act
-                var result = await _target.TrySaveAsync(Example, "123");
+                var result = await _target.TrySaveAsync(Example, contentId);
 
                 // Assert - the saved JSON should be formatted
                 Assert.Equal(FeatureFlagSaveResult.Ok, result);
@@ -149,6 +153,23 @@ namespace NuGetGallery.Features
                         It.IsAny<Stream>(),
                         It.Is<IAccessCondition>(c => c.IfNoneMatchETag == null && c.IfMatchETag != null)),
                     Times.Once);
+
+                _auditing.Verify(
+                    a => a.SaveAuditRecordAsync(
+                        It.Is<FeatureFlagsAuditRecord>(
+                            r => r.Action == AuditedFeatureFlagsAction.Update
+                                && r.ContentId == contentId
+                                && r.Result == FeatureFlagSaveResult.Ok
+                                && r.Features.SingleOrDefault(
+                                    f => f.Name == "NuGetGallery.Typosquatting"
+                                        && f.Status == FeatureStatus.Enabled) != null
+                                && r.Flights.SingleOrDefault(
+                                    f => f.Name == "NuGetGallery.TyposquattingFlight"
+                                        && f.All
+                                        && f.SiteAdmins
+                                        && f.Accounts.Single() == "a"
+                                        && f.Domains.Single() == "b") != null)),
+                    Times.Once());
             }
 
             [Fact]
@@ -168,8 +189,10 @@ namespace NuGetGallery.Features
                     })
                     .Returns(Task.CompletedTask);
 
+                var contentId = "123";
+
                 // Act
-                var result = await _target.TrySaveAsync(Example, "123");
+                var result = await _target.TrySaveAsync(Example, contentId);
 
                 // Assert - the saved JSON should be formatted
                 Assert.Equal(FeatureFlagSaveResult.Ok, result);
@@ -182,6 +205,23 @@ namespace NuGetGallery.Features
                         It.IsAny<Stream>(),
                         It.Is<IAccessCondition>(c => c.IfNoneMatchETag == null && c.IfMatchETag != null)),
                     Times.Once);
+
+                _auditing.Verify(
+                    a => a.SaveAuditRecordAsync(
+                        It.Is<FeatureFlagsAuditRecord>(
+                            r => r.Action == AuditedFeatureFlagsAction.Update
+                                && r.ContentId == contentId
+                                && r.Result == FeatureFlagSaveResult.Ok
+                                && r.Features.SingleOrDefault(
+                                    f => f.Name == "NuGetGallery.Typosquatting"
+                                        && f.Status == FeatureStatus.Enabled) != null
+                                && r.Flights.SingleOrDefault(
+                                    f => f.Name == "NuGetGallery.TyposquattingFlight"
+                                        && f.All
+                                        && f.SiteAdmins
+                                        && f.Accounts.Single() == "a"
+                                        && f.Domains.Single() == "b") != null)),
+                    Times.Once());
             }
 
             [Fact]
@@ -196,8 +236,10 @@ namespace NuGetGallery.Features
                         It.IsAny<IAccessCondition>()))
                     .ThrowsAsync(_preconditionException);
 
+                var contentId = "123";
+
                 // Act
-                var result = await _target.TrySaveAsync(Example, "123");
+                var result = await _target.TrySaveAsync(Example, contentId);
 
                 // Assert
                 Assert.Equal(FeatureFlagSaveResult.Conflict, result);
@@ -209,6 +251,23 @@ namespace NuGetGallery.Features
                         It.IsAny<Stream>(),
                         It.Is<IAccessCondition>(c => c.IfNoneMatchETag == null && c.IfMatchETag != null)),
                     Times.Once);
+
+                _auditing.Verify(
+                    a => a.SaveAuditRecordAsync(
+                        It.Is<FeatureFlagsAuditRecord>(
+                            r => r.Action == AuditedFeatureFlagsAction.Update
+                                && r.ContentId == contentId
+                                && r.Result == FeatureFlagSaveResult.Conflict
+                                && r.Features.SingleOrDefault(
+                                    f => f.Name == "NuGetGallery.Typosquatting"
+                                        && f.Status == FeatureStatus.Enabled) != null
+                                && r.Flights.SingleOrDefault(
+                                    f => f.Name == "NuGetGallery.TyposquattingFlight"
+                                        && f.All
+                                        && f.SiteAdmins
+                                        && f.Accounts.Single() == "a"
+                                        && f.Domains.Single() == "b") != null)),
+                    Times.Once());
             }
         }
 
@@ -237,6 +296,11 @@ namespace NuGetGallery.Features
                         It.IsAny<Stream>(),
                         It.IsAny<IAccessCondition>()),
                     Times.Never);
+
+                _auditing.Verify(
+                    a => a.SaveAuditRecordAsync(
+                        It.IsAny<FeatureFlagsAuditRecord>()),
+                    Times.Never());
             }
 
             [Fact]
@@ -252,6 +316,19 @@ namespace NuGetGallery.Features
 
                 // Assert
                 Assert.Contains("Could not find member 'Invalid' on object of type 'FeatureFlags'", exception.Message);
+
+                _storage.Verify(
+                    s => s.SaveFileAsync(
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<Stream>(),
+                        It.IsAny<IAccessCondition>()),
+                    Times.Never);
+
+                _auditing.Verify(
+                    a => a.SaveAuditRecordAsync(
+                        It.IsAny<FeatureFlagsAuditRecord>()),
+                    Times.Never());
             }
 
             [Fact]
@@ -303,6 +380,33 @@ namespace NuGetGallery.Features
                         It.IsAny<Stream>(),
                         It.IsAny<IAccessCondition>()),
                     Times.Once);
+
+                _auditing.Verify(
+                    a => a.SaveAuditRecordAsync(
+                        It.Is<FeatureFlagsAuditRecord>(
+                            r => r.Action == AuditedFeatureFlagsAction.Update
+                                && r.ContentId == "fake-content-id"
+                                && r.Result == FeatureFlagSaveResult.Ok
+                                && !r.Features.Any()
+                                && r.Flights.SingleOrDefault(
+                                    f => f.Name == "A"
+                                        && !f.All
+                                        && !f.SiteAdmins
+                                        && f.Accounts.Single() == "user2"
+                                        && !f.Domains.Any()) != null
+                                && r.Flights.SingleOrDefault(
+                                    f => f.Name == "B"
+                                        && !f.All
+                                        && !f.SiteAdmins
+                                        && !f.Accounts.Any()
+                                        && !f.Domains.Any()) != null
+                                && r.Flights.SingleOrDefault(
+                                    f => f.Name == "C"
+                                        && !f.All
+                                        && !f.SiteAdmins
+                                        && f.Accounts.Single() == "user2"
+                                        && !f.Domains.Any()) != null)),
+                    Times.Once());
             }
 
             [Fact]
@@ -356,6 +460,36 @@ namespace NuGetGallery.Features
                         It.IsAny<Stream>(),
                         It.IsAny<IAccessCondition>()),
                     Times.Exactly(2));
+
+                _auditing.Verify(
+                    a => a.SaveAuditRecordAsync(
+                        It.Is<FeatureFlagsAuditRecord>(
+                            r => r.Action == AuditedFeatureFlagsAction.Update
+                                && r.ContentId == "fake-content-id"
+                                && r.Result == FeatureFlagSaveResult.Conflict
+                                && !r.Features.Any()
+                                && r.Flights.SingleOrDefault(
+                                    f => f.Name == "A"
+                                        && !f.All
+                                        && !f.SiteAdmins
+                                        && f.Accounts.Single() == "user2"
+                                        && !f.Domains.Any()) != null)),
+                    Times.Once());
+
+                _auditing.Verify(
+                    a => a.SaveAuditRecordAsync(
+                        It.Is<FeatureFlagsAuditRecord>(
+                            r => r.Action == AuditedFeatureFlagsAction.Update
+                                && r.ContentId == "fake-content-id"
+                                && r.Result == FeatureFlagSaveResult.Ok
+                                && !r.Features.Any()
+                                && r.Flights.SingleOrDefault(
+                                    f => f.Name == "A"
+                                        && !f.All
+                                        && !f.SiteAdmins
+                                        && f.Accounts.Single() == "user2"
+                                        && !f.Domains.Any()) != null)),
+                    Times.Once());
             }
 
             [Fact]
@@ -390,6 +524,21 @@ namespace NuGetGallery.Features
                         CoreConstants.FeatureFlagsFileName,
                         It.IsAny<Stream>(),
                         It.IsAny<IAccessCondition>()),
+                    Times.Exactly(3));
+
+                _auditing.Verify(
+                    a => a.SaveAuditRecordAsync(
+                        It.Is<FeatureFlagsAuditRecord>(
+                            r => r.Action == AuditedFeatureFlagsAction.Update
+                                && r.ContentId == "fake-content-id"
+                                && r.Result == FeatureFlagSaveResult.Conflict
+                                && !r.Features.Any() 
+                                && r.Flights.SingleOrDefault(
+                                    f => f.Name == "A" 
+                                        && !f.All
+                                        && !f.SiteAdmins
+                                        && f.Accounts.Single() == "user2" 
+                                        && !f.Domains.Any()) != null)),
                     Times.Exactly(3));
             }
 
@@ -469,6 +618,7 @@ namespace NuGetGallery.Features
         public class FactsBase
         {
             protected readonly Mock<ICoreFileStorageService> _storage;
+            protected readonly Mock<IAuditingService> _auditing;
             protected readonly FeatureFlagFileStorageService _target;
             protected readonly StorageException _preconditionException;
 
@@ -477,7 +627,9 @@ namespace NuGetGallery.Features
                 var logger = Mock.Of<ILogger<FeatureFlagFileStorageService>>();
 
                 _storage = new Mock<ICoreFileStorageService>();
-                _target = new FeatureFlagFileStorageService(_storage.Object, logger);
+                _auditing = new Mock<IAuditingService>();
+                _target = new FeatureFlagFileStorageService(
+                    _storage.Object, _auditing.Object, logger);
 
                 _preconditionException = new StorageException(
                     new RequestResult
