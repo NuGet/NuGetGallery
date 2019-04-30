@@ -1986,7 +1986,7 @@ namespace NuGetGallery
         public class TheRemovePackageOwnerMethod
         {
             [Fact]
-            public async Task RemovesPackageOwner()
+            public async Task WillRemoveOneOfManyOwners()
             {
                 var service = CreateService();
                 var owner1 = new User { Key = 1, Username = "Owner1" };
@@ -1999,7 +1999,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task WontRemoveLastOwner()
+            public async Task WillRemoveLastOwner()
             {
                 var service = CreateService();
                 var singleOwner = new User { Key = 1, Username = "Owner" };
