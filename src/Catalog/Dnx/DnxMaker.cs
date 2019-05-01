@@ -380,7 +380,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
                     using (var iconStream = iconEntry.Open())
                     {
                         _logger.LogInformation("Extracting icon to the destination storage {DestinationUri}", destinationUri);
-                        // TODO: align the mime type determination with Gallery
+                        // TODO: align the mime type determination with Gallery https://github.com/nuget/nugetgallery/issues/7061
                         var iconContent = new StreamStorageContent(iconStream, string.Empty, DnxConstants.DefaultCacheControl);
                         await destinationStorage.SaveAsync(destinationUri, iconContent, cancellationToken);
                         _logger.LogInformation("Done");
