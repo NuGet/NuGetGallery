@@ -187,7 +187,7 @@ namespace NuGetGallery
             var licenseMetadata = nuspecReader.GetLicenseMetadata();
             var licenseDeprecationUrl = GetExpectedLicenseUrl(licenseMetadata);
 
-            // TODO: move out when full blown validation is implemented
+            // TODO: move out when full blown validation is implemented https://github.com/nuget/nugetgallery/issues/7063
             if (nuspecReader.IconExists && !_featureFlagService.AreEmbeddedIconsEnabled(user))
             {
                 return PackageValidationResult.Invalid(Strings.UploadPackage_EmbeddedIconNotAccepted);
