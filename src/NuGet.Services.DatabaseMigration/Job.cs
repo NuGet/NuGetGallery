@@ -56,10 +56,10 @@ namespace NuGet.Services.DatabaseMigration
             OverwriteSqlConnection(migrator, sqlConnection, accessToken);
             OverwriteSqlConnection(migratorForScripting, sqlConnection, accessToken);
 
+            Logger.LogInformation("Target database is: {DataSource}/{Database}", sqlConnection.DataSource, sqlConnection.Database);
             var pendingMigrations = migrator.GetPendingMigrations();
             if (pendingMigrations.Count() > 0)
             {
-                Logger.LogInformation("Target database is: {DataSource}/{Database}", sqlConnection.DataSource, sqlConnection.Database);
                 Logger.LogInformation("Applying pending migrations: \n {PendingMigrations}", String.Join("\n", pendingMigrations));
 
                 var migratorScripter = new MigratorScriptingDecorator(migratorForScripting);
