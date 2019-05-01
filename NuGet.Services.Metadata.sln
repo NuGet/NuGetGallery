@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
-VisualStudioVersion = 16.0.28804.136
+VisualStudioVersion = 16.0.28827.37
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{C86C6DEE-84E1-4E4E-8868-6755D7A8E0E4}"
 EndProject
@@ -96,14 +96,14 @@ Global
 		{5234D86F-2C0E-4181-AAB7-BBDA3253B4E1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5234D86F-2C0E-4181-AAB7-BBDA3253B4E1}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
 		{5234D86F-2C0E-4181-AAB7-BBDA3253B4E1}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{5234D86F-2C0E-4181-AAB7-BBDA3253B4E1}.Debug|x64.ActiveCfg = Debug|x64
-		{5234D86F-2C0E-4181-AAB7-BBDA3253B4E1}.Debug|x64.Build.0 = Debug|x64
+		{5234D86F-2C0E-4181-AAB7-BBDA3253B4E1}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{5234D86F-2C0E-4181-AAB7-BBDA3253B4E1}.Debug|x64.Build.0 = Debug|Any CPU
 		{5234D86F-2C0E-4181-AAB7-BBDA3253B4E1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5234D86F-2C0E-4181-AAB7-BBDA3253B4E1}.Release|Any CPU.Build.0 = Release|Any CPU
 		{5234D86F-2C0E-4181-AAB7-BBDA3253B4E1}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{5234D86F-2C0E-4181-AAB7-BBDA3253B4E1}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{5234D86F-2C0E-4181-AAB7-BBDA3253B4E1}.Release|x64.ActiveCfg = Release|x64
-		{5234D86F-2C0E-4181-AAB7-BBDA3253B4E1}.Release|x64.Build.0 = Release|x64
+		{5234D86F-2C0E-4181-AAB7-BBDA3253B4E1}.Release|x64.ActiveCfg = Release|Any CPU
+		{5234D86F-2C0E-4181-AAB7-BBDA3253B4E1}.Release|x64.Build.0 = Release|Any CPU
 		{DDB34145-870F-42C3-9663-A9390CEE1E35}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{DDB34145-870F-42C3-9663-A9390CEE1E35}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DDB34145-870F-42C3-9663-A9390CEE1E35}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
