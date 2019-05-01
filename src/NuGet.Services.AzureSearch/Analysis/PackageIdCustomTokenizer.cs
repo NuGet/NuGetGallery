@@ -3,8 +3,8 @@
 namespace NuGet.Services.AzureSearch
 {
     /// <summary>
-    /// Splits tokens that on a set of symbols.
-    /// For example, "Foo.Bar" becomes "Foo" and "Bar".
+    /// Splits tokens that on a set of symbols and whitespace.
+    /// For example, "Foo.Bar Baz" becomes "Foo", "Bar", and "Baz".
     /// </summary>
     public static class PackageIdCustomTokenizer
     {
@@ -12,6 +12,6 @@ namespace NuGet.Services.AzureSearch
 
         public static readonly PatternTokenizer Instance = new PatternTokenizer(
             Name,
-            @"[.\-_,;:'*#!~+()\[\]{}]");
+            @"[.\-_,;:'*#!~+()\[\]{}\s]");
     }
 }

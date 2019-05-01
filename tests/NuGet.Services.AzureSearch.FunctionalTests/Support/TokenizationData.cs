@@ -40,13 +40,12 @@ namespace NuGet.Services.AzureSearch.FunctionalTests.Support
 
         public static readonly IEnumerable<object[]> LowercasesAndAddsTokensOnCasingAndNonAlphaNumeric = ToMemberData(new Dictionary<string, string[]>
         {
-            { "Hello World", new[] { "hello world", "hello", "world" } },
             { "HelloWorld", new[] { "helloworld", "hello", "world" } },
             { "foo2bar", new[] { "foo2bar", "foo", "2", "bar" } },
             { "HTML", new[] { "html"} },
             { "HTMLThing", new[] { "htmlthing" } },
             { "HTMLThingA", new[] { "htmlthinga", "htmlthing", "a" } },
-            { "HelloWorld𠈓Foo", new[] { "helloworld𠈓foo", "hello", "world𠈓foo" } },
+            { "HelloWorld𠈓Foo", new[] { "helloworld", "hello", "world𠈓foo" } },
         });
 
         public static readonly IEnumerable<object[]> AddsTokensOnNonAlphaNumericAndRemovesStopWords = ToMemberData(new Dictionary<string, string[]>
@@ -57,9 +56,14 @@ namespace NuGet.Services.AzureSearch.FunctionalTests.Support
                 "of on or such that the",
                 new[]
                 {
-                    "a an and are as at be but by hello for if in into is no not " +
-                    "of on or such that the",
                     "hello"
+                }
+            },
+            {
+                "Once upon a time, there was a little test-case!",
+                new[]
+                {
+                    "once", "upon", "time", "little", "test", "case"
                 }
             }
         });
