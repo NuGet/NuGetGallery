@@ -25,8 +25,8 @@ namespace NuGetGallery.DatabaseMigrationTools
             {
                 JobArgumentNames.SupportRequestDatabase, async(IServiceProvider serviceProvider) =>
                 {
-                    var sqlConnection = await serviceProvider.GetRequiredService<ISqlConnectionFactory<GalleryDbConfiguration>>().CreateAsync();
-                    return new GalleryDbMigrationContext(sqlConnection);
+                    var sqlConnection = await serviceProvider.GetRequiredService<ISqlConnectionFactory<SupportRequestDbConfiguration>>().CreateAsync();
+                    return new SupportRequestDbMigrationContext(sqlConnection);
                 }
             }
         };
