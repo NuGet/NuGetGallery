@@ -53,8 +53,8 @@ namespace NuGet.Services.DatabaseMigration
             var migrator = getMigrator();
             var migratorForScripting = getMigrator();
 
-            OverWriteSqlConnection(migrator, sqlConnection, accessToken);
-            OverWriteSqlConnection(migratorForScripting, sqlConnection, accessToken);
+            OverwriteSqlConnection(migrator, sqlConnection, accessToken);
+            OverwriteSqlConnection(migratorForScripting, sqlConnection, accessToken);
 
             var pendingMigrations = migrator.GetPendingMigrations();
             if (pendingMigrations.Count() > 0)
@@ -94,7 +94,7 @@ namespace NuGet.Services.DatabaseMigration
         // Overwrite the database connection of DbMigrator.
         // Hit the bug:  https://github.com/aspnet/EntityFramework6/issues/522
         // Consider deleting/updating this section when the new Entity Framework 6.3 or higher version is released.
-        private void OverWriteSqlConnection(DbMigrator migrator, SqlConnection sqlConnection, string accessToken)
+        private void OverwriteSqlConnection(DbMigrator migrator, SqlConnection sqlConnection, string accessToken)
         {
             var historyRepository = typeof(DbMigrator).GetField(
                 "_historyRepository",
