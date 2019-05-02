@@ -10,6 +10,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using Microsoft.Owin;
+using Microsoft.Owin.Security;
 using NuGet.Services.Entities;
 using NuGetGallery.Auditing;
 using NuGetGallery.Authentication.Providers;
@@ -245,7 +246,7 @@ namespace NuGetGallery.Authentication
             ClaimsIdentity identity = CreateIdentity(authenticatedUser.User, AuthenticationTypes.LocalUser, await GetUserLoginClaims(authenticatedUser, wasMultiFactorAuthenticated));
 
             // Issue the session token and clean up the external token if present
-            owinContext.Authentication.SignIn(identity);
+            owinContext.Authentication.SignIn(new AuthenticationProperties() { IsPersistent = true }, identity);
             owinContext.Authentication.SignOut(AuthenticationTypes.External);
 
             _telemetryService.TrackUserLogin(authenticatedUser.User, authenticatedUser.CredentialUsed, wasMultiFactorAuthenticated);
