@@ -1,1 +1,1 @@
-.\DatabaseMigrationTools.cmd
+.\RunJob.cmd
