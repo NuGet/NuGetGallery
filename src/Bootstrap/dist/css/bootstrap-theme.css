@@ -985,6 +985,7 @@ img.reserved-indicator-icon {
   display: table-cell;
   background-color: #002440;
   font-family: Consolas, Menlo, Monaco, "Courier New", monospace;
+  font-size: 1em;
   color: #fff;
   padding: 0 10px 8px 10px;
   width: 100%;
