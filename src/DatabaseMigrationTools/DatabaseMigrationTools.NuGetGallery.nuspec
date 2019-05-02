@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>DatabaseMigrationTools.NuGetGallery</id>
+    <version>$version$</version>
+    <title>DatabaseMigrationTools.NuGetGallery</title>
+    <authors>.NET Foundation</authors>
+    <owners>.NET Foundation</owners>
+    <description>DatabaseMigrationTools.NuGetGallery</description>
+    <copyright>Copyright .NET Foundation</copyright>
+  </metadata>
+  <files>
+    <file src="bin\$configuration$\*.*" target="bin"/>
+    <file src="Scripts\PostDeploy.ps1" />
+  </files>
+</package>
