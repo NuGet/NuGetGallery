@@ -10,7 +10,7 @@ namespace NuGetGallery.DatabaseMigrationTools
     {
         static void Main(string[] args)
         {
-            var migrationContextFactory = new MigrationContextFactory();
+            var migrationContextFactory = new GalleryMigrationContextFactory();
             var job = new Job(migrationContextFactory);
             JobRunner.RunOnce(job, args).GetAwaiter().GetResult();
         }

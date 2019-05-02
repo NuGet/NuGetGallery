@@ -11,7 +11,7 @@ using NuGet.Services.DatabaseMigration;
 
 namespace NuGetGallery.DatabaseMigrationTools
 {
-    public class MigrationContextFactory : IMigrationContextFactory
+    public class GalleryMigrationContextFactory : IMigrationContextFactory
     {
         private static IReadOnlyDictionary<string, Func<IServiceProvider, Task<IMigrationContext>>> _dictionary = new Dictionary<string, Func<IServiceProvider, Task<IMigrationContext>>>
         {

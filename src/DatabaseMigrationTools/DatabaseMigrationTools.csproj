@@ -47,7 +47,7 @@
     <Compile Include="MigrationTargetDatabaseArgumentNames.cs" />
     <Compile Include="SupportRequestDbMigrationContext.cs" />
     <Compile Include="GalleryDbMigrationContext.cs" />
-    <Compile Include="MigrationContextFactory.cs" />
+    <Compile Include="GalleryMigrationContextFactory.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
