@@ -21,6 +21,11 @@ namespace NuGet.Services.DatabaseMigration.Facts
             _csprojDocument = XDocument.Load(csproj.FullName);
         }
 
+        /// <summary>
+        /// Verify that the version of EntityFramework equals to 6.2.0
+        /// We hit a bug of EntityFramework 6.2.0, and We use some special ways to fix it which only targets version 6.2.0.
+        /// <see cref="NuGet.Services.DatabaseMigration.Job"/>: "NuGet.Services.DatabaseMigration.Job/OverwriteSqlConnection"
+        /// </summary>
         [Fact]
         public void VerifyEntityFrameworkVersion()
         {

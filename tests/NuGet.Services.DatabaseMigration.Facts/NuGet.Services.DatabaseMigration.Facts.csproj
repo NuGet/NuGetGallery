@@ -62,5 +62,11 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\NuGet.Services.DatabaseMigration\NuGet.Services.DatabaseMigration.csproj">
+      <Project>{f4c8c34f-72a9-4773-a315-8fa3f2d5ce4e}</Project>
+      <Name>NuGet.Services.DatabaseMigration</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

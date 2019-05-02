@@ -42,8 +42,8 @@ namespace NuGet.Services.DatabaseMigration
             var migrationContext = await _migrationContextFactory.CreateMigrationContextAsync(_migrationTargetDatabase, _serviceProvider);
 
             ExecuteDatabaseMigration(migrationContext.GetDbMigrator,
-                                     migrationContext.SqlConnection,
-                                     migrationContext.SqlConnectionAccessToken);
+                migrationContext.SqlConnection,
+                migrationContext.SqlConnectionAccessToken);
 
             migrationContext.SqlConnection.Dispose();
         }

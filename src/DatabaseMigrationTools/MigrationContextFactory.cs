@@ -16,14 +16,14 @@ namespace NuGetGallery.DatabaseMigrationTools
         private static IReadOnlyDictionary<string, Func<IServiceProvider, Task<IMigrationContext>>> _dictionary = new Dictionary<string, Func<IServiceProvider, Task<IMigrationContext>>>
         {
             {
-                JobArgumentNames.GalleryDatabase, async(IServiceProvider serviceProvider) =>
+                MigrationTargetDatabaseArgumentNames.GalleryDatabase, async(IServiceProvider serviceProvider) =>
                 {
                     var sqlConnection = await serviceProvider.GetRequiredService<ISqlConnectionFactory<GalleryDbConfiguration>>().CreateAsync();
                     return new GalleryDbMigrationContext(sqlConnection);
                 }
             },
             {
-                JobArgumentNames.SupportRequestDatabase, async(IServiceProvider serviceProvider) =>
+                MigrationTargetDatabaseArgumentNames.SupportRequestDatabase, async(IServiceProvider serviceProvider) =>
                 {
                     var sqlConnection = await serviceProvider.GetRequiredService<ISqlConnectionFactory<SupportRequestDbConfiguration>>().CreateAsync();
                     return new SupportRequestDbMigrationContext(sqlConnection);
@@ -36,7 +36,7 @@ namespace NuGetGallery.DatabaseMigrationTools
             Func<IServiceProvider, Task<IMigrationContext>> migrationContext;
             if (_dictionary.TryGetValue(migrationTargetDatabase, out migrationContext))
             {
-                return await _dictionary[migrationTargetDatabase](serviceProvider);
+                return await migrationContext(serviceProvider);
             }
             else
             {
