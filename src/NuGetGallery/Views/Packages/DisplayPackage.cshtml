@@ -59,7 +59,13 @@
             new PackageManagerViewModel("PackageReference")
             {
                 Id = "package-reference",
-                InstallPackageCommand = string.Format("<PackageReference Include=\"{0}\" Version=\"{1}\"{2} />", Model.Id, Model.Version, Model.DevelopmentDependency ? " PrivateAssets=\"All\"" : string.Empty),
+                InstallPackageCommand = Model.DevelopmentDependency
+                    ? string.Format(string.Join(Environment.NewLine,
+                        "<PackageReference Include=\"{0}\" Version=\"{1}\">",
+                        "  <PrivateAssets>all</PrivateAssets>",
+                        "  <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>",
+                        "</PackageReference>"), Model.Id, Model.Version)
+                    : string.Format("<PackageReference Include=\"{0}\" Version=\"{1}\" />", Model.Id, Model.Version),
                 AlertLevel = AlertLevel.Info,
                 AlertMessage = string.Format("For projects that support <a href=\"{0}\">PackageReference</a>, copy this XML node into the project file to reference the package.",
                                              "https://docs.microsoft.com/en-us/nuget/consume-packages/package-references-in-project-files"),
@@ -125,11 +131,7 @@
 
     <div role="tabpanel" class="tab-pane @(active ? "active" : string.Empty)" id="@packageManager.Id">
         <div>
-            <div class="install-script" id="@packageManager.Id-text">
-                <span>
-                    @packageManager.InstallPackageCommand
-                </span>
-            </div>
+            <pre class="install-script" id="@packageManager.Id-text">@packageManager.InstallPackageCommand</pre>
             <div class="copy-button">
                 <button id="@packageManager.Id-button" class="btn btn-default btn-warning" type="button"
                         data-toggle="popover" data-placement="bottom" data-content="Copied."
@@ -937,7 +939,7 @@ foreach (var owner in Model.Owners)
                 continue;
             }
 
-            packageManagersCss += "#" + packageManager.Id + " .install-script span::before {";
+            packageManagersCss += "#" + packageManager.Id + " .install-script::before {";
             packageManagersCss += "    content: \"" + packageManager.CommandPrefix + "\"";
             packageManagersCss += "}";
         }

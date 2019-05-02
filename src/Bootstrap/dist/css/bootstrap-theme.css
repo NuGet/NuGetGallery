@@ -977,9 +977,6 @@ img.reserved-indicator-icon {
   font-weight: 600;
   text-decoration: underline;
 }
-.page-package-details .install-tabs .tab-content {
-  height: 79px;
-}
 .page-package-details .install-tabs .tab-content .tab-pane > div {
   display: table;
   height: 1px;
