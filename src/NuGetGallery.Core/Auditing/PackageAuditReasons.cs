@@ -28,4 +28,20 @@ namespace NuGetGallery.Auditing
         /// </summary>
         public const string Web = "Deleted via web.";
     }
+
+    public static class PackageDeprecatedVia
+    {
+        /// <summary>
+        /// Package has been deprecated via NuGet web interface (browser)
+        /// </summary>
+        public const string Web = "Deprecated via web.";
+    }
+
+    public static class PackageUndeprecatedVia
+    {
+        /// <summary>
+        /// Package has been undeprecated via NuGet web interface (browser)
+        /// </summary>
+        public const string Web = "Undeprecated via web.";
+    }
 }

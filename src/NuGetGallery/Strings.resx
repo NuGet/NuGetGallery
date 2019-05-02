@@ -1091,12 +1091,6 @@ The {1} Team</value>
   <data name="SearchServiceIsNotAvailable" xml:space="preserve">
     <value>Search Service is not available. Please try again later.</value>
   </data>
-  <data name="AutocompleteCveIds_ValidationError" xml:space="preserve">
-    <value>Invalid CVE ID format. The CVE ID should be formatted as \"CVE-{year}-xxxxxxx\" or just \"{year}-xxxxxxx\" with a minimum of 4 digits.</value>
-  </data>
-  <data name="AutocompleteCweIds_ValidationError" xml:space="preserve">
-    <value>Invalid CWE ID format. The CWE ID should be formatted as \"CWE-xxx\" with a minimum of 2 digits, or have a minimum length of 4 characters for a textual query.</value>
-  </data>
   <data name="DeprecatePackage_MissingVersion" xml:space="preserve">
     <value>At least one version of package '{0}' specified could not be found.</value>
   </data>
@@ -1109,12 +1103,6 @@ The {1} Team</value>
   <data name="DeprecatePackage_NoVersions" xml:space="preserve">
     <value>You must select at least one version to deprecate!</value>
   </data>
-  <data name="DeprecatePackage_InvalidCve" xml:space="preserve">
-    <value>The CVE ID '{0}' is invalid. CVE IDs have the form 'CVE-YYYY-NNNN', where 'YYYY' is a year (exactly 4 digits) and 'NNNN' is a number (with at least 4 digits).</value>
-  </data>
-  <data name="DeprecatePackage_InvalidCwe" xml:space="preserve">
-    <value>The CWE ID '{0}' is invalid. CWE IDs have the form 'CWE-N', where N is a number.</value>
-  </data>
   <data name="DeprecatePackage_Forbidden" xml:space="preserve">
     <value>You do not have permission to deprecate this package.</value>
   </data>
@@ -1124,19 +1112,8 @@ The {1} Team</value>
   <data name="DeprecatePackage_MissingRegistration" xml:space="preserve">
     <value>Package '{0}' could not be found.</value>
   </data>
-  <data name="DeprecatePackage_InvalidCvss" xml:space="preserve">
-    <value>The CVSS rating specified is invalid.</value>
-  </data>
-  <data name="DeprecatePackage_CweMissing" xml:space="preserve">
-    <value>At least one CWE provided was not found!</value>
-  </data>
-  <data name="DeprecatePackage_CveUrlFormat" xml:space="preserve">
-    <value>https://cve.mitre.org/cgi-bin/cvename.cgi?name={0}</value>
-    <comment>{0} is the CVE's ID (e.g. CVE-2019-0001)</comment>
-  </data>
-  <data name="DeprecatePackage_CweUrlFormat" xml:space="preserve">
-    <value>https://cwe.mitre.org/data/definitions/{0}.html</value>
-    <comment>{0} is the CWE's ID number (e.g. CWE-999 has an ID number of 999)</comment>
+  <data name="DeprecatePackage_CustomMessageRequired" xml:space="preserve">
+    <value>You must add a custom message if you are deprecating a package due to another reason!</value>
   </data>
   <data name="SymbolsPackage_NoSymbols" xml:space="preserve">
     <value>The package does not contain any symbol (.pdb) files.</value>

@@ -124,18 +124,6 @@ namespace NuGetGallery.Framework
             builder.RegisterType<CredentialBuilder>().As<ICredentialBuilder>().SingleInstance();
             builder.RegisterType<CredentialValidator>().As<ICredentialValidator>().SingleInstance();
             builder.RegisterType<DateTimeProvider>().As<IDateTimeProvider>().SingleInstance();
-
-            builder.RegisterType<AutocompleteCveIdsQuery>()
-                .As<IAutocompleteCveIdsQuery>()
-                .InstancePerLifetimeScope();
-
-            builder.RegisterType<AutocompleteCweIdsQuery>()
-                .As<IAutocompleteCweIdsQuery>()
-                .InstancePerLifetimeScope();
-
-            builder.RegisterType<VulnerabilityAutocompleteService>()
-                .As<IVulnerabilityAutocompleteService>()
-                .InstancePerLifetimeScope();
         }
 
         private static IGalleryConfigurationService CreateTestConfigurationService()

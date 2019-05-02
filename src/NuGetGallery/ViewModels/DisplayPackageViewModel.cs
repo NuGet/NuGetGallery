@@ -49,30 +49,6 @@ namespace NuGetGallery
 
             if (deprecation != null)
             {
-                CveIds = deprecation.Cves?.Select(c => c.CveId).ToList();
-                CweIds = deprecation.Cwes?.Select(c => c.CweId).ToList();
-
-                if (deprecation.CvssRating.HasValue)
-                {
-                    var cvssRating = deprecation.CvssRating.Value;
-                    if (cvssRating < 4)
-                    {
-                        Severity = "Low";
-                    }
-                    else if (cvssRating < 7)
-                    {
-                        Severity = "Medium";
-                    }
-                    else if (cvssRating < 9)
-                    {
-                        Severity = "High";
-                    }
-                    else
-                    {
-                        Severity = "Critical";
-                    }
-                }
-
                 AlternatePackageId = deprecation.AlternatePackageRegistration?.Id;
 
                 var alternatePackage = deprecation.AlternatePackage;
@@ -122,7 +98,7 @@ namespace NuGetGallery
                 }
             }
 
-            DeprecationStatus = package.Deprecations.SingleOrDefault()?.Status 
+            DeprecationStatus = package.Deprecations.SingleOrDefault()?.Status
                 ?? PackageDeprecationStatus.NotDeprecated;
         }
 
@@ -186,9 +162,6 @@ namespace NuGetGallery
         public EmbeddedLicenseFileType EmbeddedLicenseType { get; set; }
 
         public PackageDeprecationStatus DeprecationStatus { get; set; }
-        public IReadOnlyCollection<string> CveIds { get; set; }
-        public string Severity { get; set; }
-        public IReadOnlyCollection<string> CweIds { get; set; }
         public string AlternatePackageId { get; set; }
         public string AlternatePackageVersion { get; set; }
         public string CustomMessage { get; set; }

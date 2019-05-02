@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -16,8 +15,6 @@ namespace NuGet.Services.Entities
     {
         public PackageDeprecation()
         {
-            Cves = new HashSet<Cve>();
-            Cwes = new HashSet<Cwe>();
         }
 
         /// <summary>
@@ -92,24 +89,5 @@ namespace NuGet.Services.Entities
         /// Gets or sets the user-provided custom message for this package deprecation.
         /// </summary>
         public string CustomMessage { get; set; }
-
-        /// <summary>
-        /// Gets or sets the CVSS rating for this deprecation.
-        /// </summary>
-        /// <remarks>
-        /// CVSS ratings are from 0.0 to 10.0 and have a single point of precision.
-        /// </remarks>
-        [Range(0, 10)]
-        public decimal? CvssRating { get; set; }
-
-        /// <summary>
-        /// Gets or sets the collection of CVE's related to this deprecation.
-        /// </summary>
-        public virtual ICollection<Cve> Cves { get; set; }
-
-        /// <summary>
-        /// Gets or sets the collection of CWE's related to this deprecation.
-        /// </summary>
-        public virtual ICollection<Cwe> Cwes { get; set; }
     }
 }
