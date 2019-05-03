@@ -5,9 +5,8 @@ using System;
 using System.Data;
 using System.Data.Entity.Migrations;
 using System.Data.SqlClient;
-using NuGet.Services.DatabaseMigration;
 
-namespace NuGetGallery.DatabaseMigrationTools
+namespace NuGet.Services.DatabaseMigration
 {
     public class BaseDbMigrationContext : IMigrationContext
     {

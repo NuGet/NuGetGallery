@@ -4,6 +4,7 @@
 using System;
 using System.Data.Entity.Migrations;
 using System.Data.SqlClient;
+using NuGet.Services.DatabaseMigration;
 using NuGetGallery.Areas.Admin;
 using NuGetGallery.Areas.Admin.Models;
 

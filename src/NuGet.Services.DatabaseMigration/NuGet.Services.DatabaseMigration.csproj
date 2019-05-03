@@ -52,6 +52,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BaseDbMigrationContext.cs" />
     <Compile Include="IMigrationContext.cs" />
     <Compile Include="IMigrationContextFactory.cs" />
     <Compile Include="Job.cs" />
