@@ -42,5 +42,10 @@ namespace NuGetGallery
         /// </summary>
         /// <returns></returns>
         bool IsSearchCircuitBreakerEnabled();
+
+        /// <summary>
+        /// Whether the user is allowed to publish packages with an embedded icon.
+        /// </summary>
+        bool AreEmbeddedIconsEnabled(User user);
     }
 }

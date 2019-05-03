@@ -15,6 +15,7 @@ namespace NuGetGallery
         // Typosquatting detection
         private const string TyposquattingFeatureName = GalleryPrefix + "Typosquatting";
         private const string TyposquattingFlightName = GalleryPrefix + "TyposquattingFlight";
+        private const string EmbeddedIconFlightName = GalleryPrefix + "EmbeddedIcons";
 
         private const string PackagesAtomFeedFeatureName = GalleryPrefix + "PackagesAtomFeed";
 
@@ -46,6 +47,11 @@ namespace NuGetGallery
         public bool IsManageDeprecationEnabled(User user)
         {
             return _client.IsEnabled(ManageDeprecationFeatureName, user, defaultValue: false);
+        }
+
+        public bool AreEmbeddedIconsEnabled(User user)
+        {
+            return _client.IsEnabled(EmbeddedIconFlightName, user, defaultValue: false);
         }
 
         private bool IsEnabled(string flight, User user, bool defaultValue)

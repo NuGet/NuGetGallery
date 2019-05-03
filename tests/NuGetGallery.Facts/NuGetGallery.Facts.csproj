@@ -295,7 +295,6 @@
       <SubType>Designer</SubType>
     </None>
     <EmbeddedResource Include="TestData\certificate.cer" />
-    <EmbeddedResource Include="TestData\theId.nuspec" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\NuGet.Services.Search.Client\NuGet.Services.Search.Client.csproj">

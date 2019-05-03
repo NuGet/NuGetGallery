@@ -1118,4 +1118,7 @@ The {1} Team</value>
   <data name="SymbolsPackage_NoSymbols" xml:space="preserve">
     <value>The package does not contain any symbol (.pdb) files.</value>
   </data>
+  <data name="UploadPackage_EmbeddedIconNotAccepted" xml:space="preserve">
+    <value>The &lt;icon&gt; element is not currently supported.</value>
+  </data>
 </root>
