@@ -1,12 +1,12 @@
 <?xml version="1.0"?>
 <package >
   <metadata>
-    <id>DatabaseMigrationTools.NuGetGallery</id>
+    <id>DatabaseMigrationTools.Gallery</id>
     <version>$version$</version>
-    <title>DatabaseMigrationTools.NuGetGallery</title>
+    <title>DatabaseMigrationTools.Gallery</title>
     <authors>.NET Foundation</authors>
     <owners>.NET Foundation</owners>
-    <description>DatabaseMigrationTools.NuGetGallery</description>
+    <description>DatabaseMigrationTools.Gallery</description>
     <copyright>Copyright .NET Foundation</copyright>
   </metadata>
   <files>

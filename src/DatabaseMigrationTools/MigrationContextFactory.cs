@@ -11,7 +11,7 @@ using NuGet.Services.DatabaseMigration;
 
 namespace NuGetGallery.DatabaseMigrationTools
 {
-    public class GalleryMigrationContextFactory : IMigrationContextFactory
+    public class MigrationContextFactory : IMigrationContextFactory
     {
         private static IReadOnlyDictionary<string, Func<IServiceProvider, Task<IMigrationContext>>> _dictionary = new Dictionary<string, Func<IServiceProvider, Task<IMigrationContext>>>
         {
@@ -27,6 +27,13 @@ namespace NuGetGallery.DatabaseMigrationTools
                 {
                     var sqlConnection = await serviceProvider.GetRequiredService<ISqlConnectionFactory<SupportRequestDbConfiguration>>().CreateAsync();
                     return new SupportRequestDbMigrationContext(sqlConnection);
+                }
+            },
+            {
+                MigrationTargetDatabaseArgumentNames.ValidationDatabase, async(IServiceProvider serviceProvider) =>
+                {
+                    var sqlConnection = await serviceProvider.GetRequiredService<ISqlConnectionFactory<ValidationDbConfiguration>>().CreateAsync();
+                    return new ValidationDbMigrationContext(sqlConnection);
                 }
             }
         };

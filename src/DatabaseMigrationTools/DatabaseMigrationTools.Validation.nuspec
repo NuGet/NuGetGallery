@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>DatabaseMigrationTools.Validation</id>
+    <version>$version$</version>
+    <title>DatabaseMigrationTools.Validation</title>
+    <authors>.NET Foundation</authors>
+    <owners>.NET Foundation</owners>
+    <description>DatabaseMigrationTools.Validation</description>
+    <copyright>Copyright .NET Foundation</copyright>
+  </metadata>
+  <files>
+    <file src="bin\$configuration$\*.*" target="bin"/>
+    <file src="Scripts\PostDeploy.ps1" />
+  </files>
+</package>

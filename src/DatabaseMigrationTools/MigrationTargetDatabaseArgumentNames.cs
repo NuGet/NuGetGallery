@@ -5,10 +5,8 @@ namespace NuGetGallery.DatabaseMigrationTools
 {
     internal static class MigrationTargetDatabaseArgumentNames
     {
-        // avoid value duplication, avoid annoying namespace conflicts in this job
-        public const string GalleryDatabase = NuGet.Jobs.JobArgumentNames.GalleryDatabase;
-        // need to add these database argument names to NuGet.Jobs:
-        // https://github.com/nuget/engineering/issues/2405
+        public const string GalleryDatabase = "GalleryDatabase";
         public const string SupportRequestDatabase = "SupportRequestDatabase";
+        public const string ValidationDatabase = "ValidationDatabase";
     }
 }
