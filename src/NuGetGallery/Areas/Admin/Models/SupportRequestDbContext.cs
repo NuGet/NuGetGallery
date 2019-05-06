@@ -20,7 +20,8 @@ namespace NuGetGallery.Areas.Admin.Models
         public static Func<SupportRequestDbContext> SupportRequestEntitiesContextFactory;
         public SupportRequestDbContext Create()
         {
-            return SupportRequestEntitiesContextFactory == null ? new SupportRequestDbContext("name=Gallery.SupportRequestSqlServer") : SupportRequestEntitiesContextFactory();
+            var factory = SupportRequestEntitiesContextFactory;
+            return factory == null ? new SupportRequestDbContext("name=Gallery.SupportRequestSqlServer") : factory();
         }
     }
 

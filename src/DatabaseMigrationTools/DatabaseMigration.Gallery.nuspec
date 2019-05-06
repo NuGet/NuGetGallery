@@ -1,12 +1,12 @@
 <?xml version="1.0"?>
 <package >
   <metadata>
-    <id>DatabaseMigrationTools.Validation</id>
+    <id>DatabaseMigration.Gallery</id>
     <version>$version$</version>
-    <title>DatabaseMigrationTools.Validation</title>
+    <title>DatabaseMigration.Gallery</title>
     <authors>.NET Foundation</authors>
     <owners>.NET Foundation</owners>
-    <description>DatabaseMigrationTools.Validation</description>
+    <description>DatabaseMigration.Gallery</description>
     <copyright>Copyright .NET Foundation</copyright>
   </metadata>
   <files>

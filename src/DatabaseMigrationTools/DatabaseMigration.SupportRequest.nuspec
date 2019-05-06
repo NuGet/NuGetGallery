@@ -1,12 +1,12 @@
 <?xml version="1.0"?>
 <package >
   <metadata>
-    <id>DatabaseMigrationTools.SupportRequest</id>
+    <id>DatabaseMigration.SupportRequest</id>
     <version>$version$</version>
-    <title>DatabaseMigrationTools.SupportRequest</title>
+    <title>DatabaseMigration.SupportRequest</title>
     <authors>.NET Foundation</authors>
     <owners>.NET Foundation</owners>
-    <description>DatabaseMigrationTools.SupportRequest</description>
+    <description>DatabaseMigration.SupportRequest</description>
     <copyright>Copyright .NET Foundation</copyright>
   </metadata>
   <files>
