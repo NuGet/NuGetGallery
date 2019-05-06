@@ -5,7 +5,7 @@ using System.Data.Entity.Migrations;
 
 namespace NuGet.Services.Validation
 {
-    internal sealed class ValidationMigrationsConfiguration: DbMigrationsConfiguration<ValidationEntitiesContext>
+    public class ValidationMigrationsConfiguration: DbMigrationsConfiguration<ValidationEntitiesContext>
     {
         public ValidationMigrationsConfiguration()
         {

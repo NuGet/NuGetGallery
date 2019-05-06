@@ -1,13 +1,31 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Common;
 using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
 using System.Data.Entity.Infrastructure.Annotations;
 
 namespace NuGet.Services.Validation
 {
+    /// <summary>
+    /// This ValidationDbContextFactory is provided for running migrations in a flexible way as follows:
+    /// 1. Run migration using DbConnection; (For DatabaseMigrationTools with AAD token)
+    /// 2. Run migration using connection string;
+    /// 3. Run migration using default connection string ("Validation.SqlServer") in a web.config; (For command-line migration with integrated AAD/username+password)
+    /// </summary>
+    public class ValidationDbContextFactory : IDbContextFactory<ValidationEntitiesContext>
+    {
+        public static Func<ValidationEntitiesContext> ValidationEntitiesContextFactory;
+        public ValidationEntitiesContext Create()
+        {
+            var factory = ValidationEntitiesContextFactory;
+            return factory == null ? new ValidationEntitiesContext("Validation.SqlServer") : factory();
+        }
+    }
+
     /// <summary>
     /// The Entity Framework database context for validation entities.
     /// </summary>
@@ -98,10 +116,6 @@ namespace NuGet.Services.Validation
         public IDbSet<ScanOperationState> ScanOperationStates { get; set; }
         public IDbSet<PackageRevalidation> PackageRevalidations { get; set; }
         public IDbSet<SymbolsServerRequest> SymbolsServerRequests { get; set; }
-
-        public ValidationEntitiesContext() : this("Validation.SqlServer")
-        {
-        }
 
         public ValidationEntitiesContext(string nameOrConnectionString) : base(nameOrConnectionString)
         {
