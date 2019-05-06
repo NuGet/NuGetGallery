@@ -35,7 +35,7 @@ namespace NuGetGallery
             Uri projectUrl = null,
             Uri iconUrl = null,
             bool requireLicenseAcceptance = false,
-            bool developmentDependency = false,
+            bool? developmentDependency = null,
             IEnumerable<PackageDependencyGroup> packageDependencyGroups = null,
             IEnumerable<ClientPackageType> packageTypes = null,
             bool isSymbolPackage = false,
@@ -55,8 +55,8 @@ namespace NuGetGallery
                         <description>" + description + @"</description>
                         <tags>" + tags + @"</tags>
                         <requireLicenseAcceptance>" + requireLicenseAcceptance + @"</requireLicenseAcceptance>
-                        <developmentDependency>" + developmentDependency + @"</developmentDependency>
-                        <authors>" + authors + @"</authors>
+                        " + (developmentDependency.HasValue ? ("<developmentDependency>" + developmentDependency.Value + "</developmentDependency>") : string.Empty) +
+                        "<authors>" + authors + @"</authors>
                         <owners>" + owners + @"</owners>
                         <language>" + (language ?? string.Empty) + @"</language>
                         <copyright>" + (copyright ?? string.Empty) + @"</copyright>
@@ -203,7 +203,7 @@ namespace NuGetGallery
             Uri projectUrl = null,
             Uri iconUrl = null,
             bool requireLicenseAcceptance = false,
-            bool developmentDependency = false,
+            bool? developmentDependency = null,
             IEnumerable<PackageDependencyGroup> packageDependencyGroups = null,
             IEnumerable<ClientPackageType> packageTypes = null,
             RepositoryMetadata repositoryMetadata = null,
