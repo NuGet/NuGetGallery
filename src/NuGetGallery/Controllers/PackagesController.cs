@@ -274,7 +274,7 @@ namespace NuGetGallery
             PackageMetadata packageMetadata,
             User currentUser)
         {
-            var validationResult = await _packageUploadService.ValidateBeforeGeneratePackageAsync(packageArchiveReader, packageMetadata);
+            var validationResult = await _packageUploadService.ValidateBeforeGeneratePackageAsync(packageArchiveReader, packageMetadata, currentUser);
             var validationErrorMessage = GetErrorMessageOrNull(validationResult);
             if (validationErrorMessage != null)
             {
@@ -644,7 +644,7 @@ namespace NuGetGallery
 
                 if (!isSymbolsPackageUpload)
                 {
-                    var validationResult = await _packageUploadService.ValidateBeforeGeneratePackageAsync(packageArchiveReader, packageMetadata);
+                    var validationResult = await _packageUploadService.ValidateBeforeGeneratePackageAsync(packageArchiveReader, packageMetadata, currentUser);
                     var validationJsonResult = GetJsonResultOrNull(validationResult);
                     if (validationJsonResult != null)
                     {
@@ -2325,7 +2325,7 @@ namespace NuGetGallery
                 }
 
                 // Perform all the validations we can before adding the package to the entity context.
-                var beforeValidationResult = await _packageUploadService.ValidateBeforeGeneratePackageAsync(packageArchiveReader, packageMetadata);
+                var beforeValidationResult = await _packageUploadService.ValidateBeforeGeneratePackageAsync(packageArchiveReader, packageMetadata, currentUser);
                 var beforeValidationJsonResult = GetJsonResultOrNull(beforeValidationResult);
                 if (beforeValidationJsonResult != null)
                 {

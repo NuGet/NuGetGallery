@@ -20,9 +20,15 @@ namespace NuGet.Services.Entities
         [Required]
         public DateTime DeletedOn { get; set; }
 
-        [Required]
+        /// <remarks>
+        /// <c>null</c> if the user was deleted.
+        /// </remarks>
         public User DeletedBy { get; set; }
-        public int DeletedByKey { get; set; }
+
+        /// <remarks>
+        /// <c>null</c> if the user was deleted.
+        /// </remarks>
+        public int? DeletedByKey { get; set; }
 
         [Required]
         public string Reason { get; set; }

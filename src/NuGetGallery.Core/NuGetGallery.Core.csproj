@@ -62,8 +62,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Auditing\AggregateAuditingService.cs" />
+    <Compile Include="Auditing\AuditedEntities\AuditedFeatureFlagFlight.cs" />
+    <Compile Include="Auditing\AuditedEntities\AuditedFeatureFlagFeature.cs" />
+    <Compile Include="Auditing\AuditedFeatureFlagsAction.cs" />
     <Compile Include="Auditing\AuditedCertificateAction.cs" />
     <Compile Include="Auditing\AuditedDeleteAccountAction.cs" />
+    <Compile Include="Auditing\AuditedEntities\AuditedPackageDeprecation.cs" />
+    <Compile Include="Auditing\FeatureFlagsAuditRecord.cs" />
     <Compile Include="Auditing\CertificateAuditRecord.cs" />
     <Compile Include="Auditing\Obfuscation\ObfuscateAttribute.cs" />
     <Compile Include="Auditing\Obfuscation\ObfuscationType.cs" />

@@ -28,21 +28,21 @@ namespace NuGetGallery.Helpers
             [Theory]
             [InlineData(false, false, false, false, Version)]
             [InlineData(false, false, false, true, Version + " (Deprecated - Other)")]
-            [InlineData(false, false, true, false, Version + " (Deprecated - Legacy)")]
-            [InlineData(false, false, true, true, Version + " (Deprecated - Legacy, Other)")]
-            [InlineData(false, true, false, false, Version + " (Deprecated - Vulnerable)")]
-            [InlineData(false, true, false, true, Version + " (Deprecated - Vulnerable, Other)")]
-            [InlineData(false, true, true, false, Version + " (Deprecated - Vulnerable, Legacy)")]
-            [InlineData(false, true, true, true, Version + " (Deprecated - Vulnerable, Legacy, Other)")]
+            [InlineData(false, true, false, false, Version + " (Deprecated - Legacy)")]
+            [InlineData(false, true, false, true, Version + " (Deprecated - Legacy, Other)")]
+            [InlineData(false, false, true, false, Version + " (Deprecated - Critical Bugs)")]
+            [InlineData(false, false, true, true, Version + " (Deprecated - Critical Bugs, Other)")]
+            [InlineData(false, true, true, false, Version + " (Deprecated - Legacy, Critical Bugs)")]
+            [InlineData(false, true, true, true, Version + " (Deprecated - Legacy, Critical Bugs, Other)")]
             [InlineData(true, false, false, false, Version + " (Latest)")]
             [InlineData(true, false, false, true, Version + " (Latest, Deprecated - Other)")]
-            [InlineData(true, false, true, false, Version + " (Latest, Deprecated - Legacy)")]
-            [InlineData(true, false, true, true, Version + " (Latest, Deprecated - Legacy, Other)")]
-            [InlineData(true, true, false, false, Version + " (Latest, Deprecated - Vulnerable)")]
-            [InlineData(true, true, false, true, Version + " (Latest, Deprecated - Vulnerable, Other)")]
-            [InlineData(true, true, true, false, Version + " (Latest, Deprecated - Vulnerable, Legacy)")]
-            [InlineData(true, true, true, true, Version + " (Latest, Deprecated - Vulnerable, Legacy, Other)")]
-            public void ReturnsCorrectSelectListText(bool latest, bool isVulnerable, bool isLegacy, bool isOther, string expected)
+            [InlineData(true, true, false, false, Version + " (Latest, Deprecated - Legacy)")]
+            [InlineData(true, true, false, true, Version + " (Latest, Deprecated - Legacy, Other)")]
+            [InlineData(true, false, true, false, Version + " (Latest, Deprecated - Critical Bugs)")]
+            [InlineData(true, false, true, true, Version + " (Latest, Deprecated - Critical Bugs, Other)")]
+            [InlineData(true, true, true, false, Version + " (Latest, Deprecated - Legacy, Critical Bugs)")]
+            [InlineData(true, true, true, true, Version + " (Latest, Deprecated - Legacy, Critical Bugs, Other)")]
+            public void ReturnsCorrectSelectListText(bool latest, bool isLegacy, bool hasCriticalBugs, bool isOther, string expected)
             {
                 var package = new Package
                 {
@@ -50,22 +50,23 @@ namespace NuGetGallery.Helpers
                     IsLatestSemVer2 = latest
                 };
 
-                if (isVulnerable || isLegacy || isOther)
+                if (isLegacy || hasCriticalBugs || isOther)
                 {
                     var status = PackageDeprecationStatus.NotDeprecated;
-                    if (isVulnerable)
-                    {
-                        status = status | PackageDeprecationStatus.Vulnerable;
-                    }
 
                     if (isLegacy)
                     {
-                        status = status | PackageDeprecationStatus.Legacy;
+                        status |= PackageDeprecationStatus.Legacy;
+                    }
+
+                    if (hasCriticalBugs)
+                    {
+                        status |= PackageDeprecationStatus.CriticalBugs;
                     }
 
                     if (isOther)
                     {
-                        status = status | PackageDeprecationStatus.Other;
+                        status |= PackageDeprecationStatus.Other;
                     }
 
                     var deprecation = new PackageDeprecation

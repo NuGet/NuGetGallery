@@ -28,13 +28,19 @@ namespace NuGet.Services.Entities
         public User DeletedAccount { get; set; }
 
         /// <summary>
-        /// The User(admin) key that executed the delete action.
+        /// The User key that executed the delete action.
         /// </summary>
-        public int DeletedByKey { get; set; }
+        /// <remarks>
+        /// <c>null</c> if the user was deleted.
+        /// </remarks>
+        public int? DeletedByKey { get; set; }
 
         /// <summary>
-        /// The User(admin) that executed the delete action.
+        /// The User that executed the delete action.
         /// </summary>
+        /// <remarks>
+        /// <c>null</c> if the user was deleted.
+        /// </remarks>
         public User DeletedBy { get; set; }
 
          /// <summary>

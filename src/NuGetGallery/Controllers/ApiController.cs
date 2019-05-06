@@ -620,7 +620,7 @@ namespace NuGetGallery
                             }
 
                             // Perform all the validations we can before adding the package to the entity context.
-                            var beforeValidationResult = await PackageUploadService.ValidateBeforeGeneratePackageAsync(packageToPush, packageMetadata);
+                            var beforeValidationResult = await PackageUploadService.ValidateBeforeGeneratePackageAsync(packageToPush, packageMetadata, currentUser);
                             var beforeValidationActionResult = GetActionResultOrNull(beforeValidationResult);
                             if (beforeValidationActionResult != null)
                             {

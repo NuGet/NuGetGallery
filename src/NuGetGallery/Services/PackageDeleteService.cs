@@ -414,6 +414,7 @@ namespace NuGetGallery
                 hash: string.Empty,
                 packageRecord: null,
                 registrationRecord: null,
+                deprecationRecord: null,
                 action: AuditedPackageAction.Delete,
                 reason: "reflow hard-deleted package");
 

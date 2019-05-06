@@ -14,10 +14,31 @@ namespace NuGetGallery
     public interface IValidationService
     {
         /// <summary>
+        /// Updates the package with the expected <see cref="PackageStatus"/> that the package will
+        /// have after starting the validation.
+        /// The caller must also call <see cref="StartValidationAsync(Package)"/>
+        /// at later time.
+        /// </summary>
+        /// <param name="package">The package to update</param>
+        /// <remarks>This method only updates the object passed into it, no database commit is performed.</remarks>
+        Task UpdatePackageAsync(Package package);
+
+        /// <summary>
+        /// Updates the symbol package with the expected <see cref="PackageStatus"/> that the package will
+        /// have after starting the validation.
+        /// The caller must also call <see cref="StartValidationAsync(Package)"/>
+        /// at later time.
+        /// </summary>
+        /// <param name="package">The package to update</param>
+        /// <remarks>This method only updates the object passed into it, no database commit is performed.</remarks>
+        Task UpdatePackageAsync(SymbolPackage symbolPackage);
+
+        /// <summary>
         /// Starts the asynchronous validation for the provided new package and puts the package in the correct
         /// <see cref="Package.PackageStatusKey"/>. The commit to the database is the responsibility of the caller.
         /// </summary>
         /// <param name="package">The package to start validation for.</param>
+        /// <remarks>This method only updates the object passed into it, no database commit is performed.</remarks>
         Task StartValidationAsync(Package package);
 
         /// <summary>
@@ -25,6 +46,7 @@ namespace NuGetGallery
         /// <see cref="Package.PackageStatusKey"/>. The commit to the database is the responsibility of the caller.
         /// </summary>
         /// <param name="symbolPackage">The symbol package to start validation for.</param>
+        /// <remarks>This method only updates the object passed into it, no database commit is performed.</remarks>
         Task StartValidationAsync(SymbolPackage symbolPackage);
 
         /// <summary>

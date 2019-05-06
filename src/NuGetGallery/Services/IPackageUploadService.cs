@@ -18,8 +18,13 @@ namespace NuGetGallery
         /// UI package upload.
         /// </summary>
         /// <param name="nuGetPackage">The package archive reader.</param>
+        /// <param name="packageMetadata">The package metadata.</param>
+        /// <param name="currentUser">The user who pushed the package.</param>
         /// <returns>The package validation result.</returns>
-        Task<PackageValidationResult> ValidateBeforeGeneratePackageAsync(PackageArchiveReader nuGetPackage, PackageMetadata packageMetadata);
+        Task<PackageValidationResult> ValidateBeforeGeneratePackageAsync(
+            PackageArchiveReader nuGetPackage,
+            PackageMetadata packageMetadata,
+            User currentUser);
 
         Task<Package> GeneratePackageAsync(
             string id,

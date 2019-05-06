@@ -368,6 +368,7 @@ namespace NuGetGallery
         {
             // To support the delete account scenario, the admin can delete the last owner of a package.
             package.Owners.Remove(user);
+
             if (commitChanges)
             {
                 await _packageRepository.CommitChangesAsync();

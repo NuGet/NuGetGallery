@@ -10,9 +10,9 @@ using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using Newtonsoft.Json.Linq;
 using NuGet.Services.Entities;
 using NuGet.Services.FeatureFlags;
+using NuGetGallery.Auditing;
 
 namespace NuGetGallery.Features
 {
@@ -23,6 +23,7 @@ namespace NuGetGallery.Features
         private static readonly JsonSerializer Serializer;
 
         private readonly ICoreFileStorageService _storage;
+        private readonly IAuditingService _auditing;
         private readonly ILogger<FeatureFlagFileStorageService> _logger;
 
         static FeatureFlagFileStorageService()
@@ -40,9 +41,11 @@ namespace NuGetGallery.Features
 
         public FeatureFlagFileStorageService(
             ICoreFileStorageService storage,
+            IAuditingService auditing,
             ILogger<FeatureFlagFileStorageService> logger)
         {
             _storage = storage ?? throw new ArgumentNullException(nameof(storage));
+            _auditing = auditing ?? throw new ArgumentNullException(nameof(auditing));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -118,6 +121,19 @@ namespace NuGetGallery.Features
         }
 
         public async Task<FeatureFlagSaveResult> TrySaveAsync(FeatureFlags flags, string contentId)
+        {
+            var result = await TrySaveInternalAsync(flags, contentId);
+            await _auditing.SaveAuditRecordAsync(
+                new FeatureFlagsAuditRecord(
+                    AuditedFeatureFlagsAction.Update, 
+                    flags, 
+                    contentId, 
+                    result));
+
+            return result;
+        }
+
+        private async Task<FeatureFlagSaveResult> TrySaveInternalAsync(FeatureFlags flags, string contentId)
         {
             var accessCondition = AccessConditionWrapper.GenerateIfMatchCondition(contentId);
 

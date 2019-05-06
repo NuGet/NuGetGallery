@@ -110,6 +110,7 @@
 {
     <li role="presentation" class="@(active ? "active" : string.Empty)">
         <a href="#@packageManager.Id" aria-expanded="@(active ? "true" : "false")"
+           id="@packageManager.Id-tab" class="package-manager-tab"
            aria-selected="@(active ? "true" : "false")"
            aria-controls="@packageManager.Id" role="tab" data-toggle="tab"
            title="Switch to tab panel which contains package installation command for @packageManager.Name">
@@ -581,22 +582,22 @@
                                         @if (Model.IsPackageDeprecationEnabled && packageVersion.DeprecationStatus != PackageDeprecationStatus.NotDeprecated)
                                         {
                                             var deprecationTitle = packageVersion.Version;
-                                            var isVulnerable = packageVersion.DeprecationStatus.HasFlag(PackageDeprecationStatus.Vulnerable);
                                             var isLegacy = packageVersion.DeprecationStatus.HasFlag(PackageDeprecationStatus.Legacy);
-                                            if (isVulnerable)
+                                            var hasCriticalBugs = packageVersion.DeprecationStatus.HasFlag(PackageDeprecationStatus.CriticalBugs);
+                                            if (hasCriticalBugs)
                                             {
-                                                deprecationTitle += " is deprecated because it has vulnerabilities";
-
                                                 if (isLegacy)
                                                 {
-                                                    deprecationTitle += " and is legacy and is no longer maintained";
+                                                    deprecationTitle += " is deprecated because it's legacy and has critical bugs.";
                                                 }
-
-                                                deprecationTitle += ".";
+                                                else
+                                                {
+                                                    deprecationTitle += " is deprecated because it has critical bugs.";
+                                                }
                                             }
                                             else if (isLegacy)
                                             {
-                                                deprecationTitle += " is deprecated because it is legacy and is no longer maintained.";
+                                                deprecationTitle += " is deprecated because it's legacy and no longer maintained.";
                                             }
                                             else
                                             {

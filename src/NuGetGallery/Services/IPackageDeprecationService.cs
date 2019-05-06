@@ -19,23 +19,10 @@ namespace NuGetGallery
         Task UpdateDeprecation(
             IReadOnlyCollection<Package> packages,
             PackageDeprecationStatus status,
-            IReadOnlyCollection<Cve> cve,
-            decimal? cvssRating,
-            IReadOnlyCollection<Cwe> cwe,
             PackageRegistration alternatePackageRegistration,
             Package alternatePackage,
-            string customMessage);
-
-        /// <summary>
-        /// Fetches all <see cref="Cve"/>s with a <see cref="Cve.CveId"/> contained in <paramref name="ids"/>.
-        /// If an ID does not have an associated <see cref="Cve"/>, it creates a dummy entity.
-        /// </summary>
-        Task<IReadOnlyCollection<Cve>> GetOrCreateCvesByIdAsync(IEnumerable<string> ids, bool commitChanges);
-
-        /// <summary>
-        /// Fetches all <see cref="Cwe"/>s with a <see cref="Cwe.CweId"/> contained in <paramref name="ids"/>.
-        /// </summary>
-        IReadOnlyCollection<Cwe> GetCwesById(IEnumerable<string> ids);
+            string customMessage,
+            User user);
 
         PackageDeprecation GetDeprecationByPackage(Package package);
     }

@@ -47,6 +47,7 @@ namespace NuGetGallery
         private const long MaxAllowedLicenseLengthForUploading = 1024 * 1024; // 1 MB
         private const int MaxAllowedLicenseNodeValueLength = 500;
         private const string LicenseNodeName = "license";
+        private const string IconNodeName = "icon";
         private const string AllowedLicenseVersion = "1.0.0";
         private const string Unlicensed = "UNLICENSED";
 
@@ -60,6 +61,7 @@ namespace NuGetGallery
         private readonly ITelemetryService _telemetryService;
         private readonly ICoreLicenseFileService _coreLicenseFileService;
         private readonly IDiagnosticsSource _trace;
+        private readonly IFeatureFlagService _featureFlagService;
 
         public PackageUploadService(
             IPackageService packageService,
@@ -71,7 +73,8 @@ namespace NuGetGallery
             ITyposquattingService typosquattingService,
             ITelemetryService telemetryService,
             ICoreLicenseFileService coreLicenseFileService,
-            IDiagnosticsService diagnosticsService)
+            IDiagnosticsService diagnosticsService,
+            IFeatureFlagService featureFlagService)
         {
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
             _packageFileService = packageFileService ?? throw new ArgumentNullException(nameof(packageFileService));
@@ -87,9 +90,13 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(diagnosticsService));
             }
             _trace = diagnosticsService.GetSource(nameof(PackageUploadService));
+            _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
         }
 
-        public async Task<PackageValidationResult> ValidateBeforeGeneratePackageAsync(PackageArchiveReader nuGetPackage, PackageMetadata packageMetadata)
+        public async Task<PackageValidationResult> ValidateBeforeGeneratePackageAsync(
+            PackageArchiveReader nuGetPackage,
+            PackageMetadata packageMetadata,
+            User currentUser)
         {
             var warnings = new List<IValidationMessage>();
 
@@ -125,7 +132,7 @@ namespace NuGetGallery
                 return result;
             }
 
-            result = await CheckLicenseMetadataAsync(nuGetPackage, warnings);
+            result = await CheckLicenseMetadataAsync(nuGetPackage, warnings, currentUser);
             if (result != null)
             {
                 _telemetryService.TrackLicenseValidationFailure();
@@ -135,13 +142,9 @@ namespace NuGetGallery
             return PackageValidationResult.AcceptedWithWarnings(warnings);
         }
 
-        private async Task<PackageValidationResult> CheckLicenseMetadataAsync(PackageArchiveReader nuGetPackage, List<IValidationMessage> warnings)
+        private async Task<PackageValidationResult> CheckLicenseMetadataAsync(PackageArchiveReader nuGetPackage, List<IValidationMessage> warnings, User user)
         {
-            LicenseCheckingNuspecReader nuspecReader = null;
-            using (var nuspec = nuGetPackage.GetNuspec())
-            {
-                nuspecReader = new LicenseCheckingNuspecReader(nuspec);
-            }
+            var nuspecReader = GetNuspecReader(nuGetPackage);
 
             var licenseElement = nuspecReader.LicenseElement;
 
@@ -183,6 +186,12 @@ namespace NuGetGallery
             var licenseUrl = nuspecReader.GetLicenseUrl();
             var licenseMetadata = nuspecReader.GetLicenseMetadata();
             var licenseDeprecationUrl = GetExpectedLicenseUrl(licenseMetadata);
+
+            // TODO: move out when full blown validation is implemented https://github.com/nuget/nugetgallery/issues/7063
+            if (nuspecReader.IconExists && !_featureFlagService.AreEmbeddedIconsEnabled(user))
+            {
+                return PackageValidationResult.Invalid(Strings.UploadPackage_EmbeddedIconNotAccepted);
+            }
 
             if (licenseMetadata == null)
             {
@@ -329,6 +338,14 @@ namespace NuGetGallery
             return null;
         }
 
+        private static UserContentEnabledNuspecReader GetNuspecReader(PackageArchiveReader nuGetPackage)
+        {
+            using (var nuspec = nuGetPackage.GetNuspec())
+            {
+                return new UserContentEnabledNuspecReader(nuspec);
+            }
+        }
+
         private bool IsMalformedDeprecationUrl(string licenseUrl)
         {
             // nuget.exe 4.9.0 and its dotnet and msbuild counterparts encode spaces as "+"
@@ -435,14 +452,15 @@ namespace NuGetGallery
             => licenseElement
                 .GetOptionalAttributeValue("type");
 
-        private class LicenseCheckingNuspecReader : NuspecReader
+        private class UserContentEnabledNuspecReader : NuspecReader
         {
-            public LicenseCheckingNuspecReader(Stream stream)
+            public UserContentEnabledNuspecReader(Stream stream)
                 : base(stream)
             {
             }
 
             public XElement LicenseElement => MetadataNode.Element(MetadataNode.Name.Namespace + LicenseNodeName);
+            public bool IconExists => MetadataNode.Element(MetadataNode.Name.Namespace + IconNodeName) != null;
         }
 
         private async Task<PackageValidationResult> CheckPackageEntryCountAsync(
@@ -674,7 +692,7 @@ namespace NuGetGallery
 
         public async Task<PackageCommitResult> CommitPackageAsync(Package package, Stream packageFile)
         {
-            await _validationService.StartValidationAsync(package);
+            await _validationService.UpdatePackageAsync(package);
 
             if (package.PackageStatusKey != PackageStatus.Available
                 && package.PackageStatusKey != PackageStatus.Validating)
@@ -763,12 +781,18 @@ namespace NuGetGallery
 
             try
             {
+                // Sending the validation request after copying to prevent multiple validation requests
+                // sent when several pushes for the same package happen concurrently. Copying the file
+                // resolves the race and only one request will "win" and reach this code.
+                await _validationService.StartValidationAsync(package);
+
                 // commit all changes to database as an atomic transaction
                 await _entitiesContext.SaveChangesAsync();
             }
             catch (Exception ex)
             {
-                // If saving to the DB fails for any reason we need to delete the package we just saved.
+                // If sending the validation request or saving to the DB fails for any reason
+                // we need to delete the package we just saved.
                 if (package.PackageStatusKey == PackageStatus.Validating)
                 {
                     await _packageFileService.DeleteValidationPackageFileAsync(
