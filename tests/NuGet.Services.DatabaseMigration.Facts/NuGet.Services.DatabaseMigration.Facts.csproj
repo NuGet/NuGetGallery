@@ -44,9 +44,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DatabaseMigrationFacts.cs" />
+    <Compile Include="PendingMigrationsFacts.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Moq">
+      <Version>4.8.2</Version>
+    </PackageReference>
     <PackageReference Include="xunit">
       <Version>2.4.1</Version>
     </PackageReference>
@@ -63,6 +67,10 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\src\DatabaseMigrationTools\DatabaseMigrationTools.csproj">
+      <Project>{dced7162-a24c-4579-96c8-544bfaf4c305}</Project>
+      <Name>DatabaseMigrationTools</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\src\NuGet.Services.DatabaseMigration\NuGet.Services.DatabaseMigration.csproj">
       <Project>{f4c8c34f-72a9-4773-a315-8fa3f2d5ce4e}</Project>
       <Name>NuGet.Services.DatabaseMigration</Name>
