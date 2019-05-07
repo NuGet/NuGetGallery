@@ -250,7 +250,6 @@
     <Compile Include="PolicyFacts.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Routing\VersionRouteConstraintFacts.cs" />
-    <Compile Include="SearchClient\RetryingHttpClientWrapperFacts.cs" />
     <Compile Include="SemanticVersionExtensionsFacts.cs" />
     <Compile Include="Services\CloudBlobFileStorageServiceFacts.cs" />
     <Compile Include="Services\ContentServiceFacts.cs" />
@@ -302,10 +301,6 @@
     <EmbeddedResource Include="TestData\theId.nuspec" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\NuGet.Services.Search.Client\NuGet.Services.Search.Client.csproj">
-      <Project>{6931c2ee-e081-4518-9798-d34d83b35bf6}</Project>
-      <Name>NuGet.Services.Search.Client</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\src\NuGet.Services.Entities\NuGet.Services.Entities.csproj">
       <Project>{6262f4fc-29be-4226-b676-db391c89d396}</Project>
       <Name>NuGet.Services.Entities</Name>

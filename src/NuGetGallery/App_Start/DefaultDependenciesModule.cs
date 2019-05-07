@@ -31,8 +31,6 @@ using NuGet.Services.Licenses;
 using NuGet.Services.Logging;
 using NuGet.Services.Messaging;
 using NuGet.Services.Messaging.Email;
-using NuGet.Services.Search.Client;
-using NuGet.Services.Search.Client.Correlation;
 using NuGet.Services.ServiceBus;
 using NuGet.Services.Sql;
 using NuGet.Services.Validation;
@@ -49,6 +47,7 @@ using NuGetGallery.Infrastructure;
 using NuGetGallery.Infrastructure.Authentication;
 using NuGetGallery.Infrastructure.Mail;
 using NuGetGallery.Infrastructure.Search;
+using NuGetGallery.Infrastructure.Search.Correlation;
 using NuGetGallery.Security;
 using SecretReaderFactory = NuGetGallery.Configuration.SecretReader.SecretReaderFactory;
 
@@ -369,10 +368,6 @@ namespace NuGetGallery
                 .As<ITyposquattingCheckListCacheService>()
                 .SingleInstance();
 
-            builder.Register<ServiceDiscoveryClient>(c =>
-                    new ServiceDiscoveryClient(c.Resolve<IAppConfiguration>().ServiceDiscoveryUri))
-                .As<IServiceDiscoveryClient>();
-
             builder.RegisterType<LicenseExpressionSplitter>()
                 .As<ILicenseExpressionSplitter>()
                 .InstancePerLifetimeScope();
@@ -688,7 +683,7 @@ namespace NuGetGallery
 
         private static void ConfigureSearch(ContainerBuilder builder, IGalleryConfigurationService configuration)
         {
-            if (configuration.Current.ServiceDiscoveryUri == null)
+            if (configuration.Current.SearchServiceUriPrimary == null && configuration.Current.SearchServiceUriSecondary == null)
             {
                 builder.RegisterType<LuceneSearchService>()
                     .AsSelf()
@@ -738,8 +733,12 @@ namespace NuGetGallery
                 {
                     // The policy handlers will be applied from the bottom to the top.
                     // The most inner one is the one added last.
-                    services.AddHttpClient<IHttpClientWrapper, HttpClientWrapper>(searchClient.name, c =>
-                         c.BaseAddress = searchClient.searchUri)
+                    services.AddHttpClient<IHttpClientWrapper, HttpClientWrapper>(searchClient.name, 
+                        c => 
+                        {
+                            c.BaseAddress = searchClient.searchUri;
+                            c.Timeout = TimeSpan.FromMilliseconds(configuration.Current.SearchHttpClientTimeoutInMilliseconds);
+                        })
                     .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler() { AllowAutoRedirect = true })
                     .AddHttpMessageHandler<CorrelatingHttpClientHandler>()
                     .AddPolicyHandler(SearchClientPolicies.SearchClientFallBackCircuitBreakerPolicy(logger, searchClient.name, telemetryService))
@@ -764,8 +763,7 @@ namespace NuGetGallery
 
         private static void ConfigureAutocomplete(ContainerBuilder builder, IGalleryConfigurationService configuration)
         {
-            if (configuration.Current.ServiceDiscoveryUri != null &&
-                !string.IsNullOrEmpty(configuration.Current.AutocompleteServiceResourceType))
+            if (configuration.Current.SearchServiceUriPrimary != null || configuration.Current.SearchServiceUriSecondary != null)
             {
                 builder.RegisterType<AutocompleteServicePackageIdsQuery>()
                     .AsSelf()

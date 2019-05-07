@@ -18,9 +18,9 @@ using Microsoft.Extensions.CommandLineUtils;
 using NuGet.Packaging;
 using NuGet.Packaging.Core;
 using NuGet.Services.Entities;
-using NuGet.Services.Search.Client;
 using NuGetGallery;
 using NuGetGallery.Configuration;
+using GalleryTools.Utils;
 
 namespace GalleryTools.Commands
 {
