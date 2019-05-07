@@ -384,7 +384,8 @@ namespace NuGetGallery.Configuration
         [DefaultValue(200)]
         public int SearchCircuitBreakerBreakAfterCount { get; set; }
 
-        [DefaultValue(500)]
+        // Default HttpClient.Timeout is 100 seconds == 100000 milliseconds
+        [DefaultValue(100000)]
         public int SearchHttpClientTimeoutInMilliseconds { get; set; }
     }
 }
