@@ -273,5 +273,11 @@ namespace NuGet.Services.Entities
         /// See <see cref="PackageDeprecation.AlternatePackage"/>.
         /// </summary>
         public virtual ICollection<PackageDeprecation> AlternativeOf { get; set; }
+
+        /// <summary>
+        /// A flag that indicates that the icon in flat container is assumed to exist and must be
+        /// used everywhere instead of the <see cref="IconUrl"/>.
+        /// </summary>
+        public bool UsesIconFromFlatContainer { get; set; }
     }
 }
