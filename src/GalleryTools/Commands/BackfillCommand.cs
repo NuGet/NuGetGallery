@@ -269,8 +269,10 @@ namespace GalleryTools.Commands
                 IgnoreWhitespace = true,
                 IgnoreComments = true,
                 IgnoreProcessingInstructions = true,
-                XmlResolver = null,
             };
+            
+            // This is intentionally separate from the object initializer so that FXCop can see it.
+            settings.XmlResolver = null;
 
             using (var streamReader = new StreamReader(stream))
             using (var xmlReader = XmlReader.Create(streamReader, settings))

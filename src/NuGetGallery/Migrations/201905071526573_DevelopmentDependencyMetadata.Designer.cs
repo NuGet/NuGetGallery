@@ -13,7 +13,7 @@ namespace NuGetGallery.Migrations
         
         string IMigrationMetadata.Id
         {
-            get { return "201905020719236_DevelopmentDependencyMetadata"; }
+            get { return "201905071526573_DevelopmentDependencyMetadata"; }
         }
         
         string IMigrationMetadata.Source
