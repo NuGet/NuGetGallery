@@ -27,7 +27,7 @@ using System.Runtime.InteropServices;
 [assembly: CLSCompliant(false)]
 [assembly: NeutralResourcesLanguage("en-us")]
 
-[assembly: AssemblyDescription("Database migration tools for NuGet Gallery/Support Requests")]
+[assembly: AssemblyDescription("Database migration tools for NuGet Gallery/Support Requests/Validation databases")]
 
 // The build will automatically inject the following attributes:
 // AssemblyVersion, AssemblyFileVersion, AssemblyInformationalVersion, AssemblyMetadata (for Branch, CommitId, and BuildDateUtc)
