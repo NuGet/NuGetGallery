@@ -224,6 +224,7 @@ namespace NuGetGallery
                 Assert.Equal("http://thelicenseurl/", package.LicenseUrl);
                 Assert.Equal("http://theprojecturl/", package.ProjectUrl);
                 Assert.True(package.RequiresLicenseAcceptance);
+                Assert.True(package.DevelopmentDependency);
                 Assert.Equal("theSummary", package.Summary);
                 Assert.Equal("theTags", package.Tags);
                 Assert.Equal("theTitle", package.Title);
@@ -251,6 +252,43 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.Equal("fr", package.Language);
+            }
+
+            [Theory]
+            [InlineData(true, true)]
+            [InlineData(false, false)]
+            [InlineData(null, false)]
+            public async Task WillReadDevelopmentDependencyFromPackage(bool? developmentDependency, bool expected)
+            {
+                var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>();
+                var service = CreateService(packageRegistrationRepository: packageRegistrationRepository, setup:
+                        mockPackageService => { mockPackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null); });
+
+                var nugetPackage = PackageServiceUtility.CreateNuGetPackage(developmentDependency: developmentDependency);
+
+                var currentUser = new User();
+
+                var package = await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), currentUser, currentUser, isVerified: false);
+
+                // Assert
+                Assert.Equal(expected, package.DevelopmentDependency);
+            }
+
+            [Fact]
+            public async Task WillThrowIfDevelopmentDependencyIsInvalid()
+            {
+                var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>();
+                var service = CreateService(packageRegistrationRepository: packageRegistrationRepository, setup:
+                    mockPackageService => { mockPackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null); });
+
+                var nugetPackage = PackageServiceUtility.CreateNuGetPackage(
+                    getCustomNuspecNodes: () => "<developmentDependency>foo</developmentDependency>");
+
+                var currentUser = new User();
+
+                // Assert
+                var exception = await Assert.ThrowsAsync<InvalidPackageException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), currentUser, currentUser, isVerified: false));
+                Assert.Contains("developmentDependency", exception.Message);
             }
 
             [Fact]
