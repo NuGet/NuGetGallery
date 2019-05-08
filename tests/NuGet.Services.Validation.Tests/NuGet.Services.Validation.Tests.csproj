@@ -43,6 +43,7 @@
     <Compile Include="Entities\PackageSignatureTypeTests.cs" />
     <Compile Include="Entities\EndCertificateUseTests.cs" />
     <Compile Include="Entities\SymbolServerRequestTests.cs" />
+    <Compile Include="PendingMigrationsTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ServiceBusMessageSerializerTests.cs" />
     <Compile Include="TestData.Designer.cs">
