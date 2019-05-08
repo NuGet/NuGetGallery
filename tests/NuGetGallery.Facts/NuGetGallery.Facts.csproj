@@ -80,9 +80,6 @@
     <Compile Include="AutocompleteServiceQueryFacts.cs" />
     <Compile Include="Controllers\FeaturesControllerFacts.cs" />
     <Compile Include="Controllers\ManageDeprecationJsonApiControllerFacts.cs" />
-    <Compile Include="Queries\CweQueryStringValidatorFacts.cs" />
-    <Compile Include="Queries\CweIdHelperFacts.cs" />
-    <Compile Include="Queries\AutocompleteCveIdsQueryFacts.cs" />
     <Compile Include="Configuration\ConfigurationServiceFacts.cs" />
     <Compile Include="Controllers\AccountsControllerFacts.cs" />
     <Compile Include="Controllers\OrganizationsControllerFacts.cs" />
@@ -91,7 +88,6 @@
     <Compile Include="Infrastructure\Lucene\ResilientSearchServiceFacts.cs" />
     <Compile Include="Infrastructure\Lucene\GallerySearchServiceFacts.cs" />
     <Compile Include="Helpers\StreamHelperFacts.cs" />
-    <Compile Include="Queries\AutocompleteCweIdsQueryFacts.cs" />
     <Compile Include="Services\PackageDeprecationServiceFacts.cs" />
     <Compile Include="TestData\TestDataResourceUtility.cs" />
     <Compile Include="UsernameValidationRegex.cs" />
@@ -298,7 +294,6 @@
       <SubType>Designer</SubType>
     </None>
     <EmbeddedResource Include="TestData\certificate.cer" />
-    <EmbeddedResource Include="TestData\theId.nuspec" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\NuGet.Services.Entities\NuGet.Services.Entities.csproj">

@@ -19,7 +19,7 @@ namespace NuGet.Services.Entities.Tests
             { PackageDeprecationStatus.NotDeprecated, 0 },
             { PackageDeprecationStatus.Other, 1 },
             { PackageDeprecationStatus.Legacy, 2 },
-            { PackageDeprecationStatus.Vulnerable, 4 },
+            { PackageDeprecationStatus.CriticalBugs, 4 }
         };
 
         [Fact]

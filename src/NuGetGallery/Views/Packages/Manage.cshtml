@@ -83,7 +83,7 @@
         var versionListedState = @Html.Raw(Json.Encode(Model.VersionListedStateDictionary));
 
         // Set up deprecation section
-        var strings_AnyVersion = "Any version";
+        var strings_SelectAlternateVersionOption = "Latest";
         var versionDeprecationState = @Html.Raw(Json.Encode(Model.VersionDeprecationStateDictionary));
 
         $(function () {
@@ -129,11 +129,7 @@
                 '@Model.Version',
                 '@Url.DeprecatePackage()',
                 packageUrl,
-                '@Url.GetDeprecationAlternatePackageVersions()',
-                '@Strings.DeprecatePackage_CveUrlFormat',
-                '@Url.GetDeprecationCveIds()',
-                '@Strings.DeprecatePackage_CweUrlFormat',
-                '@Url.GetDeprecationCweIds()');
+                '@Url.GetDeprecationAlternatePackageVersions()');
         });
     </script>
     @ViewHelpers.SectionsScript(this)

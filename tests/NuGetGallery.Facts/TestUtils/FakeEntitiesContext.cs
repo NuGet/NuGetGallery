@@ -150,30 +150,6 @@ namespace NuGetGallery
             }
         }
 
-        public DbSet<Cve> Cves
-        {
-            get
-            {
-                return Set<Cve>();
-            }
-            set
-            {
-                throw new NotSupportedException();
-            }
-        }
-
-        public DbSet<Cwe> Cwes
-        {
-            get
-            {
-                return Set<Cwe>();
-            }
-            set
-            {
-                throw new NotSupportedException();
-            }
-        }
-
         public Task<int> SaveChangesAsync()
         {
             _areChangesSaved = true;

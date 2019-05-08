@@ -59,7 +59,13 @@
             new PackageManagerViewModel("PackageReference")
             {
                 Id = "package-reference",
-                InstallPackageCommand = string.Format("<PackageReference Include=\"{0}\" Version=\"{1}\" />", Model.Id, Model.Version),
+                InstallPackageCommand = Model.DevelopmentDependency
+                    ? string.Format(string.Join(Environment.NewLine,
+                        "<PackageReference Include=\"{0}\" Version=\"{1}\">",
+                        "  <PrivateAssets>all</PrivateAssets>",
+                        "  <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>",
+                        "</PackageReference>"), Model.Id, Model.Version)
+                    : string.Format("<PackageReference Include=\"{0}\" Version=\"{1}\" />", Model.Id, Model.Version),
                 AlertLevel = AlertLevel.Info,
                 AlertMessage = string.Format("For projects that support <a href=\"{0}\">PackageReference</a>, copy this XML node into the project file to reference the package.",
                                              "https://docs.microsoft.com/en-us/nuget/consume-packages/package-references-in-project-files"),
@@ -110,6 +116,7 @@
 {
     <li role="presentation" class="@(active ? "active" : string.Empty)">
         <a href="#@packageManager.Id" aria-expanded="@(active ? "true" : "false")"
+           id="@packageManager.Id-tab" class="package-manager-tab"
            aria-selected="@(active ? "true" : "false")"
            aria-controls="@packageManager.Id" role="tab" data-toggle="tab"
            title="Switch to tab panel which contains package installation command for @packageManager.Name">
@@ -124,17 +131,15 @@
 
     <div role="tabpanel" class="tab-pane @(active ? "active" : string.Empty)" id="@packageManager.Id">
         <div>
-            <div class="install-script" id="@packageManager.Id-text">
-                <span>
-                    @packageManager.InstallPackageCommand
-                </span>
-            </div>
-            <div class="copy-button">
-                <button id="@packageManager.Id-button" class="btn btn-default btn-warning" type="button"
-                        data-toggle="popover" data-placement="bottom" data-content="Copied."
-                        aria-label="@packageManager.CopyLabel">
-                    <span class="ms-Icon ms-Icon--Copy" aria-hidden="true"></span>
-                </button>
+            <div class="install-script-row">
+                <pre class="install-script" id="@packageManager.Id-text">@packageManager.InstallPackageCommand</pre>
+                <div class="copy-button">
+                    <button id="@packageManager.Id-button" class="btn btn-default btn-warning" type="button"
+                            data-toggle="popover" data-placement="bottom" data-content="Copied."
+                            aria-label="@packageManager.CopyLabel">
+                        <span class="ms-Icon ms-Icon--Copy" aria-hidden="true"></span>
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -581,22 +586,22 @@
                                         @if (Model.IsPackageDeprecationEnabled && packageVersion.DeprecationStatus != PackageDeprecationStatus.NotDeprecated)
                                         {
                                             var deprecationTitle = packageVersion.Version;
-                                            var isVulnerable = packageVersion.DeprecationStatus.HasFlag(PackageDeprecationStatus.Vulnerable);
                                             var isLegacy = packageVersion.DeprecationStatus.HasFlag(PackageDeprecationStatus.Legacy);
-                                            if (isVulnerable)
+                                            var hasCriticalBugs = packageVersion.DeprecationStatus.HasFlag(PackageDeprecationStatus.CriticalBugs);
+                                            if (hasCriticalBugs)
                                             {
-                                                deprecationTitle += " is deprecated because it has vulnerabilities";
-
                                                 if (isLegacy)
                                                 {
-                                                    deprecationTitle += " and is legacy and is no longer maintained";
+                                                    deprecationTitle += " is deprecated because it's legacy and has critical bugs.";
                                                 }
-
-                                                deprecationTitle += ".";
+                                                else
+                                                {
+                                                    deprecationTitle += " is deprecated because it has critical bugs.";
+                                                }
                                             }
                                             else if (isLegacy)
                                             {
-                                                deprecationTitle += " is deprecated because it is legacy and is no longer maintained.";
+                                                deprecationTitle += " is deprecated because it's legacy and no longer maintained.";
                                             }
                                             else
                                             {
@@ -936,7 +941,7 @@ foreach (var owner in Model.Owners)
                 continue;
             }
 
-            packageManagersCss += "#" + packageManager.Id + " .install-script span::before {";
+            packageManagersCss += "#" + packageManager.Id + " .install-script::before {";
             packageManagersCss += "    content: \"" + packageManager.CommandPrefix + "\"";
             packageManagersCss += "}";
         }
