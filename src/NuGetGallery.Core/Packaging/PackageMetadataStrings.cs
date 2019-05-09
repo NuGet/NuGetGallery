@@ -16,6 +16,7 @@ namespace NuGetGallery.Packaging
         public const string ProjectUrl = "projectUrl";
         public const string ReleaseNotes = "releaseNotes";
         public const string RequireLicenseAcceptance = "requireLicenseAcceptance";
+        public const string DevelopmentDependency = "developmentDependency";
         public const string Summary = "summary";
         public const string Tags = "tags";
         public const string Title = "title";

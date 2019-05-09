@@ -248,6 +248,10 @@
     </Compile>
     <Compile Include="Services\ConfigurationIconFileProvider.cs" />
     <Compile Include="Services\IInternalIconUrlProvider.cs" />
+    <Compile Include="Migrations\201905071526573_DevelopmentDependencyMetadata.cs" />
+    <Compile Include="Migrations\201905071526573_DevelopmentDependencyMetadata.Designer.cs">
+      <DependentUpon>201905071526573_DevelopmentDependencyMetadata.cs</DependentUpon>
+    </Compile>
     <Compile Include="Services\IPackageDeprecationService.cs" />
     <Compile Include="Queries\AutocompleteDatabasePackageIdsQuery.cs" />
     <Compile Include="Queries\AutocompleteDatabasePackageVersionsQuery.cs" />
@@ -750,6 +754,7 @@
     <Compile Include="Telemetry\UserPackageDeleteOutcome.cs" />
     <Compile Include="UrlHelperExtensions.cs" />
     <Compile Include="ViewModels\AddOrganizationViewModel.cs" />
+    <Compile Include="ViewModels\AddPackageOwnerViewModel.cs" />
     <Compile Include="ViewModels\CompositeLicenseExpressionSegmentViewModel.cs" />
     <Compile Include="ViewModels\DeleteOrganizationViewModel.cs" />
     <Compile Include="ViewModels\DeleteUserViewModel.cs" />
@@ -1724,6 +1729,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201904292139301_RemoveVulnerabilityDataFromPackageDeprecationModel.resx">
       <DependentUpon>201904292139301_RemoveVulnerabilityDataFromPackageDeprecationModel.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201905071526573_DevelopmentDependencyMetadata.resx">
+      <DependentUpon>201905071526573_DevelopmentDependencyMetadata.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />

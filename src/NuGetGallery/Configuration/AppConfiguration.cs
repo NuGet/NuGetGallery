@@ -72,6 +72,8 @@ namespace NuGetGallery.Configuration
 
         public TimeSpan FeatureFlagsRefreshInterval { get; set; }
 
+        public bool AdminPanelDatabaseAccessEnabled { get; set; }
+
         public bool AsynchronousPackageValidationEnabled { get; set; }
 
         public bool BlockingAsynchronousPackageValidationEnabled { get; set; }

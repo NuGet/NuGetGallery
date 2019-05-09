@@ -43,6 +43,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Commands\BackfillCommand.cs" />
+    <Compile Include="Commands\BackfillDevelopmentDependencyMetadataCommand.cs" />
     <Compile Include="Commands\BackfillRepositoryMetadataCommand.cs" />
     <Compile Include="Commands\HashCommand.cs" />
     <Compile Include="Commands\ApplyTenantPolicyCommand.cs" />

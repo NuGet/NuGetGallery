@@ -549,6 +549,7 @@ namespace NuGetGallery
             package.IsPrerelease = packageMetadata.Version.IsPrerelease;
             package.Listed = true;
             package.RequiresLicenseAcceptance = packageMetadata.RequireLicenseAcceptance;
+            package.DevelopmentDependency = packageMetadata.DevelopmentDependency;
             package.Summary = packageMetadata.Summary;
             package.Tags = PackageHelper.ParseTags(packageMetadata.Tags);
             package.Title = packageMetadata.Title;

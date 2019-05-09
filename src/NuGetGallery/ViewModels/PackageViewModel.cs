@@ -35,6 +35,7 @@ namespace NuGetGallery
             LatestVersionSemVer2 = package.IsLatestSemVer2;
             LatestStableVersion = package.IsLatestStable;
             LatestStableVersionSemVer2 = package.IsLatestStableSemVer2;
+            DevelopmentDependency = package.DevelopmentDependency;
             LastUpdated = package.Published;
             Listed = package.Listed;
             _packageStatus = package.PackageStatusKey;
@@ -50,6 +51,7 @@ namespace NuGetGallery
         public bool LatestStableVersion { get; set; }
         public bool LatestVersionSemVer2 { get; set; }
         public bool LatestStableVersionSemVer2 { get; set; }
+        public bool DevelopmentDependency { get; set; }
         public bool Prerelease { get; set; }
         public int DownloadCount { get; set; }
         public bool Listed { get; set; }
