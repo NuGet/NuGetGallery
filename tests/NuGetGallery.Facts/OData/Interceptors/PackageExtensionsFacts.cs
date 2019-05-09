@@ -25,13 +25,19 @@ namespace NuGetGallery.OData.Interceptors
                     CreateFakeBasePackage()
                 }.AsQueryable();
 
+                var iconUrlProvider = new Mock<IIconUrlProvider>();
+                const string iconUrlString = "sample icon url";
+                iconUrlProvider
+                    .Setup(iup => iup.GetIconUrlString(packages.First()))
+                    .Returns(iconUrlString);
+
                 // Act
                 var projected = PackageExtensions.ProjectV2FeedPackage(
                     packages,
                     siteRoot: "http://nuget.org",
                     includeLicenseReport: true,
                     semVerLevelKey: semVerLevelKey,
-                    iconUrlProvider: Mock.Of<IIconUrlProvider>()).ToList();
+                    iconUrlProvider: iconUrlProvider.Object).ToList();
 
                 // Assert
                 var actual = projected.Single();
@@ -44,7 +50,7 @@ namespace NuGetGallery.OData.Interceptors
                 Assert.Equal(new DateTime(1971, 4, 2), actual.Created);
                 Assert.Equal("A|B|C", actual.Dependencies);
                 Assert.Equal("The standard repository for all knowledge and wisdom", actual.Description);
-                Assert.Equal("http://notreal.example/foo.ico", actual.IconUrl);
+                Assert.Equal(iconUrlString, actual.IconUrl);
                 Assert.False(actual.IsLatestVersion);
                 Assert.True(actual.IsAbsoluteLatestVersion);
                 Assert.True(actual.IsPrerelease);

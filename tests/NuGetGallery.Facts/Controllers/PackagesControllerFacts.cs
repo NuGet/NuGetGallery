@@ -71,7 +71,8 @@ namespace NuGetGallery
             Mock<ICoreLicenseFileService> coreLicenseFileService = null,
             Mock<ILicenseExpressionSplitter> licenseExpressionSplitter = null,
             Mock<IFeatureFlagService> featureFlagService = null,
-            Mock<IPackageDeprecationService> deprecationService = null)
+            Mock<IPackageDeprecationService> deprecationService = null,
+            Mock<IIconUrlProvider> iconUrlProvider = null)
         {
             packageService = packageService ?? new Mock<IPackageService>();
             if (uploadFileService == null)
@@ -191,6 +192,7 @@ namespace NuGetGallery
             }
 
             deprecationService = deprecationService ?? new Mock<IPackageDeprecationService>();
+            iconUrlProvider = iconUrlProvider ?? new Mock<IIconUrlProvider>();
 
             var diagnosticsService = new Mock<IDiagnosticsService>();
             var controller = new Mock<PackagesController>(
@@ -220,7 +222,8 @@ namespace NuGetGallery
                 coreLicenseFileService.Object,
                 licenseExpressionSplitter.Object,
                 featureFlagService.Object,
-                deprecationService.Object);
+                deprecationService.Object,
+                iconUrlProvider.Object);
 
             controller.CallBase = true;
             controller.Object.SetOwinContextOverride(Fakes.CreateOwinContext());
