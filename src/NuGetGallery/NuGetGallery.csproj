@@ -246,10 +246,6 @@
     <Compile Include="Migrations\201904292139301_RemoveVulnerabilityDataFromPackageDeprecationModel.Designer.cs">
       <DependentUpon>201904292139301_RemoveVulnerabilityDataFromPackageDeprecationModel.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\201905071934592_IconFlatContainerFlag.cs" />
-    <Compile Include="Migrations\201905071934592_IconFlatContainerFlag.Designer.cs">
-      <DependentUpon>201905071934592_IconFlatContainerFlag.cs</DependentUpon>
-    </Compile>
     <Compile Include="Services\ConfigurationIconFileProvider.cs" />
     <Compile Include="Services\IInternalIconUrlProvider.cs" />
     <Compile Include="Services\IPackageDeprecationService.cs" />
@@ -1728,9 +1724,6 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201904292139301_RemoveVulnerabilityDataFromPackageDeprecationModel.resx">
       <DependentUpon>201904292139301_RemoveVulnerabilityDataFromPackageDeprecationModel.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201905071934592_IconFlatContainerFlag.resx">
-      <DependentUpon>201905071934592_IconFlatContainerFlag.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
