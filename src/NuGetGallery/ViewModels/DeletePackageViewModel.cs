@@ -10,8 +10,8 @@ namespace NuGetGallery
 {
     public class DeletePackageViewModel : DisplayPackageViewModel
     {
-        public DeletePackageViewModel(Package package, User currentUser, IReadOnlyList<ReportPackageReason> reasons)
-            : base(package, currentUser, null)
+        public DeletePackageViewModel(Package package, User currentUser, IReadOnlyList<ReportPackageReason> reasons, IIconUrlProvider iconUrlProvider)
+            : base(package, currentUser, null, iconUrlProvider)
         {
             DeletePackagesRequest = new DeletePackagesRequest
             {

@@ -111,7 +111,7 @@ namespace NuGetGallery
 
         protected override DeleteAccountViewModel<User> GetDeleteAccountViewModel(User account)
         {
-            return new DeleteUserViewModel(account, GetCurrentUser(), PackageService, _supportRequestService);
+            return new DeleteUserViewModel(account, GetCurrentUser(), PackageService, _supportRequestService, _iconUrlProvider);
         }
 
         [HttpGet]
@@ -461,7 +461,7 @@ namespace NuGetGallery
                 .SelectMany(m => _packageOwnerRequestService.GetPackageOwnershipRequests(requestingOwner: m.Organization));
             var sent = userSent.Union(orgSent);
 
-            var ownerRequests = new OwnerRequestsViewModel(received, sent, currentUser, PackageService);
+            var ownerRequests = new OwnerRequestsViewModel(received, sent, currentUser, PackageService, _iconUrlProvider);
 
             var userReservedNamespaces = currentUser.ReservedNamespaces;
             var organizationsReservedNamespaces = currentUser.Organizations.SelectMany(m => m.Organization.ReservedNamespaces);

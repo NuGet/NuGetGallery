@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Moq;
 using NuGet.Services.Entities;
 using Xunit;
 
@@ -29,7 +30,8 @@ namespace NuGetGallery.OData.Interceptors
                     packages,
                     siteRoot: "http://nuget.org",
                     includeLicenseReport: true,
-                    semVerLevelKey: semVerLevelKey).ToList();
+                    semVerLevelKey: semVerLevelKey,
+                    iconUrlProvider: Mock.Of<IIconUrlProvider>()).ToList();
 
                 // Assert
                 var actual = projected.Single();
@@ -79,7 +81,8 @@ namespace NuGetGallery.OData.Interceptors
                     packages,
                     siteRoot: "http://nuget.org",
                     includeLicenseReport: true,
-                    semVerLevelKey: SemVerLevelKey.Unknown).ToList();
+                    semVerLevelKey: SemVerLevelKey.Unknown,
+                    iconUrlProvider: Mock.Of<IIconUrlProvider>()).ToList();
 
                 // Assert
                 var actual = projected.Single();
@@ -103,7 +106,8 @@ namespace NuGetGallery.OData.Interceptors
                     packages,
                     siteRoot: "http://nuget.org",
                     includeLicenseReport: true,
-                    semVerLevelKey: SemVerLevelKey.Unknown).ToList();
+                    semVerLevelKey: SemVerLevelKey.Unknown,
+                    iconUrlProvider: Mock.Of<IIconUrlProvider>()).ToList();
 
                 // Assert
                 var actual = projected.Single();
@@ -124,7 +128,8 @@ namespace NuGetGallery.OData.Interceptors
                     packages,
                     siteRoot: "http://nuget.org",
                     includeLicenseReport: false,
-                    semVerLevelKey: SemVerLevelKey.Unknown).ToList();
+                    semVerLevelKey: SemVerLevelKey.Unknown,
+                    iconUrlProvider: Mock.Of<IIconUrlProvider>()).ToList();
 
                 // Assert
                 var actual = projected.Single();

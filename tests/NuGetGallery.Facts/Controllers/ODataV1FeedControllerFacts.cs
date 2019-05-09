@@ -93,13 +93,15 @@ namespace NuGetGallery.Controllers
             IEntityRepository<Package> packagesRepository,
             IGalleryConfigurationService configurationService,
             ISearchService searchService,
-            ITelemetryService telemetryService)
+            ITelemetryService telemetryService,
+            IIconUrlProvider iconUrlProvider)
         {
             return new ODataV1FeedController(
                 packagesRepository,
                 configurationService,
                 searchService,
-                telemetryService);
+                telemetryService,
+                iconUrlProvider);
         }
 
         private void AssertSemVer2PackagesFilteredFromResult(IEnumerable<V1FeedPackage> resultSet)

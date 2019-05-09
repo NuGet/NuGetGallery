@@ -15,8 +15,9 @@ namespace NuGetGallery
             User userToDelete,
             User currentUser,
             IPackageService packageService,
-            ISupportRequestService supportRequestService)
-            : base(userToDelete, currentUser, packageService)
+            ISupportRequestService supportRequestService,
+            IIconUrlProvider iconUrlProvider)
+            : base(userToDelete, currentUser, packageService, iconUrlProvider)
         {
             Organizations = userToDelete.Organizations
                 .Select(u => new ManageOrganizationsItemViewModel(u, packageService));

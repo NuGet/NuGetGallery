@@ -12,8 +12,9 @@ namespace NuGetGallery
         public DeleteOrganizationViewModel(
             Organization organizationToDelete, 
             User currentUser, 
-            IPackageService packageService)
-            : base(organizationToDelete, currentUser, packageService)
+            IPackageService packageService,
+            IIconUrlProvider iconUrlProvider)
+            : base(organizationToDelete, currentUser, packageService, iconUrlProvider)
         {
             Members = organizationToDelete.Members
                 .Select(m => new OrganizationMemberViewModel(m))

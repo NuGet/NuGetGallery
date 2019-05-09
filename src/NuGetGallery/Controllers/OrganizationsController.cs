@@ -20,6 +20,8 @@ namespace NuGetGallery
     public class OrganizationsController
         : AccountsController<Organization, OrganizationAccountViewModel>
     {
+        private readonly IIconUrlProvider _iconUrlProvider;
+
         public OrganizationsController(
             AuthenticationService authService,
             IMessageService messageService,
@@ -30,7 +32,8 @@ namespace NuGetGallery
             IPackageService packageService,
             IDeleteAccountService deleteAccountService,
             IContentObjectService contentObjectService,
-            IMessageServiceConfiguration messageServiceConfiguration)
+            IMessageServiceConfiguration messageServiceConfiguration,
+            IIconUrlProvider iconUrlProvider)
             : base(
                   authService,
                   packageService,
@@ -43,6 +46,7 @@ namespace NuGetGallery
                   messageServiceConfiguration,
                   deleteAccountService)
         {
+            _iconUrlProvider = iconUrlProvider ?? throw new ArgumentNullException(nameof(iconUrlProvider));
         }
 
         public override string AccountAction => nameof(ManageOrganization);
@@ -333,7 +337,7 @@ namespace NuGetGallery
 
         private DeleteOrganizationViewModel GetDeleteOrganizationViewModel(Organization account)
         {
-            return new DeleteOrganizationViewModel(account, GetCurrentUser(), PackageService);
+            return new DeleteOrganizationViewModel(account, GetCurrentUser(), PackageService, _iconUrlProvider);
         }
 
         [HttpPost]

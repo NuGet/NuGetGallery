@@ -53,7 +53,8 @@ namespace NuGetGallery.Controllers
             IEntityRepository<Package> packagesRepository,
             IGalleryConfigurationService configurationService,
             ISearchService searchService,
-            ITelemetryService telemetryService);
+            ITelemetryService telemetryService,
+            IIconUrlProvider iconUrlProvider);
 
         protected TController CreateTestableODataFeedController(HttpRequestMessage request)
         {
@@ -61,12 +62,14 @@ namespace NuGetGallery.Controllers
             var configurationService = new TestGalleryConfigurationService();
             configurationService.Current.SiteRoot = _siteRoot;
             var telemetryService = new Mock<ITelemetryService>();
+            var iconUrlProvider = new Mock<IIconUrlProvider>();
 
             var controller = CreateController(
                 PackagesRepository,
                 configurationService,
                 searchService,
-                telemetryService.Object);
+                telemetryService.Object,
+                iconUrlProvider.Object);
 
             AddRequestToController(request, controller);
 
