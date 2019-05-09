@@ -50,7 +50,7 @@ namespace NuGetGallery.OData.Interceptors
                 Assert.Equal(new DateTime(1971, 4, 2), actual.Created);
                 Assert.Equal("A|B|C", actual.Dependencies);
                 Assert.Equal("The standard repository for all knowledge and wisdom", actual.Description);
-                Assert.Equal(iconUrlString, actual.IconUrl);
+                Assert.Equal("http://notreal.example/foo.ico", actual.IconUrl);
                 Assert.False(actual.IsLatestVersion);
                 Assert.True(actual.IsAbsoluteLatestVersion);
                 Assert.True(actual.IsPrerelease);

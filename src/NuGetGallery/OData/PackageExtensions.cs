@@ -32,7 +32,7 @@ namespace NuGetGallery.OData
                             DownloadCount = p.PackageRegistration.DownloadCount,
                             ExternalPackageUrl = null,
                             GalleryDetailsUrl = siteRoot + "packages/" + p.PackageRegistration.Id + "/" + p.Version,
-                            IconUrl = iconUrlProvider.GetIconUrlString(p),
+                            IconUrl = p.IconUrl,
                             // We do not project SemVer2 equivalent of IsLatestStable on v1 feeds
                             // as SemVer2 is not supported on this endpoint.
                             IsLatestVersion = p.IsLatestStable,
@@ -93,7 +93,7 @@ namespace NuGetGallery.OData
                     Description = p.Description,
                     DownloadCount = p.PackageRegistration.DownloadCount,
                     GalleryDetailsUrl = siteRoot + "packages/" + p.PackageRegistration.Id + "/" + p.NormalizedVersion,
-                    IconUrl = iconUrlProvider.GetIconUrlString(p),
+                    IconUrl = p.IconUrl,
                     // We do not expose the internal IsLatestSemVer2 and IsLatestStableSemVer2 properties; 
                     // instead the existing IsAbsoluteLatestVersion and IsLatestVersion properties will be updated based on the 
                     // semver-level supported by the caller.
