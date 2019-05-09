@@ -941,7 +941,7 @@ namespace NuGetGallery
                 throw;
             }
 
-            var model = new DisplayLicenseViewModel(package, licenseExpressionSegments, licenseFileContents);
+            var model = new DisplayLicenseViewModel(package, licenseExpressionSegments, licenseFileContents, _iconUrlProvider.GetIconUrlString(package));
 
             return View(model);
         }
@@ -1022,9 +1022,9 @@ namespace NuGetGallery
                 totalHits = 0;
             }
 
+            var currentUser = GetCurrentUser();
             var viewModel = new PackageListViewModel(
-                results.Data,
-                GetCurrentUser(),
+                results.Data.Select(p => new ListPackageItemViewModel(p, currentUser, _iconUrlProvider.GetIconUrlString(p))).ToList(),
                 results.IndexTimestampUtc,
                 q,
                 totalHits,

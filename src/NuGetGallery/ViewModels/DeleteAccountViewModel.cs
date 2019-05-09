@@ -13,8 +13,9 @@ namespace NuGetGallery
         public DeleteAccountViewModel(
             TAccount accountToDelete,
             User currentUser,
-            IPackageService packageService)
-            : base(accountToDelete, currentUser, packageService)
+            IPackageService packageService,
+            IIconUrlProvider iconUrlProvider)
+            : base(accountToDelete, currentUser, packageService, iconUrlProvider)
         {
             Account = accountToDelete;
         }
@@ -27,13 +28,14 @@ namespace NuGetGallery
         public DeleteAccountViewModel(
             User userToDelete,
             User currentUser,
-            IPackageService packageService)
+            IPackageService packageService,
+            IIconUrlProvider iconUrlProvider)
         {
             User = userToDelete;
 
             Packages = packageService
                  .FindPackagesByAnyMatchingOwner(User, includeUnlisted: true)
-                 .Select(p => new DeleteAccountListPackageItemViewModel(p, userToDelete, currentUser, packageService))
+                 .Select(p => new DeleteAccountListPackageItemViewModel(p, userToDelete, currentUser, packageService, iconUrlProvider.GetIconUrlString(p)))
                  .ToList();
 
             HasPackagesThatWillBeOrphaned = Packages.Any(p => p.WillBeOrphaned);

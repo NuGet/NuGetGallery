@@ -7,12 +7,13 @@ namespace NuGetGallery
 {
     public class OwnerRequestsListItemViewModel
     {
-        public OwnerRequestsListItemViewModel(PackageOwnerRequest request, IPackageService packageService, User currentUser)
+        public OwnerRequestsListItemViewModel(PackageOwnerRequest request, IPackageService packageService, User currentUser, IIconUrlProvider iconUrlProvider)
         {
             Request = request;
 
             var package = packageService.FindPackageByIdAndVersion(request.PackageRegistration.Id, version: null, semVerLevelKey: SemVerLevelKey.SemVer2, allowPrerelease: true);
-            Package = new ListPackageItemViewModel(package, currentUser);
+            var icon = iconUrlProvider.GetIconUrlString(package);
+            Package = new ListPackageItemViewModel(package, currentUser, icon);
 
             CanAccept = ActionsRequiringPermissions.HandlePackageOwnershipRequest.CheckPermissions(currentUser, Request.NewOwner) == PermissionsCheckResult.Allowed;
             CanCancel = Package.CanManageOwners;

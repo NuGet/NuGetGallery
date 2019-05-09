@@ -13,8 +13,8 @@ namespace NuGetGallery
 {
     public class DisplayPackageViewModel : ListPackageItemViewModel
     {
-        public DisplayPackageViewModel(Package package, User currentUser, PackageDeprecation deprecation)
-            : this(package, currentUser, (string)null)
+        public DisplayPackageViewModel(Package package, User currentUser, PackageDeprecation deprecation, IIconUrlProvider iconUrlProvider)
+            : this(package, currentUser, (string)null, iconUrlProvider.GetIconUrlString(package))
         {
             HasSemVer2Version = NuGetVersion.IsSemVer2;
             HasSemVer2Dependency = package.Dependencies.ToList()
@@ -29,7 +29,7 @@ namespace NuGetGallery
                 .Packages
                 .OrderByDescending(p => new NuGetVersion(p.Version))
                 .ToList();
-            PackageVersions = packageHistory.Select(p => new DisplayPackageViewModel(p, currentUser, GetPushedBy(p, currentUser))).ToList();
+            PackageVersions = packageHistory.Select(p => new DisplayPackageViewModel(p, currentUser, GetPushedBy(p, currentUser), iconUrlProvider.GetIconUrlString(p))).ToList();
 
             PushedBy = GetPushedBy(package, currentUser);
             PackageFileSize = package.PackageFileSize;

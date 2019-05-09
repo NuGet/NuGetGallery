@@ -9,9 +9,9 @@ namespace NuGetGallery
 {
     public class OwnerRequestsListViewModel
     {
-        public OwnerRequestsListViewModel(IEnumerable<PackageOwnerRequest> requests, User currentUser, IPackageService packageService)
+        public OwnerRequestsListViewModel(IEnumerable<PackageOwnerRequest> requests, User currentUser, IPackageService packageService, IIconUrlProvider iconUrlProvider)
         {
-            Requests = requests.Select(r => new OwnerRequestsListItemViewModel(r, packageService, currentUser)).ToArray();
+            Requests = requests.Select(r => new OwnerRequestsListItemViewModel(r, packageService, currentUser, iconUrlProvider)).ToArray();
         }
 
         public IEnumerable<OwnerRequestsListItemViewModel> Requests { get; }

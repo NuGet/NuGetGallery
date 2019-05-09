@@ -22,10 +22,11 @@ namespace NuGetGallery
             IEnumerable<PackageOwnerRequest> received,
             IEnumerable<PackageOwnerRequest> sent,
             User currentUser,
-            IPackageService packageService)
+            IPackageService packageService,
+            IIconUrlProvider iconUrlProvider)
         {
-            Received = new OwnerRequestsListViewModel(received, currentUser, packageService);
-            Sent = new OwnerRequestsListViewModel(sent, currentUser, packageService);
+            Received = new OwnerRequestsListViewModel(received, currentUser, packageService, iconUrlProvider);
+            Sent = new OwnerRequestsListViewModel(sent, currentUser, packageService, iconUrlProvider);
         }
     }
 }

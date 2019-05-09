@@ -443,7 +443,7 @@ namespace NuGetGallery
                 .ToList();
             var unlistedPackages = packages
                 .Where(p => !p.Listed || p.PackageStatusKey != PackageStatus.Available)
-                .Select(p => new ListPackageItemRequiredSignerViewModel(p, currentUser, SecurityPolicyService, wasAADLoginOrMultiFactorAuthenticated))
+                .Select(p => new ListPackageItemRequiredSignerViewModel(p, currentUser, SecurityPolicyService, wasAADLoginOrMultiFactorAuthenticated, _iconUrlProvider.GetIconUrlString(p)))
                 .OrderBy(p => p.Id)
                 .ToList();
 
@@ -616,7 +616,7 @@ namespace NuGetGallery
             var packages = PackageService.FindPackagesByOwner(user, includeUnlisted: false)
                 .Where(p => p.PackageStatusKey == PackageStatus.Available)
                 .OrderByDescending(p => p.PackageRegistration.DownloadCount)
-                .Select(p => new ListPackageItemViewModel(p, currentUser)
+                .Select(p => new ListPackageItemViewModel(p, currentUser, _iconUrlProvider.GetIconUrlString(p))
                 {
                     DownloadCount = p.PackageRegistration.DownloadCount
                 }).ToList();
