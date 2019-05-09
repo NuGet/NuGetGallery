@@ -20,6 +20,7 @@ using Newtonsoft.Json.Linq;
 using NgTests;
 using NgTests.Data;
 using NgTests.Infrastructure;
+using NuGet.Protocol.Catalog;
 using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Dnx;
 using NuGet.Services.Metadata.Catalog.Persistence;
@@ -70,6 +71,7 @@ namespace CatalogTests.Dnx
         private DnxCatalogCollector _target;
         private Random _random;
         private Uri _cursorJsonUri;
+        private Mock<ICatalogClient> _mockCatalogClient;
 
         public DnxCatalogCollectorTests()
         {
@@ -77,6 +79,10 @@ namespace CatalogTests.Dnx
             _catalogToDnxStorageFactory = new TestStorageFactory(name => _catalogToDnxStorage.WithName(name));
             _mockServer = new MockServerHttpClientHandler();
             _mockServer.SetAction("/", request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)));
+            _mockCatalogClient = new Mock<ICatalogClient>();
+            _mockCatalogClient
+                .Setup(cc => cc.GetPackageDetailsLeafAsync(It.IsAny<string>()))
+                .ReturnsAsync(new PackageDetailsCatalogLeaf());
 
             var loggerFactory = new LoggerFactory();
             _logger = loggerFactory.CreateLogger<DnxCatalogCollector>();
@@ -89,6 +95,7 @@ namespace CatalogTests.Dnx
                 Mock.Of<ITelemetryService>(),
                 _logger,
                 _maxDegreeOfParallelism,
+                _ => _mockCatalogClient.Object,
                 () => _mockServer);
 
             _cursorJsonUri = _catalogToDnxStorage.ResolveUri("cursor.json");
@@ -111,6 +118,7 @@ namespace CatalogTests.Dnx
                         Mock.Of<ITelemetryService>(),
                         Mock.Of<ILogger>(),
                         maxDegreeOfParallelism: 1,
+                        catalogClientFactory: _ => _mockCatalogClient.Object,
                         handlerFunc: () => clientHandler,
                         httpClientTimeout: TimeSpan.Zero));
 
@@ -134,6 +142,7 @@ namespace CatalogTests.Dnx
                         telemetryService: Mock.Of<ITelemetryService>(),
                         logger: Mock.Of<ILogger>(),
                         maxDegreeOfParallelism: 1,
+                        catalogClientFactory: _ => _mockCatalogClient.Object,
                         handlerFunc: () => clientHandler,
                         httpClientTimeout: TimeSpan.Zero));
 
@@ -155,6 +164,7 @@ namespace CatalogTests.Dnx
                         telemetryService: null,
                         logger: Mock.Of<ILogger>(),
                         maxDegreeOfParallelism: 1,
+                        catalogClientFactory: _ => _mockCatalogClient.Object,
                         handlerFunc: () => clientHandler,
                         httpClientTimeout: TimeSpan.Zero));
 
@@ -178,6 +188,7 @@ namespace CatalogTests.Dnx
                         Mock.Of<ITelemetryService>(),
                         logger,
                         maxDegreeOfParallelism: 1,
+                        catalogClientFactory: _ => _mockCatalogClient.Object,
                         handlerFunc: () => clientHandler,
                         httpClientTimeout: TimeSpan.Zero));
 
@@ -201,11 +212,34 @@ namespace CatalogTests.Dnx
                         telemetryService: Mock.Of<ITelemetryService>(),
                         logger: Mock.Of<ILogger>(),
                         maxDegreeOfParallelism: maxDegreeOfParallelism,
+                        catalogClientFactory: _ => _mockCatalogClient.Object,
                         handlerFunc: () => clientHandler,
                         httpClientTimeout: TimeSpan.Zero));
 
                 Assert.Equal("maxDegreeOfParallelism", exception.ParamName);
                 Assert.StartsWith($"The argument must be within the range from 1 (inclusive) to {int.MaxValue} (inclusive).", exception.Message);
+            }
+        }
+
+        [Fact]
+        public void Constructor_WhenCatalogClientFactoryIsNull_Throws()
+        {
+            using (var clientHandler = new HttpClientHandler())
+            {
+                var exception = Assert.Throws<ArgumentNullException>(
+                    () => new DnxCatalogCollector(
+                        new Uri("https://nuget.test"),
+                        new TestStorageFactory(),
+                        _nullPreferredPackageSourceStorage,
+                        null,
+                        Mock.Of<ITelemetryService>(),
+                        logger: Mock.Of<ILogger>(),
+                        maxDegreeOfParallelism: 1,
+                        catalogClientFactory: null,
+                        handlerFunc: () => clientHandler,
+                        httpClientTimeout: TimeSpan.Zero));
+
+                Assert.Equal("catalogClientFactory", exception.ParamName);
             }
         }
 
@@ -220,6 +254,7 @@ namespace CatalogTests.Dnx
                 telemetryService: Mock.Of<ITelemetryService>(),
                 logger: Mock.Of<ILogger>(),
                 maxDegreeOfParallelism: 1,
+                catalogClientFactory: _ => _mockCatalogClient.Object,
                 handlerFunc: null,
                 httpClientTimeout: TimeSpan.Zero);
         }
@@ -237,6 +272,7 @@ namespace CatalogTests.Dnx
                     telemetryService: Mock.Of<ITelemetryService>(),
                     logger: Mock.Of<ILogger>(),
                     maxDegreeOfParallelism: 1,
+                    catalogClientFactory: _ => _mockCatalogClient.Object,
                     handlerFunc: () => clientHandler,
                     httpClientTimeout: null);
             }
@@ -456,6 +492,7 @@ namespace CatalogTests.Dnx
                 Mock.Of<ITelemetryService>(),
                 _logger,
                 _maxDegreeOfParallelism,
+                _ => _mockCatalogClient.Object,
                 () => _mockServer);
 
             var catalogStorage = Catalogs.CreateTestCatalogWithThreePackagesAndDelete();
@@ -510,6 +547,7 @@ namespace CatalogTests.Dnx
                 Mock.Of<ITelemetryService>(),
                 _logger,
                 _maxDegreeOfParallelism,
+                _ => _mockCatalogClient.Object,
                 () => _mockServer);
 
             var catalogStorage = Catalogs.CreateTestCatalogWithOnePackage();
@@ -564,6 +602,7 @@ namespace CatalogTests.Dnx
                 Mock.Of<ITelemetryService>(),
                 _logger,
                 _maxDegreeOfParallelism,
+                _ => _mockCatalogClient.Object,
                 () => _mockServer);
 
             var catalogStorage = Catalogs.CreateTestCatalogWithOnePackage();
@@ -614,6 +653,7 @@ namespace CatalogTests.Dnx
                 Mock.Of<ITelemetryService>(),
                 new Mock<ILogger>().Object,
                 _maxDegreeOfParallelism,
+                _ => _mockCatalogClient.Object,
                 () => _mockServer);
 
             var catalogStorage = Catalogs.CreateTestCatalogWithThreePackagesAndDelete();
@@ -817,7 +857,7 @@ namespace CatalogTests.Dnx
                     packageDetails,
                     _contextKeyword);
 
-                var index = CatalogIndex.Create(independentPage, _contextKeyword);
+                var index = Helpers.CatalogIndex.Create(independentPage, _contextKeyword);
                 var catalogStorage = new MemoryStorage(_baseUri);
 
                 catalogStorage.Content.TryAdd(catalogIndexUri, CreateStringStorageContent(index));
@@ -918,7 +958,7 @@ namespace CatalogTests.Dnx
                     packageDetails,
                     _contextKeyword);
 
-                var index = CatalogIndex.Create(independentPage, _contextKeyword);
+                var index = Helpers.CatalogIndex.Create(independentPage, _contextKeyword);
                 var catalogStorage = new MemoryStorage(_baseUri);
 
                 catalogStorage.Content.TryAdd(catalogIndexUri, CreateStringStorageContent(index));
@@ -1021,7 +1061,7 @@ namespace CatalogTests.Dnx
                     packageDetails,
                     _contextKeyword);
 
-                var index = CatalogIndex.Create(independentPage, _contextKeyword);
+                var index = Helpers.CatalogIndex.Create(independentPage, _contextKeyword);
                 var catalogStorage = new MemoryStorage(_baseUri);
 
                 catalogStorage.Content.TryAdd(catalogIndexUri, CreateStringStorageContent(index));

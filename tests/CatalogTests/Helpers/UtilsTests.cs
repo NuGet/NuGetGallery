@@ -171,5 +171,53 @@ namespace CatalogTests.Helpers
             Assert.Equal(1, licenseTriples.Count());
             Assert.Equal(licenseContent, result.Value);
         }
+
+        [Theory]
+        [InlineData("TestPackage.IconAndIconUrl.0.4.2.nupkg", true, true)]
+        [InlineData("TestPackage.IconOnlyEmptyType.0.4.2.nupkg", false, false)]
+        [InlineData("TestPackage.IconOnlyFileType.0.4.2.nupkg", true, false)]
+        [InlineData("TestPackage.IconOnlyInvalidType.0.4.2.nupkg", false, false)]
+        [InlineData("TestPackage.IconOnlyNoType.0.4.2.nupkg", true, false)]
+        public void GetNupkgMetadataWithIcon_ProcessesCorrectly(string packageFilename, bool expectedIconMetadata, bool expectedIconUrlMetadata)
+        {
+            // Arrange
+            var stream = TestHelper.GetStream(packageFilename);
+            var metadata = Utils.GetNupkgMetadata(stream, packageHash: null);
+            var baseUrl = "http://example/";
+            var packageIdVersion = packageFilename.Replace(".nupkg", "").ToLowerInvariant();
+            var uriNodeName = new Uri(string.Concat(baseUrl, packageIdVersion, ".json"));
+
+            // Act
+            var graph = Utils.CreateNuspecGraph(metadata.Nuspec, baseUrl, normalizeXml: true);
+            var iconTriples = graph.GetTriplesWithSubjectPredicate(
+                graph.CreateUriNode(uriNodeName),
+                graph.CreateUriNode(Schema.Predicates.IconFile)
+                );
+            var iconUrlTriples = graph.GetTriplesWithSubjectPredicate(
+                graph.CreateUriNode(uriNodeName),
+                graph.CreateUriNode(Schema.Predicates.IconUrl)
+                );
+            var result = (LiteralNode)iconTriples.FirstOrDefault()?.Object;
+
+            // Assert
+            if (expectedIconMetadata)
+            {
+                Assert.Single(iconTriples);
+                Assert.Equal("icon.png", result.Value);
+            }
+            else
+            {
+                Assert.Empty(iconTriples);
+            }
+
+            if (expectedIconUrlMetadata)
+            {
+                Assert.Single(iconUrlTriples);
+            }
+            else
+            {
+                Assert.Empty(iconUrlTriples);
+            }
+        }
     }
 }

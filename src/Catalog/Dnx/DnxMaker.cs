@@ -4,23 +4,32 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
+using NuGet.Common;
+using Microsoft.Extensions.Logging;
 using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using NuGet.Versioning;
+
+using ILogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace NuGet.Services.Metadata.Catalog.Dnx
 {
     public class DnxMaker
     {
         private readonly StorageFactory _storageFactory;
+        private readonly ITelemetryService _telemetryService;
+        private readonly ILogger _logger;
 
-        public DnxMaker(StorageFactory storageFactory)
+        public DnxMaker(StorageFactory storageFactory, ITelemetryService telemetryService, ILogger logger)
         {
             _storageFactory = storageFactory ?? throw new ArgumentNullException(nameof(storageFactory));
+            _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         public async Task<DnxEntry> AddPackageAsync(
@@ -28,11 +37,17 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             string nuspec,
             string packageId,
             string normalizedPackageVersion,
+            string iconFilename,
             CancellationToken cancellationToken)
         {
             if (nupkgStream == null)
             {
                 throw new ArgumentNullException(nameof(nupkgStream));
+            }
+
+            if (!nupkgStream.CanSeek)
+            {
+                throw new ArgumentException($"{nameof(nupkgStream)} must be seekable stream", nameof(nupkgStream));
             }
 
             if (string.IsNullOrEmpty(nuspec))
@@ -54,16 +69,28 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
 
             var storage = _storageFactory.Create(packageId);
             var nuspecUri = await SaveNuspecAsync(storage, packageId, normalizedPackageVersion, nuspec, cancellationToken);
+            nupkgStream.Seek(0, SeekOrigin.Begin);
+            if (!string.IsNullOrWhiteSpace(iconFilename))
+            {
+                await CopyIconFromNupkgStreamAsync(nupkgStream, iconFilename, storage, packageId, normalizedPackageVersion, cancellationToken);
+            }
+            else
+            {
+                _logger.LogInformation("Package {PackageId} {PackageVersion} doesn't have an icon file specified in fallback to package stream case.",
+                    packageId,
+                    normalizedPackageVersion);
+            }
             var nupkgUri = await SaveNupkgAsync(nupkgStream, storage, packageId, normalizedPackageVersion, cancellationToken);
 
             return new DnxEntry(nupkgUri, nuspecUri);
         }
 
         public async Task<DnxEntry> AddPackageAsync(
-            IStorage sourceStorage,
+            IAzureStorage sourceStorage,
             string nuspec,
             string packageId,
             string normalizedPackageVersion,
+            string iconFilename,
             CancellationToken cancellationToken)
         {
             if (sourceStorage == null)
@@ -90,6 +117,16 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
 
             var destinationStorage = _storageFactory.Create(packageId);
             var nuspecUri = await SaveNuspecAsync(destinationStorage, packageId, normalizedPackageVersion, nuspec, cancellationToken);
+            if (!string.IsNullOrWhiteSpace(iconFilename))
+            {
+                await CopyIconFromAzureStorageIfExistAsync(sourceStorage, destinationStorage, packageId, normalizedPackageVersion, iconFilename, cancellationToken);
+            }
+            else
+            {
+                _logger.LogInformation("Package {PackageId} {PackageVersion} doesn't have icon file specified in Azure Storage stream case",
+                    packageId,
+                    normalizedPackageVersion);
+            }
             var nupkgUri = await CopyNupkgAsync(sourceStorage, destinationStorage, packageId, normalizedPackageVersion, cancellationToken);
 
             return new DnxEntry(nupkgUri, nuspecUri);
@@ -113,6 +150,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             var normalizedVersion = NuGetVersionUtility.NormalizeVersion(version);
 
             await DeleteNuspecAsync(storage, id, normalizedVersion, cancellationToken);
+            await DeleteIconAsync(storage, id, normalizedVersion, cancellationToken);
             await DeleteNupkgAsync(storage, id, normalizedVersion, cancellationToken);
         }
 
@@ -260,6 +298,114 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             return destinationUri;
         }
 
+        private async Task CopyIconFromAzureStorageIfExistAsync(
+            IAzureStorage sourceStorage,
+            Storage destinationStorage,
+            string packageId,
+            string normalizedPackageVersion,
+            string iconFilename,
+            CancellationToken cancellationToken)
+        {
+            using (var packageStream = await GetPackageStreamAsync(sourceStorage, packageId, normalizedPackageVersion, cancellationToken))
+            {
+                await CopyIconAsync(
+                    packageStream,
+                    iconFilename,
+                    destinationStorage,
+                    packageId,
+                    normalizedPackageVersion,
+                    cancellationToken);
+            }
+        }
+
+        private async Task CopyIconFromNupkgStreamAsync(
+            Stream nupkgStream,
+            string iconFilename,
+            Storage destinationStorage,
+            string packageId,
+            string normalizedPackageVersion,
+            CancellationToken cancellationToken)
+        {
+            await CopyIconAsync(
+                nupkgStream,
+                iconFilename,
+                destinationStorage,
+                packageId,
+                normalizedPackageVersion,
+                cancellationToken);
+        }
+
+        private async Task CopyIconAsync(
+            Stream packageStream,
+            string iconFilename,
+            Storage destinationStorage,
+            string packageId,
+            string normalizedPackageVersion,
+            CancellationToken cancellationToken)
+        {
+            _logger.LogInformation("Processing icon {IconFilename} for the package {PackageId} {PackageVersion}",
+                iconFilename,
+                packageId,
+                normalizedPackageVersion);
+
+            var iconPath = PathUtility.StripLeadingDirectorySeparators(iconFilename);
+
+            var destinationRelativeUri = GetRelativeAddressIcon(packageId, normalizedPackageVersion);
+            var destinationUri = destinationStorage.ResolveUri(destinationRelativeUri);
+
+            await ExtractAndStoreIconAsync(
+                packageStream,
+                iconPath,
+                destinationStorage,
+                destinationUri,
+                cancellationToken,
+                packageId,
+                normalizedPackageVersion);
+        }
+
+        private async Task ExtractAndStoreIconAsync(
+            Stream packageStream,
+            string iconPath,
+            Storage destinationStorage,
+            Uri destinationUri,
+            CancellationToken cancellationToken,
+            string packageId,
+            string normalizedPackageVersion)
+        {
+            using (var zipArchive = new ZipArchive(packageStream, ZipArchiveMode.Read, leaveOpen: true))
+            {
+                var iconEntry = zipArchive.Entries.FirstOrDefault(e => e.FullName.Equals(iconPath, StringComparison.InvariantCultureIgnoreCase));
+                if (iconEntry != null)
+                {
+                    using (var iconStream = iconEntry.Open())
+                    {
+                        _logger.LogInformation("Extracting icon to the destination storage {DestinationUri}", destinationUri);
+                        // TODO: align the mime type determination with Gallery https://github.com/nuget/nugetgallery/issues/7061
+                        var iconContent = new StreamStorageContent(iconStream, string.Empty, DnxConstants.DefaultCacheControl);
+                        await destinationStorage.SaveAsync(destinationUri, iconContent, cancellationToken);
+                        _logger.LogInformation("Done");
+                    }
+                }
+                else
+                {
+                    _telemetryService.TrackIconExtractionFailure(packageId, normalizedPackageVersion);
+                    _logger.LogWarning("Zip archive entry {IconPath} does not exist", iconPath);
+                }
+            }
+        }
+
+        private async Task<Stream> GetPackageStreamAsync(
+            IAzureStorage sourceStorage,
+            string packageId,
+            string normalizedPackageVersion,
+            CancellationToken cancellationToken)
+        {
+            var packageFileName = PackageUtility.GetPackageFileName(packageId, normalizedPackageVersion);
+            var sourceUri = sourceStorage.ResolveUri(packageFileName);
+            var packageSourceBlob = await sourceStorage.GetCloudBlockBlobReferenceAsync(sourceUri);
+            return await packageSourceBlob.GetStreamAsync(cancellationToken);
+        }
+
         private async Task DeleteNuspecAsync(Storage storage, string id, string version, CancellationToken cancellationToken)
         {
             string relativeAddress = GetRelativeAddressNuspec(id, version);
@@ -277,6 +423,16 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             if (storage.Exists(relativeAddress))
             {
                 await storage.DeleteAsync(nupkgUri, cancellationToken);
+            }
+        }
+
+        private async Task DeleteIconAsync(Storage storage, string id, string version, CancellationToken cancellationToken)
+        {
+            string relativeAddress = GetRelativeAddressIcon(id, version);
+            Uri iconUri = new Uri(storage.BaseAddress, relativeAddress);
+            if (storage.Exists(relativeAddress))
+            {
+                await storage.DeleteAsync(iconUri, cancellationToken);
             }
         }
 
@@ -300,6 +456,13 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             var normalizedVersion = NuGetVersion.Parse(version).ToNormalizedString();
 
             return $"{normalizedVersion}/{id}.{normalizedVersion}.nupkg";
+        }
+
+        private static string GetRelativeAddressIcon(string id, string version)
+        {
+            var normalizedVersion = NuGetVersion.Parse(version).ToNormalizedString();
+
+            return $"{normalizedVersion}/icon";
         }
 
         private class VersionsResult

@@ -78,5 +78,8 @@ namespace NuGet.Protocol.Catalog
 
         [JsonProperty("verbatimVersion")]
         public string VerbatimVersion { get; set; }
+
+        [JsonProperty("iconFile")]
+        public string IconFile { get; set; }
     }
 }

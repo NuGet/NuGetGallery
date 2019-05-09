@@ -64,7 +64,7 @@
       <Version>4.5.23</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Common">
-      <Version>4.8.0</Version>
+      <Version>5.0.0-preview1.5665</Version>
     </PackageReference>
     <PackageReference Include="xunit">
       <Version>2.1.0</Version>

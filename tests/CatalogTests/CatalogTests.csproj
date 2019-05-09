@@ -186,6 +186,21 @@
     <None Include="TestData\OneValidDependencyOneEmptyIdWithGroups.0.1.0.nupkg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="TestData\TestPackage.IconAndIconUrl.0.4.2.nupkg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="TestData\TestPackage.IconOnlyEmptyType.0.4.2.nupkg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="TestData\TestPackage.IconOnlyFileType.0.4.2.nupkg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="TestData\TestPackage.IconOnlyInvalidType.0.4.2.nupkg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="TestData\TestPackage.IconOnlyNoType.0.4.2.nupkg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="TestData\TestPackage.LicenseExpression.0.1.0.nupkg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -222,6 +237,10 @@
       <Project>{e97f23b8-ecb0-4afa-b00c-015c39395fef}</Project>
       <Name>NuGet.Services.Metadata.Catalog</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\src\NuGet.Protocol.Catalog\NuGet.Protocol.Catalog.csproj">
+      <Project>{d44c2e89-2d98-44bd-8712-8ccbe4e67c9c}</Project>
+      <Name>NuGet.Protocol.Catalog</Name>
+    </ProjectReference>
     <ProjectReference Include="..\NgTests\NgTests.csproj">
       <Project>{05c1c78a-9966-4922-9065-a099023e7366}</Project>
       <Name>NgTests</Name>
@@ -247,7 +266,7 @@
       <Version>4.7.25</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Packaging">
-      <Version>4.8.0</Version>
+      <Version>5.0.0-preview1.5665</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Logging">
       <Version>2.28.0</Version>
