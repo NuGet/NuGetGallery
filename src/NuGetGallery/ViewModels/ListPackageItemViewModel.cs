@@ -16,8 +16,8 @@ namespace NuGetGallery
 
         private string _signatureInformation;
 
-        public ListPackageItemViewModel(Package package, User currentUser)
-            : base(package)
+        public ListPackageItemViewModel(Package package, User currentUser, string overrideIcon)
+            : base(package, overrideIcon)
         {
             Tags = package.Tags?
                 .Split(' ')

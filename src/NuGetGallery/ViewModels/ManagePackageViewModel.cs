@@ -12,8 +12,15 @@ namespace NuGetGallery
 {
     public class ManagePackageViewModel : ListPackageItemViewModel
     {
-        public ManagePackageViewModel(Package package, User currentUser, IReadOnlyList<ReportPackageReason> reasons, UrlHelper url, string readMe, bool isManageDeprecationEnabled)
-            : base(package, currentUser)
+        public ManagePackageViewModel(
+            Package package,
+            User currentUser,
+            IReadOnlyList<ReportPackageReason> reasons,
+            UrlHelper url,
+            string readMe,
+            bool isManageDeprecationEnabled,
+            string overrideIconUrl)
+            : base(package, currentUser, overrideIconUrl)
         {
             IsCurrentUserAnAdmin = currentUser != null && currentUser.IsAdministrator;
 

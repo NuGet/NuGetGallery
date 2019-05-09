@@ -54,8 +54,9 @@ namespace NuGetGallery
             Package package, 
             User userToDelete, 
             User currentUser, 
-            IPackageService packageService)
-            : base(package, currentUser)
+            IPackageService packageService,
+            string overrideIconUrl)
+            : base(package, currentUser, overrideIconUrl)
         {
             WillBeOrphaned = packageService.WillPackageBeOrphanedIfOwnerRemoved(package.PackageRegistration, userToDelete);
         }

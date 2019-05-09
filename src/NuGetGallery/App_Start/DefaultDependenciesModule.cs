@@ -379,6 +379,10 @@ namespace NuGetGallery
                 .As<IPackageDeprecationService>()
                 .InstancePerLifetimeScope();
 
+            builder.RegisterType<ConfigurationIconFileProvider>()
+                .As<IIconUrlProvider>()
+                .InstancePerLifetimeScope();
+
             RegisterFeatureFlagsService(builder, configuration);
             RegisterMessagingService(builder, configuration);
 

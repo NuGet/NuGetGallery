@@ -30,6 +30,7 @@ namespace NuGetGallery
         private readonly IAppConfiguration _config;
         private readonly ICredentialBuilder _credentialBuilder;
         private readonly ISupportRequestService _supportRequestService;
+        private readonly IIconUrlProvider _iconUrlProvider;
 
         public UsersController(
             IUserService userService,
@@ -45,7 +46,8 @@ namespace NuGetGallery
             ISecurityPolicyService securityPolicyService,
             ICertificateService certificateService,
             IContentObjectService contentObjectService,
-            IMessageServiceConfiguration messageServiceConfiguration)
+            IMessageServiceConfiguration messageServiceConfiguration,
+            IIconUrlProvider iconUrlProvider)
             : base(
                   authService,
                   packageService,
@@ -62,6 +64,7 @@ namespace NuGetGallery
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _credentialBuilder = credentialBuilder ?? throw new ArgumentNullException(nameof(credentialBuilder));
             _supportRequestService = supportRequestService ?? throw new ArgumentNullException(nameof(supportRequestService));
+            _iconUrlProvider = iconUrlProvider ?? throw new ArgumentNullException(nameof(iconUrlProvider));
         }
 
         public override string AccountAction => nameof(Account);
@@ -435,7 +438,7 @@ namespace NuGetGallery
             var packages = PackageService.FindPackagesByAnyMatchingOwner(currentUser, includeUnlisted: true);
             var listedPackages = packages
                 .Where(p => p.Listed && p.PackageStatusKey == PackageStatus.Available)
-                .Select(p => new ListPackageItemRequiredSignerViewModel(p, currentUser, SecurityPolicyService, wasAADLoginOrMultiFactorAuthenticated))
+                .Select(p => new ListPackageItemRequiredSignerViewModel(p, currentUser, SecurityPolicyService, wasAADLoginOrMultiFactorAuthenticated, _iconUrlProvider.GetIconUrlString(p)))
                 .OrderBy(p => p.Id)
                 .ToList();
             var unlistedPackages = packages

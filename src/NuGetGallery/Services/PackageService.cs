@@ -605,6 +605,7 @@ namespace NuGetGallery
 
             package.EmbeddedLicenseType = GetEmbeddedLicenseType(packageMetadata);
             package.LicenseExpression = GetLicenseExpression(packageMetadata);
+            package.UsesIconFromFlatContainer = !string.IsNullOrWhiteSpace(packageMetadata.Icon);
 
             return package;
         }

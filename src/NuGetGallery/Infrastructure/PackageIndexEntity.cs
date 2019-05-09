@@ -15,11 +15,12 @@ namespace NuGetGallery
 
         public Package Package { get; set; }
 
-        public PackageIndexEntity() { }
+        private readonly IIconUrlProvider _iconUrlProvider;
 
-        public PackageIndexEntity(Package package)
+        public PackageIndexEntity(Package package, IIconUrlProvider iconUrlProvider)
         {
             this.Package = package;
+            this._iconUrlProvider = iconUrlProvider ?? throw new ArgumentNullException(nameof(iconUrlProvider));
         }
 
         public Document ToDocument()
@@ -95,9 +96,10 @@ namespace NuGetGallery
             document.Add(new Field("Authors", Package.FlattenedAuthors.ToStringSafe(), Field.Store.YES, Field.Index.ANALYZED));
 
             // Fields for storing data to avoid hitting SQL while doing searches
-            if (!String.IsNullOrEmpty(Package.IconUrl))
+            var iconUrl = _iconUrlProvider.GetIconUrlString(Package);
+            if (iconUrl != null)
             {
-                document.Add(new Field("IconUrl", Package.IconUrl, Field.Store.YES, Field.Index.NO));
+                document.Add(new Field("IconUrl", iconUrl, Field.Store.YES, Field.Index.NO));
             }
 
             if (Package.PackageRegistration.Owners.AnySafe())

@@ -111,6 +111,7 @@ namespace NuGetGallery
         private readonly ILicenseExpressionSplitter _licenseExpressionSplitter;
         private readonly IFeatureFlagService _featureFlagService;
         private readonly IPackageDeprecationService _deprecationService;
+        private readonly IIconUrlProvider _iconUrlProvider;
 
         public PackagesController(
             IPackageService packageService,
@@ -139,7 +140,8 @@ namespace NuGetGallery
             ICoreLicenseFileService coreLicenseFileService,
             ILicenseExpressionSplitter licenseExpressionSplitter,
             IFeatureFlagService featureFlagService,
-            IPackageDeprecationService deprecationService)
+            IPackageDeprecationService deprecationService,
+            IIconUrlProvider iconUrlProvider)
         {
             _packageService = packageService;
             _uploadFileService = uploadFileService;
@@ -168,6 +170,7 @@ namespace NuGetGallery
             _licenseExpressionSplitter = licenseExpressionSplitter ?? throw new ArgumentNullException(nameof(licenseExpressionSplitter));
             _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
             _deprecationService = deprecationService ?? throw new ArgumentNullException(nameof(deprecationService));
+            _iconUrlProvider = iconUrlProvider ?? throw new ArgumentNullException(nameof(iconUrlProvider));
         }
 
         [HttpGet]
@@ -855,13 +858,9 @@ namespace NuGetGallery
                 Id = Url.Package(packageRegistration.Id, version: null, relativeUrl: false),
                 Title = SyndicationContent.CreatePlaintextContent($"{_config.Brand} Feed for {packageRegistration.Id}"),
                 Description = SyndicationContent.CreatePlaintextContent(newestVersionPackage.Description),
-                LastUpdatedTime = lastUpdatedPackage
+                LastUpdatedTime = lastUpdatedPackage,
+                ImageUrl = _iconUrlProvider.GetIconUrl(newestVersionPackage),
             };
-
-            if (!string.IsNullOrWhiteSpace(newestVersionPackage.IconUrl))
-            {
-                feed.ImageUrl = new Uri(newestVersionPackage.IconUrl);
-            }
 
             List<SyndicationItem> feedItems = new List<SyndicationItem>();
 

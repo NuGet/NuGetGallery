@@ -64,8 +64,8 @@ namespace NuGetGallery
             }
         }
 
-        private DisplayPackageViewModel(Package package, User currentUser, string pushedBy)
-            : base(package, currentUser)
+        private DisplayPackageViewModel(Package package, User currentUser, string pushedBy, string overrideIconUrl)
+            : base(package, currentUser, overrideIconUrl)
         {
             Copyright = package.Copyright;
 

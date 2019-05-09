@@ -393,5 +393,11 @@ namespace NuGetGallery.Configuration
         // It is the average of the search request count per second during the last 90 days.
         [DefaultValue(200)]
         public int SearchCircuitBreakerBreakAfterCount { get; set; }
+
+        [DefaultValue(false)]
+        public bool IgnoreIconUrl { get; set; }
+
+        [DefaultValue("")]
+        public string InternalIconUrlBaseAddress { get; set; }
     }
 }

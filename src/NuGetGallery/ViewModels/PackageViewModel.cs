@@ -15,7 +15,7 @@ namespace NuGetGallery
         private readonly PackageStatus _packageStatus;
         internal readonly NuGetVersion NuGetVersion;
 
-        public PackageViewModel(Package package)
+        public PackageViewModel(Package package, string overrideIconUrl)
         {
             _package = package ?? throw new ArgumentNullException(nameof(package));
 
@@ -30,7 +30,7 @@ namespace NuGetGallery
 
             Description = package.Description;
             ReleaseNotes = package.ReleaseNotes;
-            IconUrl = package.IconUrl;
+            IconUrl = overrideIconUrl;
             LatestVersion = package.IsLatest;
             LatestVersionSemVer2 = package.IsLatestSemVer2;
             LatestStableVersion = package.IsLatestStable;

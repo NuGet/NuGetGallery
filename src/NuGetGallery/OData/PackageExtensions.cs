@@ -14,7 +14,7 @@ namespace NuGetGallery.OData
     {
         internal static readonly DateTime UnpublishedDate = new DateTime(1900, 1, 1, 0, 0, 0);
 
-        public static IQueryable<V1FeedPackage> ToV1FeedPackageQuery(this IQueryable<Package> packages, string siteRoot)
+        public static IQueryable<V1FeedPackage> ToV1FeedPackageQuery(this IQueryable<Package> packages, string siteRoot, IIconUrlProvider iconUrlProvider)
         {
             siteRoot = EnsureTrailingSlash(siteRoot);
             return packages
@@ -32,7 +32,7 @@ namespace NuGetGallery.OData
                             DownloadCount = p.PackageRegistration.DownloadCount,
                             ExternalPackageUrl = null,
                             GalleryDetailsUrl = siteRoot + "packages/" + p.PackageRegistration.Id + "/" + p.Version,
-                            IconUrl = p.IconUrl,
+                            IconUrl = iconUrlProvider.GetIconUrlString(p),
                             // We do not project SemVer2 equivalent of IsLatestStable on v1 feeds
                             // as SemVer2 is not supported on this endpoint.
                             IsLatestVersion = p.IsLatestStable,
@@ -60,13 +60,15 @@ namespace NuGetGallery.OData
             this IQueryable<Package> packages,
             string siteRoot,
             bool includeLicenseReport,
-            int? semVerLevelKey)
+            int? semVerLevelKey,
+            IIconUrlProvider iconUrlProvider)
         {
             return ProjectV2FeedPackage(
                 packages.Include(p => p.PackageRegistration),
                 siteRoot,
                 includeLicenseReport,
-                semVerLevelKey);
+                semVerLevelKey,
+                iconUrlProvider);
         }
 
         // Does the actual projection of a Package object to a V2FeedPackage.
@@ -75,7 +77,8 @@ namespace NuGetGallery.OData
             this IQueryable<Package> packages,
             string siteRoot,
             bool includeLicenseReport,
-            int? semVerLevelKey)
+            int? semVerLevelKey,
+            IIconUrlProvider iconUrlProvider)
         {
             siteRoot = EnsureTrailingSlash(siteRoot);
             return packages.Select(p => new V2FeedPackage
@@ -90,7 +93,7 @@ namespace NuGetGallery.OData
                     Description = p.Description,
                     DownloadCount = p.PackageRegistration.DownloadCount,
                     GalleryDetailsUrl = siteRoot + "packages/" + p.PackageRegistration.Id + "/" + p.NormalizedVersion,
-                    IconUrl = p.IconUrl,
+                    IconUrl = iconUrlProvider.GetIconUrlString(p),
                     // We do not expose the internal IsLatestSemVer2 and IsLatestStableSemVer2 properties; 
                     // instead the existing IsAbsoluteLatestVersion and IsLatestVersion properties will be updated based on the 
                     // semver-level supported by the caller.

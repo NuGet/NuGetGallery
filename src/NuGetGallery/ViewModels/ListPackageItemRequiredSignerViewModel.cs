@@ -29,8 +29,9 @@ namespace NuGetGallery
             Package package,
             User currentUser,
             ISecurityPolicyService securityPolicyService,
-            bool wasAADLoginOrMultiFactorAuthenticated)
-            : base(package, currentUser)
+            bool wasAADLoginOrMultiFactorAuthenticated,
+            string overrideIconUrl)
+            : base(package, currentUser, overrideIconUrl)
         {
             if (package == null)
             {

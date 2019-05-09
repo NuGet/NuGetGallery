@@ -10,8 +10,12 @@ namespace NuGetGallery
 {
     public class DisplayLicenseViewModel : PackageViewModel
     {
-        public DisplayLicenseViewModel(Package package, IReadOnlyCollection<CompositeLicenseExpressionSegment> licenseExpressionSegments, string licenseFileContents)
-            : base(package)
+        public DisplayLicenseViewModel(
+            Package package,
+            IReadOnlyCollection<CompositeLicenseExpressionSegment> licenseExpressionSegments,
+            string licenseFileContents,
+            string overrideIconUrl)
+            : base(package, overrideIconUrl)
         {
             EmbeddedLicenseType = package.EmbeddedLicenseType;
             LicenseExpression = package.LicenseExpression;

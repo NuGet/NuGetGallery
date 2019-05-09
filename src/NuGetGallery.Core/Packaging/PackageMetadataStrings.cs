@@ -19,5 +19,6 @@ namespace NuGetGallery.Packaging
         public const string Summary = "summary";
         public const string Tags = "tags";
         public const string Title = "title";
+        public const string Icon = "icon";
     }
 }

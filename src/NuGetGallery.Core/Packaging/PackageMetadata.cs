@@ -99,6 +99,7 @@ namespace NuGetGallery.Packaging
             Title = GetValue(PackageMetadataStrings.Title, (string)null);
             Tags = GetValue(PackageMetadataStrings.Tags, (string)null);
             Language = GetValue(PackageMetadataStrings.Language, (string)null);
+            Icon = GetValue(PackageMetadataStrings.Icon, (string)null);
 
             Owners = GetValue(PackageMetadataStrings.Owners, (string)null);
 
@@ -132,6 +133,8 @@ namespace NuGetGallery.Packaging
         /// </summary>
         public LicenseMetadata LicenseMetadata { get; }
 
+        public string Icon { get; private set; }
+
         public string GetValueFromMetadata(string key)
         {
             return GetValue(key, (string)null);
@@ -154,8 +157,7 @@ namespace NuGetGallery.Packaging
 
         private string GetValue(string key, string alternateValue)
         {
-            string value;
-            if (_metadata.TryGetValue(key, out value))
+            if (_metadata.TryGetValue(key, out var value))
             {
                 return value;
             }

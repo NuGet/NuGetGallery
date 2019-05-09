@@ -26,17 +26,20 @@ namespace NuGetGallery.Controllers
         private readonly IEntityRepository<Package> _packagesRepository;
         private readonly IGalleryConfigurationService _configurationService;
         private readonly ISearchService _searchService;
+        private readonly IIconUrlProvider _iconUrlProvider;
 
         public ODataV1FeedController(
             IEntityRepository<Package> packagesRepository,
             IGalleryConfigurationService configurationService,
             ISearchService searchService,
-            ITelemetryService telemetryService)
+            ITelemetryService telemetryService,
+            IIconUrlProvider iconUrlProvider)
             : base(configurationService, telemetryService)
         {
             _packagesRepository = packagesRepository;
             _configurationService = configurationService;
             _searchService = searchService;
+            _iconUrlProvider = iconUrlProvider ?? throw new ArgumentNullException(nameof(iconUrlProvider));
         }
 
         // /api/v1/Packages
@@ -55,7 +58,7 @@ namespace NuGetGallery.Controllers
                                 .Where(SemVerLevelKey.IsUnknownPredicate())
                                 .WithoutSortOnColumn(Version)
                                 .WithoutSortOnColumn(Id, ShouldIgnoreOrderById(options))
-                                .ToV1FeedPackageQuery(_configurationService.GetSiteRoot(UseHttps()));
+                                .ToV1FeedPackageQuery(_configurationService.GetSiteRoot(UseHttps()), _iconUrlProvider);
 
             return TrackedQueryResult(options, queryable, MaxPageSize, customQuery: true);
         }
@@ -141,7 +144,7 @@ namespace NuGetGallery.Controllers
 
                     var pagedQueryable = packages
                         .Take(options.Top != null ? Math.Min(options.Top.Value, MaxPageSize) : MaxPageSize)
-                        .ToV1FeedPackageQuery(GetSiteRoot());
+                        .ToV1FeedPackageQuery(GetSiteRoot(), _iconUrlProvider);
 
                     return TrackedQueryResult(
                         options,
@@ -169,7 +172,7 @@ namespace NuGetGallery.Controllers
                 return NotFound();
             }
 
-            var queryable = packages.ToV1FeedPackageQuery(GetSiteRoot());
+            var queryable = packages.ToV1FeedPackageQuery(GetSiteRoot(), _iconUrlProvider);
             return TrackedQueryResult(options, queryable, MaxPageSize, customQuery);
         }
 
@@ -244,7 +247,7 @@ namespace NuGetGallery.Controllers
                 var totalHits = query.LongCount();
                 var pagedQueryable = query
                     .Take(options.Top != null ? Math.Min(options.Top.Value, MaxPageSize) : MaxPageSize)
-                    .ToV1FeedPackageQuery(GetSiteRoot());
+                    .ToV1FeedPackageQuery(GetSiteRoot(), _iconUrlProvider);
 
                 return TrackedQueryResult(
                     options,
@@ -266,7 +269,7 @@ namespace NuGetGallery.Controllers
             }
 
             // If not, just let OData handle things
-            var queryable = query.ToV1FeedPackageQuery(GetSiteRoot());
+            var queryable = query.ToV1FeedPackageQuery(GetSiteRoot(), _iconUrlProvider);
             return TrackedQueryResult(options, queryable, MaxPageSize, customQuery);
         }
 
