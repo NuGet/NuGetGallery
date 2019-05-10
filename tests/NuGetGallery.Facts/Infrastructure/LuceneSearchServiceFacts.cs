@@ -598,7 +598,7 @@ namespace NuGetGallery.Infrastructure
             var r = results.AsQueryable().ToV2FeedPackageQuery(
                 "http://www.nuget.org/",
                 includeLicenseReport: true,
-                semVerLevelKey: SemVerLevelKey.Unknown, Mock.Of<IIconUrlProvider>()).First();
+                semVerLevelKey: SemVerLevelKey.Unknown, iconUrlProvider: Mock.Of<IIconUrlProvider>()).First();
 
             Assert.Equal("Pride", r.Id);
             Assert.Equal("3.4 RC", r.Version);
