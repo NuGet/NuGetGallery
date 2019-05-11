@@ -3,6 +3,7 @@
 
 using NuGet.Jobs;
 using NuGet.Services.DatabaseMigration;
+using System.Threading;
 
 namespace NuGetGallery.DatabaseMigrationTools
 {
@@ -13,6 +14,8 @@ namespace NuGetGallery.DatabaseMigrationTools
             var migrationContextFactory = new MigrationContextFactory();
             var job = new Job(migrationContextFactory);
             JobRunner.RunOnce(job, args).GetAwaiter().GetResult();
+
+            Thread.Sleep(60000); // wait for the logger
         }
     }
 }
