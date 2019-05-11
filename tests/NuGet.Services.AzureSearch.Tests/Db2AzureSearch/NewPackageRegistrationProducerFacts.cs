@@ -164,7 +164,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             }
 
             [Fact]
-            public async Task ProducersWorkPerPackageRegistration()
+            public async Task ProducesWorkPerPackageRegistration()
             {
                 _config.DatabaseBatchSize = 4;
                 _packageRegistrations.Add(new PackageRegistration
@@ -201,12 +201,20 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                         new Package { Version = "4.0.0" },
                     },
                 });
+                _packageRegistrations.Add(new PackageRegistration
+                {
+                    Key = 4,
+                    Id = "D",
+                    DownloadCount = 26,
+                    Owners = new[] { new User { Username = "OwnerE" } },
+                    Packages = new Package[0],
+                });
                 InitializePackagesFromPackageRegistrations();
 
                 await _target.ProduceWorkAsync(_work, _token);
 
                 var work = _work.Reverse().ToList();
-                Assert.Equal(3, work.Count);
+                Assert.Equal(4, work.Count);
 
                 Assert.Equal("A", work[0].PackageId);
                 Assert.Equal("1.0.0", work[0].Packages[0].Version);
@@ -223,6 +231,11 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 Assert.Equal("4.0.0", work[2].Packages[0].Version);
                 Assert.Equal(new[] { "OwnerC", "OwnerD" }, work[2].Owners);
                 Assert.Equal(25, work[2].TotalDownloadCount);
+
+                Assert.Equal("D", work[3].PackageId);
+                Assert.Empty(work[3].Packages);
+                Assert.Equal(new[] { "OwnerE" }, work[3].Owners);
+                Assert.Equal(26, work[3].TotalDownloadCount);
             }
 
             private void InitializePackagesFromPackageRegistrations()

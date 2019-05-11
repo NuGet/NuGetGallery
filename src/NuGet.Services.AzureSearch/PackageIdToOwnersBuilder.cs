@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
 
-namespace NuGet.Services.AzureSearch.Owners2AzureSearch
+namespace NuGet.Services.AzureSearch
 {
     public class PackageIdToOwnersBuilder
     {

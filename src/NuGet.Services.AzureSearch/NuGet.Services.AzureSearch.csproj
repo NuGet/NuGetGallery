@@ -53,9 +53,9 @@
     <Compile Include="Owners2AzureSearch\IOwnerSetComparer.cs" />
     <Compile Include="Owners2AzureSearch\OwnerIndexActionBuilder.cs" />
     <Compile Include="Owners2AzureSearch\OwnerSetComparer.cs" />
-    <Compile Include="Owners2AzureSearch\PackageIdToOwnersBuilder.cs" />
-    <Compile Include="Owners2AzureSearch\IOwnerDataClient.cs" />
-    <Compile Include="Owners2AzureSearch\OwnerDataClient.cs" />
+    <Compile Include="PackageIdToOwnersBuilder.cs" />
+    <Compile Include="IOwnerDataClient.cs" />
+    <Compile Include="OwnerDataClient.cs" />
     <Compile Include="ScoringProfiles\DownloadCountBoosterProfile.cs" />
     <Compile Include="Owners2AzureSearch\Owners2AzureSearchCommand.cs" />
     <Compile Include="SearchService\AzureSearchQueryBuilder.cs" />

@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,6 +13,7 @@ using NuGet.Protocol.Catalog;
 using NuGet.Services.AzureSearch.Catalog2AzureSearch;
 using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Persistence;
+using NuGetGallery;
 
 namespace NuGet.Services.AzureSearch.Db2AzureSearch
 {
@@ -24,6 +26,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
         private readonly Func<IBatchPusher> _batchPusherFactory;
         private readonly ICatalogClient _catalogClient;
         private readonly IStorageFactory _storageFactory;
+        private readonly IOwnerDataClient _ownerDataClient;
         private readonly IOptionsSnapshot<Db2AzureSearchConfiguration> _options;
         private readonly ILogger<Db2AzureSearchCommand> _logger;
 
@@ -35,6 +38,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             Func<IBatchPusher> batchPusherFactory,
             ICatalogClient catalogClient,
             IStorageFactory storageFactory,
+            IOwnerDataClient ownerDataClient,
             IOptionsSnapshot<Db2AzureSearchConfiguration> options,
             ILogger<Db2AzureSearchCommand> logger)
         {
@@ -45,6 +49,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             _batchPusherFactory = batchPusherFactory ?? throw new ArgumentNullException(nameof(batchPusherFactory));
             _catalogClient = catalogClient ?? throw new ArgumentNullException(nameof(catalogClient));
             _storageFactory = storageFactory ?? throw new ArgumentNullException(nameof(storageFactory));
+            _ownerDataClient = ownerDataClient ?? throw new ArgumentNullException(nameof(ownerDataClient));
             _options = options ?? throw new ArgumentNullException(nameof(options));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
@@ -63,7 +68,6 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
 
         private async Task ExecuteAsync(CancellationToken token)
         {
-            var allWork = new ConcurrentBag<NewPackageRegistration>();
             using (var cancelledCts = new CancellationTokenSource())
             using (var produceWorkCts = new CancellationTokenSource())
             {
@@ -89,23 +93,12 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 var initialCursorValue = catalogIndex.CommitTimestamp;
                 _logger.LogInformation("The initial cursor value will be {CursorValue:O}.", initialCursorValue);
 
-                // Set up the producer and the consumers.
-                var producerTask = ProduceWorkAsync(allWork, produceWorkCts, cancelledCts.Token);
-                var consumerTasks = Enumerable
-                    .Range(0, _options.Value.MaxConcurrentBatches)
-                    .Select(i => ConsumeWorkAsync(allWork, produceWorkCts.Token, cancelledCts.Token))
-                    .ToList();
-                var allTasks = new[] { producerTask }.Concat(consumerTasks).ToList();
+                // Push all package package data to the Azure Search indexes and write the version list blobs.
+                var allOwners = new ConcurrentBag<IdAndValue<IReadOnlyList<string>>>();
+                await PushAllPackageRegistrationsAsync(cancelledCts, produceWorkCts, allOwners);
 
-                // If one of the tasks throws an exception before the work is completed, cancel the work.
-                var firstTask = await Task.WhenAny(allTasks);
-                if (firstTask.IsFaulted)
-                {
-                    cancelledCts.Cancel();
-                }
-
-                await firstTask;
-                await Task.WhenAll(allTasks);
+                // Write the owner data file.
+                await WriteOwnerDataAsync(allOwners);
 
                 // Write the cursor.
                 _logger.LogInformation("Writing the initial cursor value to be {CursorValue:O}.", initialCursorValue);
@@ -134,6 +127,41 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             await _indexBuilder.CreateHijackIndexAsync();
         }
 
+        private async Task PushAllPackageRegistrationsAsync(CancellationTokenSource cancelledCts, CancellationTokenSource produceWorkCts, ConcurrentBag<IdAndValue<IReadOnlyList<string>>> allOwners)
+        {
+            var allWork = new ConcurrentBag<NewPackageRegistration>();
+            var producerTask = ProduceWorkAsync(allWork, produceWorkCts, cancelledCts.Token);
+            var consumerTasks = Enumerable
+                .Range(0, _options.Value.MaxConcurrentBatches)
+                .Select(i => ConsumeWorkAsync(allWork, allOwners, produceWorkCts.Token, cancelledCts.Token))
+                .ToList();
+            var allTasks = new[] { producerTask }.Concat(consumerTasks).ToList();
+
+            // If one of the tasks throws an exception before the work is completed, cancel the work.
+            var firstTask = await Task.WhenAny(allTasks);
+            if (firstTask.IsFaulted)
+            {
+                cancelledCts.Cancel();
+            }
+
+            await firstTask;
+            await Task.WhenAll(allTasks);
+        }
+
+        private async Task WriteOwnerDataAsync(ConcurrentBag<IdAndValue<IReadOnlyList<string>>> allOwners)
+        {
+            _logger.LogInformation("Building and writing the initial owners file.");
+            var ownersBuilder = new PackageIdToOwnersBuilder(_logger);
+            foreach (var owners in allOwners)
+            {
+                ownersBuilder.Add(owners.Id, owners.Value);
+            }
+
+            await _ownerDataClient.ReplaceLatestIndexedAsync(
+                ownersBuilder.GetResult(),
+                AccessConditionWrapper.GenerateIfNotExistsCondition());
+        }
+
         private async Task ProduceWorkAsync(
             ConcurrentBag<NewPackageRegistration> allWork,
             CancellationTokenSource produceWorkCts,
@@ -146,6 +174,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
 
         private async Task ConsumeWorkAsync(
             ConcurrentBag<NewPackageRegistration> allWork,
+            ConcurrentBag<IdAndValue<IReadOnlyList<string>>> owners,
             CancellationToken produceWorkToken,
             CancellationToken cancellationToken)
         {
@@ -168,8 +197,16 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
 
                     var indexActions = _indexActionBuilder.AddNewPackageRegistration(work);
 
-                    batchPusher.EnqueueIndexActions(work.PackageId, indexActions);
-                    await batchPusher.PushFullBatchesAsync();
+                    // There can be an empty set of index actions if there were no packages associated with this
+                    // package registration.
+                    if (!indexActions.IsEmpty)
+                    {
+                        batchPusher.EnqueueIndexActions(work.PackageId, indexActions);
+                        await batchPusher.PushFullBatchesAsync();
+                    }
+
+                    // Keep track of all owners so we can write them all to the initial owners.v2.json file.
+                    owners.Add(new IdAndValue<IReadOnlyList<string>>(work.PackageId, work.Owners));
                 }
 
                 await batchPusher.FinishAsync();

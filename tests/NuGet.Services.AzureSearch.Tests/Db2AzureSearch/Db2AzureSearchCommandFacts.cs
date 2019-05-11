@@ -29,6 +29,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
         private readonly Mock<IBatchPusher> _batchPusher;
         private readonly Mock<ICatalogClient> _catalogClient;
         private readonly Mock<IStorageFactory> _storageFactory;
+        private readonly Mock<IOwnerDataClient> _ownerDataClient;
         private readonly Mock<IOptionsSnapshot<Db2AzureSearchConfiguration>> _options;
         private readonly Db2AzureSearchConfiguration _config;
         private readonly TestCursorStorage _storage;
@@ -44,6 +45,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             _batchPusher = new Mock<IBatchPusher>();
             _catalogClient = new Mock<ICatalogClient>();
             _storageFactory = new Mock<IStorageFactory>();
+            _ownerDataClient = new Mock<IOwnerDataClient>();
             _options = new Mock<IOptionsSnapshot<Db2AzureSearchConfiguration>>();
             _logger = output.GetLogger<Db2AzureSearchCommand>();
 
@@ -83,6 +85,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 () => _batchPusher.Object,
                 _catalogClient.Object,
                 _storageFactory.Object,
+                _ownerDataClient.Object,
                 _options.Object,
                 _logger);
         }
@@ -164,6 +167,109 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
 
             _batchPusher.Verify(x => x.PushFullBatchesAsync(), Times.Exactly(5));
             _batchPusher.Verify(x => x.FinishAsync(), Times.Once);
+        }
+
+        [Fact]
+        public async Task DoesNotEnqueueChangesForNoIndexActions()
+        {
+            _config.AzureSearchBatchSize = 2;
+            _producer
+                .Setup(x => x.ProduceWorkAsync(It.IsAny<ConcurrentBag<NewPackageRegistration>>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask)
+                .Callback<ConcurrentBag<NewPackageRegistration>, CancellationToken>((w, _) =>
+                {
+                    w.Add(new NewPackageRegistration("A", 0, new[] { "Microsoft", "EntityFramework" }, new Package[0]));
+                    w.Add(new NewPackageRegistration("B", 0, new[] { "nuget" }, new Package[0]));
+                    w.Add(new NewPackageRegistration("C", 0, new[] { "aspnet" }, new Package[0]));
+                });
+
+            // Return empty index action for ID "B". This package ID will not be pushed to Azure Search but will appear
+            // in the initial owners data file.
+            _builder
+                .Setup(x => x.AddNewPackageRegistration(It.Is<NewPackageRegistration>(y => y.PackageId != "B")))
+                .Returns<NewPackageRegistration>(x => new IndexActions(
+                    new List<IndexAction<KeyedDocument>> { IndexAction.Upload(new KeyedDocument { Key = x.PackageId }) },
+                    new List<IndexAction<KeyedDocument>>(),
+                    new ResultAndAccessCondition<VersionListData>(
+                        new VersionListData(new Dictionary<string, VersionPropertiesData>()),
+                        AccessConditionWrapper.GenerateEmptyCondition())));
+            _builder
+                .Setup(x => x.AddNewPackageRegistration(It.Is<NewPackageRegistration>(y => y.PackageId == "B")))
+                .Returns<NewPackageRegistration>(x => new IndexActions(
+                    new List<IndexAction<KeyedDocument>>(),
+                    new List<IndexAction<KeyedDocument>>(),
+                    new ResultAndAccessCondition<VersionListData>(
+                        new VersionListData(new Dictionary<string, VersionPropertiesData>()),
+                        AccessConditionWrapper.GenerateEmptyCondition())));
+
+            var enqueuedIndexActions = new List<KeyValuePair<string, IndexActions>>();
+            _batchPusher
+                .Setup(x => x.EnqueueIndexActions(It.IsAny<string>(), It.IsAny<IndexActions>()))
+                .Callback<string, IndexActions>((id, actions) =>
+                {
+                    enqueuedIndexActions.Add(KeyValuePair.Create(id, actions));
+                });
+
+            SortedDictionary<string, SortedSet<string>> data = null;
+            _ownerDataClient
+                .Setup(x => x.ReplaceLatestIndexedAsync(It.IsAny<SortedDictionary<string, SortedSet<string>>>(), It.IsAny<IAccessCondition>()))
+                .Returns(Task.CompletedTask)
+                .Callback<SortedDictionary<string, SortedSet<string>>, IAccessCondition>((d, _) => data = d);
+
+            await _target.ExecuteAsync();
+
+            Assert.Equal(2, enqueuedIndexActions.Count);
+            var keys = enqueuedIndexActions
+                .Select(x => x.Key)
+                .OrderBy(x => x)
+                .ToArray();
+            Assert.Equal(
+                new[] { "A", "C" },
+                keys);
+
+            Assert.Equal(new[] { "A", "B", "C" }, data.Keys.ToArray());
+            Assert.Equal(new[] { "EntityFramework", "Microsoft" }, data["A"].ToArray());
+            Assert.Equal(new[] { "nuget" }, data["B"].ToArray());
+            Assert.Equal(new[] { "aspnet" }, data["C"].ToArray());
+        }
+
+        [Fact]
+        public async Task PushesOwnersData()
+        {
+            _config.AzureSearchBatchSize = 2;
+            _producer
+                .Setup(x => x.ProduceWorkAsync(It.IsAny<ConcurrentBag<NewPackageRegistration>>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask)
+                .Callback<ConcurrentBag<NewPackageRegistration>, CancellationToken>((w, _) =>
+                {
+                    w.Add(new NewPackageRegistration("A", 0, new[] { "Microsoft", "EntityFramework" }, new Package[0]));
+                    w.Add(new NewPackageRegistration("B", 0, new string[0], new Package[0]));
+                    w.Add(new NewPackageRegistration("C", 0, new[] { "nuget" }, new Package[0]));
+                });
+
+            SortedDictionary<string, SortedSet<string>> data = null;
+            IAccessCondition accessCondition = null;
+            _ownerDataClient
+                .Setup(x => x.ReplaceLatestIndexedAsync(It.IsAny<SortedDictionary<string, SortedSet<string>>>(), It.IsAny<IAccessCondition>()))
+                .Returns(Task.CompletedTask)
+                .Callback<SortedDictionary<string, SortedSet<string>>, IAccessCondition>((d, a) =>
+               {
+                   data = d;
+                   accessCondition = a;
+               });
+
+            await _target.ExecuteAsync();
+
+            Assert.Equal(new[] { "A", "C" }, data.Keys.ToArray());
+            Assert.Equal(new[] { "EntityFramework", "Microsoft" }, data["A"].ToArray());
+            Assert.Equal(new[] { "nuget" }, data["C"].ToArray());
+
+            Assert.Equal("*", accessCondition.IfNoneMatchETag);
+            Assert.Null(accessCondition.IfMatchETag);
+
+            _ownerDataClient.Verify(
+                x => x.ReplaceLatestIndexedAsync(It.IsAny<SortedDictionary<string, SortedSet<string>>>(), It.IsAny<IAccessCondition>()),
+                Times.Once);
         }
     }
 }

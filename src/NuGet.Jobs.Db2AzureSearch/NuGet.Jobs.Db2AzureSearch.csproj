@@ -71,9 +71,9 @@
   <Import Project="$(SignPath)\sign.targets" Condition="Exists('$(SignPath)\sign.targets')" />
   <Import Project="$(SignPath)\sign.microbuild.targets" Condition="Exists('$(SignPath)\sign.microbuild.targets')" />
   <ItemGroup>
-    <ExecutablesToNotSign Include="nssm.exe" />
-    <PowerShellScriptsToNotSign Include="Functions.ps1" />
-    <PowerShellScriptsToNotSign Include="PreDeploy.ps1" />
+    <ExecutablesToNotSign Include="nssm.exe" Visible="false" />
+    <PowerShellScriptsToNotSign Include="Functions.ps1" Visible="false" />
+    <PowerShellScriptsToNotSign Include="PreDeploy.ps1" Visible="false" />
   </ItemGroup>
   <Import Project="$(SignPath)\sign.scripts.targets" Condition="Exists('$(SignPath)\sign.scripts.targets')" />
   <Import Project="..\..\sign.thirdparty.targets" />

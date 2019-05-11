@@ -163,6 +163,7 @@ namespace NuGet.Services.AzureSearch
                     c.Resolve<Func<IBatchPusher>>(),
                     c.Resolve<ICatalogClient>(),
                     c.ResolveKeyed<IStorageFactory>(key),
+                    c.Resolve<IOwnerDataClient>(),
                     c.Resolve<IOptionsSnapshot<Db2AzureSearchConfiguration>>(),
                     c.Resolve<ILogger<Db2AzureSearchCommand>>()));
 

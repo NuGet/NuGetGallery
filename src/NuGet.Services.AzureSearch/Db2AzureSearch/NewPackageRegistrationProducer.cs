@@ -53,24 +53,24 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 var range = ranges[i];
 
                 var allPackages = await GetPackagesAsync(range);
-                var keyToOwners = await GetPackageRegistrationOwnersAsync(range);
+                var keyToPackages = allPackages
+                    .GroupBy(x => x.PackageRegistrationKey)
+                    .ToDictionary(x => x.Key, x => x.ToList());
 
-                var groups = allPackages.GroupBy(x => x.PackageRegistrationKey);
-                foreach (var group in groups)
+                var packageRegistrationInfo = await GetPackageRegistrationInfoAsync(range);
+
+                foreach (var pr in packageRegistrationInfo)
                 {
-                    var firstPackage = group.First();
-                    var id = firstPackage.PackageRegistration.Id;
-
-                    if (!keyToOwners.TryGetValue(group.Key, out var owners))
+                    if (!keyToPackages.TryGetValue(pr.Key, out var packages))
                     {
-                        throw new InvalidOperationException($"No owners were found for package ID {id}.");
+                        packages = new List<Package>();
                     }
 
                     allWork.Add(new NewPackageRegistration(
-                        id,
-                        firstPackage.PackageRegistration.DownloadCount,
-                        owners,
-                        group.ToList()));
+                        pr.Id,
+                        pr.DownloadCount,
+                        pr.Owners,
+                        packages));
                 }
 
                 _logger.LogInformation("Done initializing batch {Number}/{Count}.", i + 1, ranges.Count);
@@ -142,7 +142,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             }
         }
 
-        private async Task<IReadOnlyDictionary<int, string[]>> GetPackageRegistrationOwnersAsync(PackageRegistrationRange range)
+        private async Task<IReadOnlyList<PackageRegistrationInfo>> GetPackageRegistrationInfoAsync(PackageRegistrationRange range)
         {
             using (var context = await CreateContextAsync())
             {
@@ -164,12 +164,13 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
 
                 var packageRegistrations = await query.ToListAsync();
 
-                return packageRegistrations.ToDictionary(
-                    pr => pr.Key,
-                    pr => pr
-                        .Owners
-                        .Select(u => u.Username)
-                        .ToArray());
+                return packageRegistrations
+                    .Select(pr => new PackageRegistrationInfo(
+                        pr.Key,
+                        pr.Id,
+                        pr.DownloadCount,
+                        pr.Owners.Select(x => x.Username).ToArray()))
+                    .ToList();
             }
         }
 
@@ -295,6 +296,22 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             /// The estimated number of packages in this range.
             /// </summary>
             public int PackageCount { get; }
+        }
+
+        private class PackageRegistrationInfo
+        {
+            public PackageRegistrationInfo(int key, string id, int downloadCount, string[] owners)
+            {
+                Key = key;
+                Id = id;
+                DownloadCount = downloadCount;
+                Owners = owners;
+            }
+
+            public int Key { get; }
+            public string Id { get; }
+            public int DownloadCount { get; }
+            public string[] Owners { get; }
         }
     }
 }
