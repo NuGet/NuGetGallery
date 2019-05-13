@@ -20,7 +20,6 @@ namespace NuGetGallery
         private IAppConfiguration GetConfiguration()
         {
             var mockConfiguration = new Mock<IAppConfiguration>();
-            mockConfiguration.SetupGet(c => c.ServiceDiscoveryUri).Returns(new Uri("https://api.nuget.org/v3/index.json"));
             return mockConfiguration.Object;
         }
 

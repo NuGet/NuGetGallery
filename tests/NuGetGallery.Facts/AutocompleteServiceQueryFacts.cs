@@ -64,7 +64,6 @@ namespace NuGetGallery
             private TestAutocompleteServiceQuery(Uri baseAddress, string queryString)
             {
                 var mockConfiguration = new Mock<IAppConfiguration>();
-                mockConfiguration.SetupGet(c => c.ServiceDiscoveryUri).Returns(baseAddress);
 
                 _responseMessage = GetResponseMessage(new Uri(baseAddress, $"{_autocompletePath}?{queryString?.TrimStart('?')??string.Empty}"), HttpStatusCode.OK);
                 var mockIResilientSearchClient = new Mock<IResilientSearchClient>();

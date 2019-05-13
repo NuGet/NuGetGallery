@@ -22,13 +22,11 @@ namespace NuGetGallery.Infrastructure.Search
 
         private JObject _diagCache;
 
-        public Uri ServiceUri { get; private set; }
-
         protected IDiagnosticsSource Trace { get; private set; }
 
         public string IndexPath
         {
-            get { return ServiceUri.AbsoluteUri; }
+            get { return string.Empty ; }
         }
 
         public bool IsLocal
@@ -44,7 +42,6 @@ namespace NuGetGallery.Infrastructure.Search
 
         public ExternalSearchService(IAppConfiguration config, IDiagnosticsService diagnostics, ISearchClient searchClient)
         {
-            ServiceUri = config.ServiceDiscoveryUri;
             _searchClient = searchClient ?? throw new ArgumentNullException(nameof(searchClient));
 
             Trace = diagnostics.SafeGetSource("ExternalSearchService");

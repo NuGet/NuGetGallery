@@ -83,11 +83,6 @@ namespace NuGetGallery.Configuration
         public bool DeprecateNuGetPasswordLogins { get; set; }
 
         /// <summary>
-        /// Gets the URI to the search service
-        /// </summary>
-        public Uri ServiceDiscoveryUri { get; set; }
-
-        /// <summary>
         /// Gets a boolean indicating if the site requires that email addresses be confirmed
         /// </summary>
         [DefaultValue(true)]

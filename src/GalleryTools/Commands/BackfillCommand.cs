@@ -43,6 +43,7 @@ namespace GalleryTools.Commands
             var collectData = config.Option("-c | --collect", "Collect metadata and save it in a file", CommandOptionType.NoValue);
             var updateDB = config.Option("-u | --update", "Update the database with collected metadata", CommandOptionType.NoValue);
             var fileName = config.Option("-f | --file", "The file to use", CommandOptionType.SingleValue);
+            var serviceDiscoveryUri = config.Option("-s | --servicediscoveryuri", "The ServiceDiscoveryUri.", CommandOptionType.SingleValue);
 
             config.HelpOption("-? | -h | --help");
 
@@ -53,12 +54,12 @@ namespace GalleryTools.Commands
                 var container = builder.Build();
 
                 var connectionString = container.Resolve<IAppConfiguration>().SqlConnectionString;
-                var serviceDiscoveryUri = container.Resolve<IAppConfiguration>().ServiceDiscoveryUri;
+                var serviceDiscoveryUriValue = new Uri(serviceDiscoveryUri.Value());
 
                 var command = new TCommand();
 
                 var metadataFileName = fileName.HasValue() ? fileName.Value() : command.MetadataFileName;
-
+                
                 if (collectData.HasValue())
                 {
                     var lastCreateTime = DateTime.MaxValue;
@@ -74,7 +75,7 @@ namespace GalleryTools.Commands
                         }
                     }
 
-                    await command.Collect(connectionString, serviceDiscoveryUri, lastCreateTime, metadataFileName);
+                    await command.Collect(connectionString, serviceDiscoveryUriValue, lastCreateTime, metadataFileName);
                 }
 
                 if (updateDB.HasValue())
