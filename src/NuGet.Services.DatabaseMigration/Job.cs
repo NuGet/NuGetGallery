@@ -56,7 +56,10 @@ namespace NuGet.Services.DatabaseMigration
             OverwriteSqlConnection(migrator, sqlConnection, accessToken);
             OverwriteSqlConnection(migratorForScripting, sqlConnection, accessToken);
 
-            Logger.LogInformation("Target database is: {DataSource}/{Database}", sqlConnection.DataSource, sqlConnection.Database);
+            var sqlConnectionDataSource = sqlConnection.DataSource;
+            var sqlConnectionDatabase = sqlConnection.Database;
+
+            Logger.LogInformation("Target database is: {DataSource}/{Database}", sqlConnectionDataSource, sqlConnectionDatabase);
             var pendingMigrations = migrator.GetPendingMigrations();
             if (pendingMigrations.Count() > 0)
             {
@@ -74,14 +77,14 @@ namespace NuGet.Services.DatabaseMigration
 
                     Logger.LogInformation("Finished executing {pendingMigrationsCount} migrations successfully on the target database {DataSource}/{Database}",
                         pendingMigrations.Count(),
-                        sqlConnection.DataSource,
-                        sqlConnection.Database);
+                        sqlConnectionDataSource,
+                        sqlConnectionDatabase);
                 }
                 catch (Exception e)
                 {
                     Logger.LogError(0, e, "Failed to execute migrations on the target database {DataSource}/{Database}",
-                        sqlConnection.DataSource,
-                        sqlConnection.Database);
+                        sqlConnectionDataSource,
+                        sqlConnectionDatabase);
                     throw;
                 }
             }

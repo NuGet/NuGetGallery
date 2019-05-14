@@ -53,10 +53,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="Scripts\*" />
-    <None Include="DatabaseMigration.Gallery.nuspec" />
-    <None Include="DatabaseMigration.SupportRequest.nuspec" />
-    <None Include="DatabaseMigration.Validation.nuspec" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Autofac.Extensions.DependencyInjection">
@@ -131,9 +127,9 @@
   <Import Project="$(SignPath)\sign.targets" Condition="Exists('$(SignPath)\sign.targets')" />
   <Import Project="$(SignPath)\sign.microbuild.targets" Condition="Exists('$(SignPath)\sign.microbuild.targets')" />
   <ItemGroup>
-    <PowerShellScriptsToNotSign Include="PreDeploy.ps1" />
-    <PowerShellScriptsToNotSign Include="Functions.ps1" />
-    <ExecutablesToNotSign Include="nssm.exe" />
+    <PowerShellScriptsToNotSign Include="PreDeploy.ps1" Visible="false"/>
+    <PowerShellScriptsToNotSign Include="Functions.ps1" Visible="false"/>
+    <ExecutablesToNotSign Include="nssm.exe" Visible="false"/>
   </ItemGroup>
   <Import Project="$(SignPath)\sign.scripts.targets" Condition="Exists('$(SignPath)\sign.scripts.targets')" />
   <Import Project="..\..\sign.thirdparty.targets" />
