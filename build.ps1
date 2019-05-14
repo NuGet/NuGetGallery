@@ -10,7 +10,7 @@ param (
     [string]$PackageSuffix,
     [string]$Branch,
     [string]$CommitSHA,
-    [string]$BuildBranch = '2d8feecabe3aeaed7f5b4d50b9be78c94faf39ec'
+    [string]$BuildBranch = '61237a3ee61a8e8dbb9845a3ed20f0880a5fe9e0'
 )
 
 Set-StrictMode -Version 1.0
@@ -91,7 +91,7 @@ Invoke-BuildStep 'Set version metadata in AssemblyInfo.cs' {
 
 Invoke-BuildStep 'Building solution' { 
     $SolutionPath = Join-Path $PSScriptRoot "NuGetGallery.sln"
-    Build-Solution $Configuration $BuildNumber -MSBuildVersion "15" $SolutionPath -SkipRestore:$SkipRestore -MSBuildProperties "/p:MvcBuildViews=true" `
+    Build-Solution $Configuration $BuildNumber -MSBuildVersion "16" $SolutionPath -SkipRestore:$SkipRestore -MSBuildProperties "/p:MvcBuildViews=true" `
 } `
 -ev +BuildErrors
     
@@ -99,12 +99,12 @@ Invoke-BuildStep 'Creating artifacts' { `
     New-ProjectPackage (Join-Path $PSScriptRoot "src\NuGetGallery.Core\NuGetGallery.Core.csproj") -Configuration $Configuration -Symbols -BuildNumber $BuildNumber -Version $SemanticVersion -PackageId "NuGetGallery.Core$PackageSuffix"
     New-ProjectPackage (Join-Path $PSScriptRoot "src\NuGet.Services.Entities\NuGet.Services.Entities.csproj") -Configuration $Configuration -Symbols -BuildNumber $BuildNumber -Version $SemanticVersion
     New-ProjectPackage (Join-Path $PSScriptRoot "src\NuGet.Services.DatabaseMigration\NuGet.Services.DatabaseMigration.csproj") -Configuration $Configuration -Symbols -BuildNumber $BuildNumber -Version $SemanticVersion
-    New-Package (Join-Path $PSScriptRoot "src\DatabaseMigrationTools\DatabaseMigrationTools.csproj") -Configuration $Configuration -BuildNumber $BuildNumber -Version $SemanticVersion -Branch $Branch -MSBuildVersion "15"
+    New-Package (Join-Path $PSScriptRoot "src\DatabaseMigrationTools\DatabaseMigrationTools.csproj") -Configuration $Configuration -BuildNumber $BuildNumber -Version $SemanticVersion -Branch $Branch -MSBuildVersion "16"
 } `
 -ev +BuildErrors
 
 Invoke-BuildStep 'Signing the packages' {
-    Sign-Packages -Configuration $Configuration -BuildNumber $BuildNumber -MSBuildVersion "15" `
+    Sign-Packages -Configuration $Configuration -BuildNumber $BuildNumber -MSBuildVersion "16" `
 } `
 -ev +BuildErrors
 
