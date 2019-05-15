@@ -2520,7 +2520,7 @@ namespace NuGetGallery
                     httpStatusCode = HttpStatusCode.Conflict;
                     break;
                 case SymbolPackageValidationResultType.UserNotAllowedToUpload:
-                    httpStatusCode = HttpStatusCode.Unauthorized;
+                    httpStatusCode = HttpStatusCode.Forbidden;
                     break;
                 default:
                     throw new NotImplementedException($"The symbol package validation result type {validationResult.Type} is not supported.");
