@@ -20,8 +20,9 @@ namespace NuGet.Services.DatabaseMigration
 {
     public class Job : JsonConfigurationJob
     {
-        private const string MigrationTargetDatabaseArgument = "MigrationTargetDatabase";
+        public int ExitCode { get; set; }
 
+        private const string MigrationTargetDatabaseArgument = "MigrationTargetDatabase";
         private string _migrationTargetDatabase;
         private IMigrationContextFactory _migrationContextFactory;
 
@@ -32,20 +33,39 @@ namespace NuGet.Services.DatabaseMigration
 
         public override void Init(IServiceContainer serviceContainer, IDictionary<string, string> jobArgsDictionary)
         {
-            base.Init(serviceContainer, jobArgsDictionary);
-            _migrationTargetDatabase = JobConfigurationManager.GetArgument(jobArgsDictionary, MigrationTargetDatabaseArgument);
+            try
+            {
+                base.Init(serviceContainer, jobArgsDictionary);
+                _migrationTargetDatabase = JobConfigurationManager.GetArgument(jobArgsDictionary, MigrationTargetDatabaseArgument);
+            } catch (Exception)
+            {
+                ExitCode = 1;
+                throw;
+            }
         }
 
         public override async Task Run()
         {
             Logger.LogInformation("Initializing database migration context...");
-            var migrationContext = await _migrationContextFactory.CreateMigrationContextAsync(_migrationTargetDatabase, _serviceProvider);
 
-            ExecuteDatabaseMigration(migrationContext.GetDbMigrator,
-                migrationContext.SqlConnection,
-                migrationContext.SqlConnectionAccessToken);
+            IMigrationContext migrationContext = null;
+            try
+            {
+                migrationContext = await _migrationContextFactory.CreateMigrationContextAsync(_migrationTargetDatabase, _serviceProvider);
 
-            migrationContext.SqlConnection.Dispose();
+                ExecuteDatabaseMigration(migrationContext.GetDbMigrator,
+                    migrationContext.SqlConnection,
+                    migrationContext.SqlConnectionAccessToken);
+            }
+            catch (Exception)
+            {
+                ExitCode = 1;
+                throw;
+            }
+            finally
+            {
+                migrationContext?.SqlConnection?.Dispose();
+            }
         }
 
         private void ExecuteDatabaseMigration(Func<DbMigrator> getMigrator, SqlConnection sqlConnection, string accessToken)
