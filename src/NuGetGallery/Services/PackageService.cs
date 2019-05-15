@@ -183,6 +183,16 @@ namespace NuGetGallery
             return package;
         }
 
+        public virtual Package FilterExactPackage(
+            IReadOnlyCollection<Package> packages,
+            string version)
+        {
+            return packages.SingleOrDefault(p => string.Equals(
+                p.NormalizedVersion,
+                NuGetVersionFormatter.Normalize(version),
+                StringComparison.OrdinalIgnoreCase));
+        }
+
         public virtual Package FilterLatestPackage(
             IReadOnlyCollection<Package> packages,
             int? semVerLevelKey = SemVerLevelKey.SemVer2,

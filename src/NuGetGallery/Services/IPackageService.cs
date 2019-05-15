@@ -40,6 +40,10 @@ namespace NuGetGallery
             int? semVerLevelKey = null,
             bool allowPrerelease = true);
 
+        Package FilterExactPackage(
+            IReadOnlyCollection<Package> packages,
+            string version);
+
         Package FilterLatestPackage(
             IReadOnlyCollection<Package> packages,
             int? semVerLevelKey = SemVerLevelKey.SemVer2,
