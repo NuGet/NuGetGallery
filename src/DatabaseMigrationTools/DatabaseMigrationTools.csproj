@@ -43,7 +43,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="MigrationTargetDatabaseArgumentNames.cs" />
     <Compile Include="SupportRequestDbMigrationContext.cs" />
     <Compile Include="GalleryDbMigrationContext.cs" />
     <Compile Include="MigrationContextFactory.cs" />
@@ -127,9 +126,9 @@
   <Import Project="$(SignPath)\sign.targets" Condition="Exists('$(SignPath)\sign.targets')" />
   <Import Project="$(SignPath)\sign.microbuild.targets" Condition="Exists('$(SignPath)\sign.microbuild.targets')" />
   <ItemGroup>
-    <PowerShellScriptsToNotSign Include="PreDeploy.ps1" Visible="false"/>
-    <PowerShellScriptsToNotSign Include="Functions.ps1" Visible="false"/>
-    <ExecutablesToNotSign Include="nssm.exe" Visible="false"/>
+    <PowerShellScriptsToNotSign Include="PreDeploy.ps1" Visible="false" />
+    <PowerShellScriptsToNotSign Include="Functions.ps1" Visible="false" />
+    <ExecutablesToNotSign Include="nssm.exe" Visible="false" />
   </ItemGroup>
   <Import Project="$(SignPath)\sign.scripts.targets" Condition="Exists('$(SignPath)\sign.scripts.targets')" />
   <Import Project="..\..\sign.thirdparty.targets" />

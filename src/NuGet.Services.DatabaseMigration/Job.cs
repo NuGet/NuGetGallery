@@ -23,6 +23,7 @@ namespace NuGet.Services.DatabaseMigration
         public int ExitCode { get; set; }
 
         private const string MigrationTargetDatabaseArgument = "MigrationTargetDatabase";
+        private const string SkipGalleryDatabaseMigrationFile = "201304262247205_CuratedPackagesUniqueIndex";
         private string _migrationTargetDatabase;
         private IMigrationContextFactory _migrationContextFactory;
 
@@ -83,6 +84,16 @@ namespace NuGet.Services.DatabaseMigration
             var pendingMigrations = migrator.GetPendingMigrations();
             if (pendingMigrations.Count() > 0)
             {
+                try
+                {
+                    CheckIsValidMigration(migrator);
+                }
+                catch (Exception e)
+                {
+                    Logger.LogError(0, e, "Validation check of database migrations failed");
+                    throw;
+                }
+
                 Logger.LogInformation("Applying pending migrations: \n {PendingMigrations}", String.Join("\n", pendingMigrations));
 
                 var migratorScripter = new MigratorScriptingDecorator(migratorForScripting);
@@ -111,6 +122,48 @@ namespace NuGet.Services.DatabaseMigration
             else
             {
                 Logger.LogInformation("There are no pending migrations to execute.");
+            }
+        }
+
+        private void CheckIsValidMigration(DbMigrator migrator)
+        {
+            var databaseMigrations = migrator.GetDatabaseMigrations().ToList();
+            databaseMigrations.Reverse();
+            var localMigrations = migrator.GetLocalMigrations().ToList();
+            if (databaseMigrations.Count == 0)
+            {
+                throw new Exception("Migration validation failed: Unexpected empty history of database migrations");
+            }
+            if (localMigrations.Count == 0)
+            {
+                throw new Exception("Migration validation failed: Unexpected empty history of local migrations");
+            }
+
+            var databaseMigrationsCursor = 0;
+            var localMigrationsCursor = 0;
+            while (databaseMigrationsCursor < databaseMigrations.Count &&
+                localMigrationsCursor < localMigrations.Count)
+            {
+                if (_migrationTargetDatabase.Equals(MigrationTargetDatabaseArgumentNames.GalleryDatabase) &&
+                    databaseMigrations[databaseMigrationsCursor].Equals(SkipGalleryDatabaseMigrationFile))
+                {
+                    databaseMigrationsCursor++;
+                }
+                else
+                {
+                    if (!databaseMigrations[databaseMigrationsCursor].Equals(localMigrations[localMigrationsCursor]))
+                    {
+                        throw new Exception($"Migration validation failed: Mismatch local migration file: {localMigrations[localMigrationsCursor]}");
+                    }
+
+                    localMigrationsCursor++;
+                    databaseMigrationsCursor++;
+                }
+            }
+
+            if (databaseMigrationsCursor < databaseMigrations.Count)
+            {
+                throw new Exception("Migration validation failed: Database migrations are ahead of local migrations.");
             }
         }
 
