@@ -5613,6 +5613,43 @@ namespace NuGetGallery
                 Assert.Equal(string.Format(Strings.PackageIsLocked, packageId), (result.Data as JsonValidationMessage[])[0].PlainTextMessage);
             }
 
+            [Fact]
+            public async Task WillPreventSymbolsUploadIfUserNotAllowedToUpload()
+            {
+                var packageId = "theId";
+                var package = new Package()
+                {
+                    PackageRegistration = new PackageRegistration()
+                    {
+                        Id = packageId,
+                        Owners = new List<User>() { TestUtility.FakeUser },
+                        IsLocked = true
+                    }
+                };
+
+                var fakeUploadedFile = new Mock<HttpPostedFileBase>();
+                fakeUploadedFile.Setup(x => x.FileName).Returns("theFile.snupkg");
+                var fakeFileStream = TestPackage.CreateTestSymbolPackageStream("theId", "1.0.0");
+                fakeUploadedFile.Setup(x => x.InputStream).Returns(fakeFileStream);
+                var symbolPackageUploadService = new Mock<ISymbolPackageUploadService>();
+                var message = "message";
+                symbolPackageUploadService
+                    .Setup(x => x.ValidateUploadedSymbolsPackage(It.IsAny<Stream>(), It.IsAny<User>()))
+                    .ReturnsAsync(SymbolPackageValidationResult.UserNotAllowedToUpload(message));
+
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    fakeNuGetPackage: fakeFileStream,
+                    symbolPackageUploadService: symbolPackageUploadService);
+                controller.SetCurrentUser(TestUtility.FakeUser);
+
+                var result = await controller.UploadPackage(fakeUploadedFile.Object) as JsonResult;
+
+                Assert.NotNull(result);
+                Assert.Equal((int)HttpStatusCode.Forbidden, controller.Response.StatusCode);
+                Assert.Equal(message, (result.Data as JsonValidationMessage[])[0].PlainTextMessage);
+            }
+
             public static IEnumerable<object[]> SymbolValidationResultTypes => Enum
                 .GetValues(typeof(SymbolPackageValidationResultType))
                 .Cast<SymbolPackageValidationResultType>()
