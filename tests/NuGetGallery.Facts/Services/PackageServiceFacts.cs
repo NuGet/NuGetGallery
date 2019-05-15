@@ -864,6 +864,71 @@ namespace NuGetGallery
             }
         }
 
+        public class TheFilterExactPackageMethod
+        {
+            [Fact]
+            public void ThrowsIfPackagesNull()
+            {
+                Assert.Throws<ArgumentNullException>(() => InvokeMethod(null, null));
+            }
+
+            [Theory]
+            [InlineData(null)]
+            [InlineData("1.0.0")]
+            public void ReturnsNullIfEmptyList(string version)
+            {
+                Assert.Equal(null, InvokeMethod(new Package[0], version));
+            }
+
+            [Theory]
+            [InlineData(null)]
+            [InlineData("1.0.0-afakepackage")]
+            public void ReturnsNullIfMissing(string version)
+            {
+                var packages = new[]
+                {
+                    CreateTestPackage("1.0.0"),
+                    CreateTestPackage("2.0.0")
+                };
+
+                Assert.Equal(null, InvokeMethod(packages, version));
+            }
+
+            /// <remarks>
+            /// The method should compare the normalized version of the package and be case-insensitive.
+            /// </remarks>
+            [Theory]
+            [InlineData("1.0.0-a")]
+            [InlineData("1.0.0-A")]
+            [InlineData("1.0.0-a+metadata")]
+            [InlineData("1.0.0-A+metadata")]
+            public void ReturnsVersionIfExists(string version)
+            {
+                var package = CreateTestPackage("1.0.0-a");
+                var packages = new[] 
+                {
+                    package,
+                    CreateTestPackage("2.0.0")
+                };
+
+                Assert.Equal(package, InvokeMethod(packages, version));
+            }
+
+            private Package InvokeMethod(IReadOnlyCollection<Package> packages, string version)
+            {
+                var service = CreateService();
+                return service.FilterExactPackage(packages, version);
+            }
+
+            private Package CreateTestPackage(string normalizedVersion)
+            {
+                return new Package
+                {
+                    NormalizedVersion = normalizedVersion
+                };
+            }
+        }
+
         public class TheFilterLatestPackageMethod
         {
             protected const string Id = "theId";
