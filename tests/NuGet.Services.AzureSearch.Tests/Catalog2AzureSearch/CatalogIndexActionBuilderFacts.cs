@@ -63,6 +63,9 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                     properties.Keys.ToArray());
                 Assert.True(properties[_packageVersion].Listed);
                 Assert.False(properties[_packageVersion].SemVer2);
+
+                _ownerFetcher.Verify(x => x.GetOwnersOrEmptyAsync(It.IsAny<string>()), Times.Once);
+                _ownerFetcher.Verify(x => x.GetOwnersOrEmptyAsync(_packageId), Times.Once);
             }
 
             [Fact]
@@ -102,6 +105,55 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                 Assert.False(properties[existingVersion].SemVer2);
                 Assert.True(properties[_packageVersion].Listed);
                 Assert.False(properties[_packageVersion].SemVer2);
+
+                _ownerFetcher.Verify(x => x.GetOwnersOrEmptyAsync(It.IsAny<string>()), Times.Once);
+                _ownerFetcher.Verify(x => x.GetOwnersOrEmptyAsync(_packageId), Times.Once);
+            }
+
+            [Fact]
+            public async Task AddNewLatestVersionForOnlySomeSearchFilters()
+            {
+                var existingVersion = "0.0.1";
+                _versionListDataResult = new ResultAndAccessCondition<VersionListData>(
+                    new VersionListData(new Dictionary<string, VersionPropertiesData>
+                    {
+                        { existingVersion, new VersionPropertiesData(listed: true, semVer2: false) },
+                    }),
+                    _versionListDataResult.AccessCondition);
+                SetVersion("1.0.0-beta");
+
+                var indexActions = await _target.AddCatalogEntriesAsync(
+                    _packageId,
+                    _latestEntries,
+                    _entryToLeaf);
+
+                Assert.Equal(4, indexActions.Search.Count);
+                var isPrerelease = indexActions.Search.ToLookup(x => x.Document.Key.Contains("Prerelease"));
+                Assert.All(isPrerelease[false], x => Assert.IsType<SearchDocument.UpdateVersionListAndOwners>(x.Document));
+                Assert.All(isPrerelease[false], x => Assert.Equal(IndexActionType.Merge, x.ActionType));
+                Assert.All(isPrerelease[true], x => Assert.IsType<SearchDocument.UpdateLatest>(x.Document));
+                Assert.All(isPrerelease[true], x => Assert.Equal(IndexActionType.MergeOrUpload, x.ActionType));
+
+                Assert.Equal(2, indexActions.Hijack.Count);
+                var existing = indexActions.Hijack.Single(x => x.Document.Key == existingVersion);
+                Assert.IsType<HijackDocument.Latest>(existing.Document);
+                Assert.Equal(IndexActionType.Merge, existing.ActionType);
+                var added = indexActions.Hijack.Single(x => x.Document.Key == _packageVersion);
+                Assert.IsType<HijackDocument.Full>(added.Document);
+                Assert.Equal(IndexActionType.MergeOrUpload, added.ActionType);
+
+                Assert.Same(_versionListDataResult.AccessCondition, indexActions.VersionListDataResult.AccessCondition);
+                var properties = indexActions.VersionListDataResult.Result.VersionProperties;
+                Assert.Equal(
+                    new[] { existingVersion, _packageVersion },
+                    properties.Keys.ToArray());
+                Assert.True(properties[existingVersion].Listed);
+                Assert.False(properties[existingVersion].SemVer2);
+                Assert.True(properties[_packageVersion].Listed);
+                Assert.False(properties[_packageVersion].SemVer2);
+
+                _ownerFetcher.Verify(x => x.GetOwnersOrEmptyAsync(It.IsAny<string>()), Times.Once);
+                _ownerFetcher.Verify(x => x.GetOwnersOrEmptyAsync(_packageId), Times.Once);
             }
 
             [Fact]
@@ -141,6 +193,8 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                 Assert.False(properties[existingVersion].SemVer2);
                 Assert.True(properties[_packageVersion].Listed);
                 Assert.False(properties[_packageVersion].SemVer2);
+
+                _ownerFetcher.Verify(x => x.GetOwnersOrEmptyAsync(It.IsAny<string>()), Times.Never);
             }
 
             [Fact]
@@ -198,11 +252,14 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                 Assert.False(properties[_packageVersion].Listed);
                 Assert.False(properties[_packageVersion].SemVer2);
 
-                _fetcher.Verify(
+                _leafFetcher.Verify(
                     x => x.GetLatestLeavesAsync(
                         It.IsAny<string>(),
                         It.Is<IReadOnlyList<IReadOnlyList<NuGetVersion>>>(y => y.Count == 1)),
                     Times.Once);
+
+                _ownerFetcher.Verify(x => x.GetOwnersOrEmptyAsync(It.IsAny<string>()), Times.Once);
+                _ownerFetcher.Verify(x => x.GetOwnersOrEmptyAsync(_packageId), Times.Once);
             }
 
             [Fact]
@@ -278,11 +335,14 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                 Assert.False(properties[_packageVersion].Listed);
                 Assert.False(properties[_packageVersion].SemVer2);
 
-                _fetcher.Verify(
+                _leafFetcher.Verify(
                     x => x.GetLatestLeavesAsync(
                         It.IsAny<string>(),
                         It.Is<IReadOnlyList<IReadOnlyList<NuGetVersion>>>(y => y.Count == 2)),
                     Times.Once);
+
+                _ownerFetcher.Verify(x => x.GetOwnersOrEmptyAsync(It.IsAny<string>()), Times.Once);
+                _ownerFetcher.Verify(x => x.GetOwnersOrEmptyAsync(_packageId), Times.Once);
             }
 
             [Fact]
@@ -339,6 +399,8 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                 Assert.False(properties[existingVersion].SemVer2);
                 Assert.False(properties[_packageVersion].Listed);
                 Assert.False(properties[_packageVersion].SemVer2);
+
+                _ownerFetcher.Verify(x => x.GetOwnersOrEmptyAsync(It.IsAny<string>()), Times.Never);
             }
 
             [Fact]
@@ -375,14 +437,8 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                     Listed = false,
                 };
 
-                _packageVersion = "3.2.0-dev.1+sha.ad6878e"; // This version is no longer listed.
-                _commitItem = GenerateCatalogCommitItem(_packageVersion);
+                SetVersion("3.2.0-dev.1+sha.ad6878e");
                 _leaf.Listed = false;
-                _leaf.VerbatimVersion = _packageVersion;
-                _leaf.PackageVersion = _packageVersion;
-                _latestEntries = new List<CatalogCommitItem> { _commitItem };
-                _entryToLeaf.Clear();
-                _entryToLeaf[_commitItem] = _leaf;
 
                 _versionListDataResult = new ResultAndAccessCondition<VersionListData>(
                     new VersionListData(new Dictionary<string, VersionPropertiesData>
@@ -393,7 +449,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                         { _packageVersion, new VersionPropertiesData(listed: true, semVer2: true) },
                     }),
                     _versionListDataResult.AccessCondition);
-                _fetcher
+                _leafFetcher
                     .SetupSequence(x => x.GetLatestLeavesAsync(It.IsAny<string>(), It.IsAny<IReadOnlyList<IReadOnlyList<NuGetVersion>>>()))
                     .ReturnsAsync(new LatestCatalogLeaves(
                         new HashSet<NuGetVersion>(),
@@ -433,7 +489,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                 Assert.False(properties[_packageVersion].Listed);
                 Assert.True(properties[_packageVersion].SemVer2);
 
-                _fetcher.Verify(
+                _leafFetcher.Verify(
                     x => x.GetLatestLeavesAsync(_packageId, It.Is<IReadOnlyList<IReadOnlyList<NuGetVersion>>>(y =>
                         y.Count == 1 &&
                         y[0].Count == 3 &&
@@ -441,15 +497,18 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                         y[0][1] == NuGetVersion.Parse(existingVersion2) &&
                         y[0][2] == NuGetVersion.Parse(existingVersion3))),
                     Times.Once);
-                _fetcher.Verify(
+                _leafFetcher.Verify(
                     x => x.GetLatestLeavesAsync(_packageId, It.Is<IReadOnlyList<IReadOnlyList<NuGetVersion>>>(y =>
                         y.Count == 1 &&
                         y[0].Count == 1 &&
                         y[0][0] == NuGetVersion.Parse(existingVersion1))),
                     Times.Once);
-                _fetcher.Verify(
+                _leafFetcher.Verify(
                     x => x.GetLatestLeavesAsync(It.IsAny<string>(), It.IsAny<IReadOnlyList<IReadOnlyList<NuGetVersion>>>()),
                     Times.Exactly(2));
+
+                _ownerFetcher.Verify(x => x.GetOwnersOrEmptyAsync(It.IsAny<string>()), Times.Once);
+                _ownerFetcher.Verify(x => x.GetOwnersOrEmptyAsync(_packageId), Times.Once);
             }
 
             [Fact]
@@ -492,6 +551,8 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                     properties.Keys.ToArray());
                 Assert.False(properties[_packageVersion].Listed);
                 Assert.False(properties[_packageVersion].SemVer2);
+
+                _ownerFetcher.Verify(x => x.GetOwnersOrEmptyAsync(It.IsAny<string>()), Times.Never);
             }
 
             [Fact]
@@ -567,7 +628,8 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
         public abstract class BaseFacts
         {
             protected readonly Mock<IVersionListDataClient> _versionListDataClient;
-            protected readonly Mock<ICatalogLeafFetcher> _fetcher;
+            protected readonly Mock<ICatalogLeafFetcher> _leafFetcher;
+            protected readonly Mock<IDatabaseOwnerFetcher> _ownerFetcher;
             protected readonly Mock<ISearchDocumentBuilder> _search;
             protected readonly Mock<IHijackDocumentBuilder> _hijack;
             protected readonly RecordingLogger<CatalogIndexActionBuilder> _logger;
@@ -575,6 +637,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
             protected string _packageVersion;
             protected CatalogCommitItem _commitItem;
             protected PackageDetailsCatalogLeaf _leaf;
+            protected readonly string[] _owners;
             protected ResultAndAccessCondition<VersionListData> _versionListDataResult;
             protected List<CatalogCommitItem> _latestEntries;
             protected Dictionary<CatalogCommitItem, PackageDetailsCatalogLeaf> _entryToLeaf;
@@ -584,30 +647,18 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
             public BaseFacts(ITestOutputHelper output)
             {
                 _versionListDataClient = new Mock<IVersionListDataClient>();
-                _fetcher = new Mock<ICatalogLeafFetcher>();
+                _leafFetcher = new Mock<ICatalogLeafFetcher>();
+                _ownerFetcher = new Mock<IDatabaseOwnerFetcher>();
                 _search = new Mock<ISearchDocumentBuilder>();
                 _hijack = new Mock<IHijackDocumentBuilder>();
                 _logger = output.GetLogger<CatalogIndexActionBuilder>();
 
                 _packageId = Data.PackageId;
-                _packageVersion = "1.0.0";
-                _commitItem = GenerateCatalogCommitItem(_packageVersion);
-                _leaf = new PackageDetailsCatalogLeaf
-                {
-                    PackageId = _packageId,
-                    PackageVersion = _commitItem.PackageIdentity.Version.ToFullString(),
-                    VerbatimVersion = _commitItem.PackageIdentity.Version.OriginalVersion,
-                    Listed = true,
-                };
+                SetVersion("1.0.0");
                 _versionListDataResult = new ResultAndAccessCondition<VersionListData>(
                     new VersionListData(new Dictionary<string, VersionPropertiesData>()),
                     AccessConditionWrapper.GenerateIfNotExistsCondition());
-                _latestEntries = new List<CatalogCommitItem> { _commitItem };
-                _entryToLeaf = new Dictionary<CatalogCommitItem, PackageDetailsCatalogLeaf>(
-                    ReferenceEqualityComparer<CatalogCommitItem>.Default)
-                {
-                    { _commitItem, _leaf },
-                };
+                _owners = Data.Owners;
                 _latestCatalogLeaves = new LatestCatalogLeaves(
                     new HashSet<NuGetVersion>(),
                     new Dictionary<NuGetVersion, PackageDetailsCatalogLeaf>());
@@ -638,6 +689,18 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                     .Returns<string, SearchFilters, DateTimeOffset, string, string[], bool, bool>(
                         (i, ct, ci, sf, v, ls, l) => new SearchDocument.UpdateVersionList { Key = sf.ToString() });
                 _search
+                    .Setup(x => x.UpdateVersionListAndOwnersFromCatalog(
+                        It.IsAny<string>(),
+                        It.IsAny<SearchFilters>(),
+                        It.IsAny<DateTimeOffset>(),
+                        It.IsAny<string>(),
+                        It.IsAny<string[]>(),
+                        It.IsAny<bool>(),
+                        It.IsAny<bool>(),
+                        It.IsAny<string[]>()))
+                    .Returns<string, SearchFilters, DateTimeOffset, string, string[], bool, bool, string[]>(
+                        (i, ct, ci, sf, v, ls, l, o) => new SearchDocument.UpdateVersionListAndOwners { Key = sf.ToString() });
+                _search
                     .Setup(x => x.UpdateLatestFromCatalog(
                         It.IsAny<SearchFilters>(),
                         It.IsAny<string[]>(),
@@ -645,9 +708,10 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                         It.IsAny<bool>(),
                         It.IsAny<string>(),
                         It.IsAny<string>(),
-                        It.IsAny<PackageDetailsCatalogLeaf>()))
-                    .Returns<SearchFilters, string[], bool, bool, string, string, PackageDetailsCatalogLeaf>(
-                        (sf, v, ls, l, nv, fv, lf) => new SearchDocument.UpdateLatest { Key = sf.ToString() });
+                        It.IsAny<PackageDetailsCatalogLeaf>(),
+                        It.IsAny<string[]>()))
+                    .Returns<SearchFilters, string[], bool, bool, string, string, PackageDetailsCatalogLeaf, string[]>(
+                        (sf, v, ls, l, nv, fv, lf, o) => new SearchDocument.UpdateLatest { Key = sf.ToString() });
 
                 _hijack
                     .Setup(x => x.Keyed(It.IsAny<string>(), It.IsAny<string>()))
@@ -667,27 +731,48 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                     .Returns<string, HijackDocumentChanges, PackageDetailsCatalogLeaf>(
                         (v, c, l) => new HijackDocument.Full { Key = v });
 
-                _fetcher
+                _leafFetcher
                     .Setup(x => x.GetLatestLeavesAsync(It.IsAny<string>(), It.IsAny<IReadOnlyList<IReadOnlyList<NuGetVersion>>>()))
                     .ReturnsAsync(() => _latestCatalogLeaves);
 
+                _ownerFetcher
+                    .Setup(x => x.GetOwnersOrEmptyAsync(It.IsAny<string>()))
+                    .ReturnsAsync(() => _owners);
+
                 _target = new CatalogIndexActionBuilder(
                     _versionListDataClient.Object,
-                    _fetcher.Object,
+                    _leafFetcher.Object,
+                    _ownerFetcher.Object,
                     _search.Object,
                     _hijack.Object,
                     _logger);
             }
 
-            protected CatalogCommitItem GenerateCatalogCommitItem(string version)
+            protected void SetVersion(string version)
             {
-                return new CatalogCommitItem(
+                var parsedVersion = NuGetVersion.Parse(version);
+                _packageVersion = version;
+                _commitItem = new CatalogCommitItem(
                     new Uri("https://example/uri"),
                     "29e5c582-c1ef-4a5c-a053-d86c7381466b",
                     new DateTime(2018, 11, 1),
                     new List<string> { Schema.DataTypes.PackageDetails.AbsoluteUri },
                     new List<Uri> { Schema.DataTypes.PackageDetails },
-                    new PackageIdentity(_packageId, NuGetVersion.Parse(version)));
+                    new PackageIdentity(_packageId, parsedVersion));
+                _leaf = new PackageDetailsCatalogLeaf
+                {
+                    PackageId = _packageId,
+                    PackageVersion = _commitItem.PackageIdentity.Version.ToFullString(),
+                    VerbatimVersion = _commitItem.PackageIdentity.Version.OriginalVersion,
+                    IsPrerelease = parsedVersion.IsPrerelease,
+                    Listed = true,
+                };
+                _latestEntries = new List<CatalogCommitItem> { _commitItem };
+                _entryToLeaf = new Dictionary<CatalogCommitItem, PackageDetailsCatalogLeaf>(
+                    ReferenceEqualityComparer<CatalogCommitItem>.Default)
+                {
+                    { _commitItem, _leaf },
+                };
             }
         }
     }

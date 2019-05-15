@@ -7,7 +7,7 @@ using NuGet.Jobs;
 using NuGet.Jobs.Configuration;
 using NuGetGallery;
 
-namespace NuGet.Services.AzureSearch.Db2AzureSearch
+namespace NuGet.Services.AzureSearch
 {
     public class EntitiesContextFactory : IEntitiesContextFactory
     {

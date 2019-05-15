@@ -8,12 +8,17 @@ using System.Threading.Tasks;
 using Microsoft.Azure.Search.Models;
 using Microsoft.Extensions.Options;
 using Moq;
+using NuGet.Jobs;
+using NuGet.Jobs.Configuration;
 using NuGet.Packaging.Core;
 using NuGet.Protocol.Catalog;
 using NuGet.Protocol.Registration;
+using NuGet.Services.AzureSearch.Support;
 using NuGet.Services.AzureSearch.Wrappers;
+using NuGet.Services.Entities;
 using NuGet.Services.Metadata.Catalog;
 using NuGet.Versioning;
+using NuGetGallery;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -23,9 +28,12 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
     {
         private Catalog2AzureSearchConfiguration _config;
         private Mock<IOptionsSnapshot<Catalog2AzureSearchConfiguration>> _options;
+        private Mock<IEntitiesContextFactory> _entitiesContextFactory;
+        private Mock<IEntitiesContext> _entitiesContext;
+        private DatabaseOwnerFetcher _ownerFetcher;
         private InMemoryRegistrationClient _registrationClient;
         private InMemoryCatalogClient _catalogClient;
-        private CatalogLeafFetcher _fetcher;
+        private CatalogLeafFetcher _leafFetcher;
         private SearchDocumentBuilder _search;
         private HijackDocumentBuilder _hijack;
         private CatalogIndexActionBuilder _builder;
@@ -51,6 +59,17 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
             _options = new Mock<IOptionsSnapshot<Catalog2AzureSearchConfiguration>>();
             _options.Setup(x => x.Value).Returns(() => _config);
 
+            // Mock the database that is used for fetching owner information. The product code only reads
+            // from the database so it is less important to have a realistic, stateful implementation.
+            _entitiesContextFactory = new Mock<IEntitiesContextFactory>();
+            _entitiesContext = new Mock<IEntitiesContext>();
+            _entitiesContextFactory.Setup(x => x.CreateAsync(It.IsAny<bool>())).ReturnsAsync(() => _entitiesContext.Object);
+            _entitiesContext.Setup(x => x.PackageRegistrations).Returns(DbSetMockFactory.Create<PackageRegistration>());
+            _ownerFetcher = new DatabaseOwnerFetcher(
+                new Mock<ISqlConnectionFactory<GalleryDbConfiguration>>().Object,
+                _entitiesContextFactory.Object,
+                output.GetLogger<DatabaseOwnerFetcher>());
+
             _cloudBlobClient = new InMemoryCloudBlobClient();
             _versionListDataClient = new VersionListDataClient(
                 _cloudBlobClient,
@@ -58,7 +77,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
                 output.GetLogger<VersionListDataClient>());
             _registrationClient = new InMemoryRegistrationClient();
             _catalogClient = new InMemoryCatalogClient();
-            _fetcher = new CatalogLeafFetcher(
+            _leafFetcher = new CatalogLeafFetcher(
                 _registrationClient,
                 _catalogClient,
                 _options.Object,
@@ -67,7 +86,8 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
             _hijack = new HijackDocumentBuilder();
             _builder = new CatalogIndexActionBuilder(
                 _versionListDataClient,
-                _fetcher,
+                _leafFetcher,
+                _ownerFetcher,
                 _search,
                 _hijack,
                 output.GetLogger<CatalogIndexActionBuilder>());

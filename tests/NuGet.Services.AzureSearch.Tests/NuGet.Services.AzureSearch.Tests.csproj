@@ -50,6 +50,7 @@
     <Compile Include="Catalog2AzureSearch\Integration\InMemoryDocumentsOperations.cs" />
     <Compile Include="Catalog2AzureSearch\Integration\InMemoryFileReference.cs" />
     <Compile Include="Catalog2AzureSearch\Integration\InMemoryRegistrationClient.cs" />
+    <Compile Include="DatabaseOwnerFetcherFacts.cs" />
     <Compile Include="Db2AzureSearch\Db2AzureSearchCommandFacts.cs" />
     <Compile Include="Db2AzureSearch\EnumerableExtensionsFacts.cs" />
     <Compile Include="Db2AzureSearch\NewPackageRegistrationProducerFacts.cs" />

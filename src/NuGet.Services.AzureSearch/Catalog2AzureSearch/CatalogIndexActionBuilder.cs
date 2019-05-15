@@ -20,6 +20,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
 
         private readonly IVersionListDataClient _versionListDataClient;
         private readonly ICatalogLeafFetcher _leafFetcher;
+        private readonly IDatabaseOwnerFetcher _ownerFetcher;
         private readonly ISearchDocumentBuilder _search;
         private readonly IHijackDocumentBuilder _hijack;
         private readonly ILogger<CatalogIndexActionBuilder> _logger;
@@ -27,12 +28,14 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
         public CatalogIndexActionBuilder(
             IVersionListDataClient versionListDataClient,
             ICatalogLeafFetcher leafFetcher,
+            IDatabaseOwnerFetcher ownerFetcher,
             ISearchDocumentBuilder search,
             IHijackDocumentBuilder hijack,
             ILogger<CatalogIndexActionBuilder> logger)
         {
             _versionListDataClient = versionListDataClient ?? throw new ArgumentNullException(nameof(versionListDataClient));
             _leafFetcher = leafFetcher ?? throw new ArgumentNullException(nameof(leafFetcher));
+            _ownerFetcher = ownerFetcher ?? throw new ArgumentNullException(nameof(ownerFetcher));
             _search = search ?? throw new ArgumentNullException(nameof(search));
             _hijack = hijack ?? throw new ArgumentNullException(nameof(hijack));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -58,12 +61,29 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
 
             var indexChanges = await GetIndexChangesAsync(context);
 
+            string[] owners;
+            if (indexChanges.Search.Values.Any(IsUpdateLatest))
+            {
+                // Fetching owners is only strictly necessary on the AddFirst case. However, to facility reflow of
+                // owner information into the index, we also do this on UpdateLatest. We also do this on the
+                // DowngradeLatest case since it is a relatively uncommon case and is simpler to align with
+                // UpdateLatest.
+                owners = await _ownerFetcher.GetOwnersOrEmptyAsync(packageId);
+            }
+            else
+            {
+                // We fall into this case if the latest version of any search document is unchanged. The most likely
+                // example of this is if a user is unlisting an old version of the package.
+                owners = null;
+            }
+
             var search = indexChanges
                 .Search
                 .Select(p => GetSearchIndexAction(
                     context,
                     p.Key,
-                    p.Value))
+                    p.Value,
+                    owners))
                 .ToList();
 
             var hijack = indexChanges
@@ -113,7 +133,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
 
                     foreach (var pair in latestCatalogLeaves.Available)
                     {
-                        var entry = GetPackageDetailsEntry(context, pair.Key, pair.Value);
+                        var entry = GetPackageDetailsEntry(pair.Key, pair.Value);
                         context.VersionToEntry[pair.Key] = entry;
                         context.EntryToLeaf[entry] = pair.Value;
                     }
@@ -199,48 +219,91 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
         private IndexAction<KeyedDocument> GetSearchIndexAction(
             Context context,
             SearchFilters searchFilters,
-            SearchIndexChangeType changeType)
+            SearchIndexChangeType changeType,
+            string[] owners)
         {
             var latestFlags = _search.LatestFlagsOrNull(context.VersionLists, searchFilters);
             Guard.Assert(
                 changeType == SearchIndexChangeType.Delete || latestFlags != null,
                 "Either the search document is being or there is a latest version.");
 
+            if (changeType == SearchIndexChangeType.Delete)
+            {
+                return IndexAction.Delete(_search.Keyed(
+                    context.PackageId,
+                    searchFilters));
+            }
+            else if (changeType == SearchIndexChangeType.UpdateVersionList)
+            {
+                if (owners != null)
+                {
+                    // If we have owner information already fetched on behalf of another search document, send the
+                    // latest owner information as well. This provides two benefits:
+                    //
+                    //   1. This keeps all search documents for a package ID in-sync with regards to their owners
+                    //      fields.
+                    //
+                    //   2. This means if an admin is reflowing for the purposes of fixing up owner information, all
+                    //      search documents get the benefit instead of having to reflow the latest version of each
+                    //      search filter.
+                    //
+                    return IndexAction.Merge<KeyedDocument>(_search.UpdateVersionListAndOwnersFromCatalog(
+                       context.PackageId,
+                       searchFilters,
+                       lastCommitTimestamp: context.LatestCommitTimestamp,
+                       lastCommitId: context.LatestCommitId,
+                       versions: latestFlags.LatestVersionInfo.ListedFullVersions,
+                       isLatestStable: latestFlags.IsLatestStable,
+                       isLatest: latestFlags.IsLatest,
+                       owners: owners));
+                }
+                else
+                {
+                    return IndexAction.Merge<KeyedDocument>(_search.UpdateVersionListFromCatalog(
+                       context.PackageId,
+                       searchFilters,
+                       lastCommitTimestamp: context.LatestCommitTimestamp,
+                       lastCommitId: context.LatestCommitId,
+                       versions: latestFlags.LatestVersionInfo.ListedFullVersions,
+                       isLatestStable: latestFlags.IsLatestStable,
+                       isLatest: latestFlags.IsLatest));
+                }
+            }
+            else if (IsUpdateLatest(changeType))
+            {
+                var leaf = context.GetLeaf(latestFlags.LatestVersionInfo.ParsedVersion);
+                var normalizedVersion = VerifyConsistencyAndNormalizeVersion(context, leaf);
+                return IndexAction.MergeOrUpload<KeyedDocument>(_search.UpdateLatestFromCatalog(
+                    searchFilters,
+                    latestFlags.LatestVersionInfo.ListedFullVersions,
+                    latestFlags.IsLatestStable,
+                    latestFlags.IsLatest,
+                    normalizedVersion,
+                    latestFlags.LatestVersionInfo.FullVersion,
+                    leaf,
+                    owners));
+            }
+            else
+            {
+                throw new NotImplementedException($"The change type '{changeType}' is not supported.");
+            }
+        }
+
+        /// <summary>
+        /// This is used to determine if a search index change type should be mapped to a
+        /// <see cref="SearchDocument.UpdateLatest"/> document.
+        /// </summary>
+        private bool IsUpdateLatest(SearchIndexChangeType changeType)
+        {
             switch (changeType)
             {
-                case SearchIndexChangeType.Delete:
-                    return IndexAction.Delete(_search.Keyed(
-                        context.PackageId,
-                        searchFilters));
-
-                case SearchIndexChangeType.UpdateVersionList:
-                    return IndexAction.Merge<KeyedDocument>(_search.UpdateVersionListFromCatalog(
-                        context.PackageId,
-                        searchFilters,
-                        lastCommitTimestamp: context.LatestCommitTimestamp,
-                        lastCommitId: context.LatestCommitId,
-                        versions: latestFlags.LatestVersionInfo.ListedFullVersions,
-                        isLatestStable: latestFlags.IsLatestStable,
-                        isLatest: latestFlags.IsLatest));
-
                 case SearchIndexChangeType.AddFirst:
                 case SearchIndexChangeType.UpdateLatest:
                 case SearchIndexChangeType.DowngradeLatest:
-                    // TODO: look up owners with AddFirst.
-                    // https://github.com/nuget/nugetgallery/issues/6475
-                    var leaf = context.GetLeaf(latestFlags.LatestVersionInfo.ParsedVersion);
-                    var normalizedVersion = VerifyConsistencyAndNormalizeVersion(context, leaf);
-                    return IndexAction.MergeOrUpload<KeyedDocument>(_search.UpdateLatestFromCatalog(
-                        searchFilters,
-                        latestFlags.LatestVersionInfo.ListedFullVersions,
-                        latestFlags.IsLatestStable,
-                        latestFlags.IsLatest,
-                        normalizedVersion,
-                        latestFlags.LatestVersionInfo.FullVersion,
-                        leaf));
+                    return true;
 
                 default:
-                    throw new NotImplementedException($"The change type '{changeType}' is not supported.");
+                    return false;
             }
         }
 
@@ -328,7 +391,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
             return normalizedVersion;
         }
 
-        private CatalogCommitItem GetPackageDetailsEntry(Context context, NuGetVersion version, PackageDetailsCatalogLeaf leaf)
+        private CatalogCommitItem GetPackageDetailsEntry(NuGetVersion version, PackageDetailsCatalogLeaf leaf)
         {
             return new CatalogCommitItem(
                 uri: new Uri(leaf.Url, UriKind.Absolute),

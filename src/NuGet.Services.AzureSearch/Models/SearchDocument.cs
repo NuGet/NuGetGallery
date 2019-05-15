@@ -17,30 +17,23 @@ namespace NuGet.Services.AzureSearch
         /// download count).
         /// </summary>
         [SerializePropertyNamesAsCamelCase]
-        public class Full : AddFirst
+        public class Full : UpdateLatest
         {
             [IsFilterable]
             public long? TotalDownloadCount { get; set; }
         }
 
         /// <summary>
-        /// Used when processing <see cref="SearchIndexChangeType.AddFirst"/>.
+        /// Used when processing <see cref="SearchIndexChangeType.AddFirst"/>,
+        /// <see cref="SearchIndexChangeType.UpdateLatest"/> or <see cref="SearchIndexChangeType.DowngradeLatest"/>.
         /// </summary>
         [SerializePropertyNamesAsCamelCase]
-        public class AddFirst : UpdateLatest, IOwners
+        public class UpdateLatest : BaseMetadataDocument, IVersions, IOwners
         {
             [IsSearchable]
             [Analyzer(ExactMatchCustomAnalyzer.Name)]
             public string[] Owners { get; set; }
-        }
 
-        /// <summary>
-        /// Used when processing <see cref="SearchIndexChangeType.UpdateLatest"/> or
-        /// <see cref="SearchIndexChangeType.DowngradeLatest"/>.
-        /// </summary>
-        [SerializePropertyNamesAsCamelCase]
-        public class UpdateLatest : BaseMetadataDocument, IVersions
-        {
             [IsFilterable]
             public string SearchFilters { get; set; }
 
@@ -48,6 +41,18 @@ namespace NuGet.Services.AzureSearch
             public string[] Versions { get; set; }
             public bool? IsLatestStable { get; set; }
             public bool? IsLatest { get; set; }
+        }
+
+        /// <summary>
+        /// Used when processing <see cref="SearchIndexChangeType.UpdateVersionList"/> and the owner information has
+        /// been already been fetched for the purposes of <see cref="UpdateLatest"/>. Note that this model does not
+        /// need any analyzer or other Azure Search attributes since it is not used for index creation. The
+        /// <see cref="Full"/> and its parent classes handle this.
+        /// </summary>
+        [SerializePropertyNamesAsCamelCase]
+        public class UpdateVersionListAndOwners : UpdateVersionList, IOwners
+        {
+            public string[] Owners { get; set; }
         }
 
         /// <summary>

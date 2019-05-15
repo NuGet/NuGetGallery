@@ -129,6 +129,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
 
         private async Task PushAllPackageRegistrationsAsync(CancellationTokenSource cancelledCts, CancellationTokenSource produceWorkCts, ConcurrentBag<IdAndValue<IReadOnlyList<string>>> allOwners)
         {
+            _logger.LogInformation("Pushing all packages to Azure Search and initializing version lists.");
             var allWork = new ConcurrentBag<NewPackageRegistration>();
             var producerTask = ProduceWorkAsync(allWork, produceWorkCts, cancelledCts.Token);
             var consumerTasks = Enumerable
@@ -146,6 +147,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
 
             await firstTask;
             await Task.WhenAll(allTasks);
+            _logger.LogInformation("Done initializing the Azure Search indexes and version lists.");
         }
 
         private async Task WriteOwnerDataAsync(ConcurrentBag<IdAndValue<IReadOnlyList<string>>> allOwners)
@@ -160,6 +162,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             await _ownerDataClient.ReplaceLatestIndexedAsync(
                 ownersBuilder.GetResult(),
                 AccessConditionWrapper.GenerateIfNotExistsCondition());
+            _logger.LogInformation("Done uploading the initial owners file.");
         }
 
         private async Task ProduceWorkAsync(

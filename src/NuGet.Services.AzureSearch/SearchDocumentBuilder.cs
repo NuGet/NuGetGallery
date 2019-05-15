@@ -116,6 +116,35 @@ namespace NuGet.Services.AzureSearch
             return document;
         }
 
+        public SearchDocument.UpdateVersionListAndOwners UpdateVersionListAndOwnersFromCatalog(
+            string packageId,
+            SearchFilters searchFilters,
+            DateTimeOffset lastCommitTimestamp,
+            string lastCommitId,
+            string[] versions,
+            bool isLatestStable,
+            bool isLatest,
+            string[] owners)
+        {
+            var document = new SearchDocument.UpdateVersionListAndOwners();
+
+            PopulateVersions(
+                document,
+                packageId,
+                searchFilters,
+                lastUpdatedFromCatalog: true,
+                lastCommitTimestamp: lastCommitTimestamp,
+                lastCommitId: lastCommitId,
+                versions: versions,
+                isLatestStable: isLatestStable,
+                isLatest: isLatest);
+            PopulateOwners(
+                document,
+                owners);
+
+            return document;
+        }
+
         public SearchDocument.UpdateLatest UpdateLatestFromCatalog(
             SearchFilters searchFilters,
             string[] versions,
@@ -123,7 +152,8 @@ namespace NuGet.Services.AzureSearch
             bool isLatest,
             string normalizedVersion,
             string fullVersion,
-            PackageDetailsCatalogLeaf leaf)
+            PackageDetailsCatalogLeaf leaf,
+            string[] owners)
         {
             var document = new SearchDocument.UpdateLatest();
 
@@ -137,7 +167,8 @@ namespace NuGet.Services.AzureSearch
                 versions: versions,
                 isLatestStable: isLatestStable,
                 isLatest: isLatest,
-                fullVersion: fullVersion);
+                fullVersion: fullVersion,
+                owners: owners);
             DocumentUtilities.PopulateMetadata(document, normalizedVersion, leaf);
 
             return document;
@@ -156,7 +187,7 @@ namespace NuGet.Services.AzureSearch
         {
             var document = new SearchDocument.Full();
 
-            PopulateAddFirst(
+            PopulateUpdateLatest(
                 document,
                 packageId,
                 searchFilters,
@@ -211,7 +242,8 @@ namespace NuGet.Services.AzureSearch
             string[] versions,
             bool isLatestStable,
             bool isLatest,
-            string fullVersion)
+            string fullVersion,
+            string[] owners)
         {
             PopulateVersions(
                 document,
@@ -225,32 +257,6 @@ namespace NuGet.Services.AzureSearch
                 isLatest);
             document.SearchFilters = DocumentUtilities.GetSearchFilterString(searchFilters);
             document.FullVersion = fullVersion;
-        }
-
-        private static void PopulateAddFirst(
-            SearchDocument.AddFirst document,
-            string packageId,
-            SearchFilters searchFilters,
-            bool lastUpdatedFromCatalog,
-            DateTimeOffset? lastCommitTimestamp,
-            string lastCommitId,
-            string[] versions,
-            bool isLatestStable,
-            bool isLatest,
-            string fullVersion,
-            string[] owners)
-        {
-            PopulateUpdateLatest(
-                document,
-                packageId,
-                searchFilters,
-                lastUpdatedFromCatalog,
-                lastCommitTimestamp,
-                lastCommitId,
-                versions,
-                isLatestStable,
-                isLatest,
-                fullVersion);
             PopulateOwners(
                 document,
                 owners);

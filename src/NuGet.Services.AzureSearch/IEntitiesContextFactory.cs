@@ -4,7 +4,7 @@
 using System.Threading.Tasks;
 using NuGetGallery;
 
-namespace NuGet.Services.AzureSearch.Db2AzureSearch
+namespace NuGet.Services.AzureSearch
 {
     public interface IEntitiesContextFactory
     {

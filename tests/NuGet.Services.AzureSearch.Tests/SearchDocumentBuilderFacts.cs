@@ -222,6 +222,59 @@ namespace NuGet.Services.AzureSearch
             }
         }
 
+        public class UpdateVersionListAndOwnersFromCatalog : BaseFacts
+        {
+            public UpdateVersionListAndOwnersFromCatalog(ITestOutputHelper output) : base(output)
+            {
+            }
+
+            [Theory]
+            [InlineData(false, false)]
+            [InlineData(false, true)]
+            [InlineData(true, false)]
+            [InlineData(true, true)]
+            public async Task SetsExpectedProperties(bool isLatestStable, bool isLatest)
+            {
+                var document = _target.UpdateVersionListAndOwnersFromCatalog(
+                    Data.PackageId,
+                    Data.SearchFilters,
+                    Data.CommitTimestamp,
+                    Data.CommitId,
+                    Data.Versions,
+                    isLatestStable,
+                    isLatest,
+                    Data.Owners);
+
+                SetDocumentLastUpdated(document);
+                var json = await SerializationUtilities.SerializeToJsonAsync(document);
+                Assert.Equal(@"{
+  ""value"": [
+    {
+      ""@search.action"": ""upload"",
+      ""owners"": [
+        ""Microsoft"",
+        ""azure-sdk""
+      ],
+      ""versions"": [
+        ""1.0.0"",
+        ""2.0.0+git"",
+        ""3.0.0-alpha.1"",
+        ""7.1.2-alpha+git""
+      ],
+      ""isLatestStable"": " + isLatestStable.ToString().ToLowerInvariant() + @",
+      ""isLatest"": " + isLatest.ToString().ToLowerInvariant() + @",
+      ""lastUpdatedDocument"": ""2018-12-14T09:30:00+00:00"",
+      ""lastDocumentType"": ""NuGet.Services.AzureSearch.SearchDocument+UpdateVersionListAndOwners"",
+      ""lastUpdatedFromCatalog"": true,
+      ""lastCommitTimestamp"": ""2018-12-13T12:30:00+00:00"",
+      ""lastCommitId"": ""6b9b24dd-7aec-48ae-afc1-2a117e3d50d1"",
+      ""key"": ""windowsazure_storage-d2luZG93c2F6dXJlLnN0b3JhZ2U1-IncludePrereleaseAndSemVer2""
+    }
+  ]
+}", json);
+            }
+        }
+
         public class UpdateLatestFromCatalog : BaseFacts
         {
             public UpdateLatestFromCatalog(ITestOutputHelper output) : base(output)
@@ -242,7 +295,8 @@ namespace NuGet.Services.AzureSearch
                     isLatest: true,
                     normalizedVersion: Data.NormalizedVersion,
                     fullVersion: Data.FullVersion,
-                    leaf: leaf);
+                    leaf: leaf,
+                    owners: Data.Owners);
 
                 Assert.Equal(Data.PackageId.ToLowerInvariant(), document.SortableTitle);
             }
@@ -258,7 +312,8 @@ namespace NuGet.Services.AzureSearch
                     isLatest: true,
                     normalizedVersion: Data.NormalizedVersion,
                     fullVersion: Data.FullVersion,
-                    leaf: Data.Leaf);
+                    leaf: Data.Leaf,
+                    owners: Data.Owners);
 
                 SetDocumentLastUpdated(document);
                 var json = await SerializationUtilities.SerializeToJsonAsync(document);
@@ -266,6 +321,10 @@ namespace NuGet.Services.AzureSearch
   ""value"": [
     {
       ""@search.action"": ""upload"",
+      ""owners"": [
+        ""Microsoft"",
+        ""azure-sdk""
+      ],
       ""searchFilters"": """ + expected + @""",
       ""fullVersion"": ""7.1.2-alpha+git"",
       ""versions"": [
@@ -337,7 +396,8 @@ namespace NuGet.Services.AzureSearch
                     isLatest: true,
                     normalizedVersion: Data.NormalizedVersion,
                     fullVersion: Data.FullVersion,
-                    leaf: leaf);
+                    leaf: leaf,
+                    owners: Data.Owners);
 
                 Assert.Null(document.RequiresLicenseAcceptance);
             }

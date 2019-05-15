@@ -246,33 +246,6 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             return AsDisposable.Create(await _contextFactory.CreateAsync(readOnly: true));
         }
 
-        private static class AsDisposable
-        {
-            public static AsDisposable<T> Create<T>(T value) where T : class
-            {
-                return new AsDisposable<T>(value);
-            }
-        }
-
-        /// <summary>
-        /// This is invented because <see cref="IEntitiesContext"/> does not implement <see cref="IDisposable"/> but
-        /// the primary implementation is disposable.
-        /// </summary>
-        private class AsDisposable<T> : IDisposable where T : class
-        {
-            public AsDisposable(T value)
-            {
-                Value = value ?? throw new ArgumentNullException(nameof(value));
-            }
-
-            public T Value { get; }
-
-            public void Dispose()
-            {
-                (Value as IDisposable)?.Dispose();
-            }
-        }
-
         private class PackageRegistrationRange
         {
             public PackageRegistrationRange(int minKey, int? maxKey, int packageCount)

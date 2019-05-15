@@ -31,6 +31,16 @@ namespace NuGet.Services.AzureSearch
             bool isLatestStable,
             bool isLatest);
 
+        SearchDocument.UpdateVersionListAndOwners UpdateVersionListAndOwnersFromCatalog(
+            string packageId,
+            SearchFilters searchFilters,
+            DateTimeOffset lastCommitTimestamp,
+            string lastCommitId,
+            string[] versions,
+            bool isLatestStable,
+            bool isLatest,
+            string[] owners);
+
         SearchDocument.Full FullFromDb(
             string packageId, 
             SearchFilters searchFilters,
@@ -49,6 +59,7 @@ namespace NuGet.Services.AzureSearch
             bool isLatest,
             string normalizedVersion,
             string fullVersion,
-            PackageDetailsCatalogLeaf leaf);
+            PackageDetailsCatalogLeaf leaf,
+            string[] owners);
     }
 }
