@@ -3011,7 +3011,8 @@ namespace NuGetGallery
 
                 packageService
                     .Setup(svc => svc.FilterLatestPackage(packages, SemVerLevelKey.SemVer2, true))
-                    .Returns(_package);
+                    .Returns(_package)
+                    .Verifiable();
 
                 return packageService;
             }
