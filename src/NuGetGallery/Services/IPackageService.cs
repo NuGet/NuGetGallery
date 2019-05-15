@@ -40,10 +40,29 @@ namespace NuGetGallery
             int? semVerLevelKey = null,
             bool allowPrerelease = true);
 
+        /// <summary>
+        /// Filters a list of packages for an exact version.
+        /// </summary>
+        /// <param name="packages">The list of packages to search.</param>
+        /// <param name="version">The version to search for. This version is normalized and compared case-insensitively.</param>
+        /// <returns>
+        /// Returns the package in <paramref name="packages"/> with the exact version.
+        /// Returns null if no such package exists.
+        /// </returns>
         Package FilterExactPackage(
             IReadOnlyCollection<Package> packages,
             string version);
 
+        /// <summary>
+        /// Filters a list of packages and returns the latest that follows some criteria.
+        /// </summary>
+        /// <param name="packages">The list of packages to search.</param>
+        /// <param name="semVerLevelKey">The SemVer-level key that determines the SemVer filter to be applied.</param>
+        /// <param name="allowPrerelease"><c>True</c> indicating pre-release packages are allowed, otherwise <c>false</c>.</param>
+        /// <returns>
+        /// Returns the latest package in <paramref name="packages"/> that follows the criteria.
+        /// Returns null if no such package exists.
+        /// </returns>
         Package FilterLatestPackage(
             IReadOnlyCollection<Package> packages,
             int? semVerLevelKey = SemVerLevelKey.SemVer2,

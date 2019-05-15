@@ -187,9 +187,10 @@ namespace NuGetGallery
             IReadOnlyCollection<Package> packages,
             string version)
         {
+            var normalizedVersion = NuGetVersionFormatter.Normalize(version);
             return packages.SingleOrDefault(p => string.Equals(
                 p.NormalizedVersion,
-                NuGetVersionFormatter.Normalize(version),
+                normalizedVersion,
                 StringComparison.OrdinalIgnoreCase));
         }
 
