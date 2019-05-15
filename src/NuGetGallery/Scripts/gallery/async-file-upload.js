@@ -216,7 +216,7 @@
         }
 
         function displayErrors(errors) {
-            if (errors == null || errors.length < 1) {
+            if (!errors || errors.length < 1) {
                 return;
             }
 
