@@ -136,13 +136,12 @@ namespace NuGet.Services.DatabaseMigration
             var pendingMigrations = migrator.GetPendingMigrations();
             if (pendingMigrations.Count() > 0)
             {
+                var databaseMigrations = migrator.GetDatabaseMigrations().ToList();
+                databaseMigrations.Reverse();
+                var localMigrations = migrator.GetLocalMigrations().ToList();
                 try
                 {
-                    var databaseMigrations = migrator.GetDatabaseMigrations().ToList();
-                    databaseMigrations.Reverse();
-                    var localMigrations = migrator.GetLocalMigrations().ToList();
-
-                    CheckIsValidMigration(databaseMigrations: databaseMigrations, localMigrations: localMigrations);
+                    CheckIsValidMigration(databaseMigrations, localMigrations);
                 }
                 catch (Exception e)
                 {
