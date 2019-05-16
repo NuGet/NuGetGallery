@@ -14,12 +14,14 @@ using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.DataMovement;
 using Microsoft.WindowsAzure.Storage.RetryPolicies;
+using NuGet.Protocol;
 
 namespace NuGet.Services.Metadata.Catalog.Persistence
 {
     public class AzureStorage : Storage, IAzureStorage
     {
         private readonly bool _compressContent;
+        private readonly IThrottle _throttle;
         private readonly CloudBlobDirectory _directory;
         private readonly bool _useServerSideCopy;
 
@@ -31,33 +33,13 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             string containerName,
             string path,
             Uri baseAddress,
-            bool useServerSideCopy,
-            bool compressContent,
-            bool verbose) : this(
-                account,
-                containerName,
-                path,
-                baseAddress,
-                DefaultMaxExecutionTime,
-                DefaultServerTimeout,
-                useServerSideCopy,
-                compressContent,
-                verbose,
-                initializeContainer: true)
-        {
-        }
-
-        public AzureStorage(
-            CloudStorageAccount account,
-            string containerName,
-            string path,
-            Uri baseAddress,
             TimeSpan maxExecutionTime,
             TimeSpan serverTimeout,
             bool useServerSideCopy,
             bool compressContent,
             bool verbose,
-            bool initializeContainer) : this(
+            bool initializeContainer,
+            IThrottle throttle) : this(
                 account.CreateCloudBlobClient().GetContainerReference(containerName).GetDirectoryReference(path),
                 baseAddress,
                 maxExecutionTime,
@@ -66,6 +48,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         {
             _useServerSideCopy = useServerSideCopy;
             _compressContent = compressContent;
+            _throttle = throttle ?? NullThrottle.Instance;
             Verbose = verbose;
         }
 
@@ -309,6 +292,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
             CloudBlockBlob blob = GetBlockBlobReference(name);
 
+            await _throttle.WaitAsync();
             try
             {
                 string content;
@@ -348,6 +332,10 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
                 }
 
                 return null;
+            }
+            finally
+            {
+                _throttle.Release();
             }
         }
 

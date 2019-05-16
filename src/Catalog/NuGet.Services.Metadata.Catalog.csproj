@@ -254,6 +254,9 @@
     <PackageReference Include="NuGet.Packaging">
       <Version>5.0.0-preview1.5665</Version>
     </PackageReference>
+    <PackageReference Include="NuGet.Protocol">
+      <Version>5.0.0-preview1.5665</Version>
+    </PackageReference>
     <PackageReference Include="NuGet.StrongName.json-ld.net">
       <Version>1.0.6</Version>
     </PackageReference>

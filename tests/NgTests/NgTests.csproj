@@ -197,7 +197,7 @@
       <Version>4.7.25</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Protocol">
-      <Version>4.8.0</Version>
+      <Version>5.0.0-preview1.5665</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Configuration">
       <Version>2.28.0</Version>

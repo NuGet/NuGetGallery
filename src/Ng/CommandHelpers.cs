@@ -14,6 +14,7 @@ using Lucene.Net.Store.Azure;
 using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Auth;
+using NuGet.Protocol;
 using NuGet.Services.Configuration;
 using NuGet.Services.KeyVault;
 using NuGet.Services.Metadata.Catalog;
@@ -127,7 +128,10 @@ namespace Ng
             return new RegistrationStorageFactories(legacyStorageFactory, semVer2StorageFactory);
         }
 
-        public static CatalogStorageFactory CreateStorageFactory(IDictionary<string, string> arguments, bool verbose)
+        public static CatalogStorageFactory CreateStorageFactory(
+            IDictionary<string, string> arguments,
+            bool verbose,
+            IThrottle throttle = null)
         {
             IDictionary<string, string> names = new Dictionary<string, string>
             {
@@ -142,7 +146,12 @@ namespace Ng
                 { Arguments.StorageServerTimeoutInSeconds, Arguments.StorageServerTimeoutInSeconds }
             };
 
-            return CreateStorageFactoryImpl(arguments, names, verbose, compressed: false);
+            return CreateStorageFactoryImpl(
+                arguments,
+                names,
+                verbose,
+                compressed: false,
+                throttle: throttle);
         }
 
         public static CatalogStorageFactory CreateCompressedStorageFactory(IDictionary<string, string> arguments, bool verbose)
@@ -191,7 +200,11 @@ namespace Ng
             return CreateStorageFactoryImpl(arguments, names, verbose, compressed: true);
         }
 
-        public static CatalogStorageFactory CreateSuffixedStorageFactory(string suffix, IDictionary<string, string> arguments, bool verbose)
+        public static CatalogStorageFactory CreateSuffixedStorageFactory(
+            string suffix,
+            IDictionary<string, string> arguments,
+            bool verbose,
+            IThrottle throttle = null)
         {
             if (string.IsNullOrEmpty(suffix))
             {
@@ -211,13 +224,20 @@ namespace Ng
                 { Arguments.StorageServerTimeoutInSeconds, Arguments.StorageServerTimeoutInSeconds }
             };
 
-            return CreateStorageFactoryImpl(arguments, names, verbose, compressed: false);
+            return CreateStorageFactoryImpl(
+                arguments,
+                names,
+                verbose,
+                compressed: false,
+                throttle: throttle);
         }
 
-        private static CatalogStorageFactory CreateStorageFactoryImpl(IDictionary<string, string> arguments,
-                                                               IDictionary<string, string> argumentNameMap,
-                                                               bool verbose,
-                                                               bool compressed)
+        private static CatalogStorageFactory CreateStorageFactoryImpl(
+            IDictionary<string, string> arguments,
+            IDictionary<string, string> argumentNameMap,
+            bool verbose,
+            bool compressed,
+            IThrottle throttle = null)
         {
             Uri storageBaseAddress = null;
             var storageBaseAddressStr = arguments.GetOrDefault<string>(argumentNameMap[Arguments.StorageBaseAddress]);
@@ -270,7 +290,8 @@ namespace Ng
                     storageUseServerSideCopy,
                     compressed,
                     verbose,
-                    initializeContainer: true);
+                    initializeContainer: true,
+                    throttle: throttle ?? NullThrottle.Instance);
             }
             throw new ArgumentException($"Unrecognized storageType \"{storageType}\"");
         }

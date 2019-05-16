@@ -3,6 +3,7 @@
 
 using System;
 using Microsoft.WindowsAzure.Storage;
+using NuGet.Protocol;
 
 namespace NuGet.Services.Metadata.Catalog.Persistence
 {
@@ -27,7 +28,8 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             bool useServerSideCopy,
             bool compressContent,
             bool verbose,
-            bool initializeContainer)
+            bool initializeContainer,
+            IThrottle throttle) : base(throttle)
         {
             _account = account;
             _containerName = containerName;
@@ -101,7 +103,8 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
                 _useServerSideCopy,
                 CompressContent,
                 Verbose,
-                _initializeContainer);
+                _initializeContainer,
+                Throttle);
         }
     }
 }

@@ -11,6 +11,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.WindowsAzure.Storage;
 using NuGet.Jobs.Validation;
+using NuGet.Protocol;
 using NuGet.Protocol.Catalog;
 using NuGet.Protocol.Registration;
 using NuGet.Services.AzureSearch.Catalog2AzureSearch;
@@ -128,7 +129,8 @@ namespace NuGet.Services.AzureSearch
                         useServerSideCopy: true,
                         compressContent: false,
                         verbose: true,
-                        initializeContainer: false);
+                        initializeContainer: false,
+                        throttle: NullThrottle.Instance);
                 })
                 .Keyed<IStorageFactory>(key);
 
