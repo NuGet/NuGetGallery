@@ -863,6 +863,8 @@ namespace NuGetGallery
                        .SingleInstance()
                        .Keyed<ICloudBlobClient>(dependent.BindingKey);
 
+                    // Do not register the service as ICloudStorageStatusDependency because
+                    // the CloudAuditingService registers it and the gallery uses the same storage account for all the containers.
                     builder.RegisterType<CloudBlobFileStorageService>()
                         .WithParameter(new ResolvedParameter(
                            (pi, ctx) => pi.ParameterType == typeof(ICloudBlobClient),
@@ -870,7 +872,6 @@ namespace NuGetGallery
                         .AsSelf()
                         .As<IFileStorageService>()
                         .As<ICoreFileStorageService>()
-                        .As<ICloudStorageStatusDependency>()
                         .SingleInstance()
                         .Keyed<IFileStorageService>(dependent.BindingKey);
                 }

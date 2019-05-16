@@ -6,14 +6,12 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
 using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
 
 namespace NuGetGallery
 {
-    public class CloudBlobFileStorageService : CloudBlobCoreFileStorageService, IFileStorageService, ICloudStorageStatusDependency
+    public class CloudBlobFileStorageService : CloudBlobCoreFileStorageService, IFileStorageService
     {
         private readonly IAppConfiguration _configuration;
         private readonly ISourceDestinationRedirectPolicy _redirectPolicy;
@@ -97,19 +95,10 @@ namespace NuGetGallery
             return urlBuilder.Uri;
         }
 
-        public async Task<bool> IsAvailableAsync(BlobRequestOptions options, OperationContext operationContext)
-        {
-            var container = await GetContainerAsync(CoreConstants.Folders.PackagesFolderName);
-            return await container.ExistsAsync(options, operationContext);
-        }
-
-        /// <summary>
-        /// IFileStorageService.IsAvailableAsync 
-        /// </summary>
-        /// <returns></returns>
         public async Task<bool> IsAvailableAsync()
         {
-            return await IsAvailableAsync(options: null, operationContext: null);
+            var container = await GetContainerAsync(CoreConstants.Folders.PackagesFolderName);
+            return await container.ExistsAsync(options: null, operationContext: null);
         }
     }
 }

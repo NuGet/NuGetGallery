@@ -19,11 +19,9 @@ namespace NuGetGallery.Services
         public void ValidateServicesThatWillBeInStatusValidation()
         {
             // Arrange
-            var cloudBlobFileStorageServiceIsStatusParticipant = typeof(ICloudStorageStatusDependency).IsAssignableFrom(typeof(CloudBlobFileStorageService));
             var cloudAuditingServiceIsStatusParticipant = typeof(ICloudStorageStatusDependency).IsAssignableFrom(typeof(CloudAuditingService));
 
             // Assert
-            Assert.True(cloudBlobFileStorageServiceIsStatusParticipant);
             Assert.True(cloudAuditingServiceIsStatusParticipant);
         }
 
@@ -79,7 +77,7 @@ namespace NuGetGallery.Services
                 var result = await statusTestService.IsAzureStorageAvailable();
 
                 // Assert
-                Assert.True(result.Value);         
+                Assert.True(result.Value);    
             }
 
             [Theory]
