@@ -120,6 +120,7 @@
     <Compile Include="Registration\RegistrationCatalogEntryTests.cs" />
     <Compile Include="Registration\RegistrationMakerTests.cs" />
     <Compile Include="Registration\RegistrationTestBase.cs" />
+    <Compile Include="RetryWithExponentialBackoffTests.cs" />
     <Compile Include="SortingGraphCollectorTests.cs" />
     <Compile Include="StringInternerTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
