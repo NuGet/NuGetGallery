@@ -89,6 +89,7 @@
     <Compile Include="Infrastructure\Lucene\GallerySearchServiceFacts.cs" />
     <Compile Include="Helpers\StreamHelperFacts.cs" />
     <Compile Include="Services\PackageDeprecationServiceFacts.cs" />
+    <Compile Include="Services\StatusServiceFacts.cs" />
     <Compile Include="TestData\TestDataResourceUtility.cs" />
     <Compile Include="UsernameValidationRegex.cs" />
     <Compile Include="Extensions\NumberExtensionsFacts.cs" />

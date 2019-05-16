@@ -7,17 +7,20 @@
 <section role="main" class="container main-container">
     <h1>Site Administration</h1>
     <ul>
-        <li>
-            <h2>
-                <a href="~/Admin/Database">
-                    <i class="ms-Icon ms-Icon--Database"></i>
-                    <span>Database Administration</span>
-                </a>
-            </h2>
-            <p>
-                Get direct access to the database to manipulate Users, Packages, etc. USE WITH CAUTION.
-            </p>
-        </li>
+        @if (Model.ShowDatabaseAdmin)
+        {
+            <li>
+                <h2>
+                    <a href="~/Admin/Database">
+                        <i class="ms-Icon ms-Icon--Database"></i>
+                        <span>Database Administration</span>
+                    </a>
+                </h2>
+                <p>
+                    Get direct access to the database to manipulate Users, Packages, etc. USE WITH CAUTION.
+                </p>
+            </li>
+        }
         <li>
             <h2>
                 <a href="~/Admin/Errors.axd">

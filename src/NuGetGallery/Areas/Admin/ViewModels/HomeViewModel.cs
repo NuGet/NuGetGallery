@@ -5,10 +5,13 @@ namespace NuGetGallery.Areas.Admin.ViewModels
 {
     public class HomeViewModel
     {
-        public HomeViewModel(bool showValidation)
+        public HomeViewModel(bool showDatabaseAdmin, bool showValidation)
         {
+            ShowDatabaseAdmin = showDatabaseAdmin;
             ShowValidation = showValidation;
         }
+
+        public bool ShowDatabaseAdmin { get; }
 
         public bool ShowValidation { get; }
     }

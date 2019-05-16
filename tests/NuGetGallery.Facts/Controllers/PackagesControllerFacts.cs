@@ -376,11 +376,17 @@ namespace NuGetGallery
                     GetConfigurationService(),
                     packageService: packageService);
 
+                var version = "1.1.1";
+                var packages = new Package[0];
                 packageService.Setup(p => p.FindPackagesById("Foo", PackageDeprecationFieldsToInclude.Deprecation))
-                    .Returns(new Package[0]);
+                    .Returns(packages);
+
+                packageService
+                    .Setup(p => p.FilterExactPackage(packages, version))
+                    .Returns((Package)null);
 
                 // Act
-                var result = await controller.DisplayPackage("Foo", "1.1.1");
+                var result = await controller.DisplayPackage("Foo", version);
 
                 // Assert
                 ResultAssert.IsNotFound(result);
@@ -523,6 +529,10 @@ namespace NuGetGallery
                     .Setup(p => p.FindPackagesById(id, PackageDeprecationFieldsToInclude.Deprecation))
                     .Returns(packages);
 
+                packageService
+                    .Setup(p => p.FilterExactPackage(packages, version))
+                    .Returns(package);
+
                 var getDeprecationByPackageSetup = deprecationService
                     .Setup(x => x.GetDeprecationByPackage(package));
 
@@ -645,6 +655,10 @@ namespace NuGetGallery
                 packageService
                     .Setup(p => p.FindPackagesById(id, PackageDeprecationFieldsToInclude.Deprecation))
                     .Returns(packages);
+
+                packageService
+                    .Setup(p => p.FilterExactPackage(packages, normalizedVersion))
+                    .Returns(package);
 
                 deprecationService
                     .Setup(x => x.GetDeprecationByPackage(package))
@@ -994,6 +1008,7 @@ namespace NuGetGallery
                 var packages = new[] { package };
                 packageService.Setup(p => p.FindPackagesById("Foo", PackageDeprecationFieldsToInclude.Deprecation))
                     .Returns(packages);
+
                 packageService.Setup(p => p.FilterLatestPackage(packages, SemVerLevelKey.SemVer2, true))
                     .Returns(package);
 
@@ -2691,12 +2706,18 @@ namespace NuGetGallery
                     .Returns(packages)
                     .Verifiable();
 
-                if (isPackageMissing)
-                {
-                    packageService
-                        .Setup(p => p.FilterLatestPackage(packages, SemVerLevelKey.SemVer2, true))
-                        .Returns((Package)null);
-                }
+                packageService
+                    .Setup(p => p.FilterExactPackage(packages, It.Is<string>(s => s == Package.Version || s == Package.NormalizedVersion)))
+                    .Returns(isPackageMissing ? null : Package)
+                    .Verifiable();
+
+                packageService
+                    .Setup(svc => svc.FilterExactPackage(packages, It.Is<string>(s => s != Package.Version && s != Package.NormalizedVersion)))
+                    .Returns((Package)null);
+
+                packageService
+                    .Setup(svc => svc.FilterLatestPackage(packages, It.IsAny<int>(), It.IsAny<bool>()))
+                    .Returns((Package)null);
 
                 return packageService;
             }
@@ -2712,6 +2733,14 @@ namespace NuGetGallery
                     .Setup(p => p.FindPackagesById(PackageRegistration.Id, PackageDeprecationFieldsToInclude.DeprecationAndRelationships))
                     .Returns(packages)
                     .Verifiable();
+
+                packageService
+                    .Setup(p => p.FilterExactPackage(packages, It.Is<string>(s => s == Package.Version || s == Package.NormalizedVersion)))
+                    .Returns(isPackageMissing ? null : Package);
+
+                packageService
+                    .Setup(svc => svc.FilterExactPackage(packages, It.Is<string>(s => s != Package.Version && s != Package.NormalizedVersion)))
+                    .Returns((Package)null);
 
                 packageService
                     .Setup(p => p.FilterLatestPackage(packages, SemVerLevelKey.SemVer2, true))
@@ -2789,6 +2818,11 @@ namespace NuGetGallery
                 packageService
                     .Setup(x => x.FindPackagesById(_packageRegistration.Id, PackageDeprecationFieldsToInclude.None))
                     .Returns(new Package[0]);
+
+                packageService
+                    .Setup(p => p.FilterExactPackage(It.IsAny<IReadOnlyCollection<Package>>(), It.IsAny<string>()))
+                    .Returns((Package)null)
+                    .Verifiable();
 
                 var controller = CreateController(
                     GetConfigurationService(),
@@ -2929,10 +2963,23 @@ namespace NuGetGallery
             protected override Mock<IPackageService> CreatePackageService()
             {
                 var packageService = new Mock<IPackageService>(MockBehavior.Strict);
+                var packages = _packageRegistration.Packages.ToList();
                 packageService
                     .Setup(svc => svc.FindPackagesById(_packageId, PackageDeprecationFieldsToInclude.None))
-                    .Returns(_packageRegistration.Packages.ToList())
+                    .Returns(packages)
                     .Verifiable();
+
+                packageService
+                    .Setup(p => p.FilterExactPackage(packages, It.Is<string>(s => s == _package.Version || s == _package.NormalizedVersion)))
+                    .Returns(_package);
+
+                packageService
+                    .Setup(svc => svc.FilterExactPackage(packages, It.Is<string>(s => s != _package.Version && s != _package.NormalizedVersion)))
+                    .Returns((Package)null);
+
+                packageService
+                    .Setup(svc => svc.FilterLatestPackage(packages, It.IsAny<int>(), It.IsAny<bool>()))
+                    .Returns((Package)null);
 
                 return packageService;
             }
@@ -2953,6 +3000,14 @@ namespace NuGetGallery
                     .Setup(svc => svc.FindPackagesById(_packageId, PackageDeprecationFieldsToInclude.None))
                     .Returns(packages)
                     .Verifiable();
+
+                packageService
+                    .Setup(p => p.FilterExactPackage(packages, It.Is<string>(s => s == _package.Version || s == _package.NormalizedVersion)))
+                    .Returns(_package);
+
+                packageService
+                    .Setup(svc => svc.FilterExactPackage(packages, It.Is<string>(s => s != _package.Version && s != _package.NormalizedVersion)))
+                    .Returns((Package)null);
 
                 packageService
                     .Setup(svc => svc.FilterLatestPackage(packages, SemVerLevelKey.SemVer2, true))
@@ -5611,6 +5666,43 @@ namespace NuGetGallery
                 Assert.NotNull(result);
                 Assert.Equal((int)HttpStatusCode.Forbidden, controller.Response.StatusCode);
                 Assert.Equal(string.Format(Strings.PackageIsLocked, packageId), (result.Data as JsonValidationMessage[])[0].PlainTextMessage);
+            }
+
+            [Fact]
+            public async Task WillPreventSymbolsUploadIfUserNotAllowedToUpload()
+            {
+                var packageId = "theId";
+                var package = new Package()
+                {
+                    PackageRegistration = new PackageRegistration()
+                    {
+                        Id = packageId,
+                        Owners = new List<User>() { TestUtility.FakeUser },
+                        IsLocked = true
+                    }
+                };
+
+                var fakeUploadedFile = new Mock<HttpPostedFileBase>();
+                fakeUploadedFile.Setup(x => x.FileName).Returns("theFile.snupkg");
+                var fakeFileStream = TestPackage.CreateTestSymbolPackageStream("theId", "1.0.0");
+                fakeUploadedFile.Setup(x => x.InputStream).Returns(fakeFileStream);
+                var symbolPackageUploadService = new Mock<ISymbolPackageUploadService>();
+                var message = "message";
+                symbolPackageUploadService
+                    .Setup(x => x.ValidateUploadedSymbolsPackage(It.IsAny<Stream>(), It.IsAny<User>()))
+                    .ReturnsAsync(SymbolPackageValidationResult.UserNotAllowedToUpload(message));
+
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    fakeNuGetPackage: fakeFileStream,
+                    symbolPackageUploadService: symbolPackageUploadService);
+                controller.SetCurrentUser(TestUtility.FakeUser);
+
+                var result = await controller.UploadPackage(fakeUploadedFile.Object) as JsonResult;
+
+                Assert.NotNull(result);
+                Assert.Equal((int)HttpStatusCode.Forbidden, controller.Response.StatusCode);
+                Assert.Equal(message, (result.Data as JsonValidationMessage[])[0].PlainTextMessage);
             }
 
             public static IEnumerable<object[]> SymbolValidationResultTypes => Enum

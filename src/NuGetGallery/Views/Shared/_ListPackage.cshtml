@@ -1,4 +1,16 @@
 ﻿@model ListPackageItemViewModel
+@{
+    // This view data will sometimes be null or missing. For example, the profile page uses this partial and should not
+    // emit search selection events.
+    int? itemIndex = null;
+    int parsedItemIndex;
+    if (ViewData.ContainsKey("itemIndex")
+        && int.TryParse(ViewData["itemIndex"].ToStringOrNull(), out parsedItemIndex))
+    {
+        itemIndex = parsedItemIndex;
+    }
+}
+
 
 <article class="package" role="listitem">
 
@@ -10,7 +22,13 @@
         </div>
         <div class="col-sm-11">
             <div class="package-header">
-                <a class="package-title" href="@Url.Package(Model.Id, Model.UseVersion ? Model.Version : null)">@Html.BreakWord(Model.Id)</a>
+                <a class="package-title"
+                   href="@Url.Package(Model.Id, Model.UseVersion ? Model.Version : null)"
+                   @if (itemIndex.HasValue)
+                   {
+                       @:data-track="search-selection" data-track-value="@itemIndex"
+                   }
+                   >@Html.BreakWord(Model.Id)</a>
 
                 @if (Model.IsVerified.HasValue && Model.IsVerified.Value)
                 {

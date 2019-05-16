@@ -3,7 +3,7 @@
 
 namespace NuGetGallery.DatabaseMigrationTools
 {
-    internal static class MigrationTargetDatabaseArgumentNames
+    public static class MigrationTargetDatabaseArgumentNames
     {
         public const string GalleryDatabase = "GalleryDatabase";
         public const string SupportRequestDatabase = "SupportRequestDatabase";
