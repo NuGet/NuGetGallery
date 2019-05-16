@@ -11,7 +11,7 @@ using NuGetGallery.Diagnostics;
 
 namespace NuGetGallery
 {
-    public class CloudBlobFileStorageService : CloudBlobCoreFileStorageService, IFileStorageService, ICloudStorageStatusDependency
+    public class CloudBlobFileStorageService : CloudBlobCoreFileStorageService, IFileStorageService
     {
         private readonly IAppConfiguration _configuration;
         private readonly ISourceDestinationRedirectPolicy _redirectPolicy;
@@ -98,7 +98,7 @@ namespace NuGetGallery
         public async Task<bool> IsAvailableAsync()
         {
             var container = await GetContainerAsync(CoreConstants.Folders.PackagesFolderName);
-            return await container.ExistsAsync();
+            return await container.ExistsAsync(options: null, operationContext: null);
         }
     }
 }
