@@ -82,7 +82,7 @@ namespace NuGetGallery
             return sqlAzureAvailable;
         }
 
-        private async Task<bool?> IsAzureStorageAvailable()
+        internal async Task<bool?> IsAzureStorageAvailable()
         {
             if (_config == null || _config.StorageType != StorageType.AzureStorage)
             {
