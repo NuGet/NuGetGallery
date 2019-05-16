@@ -902,7 +902,6 @@ namespace NuGetGallery
             builder.RegisterInstance(new CloudReportService(configuration.Current.AzureStorage_Statistics_ConnectionString, configuration.Current.AzureStorageReadAccessGeoRedundant))
                 .AsSelf()
                 .As<IReportService>()
-                .As<ICloudStorageStatusDependency>()
                 .SingleInstance();
 
             // when running on Windows Azure, download counts come from the downloads.v1.json blob

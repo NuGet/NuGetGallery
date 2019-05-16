@@ -10,6 +10,8 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using Microsoft.WindowsAzure.Storage.Blob;
+using Microsoft.WindowsAzure.Storage.RetryPolicies;
 using NuGetGallery.Configuration;
 using NuGetGallery.Helpers;
 
@@ -91,7 +93,9 @@ namespace NuGetGallery
             try
             {
                 // Check Storage Availability
-                var tasks = _cloudStorageAvailabilityChecks.Select(s => s.IsAvailableAsync());
+                BlobRequestOptions options = new BlobRequestOptions();
+                options.LocationMode = _config.ReadOnlyMode ? LocationMode.SecondaryOnly : LocationMode.PrimaryOnly;
+                var tasks = _cloudStorageAvailabilityChecks.Select(s => s.IsAvailableAsync(options, operationContext : null));
                 var eachAvailable = await Task.WhenAll(tasks);
                 storageAvailable = eachAvailable.All(a => a);
             }
