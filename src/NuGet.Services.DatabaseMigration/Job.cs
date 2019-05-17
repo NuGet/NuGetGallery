@@ -20,10 +20,15 @@ namespace NuGet.Services.DatabaseMigration
 {
     public class Job : JsonConfigurationJob
     {
-        private const string MigrationTargetDatabaseArgument = "MigrationTargetDatabase";
+        public int ExitCode { get; set; }
 
         private string _migrationTargetDatabase;
         private IMigrationContextFactory _migrationContextFactory;
+
+        private const string MigrationTargetDatabaseArgument = "MigrationTargetDatabase";
+        // There is a Gallery migration file which doens't exist in the local migration folder;
+        // Need to skip this migration file for the validation check.
+        private const string SkipGalleryDatabaseMigrationFile = "201304262247205_CuratedPackagesUniqueIndex";
 
         public Job(IMigrationContextFactory migrationContextFactory)
         {
@@ -32,20 +37,83 @@ namespace NuGet.Services.DatabaseMigration
 
         public override void Init(IServiceContainer serviceContainer, IDictionary<string, string> jobArgsDictionary)
         {
-            base.Init(serviceContainer, jobArgsDictionary);
-            _migrationTargetDatabase = JobConfigurationManager.GetArgument(jobArgsDictionary, MigrationTargetDatabaseArgument);
+            try
+            {
+                base.Init(serviceContainer, jobArgsDictionary);
+                _migrationTargetDatabase = JobConfigurationManager.GetArgument(jobArgsDictionary, MigrationTargetDatabaseArgument);
+            }
+            catch (Exception)
+            {
+                ExitCode = 1;
+                throw;
+            }
         }
 
         public override async Task Run()
         {
             Logger.LogInformation("Initializing database migration context...");
-            var migrationContext = await _migrationContextFactory.CreateMigrationContextAsync(_migrationTargetDatabase, _serviceProvider);
 
-            ExecuteDatabaseMigration(migrationContext.GetDbMigrator,
-                migrationContext.SqlConnection,
-                migrationContext.SqlConnectionAccessToken);
+            IMigrationContext migrationContext = null;
+            try
+            {
+                migrationContext = await _migrationContextFactory.CreateMigrationContextAsync(_migrationTargetDatabase, _serviceProvider);
 
-            migrationContext.SqlConnection.Dispose();
+                ExecuteDatabaseMigration(migrationContext.GetDbMigrator,
+                    migrationContext.SqlConnection,
+                    migrationContext.SqlConnectionAccessToken);
+            }
+            catch (Exception)
+            {
+                ExitCode = 1;
+                throw;
+            }
+            finally
+            {
+                migrationContext?.SqlConnection?.Dispose();
+            }
+        }
+
+        public void CheckIsValidMigration(List<string> databaseMigrations, List<string> localMigrations)
+        {
+            if (databaseMigrations == null)
+            {
+                throw new ArgumentNullException(nameof(databaseMigrations));
+            }
+            if (localMigrations == null)
+            {
+                throw new ArgumentNullException(nameof(localMigrations));
+            }
+            if (databaseMigrations.Count == 0)
+            {
+                throw new InvalidOperationException("Migration validation failed: Unexpected empty history of database migrations.");
+            }
+            if (localMigrations.Count == 0)
+            {
+                throw new InvalidOperationException("Migration validation failed: Unexpected empty history of local migrations.");
+            }
+
+            var databaseMigrationsCursor = 0;
+            var localMigrationsCursor = 0;
+            while (databaseMigrationsCursor < databaseMigrations.Count &&
+                localMigrationsCursor < localMigrations.Count)
+            {
+                if (_migrationTargetDatabase != null &&
+                    _migrationTargetDatabase.Equals(MigrationTargetDatabaseArgumentNames.GalleryDatabase) &&
+                    databaseMigrations[databaseMigrationsCursor].Equals(SkipGalleryDatabaseMigrationFile))
+                {
+                    databaseMigrationsCursor++;
+                }
+                else
+                {
+                    if (!databaseMigrations[databaseMigrationsCursor].Equals(localMigrations[localMigrationsCursor]))
+                    {
+                        throw new InvalidOperationException($"Migration validation failed: Mismatch local migration file: {localMigrations[localMigrationsCursor]}.");
+                    }
+
+                    localMigrationsCursor++;
+                    databaseMigrationsCursor++;
+                }
+            }
         }
 
         private void ExecuteDatabaseMigration(Func<DbMigrator> getMigrator, SqlConnection sqlConnection, string accessToken)
@@ -56,15 +124,31 @@ namespace NuGet.Services.DatabaseMigration
             OverwriteSqlConnection(migrator, sqlConnection, accessToken);
             OverwriteSqlConnection(migratorForScripting, sqlConnection, accessToken);
 
-            Logger.LogInformation("Target database is: {DataSource}/{Database}", sqlConnection.DataSource, sqlConnection.Database);
+            var sqlConnectionDataSource = sqlConnection.DataSource;
+            var sqlConnectionDatabase = sqlConnection.Database;
+
+            Logger.LogInformation("Target database is: {DataSource}/{Database}.", sqlConnectionDataSource, sqlConnectionDatabase);
             var pendingMigrations = migrator.GetPendingMigrations();
             if (pendingMigrations.Count() > 0)
             {
-                Logger.LogInformation("Applying pending migrations: \n {PendingMigrations}", String.Join("\n", pendingMigrations));
+                var databaseMigrations = migrator.GetDatabaseMigrations().ToList();
+                databaseMigrations.Reverse();
+                var localMigrations = migrator.GetLocalMigrations().ToList();
+                try
+                {
+                    CheckIsValidMigration(databaseMigrations, localMigrations);
+                }
+                catch (Exception e)
+                {
+                    Logger.LogError(0, e, "Validation check of database migrations failed.");
+                    throw;
+                }
+
+                Logger.LogInformation("Applying pending migrations: \n {PendingMigrations}.", String.Join("\n", pendingMigrations));
 
                 var migratorScripter = new MigratorScriptingDecorator(migratorForScripting);
                 var migrationScripts = migratorScripter.ScriptUpdate(sourceMigration: null, targetMigration: null);
-                Logger.LogInformation("Applying explicit migration SQL scripts: \n {migrationScripts}", migrationScripts);
+                Logger.LogInformation("Applying explicit migration SQL scripts: \n {migrationScripts}.", migrationScripts);
 
                 try
                 {
@@ -72,16 +156,16 @@ namespace NuGet.Services.DatabaseMigration
 
                     migrator.Update();
 
-                    Logger.LogInformation("Finished executing {pendingMigrationsCount} migrations successfully on the target database {DataSource}/{Database}",
+                    Logger.LogInformation("Finished executing {pendingMigrationsCount} migrations successfully on the target database {DataSource}/{Database}.",
                         pendingMigrations.Count(),
-                        sqlConnection.DataSource,
-                        sqlConnection.Database);
+                        sqlConnectionDataSource,
+                        sqlConnectionDatabase);
                 }
                 catch (Exception e)
                 {
-                    Logger.LogError(0, e, "Failed to execute migrations on the target database {DataSource}/{Database}",
-                        sqlConnection.DataSource,
-                        sqlConnection.Database);
+                    Logger.LogError(0, e, "Failed to execute migrations on the target database {DataSource}/{Database}.",
+                        sqlConnectionDataSource,
+                        sqlConnectionDatabase);
                     throw;
                 }
             }
