@@ -114,11 +114,6 @@ namespace NuGet.Services.DatabaseMigration
                     databaseMigrationsCursor++;
                 }
             }
-
-            if (databaseMigrationsCursor < databaseMigrations.Count)
-            {
-                throw new InvalidOperationException("Migration validation failed: Database migrations are ahead of local migrations.");
-            }
         }
 
         private void ExecuteDatabaseMigration(Func<DbMigrator> getMigrator, SqlConnection sqlConnection, string accessToken)

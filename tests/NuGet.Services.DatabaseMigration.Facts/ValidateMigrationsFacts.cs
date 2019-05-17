@@ -53,9 +53,6 @@ namespace NuGet.Services.DatabaseMigration.Facts
                 yield return new object[] { new List<string>() { "2011_Migration_1", "2012_Migration_2"},
                     new List<string>(),
                     "Migration validation failed: Unexpected empty history of local migrations."};
-                yield return new object[] { new List<string>() { "2011_Migration_1", "2012_Migration_2"},
-                    new List<string>() { "2011_Migration_1" },
-                    "Migration validation failed: Database migrations are ahead of local migrations."};
                 yield return new object[] { new List<string>() { "2011_Migration_1", "2012_Migration_3" },
                     new List<string>() { "2011_Migration_2", "2012_Migration_3"},
                     "Migration validation failed: Mismatch local migration file: 2011_Migration_2." };
