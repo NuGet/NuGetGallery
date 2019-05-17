@@ -9,5 +9,7 @@ namespace NuGet.Services.AzureManagement
         string ClientId { get; }
 
         string ClientSecret { get; }
+
+        string AadTenant { get; }
     }
 }

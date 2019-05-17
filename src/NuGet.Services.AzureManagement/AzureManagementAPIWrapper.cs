@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Globalization;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading;
@@ -12,11 +13,12 @@ namespace NuGet.Services.AzureManagement
 {
     public class AzureManagementAPIWrapper : IAzureManagementAPIWrapper
     {
-        private const string Authority = "https://login.microsoftonline.com/microsoft.onmicrosoft.com";
+        private const string AuthorityTemplate = "https://login.microsoftonline.com/{0}";
         private const string Resource = "https://management.core.windows.net/";
         private const int RenewTokenPriorToExpirationMinutes = 5;
 
         private readonly ClientCredential _clientCredential;
+        private readonly string _authority;
 
         private string _accessToken;
         private DateTimeOffset _tokenExpirationTime;
@@ -38,7 +40,14 @@ namespace NuGet.Services.AzureManagement
                 throw new ArgumentException(nameof(configuration.ClientSecret));
             }
 
+            if (string.IsNullOrEmpty(configuration.AadTenant))
+            {
+                throw new ArgumentException(nameof(configuration.AadTenant));
+            }
+
+
             _clientCredential = new ClientCredential(configuration.ClientId, configuration.ClientSecret);
+            _authority = string.Format(CultureInfo.InvariantCulture, AuthorityTemplate, configuration.AadTenant);
         }
 
         public async Task RebootCloudServiceRoleInstanceAsync(
@@ -208,13 +217,13 @@ namespace NuGet.Services.AzureManagement
         {
             try
             {
-                var context = new AuthenticationContext(Authority, validateAuthority: false);
+                var context = new AuthenticationContext(_authority, validateAuthority: false);
                 AuthenticationResult authenticationResult = await context.AcquireTokenAsync(Resource, _clientCredential);
                 return authenticationResult;
             }
             catch (AdalException adalException)
             {
-                throw new AzureManagementException($"Failed to create token. Client id: {_clientCredential.ClientId}", adalException);
+                throw new AzureManagementException($"Failed to create token. Client id: {_clientCredential.ClientId}, Authority: {_authority}", adalException);
             }
         }
     }
