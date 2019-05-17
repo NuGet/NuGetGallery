@@ -3,9 +3,9 @@
 
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
-using NuGet.Services.Search.Models;
+using SearchModels = NuGetGallery.Infrastructure.Search.Models;
 
-namespace NuGet.Services.Search.Client
+namespace NuGetGallery.Infrastructure.Search
 {
     public interface ISearchClient
     {
@@ -25,11 +25,11 @@ namespace NuGet.Services.Search.Client
         /// <param name="supportedFramework">SupportedFramework</param>
         /// <param name="semVerLevel">SemVerLevel</param>
         /// <returns></returns>
-        Task<ServiceResponse<SearchResults>> Search(
+        Task<ServiceResponse<SearchModels.SearchResults>> Search(
             string query,
             string projectTypeFilter,
             bool includePrerelease,
-            SortOrder sortBy,
+            SearchModels.SortOrder sortBy,
             int skip,
             int take,
             bool isLuceneQuery,

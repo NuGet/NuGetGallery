@@ -85,21 +85,6 @@ namespace NuGetGallery.Configuration
         public bool DeprecateNuGetPasswordLogins { get; set; }
 
         /// <summary>
-        /// Gets the URI to the search service
-        /// </summary>
-        public Uri ServiceDiscoveryUri { get; set; }
-
-        /// <summary>
-        /// Gets the @type for the Search endpoint
-        /// </summary>
-        public string SearchServiceResourceType { get; set; }
-
-        /// <summary>
-        /// Gets the @type for the Autocomplete endpoint
-        /// </summary>
-        public string AutocompleteServiceResourceType { get; set; }
-
-        /// <summary>
         /// Gets a boolean indicating if the site requires that email addresses be confirmed
         /// </summary>
         [DefaultValue(true)]
@@ -395,5 +380,9 @@ namespace NuGetGallery.Configuration
         // It is the average of the search request count per second during the last 90 days.
         [DefaultValue(200)]
         public int SearchCircuitBreakerBreakAfterCount { get; set; }
+
+        // Default HttpClient.Timeout is 100 seconds == 100000 milliseconds
+        [DefaultValue(100000)]
+        public int SearchHttpClientTimeoutInMilliseconds { get; set; }
     }
 }

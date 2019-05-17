@@ -230,6 +230,12 @@
     <Compile Include="Authentication\Providers\AzureActiveDirectory\AzureActiveDirectoryAuthenticator.cs" />
     <Compile Include="Authentication\Providers\AzureActiveDirectory\AzureActiveDirectoryAuthenticatorConfiguration.cs" />
     <Compile Include="Controllers\ManageDeprecationJsonApiController.cs" />
+    <Compile Include="Infrastructure\Lucene\Correlation\CorrelatingHttpClientHandler.cs" />
+    <Compile Include="Infrastructure\Lucene\Correlation\WebApiCorrelationHandler.cs" />
+    <Compile Include="Infrastructure\Lucene\ISearchClient.cs" />
+    <Compile Include="Infrastructure\Lucene\Models\SearchResults.cs" />
+    <Compile Include="Infrastructure\Lucene\Models\SortOrder.cs" />
+    <Compile Include="Infrastructure\Lucene\ServiceResponse.cs" />
     <Compile Include="Migrations\201903020136235_CvesCanBeEmpty.cs" />
     <Compile Include="Migrations\201903020136235_CvesCanBeEmpty.Designer.cs">
       <DependentUpon>201903020136235_CvesCanBeEmpty.cs</DependentUpon>
@@ -741,7 +747,6 @@
     </Compile>
     <Compile Include="Extensions\HttpRequestExtensions.cs" />
     <Compile Include="Helpers\HostMachine.cs" />
-    <Compile Include="Telemetry\AppInsightsHealthIndicatorLogger.cs" />
     <Compile Include="Infrastructure\DependencyResolverServiceProviderAdapter.cs" />
     <Compile Include="Infrastructure\Lucene\CloudDownloadCountServiceRefreshJob.cs" />
     <Compile Include="Infrastructure\MessageQueue.cs" />
@@ -2121,10 +2126,6 @@
     <Folder Include="Areas\Admin\Views\Shared\" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\NuGet.Services.Search.Client\NuGet.Services.Search.Client.csproj">
-      <Project>{6931c2ee-e081-4518-9798-d34d83b35bf6}</Project>
-      <Name>NuGet.Services.Search.Client</Name>
-    </ProjectReference>
     <ProjectReference Include="..\NuGet.Services.Entities\NuGet.Services.Entities.csproj">
       <Project>{6262f4fc-29be-4226-b676-db391c89d396}</Project>
       <Name>NuGet.Services.Entities</Name>

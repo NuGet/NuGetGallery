@@ -4,7 +4,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 
-namespace NuGet.Services.Search.Models
+namespace NuGetGallery.Infrastructure.Search.Models
 {
     public class SearchResults
     {

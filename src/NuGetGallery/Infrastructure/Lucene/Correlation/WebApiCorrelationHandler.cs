@@ -9,7 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Http.Hosting;
 
-namespace NuGet.Services.Search.Client.Correlation
+namespace NuGetGallery.Infrastructure.Search.Correlation
 {
     public class WebApiCorrelationHandler 
         : DelegatingHandler
