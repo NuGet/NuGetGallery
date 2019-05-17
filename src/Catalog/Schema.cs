@@ -153,6 +153,12 @@ namespace NuGet.Services.Metadata.Catalog
             public static readonly Uri LicenseFile = new Uri(Prefixes.NuGet + "licenseFile");
 
             public static readonly Uri IconFile = new Uri(Prefixes.NuGet + "iconFile");
+
+            public static readonly Uri Deprecation = new Uri(Prefixes.NuGet + "deprecation");
+
+            public static readonly Uri Reasons = new Uri(Prefixes.NuGet + "reasons");
+            public static readonly Uri Message = new Uri(Prefixes.NuGet + "message");
+            public static readonly Uri AlternatePackage = new Uri(Prefixes.NuGet + "alternatePackage");
         }
     }
 }

@@ -4,6 +4,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using Moq;
 using NuGet.Services.Metadata.Catalog;
 using VDS.RDF;
 using Xunit;
@@ -107,6 +108,46 @@ namespace CatalogTests.Helpers
             Assert.Equal(id, triples[0].Object.ToString());
             Assert.Equal(Schema.Predicates.Version.ToString(), triples[1].Predicate.ToString());
             Assert.Equal(version, triples[1].Object.ToString());
+        }
+
+        [Fact]
+        public void CreateContent_ThrowsIfMultipleDeprecationTriples()
+        {
+            var packageDetails = Schema.DataTypes.PackageDetails;
+            var catalogItemMock = new Mock<PackageCatalogItem>(null, null, null, null, null, null, null)
+            {
+                CallBase = true
+            };
+
+            var context = new CatalogContext();
+
+            catalogItemMock
+                .Setup(x => x.GetItemType())
+                .Returns(packageDetails);
+
+            var graph = new Graph();
+            var subject = graph.CreateBlankNode();
+            graph.Assert(
+                subject, 
+                graph.CreateUriNode(Schema.Predicates.Type), 
+                graph.CreateUriNode(packageDetails));
+
+            graph.Assert(
+                subject,
+                graph.CreateUriNode(Schema.Predicates.Deprecation),
+                graph.CreateLiteralNode("deprecation1"));
+
+            graph.Assert(
+                subject,
+                graph.CreateUriNode(Schema.Predicates.Deprecation),
+                graph.CreateLiteralNode("deprecation2"));
+
+            catalogItemMock
+                .Setup(x => x.CreateContentGraph(context))
+                .Returns(graph);
+
+            Assert.Throws<ArgumentException>(
+                () => catalogItemMock.Object.CreateContent(context));
         }
 
         private static CatalogItem CreateCatalogItem(string packageName)

@@ -303,13 +303,36 @@ namespace CatalogTests.Helpers
             }
         }
 
-        [Theory]
-        [InlineData(true, true)]
-        [InlineData(false, true)]
-        [InlineData(true, false)]
-        [InlineData(false, false)]
-        public async Task DownloadMetadata2CatalogAsync_WithOnePackage_UpdatesStorage(bool createdPackages, bool updateCreatedFromEdited)
+        public enum PackageDeprecationItemState
         {
+            NotDeprecated,
+            DeprecatedWithSingleReason,
+            DeprecatedWithMessage,
+            DeprecatedWithAlternate
+        }
+
+        public static IEnumerable<object[]> DownloadMetadata2CatalogAsync_WithOnePackage_UpdatesStorage_Data
+        {
+            get
+            {
+                foreach (var createdPackages in new[] { false, true })
+                {
+                    foreach (var updateCreatedFromEdited in new[] { false, true })
+                    {
+                        foreach (var deprecationState in Enum.GetValues(typeof(PackageDeprecationItemState)).Cast<PackageDeprecationItemState>())
+                        {
+                            yield return new object[] { createdPackages, updateCreatedFromEdited, deprecationState };
+                        }
+                    }
+                }
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(DownloadMetadata2CatalogAsync_WithOnePackage_UpdatesStorage_Data))]
+        public async Task DownloadMetadata2CatalogAsync_WithOnePackage_UpdatesStorage(bool createdPackages, bool updateCreatedFromEdited, PackageDeprecationItemState deprecationState)
+        {
+            // Arrange
             using (var test = new DownloadMetadata2CatalogAsyncTest())
             {
                 test.CreatedPackages = createdPackages;
@@ -321,11 +344,13 @@ namespace CatalogTests.Helpers
 
                 NupkgMetadata nupkgMetadata = GetNupkgMetadata("Newtonsoft.Json.9.0.2-beta1.nupkg");
 
+                var deprecationItem = GetPackageDeprecationItemFromState(deprecationState);
                 var packageCatalogItem = new PackageCatalogItem(
                     nupkgMetadata,
                     test.FeedPackageDetails.CreatedDate,
                     test.FeedPackageDetails.LastEditedDate,
-                    test.FeedPackageDetails.PublishedDate);
+                    test.FeedPackageDetails.PublishedDate,
+                    deprecation: deprecationItem);
 
                 test.PackageCatalogItemCreator.Setup(x => x.CreateAsync(
                         It.Is<FeedPackageDetails>(details => details == test.FeedPackageDetails),
@@ -357,8 +382,10 @@ namespace CatalogTests.Helpers
                     It.Is<TimeSpan>(duration => duration > TimeSpan.Zero),
                     It.Is<Uri>(uri => uri == test.CatalogIndexUri)));
 
+                // Act
                 var result = await test.DownloadMetadata2CatalogAsync();
 
+                // Assert
                 Assert.Equal(test.UtcNow, result);
 
                 Assert.Equal(3, blobs.Count);
@@ -381,7 +408,9 @@ namespace CatalogTests.Helpers
                     packageCatalogItem.TimeStamp,
                     packageCatalogItem.CreatedDate.Value,
                     packageCatalogItem.LastEditedDate.Value,
-                    packageCatalogItem.PublishedDate.Value);
+                    packageCatalogItem.PublishedDate.Value,
+                    deprecationItem);
+
                 var actualContent = JObject.Parse(stringContent.Content);
 
                 Assert.Equal(expectedContent.ToString(), actualContent.ToString());
@@ -425,6 +454,36 @@ namespace CatalogTests.Helpers
                 Assert.Equal("application/json", jtokenContent.ContentType);
                 Assert.Equal(expectedContent.ToString(), jtokenContent.Content.ToString());
             }
+        }
+
+        private static PackageDeprecationItem GetPackageDeprecationItemFromState(PackageDeprecationItemState deprecationState)
+        {
+            if (deprecationState == PackageDeprecationItemState.NotDeprecated)
+            {
+                return null;
+            }
+
+            var reasons = new[] { "first", "second" };
+            string message = null;
+            string altId = null;
+            string altVersion = null;
+            if (deprecationState == PackageDeprecationItemState.DeprecatedWithSingleReason)
+            {
+                reasons = reasons.Take(1).ToArray();
+            }
+
+            if (deprecationState == PackageDeprecationItemState.DeprecatedWithMessage)
+            {
+                message = "this is the message";
+            }
+
+            if (deprecationState == PackageDeprecationItemState.DeprecatedWithAlternate)
+            {
+                altId = "theId";
+                altVersion = "[2.4.5, 2.4.5]";
+            }
+
+            return new PackageDeprecationItem(reasons, message, altId, altVersion);
         }
 
         private Task<IList<FeedPackageDetails>> TestGetPackagesAsync(IEnumerable<ODataPackage> oDataPackages)

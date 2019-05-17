@@ -108,6 +108,7 @@
     <Compile Include="IPackagesContainerHandler.cs" />
     <Compile Include="IHttpRetryStrategy.cs" />
     <Compile Include="PackageCatalogItemCreator.cs" />
+    <Compile Include="PackageDeprecationItem.cs" />
     <Compile Include="PackageDownloader.cs" />
     <Compile Include="Helpers\CatalogProperties.cs" />
     <Compile Include="Helpers\DeletionAuditEntry.cs" />

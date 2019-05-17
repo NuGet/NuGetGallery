@@ -104,6 +104,7 @@
     <Compile Include="Helpers\UtilsTests.cs" />
     <Compile Include="PackageCatalogItemCreatorTests.cs" />
     <Compile Include="PackageCatalogItemTests.cs" />
+    <Compile Include="PackageDeprecationItemTests.cs" />
     <Compile Include="PackageEntryTests.cs" />
     <Compile Include="Persistence\AggregateStorageTests.cs" />
     <Compile Include="Persistence\AzureCloudBlockBlobTests.cs" />
