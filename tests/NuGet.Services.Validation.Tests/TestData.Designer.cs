@@ -19,7 +19,7 @@ namespace NuGet.Services.Validation.Tests {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class TestData {
@@ -61,56 +61,65 @@ namespace NuGet.Services.Validation.Tests {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {&quot;ValidationId&quot;:&quot;3fa83d31-3b44-4ffd-bfb8-02a9f5155af6&quot;}.
+        /// </summary>
+        internal static string SerializedCheckValidatorData {
+            get {
+                return ResourceManager.GetString("SerializedCheckValidatorData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {&quot;PackageId&quot;:&quot;NuGet.Versioning&quot;,&quot;PackageVersion&quot;:&quot;4.3&quot;,&quot;ValidationTrackingId&quot;:&quot;14b4c1b8-40e2-4d60-9db7-4b7195e807f5&quot;}.
         /// </summary>
-        internal static string SerializedPackageValidationMessageData1 {
+        internal static string SerializedProcessValidationSetData1 {
             get {
-                return ResourceManager.GetString("SerializedPackageValidationMessageData1", resourceCulture);
+                return ResourceManager.GetString("SerializedProcessValidationSetData1", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to {&quot;PackageId&quot;:&quot;NuGet.Versioning&quot;,&quot;PackageVersion&quot;:&quot;4.3&quot;,&quot;PackageNormalizedVersion&quot;:&quot;4.3.0&quot;,&quot;ValidationTrackingId&quot;:&quot;14b4c1b8-40e2-4d60-9db7-4b7195e807f5&quot;,&quot;EntityKey&quot;:123}.
         /// </summary>
-        internal static string SerializedPackageValidationMessageData2 {
+        internal static string SerializedProcessValidationSetData2 {
             get {
-                return ResourceManager.GetString("SerializedPackageValidationMessageData2", resourceCulture);
+                return ResourceManager.GetString("SerializedProcessValidationSetData2", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to {&quot;PackageId&quot;:&quot;NuGet.Versioning&quot;,&quot;PackageVersion&quot;:&quot;4.3&quot;,&quot;PackageNormalizedVersion&quot;:&quot;4.3.0&quot;,&quot;ValidationTrackingId&quot;:&quot;14b4c1b8-40e2-4d60-9db7-4b7195e807f5&quot;,&quot;ValidatingType&quot;:0,&quot;EntityKey&quot;:123}.
         /// </summary>
-        internal static string SerializedPackageValidationMessageDataPackage {
+        internal static string SerializedProcessValidationSetDataPackage {
             get {
-                return ResourceManager.GetString("SerializedPackageValidationMessageDataPackage", resourceCulture);
+                return ResourceManager.GetString("SerializedProcessValidationSetDataPackage", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to {&quot;PackageId&quot;:&quot;NuGet.Versioning&quot;,&quot;PackageVersion&quot;:&quot;4.3&quot;,&quot;PackageNormalizedVersion&quot;:&quot;4.3.0&quot;,&quot;ValidationTrackingId&quot;:&quot;14b4c1b8-40e2-4d60-9db7-4b7195e807f5&quot;,&quot;ValidatingType&quot;:1,&quot;EntityKey&quot;:123}.
         /// </summary>
-        internal static string SerializedPackageValidationMessageDataSymbols {
+        internal static string SerializedProcessValidationSetDataSymbols {
             get {
-                return ResourceManager.GetString("SerializedPackageValidationMessageDataSymbols", resourceCulture);
+                return ResourceManager.GetString("SerializedProcessValidationSetDataSymbols", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to {&quot;PackageId&quot;:&quot;NuGet.Versioning&quot;,&quot;PackageVersion&quot;:&quot;4.3&quot;,&quot;PackageNormalizedVersion&quot;:&quot;4.3.0&quot;,&quot;ValidationTrackingId&quot;:&quot;14b4c1b8-40e2-4d60-9db7-4b7195e807f5&quot;,&quot;ValidatingType&quot;:1}.
         /// </summary>
-        internal static string SerializedPackageValidationMessageDataSymbolsWithNoEntityKey {
+        internal static string SerializedProcessValidationSetDataSymbolsWithNoEntityKey {
             get {
-                return ResourceManager.GetString("SerializedPackageValidationMessageDataSymbolsWithNoEntityKey", resourceCulture);
+                return ResourceManager.GetString("SerializedProcessValidationSetDataSymbolsWithNoEntityKey", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to {&quot;PackageId&quot;:&quot;NuGet.Versioning&quot;,&quot;PackageVersion&quot;:&quot;4.3&quot;,&quot;PackageNormalizedVersion&quot;:&quot;4.3.0&quot;,&quot;ValidationTrackingId&quot;:&quot;14b4c1b8-40e2-4d60-9db7-4b7195e807f5&quot;}.
         /// </summary>
-        internal static string SerializedPackageValidationMessageDataWithNoEntityKey2 {
+        internal static string SerializedProcessValidationSetDataWithNoEntityKey2 {
             get {
-                return ResourceManager.GetString("SerializedPackageValidationMessageDataWithNoEntityKey2", resourceCulture);
+                return ResourceManager.GetString("SerializedProcessValidationSetDataWithNoEntityKey2", resourceCulture);
             }
         }
     }

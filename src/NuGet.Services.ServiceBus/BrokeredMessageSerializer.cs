@@ -14,9 +14,6 @@ namespace NuGet.Services.ServiceBus
     /// <typeparam name="TMessage">A type decorated with a <see cref="SchemaAttribute"/>.</typeparam>
     public class BrokeredMessageSerializer<TMessage> : IBrokeredMessageSerializer<TMessage>
     {
-        private const string SchemaNameKey = "SchemaName";
-        private const string SchemaVersionKey = "SchemaVersion";
-
         private static readonly string SchemaName;
         private static readonly int SchemaVersion;
 
@@ -40,43 +37,49 @@ namespace NuGet.Services.ServiceBus
             var json = JsonConvert.SerializeObject(message);
             var brokeredMessage = new BrokeredMessageWrapper(json);
 
-            brokeredMessage.Properties[SchemaNameKey] = SchemaName;
-            brokeredMessage.Properties[SchemaVersionKey] = SchemaVersion;
+            brokeredMessage.Properties[BrokeredMessageSerializer.SchemaNameKey] = SchemaName;
+            brokeredMessage.Properties[BrokeredMessageSerializer.SchemaVersionKey] = SchemaVersion;
 
             return brokeredMessage;
         }
 
         public TMessage Deserialize(IBrokeredMessage message)
         {
-            AssertTypeAndSchemaVersion(message, SchemaName, SchemaVersion);
+            message.AssertTypeAndSchemaVersion(SchemaName, SchemaVersion);
 
             return JsonConvert.DeserializeObject<TMessage>(message.GetBody());
         }
+    }
 
-        private static void AssertTypeAndSchemaVersion(IBrokeredMessage message, string type, int schemaVersion)
+    public static class BrokeredMessageSerializer
+    {
+        public const string SchemaNameKey = "SchemaName";
+        public const string SchemaVersionKey = "SchemaVersion";
+
+        public static void AssertTypeAndSchemaVersion(this IBrokeredMessage message, string type, int schemaVersion)
         {
-            if (GetType(message) != type)
+            if (message.GetSchemaName() != type)
             {
                 throw new FormatException($"The provided message should have {SchemaNameKey} property '{type}'.");
             }
 
-            if (GetSchemaVersion(message) != schemaVersion)
+            if (message.GetSchemaVersion() != schemaVersion)
             {
                 throw new FormatException($"The provided message should have {SchemaVersionKey} property '{schemaVersion}'.");
             }
         }
 
-        private static int GetSchemaVersion(IBrokeredMessage message)
+        public static int GetSchemaVersion(this IBrokeredMessage message)
         {
             return GetProperty<int>(message, SchemaVersionKey, "an integer");
         }
 
-        private static string GetType(IBrokeredMessage message)
+        public static string GetSchemaName(this IBrokeredMessage message)
         {
             return GetProperty<string>(message, SchemaNameKey, "a string");
         }
 
-        private static T GetProperty<T>(IBrokeredMessage message, string key, string typeLabel)
+        private static T GetProperty<T>(this IBrokeredMessage message, string key, string typeLabel)
         {
             object value;
             if (!message.Properties.TryGetValue(key, out value))

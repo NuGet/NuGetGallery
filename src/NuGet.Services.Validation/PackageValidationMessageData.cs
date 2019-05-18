@@ -2,58 +2,80 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using NuGet.Versioning;
 
 namespace NuGet.Services.Validation
 {
     public class PackageValidationMessageData
     {
-        public PackageValidationMessageData(
-           string packageId,
-           string packageVersion,
-           Guid validationTrackingId)
-         : this(packageId, packageVersion, validationTrackingId, validatingType: ValidatingType.Package, deliveryCount: 0, entityKey: null)
-        {
-        }
-
-        public PackageValidationMessageData(
+        public static PackageValidationMessageData NewProcessValidationSet(
             string packageId,
             string packageVersion,
             Guid validationTrackingId,
             ValidatingType validatingType,
-            int? entityKey = null)
-          : this(packageId, packageVersion, validationTrackingId, validatingType, deliveryCount: 0, entityKey: entityKey)
+            int? entityKey)
         {
+            return new PackageValidationMessageData(
+                PackageValidationMessageType.ProcessValidationSet,
+                processValidationSet: new ProcessValidationSetData(
+                    packageId,
+                    packageVersion,
+                    validationTrackingId,
+                    validatingType,
+                    entityKey),
+                checkValidator: null,
+                deliveryCount: 0);
+        }
+
+        public static PackageValidationMessageData NewCheckValidator(Guid validationId)
+        {
+            return new PackageValidationMessageData(
+                PackageValidationMessageType.CheckValidator,
+                processValidationSet: null,
+                checkValidator: new CheckValidatorData(validationId),
+                deliveryCount: 0);
         }
 
         internal PackageValidationMessageData(
-            string packageId,
-            string packageVersion,
-            Guid validationTrackingId,
-            ValidatingType validatingType,
-            int deliveryCount,
-            int? entityKey = null)
+            PackageValidationMessageType type,
+            ProcessValidationSetData processValidationSet,
+            CheckValidatorData checkValidator,
+            int deliveryCount)
         {
-            if (validationTrackingId == Guid.Empty)
+            switch (type)
             {
-                throw new ArgumentOutOfRangeException(nameof(validationTrackingId));
+                case PackageValidationMessageType.ProcessValidationSet:
+                    if (processValidationSet == null)
+                    {
+                        throw new ArgumentNullException(nameof(processValidationSet));
+                    }
+                    break;
+                case PackageValidationMessageType.CheckValidator:
+                    if (checkValidator == null)
+                    {
+                        throw new ArgumentNullException(nameof(checkValidator));
+                    }
+                    break;
+                default:
+                    throw new NotSupportedException($"The package validation message type '{type}' is not supported.");
             }
 
-            PackageId = packageId ?? throw new ArgumentNullException(nameof(packageId));
-            PackageVersion = packageVersion ?? throw new ArgumentNullException(nameof(packageVersion));
-            PackageNormalizedVersion = NuGetVersion.Parse(packageVersion).ToNormalizedString();
-            ValidationTrackingId = validationTrackingId;
+            var notNullCount = 0;
+            notNullCount += processValidationSet != null ? 1 : 0;
+            notNullCount += checkValidator != null ? 1 : 0;
+            if (notNullCount > 1)
+            {
+                throw new ArgumentException("There should be exactly one non-null data instance provided.");
+            }
+
+            Type = type;
+            ProcessValidationSet = processValidationSet;
+            CheckValidator = checkValidator;
             DeliveryCount = deliveryCount;
-            ValidatingType = validatingType;
-            EntityKey = entityKey;
         }
 
-        public string PackageId { get; }
-        public string PackageVersion { get; }
-        public string PackageNormalizedVersion { get; }
-        public Guid ValidationTrackingId { get; }
+        public PackageValidationMessageType Type { get; }
+        public ProcessValidationSetData ProcessValidationSet { get; }
+        public CheckValidatorData CheckValidator { get; }
         public int DeliveryCount { get; }
-        public ValidatingType ValidatingType { get; }
-        public int? EntityKey { get; }
     }
 }

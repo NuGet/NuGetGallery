@@ -117,22 +117,25 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="SerializedPackageValidationMessageData1" xml:space="preserve">
+  <data name="SerializedCheckValidatorData" xml:space="preserve">
+    <value>{"ValidationId":"3fa83d31-3b44-4ffd-bfb8-02a9f5155af6"}</value>
+  </data>
+  <data name="SerializedProcessValidationSetData1" xml:space="preserve">
     <value>{"PackageId":"NuGet.Versioning","PackageVersion":"4.3","ValidationTrackingId":"14b4c1b8-40e2-4d60-9db7-4b7195e807f5"}</value>
   </data>
-  <data name="SerializedPackageValidationMessageData2" xml:space="preserve">
+  <data name="SerializedProcessValidationSetData2" xml:space="preserve">
     <value>{"PackageId":"NuGet.Versioning","PackageVersion":"4.3","PackageNormalizedVersion":"4.3.0","ValidationTrackingId":"14b4c1b8-40e2-4d60-9db7-4b7195e807f5","EntityKey":123}</value>
   </data>
-  <data name="SerializedPackageValidationMessageDataPackage" xml:space="preserve">
+  <data name="SerializedProcessValidationSetDataPackage" xml:space="preserve">
     <value>{"PackageId":"NuGet.Versioning","PackageVersion":"4.3","PackageNormalizedVersion":"4.3.0","ValidationTrackingId":"14b4c1b8-40e2-4d60-9db7-4b7195e807f5","ValidatingType":0,"EntityKey":123}</value>
   </data>
-  <data name="SerializedPackageValidationMessageDataSymbols" xml:space="preserve">
+  <data name="SerializedProcessValidationSetDataSymbols" xml:space="preserve">
     <value>{"PackageId":"NuGet.Versioning","PackageVersion":"4.3","PackageNormalizedVersion":"4.3.0","ValidationTrackingId":"14b4c1b8-40e2-4d60-9db7-4b7195e807f5","ValidatingType":1,"EntityKey":123}</value>
   </data>
-  <data name="SerializedPackageValidationMessageDataSymbolsWithNoEntityKey" xml:space="preserve">
+  <data name="SerializedProcessValidationSetDataSymbolsWithNoEntityKey" xml:space="preserve">
     <value>{"PackageId":"NuGet.Versioning","PackageVersion":"4.3","PackageNormalizedVersion":"4.3.0","ValidationTrackingId":"14b4c1b8-40e2-4d60-9db7-4b7195e807f5","ValidatingType":1}</value>
   </data>
-  <data name="SerializedPackageValidationMessageDataWithNoEntityKey2" xml:space="preserve">
+  <data name="SerializedProcessValidationSetDataWithNoEntityKey2" xml:space="preserve">
     <value>{"PackageId":"NuGet.Versioning","PackageVersion":"4.3","PackageNormalizedVersion":"4.3.0","ValidationTrackingId":"14b4c1b8-40e2-4d60-9db7-4b7195e807f5"}</value>
   </data>
 </root>
