@@ -183,6 +183,17 @@ namespace NuGetGallery
             return package;
         }
 
+        public virtual Package FilterExactPackage(
+            IReadOnlyCollection<Package> packages,
+            string version)
+        {
+            var normalizedVersion = NuGetVersionFormatter.Normalize(version);
+            return packages.SingleOrDefault(p => string.Equals(
+                p.NormalizedVersion,
+                normalizedVersion,
+                StringComparison.OrdinalIgnoreCase));
+        }
+
         public virtual Package FilterLatestPackage(
             IReadOnlyCollection<Package> packages,
             int? semVerLevelKey = SemVerLevelKey.SemVer2,
@@ -549,6 +560,7 @@ namespace NuGetGallery
             package.IsPrerelease = packageMetadata.Version.IsPrerelease;
             package.Listed = true;
             package.RequiresLicenseAcceptance = packageMetadata.RequireLicenseAcceptance;
+            package.DevelopmentDependency = packageMetadata.DevelopmentDependency;
             package.Summary = packageMetadata.Summary;
             package.Tags = PackageHelper.ParseTags(packageMetadata.Tags);
             package.Title = packageMetadata.Title;

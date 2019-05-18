@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.Controllers;
 using System.Web.Http.Hosting;
-using NuGet.Services.Search.Client.Correlation;
+using NuGetGallery.Infrastructure.Search.Correlation;
 using NuGetGallery.TestUtils;
 using Xunit;
 

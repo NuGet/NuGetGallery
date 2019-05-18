@@ -1569,6 +1569,32 @@ namespace NuGetGallery
                 .Where(s => !SupportedPackageStatuses.Any(o => s.Equals(o[0])))
                 .Select(s => new object[] { s });
 
+            [Fact]
+            public async Task ThrowsWhenPackageIsNull()
+            {
+                var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => _target.CommitPackageAsync(package: null, packageFile: Mock.Of<Stream>()));
+                Assert.Equal("package", ex.ParamName);
+            }
+
+            [Fact]
+            public async Task ThrowsWhenPackageFileIsNull()
+            {
+                var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => _target.CommitPackageAsync(package: Mock.Of<Package>(), packageFile: null));
+                Assert.Equal("packageFile", ex.ParamName);
+            }
+
+            [Fact]
+            public async Task ThrowsWhenPackageStreamIsNotSeekable()
+            {
+                var stream = new Mock<Stream>();
+                stream.SetupGet(s => s.CanSeek)
+                    .Returns(false);
+
+                var ex = await Assert.ThrowsAsync<ArgumentException>(() => _target.CommitPackageAsync(package: Mock.Of<Package>(), packageFile: stream.Object));
+                Assert.Contains("seek", ex.Message);
+                Assert.Equal("packageFile", ex.ParamName);
+            }
+
             [Theory]
             [MemberData(nameof(SupportedPackageStatuses))]
             public async Task CommitsAfterSavingSupportedPackageStatuses(PackageStatus packageStatus)
@@ -1863,6 +1889,30 @@ namespace NuGetGallery
                 _licenseFileService.Verify(
                     lfs => lfs.ExtractAndSaveLicenseFileAsync(_package, _packageFile),
                     expectedLicenseSave ? Times.Once() : Times.Never());
+            }
+
+            [Fact]
+            public async Task ResetsPackageStreamAfterSavingLicenseFile()
+            {
+                _package.PackageStatusKey = PackageStatus.Available;
+                _package.EmbeddedLicenseType = EmbeddedLicenseFileType.PlainText;
+
+                _packageFile = GeneratePackageWithUserContent(licenseFilename: "license.txt", licenseFileContents: "some license").Object.GetStream();
+
+                _licenseFileService
+                    .Setup(lfs => lfs.ExtractAndSaveLicenseFileAsync(_package, _packageFile))
+                    .Callback<Package, Stream>((_, stream) => stream.Position = 42)
+                    .Returns(Task.CompletedTask);
+
+                _packageFileService
+                    .Setup(pfs => pfs.SavePackageFileAsync(_package, _packageFile))
+                    .Callback<Package, Stream>((_, stream) => Assert.Equal(0, stream.Position))
+                    .Returns(Task.CompletedTask);
+
+                var result = await _target.CommitPackageAsync(_package, _packageFile);
+
+                _licenseFileService.Verify(lfs => lfs.ExtractAndSaveLicenseFileAsync(_package, _packageFile), Times.Once);
+                _packageFileService.Verify(pfs => pfs.SavePackageFileAsync(_package, _packageFile), Times.Once);
             }
 
             [Theory]

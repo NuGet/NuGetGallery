@@ -64,16 +64,12 @@ namespace NuGetGallery
             private TestAutocompleteServiceQuery(Uri baseAddress, string queryString)
             {
                 var mockConfiguration = new Mock<IAppConfiguration>();
-                mockConfiguration.SetupGet(c => c.ServiceDiscoveryUri).Returns(baseAddress);
-                mockConfiguration.SetupGet(c => c.AutocompleteServiceResourceType).Returns("SearchAutocompleteService/3.0.0-rc");
 
                 _responseMessage = GetResponseMessage(new Uri(baseAddress, $"{_autocompletePath}?{queryString?.TrimStart('?')??string.Empty}"), HttpStatusCode.OK);
                 var mockIResilientSearchClient = new Mock<IResilientSearchClient>();
                 mockIResilientSearchClient.Setup(s => s.GetAsync(_autocompletePath, It.IsAny<string>())).ReturnsAsync(_responseMessage);
 
-                var mockTelemetryService = new Mock<IFeatureFlagService>();
-
-                _instance = new AutocompleteServiceQuery(mockConfiguration.Object, mockIResilientSearchClient.Object, mockTelemetryService.Object);
+                _instance = new AutocompleteServiceQuery(mockConfiguration.Object, mockIResilientSearchClient.Object);
             }
 
             private static HttpResponseMessage GetResponseMessage(Uri uri, HttpStatusCode statusCode)

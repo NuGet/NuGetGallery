@@ -10,6 +10,8 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using Microsoft.WindowsAzure.Storage.Blob;
+using Microsoft.WindowsAzure.Storage.RetryPolicies;
 using NuGetGallery.Configuration;
 using NuGetGallery.Helpers;
 
@@ -25,7 +27,7 @@ namespace NuGetGallery
         private const string Available = "Available";
         private const string Unavailable = "Unavailable";
         private const string Unconfigured = "Unconfigured";
-        private const string StatusMessageFormat = "NuGet Gallery instance {4} is {0}. SQL is {1}. Storage is {2}. Search service is {3}.";
+        private const string StatusMessageFormat = "NuGet Gallery instance {3} is {0}. SQL is {1}. Storage is {2}.";
 
         private const string TestSqlQuery = "SELECT TOP(1) [Key] FROM GallerySettings WITH (NOLOCK)";
 
@@ -43,12 +45,10 @@ namespace NuGetGallery
         {
             bool sqlAzureAvailable =  IsSqlAzureAvailable();
             bool? storageAvailable = await IsAzureStorageAvailable();
-            bool? searchServiceAvailable = await IsSearchServiceAvailable();
 
             bool galleryServiceAvailable =
                 sqlAzureAvailable
-                && (!storageAvailable.HasValue || storageAvailable.Value) // null == true for this condition.
-                && (!searchServiceAvailable.HasValue || searchServiceAvailable.Value);
+                && (!storageAvailable.HasValue || storageAvailable.Value); // null == true for this condition.
 
             return new HttpStatusCodeWithBodyResult(AvailabilityStatusCode(galleryServiceAvailable),
                 String.Format(CultureInfo.InvariantCulture,
@@ -56,7 +56,6 @@ namespace NuGetGallery
                     AvailabilityMessage(galleryServiceAvailable),
                     AvailabilityMessage(sqlAzureAvailable),
                     AvailabilityMessage(storageAvailable),
-                    AvailabilityMessage(searchServiceAvailable),
                     HostMachine.Name));
         }
 
@@ -80,7 +79,7 @@ namespace NuGetGallery
             return sqlAzureAvailable;
         }
 
-        private async Task<bool?> IsAzureStorageAvailable()
+        internal async Task<bool?> IsAzureStorageAvailable()
         {
             if (_config == null || _config.StorageType != StorageType.AzureStorage)
             {
@@ -91,7 +90,12 @@ namespace NuGetGallery
             try
             {
                 // Check Storage Availability
-                var tasks = _cloudStorageAvailabilityChecks.Select(s => s.IsAvailableAsync());
+                BlobRequestOptions options = new BlobRequestOptions();
+                // Used the LocationMode.SecondaryOnly and not PrimaryThenSecondary for two reasons:
+                // 1. When the primary is down and secondary is up if PrimaryThenSecondary is used there will be an extra and not needed call to the primary.
+                // 2. When the primary is up the secondary status check will return the primary status instead of secondary.
+                options.LocationMode = _config.ReadOnlyMode ? LocationMode.SecondaryOnly : LocationMode.PrimaryOnly;
+                var tasks = _cloudStorageAvailabilityChecks.Select(s => s.IsAvailableAsync(options, operationContext : null));
                 var eachAvailable = await Task.WhenAll(tasks);
                 storageAvailable = eachAvailable.All(a => a);
             }
@@ -104,16 +108,6 @@ namespace NuGetGallery
             }
 
             return storageAvailable;
-        }
-
-        private async Task<bool?> IsSearchServiceAvailable()
-        {
-            if (_config == null || _config.ServiceDiscoveryUri == null)
-            {
-                return null;
-            }
-
-            return await IsGetSuccessful(_config.ServiceDiscoveryUri);
         }
 
         private async Task<bool> IsGetSuccessful(Uri uri)

@@ -6,8 +6,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
-using SearchModels = NuGet.Services.Search.Models;
-using NuGet.Services.Search.Client;
+using SearchModels = NuGetGallery.Infrastructure.Search.Models;
 
 namespace NuGetGallery.Infrastructure.Search 
 {

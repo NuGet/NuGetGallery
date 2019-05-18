@@ -10,8 +10,6 @@ using System.Threading.Tasks;
 using System.Web;
 using Newtonsoft.Json.Linq;
 using NuGet.Services.Entities;
-using NuGet.Services.Search.Client;
-using NuGet.Services.Search.Client.Correlation;
 using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
 
@@ -20,22 +18,15 @@ namespace NuGetGallery.Infrastructure.Search
     public class ExternalSearchService : ISearchService, IIndexingService, IRawSearchService
     {
         public static readonly string SearchRoundtripTimePerfCounter = "SearchRoundtripTime";
-
-        private static IEndpointHealthIndicatorStore _healthIndicatorStore;
-        // Search client that will be deprecated. It is still needed to allow the feature flag until the new search implementation is enabled.
-        private static ISearchClient _deprecatedSearchClient;
         private readonly ISearchClient _searchClient;
-        private readonly IFeatureFlagService _featureFlagService;
 
         private JObject _diagCache;
-
-        public Uri ServiceUri { get; private set; }
 
         protected IDiagnosticsSource Trace { get; private set; }
 
         public string IndexPath
         {
-            get { return ServiceUri.AbsoluteUri; }
+            get { return string.Empty ; }
         }
 
         public bool IsLocal
@@ -47,70 +38,13 @@ namespace NuGetGallery.Infrastructure.Search
 
         public ExternalSearchService()
         {
-            // used for testing
-            if (_healthIndicatorStore == null)
-            {
-                _healthIndicatorStore = new BaseUrlHealthIndicatorStore(new NullHealthIndicatorLogger());
-            }
-
-            if (_deprecatedSearchClient == null)
-            {
-                _deprecatedSearchClient = new SearchClient(
-                    ServiceUri, 
-                    "SearchGalleryQueryService/3.0.0-rc", 
-                    null, 
-                    _healthIndicatorStore, 
-                    QuietLog.LogHandledException, 
-                    new TracingHttpHandler(Trace), 
-                    new CorrelatingHttpClientHandler());
-            }
         }
 
-        public ExternalSearchService(IAppConfiguration config, IDiagnosticsService diagnostics, ISearchClient searchClient, IFeatureFlagService featureFlagService)
+        public ExternalSearchService(IAppConfiguration config, IDiagnosticsService diagnostics, ISearchClient searchClient)
         {
-            ServiceUri = config.ServiceDiscoveryUri;
             _searchClient = searchClient ?? throw new ArgumentNullException(nameof(searchClient));
-            _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
 
             Trace = diagnostics.SafeGetSource("ExternalSearchService");
-
-            // Extract credentials
-            var userInfo = ServiceUri.UserInfo;
-            ICredentials credentials = null;
-            if (!String.IsNullOrEmpty(userInfo))
-            {
-                var split = userInfo.Split(':');
-                if (split.Length != 2)
-                {
-                    throw new FormatException("Invalid user info in SearchServiceUri!");
-                }
-
-                // Split the credentials out
-                credentials = new NetworkCredential(split[0], split[1]);
-                ServiceUri = new UriBuilder(ServiceUri)
-                {
-                    UserName = null,
-                    Password = null
-                }.Uri;
-            }
-
-            // note: intentionally not locking the next two assignments to avoid blocking calls
-            if (_healthIndicatorStore == null)
-            {
-                _healthIndicatorStore = new BaseUrlHealthIndicatorStore(new AppInsightsHealthIndicatorLogger());
-            }
-
-            if (_deprecatedSearchClient == null)
-            {
-                _deprecatedSearchClient = new SearchClient(
-                    ServiceUri, 
-                    config.SearchServiceResourceType,
-                    credentials, 
-                    _healthIndicatorStore,
-                    QuietLog.LogHandledException,
-                    new TracingHttpHandler(Trace), 
-                    new CorrelatingHttpClientHandler());
-            }
         }
 
         public virtual Task<SearchResults> RawSearch(SearchFilter filter)
@@ -128,7 +62,7 @@ namespace NuGetGallery.Infrastructure.Search
             // Query!
             var sw = new Stopwatch();
             sw.Start();
-            var result = await GetClient().Search(
+            var result = await _searchClient.Search(
                 filter.SearchTerm,
                 projectTypeFilter: null,
                 includePrerelease: filter.IncludePrerelease,
@@ -237,7 +171,7 @@ namespace NuGetGallery.Infrastructure.Search
         {
             if (_diagCache == null)
             {
-                var resp = await GetClient().GetDiagnostics();
+                var resp = await _searchClient.GetDiagnostics();
                 if (!resp.IsSuccessStatusCode)
                 {
                     Trace.Error("HTTP Error when retrieving diagnostics: " + ((int)resp.StatusCode).ToString());
@@ -326,15 +260,6 @@ namespace NuGetGallery.Infrastructure.Search
                 HideLicenseReport = doc.Value<bool>("HideLicenseReport"),
                 Listed = doc.Value<bool>("Listed")
             };
-        }
-
-        /// <summary>
-        /// It will return the client to use based on the feature flag.
-        /// </summary>
-        /// <returns>The search client in use. Used for the unit tests.</returns>
-        internal ISearchClient GetClient()
-        {
-            return _featureFlagService.IsSearchCircuitBreakerEnabled() ? _searchClient : _deprecatedSearchClient;
         }
 
         // Bunch of no-ops to disable indexing because an external search service is doing that.

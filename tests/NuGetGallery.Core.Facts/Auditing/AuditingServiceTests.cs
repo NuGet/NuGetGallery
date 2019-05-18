@@ -127,6 +127,7 @@ namespace NuGetGallery.Auditing
                 Published = DateTime.Now.AddMinutes(3),
                 ReleaseNotes = "q",
                 RequiresLicenseAcceptance = true,
+                DevelopmentDependency = true,
                 Summary = "r",
                 Tags = "s",
                 Title = "t",
@@ -172,6 +173,7 @@ namespace NuGetGallery.Auditing
                 Assert.Equal(3, packageRecord["PackageFileSize"].Value<int>());
                 Assert.Equal("p", packageRecord["ProjectUrl"].Value<string>());
                 Assert.True(packageRecord["RequiresLicenseAcceptance"].Value<bool>());
+                Assert.True(packageRecord["DevelopmentDependency"].Value<bool>());
                 Assert.Equal("r", packageRecord["Summary"].Value<string>());
                 Assert.Equal("s", packageRecord["Tags"].Value<string>());
                 Assert.Equal("t", packageRecord["Title"].Value<string>());

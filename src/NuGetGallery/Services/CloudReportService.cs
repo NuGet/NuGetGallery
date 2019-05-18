@@ -8,7 +8,7 @@ using Microsoft.WindowsAzure.Storage.RetryPolicies;
 
 namespace NuGetGallery
 {
-    public class CloudReportService : IReportService, ICloudStorageStatusDependency
+    public class CloudReportService : IReportService
     {
         private const string _statsContainerName = "nuget-cdnstats";
         private readonly string _connectionString;
@@ -18,12 +18,6 @@ namespace NuGetGallery
         {
             _connectionString = connectionString;
             _readAccessGeoRedundant = readAccessGeoRedundant;
-        }
-
-        public Task<bool> IsAvailableAsync()
-        {
-            var container = GetCloudBlobContainer();
-            return container.ExistsAsync();
         }
 
         public async Task<StatisticsReport> Load(string reportName)

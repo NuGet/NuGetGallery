@@ -355,9 +355,15 @@ namespace NuGetGallery.Controllers
                             var package = fakes.Package;
                             var controller = GetController<JsonApiController>();
                             controller.SetCurrentUser(currentUser);
+                            AddPackageOwnerViewModel testData = new AddPackageOwnerViewModel
+                            {
+                                Id = package.Id,
+                                Username = usernameToAdd,
+                                Message = "a message"
+                            };
 
                             // Act
-                            var result = await controller.AddPackageOwner(package.Id, usernameToAdd, "a message");
+                            var result = await controller.AddPackageOwner(testData);
                             dynamic data = result.Data;
 
                             // Assert
@@ -444,8 +450,15 @@ namespace NuGetGallery.Controllers
                                         .Verifiable();
                                 }
                             }
+                            AddPackageOwnerViewModel testData = new AddPackageOwnerViewModel
+                            {
+                                Id = fakes.Package.Id,
+                                Username = userToAdd.Username,
+                                Message = "Hello World! Html Encoded <3"
+                            };
 
-                            JsonResult result = await controller.AddPackageOwner(fakes.Package.Id, userToAdd.Username, "Hello World! Html Encoded <3");
+
+                            JsonResult result = await controller.AddPackageOwner(testData);
                             dynamic data = result.Data;
                             PackageOwnersResultViewModel model = data.model;
 
@@ -679,7 +692,14 @@ namespace NuGetGallery.Controllers
 
                 private static async Task<ActionResult> AddPackageOwner(JsonApiController jsonApiController, string packageId, string username)
                 {
-                    return await jsonApiController.AddPackageOwner(packageId, username, "message");
+                    AddPackageOwnerViewModel testData = new AddPackageOwnerViewModel
+                    {
+                        Id = packageId,
+                        Username = username,
+                        Message = "message"
+                    };
+
+                    return await jsonApiController.AddPackageOwner(testData);
                 }
 
                 private static async Task<ActionResult> RemovePackageOwner(JsonApiController jsonApiController, string packageId, string username)
