@@ -30,7 +30,7 @@ namespace NuGetGallery
 
     [DbConfigurationType(typeof(EntitiesConfiguration))]
     public class EntitiesContext
-        : ObjectMaterializedInterceptingDbContext, IEntitiesContext
+        : ObjectMaterializedInterceptingDbContext, IEntitiesContext, IReadOnlyEntitiesContext
     {
         private const string CertificatesThumbprintIndex = "IX_Certificates_Thumbprint";
         private const string UserSecurityPolicyUserKeyNameSubscriptionIndex = "IX_UserSecurityPolicy_UserKeyNameSubscription";
@@ -53,7 +53,7 @@ namespace NuGetGallery
         public EntitiesContext(DbConnection connection, bool readOnly)
             : base(connection, contextOwnsConnection: true)
         {
-            ReadOnly = readOnly;
+           ReadOnly = readOnly;
         }
 
         public bool ReadOnly { get; private set; }
@@ -72,7 +72,7 @@ namespace NuGetGallery
         /// </summary>
         public DbSet<User> Users { get; set; }
 
-        DbSet<T> IEntitiesContext.Set<T>()
+        DbSet<T> IReadOnlyEntitiesContext.Set<T>()
         {
             return base.Set<T>();
         }

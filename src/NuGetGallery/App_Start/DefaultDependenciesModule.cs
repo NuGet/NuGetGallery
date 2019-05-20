@@ -234,6 +234,8 @@ namespace NuGetGallery
                 .As<IEntityRepository<PackageDeprecation>>()
                 .InstancePerLifetimeScope();
 
+            ConfigureGalleryReadOnlyReplicaEntitiesContext(builder, diagnosticsService, configuration, secretInjector);
+
             var supportDbConnectionFactory = CreateDbConnectionFactory(
                 diagnosticsService,
                 nameof(SupportRequestDbContext),
@@ -558,6 +560,93 @@ namespace NuGetGallery
         private static DbConnection CreateDbConnection(ISqlConnectionFactory connectionFactory)
         {
             return Task.Run(() => connectionFactory.CreateAsync()).Result;
+        }
+
+        private static void ConfigureGalleryReadOnlyReplicaEntitiesContext(ContainerBuilder builder,
+            IDiagnosticsService diagnostics, 
+            ConfigurationService configuration,
+            ISecretInjector secretInjector)
+        {
+            var galleryDbReadOnlyReplicaConnectionFactory = CreateDbConnectionFactory(
+                diagnostics,
+                nameof(ReadOnlyEntitiesContext),
+                configuration.Current.SqlReadOnlyReplicaConnectionString,
+                secretInjector);
+
+            builder.Register(c => new ReadOnlyEntitiesContext(CreateDbConnection(galleryDbReadOnlyReplicaConnectionFactory)))
+                .AsSelf()
+                .As<IReadOnlyEntitiesContext>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<ReadOnlyEntityRepository<User>>()
+                .AsSelf()
+                .As<IReadOnlyEntityRepository<User>>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<ReadOnlyEntityRepository<ReservedNamespace>>()
+                .AsSelf()
+                .As<IReadOnlyEntityRepository<ReservedNamespace>>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<ReadOnlyEntityRepository<PackageRegistration>>()
+                .AsSelf()
+                .As<IReadOnlyEntityRepository<PackageRegistration>>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<ReadOnlyEntityRepository<Package>>()
+                .AsSelf()
+                .As<IReadOnlyEntityRepository<Package>>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<ReadOnlyEntityRepository<PackageDependency>>()
+                .AsSelf()
+                .As<IReadOnlyEntityRepository<PackageDependency>>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<ReadOnlyEntityRepository<PackageDelete>>()
+                .AsSelf()
+                .As<IReadOnlyEntityRepository<PackageDelete>>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<ReadOnlyEntityRepository<Certificate>>()
+                .AsSelf()
+                .As<IReadOnlyEntityRepository<Certificate>>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<ReadOnlyEntityRepository<AccountDelete>>()
+               .AsSelf()
+               .As<IReadOnlyEntityRepository<AccountDelete>>()
+               .InstancePerLifetimeScope();
+
+            builder.RegisterType<ReadOnlyEntityRepository<Credential>>()
+                .AsSelf()
+                .As<IReadOnlyEntityRepository<Credential>>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<ReadOnlyEntityRepository<Scope>>()
+                .AsSelf()
+                .As<IReadOnlyEntityRepository<Scope>>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<ReadOnlyEntityRepository<PackageOwnerRequest>>()
+                .AsSelf()
+                .As<IReadOnlyEntityRepository<PackageOwnerRequest>>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<ReadOnlyEntityRepository<Organization>>()
+                .AsSelf()
+                .As<IReadOnlyEntityRepository<Organization>>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<ReadOnlyEntityRepository<SymbolPackage>>()
+                .AsSelf()
+                .As<IReadOnlyEntityRepository<SymbolPackage>>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<ReadOnlyEntityRepository<PackageDeprecation>>()
+                .AsSelf()
+                .As<IReadOnlyEntityRepository<PackageDeprecation>>()
+                .InstancePerLifetimeScope();
         }
 
         private static void ConfigureValidationEntitiesContext(ContainerBuilder builder, IDiagnosticsService diagnostics,

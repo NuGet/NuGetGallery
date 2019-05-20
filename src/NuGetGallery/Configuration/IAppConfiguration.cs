@@ -171,6 +171,11 @@ namespace NuGetGallery.Configuration
         string SqlConnectionString { get; set; }
 
         /// <summary>
+        /// Gets the SQL Connection string used to connect to the read only replica of the database
+        /// </summary>
+        string SqlReadOnlyReplicaConnectionString { get; set; }
+
+        /// <summary>
         /// Gets the SQL Connection string used to connect to the database for support requests
         /// </summary>
         string SqlConnectionStringSupportRequest { get; set; }

@@ -32,7 +32,7 @@ namespace NuGetGallery.Controllers
         protected readonly IReadOnlyCollection<Package> UnavailablePackages;
         protected readonly IReadOnlyCollection<Package> NonSemVer2Packages;
         protected readonly IReadOnlyCollection<Package> SemVer2Packages;
-        protected readonly IEntityRepository<Package> PackagesRepository;
+        protected readonly IReadOnlyEntityRepository<Package> PackagesRepository;
         protected readonly IQueryable<Package> AllPackages;
 
         protected ODataFeedControllerFactsBase()
@@ -44,13 +44,13 @@ namespace NuGetGallery.Controllers
             NonSemVer2Packages = AvailablePackages.Where(p => p.SemVerLevelKey == SemVerLevelKey.Unknown).ToList();
             SemVer2Packages = AvailablePackages.Where(p => p.SemVerLevelKey == SemVerLevelKey.SemVer2).ToList();
 
-            var packagesRepositoryMock = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
+            var packagesRepositoryMock = new Mock<IReadOnlyEntityRepository<Package>>(MockBehavior.Strict);
             packagesRepositoryMock.Setup(m => m.GetAll()).Returns(AllPackages).Verifiable();
             PackagesRepository = packagesRepositoryMock.Object;
         }
 
         protected abstract TController CreateController(
-            IEntityRepository<Package> packagesRepository,
+            IReadOnlyEntityRepository<Package> packagesRepository,
             IGalleryConfigurationService configurationService,
             ISearchService searchService,
             ITelemetryService telemetryService);

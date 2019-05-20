@@ -206,7 +206,7 @@ namespace NuGetGallery
                 {
                     // Arrange
                     var packageRegistration = new PackageRegistration { Id = "Foo" };
-                    var repo = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
+                    var repo = new Mock<IReadOnlyEntityRepository<Package>>(MockBehavior.Strict);
                     repo.Setup(r => r.GetAll()).Returns(
                         new[]
                     {
@@ -260,7 +260,7 @@ namespace NuGetGallery
                 public async Task V1FeedSearchCanUseSearchService()
                 {
                     // Arrange
-                    var repo = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
+                    var repo = new Mock<IReadOnlyEntityRepository<Package>>(MockBehavior.Strict);
                     repo.Setup(r => r.GetAll()).Returns(Enumerable.Empty<Package>().AsQueryable());
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
                     configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
@@ -306,7 +306,7 @@ namespace NuGetGallery
                 {
                     // Arrange
                     var packageRegistration = new PackageRegistration { Id = "Foo" };
-                    var repo = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
+                    var repo = new Mock<IReadOnlyEntityRepository<Package>>(MockBehavior.Strict);
                     repo.Setup(r => r.GetAll()).Returns(new[]
                     {
                         new Package
@@ -358,7 +358,7 @@ namespace NuGetGallery
                 {
                     // Arrange
                     var packageRegistration = new PackageRegistration { Id = "Foo" };
-                    var repo = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
+                    var repo = new Mock<IReadOnlyEntityRepository<Package>>(MockBehavior.Strict);
                     repo.Setup(r => r.GetAll()).Returns(
                         new[]
                     {
@@ -403,7 +403,7 @@ namespace NuGetGallery
                 {
                     // Arrange
                     var packageRegistration = new PackageRegistration { Id = "Foo" };
-                    var repo = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
+                    var repo = new Mock<IReadOnlyEntityRepository<Package>>(MockBehavior.Strict);
                     repo.Setup(r => r.GetAll()).Returns(new[]
                     {
                         new Package
@@ -474,7 +474,7 @@ namespace NuGetGallery
 
                 private TestableV1Feed GetService(string host, string arguments = "?$skip=10")
                 {
-                    var repo = new Mock<IEntityRepository<Package>>(MockBehavior.Loose);
+                    var repo = new Mock<IReadOnlyEntityRepository<Package>>(MockBehavior.Loose);
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
                     configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns(host);
                     configuration.Setup(c => c.Current).Returns(new AppConfiguration() { IsODataFilterEnabled = true });
@@ -851,7 +851,7 @@ namespace NuGetGallery
                 {
                     // Arrange
                     var packageRegistration = new PackageRegistration { Id = "Foo" };
-                    var repo = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
+                    var repo = new Mock<IReadOnlyEntityRepository<Package>>(MockBehavior.Strict);
                     repo.Setup(r => r.GetAll()).Returns(
                         new[]
                     {
@@ -915,7 +915,7 @@ namespace NuGetGallery
                 public async Task V2FeedFindPackagesByIdReturnsEmptyCollectionWhenNoPackages()
                 {
                     // Arrange
-                    var repo = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
+                    var repo = new Mock<IReadOnlyEntityRepository<Package>>(MockBehavior.Strict);
                     repo.Setup(r => r.GetAll()).Returns(() => Enumerable.Empty<Package>().AsQueryable());
 
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
@@ -952,7 +952,7 @@ namespace NuGetGallery
                 public async Task V2FeedFindPackagesByIdCanUseSearchService()
                 {
                     // Arrange
-                    var repo = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
+                    var repo = new Mock<IReadOnlyEntityRepository<Package>>(MockBehavior.Strict);
                     repo.Setup(r => r.GetAll()).Returns(() => Enumerable.Empty<Package>().AsQueryable());
 
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
@@ -997,7 +997,7 @@ namespace NuGetGallery
                 {
                     // Arrange
                     var packageRegistration = new PackageRegistration { Id = "Foo" };
-                    var repo = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
+                    var repo = new Mock<IReadOnlyEntityRepository<Package>>(MockBehavior.Strict);
                     repo.Setup(r => r.GetAll()).Returns(new[]
                     {
                         new Package
@@ -1060,7 +1060,7 @@ namespace NuGetGallery
                 public async Task V2FeedFindPackagesByIdDoesNotHitBackendWhenIdIsEmpty()
                 {
                     // Arrange
-                    var repo = new Mock<IEntityRepository<Package>>(MockBehavior.Loose);
+                    var repo = new Mock<IReadOnlyEntityRepository<Package>>(MockBehavior.Loose);
 
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
                     configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
@@ -1087,7 +1087,7 @@ namespace NuGetGallery
                 {
                     // Arrange
                     var packageRegistration = new PackageRegistration { Id = "Foo" };
-                    var repo = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
+                    var repo = new Mock<IReadOnlyEntityRepository<Package>>(MockBehavior.Strict);
                     repo.Setup(r => r.GetAll()).Returns(new[]
                     {
                         new Package
@@ -1286,7 +1286,7 @@ namespace NuGetGallery
                 public void V2FeedGetUpdatesReturnsEmptyResultsIfInputIsMalformed(string id, string version)
                 {
                     // Arrange
-                    var repo = Mock.Of<IEntityRepository<Package>>();
+                    var repo = Mock.Of<IReadOnlyEntityRepository<Package>>();
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Default);
                     configuration.Setup(c => c.Current).Returns(new AppConfiguration() { IsODataFilterEnabled = false });
                     var telemetryService = new Mock<ITelemetryService>();
@@ -1318,7 +1318,7 @@ namespace NuGetGallery
                     // Arrange
                     var packageRegistrationA = new PackageRegistration { Id = "Foo" };
                     var packageRegistrationB = new PackageRegistration { Id = "Qux" };
-                    var repo = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
+                    var repo = new Mock<IReadOnlyEntityRepository<Package>>(MockBehavior.Strict);
                     repo.Setup(r => r.GetAll()).Returns(
                         new[]
                     {
@@ -1359,7 +1359,7 @@ namespace NuGetGallery
                     // Arrange
                     var packageRegistrationA = new PackageRegistration { Id = "Foo" };
                     var packageRegistrationB = new PackageRegistration { Id = "Qux" };
-                    var repo = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
+                    var repo = new Mock<IReadOnlyEntityRepository<Package>>(MockBehavior.Strict);
                     repo.Setup(r => r.GetAll()).Returns(
                         new[]
                     {
@@ -1411,7 +1411,7 @@ namespace NuGetGallery
                     // Arrange
                     var packageRegistrationA = new PackageRegistration { Id = "Foo" };
                     var packageRegistrationB = new PackageRegistration { Id = "Qux" };
-                    var repo = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
+                    var repo = new Mock<IReadOnlyEntityRepository<Package>>(MockBehavior.Strict);
                     repo.Setup(r => r.GetAll()).Returns(
                         new[]
                     {
@@ -1453,7 +1453,7 @@ namespace NuGetGallery
                     // Arrange
                     var packageRegistrationA = new PackageRegistration { Id = "Foo" };
                     var packageRegistrationB = new PackageRegistration { Id = "Qux" };
-                    var repo = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
+                    var repo = new Mock<IReadOnlyEntityRepository<Package>>(MockBehavior.Strict);
                     repo.Setup(r => r.GetAll()).Returns(
                         new[]
                     {
@@ -1497,7 +1497,7 @@ namespace NuGetGallery
                     // Arrange
                     var packageRegistrationA = new PackageRegistration { Id = "Foo" };
                     var packageRegistrationB = new PackageRegistration { Id = "Qux" };
-                    var repo = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
+                    var repo = new Mock<IReadOnlyEntityRepository<Package>>(MockBehavior.Strict);
                     repo.Setup(r => r.GetAll()).Returns(
                         new[]
                     {
@@ -1542,7 +1542,7 @@ namespace NuGetGallery
                     // Arrange
                     var packageRegistrationA = new PackageRegistration { Id = "Foo" };
                     var packageRegistrationB = new PackageRegistration { Id = "Qux" };
-                    var repo = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
+                    var repo = new Mock<IReadOnlyEntityRepository<Package>>(MockBehavior.Strict);
                     repo.Setup(r => r.GetAll()).Returns(
                         new[]
                     {
@@ -1586,7 +1586,7 @@ namespace NuGetGallery
                     // Arrange
                     var packageRegistrationA = new PackageRegistration { Id = "Foo" };
                     var packageRegistrationB = new PackageRegistration { Id = "Qux" };
-                    var repo = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
+                    var repo = new Mock<IReadOnlyEntityRepository<Package>>(MockBehavior.Strict);
                     repo.Setup(r => r.GetAll()).Returns(
                         new[]
                     {
@@ -1626,7 +1626,7 @@ namespace NuGetGallery
                 {
                     // Arrange
                     var packageRegistrationA = new PackageRegistration { Id = "Foo" };
-                    var repo = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
+                    var repo = new Mock<IReadOnlyEntityRepository<Package>>(MockBehavior.Strict);
                     repo.Setup(r => r.GetAll()).Returns(
                         new[]
                     {
@@ -1668,7 +1668,7 @@ namespace NuGetGallery
                     // Arrange
                     var packageRegistrationA = new PackageRegistration { Id = "Foo" };
                     var packageRegistrationB = new PackageRegistration { Id = "Qux" };
-                    var repo = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
+                    var repo = new Mock<IReadOnlyEntityRepository<Package>>(MockBehavior.Strict);
                     repo.Setup(r => r.GetAll()).Returns(
                         new[]
                     {
@@ -1712,7 +1712,7 @@ namespace NuGetGallery
                     // Arrange
                     var packageRegistrationA = new PackageRegistration { Id = "Foo" };
                     var packageRegistrationB = new PackageRegistration { Id = "Qux" };
-                    var repo = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
+                    var repo = new Mock<IReadOnlyEntityRepository<Package>>(MockBehavior.Strict);
                     repo.Setup(r => r.GetAll()).Returns(
                         new[]
                     {
@@ -1755,7 +1755,7 @@ namespace NuGetGallery
                 {
                     // Arrange
                     var packageRegistrationA = new PackageRegistration { Id = "Foo" };
-                    var repo = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
+                    var repo = new Mock<IReadOnlyEntityRepository<Package>>(MockBehavior.Strict);
                     repo.Setup(r => r.GetAll()).Returns(
                         new[]
                     {
@@ -1793,7 +1793,7 @@ namespace NuGetGallery
                     // Arrange
                     var packageRegistrationA = new PackageRegistration { Id = "Foo" };
                     var packageRegistrationB = new PackageRegistration { Id = "Qux" };
-                    var repo = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
+                    var repo = new Mock<IReadOnlyEntityRepository<Package>>(MockBehavior.Strict);
                     repo.Setup(r => r.GetAll()).Returns(
                         new[]
                     {
@@ -1839,7 +1839,7 @@ namespace NuGetGallery
                     // Arrange
                     var packageRegistrationA = new PackageRegistration { Id = "Foo" };
                     var packageRegistrationB = new PackageRegistration { Id = "Qux" };
-                    var repo = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
+                    var repo = new Mock<IReadOnlyEntityRepository<Package>>(MockBehavior.Strict);
                     repo.Setup(r => r.GetAll()).Returns(
                         new[]
                     {
@@ -1908,7 +1908,7 @@ namespace NuGetGallery
                     // Arrange
                     var packageRegistrationA = new PackageRegistration { Id = "Foo" };
                     var packageRegistrationB = new PackageRegistration { Id = "Qux" };
-                    var repo = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
+                    var repo = new Mock<IReadOnlyEntityRepository<Package>>(MockBehavior.Strict);
                     repo.Setup(r => r.GetAll()).Returns(
                         new[]
                     {
@@ -2029,7 +2029,7 @@ namespace NuGetGallery
 
                 private TestableV2Feed GetService(string host, string arguments = "?$skip=10")
                 {
-                    var repo = new Mock<IEntityRepository<Package>>(MockBehavior.Loose);
+                    var repo = new Mock<IReadOnlyEntityRepository<Package>>(MockBehavior.Loose);
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Default);
                     configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns(host);
                     configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });

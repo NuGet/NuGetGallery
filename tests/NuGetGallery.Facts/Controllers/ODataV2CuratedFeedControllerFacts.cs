@@ -32,7 +32,7 @@ namespace NuGetGallery.Controllers
             private readonly Mock<IGalleryConfigurationService> _config;
             private readonly Mock<IAppConfiguration> _appConfig;
             private readonly Mock<ISearchService> _searchService;
-            private readonly Mock<IEntityRepository<Package>> _packages;
+            private readonly Mock<IReadOnlyEntityRepository<Package>> _packages;
             private readonly Mock<ITelemetryService> _telemetryService;
             private readonly ODataV2CuratedFeedController _target;
             private readonly HttpRequestMessage _request;
@@ -59,7 +59,7 @@ namespace NuGetGallery.Controllers
 
                 _config = new Mock<IGalleryConfigurationService>();
                 _searchService = new Mock<ISearchService>();
-                _packages = new Mock<IEntityRepository<Package>>();
+                _packages = new Mock<IReadOnlyEntityRepository<Package>>();
                 _telemetryService = new Mock<ITelemetryService>();
 
                 _config
@@ -439,7 +439,7 @@ namespace NuGetGallery.Controllers
         }
 
         protected override ODataV2CuratedFeedController CreateController(
-            IEntityRepository<Package> packagesRepository,
+            IReadOnlyEntityRepository<Package> packagesRepository,
             IGalleryConfigurationService configurationService,
             ISearchService searchService,
             ITelemetryService telemetryService)

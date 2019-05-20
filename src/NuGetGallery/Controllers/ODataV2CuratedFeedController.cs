@@ -27,12 +27,12 @@ namespace NuGetGallery.Controllers
 
         private readonly IGalleryConfigurationService _configurationService;
         private readonly ISearchService _searchService;
-        private readonly IEntityRepository<Package> _packagesRepository;
+        private readonly IReadOnlyEntityRepository<Package> _packagesRepository;
 
         public ODataV2CuratedFeedController(
             IGalleryConfigurationService configurationService,
             ISearchService searchService,
-            IEntityRepository<Package> packagesRepository,
+            IReadOnlyEntityRepository<Package> packagesRepository,
             ITelemetryService telemetryService)
             : base(configurationService, telemetryService)
         {

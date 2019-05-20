@@ -12,7 +12,7 @@ namespace NuGetGallery.TestUtils.Infrastructure
     public class TestableV2Feed : ODataV2FeedController
     {
         public TestableV2Feed(
-            IEntityRepository<Package> repo,
+            IReadOnlyEntityRepository<Package> repo,
             IGalleryConfigurationService configuration,
             ISearchService searchService)
             : base(repo, configuration, searchService, Mock.Of<ITelemetryService>())
@@ -20,7 +20,7 @@ namespace NuGetGallery.TestUtils.Infrastructure
         }
 
         public TestableV2Feed(
-            IEntityRepository<Package> repo,
+            IReadOnlyEntityRepository<Package> repo,
             IGalleryConfigurationService configuration,
             ISearchService searchService,
             ITelemetryService telemetryService)

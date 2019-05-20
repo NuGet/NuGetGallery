@@ -29,12 +29,12 @@ namespace NuGetGallery.Controllers
     {
         private const int MaxPageSize = SearchAdaptor.MaxPageSize;
 
-        private readonly IEntityRepository<Package> _packagesRepository;
+        private readonly IReadOnlyEntityRepository<Package> _packagesRepository;
         private readonly IGalleryConfigurationService _configurationService;
         private readonly ISearchService _searchService;
 
         public ODataV2FeedController(
-            IEntityRepository<Package> packagesRepository,
+            IReadOnlyEntityRepository<Package> packagesRepository,
             IGalleryConfigurationService configurationService,
             ISearchService searchService,
             ITelemetryService telemetryService)

@@ -90,7 +90,7 @@ namespace NuGetGallery.Controllers
         }
 
         protected override ODataV1FeedController CreateController(
-            IEntityRepository<Package> packagesRepository,
+            IReadOnlyEntityRepository<Package> packagesRepository,
             IGalleryConfigurationService configurationService,
             ISearchService searchService,
             ITelemetryService telemetryService)

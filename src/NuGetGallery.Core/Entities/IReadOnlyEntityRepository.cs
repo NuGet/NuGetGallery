@@ -1,13 +1,13 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System.Threading.Tasks;
+using System.Linq;
 
 namespace NuGetGallery
 {
-    public interface IEntitiesContext : IReadOnlyEntitiesContext
+    public interface IReadOnlyEntityRepository<T>
+        where T : class, new()
     {
-        Task<int> SaveChangesAsync();
-        void DeleteOnCommit<T>(T entity) where T : class;
+        IQueryable<T> GetAll();
     }
 }
