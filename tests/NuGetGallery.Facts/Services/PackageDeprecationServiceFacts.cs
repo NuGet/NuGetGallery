@@ -32,6 +32,30 @@ namespace NuGetGallery.Services
                         alternatePackageRegistration: null,
                         alternatePackage: null,
                         customMessage: null,
+                        shouldUnlist: false,
+                        user: user));
+            }
+
+            [Fact]
+            public async Task ThrowsIfPackagesHaveDifferentRegistrations()
+            {
+                var service = Get<PackageDeprecationService>();
+
+                var packages = new[]
+                {
+                    new Package { PackageRegistration = new PackageRegistration { Id = "a" } },
+                    new Package { PackageRegistration = new PackageRegistration { Id = "b" } },
+                };
+
+                var user = new User { Key = 1 };
+                await Assert.ThrowsAsync<ArgumentException>(() =>
+                    service.UpdateDeprecation(
+                        packages,
+                        PackageDeprecationStatus.NotDeprecated,
+                        alternatePackageRegistration: null,
+                        alternatePackage: null,
+                        customMessage: null,
+                        shouldUnlist: false,
                         user: user));
             }
 
@@ -39,19 +63,28 @@ namespace NuGetGallery.Services
             public async Task DeletesExistingDeprecationsIfStatusNotDeprecated()
             {
                 // Arrange
+                var registration = new PackageRegistration { Id = "theId" };
                 var packageWithDeprecation1 = new Package
                 {
+                    PackageRegistration = registration,
                     Deprecations = new List<PackageDeprecation> { new PackageDeprecation() }
                 };
 
-                var packageWithoutDeprecation1 = new Package();
+                var packageWithoutDeprecation1 = new Package
+                {
+                    PackageRegistration = registration
+                };
 
                 var packageWithDeprecation2 = new Package
                 {
+                    PackageRegistration = registration,
                     Deprecations = new List<PackageDeprecation> { new PackageDeprecation() }
                 };
 
-                var packageWithoutDeprecation2 = new Package();
+                var packageWithoutDeprecation2 = new Package
+                {
+                    PackageRegistration = registration
+                };
 
                 var packages = new[]
                 {
@@ -82,6 +115,7 @@ namespace NuGetGallery.Services
                     alternatePackageRegistration: null,
                     alternatePackage: null,
                     customMessage: null,
+                    shouldUnlist: false,
                     user: user);
 
                 // Assert
@@ -93,28 +127,67 @@ namespace NuGetGallery.Services
                 }
             }
 
+            public enum PackageLatestState
+            {
+                Not,
+                Latest,
+                LatestStable,
+                LatestSemVer2,
+                LatestStableSemVer2
+            }
+
+            public static IEnumerable<object[]> ReplacesExistingDeprecations_Data =>
+                MemberDataHelper.Combine(
+                    MemberDataHelper.BooleanDataSet(),
+                    MemberDataHelper.EnumDataSet<PackageLatestState>());
+
             [Theory]
-            [InlineData(false)]
-            [InlineData(true)]
-            public async Task ReplacesExistingDeprecations(bool shouldUnlist)
+            [MemberData(nameof(ReplacesExistingDeprecations_Data))]
+            public async Task ReplacesExistingDeprecations(bool shouldUnlist, PackageLatestState packageLatestState)
             {
                 // Arrange
-                var lastEdited = new DateTime(2019, 3, 4);
+                var registration = new PackageRegistration { Id = "theId" };
+                var lastTimestamp = new DateTime(2019, 3, 4);
 
                 var packageWithDeprecation1 = new Package
                 {
+                    PackageRegistration = registration,
                     Deprecations = new List<PackageDeprecation> { new PackageDeprecation() },
-                    LastEdited = lastEdited
+                    LastEdited = lastTimestamp,
+                    LastUpdated = lastTimestamp,
+                    Listed = true
                 };
+
+                switch (packageLatestState)
+                {
+                    case PackageLatestState.Latest:
+                        packageWithDeprecation1.IsLatest = true;
+                        break;
+                    case PackageLatestState.LatestStable:
+                        packageWithDeprecation1.IsLatestStable = true;
+                        break;
+                    case PackageLatestState.LatestSemVer2:
+                        packageWithDeprecation1.IsLatestSemVer2 = true;
+                        break;
+                    case PackageLatestState.LatestStableSemVer2:
+                        packageWithDeprecation1.IsLatestStableSemVer2 = true;
+                        break;
+                }
 
                 var packageWithoutDeprecation1 = new Package
                 {
-                    LastEdited = lastEdited
+                    PackageRegistration = registration,
+                    LastEdited = lastTimestamp,
+                    LastUpdated = lastTimestamp,
+                    Listed = true
                 };
 
                 var packageWithDeprecation2 = new Package
                 {
-                    LastEdited = lastEdited,
+                    PackageRegistration = registration,
+                    LastEdited = lastTimestamp,
+                    LastUpdated = lastTimestamp,
+                    Listed = true,
                     Deprecations = new List<PackageDeprecation>
                     {
                         new PackageDeprecation
@@ -125,12 +198,18 @@ namespace NuGetGallery.Services
 
                 var packageWithoutDeprecation2 = new Package
                 {
-                    LastEdited = lastEdited
+                    PackageRegistration = registration,
+                    LastEdited = lastTimestamp,
+                    LastUpdated = lastTimestamp,
+                    Listed = true
                 };
 
                 var packageWithDeprecation3 = new Package
                 {
-                    LastEdited = lastEdited,
+                    PackageRegistration = registration,
+                    LastEdited = lastTimestamp,
+                    LastUpdated = lastTimestamp,
+                    Listed = true,
                     Deprecations = new List<PackageDeprecation>
                     {
                         new PackageDeprecation
@@ -162,6 +241,15 @@ namespace NuGetGallery.Services
                     .Completes()
                     .Verifiable();
 
+                var packageService = GetMock<IPackageService>();
+                if (shouldUnlist && packageLatestState != PackageLatestState.Not)
+                {
+                    packageService
+                        .Setup(p => p.UpdateIsLatestAsync(registration, false))
+                        .Returns(Task.CompletedTask)
+                        .Verifiable();
+                }
+
                 var service = Get<PackageDeprecationService>();
 
                 var status = (PackageDeprecationStatus)99;
@@ -179,10 +267,12 @@ namespace NuGetGallery.Services
                     alternatePackageRegistration,
                     alternatePackage,
                     customMessage,
+                    shouldUnlist,
                     user);
 
                 // Assert
                 deprecationRepository.Verify();
+                packageService.Verify();
 
                 foreach (var package in packages)
                 {
@@ -191,6 +281,9 @@ namespace NuGetGallery.Services
                     Assert.Equal(alternatePackageRegistration, deprecation.AlternatePackageRegistration);
                     Assert.Equal(alternatePackage, deprecation.AlternatePackage);
                     Assert.Equal(customMessage, deprecation.CustomMessage);
+                    Assert.True(lastTimestamp < package.LastEdited);
+                    Assert.True(lastTimestamp < package.LastUpdated);
+                    Assert.Equal(!shouldUnlist, package.Listed);
                 }
             }
         }

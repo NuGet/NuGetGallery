@@ -13,11 +13,14 @@ namespace NuGetGallery
     public class PackageDeprecationService : IPackageDeprecationService
     {
         private readonly IEntityRepository<PackageDeprecation> _deprecationRepository;
+        private readonly IPackageService _packageService;
 
         public PackageDeprecationService(
-           IEntityRepository<PackageDeprecation> deprecationRepository)
+           IEntityRepository<PackageDeprecation> deprecationRepository,
+           IPackageService packageService)
         {
             _deprecationRepository = deprecationRepository ?? throw new ArgumentNullException(nameof(deprecationRepository));
+            _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
         }
 
         public async Task UpdateDeprecation(
@@ -26,11 +29,17 @@ namespace NuGetGallery
            PackageRegistration alternatePackageRegistration,
            Package alternatePackage,
            string customMessage,
+           bool shouldUnlist,
            User user)
         {
             if (packages == null || !packages.Any())
             {
                 throw new ArgumentException(nameof(packages));
+            }
+
+            if (packages.Select(p => p.Id).Distinct().Count() > 1)
+            {
+                throw new ArgumentException("All packages to deprecate must have the same ID.", nameof(packages));
             }
 
             if (user == null)
@@ -72,6 +81,14 @@ namespace NuGetGallery
 
                     deprecation.CustomMessage = customMessage;
                 }
+
+                package.LastUpdated = DateTime.UtcNow;
+                package.LastEdited = DateTime.UtcNow;
+
+                if (shouldUnlist)
+                {
+                    package.Listed = false;
+                }
             }
 
             if (shouldDelete)
@@ -81,6 +98,11 @@ namespace NuGetGallery
             else
             {
                 _deprecationRepository.InsertOnCommit(deprecations);
+            }
+
+            if (shouldUnlist && packages.Any(p => p.IsLatest || p.IsLatestStable || p.IsLatestSemVer2 || p.IsLatestStableSemVer2))
+            {
+                await _packageService.UpdateIsLatestAsync(packages.First().PackageRegistration, false);
             }
 
             await _deprecationRepository.CommitChangesAsync();

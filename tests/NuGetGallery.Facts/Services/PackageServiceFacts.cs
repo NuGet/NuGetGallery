@@ -1713,27 +1713,70 @@ namespace NuGetGallery
                 packageRepository.Verify(p => p.CommitChangesAsync(), Times.Never());
             }
 
-            [Fact]
-            public async Task OnLatestPackageVersionSetsPreviousToLatestVersion()
+            public enum PackageLatestState
+            {
+                Not,
+                Latest,
+                LatestStable,
+                LatestSemVer2,
+                LatestStableSemVer2
+            }
+
+            public static IEnumerable<object[]> OnLatestPackageVersionSetsPreviousToLatestVersion_Data =>
+                MemberDataHelper.EnumDataSet<PackageLatestState>();
+
+            [Theory]
+            [MemberData(nameof(OnLatestPackageVersionSetsPreviousToLatestVersion_Data))]
+            public async Task OnLatestPackageVersionSetsPreviousToLatestVersion(PackageLatestState packageLatestState)
             {
                 var packageRegistration = new PackageRegistration { Id = "theId" };
-                var packages = new[]
-                    {
-                        new Package
-                            { Version = "1.0.1", PackageRegistration = packageRegistration, IsLatest = true, IsLatestStable = true },
-                        new Package
-                            { Version = "1.0.0", PackageRegistration = packageRegistration, IsLatest = false, IsLatestStable = false }
-                    }.ToList();
+
+                var firstPackage = new Package
+                {
+                    Version = "1.0.1",
+                    PackageRegistration = packageRegistration
+                };
+
+                switch (packageLatestState)
+                {
+                    case PackageLatestState.Latest:
+                        firstPackage.IsLatest = true;
+                        break;
+                    case PackageLatestState.LatestStable:
+                        firstPackage.IsLatestStable = true;
+                        break;
+                    case PackageLatestState.LatestSemVer2:
+                        firstPackage.IsLatestSemVer2 = true;
+                        break;
+                    case PackageLatestState.LatestStableSemVer2:
+                        firstPackage.IsLatestStableSemVer2 = true;
+                        break;
+                }
+
+                var secondPackage = new Package
+                {
+                    Version = "1.0.0",
+                    PackageRegistration = packageRegistration
+                };
+
+                var packages = new[] { firstPackage, secondPackage }.ToList();
                 packageRegistration.Packages = packages;
                 var packageRepository = new Mock<IEntityRepository<Package>>();
                 var service = CreateService(packageRepository: packageRepository);
 
-                await service.MarkPackageUnlistedAsync(packages[0]);
+                await service.MarkPackageUnlistedAsync(firstPackage);
 
-                Assert.False(packageRegistration.Packages.ElementAt(0).IsLatest);
-                Assert.False(packageRegistration.Packages.ElementAt(0).IsLatestStable);
-                Assert.True(packages.ElementAt(1).IsLatest);
-                Assert.True(packages.ElementAt(1).IsLatestStable);
+                Assert.False(firstPackage.IsLatest);
+                Assert.False(firstPackage.IsLatestStable);
+                Assert.False(firstPackage.IsLatestSemVer2);
+                Assert.False(firstPackage.IsLatestStableSemVer2);
+                if (packageLatestState != PackageLatestState.Not)
+                {
+                    Assert.True(secondPackage.IsLatest);
+                    Assert.True(secondPackage.IsLatestStable);
+                    Assert.True(secondPackage.IsLatestSemVer2);
+                    Assert.True(secondPackage.IsLatestStableSemVer2);
+                }
             }
 
             [Fact]

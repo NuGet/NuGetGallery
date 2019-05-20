@@ -483,7 +483,7 @@ namespace NuGetGallery
             // NOTE: LastEdited will be overwritten by a trigger defined in the migration named "AddTriggerForPackagesLastEdited".
             package.LastEdited = DateTime.UtcNow;
 
-            if (package.IsLatest || package.IsLatestStable)
+            if (package.IsLatest || package.IsLatestStable || package.IsLatestSemVer2 || package.IsLatestStableSemVer2)
             {
                 await UpdateIsLatestAsync(package.PackageRegistration, commitChanges: false);
             }

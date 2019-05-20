@@ -22,6 +22,7 @@ namespace NuGetGallery
             PackageRegistration alternatePackageRegistration,
             Package alternatePackage,
             string customMessage,
+            bool shouldUnlist,
             User user);
 
         PackageDeprecation GetDeprecationByPackage(Package package);

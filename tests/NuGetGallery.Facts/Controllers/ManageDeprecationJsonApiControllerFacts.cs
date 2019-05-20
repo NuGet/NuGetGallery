@@ -124,7 +124,8 @@ namespace NuGetGallery.Controllers
                     isOther: true, 
                     alternatePackageId: null, 
                     alternatePackageVersion: null, 
-                    customMessage: null);
+                    customMessage: null,
+                    shouldUnlist: false);
 
                 // Assert
                 AssertErrorResponse(controller, result, HttpStatusCode.BadRequest, Strings.DeprecatePackage_CustomMessageRequired);
@@ -154,7 +155,8 @@ namespace NuGetGallery.Controllers
                     isOther: false,
                     alternatePackageId: null,
                     alternatePackageVersion: null,
-                    customMessage: null);
+                    customMessage: null,
+                    shouldUnlist: false);
 
                 // Assert
                 AssertErrorResponse(controller, result, HttpStatusCode.Forbidden, Strings.DeprecatePackage_Forbidden);
@@ -189,7 +191,8 @@ namespace NuGetGallery.Controllers
                     isOther: false,
                     alternatePackageId: null,
                     alternatePackageVersion: null,
-                    customMessage: null);
+                    customMessage: null,
+                    shouldUnlist: false);
 
                 // Assert
                 AssertErrorResponse(controller, result, HttpStatusCode.BadRequest, Strings.DeprecatePackage_NoVersions);
@@ -239,7 +242,8 @@ namespace NuGetGallery.Controllers
                     isOther: false,
                     alternatePackageId: null,
                     alternatePackageVersion: null,
-                    customMessage: null);
+                    customMessage: null,
+                    shouldUnlist: false);
 
                 // Assert
                 AssertErrorResponse(controller, result, HttpStatusCode.NotFound, string.Format(Strings.DeprecatePackage_MissingRegistration, id));
@@ -308,7 +312,8 @@ namespace NuGetGallery.Controllers
                     isOther: false,
                     alternatePackageId: null,
                     alternatePackageVersion: null,
-                    customMessage: null);
+                    customMessage: null,
+                    shouldUnlist: false);
 
                 // Assert
                 AssertErrorResponse(controller, result, HttpStatusCode.Forbidden, Strings.DeprecatePackage_Forbidden);
@@ -390,7 +395,8 @@ namespace NuGetGallery.Controllers
                     isOther: false,
                     alternatePackageId: null,
                     alternatePackageVersion: null,
-                    customMessage: null);
+                    customMessage: null,
+                    shouldUnlist: false);
 
                 // Assert
                 AssertErrorResponse(
@@ -451,7 +457,8 @@ namespace NuGetGallery.Controllers
                     isOther: false,
                     alternatePackageId: alternatePackageId,
                     alternatePackageVersion: null,
-                    customMessage: null);
+                    customMessage: null,
+                    shouldUnlist: false);
 
                 // Assert
                 AssertErrorResponse(
@@ -513,7 +520,8 @@ namespace NuGetGallery.Controllers
                     isOther: false,
                     alternatePackageId: alternatePackageId,
                     alternatePackageVersion: alternatePackageVersion,
-                    customMessage: null);
+                    customMessage: null,
+                    shouldUnlist: false);
 
                 // Assert
                 AssertErrorResponse(
@@ -569,7 +577,8 @@ namespace NuGetGallery.Controllers
                     isOther: false,
                     alternatePackageId: null,
                     alternatePackageVersion: null,
-                    customMessage: null);
+                    customMessage: null,
+                    shouldUnlist: false);
 
                 // Assert
                 AssertErrorResponse(
@@ -625,7 +634,8 @@ namespace NuGetGallery.Controllers
                     isOther: false,
                     alternatePackageId: null,
                     alternatePackageVersion: null,
-                    customMessage: null);
+                    customMessage: null,
+                    shouldUnlist: false);
 
                 // Assert
                 AssertErrorResponse(
@@ -689,7 +699,7 @@ namespace NuGetGallery.Controllers
 
             [Theory]
             [MemberData(nameof(ReturnsSuccessful_Data))]
-            public Task ReturnsSuccessfulWithCustomMessage(
+            public Task ReturnsSuccessfulWithCustomMessageAndWithoutUnlist(
                 User currentUser,
                 User owner,
                 bool isLegacy,
@@ -698,7 +708,7 @@ namespace NuGetGallery.Controllers
                 PackageDeprecationStatus expectedStatus,
                 ReturnsSuccessful_AlternatePackage_State alternatePackageState)
             {
-                return AssertSuccessful(
+                return AssertSuccessfulWithoutUnlist(
                     currentUser,
                     owner,
                     isLegacy,
@@ -717,7 +727,7 @@ namespace NuGetGallery.Controllers
 
             [Theory]
             [MemberData(nameof(ReturnsSuccessfulWithoutCustomMessage_Data))]
-            public Task ReturnsSuccessfulWithoutCustomMessage(
+            public Task ReturnsSuccessfulWithoutCustomMessageOrUnlist(
                 User currentUser,
                 User owner,
                 bool isLegacy,
@@ -726,7 +736,7 @@ namespace NuGetGallery.Controllers
                 PackageDeprecationStatus expectedStatus,
                 ReturnsSuccessful_AlternatePackage_State alternatePackageState)
             {
-                return AssertSuccessful(
+                return AssertSuccessfulWithoutUnlist(
                     currentUser,
                     owner,
                     isLegacy,
@@ -737,7 +747,7 @@ namespace NuGetGallery.Controllers
                     false);
             }
 
-            private async Task AssertSuccessful(
+            private async Task AssertSuccessfulWithoutUnlist(
                 User currentUser,
                 User owner,
                 bool isLegacy,
@@ -819,6 +829,7 @@ namespace NuGetGallery.Controllers
                 var deprecationService = GetMock<IPackageDeprecationService>();
 
                 var customMessage = hasCustomMessage ? "message" : null;
+                var shouldUnlist = false;
 
                 deprecationService
                     .Setup(x => x.UpdateDeprecation(
@@ -827,6 +838,7 @@ namespace NuGetGallery.Controllers
                         alternatePackageState == ReturnsSuccessful_AlternatePackage_State.Registration ? alternatePackageRegistration : null,
                         alternatePackageState == ReturnsSuccessful_AlternatePackage_State.Package ? alternatePackage : null,
                         customMessage,
+                        shouldUnlist,
                         currentUser))
                     .Completes()
                     .Verifiable();
@@ -847,7 +859,8 @@ namespace NuGetGallery.Controllers
                     isOther,
                     alternatePackageId,
                     alternatePackageVersion,
-                    customMessage);
+                    customMessage,
+                    shouldUnlist);
 
                 // Assert
                 AssertSuccessResponse(controller);
