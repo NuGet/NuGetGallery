@@ -14,13 +14,16 @@ namespace NuGetGallery
     {
         private readonly IEntityRepository<PackageDeprecation> _deprecationRepository;
         private readonly IPackageService _packageService;
+        private readonly IIndexingService _indexingService;
 
         public PackageDeprecationService(
            IEntityRepository<PackageDeprecation> deprecationRepository,
-           IPackageService packageService)
+           IPackageService packageService,
+           IIndexingService indexingService)
         {
             _deprecationRepository = deprecationRepository ?? throw new ArgumentNullException(nameof(deprecationRepository));
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
+            _indexingService = indexingService ?? throw new ArgumentNullException(nameof(indexingService));
         }
 
         public async Task UpdateDeprecation(
@@ -103,6 +106,12 @@ namespace NuGetGallery
             if (shouldUnlist && packages.Any(p => p.IsLatest || p.IsLatestStable || p.IsLatestSemVer2 || p.IsLatestStableSemVer2))
             {
                 await _packageService.UpdateIsLatestAsync(packages.First().PackageRegistration, false);
+            }
+
+            // Update the indexing of the packages we updated the deprecation information of.
+            foreach (var package in packages)
+            {
+                _indexingService.UpdatePackage(package);
             }
 
             await _deprecationRepository.CommitChangesAsync();

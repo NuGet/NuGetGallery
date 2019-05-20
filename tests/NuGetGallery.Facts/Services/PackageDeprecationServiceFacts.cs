@@ -105,6 +105,14 @@ namespace NuGetGallery.Services
                     .Completes()
                     .Verifiable();
 
+                var indexingService = GetMock<IIndexingService>();
+                foreach (var package in packages)
+                {
+                    indexingService
+                        .Setup(i => i.UpdatePackage(package))
+                        .Verifiable();
+                }
+
                 var user = new User { Key = 1 };
                 var service = Get<PackageDeprecationService>();
 
@@ -120,6 +128,7 @@ namespace NuGetGallery.Services
 
                 // Assert
                 deprecationRepository.Verify();
+                indexingService.Verify();
 
                 foreach (var package in packages)
                 {
@@ -250,6 +259,14 @@ namespace NuGetGallery.Services
                         .Verifiable();
                 }
 
+                var indexingService = GetMock<IIndexingService>();
+                foreach (var package in packages)
+                {
+                    indexingService
+                        .Setup(i => i.UpdatePackage(package))
+                        .Verifiable();
+                }
+
                 var service = Get<PackageDeprecationService>();
 
                 var status = (PackageDeprecationStatus)99;
@@ -273,6 +290,7 @@ namespace NuGetGallery.Services
                 // Assert
                 deprecationRepository.Verify();
                 packageService.Verify();
+                indexingService.Verify();
 
                 foreach (var package in packages)
                 {
