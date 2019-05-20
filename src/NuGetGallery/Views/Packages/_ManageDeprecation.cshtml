@@ -80,6 +80,10 @@
         <div data-bind="visible: requiresCustomMessage()">
             @ViewHelpers.AlertDanger(@<text>You must add a custom message if <b>Other</b> is selected.</text>)
         </div>
+        <div class="deprecation-section form-group">
+            <input name="shouldUnlist" type="checkbox" value="true" data-bind="checked: shouldUnlist" />
+            Additionally, hide packages (<b>unlist</b>) from search results.
+        </div>
     </div>
 
     <div data-bind="visible: submitError">
