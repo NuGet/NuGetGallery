@@ -74,6 +74,7 @@ namespace NuGetGallery.TestUtils
             Uri projectUrl = null,
             Uri iconUrl = null,
             bool requireLicenseAcceptance = true,
+            bool? developmentDependency = true,
             IEnumerable<PackageDependencyGroup> packageDependencyGroups = null,
             IEnumerable<NuGet.Packaging.Core.PackageType> packageTypes = null,
             RepositoryMetadata repositoryMetadata = null,
@@ -87,7 +88,7 @@ namespace NuGetGallery.TestUtils
             var testPackage = CreateNuGetPackageStream(id, version, title,
                 summary, authors, owners, description, tags, language,
                 copyright, releaseNotes, minClientVersion, licenseUrl, projectUrl,
-                iconUrl, requireLicenseAcceptance, packageDependencyGroups,
+                iconUrl, requireLicenseAcceptance, developmentDependency, packageDependencyGroups,
                 packageTypes, repositoryMetadata, isSigned, desiredTotalEntryCount,
                 getCustomNuspecNodes, licenseExpression, licenseFilename,
                 licenseFileContents);
@@ -118,6 +119,7 @@ namespace NuGetGallery.TestUtils
             Uri projectUrl = null,
             Uri iconUrl = null,
             bool requireLicenseAcceptance = true,
+            bool? developmentDependency = true,
             IEnumerable<PackageDependencyGroup> packageDependencyGroups = null,
             IEnumerable<NuGet.Packaging.Core.PackageType> packageTypes = null,
             RepositoryMetadata repositoryMetadata = null,
@@ -174,7 +176,8 @@ namespace NuGetGallery.TestUtils
                 id, version, title, summary, authors, owners,
                 description, tags, language, copyright, releaseNotes,
                 minClientVersion, licenseUrl, projectUrl, iconUrl,
-                requireLicenseAcceptance, packageDependencyGroups, packageTypes, repositoryMetadata,
+                requireLicenseAcceptance, developmentDependency,
+                packageDependencyGroups, packageTypes, repositoryMetadata,
                 archive =>
                 {
                     if (isSigned)

@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>DatabaseMigration.SupportRequest</id>
+    <version>$version$</version>
+    <title>DatabaseMigration.SupportRequest</title>
+    <authors>.NET Foundation</authors>
+    <owners>.NET Foundation</owners>
+    <description>DatabaseMigration.SupportRequest</description>
+    <copyright>Copyright .NET Foundation</copyright>
+  </metadata>
+  <files>
+    <file src="bin\$configuration$\*.*" target="bin"/>
+    <file src="Scripts\PostDeploy.ps1" />
+  </files>
+</package>

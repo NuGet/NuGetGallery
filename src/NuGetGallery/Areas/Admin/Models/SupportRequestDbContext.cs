@@ -1,12 +1,30 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Data.Common;
 using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
 using System.Threading.Tasks;
 
 namespace NuGetGallery.Areas.Admin.Models
 {
+    /// <summary>
+    /// This SupportRequestDbContextFactory is provided for running migrations in a flexible way as follows:
+    /// 1. Run migration using DbConnection; (For DatabaseMigrationTools with AAD token)
+    /// 2. Run migration using connection string;
+    /// 3. Run migration using default connection string ("name=Gallery.SupportRequestSqlServer") in a web.config; (For command-line migration with integrated AAD/username+password)
+    /// </summary>
+    public class SupportRequestDbContextFactory : IDbContextFactory<SupportRequestDbContext>
+    {
+        public static Func<SupportRequestDbContext> SupportRequestEntitiesContextFactory;
+        public SupportRequestDbContext Create()
+        {
+            var factory = SupportRequestEntitiesContextFactory;
+            return factory == null ? new SupportRequestDbContext("name=Gallery.SupportRequestSqlServer") : factory();
+        }
+    }
+
     [DbConfigurationType(typeof(EntitiesConfiguration))]
     public class SupportRequestDbContext
         : DbContext, ISupportRequestDbContext
@@ -15,14 +33,6 @@ namespace NuGetGallery.Areas.Admin.Models
         {
             // Don't run migrations, ever!
             Database.SetInitializer<SupportRequestDbContext>(null);
-        }
-
-        /// <summary>
-        /// The NuGet Gallery code should not use this constructor.
-        /// </summary>
-        public SupportRequestDbContext()
-            : base("name=Gallery.SupportRequestSqlServer")
-        {
         }
 
         /// <summary>

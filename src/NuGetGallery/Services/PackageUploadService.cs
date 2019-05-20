@@ -692,6 +692,21 @@ namespace NuGetGallery
 
         public async Task<PackageCommitResult> CommitPackageAsync(Package package, Stream packageFile)
         {
+            if (package == null)
+            {
+                throw new ArgumentNullException(nameof(package));
+            }
+
+            if (packageFile == null)
+            {
+                throw new ArgumentNullException(nameof(packageFile));
+            }
+
+            if (!packageFile.CanSeek)
+            {
+                throw new ArgumentException($"{nameof(packageFile)} argument must be seekable stream", nameof(packageFile));
+            }
+
             await _validationService.UpdatePackageAsync(package);
 
             if (package.PackageStatusKey != PackageStatus.Available
@@ -762,6 +777,7 @@ namespace NuGetGallery
                     }
                     try
                     {
+                        packageFile.Seek(0, SeekOrigin.Begin);
                         await _packageFileService.SavePackageFileAsync(package, packageFile);
                     }
                     catch when (package.EmbeddedLicenseType != EmbeddedLicenseFileType.Absent)

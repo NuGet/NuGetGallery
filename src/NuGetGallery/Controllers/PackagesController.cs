@@ -720,7 +720,7 @@ namespace NuGetGallery
                 }
                 else
                 {
-                    package = packages.SingleOrDefault(p => p.NormalizedVersion == NuGetVersionFormatter.Normalize(version));
+                    package = _packageService.FilterExactPackage(packages, version);
                 }
             }
 
@@ -1462,7 +1462,7 @@ namespace NuGetGallery
             if (version != null)
             {
                 // Try to find the exact version if it was specified.
-                package = packages.SingleOrDefault(p => p.NormalizedVersion == NuGetVersionFormatter.Normalize(version));
+                package = _packageService.FilterExactPackage(packages, version);
             }
 
             if (package == null)
@@ -1506,7 +1506,7 @@ namespace NuGetGallery
             if (version != null)
             {
                 // Try to find the exact version if it was specified.
-                package = packages.SingleOrDefault(p => p.NormalizedVersion == NuGetVersionFormatter.Normalize(version));
+                package = _packageService.FilterExactPackage(packages, version);
             }
 
             if (package == null)
@@ -2520,7 +2520,7 @@ namespace NuGetGallery
                     httpStatusCode = HttpStatusCode.Conflict;
                     break;
                 case SymbolPackageValidationResultType.UserNotAllowedToUpload:
-                    httpStatusCode = HttpStatusCode.Unauthorized;
+                    httpStatusCode = HttpStatusCode.Forbidden;
                     break;
                 default:
                     throw new NotImplementedException($"The symbol package validation result type {validationResult.Type} is not supported.");

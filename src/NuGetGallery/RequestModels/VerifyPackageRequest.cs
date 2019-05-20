@@ -31,7 +31,7 @@ namespace NuGetGallery
             MinClientVersionDisplay = packageMetadata.MinClientVersion.ToFullStringSafe();
             FrameworkReferenceGroups = packageMetadata.GetFrameworkReferenceGroups();
             Dependencies = new DependencySetsViewModel(packageMetadata.GetDependencyGroups().AsPackageDependencyEnumerable());
-            DevelopmentDependency = packageMetadata.GetValueFromMetadata("developmentDependency");
+            DevelopmentDependency = packageMetadata.DevelopmentDependency;
             Authors = packageMetadata.Authors.Flatten();
             Copyright = packageMetadata.Copyright;
             Description = packageMetadata.Description;
@@ -105,7 +105,7 @@ namespace NuGetGallery
         public string Copyright { get; set; }
         public string Description { get; set; }
         public DependencySetsViewModel Dependencies { get; set; }
-        public string DevelopmentDependency { get; set; }
+        public bool DevelopmentDependency { get; set; }
         public IReadOnlyCollection<FrameworkSpecificGroup> FrameworkReferenceGroups { get; set; }
         public string IconUrl { get; set; }
         public string Language { get; set; }

@@ -96,6 +96,11 @@ namespace NuGetGallery.Configuration
         TimeSpan FeatureFlagsRefreshInterval { get; set; }
 
         /// <summary>
+        /// Gets a boolean indicating whether DB admin through web UI should be accesible.
+        /// </summary>
+        bool AdminPanelDatabaseAccessEnabled { get; set; }
+
+        /// <summary>
         /// Gets a boolean indicating whether asynchronous package validation is enabled.
         /// </summary>
         bool AsynchronousPackageValidationEnabled { get; set; }
@@ -124,21 +129,6 @@ namespace NuGetGallery.Configuration
         /// Gets a boolean indicating whether NuGet password logins are deprecated.
         /// </summary>
         bool DeprecateNuGetPasswordLogins { get; set; }
-
-        /// <summary>
-        /// Gets the URI to the search service
-        /// </summary>
-        Uri ServiceDiscoveryUri { get; set; }
-
-        /// <summary>
-        /// Gets the @type for the Search endpoint
-        /// </summary>
-        string SearchServiceResourceType { get; set; }
-
-        /// <summary>
-        /// Gets the @type for the Autocomplete endpoint
-        /// </summary>
-        string AutocompleteServiceResourceType { get; set; }
 
         /// <summary>
         /// Gets a boolean indicating if the site requires that email addresses be confirmed
@@ -420,5 +410,10 @@ namespace NuGetGallery.Configuration
         /// CircuitBreaker will open after this number of consecutive failed requests.
         /// </summary>
         int SearchCircuitBreakerBreakAfterCount { get; set; }
+
+        /// <summary>
+        /// The Search HttpClient timeout in seconds.
+        /// </summary>
+        int SearchHttpClientTimeoutInMilliseconds { get; set; }
     }
 }

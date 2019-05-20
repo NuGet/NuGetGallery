@@ -7,7 +7,6 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
-using NuGet.Services.Search.Client;
 using NuGet.Versioning;
 using NuGetGallery.Configuration;
 using NuGetGallery.Infrastructure.Search;
@@ -17,24 +16,15 @@ namespace NuGetGallery
     public class AutocompleteServiceQuery
     {
         private readonly string _autocompletePath = "autocomplete";
-        private readonly ServiceDiscoveryClient _serviceDiscoveryClient;
-        private readonly string _autocompleteServiceResourceType;
-        private readonly RetryingHttpClientWrapper _httpClientToDeprecate;
         private readonly IResilientSearchClient _resilientSearchClient;
-        private readonly IFeatureFlagService _featureFlagService;
 
-        public AutocompleteServiceQuery(IAppConfiguration configuration, IResilientSearchClient resilientSearchClient, IFeatureFlagService featureFlagService)
+        public AutocompleteServiceQuery(IAppConfiguration configuration, IResilientSearchClient resilientSearchClient)
         {
             if (configuration == null)
             {
                 throw new ArgumentNullException(nameof(configuration));
             }
-
-            _serviceDiscoveryClient = new ServiceDiscoveryClient(configuration.ServiceDiscoveryUri);
-            _autocompleteServiceResourceType = configuration.AutocompleteServiceResourceType;
-            _httpClientToDeprecate = new RetryingHttpClientWrapper(new HttpClient(), QuietLog.LogHandledException);
             _resilientSearchClient = resilientSearchClient;
-            _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
         }
 
         public async Task<IEnumerable<string>> RunServiceQuery(
@@ -43,18 +33,10 @@ namespace NuGetGallery
             string semVerLevel = null)
         {
             queryString = BuildQueryString(queryString, includePrerelease, semVerLevel);
-            var result = _featureFlagService.IsSearchCircuitBreakerEnabled() ? await ExecuteQuery(queryString) : await DeprecatedExecuteQuery(queryString);
+            var result = await ExecuteQuery(queryString);
             var resultObject = JObject.Parse(result);
 
             return resultObject["data"].Select(entry => entry.ToString());
-        }
-
-        private async Task<string> DeprecatedExecuteQuery(string queryString)
-        {
-            var endpoints = await _serviceDiscoveryClient.GetEndpointsForResourceType(_autocompleteServiceResourceType);
-            endpoints = endpoints.Select(e => new Uri(e + queryString)).AsEnumerable();
-
-            return await _httpClientToDeprecate.GetStringAsync(endpoints);
         }
 
         internal async Task<string> ExecuteQuery(string queryString)

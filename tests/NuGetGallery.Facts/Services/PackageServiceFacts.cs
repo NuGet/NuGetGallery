@@ -224,6 +224,7 @@ namespace NuGetGallery
                 Assert.Equal("http://thelicenseurl/", package.LicenseUrl);
                 Assert.Equal("http://theprojecturl/", package.ProjectUrl);
                 Assert.True(package.RequiresLicenseAcceptance);
+                Assert.True(package.DevelopmentDependency);
                 Assert.Equal("theSummary", package.Summary);
                 Assert.Equal("theTags", package.Tags);
                 Assert.Equal("theTitle", package.Title);
@@ -251,6 +252,43 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.Equal("fr", package.Language);
+            }
+
+            [Theory]
+            [InlineData(true, true)]
+            [InlineData(false, false)]
+            [InlineData(null, false)]
+            public async Task WillReadDevelopmentDependencyFromPackage(bool? developmentDependency, bool expected)
+            {
+                var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>();
+                var service = CreateService(packageRegistrationRepository: packageRegistrationRepository, setup:
+                        mockPackageService => { mockPackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null); });
+
+                var nugetPackage = PackageServiceUtility.CreateNuGetPackage(developmentDependency: developmentDependency);
+
+                var currentUser = new User();
+
+                var package = await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), currentUser, currentUser, isVerified: false);
+
+                // Assert
+                Assert.Equal(expected, package.DevelopmentDependency);
+            }
+
+            [Fact]
+            public async Task WillThrowIfDevelopmentDependencyIsInvalid()
+            {
+                var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>();
+                var service = CreateService(packageRegistrationRepository: packageRegistrationRepository, setup:
+                    mockPackageService => { mockPackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null); });
+
+                var nugetPackage = PackageServiceUtility.CreateNuGetPackage(
+                    getCustomNuspecNodes: () => "<developmentDependency>foo</developmentDependency>");
+
+                var currentUser = new User();
+
+                // Assert
+                var exception = await Assert.ThrowsAsync<InvalidPackageException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), currentUser, currentUser, isVerified: false));
+                Assert.Contains("developmentDependency", exception.Message);
             }
 
             [Fact]
@@ -823,6 +861,71 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.Equal(string.Format(Strings.NuGetPackagePropertyTooLong, "RepositoryUrl", "4000"), ex.Message);
+            }
+        }
+
+        public class TheFilterExactPackageMethod
+        {
+            [Fact]
+            public void ThrowsIfPackagesNull()
+            {
+                Assert.Throws<ArgumentNullException>(() => InvokeMethod(null, null));
+            }
+
+            [Theory]
+            [InlineData(null)]
+            [InlineData("1.0.0")]
+            public void ReturnsNullIfEmptyList(string version)
+            {
+                Assert.Equal(null, InvokeMethod(new Package[0], version));
+            }
+
+            [Theory]
+            [InlineData(null)]
+            [InlineData("1.0.0-afakepackage")]
+            public void ReturnsNullIfMissing(string version)
+            {
+                var packages = new[]
+                {
+                    CreateTestPackage("1.0.0"),
+                    CreateTestPackage("2.0.0")
+                };
+
+                Assert.Equal(null, InvokeMethod(packages, version));
+            }
+
+            /// <remarks>
+            /// The method should compare the normalized version of the package and be case-insensitive.
+            /// </remarks>
+            [Theory]
+            [InlineData("1.0.0-a")]
+            [InlineData("1.0.0-A")]
+            [InlineData("1.0.0-a+metadata")]
+            [InlineData("1.0.0-A+metadata")]
+            public void ReturnsVersionIfExists(string version)
+            {
+                var package = CreateTestPackage("1.0.0-a");
+                var packages = new[] 
+                {
+                    package,
+                    CreateTestPackage("2.0.0")
+                };
+
+                Assert.Equal(package, InvokeMethod(packages, version));
+            }
+
+            private Package InvokeMethod(IReadOnlyCollection<Package> packages, string version)
+            {
+                var service = CreateService();
+                return service.FilterExactPackage(packages, version);
+            }
+
+            private Package CreateTestPackage(string normalizedVersion)
+            {
+                return new Package
+                {
+                    NormalizedVersion = normalizedVersion
+                };
             }
         }
 

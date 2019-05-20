@@ -37,7 +37,7 @@
           position: unset;
           top: unset;
         }
-  
+
         .deprecation-expander-info-right {
           padding-left: 15px;
         }
@@ -89,6 +89,7 @@
       li {
         margin-bottom: 15px;
       }
+
       img.icon {
         position: absolute;
         left: -24px;
@@ -150,39 +151,43 @@
     }
 
     .tab-content {
-      height: 79px;
-
       .tab-pane {
         > div {
           display: table;
           height: 1px;
         }
 
-        .install-script {
-          display: table-cell;
-          background-color: @panel-footer-bg;
-          font-family: @font-family-monospace;
-          color: #fff;
-          padding: 0 10px 8px 10px;
-          width: 100%;
-          max-width: 1px;
-          line-height: 1.5;
-          // Add a border with the same color as the background to support visual callout
-          // in high contrast mode (since borders are shown).
-          border-color: @panel-footer-bg;
-          border-style: solid;
-          border-width: 1px 0 1px 1px;
-          user-select: all;
-        }
+        .install-script-row {
+          display: table-row;
+          height: 100%;
 
-        .copy-button {
-          display: table-cell;
-
-          button {
-            height: 100%;
-            vertical-align: baseline;
-            min-height: 42px;
+          .install-script {
+            display: table-cell;
+            background-color: @panel-footer-bg;
+            font-family: @font-family-monospace;
+            font-size: 1em;
+            color: #fff;
+            width: 100%;
+            max-width: 1px;
             line-height: 1.5;
+            white-space: pre-wrap;
+            // Add a border with the same color as the background to support visual callout
+            // in high contrast mode (since borders are shown).
+            border-color: @panel-footer-bg;
+            border-style: solid;
+            border-width: 1px 0 1px 1px;
+            user-select: all;
+            vertical-align: middle;
+          }
+
+          .copy-button {
+            height: 100%;
+
+            button {
+              height: 100%;
+              min-height: 42px;
+              line-height: 1.5;
+            }
           }
         }
 

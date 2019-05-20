@@ -158,6 +158,8 @@ namespace NuGet.Services.Entities
 
         public bool RequiresLicenseAcceptance { get; set; }
 
+        public bool DevelopmentDependency { get; set; }
+
         /// <remarks>
         ///     Has a max length of 4000. Is not indexed and not used for searches. Db column is nvarchar(max).
         /// </remarks>

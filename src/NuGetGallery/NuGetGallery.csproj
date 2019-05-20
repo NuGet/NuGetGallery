@@ -230,6 +230,12 @@
     <Compile Include="Authentication\Providers\AzureActiveDirectory\AzureActiveDirectoryAuthenticator.cs" />
     <Compile Include="Authentication\Providers\AzureActiveDirectory\AzureActiveDirectoryAuthenticatorConfiguration.cs" />
     <Compile Include="Controllers\ManageDeprecationJsonApiController.cs" />
+    <Compile Include="Infrastructure\Lucene\Correlation\CorrelatingHttpClientHandler.cs" />
+    <Compile Include="Infrastructure\Lucene\Correlation\WebApiCorrelationHandler.cs" />
+    <Compile Include="Infrastructure\Lucene\ISearchClient.cs" />
+    <Compile Include="Infrastructure\Lucene\Models\SearchResults.cs" />
+    <Compile Include="Infrastructure\Lucene\Models\SortOrder.cs" />
+    <Compile Include="Infrastructure\Lucene\ServiceResponse.cs" />
     <Compile Include="Migrations\201903020136235_CvesCanBeEmpty.cs" />
     <Compile Include="Migrations\201903020136235_CvesCanBeEmpty.Designer.cs">
       <DependentUpon>201903020136235_CvesCanBeEmpty.cs</DependentUpon>
@@ -245,6 +251,10 @@
     <Compile Include="Migrations\201904292139301_RemoveVulnerabilityDataFromPackageDeprecationModel.cs" />
     <Compile Include="Migrations\201904292139301_RemoveVulnerabilityDataFromPackageDeprecationModel.Designer.cs">
       <DependentUpon>201904292139301_RemoveVulnerabilityDataFromPackageDeprecationModel.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201905071526573_DevelopmentDependencyMetadata.cs" />
+    <Compile Include="Migrations\201905071526573_DevelopmentDependencyMetadata.Designer.cs">
+      <DependentUpon>201905071526573_DevelopmentDependencyMetadata.cs</DependentUpon>
     </Compile>
     <Compile Include="Services\IPackageDeprecationService.cs" />
     <Compile Include="Queries\AutocompleteDatabasePackageIdsQuery.cs" />
@@ -737,7 +747,6 @@
     </Compile>
     <Compile Include="Extensions\HttpRequestExtensions.cs" />
     <Compile Include="Helpers\HostMachine.cs" />
-    <Compile Include="Telemetry\AppInsightsHealthIndicatorLogger.cs" />
     <Compile Include="Infrastructure\DependencyResolverServiceProviderAdapter.cs" />
     <Compile Include="Infrastructure\Lucene\CloudDownloadCountServiceRefreshJob.cs" />
     <Compile Include="Infrastructure\MessageQueue.cs" />
@@ -748,6 +757,7 @@
     <Compile Include="Telemetry\UserPackageDeleteOutcome.cs" />
     <Compile Include="UrlHelperExtensions.cs" />
     <Compile Include="ViewModels\AddOrganizationViewModel.cs" />
+    <Compile Include="ViewModels\AddPackageOwnerViewModel.cs" />
     <Compile Include="ViewModels\CompositeLicenseExpressionSegmentViewModel.cs" />
     <Compile Include="ViewModels\DeleteOrganizationViewModel.cs" />
     <Compile Include="ViewModels\DeleteUserViewModel.cs" />
@@ -1723,6 +1733,9 @@
     <EmbeddedResource Include="Migrations\201904292139301_RemoveVulnerabilityDataFromPackageDeprecationModel.resx">
       <DependentUpon>201904292139301_RemoveVulnerabilityDataFromPackageDeprecationModel.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201905071526573_DevelopmentDependencyMetadata.resx">
+      <DependentUpon>201905071526573_DevelopmentDependencyMetadata.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv2getupdates.json" />
@@ -2113,10 +2126,6 @@
     <Folder Include="Areas\Admin\Views\Shared\" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\NuGet.Services.Search.Client\NuGet.Services.Search.Client.csproj">
-      <Project>{6931c2ee-e081-4518-9798-d34d83b35bf6}</Project>
-      <Name>NuGet.Services.Search.Client</Name>
-    </ProjectReference>
     <ProjectReference Include="..\NuGet.Services.Entities\NuGet.Services.Entities.csproj">
       <Project>{6262f4fc-29be-4226-b676-db391c89d396}</Project>
       <Name>NuGet.Services.Entities</Name>
