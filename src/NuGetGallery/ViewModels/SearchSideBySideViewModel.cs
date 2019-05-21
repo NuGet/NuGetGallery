@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Web.Mvc;
 
 namespace NuGetGallery
 {
@@ -34,6 +35,7 @@ namespace NuGetGallery
         public string ExpectedPackages { get; set; }
 
         [Display(Name = CommentsLabel)]
+        [AllowHtml]
         public string Comments { get; set; }
 
         [Display(Name = EmailLabel)]

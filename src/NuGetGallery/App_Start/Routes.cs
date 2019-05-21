@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 using System.Web.Mvc;
 using System.Web.Routing;
+using NuGetGallery.Controllers;
 using RouteMagic;
 
 namespace NuGetGallery
@@ -561,6 +562,11 @@ namespace NuGetGallery
                 RouteName.Downloads,
                 "downloads",
                 new { controller = "Pages", action = "Downloads" });
+
+            routes.MapRoute(
+                RouteName.ExperimentsSearchSideBySide,
+                "experiments/search-sxs",
+                new { controller = "Experiments", action = nameof(ExperimentsController.SearchSideBySide) });
 
             // TODO : Most of the routes are essentially of the format api/v{x}/*. We should refactor the code to vary them by the version.
             // V1 Routes

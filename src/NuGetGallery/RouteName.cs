@@ -105,5 +105,6 @@ namespace NuGetGallery
         public const string ApiV2CuratedSimulateError = "api-v2curated-simulate-error";
         public const string PagesSimulateError = "PagesSimulateError";
         public const string ApiSimulateError = "ApiSimulateError";
+        public const string ExperimentsSearchSideBySide = "ExperimentsSearchSideBySide";
     }
 }

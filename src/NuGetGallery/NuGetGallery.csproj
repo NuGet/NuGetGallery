@@ -229,6 +229,7 @@
     <Compile Include="Authentication\Providers\AzureActiveDirectoryV2\AzureActiveDirectoryV2AuthenticatorConfiguration.cs" />
     <Compile Include="Authentication\Providers\AzureActiveDirectory\AzureActiveDirectoryAuthenticator.cs" />
     <Compile Include="Authentication\Providers\AzureActiveDirectory\AzureActiveDirectoryAuthenticatorConfiguration.cs" />
+    <Compile Include="Controllers\ExperimentsController.cs" />
     <Compile Include="Controllers\ManageDeprecationJsonApiController.cs" />
     <Compile Include="Infrastructure\Lucene\Correlation\CorrelatingHttpClientHandler.cs" />
     <Compile Include="Infrastructure\Lucene\Correlation\WebApiCorrelationHandler.cs" />
@@ -1968,6 +1969,7 @@
     <Content Include="Views\Packages\_ManageDeprecation.cshtml" />
     <Content Include="Views\Shared\_MultiSelectDropdown.cshtml" />
     <Content Include="Views\Packages\_DisplayPackageDeprecation.cshtml" />
+    <Content Include="Views\Experiments\SearchSideBySide.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
