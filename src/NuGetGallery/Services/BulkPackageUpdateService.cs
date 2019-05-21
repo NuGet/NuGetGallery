@@ -15,7 +15,6 @@ namespace NuGetGallery
     {
         private readonly IEntitiesContext _entitiesContext;
         private readonly IPackageService _packageService;
-        private readonly IIndexingService _indexingService;
 
         private const string BaseQueryFormat = @"
 UPDATE [dbo].Packages
@@ -24,22 +23,50 @@ WHERE [Key] IN ({0})";
 
         public BulkPackageUpdateService(
             IEntitiesContext entitiesContext,
-            IPackageService packageService,
-            IIndexingService indexingService)
+            IPackageService packageService)
         {
             _entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
-            _indexingService = indexingService ?? throw new ArgumentNullException(nameof(indexingService));
         }
 
-        public async Task UpdatePackages(IEnumerable<Package> packages, bool? setListed = null)
+        public async Task UpdatePackagesAsync(IEnumerable<Package> packages, bool? setListed = null)
+        {
+            if (setListed.HasValue)
+            {
+                // Update listed state first to minimize the amount of time between setting LastEdited and committing the transaction.
+                await UpdatePackagesListedAsync(packages, setListed.Value);
+            }
+
+            await UpdatePackagesTimestampsAsync(packages);
+        }
+
+        private async Task UpdatePackagesListedAsync(IEnumerable<Package> packages, bool setListed)
+        {
+            foreach (var packagesByRegistration in packages.GroupBy(p => p.PackageRegistration))
+            {
+                foreach (var package in packages)
+                {
+                    package.Listed = setListed;
+                }
+
+                if (packagesByRegistration.Any(
+                    p => p.IsLatest || p.IsLatestStable || p.IsLatestSemVer2 || p.IsLatestStableSemVer2))
+                {
+                    await _packageService.UpdateIsLatestAsync(packagesByRegistration.Key, false);
+                }
+            }
+
+            await _entitiesContext.SaveChangesAsync();
+        }
+
+        private async Task UpdatePackagesTimestampsAsync(IEnumerable<Package> packages)
         {
             var parameters = packages
                 .Select(p => p.Key)
                 .Select((k, index) => new SqlParameter("@package" + index.ToString(), SqlDbType.Int) { Value = k });
 
             var query = string.Format(
-                BaseQueryFormat, 
+                BaseQueryFormat,
                 string.Join(", ", parameters.Select(p => p.ParameterName)));
 
             var result = await _entitiesContext
@@ -53,31 +80,6 @@ WHERE [Key] IN ({0})";
                 throw new InvalidOperationException(
                     $"Updated an unexpected number of packages when performing a bulk update! " +
                     $"Updated {result} packages instead of {expectedResult}.");
-            }
-
-            if (setListed.HasValue)
-            {
-                foreach (var packagesByRegistration in packages.GroupBy(p => p.PackageRegistration))
-                {
-                    foreach (var package in packages)
-                    {
-                        package.Listed = setListed.Value;
-                    }
-
-                    if (packagesByRegistration.Any(
-                        p => p.IsLatest || p.IsLatestStable || p.IsLatestSemVer2 || p.IsLatestStableSemVer2))
-                    {
-                        await _packageService.UpdateIsLatestAsync(packagesByRegistration.Key, false);
-                    }
-                }
-
-                await _entitiesContext.SaveChangesAsync();
-            }
-
-            // Update the indexing of the packages we updated.
-            foreach (var package in packages)
-            {
-                _indexingService.UpdatePackage(package);
             }
         }
     }

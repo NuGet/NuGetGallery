@@ -14,13 +14,16 @@ namespace NuGetGallery
     {
         private readonly IEntityRepository<PackageDeprecation> _deprecationRepository;
         private readonly IBulkPackageUpdateService _bulkPackageUpdateService;
+        private readonly IIndexingService _indexingService;
 
         public PackageDeprecationService(
            IEntityRepository<PackageDeprecation> deprecationRepository,
-           IBulkPackageUpdateService bulkPackageUpdateService)
+           IBulkPackageUpdateService bulkPackageUpdateService,
+           IIndexingService indexingService)
         {
             _deprecationRepository = deprecationRepository ?? throw new ArgumentNullException(nameof(deprecationRepository));
             _bulkPackageUpdateService = bulkPackageUpdateService ?? throw new ArgumentNullException(nameof(bulkPackageUpdateService));
+            _indexingService = indexingService ?? throw new ArgumentNullException(nameof(indexingService));
         }
 
         public async Task UpdateDeprecation(
@@ -99,8 +102,14 @@ namespace NuGetGallery
                 // Save deprecation changes before bulk updating the packages.
                 await _deprecationRepository.CommitChangesAsync();
 
-                await _bulkPackageUpdateService.UpdatePackages(packages, shouldUnlist ? false : (bool?)null);
+                await _bulkPackageUpdateService.UpdatePackagesAsync(packages, shouldUnlist ? false : (bool?)null);
                 transaction.Commit();
+            }
+
+            // Update the indexing of the packages we updated.
+            foreach (var package in packages)
+            {
+                _indexingService.UpdatePackage(package);
             }
         }
 

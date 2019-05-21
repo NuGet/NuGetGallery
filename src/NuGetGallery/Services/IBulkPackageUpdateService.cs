@@ -9,6 +9,13 @@ namespace NuGetGallery
 {
     public interface IBulkPackageUpdateService
     {
-        Task UpdatePackages(IEnumerable<Package> packages, bool? setListed = null);
+        /// <summary>
+        /// Updates the <see cref="Package.LastEdited"/> and <see cref="Package.LastUpdated"/> of each package in <paramref name="packages"/>.
+        /// If <paramref name="setListed"/> is provided, updates the <see cref="Package.Listed"/> of each package as well.
+        /// </summary>
+        /// <remarks>
+        /// This method must be called within a transaction.
+        /// </remarks>
+        Task UpdatePackagesAsync(IEnumerable<Package> packages, bool? setListed = null);
     }
 }

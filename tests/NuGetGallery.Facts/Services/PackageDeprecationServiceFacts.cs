@@ -105,6 +105,21 @@ namespace NuGetGallery.Services
                     .Completes()
                     .Verifiable();
 
+                var databaseMock = new Mock<IDatabase>();
+                databaseMock
+                    .Setup(x => x.BeginTransaction())
+                    .Returns(Mock.Of<IDbContextTransaction>());
+
+                deprecationRepository
+                    .Setup(x => x.GetDatabase())
+                    .Returns(databaseMock.Object);
+
+                var bulkUpdateService = GetMock<IBulkPackageUpdateService>();
+                bulkUpdateService
+                    .Setup(b => b.UpdatePackagesAsync(packages, null))
+                    .Returns(Task.CompletedTask)
+                    .Verifiable();
+
                 var indexingService = GetMock<IIndexingService>();
                 foreach (var package in packages)
                 {
@@ -128,6 +143,7 @@ namespace NuGetGallery.Services
 
                 // Assert
                 deprecationRepository.Verify();
+                bulkUpdateService.Verify();
                 indexingService.Verify();
 
                 foreach (var package in packages)
@@ -136,23 +152,11 @@ namespace NuGetGallery.Services
                 }
             }
 
-            public enum PackageLatestState
-            {
-                Not,
-                Latest,
-                LatestStable,
-                LatestSemVer2,
-                LatestStableSemVer2
-            }
-
-            public static IEnumerable<object[]> ReplacesExistingDeprecations_Data =>
-                MemberDataHelper.Combine(
-                    MemberDataHelper.BooleanDataSet(),
-                    MemberDataHelper.EnumDataSet<PackageLatestState>());
+            public static IEnumerable<object[]> ReplacesExistingDeprecations_Data => MemberDataHelper.BooleanDataSet();
 
             [Theory]
             [MemberData(nameof(ReplacesExistingDeprecations_Data))]
-            public async Task ReplacesExistingDeprecations(bool shouldUnlist, PackageLatestState packageLatestState)
+            public async Task ReplacesExistingDeprecations(bool shouldUnlist)
             {
                 // Arrange
                 var registration = new PackageRegistration { Id = "theId" };
@@ -161,42 +165,17 @@ namespace NuGetGallery.Services
                 var packageWithDeprecation1 = new Package
                 {
                     PackageRegistration = registration,
-                    Deprecations = new List<PackageDeprecation> { new PackageDeprecation() },
-                    LastEdited = lastTimestamp,
-                    LastUpdated = lastTimestamp,
-                    Listed = true
+                    Deprecations = new List<PackageDeprecation> { new PackageDeprecation() }
                 };
-
-                switch (packageLatestState)
-                {
-                    case PackageLatestState.Latest:
-                        packageWithDeprecation1.IsLatest = true;
-                        break;
-                    case PackageLatestState.LatestStable:
-                        packageWithDeprecation1.IsLatestStable = true;
-                        break;
-                    case PackageLatestState.LatestSemVer2:
-                        packageWithDeprecation1.IsLatestSemVer2 = true;
-                        break;
-                    case PackageLatestState.LatestStableSemVer2:
-                        packageWithDeprecation1.IsLatestStableSemVer2 = true;
-                        break;
-                }
 
                 var packageWithoutDeprecation1 = new Package
                 {
-                    PackageRegistration = registration,
-                    LastEdited = lastTimestamp,
-                    LastUpdated = lastTimestamp,
-                    Listed = true
+                    PackageRegistration = registration
                 };
 
                 var packageWithDeprecation2 = new Package
                 {
                     PackageRegistration = registration,
-                    LastEdited = lastTimestamp,
-                    LastUpdated = lastTimestamp,
-                    Listed = true,
                     Deprecations = new List<PackageDeprecation>
                     {
                         new PackageDeprecation
@@ -207,18 +186,12 @@ namespace NuGetGallery.Services
 
                 var packageWithoutDeprecation2 = new Package
                 {
-                    PackageRegistration = registration,
-                    LastEdited = lastTimestamp,
-                    LastUpdated = lastTimestamp,
-                    Listed = true
+                    PackageRegistration = registration
                 };
 
                 var packageWithDeprecation3 = new Package
                 {
                     PackageRegistration = registration,
-                    LastEdited = lastTimestamp,
-                    LastUpdated = lastTimestamp,
-                    Listed = true,
                     Deprecations = new List<PackageDeprecation>
                     {
                         new PackageDeprecation
@@ -250,14 +223,20 @@ namespace NuGetGallery.Services
                     .Completes()
                     .Verifiable();
 
-                var packageService = GetMock<IPackageService>();
-                if (shouldUnlist && packageLatestState != PackageLatestState.Not)
-                {
-                    packageService
-                        .Setup(p => p.UpdateIsLatestAsync(registration, false))
-                        .Returns(Task.CompletedTask)
-                        .Verifiable();
-                }
+                var databaseMock = new Mock<IDatabase>();
+                databaseMock
+                    .Setup(x => x.BeginTransaction())
+                    .Returns(Mock.Of<IDbContextTransaction>());
+
+                deprecationRepository
+                    .Setup(x => x.GetDatabase())
+                    .Returns(databaseMock.Object);
+
+                var bulkUpdateService = GetMock<IBulkPackageUpdateService>();
+                bulkUpdateService
+                    .Setup(b => b.UpdatePackagesAsync(packages, shouldUnlist ? false : (bool?)null))
+                    .Returns(Task.CompletedTask)
+                    .Verifiable();
 
                 var indexingService = GetMock<IIndexingService>();
                 foreach (var package in packages)
@@ -289,7 +268,7 @@ namespace NuGetGallery.Services
 
                 // Assert
                 deprecationRepository.Verify();
-                packageService.Verify();
+                bulkUpdateService.Verify();
                 indexingService.Verify();
 
                 foreach (var package in packages)
@@ -299,9 +278,6 @@ namespace NuGetGallery.Services
                     Assert.Equal(alternatePackageRegistration, deprecation.AlternatePackageRegistration);
                     Assert.Equal(alternatePackage, deprecation.AlternatePackage);
                     Assert.Equal(customMessage, deprecation.CustomMessage);
-                    Assert.True(lastTimestamp < package.LastEdited);
-                    Assert.True(lastTimestamp < package.LastUpdated);
-                    Assert.Equal(!shouldUnlist, package.Listed);
                 }
             }
         }
