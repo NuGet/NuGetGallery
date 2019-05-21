@@ -83,6 +83,8 @@
     <Compile Include="Dnx\DnxCatalogCollectorTests.cs" />
     <Compile Include="Dnx\DnxMakerTests.cs" />
     <Compile Include="Helpers\AsyncExtensionsTests.cs" />
+    <Compile Include="Helpers\RegistrationPackageDeprecationAlternatePackage.cs" />
+    <Compile Include="Helpers\RegistrationPackageDeprecationDetails.cs" />
     <Compile Include="Helpers\CatalogIndependentPage.cs" />
     <Compile Include="Helpers\CatalogIndex.cs" />
     <Compile Include="Helpers\CatalogPackageDetails.cs" />

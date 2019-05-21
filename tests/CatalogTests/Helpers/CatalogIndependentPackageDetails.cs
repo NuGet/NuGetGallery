@@ -63,6 +63,8 @@ namespace CatalogTests.Helpers
         internal string CommitTimeStamp { get; }
         [JsonProperty(CatalogConstants.Created)]
         internal string Created { get; }
+        [JsonProperty(CatalogConstants.Deprecation)]
+        internal RegistrationPackageDeprecation Deprecation { get; }
         [JsonProperty(CatalogConstants.Description)]
         internal string Description { get; }
         [JsonProperty(CatalogConstants.Id)]
@@ -97,7 +99,8 @@ namespace CatalogTests.Helpers
             string version = null,
             string baseUri = null,
             string commitId = null,
-            DateTimeOffset? commitTimeStamp = null)
+            DateTimeOffset? commitTimeStamp = null,
+            RegistrationPackageDeprecation deprecation = null)
         {
             var utc = commitTimeStamp ?? DateTimeOffset.UtcNow;
 
@@ -116,6 +119,7 @@ namespace CatalogTests.Helpers
             CommitId = commitId ?? Guid.NewGuid().ToString("D");
             CommitTimeStamp = utc.ToString(CatalogConstants.CommitTimeStampFormat);
             Created = utc.AddHours(-2).ToString(CatalogConstants.DateTimeFormat);
+            Deprecation = deprecation;
             Description = TestUtility.CreateRandomAlphanumericString();
             LastEdited = utc.AddHours(-1).ToString(CatalogConstants.DateTimeFormat);
             Listed = true;

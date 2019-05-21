@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Newtonsoft.Json.Linq;
@@ -83,7 +84,7 @@ namespace CatalogTests.Registration
             }
         }
 
-        public class CreatePageContent_SetsLicenseUrlAndExpression
+        public class TheCreatePageContentMethod
         {
             private readonly Uri _catalogUri = new Uri("http://example/catalog/mypackage.1.0.0.json");
             private readonly Uri _registrationBaseAddress = new Uri("http://example/registration/");
@@ -91,7 +92,7 @@ namespace CatalogTests.Registration
             private readonly Uri _baseAddress = new Uri("http://example/registration/mypackage/");
             private Graph _graph;
 
-            public CreatePageContent_SetsLicenseUrlAndExpression()
+            public TheCreatePageContentMethod()
             {
                 _graph = new Graph();
                 _graph.Assert(
@@ -122,8 +123,12 @@ namespace CatalogTests.Registration
             [InlineData(null, null, "/Folder/TestLicense", "http://gallery.org/packages/MyPackage/1.2.3/license", "http://gallery.org")]
             [InlineData(null, null, "TestLicense", "http://gallery.org/packages/MyPackage/1.2.3/license", "http://gallery.org/")]
             [InlineData(null, null, "TestLicense", "http://gallery.org/packages/MyPackage/1.2.3/license", "http://gallery.org//")]
-            public void CreatePageContent_SetsLicenseUrlAndExpressionProperly(string licenseUrl, string licenseExpression, string licenseFile,
-                                                                             string expectedLicenseUrlValue, string galleryBaseAddress)
+            public void CreatePageContent_SetsLicenseUrlAndExpressionProperly(
+                string licenseUrl, 
+                string licenseExpression, 
+                string licenseFile,
+                string expectedLicenseUrlValue, 
+                string galleryBaseAddress)
             {
                 // Arrange
                 if (licenseUrl != null)
@@ -179,6 +184,151 @@ namespace CatalogTests.Registration
                 Assert.Equal(1, licenseExpressionTriples.Count());
                 Assert.Equal(licenseExpression == null ? "" : licenseExpression, licenseExpressionTriples.First().Object.ToString());
                 Assert.Equal(0, licenseFileTriples.Count());
+            }
+
+            public static IEnumerable<object[]> CreatePageContent_SetsDeprecationInformationProperly_Data
+            {
+                get
+                {
+                    foreach (var reason in 
+                        new []
+                        {
+                            new[] { "first" },
+                            new[] { "first", "second" }
+                        })
+                    {
+                        foreach (var message in new[] { null, "this is the message" })
+                        {
+                            yield return new object[] { reason, message, null, null };
+                            yield return new object[] { reason, message, "theId", "homeOnTheRange" };
+                        }
+                    }
+                }
+            }
+
+            [Theory]
+            [MemberData(nameof(CreatePageContent_SetsDeprecationInformationProperly_Data))]
+            public void CreatePageContent_SetsDeprecationInformationProperly(
+                IEnumerable<string> reasons,
+                string message,
+                string alternatePackageId,
+                string alternatePackageRange)
+            {
+                if (alternatePackageId == null && alternatePackageRange != null)
+                {
+                    throw new ArgumentException("Must specify alternate package range if alternate package ID is specified.");
+                }
+
+                if (alternatePackageId != null && alternatePackageRange == null)
+                {
+                    throw new ArgumentException("Must specify alternate package ID if alternate package range is specified.");
+                }
+
+                // Arrange
+                var rootNode = _graph.CreateUriNode(_catalogUri);
+                var deprecationPredicate = _graph.CreateUriNode(Schema.Predicates.Deprecation);
+                var deprecationRootNode = _graph.CreateUriNode(new Uri(_catalogUri.ToString() + "#deprecation"));
+                _graph.Assert(rootNode, deprecationPredicate, deprecationRootNode);
+
+                var deprecationReasonRootNode = _graph.CreateUriNode(Schema.Predicates.Reasons);
+                foreach (var reason in reasons)
+                {
+                    var reasonNode = _graph.CreateLiteralNode(reason);
+                    _graph.Assert(deprecationRootNode, deprecationReasonRootNode, reasonNode);
+                }
+
+                if (message != null)
+                {
+                    _graph.Assert(
+                        deprecationRootNode,
+                        _graph.CreateUriNode(Schema.Predicates.Message),
+                        _graph.CreateLiteralNode(message));
+                }
+
+                if (alternatePackageId != null)
+                {
+                    var deprecationAlternatePackagePredicate = _graph.CreateUriNode(Schema.Predicates.AlternatePackage);
+                    var deprecationAlternatePackageRootNode = _graph.CreateUriNode(new Uri(_catalogUri.ToString() + "#deprecation/alternatePackage"));
+                    _graph.Assert(deprecationRootNode, deprecationAlternatePackagePredicate, deprecationAlternatePackageRootNode);
+
+                    _graph.Assert(
+                        deprecationAlternatePackageRootNode,
+                        _graph.CreateUriNode(Schema.Predicates.Id),
+                        _graph.CreateLiteralNode(alternatePackageId));
+
+                    _graph.Assert(
+                        deprecationAlternatePackageRootNode,
+                        _graph.CreateUriNode(Schema.Predicates.Range),
+                        _graph.CreateLiteralNode(alternatePackageRange));
+                }
+
+                var item = new RegistrationMakerCatalogItem(
+                    _catalogUri,
+                    _graph,
+                    _registrationBaseAddress,
+                    isExistingItem: false,
+                    packageContentBaseAddress: _packageContentBaseAddress)
+                {
+                    BaseAddress = _baseAddress,
+                };
+                RegistrationMakerCatalogItem.PackagePathProvider = new PackagesFolderPackagePathProvider();
+                var context = new CatalogContext();
+
+                // Act
+                var content = item.CreatePageContent(context);
+
+                // Assert
+                var deprecationObjectNode = _graph
+                    .GetTriplesWithSubjectPredicate(
+                        _graph.CreateUriNode(_catalogUri), 
+                        _graph.CreateUriNode(Schema.Predicates.Deprecation))
+                    .Single()
+                    .Object;
+
+                var deprecationTriples = _graph.GetTriplesWithSubject(deprecationObjectNode);
+                var reasonTriples = deprecationTriples
+                    .Where(t => t.HasPredicate(_graph.CreateUriNode(Schema.Predicates.Reasons)));
+
+                foreach (var reason in reasons)
+                {
+                    Assert.Contains(reasonTriples, t => t.HasObject(_graph.CreateLiteralNode(reason)));
+                }
+
+                if (message == null)
+                {
+                    Assert.DoesNotContain(
+                        deprecationTriples, 
+                        t => t.HasPredicate(_graph.CreateUriNode(Schema.Predicates.Message)));
+                }
+                else
+                {
+                    Assert.Contains(
+                        deprecationTriples, 
+                        t => t.HasPredicate(_graph.CreateUriNode(Schema.Predicates.Message)) && t.HasObject(_graph.CreateLiteralNode(message)));
+                }
+
+                if (alternatePackageId == null)
+                {
+                    Assert.DoesNotContain(
+                        deprecationTriples,
+                        t => t.HasPredicate(_graph.CreateUriNode(Schema.Predicates.AlternatePackage)));
+                }
+                else
+                {
+                    var alternatePackageObjectNode = _graph
+                        .GetTriplesWithSubjectPredicate(
+                            deprecationObjectNode,
+                            _graph.CreateUriNode(Schema.Predicates.AlternatePackage))
+                        .Single()
+                        .Object;
+
+                    var alternatePackageTriples = _graph.GetTriplesWithSubject(alternatePackageObjectNode);
+                    Assert.Contains(alternatePackageTriples,
+                        t => t.HasPredicate(_graph.CreateUriNode(Schema.Predicates.Id)) && t.HasObject(_graph.CreateLiteralNode(alternatePackageId)));
+
+                    Assert.Contains(alternatePackageTriples,
+                        t => t.HasPredicate(_graph.CreateUriNode(Schema.Predicates.Range)) && t.HasObject(_graph.CreateLiteralNode(alternatePackageRange)));
+                }
             }
         }
     }

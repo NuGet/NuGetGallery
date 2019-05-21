@@ -12,6 +12,7 @@
         "parent" : { "@id" : "catalog:parent", "@type" : "@id" },
 
         "tags": { "@container" : "@set", "@id": "tag" },
+        "reasons" : { "@container" : "@set" },
 
         "packageTargetFrameworks":  { "@container": "@set", "@id": "packageTargetFramework" },
 
