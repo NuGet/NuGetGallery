@@ -236,6 +236,7 @@
     <Compile Include="Infrastructure\Lucene\Models\SearchResults.cs" />
     <Compile Include="Infrastructure\Lucene\Models\SortOrder.cs" />
     <Compile Include="Infrastructure\Lucene\ServiceResponse.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\SearchSideBySideMessage.cs" />
     <Compile Include="Migrations\201903020136235_CvesCanBeEmpty.cs" />
     <Compile Include="Migrations\201903020136235_CvesCanBeEmpty.Designer.cs">
       <DependentUpon>201903020136235_CvesCanBeEmpty.cs</DependentUpon>
@@ -767,6 +768,7 @@
     <Compile Include="ViewModels\HandleOrganizationMembershipRequestModel.cs" />
     <Compile Include="ViewModels\ListPackageItemRequiredSignerViewModel.cs" />
     <Compile Include="ViewModels\ManagePackageViewModel.cs" />
+    <Compile Include="ViewModels\SearchSideBySideViewModel.cs" />
     <Compile Include="ViewModels\SignerViewModel.cs" />
     <Compile Include="WebRole.cs" />
     <Compile Include="Areas\Admin\AdminAreaRegistration.cs" />
