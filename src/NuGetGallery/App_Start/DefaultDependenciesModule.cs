@@ -376,6 +376,10 @@ namespace NuGetGallery
                 .As<IPackageDeprecationService>()
                 .InstancePerLifetimeScope();
 
+            builder.RegisterType<BulkPackageUpdateService>()
+                .As<IBulkPackageUpdateService>()
+                .InstancePerLifetimeScope();
+
             RegisterFeatureFlagsService(builder, configuration);
             RegisterMessagingService(builder, configuration);
 

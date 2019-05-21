@@ -13,17 +13,14 @@ namespace NuGetGallery
     public class PackageDeprecationService : IPackageDeprecationService
     {
         private readonly IEntityRepository<PackageDeprecation> _deprecationRepository;
-        private readonly IPackageService _packageService;
-        private readonly IIndexingService _indexingService;
+        private readonly IBulkPackageUpdateService _bulkPackageUpdateService;
 
         public PackageDeprecationService(
            IEntityRepository<PackageDeprecation> deprecationRepository,
-           IPackageService packageService,
-           IIndexingService indexingService)
+           IBulkPackageUpdateService bulkPackageUpdateService)
         {
             _deprecationRepository = deprecationRepository ?? throw new ArgumentNullException(nameof(deprecationRepository));
-            _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
-            _indexingService = indexingService ?? throw new ArgumentNullException(nameof(indexingService));
+            _bulkPackageUpdateService = bulkPackageUpdateService ?? throw new ArgumentNullException(nameof(bulkPackageUpdateService));
         }
 
         public async Task UpdateDeprecation(
@@ -50,70 +47,61 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(user));
             }
 
-            var shouldDelete = status == PackageDeprecationStatus.NotDeprecated;
-            var deprecations = new List<PackageDeprecation>();
-            foreach (var package in packages)
+            using (var strategy = new SuspendDbExecutionStrategy())
+            using (var transaction = _deprecationRepository.GetDatabase().BeginTransaction())
             {
-                var deprecation = package.Deprecations.SingleOrDefault();
+                var shouldDelete = status == PackageDeprecationStatus.NotDeprecated;
+                var deprecations = new List<PackageDeprecation>();
+                var deprecationTime = DateTime.UtcNow;
+                foreach (var package in packages)
+                {
+                    var deprecation = package.Deprecations.SingleOrDefault();
+                    if (shouldDelete)
+                    {
+                        if (deprecation != null)
+                        {
+                            package.Deprecations.Remove(deprecation);
+                            deprecations.Add(deprecation);
+                        }
+                    }
+                    else
+                    {
+                        if (deprecation == null)
+                        {
+                            deprecation = new PackageDeprecation
+                            {
+                                Package = package
+                            };
+
+                            package.Deprecations.Add(deprecation);
+                            deprecations.Add(deprecation);
+                        }
+
+                        deprecation.Status = status;
+                        deprecation.DeprecatedByUser = user;
+
+                        deprecation.AlternatePackageRegistration = alternatePackageRegistration;
+                        deprecation.AlternatePackage = alternatePackage;
+
+                        deprecation.CustomMessage = customMessage;
+                    }
+                }
+
                 if (shouldDelete)
                 {
-                    if (deprecation != null)
-                    {
-                        package.Deprecations.Remove(deprecation);
-                        deprecations.Add(deprecation);
-                    }
+                    _deprecationRepository.DeleteOnCommit(deprecations);
                 }
                 else
                 {
-                    if (deprecation == null)
-                    {
-                        deprecation = new PackageDeprecation
-                        {
-                            Package = package
-                        };
-
-                        package.Deprecations.Add(deprecation);
-                        deprecations.Add(deprecation);
-                    }
-
-                    deprecation.Status = status;
-                    deprecation.DeprecatedByUser = user;
-
-                    deprecation.AlternatePackageRegistration = alternatePackageRegistration;
-                    deprecation.AlternatePackage = alternatePackage;
-
-                    deprecation.CustomMessage = customMessage;
+                    _deprecationRepository.InsertOnCommit(deprecations);
                 }
 
-                package.LastEdited = package.LastUpdated = DateTime.UtcNow;
+                // Save deprecation changes before bulk updating the packages.
+                await _deprecationRepository.CommitChangesAsync();
 
-                if (shouldUnlist)
-                {
-                    package.Listed = false;
-                }
+                await _bulkPackageUpdateService.UpdatePackages(packages, shouldUnlist ? false : (bool?)null);
+                transaction.Commit();
             }
-
-            if (shouldDelete)
-            {
-                _deprecationRepository.DeleteOnCommit(deprecations);
-            }
-            else
-            {
-                _deprecationRepository.InsertOnCommit(deprecations);
-            }
-
-            if (shouldUnlist && packages.Any(p => p.IsLatest || p.IsLatestStable || p.IsLatestSemVer2 || p.IsLatestStableSemVer2))
-            {
-                await _packageService.UpdateIsLatestAsync(packages.First().PackageRegistration, false);
-            }
-
-            // Update the indexing of the packages we updated the deprecation information of.
-            foreach (var package in packages)
-            {
-                _indexingService.UpdatePackage(package);
-            }
-
-            await _deprecationRepository.CommitChangesAsync();
         }
 
         public PackageDeprecation GetDeprecationByPackage(Package package)

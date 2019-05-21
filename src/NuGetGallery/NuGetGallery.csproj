@@ -251,6 +251,8 @@
     <Compile Include="Migrations\201905071526573_DevelopmentDependencyMetadata.Designer.cs">
       <DependentUpon>201905071526573_DevelopmentDependencyMetadata.cs</DependentUpon>
     </Compile>
+    <Compile Include="Services\BulkPackageUpdateService.cs" />
+    <Compile Include="Services\IBulkPackageUpdateService.cs" />
     <Compile Include="Services\IPackageDeprecationService.cs" />
     <Compile Include="Queries\AutocompleteDatabasePackageIdsQuery.cs" />
     <Compile Include="Queries\AutocompleteDatabasePackageVersionsQuery.cs" />
