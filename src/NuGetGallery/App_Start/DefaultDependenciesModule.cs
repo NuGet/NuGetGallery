@@ -744,12 +744,23 @@ namespace NuGetGallery
                 builder.RegisterType<LuceneSearchService>()
                     .AsSelf()
                     .As<ISearchService>()
+                    .Keyed<ISearchService>(BindingKeys.PreviewSearchClient)
                     .InstancePerLifetimeScope();
                 builder.RegisterType<LuceneIndexingService>()
                     .AsSelf()
                     .As<IIndexingService>()
                     .InstancePerLifetimeScope();
             }
+
+            builder
+                .Register(c => new SearchSideBySideService(
+                    c.Resolve<ISearchService>(),
+                    c.ResolveKeyed<ISearchService>(BindingKeys.PreviewSearchClient),
+                    c.Resolve<ITelemetryService>(),
+                    c.Resolve<IMessageService>(),
+                    c.Resolve<IMessageServiceConfiguration>()))
+                .As<ISearchSideBySideService>()
+                .InstancePerLifetimeScope();
         }
 
         private static void RegisterSearchService(
