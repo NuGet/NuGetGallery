@@ -19,11 +19,8 @@ namespace NuGetGallery
 
         private const string BaseQueryFormat = @"
 UPDATE [dbo].Packages
-SET LastEdited = GETUTCDATE(), LastUpdated = GETUTCDATE(){0}
-WHERE [Key] IN ({1})";
-
-        private const string ListedParameterName = "@listed";
-        private static string SetListedClause = $", Listed = {ListedParameterName}";
+SET LastEdited = GETUTCDATE(), LastUpdated = GETUTCDATE()
+WHERE [Key] IN ({0})";
 
         public BulkPackageUpdateService(
             IEntitiesContext entitiesContext,
@@ -37,23 +34,13 @@ WHERE [Key] IN ({1})";
 
         public async Task UpdatePackages(IEnumerable<Package> packages, bool? setListed = null)
         {
-            var packageParameters = packages
+            var parameters = packages
                 .Select(p => p.Key)
                 .Select((k, index) => new SqlParameter("@package" + index.ToString(), SqlDbType.Int) { Value = k });
 
-            var parameters = new List<SqlParameter>(packageParameters);
-
-            var listedClause = string.Empty;
-            if (setListed.HasValue)
-            {
-                listedClause = SetListedClause;
-                parameters.Add(new SqlParameter(ListedParameterName, setListed.Value ? "1" : "0"));
-            }
-
             var query = string.Format(
                 BaseQueryFormat, 
-                listedClause,
-                string.Join(", ", packageParameters.Select(p => p.ParameterName)));
+                string.Join(", ", parameters.Select(p => p.ParameterName)));
 
             var result = await _entitiesContext
                 .GetDatabase()
@@ -72,6 +59,11 @@ WHERE [Key] IN ({1})";
             {
                 foreach (var packagesByRegistration in packages.GroupBy(p => p.PackageRegistration))
                 {
+                    foreach (var package in packages)
+                    {
+                        package.Listed = setListed.Value;
+                    }
+
                     if (packagesByRegistration.Any(
                         p => p.IsLatest || p.IsLatestStable || p.IsLatestSemVer2 || p.IsLatestStableSemVer2))
                     {
