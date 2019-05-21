@@ -26,3 +26,28 @@ It is intended to be executed manually.
 
 # Execution command
 `Stats.CDNLogsSanitizer.exe -Configuration "Path to a json file like Settings\chinadev.json." -InstrumentationKey "An intrumentation key for log traces." -verbose true `
+
+# Example configuration
+
+```json
+{
+  "Initialization": {
+    "AzureAccountConnectionStringSource": "DefaultEndpointsProtocol=https;AccountName=***;AccountKey=$$Dev-NuGetGalleryMooncakeStorage-Key$$;EndpointSuffix=core.chinacloudapi.cn",
+    "AzureAccountConnectionStringDestination": "DefaultEndpointsProtocol=https;AccountName=***;AccountKey=$$Dev-NuGetGalleryMooncakeStorage-Key$$;EndpointSuffix=core.chinacloudapi.cn",
+    "AzureContainerNameSource": "***",
+    "AzureContainerNameDestination": "***",
+    "BlobPrefix": "",
+    "LogHeader": "c-ip, timestamp, cs-method, cs-uri-stem, http-ver, sc-status, sc-bytes, c-referer, c-user-agent, rs-duration(ms), hit-miss, s-ip",
+    "LogHeaderDelimiter": ",",
+    "ExecutionTimeoutInSeconds": 345600,
+    "MaxBlobsToProcess": 4
+  },
+
+  "KeyVault_VaultName": "#{Deployment.Azure.KeyVault.VaultName}",
+  "KeyVault_ClientId": "#{Deployment.Azure.KeyVault.ClientId}",
+  "KeyVault_CertificateThumbprint": "#{Deployment.Azure.KeyVault.CertificateThumbprint}",
+  "KeyVault_ValidateCertificate": true,
+  "KeyVault_StoreName": "My",
+  "KeyVault_StoreLocation": "LocalMachine"
+}
+```

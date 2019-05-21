@@ -54,9 +54,6 @@
     <None Include="App.config" />
     <None Include="Scripts\*" />
     <None Include="ArchivePackages.nuspec" />
-    <None Include="Settings\dev.json" />
-    <None Include="Settings\int.json" />
-    <None Include="Settings\prod.json" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NuGet.Jobs.Common\NuGet.Jobs.Common.csproj">

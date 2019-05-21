@@ -71,9 +71,6 @@
       <SubType>Designer</SubType>
     </None>
     <None Include="Scripts\*" />
-    <None Include="Settings\dev.json" />
-    <None Include="Settings\int.json" />
-    <None Include="Settings\prod.json" />
     <None Include="Stats.CollectAzureCdnLogs.nuspec" />
   </ItemGroup>
   <ItemGroup>

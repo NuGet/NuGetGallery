@@ -64,9 +64,6 @@
   <ItemGroup>
     <None Include="App.config" />
     <None Include="Scripts\*" />
-    <None Include="Settings\dev.json" />
-    <None Include="Settings\int.json" />
-    <None Include="Settings\prod.json" />
     <None Include="Stats.CreateAzureCdnWarehouseReports.nuspec" />
   </ItemGroup>
   <ItemGroup>

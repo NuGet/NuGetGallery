@@ -61,10 +61,6 @@
     <None Include="Scripts\Functions.ps1" />
     <None Include="Scripts\PostDeploy.ps1" />
     <None Include="Scripts\PreDeploy.ps1" />
-    <None Include="Scripts\Validation.SymbolValidation.cmd" />
-    <None Include="Settings\dev.json" />
-    <None Include="Settings\int.json" />
-    <None Include="Settings\prod.json" />
     <None Include="Validation.Symbols.Job.nuspec">
       <SubType>Designer</SubType>
     </None>

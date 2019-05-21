@@ -51,17 +51,6 @@ Function Run-Tests {
         & $xUnitExe (Join-Path $PSScriptRoot $Test) -xml "Results.$TestCount.xml"
         $TestCount++
     }
-
-    Trace-Log "Running configuration validations";
-
-    $exe = "src\NuGet.Services.Validation.Orchestrator\bin\$Configuration\NuGet.Services.Validation.Orchestrator.exe";
-    $cfg = "src\NuGet.Services.Validation.Orchestrator\settings.json";
-
-    & $exe -Configuration $cfg -Validate
-    if ( $LASTEXITCODE -gt 0 )
-    {
-        Write-Error "Validation of the $cfg failed"
-    }
 }
 
 Write-Host ("`r`n" * 3)

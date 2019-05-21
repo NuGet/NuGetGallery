@@ -12,15 +12,11 @@
   <files>
     <file src="bin\$configuration$\*.*" target="bin"/>
 	
-    <file src="Scripts\UpdateLicenseReports.cmd" />
-	
     <file src="Scripts\Functions.ps1" />
     <file src="Scripts\PreDeploy.ps1" />
     <file src="Scripts\PostDeploy.ps1" />
     <file src="Scripts\nssm.exe" />
 
     <file src="TestData\*.json" target="bin" />
-    
-    <file src="Settings\*.json" target="bin" />
   </files>
 </package>

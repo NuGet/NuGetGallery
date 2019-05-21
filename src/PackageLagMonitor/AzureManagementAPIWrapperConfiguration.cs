@@ -10,5 +10,7 @@ namespace NuGet.Jobs.Montoring.PackageLag
         public string ClientId { get; set; }
 
         public string ClientSecret { get; set; }
+
+        public string AadTenant { get; set; }
     }
 }

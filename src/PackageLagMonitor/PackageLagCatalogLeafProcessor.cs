@@ -71,15 +71,6 @@ namespace NuGet.Jobs.Montoring.PackageLag
             {
                 var cancellationToken = new CancellationToken();
                 var lag = await GetLagForPackageState(_searchInstances, packageId, packageVersion, expectListed, isDelete, created, lastEdited, cancellationToken);
-
-                if (lag.Ticks > 0)
-                {
-                    _logger.LogInformation("Logging {LagInSeconds} seconds lag for {PackageId} {PackageVersion}.", lag.TotalSeconds, packageId, packageVersion);
-                }
-                else
-                {
-                    _logger.LogInformation("Lag check for {PackageId} {PackageVersion} was abandoned.", packageId, packageVersion);
-                }
             }
             catch
             {
@@ -158,6 +149,10 @@ namespace NuGet.Jobs.Montoring.PackageLag
                                 shouldRetry = searchResultObject.Data[0].LastEdited < lastEdited;
                             }
                         }
+                        else
+                        {
+                            shouldRetry = !deleted;
+                        }
                     }
                     if (shouldRetry)
                     {
@@ -187,13 +182,25 @@ namespace NuGet.Jobs.Montoring.PackageLag
 
                     var timeStamp = (isListOperation ? lastEdited : created);
 
-
                     // We log both of these values here as they will differ if a package went through validation pipline.
-                    _logger.LogInformation("{Timestamp}:{PackageId} {PackageVersion} Query: {Query} Created: {CreatedLag} V3: {V3Lag}", timeStamp, packageId, packageVersion, query, createdDelay, v3Delay);
-                    _telemetryService.TrackPackageCreationLag(timeStamp, instance, packageId, packageVersion, createdDelay);
+                    _logger.LogInformation("Lag {Timestamp}:{PackageId} {PackageVersion} Query: {Query} Created: {CreatedLag} V3: {V3Lag}", timeStamp, packageId, packageVersion, query, createdDelay, v3Delay);
+                    _logger.LogInformation("LastReload:{LastReloadTimestamp} LastEdited:{LastEditedTimestamp} Created:{CreatedTimestamp} ", lastReloadTime, lastEdited, created);
+                    if (!isListOperation)
+                    {
+                        _telemetryService.TrackPackageCreationLag(timeStamp, instance, packageId, packageVersion, createdDelay);
+                    }
+                    else
+                    {
+                        _logger.LogInformation("Skipping log of creation lag for {PackageId} {PackageVersion}. This leaf looks like a list/unlist operation.", packageId, packageVersion);
+                    }
+
                     _telemetryService.TrackV3Lag(timeStamp, instance, packageId, packageVersion, v3Delay);
 
                     return createdDelay;
+                }
+                else
+                {
+                    _logger.LogInformation("Lag check for {PackageId} {PackageVersion} was abandoned. Retry limit reached.", packageId, packageVersion);
                 }
             }
             catch (Exception e)

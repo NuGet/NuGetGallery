@@ -92,9 +92,6 @@
       <LogicalName>packagetranslations.json</LogicalName>
     </EmbeddedResource>
     <None Include="Scripts\*" />
-    <None Include="Settings\dev.json" />
-    <None Include="Settings\int.json" />
-    <None Include="Settings\prod.json" />
     <None Include="Stats.ImportAzureCdnStatistics.nuspec" />
   </ItemGroup>
   <ItemGroup>

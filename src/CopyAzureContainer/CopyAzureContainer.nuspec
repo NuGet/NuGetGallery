@@ -11,7 +11,6 @@
   </metadata>
   <files>
     <file src="bin\$configuration$\*.*" target="bin"/>
-    <file src="Scripts\backupv3storage.cmd" />	
     <file src="Scripts\Functions.ps1" />
     <file src="Scripts\InstallAzCopy.ps1" />
     <file src="Scripts\PostDeploy.ps1" />

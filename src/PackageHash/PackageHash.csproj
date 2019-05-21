@@ -72,9 +72,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
-    <None Include="Settings\dev.json" />
-    <None Include="Settings\int.json" />
-    <None Include="Settings\prod.json" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="NuGet.Services.Cursor">

@@ -11,6 +11,5 @@
   </metadata>
   <files>
     <file src="bin\$configuration$\*.*" target="bin"/>
-    <file src="Settings\*.json" target="bin" />
   </files>
 </package>

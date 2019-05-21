@@ -151,7 +151,6 @@ Invoke-BuildStep 'Creating artifacts' {
             "src/Stats.RollUpDownloadFacts/Stats.RollUpDownloadFacts.csproj", `
             "src/NuGet.SupportRequests.Notifications/NuGet.SupportRequests.Notifications.csproj", `
             "src/CopyAzureContainer/CopyAzureContainer.csproj", `
-            "src/NuGetCDNRedirect/NuGetCDNRedirect.csproj", `
             "src/NuGet.Services.Validation.Orchestrator/Validation.Orchestrator.nuspec", `
             "src/NuGet.Services.Validation.Orchestrator/Validation.SymbolsOrchestrator.nuspec", `
             "src/NuGet.Services.Revalidate/NuGet.Services.Revalidate.csproj", `
