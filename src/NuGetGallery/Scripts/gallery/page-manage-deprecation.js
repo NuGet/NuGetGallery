@@ -66,6 +66,9 @@ function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defau
     this.isLegacy = ko.observable(false);
     this.hasCriticalBugs = ko.observable(false);
     this.isOther = ko.observable(false);
+    this.hasReason = ko.pureComputed(function () {
+        return self.isLegacy() || self.hasCriticalBugs() || self.isOther();
+    }, this);
 
     // The ID entered into the alternate package ID textbox.
     this.chosenAlternatePackageId = ko.observable('');
@@ -132,10 +135,10 @@ function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defau
 
     // The alternate package ID to submit with the form.
     this.alternatePackageId = ko.pureComputed(function () {
-        if (self.isLegacy()) {
+        if (self.hasReason()) {
             return self.chosenAlternatePackageId();
         } else {
-            // If the legacy checkbox is not selected, this section of the form is hidden.
+            // If a reason is not selected, this section of the form is hidden.
             // Don't submit the chosen alternate package ID with the form.
             return null;
         }
@@ -159,7 +162,10 @@ function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defau
         return self.isOther() && !self.customMessage();
     }, this);
 
-    this.shouldUnlist = ko.observable(true);
+    this.shouldUnlistChecked = ko.observable(true);
+    this.shouldUnlist = ko.pureComputed(function () {
+        return self.hasReason() && self.shouldUnlistChecked();
+    }, this);
 
     this.submitError = ko.observable();
     this.submit = function () {
@@ -212,7 +218,7 @@ function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defau
         versionData.AlternatePackageId = self.alternatePackageId();
         versionData.AlternatePackageVersion = self.alternatePackageVersion();
         versionData.CustomMessage = self.customMessage();
-        versionData.ShouldUnlist = self.shouldUnlist();
+        versionData.ShouldUnlist = self.shouldUnlistChecked();
     };
 
     var loadDeprecationFormState = function (version) {
@@ -232,7 +238,7 @@ function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defau
         }
 
         self.customMessage(versionData.CustomMessage);
-        self.shouldUnlist(versionData.ShouldUnlist);
+        self.shouldUnlistChecked(versionData.ShouldUnlist);
     };
 
     // When the chosen versions are changed, remember the contents of the form in case the user navigates back to this version.

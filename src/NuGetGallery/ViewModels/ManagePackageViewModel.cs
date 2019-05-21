@@ -164,10 +164,12 @@ namespace NuGetGallery
                     }
 
                     CustomMessage = deprecation.CustomMessage;
-
-                    // It doesn't make sense to unlist packages that are already unlisted.
-                    // Additionally, if a package was not unlisted when it was deprecated, we shouldn't suggest it be unlisted when its deprecation information is updated.
-                    ShouldUnlist = package.Listed && deprecation.Status == PackageDeprecationStatus.NotDeprecated;
+                }
+                else
+                {
+                    // It doesn't make sense to suggest unlisting packages that are already unlisted.
+                    // Additionally, if a package was not unlisted when it was deprecated initially, we shouldn't suggest unlisting it when its deprecation information is updated.
+                    ShouldUnlist = package.Listed;
                 }
             }
 
