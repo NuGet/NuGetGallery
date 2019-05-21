@@ -85,8 +85,7 @@ namespace NuGetGallery
                     deprecation.CustomMessage = customMessage;
                 }
 
-                package.LastUpdated = DateTime.UtcNow;
-                package.LastEdited = DateTime.UtcNow;
+                package.LastEdited = package.LastUpdated = DateTime.UtcNow;
 
                 if (shouldUnlist)
                 {
