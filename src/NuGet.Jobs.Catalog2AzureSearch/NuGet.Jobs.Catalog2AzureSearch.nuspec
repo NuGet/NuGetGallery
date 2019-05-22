@@ -1,11 +1,11 @@
 <?xml version="1.0"?>
 <package>
   <metadata>
-    <id>NuGet.Jobs.Catalog2AzureSearch</id>
+    <id>Catalog2AzureSearch</id>
     <version>$version$</version>
     <authors>.NET Foundation</authors>
     <owners>.NET Foundation</owners>
-    <description>NuGet.Jobs.Catalog2AzureSearch</description>
+    <description>Catalog2AzureSearch</description>
     <copyright>Copyright .NET Foundation</copyright>
   </metadata>
   <files>

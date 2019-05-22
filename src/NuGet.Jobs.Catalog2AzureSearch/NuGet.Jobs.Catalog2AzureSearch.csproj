@@ -48,7 +48,6 @@
     <None Include="Scripts\Functions.ps1" />
     <None Include="Scripts\PostDeploy.ps1" />
     <None Include="Scripts\PreDeploy.ps1" />
-    <None Include="Settings\octopus.json" />
     <None Include="Scripts\nssm.exe" />
   </ItemGroup>
   <ItemGroup>

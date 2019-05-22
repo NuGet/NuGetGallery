@@ -206,7 +206,7 @@
       <Version>5.0.3</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Validation.Common.Job">
-      <Version>4.1.0-dev-2576357</Version>
+      <Version>4.1.0-dev-2701693</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Build.Tasks.Pack">
       <Version>4.8.0</Version>

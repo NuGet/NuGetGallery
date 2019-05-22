@@ -55,7 +55,7 @@ namespace NuGet.Services.AzureSearch.SearchService
             {
                 // Arrange
                 await _target.EnsureInitializedAsync();
-                _client.ResetCalls();
+                _client.Invocations.Clear();
 
                 // Act
                 await _target.EnsureInitializedAsync();
@@ -117,7 +117,7 @@ namespace NuGet.Services.AzureSearch.SearchService
             {
                 // Arrange
                 await _target.TryLoadAsync(_token);
-                _client.ResetCalls();
+                _client.Invocations.Clear();
 
                 // Act
                 await _target.TryLoadAsync(_token);

@@ -46,7 +46,6 @@
     <None Include="App.config" />
     <None Include="NuGet.Jobs.Db2AzureSearch.nuspec" />
     <None Include="Scripts\PostDeploy.ps1" />
-    <None Include="Settings\octopus.json" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="MicroBuild.Core">
