@@ -273,6 +273,11 @@ namespace NuGetGallery.Infrastructure.Search
             // No-op
         }
 
+        public void UpdatePackageRegistration(PackageRegistration packageRegistration)
+        {
+            // No-op
+        }
+
         public void RegisterBackgroundJobs(IList<WebBackgrounder.IJob> jobs, IAppConfiguration configuration)
         {
             // No background jobs to register!

@@ -29,7 +29,8 @@ namespace NuGetGallery
 
         private readonly Lucene.Net.Store.Directory _directory;
         private IndexWriter _indexWriter;
-        private IEntityRepository<Package> _packageRepository;
+        private readonly IEntityRepository<Package> _packageRepository;
+        private readonly IPackageService _packageService;
         private readonly Func<bool> _getShouldAutoUpdate;
 
         private IDiagnosticsSource Trace { get; set; }
@@ -45,12 +46,14 @@ namespace NuGetGallery
         }
 
         public LuceneIndexingService(
-            IEntityRepository<Package> packageSource,
+            IEntityRepository<Package> packageRepository,
+            IPackageService packageService,
             Lucene.Net.Store.Directory directory,
             IDiagnosticsService diagnostics,
             IAppConfiguration config)
         {
-            _packageRepository = packageSource;
+            _packageRepository = packageRepository ?? throw new ArgumentNullException(nameof(packageRepository));
+            _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
             _directory = directory;
             _getShouldAutoUpdate = config == null ? new Func<bool>(() => true) : new Func<bool>(() => config.AutoUpdateSearchIndex);
             Trace = diagnostics.SafeGetSource("LuceneIndexingService");
@@ -103,36 +106,48 @@ namespace NuGetGallery
                 var packageRegistrationKey = package.PackageRegistrationKey;
                 var updateTerm = new Term("PackageRegistrationKey", packageRegistrationKey.ToString(CultureInfo.InvariantCulture));
 
-                if (!package.IsLatest || !package.IsLatestStable)
+                if (!package.IsLatest || !package.IsLatestStable || !package.IsLatestSemVer2 || !package.IsLatestStableSemVer2)
                 {
                     // Someone passed us in a version which was e.g. just unlisted? Or just not the latest version which is what we want to index. Doesn't really matter. We'll find one to index.
-                    package = _packageRepository.GetAll()
-                        .Where(p => (p.IsLatest || p.IsLatestStable)
-                                    && p.PackageRegistrationKey == packageRegistrationKey
-                                    && p.PackageStatusKey == PackageStatus.Available)
-                        .Include(p => p.PackageRegistration)
-                        .Include(p => p.PackageRegistration.Owners)
-                        .Include(p => p.SupportedFrameworks)
-                        .FirstOrDefault();
+                    var packagesForId = _packageService.FindPackagesById(package.PackageRegistration.Id);
+                    package = _packageService.FilterLatestPackage(packagesForId);
                 }
 
-                // Just update the provided package
-                using (Trace.Activity(String.Format(CultureInfo.CurrentCulture, "Updating Document: {0}", updateTerm.ToString())))
+                UpdateTerm(updateTerm, package);
+            }
+        }
+
+        public void UpdatePackageRegistration(PackageRegistration packageRegistration)
+        {
+            if (_getShouldAutoUpdate())
+            {
+                var packageRegistrationKey = packageRegistration.Key;
+                var updateTerm = new Term("PackageRegistrationKey", packageRegistrationKey.ToString(CultureInfo.InvariantCulture));
+
+                var packagesForId = _packageService.FindPackagesById(packageRegistration.Id);
+                var package = _packageService.FilterLatestPackage(packagesForId);
+
+                UpdateTerm(updateTerm, package);
+            }
+        }
+
+        private void UpdateTerm(Term updateTerm, Package package)
+        {
+            using (Trace.Activity(String.Format(CultureInfo.CurrentCulture, "Updating Document: {0}", updateTerm.ToString())))
+            {
+                EnsureIndexWriter(creatingIndex: false);
+                if (package != null)
                 {
-                    EnsureIndexWriter(creatingIndex: false);
-                    if (package != null)
-                    {
-                        var indexEntity = new PackageIndexEntity(package);
-                        Trace.Information(String.Format(CultureInfo.CurrentCulture, "Updating Lucene Index for: {0} {1} [PackageKey:{2}]", package.PackageRegistration.Id, package.Version, package.Key));
-                        _indexWriter.UpdateDocument(updateTerm, indexEntity.ToDocument());
-                    }
-                    else
-                    {
-                        Trace.Information(String.Format(CultureInfo.CurrentCulture, "Deleting Document: {0}", updateTerm.ToString()));
-                        _indexWriter.DeleteDocuments(updateTerm);
-                    }
-                    _indexWriter.Commit();
+                    var indexEntity = new PackageIndexEntity(package);
+                    Trace.Information(String.Format(CultureInfo.CurrentCulture, "Updating Lucene Index for: {0} {1} [PackageKey:{2}]", package.PackageRegistration.Id, package.Version, package.Key));
+                    _indexWriter.UpdateDocument(updateTerm, indexEntity.ToDocument());
                 }
+                else
+                {
+                    Trace.Information(String.Format(CultureInfo.CurrentCulture, "Deleting Document: {0}", updateTerm.ToString()));
+                    _indexWriter.DeleteDocuments(updateTerm);
+                }
+                _indexWriter.Commit();
             }
         }
 

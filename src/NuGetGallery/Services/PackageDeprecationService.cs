@@ -40,7 +40,8 @@ namespace NuGetGallery
                 throw new ArgumentException(nameof(packages));
             }
 
-            if (packages.Select(p => p.Id).Distinct().Count() > 1)
+            var registration = packages.First().PackageRegistration;
+            if (packages.Select(p => p.PackageRegistrationKey).Distinct().Count() > 1)
             {
                 throw new ArgumentException("All packages to deprecate must have the same ID.", nameof(packages));
             }
@@ -106,11 +107,7 @@ namespace NuGetGallery
                 transaction.Commit();
             }
 
-            // Update the indexing of the packages we updated.
-            foreach (var package in packages)
-            {
-                _indexingService.UpdatePackage(package);
-            }
+            _indexingService.UpdatePackageRegistration(registration);
         }
 
         public PackageDeprecation GetDeprecationByPackage(Package package)

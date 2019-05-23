@@ -16,6 +16,7 @@ namespace NuGetGallery
         void UpdateIndex();
         void UpdateIndex(bool forceRefresh);
         void UpdatePackage(Package package);
+        void UpdatePackageRegistration(PackageRegistration packageRegistration);
 
         Task<int> GetDocumentCount();
         Task<long> GetIndexSizeInBytes();

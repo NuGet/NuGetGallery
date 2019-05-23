@@ -445,7 +445,7 @@ namespace NuGetGallery
                 throw new InvalidOperationException("A package that failed validation should never be listed!");
             }
 
-            if (!package.Listed && (package.IsLatestStable || package.IsLatest))
+            if (!package.Listed && (package.IsLatestStable || package.IsLatest || package.IsLatestSemVer2 || package.IsLatestStableSemVer2))
             {
                 throw new InvalidOperationException("An unlisted package should never be latest or latest stable!");
             }

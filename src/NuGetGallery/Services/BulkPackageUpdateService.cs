@@ -44,34 +44,41 @@ WHERE [Key] IN ({0})";
         {
             foreach (var packagesByRegistration in packages.GroupBy(p => p.PackageRegistration))
             {
-                foreach (var package in packages)
-                {
-                    package.Listed = setListed;
-                }
-
-                if (packagesByRegistration.Any(
-                    p => p.IsLatest || p.IsLatestStable || p.IsLatestSemVer2 || p.IsLatestStableSemVer2))
-                {
-                    await _packageService.UpdateIsLatestAsync(packagesByRegistration.Key, false);
-                }
+                await UpdatePackagesListedByRegistrationAsync(packagesByRegistration, setListed);
             }
 
             await _entitiesContext.SaveChangesAsync();
         }
 
+        private async Task UpdatePackagesListedByRegistrationAsync(IGrouping<PackageRegistration, Package> packagesByRegistration, bool setListed)
+        {
+            foreach (var package in packagesByRegistration)
+            {
+                package.Listed = setListed;
+            }
+
+            if (packagesByRegistration.Any(
+                p => p.IsLatest || p.IsLatestStable || p.IsLatestSemVer2 || p.IsLatestStableSemVer2))
+            {
+                await _packageService.UpdateIsLatestAsync(packagesByRegistration.Key, false);
+            }
+        }
+
+        /// <remarks>
+        /// Normally we would use a large parameterized SQL query for this.
+        /// Unfortunately, however, there is a maximum number of parameters for a SQL query (around 2,000-3,000).
+        /// By writing a query containing the package keys directly we can remove this restriction.
+        /// Furthermore, package keys are not user data, so there is no risk to writing a query in this way.
+        /// </remarks>
         private async Task UpdatePackagesTimestampsAsync(IEnumerable<Package> packages)
         {
-            var parameters = packages
-                .Select(p => p.Key)
-                .Select((k, index) => new SqlParameter("@package" + index.ToString(), SqlDbType.Int) { Value = k });
-
             var query = string.Format(
                 BaseQueryFormat,
-                string.Join(", ", parameters.Select(p => p.ParameterName)));
+                string.Join(", ", packages.Select(p => p.Key)));
 
             var result = await _entitiesContext
                 .GetDatabase()
-                .ExecuteSqlCommandAsync(query, parameters.Cast<object>().ToArray());
+                .ExecuteSqlCommandAsync(query);
 
             // The query updates each row twice--once for the initial commit and a second time due to the trigger on LastEdited.
             var expectedResult = packages.Count() * 2;

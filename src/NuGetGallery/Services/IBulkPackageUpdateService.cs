@@ -14,7 +14,8 @@ namespace NuGetGallery
         /// If <paramref name="setListed"/> is provided, updates the <see cref="Package.Listed"/> of each package as well.
         /// </summary>
         /// <remarks>
-        /// This method must be called within a transaction.
+        /// If this method is not called from within a transaction, it may perform two separate commits.
+        /// The caller should guarantee this method is called within a transaction to guarantee a single commit is performed.
         /// </remarks>
         Task UpdatePackagesAsync(IEnumerable<Package> packages, bool? setListed = null);
     }
