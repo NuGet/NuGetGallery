@@ -4,7 +4,7 @@
 using System;
 using System.Net;
 
-namespace NuGet.Jobs.Montoring.PackageLag
+namespace NuGet.Jobs.Monitoring.PackageLag
 {
     public class HttpResponseException : Exception
     {

@@ -48,7 +48,13 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="AzureManagementAPIWrapperConfiguration.cs" />
+    <Compile Include="HttpWrappers\HttpClientWrapper.cs" />
     <Compile Include="HttpResponseException.cs" />
+    <Compile Include="HttpWrappers\IHttpClientWrapper.cs" />
+    <Compile Include="HttpWrappers\HttpContentWrapper.cs" />
+    <Compile Include="HttpWrappers\IHttpContentWrapper.cs" />
+    <Compile Include="HttpWrappers\HttpResponseMessageWrapper.cs" />
+    <Compile Include="HttpWrappers\IHttpResponseMessageWrapper.cs" />
     <Compile Include="Instance.cs" />
     <Compile Include="ISearchServiceClient.cs" />
     <Compile Include="Job.cs" />

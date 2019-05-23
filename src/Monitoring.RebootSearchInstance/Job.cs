@@ -11,7 +11,7 @@ using Autofac;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using NuGet.Jobs.Montoring.PackageLag;
+using NuGet.Jobs.Monitoring.PackageLag;
 using NuGet.Jobs.Validation;
 using NuGet.Services.AzureManagement;
 

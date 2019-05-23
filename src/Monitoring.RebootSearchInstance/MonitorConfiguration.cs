@@ -2,7 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using NuGet.Jobs.Montoring.PackageLag;
+using NuGet.Jobs.Monitoring.PackageLag;
 
 namespace NuGet.Monitoring.RebootSearchInstance
 {

@@ -6,11 +6,30 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace NuGet.Jobs.Montoring.PackageLag
+namespace NuGet.Jobs.Monitoring.PackageLag
 {
     public interface ISearchServiceClient
     {
         Task<DateTimeOffset> GetCommitDateTimeAsync(
+            Instance instance,
+            CancellationToken token);
+
+        Task<DateTimeOffset> GetIndexLastReloadTimeAsync(
+            Instance instance,
+            CancellationToken token);
+
+        Task<SearchResultResponse> GetSearchResultAsync(
+            Instance instance,
+            string query,
+            CancellationToken token);
+
+        Task<SearchResultResponse> GetResultForPackageIdVersion(
+            Instance instance,
+            string packageId,
+            string packageVersion,
+            CancellationToken token);
+
+        Task<SearchDiagnosticResponse> GetSearchDiagnosticResponseAsync(
             Instance instance,
             CancellationToken token);
 
