@@ -61,16 +61,18 @@
       <Version>1.1.2</Version>
     </PackageReference>
     <PackageReference Include="Moq">
-      <Version>4.5.23</Version>
+      <Version>4.10.1</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Common">
-      <Version>4.8.0</Version>
+      <Version>5.0.0-preview1.5665</Version>
     </PackageReference>
     <PackageReference Include="xunit">
-      <Version>2.1.0</Version>
+      <Version>2.4.1</Version>
     </PackageReference>
     <PackageReference Include="xunit.runner.visualstudio">
-      <Version>2.1.0</Version>
+      <Version>2.4.1</Version>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
     </PackageReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

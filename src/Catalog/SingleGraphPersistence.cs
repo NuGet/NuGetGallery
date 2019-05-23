@@ -40,7 +40,7 @@ namespace NuGet.Services.Metadata.Catalog
 
             if (json != null)
             {
-                _initialGraph = Utils.CreateGraph(JToken.Parse(json));
+                _initialGraph = Utils.CreateGraph(rootUri, json);
             }
             else
             {

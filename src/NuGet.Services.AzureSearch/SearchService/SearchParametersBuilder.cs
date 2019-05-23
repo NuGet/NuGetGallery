@@ -1,0 +1,156 @@
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
+using System.Collections.Generic;
+using Microsoft.Azure.Search.Models;
+using NuGetGallery;
+
+namespace NuGet.Services.AzureSearch.SearchService
+{
+    public class SearchParametersBuilder : ISearchParametersBuilder
+    {
+        public const int DefaultTake = 20;
+        private const int MaximumTake = 1000;
+
+        private static readonly List<string> PackageIdsAutocompleteSelect = new List<string> { IndexFields.PackageId };
+        private static readonly List<string> PackageVersionsAutocompleteSelect = new List<string> { IndexFields.Search.Versions };
+
+        private static readonly string Ascending = " asc";
+        private static readonly string Descending = " desc";
+        private static readonly List<string> LastEditedDescending = new List<string> { IndexFields.LastEdited + Descending };
+        private static readonly List<string> PublishedDescending = new List<string> { IndexFields.Published + Descending };
+        private static readonly List<string> SortableTitleAscending = new List<string> { IndexFields.SortableTitle + Ascending };
+        private static readonly List<string> SortableTitleDescending = new List<string> { IndexFields.SortableTitle + Descending };
+
+        public SearchParameters V2Search(V2SearchRequest request)
+        {
+            var searchParameters = NewSearchParameters();
+
+            if (request.CountOnly)
+            {
+                searchParameters.Skip = 0;
+                searchParameters.Top = 0;
+                searchParameters.OrderBy = null;
+            }
+            else
+            {
+                ApplyPaging(searchParameters, request);
+                searchParameters.OrderBy = GetOrderBy(request.SortBy);
+            }
+
+            if (request.IgnoreFilter)
+            {
+                // Note that the prerelease flag has no effect when IgnoreFilter is true.
+
+                if (!request.IncludeSemVer2)
+                {
+                    searchParameters.Filter = $"{IndexFields.SemVerLevel} ne {SemVerLevelKey.SemVer2}";
+                }
+            }
+            else
+            {
+                ApplySearchIndexFilter(searchParameters, request);
+            }
+
+            return searchParameters;
+        }
+
+        public SearchParameters V3Search(V3SearchRequest request)
+        {
+            var searchParameters = NewSearchParameters();
+
+            ApplyPaging(searchParameters, request);
+            ApplySearchIndexFilter(searchParameters, request);
+
+            return searchParameters;
+        }
+
+        public SearchParameters Autocomplete(AutocompleteRequest request)
+        {
+            var searchParameters = NewSearchParameters();
+
+            ApplySearchIndexFilter(searchParameters, request);
+
+            switch (request.Type)
+            {
+                case AutocompleteRequestType.PackageIds:
+                    searchParameters.Select = PackageIdsAutocompleteSelect;
+                    ApplyPaging(searchParameters, request);
+                    break;
+                
+                // Package version autocomplete should only match a single document
+                // regardless of the request's parameters.
+                case AutocompleteRequestType.PackageVersions:
+                    searchParameters.Select = PackageVersionsAutocompleteSelect;
+                    searchParameters.Skip = 0;
+                    searchParameters.Top = 1;
+                    break;
+
+                default:
+                    throw new InvalidOperationException($"Unknown autocomplete request type '{request.Type}'");
+            }
+
+            return searchParameters;
+        }
+
+        private static SearchParameters NewSearchParameters()
+        {
+            return new SearchParameters
+            {
+                IncludeTotalResultCount = true,
+                QueryType = QueryType.Full,
+            };
+        }
+
+        private static void ApplyPaging(SearchParameters searchParameters, SearchRequest request)
+        {
+            searchParameters.Skip = request.Skip < 0 ? 0 : request.Skip;
+            searchParameters.Top = request.Take < 0 || request.Take > MaximumTake ? DefaultTake : request.Take;
+        }
+
+        private static void ApplySearchIndexFilter(SearchParameters searchParameters, SearchRequest request)
+        {
+            var searchFilters = SearchFilters.Default;
+
+            if (request.IncludePrerelease)
+            {
+                searchFilters |= SearchFilters.IncludePrerelease;
+            }
+
+            if (request.IncludeSemVer2)
+            {
+                searchFilters |= SearchFilters.IncludeSemVer2;
+            }
+
+            searchParameters.Filter = $"{IndexFields.Search.SearchFilters} eq '{DocumentUtilities.GetSearchFilterString(searchFilters)}'";
+        }
+
+        private static IList<string> GetOrderBy(V2SortBy sortBy)
+        {
+            IList<string> orderBy;
+            switch (sortBy)
+            {
+                case V2SortBy.Popularity:
+                    orderBy = null;
+                    break;
+                case V2SortBy.LastEditedDescending:
+                    orderBy = LastEditedDescending;
+                    break;
+                case V2SortBy.PublishedDescending:
+                    orderBy = PublishedDescending;
+                    break;
+                case V2SortBy.SortableTitleAsc:
+                    orderBy = SortableTitleAscending;
+                    break;
+                case V2SortBy.SortableTitleDesc:
+                    orderBy = SortableTitleDescending;
+                    break;
+                default:
+                    throw new ArgumentException($"The provided {nameof(V2SortBy)} is not supported.", nameof(sortBy));
+            }
+
+            return orderBy;
+        }
+    }
+}

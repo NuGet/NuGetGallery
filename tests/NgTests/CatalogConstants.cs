@@ -5,6 +5,7 @@ namespace NgTests
 {
     public static class CatalogConstants
     {
+        public const string AlternatePackage = "alternatePackage";
         public const string AppendOnlyCatalog = "AppendOnlyCatalog";
         public const string Authors = "authors";
         public const string Catalog = "catalog";
@@ -31,6 +32,7 @@ namespace NgTests
         public const string Dependency = "dependency";
         public const string DependencyGroup = "dependencyGroup";
         public const string DependencyGroups = "dependencyGroups";
+        public const string Deprecation = "deprecation";
         public const string Description = "description";
         public const string Details = "details";
         public const string Entries = "entries";
@@ -48,6 +50,7 @@ namespace NgTests
         public const string Links = "links";
         public const string Listed = "listed";
         public const string Lower = "lower";
+        public const string Message = "message";
         public const string MinClientVersion = "minClientVersion";
         public const string Name = "name";
         public const string NuGet = "nuget";
@@ -78,6 +81,8 @@ namespace NgTests
         public const string Permalink = "Permalink";
         public const string ProjectUrl = "projectUrl";
         public const string Published = "published";
+        public const string Range = "range";
+        public const string Reasons = "reasons";
         public const string RequireLicenseAcceptance = "requireLicenseAcceptance";
         public const string Registration = "registration";
         public const string SetKeyword = "@set";

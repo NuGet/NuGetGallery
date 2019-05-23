@@ -17,6 +17,7 @@ using System.Xml;
 using System.Xml.Linq;
 using System.Xml.Xsl;
 using JsonLD.Core;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGet.Services.Metadata.Catalog.JsonLDIntegration;
@@ -35,6 +36,19 @@ namespace NuGet.Services.Metadata.Catalog
         private static readonly Lazy<XslCompiledTransform> XslTransformNormalizeNuSpecNamespaceCache = new Lazy<XslCompiledTransform>(() => SafeLoadXslTransform(XslTransformNormalizeNuSpecNamespace));
 
         private static readonly ConcurrentDictionary<string, string> _resourceStringCache = new ConcurrentDictionary<string, string>();
+
+        private static readonly char[] TagTrimChars = { ',', ' ', '\t', '|', ';' };
+
+        public static string[] SplitTags(string original)
+        {
+            var fields = original
+                .Split(TagTrimChars)
+                .Select(w => w.Trim(TagTrimChars))
+                .Where(w => w.Length > 0)
+                .ToArray();
+
+            return fields;
+        }
 
         public static Stream GetResourceStream(string resourceName)
         {
@@ -245,20 +259,23 @@ namespace NuGet.Services.Metadata.Catalog
             }
         }
 
-        public static IGraph CreateGraph(string json)
+        public static IGraph CreateGraph(Uri resourceUri, string json)
         {
             if (json == null)
             {
                 return null;
             }
 
-            JToken compacted = JToken.Parse(json);
-            return CreateGraph(compacted);
-        }
-
-        public static IGraph CreateGraph(JToken compacted)
-        {
-            return CreateGraph(compacted, readOnly: false);
+            try
+            {
+                JToken compacted = JToken.Parse(json);
+                return CreateGraph(compacted, readOnly: false);
+            }
+            catch (JsonException e)
+            {
+                Trace.TraceError("Exception: failed to parse {0} {1}", resourceUri, e);
+                throw;
+            }
         }
 
         public static IGraph CreateGraph(JToken compacted, bool readOnly)

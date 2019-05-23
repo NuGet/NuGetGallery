@@ -52,13 +52,11 @@ namespace NuGet.Services.Metadata.Catalog.Registration
 
         private static async Task<IDictionary<RegistrationEntryKey, RegistrationCatalogEntry>> Load(IStorage storage, Uri resourceUri, CancellationToken cancellationToken)
         {
-            Trace.TraceInformation("RegistrationPersistence.Load: resourceUri = {0}", resourceUri);
-
             IGraph graph = await LoadCatalog(storage, resourceUri, cancellationToken);
 
             IDictionary<RegistrationEntryKey, RegistrationCatalogEntry> resources = GetResources(graph);
 
-            Trace.TraceInformation("RegistrationPersistence.Load: resources = {0}", resources.Count);
+            Trace.TraceInformation("RegistrationPersistence.Load: resourceUri = {0}, resources = {1}", resourceUri, resources.Count);
 
             return resources;
         }
@@ -117,11 +115,9 @@ namespace NuGet.Services.Metadata.Catalog.Registration
 
         private static async Task<IGraph> LoadCatalog(IStorage storage, Uri resourceUri, CancellationToken cancellationToken)
         {
-            Trace.TraceInformation("RegistrationPersistence.LoadCatalog: resourceUri = {0}", resourceUri);
-
             string json = await storage.LoadStringAsync(resourceUri, cancellationToken);
 
-            IGraph graph = Utils.CreateGraph(json);
+            IGraph graph = Utils.CreateGraph(resourceUri, json);
 
             if (graph == null)
             {
@@ -155,9 +151,8 @@ namespace NuGet.Services.Metadata.Catalog.Registration
 
         private static async Task<IGraph> LoadCatalogPage(IStorage storage, Uri pageUri, CancellationToken cancellationToken)
         {
-            Trace.TraceInformation("RegistrationPersistence.LoadCatalogPage: pageUri = {0}", pageUri);
             string json = await storage.LoadStringAsync(pageUri, cancellationToken);
-            IGraph graph = Utils.CreateGraph(json);
+            IGraph graph = Utils.CreateGraph(pageUri, json);
             return graph;
         }
 

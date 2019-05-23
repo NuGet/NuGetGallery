@@ -11,6 +11,7 @@
         "published": { "@type": "xsd:dateTime" },
         "created": { "@type": "xsd:dateTime" },
         "lastEdited" : { "@type" : "xsd:dateTime" },
-        "catalog:commitTimeStamp" : { "@type" : "xsd:dateTime" }
+        "catalog:commitTimeStamp" : { "@type" : "xsd:dateTime" },
+        "reasons" : { "@container" : "@set" }
     }
 }

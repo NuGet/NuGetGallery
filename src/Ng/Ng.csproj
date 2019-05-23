@@ -109,9 +109,6 @@
     <None Include="Ng.Operations.nuspec">
       <SubType>Designer</SubType>
     </None>
-    <None Include="Ng.nuspec">
-      <SubType>Designer</SubType>
-    </None>
     <None Include="Scripts\**" />
   </ItemGroup>
   <ItemGroup>
@@ -122,6 +119,10 @@
     <ProjectReference Include="..\NuGet.Indexing\NuGet.Indexing.csproj">
       <Project>{ddb34145-870f-42c3-9663-a9390cee1e35}</Project>
       <Name>NuGet.Indexing</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NuGet.Protocol.Catalog\NuGet.Protocol.Catalog.csproj">
+      <Project>{d44c2e89-2d98-44bd-8712-8ccbe4e67c9c}</Project>
+      <Name>NuGet.Protocol.Catalog</Name>
     </ProjectReference>
     <ProjectReference Include="..\NuGet.Services.Metadata.Catalog.Monitoring\NuGet.Services.Metadata.Catalog.Monitoring.csproj">
       <Project>{1745a383-d0be-484b-81eb-27b20f6ac6c5}</Project>
@@ -171,7 +172,7 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="NuGet.Protocol">
-      <Version>4.8.0</Version>
+      <Version>5.0.0-preview1.5665</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Configuration">
       <Version>2.2.2</Version>
@@ -198,9 +199,6 @@
   </PropertyGroup>
   <Import Project="$(SignPath)\sign.targets" Condition="Exists('$(SignPath)\sign.targets')" />
   <Import Project="$(SignPath)\sign.microbuild.targets" Condition="Exists('$(SignPath)\sign.microbuild.targets')" />
-  <ItemGroup>
-    <PowerShellScriptsToSign Include="RunE2ETests.ps1" />
-  </ItemGroup>
   <Import Project="$(SignPath)\sign.scripts.targets" Condition="Exists('$(SignPath)\sign.scripts.targets')" />
   <Import Project="..\..\sign.thirdparty.targets" />
 </Project>

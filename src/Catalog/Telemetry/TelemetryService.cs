@@ -193,5 +193,17 @@ namespace NuGet.Services.Metadata.Catalog
         {
             return new DurationMetric(_telemetryClient, name, properties);
         }
+
+        public void TrackIconExtractionFailure(string packageId, string normalizedPackageVersion)
+        {
+            _telemetryClient.TrackMetric(
+                TelemetryConstants.IconExtractionFailed,
+                1,
+                new Dictionary<string, string>
+                {
+                    { TelemetryConstants.Id, packageId },
+                    { TelemetryConstants.Version, normalizedPackageVersion }
+                });
+        }
     }
 }

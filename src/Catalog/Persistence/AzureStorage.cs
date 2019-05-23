@@ -7,18 +7,21 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.DataMovement;
 using Microsoft.WindowsAzure.Storage.RetryPolicies;
+using NuGet.Protocol;
 
 namespace NuGet.Services.Metadata.Catalog.Persistence
 {
     public class AzureStorage : Storage, IAzureStorage
     {
         private readonly bool _compressContent;
+        private readonly IThrottle _throttle;
         private readonly CloudBlobDirectory _directory;
         private readonly bool _useServerSideCopy;
 
@@ -30,44 +33,32 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             string containerName,
             string path,
             Uri baseAddress,
-            bool useServerSideCopy,
-            bool compressContent,
-            bool verbose)
-            : this(
-                  account,
-                  containerName,
-                  path,
-                  baseAddress,
-                  DefaultMaxExecutionTime,
-                  DefaultServerTimeout,
-                  useServerSideCopy,
-                  compressContent,
-                  verbose)
-        {
-        }
-
-        public AzureStorage(
-            CloudStorageAccount account,
-            string containerName,
-            string path,
-            Uri baseAddress,
             TimeSpan maxExecutionTime,
             TimeSpan serverTimeout,
             bool useServerSideCopy,
             bool compressContent,
-            bool verbose)
-           : this(account.CreateCloudBlobClient().GetContainerReference(containerName).GetDirectoryReference(path),
-                 baseAddress,
-                 maxExecutionTime,
-                 serverTimeout)
+            bool verbose,
+            bool initializeContainer,
+            IThrottle throttle) : this(
+                account.CreateCloudBlobClient().GetContainerReference(containerName).GetDirectoryReference(path),
+                baseAddress,
+                maxExecutionTime,
+                serverTimeout,
+                initializeContainer)
         {
             _useServerSideCopy = useServerSideCopy;
             _compressContent = compressContent;
+            _throttle = throttle ?? NullThrottle.Instance;
             Verbose = verbose;
         }
 
-        private AzureStorage(CloudBlobDirectory directory, Uri baseAddress, TimeSpan maxExecutionTime, TimeSpan serverTimeout)
-            : base(baseAddress ?? GetDirectoryUri(directory))
+        private AzureStorage(
+            CloudBlobDirectory directory,
+            Uri baseAddress,
+            TimeSpan maxExecutionTime,
+            TimeSpan serverTimeout,
+            bool initializeContainer) : base(
+                baseAddress ?? GetDirectoryUri(directory))
         {
             _directory = directory;
 
@@ -80,13 +71,16 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
                 RetryPolicy = new ExponentialRetry()
             };
 
-            if (_directory.Container.CreateIfNotExists())
+            if (initializeContainer)
             {
-                _directory.Container.SetPermissions(new BlobContainerPermissions { PublicAccess = BlobContainerPublicAccessType.Blob });
-
-                if (Verbose)
+                if (_directory.Container.CreateIfNotExists())
                 {
-                    Trace.WriteLine(string.Format("Created '{0}' publish container", _directory.Container.Name));
+                    _directory.Container.SetPermissions(new BlobContainerPermissions { PublicAccess = BlobContainerPublicAccessType.Blob });
+
+                    if (Verbose)
+                    {
+                        Trace.WriteLine(string.Format("Created '{0}' public container", _directory.Container.Name));
+                    }
                 }
             }
         }
@@ -298,7 +292,8 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
             CloudBlockBlob blob = GetBlockBlobReference(name);
 
-            if (blob.Exists())
+            await _throttle.WaitAsync();
+            try
             {
                 string content;
 
@@ -329,13 +324,19 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
                 return new StringStorageContent(content);
             }
-
-            if (Verbose)
+            catch (StorageException ex) when (ex.RequestInformation?.HttpStatusCode == (int)HttpStatusCode.NotFound)
             {
-                Trace.WriteLine(string.Format("Can't load '{0}'. Blob doesn't exist", resourceUri));
-            }
+                if (Verbose)
+                {
+                    Trace.WriteLine(string.Format("Can't load '{0}'. Blob doesn't exist", resourceUri));
+                }
 
-            return null;
+                return null;
+            }
+            finally
+            {
+                _throttle.Release();
+            }
         }
 
         protected override async Task OnDeleteAsync(Uri resourceUri, CancellationToken cancellationToken)

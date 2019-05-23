@@ -22,7 +22,7 @@ namespace NuGet.Protocol.Catalog {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class TestData {
+    public class TestData {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
@@ -36,7 +36,7 @@ namespace NuGet.Protocol.Catalog {
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Resources.ResourceManager ResourceManager {
+        public static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
                     global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("NuGet.Protocol.Catalog.TestData", typeof(TestData).Assembly);
@@ -51,7 +51,7 @@ namespace NuGet.Protocol.Catalog {
         ///   resource lookups using this strongly typed resource class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Globalization.CultureInfo Culture {
+        public static global::System.Globalization.CultureInfo Culture {
             get {
                 return resourceCulture;
             }
@@ -63,7 +63,7 @@ namespace NuGet.Protocol.Catalog {
         /// <summary>
         ///   Looks up a localized string similar to {&quot;@id&quot;:&quot;https://api.nuget.org/v3/catalog0/index.json&quot;,&quot;@type&quot;:[&quot;CatalogRoot&quot;,&quot;AppendOnlyCatalog&quot;,&quot;Permalink&quot;],&quot;commitId&quot;:&quot;57de6c98-d4c6-4a24-95b9-1829c5013985&quot;,&quot;commitTimeStamp&quot;:&quot;2017-11-06T19:30:56.0421411Z&quot;,&quot;count&quot;:2945,&quot;nuget:lastCreated&quot;:&quot;2017-11-06T19:30:30.19Z&quot;,&quot;nuget:lastDeleted&quot;:&quot;2017-11-06T19:27:45.3684766Z&quot;,&quot;nuget:lastEdited&quot;:&quot;2017-11-06T19:02:37.87Z&quot;,&quot;items&quot;:[{&quot;@id&quot;:&quot;https://api.nuget.org/v3/catalog0/page0.json&quot;,&quot;@type&quot;:&quot;CatalogPage&quot;,&quot;commitId&quot;:&quot;00000000-0000-0000-0000-000000000000&quot;,&quot;commitTimeSt [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string CatalogIndex {
+        public static string CatalogIndex {
             get {
                 return ResourceManager.GetString("CatalogIndex", resourceCulture);
             }
@@ -72,16 +72,46 @@ namespace NuGet.Protocol.Catalog {
         /// <summary>
         ///   Looks up a localized string similar to https://api.nuget.org/v3/catalog0/index.json.
         /// </summary>
-        internal static string CatalogIndexUrl {
+        public static string CatalogIndexUrl {
             get {
                 return ResourceManager.GetString("CatalogIndexUrl", resourceCulture);
             }
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {
+        ///  &quot;@id&quot;: &quot;https://api.nuget.org/v3/catalog0/data/2016.02.21.11.06.01/dingu.generic.repo.ef7.1.0.0-beta2.json&quot;,
+        ///  &quot;@type&quot;: [
+        ///    &quot;PackageDetails&quot;,
+        ///    &quot;catalog:Permalink&quot;
+        ///  ],
+        ///  &quot;authors&quot;: &quot;3344hp&quot;,
+        ///  &quot;catalog:commitId&quot;: &quot;eddb29f8-32c6-41da-8928-0940927a708b&quot;,
+        ///  &quot;catalog:commitTimeStamp&quot;: &quot;2016-02-21T11:06:01.8896907Z&quot;,
+        ///  &quot;created&quot;: &quot;2016-02-21T11:05:37.54Z&quot;,
+        ///  &quot;description&quot;: &quot;Dingu.Generic.Repo.EF7 Class Library&quot;,
+        ///  &quot;frameworkAssemblyGroup&quot;: {
+        ///    &quot;@id&quot;: &quot;https://api.nuget.org/v3/catalog0/data [rest of string was truncated]&quot;;.
+        /// </summary>
+        public static string CatalogLeafInvalidDependencyVersionRange {
+            get {
+                return ResourceManager.GetString("CatalogLeafInvalidDependencyVersionRange", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to https://api.nuget.org/v3/catalog0/data/2016.02.21.11.06.01/dingu.generic.repo.ef7.1.0.0-beta2.json.
+        /// </summary>
+        public static string CatalogLeafInvalidDependencyVersionRangeUrl {
+            get {
+                return ResourceManager.GetString("CatalogLeafInvalidDependencyVersionRangeUrl", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {&quot;@id&quot;:&quot;https://api.nuget.org/v3/catalog0/page2944.json&quot;,&quot;@type&quot;:&quot;CatalogPage&quot;,&quot;commitId&quot;:&quot;f241ce46-35ba-44c2-bd72-790eb44539a5&quot;,&quot;commitTimeStamp&quot;:&quot;2017-11-06T22:07:49.3270578Z&quot;,&quot;count&quot;:218,&quot;parent&quot;:&quot;https://api.nuget.org/v3/catalog0/index.json&quot;,&quot;items&quot;:[{&quot;@id&quot;:&quot;https://api.nuget.org/v3/catalog0/data/2017.11.06.22.07.49/dotnettency.container.1.3.2.json&quot;,&quot;@type&quot;:&quot;nuget:PackageDetails&quot;,&quot;commitId&quot;:&quot;f241ce46-35ba-44c2-bd72-790eb44539a5&quot;,&quot;commitTimeStamp&quot;:&quot;2017-11-06T22:07:49.3270578Z&quot;,&quot;nuget:id&quot;:&quot;Dotnettency.Co [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string CatalogPage {
+        public static string CatalogPage {
             get {
                 return ResourceManager.GetString("CatalogPage", resourceCulture);
             }
@@ -90,7 +120,7 @@ namespace NuGet.Protocol.Catalog {
         /// <summary>
         ///   Looks up a localized string similar to https://api.nuget.org/v3/catalog0/page2944.json.
         /// </summary>
-        internal static string CatalogPageUrl {
+        public static string CatalogPageUrl {
             get {
                 return ResourceManager.GetString("CatalogPageUrl", resourceCulture);
             }
@@ -112,7 +142,7 @@ namespace NuGet.Protocol.Catalog {
         ///  &quot;@context&quot;: {
         ///    &quot;@vocab&quot; [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string PackageDeleteCatalogLeaf {
+        public static string PackageDeleteCatalogLeaf {
             get {
                 return ResourceManager.GetString("PackageDeleteCatalogLeaf", resourceCulture);
             }
@@ -121,7 +151,7 @@ namespace NuGet.Protocol.Catalog {
         /// <summary>
         ///   Looks up a localized string similar to https://api.nuget.org/v3/catalog0/data/2017.11.06.19.29.03/microsoft.azure.iot.edge.function.0.3.0.json.
         /// </summary>
-        internal static string PackageDeleteCatalogLeafUrl {
+        public static string PackageDeleteCatalogLeafUrl {
             get {
                 return ResourceManager.GetString("PackageDeleteCatalogLeafUrl", resourceCulture);
             }
@@ -141,7 +171,7 @@ namespace NuGet.Protocol.Catalog {
         ///  &quot;description&quot;: &quot;Container support, for the dotnettency Mutlitenancy library for dotnet standard compatible applications.&quot;,
         ///  &quot;id&quot;: &quot;Do [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string PackageDetailsCatalogLeaf {
+        public static string PackageDetailsCatalogLeaf {
             get {
                 return ResourceManager.GetString("PackageDetailsCatalogLeaf", resourceCulture);
             }
@@ -150,9 +180,99 @@ namespace NuGet.Protocol.Catalog {
         /// <summary>
         ///   Looks up a localized string similar to https://api.nuget.org/v3/catalog0/data/2017.11.06.22.07.49/dotnettency.container.1.3.2.json.
         /// </summary>
-        internal static string PackageDetailsCatalogLeafUrl {
+        public static string PackageDetailsCatalogLeafUrl {
             get {
                 return ResourceManager.GetString("PackageDetailsCatalogLeafUrl", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {&quot;@id&quot;:&quot;https://api.nuget.org/v3/registration3-gz-semver2/microbuild.core/index.json&quot;,&quot;@type&quot;:[&quot;catalog:CatalogRoot&quot;,&quot;PackageRegistration&quot;,&quot;catalog:Permalink&quot;],&quot;commitId&quot;:&quot;bef2767e-f5ae-4713-b5fc-510945bacdf9&quot;,&quot;commitTimeStamp&quot;:&quot;2018-11-26T19:53:07.9393299Z&quot;,&quot;count&quot;:1,&quot;items&quot;:[{&quot;@id&quot;:&quot;https://api.nuget.org/v3/registration3-gz-semver2/microbuild.core/index.json#page/0.1.1/0.3.1&quot;,&quot;@type&quot;:&quot;catalog:CatalogPage&quot;,&quot;commitId&quot;:&quot;bef2767e-f5ae-4713-b5fc-510945bacdf9&quot;,&quot;commitTimeStamp&quot;:&quot;2018-11-26T19:53:07.9393299Z&quot;,&quot;c [rest of string was truncated]&quot;;.
+        /// </summary>
+        public static string RegistrationIndexInlinedItems {
+            get {
+                return ResourceManager.GetString("RegistrationIndexInlinedItems", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to https://api.nuget.org/v3/registration3-gz-semver2/microbuild.core/index.json.
+        /// </summary>
+        public static string RegistrationIndexInlinedItemsUrl {
+            get {
+                return ResourceManager.GetString("RegistrationIndexInlinedItemsUrl", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {&quot;@id&quot;:&quot;https://api.nuget.org/v3/registration3-gz-semver2/ravendb.database/index.json&quot;,&quot;@type&quot;:[&quot;catalog:CatalogRoot&quot;,&quot;PackageRegistration&quot;,&quot;catalog:Permalink&quot;],&quot;commitId&quot;:&quot;11185fcc-dd1b-461f-b5c6-0c06068c0a6d&quot;,&quot;commitTimeStamp&quot;:&quot;2018-11-07T08:01:25.5414875Z&quot;,&quot;count&quot;:19,&quot;items&quot;:[{&quot;@id&quot;:&quot;https://api.nuget.org/v3/registration3-gz-semver2/ravendb.database/page/1.0.728-unstable/1.0.965-unstable.json&quot;,&quot;@type&quot;:&quot;catalog:CatalogPage&quot;,&quot;commitId&quot;:&quot;11185fcc-dd1b-461f-b5c6-0c06068c0a6d&quot;,&quot;commitTimeStamp&quot;:&quot;2018-11-07T08 [rest of string was truncated]&quot;;.
+        /// </summary>
+        public static string RegistrationIndexWithoutInlinedItems {
+            get {
+                return ResourceManager.GetString("RegistrationIndexWithoutInlinedItems", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to https://api.nuget.org/v3/registration3-gz-semver2/ravendb.database/index.json.
+        /// </summary>
+        public static string RegistrationIndexWithoutInlinedItemsUrl {
+            get {
+                return ResourceManager.GetString("RegistrationIndexWithoutInlinedItemsUrl", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {&quot;@id&quot;:&quot;https://api.nuget.org/v3/registration3-gz-semver2/newtonsoft.json/12.0.1.json&quot;,&quot;@type&quot;:[&quot;Package&quot;,&quot;http://schema.nuget.org/catalog#Permalink&quot;],&quot;catalogEntry&quot;:&quot;https://api.nuget.org/v3/catalog0/data/2018.11.27.18.15.55/newtonsoft.json.12.0.1.json&quot;,&quot;listed&quot;:true,&quot;packageContent&quot;:&quot;https://api.nuget.org/v3-flatcontainer/newtonsoft.json/12.0.1/newtonsoft.json.12.0.1.nupkg&quot;,&quot;published&quot;:&quot;2018-11-27T18:11:37.08+00:00&quot;,&quot;registration&quot;:&quot;https://api.nuget.org/v3/registration3-gz-semver2/newtonsoft.json/index.js [rest of string was truncated]&quot;;.
+        /// </summary>
+        public static string RegistrationLeafListed {
+            get {
+                return ResourceManager.GetString("RegistrationLeafListed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to https://api.nuget.org/v3/registration3-gz-semver2/newtonsoft.json/12.0.1.json.
+        /// </summary>
+        public static string RegistrationLeafListedUrl {
+            get {
+                return ResourceManager.GetString("RegistrationLeafListedUrl", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {&quot;@id&quot;:&quot;https://api.nuget.org/v3/registration3-gz-semver2/microbuild.core/0.1.1.json&quot;,&quot;@type&quot;:[&quot;Package&quot;,&quot;http://schema.nuget.org/catalog#Permalink&quot;],&quot;catalogEntry&quot;:&quot;https://api.nuget.org/v3/catalog0/data/2018.11.13.04.43.04/microbuild.core.0.1.1.json&quot;,&quot;listed&quot;:false,&quot;packageContent&quot;:&quot;https://api.nuget.org/v3-flatcontainer/microbuild.core/0.1.1/microbuild.core.0.1.1.nupkg&quot;,&quot;published&quot;:&quot;1900-01-01T00:00:00+00:00&quot;,&quot;registration&quot;:&quot;https://api.nuget.org/v3/registration3-gz-semver2/microbuild.core/index.json&quot;,&quot;@ [rest of string was truncated]&quot;;.
+        /// </summary>
+        public static string RegistrationLeafUnlisted {
+            get {
+                return ResourceManager.GetString("RegistrationLeafUnlisted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to https://api.nuget.org/v3/registration3-gz-semver2/microbuild.core/0.1.1.json.
+        /// </summary>
+        public static string RegistrationLeafUnlistedUrl {
+            get {
+                return ResourceManager.GetString("RegistrationLeafUnlistedUrl", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {&quot;@id&quot;:&quot;https://api.nuget.org/v3/registration3-gz-semver2/ravendb.database/page/3.5.35078-unstable/3.5.35142-unstable.json&quot;,&quot;@type&quot;:&quot;catalog:CatalogPage&quot;,&quot;commitId&quot;:&quot;11185fcc-dd1b-461f-b5c6-0c06068c0a6d&quot;,&quot;commitTimeStamp&quot;:&quot;2018-11-07T08:01:25.5414875Z&quot;,&quot;count&quot;:55,&quot;lower&quot;:&quot;3.5.35078-Unstable&quot;,&quot;parent&quot;:&quot;https://api.nuget.org/v3/registration3-gz-semver2/ravendb.database/index.json&quot;,&quot;upper&quot;:&quot;3.5.35142-Unstable&quot;,&quot;items&quot;:[{&quot;@id&quot;:&quot;https://api.nuget.org/v3/registration3-gz-semver2/ravendb.database/3.5.35078-unstabl [rest of string was truncated]&quot;;.
+        /// </summary>
+        public static string RegistrationPage {
+            get {
+                return ResourceManager.GetString("RegistrationPage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to https://api.nuget.org/v3/registration3-gz-semver2/ravendb.database/page/3.5.35078-unstable/3.5.35142-unstable.json.
+        /// </summary>
+        public static string RegistrationPageUrl {
+            get {
+                return ResourceManager.GetString("RegistrationPageUrl", resourceCulture);
             }
         }
     }

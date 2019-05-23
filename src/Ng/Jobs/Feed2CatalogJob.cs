@@ -4,10 +4,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using NuGet.Protocol;
 using NuGet.Services.Configuration;
 using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Helpers;
@@ -83,11 +85,23 @@ namespace Ng.Jobs
 
             if (preferAlternatePackageSourceStorage)
             {
-                preferredPackageSourceStorageFactory = CommandHelpers.CreateSuffixedStorageFactory("PreferredPackageSourceStorage", arguments, Verbose);
+                preferredPackageSourceStorageFactory = CommandHelpers.CreateSuffixedStorageFactory(
+                    "PreferredPackageSourceStorage", 
+                    arguments, 
+                    Verbose,
+                    new SemaphoreSlimThrottle(new SemaphoreSlim(ServicePointManager.DefaultConnectionLimit)));
             }
 
-            var catalogStorageFactory = CommandHelpers.CreateStorageFactory(arguments, Verbose);
-            var auditingStorageFactory = CommandHelpers.CreateSuffixedStorageFactory("Auditing", arguments, Verbose);
+            var catalogStorageFactory = CommandHelpers.CreateStorageFactory(
+                arguments, 
+                Verbose,
+                new SemaphoreSlimThrottle(new SemaphoreSlim(ServicePointManager.DefaultConnectionLimit)));
+
+            var auditingStorageFactory = CommandHelpers.CreateSuffixedStorageFactory(
+                "Auditing", 
+                arguments, 
+                Verbose,
+                new SemaphoreSlimThrottle(new SemaphoreSlim(ServicePointManager.DefaultConnectionLimit)));
 
             Logger.LogInformation("CONFIG source: \"{ConfigSource}\" storage: \"{Storage}\" preferred package source storage: \"{PreferredPackageSourceStorage}\"",
                 Gallery,

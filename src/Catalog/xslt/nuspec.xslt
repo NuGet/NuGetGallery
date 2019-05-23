@@ -125,7 +125,22 @@
                 </xsl:when>
               </xsl:choose>
             </xsl:when>
-            
+
+            <xsl:when test="self::nuget:icon">
+              <xsl:choose>
+                <xsl:when test="@type='file'">
+                  <ng:iconFile>
+                    <xsl:value-of select="."/>
+                  </ng:iconFile>
+                </xsl:when>
+                <xsl:when test="not(@type)">
+                  <ng:iconFile>
+                    <xsl:value-of select="."/>
+                  </ng:iconFile>
+                </xsl:when>
+              </xsl:choose>
+            </xsl:when>
+
             <xsl:when test="self::nuget:requireLicenseAcceptance">
               <ng:requireLicenseAcceptance rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">
                 <xsl:value-of select="."/>

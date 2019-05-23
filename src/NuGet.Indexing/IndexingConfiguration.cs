@@ -9,7 +9,7 @@ namespace NuGet.Indexing
     /// <summary>
     /// Provides configuration for Indexing.
     /// </summary>
-    public class IndexingConfiguration : Configuration
+    public class IndexingConfiguration : NuGet.Services.Configuration.Configuration
     {
         private const string SearchPrefix = "Search.";
         private const string LocalPrefix = "Local.";

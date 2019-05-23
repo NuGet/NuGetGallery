@@ -2,7 +2,9 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
 using Newtonsoft.Json.Linq;
+using NuGet.Services.Metadata.Catalog;
 
 namespace CatalogTests
 {
@@ -132,7 +134,7 @@ namespace CatalogTests
   ""authors"": ""James Newton-King"",
   ""catalog:commitId"": ""{1}"",
   ""catalog:commitTimeStamp"": ""{2}"",
-  ""created"": ""{3}"",
+  ""created"": ""{3}"",{6}
   ""description"": ""Json.NET is a popular high-performance JSON framework for .NET"",
   ""iconUrl"": ""http://www.newtonsoft.com/content/images/nugeticon.png"",
   ""id"": ""Newtonsoft.Json"",
@@ -650,9 +652,29 @@ namespace CatalogTests
     }},
     ""catalog:commitTimeStamp"": {{
       ""@type"": ""xsd:dateTime""
+    }},
+    ""reasons"": {{
+      ""@container"": ""@set""
     }}
   }}
 }}";
+
+        private const string _packageDeprecationDetails = @"
+  ""deprecation"": {{
+    ""@id"": ""{0}#deprecation"",{1}{2}
+    ""reasons"": [{3}]
+  }},";
+
+        private const string _packageDeprecationAlternatePackageDetails = @"
+    ""alternatePackage"": {{
+      ""@id"": ""{0}#deprecation/alternatePackage"",
+      ""id"": ""theId"",
+      ""range"": ""{1}""
+    }},";
+
+        private const string _packageDeprecationMessageDetails = @"
+    ""message"": ""this is the message"",";
+
         internal static JObject GetBeforeIndex(Uri indexUri)
         {
             return JObject.Parse(string.Format(_beforeIndex, indexUri));
@@ -702,7 +724,8 @@ namespace CatalogTests
             DateTime commitTimestamp,
             DateTime created,
             DateTime lastEdited,
-            DateTime published)
+            DateTime published,
+            PackageDeprecationItem deprecation)
         {
             return JObject.Parse(
                 string.Format(
@@ -712,7 +735,40 @@ namespace CatalogTests
                     commitTimestamp.ToString("O"),
                     created.ToString("O"),
                     lastEdited.ToString("O"),
-                    published.ToString("O")));
+                    published.ToString("O"),
+                    GetPackageDeprecationDetails(packageDetailsUri, deprecation)));
+        }
+
+        private static string GetPackageDeprecationDetails(
+            Uri packageDetailsUri,
+            PackageDeprecationItem deprecation)
+        {
+            if (deprecation == null)
+            {
+                return string.Empty;
+            }
+
+            return string.Format(
+                _packageDeprecationDetails,
+                packageDetailsUri,
+                GetPackageDeprecationAlternatePackageDetails(packageDetailsUri, deprecation),
+                deprecation.Message == null ? string.Empty : _packageDeprecationMessageDetails,
+                string.Join(",", deprecation.Reasons.Select(r => $"\r\n      \"{r}\"")) + "\r\n    ");
+        }
+
+        private static string GetPackageDeprecationAlternatePackageDetails(
+            Uri packageDetailsUri,
+            PackageDeprecationItem deprecation)
+        {
+            if (deprecation.AlternatePackageId == null)
+            {
+                return string.Empty;
+            }
+
+            return string.Format(
+                _packageDeprecationAlternatePackageDetails,
+                packageDetailsUri,
+                deprecation.AlternatePackageRange);
         }
     }
 }

@@ -21,13 +21,22 @@ namespace NuGet.Services.Metadata.Catalog
         public DateTime? CreatedDate { get; }
         public DateTime? LastEditedDate { get; }
         public DateTime? PublishedDate { get; }
+        public PackageDeprecationItem Deprecation { get; }
 
-        public PackageCatalogItem(NupkgMetadata nupkgMetadata, DateTime? createdDate = null, DateTime? lastEditedDate = null, DateTime? publishedDate = null, string licenseNames = null, string licenseReportUrl = null)
+        public PackageCatalogItem(
+            NupkgMetadata nupkgMetadata, 
+            DateTime? createdDate = null, 
+            DateTime? lastEditedDate = null, 
+            DateTime? publishedDate = null, 
+            string licenseNames = null, 
+            string licenseReportUrl = null,
+            PackageDeprecationItem deprecation = null)
         {
             NupkgMetadata = nupkgMetadata;
             CreatedDate = createdDate;
             LastEditedDate = lastEditedDate;
             PublishedDate = publishedDate;
+            Deprecation = deprecation;
         }
 
         public override IGraph CreateContentGraph(CatalogContext context)
@@ -94,6 +103,52 @@ namespace NuGet.Services.Metadata.Catalog
             //  identity and version
             SetIdVersionFromGraph(graph);
 
+            // deprecation
+            if (Deprecation != null)
+            {
+                // assert deprecation root node to subject
+                var deprecationPredicate = graph.CreateUriNode(Schema.Predicates.Deprecation);
+                var deprecationRootNode = graph.CreateUriNode(new Uri(resource.Subject.ToString() + "#deprecation"));
+                graph.Assert(resource.Subject, deprecationPredicate, deprecationRootNode);
+
+                // assert reasons to deprecation root node
+                var deprecationReasonRootNode = graph.CreateUriNode(Schema.Predicates.Reasons);
+                foreach (var reason in Deprecation.Reasons)
+                {
+                    var reasonNode = graph.CreateLiteralNode(reason);
+                    graph.Assert(deprecationRootNode, deprecationReasonRootNode, reasonNode);
+                }
+
+                // assert message to deprecation root node
+                if (Deprecation.Message != null)
+                {
+                    graph.Assert(
+                        deprecationRootNode,
+                        graph.CreateUriNode(Schema.Predicates.Message),
+                        graph.CreateLiteralNode(Deprecation.Message));
+                }
+
+                if (Deprecation.AlternatePackageId != null)
+                {
+                    // assert alternate package root node to deprecation root node
+                    var deprecationAlternatePackagePredicate = graph.CreateUriNode(Schema.Predicates.AlternatePackage);
+                    var deprecationAlternatePackageRootNode = graph.CreateUriNode(new Uri(resource.Subject.ToString() + "#deprecation/alternatePackage"));
+                    graph.Assert(deprecationRootNode, deprecationAlternatePackagePredicate, deprecationAlternatePackageRootNode);
+
+                    // assert id to alternate package root node
+                    graph.Assert(
+                        deprecationAlternatePackageRootNode,
+                        graph.CreateUriNode(Schema.Predicates.Id),
+                        graph.CreateLiteralNode(Deprecation.AlternatePackageId));
+
+                    // assert version range to alternate package root node
+                    graph.Assert(
+                        deprecationAlternatePackageRootNode,
+                        graph.CreateUriNode(Schema.Predicates.Range),
+                        graph.CreateLiteralNode(Deprecation.AlternatePackageRange));
+                }
+            }
+
             return graph;
         }
 
@@ -142,6 +197,11 @@ namespace NuGet.Services.Metadata.Catalog
                 Triple resource = graph.GetTriplesWithPredicateObject(rdfTypePredicate, graph.CreateUriNode(GetItemType())).First();
                 graph.Assert(resource.Subject, timeStampPredicate, graph.CreateLiteralNode(TimeStamp.ToString("O"), Schema.DataTypes.DateTime));
                 graph.Assert(resource.Subject, commitIdPredicate, graph.CreateLiteralNode(CommitId.ToString()));
+
+                if (graph.GetTriples(Schema.Predicates.Deprecation).Count() > 1)
+                {
+                    throw new ArgumentException("Package catalog items can only have a single deprecation.");
+                }
 
                 //  create JSON content
                 JObject frame = context.GetJsonLdContext("context.PackageDetails.json", GetItemType());

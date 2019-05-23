@@ -108,6 +108,7 @@
     <Compile Include="IPackagesContainerHandler.cs" />
     <Compile Include="IHttpRetryStrategy.cs" />
     <Compile Include="PackageCatalogItemCreator.cs" />
+    <Compile Include="PackageDeprecationItem.cs" />
     <Compile Include="PackageDownloader.cs" />
     <Compile Include="Helpers\CatalogProperties.cs" />
     <Compile Include="Helpers\DeletionAuditEntry.cs" />
@@ -251,6 +252,12 @@
     <PackageReference Include="dotNetRDF">
       <Version>1.0.8.3533</Version>
     </PackageReference>
+    <PackageReference Include="NuGet.Packaging">
+      <Version>5.0.0-preview1.5665</Version>
+    </PackageReference>
+    <PackageReference Include="NuGet.Protocol">
+      <Version>5.0.0-preview1.5665</Version>
+    </PackageReference>
     <PackageReference Include="NuGet.StrongName.json-ld.net">
       <Version>1.0.6</Version>
     </PackageReference>
@@ -269,7 +276,7 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="NuGet.Packaging.Core">
-      <Version>4.8.0</Version>
+      <Version>5.0.0-preview1.5665</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Logging">
       <Version>2.25.0-master-30088</Version>
@@ -280,6 +287,12 @@
     <PackageReference Include="WindowsAzure.Storage">
       <Version>8.2.1</Version>
     </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NuGet.Protocol.Catalog\NuGet.Protocol.Catalog.csproj">
+      <Project>{d44c2e89-2d98-44bd-8712-8ccbe4e67c9c}</Project>
+      <Name>NuGet.Protocol.Catalog</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

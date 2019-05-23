@@ -79,6 +79,9 @@
     },
     "catalog:commitTimeStamp": {
       "@type": "xsd:dateTime"
+    },
+    "reasons": {
+      "@container": "@set"
     }
   }
 }

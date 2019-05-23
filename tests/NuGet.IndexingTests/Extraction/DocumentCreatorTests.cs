@@ -216,7 +216,7 @@ namespace NuGet.IndexingTests
             }
         }
 
-        public static IEnumerable<string[]> VerifiesRequiredPropertiesAreProvidedData
+        public static IEnumerable<object[]> VerifiesRequiredPropertiesAreProvidedData
         {
             get
             {
@@ -226,7 +226,7 @@ namespace NuGet.IndexingTests
             }
         }
 
-        public static IEnumerable<string[]> ValidatesPropertiesThatAreNotStringsData
+        public static IEnumerable<object[]> ValidatesPropertiesThatAreNotStringsData
         {
             get
             {

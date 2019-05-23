@@ -1,0 +1,240 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{1A53FE3D-8041-4773-942F-D73AEF5B82B2}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>NuGet.Services.AzureSearch</RootNamespace>
+    <AssemblyName>NuGet.Services.AzureSearch</AssemblyName>
+    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <Authors>.NET Foundation</Authors>
+    <PackageLicenseUrl>https://github.com/NuGet/NuGet.Services.Metadata/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/NuGet/NuGet.Services.Metadata</PackageProjectUrl>
+    <Description>Push NuGetGallery DB packages or catalog leaves to Azure Search.</Description>
+    <PackageTags>nuget azure search catalog leaf details incremental collector</PackageTags>
+    <Copyright>Copyright .NET Foundation</Copyright>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.CSharp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Analysis\DescriptionCustomAnalyzer.cs" />
+    <Compile Include="Analysis\IdentifierCustomTokenFilter.cs" />
+    <Compile Include="Analysis\PackageIdCustomAnalyzer.cs" />
+    <Compile Include="Analysis\PackageIdCustomTokenizer.cs" />
+    <Compile Include="DatabaseOwnerFetcher.cs" />
+    <Compile Include="AsDisposable.cs" />
+    <Compile Include="IDatabaseOwnerFetcher.cs" />
+    <Compile Include="Owners2AzureSearch\IOwnerIndexActionBuilder.cs" />
+    <Compile Include="Owners2AzureSearch\IOwnerSetComparer.cs" />
+    <Compile Include="Owners2AzureSearch\OwnerIndexActionBuilder.cs" />
+    <Compile Include="Owners2AzureSearch\OwnerSetComparer.cs" />
+    <Compile Include="PackageIdToOwnersBuilder.cs" />
+    <Compile Include="IOwnerDataClient.cs" />
+    <Compile Include="OwnerDataClient.cs" />
+    <Compile Include="ScoringProfiles\DownloadCountBoosterProfile.cs" />
+    <Compile Include="Owners2AzureSearch\Owners2AzureSearchCommand.cs" />
+    <Compile Include="SearchService\AzureSearchQueryBuilder.cs" />
+    <Compile Include="BlobContainerBuilder.cs" />
+    <Compile Include="IBlobContainerBuilder.cs" />
+    <Compile Include="Measure.cs" />
+    <Compile Include="DurationMeasurement.cs" />
+    <Compile Include="Analysis\ExactMatchCustomAnalyzer.cs" />
+    <Compile Include="SearchService\AuxiliaryDataCache.cs" />
+    <Compile Include="SearchService\AuxiliaryFileClient.cs" />
+    <Compile Include="SearchService\AuxiliaryFileReloader.cs" />
+    <Compile Include="AzureSearchConfiguration.cs" />
+    <Compile Include="AzureSearchJobConfiguration.cs" />
+    <Compile Include="Catalog2AzureSearch\AzureSearchCollector.cs" />
+    <Compile Include="Catalog2AzureSearch\AzureSearchCollectorLogic.cs" />
+    <Compile Include="Catalog2AzureSearch\Catalog2AzureSearchCommand.cs" />
+    <Compile Include="Catalog2AzureSearch\Catalog2AzureSearchConfiguration.cs" />
+    <Compile Include="BatchPusher.cs" />
+    <Compile Include="Catalog2AzureSearch\CatalogIndexActionBuilder.cs" />
+    <Compile Include="Catalog2AzureSearch\CatalogLeafFetcher.cs" />
+    <Compile Include="Catalog2AzureSearch\ICatalogIndexActionBuilder.cs" />
+    <Compile Include="Catalog2AzureSearch\ICatalogLeafFetcher.cs" />
+    <Compile Include="Catalog2AzureSearch\ICommitCollectorLogic.cs" />
+    <Compile Include="Catalog2AzureSearch\LatestCatalogLeaves.cs" />
+    <Compile Include="Catalog2AzureSearch\ReferenceEqualityComparer.cs" />
+    <Compile Include="DependencyInjectionExtensions.cs" />
+    <Compile Include="DocumentUtilities.cs" />
+    <Compile Include="HijackDocumentBuilder.cs" />
+    <Compile Include="IBatchPusher.cs" />
+    <Compile Include="Catalog2AzureSearch\ICollector.cs" />
+    <Compile Include="Db2AzureSearch\Db2AzureSearchCommand.cs" />
+    <Compile Include="Db2AzureSearch\Db2AzureSearchConfiguration.cs" />
+    <Compile Include="EntitiesContextFactory.cs" />
+    <Compile Include="Db2AzureSearch\EnumerableExtensions.cs" />
+    <Compile Include="IEntitiesContextFactory.cs" />
+    <Compile Include="Db2AzureSearch\INewPackageRegistrationProducer.cs" />
+    <Compile Include="Db2AzureSearch\NewPackageRegistration.cs" />
+    <Compile Include="Db2AzureSearch\NewPackageRegistrationProducer.cs" />
+    <Compile Include="IdAndValue.cs" />
+    <Compile Include="IHijackDocumentBuilder.cs" />
+    <Compile Include="IIndexBuilder.cs" />
+    <Compile Include="IndexActions.cs" />
+    <Compile Include="Db2AzureSearch\IPackageEntityIndexActionBuilder.cs" />
+    <Compile Include="IndexBuilder.cs" />
+    <Compile Include="ISearchDocumentBuilder.cs" />
+    <Compile Include="Models\CommittedDocument.cs" />
+    <Compile Include="Models\CurrentTimestamp.cs" />
+    <Compile Include="Models\IBaseMetadataDocument.cs" />
+    <Compile Include="Models\ICommittedDocument.cs" />
+    <Compile Include="Models\KeyedDocument.cs" />
+    <Compile Include="Models\BaseMetadataDocument.cs" />
+    <Compile Include="Models\HijackDocument.cs" />
+    <Compile Include="Models\IKeyedDocument.cs" />
+    <Compile Include="Models\SearchDocument.cs" />
+    <Compile Include="Db2AzureSearch\PackageEntityIndexActionBuilder.cs" />
+    <Compile Include="Registration\IRegistrationClient.cs" />
+    <Compile Include="Registration\Models\RegistrationCatalogEntry.cs" />
+    <Compile Include="Registration\Models\RegistrationIndex.cs" />
+    <Compile Include="Registration\Models\RegistrationLeafItem.cs" />
+    <Compile Include="Registration\Models\RegistrationPage.cs" />
+    <Compile Include="Registration\RegistrationClient.cs" />
+    <Compile Include="Registration\Models\RegistrationLeaf.cs" />
+    <Compile Include="Registration\RegistrationUrlBuilder.cs" />
+    <Compile Include="SearchDocumentBuilder.cs" />
+    <Compile Include="SearchService\AuxiliaryData.cs" />
+    <Compile Include="SearchService\AuxiliaryFileResult.cs" />
+    <Compile Include="SearchService\IAuxiliaryDataCache.cs" />
+    <Compile Include="SearchService\IAuxiliaryFileClient.cs" />
+    <Compile Include="SearchService\IAuxiliaryFileReloader.cs" />
+    <Compile Include="SearchService\ISearchStatusService.cs" />
+    <Compile Include="SearchService\ISearchTextBuilder.cs" />
+    <Compile Include="SearchService\InvalidSearchRequestException.cs" />
+    <Compile Include="SearchService\Models\AutocompleteContext.cs" />
+    <Compile Include="SearchService\Models\AutocompleteRequest.cs" />
+    <Compile Include="SearchService\Models\AutocompleteResponse.cs" />
+    <Compile Include="SearchService\Models\AutocompleteRequestType.cs" />
+    <Compile Include="SearchService\Models\AuxiliaryFileMetadata.cs" />
+    <Compile Include="SearchService\Models\AuxiliaryFilesMetadata.cs" />
+    <Compile Include="SearchService\AzureSearchService.cs" />
+    <Compile Include="SearchService\IAuxiliaryData.cs" />
+    <Compile Include="SearchService\IndexFields.cs" />
+    <Compile Include="SearchService\ISearchParametersBuilder.cs" />
+    <Compile Include="SearchService\ISearchResponseBuilder.cs" />
+    <Compile Include="SearchService\ISearchService.cs" />
+    <Compile Include="SearchService\Models\DebugInformation.cs" />
+    <Compile Include="SearchService\Models\IndexStatus.cs" />
+    <Compile Include="SearchService\Models\SearchRequest.cs" />
+    <Compile Include="SearchService\Models\ServerInformation.cs" />
+    <Compile Include="SearchService\Models\SearchStatusResponse.cs" />
+    <Compile Include="SearchService\Models\V2SearchDependency.cs" />
+    <Compile Include="SearchService\Models\V2SearchPackage.cs" />
+    <Compile Include="SearchService\Models\V2SearchPackageRegistration.cs" />
+    <Compile Include="SearchService\Models\V2SearchResponse.cs" />
+    <Compile Include="SearchService\Models\V2SearchRequest.cs" />
+    <Compile Include="SearchService\Models\V3SearchContext.cs" />
+    <Compile Include="SearchService\Models\V3SearchPackage.cs" />
+    <Compile Include="SearchService\Models\V3SearchRequest.cs" />
+    <Compile Include="SearchService\Models\V3SearchResponse.cs" />
+    <Compile Include="SearchService\Models\V3SearchVersion.cs" />
+    <Compile Include="SearchService\SearchParametersBuilder.cs" />
+    <Compile Include="SearchService\Models\V2SortBy.cs" />
+    <Compile Include="SearchService\SearchResponseBuilder.cs" />
+    <Compile Include="SearchService\SearchStatusService.cs" />
+    <Compile Include="SearchService\SearchTextBuilder.cs" />
+    <Compile Include="VersionList\Guard.cs" />
+    <Compile Include="VersionList\HijackIndexChange.cs" />
+    <Compile Include="VersionList\HijackIndexChangeType.cs" />
+    <Compile Include="VersionList\HijackDocumentChanges.cs" />
+    <Compile Include="VersionList\IndexChanges.cs" />
+    <Compile Include="VersionList\IVersionListDataClient.cs" />
+    <Compile Include="VersionList\LatestIndexChanges.cs" />
+    <Compile Include="VersionList\KeyValuePair.cs" />
+    <Compile Include="VersionList\LatestVersionInfo.cs" />
+    <Compile Include="VersionList\MutableHijackDocumentChanges.cs" />
+    <Compile Include="VersionList\MutableIndexChanges.cs" />
+    <Compile Include="VersionList\VersionListChange.cs" />
+    <Compile Include="VersionList\VersionProperties.cs" />
+    <Compile Include="VersionList\FilteredVersionProperties.cs" />
+    <Compile Include="VersionList\ResultAndAccessCondition.cs" />
+    <Compile Include="VersionList\SearchFilters.cs" />
+    <Compile Include="VersionList\SearchIndexChangeType.cs" />
+    <Compile Include="VersionList\SemVerOrderedDictionaryJsonConverter.cs" />
+    <Compile Include="VersionList\VersionLists.cs" />
+    <Compile Include="VersionList\VersionListDataClient.cs" />
+    <Compile Include="VersionList\VersionListData.cs" />
+    <Compile Include="VersionList\FilteredVersionList.cs" />
+    <Compile Include="VersionList\VersionPropertiesData.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Properties\AssemblyInfo.*.cs" />
+    <Compile Include="Wrappers\DocumentsOperationsWrapper.cs" />
+    <Compile Include="Wrappers\IDocumentsOperationsWrapper.cs" />
+    <Compile Include="Wrappers\IIndexesOperationsWrapper.cs" />
+    <Compile Include="Wrappers\IndexesOperationsWrapper.cs" />
+    <Compile Include="Wrappers\ISearchIndexClientWrapper.cs" />
+    <Compile Include="Wrappers\ISearchServiceClientWrapper.cs" />
+    <Compile Include="Wrappers\SearchIndexClientWrapper.cs" />
+    <Compile Include="Wrappers\SearchServiceClientWrapper.cs" />
+    <Compile Include="SearchService\SearchServiceConfiguration.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="MicroBuild.Core">
+      <Version>0.3.0</Version>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Azure.Search">
+      <Version>5.0.3</Version>
+    </PackageReference>
+    <PackageReference Include="NuGet.Services.Validation.Common.Job">
+      <Version>4.1.0-dev-2576357</Version>
+    </PackageReference>
+    <PackageReference Include="NuGet.Build.Tasks.Pack">
+      <Version>4.8.0</Version>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Catalog\NuGet.Services.Metadata.Catalog.csproj">
+      <Project>{e97f23b8-ecb0-4afa-b00c-015c39395fef}</Project>
+      <Name>NuGet.Services.Metadata.Catalog</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NuGet.Indexing\NuGet.Indexing.csproj">
+      <Project>{DDB34145-870F-42C3-9663-A9390CEE1E35}</Project>
+      <Name>NuGet.Indexing</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NuGet.Protocol.Catalog\NuGet.Protocol.Catalog.csproj">
+      <Project>{D44C2E89-2D98-44BD-8712-8CCBE4E67C9C}</Project>
+      <Name>NuGet.Protocol.Catalog</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <SignPath>..\..\build</SignPath>
+    <SignPath Condition="'$(BUILD_SOURCESDIRECTORY)' != ''">$(BUILD_SOURCESDIRECTORY)\build</SignPath>
+    <SignPath Condition="'$(NuGetBuildPath)' != ''">$(NuGetBuildPath)</SignPath>
+    <SignType Condition="'$(SignType)' == ''">none</SignType>
+  </PropertyGroup>
+  <Import Project="$(SignPath)\sign.targets" Condition="Exists('$(SignPath)\sign.targets')" />
+  <Import Project="$(SignPath)\sign.microbuild.targets" Condition="Exists('$(SignPath)\sign.microbuild.targets')" />
+</Project>

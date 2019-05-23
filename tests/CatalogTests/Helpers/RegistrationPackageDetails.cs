@@ -14,6 +14,8 @@ namespace CatalogTests.Helpers
         internal string TypeKeyword { get; }
         [JsonProperty(CatalogConstants.Authors)]
         internal string Authors { get; }
+        [JsonProperty(CatalogConstants.Deprecation)]
+        internal RegistrationPackageDeprecation Deprecation { get; }
         [JsonProperty(CatalogConstants.Description)]
         internal string Description { get; }
         [JsonProperty(CatalogConstants.IconUrl)]
@@ -50,6 +52,7 @@ namespace CatalogTests.Helpers
             string idKeyword,
             string typeKeyword,
             string authors,
+            RegistrationPackageDeprecation deprecation,
             string description,
             string iconUrl,
             string id,
@@ -69,6 +72,7 @@ namespace CatalogTests.Helpers
             IdKeyword = idKeyword;
             TypeKeyword = typeKeyword;
             Authors = authors;
+            Deprecation = deprecation;
             Description = description;
             IconUrl = iconUrl;
             Id = id;

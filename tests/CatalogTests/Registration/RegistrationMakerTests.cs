@@ -167,6 +167,69 @@ namespace CatalogTests.Registration
             }
         }
 
+        [Fact]
+        public async Task ProcessAsync_WithDeprecationInformation_FormatsPageCorrectly()
+        {
+            const int partitionSize = 1;
+            var pages = new List<ExpectedPage>();
+            IReadOnlyDictionary<string, IGraph> newItem;
+            MemoryStorage storage;
+            IReadOnlyList<ExpectedPage> expectedPages;
+
+            var packageDetailsList = new[]
+            {
+                // No deprecation
+                new CatalogIndependentPackageDetails(
+                    id: "deprecationTests", 
+                    version: "2.4.3"),
+
+                // Single reason
+                new CatalogIndependentPackageDetails(
+                    id: "deprecationTests", 
+                    version: "3.6.5", 
+                    deprecation: new RegistrationPackageDeprecation(
+                        new[] {"r1" })),
+
+                // Message
+                new CatalogIndependentPackageDetails(
+                    id: "deprecationTests",
+                    version: "4.7.6",
+                    deprecation: new RegistrationPackageDeprecation(
+                        new[] {"r1", "r2" },
+                        "the cow goes moo")),
+
+                // Alternate package
+                new CatalogIndependentPackageDetails(
+                    id: "deprecationTests",
+                    version: "5.9.8",
+                    deprecation: new RegistrationPackageDeprecation(
+                        new[] {"r1", "r2" },
+                        null,
+                        new RegistrationPackageDeprecationAlternatePackage("altPkg", "breezepackages"))),
+
+                // Message and alternate package
+                new CatalogIndependentPackageDetails(
+                    id: "deprecationTests",
+                    version: "6.0.2",
+                    deprecation: new RegistrationPackageDeprecation(
+                        new[] {"r1", "r2" },
+                        "the package goes nuu",
+                        new RegistrationPackageDeprecationAlternatePackage("altPkg", "breezepackages"))),
+            };
+
+            foreach (var packageDetails in packageDetailsList)
+            {
+                newItem = CreateNewItem(packageDetails);
+                storage = await ProcessAsync(newItem, packageDetails.Id, partitionSize);
+
+                pages.Add(new ExpectedPage(packageDetails));
+
+                expectedPages = Repaginate(pages, partitionSize);
+
+                Verify(storage, expectedPages, partitionSize);
+            }
+        }
+
         private static IReadOnlyDictionary<string, IGraph> CreateNewItem(CatalogIndependentPackageDetails packageDetails)
         {
             var json = JsonConvert.SerializeObject(packageDetails, _jsonSettings);
@@ -321,6 +384,9 @@ namespace CatalogTests.Registration
                     new JObject(
                         new JProperty(CatalogConstants.ContainerKeyword, CatalogConstants.SetKeyword),
                         new JProperty(CatalogConstants.IdKeyword, CatalogConstants.Tag))),
+                new JProperty(CatalogConstants.Reasons,
+                    new JObject(
+                        new JProperty(CatalogConstants.ContainerKeyword, CatalogConstants.SetKeyword))),
                 new JProperty(CatalogConstants.PackageTargetFrameworks,
                     new JObject(
                         new JProperty(CatalogConstants.ContainerKeyword, CatalogConstants.SetKeyword),
@@ -446,6 +512,34 @@ namespace CatalogTests.Registration
             Assert.Empty(package.CatalogEntry.Title);
             Assert.Equal(packageDetails.Version, package.CatalogEntry.Version);
 
+            var actualDeprecation = package.CatalogEntry.Deprecation;
+            var expectedDeprecation = packageDetails.Deprecation;
+            if (expectedDeprecation == null)
+            {
+                Assert.Null(actualDeprecation);
+            }
+            else
+            {
+                Assert.NotNull(actualDeprecation);
+
+                Assert.Equal(expectedDeprecation.Reasons.OrderBy(r => r), actualDeprecation.Reasons.OrderBy(r => r));
+                Assert.Equal(expectedDeprecation.Message, actualDeprecation.Message);
+
+                var actualDeprecationAltPackage = actualDeprecation.AlternatePackage;
+                var expectedDeprecationAltPackage = expectedDeprecation.AlternatePackage;
+                if (expectedDeprecationAltPackage == null)
+                {
+                    Assert.Null(actualDeprecationAltPackage);
+                }
+                else
+                {
+                    Assert.NotNull(actualDeprecationAltPackage);
+
+                    Assert.Equal(expectedDeprecationAltPackage.Id, actualDeprecationAltPackage.Id);
+                    Assert.Equal(expectedDeprecationAltPackage.Range, actualDeprecationAltPackage.Range);
+                }
+            }
+
             var independentPackageUri = GetRegistrationPackageVersionUri(packageId, packageVersion);
             var independentPackage = GetStorageContent<RegistrationIndependentPackage>(
                 registrationStorage,
@@ -527,6 +621,9 @@ namespace CatalogTests.Registration
                     new JObject(
                         new JProperty(CatalogConstants.ContainerKeyword, CatalogConstants.SetKeyword),
                         new JProperty(CatalogConstants.IdKeyword, CatalogConstants.Tag))),
+                new JProperty(CatalogConstants.Reasons,
+                    new JObject(
+                        new JProperty(CatalogConstants.ContainerKeyword, CatalogConstants.SetKeyword))),
                 new JProperty(CatalogConstants.PackageTargetFrameworks,
                     new JObject(
                         new JProperty(CatalogConstants.ContainerKeyword, CatalogConstants.SetKeyword),

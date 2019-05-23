@@ -54,7 +54,7 @@ namespace CatalogTests.Helpers
 
         [Theory]
         [MemberData(nameof(Equals_Data))]
-        public void Equals(string idA, string versionA, string idB, string versionB, bool success)
+        public void FeedPackageIdentityEquals(string idA, string versionA, string idB, string versionB, bool success)
         {
             var packageA = new FeedPackageIdentity(idA, versionA);
             var packageB = new FeedPackageIdentity(idB, versionB);

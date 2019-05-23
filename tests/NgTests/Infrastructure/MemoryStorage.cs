@@ -83,7 +83,10 @@ namespace NgTests.Infrastructure
                 var contentStream = content.GetContentStream();
                 await contentStream.CopyToAsync(memoryStream);
 
-                contentStream.Position = 0;
+                if (contentStream.CanSeek)
+                {
+                    contentStream.Position = 0;
+                }
 
                 ContentBytes[resourceUri] = memoryStream.ToArray();
             }

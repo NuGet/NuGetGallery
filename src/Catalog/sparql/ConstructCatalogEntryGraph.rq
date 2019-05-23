@@ -21,7 +21,8 @@ CONSTRUCT
                   nuget:language ?language ;
                   nuget:authors ?authors ;
                   nuget:tag ?tag ;
-                  nuget:minClientVersion ?minClientVersion .
+                  nuget:minClientVersion ?minClientVersion ;
+                  nuget:deprecation ?deprecation .
 
     ?dependency_group a nuget:PackageDependencyGroup ;
 	                  nuget:dependency ?dependency ;
@@ -31,6 +32,15 @@ CONSTRUCT
 	            nuget:id ?dependency_id ;
                 nuget:range ?dependency_range ;
                 nuget:version ?dependency_version .
+
+    ?deprecation a nuget:deprecation ;
+                 nuget:reasons ?deprecation_reasons ;
+                 nuget:message ?deprecation_message ;
+                 nuget:alternatePackage ?deprecation_alternatePackage .
+
+    ?deprecation_alternatePackage a nuget:alternatePackage ;
+                                  nuget:id ?deprecation_alternatePackage_id ;
+                                  nuget:range ?deprecation_alternatePackage_range .
 }
 WHERE
 {
@@ -66,5 +76,18 @@ WHERE
 			OPTIONAL { ?dependency nuget:range ?dependency_range . }
 			OPTIONAL { ?dependency nuget:version ?dependency_version . }
 		}
+    }
+    
+    OPTIONAL
+    {
+        ?catalogEntry nuget:deprecation ?deprecation .
+        ?deprecation nuget:reasons ?deprecation_reasons .
+        OPTIONAL { ?deprecation nuget:message ?deprecation_message . }
+        OPTIONAL 
+        { 
+            ?deprecation nuget:alternatePackage ?deprecation_alternatePackage . 
+            ?deprecation_alternatePackage nuget:id ?deprecation_alternatePackage_id .
+            ?deprecation_alternatePackage nuget:range ?deprecation_alternatePackage_range .
+        }
     }
 }

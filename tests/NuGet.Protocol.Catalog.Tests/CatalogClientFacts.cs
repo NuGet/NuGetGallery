@@ -19,7 +19,7 @@ namespace NuGet.Protocol.Catalog
                 // Arrange
                 using (var httpClient = new HttpClient(new TestDataHttpMessageHandler()))
                 {
-                    var client = new CatalogClient(httpClient, new NullLogger<CatalogClient>());
+                    var client = GetCatalogClient(httpClient);
 
                     // Act
                     var actual = await client.GetIndexAsync(TestData.CatalogIndexUrl);
@@ -41,7 +41,7 @@ namespace NuGet.Protocol.Catalog
                 // Arrange
                 using (var httpClient = new HttpClient(new TestDataHttpMessageHandler()))
                 {
-                    var client = new CatalogClient(httpClient, new NullLogger<CatalogClient>());
+                    var client = GetCatalogClient(httpClient);
 
                     // Act
                     var actual = await client.GetPageAsync(TestData.CatalogPageUrl);
@@ -63,7 +63,7 @@ namespace NuGet.Protocol.Catalog
                 // Arrange
                 using (var httpClient = new HttpClient(new TestDataHttpMessageHandler()))
                 {
-                    var client = new CatalogClient(httpClient, new NullLogger<CatalogClient>());
+                    var client = GetCatalogClient(httpClient);
 
                     // Act
                     var actual = await client.GetPackageDeleteLeafAsync(TestData.PackageDeleteCatalogLeafUrl);
@@ -82,13 +82,31 @@ namespace NuGet.Protocol.Catalog
                 // Arrange
                 using (var httpClient = new HttpClient(new TestDataHttpMessageHandler()))
                 {
-                    var client = new CatalogClient(httpClient, new NullLogger<CatalogClient>());
+                    var client = GetCatalogClient(httpClient);
 
                     // Act
                     var actual = await client.GetPackageDetailsLeafAsync(TestData.PackageDetailsCatalogLeafUrl);
 
                     // Assert
                     Assert.NotNull(actual);
+                }
+            }
+
+            [Fact]
+            public async Task WorksWithNuGetOrgDependencyVersionRangeArraySnapshot()
+            {
+                // Arrange
+                using (var httpClient = new HttpClient(new TestDataHttpMessageHandler()))
+                {
+                    var client = GetCatalogClient(httpClient);
+
+                    // Act
+                    var actual = await client.GetPackageDetailsLeafAsync(
+                        TestData.CatalogLeafInvalidDependencyVersionRangeUrl);
+
+                    // Assert
+                    Assert.NotNull(actual);
+                    Assert.Equal("[4.0.10, )", actual.DependencyGroups[1].Dependencies[3].Range);
                 }
             }
         }
@@ -101,7 +119,7 @@ namespace NuGet.Protocol.Catalog
                 // Arrange
                 using (var httpClient = new HttpClient(new TestDataHttpMessageHandler()))
                 {
-                    var client = new CatalogClient(httpClient, new NullLogger<CatalogClient>());
+                    var client = GetCatalogClient(httpClient);
 
                     // Act
                     var actual = await client.GetLeafAsync(TestData.PackageDeleteCatalogLeafUrl);
@@ -117,7 +135,7 @@ namespace NuGet.Protocol.Catalog
                 // Arrange
                 using (var httpClient = new HttpClient(new TestDataHttpMessageHandler()))
                 {
-                    var client = new CatalogClient(httpClient, new NullLogger<CatalogClient>());
+                    var client = GetCatalogClient(httpClient);
 
                     // Act
                     var actual = await client.GetLeafAsync(TestData.PackageDetailsCatalogLeafUrl);
@@ -126,6 +144,13 @@ namespace NuGet.Protocol.Catalog
                     Assert.NotNull(actual);
                 }
             }
+        }
+
+        private static CatalogClient GetCatalogClient(HttpClient httpClient)
+        {
+            return new CatalogClient(
+                new SimpleHttpClient(httpClient, new NullLogger<SimpleHttpClient>()),
+                new NullLogger<CatalogClient>());
         }
     }
 }

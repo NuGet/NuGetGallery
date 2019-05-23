@@ -11,7 +11,9 @@ using System.Threading.Tasks;
 using System.Web.Cors;
 using Lucene.Net.Store;
 using Microsoft.ApplicationInsights.Extensibility;
+using Microsoft.Azure.KeyVault;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Clients.ActiveDirectory;
 using Microsoft.Owin;
 using Microsoft.Owin.Cors;
 using Microsoft.Owin.FileSystems;
@@ -43,7 +45,7 @@ namespace NuGet.Services.BasicSearch
             ILoader loader)
         {
             _configFactory = configFactory;
-            var config = _configFactory.Get<BasicSearchConfiguration>().Result;
+            var config = GetConfiguration().Result;
 
             // Configure
             if ( ! string.IsNullOrEmpty(config.ApplicationInsightsInstrumentationKey))
@@ -210,6 +212,25 @@ namespace NuGet.Services.BasicSearch
             Configuration(app, new ConfigurationFactory(configurationProvider), null, null);
         }
 
+        private async Task<BasicSearchConfiguration> GetConfiguration()
+        {
+            try
+            {
+                return await _configFactory.Get<BasicSearchConfiguration>();
+            }
+            catch (KeyVaultClientException e) 
+            {
+                // The status code we expect is (e.Status == HttpStatusCode.Unauthorized || e.Status == HttpStatusCode.Forbidden) but the catch is not explicit since confidence here is low.
+
+                // A hack related to: https://github.com/nuget/engineering/issues/2412 This can be removed/ignored after AAD tenant migration.
+                TokenCache.DefaultShared.Clear();
+
+                _logger.LogWarning("Failed to get config from KeyVault. Cleared token cache. Error details: {Error}", e.ToString());
+            }
+
+            return await _configFactory.Get<BasicSearchConfiguration>();
+        }
+
         private async void ReopenCallback(object state)
         {
             try
@@ -228,7 +249,7 @@ namespace NuGet.Services.BasicSearch
                 {
                     var stopwatch = Stopwatch.StartNew();
 
-                    var newConfig = await _configFactory.Get<BasicSearchConfiguration>();
+                    var newConfig = await GetConfiguration();
                     _searcherManager.MaybeReopen(newConfig);
 
                     stopwatch.Stop();

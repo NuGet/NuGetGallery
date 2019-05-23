@@ -340,7 +340,7 @@ namespace NuGet.Services.Metadata.Catalog
             }
             else
             {
-                return Utils.CreateGraph(await Storage.LoadStringAsync(resourceUri, cancellationToken));
+                return Utils.CreateGraph(resourceUri, await Storage.LoadStringAsync(resourceUri, cancellationToken));
             }
         }
 

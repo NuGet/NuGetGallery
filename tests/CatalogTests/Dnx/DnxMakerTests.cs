@@ -5,12 +5,15 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Newtonsoft.Json.Linq;
 using NgTests.Infrastructure;
+using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Dnx;
 using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGet.Services.Metadata.Catalog.Persistence;
@@ -33,9 +36,37 @@ namespace CatalogTests.Dnx
         [Fact]
         public void Constructor_WhenStorageFactoryIsNull_Throws()
         {
-            var exception = Assert.Throws<ArgumentNullException>(() => new DnxMaker(storageFactory: null));
+            var exception = Assert.Throws<ArgumentNullException>(
+                () => new DnxMaker(
+                    storageFactory: null,
+                    telemetryService: Mock.Of<ITelemetryService>(),
+                    logger: Mock.Of<ILogger>()));
 
             Assert.Equal("storageFactory", exception.ParamName);
+        }
+
+        [Fact]
+        public void Constructor_WhenTelemetryServiceIsNull_Throws()
+        {
+            var exception = Assert.Throws<ArgumentNullException>(
+                () => new DnxMaker(
+                    storageFactory: Mock.Of<StorageFactory>(),
+                    telemetryService: null,
+                    logger: Mock.Of<ILogger>()));
+
+            Assert.Equal("telemetryService", exception.ParamName);
+        }
+
+        [Fact]
+        public void Constructor_WhenLoggerIsNull_Throws()
+        {
+            var exception = Assert.Throws<ArgumentNullException>(
+                () => new DnxMaker(
+                    storageFactory: Mock.Of<StorageFactory>(),
+                    telemetryService: Mock.Of<ITelemetryService>(),
+                    logger: null));
+
+            Assert.Equal("logger", exception.ParamName);
         }
 
         [Theory]
@@ -131,7 +162,7 @@ namespace CatalogTests.Dnx
         {
             var catalogToDnxStorage = new MemoryStorage();
             var catalogToDnxStorageFactory = new TestStorageFactory(name => catalogToDnxStorage.WithName(name));
-            var maker = new DnxMaker(catalogToDnxStorageFactory);
+            var maker = new DnxMaker(catalogToDnxStorageFactory, Mock.Of<ITelemetryService>(), Mock.Of<ILogger>());
             var storageForPackage = (MemoryStorage)catalogToDnxStorageFactory.Create(_packageId);
 
             var hasPackageInIndex = await maker.HasPackageInIndexAsync(storageForPackage, _packageId, "1.0.0", CancellationToken.None);
@@ -144,7 +175,7 @@ namespace CatalogTests.Dnx
         {
             var catalogToDnxStorage = new MemoryStorage();
             var catalogToDnxStorageFactory = new TestStorageFactory(name => catalogToDnxStorage.WithName(name));
-            var maker = new DnxMaker(catalogToDnxStorageFactory);
+            var maker = new DnxMaker(catalogToDnxStorageFactory, Mock.Of<ITelemetryService>(), Mock.Of<ILogger>());
 
             await maker.UpdatePackageVersionIndexAsync(_packageId, v => v.Add(NuGetVersion.Parse("1.0.0")), CancellationToken.None);
 
@@ -160,7 +191,7 @@ namespace CatalogTests.Dnx
         {
             var catalogToDnxStorage = new MemoryStorage();
             var catalogToDnxStorageFactory = new TestStorageFactory(name => catalogToDnxStorage.WithName(name));
-            var maker = new DnxMaker(catalogToDnxStorageFactory);
+            var maker = new DnxMaker(catalogToDnxStorageFactory, Mock.Of<ITelemetryService>(), Mock.Of<ILogger>());
 
             const string version = "1.0.0";
 
@@ -184,6 +215,7 @@ namespace CatalogTests.Dnx
                     nuspec: "a",
                     packageId: "b",
                     normalizedPackageVersion: "c",
+                    iconFilename: null,
                     cancellationToken: CancellationToken.None));
 
             Assert.Equal("nupkgStream", exception.ParamName);
@@ -202,6 +234,7 @@ namespace CatalogTests.Dnx
                     nuspec,
                     packageId: "a",
                     normalizedPackageVersion: "b",
+                    iconFilename: null,
                     cancellationToken: CancellationToken.None));
 
             Assert.Equal("nuspec", exception.ParamName);
@@ -221,6 +254,7 @@ namespace CatalogTests.Dnx
                     nuspec: "a",
                     packageId: packageId,
                     normalizedPackageVersion: "b",
+                    iconFilename: null,
                     cancellationToken: CancellationToken.None));
 
             Assert.Equal("packageId", exception.ParamName);
@@ -240,6 +274,7 @@ namespace CatalogTests.Dnx
                     nuspec: "a",
                     packageId: "b",
                     normalizedPackageVersion: normalizedPackageVersion,
+                    iconFilename: null,
                     cancellationToken: CancellationToken.None));
 
             Assert.Equal("normalizedPackageVersion", exception.ParamName);
@@ -257,6 +292,7 @@ namespace CatalogTests.Dnx
                     nuspec: "a",
                     packageId: "b",
                     normalizedPackageVersion: "c",
+                    iconFilename: null,
                     cancellationToken: new CancellationToken(canceled: true)));
         }
 
@@ -266,12 +302,12 @@ namespace CatalogTests.Dnx
         {
             var catalogToDnxStorage = new MemoryStorage();
             var catalogToDnxStorageFactory = new TestStorageFactory(name => catalogToDnxStorage.WithName(name));
-            var maker = new DnxMaker(catalogToDnxStorageFactory);
+            var maker = new DnxMaker(catalogToDnxStorageFactory, Mock.Of<ITelemetryService>(), Mock.Of<ILogger>());
             var normalizedVersion = NuGetVersionUtility.NormalizeVersion(version);
 
             using (var nupkgStream = CreateFakePackageStream(_nupkgData))
             {
-                var dnxEntry = await maker.AddPackageAsync(nupkgStream, _nuspecData, _packageId, version, CancellationToken.None);
+                var dnxEntry = await maker.AddPackageAsync(nupkgStream, _nuspecData, _packageId, version, null, CancellationToken.None);
 
                 var expectedNuspec = new Uri($"{catalogToDnxStorage.BaseAddress}{_packageId}/{normalizedVersion}/{_packageId}.nuspec");
                 var expectedNupkg = new Uri($"{catalogToDnxStorage.BaseAddress}{_packageId}/{normalizedVersion}/{_packageId}.{normalizedVersion}.nupkg");
@@ -289,6 +325,29 @@ namespace CatalogTests.Dnx
             }
         }
 
+        [Theory]
+        [InlineData("ahgjghaa.png", "")]
+        [InlineData("sdfgd.jpg", "")]
+        [InlineData("csdfsd.jpeg", "")]
+        public async Task AddPackageAsync_WhenEmbeddedIconPresent_SavesIcon(string iconFilename, string expectedContentType)
+        {
+            const string version = "1.2.3";
+            const string imageContent = "Test image data";
+            var imageDataBuffer = Encoding.UTF8.GetBytes(imageContent);
+
+            var catalogToDnxStorage = new MemoryStorage();
+            var catalogToDnxStorageFactory = new TestStorageFactory(name => catalogToDnxStorage.WithName(name));
+            var maker = new DnxMaker(catalogToDnxStorageFactory, Mock.Of<ITelemetryService>(), Mock.Of<ILogger>());
+
+            using (var nupkgStream = await CreateNupkgStreamWithIcon(iconFilename, imageDataBuffer))
+            {
+                await maker.AddPackageAsync(nupkgStream, _nuspecData, _packageId, version, iconFilename, CancellationToken.None);
+
+                var expectedIconUrl = new Uri($"{catalogToDnxStorage.BaseAddress}{_packageId}/{version}/icon");
+                Verify(catalogToDnxStorage, expectedIconUrl, imageContent, _expectedCacheControl, expectedContentType);
+            }
+        }
+
         [Fact]
         public async Task AddPackageAsync_WithStorage_WhenSourceStorageIsNull_Throws()
         {
@@ -300,6 +359,7 @@ namespace CatalogTests.Dnx
                     nuspec: "a",
                     packageId: "b",
                     normalizedPackageVersion: "c",
+                    iconFilename: null,
                     cancellationToken: CancellationToken.None));
 
             Assert.Equal("sourceStorage", exception.ParamName);
@@ -314,10 +374,11 @@ namespace CatalogTests.Dnx
 
             var exception = await Assert.ThrowsAsync<ArgumentException>(
                 () => maker.AddPackageAsync(
-                    Mock.Of<IStorage>(),
+                    Mock.Of<IAzureStorage>(),
                     nuspec,
                     packageId: "a",
                     normalizedPackageVersion: "b",
+                    iconFilename: null,
                     cancellationToken: CancellationToken.None));
 
             Assert.Equal("nuspec", exception.ParamName);
@@ -333,10 +394,11 @@ namespace CatalogTests.Dnx
 
             var exception = await Assert.ThrowsAsync<ArgumentException>(
                 () => maker.AddPackageAsync(
-                    Mock.Of<IStorage>(),
+                    Mock.Of<IAzureStorage>(),
                     nuspec: "a",
                     packageId: id,
                     normalizedPackageVersion: "b",
+                    iconFilename: null,
                     cancellationToken: CancellationToken.None));
 
             Assert.Equal("packageId", exception.ParamName);
@@ -352,10 +414,11 @@ namespace CatalogTests.Dnx
 
             var exception = await Assert.ThrowsAsync<ArgumentException>(
                 () => maker.AddPackageAsync(
-                    Mock.Of<IStorage>(),
+                    Mock.Of<IAzureStorage>(),
                     nuspec: "a",
                     packageId: "b",
                     normalizedPackageVersion: version,
+                    iconFilename: null,
                     cancellationToken: CancellationToken.None));
 
             Assert.Equal("normalizedPackageVersion", exception.ParamName);
@@ -369,10 +432,11 @@ namespace CatalogTests.Dnx
 
             await Assert.ThrowsAsync<OperationCanceledException>(
                 () => maker.AddPackageAsync(
-                    Mock.Of<IStorage>(),
+                    Mock.Of<IAzureStorage>(),
                     nuspec: "a",
                     packageId: "b",
                     normalizedPackageVersion: "c",
+                    iconFilename: null,
                     cancellationToken: new CancellationToken(canceled: true)));
         }
 
@@ -382,7 +446,7 @@ namespace CatalogTests.Dnx
         {
             var catalogToDnxStorage = new AzureStorageStub();
             var catalogToDnxStorageFactory = new TestStorageFactory(name => catalogToDnxStorage.WithName(name));
-            var maker = new DnxMaker(catalogToDnxStorageFactory);
+            var maker = new DnxMaker(catalogToDnxStorageFactory, Mock.Of<ITelemetryService>(), Mock.Of<ILogger>());
             var normalizedVersion = NuGetVersionUtility.NormalizeVersion(version);
             var sourceStorage = new AzureStorageStub();
 
@@ -391,6 +455,7 @@ namespace CatalogTests.Dnx
                 _nuspecData,
                 _packageId,
                 normalizedVersion,
+                null,
                 CancellationToken.None);
 
             var expectedNuspecUri = new Uri($"{catalogToDnxStorage.BaseAddress}{_packageId}/{normalizedVersion}/{_packageId}.nuspec");
@@ -407,6 +472,38 @@ namespace CatalogTests.Dnx
             Verify(catalogToDnxStorage, expectedNuspecUri, _nuspecData, _expectedCacheControl, _expectedNuspecContentType);
             Verify(storageForPackage, expectedNupkgUri, expectedSourceUri.AbsoluteUri, _expectedCacheControl, _expectedPackageContentType);
             Verify(storageForPackage, expectedNuspecUri, _nuspecData, _expectedCacheControl, _expectedNuspecContentType);
+        }
+
+        [Theory]
+        [InlineData("sdafs.png", "")]
+        [InlineData("hjy.jpg", "")]
+        [InlineData("vfdg.jpeg", "")]
+        public async Task AddPackageAsync_WithStorage_WhenEmbeddedIconPresent_SavesIcon(string iconFilename, string expectedContentType)
+        {
+            const string version = "1.2.3";
+            const string imageContent = "Test image data";
+            var imageDataBuffer = Encoding.UTF8.GetBytes(imageContent);
+
+            var catalogToDnxStorage = new AzureStorageStub();
+            var catalogToDnxStorageFactory = new TestStorageFactory(name => catalogToDnxStorage.WithName(name));
+            var maker = new DnxMaker(catalogToDnxStorageFactory, Mock.Of<ITelemetryService>(), Mock.Of<ILogger>());
+            var sourceStorageMock = new Mock<IAzureStorage>();
+            using (var nupkgStream = await CreateNupkgStreamWithIcon(iconFilename, imageDataBuffer))
+            {
+                var cloudBlobMock = new Mock<ICloudBlockBlob>();
+                cloudBlobMock
+                    .Setup(cb => cb.GetStreamAsync(It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(nupkgStream);
+
+                sourceStorageMock
+                    .Setup(ss => ss.GetCloudBlockBlobReferenceAsync(It.IsAny<Uri>()))
+                    .ReturnsAsync(cloudBlobMock.Object);
+
+                await maker.AddPackageAsync(sourceStorageMock.Object, _nuspecData, _packageId, version, iconFilename, CancellationToken.None);
+
+                var expectedIconUrl = new Uri($"{catalogToDnxStorage.BaseAddress}{_packageId}/{version}/icon");
+                Verify(catalogToDnxStorage, expectedIconUrl, imageContent, _expectedCacheControl, expectedContentType);
+            }
         }
 
         [Theory]
@@ -461,11 +558,11 @@ namespace CatalogTests.Dnx
         {
             var catalogToDnxStorage = new MemoryStorage();
             var catalogToDnxStorageFactory = new TestStorageFactory(name => catalogToDnxStorage.WithName(name));
-            var maker = new DnxMaker(catalogToDnxStorageFactory);
+            var maker = new DnxMaker(catalogToDnxStorageFactory, Mock.Of<ITelemetryService>(), Mock.Of<ILogger>());
 
             using (var nupkgStream = CreateFakePackageStream(_nupkgData))
             {
-                var dnxEntry = await maker.AddPackageAsync(nupkgStream, _nuspecData, _packageId, version, CancellationToken.None);
+                var dnxEntry = await maker.AddPackageAsync(nupkgStream, _nuspecData, _packageId, version, null, CancellationToken.None);
 
                 var storageForPackage = (MemoryStorage)catalogToDnxStorageFactory.Create(_packageId);
 
@@ -528,7 +625,7 @@ namespace CatalogTests.Dnx
         {
             var catalogToDnxStorage = new MemoryStorage();
             var catalogToDnxStorageFactory = new TestStorageFactory(name => catalogToDnxStorage.WithName(name));
-            var maker = new DnxMaker(catalogToDnxStorageFactory);
+            var maker = new DnxMaker(catalogToDnxStorageFactory, Mock.Of<ITelemetryService>(), Mock.Of<ILogger>());
             var normalizedVersion = NuGetVersionUtility.NormalizeVersion(version);
 
             await maker.UpdatePackageVersionIndexAsync(_packageId, v => v.Add(NuGetVersion.Parse(version)), CancellationToken.None);
@@ -555,7 +652,7 @@ namespace CatalogTests.Dnx
             var version = NuGetVersion.Parse("1.0.0");
             var catalogToDnxStorage = new MemoryStorage();
             var catalogToDnxStorageFactory = new TestStorageFactory(name => catalogToDnxStorage.WithName(name));
-            var maker = new DnxMaker(catalogToDnxStorageFactory);
+            var maker = new DnxMaker(catalogToDnxStorageFactory, Mock.Of<ITelemetryService>(), Mock.Of<ILogger>());
 
             await maker.UpdatePackageVersionIndexAsync(_packageId, v => v.Add(version), CancellationToken.None);
 
@@ -581,7 +678,7 @@ namespace CatalogTests.Dnx
         {
             var catalogToDnxStorage = new MemoryStorage();
             var catalogToDnxStorageFactory = new TestStorageFactory(name => catalogToDnxStorage.WithName(name));
-            var maker = new DnxMaker(catalogToDnxStorageFactory);
+            var maker = new DnxMaker(catalogToDnxStorageFactory, Mock.Of<ITelemetryService>(), Mock.Of<ILogger>());
 
             await maker.UpdatePackageVersionIndexAsync(_packageId, v => { }, CancellationToken.None);
 
@@ -608,7 +705,7 @@ namespace CatalogTests.Dnx
             };
             var catalogToDnxStorage = new MemoryStorage();
             var catalogToDnxStorageFactory = new TestStorageFactory(name => catalogToDnxStorage.WithName(name));
-            var maker = new DnxMaker(catalogToDnxStorageFactory);
+            var maker = new DnxMaker(catalogToDnxStorageFactory, Mock.Of<ITelemetryService>(), Mock.Of<ILogger>());
 
             await maker.UpdatePackageVersionIndexAsync(_packageId, v => v.UnionWith(unorderedVersions), CancellationToken.None);
 
@@ -653,7 +750,7 @@ namespace CatalogTests.Dnx
             var catalogToDnxStorage = new MemoryStorage();
             var catalogToDnxStorageFactory = new TestStorageFactory(name => catalogToDnxStorage.WithName(name));
 
-            return new DnxMaker(catalogToDnxStorageFactory);
+            return new DnxMaker(catalogToDnxStorageFactory, Mock.Of<ITelemetryService>(), Mock.Of<ILogger>());
         }
 
         private static MemoryStream CreateFakePackageStream(string content)
@@ -702,6 +799,22 @@ namespace CatalogTests.Dnx
                 Assert.NotNull(list.LastModifiedUtc);
                 Assert.InRange(list.LastModifiedUtc.Value, utc.AddMinutes(-1), utc);
             }
+        }
+
+        private static async Task<Stream> CreateNupkgStreamWithIcon(string iconFilename, byte[] imageDataBuffer)
+        {
+            var nupkgStream = new MemoryStream();
+            using (var archive = new ZipArchive(nupkgStream, ZipArchiveMode.Create, leaveOpen: true))
+            {
+                var entry = archive.CreateEntry(iconFilename);
+                using (var entryStream = entry.Open())
+                {
+                    await entryStream.WriteAsync(imageDataBuffer, 0, imageDataBuffer.Length);
+                }
+            }
+
+            nupkgStream.Seek(0, SeekOrigin.Begin);
+            return nupkgStream;
         }
 
         private sealed class AzureStorageStub : MemoryStorage, IAzureStorage

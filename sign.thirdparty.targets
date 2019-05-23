@@ -7,6 +7,7 @@
             <ThirdPartyBinaries Include="AnglicanGeek.MarkdownMailer.dll" />
             <ThirdPartyBinaries Include="Autofac.dll" />
             <ThirdPartyBinaries Include="Autofac.Extensions.DependencyInjection.dll" />
+            <ThirdPartyBinaries Include="Dapper.StrongName.dll" />
             <ThirdPartyBinaries Include="dotNetRDF.dll" />
             <ThirdPartyBinaries Include="Elmah.dll" />
             <ThirdPartyBinaries Include="HtmlAgilityPack.dll" />
@@ -24,6 +25,7 @@
             <ThirdPartyBinaries Include="Lucene.Net.Contrib.SpellChecker.dll" />
             <ThirdPartyBinaries Include="Lucene.Net.dll" />
             <ThirdPartyBinaries Include="Lucene.Net.Store.Azure.dll" />
+            <ThirdPartyBinaries Include="Markdig.dll" />
             <ThirdPartyBinaries Include="MarkdownSharp.dll" />
             <ThirdPartyBinaries Include="Newtonsoft.Json.dll" />
             <ThirdPartyBinaries Include="Serilog.dll" />

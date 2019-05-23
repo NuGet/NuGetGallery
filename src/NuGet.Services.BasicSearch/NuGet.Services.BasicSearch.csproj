@@ -75,13 +75,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <SubType>Designer</SubType>
     </Content>
-    <None Include="Properties\PublishProfiles\nuget-int-0-v3search - FTP.pubxml" />
-    <None Include="Properties\PublishProfiles\nuget-int-0-v3search - Web Deploy.pubxml" />
-    <None Include="Properties\PublishProfiles\nuget-prod-0-v3search.pubxml" />
-    <None Include="Properties\PublishProfiles\nuget-prod-1-v3search.pubxml" />
-    <None Include="Properties\PublishProfiles\nuget-v3-test-search - FTP.pubxml" />
-    <None Include="Properties\PublishProfiles\nuget-v3-test-search - Web Deploy.pubxml" />
-    <None Include="Properties\PublishProfiles\NuGetServicesBasicSearch.pubxml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
@@ -171,7 +164,7 @@
       <Version>3.0.1</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Logging">
-      <Version>2.2.3</Version>
+      <Version>2.25.0-master-30088</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Owin">
       <Version>2.2.3</Version>
