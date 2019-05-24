@@ -192,9 +192,11 @@
     <Compile Include="Wrappers\IndexesOperationsWrapper.cs" />
     <Compile Include="Wrappers\ISearchIndexClientWrapper.cs" />
     <Compile Include="Wrappers\ISearchServiceClientWrapper.cs" />
+    <Compile Include="Wrappers\ISystemTime.cs" />
     <Compile Include="Wrappers\SearchIndexClientWrapper.cs" />
     <Compile Include="Wrappers\SearchServiceClientWrapper.cs" />
     <Compile Include="SearchService\SearchServiceConfiguration.cs" />
+    <Compile Include="Wrappers\SystemTime.cs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="MicroBuild.Core">
