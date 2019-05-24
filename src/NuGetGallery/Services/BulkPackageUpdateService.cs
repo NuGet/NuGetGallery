@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
 using NuGet.Services.Entities;
@@ -31,6 +30,11 @@ WHERE [Key] IN ({0})";
 
         public async Task UpdatePackagesAsync(IEnumerable<Package> packages, bool? setListed = null)
         {
+            if (packages == null || !packages.Any())
+            {
+                throw new ArgumentException(nameof(packages));
+            }
+
             if (setListed.HasValue)
             {
                 // Update listed state first to minimize the amount of time between setting LastEdited and committing the transaction.
@@ -57,11 +61,13 @@ WHERE [Key] IN ({0})";
                 package.Listed = setListed;
             }
 
-            if (packagesByRegistration.Any(
-                p => p.IsLatest || p.IsLatestStable || p.IsLatestSemVer2 || p.IsLatestStableSemVer2))
+            if (!packagesByRegistration.Any(p => p.IsLatest || p.IsLatestStable || p.IsLatestSemVer2 || p.IsLatestStableSemVer2))
             {
-                await _packageService.UpdateIsLatestAsync(packagesByRegistration.Key, false);
+                // Don't need to update latest if we haven't affected any latest packages.
+                return;
             }
+
+            await _packageService.UpdateIsLatestAsync(packagesByRegistration.Key, false);
         }
 
         /// <remarks>

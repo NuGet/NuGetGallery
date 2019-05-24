@@ -7,7 +7,9 @@ using System.Linq;
 using Lucene.Net.Store;
 using Moq;
 using NuGet.Services.Entities;
+using NuGetGallery.Auditing;
 using NuGetGallery.OData;
+using NuGetGallery.Security;
 using Xunit;
 
 namespace NuGetGallery.Infrastructure
@@ -670,16 +672,24 @@ namespace NuGetGallery.Infrastructure
         {
             Directory d = new RAMDirectory();
 
-            var mockPackageSource = new Mock<IEntityRepository<Package>>();
-            mockPackageSource
-                .Setup(m => m.GetAll())
-                .Returns(packages.AsQueryable());
+            var registrationSource = CreateRepository(packages.Select(p => p.PackageRegistration).Distinct());
+            var packageSource = CreateRepository(packages);
+
+            var packageService = new PackageService(
+                registrationSource,
+                packageSource,
+                CreateRepository(Enumerable.Empty<Certificate>()),
+                Mock.Of<IAuditingService>(),
+                Mock.Of<ITelemetryService>(),
+                Mock.Of<ISecurityPolicyService>());
 
             var luceneIndexingService = new LuceneIndexingService(
-                mockPackageSource.Object,
+                packageSource,
+                packageService,
                 d,
                 null,
                 null);
+
             luceneIndexingService.UpdateIndex(forceRefresh: true);
 
             var luceneSearchService = new LuceneSearchService(d);
@@ -694,6 +704,17 @@ namespace NuGetGallery.Infrastructure
             var results = luceneSearchService.Search(searchFilter).Result.Data.ToList();
 
             return results;
+        }
+
+        private IEntityRepository<T> CreateRepository<T>(IEnumerable<T> entities)
+            where T : class, new()
+        {
+            var mock = new Mock<IEntityRepository<T>>();
+            mock
+                .Setup(m => m.GetAll())
+                .Returns(entities.AsQueryable());
+
+            return mock.Object;
         }
     }
 }

@@ -43,8 +43,8 @@ namespace NuGetGallery.Services
 
                 var packages = new[]
                 {
-                    new Package { PackageRegistration = new PackageRegistration { Id = "a" } },
-                    new Package { PackageRegistration = new PackageRegistration { Id = "b" } },
+                    new Package { PackageRegistrationKey = 1 },
+                    new Package { PackageRegistrationKey = 2 },
                 };
 
                 var user = new User { Key = 1 };
@@ -121,12 +121,9 @@ namespace NuGetGallery.Services
                     .Verifiable();
 
                 var indexingService = GetMock<IIndexingService>();
-                foreach (var package in packages)
-                {
-                    indexingService
-                        .Setup(i => i.UpdatePackage(package))
-                        .Verifiable();
-                }
+                indexingService
+                    .Setup(i => i.UpdatePackageRegistration(registration))
+                    .Verifiable();
 
                 var user = new User { Key = 1 };
                 var service = Get<PackageDeprecationService>();
@@ -239,12 +236,9 @@ namespace NuGetGallery.Services
                     .Verifiable();
 
                 var indexingService = GetMock<IIndexingService>();
-                foreach (var package in packages)
-                {
-                    indexingService
-                        .Setup(i => i.UpdatePackage(package))
-                        .Verifiable();
-                }
+                indexingService
+                    .Setup(i => i.UpdatePackageRegistration(registration))
+                    .Verifiable();
 
                 var service = Get<PackageDeprecationService>();
 
