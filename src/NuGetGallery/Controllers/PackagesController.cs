@@ -750,6 +750,10 @@ namespace NuGetGallery
             model.IsAtomFeedEnabled = _featureFlagService.IsPackagesAtomFeedEnabled();
             model.IsPackageDeprecationEnabled = _featureFlagService.IsManageDeprecationEnabled(currentUser);
 
+            var nupkgGitHubDependencies = _contentObjectService.NuGetPackagesGitHubDependencies;
+            model.GitHubDependencies = nupkgGitHubDependencies.ContainsKey(id) ?
+                                            nupkgGitHubDependencies[id] : new SortedSet<ContentObjectService.RepositoryInformation>();
+
             model.ReadMeHtml = await _readMeService.GetReadMeHtmlAsync(package);
 
             if (!string.IsNullOrWhiteSpace(package.LicenseExpression))

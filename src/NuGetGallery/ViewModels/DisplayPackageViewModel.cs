@@ -120,6 +120,7 @@ namespace NuGetGallery
         public bool IsDotnetToolPackageType { get; set; }
         public bool IsAtomFeedEnabled { get; set; }
         public bool IsPackageDeprecationEnabled { get; set; }
+        public SortedSet<ContentObjectService.RepositoryInformation> GitHubDependencies { get; set; }
 
         public bool HasNewerPrerelease
         {
