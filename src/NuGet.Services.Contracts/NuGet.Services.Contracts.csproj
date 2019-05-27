@@ -62,6 +62,7 @@
     <Compile Include="Validation\IValidator.cs" />
     <Compile Include="Validation\IValidationIssue.cs" />
     <Compile Include="Validation\ValidationIssueCode.cs" />
+    <Compile Include="Validation\ValidationSetStatus.cs" />
     <Compile Include="Validation\ValidationStatus.cs" />
   </ItemGroup>
   <ItemGroup>

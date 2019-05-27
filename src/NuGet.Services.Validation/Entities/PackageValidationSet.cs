@@ -77,5 +77,9 @@ namespace NuGet.Services.Validation
         /// </summary>
         public ValidatingType ValidatingType { get; set; }
 
+        /// <summary>
+        /// The status of this validation set.
+        /// </summary>
+        public ValidationSetStatus ValidationSetStatus { get; set; }
     }
 }
