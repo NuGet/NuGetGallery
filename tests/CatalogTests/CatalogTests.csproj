@@ -82,6 +82,7 @@
     <Compile Include="CollectorHttpClientTests.cs" />
     <Compile Include="Dnx\DnxCatalogCollectorTests.cs" />
     <Compile Include="Dnx\DnxMakerTests.cs" />
+    <Compile Include="Extensions\DateTimeExtensionsTests.cs" />
     <Compile Include="Helpers\AsyncExtensionsTests.cs" />
     <Compile Include="Helpers\RegistrationPackageDeprecationAlternatePackage.cs" />
     <Compile Include="Helpers\RegistrationPackageDeprecationDetails.cs" />
@@ -91,11 +92,15 @@
     <Compile Include="Helpers\CatalogPackageEntry.cs" />
     <Compile Include="Helpers\CatalogPage.cs" />
     <Compile Include="Helpers\CatalogPropertiesTests.cs" />
+    <Compile Include="Helpers\Db2CatalogCursorTests.cs" />
+    <Compile Include="Helpers\Db2CatalogProjectionTests.cs" />
     <Compile Include="Helpers\FeedHelpersTests.cs" />
     <Compile Include="Helpers\FeedPackageIdentityTests.cs" />
+    <Compile Include="Helpers\GalleryDatabaseQueryServiceTests.cs" />
     <Compile Include="Helpers\LicenseHelperTests.cs" />
     <Compile Include="Helpers\NuGetVersionUtilityTests.cs" />
     <Compile Include="Helpers\CatalogIndependentPackageDetails.cs" />
+    <Compile Include="Helpers\PackageContentUriBuilderTests.cs" />
     <Compile Include="Helpers\PackageUtilityTests.cs" />
     <Compile Include="Helpers\RegistrationIndependentPage.cs" />
     <Compile Include="Helpers\RegistrationIndex.cs" />
@@ -288,6 +293,17 @@
     </PackageReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- 
+  Even though this is a test project, it needs to be strong-named because it tests internal fields of NuGet.Services.Metadata.Catalog.
+  Strong-name signed assemblies must specify a public key in their InternalsVisibleTo declarations.
+  -->
+  <PropertyGroup>
+    <SignPath>..\..\build</SignPath>
+    <SignPath Condition="'$(BUILD_SOURCESDIRECTORY)' != ''">$(BUILD_SOURCESDIRECTORY)\build</SignPath>
+    <SignPath Condition="'$(NuGetBuildPath)' != ''">$(NuGetBuildPath)</SignPath>
+    <SignType Condition="'$(SignType)' == ''">none</SignType>
+  </PropertyGroup>
+  <Import Project="$(SignPath)\sign.targets" Condition="Exists('$(SignPath)\sign.targets')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

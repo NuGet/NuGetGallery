@@ -7,7 +7,7 @@ namespace NuGet.Services.Metadata.Catalog
 {
     public static class Constants
     {
-        public static readonly DateTime DateTimeMinValueUtc = new DateTime(0L, DateTimeKind.Utc);
+        public static readonly DateTime DateTimeMinValueUtc = DateTimeOffset.MinValue.UtcDateTime;
         public const int MaxPageSize = 550;
         public const string Sha512 = "SHA512";
         public static readonly DateTime UnpublishedDate = new DateTime(1900, 1, 1, 0, 0, 0, DateTimeKind.Utc);

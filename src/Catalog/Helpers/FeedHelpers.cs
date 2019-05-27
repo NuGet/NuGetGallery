@@ -140,9 +140,9 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
 
                 // NOTE that DateTime returned by the v2 feed does not have Z at the end even though it is in UTC. So, the DateTime kind is unspecified
                 // So, forcibly convert it to UTC here
-                createdDate = ForceUtc(createdDate);
-                lastEditedDate = ForceUtc(lastEditedDate);
-                publishedDate = ForceUtc(publishedDate);
+                createdDate = createdDate.ForceUtc();
+                lastEditedDate = lastEditedDate.ForceUtc();
+                publishedDate = publishedDate.ForceUtc();
 
                 packages.Add(new FeedPackageDetails(
                     content,
@@ -156,15 +156,6 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
             }
 
             return packages;
-        }
-
-        private static DateTime ForceUtc(DateTime date)
-        {
-            if (date.Kind == DateTimeKind.Unspecified)
-            {
-                date = new DateTime(date.Ticks, DateTimeKind.Utc);
-            }
-            return date;
         }
 
         /// <summary>

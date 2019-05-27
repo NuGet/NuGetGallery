@@ -15,12 +15,18 @@ using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using NuGet.Versioning;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace NgTests
 {
     public class AuditRecordHelpersTests
     {
-        private ILogger _logger = new TestLogger();
+        private readonly ILogger _logger;
+
+        public AuditRecordHelpersTests(ITestOutputHelper testOutputHelper)
+        {
+            _logger = new TestLogger(testOutputHelper);
+        }
 
         [Fact]
         public async Task GetDeletionAuditRecords_HandlesEmptyStorage()
@@ -46,8 +52,8 @@ namespace NgTests
 
             for (var i = 0; i < addedAuditEntries.Item1; i++)
             {
-                Assert.Contains(auditEntries, 
-                    entry => 
+                Assert.Contains(auditEntries,
+                    entry =>
                         entry.PackageId == addedAuditEntries.Item2[i] &&
                         entry.PackageVersion == addedAuditEntries.Item3[i] &&
                         entry.TimestampUtc.HasValue &&
@@ -235,8 +241,8 @@ namespace NgTests
         private Tuple<int, List<string>, List<string>, List<DateTime>> AddDummyAuditRecords(MemoryStorage storage)
         {
             return AddDummyAuditRecords(
-                storage, 
-                (count) => $"packageId{count}", 
+                storage,
+                (count) => $"packageId{count}",
                 (count) => $"packageVersion{count}");
         }
 

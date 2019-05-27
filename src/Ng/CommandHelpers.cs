@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Security.Cryptography.X509Certificates;
@@ -21,13 +20,12 @@ using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Monitoring;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using NuGet.Services.Storage;
-
-using ICatalogStorageFactory = NuGet.Services.Metadata.Catalog.Persistence.IStorageFactory;
-using CatalogStorageFactory = NuGet.Services.Metadata.Catalog.Persistence.StorageFactory;
 using CatalogAggregateStorageFactory = NuGet.Services.Metadata.Catalog.Persistence.AggregateStorageFactory;
-using CatalogAzureStorageFactory = NuGet.Services.Metadata.Catalog.Persistence.AzureStorageFactory;
 using CatalogAzureStorage = NuGet.Services.Metadata.Catalog.Persistence.AzureStorage;
+using CatalogAzureStorageFactory = NuGet.Services.Metadata.Catalog.Persistence.AzureStorageFactory;
 using CatalogFileStorageFactory = NuGet.Services.Metadata.Catalog.Persistence.FileStorageFactory;
+using CatalogStorageFactory = NuGet.Services.Metadata.Catalog.Persistence.StorageFactory;
+using ICatalogStorageFactory = NuGet.Services.Metadata.Catalog.Persistence.IStorageFactory;
 
 namespace Ng
 {
@@ -177,7 +175,9 @@ namespace Ng
             return CreateStorageFactoryImpl(arguments, names, verbose, compressed: true);
         }
 
-        public static CatalogStorageFactory CreateSemVer2StorageFactory(IDictionary<string, string> arguments, bool verbose)
+        public static CatalogStorageFactory CreateSemVer2StorageFactory(
+            IDictionary<string, string> arguments,
+            bool verbose)
         {
             if (!arguments.GetOrDefault(Arguments.UseSemVer2Storage, false))
             {
