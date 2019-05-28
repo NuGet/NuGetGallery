@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using NuGet.Services.Entities;
 
-namespace NuGetGallery
+namespace NuGetGallery.Services.PackageManagement
 {
     public interface IReservedNamespaceService
     {

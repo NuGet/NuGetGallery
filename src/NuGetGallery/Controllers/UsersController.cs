@@ -11,15 +11,21 @@ using System.Threading.Tasks;
 using System.Web.Mvc;
 using NuGet.Services.Entities;
 using NuGet.Services.Messaging.Email;
-using NuGetGallery.Areas.Admin;
-using NuGetGallery.Areas.Admin.ViewModels;
 using NuGetGallery.Authentication;
 using NuGetGallery.Configuration;
 using NuGetGallery.Filters;
 using NuGetGallery.Helpers;
 using NuGetGallery.Infrastructure.Authentication;
 using NuGetGallery.Infrastructure.Mail.Messages;
-using NuGetGallery.Security;
+using NuGetGallery.Services.AccountManagement;
+using NuGetGallery.Services.Authentication;
+using NuGetGallery.Services.Models;
+using NuGetGallery.Services.PackageManagement;
+using NuGetGallery.Services.Security;
+using NuGetGallery.Services.SupportRequest;
+using NuGetGallery.Services.Telemetry;
+using NuGetGallery.Services.UserManagement;
+
 
 namespace NuGetGallery
 {

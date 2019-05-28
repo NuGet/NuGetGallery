@@ -4,6 +4,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Web.Mvc;
+using NuGetGallery.Services.Models;
 
 namespace NuGetGallery
 {

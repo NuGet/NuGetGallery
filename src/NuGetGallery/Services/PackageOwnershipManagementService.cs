@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using NuGetGallery.Auditing;
 using NuGet.Services.Entities;
+using NuGetGallery.Services.PackageManagement;
 
 namespace NuGetGallery
 {

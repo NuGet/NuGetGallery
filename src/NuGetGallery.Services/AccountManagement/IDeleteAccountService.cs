@@ -3,9 +3,9 @@
 
 using System.Threading.Tasks;
 using NuGet.Services.Entities;
-using NuGetGallery.Areas.Admin.ViewModels;
+using NuGetGallery.Services.Models;
 
-namespace NuGetGallery
+namespace NuGetGallery.Services.AccountManagement
 {
     public interface IDeleteAccountService
     {

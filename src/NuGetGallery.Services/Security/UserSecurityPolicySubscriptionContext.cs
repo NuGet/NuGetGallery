@@ -4,7 +4,7 @@
 using System;
 using NuGet.Services.Entities;
 
-namespace NuGetGallery.Security
+namespace NuGetGallery.Services.Security
 {
     /// <summary>
     /// Context providing user security policy subscriptions with resources necessary for subscription.

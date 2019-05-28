@@ -4,9 +4,8 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using NuGet.Services.Entities;
-using NuGetGallery.Areas.Admin.Models;
 
-namespace NuGetGallery.Areas.Admin
+namespace NuGetGallery.Services.SupportRequest
 {
     public interface ISupportRequestService
     {
@@ -49,7 +48,7 @@ namespace NuGetGallery.Areas.Admin
         List<History> GetHistoryEntriesByIssueKey(int id);
         Task AddHistoryRecordAsync(History entry);
 
-        IReadOnlyCollection<Models.Admin> GetAllAdmins();
+        IReadOnlyCollection<Admin> GetAllAdmins();
 
         Task ToggleAdminAccessAsync(int adminId, bool enabled);
 

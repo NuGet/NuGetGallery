@@ -6,7 +6,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using NuGet.Services.Entities;
 
-namespace NuGetGallery.Areas.Admin.Models
+namespace NuGetGallery.Services.SupportRequest
 {
     public partial class IssueStatus
         : IEntity

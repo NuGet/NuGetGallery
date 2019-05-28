@@ -5,6 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NuGet.Services.Entities;
+using NuGetGallery.Services.Authentication;
+using NuGetGallery.Services.UserManagement;
 
 namespace NuGetGallery.Authentication
 {

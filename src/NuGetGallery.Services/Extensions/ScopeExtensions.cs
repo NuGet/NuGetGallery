@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using NuGet.Services.Entities;
-using NuGetGallery.Authentication;
+using NuGetGallery.Services.Authentication;
 
 namespace NuGetGallery
 {

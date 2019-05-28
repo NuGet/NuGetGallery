@@ -12,6 +12,9 @@ using Newtonsoft.Json;
 using NuGetGallery.Areas.Admin.Models;
 using NuGetGallery.Areas.Admin.ViewModels;
 using NuGetGallery.Helpers;
+using NuGetGallery.Services.Models;
+using NuGetGallery.Services.SupportRequest;
+using NuGetGallery.Services.UserManagement;
 
 namespace NuGetGallery.Areas.Admin.Controllers
 {

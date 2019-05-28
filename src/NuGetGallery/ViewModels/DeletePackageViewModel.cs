@@ -5,6 +5,7 @@ using NuGet.Services.Entities;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Web.Mvc;
+using NuGetGallery.Services.Models;
 
 namespace NuGetGallery
 {

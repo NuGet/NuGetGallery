@@ -7,8 +7,9 @@ using System.Net.Http;
 using System.Security.Principal;
 using NuGet.Services.Entities;
 using NuGet.Versioning;
+using NuGetGallery.Services.Models;
 
-namespace NuGetGallery
+namespace NuGetGallery.Services.Telemetry
 {
     public interface ITelemetryService
     {

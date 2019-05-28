@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace NuGetGallery.Security
+namespace NuGetGallery.Services.Security
 {
     /// <summary>
     /// Result of a security policy evaluate action.

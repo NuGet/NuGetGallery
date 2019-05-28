@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Web;
 using NuGet.Services.Entities;
 using NuGetGallery.Auditing;
+using NuGetGallery.Services.Telemetry;
 
 namespace NuGetGallery
 {

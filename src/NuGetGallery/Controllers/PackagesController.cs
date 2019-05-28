@@ -34,7 +34,12 @@ using NuGetGallery.Infrastructure.Mail.Requests;
 using NuGetGallery.Infrastructure.Search;
 using NuGetGallery.OData;
 using NuGetGallery.Packaging;
-using NuGetGallery.Security;
+using NuGetGallery.Services.Models;
+using NuGetGallery.Services.PackageManagement;
+using NuGetGallery.Services.Security;
+using NuGetGallery.Services.SupportRequest;
+using NuGetGallery.Services.Telemetry;
+using NuGetGallery.Services.UserManagement;
 using NuGetGallery.ViewModels;
 
 namespace NuGetGallery

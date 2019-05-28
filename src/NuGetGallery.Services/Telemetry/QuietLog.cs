@@ -6,8 +6,9 @@ using System.Collections.Generic;
 using System.Web;
 using System.Web.Routing;
 using Elmah;
+using NuGet.Services.Logging;
 
-namespace NuGetGallery
+namespace NuGetGallery.Services.Telemetry
 {
     public static class QuietLog
     {

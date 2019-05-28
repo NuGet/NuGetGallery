@@ -5,8 +5,9 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Web;
 using NuGet.Services.Entities;
+using NuGetGallery.Services.Security;
 
-namespace NuGetGallery.Security
+namespace NuGetGallery.Services.Security
 {
     /// <summary>
     /// Service for managing security policies.

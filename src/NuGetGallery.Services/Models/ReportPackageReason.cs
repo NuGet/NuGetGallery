@@ -3,7 +3,7 @@
 
 using System.ComponentModel;
 
-namespace NuGetGallery
+namespace NuGetGallery.Services.Models
 {
     public enum ReportPackageReason
     {

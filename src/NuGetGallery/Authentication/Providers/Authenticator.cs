@@ -9,6 +9,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using NuGetGallery.Configuration;
+using NuGetGallery.Services.Authentication;
 using Owin;
 
 namespace NuGetGallery.Authentication.Providers

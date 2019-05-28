@@ -11,6 +11,7 @@ using Newtonsoft.Json.Linq;
 using NuGet.Services.Entities;
 using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
+using NuGetGallery.Services.Telemetry;
 
 namespace NuGetGallery.Infrastructure.Search
 {

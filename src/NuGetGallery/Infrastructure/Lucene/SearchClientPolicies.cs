@@ -6,6 +6,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using NuGetGallery.Services.Telemetry;
 using Polly;
 using Polly.CircuitBreaker;
 using Polly.Extensions.Http;

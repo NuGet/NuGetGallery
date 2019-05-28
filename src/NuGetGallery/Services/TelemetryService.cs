@@ -11,8 +11,10 @@ using Newtonsoft.Json;
 using NuGet.Services.Entities;
 using NuGet.Services.FeatureFlags;
 using NuGet.Versioning;
-using NuGetGallery.Authentication;
 using NuGetGallery.Diagnostics;
+using NuGetGallery.Services.Authentication;
+using NuGetGallery.Services.Models;
+using NuGetGallery.Services.Telemetry;
 
 namespace NuGetGallery
 {

@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using NuGet.Services.Entities;
 using NuGet.Versioning;
+using NuGetGallery.Services.Security;
 
 namespace NuGetGallery.Security
 {

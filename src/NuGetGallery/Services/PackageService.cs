@@ -16,6 +16,9 @@ using NuGet.Versioning;
 using NuGetGallery.Auditing;
 using NuGetGallery.Packaging;
 using NuGetGallery.Security;
+using NuGetGallery.Services.PackageManagement;
+using NuGetGallery.Services.Security;
+using NuGetGallery.Services.Telemetry;
 
 namespace NuGetGallery
 {

@@ -4,7 +4,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace NuGetGallery
+namespace NuGetGallery.Services.Telemetry
 {
     public static class Obfuscator
     {

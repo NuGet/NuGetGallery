@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using NuGet.Services.Entities;
 using NuGetGallery.Security;
+using NuGetGallery.Services.Security;
 
 namespace NuGetGallery
 {
