@@ -11,6 +11,7 @@ using NuGet.Services.Entities;
 using NuGet.Services.Messaging.Email;
 using NuGetGallery.Framework;
 using NuGetGallery.Infrastructure.Mail.Messages;
+using NuGetGallery.Services.PackageManagement;
 using Xunit;
 
 namespace NuGetGallery.Controllers

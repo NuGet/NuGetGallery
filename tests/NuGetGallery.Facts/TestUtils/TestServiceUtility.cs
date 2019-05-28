@@ -10,7 +10,8 @@ using NuGet.Services.Entities;
 using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
 using NuGetGallery.Framework;
-using NuGetGallery.Security;
+using NuGetGallery.Services.Security;
+using NuGetGallery.Services.Telemetry;
 
 namespace NuGetGallery.TestUtils
 {

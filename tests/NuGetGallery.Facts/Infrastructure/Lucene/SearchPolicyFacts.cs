@@ -7,10 +7,10 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-using NuGet.Services.Search.Client;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
+using NuGetGallery.Services.Telemetry;
 using Xunit;
 
 namespace NuGetGallery.Infrastructure.Search

@@ -10,6 +10,8 @@ using Moq;
 using NuGet.Services.Entities;
 using NuGetGallery.Areas.Admin.ViewModels;
 using NuGetGallery.Framework;
+using NuGetGallery.Services.PackageManagement;
+using NuGetGallery.Services.Telemetry;
 using Xunit;
 
 namespace NuGetGallery.Areas.Admin.Controllers

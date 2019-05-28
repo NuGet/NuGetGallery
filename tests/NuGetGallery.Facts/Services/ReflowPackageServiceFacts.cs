@@ -10,7 +10,8 @@ using NuGet.Packaging;
 using NuGet.Services.Entities;
 using NuGetGallery.Framework;
 using NuGetGallery.Packaging;
-using NuGetGallery.Security;
+using NuGetGallery.Services.Security;
+using NuGetGallery.Services.Telemetry;
 using NuGetGallery.TestUtils;
 using Xunit;
 

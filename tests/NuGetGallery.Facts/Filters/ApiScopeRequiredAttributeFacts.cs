@@ -3,7 +3,7 @@
 
 using System.Linq;
 using Autofac;
-using NuGetGallery.Authentication;
+using NuGetGallery.Services.Authentication;
 using Xunit;
 
 namespace NuGetGallery.Filters

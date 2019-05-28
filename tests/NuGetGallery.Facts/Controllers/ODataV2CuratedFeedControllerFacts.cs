@@ -14,6 +14,7 @@ using Moq;
 using NuGet.Services.Entities;
 using NuGetGallery.Configuration;
 using NuGetGallery.OData;
+using NuGetGallery.Services.Telemetry;
 using NuGetGallery.WebApi;
 using Xunit;
 

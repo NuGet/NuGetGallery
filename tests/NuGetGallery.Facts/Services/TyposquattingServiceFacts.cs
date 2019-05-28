@@ -4,9 +4,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using Moq;
 using NuGet.Services.Entities;
+using NuGetGallery.Services.PackageManagement;
+using NuGetGallery.Services.Telemetry;
 using Xunit;
 
 namespace NuGetGallery

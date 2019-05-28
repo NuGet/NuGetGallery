@@ -8,11 +8,12 @@ using System.Web;
 using System.Web.Mvc;
 using Moq;
 using NuGet.Services.Entities;
-using NuGetGallery.Areas.Admin;
 using NuGetGallery.Areas.Admin.Controllers;
 using NuGetGallery.Areas.Admin.Models;
 using NuGetGallery.Areas.Admin.ViewModels;
 using NuGetGallery.Framework;
+using NuGetGallery.Services.SupportRequest;
+using NuGetGallery.Services.UserManagement;
 using Xunit;
 
 namespace NuGetGallery.Controllers

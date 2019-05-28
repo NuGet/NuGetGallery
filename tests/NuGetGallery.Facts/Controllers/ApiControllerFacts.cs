@@ -30,6 +30,11 @@ using NuGetGallery.Infrastructure.Authentication;
 using NuGetGallery.Infrastructure.Mail.Messages;
 using NuGetGallery.Packaging;
 using NuGetGallery.Security;
+using NuGetGallery.Services.Authentication;
+using NuGetGallery.Services.PackageManagement;
+using NuGetGallery.Services.Security;
+using NuGetGallery.Services.Telemetry;
+using NuGetGallery.Services.UserManagement;
 using NuGetGallery.TestUtils;
 using Xunit;
 

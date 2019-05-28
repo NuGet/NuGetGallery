@@ -5,12 +5,13 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Net;
 using Moq;
 using NuGet.Services.Entities;
 using NuGet.Versioning;
 using NuGetGallery.Diagnostics;
 using NuGetGallery.Framework;
+using NuGetGallery.Services.Models;
+using NuGetGallery.Services.Telemetry;
 using Xunit;
 
 using TrackAction = System.Action<NuGetGallery.TelemetryService>;

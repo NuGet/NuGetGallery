@@ -10,6 +10,8 @@ using NuGet.Services.Entities;
 using NuGet.Services.Validation;
 using NuGet.Services.Validation.Issues;
 using NuGetGallery.Configuration;
+using NuGetGallery.Services.PackageManagement;
+using NuGetGallery.Services.Telemetry;
 using Xunit;
 
 namespace NuGetGallery

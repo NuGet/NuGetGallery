@@ -3,7 +3,7 @@
 
 using System;
 using NuGet.Services.Entities;
-using NuGetGallery.Authentication;
+using NuGetGallery.Services.Authentication;
 using Xunit;
 
 namespace NuGetGallery.Extensions
