@@ -44,9 +44,10 @@ namespace NuGet.Services.Validation.Orchestrator
                                     _serviceConfiguration.EmailConfiguration.EmailSettingsUrl,
                                     Array.Empty<string>());
 
-            _logger.LogInformation("The publish email will be sent for the symbol {SymbolId} {SymbolVersion}",
-                   symbolPackage.Id,
-                   symbolPackage.Version);
+            _logger.LogInformation(
+                "The publish email will be sent for the symbol {SymbolId} {SymbolVersion}",
+                symbolPackage.Id,
+                symbolPackage.Version);
             await _messageService.SendMessageAsync(symbolPackageAddedMessage);
         }
 
@@ -70,10 +71,12 @@ namespace NuGet.Services.Validation.Orchestrator
                                    _serviceConfiguration.EmailConfiguration.AnnouncementsUrl,
                                    _serviceConfiguration.EmailConfiguration.TwitterUrl);
 
-            _logger.LogInformation("The validation failed  email will be sent for the symbol {SymbolId} {SymbolVersion} and ValidationSetKey {ValidationSetKey}",
-                   symbolPackage.Id,
-                   symbolPackage.Version,
-                   validationSet.Key);
+            _logger.LogInformation(
+                "The validation failed email will be sent for the symbol {SymbolId} {SymbolVersion} and " +
+                "{ValidationSetId}",
+                symbolPackage.Id,
+                symbolPackage.Version,
+                validationSet.ValidationTrackingId);
             await _messageService.SendMessageAsync(symbolPackageValidationFailedMessage);
         }
 
@@ -88,9 +91,10 @@ namespace NuGet.Services.Validation.Orchestrator
                                    symbolPackage,
                                    _serviceConfiguration.GalleryPackageUrl(symbolPackage.Package.PackageRegistration.Id, symbolPackage.Package.NormalizedVersion));
 
-            _logger.LogInformation("The validation failed  email will be sent for the symbol {SymbolId} {SymbolVersion}.",
-                   symbolPackage.Id,
-                   symbolPackage.Version);
+            _logger.LogInformation(
+                "The validating too long email will be sent for the symbol {SymbolId} {SymbolVersion}.",
+                symbolPackage.Id,
+                symbolPackage.Version);
             await _messageService.SendMessageAsync(symbolPackageValidationTakingTooLongMessage);
         }
     }

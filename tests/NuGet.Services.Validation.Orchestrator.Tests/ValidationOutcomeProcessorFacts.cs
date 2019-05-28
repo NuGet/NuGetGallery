@@ -32,6 +32,8 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             PackageFileServiceMock.Verify(
                 x => x.DeletePackageForValidationSetAsync(ValidationSet),
                 Times.Once);
+
+            Assert.Equal(ValidationSetStatus.Completed, ValidationSet.ValidationSetStatus);
         }
 
         [Theory]
@@ -114,6 +116,8 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 .Verify(ve => ve.StartValidationAsync(It.IsAny<PackageValidationMessageData>(), It.IsAny<DateTimeOffset>()), Times.Never);
             PackageFileServiceMock
                 .Verify(x => x.DeletePackageForValidationSetAsync(It.IsAny<PackageValidationSet>()), Times.Never);
+
+            Assert.Equal(ValidationSetStatus.InProgress, ValidationSet.ValidationSetStatus);
         }
 
         [Theory]
@@ -266,7 +270,10 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             Assert.Equal(ValidationSet.ValidationTrackingId, messageData.ValidationTrackingId);
             Assert.Equal(ValidationSet.PackageId, messageData.PackageId);
             Assert.Equal(Package.NormalizedVersion, messageData.PackageVersion);
+            Assert.Equal(ValidationSet.ValidatingType, messageData.ValidatingType);
+            Assert.Equal(ValidationSet.PackageKey, messageData.EntityKey);
             Assert.Equal(postponeMinutes, (postponeTill - startTime).TotalMinutes, 0);
+            Assert.Equal(ValidationSetStatus.InProgress, ValidationSet.ValidationSetStatus);
         }
 
         [Fact]
@@ -304,6 +311,103 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 .Verify(ms => ms.SendPublishedMessageAsync(Package), Times.Once());
             MessageServiceMock
                 .Verify(ms => ms.SendPublishedMessageAsync(It.IsAny<Package>()), Times.Once());
+
+            Assert.Equal(ValidationSetStatus.Completed, ValidationSet.ValidationSetStatus);
+        }
+        
+        [Theory]
+        [InlineData(PackageStatus.Validating)]
+        [InlineData(PackageStatus.FailedValidation)]
+        public async Task HasProperOperationOrderWhenTransitioningToAvailable(PackageStatus packageStatus)
+        {
+            AddValidation("validation1", ValidationStatus.Succeeded);
+            ProcessorStats.AnyRequiredValidationSucceeded = true;
+            Package.PackageStatusKey = packageStatus;
+
+            var operations = RecordOperationOrder();
+
+            var processor = CreateProcessor();
+            await processor.ProcessValidationOutcomeAsync(ValidationSet, PackageValidatingEntity, ProcessorStats);
+
+            Assert.Equal(
+                new[]
+                {
+                    nameof(IStatusProcessor<Package>.SetStatusAsync),
+                    nameof(IValidationStorageService.UpdateValidationSetAsync),
+                    nameof(IMessageService<Package>.SendPublishedMessageAsync),
+                    nameof(ITelemetryService.TrackTotalValidationDuration),
+                    nameof(IValidationFileService.DeletePackageForValidationSetAsync),
+                },
+                operations.ToArray());
+        }
+
+        [Fact]
+        public async Task HasProperOperationOrderWhenAlreadyAvailable()
+        {
+            AddValidation("validation1", ValidationStatus.Succeeded);
+            ProcessorStats.AnyRequiredValidationSucceeded = true;
+            Package.PackageStatusKey = PackageStatus.Available;
+
+            var operations = RecordOperationOrder();
+
+            var processor = CreateProcessor();
+            await processor.ProcessValidationOutcomeAsync(ValidationSet, PackageValidatingEntity, ProcessorStats);
+
+            Assert.Equal(
+                new[]
+                {
+                    nameof(IStatusProcessor<Package>.SetStatusAsync),
+                    nameof(IValidationStorageService.UpdateValidationSetAsync),
+                    nameof(ITelemetryService.TrackTotalValidationDuration),
+                    nameof(IValidationFileService.DeletePackageForValidationSetAsync),
+                },
+                operations.ToArray());
+        }
+
+        [Fact]
+        public async Task HasProperOperationOrderWhenTransitioningToFailedValidation()
+        {
+            AddValidation("validation1", ValidationStatus.Failed);
+            Package.PackageStatusKey = PackageStatus.Validating;
+
+            var operations = RecordOperationOrder();
+
+            var processor = CreateProcessor();
+            await processor.ProcessValidationOutcomeAsync(ValidationSet, PackageValidatingEntity, ProcessorStats);
+
+            Assert.Equal(
+                new[]
+                {
+                    nameof(IStatusProcessor<Package>.SetStatusAsync),
+                    nameof(IValidationStorageService.UpdateValidationSetAsync),
+                    nameof(IMessageService<Package>.SendValidationFailedMessageAsync),
+                    nameof(ITelemetryService.TrackTotalValidationDuration),
+                    nameof(IValidationFileService.DeletePackageForValidationSetAsync),
+                },
+                operations.ToArray());
+        }
+
+        [Theory]
+        [InlineData(PackageStatus.Available, ValidationStatus.Failed)]
+        [InlineData(PackageStatus.FailedValidation, ValidationStatus.Failed)]
+        public async Task HasProperOperationOrderWhenTerminalAndValidationFailed(PackageStatus packageStatus, ValidationStatus validationStatus)
+        {
+            AddValidation("validation1", validationStatus);
+            Package.PackageStatusKey = packageStatus;
+
+            var operations = RecordOperationOrder();
+
+            var processor = CreateProcessor();
+            await processor.ProcessValidationOutcomeAsync(ValidationSet, PackageValidatingEntity, ProcessorStats);
+
+            Assert.Equal(
+                new[]
+                {
+                    nameof(IValidationStorageService.UpdateValidationSetAsync),
+                    nameof(ITelemetryService.TrackTotalValidationDuration),
+                    nameof(IValidationFileService.DeletePackageForValidationSetAsync),
+                },
+                operations.ToArray());
         }
 
         [Theory]
@@ -358,6 +462,8 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             TelemetryServiceMock
                 .Verify(ts => ts.TrackTotalValidationDuration(It.IsAny<TimeSpan>(), It.IsAny<bool>()), Times.Once());
             Assert.InRange(duration, before - ValidationSet.Created, after - ValidationSet.Created);
+
+            Assert.Equal(ValidationSetStatus.Completed, ValidationSet.ValidationSetStatus);
         }
 
         [Theory]
@@ -401,6 +507,8 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
 
             ValidationEnqueuerMock
                 .Verify(ve => ve.StartValidationAsync(It.IsAny<PackageValidationMessageData>(), It.IsAny<DateTimeOffset>()), Times.Once());
+
+            Assert.Equal(ValidationSetStatus.InProgress, ValidationSet.ValidationSetStatus);
         }
 
         [Theory]
@@ -420,6 +528,8 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
 
             ValidationEnqueuerMock
                 .Verify(ve => ve.StartValidationAsync(It.IsAny<PackageValidationMessageData>(), It.IsAny<DateTimeOffset>()), Times.Never());
+
+            Assert.Equal(ValidationSetStatus.Completed, ValidationSet.ValidationSetStatus);
         }
 
         public static IEnumerable<object[]> TwoValidationStatusAndBoolCombinations =>
@@ -492,6 +602,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             MessageServiceMock.Verify(
                 x => x.SendPublishedMessageAsync(It.IsAny<Package>()),
                 Times.Never);
+            Assert.Equal(ValidationSetStatus.Completed, ValidationSet.ValidationSetStatus);
         }
 
         [Theory]
@@ -604,6 +715,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             ValidationSet.ValidationTrackingId = Guid.NewGuid();
             ValidationSet.Created = DateTime.UtcNow - TimeSpan.FromHours(3);
             ValidationSet.Updated = ValidationSet.Created + TimeSpan.FromHours(1);
+            ValidationSet.ValidationSetStatus = ValidationSetStatus.InProgress;
 
             ProcessorStats = new ValidationSetProcessorResult();
 
@@ -664,6 +776,36 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 ShouldStart = true,
                 FailureBehavior = failureBehavior
             });
+        }
+
+        private List<string> RecordOperationOrder()
+        {
+            var operations = new List<string>();
+
+            PackageStateProcessorMock
+                .Setup(x => x.SetStatusAsync(It.IsAny<IValidatingEntity<Package>>(), It.IsAny<PackageValidationSet>(), It.IsAny<PackageStatus>()))
+                .Returns(Task.CompletedTask)
+                .Callback(() => operations.Add(nameof(IStatusProcessor<Package>.SetStatusAsync)));
+            ValidationStorageServiceMock
+                .Setup(x => x.UpdateValidationSetAsync(It.IsAny<PackageValidationSet>()))
+                .Returns(Task.CompletedTask)
+                .Callback(() => operations.Add(nameof(IValidationStorageService.UpdateValidationSetAsync)));
+            MessageServiceMock
+                .Setup(x => x.SendPublishedMessageAsync(It.IsAny<Package>()))
+                .Returns(Task.CompletedTask)
+                .Callback(() => operations.Add(nameof(IMessageService<Package>.SendPublishedMessageAsync)));
+            MessageServiceMock
+                .Setup(x => x.SendValidationFailedMessageAsync(It.IsAny<Package>(), It.IsAny<PackageValidationSet>()))
+                .Returns(Task.CompletedTask)
+                .Callback(() => operations.Add(nameof(IMessageService<Package>.SendValidationFailedMessageAsync)));
+            TelemetryServiceMock
+                .Setup(x => x.TrackTotalValidationDuration(It.IsAny<TimeSpan>(), It.IsAny<bool>()))
+                .Callback(() => operations.Add(nameof(ITelemetryService.TrackTotalValidationDuration)));
+            PackageFileServiceMock
+                .Setup(x => x.DeletePackageForValidationSetAsync(It.IsAny<PackageValidationSet>()))
+                .Returns(Task.CompletedTask)
+                .Callback(() => operations.Add(nameof(IValidationFileService.DeletePackageForValidationSetAsync)));
+            return operations;
         }
     }
 }

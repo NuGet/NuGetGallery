@@ -38,7 +38,7 @@ namespace NuGet.Jobs
         /// </summary>
         /// <param name="job">Job to run</param>
         /// <param name="commandLineArgs">Args contains args to the job runner like (dbg, once and so on) and for the job itself</param>
-        /// <returns></returns>
+        /// <returns>The exit code, where 0 indicates success and non-zero indicates an error.</returns>
         public static async Task<int> Run(JobBase job, string[] commandLineArgs)
         {
             return await Run(job, commandLineArgs, runContinuously: null);
@@ -52,7 +52,7 @@ namespace NuGet.Jobs
         /// </summary>
         /// <param name="job">Job to run</param>
         /// <param name="commandLineArgs">Args contains args to the job runner like (dbg, once and so on) and for the job itself</param>
-        /// <returns></returns>
+        /// <returns>The exit code, where 0 indicates success and non-zero indicates an error.</returns>
         public static async Task<int> RunOnce(JobBase job, string[] commandLineArgs)
         {
             return await Run(job, commandLineArgs, runContinuously: false);
