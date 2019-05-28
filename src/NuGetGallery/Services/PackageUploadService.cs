@@ -18,6 +18,8 @@ using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
 using NuGetGallery.Helpers;
 using NuGetGallery.Packaging;
+using NuGetGallery.Services.PackageManagement;
+using NuGetGallery.Services.Telemetry;
 
 namespace NuGetGallery
 {

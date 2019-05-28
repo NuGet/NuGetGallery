@@ -18,12 +18,14 @@ using NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2;
 using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
 using NuGetGallery.Infrastructure.Authentication;
+using NuGetGallery.Services.Authentication;
+using NuGetGallery.Services.Telemetry;
 
 using static NuGetGallery.GalleryConstants;
 
 namespace NuGetGallery.Authentication
 {
-    public class AuthenticationService
+    public class AuthenticationService: IAuthenticationService
     {
         private Dictionary<string, Func<string, string>> _credentialFormatters;
         private readonly IDiagnosticsSource _trace;

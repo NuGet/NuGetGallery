@@ -5,6 +5,7 @@ using System.Security.Claims;
 using System.Web.Mvc;
 using Microsoft.Owin.Security.MicrosoftAccount;
 using NuGetGallery.Configuration;
+using NuGetGallery.Services.Authentication;
 using Owin;
 
 namespace NuGetGallery.Authentication.Providers.MicrosoftAccount

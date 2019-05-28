@@ -3,6 +3,7 @@
 
 using Autofac;
 using NuGetGallery.Authentication.Providers;
+using NuGetGallery.Services.Authentication;
 
 namespace NuGetGallery.Authentication
 {
@@ -13,6 +14,10 @@ namespace NuGetGallery.Authentication
         {
             builder.RegisterType<AuthenticationService>()
                 .As<AuthenticationService>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<AuthenticationService>()
+                .As<IAuthenticationService>()
                 .InstancePerLifetimeScope();
 
             foreach (var instance in Authenticator.GetAllAvailable())

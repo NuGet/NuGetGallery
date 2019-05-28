@@ -3,7 +3,8 @@
 
 using System;
 using System.Threading.Tasks;
-using NuGetGallery.Authentication;
+using NuGetGallery.Services.Authentication;
+using NuGetGallery.Services.Security;
 
 namespace NuGetGallery.Security
 {

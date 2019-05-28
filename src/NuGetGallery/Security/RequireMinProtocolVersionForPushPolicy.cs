@@ -9,6 +9,7 @@ using Newtonsoft.Json;
 using NuGet.Protocol;
 using NuGet.Services.Entities;
 using NuGet.Versioning;
+using NuGetGallery.Services.Security;
 
 namespace NuGetGallery.Security
 {

@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Security.Principal;
 using System.Web;
@@ -12,8 +11,10 @@ using Newtonsoft.Json;
 using NuGet.Services.Entities;
 using NuGet.Services.FeatureFlags;
 using NuGet.Versioning;
-using NuGetGallery.Authentication;
 using NuGetGallery.Diagnostics;
+using NuGetGallery.Services.Authentication;
+using NuGetGallery.Services.Models;
+using NuGetGallery.Services.Telemetry;
 
 namespace NuGetGallery
 {

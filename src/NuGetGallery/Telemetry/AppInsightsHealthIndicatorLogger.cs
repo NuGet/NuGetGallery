@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.ApplicationInsights;
 using NuGet.Services.Search.Client;
+using NuGetGallery.Services.Telemetry;
 
 namespace NuGetGallery
 {

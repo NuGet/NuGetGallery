@@ -9,6 +9,7 @@ using System.Web.Mvc;
 using NuGet.Frameworks;
 using NuGet.Services.Entities;
 using NuGet.Versioning;
+using NuGetGallery.Services.Telemetry;
 
 namespace NuGetGallery
 {

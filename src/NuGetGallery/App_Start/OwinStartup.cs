@@ -24,7 +24,10 @@ using NuGetGallery.Authentication.Providers;
 using NuGetGallery.Authentication.Providers.Cookie;
 using NuGetGallery.Configuration;
 using NuGetGallery.Infrastructure;
+using NuGetGallery.Services.Telemetry;
 using Owin;
+
+using TelemetryClientWrapper = NuGetGallery.Services.Telemetry.TelemetryClientWrapper;
 
 [assembly: OwinStartup(typeof(NuGetGallery.OwinStartup))]
 

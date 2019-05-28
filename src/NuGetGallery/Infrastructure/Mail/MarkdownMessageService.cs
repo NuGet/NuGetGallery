@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using AnglicanGeek.MarkdownMailer;
 using NuGet.Services.Messaging.Email;
 using NuGetGallery.Configuration;
+using NuGetGallery.Services.Telemetry;
 
 namespace NuGetGallery.Infrastructure.Mail
 {

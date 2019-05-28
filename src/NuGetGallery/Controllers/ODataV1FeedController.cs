@@ -12,6 +12,7 @@ using NuGet.Services.Entities;
 using NuGetGallery.Configuration;
 using NuGetGallery.OData;
 using NuGetGallery.OData.QueryFilter;
+using NuGetGallery.Services.Telemetry;
 using NuGetGallery.WebApi;
 using WebApi.OutputCache.V2;
 

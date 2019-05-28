@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using NuGetGallery.Services.UserManagement;
 
 namespace NuGetGallery.Areas.Admin.ViewModels
 {

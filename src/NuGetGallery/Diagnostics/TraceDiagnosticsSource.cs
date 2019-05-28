@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using Microsoft.Extensions.Logging;
+using NuGetGallery.Services.Telemetry;
 
 namespace NuGetGallery.Diagnostics
 {

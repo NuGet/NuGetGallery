@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using NuGetGallery.Services.PackageManagement;
 
 namespace NuGetGallery
 {

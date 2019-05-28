@@ -10,6 +10,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NuGetGallery.Areas.Admin.ViewModels;
 using NuGetGallery.Security;
+using NuGetGallery.Services.Security;
 
 namespace NuGetGallery.Areas.Admin.Controllers
 {

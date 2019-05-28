@@ -19,7 +19,8 @@ using NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2;
 using NuGetGallery.Authentication.Providers.MicrosoftAccount;
 using NuGetGallery.Infrastructure.Authentication;
 using NuGetGallery.Infrastructure.Mail.Messages;
-using NuGetGallery.Security;
+using NuGetGallery.Services.Security;
+using NuGetGallery.Services.UserManagement;
 
 namespace NuGetGallery
 {

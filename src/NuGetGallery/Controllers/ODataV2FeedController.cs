@@ -18,6 +18,7 @@ using NuGetGallery.OData;
 using NuGetGallery.OData.QueryFilter;
 using NuGetGallery.OData.QueryInterceptors;
 using NuGetGallery.WebApi;
+using NuGetGallery.Services.Telemetry;
 using QueryInterceptor;
 using WebApi.OutputCache.V2;
 

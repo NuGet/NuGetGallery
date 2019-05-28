@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using System.Web.Mvc;
 using NuGetGallery.Configuration;
 using NuGetGallery.Helpers;
+using NuGetGallery.Services.Telemetry;
 
 namespace NuGetGallery
 {
