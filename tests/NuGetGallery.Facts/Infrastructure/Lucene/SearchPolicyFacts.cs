@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
+using NuGetGallery.Services.Telemetry;
 using Xunit;
 
 namespace NuGetGallery.Infrastructure.Search

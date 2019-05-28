@@ -7,12 +7,15 @@ using System.Linq;
 using System.Threading.Tasks;
 using Moq;
 using NuGet.Services.Entities;
-using NuGetGallery.Areas.Admin;
 using NuGetGallery.Areas.Admin.Models;
 using NuGetGallery.Auditing;
 using NuGetGallery.Authentication;
 using NuGetGallery.Features;
-using NuGetGallery.Security;
+using NuGetGallery.Services.AccountManagement;
+using NuGetGallery.Services.PackageManagement;
+using NuGetGallery.Services.Security;
+using NuGetGallery.Services.SupportRequest;
+using NuGetGallery.Services.Telemetry;
 using Xunit;
 
 namespace NuGetGallery.Services

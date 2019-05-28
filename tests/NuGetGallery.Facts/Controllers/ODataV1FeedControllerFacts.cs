@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using NuGet.Services.Entities;
 using NuGetGallery.Configuration;
 using NuGetGallery.OData;
+using NuGetGallery.Services.Telemetry;
 using Xunit;
 
 namespace NuGetGallery.Controllers

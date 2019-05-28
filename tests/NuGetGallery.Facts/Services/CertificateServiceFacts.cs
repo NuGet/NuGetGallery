@@ -12,6 +12,7 @@ using System.Web;
 using Moq;
 using NuGet.Services.Entities;
 using NuGetGallery.Auditing;
+using NuGetGallery.Services.Telemetry;
 using Xunit;
 
 namespace NuGetGallery.Services

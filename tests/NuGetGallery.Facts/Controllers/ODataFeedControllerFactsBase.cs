@@ -18,6 +18,7 @@ using NuGet.Services.Entities;
 using NuGetGallery.Configuration;
 using NuGetGallery.Framework;
 using NuGetGallery.OData;
+using NuGetGallery.Services.Telemetry;
 using NuGetGallery.WebApi;
 
 namespace NuGetGallery.Controllers

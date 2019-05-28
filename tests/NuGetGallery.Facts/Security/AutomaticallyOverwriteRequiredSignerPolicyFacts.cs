@@ -4,6 +4,7 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using NuGetGallery.Services.Security;
 using Xunit;
 
 namespace NuGetGallery.Security

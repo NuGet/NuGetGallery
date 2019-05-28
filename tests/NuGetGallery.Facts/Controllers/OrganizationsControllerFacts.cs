@@ -14,11 +14,16 @@ using System.Web.Mvc;
 using Moq;
 using NuGet.Services.Entities;
 using NuGet.Services.Messaging.Email;
-using NuGetGallery.Areas.Admin.ViewModels;
 using NuGetGallery.Authentication;
 using NuGetGallery.Framework;
 using NuGetGallery.Infrastructure.Mail.Messages;
 using NuGetGallery.Security;
+using NuGetGallery.Services.AccountManagement;
+using NuGetGallery.Services.Models;
+using NuGetGallery.Services.PackageManagement;
+using NuGetGallery.Services.Security;
+using NuGetGallery.Services.Telemetry;
+using NuGetGallery.Services.UserManagement;
 using Xunit;
 
 namespace NuGetGallery

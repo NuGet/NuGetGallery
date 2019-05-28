@@ -10,6 +10,7 @@ using NuGetGallery.Areas.Admin;
 using NuGetGallery.Areas.Admin.Models;
 using NuGetGallery.Auditing;
 using NuGetGallery.Configuration;
+using NuGetGallery.Services.SupportRequest;
 using Moq;
 using Xunit;
 using NuGet.Services.Entities;

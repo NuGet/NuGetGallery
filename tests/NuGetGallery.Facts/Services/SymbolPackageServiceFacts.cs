@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Moq;
 using NuGet.Services.Entities;
 using NuGetGallery.Packaging;
+using NuGetGallery.Services.PackageManagement;
 using NuGetGallery.TestUtils;
 using Xunit;
 using ClientPackageType = NuGet.Packaging.Core.PackageType;

@@ -7,6 +7,7 @@ using Moq;
 using NuGetGallery.Authentication;
 using NuGetGallery.Configuration;
 using NuGetGallery.Infrastructure.Mail;
+using NuGetGallery.Services.Telemetry;
 
 namespace NuGetGallery
 {

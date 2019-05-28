@@ -11,7 +11,7 @@ using NuGet.Services.Entities;
 using NuGetGallery.Auditing;
 using NuGetGallery.Framework;
 using NuGetGallery.Infrastructure.Authentication;
-using NuGetGallery.Security;
+using NuGetGallery.Services.Security;
 using NuGetGallery.TestUtils;
 using Xunit;
 

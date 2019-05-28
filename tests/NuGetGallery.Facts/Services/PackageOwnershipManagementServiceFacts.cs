@@ -10,6 +10,7 @@ using NuGet.Services.Entities;
 using NuGetGallery.Auditing;
 using NuGetGallery.Framework;
 using NuGetGallery.TestUtils;
+using NuGetGallery.Services.PackageManagement;
 using Xunit;
 
 namespace NuGetGallery

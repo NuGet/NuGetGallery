@@ -11,6 +11,7 @@ using Moq;
 using NuGetGallery.Configuration;
 using NuGetGallery.Infrastructure;
 using NuGetGallery.Infrastructure.Search;
+using NuGetGallery.Services.Telemetry;
 using Xunit;
 
 namespace NuGetGallery

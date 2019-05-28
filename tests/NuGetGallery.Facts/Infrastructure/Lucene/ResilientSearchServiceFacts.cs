@@ -12,6 +12,7 @@ using Microsoft.Extensions.Logging;
 using NuGetGallery;
 using NuGetGallery.Infrastructure;
 using NuGetGallery.Infrastructure.Search;
+using NuGetGallery.Services.Telemetry;
 using Moq;
 using Xunit;
 

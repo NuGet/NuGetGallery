@@ -10,6 +10,7 @@ using Newtonsoft.Json.Linq;
 using NuGet.Services.Entities;
 using NuGetGallery.Auditing;
 using NuGetGallery.Framework;
+using NuGetGallery.Services.PackageManagement;
 using Xunit;
 
 namespace NuGetGallery.Controllers

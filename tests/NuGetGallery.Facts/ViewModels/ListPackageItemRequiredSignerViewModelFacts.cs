@@ -7,6 +7,7 @@ using System.Linq;
 using Moq;
 using NuGet.Services.Entities;
 using NuGetGallery.Security;
+using NuGetGallery.Services.Security;
 using Xunit;
 
 namespace NuGetGallery.ViewModels

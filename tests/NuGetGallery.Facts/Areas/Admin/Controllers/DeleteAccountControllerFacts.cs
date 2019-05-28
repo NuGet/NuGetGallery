@@ -9,6 +9,7 @@ using NuGetGallery.Framework;
 using Moq;
 using Xunit;
 using NuGet.Services.Entities;
+using NuGetGallery.Services.UserManagement;
 
 namespace NuGetGallery.Areas.Admin.Controllers
 {
