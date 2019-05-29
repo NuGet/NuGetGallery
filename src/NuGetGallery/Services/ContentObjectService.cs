@@ -74,11 +74,12 @@ namespace NuGetGallery
             public string Name { get; set; }
             public string Owner { get; set; }
             public string CloneUrl { get; set; }
-            public int StarCount { get; set; }
+            public int Stars { get; set; }
 
             public string FullName
             {
-                get => Owner + "/" + Name; set
+                get => Owner + "/" + Name;
+                set
                 {
                     var split = value.Split('/');
                     if (split.Length == 2)
@@ -94,7 +95,7 @@ namespace NuGetGallery
                 Owner = owner;
                 Name = repoName;
                 CloneUrl = cloneUrl;
-                StarCount = starCount;
+                Stars = starCount;
             }
 
             public override bool Equals(object obj)
@@ -104,30 +105,18 @@ namespace NuGetGallery
 
             public bool Equals(RepositoryInformation other)
             {
-                return Owner.Equals(other.Owner, StringComparison.InvariantCultureIgnoreCase) &&
-                       Name.Equals(other.Name, StringComparison.InvariantCultureIgnoreCase) &&
-                       CloneUrl.Equals(other.CloneUrl, StringComparison.InvariantCultureIgnoreCase);
+                return CloneUrl.Equals(other.CloneUrl, StringComparison.InvariantCultureIgnoreCase);
             }
             public override int GetHashCode()
             {
                 // Using toLower() to make the hash case insensitive
-                // Using toLower() to make the hash case insensitive
-                var hc1 = (uint)(Owner.ToLower().GetHashCode());
-                var hc2 = (uint)(Name.ToLower().GetHashCode());
-                var hc3 = (uint)(CloneUrl.ToLower().GetHashCode());
-
-                uint hash = 17;
-                hash = hash * 31 + hc1;
-                hash = hash * 31 + hc2;
-                hash = hash * 31 + hc3;
-
-                return (int)hash;
+                return CloneUrl.ToLower().GetHashCode();
             }
 
             public int CompareTo(RepositoryInformation other)
             {
                 // It is inverted here so the Repos would always be sorted from high starCount to low starCount
-                return other.StarCount.CompareTo(StarCount);
+                return other.Stars.CompareTo(Stars);
             }
         }
     }
