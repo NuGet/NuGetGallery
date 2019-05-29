@@ -8,23 +8,29 @@ namespace NuGet.Services.ServiceBus
 {
     public sealed class OnMessageOptionsWrapper : IOnMessageOptions
     {
-        public OnMessageOptions OnMessageOptions { get; set; }
+        /// <summary>
+        /// Specifies whether the Service Bus message completes when message callback returns.
+        /// </summary>
+        /// <remarks>
+        /// Default value is set to the default value of the respective property of <see cref="OnMessageOptions"/>.
+        /// </remarks>
+        public bool AutoComplete { get; set; } = true;
 
-        public bool AutoComplete
-        {
-            get => OnMessageOptions.AutoComplete;
-            set => OnMessageOptions.AutoComplete = value;
-        }
+        /// <summary>
+        /// Specifies the maximum number of concurrent message callbacks.
+        /// </summary>
+        /// <remarks>
+        /// Default value is set to the default value of the respective property of <see cref="OnMessageOptions"/>.
+        /// </remarks>
+        public int MaxConcurrentCalls { get; set; } = 1;
 
-        public int MaxConcurrentCalls
+        public OnMessageOptions GetOptions()
         {
-            get => OnMessageOptions.MaxConcurrentCalls;
-            set => OnMessageOptions.MaxConcurrentCalls = value;
-        }
-
-        public OnMessageOptionsWrapper(OnMessageOptions options = null)
-        {
-            OnMessageOptions = OnMessageOptions ?? new OnMessageOptions();
+            return new OnMessageOptions
+            {
+                AutoComplete = AutoComplete,
+                MaxConcurrentCalls = MaxConcurrentCalls,
+            };
         }
     }
 }

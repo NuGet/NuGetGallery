@@ -3,6 +3,7 @@
 
 using System;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Microsoft.ServiceBus.Messaging;
 
 namespace NuGet.Services.ServiceBus
@@ -10,15 +11,20 @@ namespace NuGet.Services.ServiceBus
     public class SubscriptionClientWrapper : ISubscriptionClient
     {
         private readonly SubscriptionClient _client;
+        private readonly ILogger<SubscriptionClientWrapper> _logger;
 
-        public SubscriptionClientWrapper(string connectionString, string topicPath, string name)
+        public SubscriptionClientWrapper(string connectionString, string topicPath, string name, ILogger<SubscriptionClientWrapper> logger)
         {
             _client = SubscriptionClient.CreateFromConnectionString(connectionString, topicPath, name);
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         public void OnMessageAsync(Func<IBrokeredMessage, Task> onMessageAsync)
         {
             var callback = CreateOnMessageAsyncCallback(onMessageAsync);
+
+            var onMessageOptions = new OnMessageOptions();
+            onMessageOptions.ExceptionReceived += OnMessageException;
 
             _client.OnMessageAsync(callback);
         }
@@ -36,9 +42,17 @@ namespace NuGet.Services.ServiceBus
                     nameof(options));
             }
 
+            var onMessageOptions = optionsWrapper.GetOptions();
+            onMessageOptions.ExceptionReceived += OnMessageException;
+
             _client.OnMessageAsync(
                 CreateOnMessageAsyncCallback(onMessageAsync),
-                optionsWrapper.OnMessageOptions);
+                onMessageOptions);
+        }
+
+        private void OnMessageException(object sender, ExceptionReceivedEventArgs e)
+        {
+            _logger.LogError(0, e.Exception, "Unhandled exception while processing ServiceBus message");
         }
 
         private Func<BrokeredMessage, Task> CreateOnMessageAsyncCallback(Func<IBrokeredMessage, Task> onMessageAsync)
