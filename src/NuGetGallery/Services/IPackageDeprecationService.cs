@@ -17,7 +17,7 @@ namespace NuGetGallery
         /// Commits changes when finished.
         /// </summary>
         Task UpdateDeprecation(
-            IReadOnlyCollection<Package> packages,
+            IReadOnlyList<Package> packages,
             PackageDeprecationStatus status,
             PackageRegistration alternatePackageRegistration,
             Package alternatePackage,

@@ -251,8 +251,6 @@
     <Compile Include="Migrations\201905071526573_DevelopmentDependencyMetadata.Designer.cs">
       <DependentUpon>201905071526573_DevelopmentDependencyMetadata.cs</DependentUpon>
     </Compile>
-    <Compile Include="Services\BulkPackageUpdateService.cs" />
-    <Compile Include="Services\IBulkPackageUpdateService.cs" />
     <Compile Include="Services\IPackageDeprecationService.cs" />
     <Compile Include="Queries\AutocompleteDatabasePackageIdsQuery.cs" />
     <Compile Include="Queries\AutocompleteDatabasePackageVersionsQuery.cs" />
@@ -470,6 +468,7 @@
     <Compile Include="Services\InvalidLicenseUrlValidationMessage.cs" />
     <Compile Include="Services\InvalidUrlEncodingForLicenseUrlValidationMessage.cs" />
     <Compile Include="Services\ISearchSideBySideService.cs" />
+    <Compile Include="Services\IPackageUpdateService.cs" />
     <Compile Include="Services\ISymbolPackageUploadService.cs" />
     <Compile Include="Services\ISymbolPackageFileService.cs" />
     <Compile Include="Services\ITyposquattingCheckListCacheService.cs" />
@@ -480,6 +479,7 @@
     <Compile Include="Services\PackageDeleteService.cs" />
     <Compile Include="Services\PackageDeprecationService.cs" />
     <Compile Include="Services\PackageShouldNotBeSignedUserFixableValidationMessage.cs" />
+    <Compile Include="Services\PackageUpdateService.cs" />
     <Compile Include="Services\PlainTextOnlyValidationMessage.cs" />
     <Compile Include="Services\SearchSideBySideService.cs" />
     <Compile Include="Services\SymbolPackageValidationResult.cs" />

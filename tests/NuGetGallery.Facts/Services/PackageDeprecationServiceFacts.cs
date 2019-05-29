@@ -20,7 +20,7 @@ namespace NuGetGallery.Services
 
             [Theory]
             [MemberData(nameof(ThrowsIfPackagesEmpty_Data))]
-            public async Task ThrowsIfPackagesEmpty(IReadOnlyCollection<Package> packages)
+            public async Task ThrowsIfPackagesEmpty(IReadOnlyList<Package> packages)
             {
                 var service = Get<PackageDeprecationService>();
 
@@ -114,15 +114,10 @@ namespace NuGetGallery.Services
                     .Setup(x => x.GetDatabase())
                     .Returns(databaseMock.Object);
 
-                var bulkUpdateService = GetMock<IBulkPackageUpdateService>();
-                bulkUpdateService
-                    .Setup(b => b.UpdatePackagesAsync(packages, null))
+                var packageUpdateService = GetMock<IPackageUpdateService>();
+                packageUpdateService
+                    .Setup(b => b.UpdatePackagesAsync(packages, null, true))
                     .Returns(Task.CompletedTask)
-                    .Verifiable();
-
-                var indexingService = GetMock<IIndexingService>();
-                indexingService
-                    .Setup(i => i.UpdatePackageRegistration(registration))
                     .Verifiable();
 
                 var user = new User { Key = 1 };
@@ -140,8 +135,7 @@ namespace NuGetGallery.Services
 
                 // Assert
                 deprecationRepository.Verify();
-                bulkUpdateService.Verify();
-                indexingService.Verify();
+                packageUpdateService.Verify();
 
                 foreach (var package in packages)
                 {
@@ -229,15 +223,10 @@ namespace NuGetGallery.Services
                     .Setup(x => x.GetDatabase())
                     .Returns(databaseMock.Object);
 
-                var bulkUpdateService = GetMock<IBulkPackageUpdateService>();
-                bulkUpdateService
-                    .Setup(b => b.UpdatePackagesAsync(packages, shouldUnlist ? false : (bool?)null))
+                var packageUpdateService = GetMock<IPackageUpdateService>();
+                packageUpdateService
+                    .Setup(b => b.UpdatePackagesAsync(packages, shouldUnlist ? false : (bool?)null, true))
                     .Returns(Task.CompletedTask)
-                    .Verifiable();
-
-                var indexingService = GetMock<IIndexingService>();
-                indexingService
-                    .Setup(i => i.UpdatePackageRegistration(registration))
                     .Verifiable();
 
                 var service = Get<PackageDeprecationService>();
@@ -262,8 +251,7 @@ namespace NuGetGallery.Services
 
                 // Assert
                 deprecationRepository.Verify();
-                bulkUpdateService.Verify();
-                indexingService.Verify();
+                packageUpdateService.Verify();
 
                 foreach (var package in packages)
                 {

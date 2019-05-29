@@ -13,21 +13,21 @@ namespace NuGetGallery
     public class PackageDeprecationService : IPackageDeprecationService
     {
         private readonly IEntityRepository<PackageDeprecation> _deprecationRepository;
-        private readonly IBulkPackageUpdateService _bulkPackageUpdateService;
+        private readonly IPackageUpdateService _packageUpdateService;
         private readonly IIndexingService _indexingService;
 
         public PackageDeprecationService(
            IEntityRepository<PackageDeprecation> deprecationRepository,
-           IBulkPackageUpdateService bulkPackageUpdateService,
+           IPackageUpdateService packageUpdateService,
            IIndexingService indexingService)
         {
             _deprecationRepository = deprecationRepository ?? throw new ArgumentNullException(nameof(deprecationRepository));
-            _bulkPackageUpdateService = bulkPackageUpdateService ?? throw new ArgumentNullException(nameof(bulkPackageUpdateService));
+            _packageUpdateService = packageUpdateService ?? throw new ArgumentNullException(nameof(packageUpdateService));
             _indexingService = indexingService ?? throw new ArgumentNullException(nameof(indexingService));
         }
 
         public async Task UpdateDeprecation(
-           IReadOnlyCollection<Package> packages,
+           IReadOnlyList<Package> packages,
            PackageDeprecationStatus status,
            PackageRegistration alternatePackageRegistration,
            Package alternatePackage,
@@ -35,6 +35,11 @@ namespace NuGetGallery
            bool shouldUnlist,
            User user)
         {
+            if (user == null)
+            {
+                throw new ArgumentNullException(nameof(user));
+            }
+
             if (packages == null || !packages.Any())
             {
                 throw new ArgumentException(nameof(packages));
@@ -46,17 +51,11 @@ namespace NuGetGallery
                 throw new ArgumentException("All packages to deprecate must have the same ID.", nameof(packages));
             }
 
-            if (user == null)
-            {
-                throw new ArgumentNullException(nameof(user));
-            }
-
             using (var strategy = new SuspendDbExecutionStrategy())
             using (var transaction = _deprecationRepository.GetDatabase().BeginTransaction())
             {
                 var shouldDelete = status == PackageDeprecationStatus.NotDeprecated;
                 var deprecations = new List<PackageDeprecation>();
-                var deprecationTime = DateTime.UtcNow;
                 foreach (var package in packages)
                 {
                     var deprecation = package.Deprecations.SingleOrDefault();
@@ -100,14 +99,12 @@ namespace NuGetGallery
                     _deprecationRepository.InsertOnCommit(deprecations);
                 }
 
-                // Save deprecation changes before bulk updating the packages.
                 await _deprecationRepository.CommitChangesAsync();
 
-                await _bulkPackageUpdateService.UpdatePackagesAsync(packages, shouldUnlist ? false : (bool?)null);
+                await _packageUpdateService.UpdatePackagesAsync(packages, shouldUnlist ? false : (bool?)null);
+
                 transaction.Commit();
             }
-
-            _indexingService.UpdatePackageRegistration(registration);
         }
 
         public PackageDeprecation GetDeprecationByPackage(Package package)
