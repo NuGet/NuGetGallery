@@ -71,7 +71,7 @@ namespace NuGetGallery
         public class NuGetPackageInformation
         {
             public int TotalRepos { get; set; }
-            public SortedSet<RepositoryInformation> Repos { get; set; }
+            public IReadOnlyList<RepositoryInformation> Repos { get; set; }
 
             public NuGetPackageInformation()
             {
