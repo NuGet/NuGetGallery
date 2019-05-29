@@ -7,14 +7,16 @@ using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using NuGet.Services.Entities;
-using NuGetGallery.Areas.Admin;
-using NuGetGallery.Areas.Admin.ViewModels;
 using NuGetGallery.Auditing;
-using NuGetGallery.Authentication;
 using NuGetGallery.Features;
-using NuGetGallery.Security;
+using NuGetGallery.Services.Authentication;
+using NuGetGallery.Services.Models;
+using NuGetGallery.Services.PackageManagement;
+using NuGetGallery.Services.Security;
+using NuGetGallery.Services.SupportRequest;
+using NuGetGallery.Services.Telemetry;
 
-namespace NuGetGallery
+namespace NuGetGallery.Services.AccountManagement
 {
     public class DeleteAccountService : IDeleteAccountService
     {
@@ -88,7 +90,7 @@ namespace NuGetGallery
                 {
                     Success = false,
                     Description = string.Format(CultureInfo.CurrentCulture,
-                        ServicesStrings.AccountDelete_AccountAlreadyDeleted,
+                        Strings.AccountDelete_AccountAlreadyDeleted,
                         userToBeDeleted.Username),
                     AccountName = userToBeDeleted.Username
                 };
@@ -383,7 +385,7 @@ namespace NuGetGallery
                 {
                     Success = true,
                     Description = string.Format(CultureInfo.CurrentCulture,
-                        ServicesStrings.AccountDelete_Success,
+                        Strings.AccountDelete_Success,
                         userToBeDeleted.Username),
                     AccountName = userToBeDeleted.Username
                 };
@@ -395,7 +397,7 @@ namespace NuGetGallery
                 {
                     Success = false,
                     Description = string.Format(CultureInfo.CurrentCulture,
-                        ServicesStrings.AccountDelete_Fail,
+                        Strings.AccountDelete_Fail,
                         userToBeDeleted.Username, e),
                     AccountName = userToBeDeleted.Username
                 };

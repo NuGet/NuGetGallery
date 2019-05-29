@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NuGet.Services.Entities;
 
-namespace NuGetGallery.Security
+namespace NuGetGallery.Services.Security
 {
     public class RequireOrganizationTenantPolicy : UserSecurityPolicyHandler, IUserSecurityPolicySubscription
     {
@@ -74,7 +74,7 @@ namespace NuGetGallery.Security
                 || !state.Tenant.Equals(targetCredential.TenantId, StringComparison.OrdinalIgnoreCase))
             {
                 return Task.FromResult(SecurityPolicyResult.CreateErrorResult(string.Format(CultureInfo.CurrentCulture,
-                        ServicesStrings.AddMember_UserDoesNotMeetOrganizationPolicy, targetAccount.Username)));
+                        Strings.AddMember_UserDoesNotMeetOrganizationPolicy, targetAccount.Username)));
             }
 
             return Task.FromResult(SecurityPolicyResult.SuccessResult);

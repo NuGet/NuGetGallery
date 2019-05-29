@@ -11,6 +11,8 @@ namespace NuGetGallery
 {
     public static class HttpContextBaseExtensions
     {
+        public static readonly string UserAgentHeaderName = "User-Agent";
+
         public static User GetCurrentUser(this HttpContextBase httpContext)
         {
             return httpContext.GetOwinContext().GetCurrentUser();
@@ -62,7 +64,7 @@ namespace NuGetGallery
         /// </summary>
         public static string GetClientInformation(this HttpContextBase httpContext)
         {
-            string userAgent = httpContext.Request.Headers[ServicesConstants.UserAgentHeaderName];
+            string userAgent = httpContext.Request.Headers[GalleryConstants.UserAgentHeaderName];
             string result = string.Empty;
 
             if (!string.IsNullOrEmpty(userAgent))

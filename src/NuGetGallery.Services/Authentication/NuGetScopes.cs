@@ -1,7 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-namespace NuGetGallery.Authentication
+namespace NuGetGallery.Services.Authentication
 {
     public static class NuGetScopes
     {
@@ -16,18 +16,18 @@ namespace NuGetGallery.Authentication
             switch (scope.ToLowerInvariant())
             {
                 case All:
-                    return ServicesStrings.ScopeDescription_All;
+                    return Strings.ScopeDescription_All;
                 case PackagePush:
-                    return ServicesStrings.ScopeDescription_PushPackage;
+                    return Strings.ScopeDescription_PushPackage;
                 case PackagePushVersion:
-                    return ServicesStrings.ScopeDescription_PushPackageVersion;
+                    return Strings.ScopeDescription_PushPackageVersion;
                 case PackageUnlist:
-                    return ServicesStrings.ScopeDescription_UnlistPackage;
+                    return Strings.ScopeDescription_UnlistPackage;
                 case PackageVerify:
-                    return ServicesStrings.ScopeDescription_VerifyPackage;
+                    return Strings.ScopeDescription_VerifyPackage;
             }
 
-            return ServicesStrings.ScopeDescription_Unknown;
+            return Strings.ScopeDescription_Unknown;
         }
     }
 }
