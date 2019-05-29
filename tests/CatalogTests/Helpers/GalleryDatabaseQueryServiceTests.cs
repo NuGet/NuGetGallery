@@ -8,7 +8,6 @@ using NuGet.Services.Entities;
 using NuGet.Services.Metadata.Catalog.Helpers;
 using Xunit;
 using CatalogConstants = NuGet.Services.Metadata.Catalog.Constants;
-using Db2CatalogCursor = NuGet.Services.Metadata.Catalog.Helpers.GalleryDatabaseQueryService.Db2CatalogCursor;
 
 namespace CatalogTests.Helpers
 {

@@ -102,6 +102,7 @@
     <Compile Include="Dnx\DnxEntry.cs" />
     <Compile Include="GetCatalogCommitItemKey.cs" />
     <Compile Include="Helpers\AsyncExtensions.cs" />
+    <Compile Include="Helpers\Db2CatalogCursor.cs" />
     <Compile Include="Helpers\Db2CatalogProjection.cs" />
     <Compile Include="Extensions\IDataRecordExtensions.cs" />
     <Compile Include="Helpers\GalleryDatabaseQueryService.cs" />

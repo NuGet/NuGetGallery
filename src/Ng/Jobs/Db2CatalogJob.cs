@@ -138,6 +138,7 @@ namespace Ng.Jobs
             GalleryDatabaseQueryService = new GalleryDatabaseQueryService(
                 GalleryDbConnection,
                 PackageContentUriBuilder,
+                TelemetryService,
                 timeoutInSeconds);
         }
 

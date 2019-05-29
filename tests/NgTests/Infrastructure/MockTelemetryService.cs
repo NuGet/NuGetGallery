@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using Moq;
 using NuGet.Services.Logging;
 using NuGet.Services.Metadata.Catalog;
+using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGet.Versioning;
 
 namespace NgTests.Infrastructure
@@ -79,6 +80,18 @@ namespace NgTests.Infrastructure
 
         public void TrackIconExtractionFailure(string packageId, string normalizedPackageVersion)
         {
+        }
+
+        public IDisposable TrackGetPackageDetailsQueryDuration(Db2CatalogCursor cursor)
+        {
+            var properties = new Dictionary<string, string>()
+            {
+                { TelemetryConstants.Method, cursor.ColumnName },
+                { TelemetryConstants.BatchItemCount, cursor.Top.ToString() },
+                { TelemetryConstants.CursorValue, cursor.CursorValue.ToString("O") }
+            };
+
+            return TrackDuration(nameof(TrackGetPackageDetailsQueryDuration), properties);
         }
     }
 }

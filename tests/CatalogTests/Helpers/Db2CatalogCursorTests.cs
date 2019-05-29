@@ -4,8 +4,8 @@
 using System;
 using System.Collections.Generic;
 using System.Data.SqlTypes;
+using NuGet.Services.Metadata.Catalog.Helpers;
 using Xunit;
-using Db2CatalogCursor = NuGet.Services.Metadata.Catalog.Helpers.GalleryDatabaseQueryService.Db2CatalogCursor;
 
 namespace CatalogTests.Helpers
 {

@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
-using System.Data.SqlTypes;
 using System.Threading.Tasks;
 using NuGet.Services.Entities;
 using NuGet.Services.Sql;
@@ -20,14 +19,17 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
 
         private readonly ISqlConnectionFactory _connectionFactory;
         private readonly Db2CatalogProjection _db2catalogProjection;
+        private readonly ITelemetryService _telemetryService;
         private readonly int _commandTimeout;
 
         public GalleryDatabaseQueryService(
             ISqlConnectionFactory connectionFactory,
             PackageContentUriBuilder packageContentUriBuilder,
+            ITelemetryService telemetryService,
             int commandTimeout)
         {
             _connectionFactory = connectionFactory ?? throw new ArgumentNullException(nameof(connectionFactory));
+            _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _db2catalogProjection = new Db2CatalogProjection(packageContentUriBuilder);
             _commandTimeout = commandTimeout;
         }
@@ -153,42 +155,19 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
             {
                 packagesCommand.Parameters.AddWithValue(CursorParameterName, cursor.CursorValue);
 
-                using (var packagesReader = await packagesCommand.ExecuteReaderAsync())
+                using (_telemetryService.TrackGetPackageDetailsQueryDuration(cursor))
                 {
-                    while (await packagesReader.ReadAsync())
+                    using (var packagesReader = await packagesCommand.ExecuteReaderAsync())
                     {
-                        packages.Add(_db2catalogProjection.FromDataRecord(packagesReader));
+                        while (await packagesReader.ReadAsync())
+                        {
+                            packages.Add(_db2catalogProjection.FromDataRecord(packagesReader));
+                        }
                     }
                 }
             }
 
             return packages;
-        }
-
-        public sealed class Db2CatalogCursor
-        {
-            public const string ColumnNameCreated = "Created";
-            public const string ColumnNameLastEdited = "LastEdited";
-
-            private Db2CatalogCursor(string columnName, DateTime cursorValue, int top)
-            {
-                ColumnName = columnName ?? throw new ArgumentNullException(nameof(columnName));
-                CursorValue = cursorValue < SqlDateTime.MinValue.Value ? SqlDateTime.MinValue.Value : cursorValue;
-
-                if (top <= 0)
-                {
-                    throw new ArgumentOutOfRangeException("Argument value must be a positive non-zero integer.", nameof(top));
-                }
-
-                Top = top;
-            }
-
-            public string ColumnName { get; }
-            public DateTime CursorValue { get; }
-            public int Top { get; }
-
-            public static Db2CatalogCursor ByCreated(DateTime since, int top) => new Db2CatalogCursor(ColumnNameCreated, since, top);
-            public static Db2CatalogCursor ByLastEdited(DateTime since, int top) => new Db2CatalogCursor(ColumnNameLastEdited, since, top);
         }
     }
 }
