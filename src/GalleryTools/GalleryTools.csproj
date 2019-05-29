@@ -70,6 +70,10 @@
       <Project>{097b2cdd-9623-4c34-93c2-d373d51f5b4e}</Project>
       <Name>NuGetGallery.Core</Name>
     </ProjectReference>
+    <ProjectReference Include="..\NuGetGallery.Services\NuGetGallery.Services.csproj">
+      <Project>{c7d5e850-33fa-4ec5-8d7f-b1c8dd5d48f9}</Project>
+      <Name>NuGetGallery.Services</Name>
+    </ProjectReference>
     <ProjectReference Include="..\NuGetGallery\NuGetGallery.csproj">
       <Project>{1dacf781-5cd0-4123-8bac-cd385d864be5}</Project>
       <Name>NuGetGallery</Name>
