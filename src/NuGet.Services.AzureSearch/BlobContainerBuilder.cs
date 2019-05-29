@@ -86,7 +86,7 @@ namespace NuGet.Services.AzureSearch
 
         public async Task CreateIfNotExistsAsync()
         {
-            if (await Container.ExistsAsync())
+            if (await Container.ExistsAsync(null, null))
             {
                 _logger.LogInformation("Skipping creation of blob container {ContainerName} since it already exists.", _options.Value.StorageContainer);
             }

@@ -72,7 +72,7 @@ namespace NuGet.Services.AzureSearch
             [Fact]
             public async Task CreatesIndexIfNotExists()
             {
-                _cloudBlobContainer.Setup(x => x.ExistsAsync()).ReturnsAsync(false);
+                _cloudBlobContainer.Setup(x => x.ExistsAsync(null, null)).ReturnsAsync(false);
 
                 await _target.CreateIfNotExistsAsync();
 
@@ -86,7 +86,7 @@ namespace NuGet.Services.AzureSearch
             [Fact]
             public async Task DoesNotCreateIndexIfExists()
             {
-                _cloudBlobContainer.Setup(x => x.ExistsAsync()).ReturnsAsync(true);
+                _cloudBlobContainer.Setup(x => x.ExistsAsync(null, null)).ReturnsAsync(true);
 
                 await _target.CreateIfNotExistsAsync();
 
@@ -99,7 +99,7 @@ namespace NuGet.Services.AzureSearch
             public async Task DoesNotRetryOnConflict()
             {
                 EnableConflict();
-                _cloudBlobContainer.Setup(x => x.ExistsAsync()).ReturnsAsync(false);
+                _cloudBlobContainer.Setup(x => x.ExistsAsync(null, null)).ReturnsAsync(false);
 
                 await Assert.ThrowsAsync<StorageException>(() => _target.CreateIfNotExistsAsync());
             }

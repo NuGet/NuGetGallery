@@ -3,9 +3,9 @@
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using NuGetGallery;
+using NuGet.Services.Entities;
 
-using GalleryPackageDependency = NuGetGallery.PackageDependency;
+using GalleryPackageDependency = NuGet.Services.Entities.PackageDependency;
 
 namespace NuGet.Indexing
 {

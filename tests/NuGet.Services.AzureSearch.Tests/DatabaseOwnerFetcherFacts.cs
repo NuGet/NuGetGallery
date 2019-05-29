@@ -123,8 +123,7 @@ namespace NuGet.Services.AzureSearch
             public DbSet<ReservedNamespace> ReservedNamespaces { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
             public DbSet<UserCertificate> UserCertificates { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
             public DbSet<SymbolPackage> SymbolPackages { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-            public DbSet<Cve> Cves { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-            public DbSet<Cwe> Cwes { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+            public DbSet<Package> Packages { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
             public bool Disposed { get; private set; }
 
