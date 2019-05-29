@@ -11,6 +11,7 @@ using Microsoft.Extensions.CommandLineUtils;
 using NuGet.Services.Entities;
 using NuGetGallery;
 using NuGetGallery.Security;
+using NuGetGallery.Services.Security;
 
 namespace GalleryTools.Commands
 {
