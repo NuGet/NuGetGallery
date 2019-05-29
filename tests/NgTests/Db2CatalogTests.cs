@@ -19,20 +19,17 @@ using NgTests.Data;
 using NgTests.Infrastructure;
 using NuGet.Packaging.Core;
 using NuGet.Services.Metadata.Catalog;
+using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using NuGet.Versioning;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace NgTests
 {
-    public class Feed2CatalogTests
+    public class Db2CatalogTests
     {
-        private const string _auditRecordDateTimeFormat = "yyyy-MM-ddTHH:mm:ss.FFFZ";
-        private const string _feedBaseUri = "http://unit.test";
-        private const string _feedUrlSuffix = "&$top=20&$select=Id,NormalizedVersion,Created,LastEdited,Published,LicenseNames,LicenseReportUrl&semVerLevel=2.0.0";
-        private const string _feedUrlDateTimeFormat = "yyyy-MM-ddTHH:mm:ss.fff0000Z";
-
-        private const int _top = 1;
+        private const string PackageContentUrlFormat = "https://unittest.org/packages/{id-lower}/{version-lower}.nupkg";
 
         private bool _isDisposed;
         private DateTime _feedLastCreated;
@@ -44,20 +41,25 @@ namespace NgTests
         private readonly Random _random;
         private readonly MemoryStorage _auditingStorage;
         private readonly MemoryStorage _catalogStorage;
-        private TestableFeed2CatalogJob _job;
+        private TestableDb2CatalogJob _job;
         private readonly Uri _baseUri;
         private bool _skipCreatedPackagesProcessing;
         private readonly MockServerHttpClientHandler _server;
+        private readonly PackageContentUriBuilder _packageContentUriBuilder;
+        private readonly ITestOutputHelper _testOutputHelper;
 
-        public Feed2CatalogTests()
+        public Db2CatalogTests(ITestOutputHelper testOutputHelper)
         {
+            _testOutputHelper = testOutputHelper;
             _server = new MockServerHttpClientHandler();
             _random = new Random();
             _packageOperations = new List<PackageOperation>();
-            _baseUri = new Uri(_feedBaseUri);
+            _baseUri = new Uri("http://unit.test");
 
             _catalogStorage = new MemoryStorage(_baseUri);
             _auditingStorage = new MemoryStorage(_baseUri);
+
+            _packageContentUriBuilder = new PackageContentUriBuilder(PackageContentUrlFormat);
         }
 
         public void Dispose()
@@ -80,20 +82,33 @@ namespace NgTests
         [InlineData(true)]
         public async Task RunInternal_WithNoCatalogAndNoActivity_DoesNotCreateCatalog(bool skipCreatedPackagesProcessing)
         {
-            InitializeTest(skipCreatedPackagesProcessing);
+            const int top = 1;
 
-            await RunInternalAndVerifyAsync();
+            var galleryDatabaseMock = new Mock<IGalleryDatabaseQueryService>(MockBehavior.Strict);
+
+            InitializeTest(skipCreatedPackagesProcessing, top, galleryDatabaseMock);
+
+            await RunInternalAndVerifyAsync(galleryDatabaseMock, top);
         }
 
         [Fact]
         public async Task RunInternal_WithNoCatalogAndCreatedPackageInFeed_CreatesCatalog()
         {
-            InitializeTest(skipCreatedPackagesProcessing: false);
+            const int top = 1;
+
+            var galleryDatabaseMock = new Mock<IGalleryDatabaseQueryService>(MockBehavior.Strict);
+
+            InitializeTest(
+                skipCreatedPackagesProcessing: false,
+                top: top,
+                galleryDatabaseMock: galleryDatabaseMock);
 
             var package = AddCreatedPackageToFeed();
 
             await RunInternalAndVerifyAsync(
-                expectedLastCreated: package.ODataPackage.Created,
+                galleryDatabaseMock,
+                top,
+                expectedLastCreated: package.FeedPackageDetails.CreatedDate,
                 expectedLastDeleted: Constants.DateTimeMinValueUtc,
                 expectedLastEdited: Constants.DateTimeMinValueUtc);
         }
@@ -101,29 +116,47 @@ namespace NgTests
         [Fact]
         public async Task RunInternal_WithNoCatalogAndCreatedPackageInFeedAndWithCreatedPackagesSkipped_DoesNotCreateCatalog()
         {
-            InitializeTest(skipCreatedPackagesProcessing: true);
+            const int top = 1;
+
+            var galleryDatabaseMock = new Mock<IGalleryDatabaseQueryService>(MockBehavior.Strict);
+
+            InitializeTest(
+                skipCreatedPackagesProcessing: true,
+                top: top,
+                galleryDatabaseMock: galleryDatabaseMock);
 
             AddCreatedPackageToFeed();
 
-            await RunInternalAndVerifyAsync();
+            await RunInternalAndVerifyAsync(galleryDatabaseMock, top);
         }
 
         [Fact]
         public async Task RunInternal_WithCatalogAndNoActivity_DoesNotUpdateCatalog()
         {
-            InitializeTest(skipCreatedPackagesProcessing: false);
+            const int top = 1;
+
+            var galleryDatabaseMock = new Mock<IGalleryDatabaseQueryService>(MockBehavior.Strict);
+
+            InitializeTest(
+                skipCreatedPackagesProcessing: false,
+                top: top,
+                galleryDatabaseMock: galleryDatabaseMock);
 
             var package = AddCreatedPackageToFeed();
 
             // Create the catalog.
             await RunInternalAndVerifyAsync(
-                expectedLastCreated: package.ODataPackage.Created,
+                galleryDatabaseMock,
+                top,
+                expectedLastCreated: package.FeedPackageDetails.CreatedDate,
                 expectedLastDeleted: Constants.DateTimeMinValueUtc,
                 expectedLastEdited: Constants.DateTimeMinValueUtc);
 
             // Nothing new in the feed this time.
             await RunInternalAndVerifyAsync(
-                expectedLastCreated: package.ODataPackage.Created,
+                galleryDatabaseMock,
+                top,
+                expectedLastCreated: package.FeedPackageDetails.CreatedDate,
                 expectedLastDeleted: Constants.DateTimeMinValueUtc,
                 expectedLastEdited: Constants.DateTimeMinValueUtc);
         }
@@ -131,22 +164,33 @@ namespace NgTests
         [Fact]
         public async Task RunInternal_WithCatalogAndNoActivityAndWithCreatedPackagesSkipped_DoesNotUpdateCatalog()
         {
-            InitializeTest(skipCreatedPackagesProcessing: true);
+            const int top = 1;
+
+            var galleryDatabaseMock = new Mock<IGalleryDatabaseQueryService>(MockBehavior.Strict);
+
+            InitializeTest(
+                skipCreatedPackagesProcessing: true,
+                top: top,
+                galleryDatabaseMock: galleryDatabaseMock);
 
             var package = CreatePackageCreationOrEdit();
             var editedPackage = AddEditedPackageToFeed(package);
 
             // Create the catalog.
             await RunInternalAndVerifyAsync(
-                expectedLastCreated: editedPackage.ODataPackage.LastEdited,
+                galleryDatabaseMock,
+                top,
+                expectedLastCreated: editedPackage.FeedPackageDetails.LastEditedDate,
                 expectedLastDeleted: Constants.DateTimeMinValueUtc,
-                expectedLastEdited: editedPackage.ODataPackage.LastEdited);
+                expectedLastEdited: editedPackage.FeedPackageDetails.LastEditedDate);
 
             // Nothing new in the feed this time.
             await RunInternalAndVerifyAsync(
-                expectedLastCreated: editedPackage.ODataPackage.LastEdited,
+                galleryDatabaseMock,
+                top,
+                expectedLastCreated: editedPackage.FeedPackageDetails.LastEditedDate,
                 expectedLastDeleted: Constants.DateTimeMinValueUtc,
-                expectedLastEdited: editedPackage.ODataPackage.LastEdited);
+                expectedLastEdited: editedPackage.FeedPackageDetails.LastEditedDate);
         }
 
         [Fact]
@@ -154,16 +198,23 @@ namespace NgTests
         // https://github.com/NuGet/NuGetGallery/issues/2841
         public async Task RunInternal_WithPackagesWithSameCreatedTimeInFeedAndWhenProcessedInDifferentCatalogBatches_SkipsSecondEntry()
         {
-            InitializeTest(skipCreatedPackagesProcessing: false);
+            const int top = 1;
+
+            var galleryDatabaseMock = new Mock<IGalleryDatabaseQueryService>(MockBehavior.Strict);
+
+            InitializeTest(
+                skipCreatedPackagesProcessing: false,
+                top: top,
+                galleryDatabaseMock: galleryDatabaseMock);
 
             var package1 = AddCreatedPackageToFeed();
-            var package2 = AddCreatedPackageToFeed();
-
-            package2.ODataPackage.Created = package1.ODataPackage.Created;
+            var package2 = AddCreatedPackageToFeed(package1.FeedPackageDetails.CreatedDate);
 
             // Remove the "package2" argument if/when the bug is fixed.
             await RunInternalAndVerifyAsync(
-                expectedLastCreated: package1.ODataPackage.Created,
+                galleryDatabaseMock,
+                top,
+                expectedLastCreated: package1.FeedPackageDetails.CreatedDate,
                 expectedLastDeleted: Constants.DateTimeMinValueUtc,
                 expectedLastEdited: Constants.DateTimeMinValueUtc,
                 skippedPackage: package2);
@@ -174,147 +225,224 @@ namespace NgTests
         // https://github.com/NuGet/NuGetGallery/issues/2841
         public async Task RunInternal_WithPackagesWithSameLastEditedTimeInFeedAndWhenProcessedInDifferentCatalogBatches_SkipsSecondEntry()
         {
-            InitializeTest(skipCreatedPackagesProcessing: false);
+            const int top = 1;
+
+            var galleryDatabaseMock = new Mock<IGalleryDatabaseQueryService>(MockBehavior.Strict);
+
+            InitializeTest(
+                skipCreatedPackagesProcessing: false,
+                top: top,
+                galleryDatabaseMock: galleryDatabaseMock);
 
             var package1 = AddCreatedPackageToFeed();
             var package2 = AddCreatedPackageToFeed();
 
             await RunInternalAndVerifyAsync(
-                expectedLastCreated: package2.ODataPackage.Created,
-                expectedLastDeleted: package1.ODataPackage.Created,
+                galleryDatabaseMock,
+                top,
+                expectedLastCreated: package2.FeedPackageDetails.CreatedDate,
+                expectedLastDeleted: package1.FeedPackageDetails.CreatedDate,
                 expectedLastEdited: Constants.DateTimeMinValueUtc);
 
             package1 = AddEditedPackageToFeed(package1);
-            package2 = AddEditedPackageToFeed(package2);
-
-            package2.ODataPackage.LastEdited = package1.ODataPackage.LastEdited;
+            package2 = AddEditedPackageToFeed(package2, package1.FeedPackageDetails.LastEditedDate);
 
             // Remove the "package2" argument if/when the bug is fixed.
             await RunInternalAndVerifyAsync(
-                expectedLastCreated: package2.ODataPackage.Created,
-                expectedLastDeleted: package1.ODataPackage.Created,
-                expectedLastEdited: package1.ODataPackage.LastEdited,
+                galleryDatabaseMock,
+                top,
+                expectedLastCreated: package2.FeedPackageDetails.CreatedDate,
+                expectedLastDeleted: package1.FeedPackageDetails.CreatedDate,
+                expectedLastEdited: package1.FeedPackageDetails.LastEditedDate,
                 skippedPackage: package2);
         }
 
         [Fact]
         public async Task RunInternal_WithCreatedPackagesInFeedAtDifferentTimes_UpdatesCatalog()
         {
-            InitializeTest(skipCreatedPackagesProcessing: false);
+            const int top = 1;
+
+            var galleryDatabaseMock = new Mock<IGalleryDatabaseQueryService>(MockBehavior.Strict);
+
+            InitializeTest(
+                skipCreatedPackagesProcessing: false,
+                top: top,
+                galleryDatabaseMock: galleryDatabaseMock);
 
             var package1 = AddCreatedPackageToFeed();
 
             await RunInternalAndVerifyAsync(
-                expectedLastCreated: package1.ODataPackage.Created,
+                galleryDatabaseMock,
+                top,
+                expectedLastCreated: package1.FeedPackageDetails.CreatedDate,
                 expectedLastDeleted: Constants.DateTimeMinValueUtc,
                 expectedLastEdited: Constants.DateTimeMinValueUtc);
 
             var package2 = AddCreatedPackageToFeed();
 
             await RunInternalAndVerifyAsync(
-                expectedLastCreated: package2.ODataPackage.Created,
-                expectedLastDeleted: package1.ODataPackage.Created,
+                galleryDatabaseMock,
+                top,
+                expectedLastCreated: package2.FeedPackageDetails.CreatedDate,
+                expectedLastDeleted: package1.FeedPackageDetails.CreatedDate,
                 expectedLastEdited: Constants.DateTimeMinValueUtc);
         }
 
         [Fact]
         public async Task RunInternal_WithCreatedPackagesInFeedAtDifferentTimesAndWithCreatedPackagesSkipped_DoesNotUpdateCatalog()
         {
-            InitializeTest(skipCreatedPackagesProcessing: true);
+            const int top = 1;
+
+            var galleryDatabaseMock = new Mock<IGalleryDatabaseQueryService>(MockBehavior.Strict);
+
+            InitializeTest(
+                skipCreatedPackagesProcessing: true,
+                top: top,
+                galleryDatabaseMock: galleryDatabaseMock);
 
             AddCreatedPackageToFeed();
 
-            await RunInternalAndVerifyAsync();
+            await RunInternalAndVerifyAsync(galleryDatabaseMock, top);
 
             AddCreatedPackageToFeed();
 
-            await RunInternalAndVerifyAsync();
+            await RunInternalAndVerifyAsync(galleryDatabaseMock, top);
         }
 
         [Fact]
         public async Task RunInternal_WithCreatedPackageAndEditedPackageInFeedAtDifferentTimes_UpdatesCatalog()
         {
-            InitializeTest(skipCreatedPackagesProcessing: false);
+            const int top = 1;
+
+            var galleryDatabaseMock = new Mock<IGalleryDatabaseQueryService>(MockBehavior.Strict);
+
+            InitializeTest(
+                skipCreatedPackagesProcessing: false,
+                top: top,
+                galleryDatabaseMock: galleryDatabaseMock);
 
             var package = AddCreatedPackageToFeed();
 
             await RunInternalAndVerifyAsync(
-                expectedLastCreated: package.ODataPackage.Created,
+                galleryDatabaseMock,
+                top,
+                expectedLastCreated: package.FeedPackageDetails.CreatedDate,
                 expectedLastDeleted: Constants.DateTimeMinValueUtc,
                 expectedLastEdited: Constants.DateTimeMinValueUtc);
 
             var editedPackage = AddEditedPackageToFeed(package);
 
             await RunInternalAndVerifyAsync(
-                expectedLastCreated: package.ODataPackage.Created,
-                expectedLastDeleted: package.ODataPackage.Created,
-                expectedLastEdited: editedPackage.ODataPackage.LastEdited.Value);
+                galleryDatabaseMock,
+                top,
+                expectedLastCreated: package.FeedPackageDetails.CreatedDate,
+                expectedLastDeleted: package.FeedPackageDetails.CreatedDate,
+                expectedLastEdited: editedPackage.FeedPackageDetails.LastEditedDate);
         }
 
         [Fact]
         public async Task RunInternal_WithCreatedPackageAndEditedPackageInFeedAtDifferentTimesAndWithCreatedPackagesSkipped_UpdatesCatalog()
         {
-            InitializeTest(skipCreatedPackagesProcessing: true);
+            const int top = 1;
+
+            var galleryDatabaseMock = new Mock<IGalleryDatabaseQueryService>(MockBehavior.Strict);
+
+            InitializeTest(
+                skipCreatedPackagesProcessing: true,
+                top: top,
+                galleryDatabaseMock: galleryDatabaseMock);
 
             var package = AddCreatedPackageToFeed();
 
             await RunInternalAndVerifyAsync(
-                expectedLastCreated: package.ODataPackage.Created,
+                galleryDatabaseMock,
+                top,
+                expectedLastCreated: package.FeedPackageDetails.CreatedDate,
                 expectedLastDeleted: Constants.DateTimeMinValueUtc,
                 expectedLastEdited: Constants.DateTimeMinValueUtc);
 
             var editedPackage = AddEditedPackageToFeed(package);
 
             await RunInternalAndVerifyAsync(
-                expectedLastCreated: editedPackage.ODataPackage.LastEdited.Value,
+                galleryDatabaseMock,
+                top,
+                expectedLastCreated: editedPackage.FeedPackageDetails.LastEditedDate,
                 expectedLastDeleted: Constants.DateTimeMinValueUtc,
-                expectedLastEdited: editedPackage.ODataPackage.LastEdited.Value);
+                expectedLastEdited: editedPackage.FeedPackageDetails.LastEditedDate);
         }
 
         [Fact]
         public async Task RunInternal_WithCreatedPackageAndEditedPackageInFeedAtSameTime_UpdatesCatalog()
         {
-            InitializeTest(skipCreatedPackagesProcessing: false);
+            const int top = 1;
+            var galleryDatabaseMock = new Mock<IGalleryDatabaseQueryService>(MockBehavior.Strict);
+
+            InitializeTest(
+                skipCreatedPackagesProcessing: false,
+                top: top,
+                galleryDatabaseMock: galleryDatabaseMock);
 
             var package = AddCreatedPackageToFeed();
 
             await RunInternalAndVerifyAsync(
-                expectedLastCreated: package.ODataPackage.Created,
+                galleryDatabaseMock,
+                top,
+                expectedLastCreated: package.FeedPackageDetails.CreatedDate,
                 expectedLastDeleted: Constants.DateTimeMinValueUtc,
                 expectedLastEdited: Constants.DateTimeMinValueUtc);
 
             var editedPackage = AddEditedPackageToFeed(package);
 
             await RunInternalAndVerifyAsync(
-                expectedLastCreated: package.ODataPackage.Created,
-                expectedLastDeleted: package.ODataPackage.Created,
-                expectedLastEdited: editedPackage.ODataPackage.LastEdited.Value);
+                galleryDatabaseMock,
+                top,
+                expectedLastCreated: package.FeedPackageDetails.CreatedDate,
+                expectedLastDeleted: package.FeedPackageDetails.CreatedDate,
+                expectedLastEdited: editedPackage.FeedPackageDetails.LastEditedDate);
         }
 
         [Fact]
         public async Task RunInternal_WithCreatedPackageAndEditedPackageInFeedAtSameTimeAndWithCreatedPackagesSkipped_UpdatesCatalog()
         {
-            InitializeTest(skipCreatedPackagesProcessing: true);
+            const int top = 1;
+
+            var galleryDatabaseMock = new Mock<IGalleryDatabaseQueryService>(MockBehavior.Strict);
+
+            InitializeTest(
+                skipCreatedPackagesProcessing: true,
+                top: top,
+                galleryDatabaseMock: galleryDatabaseMock);
 
             var package = AddCreatedPackageToFeed();
 
             await RunInternalAndVerifyAsync(
-                expectedLastCreated: package.ODataPackage.Created,
+                galleryDatabaseMock,
+                top,
+                expectedLastCreated: package.FeedPackageDetails.CreatedDate,
                 expectedLastDeleted: Constants.DateTimeMinValueUtc,
                 expectedLastEdited: Constants.DateTimeMinValueUtc);
 
             var editedPackage = AddEditedPackageToFeed(package);
 
             await RunInternalAndVerifyAsync(
-                expectedLastCreated: editedPackage.ODataPackage.LastEdited.Value,
+                galleryDatabaseMock,
+                top,
+                expectedLastCreated: editedPackage.FeedPackageDetails.LastEditedDate,
                 expectedLastDeleted: Constants.DateTimeMinValueUtc,
-                expectedLastEdited: editedPackage.ODataPackage.LastEdited.Value);
+                expectedLastEdited: editedPackage.FeedPackageDetails.LastEditedDate);
         }
 
         [Fact]
         public async Task RunInternal_WithEditedPackagesAndWithCreatedPackagesSkipped_UpdatesCatalog()
         {
-            InitializeTest(skipCreatedPackagesProcessing: true);
+            const int top = 1;
+
+            var galleryDatabaseMock = new Mock<IGalleryDatabaseQueryService>(MockBehavior.Strict);
+
+            InitializeTest(
+                skipCreatedPackagesProcessing: true,
+                top: top,
+                galleryDatabaseMock: galleryDatabaseMock);
 
             var package = CreatePackageCreationOrEdit();
             var lastDeleted = Constants.DateTimeMinValueUtc;
@@ -324,13 +452,15 @@ namespace NgTests
                 package = AddEditedPackageToFeed(package);
 
                 await RunInternalAndVerifyAsync(
-                    expectedLastCreated: package.ODataPackage.LastEdited.Value,
+                    galleryDatabaseMock,
+                    top,
+                    expectedLastCreated: package.FeedPackageDetails.LastEditedDate,
                     expectedLastDeleted: lastDeleted,
-                    expectedLastEdited: package.ODataPackage.LastEdited.Value);
+                    expectedLastEdited: package.FeedPackageDetails.LastEditedDate);
 
                 if (lastDeleted == Constants.DateTimeMinValueUtc)
                 {
-                    lastDeleted = package.ODataPackage.LastEdited.Value;
+                    lastDeleted = package.FeedPackageDetails.LastEditedDate;
                 }
             }
         }
@@ -338,19 +468,30 @@ namespace NgTests
         [Fact]
         public async Task RunInternal_WithCreatedPackageThenDeletedPackage_UpdatesCatalog()
         {
-            InitializeTest(skipCreatedPackagesProcessing: false);
+            const int top = 1;
+
+            var galleryDatabaseMock = new Mock<IGalleryDatabaseQueryService>(MockBehavior.Strict);
+
+            InitializeTest(
+                skipCreatedPackagesProcessing: false,
+                top: top,
+                galleryDatabaseMock: galleryDatabaseMock);
 
             var package = AddCreatedPackageToFeed();
 
             await RunInternalAndVerifyAsync(
-                expectedLastCreated: package.ODataPackage.Created,
+                galleryDatabaseMock,
+                top,
+                expectedLastCreated: package.FeedPackageDetails.CreatedDate,
                 expectedLastDeleted: Constants.DateTimeMinValueUtc,
                 expectedLastEdited: Constants.DateTimeMinValueUtc);
 
             var deletedPackage = AddDeletedPackage(package);
 
             await RunInternalAndVerifyAsync(
-                expectedLastCreated: package.ODataPackage.Created,
+                galleryDatabaseMock,
+                top,
+                expectedLastCreated: package.FeedPackageDetails.CreatedDate,
                 expectedLastDeleted: deletedPackage.DeletionTime.UtcDateTime,
                 expectedLastEdited: Constants.DateTimeMinValueUtc);
         }
@@ -358,21 +499,32 @@ namespace NgTests
         [Fact]
         public async Task RunInternal_WithMultipleDeletedPackagesWithDifferentPackageIdentities_ProcessesAllDeletions()
         {
-            InitializeTest(skipCreatedPackagesProcessing: false);
+            const int top = 1;
+
+            var galleryDatabaseMock = new Mock<IGalleryDatabaseQueryService>(MockBehavior.Strict);
+
+            InitializeTest(
+                skipCreatedPackagesProcessing: false,
+                top: top,
+                galleryDatabaseMock: galleryDatabaseMock);
 
             var package1 = AddCreatedPackageToFeed();
             var package2 = AddCreatedPackageToFeed();
 
             await RunInternalAndVerifyAsync(
-                expectedLastCreated: package2.ODataPackage.Created,
-                expectedLastDeleted: package1.ODataPackage.Created,
+                galleryDatabaseMock,
+                top,
+                expectedLastCreated: package2.FeedPackageDetails.CreatedDate,
+                expectedLastDeleted: package1.FeedPackageDetails.CreatedDate,
                 expectedLastEdited: Constants.DateTimeMinValueUtc);
 
             var deletedPackage1 = AddDeletedPackage(package1);
             var deletedPackage2 = AddDeletedPackage(package2);
 
             await RunInternalAndVerifyAsync(
-                expectedLastCreated: package2.ODataPackage.Created,
+                galleryDatabaseMock,
+                top,
+                expectedLastCreated: package2.FeedPackageDetails.CreatedDate,
                 expectedLastDeleted: deletedPackage2.DeletionTime.UtcDateTime,
                 expectedLastEdited: Constants.DateTimeMinValueUtc);
         }
@@ -380,12 +532,21 @@ namespace NgTests
         [Fact]
         public async Task RunInternal_WithMultipleDeletedPackagesWithSamePackageIdentity_PutsEachPackageInSeparateCommit()
         {
-            InitializeTest(skipCreatedPackagesProcessing: false);
+            const int top = 1;
+
+            var galleryDatabaseMock = new Mock<IGalleryDatabaseQueryService>(MockBehavior.Strict);
+
+            InitializeTest(
+                skipCreatedPackagesProcessing: false,
+                top: top,
+                galleryDatabaseMock: galleryDatabaseMock);
 
             var package = AddCreatedPackageToFeed();
 
             await RunInternalAndVerifyAsync(
-                expectedLastCreated: package.ODataPackage.Created,
+                galleryDatabaseMock,
+                top,
+                expectedLastCreated: package.FeedPackageDetails.CreatedDate,
                 expectedLastDeleted: Constants.DateTimeMinValueUtc,
                 expectedLastEdited: Constants.DateTimeMinValueUtc);
 
@@ -395,7 +556,9 @@ namespace NgTests
             var deletedPackage2 = AddDeletedPackage(package, deletionTime.UtcDateTime, isSoftDelete: false);
 
             await RunInternalAndVerifyAsync(
-                expectedLastCreated: package.ODataPackage.Created,
+                galleryDatabaseMock,
+                top,
+                expectedLastCreated: package.FeedPackageDetails.CreatedDate,
                 expectedLastDeleted: deletionTime.UtcDateTime,
                 expectedLastEdited: Constants.DateTimeMinValueUtc);
         }
@@ -403,19 +566,30 @@ namespace NgTests
         [Fact]
         public async Task RunInternal_WithDeletedPackageOlderThan15MinutesAgo_SkipsDeletedPackage()
         {
-            InitializeTest(skipCreatedPackagesProcessing: false);
+            const int top = 1;
+
+            var galleryDatabaseMock = new Mock<IGalleryDatabaseQueryService>(MockBehavior.Strict);
+
+            InitializeTest(
+                skipCreatedPackagesProcessing: false,
+                top: top,
+                galleryDatabaseMock: galleryDatabaseMock);
 
             var package = AddCreatedPackageToFeed();
 
             await RunInternalAndVerifyAsync(
-                expectedLastCreated: package.ODataPackage.Created,
+                galleryDatabaseMock,
+                top,
+                expectedLastCreated: package.FeedPackageDetails.CreatedDate,
                 expectedLastDeleted: Constants.DateTimeMinValueUtc,
                 expectedLastEdited: Constants.DateTimeMinValueUtc);
 
             var deletedPackage = AddDeletedPackage(package, deletionTime: DateTime.UtcNow.AddMinutes(-16));
 
             await RunInternalAndVerifyAsync(
-                expectedLastCreated: package.ODataPackage.Created,
+                galleryDatabaseMock,
+                top,
+                expectedLastCreated: package.FeedPackageDetails.CreatedDate,
                 expectedLastDeleted: Constants.DateTimeMinValueUtc,
                 expectedLastEdited: Constants.DateTimeMinValueUtc,
                 skippedPackage: deletedPackage);
@@ -424,29 +598,47 @@ namespace NgTests
         [Fact]
         public async Task RunInternal_WithMultipleCreatedPackages_ProcessesAllCreations()
         {
-            InitializeTest(skipCreatedPackagesProcessing: false);
+            const int top = 1;
+
+            var galleryDatabaseMock = new Mock<IGalleryDatabaseQueryService>(MockBehavior.Strict);
+
+            InitializeTest(
+                skipCreatedPackagesProcessing: false,
+                top: top,
+                galleryDatabaseMock: galleryDatabaseMock);
 
             var package1 = AddCreatedPackageToFeed();
             var package2 = AddCreatedPackageToFeed();
 
             await RunInternalAndVerifyAsync(
-                expectedLastCreated: package2.ODataPackage.Created,
-                expectedLastDeleted: package1.ODataPackage.Created,
+                galleryDatabaseMock,
+                top,
+                expectedLastCreated: package2.FeedPackageDetails.CreatedDate,
+                expectedLastDeleted: package1.FeedPackageDetails.CreatedDate,
                 expectedLastEdited: Constants.DateTimeMinValueUtc);
         }
 
         [Fact]
         public async Task RunInternal_WithMultipleEditedPackages_ProcessesAllEdits()
         {
-            InitializeTest(skipCreatedPackagesProcessing: false);
+            const int top = 1;
+
+            var galleryDatabaseMock = new Mock<IGalleryDatabaseQueryService>(MockBehavior.Strict);
+
+            InitializeTest(
+                skipCreatedPackagesProcessing: false,
+                top: top,
+                galleryDatabaseMock: galleryDatabaseMock);
 
             var package1 = AddCreatedPackageToFeed();
             var package2 = AddCreatedPackageToFeed();
 
             // Create the catalog.
             await RunInternalAndVerifyAsync(
-                expectedLastCreated: package2.ODataPackage.Created,
-                expectedLastDeleted: package1.ODataPackage.Created,
+                galleryDatabaseMock,
+                top,
+                expectedLastCreated: package2.FeedPackageDetails.CreatedDate,
+                expectedLastDeleted: package1.FeedPackageDetails.CreatedDate,
                 expectedLastEdited: Constants.DateTimeMinValueUtc);
 
             var editedPackage1 = AddEditedPackageToFeed(package1);
@@ -454,15 +646,19 @@ namespace NgTests
 
             // Now test multiple edits.
             await RunInternalAndVerifyAsync(
-                expectedLastCreated: package2.ODataPackage.Created,
-                expectedLastDeleted: package1.ODataPackage.Created,
-                expectedLastEdited: editedPackage2.ODataPackage.LastEdited.Value);
+                galleryDatabaseMock,
+                top,
+                expectedLastCreated: package2.FeedPackageDetails.CreatedDate,
+                expectedLastDeleted: package1.FeedPackageDetails.CreatedDate,
+                expectedLastEdited: editedPackage2.FeedPackageDetails.LastEditedDate);
         }
 
         [Fact]
         public async Task CreatesNewCatalogFromCreatedAndEditedAndDeletedPackages()
         {
             // Arrange
+            const int top = 20;
+
             var catalogStorage = new MemoryStorage();
             var auditingStorage = new MemoryStorage();
             auditingStorage.Content.TryAdd(
@@ -470,31 +666,47 @@ namespace NgTests
                 new StringStorageContent(TestCatalogEntries.DeleteAuditRecordForOtherPackage100));
 
             var mockServer = new MockServerHttpClientHandler();
+            RegisterPackageContentUri(mockServer, "ListedPackage", "1.0.0", "Packages\\ListedPackage.1.0.0.zip");
+            RegisterPackageContentUri(mockServer, "ListedPackage", "1.0.1", "Packages\\ListedPackage.1.0.1.zip");
+            RegisterPackageContentUri(mockServer, "UnlistedPackage", "1.0.0", "Packages\\UnlistedPackage.1.0.0.zip");
+            RegisterPackageContentUri(mockServer, "TestPackage.SemVer2", "1.0.0-alpha.1", "Packages\\TestPackage.SemVer2.1.0.0-alpha.1.nupkg");
 
-            mockServer.SetAction(" / ", GetRootActionAsync);
-            mockServer.SetAction("/Packages?$filter=Created%20gt%20DateTime'0001-01-01T00:00:00.0000000Z'&$orderby=Created" + _feedUrlSuffix, GetCreatedPackages);
-            mockServer.SetAction("/Packages?$filter=Created%20gt%20DateTime'2015-01-01T00:00:00.0000000Z'&$orderby=Created" + _feedUrlSuffix, GetEmptyPackages);
+            var cursor1 = new DateTime(1, 1, 1).ForceUtc();
+            var cursor2 = new DateTime(2015, 1, 1).ForceUtc();
 
-            mockServer.SetAction("/Packages?$filter=LastEdited%20gt%20DateTime'0001-01-01T00:00:00.0000000Z'&$orderby=LastEdited" + _feedUrlSuffix, GetEditedPackages);
-            mockServer.SetAction("/Packages?$filter=LastEdited%20gt%20DateTime'2015-01-01T00:00:00.0000000Z'&$orderby=LastEdited" + _feedUrlSuffix, GetEmptyPackages);
+            var galleryDatabaseMock = new Mock<IGalleryDatabaseQueryService>();
 
-            mockServer.SetAction("/package/ListedPackage/1.0.0", request => GetStreamContentActionAsync(request, "Packages\\ListedPackage.1.0.0.zip"));
-            mockServer.SetAction("/package/ListedPackage/1.0.1", request => GetStreamContentActionAsync(request, "Packages\\ListedPackage.1.0.1.zip"));
-            mockServer.SetAction("/package/UnlistedPackage/1.0.0", request => GetStreamContentActionAsync(request, "Packages\\UnlistedPackage.1.0.0.zip"));
-            mockServer.SetAction("/package/TestPackage.SemVer2/1.0.0-alpha.1", request => GetStreamContentActionAsync(request, "Packages\\TestPackage.SemVer2.1.0.0-alpha.1.nupkg"));
+            galleryDatabaseMock
+                .Setup(m => m.GetPackagesCreatedSince(cursor1, top))
+                .ReturnsAsync(GetCreatedPackages);
+
+            galleryDatabaseMock
+                .Setup(m => m.GetPackagesCreatedSince(cursor2, top))
+                .ReturnsAsync(GetEmptyPackages);
+
+            galleryDatabaseMock
+                .Setup(m => m.GetPackagesEditedSince(cursor1, top))
+                .ReturnsAsync(GetEditedPackages);
+
+            galleryDatabaseMock
+                .Setup(m => m.GetPackagesEditedSince(cursor2, top))
+                .ReturnsAsync(GetEmptyPackages);
 
             // Act
-            var feed2catalogTestJob = new TestableFeed2CatalogJob(
+            var db2catalogTestJob = new TestableDb2CatalogJob(
                 mockServer,
-                _feedBaseUri,
                 catalogStorage,
                 auditingStorage,
                 skipCreatedPackagesProcessing: false,
                 startDate: null,
                 timeout: TimeSpan.FromMinutes(5),
-                top: 20,
-                verbose: true);
-            await feed2catalogTestJob.RunOnceAsync(CancellationToken.None);
+                top: top,
+                verbose: true,
+                galleryDatabaseMock: galleryDatabaseMock,
+                packageContentUriBuilder: _packageContentUriBuilder,
+                testOutputHelper: _testOutputHelper);
+
+            await db2catalogTestJob.RunOnceAsync(CancellationToken.None);
 
             // Assert
             Assert.Equal(7, catalogStorage.Content.Count);
@@ -563,6 +775,7 @@ namespace NgTests
         public async Task AppendsDeleteToExistingCatalog()
         {
             // Arrange
+            const int top = 20;
             var catalogStorage = Catalogs.CreateTestCatalogWithThreePackages();
             var auditingStorage = new MemoryStorage();
 
@@ -574,30 +787,46 @@ namespace NgTests
             auditingStorage.ListMock.TryAdd(secondAuditingRecord, new StorageListItem(secondAuditingRecord, new DateTime(2010, 1, 1)));
 
             var mockServer = new MockServerHttpClientHandler();
+            RegisterPackageContentUri(mockServer, "ListedPackage", "1.0.0", "Packages\\ListedPackage.1.0.0.zip");
+            RegisterPackageContentUri(mockServer, "ListedPackage", "1.0.1", "Packages\\ListedPackage.1.0.1.zip");
+            RegisterPackageContentUri(mockServer, "UnlistedPackage", "1.0.0", "Packages\\UnlistedPackage.1.0.0.zip");
 
-            mockServer.SetAction(" / ", GetRootActionAsync);
-            mockServer.SetAction("/Packages?$filter=Created%20gt%20DateTime'0001-01-01T00:00:00.0000000Z'&$orderby=Created" + _feedUrlSuffix, GetCreatedPackages);
-            mockServer.SetAction("/Packages?$filter=Created%20gt%20DateTime'2015-01-01T00:00:00.0000000Z'&$orderby=Created" + _feedUrlSuffix, GetEmptyPackages);
+            var cursor1 = new DateTime(1, 1, 1).ForceUtc();
+            var cursor2 = new DateTime(2015, 1, 1).ForceUtc();
 
-            mockServer.SetAction("/Packages?$filter=LastEdited%20gt%20DateTime'0001-01-01T00:00:00.0000000Z'&$orderby=LastEdited" + _feedUrlSuffix, GetEditedPackages);
-            mockServer.SetAction("/Packages?$filter=LastEdited%20gt%20DateTime'2015-01-01T00:00:00.0000000Z'&$orderby=LastEdited" + _feedUrlSuffix, GetEmptyPackages);
+            var galleryDatabaseMock = new Mock<IGalleryDatabaseQueryService>();
 
-            mockServer.SetAction("/package/ListedPackage/1.0.0", request => GetStreamContentActionAsync(request, "Packages\\ListedPackage.1.0.0.zip"));
-            mockServer.SetAction("/package/ListedPackage/1.0.1", request => GetStreamContentActionAsync(request, "Packages\\ListedPackage.1.0.1.zip"));
-            mockServer.SetAction("/package/UnlistedPackage/1.0.0", request => GetStreamContentActionAsync(request, "Packages\\UnlistedPackage.1.0.0.zip"));
+            galleryDatabaseMock
+                .Setup(m => m.GetPackagesCreatedSince(cursor1, top))
+                .ReturnsAsync(GetCreatedPackages);
+
+            galleryDatabaseMock
+                .Setup(m => m.GetPackagesCreatedSince(cursor2, top))
+                .ReturnsAsync(GetEmptyPackages);
+
+            galleryDatabaseMock
+                .Setup(m => m.GetPackagesEditedSince(cursor1, top))
+                .ReturnsAsync(GetEditedPackages);
+
+            galleryDatabaseMock
+                .Setup(m => m.GetPackagesEditedSince(cursor2, top))
+                .ReturnsAsync(GetEmptyPackages);
 
             // Act
-            var feed2catalogTestJob = new TestableFeed2CatalogJob(
+            var db2catalogTestJob = new TestableDb2CatalogJob(
                 mockServer,
-                _feedBaseUri,
                 catalogStorage,
                 auditingStorage,
                 skipCreatedPackagesProcessing: false,
                 startDate: null,
                 timeout: TimeSpan.FromMinutes(5),
-                top: 20,
-                verbose: true);
-            await feed2catalogTestJob.RunOnceAsync(CancellationToken.None);
+                top: top,
+                verbose: true,
+                galleryDatabaseMock: galleryDatabaseMock,
+                packageContentUriBuilder: _packageContentUriBuilder,
+                testOutputHelper: _testOutputHelper);
+
+            await db2catalogTestJob.RunOnceAsync(CancellationToken.None);
 
             // Assert
             Assert.Equal(6, catalogStorage.Content.Count);
@@ -661,6 +890,7 @@ namespace NgTests
         public async Task AppendsDeleteAndReinsertToExistingCatalog()
         {
             // Arrange
+            var top = 20;
             var catalogStorage = Catalogs.CreateTestCatalogWithThreePackages();
             var auditingStorage = new MemoryStorage();
             auditingStorage.Content.TryAdd(
@@ -668,32 +898,52 @@ namespace NgTests
                 new StringStorageContent(TestCatalogEntries.DeleteAuditRecordForOtherPackage100));
 
             var mockServer = new MockServerHttpClientHandler();
+            RegisterPackageContentUri(mockServer, "ListedPackage", "1.0.0", "Packages\\ListedPackage.1.0.0.zip");
+            RegisterPackageContentUri(mockServer, "ListedPackage", "1.0.1", "Packages\\ListedPackage.1.0.1.zip");
+            RegisterPackageContentUri(mockServer, "UnlistedPackage", "1.0.0", "Packages\\UnlistedPackage.1.0.0.zip");
+            RegisterPackageContentUri(mockServer, "OtherPackage", "1.0.0", "Packages\\OtherPackage.1.0.0.zip");
 
-            mockServer.SetAction(" / ", GetRootActionAsync);
-            mockServer.SetAction("/Packages?$filter=Created%20gt%20DateTime'0001-01-01T00:00:00.0000000Z'&$orderby=Created" + _feedUrlSuffix, GetCreatedPackages);
-            mockServer.SetAction("/Packages?$filter=Created%20gt%20DateTime'2015-01-01T00:00:00.0000000Z'&$orderby=Created" + _feedUrlSuffix, GetCreatedPackagesSecondRequest);
-            mockServer.SetAction("/Packages?$filter=Created%20gt%20DateTime'2015-01-01T01:01:03.0000000Z'&$orderby=Created" + _feedUrlSuffix, GetEmptyPackages);
+            var cursor1 = new DateTime(1, 1, 1).ForceUtc();
+            var cursor2 = new DateTime(2015, 1, 1).ForceUtc();
+            var cursor3 = new DateTime(2015, 1, 1, 1, 1, 3).ForceUtc();
 
-            mockServer.SetAction("/Packages?$filter=LastEdited%20gt%20DateTime'0001-01-01T00:00:00.0000000Z'&$orderby=LastEdited" + _feedUrlSuffix, GetEditedPackages);
-            mockServer.SetAction("/Packages?$filter=LastEdited%20gt%20DateTime'2015-01-01T00:00:00.0000000Z'&$orderby=LastEdited" + _feedUrlSuffix, GetEmptyPackages);
+            var galleryDatabaseMock = new Mock<IGalleryDatabaseQueryService>();
 
-            mockServer.SetAction("/package/ListedPackage/1.0.0", request => GetStreamContentActionAsync(request, "Packages\\ListedPackage.1.0.0.zip"));
-            mockServer.SetAction("/package/ListedPackage/1.0.1", request => GetStreamContentActionAsync(request, "Packages\\ListedPackage.1.0.1.zip"));
-            mockServer.SetAction("/package/UnlistedPackage/1.0.0", request => GetStreamContentActionAsync(request, "Packages\\UnlistedPackage.1.0.0.zip"));
-            mockServer.SetAction("/package/OtherPackage/1.0.0", request => GetStreamContentActionAsync(request, "Packages\\OtherPackage.1.0.0.zip"));
+            galleryDatabaseMock
+                .Setup(m => m.GetPackagesCreatedSince(cursor1, top))
+                .ReturnsAsync(GetCreatedPackages);
+
+            galleryDatabaseMock
+                .Setup(m => m.GetPackagesCreatedSince(cursor2, top))
+                .ReturnsAsync(GetCreatedPackagesSecondRequest);
+
+            galleryDatabaseMock
+                .Setup(m => m.GetPackagesCreatedSince(cursor3, top))
+                .ReturnsAsync(GetEmptyPackages);
+
+            galleryDatabaseMock
+                .Setup(m => m.GetPackagesEditedSince(cursor1, top))
+                .ReturnsAsync(GetEditedPackages);
+
+            galleryDatabaseMock
+                .Setup(m => m.GetPackagesEditedSince(cursor2, top))
+                .ReturnsAsync(GetEmptyPackages);
 
             // Act
-            var feed2catalogTestJob = new TestableFeed2CatalogJob(
+            var db2catalogTestJob = new TestableDb2CatalogJob(
                 mockServer,
-                _feedBaseUri,
                 catalogStorage,
                 auditingStorage,
                 skipCreatedPackagesProcessing: false,
                 startDate: null,
                 timeout: TimeSpan.FromMinutes(5),
-                top: 20,
-                verbose: true);
-            await feed2catalogTestJob.RunOnceAsync(CancellationToken.None);
+                top: top,
+                verbose: true,
+                galleryDatabaseMock: galleryDatabaseMock,
+                packageContentUriBuilder: _packageContentUriBuilder,
+                testOutputHelper: _testOutputHelper);
+
+            await db2catalogTestJob.RunOnceAsync(CancellationToken.None);
 
             // Assert
             Assert.Equal(7, catalogStorage.Content.Count);
@@ -767,6 +1017,7 @@ namespace NgTests
         [Fact]
         public async Task RunInternal_CallsCatalogStorageLoadStringExactlyOnce()
         {
+            const int top = 20;
             var mockServer = new MockServerHttpClientHandler();
             var auditingStorage = Mock.Of<IStorage>();
             var catalogStorage = new Mock<IStorage>(MockBehavior.Strict);
@@ -776,210 +1027,189 @@ namespace NgTests
                 $"\"nuget:lastEdited\":\"{datetime}\"}}";
 
             catalogStorage.Setup(x => x.ResolveUri(It.IsNotNull<string>()))
-                .Returns(new Uri(_feedBaseUri));
+                .Returns(_baseUri);
             catalogStorage.Setup(x => x.LoadStringAsync(It.IsNotNull<Uri>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(json);
 
-            mockServer.SetAction("/", GetRootActionAsync);
-            mockServer.SetAction("/Packages?$filter=Created%20gt%20DateTime'0001-01-01T00:00:00.0000000Z'&$orderby=Created" + _feedUrlSuffix, GetEmptyPackages);
-            mockServer.SetAction("/Packages?$filter=LastEdited%20gt%20DateTime'0001-01-01T00:00:00.0000000Z'&$orderby=LastEdited" + _feedUrlSuffix, GetEmptyPackages);
+            var cursor1 = new DateTime(1, 1, 1).ForceUtc();
 
-            var feed2catalogTestJob = new TestableFeed2CatalogJob(
+            var galleryDatabaseMock = new Mock<IGalleryDatabaseQueryService>();
+
+            galleryDatabaseMock
+                .Setup(m => m.GetPackagesCreatedSince(cursor1, top))
+                .ReturnsAsync(GetEmptyPackages);
+
+            galleryDatabaseMock
+                .Setup(m => m.GetPackagesEditedSince(cursor1, top))
+                .ReturnsAsync(GetEmptyPackages);
+
+            var db2catalogTestJob = new TestableDb2CatalogJob(
                 mockServer,
-                _feedBaseUri,
                 catalogStorage.Object,
                 auditingStorage,
                 skipCreatedPackagesProcessing: false,
                 startDate: null,
                 timeout: TimeSpan.FromMinutes(5),
-                top: 20,
-                verbose: true);
+                top: top,
+                verbose: true,
+                galleryDatabaseMock: galleryDatabaseMock,
+                packageContentUriBuilder: _packageContentUriBuilder,
+                testOutputHelper: _testOutputHelper);
 
-            await feed2catalogTestJob.RunOnceAsync(CancellationToken.None);
+            await db2catalogTestJob.RunOnceAsync(CancellationToken.None);
 
             catalogStorage.Verify(x => x.ResolveUri(It.IsNotNull<string>()), Times.AtLeastOnce());
             catalogStorage.Verify(x => x.LoadStringAsync(It.IsNotNull<Uri>(), It.IsAny<CancellationToken>()), Times.Once());
         }
 
-        private static Task<HttpResponseMessage> GetCreatedPackages(HttpRequestMessage request)
+        private SortedList<DateTime, IList<FeedPackageDetails>> GetCreatedPackages()
         {
-            var packages = new List<ODataPackage>
+            var packages = new List<FeedPackageDetails>
             {
-                new ODataPackage
-                {
-                    Id = "ListedPackage",
-                    Version = "1.0.0",
-                    Description = "Listed package",
-                    Hash = "",
-                    Listed = true,
+                new FeedPackageDetails(
+                    contentUri: _packageContentUriBuilder.Build("ListedPackage", "1.0.0"),
+                    createdDate: new DateTime(2015, 1, 1).ForceUtc(),
+                    lastEditedDate: DateTime.MinValue,
+                    publishedDate: new DateTime(2015, 1, 1).ForceUtc(),
+                    packageId: "ListedPackage",
+                    packageVersion: "1.0.0"),
+                new FeedPackageDetails(
+                    contentUri: _packageContentUriBuilder.Build("UnlistedPackage", "1.0.0"),
+                    createdDate: new DateTime(2015, 1, 1).ForceUtc(),
+                    lastEditedDate: DateTime.MinValue,
+                    publishedDate: Constants.UnpublishedDate,
+                    packageId: "UnlistedPackage",
+                    packageVersion: "1.0.0"),
 
-                    Created = new DateTime(2015, 1, 1),
-                    Published = new DateTime(2015, 1, 1)
-                },
-                new ODataPackage
-                {
-                    Id = "UnlistedPackage",
-                    Version = "1.0.0",
-                    Description = "Unlisted package",
-                    Hash = "",
-                    Listed = false,
-
-                    Created = new DateTime(2015, 1, 1),
-                    Published = Convert.ToDateTime("1900-01-01T00:00:00Z")
-                },
-                new ODataPackage
-                {
-                    Id = "TestPackage.SemVer2",
-                    Version = "1.0.0-alpha.1+githash",
-                    Description = "A package with SemVer 2.0.0",
-                    Hash = "",
-                    Listed = false,
-
-                    Created = new DateTime(2015, 1, 1),
-                    Published = new DateTime(2015, 1, 1)
-                }
+                // The real SemVer2 version is embedded in the nupkg.
+                // The below FeedPackageDetails entity expects normalized versions.
+                new FeedPackageDetails(
+                    contentUri: _packageContentUriBuilder.Build("TestPackage.SemVer2", "1.0.0-alpha.1"),
+                    createdDate: new DateTime(2015, 1, 1).ForceUtc(),
+                    lastEditedDate: DateTime.MinValue,
+                    publishedDate: new DateTime(2015, 1, 1).ForceUtc(),
+                    packageId: "TestPackage.SemVer2",
+                    packageVersion: "1.0.0-alpha.1")
             };
 
-            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
-            {
-                Content = new StringContent(
-                    ODataFeedHelper.ToODataFeed(packages, new Uri(_feedBaseUri), "Packages"))
-            });
+            return GalleryDatabaseQueryService.OrderPackagesByKeyDate(packages, p => p.CreatedDate);
         }
 
-        private static Task<HttpResponseMessage> GetEditedPackages(HttpRequestMessage request)
+        private SortedList<DateTime, IList<FeedPackageDetails>> GetEditedPackages()
         {
-            var packages = new List<ODataPackage>
+            var packages = new List<FeedPackageDetails>
             {
-                new ODataPackage
-                {
-                    Id = "ListedPackage",
-                    Version = "1.0.1",
-                    Description = "Listed package",
-                    Hash = "",
-                    Listed = true,
-
-                    Created = new DateTime(2014, 1, 1),
-                    LastEdited = new DateTime(2015, 1, 1),
-                    Published = new DateTime(2014, 1, 1)
-                }
+                new FeedPackageDetails(
+                    contentUri: _packageContentUriBuilder.Build("ListedPackage", "1.0.1"),
+                    createdDate: new DateTime(2014, 1, 1).ForceUtc(),
+                    lastEditedDate: new DateTime(2015, 1, 1).ForceUtc(),
+                    publishedDate: new DateTime(2014, 1, 1).ForceUtc(),
+                    packageId: "ListedPackage",
+                    packageVersion: "1.0.1")
             };
 
-            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
-            {
-                Content = new StringContent(
-                    ODataFeedHelper.ToODataFeed(packages, new Uri(_feedBaseUri), "Packages"))
-            });
+            return GalleryDatabaseQueryService.OrderPackagesByKeyDate(packages, p => p.LastEditedDate);
         }
 
-        private static Task<HttpResponseMessage> GetEmptyPackages(HttpRequestMessage request)
+        private SortedList<DateTime, IList<FeedPackageDetails>> GetEmptyPackages()
         {
-            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
-            {
-                Content = new StringContent(
-                    ODataFeedHelper.ToODataFeed(Enumerable.Empty<ODataPackage>(), new Uri(_feedBaseUri), "Packages"))
-            });
+            return GalleryDatabaseQueryService.OrderPackagesByKeyDate(new List<FeedPackageDetails>(), p => p.CreatedDate);
         }
 
-        private static Task<HttpResponseMessage> GetCreatedPackagesSecondRequest(HttpRequestMessage request)
+        private SortedList<DateTime, IList<FeedPackageDetails>> GetCreatedPackagesSecondRequest()
         {
-            var packages = new List<ODataPackage>
+            var packages = new List<FeedPackageDetails>
             {
-                new ODataPackage
-                {
-                    Id = "OtherPackage",
-                    Version = "1.0.0",
-                    Description = "Other package",
-                    Hash = "",
-                    Listed = true,
-
-                    Created = new DateTime(2015, 1, 1, 1, 1, 3),
-                    Published = new DateTime(2015, 1, 1, 1, 1, 3)
-                }
+                new FeedPackageDetails(
+                    contentUri: _packageContentUriBuilder.Build("OtherPackage", "1.0.0"),
+                    createdDate: new DateTime(2015, 1, 1, 1, 1, 3).ForceUtc(),
+                    lastEditedDate: new DateTime(2015, 1, 1, 1, 1, 3).ForceUtc(),
+                    publishedDate: new DateTime(2015, 1, 1, 1, 1, 3).ForceUtc(),
+                    packageId: "OtherPackage",
+                    packageVersion: "1.0.0")
             };
 
-            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
-            {
-                Content = new StringContent(
-                    ODataFeedHelper.ToODataFeed(packages, new Uri(_feedBaseUri), "Packages"))
-            });
+            return GalleryDatabaseQueryService.OrderPackagesByKeyDate(packages, p => p.CreatedDate);
         }
 
-        private void InitializeTest(bool skipCreatedPackagesProcessing)
+        private void InitializeTest(
+            bool skipCreatedPackagesProcessing,
+            int top,
+            Mock<IGalleryDatabaseQueryService> galleryDatabaseMock)
         {
             _skipCreatedPackagesProcessing = skipCreatedPackagesProcessing;
 
-            _job = new TestableFeed2CatalogJob(
+            _job = new TestableDb2CatalogJob(
                 _server,
-                _feedBaseUri,
                 _catalogStorage,
                 _auditingStorage,
                 skipCreatedPackagesProcessing,
                 startDate: null,
                 timeout: TimeSpan.FromMinutes(5),
-                top: _top,
-                verbose: true);
+                top: top,
+                verbose: true,
+                galleryDatabaseMock: galleryDatabaseMock,
+                packageContentUriBuilder: _packageContentUriBuilder,
+                testOutputHelper: _testOutputHelper);
         }
 
-        private PackageCreationOrEdit CreatePackageCreationOrEdit()
+        private PackageCreationOrEdit CreatePackageCreationOrEdit(DateTime? createdDate = null)
         {
             var package = TestPackage.Create(_random);
             var isListed = Convert.ToBoolean(_random.Next(minValue: 0, maxValue: 2));
-            var created = DateTimeOffset.UtcNow;
+            var created = createdDate ?? DateTimeOffset.UtcNow;
 
             // Avoid hitting this bug accidentally:  https://github.com/NuGet/NuGetGallery/issues/2841
-            if (created == _packageOperations.OfType<PackageCreationOrEdit>().LastOrDefault()?.ODataPackage.Created)
+            if (!createdDate.HasValue && created == _packageOperations.OfType<PackageCreationOrEdit>().LastOrDefault()?.FeedPackageDetails.CreatedDate)
             {
                 created = created.AddMilliseconds(1);
             }
 
-            var oDataPackage = new ODataPackage()
-            {
-                Id = package.Id,
-                Version = package.Version.ToNormalizedString(),
-                Description = package.Description,
-                Hash = GetPackageHash(package),
-                Listed = isListed,
-                Created = created.UtcDateTime,
-                Published = isListed ? created.UtcDateTime : Constants.UnpublishedDate
-            };
+            var normalizedVersion = package.Version.ToNormalizedString();
+            var feedPackageDetails = new FeedPackageDetails(
+                contentUri: _packageContentUriBuilder.Build(package.Id, normalizedVersion),
+                createdDate: created.UtcDateTime,
+                lastEditedDate: DateTime.MinValue,
+                publishedDate: isListed ? created.UtcDateTime : Constants.UnpublishedDate,
+                packageId: package.Id,
+                packageVersion: normalizedVersion,
+                licenseNames: null,
+                licenseReportUrl: null);
 
-            return new PackageCreationOrEdit(package, oDataPackage);
+            return new PackageCreationOrEdit(package, feedPackageDetails);
         }
 
-        private PackageCreationOrEdit AddCreatedPackageToFeed()
+        private PackageCreationOrEdit AddCreatedPackageToFeed(DateTime? createdDate = null)
         {
-            var operation = CreatePackageCreationOrEdit();
+            var operation = CreatePackageCreationOrEdit(createdDate);
 
             _packageOperations.Add(operation);
 
             return operation;
         }
 
-        private PackageCreationOrEdit AddEditedPackageToFeed(PackageCreationOrEdit entry)
+        private PackageCreationOrEdit AddEditedPackageToFeed(PackageCreationOrEdit entry, DateTime? lastEditedDate = null)
         {
             var editedPackage = AddPackageEntry(entry.Package);
-            var edited = DateTimeOffset.UtcNow;
+            var edited = lastEditedDate ?? DateTime.UtcNow;
 
             // Avoid hitting this bug accidentally:  https://github.com/NuGet/NuGetGallery/issues/2841
-            if (edited == _packageOperations.OfType<PackageCreationOrEdit>().LastOrDefault(e => e.ODataPackage.LastEdited.HasValue)?.ODataPackage.LastEdited)
+            if (!lastEditedDate.HasValue && edited == _packageOperations.OfType<PackageCreationOrEdit>().LastOrDefault(e => e.FeedPackageDetails.LastEditedDate != DateTime.MinValue)?.FeedPackageDetails.LastEditedDate)
             {
                 edited = edited.AddMilliseconds(1);
             }
 
-            var oDataPackage = new ODataPackage()
-            {
-                Id = entry.ODataPackage.Id,
-                Version = entry.ODataPackage.Version,
-                Description = entry.ODataPackage.Description,
-                Hash = GetPackageHash(editedPackage),
-                Listed = entry.ODataPackage.Listed,
-                Created = entry.ODataPackage.Created,
-                LastEdited = edited.UtcDateTime,
-                Published = entry.ODataPackage.Published
-            };
+            var feedPackageDetails = new FeedPackageDetails(
+                contentUri: entry.FeedPackageDetails.ContentUri,
+                createdDate: entry.FeedPackageDetails.CreatedDate,
+                lastEditedDate: edited,
+                publishedDate: entry.FeedPackageDetails.PublishedDate,
+                packageId: entry.FeedPackageDetails.PackageId,
+                packageVersion: entry.FeedPackageDetails.PackageVersion,
+                licenseNames: entry.FeedPackageDetails.LicenseNames,
+                licenseReportUrl: entry.FeedPackageDetails.LicenseReportUrl);
 
-            var operation = new PackageCreationOrEdit(editedPackage, oDataPackage);
+            var operation = new PackageCreationOrEdit(editedPackage, feedPackageDetails);
 
             _packageOperations.Add(operation);
 
@@ -1001,7 +1231,7 @@ namespace NgTests
                         new JProperty("version", operation.Package.Version.ToNormalizedString()))),
                 new JProperty("actor",
                     new JObject(
-                        new JProperty("timestampUtc", deletionTime.Value.ToString(_auditRecordDateTimeFormat)))));
+                        new JProperty("timestampUtc", deletionTime.Value.ToString("O")))));
 
             var packageId = operation.Package.Id.ToLowerInvariant();
             var packageVersion = operation.Package.Version.ToNormalizedString().ToLowerInvariant();
@@ -1018,6 +1248,8 @@ namespace NgTests
         }
 
         private async Task RunInternalAndVerifyAsync(
+            Mock<IGalleryDatabaseQueryService> galleryDatabaseHelperMock,
+            int top,
             DateTime? expectedLastCreated = null,
             DateTime? expectedLastDeleted = null,
             DateTime? expectedLastEdited = null,
@@ -1034,11 +1266,28 @@ namespace NgTests
 
             _hasFirstRunOnceAsyncBeenCalledBefore = true;
 
-            PrepareFeed();
+            _server.Actions.Clear();
+
+            PublishCreatedPackages(galleryDatabaseHelperMock, top);
+            PublishEditedPackages(galleryDatabaseHelperMock, top);
 
             await _job.RunOnceAsync(CancellationToken.None);
 
             VerifyCatalog(expectedLastCreated, expectedLastDeleted, expectedLastEdited, skippedPackage);
+        }
+
+        private void RegisterPackageContentUri(TestPackage package)
+        {
+            _server.SetAction(
+                _packageContentUriBuilder.Build(package.Id, package.Version.ToNormalizedString()).AbsolutePath,
+                request => GetStreamContentActionAsync(package.Stream));
+        }
+
+        private void RegisterPackageContentUri(MockServerHttpClientHandler server, string packageId, string packageVersion, string filePath)
+        {
+            server.SetAction(
+                _packageContentUriBuilder.Build(packageId, packageVersion).AbsolutePath,
+                request => GetStreamContentActionAsync(filePath));
         }
 
         private void VerifyCatalog(
@@ -1054,7 +1303,7 @@ namespace NgTests
                 verifiablePackageOperations = _packageOperations
                     .Where(entry =>
                         entry != skippedOperation
-                        && (!(entry is PackageCreationOrEdit) || ((PackageCreationOrEdit)entry).ODataPackage.LastEdited.HasValue))
+                        && (!(entry is PackageCreationOrEdit) || ((PackageCreationOrEdit)entry).FeedPackageDetails.LastEditedDate != DateTime.MinValue))
                     .ToList();
             }
             else
@@ -1066,7 +1315,7 @@ namespace NgTests
 
             if (verifiablePackageOperations.Count == 0)
             {
-                Assert.Equal(0, _catalogStorage.Content.Count);
+                Assert.Empty(_catalogStorage.Content);
 
                 return;
             }
@@ -1151,14 +1400,14 @@ namespace NgTests
             Assert.Equal(1, index[CatalogConstants.Count].Value<int>());
 
             Assert.Equal(
-                expectedLastCreated.ToString(CatalogConstants.DateTimeFormat),
-                index[CatalogConstants.NuGetLastCreated].Value<string>());
+                expectedLastCreated.ToString("O"),
+                DateTime.Parse(index[CatalogConstants.NuGetLastCreated].Value<string>(), CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind).ToString("O"));
             Assert.Equal(
-                expectedLastDeleted.ToString(CatalogConstants.DateTimeFormat),
-                index[CatalogConstants.NuGetLastDeleted].Value<string>());
+                expectedLastDeleted.ToString("O"),
+                DateTime.Parse(index[CatalogConstants.NuGetLastDeleted].Value<string>(), CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind).ToString("O"));
             Assert.Equal(
-                expectedLastEdited.ToString(CatalogConstants.DateTimeFormat),
-                index[CatalogConstants.NuGetLastEdited].Value<string>());
+                expectedLastEdited.ToString("O"),
+                DateTime.Parse(index[CatalogConstants.NuGetLastEdited].Value<string>(), CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind).ToString("O"));
 
             var expectedItems = new JArray(
                 new JObject(
@@ -1318,21 +1567,21 @@ namespace NgTests
             Assert.Equal(packageOperation.CommitId, packageDetails[CatalogConstants.CatalogCommitId].Value<string>());
             Assert.Equal(packageOperation.CommitTimeStamp, packageDetails[CatalogConstants.CatalogCommitTimeStamp].Value<string>());
             Assert.Equal(
-                packageOperation.ODataPackage.Created.ToString(CatalogConstants.DateTimeFormat),
-                packageDetails[CatalogConstants.Created].Value<string>());
-            Assert.Equal(packageOperation.ODataPackage.Description, packageDetails[CatalogConstants.Description].Value<string>());
-            Assert.Equal(packageOperation.ODataPackage.Id, packageDetails[CatalogConstants.Id].Value<string>());
+                packageOperation.FeedPackageDetails.CreatedDate.ToString("O"),
+                DateTime.Parse(packageDetails[CatalogConstants.Created].Value<string>(), CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind).ToString("O"));
+            Assert.Equal(packageOperation.Package.Description, packageDetails[CatalogConstants.Description].Value<string>());
+            Assert.Equal(packageOperation.FeedPackageDetails.PackageId, packageDetails[CatalogConstants.Id].Value<string>());
             Assert.False(packageDetails[CatalogConstants.IsPrerelease].Value<bool>());
             Assert.Equal(
-                (packageOperation.ODataPackage.LastEdited ?? Constants.DateTimeMinValueUtc).ToString(CatalogConstants.DateTimeFormat),
-                packageDetails[CatalogConstants.LastEdited].Value<string>());
-            Assert.Equal(packageOperation.ODataPackage.Listed, packageDetails[CatalogConstants.Listed].Value<bool>());
-            Assert.Equal(packageOperation.ODataPackage.Hash, packageDetails[CatalogConstants.PackageHash].Value<string>());
+                packageOperation.FeedPackageDetails.LastEditedDate.ToString("O"),
+                DateTime.Parse(packageDetails[CatalogConstants.LastEdited].Value<string>(), CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind).ToString("O"));
+            Assert.Equal(packageOperation.FeedPackageDetails.PublishedDate != Constants.UnpublishedDate, packageDetails[CatalogConstants.Listed].Value<bool>());
+            Assert.Equal(GetPackageHash(packageOperation.Package), packageDetails[CatalogConstants.PackageHash].Value<string>());
             Assert.Equal(Constants.Sha512, packageDetails[CatalogConstants.PackageHashAlgorithm].Value<string>());
             Assert.Equal(packageOperation.Package.Stream.Length, packageDetails[CatalogConstants.PackageSize].Value<int>());
             Assert.Equal(
-                packageOperation.ODataPackage.Published.ToString(CatalogConstants.DateTimeFormat),
-                packageDetails[CatalogConstants.Published].Value<string>());
+                packageOperation.FeedPackageDetails.PublishedDate.ToString("O"),
+                DateTime.Parse(packageDetails[CatalogConstants.Published].Value<string>(), CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind).ToString("O"));
             Assert.Equal(packageOperation.Package.Version.ToFullString(), packageDetails[CatalogConstants.VerbatimVersion].Value<string>());
             Assert.Equal(packageOperation.Package.Version.ToNormalizedString(), packageDetails[CatalogConstants.Version].Value<string>());
 
@@ -1412,7 +1661,9 @@ namespace NgTests
             Assert.Equal(packageOperation.CommitTimeStamp, packageDelete[CatalogConstants.CatalogCommitTimeStamp].Value<string>());
             Assert.Equal(packageOperation.PackageIdentity.Id, packageDelete[CatalogConstants.Id].Value<string>());
             Assert.Equal(packageOperation.PackageIdentity.Id, packageDelete[CatalogConstants.OriginalId].Value<string>());
-            Assert.Equal(packageOperation.Published.ToString(CatalogConstants.DateTimeFormat), packageDelete[CatalogConstants.Published].Value<string>());
+            Assert.Equal(
+                packageOperation.Published.ToString("O"),
+                DateTime.Parse(packageDelete[CatalogConstants.Published].Value<string>(), CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind).ToString("O"));
             Assert.Equal(packageOperation.PackageIdentity.Version.ToNormalizedString(), packageDelete[CatalogConstants.Version].Value<string>());
 
             var expectedContext = new JObject(
@@ -1469,60 +1720,51 @@ namespace NgTests
             return _timestamp.UtcDateTime;
         }
 
-        private void PrepareFeed()
+        private void PublishCreatedPackages(Mock<IGalleryDatabaseQueryService> galleryDatabaseHelperMock, int top)
         {
-            _server.Actions.Clear();
-
-            _server.SetAction("/", GetRootActionAsync);
-
-            PublishCreatedPackages();
-            PublishEditedPackages();
-
-            foreach (var packageOperation in _packageOperations.OfType<PackageCreationOrEdit>().Select(o => o.Package))
-            {
-                _server.SetAction(
-                    $"/package/{packageOperation.Id}/{packageOperation.Version.ToNormalizedString()}",
-                    request => GetStreamContentActionAsync(request, packageOperation.Stream));
-            }
-        }
-
-        private void PublishCreatedPackages()
-        {
-            var feedUrlSuffix = $"&$top={_top}&$select=Id,NormalizedVersion,Created,LastEdited,Published,LicenseNames,LicenseReportUrl&semVerLevel=2.0.0";
             var packageOperations = _packageOperations.OfType<PackageCreationOrEdit>();
 
             foreach (var packageOperation in packageOperations)
             {
-                _server.SetAction(
-                    $"/Packages?$filter=Created%20gt%20DateTime'{_feedLastCreated.ToString(_feedUrlDateTimeFormat)}'&$orderby=Created" + feedUrlSuffix,
-                    request => GetResponse(request, new[] { packageOperation.ODataPackage }));
+                var createdPackages = new SortedList<DateTime, IList<FeedPackageDetails>>();
+                createdPackages.Add(packageOperation.FeedPackageDetails.CreatedDate, new List<FeedPackageDetails> { packageOperation.FeedPackageDetails });
 
-                _feedLastCreated = packageOperation.ODataPackage.Created;
+                galleryDatabaseHelperMock
+                    .Setup(m => m.GetPackagesCreatedSince(_feedLastCreated, top))
+                    .ReturnsAsync(createdPackages);
+
+                RegisterPackageContentUri(packageOperation.Package);
+
+                _feedLastCreated = packageOperation.FeedPackageDetails.CreatedDate;
             }
 
-            _server.SetAction(
-                $"/Packages?$filter=Created%20gt%20DateTime'{_feedLastCreated.ToString(_feedUrlDateTimeFormat)}'&$orderby=Created" + feedUrlSuffix,
-                request => GetResponse(request, Enumerable.Empty<ODataPackage>()));
+            galleryDatabaseHelperMock
+                    .Setup(m => m.GetPackagesCreatedSince(_feedLastCreated, top))
+                    .ReturnsAsync(new SortedList<DateTime, IList<FeedPackageDetails>>());
         }
 
-        private void PublishEditedPackages()
+        private void PublishEditedPackages(Mock<IGalleryDatabaseQueryService> galleryDatabaseHelperMock, int top)
         {
-            var feedUrlSuffix = $"&$top={_top}&$select=Id,NormalizedVersion,Created,LastEdited,Published,LicenseNames,LicenseReportUrl&semVerLevel=2.0.0";
             var packageOperations = _packageOperations.OfType<PackageCreationOrEdit>()
-                .Where(entry => entry.ODataPackage.LastEdited.HasValue);
+                .Where(entry => entry.FeedPackageDetails.LastEditedDate != DateTime.MinValue);
 
             foreach (var packageOperation in packageOperations)
             {
-                _server.SetAction(
-                    $"/Packages?$filter=LastEdited%20gt%20DateTime'{_feedLastEdited.ToString(_feedUrlDateTimeFormat)}'&$orderby=LastEdited" + feedUrlSuffix,
-                    request => GetResponse(request, new[] { packageOperation.ODataPackage }));
+                var editedPackages = new SortedList<DateTime, IList<FeedPackageDetails>>();
+                editedPackages.Add(packageOperation.FeedPackageDetails.LastEditedDate, new List<FeedPackageDetails> { packageOperation.FeedPackageDetails });
 
-                _feedLastEdited = packageOperation.ODataPackage.LastEdited.Value;
+                galleryDatabaseHelperMock
+                    .Setup(m => m.GetPackagesEditedSince(_feedLastEdited, top))
+                    .ReturnsAsync(editedPackages);
+
+                RegisterPackageContentUri(packageOperation.Package);
+
+                _feedLastEdited = packageOperation.FeedPackageDetails.LastEditedDate;
             }
 
-            _server.SetAction(
-                $"/Packages?$filter=LastEdited%20gt%20DateTime'{_feedLastEdited.ToString(_feedUrlDateTimeFormat)}'&$orderby=LastEdited" + feedUrlSuffix,
-                request => GetResponse(request, Enumerable.Empty<ODataPackage>()));
+            galleryDatabaseHelperMock
+                    .Setup(m => m.GetPackagesEditedSince(_feedLastEdited, top))
+                    .ReturnsAsync(new SortedList<DateTime, IList<FeedPackageDetails>>());
         }
 
         private TestPackage AddPackageEntry(TestPackage package)
@@ -1588,31 +1830,24 @@ namespace NgTests
             }
         }
 
-        private static Task<HttpResponseMessage> GetResponse(HttpRequestMessage request, IEnumerable<ODataPackage> packages)
+        private static Task<HttpResponseMessage> GetStreamContentActionAsync(Stream stream)
         {
-            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+            // Ensure we reset the stream position to 0 (a package edit might have happened).
+            stream.Position = 0;
+
+            var response = new HttpResponseMessage(HttpStatusCode.OK)
             {
-                Content = new StringContent(ODataFeedHelper.ToODataFeed(packages, new Uri(_feedBaseUri), "Packages"))
-            });
+                Content = new StreamContent(stream)
+            };
+
+            response.Content.Headers.Add("Content-Length", stream.Length.ToString());
+
+            return Task.FromResult(response);
         }
 
-        private static Task<HttpResponseMessage> GetRootActionAsync(HttpRequestMessage request)
+        private static Task<HttpResponseMessage> GetStreamContentActionAsync(string filePath)
         {
-            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK));
-        }
-
-        private static Task<HttpResponseMessage> GetStreamContentActionAsync(HttpRequestMessage request, Stream stream)
-        {
-            return Task.FromResult(
-                new HttpResponseMessage(HttpStatusCode.OK)
-                {
-                    Content = new StreamContent(stream)
-                });
-        }
-
-        private static Task<HttpResponseMessage> GetStreamContentActionAsync(HttpRequestMessage request, string filePath)
-        {
-            return GetStreamContentActionAsync(request, File.OpenRead(filePath));
+            return GetStreamContentActionAsync(File.OpenRead(filePath));
         }
 
         private static void VerifyContext(JObject indexOrPage)
@@ -1648,14 +1883,14 @@ namespace NgTests
 
         private sealed class PackageCreationOrEdit : PackageOperation
         {
-            internal ODataPackage ODataPackage { get; }
+            internal FeedPackageDetails FeedPackageDetails { get; }
             internal TestPackage Package { get; }
             internal override PackageIdentity PackageIdentity { get; }
 
-            internal PackageCreationOrEdit(TestPackage package, ODataPackage oDataPackage)
+            internal PackageCreationOrEdit(TestPackage package, FeedPackageDetails feedPackageDetails)
             {
                 Package = package;
-                ODataPackage = oDataPackage;
+                FeedPackageDetails = feedPackageDetails;
                 PackageIdentity = new PackageIdentity(package.Id, package.Version);
             }
         }

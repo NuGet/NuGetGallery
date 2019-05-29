@@ -63,7 +63,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>TestRegistrationEntries.resx</DependentUpon>
     </Compile>
-    <Compile Include="Feed2CatalogTests.cs" />
+    <Compile Include="Db2CatalogTests.cs" />
     <Compile Include="Infrastructure\MemoryStorage.cs" />
     <Compile Include="Infrastructure\MemoryStorageFactory.cs" />
     <Compile Include="Infrastructure\MockServerHttpClientHandlerExtensions.cs" />
@@ -89,13 +89,15 @@
     <Compile Include="PackageMonitoringStatusServiceTests.cs" />
     <Compile Include="Infrastructure\TestPackage.cs" />
     <Compile Include="StuckIndexWriter.cs" />
+    <Compile Include="Infrastructure\TestLoggerFactory.cs" />
+    <Compile Include="Infrastructure\TestLogger.cs" />
     <Compile Include="UriUtilsTests.cs" />
     <Compile Include="PackageTimestampMetadataTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SearchIndexFromCatalogCollectorTests.cs" />
     <Compile Include="SortingIdVersionCollectorTests.cs" />
     <Compile Include="StorageFactoryTests.cs" />
-    <Compile Include="TestableFeed2CatalogJob.cs" />
+    <Compile Include="TestableDb2CatalogJob.cs" />
     <Compile Include="Data\TestCatalogEntries.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -225,4 +227,15 @@
   <Target Name="AfterBuild">
   </Target>
   -->
+  <!-- 
+  Even though this is a test project, it needs to be strong-named because it tests internal fields of NuGet.Services.Metadata.Catalog.
+  Strong-name signed assemblies must specify a public key in their InternalsVisibleTo declarations.
+  -->
+  <PropertyGroup>
+    <SignPath>..\..\build</SignPath>
+    <SignPath Condition="'$(BUILD_SOURCESDIRECTORY)' != ''">$(BUILD_SOURCESDIRECTORY)\build</SignPath>
+    <SignPath Condition="'$(NuGetBuildPath)' != ''">$(NuGetBuildPath)</SignPath>
+    <SignType Condition="'$(SignType)' == ''">none</SignType>
+  </PropertyGroup>
+  <Import Project="$(SignPath)\sign.targets" Condition="Exists('$(SignPath)\sign.targets')" />
 </Project>

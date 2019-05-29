@@ -14,7 +14,7 @@ namespace Ng
         public static IDictionary<string, Type> JobMap = new Dictionary<string, Type>()
         {
             { "package2catalog", typeof(Package2CatalogJob) },
-            { "feed2catalog", typeof(Feed2CatalogJob) },
+            { "db2catalog", typeof(Db2CatalogJob) },
             { "catalog2registration", typeof(Catalog2RegistrationJob) },
             { "catalog2lucene", typeof(Catalog2LuceneJob) },
             { "catalog2dnx", typeof(Catalog2DnxJob) },

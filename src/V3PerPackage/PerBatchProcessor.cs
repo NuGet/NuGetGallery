@@ -136,7 +136,7 @@ namespace NuGet.Services.V3PerPackage
                     _logger);
             }
 
-            // Delete feed2catalog artifacts.
+            // Delete db2catalog artifacts.
             await CleanUpUtilities.DeleteBlobsWithPrefix(
                 blobClient,
                 context.Global.CatalogContainerName,

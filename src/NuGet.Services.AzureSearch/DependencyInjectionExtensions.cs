@@ -252,6 +252,7 @@ namespace NuGet.Services.AzureSearch
             services.AddTransient<ISearchServiceClientWrapper, SearchServiceClientWrapper>();
             services.AddTransient<ISearchTextBuilder, SearchTextBuilder>();
             services.AddTransient<ISimpleHttpClient, SimpleHttpClient>();
+            services.AddTransient<ISystemTime, SystemTime>();
             services.AddTransient<ITelemetryService, TelemetryService>();
 
             return services;

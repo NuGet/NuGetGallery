@@ -493,6 +493,7 @@ namespace NuGet.Services.AzureSearch
     {
       ""@search.action"": ""upload"",
       ""totalDownloadCount"": 1001,
+      ""logBase2DownloadCount"": 9.9672262588359928,
       ""owners"": [
         ""Microsoft"",
         ""azure-sdk""

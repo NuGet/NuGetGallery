@@ -3,7 +3,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using NuGetGallery;
+using NuGet.Services.Entities;
 
 namespace NuGet.Indexing
 {

@@ -16,12 +16,20 @@ using NgTests.Data;
 using NgTests.Infrastructure;
 using NuGet.Services.Metadata.Catalog;
 using Xunit;
+using Xunit.Abstractions;
 using Constants = NuGet.IndexingTests.TestSupport.Constants;
 
 namespace NgTests
 {
     public class SearchIndexFromCatalogCollectorTests
     {
+        private readonly ITestOutputHelper _testOutputHelper;
+
+        public SearchIndexFromCatalogCollectorTests(ITestOutputHelper testOutputHelper)
+        {
+            _testOutputHelper = testOutputHelper;
+        }
+
         [Theory]
         [InlineData("/data/2015.10.12.10.08.54/unlistedpackage.1.0.0.json", null)]
         [InlineData("/data/2015.10.12.10.08.55/listedpackage.1.0.1.json", "2015-10-12T10:08:54.1506742Z")]
@@ -68,7 +76,7 @@ namespace NgTests
                         baseAddress: null,
                         galleryBaseAddress: null,
                         telemetryService: telemetryService.Object,
-                        logger: new TestLogger(),
+                        logger: new TestLogger(_testOutputHelper),
                         handlerFunc: () => mockServer,
                         httpRetryStrategy: new NoRetryStrategy());
 
@@ -158,7 +166,7 @@ namespace NgTests
                         baseAddress: null,
                         galleryBaseAddress: null,
                         telemetryService: telemetryService.Object,
-                        logger: new TestLogger(),
+                        logger: new TestLogger(_testOutputHelper),
                         handlerFunc: () => mockServer,
                         httpRetryStrategy: new NoRetryStrategy());
 

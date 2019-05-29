@@ -21,6 +21,9 @@ namespace NuGet.Services.AzureSearch
         {
             [IsFilterable]
             public long? TotalDownloadCount { get; set; }
+
+            [IsFilterable]
+            public double? LogBase2DownloadCount { get; set; }
         }
 
         /// <summary>

@@ -5,10 +5,10 @@ namespace NuGet.Jobs
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static int Main(string[] args)
         {
             var job = new Job();
-            JobRunner.Run(job, args).GetAwaiter().GetResult();
+            return JobRunner.Run(job, args).GetAwaiter().GetResult();
         }
     }
 }

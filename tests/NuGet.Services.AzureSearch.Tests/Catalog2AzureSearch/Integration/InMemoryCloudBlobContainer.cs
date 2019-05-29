@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using NuGetGallery;
 
@@ -30,7 +31,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
             throw new NotImplementedException();
         }
 
-        public Task<bool> ExistsAsync()
+        public Task<bool> ExistsAsync(BlobRequestOptions options = null, OperationContext operationContext = null)
         {
             throw new NotImplementedException();
         }

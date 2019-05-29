@@ -111,14 +111,17 @@ namespace Ng
 
         #endregion
 
-        #region Feed2Catalog
+        #region Db2Catalog
         public const string StartDate = "startDate";
+        public const string PackageContentUrlFormat = "packageContentUrlFormat";
+        public const string CursorSize = "cursorSize";
 
         public const string StorageAccountNameAuditing = "storageAccountNameAuditing";
         public const string StorageContainerAuditing = "storageContainerAuditing";
         public const string StorageKeyValueAuditing = "storageKeyValueAuditing";
         public const string StoragePathAuditing = "storagePathAuditing";
         public const string StorageTypeAuditing = "storageTypeAuditing";
+        public const string SqlCommandTimeoutInSeconds = "sqlCommandTimeoutInSeconds";
 
         public const string SkipCreatedPackagesProcessing = "skipCreatedPackagesProcessing";
         #endregion

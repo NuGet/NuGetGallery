@@ -9,21 +9,23 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Ng.Helpers;
 using NuGet.Protocol;
 using NuGet.Services.Configuration;
 using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGet.Services.Metadata.Catalog.Persistence;
+using NuGet.Services.Sql;
 using Constants = NuGet.Services.Metadata.Catalog.Constants;
 
 namespace Ng.Jobs
 {
-    public class Feed2CatalogJob : LoopingNgJob
+    public class Db2CatalogJob : LoopingNgJob
     {
-        private const string FeedUrlFormatSuffix = "&$top={2}&$select=Id,NormalizedVersion,Created,LastEdited,Published,LicenseNames,LicenseReportUrl&semVerLevel=2.0.0";
-
         protected bool Verbose;
-        protected string Gallery;
+        protected ISqlConnectionFactory GalleryDbConnection;
+        protected PackageContentUriBuilder PackageContentUriBuilder;
+        protected IGalleryDatabaseQueryService GalleryDatabaseQueryService;
         protected IStorage CatalogStorage;
         protected IStorage AuditingStorage;
         protected IStorage PreferredPackageSourceStorage;
@@ -33,15 +35,17 @@ namespace Ng.Jobs
         protected Uri Destination;
         protected bool SkipCreatedPackagesProcessing;
 
-        public Feed2CatalogJob(ITelemetryService telemetryService, ILoggerFactory loggerFactory)
+        public Db2CatalogJob(ITelemetryService telemetryService, ILoggerFactory loggerFactory)
             : base(telemetryService, loggerFactory)
         {
         }
 
         public override string GetUsage()
         {
-            return "Usage: ng feed2catalog "
-                   + $"-{Arguments.Gallery} <v2-feed-address> "
+            return "Usage: ng db2catalog "
+                   + $"-{Arguments.ConnectionString} <gallery-db-connectionstring> "
+                   + $"-{Arguments.CursorSize} <cursor-size> "
+                   + $"-{Arguments.PackageContentUrlFormat} <package-content-url-format> "
                    + $"-{Arguments.StorageBaseAddress} <storage-base-address> "
                    + $"-{Arguments.StorageType} file|azure "
                    + $"[-{Arguments.StoragePath} <path>]"
@@ -74,9 +78,9 @@ namespace Ng.Jobs
 
         protected override void Init(IDictionary<string, string> arguments, CancellationToken cancellationToken)
         {
-            Gallery = arguments.GetOrThrow<string>(Arguments.Gallery);
             Verbose = arguments.GetOrDefault(Arguments.Verbose, false);
             StartDate = arguments.GetOrDefault(Arguments.StartDate, Constants.DateTimeMinValueUtc);
+            Top = arguments.GetOrDefault(Arguments.CursorSize, 20);
             SkipCreatedPackagesProcessing = arguments.GetOrDefault(Arguments.SkipCreatedPackagesProcessing, false);
 
             StorageFactory preferredPackageSourceStorageFactory = null;
@@ -86,25 +90,25 @@ namespace Ng.Jobs
             if (preferAlternatePackageSourceStorage)
             {
                 preferredPackageSourceStorageFactory = CommandHelpers.CreateSuffixedStorageFactory(
-                    "PreferredPackageSourceStorage", 
-                    arguments, 
+                    "PreferredPackageSourceStorage",
+                    arguments,
                     Verbose,
                     new SemaphoreSlimThrottle(new SemaphoreSlim(ServicePointManager.DefaultConnectionLimit)));
             }
 
             var catalogStorageFactory = CommandHelpers.CreateStorageFactory(
-                arguments, 
+                arguments,
                 Verbose,
                 new SemaphoreSlimThrottle(new SemaphoreSlim(ServicePointManager.DefaultConnectionLimit)));
 
             var auditingStorageFactory = CommandHelpers.CreateSuffixedStorageFactory(
-                "Auditing", 
-                arguments, 
+                "Auditing",
+                arguments,
                 Verbose,
                 new SemaphoreSlimThrottle(new SemaphoreSlim(ServicePointManager.DefaultConnectionLimit)));
 
             Logger.LogInformation("CONFIG source: \"{ConfigSource}\" storage: \"{Storage}\" preferred package source storage: \"{PreferredPackageSourceStorage}\"",
-                Gallery,
+                GalleryDbConnection,
                 catalogStorageFactory,
                 preferredPackageSourceStorageFactory);
 
@@ -119,8 +123,23 @@ namespace Ng.Jobs
             Destination = catalogStorageFactory.BaseAddress;
             TelemetryService.GlobalDimensions[TelemetryConstants.Destination] = Destination.AbsoluteUri;
 
-            Top = 20;
-            Timeout = TimeSpan.FromSeconds(300);
+            // Setup gallery database access
+            PackageContentUriBuilder = new PackageContentUriBuilder(
+                arguments.GetOrThrow<string>(Arguments.PackageContentUrlFormat));
+
+            var connectionString = arguments.GetOrThrow<string>(Arguments.ConnectionString);
+            GalleryDbConnection = new AzureSqlConnectionFactory(
+                connectionString,
+                new EmptySecretInjector(),
+                LoggerFactory.CreateLogger<AzureSqlConnectionFactory>());
+
+            var timeoutInSeconds = arguments.GetOrDefault(Arguments.SqlCommandTimeoutInSeconds, 300);
+            Timeout = TimeSpan.FromSeconds(timeoutInSeconds);
+            GalleryDatabaseQueryService = new GalleryDatabaseQueryService(
+                GalleryDbConnection,
+                PackageContentUriBuilder,
+                TelemetryService,
+                timeoutInSeconds);
         }
 
         protected override async Task RunInternalAsync(CancellationToken cancellationToken)
@@ -191,10 +210,10 @@ namespace Ng.Jobs
                             {
                                 Logger.LogInformation("CATALOG LastCreated: {CatalogLastCreatedTime}", lastCreated.ToString("O"));
 
-                                var createdPackages = await GetCreatedPackages(client, Gallery, lastCreated, Top);
+                                var createdPackages = await GalleryDatabaseQueryService.GetPackagesCreatedSince(lastCreated, Top);
 
                                 packagesCreated = (uint)createdPackages.SelectMany(x => x.Value).Count();
-                                Logger.LogInformation("FEED CreatedPackages: {CreatedPackagesCount}", packagesCreated);
+                                Logger.LogInformation("DATABASE CreatedPackages: {CreatedPackagesCount}", packagesCreated);
 
                                 lastCreated = await FeedHelpers.DownloadMetadata2CatalogAsync(
                                     packageCatalogItemCreator,
@@ -216,10 +235,10 @@ namespace Ng.Jobs
                         {
                             Logger.LogInformation("CATALOG LastEdited: {CatalogLastEditedTime}", lastEdited.ToString("O"));
 
-                            var editedPackages = await GetEditedPackages(client, Gallery, lastEdited, Top);
+                            var editedPackages = await GalleryDatabaseQueryService.GetPackagesEditedSince(lastEdited, Top);
 
                             packagesEdited = (uint)editedPackages.SelectMany(x => x.Value).Count();
-                            Logger.LogInformation("FEED EditedPackages: {EditedPackagesCount}", packagesEdited);
+                            Logger.LogInformation("DATABASE EditedPackages: {EditedPackagesCount}", packagesEdited);
 
                             lastEdited = await FeedHelpers.DownloadMetadata2CatalogAsync(
                                 packageCatalogItemCreator,
@@ -252,40 +271,10 @@ namespace Ng.Jobs
         }
 
         // Wrapper function for CatalogUtility.CreateHttpClient
-        // Overriden by NgTests.TestableFeed2CatalogJob
+        // Overriden by NgTests.TestableDb2CatalogJob
         protected virtual HttpClient CreateHttpClient()
         {
             return FeedHelpers.CreateHttpClient(CommandHelpers.GetHttpMessageHandlerFactory(TelemetryService, Verbose));
-        }
-
-        private static Uri MakeCreatedUri(string source, DateTime since, int top)
-        {
-            var address = string.Format("{0}/Packages?$filter=Created gt DateTime'{1}'&$orderby=Created" + FeedUrlFormatSuffix,
-                source.Trim('/'),
-                since.ToString("o"),
-                top);
-
-            return new Uri(address);
-        }
-
-        private static Uri MakeLastEditedUri(string source, DateTime since, int top)
-        {
-            var address = string.Format("{0}/Packages?$filter=LastEdited gt DateTime'{1}'&$orderby=LastEdited" + FeedUrlFormatSuffix,
-                source.Trim('/'),
-                since.ToString("o"),
-                top);
-
-            return new Uri(address);
-        }
-
-        private static Task<SortedList<DateTime, IList<FeedPackageDetails>>> GetCreatedPackages(HttpClient client, string source, DateTime since, int top)
-        {
-            return FeedHelpers.GetPackagesInOrder(client, MakeCreatedUri(source, since, top), package => package.CreatedDate);
-        }
-
-        private static Task<SortedList<DateTime, IList<FeedPackageDetails>>> GetEditedPackages(HttpClient client, string source, DateTime since, int top)
-        {
-            return FeedHelpers.GetPackagesInOrder(client, MakeLastEditedUri(source, since, top), package => package.LastEditedDate);
         }
 
         private async Task<SortedList<DateTime, IList<FeedPackageIdentity>>> GetDeletedPackages(IStorage auditingStorage, DateTime since)
@@ -303,8 +292,7 @@ namespace Ng.Jobs
                 if (!string.IsNullOrEmpty(auditEntry.PackageId) && !string.IsNullOrEmpty(auditEntry.PackageVersion) && auditEntry.TimestampUtc > since)
                 {
                     // Mark the package "deleted"
-                    IList<FeedPackageIdentity> packages;
-                    if (!result.TryGetValue(auditEntry.TimestampUtc.Value, out packages))
+                    if (!result.TryGetValue(auditEntry.TimestampUtc.Value, out var packages))
                     {
                         packages = new List<FeedPackageIdentity>();
                         result.Add(auditEntry.TimestampUtc.Value, packages);

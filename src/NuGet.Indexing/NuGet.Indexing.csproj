@@ -189,8 +189,8 @@
     <PackageReference Include="NuGet.Services.Configuration">
       <Version>2.2.2</Version>
     </PackageReference>
-    <PackageReference Include="NuGetGallery.Core">
-      <Version>4.4.4-master-41290</Version>
+    <PackageReference Include="NuGet.Services.Entities">
+      <Version>4.4.5-master-2699519</Version>
     </PackageReference>
     <PackageReference Include="System.Net.Http">
       <Version>4.3.3</Version>

@@ -14,6 +14,7 @@ using NgTests.Infrastructure;
 using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace NgTests
 {
@@ -21,6 +22,12 @@ namespace NgTests
     {
         private const string _feedBaseUri = "http://unit.test";
         private const string _feedUriSuffix = "/Packages?$filter=Id%20eq%20'{0}'%20and%20Version%20eq%20'{1}'&$select=Created,LastEdited,Published,LicenseNames,LicenseReportUrl";
+        private readonly ITestOutputHelper _testOutputHelper;
+
+        public Package2CatalogJobTests(ITestOutputHelper testOutputHelper)
+        {
+            _testOutputHelper = testOutputHelper;
+        }
 
         [Fact]
         public async Task RunInternal_CallsCatalogStorageLoadStringExactlyOnce()
@@ -43,6 +50,7 @@ namespace NgTests
             messageHandler.SetAction(GetPath(packageId, packageVersion), GetEmptyPackages);
 
             var job = new TestPackage2CatalogJob(
+                _testOutputHelper,
                 messageHandler,
                 catalogStorage.Object,
                 _feedBaseUri,
@@ -80,6 +88,7 @@ namespace NgTests
             private readonly HttpMessageHandler _handler;
 
             internal TestPackage2CatalogJob(
+                ITestOutputHelper testOutputHelper,
                 HttpMessageHandler handler,
                 IStorage storage,
                 string gallery,
@@ -87,7 +96,7 @@ namespace NgTests
                 string packageVersion,
                 bool verbose) : base(
                     new Mock<ITelemetryService>().Object,
-                    new TestLoggerFactory(),
+                    new TestLoggerFactory(testOutputHelper),
                     storage,
                     gallery,
                     packageId,

@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using Moq;
 using NuGet.Services.AzureSearch.Support;
+using NuGet.Services.AzureSearch.Wrappers;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -50,12 +51,11 @@ namespace NuGet.Services.AzureSearch.SearchService
                 _config.AuxiliaryDataReloadFrequency = TimeSpan.FromMilliseconds(100);
                 _config.AuxiliaryDataReloadFailureRetryFrequency = TimeSpan.Zero;
 
-                var stopwatch = Stopwatch.StartNew();
                 await _target.ReloadContinuouslyAsync(_cts.Token);
-                stopwatch.Stop();
 
                 _cache.Verify(x => x.TryLoadAsync(It.IsAny<CancellationToken>()), Times.Exactly(2));
-                Assert.InRange(stopwatch.Elapsed, _config.AuxiliaryDataReloadFrequency, TimeSpan.FromHours(1));
+                _systemTime.Verify(x => x.Delay(_config.AuxiliaryDataReloadFrequency, _cts.Token), Times.Once);
+                _systemTime.Verify(x => x.Delay(It.IsAny<TimeSpan>(), It.IsAny<CancellationToken>()), Times.Once);
             }
 
             [Fact]
@@ -77,18 +77,18 @@ namespace NuGet.Services.AzureSearch.SearchService
                 _config.AuxiliaryDataReloadFrequency = TimeSpan.Zero;
                 _config.AuxiliaryDataReloadFailureRetryFrequency = TimeSpan.FromMilliseconds(100);
 
-                var stopwatch = Stopwatch.StartNew();
                 await _target.ReloadContinuouslyAsync(_cts.Token);
-                stopwatch.Stop();
 
                 _cache.Verify(x => x.TryLoadAsync(It.IsAny<CancellationToken>()), Times.Exactly(2));
-                Assert.InRange(stopwatch.Elapsed, _config.AuxiliaryDataReloadFailureRetryFrequency, TimeSpan.FromHours(1));
+                _systemTime.Verify(x => x.Delay(_config.AuxiliaryDataReloadFailureRetryFrequency, _cts.Token), Times.Once);
+                _systemTime.Verify(x => x.Delay(It.IsAny<TimeSpan>(), It.IsAny<CancellationToken>()), Times.Once);
             }
         }
 
         public abstract class BaseFacts
         {
             protected readonly Mock<IAuxiliaryDataCache> _cache;
+            protected readonly Mock<ISystemTime> _systemTime;
             protected readonly SearchServiceConfiguration _config;
             protected readonly Mock<IOptionsSnapshot<SearchServiceConfiguration>> _options;
             protected readonly RecordingLogger<AuxiliaryFileReloader> _logger;
@@ -98,6 +98,7 @@ namespace NuGet.Services.AzureSearch.SearchService
             public BaseFacts(ITestOutputHelper output)
             {
                 _cache = new Mock<IAuxiliaryDataCache>();
+                _systemTime = new Mock<ISystemTime>();
                 _config = new SearchServiceConfiguration();
                 _options = new Mock<IOptionsSnapshot<SearchServiceConfiguration>>();
                 _logger = output.GetLogger<AuxiliaryFileReloader>();
@@ -114,6 +115,7 @@ namespace NuGet.Services.AzureSearch.SearchService
 
                 _target = new AuxiliaryFileReloader(
                     _cache.Object,
+                    _systemTime.Object,
                     _options.Object,
                     _logger);
             }

@@ -117,7 +117,7 @@ Invoke-BuildStep 'Creating artifacts' {
             "src\Ng\Catalog2Lucene.nuspec", `
             "src\Ng\Catalog2Monitoring.nuspec", `
             "src\Ng\Catalog2Registration.nuspec", `
-            "src\Ng\Feed2Catalog.nuspec", `
+            "src\Ng\Db2Catalog.nuspec", `
             "src\Ng\Monitoring2Monitoring.nuspec", `
             "src\Ng\MonitoringProcessor.nuspec", `
             "src\Ng\Ng.Operations.nuspec", `

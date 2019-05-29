@@ -57,7 +57,7 @@
     <Compile Include="PackageIdToOwnersBuilder.cs" />
     <Compile Include="IOwnerDataClient.cs" />
     <Compile Include="OwnerDataClient.cs" />
-    <Compile Include="ScoringProfiles\DownloadCountBoosterProfile.cs" />
+    <Compile Include="ScoringProfiles\DefaultScoringProfile.cs" />
     <Compile Include="Owners2AzureSearch\Owners2AzureSearchCommand.cs" />
     <Compile Include="SearchService\AzureSearchQueryBuilder.cs" />
     <Compile Include="BlobContainerBuilder.cs" />
@@ -192,9 +192,11 @@
     <Compile Include="Wrappers\IndexesOperationsWrapper.cs" />
     <Compile Include="Wrappers\ISearchIndexClientWrapper.cs" />
     <Compile Include="Wrappers\ISearchServiceClientWrapper.cs" />
+    <Compile Include="Wrappers\ISystemTime.cs" />
     <Compile Include="Wrappers\SearchIndexClientWrapper.cs" />
     <Compile Include="Wrappers\SearchServiceClientWrapper.cs" />
     <Compile Include="SearchService\SearchServiceConfiguration.cs" />
+    <Compile Include="Wrappers\SystemTime.cs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="MicroBuild.Core">
@@ -206,12 +208,15 @@
       <Version>5.0.3</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Validation.Common.Job">
-      <Version>4.1.0-dev-2576357</Version>
+      <Version>4.1.0-dev-2701693</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Build.Tasks.Pack">
       <Version>4.8.0</Version>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="NuGetGallery.Core">
+      <Version>4.4.5-master-2699519</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>

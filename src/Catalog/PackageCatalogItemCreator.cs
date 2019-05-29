@@ -69,6 +69,11 @@ namespace NuGet.Services.Metadata.Catalog
 
             PackageCatalogItem item = null;
 
+            _logger.LogInformation(
+                "Creating package catalog item for {Id} {Version}", 
+                packageItem.PackageId, 
+                packageItem.PackageVersion);
+
             if (_storage != null)
             {
                 item = await GetPackageViaStorageAsync(packageItem, cancellationToken);
@@ -78,6 +83,11 @@ namespace NuGet.Services.Metadata.Catalog
             {
                 item = await GetPackageViaHttpAsync(packageItem, timestamp, item, cancellationToken);
             }
+
+            _logger.LogInformation(
+                "Finished creating package catalog item for {Id} {Version}",
+                packageItem.PackageId,
+                packageItem.PackageVersion);
 
             return item;
         }

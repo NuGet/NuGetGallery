@@ -34,7 +34,7 @@ namespace NgTests.Infrastructure
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
-            lock(_requestsLock)
+            lock (_requestsLock)
             {
                 _requests.Add(request);
             }

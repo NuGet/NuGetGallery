@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.ApplicationInsights;
 using NuGet.Services.Logging;
+using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGet.Versioning;
 
 namespace NuGet.Services.Metadata.Catalog
@@ -204,6 +205,18 @@ namespace NuGet.Services.Metadata.Catalog
                     { TelemetryConstants.Id, packageId },
                     { TelemetryConstants.Version, normalizedPackageVersion }
                 });
+        }
+
+        public IDisposable TrackGetPackageDetailsQueryDuration(Db2CatalogCursor cursor)
+        {
+            var properties = new Dictionary<string, string>()
+            {
+                { TelemetryConstants.Method, cursor.ColumnName },
+                { TelemetryConstants.BatchItemCount, cursor.Top.ToString() },
+                { TelemetryConstants.CursorValue, cursor.CursorValue.ToString("O") }
+            };
+
+            return _telemetryClient.TrackDuration(TelemetryConstants.GetPackageDetailsSeconds, properties);
         }
     }
 }

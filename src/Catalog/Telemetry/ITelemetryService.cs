@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using NuGet.Services.Logging;
+using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGet.Versioning;
 
 namespace NuGet.Services.Metadata.Catalog
@@ -30,5 +31,6 @@ namespace NuGet.Services.Metadata.Catalog
         void TrackMetric(string name, ulong metric, IDictionary<string, string> properties = null);
         DurationMetric TrackDuration(string name, IDictionary<string, string> properties = null);
         void TrackIconExtractionFailure(string packageId, string normalizedPackageVersion);
+        IDisposable TrackGetPackageDetailsQueryDuration(Db2CatalogCursor cursor);
     }
 }
