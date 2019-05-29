@@ -128,8 +128,8 @@ namespace NuGet.Services.AzureSearch
 
             if (addScoringProfile)
             {
-                index.ScoringProfiles = new List<ScoringProfile> { DownloadCountBoosterProfile.Instance };
-                index.DefaultScoringProfile = DownloadCountBoosterProfile.Name;
+                index.ScoringProfiles = new List<ScoringProfile> { DefaultScoringProfile.Instance };
+                index.DefaultScoringProfile = DefaultScoringProfile.Name;
             }
 
             return index;

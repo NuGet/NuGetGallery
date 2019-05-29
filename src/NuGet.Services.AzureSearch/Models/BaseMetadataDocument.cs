@@ -56,6 +56,7 @@ namespace NuGet.Services.AzureSearch
         public string ProjectUrl { get; set; }
 
         [IsSortable]
+        [IsFilterable]
         public DateTimeOffset? Published { get; set; }
 
         public string ReleaseNotes { get; set; }

@@ -201,6 +201,7 @@ namespace NuGet.Services.AzureSearch
                 owners: owners);
             DocumentUtilities.PopulateMetadata(document, packageId, package);
             document.TotalDownloadCount = totalDownloadCount;
+            document.LogBase2DownloadCount = Math.Log(totalDownloadCount, 2.0);
 
             return document;
         }

@@ -57,7 +57,7 @@
     <Compile Include="PackageIdToOwnersBuilder.cs" />
     <Compile Include="IOwnerDataClient.cs" />
     <Compile Include="OwnerDataClient.cs" />
-    <Compile Include="ScoringProfiles\DownloadCountBoosterProfile.cs" />
+    <Compile Include="ScoringProfiles\DefaultScoringProfile.cs" />
     <Compile Include="Owners2AzureSearch\Owners2AzureSearchCommand.cs" />
     <Compile Include="SearchService\AzureSearchQueryBuilder.cs" />
     <Compile Include="BlobContainerBuilder.cs" />

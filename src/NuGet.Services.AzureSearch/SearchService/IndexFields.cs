@@ -15,6 +15,7 @@ namespace NuGet.Services.AzureSearch.SearchService
         }
 
         public static readonly string Authors = Name(nameof(BaseMetadataDocument.Authors));
+        public static readonly string Created = Name(nameof(BaseMetadataDocument.Created));
         public static readonly string Description = Name(nameof(BaseMetadataDocument.Description));
         public static readonly string LastEdited = Name(nameof(BaseMetadataDocument.LastEdited));
         public static readonly string NormalizedVersion = Name(nameof(BaseMetadataDocument.NormalizedVersion));
@@ -32,6 +33,7 @@ namespace NuGet.Services.AzureSearch.SearchService
             public static readonly string Owners = Name(nameof(SearchDocument.Full.Owners));
             public static readonly string SearchFilters = Name(nameof(SearchDocument.UpdateLatest.SearchFilters));
             public static readonly string TotalDownloadCount = Name(nameof(SearchDocument.Full.TotalDownloadCount));
+            public static readonly string LogBase2DownloadCount = Name(nameof(SearchDocument.Full.LogBase2DownloadCount));
             public static readonly string Versions = Name(nameof(SearchDocument.UpdateLatest.Versions));
         }
     }
