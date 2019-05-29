@@ -530,39 +530,53 @@
             }
 
             <h2>
-                <a role="button" data-toggle="collapse" data-target="#githubdependency-groups"
-                   aria-expanded="true" aria-controls="githubdependency-groups" id="show-githubdependency-groups">
+                <a role="button" data-toggle="collapse" data-target="#github-usage"
+                   aria-expanded="true" aria-controls="github-usage" id="show-github-usage">
                     <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
-                    <span>GitHub Repos Usage</span>
+                    <span>GitHub Usage</span>
                 </a>
             </h2>
+            
+            <style>
+                .btn-gh-repo {
+                    background-color: white;
+                }
 
-            @if (Model.GitHubDependencies.Any())
+                    .btn-gh-repo:hover {
+                        background-color: #d9edf7;
+                    }
+            </style>
+
+            @if (Model.GitHubDependenciesInformation.Repos.Any())
             {
-                <div class="row panel-collapse collapse githubdependency-groups in" aria-expanded="true" id="githubdependency-groups">
-                    @foreach (var dep in Model.GitHubDependencies.Where((x, i) => i < 10))
+                <div class="github-usage panel-collapse collapse in" aria-expanded="true" id="github-usage">
+                    <p>
+                        About @(Model.GitHubDependenciesInformation.TotalRepos) popular GitHub repositories depend on
+                        @(Model.Title), including the following:
+                    </p>
+
+                    @foreach (var dep in Model.GitHubDependenciesInformation.Repos.Take(10))
                     {
-                        <div class="col-xs-8">
-                            <div class="row top-buffer">
-                                <div class="col-xs-8">
-                                    <button class="btn btn-default text-left btn-block"
-                                            onclick="window.open('@dep.CloneUrl');">
-                                        <span class="pull-left">
-                                            @dep.FullName
-                                        </span>
-                                        <span class="badge pull-right" style="background-color: #004880">
-                                            @dep.Stars <i class="ms-Icon ms-Icon--FavoriteStarFill" aria-hidden="true" style="color:#ffac0e"></i>
-                                        </span>
-                                    </button>
-                                </div>
+                        <div class="row top-buffer">
+                            <div class="col-xs-12">
+                                <button class="btn btn-gh-repo text-left btn-block"
+                                        onclick="window.open('@dep.CloneUrl');">
+                                    <span class="pull-left">
+                                        @(dep.FullName)
+                                    </span>
+                                    <span class="badge pull-right" style="background-color: #004880">
+                                        @(dep.Stars) <i class="ms-Icon ms-Icon--FavoriteStarFill" aria-hidden="true" style="color:#ffac0e"></i>
+                                    </span>
+                                </button>
                             </div>
                         </div>
+
                     }
                 </div>
             }
             else
             {
-                @:This package is not used by any major GitHub repository =(
+                @:This package is not used by any popular GitHub repository.
             }
 
             <h2>
@@ -905,6 +919,16 @@
                     @Model.DownloadsPerDayLabel @(Model.DownloadsPerDayLabel == "1" || Model.DownloadsPerDayLabel == "<1" ? "download" : "downloads")
                     per day (avg)
                 </li>
+
+                @if (Model.GitHubDependenciesInformation.TotalRepos > 0)
+                {
+                <li>
+                    <img class="icon" aria-hidden="true" alt="GitHub logo"
+                         src="@Url.Absolute("~/Content/gallery/img/github.svg")"
+                         @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/github-32x32.png")) />
+                    @(Model.GitHubDependenciesInformation.TotalRepos) popular dependant GitHub repos
+                </li>
+                }
             </ul>
             @if (StatisticsHelper.IsStatisticsPageAvailable)
             {

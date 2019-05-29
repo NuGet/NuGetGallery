@@ -54,6 +54,7 @@ $(function () {
 
     // Configure expanders
     window.nuget.configureExpanderHeading("dependency-groups");
+    window.nuget.configureExpanderHeading("github-usage");
     window.nuget.configureExpanderHeading("version-history");
     window.nuget.configureExpander(
         "hidden-versions",

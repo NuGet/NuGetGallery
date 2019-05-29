@@ -13,7 +13,7 @@ namespace NuGetGallery
         ICertificatesConfiguration CertificatesConfiguration { get; }
         ISymbolsConfiguration SymbolsConfiguration { get; }
         ITyposquattingConfiguration TyposquattingConfiguration { get; }
-        Dictionary<string, SortedSet<ContentObjectService.RepositoryInformation>> NuGetPackagesGitHubDependencies { get; }
+        Dictionary<string, ContentObjectService.NuGetPackageInformation> NuGetPackagesGitHubDependencies { get; }
 
         Task Refresh();
     }

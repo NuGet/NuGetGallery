@@ -30,7 +30,7 @@ namespace NuGetGallery
         public ICertificatesConfiguration CertificatesConfiguration { get; set; }
         public ISymbolsConfiguration SymbolsConfiguration { get; set; }
         public ITyposquattingConfiguration TyposquattingConfiguration { get; set; }
-        public Dictionary<string, SortedSet<RepositoryInformation>> NuGetPackagesGitHubDependencies { get; set; }
+        public Dictionary<string, NuGetPackageInformation> NuGetPackagesGitHubDependencies { get; set; }
 
         public async Task Refresh()
         {
@@ -51,9 +51,9 @@ namespace NuGetGallery
                new TyposquattingConfiguration();
 
             NuGetPackagesGitHubDependencies =
-                await Refresh<Dictionary<string, SortedSet<RepositoryInformation>>>(
+                await Refresh<Dictionary<string, NuGetPackageInformation>>(
                     GalleryConstants.ContentNames.NuGetPackagesGitHubDependencies) ??
-               new Dictionary<string, SortedSet<RepositoryInformation>>();
+               new Dictionary<string, NuGetPackageInformation>();
         }
 
         private async Task<T> Refresh<T>(string contentName) 
@@ -68,6 +68,17 @@ namespace NuGetGallery
             return JsonConvert.DeserializeObject<T>(configString);
         }
 
+        public class NuGetPackageInformation
+        {
+            public int TotalRepos { get; set; }
+            public SortedSet<RepositoryInformation> Repos { get; set; }
+
+            public NuGetPackageInformation()
+            {
+                TotalRepos = 0;
+                Repos = null;
+            }
+        }
 
         public struct RepositoryInformation : IEquatable<RepositoryInformation>, IComparable<RepositoryInformation>
         {

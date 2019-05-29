@@ -751,8 +751,8 @@ namespace NuGetGallery
             model.IsPackageDeprecationEnabled = _featureFlagService.IsManageDeprecationEnabled(currentUser);
 
             var nupkgGitHubDependencies = _contentObjectService.NuGetPackagesGitHubDependencies;
-            model.GitHubDependencies = nupkgGitHubDependencies.ContainsKey(id) ?
-                                            nupkgGitHubDependencies[id] : new SortedSet<ContentObjectService.RepositoryInformation>();
+            model.GitHubDependenciesInformation = nupkgGitHubDependencies.ContainsKey(id) ?
+                                            nupkgGitHubDependencies[id] : new ContentObjectService.NuGetPackageInformation();
 
             model.ReadMeHtml = await _readMeService.GetReadMeHtmlAsync(package);
 
