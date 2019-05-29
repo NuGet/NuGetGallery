@@ -220,7 +220,11 @@ namespace NuGet.Services.Validation.Orchestrator
             services.AddTransient<ISubscriptionClient>(serviceProvider =>
             {
                 var configuration = serviceProvider.GetRequiredService<IOptionsSnapshot<ServiceBusConfiguration>>().Value;
-                return new SubscriptionClientWrapper(configuration.ConnectionString, configuration.TopicPath, configuration.SubscriptionName);
+                return new SubscriptionClientWrapper(
+                    configuration.ConnectionString,
+                    configuration.TopicPath,
+                    configuration.SubscriptionName,
+                    serviceProvider.GetRequiredService<ILogger<SubscriptionClientWrapper>>());
             });
             services.AddTransient<ITopicClient>(serviceProvider =>
             {
