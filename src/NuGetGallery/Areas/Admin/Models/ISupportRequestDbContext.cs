@@ -8,7 +8,7 @@ namespace NuGetGallery.Areas.Admin.Models
 {
     public interface ISupportRequestDbContext
     {
-        IDbSet<NuGetGallery.Admin> Admins { get; set; }
+        IDbSet<Models.Admin> Admins { get; set; }
         IDbSet<Issue> Issues { get; set; }
         IDbSet <History> Histories { get; set; }
         IDbSet<IssueStatus> IssueStatus { get; set; }

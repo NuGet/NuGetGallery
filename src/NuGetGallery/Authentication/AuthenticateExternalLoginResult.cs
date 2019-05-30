@@ -4,7 +4,6 @@
 using System.Security.Claims;
 using NuGet.Services.Entities;
 using NuGetGallery.Authentication.Providers;
-using NuGetGallery.Services.Authentication;
 
 namespace NuGetGallery.Authentication
 {

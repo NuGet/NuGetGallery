@@ -17,7 +17,6 @@ using NuGetGallery.Authentication.Providers;
 using NuGetGallery.Authentication.Providers.MicrosoftAccount;
 using NuGetGallery.Framework;
 using NuGetGallery.Infrastructure.Authentication;
-using NuGetGallery.Services.Authentication;
 using Xunit;
 
 namespace NuGetGallery.Authentication

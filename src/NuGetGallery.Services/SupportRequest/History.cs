@@ -6,7 +6,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using NuGet.Services.Entities;
 
-namespace NuGetGallery
+namespace NuGetGallery.Areas.Admin.Models
 {
     [Table("History")]
     public partial class History : IEntity

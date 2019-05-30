@@ -3,7 +3,6 @@
 
 using Autofac;
 using NuGetGallery.Authentication.Providers;
-using NuGetGallery.Services.Authentication;
 
 namespace NuGetGallery.Authentication
 {
