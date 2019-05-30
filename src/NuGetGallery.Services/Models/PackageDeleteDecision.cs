@@ -3,7 +3,7 @@
 
 using System.ComponentModel;
 
-namespace NuGetGallery.Services.Models
+namespace NuGetGallery
 {
     public enum PackageDeleteDecision
     {

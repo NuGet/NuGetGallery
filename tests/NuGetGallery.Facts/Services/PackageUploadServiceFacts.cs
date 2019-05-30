@@ -17,8 +17,6 @@ using NuGet.Services.Entities;
 using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
 using NuGetGallery.Packaging;
-using NuGetGallery.Services.PackageManagement;
-using NuGetGallery.Services.Telemetry;
 using NuGetGallery.TestUtils;
 using Xunit;
 

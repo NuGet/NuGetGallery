@@ -13,11 +13,7 @@ using NuGetGallery.Authentication;
 using NuGetGallery.Filters;
 using NuGetGallery.Helpers;
 using NuGetGallery.Infrastructure.Mail.Messages;
-using NuGetGallery.Services.AccountManagement;
-using NuGetGallery.Services.Security;
-using NuGetGallery.Services.Telemetry;
-using NuGetGallery.Services.UserManagement;
-using NuGetGallery.Services.PackageManagement;
+using NuGetGallery.Security;
 
 namespace NuGetGallery
 {

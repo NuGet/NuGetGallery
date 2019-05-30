@@ -5,8 +5,6 @@ using System.Collections.Generic;
 using System.Linq;
 using NuGet.Services.Entities;
 using NuGetGallery.Areas.Admin.Models;
-using NuGetGallery.Services.PackageManagement;
-using NuGetGallery.Services.SupportRequest;
 
 namespace NuGetGallery
 {

@@ -10,7 +10,6 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
-using NuGetGallery.Services.Telemetry;
 
 namespace NuGetGallery.Infrastructure.Search
 {

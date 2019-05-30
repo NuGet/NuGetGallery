@@ -11,9 +11,6 @@ using Moq;
 using NuGet.Services.Entities;
 using NuGetGallery.Auditing;
 using NuGetGallery.Configuration;
-using NuGetGallery.Services.Models;
-using NuGetGallery.Services.PackageManagement;
-using NuGetGallery.Services.Telemetry;
 using Xunit;
 
 namespace NuGetGallery

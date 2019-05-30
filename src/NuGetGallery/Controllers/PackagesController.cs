@@ -20,7 +20,6 @@ using NuGet.Services.Entities;
 using NuGet.Services.Licenses;
 using NuGet.Services.Messaging.Email;
 using NuGet.Versioning;
-using NuGetGallery.Areas.Admin;
 using NuGetGallery.Areas.Admin.Models;
 using NuGetGallery.AsyncFileUpload;
 using NuGetGallery.Auditing;
@@ -34,12 +33,7 @@ using NuGetGallery.Infrastructure.Mail.Requests;
 using NuGetGallery.Infrastructure.Search;
 using NuGetGallery.OData;
 using NuGetGallery.Packaging;
-using NuGetGallery.Services.Models;
-using NuGetGallery.Services.PackageManagement;
-using NuGetGallery.Services.Security;
-using NuGetGallery.Services.SupportRequest;
-using NuGetGallery.Services.Telemetry;
-using NuGetGallery.Services.UserManagement;
+using NuGetGallery.Security;
 using NuGetGallery.ViewModels;
 
 namespace NuGetGallery

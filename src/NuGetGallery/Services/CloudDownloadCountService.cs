@@ -12,7 +12,6 @@ using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.RetryPolicies;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using NuGetGallery.Services.Telemetry;
 
 namespace NuGetGallery
 {

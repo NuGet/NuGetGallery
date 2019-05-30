@@ -8,8 +8,6 @@ using Moq;
 using NuGet.Packaging;
 using NuGet.Services.Entities;
 using NuGetGallery.Packaging;
-using NuGetGallery.Services.PackageManagement;
-using NuGetGallery.Services.Telemetry;
 using Xunit;
 
 namespace NuGetGallery

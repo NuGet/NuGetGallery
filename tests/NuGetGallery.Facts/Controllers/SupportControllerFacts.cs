@@ -12,8 +12,6 @@ using NuGetGallery.Areas.Admin.Controllers;
 using NuGetGallery.Areas.Admin.Models;
 using NuGetGallery.Areas.Admin.ViewModels;
 using NuGetGallery.Framework;
-using NuGetGallery.Services.SupportRequest;
-using NuGetGallery.Services.UserManagement;
 using Xunit;
 
 namespace NuGetGallery.Controllers

@@ -9,9 +9,6 @@ using System.Web.Mvc;
 using NuGet.Services.Entities;
 using NuGet.Versioning;
 using NuGetGallery.Areas.Admin.ViewModels;
-using NuGetGallery.Services.PackageManagement;
-using NuGetGallery.Services.Models;
-using NuGetGallery.Services.Telemetry;
 
 namespace NuGetGallery.Areas.Admin.Controllers
 {

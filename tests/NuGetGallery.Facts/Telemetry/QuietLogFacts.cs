@@ -7,7 +7,6 @@ using System.Linq;
 using System.Web;
 using System.Web.Routing;
 using Moq;
-using NuGetGallery.Services.Telemetry;
 using Xunit;
 
 namespace NuGetGallery.Telemetry

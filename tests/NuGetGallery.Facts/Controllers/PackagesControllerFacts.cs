@@ -33,12 +33,7 @@ using NuGetGallery.Infrastructure;
 using NuGetGallery.Infrastructure.Mail.Messages;
 using NuGetGallery.Infrastructure.Mail.Requests;
 using NuGetGallery.Packaging;
-using NuGetGallery.Services.Models;
-using NuGetGallery.Services.PackageManagement;
-using NuGetGallery.Services.Security;
-using NuGetGallery.Services.SupportRequest;
-using NuGetGallery.Services.Telemetry;
-using NuGetGallery.Services.UserManagement;
+using NuGetGallery.Security;
 using Xunit;
 
 namespace NuGetGallery

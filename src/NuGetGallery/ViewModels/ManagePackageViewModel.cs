@@ -7,7 +7,6 @@ using System.Linq;
 using System.Web.Mvc;
 using NuGet.Services.Entities;
 using NuGet.Versioning;
-using NuGetGallery.Services.Models;
 
 namespace NuGetGallery
 {

@@ -50,15 +50,7 @@ using NuGetGallery.Infrastructure.Authentication;
 using NuGetGallery.Infrastructure.Mail;
 using NuGetGallery.Infrastructure.Search;
 using NuGetGallery.Security;
-using NuGetGallery.Services.AccountManagement;
-using NuGetGallery.Services.PackageManagement;
-using NuGetGallery.Services.Security;
-using NuGetGallery.Services.SupportRequest;
-using NuGetGallery.Services.Telemetry;
-using NuGetGallery.Services.UserManagement;
 using SecretReaderFactory = NuGetGallery.Configuration.SecretReader.SecretReaderFactory;
-using ITelemetryClient = NuGetGallery.Services.Telemetry.ITelemetryClient;
-using TelemetryClientWrapper = NuGetGallery.Services.Telemetry.TelemetryClientWrapper;
 
 namespace NuGetGallery
 {

@@ -9,7 +9,6 @@ using System.Web.Http.OData;
 using System.Web.Http.OData.Query;
 using NuGetGallery.Configuration;
 using NuGetGallery.WebApi;
-using NuGetGallery.Services.Telemetry;
 
 namespace NuGetGallery.OData
 {

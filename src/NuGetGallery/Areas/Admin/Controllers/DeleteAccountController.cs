@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Web.Mvc;
 using NuGetGallery.Areas.Admin.ViewModels;
-using NuGetGallery.Services.UserManagement;
 
 namespace NuGetGallery.Areas.Admin.Controllers
 {

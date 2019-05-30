@@ -1,21 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
 using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using Microsoft.Owin;
 using NuGet.Services.Entities;
-using NuGetGallery.Services;
-using NuGetGallery.Services.UserManagement;
 
 namespace NuGetGallery
 {
     public static class IOwinContextExtensions
     {
-        public static readonly string CurrentUserOwinEnvironmentKey = "nuget.user";
+        internal static readonly string CurrentUserOwinEnvironmentKey = "nuget.user";
 
         // This is a method because the first call will perform a database call
         /// <summary>

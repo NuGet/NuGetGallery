@@ -8,7 +8,6 @@ using System.Web;
 using Moq;
 using NuGet.Services.Entities;
 using NuGetGallery.Authentication;
-using NuGetGallery.Services.Security;
 using Xunit;
 using AuthenticationTypes = NuGetGallery.Authentication.AuthenticationTypes;
 

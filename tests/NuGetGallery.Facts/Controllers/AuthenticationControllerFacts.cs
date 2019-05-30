@@ -19,9 +19,7 @@ using NuGetGallery.Authentication.Providers.MicrosoftAccount;
 using NuGetGallery.Framework;
 using NuGetGallery.Infrastructure.Authentication;
 using NuGetGallery.Infrastructure.Mail.Messages;
-using NuGetGallery.Services.Authentication;
-using NuGetGallery.Services.Security;
-using NuGetGallery.Services.UserManagement;
+using NuGetGallery.Security;
 using Xunit;
 
 namespace NuGetGallery.Controllers

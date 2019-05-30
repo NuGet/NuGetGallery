@@ -8,7 +8,6 @@ using System.Web.Hosting;
 using AnglicanGeek.MarkdownMailer;
 using Elmah;
 using NuGetGallery.Configuration;
-using NuGetGallery.Services.Telemetry;
 
 namespace NuGetGallery.Infrastructure.Mail
 {

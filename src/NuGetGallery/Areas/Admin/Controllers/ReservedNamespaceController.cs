@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using NuGetGallery.Areas.Admin.ViewModels;
 using System.Collections.Generic;
 using NuGet.Services.Entities;
-using NuGetGallery.Services.PackageManagement;
 
 namespace NuGetGallery.Areas.Admin.Controllers
 {

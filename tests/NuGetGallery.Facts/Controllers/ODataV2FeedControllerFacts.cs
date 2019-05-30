@@ -8,7 +8,6 @@ using NuGet.Services.Entities;
 using NuGet.Versioning;
 using NuGetGallery.Configuration;
 using NuGetGallery.OData;
-using NuGetGallery.Services.Telemetry;
 using Xunit;
 
 namespace NuGetGallery.Controllers

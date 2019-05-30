@@ -11,7 +11,6 @@ using NuGet.Services.Search.Client;
 using NuGet.Versioning;
 using NuGetGallery.Configuration;
 using NuGetGallery.Infrastructure.Search;
-using NuGetGallery.Services.Telemetry;
 
 namespace NuGetGallery
 {

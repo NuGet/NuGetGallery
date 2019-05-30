@@ -3,7 +3,6 @@
 
 using System;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web.Http;
@@ -13,7 +12,6 @@ using NuGet.Services.Entities;
 using NuGetGallery.Configuration;
 using NuGetGallery.OData;
 using NuGetGallery.OData.QueryInterceptors;
-using NuGetGallery.Services.Telemetry;
 using NuGetGallery.WebApi;
 using QueryInterceptor;
 using WebApi.OutputCache.V2;

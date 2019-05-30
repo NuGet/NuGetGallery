@@ -14,7 +14,6 @@ using NuGet.Services.Search.Client;
 using NuGet.Services.Search.Client.Correlation;
 using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
-using NuGetGallery.Services.Telemetry;
 
 namespace NuGetGallery.Infrastructure.Search
 {

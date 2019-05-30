@@ -14,9 +14,6 @@ using NuGetGallery.Auditing;
 using NuGetGallery.Framework;
 using NuGetGallery.Packaging;
 using NuGetGallery.Security;
-using NuGetGallery.Services.PackageManagement;
-using NuGetGallery.Services.Security;
-using NuGetGallery.Services.Telemetry;
 using NuGetGallery.TestUtils;
 using Xunit;
 

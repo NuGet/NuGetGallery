@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using System.Web;
 using Moq;
 using NuGet.Versioning;
-using NuGetGallery.Services.Security;
 using Xunit;
 
 namespace NuGetGallery.Security

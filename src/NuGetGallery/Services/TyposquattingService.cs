@@ -8,8 +8,6 @@ using System.Threading.Tasks;
 using System.Linq;
 using System.Diagnostics;
 using NuGet.Services.Entities;
-using NuGetGallery.Services.PackageManagement;
-using NuGetGallery.Services.Telemetry;
 
 namespace NuGetGallery
 {

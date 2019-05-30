@@ -12,9 +12,7 @@ using NuGet.Services.Entities;
 using NuGet.Services.FeatureFlags;
 using NuGet.Versioning;
 using NuGetGallery.Diagnostics;
-using NuGetGallery.Services.Authentication;
-using NuGetGallery.Services.Models;
-using NuGetGallery.Services.Telemetry;
+using NuGetGallery.Authentication;
 
 namespace NuGetGallery
 {

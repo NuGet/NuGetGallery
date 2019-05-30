@@ -9,7 +9,6 @@ using System.Web.DynamicData;
 using System.Web.Routing;
 using Microsoft.AspNet.DynamicData.ModelProviders;
 using NuGet.Services.Sql;
-using NuGetGallery.Services.Telemetry;
 
 namespace NuGetGallery.Areas.Admin.DynamicData
 {

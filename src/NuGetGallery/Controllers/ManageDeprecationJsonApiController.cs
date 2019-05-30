@@ -11,7 +11,6 @@ using NuGet.Services.Entities;
 using NuGet.Versioning;
 using NuGetGallery.Auditing;
 using NuGetGallery.Filters;
-using NuGetGallery.Services.PackageManagement;
 
 namespace NuGetGallery
 {

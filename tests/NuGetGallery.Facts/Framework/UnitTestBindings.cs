@@ -11,8 +11,6 @@ using NuGetGallery.Auditing;
 using NuGetGallery.Authentication;
 using NuGetGallery.Configuration;
 using NuGetGallery.Infrastructure.Authentication;
-using NuGetGallery.Services.PackageManagement;
-using NuGetGallery.Services.UserManagement;
 
 namespace NuGetGallery.Framework
 {

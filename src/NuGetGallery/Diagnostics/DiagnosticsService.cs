@@ -4,7 +4,6 @@
 using System;
 using System.Diagnostics;
 using System.Globalization;
-using NuGetGallery.Services.Telemetry;
 
 namespace NuGetGallery.Diagnostics
 {

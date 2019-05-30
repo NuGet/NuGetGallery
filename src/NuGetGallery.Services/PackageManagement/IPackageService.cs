@@ -8,7 +8,7 @@ using NuGet.Packaging;
 using NuGet.Services.Entities;
 using NuGetGallery.Packaging;
 
-namespace NuGetGallery.Services.PackageManagement
+namespace NuGetGallery
 {
     /// <summary>
     /// Business logic related to <see cref="Package"/> and <see cref="PackageRegistration"/> instances. This logic is

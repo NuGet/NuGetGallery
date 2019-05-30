@@ -6,9 +6,8 @@ using System.Data.Common;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
 using System.Threading.Tasks;
-using NuGetGallery.Services.SupportRequest;
 
-using Administrator = NuGetGallery.Services.SupportRequest.Admin;
+using Administrator = NuGetGallery.Admin;
 
 namespace NuGetGallery.Areas.Admin.Models
 {

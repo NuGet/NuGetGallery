@@ -5,10 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Web;
 using NuGet.Services.Entities;
-using NuGetGallery.Services.PackageManagement;
-using NuGetGallery.Services.Security;
-using NuGetGallery.Services.Telemetry;
-using NuGetGallery.Services.UserManagement;
 
 namespace NuGetGallery.Security
 {
