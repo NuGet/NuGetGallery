@@ -1,13 +1,17 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System.Reflection;
-using System.Threading.Tasks;
+using System;
 
 namespace NuGet.Services.AzureSearch.SearchService
 {
-    public interface ISearchStatusService
+    [Flags]
+    public enum SearchStatusOptions
     {
-        Task<SearchStatusResponse> GetStatusAsync(SearchStatusOptions options, Assembly assemblyForMetadata);
+        None = 0,
+        Server = 1 << 0,
+        AuxiliaryFiles = 1 << 1,
+        AzureSearch = 1 << 2,
+        All = ~None,
     }
 }

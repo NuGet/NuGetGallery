@@ -35,14 +35,14 @@ namespace NuGet.Services.AzureSearch.SearchService
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task<SearchStatusResponse> GetStatusAsync(Assembly assemblyForMetadata)
+        public async Task<SearchStatusResponse> GetStatusAsync(SearchStatusOptions options, Assembly assemblyForMetadata)
         {
             var response = new SearchStatusResponse
             {
                 Success = true,
             };
 
-            response.Duration = await Measure.DurationAsync(() => PopulateResponseAsync(assemblyForMetadata, response));
+            response.Duration = await Measure.DurationAsync(() => PopulateResponseAsync(options, assemblyForMetadata, response));
 
             _logger.LogInformation(
                 "It took {Duration} to fetch the search status. Success is {Success}.",
@@ -52,29 +52,53 @@ namespace NuGet.Services.AzureSearch.SearchService
             return response;
         }
 
-        private async Task PopulateResponseAsync(Assembly assembly, SearchStatusResponse response)
+        private async Task PopulateResponseAsync(SearchStatusOptions options, Assembly assembly, SearchStatusResponse response)
         {
             await Task.WhenAll(
                 TryAsync(
-                    async () => response.SearchIndex = await GetIndexStatusAsync(_searchIndex),
+                    async () =>
+                    {
+                        if (options.HasFlag(SearchStatusOptions.AzureSearch))
+                        {
+                            response.SearchIndex = await GetIndexStatusAsync(_searchIndex);
+                        }
+                    },
                     response,
                     "warming the search index"),
                 TryAsync(
-                    async () => response.HijackIndex = await GetIndexStatusAsync(_hijackIndex),
+                    async () =>
+                    {
+                        if (options.HasFlag(SearchStatusOptions.AzureSearch))
+                        {
+                            response.HijackIndex = await GetIndexStatusAsync(_hijackIndex);
+                        }
+                    },
                     response,
                     "warming the hijack index"),
                 TryAsync(
-                    async () => response.AuxiliaryFiles = await GetAuxiliaryFilesMetadataAsync(),
+                    async () =>
+                    {
+                        if (options.HasFlag(SearchStatusOptions.AuxiliaryFiles))
+                        {
+                            response.AuxiliaryFiles = await GetAuxiliaryFilesMetadataAsync();
+                        }
+                    },
                     response,
                     "getting cached auxiliary data"),
                 TryAsync(
-                    async () => response.Server = await GetServerStatusAsync(assembly),
+                    async () =>
+                    {
+                        if (options.HasFlag(SearchStatusOptions.Server))
+                        {
+                            response.Server = await GetServerStatusAsync(assembly);
+                        }
+                    },
                     response,
                     "getting server information"));
         }
 
-        private async Task TryAsync<T>(
-            Func<Task<T>> getAsync,
+        private async Task TryAsync(
+            Func<Task> getAsync,
             SearchStatusResponse response,
             string operation)
         {

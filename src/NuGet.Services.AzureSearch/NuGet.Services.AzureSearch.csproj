@@ -159,6 +159,7 @@
     <Compile Include="SearchService\SearchParametersBuilder.cs" />
     <Compile Include="SearchService\Models\V2SortBy.cs" />
     <Compile Include="SearchService\SearchResponseBuilder.cs" />
+    <Compile Include="SearchService\SearchStatusOptions.cs" />
     <Compile Include="SearchService\SearchStatusService.cs" />
     <Compile Include="SearchService\SearchTextBuilder.cs" />
     <Compile Include="VersionList\Guard.cs" />

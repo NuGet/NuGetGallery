@@ -43,11 +43,27 @@ namespace NuGet.Services.SearchService.Controllers
 
         [HttpGet]
         [ResponseType(typeof(SearchStatusResponse))]
+        public async Task<HttpResponseMessage> IndexAsync(HttpRequestMessage request)
+        {
+            var result = await GetStatusAsync(SearchStatusOptions.All);
+            var statusCode = result.Success ? HttpStatusCode.OK : HttpStatusCode.InternalServerError;
+
+            // Hide all information except the success boolean. This is the root page so we can keep it simple.
+            result = new SearchStatusResponse
+            {
+                Success = result.Success,
+            };
+
+            return request.CreateResponse(statusCode, result);
+        }
+
+        [HttpGet]
+        [ResponseType(typeof(SearchStatusResponse))]
         public async Task<HttpResponseMessage> GetStatusAsync(HttpRequestMessage request)
         {
-            var assemblyForMetadata = typeof(SearchController).Assembly;
-            var result = await _statusService.GetStatusAsync(assemblyForMetadata);
+            var result = await GetStatusAsync(SearchStatusOptions.All);
             var statusCode = result.Success ? HttpStatusCode.OK : HttpStatusCode.InternalServerError;
+
             return request.CreateResponse(statusCode, result);
         }
 
@@ -147,6 +163,12 @@ namespace NuGet.Services.SearchService.Controllers
             /// builder depends on <see cref="IAuxiliaryDataCache.Get" />, which requires that the auxiliary files have
             /// been loaded at least once.
             await _auxiliaryDataCache.EnsureInitializedAsync();
+        }
+
+        private async Task<SearchStatusResponse> GetStatusAsync(SearchStatusOptions options)
+        {
+            var assemblyForMetadata = typeof(SearchController).Assembly;
+            return await _statusService.GetStatusAsync(options, assemblyForMetadata);
         }
 
         private static V2SortBy GetSortBy(string sortBy)

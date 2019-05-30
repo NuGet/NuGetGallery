@@ -47,6 +47,15 @@ namespace NuGet.Services.SearchService
             config.MapHttpAttributeRoutes();
 
             config.Routes.MapHttpRoute(
+                name: "Index",
+                routeTemplate: "",
+                defaults: new
+                {
+                    controller = GetControllerName<SearchController>(),
+                    action = nameof(SearchController.IndexAsync),
+                });
+
+            config.Routes.MapHttpRoute(
                 name: "GetStatus",
                 routeTemplate: "search/diag",
                 defaults: new
