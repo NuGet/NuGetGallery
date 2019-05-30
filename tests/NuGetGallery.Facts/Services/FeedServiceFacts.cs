@@ -169,7 +169,7 @@ namespace NuGetGallery
                 // Arrange
                 var config = new Mock<IGalleryConfigurationService>();
                 config.Setup(s => s.GetSiteRoot(false)).Returns(siteRoot);
-                var feed = new TestableV1Feed(null, config.Object, null);
+                var feed = new TestableV1Feed(Mock.Of<IReadOnlyEntityRepository<Package>>(), config.Object, Mock.Of<ISearchService>());
                 feed.Request = new HttpRequestMessage(HttpMethod.Get, siteRoot);
 
                 // Act
@@ -185,7 +185,7 @@ namespace NuGetGallery
                 // Arrange
                 var config = new Mock<IGalleryConfigurationService>();
                 config.Setup(s => s.GetSiteRoot(true)).Returns("https://nuget.org").Verifiable();
-                var feed = new TestableV2Feed(null, config.Object, null);
+                var feed = new TestableV2Feed(Mock.Of<IReadOnlyEntityRepository<Package>>(), config.Object, Mock.Of<ISearchService>());
                 feed.Request = new HttpRequestMessage(HttpMethod.Get, "https://nuget.org");
 
                 // Act
@@ -231,6 +231,7 @@ namespace NuGetGallery
                     var searchService = new Mock<ISearchService>(MockBehavior.Strict);
                     searchService.Setup(s => s.ContainsAllVersions).Returns(false);
                     var telemetryService = new Mock<ITelemetryService>();
+
                     var v1Service = new TestableV1Feed(
                         repo.Object,
                         configuration.Object,
@@ -271,6 +272,7 @@ namespace NuGetGallery
                         .Setup(s => s.Search(It.IsAny<SearchFilter>()))
                         .ReturnsAsync(new SearchResults(0, indexTimestampUtc: null));
                     var telemetryService = new Mock<ITelemetryService>();
+
                     var v1Service = new TestableV1Feed(
                         repo.Object,
                         configuration.Object,

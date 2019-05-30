@@ -30,7 +30,7 @@ namespace NuGetGallery
 
     [DbConfigurationType(typeof(EntitiesConfiguration))]
     public class EntitiesContext
-        : ObjectMaterializedInterceptingDbContext, IEntitiesContext, IReadOnlyEntitiesContext
+        : ObjectMaterializedInterceptingDbContext, IEntitiesContext
     {
         private const string CertificatesThumbprintIndex = "IX_Certificates_Thumbprint";
         private const string UserSecurityPolicyUserKeyNameSubscriptionIndex = "IX_UserSecurityPolicy_UserKeyNameSubscription";

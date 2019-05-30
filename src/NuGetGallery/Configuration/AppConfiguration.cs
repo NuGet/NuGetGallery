@@ -152,9 +152,8 @@ namespace NuGetGallery.Configuration
         /// <summary>
         /// Gets the SQL Connection string used to connect to the database read only replica.
         /// </summary>
-        [Required]
         [DisplayName("SqlServerReadOnlyReplica")]
-        [DefaultValue("SqlServerReadOnlyReplica")]
+        [DefaultValue(null)]
         public string SqlReadOnlyReplicaConnectionString { get; set; }
 
         /// <summary>

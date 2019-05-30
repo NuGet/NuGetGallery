@@ -570,7 +570,7 @@ namespace NuGetGallery
             var galleryDbReadOnlyReplicaConnectionFactory = CreateDbConnectionFactory(
                 diagnostics,
                 nameof(ReadOnlyEntitiesContext),
-                configuration.Current.SqlReadOnlyReplicaConnectionString,
+                configuration.Current.SqlReadOnlyReplicaConnectionString ?? configuration.Current.SqlConnectionString,
                 secretInjector);
 
             builder.Register(c => new ReadOnlyEntitiesContext(CreateDbConnection(galleryDbReadOnlyReplicaConnectionFactory)))

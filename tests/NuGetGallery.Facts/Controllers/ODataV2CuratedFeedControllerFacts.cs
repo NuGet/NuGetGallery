@@ -37,6 +37,8 @@ namespace NuGetGallery.Controllers
             private readonly ODataV2CuratedFeedController _target;
             private readonly HttpRequestMessage _request;
             private readonly ODataQueryOptions<V2FeedPackage> _options;
+            private readonly Mock<IEntityRepository<Package>> _readWritePackages;
+            private readonly Mock<IFeatureFlagService> _featureFlagService;
 
             public TheGetMethod()
             {
@@ -61,6 +63,8 @@ namespace NuGetGallery.Controllers
                 _searchService = new Mock<ISearchService>();
                 _packages = new Mock<IReadOnlyEntityRepository<Package>>();
                 _telemetryService = new Mock<ITelemetryService>();
+                _readWritePackages = new Mock<IEntityRepository<Package>>();
+                _featureFlagService = new Mock<IFeatureFlagService>();
 
                 _config
                     .Setup(x => x.Current)
@@ -74,12 +78,17 @@ namespace NuGetGallery.Controllers
                 _packages
                     .Setup(x => x.GetAll())
                     .Returns(() => new[] { _mainFeedPackage }.AsQueryable());
+                _featureFlagService
+                    .Setup(ff => ff.IsODataDatabaseReadOnlyEnabled())
+                    .Returns(true);
 
                 _target = new ODataV2CuratedFeedController(
                     _config.Object,
                     _searchService.Object,
                     _packages.Object,
-                    _telemetryService.Object);
+                    _readWritePackages.Object,
+                    _telemetryService.Object,
+                    _featureFlagService.Object);
 
                 _request = new HttpRequestMessage(HttpMethod.Get, $"{_siteRoot}/api/v2/curated-feed/{_curatedFeedName}/Packages");
                 _options = new ODataQueryOptions<V2FeedPackage>(CreateODataQueryContext<V2FeedPackage>(), _request);
@@ -440,9 +449,11 @@ namespace NuGetGallery.Controllers
 
         protected override ODataV2CuratedFeedController CreateController(
             IReadOnlyEntityRepository<Package> packagesRepository,
+            IEntityRepository<Package> readWritePackagesRepository,
             IGalleryConfigurationService configurationService,
             ISearchService searchService,
-            ITelemetryService telemetryService)
+            ITelemetryService telemetryService,
+            IFeatureFlagService featureFlagService)
         {
             configurationService.Current.RedirectedCuratedFeeds = new[] { _curatedFeedName };
 
@@ -450,7 +461,9 @@ namespace NuGetGallery.Controllers
                 configurationService,
                 searchService,
                 packagesRepository,
-                telemetryService);
+                readWritePackagesRepository,
+                telemetryService,
+                featureFlagService);
         }
 
         private static IDbSet<T> GetQueryableMockDbSet<T>(params T[] sourceList) where T : class

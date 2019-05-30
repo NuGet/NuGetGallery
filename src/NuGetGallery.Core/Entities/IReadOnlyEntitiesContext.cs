@@ -3,26 +3,16 @@
 
 using System;
 using System.Data.Entity;
-using System.Threading.Tasks;
 using NuGet.Services.Entities;
 
 namespace NuGetGallery
 {
     public interface IReadOnlyEntitiesContext : IDisposable
     {
-        DbSet<Certificate> Certificates { get; set; }
         DbSet<Package> Packages { get; set; }
-        DbSet<PackageRegistration> PackageRegistrations { get; set; }
-        DbSet<Credential> Credentials { get; set; }
-        DbSet<Scope> Scopes { get; set; }
-        DbSet<User> Users { get; set; }
-        DbSet<UserSecurityPolicy> UserSecurityPolicies { get; set; }
-        DbSet<ReservedNamespace> ReservedNamespaces { get; set; }
-        DbSet<UserCertificate> UserCertificates { get; set; }
-        DbSet<SymbolPackage> SymbolPackages { get; set; }
 
         DbSet<T> Set<T>() where T : class;
+
         void SetCommandTimeout(int? seconds);
-        IDatabase GetDatabase();
     }
 }

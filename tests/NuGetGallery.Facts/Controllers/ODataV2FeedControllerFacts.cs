@@ -404,15 +404,19 @@ namespace NuGetGallery.Controllers
 
         protected override ODataV2FeedController CreateController(
             IReadOnlyEntityRepository<Package> packagesRepository,
+            IEntityRepository<Package> readWritePackagesRepository,
             IGalleryConfigurationService configurationService,
             ISearchService searchService,
-            ITelemetryService telemetryService)
+            ITelemetryService telemetryService,
+            IFeatureFlagService featureFlagService)
         {
             return new ODataV2FeedController(
                 packagesRepository,
+                readWritePackagesRepository,
                 configurationService,
                 searchService,
-                telemetryService);
+                telemetryService,
+                featureFlagService);
         }
 
         private void AssertSemVer2PackagesFilteredFromResult(IEnumerable<V2FeedPackage> resultSet)

@@ -51,9 +51,11 @@ namespace NuGetGallery.Controllers
 
         protected abstract TController CreateController(
             IReadOnlyEntityRepository<Package> packagesRepository,
+            IEntityRepository<Package> readWritePackagesRepository,
             IGalleryConfigurationService configurationService,
             ISearchService searchService,
-            ITelemetryService telemetryService);
+            ITelemetryService telemetryService,
+            IFeatureFlagService featureFlagService);
 
         protected TController CreateTestableODataFeedController(HttpRequestMessage request)
         {
@@ -61,12 +63,17 @@ namespace NuGetGallery.Controllers
             var configurationService = new TestGalleryConfigurationService();
             configurationService.Current.SiteRoot = _siteRoot;
             var telemetryService = new Mock<ITelemetryService>();
+            var featureFlagService = new Mock<IFeatureFlagService>();
+            featureFlagService.Setup(ff => ff.IsODataDatabaseReadOnlyEnabled()).Returns(true);
+            var readWritePackagesRepositoryMock = new Mock<IEntityRepository<Package>>();
 
             var controller = CreateController(
                 PackagesRepository,
+                readWritePackagesRepositoryMock.Object,
                 configurationService,
                 searchService,
-                telemetryService.Object);
+                telemetryService.Object,
+                featureFlagService.Object);
 
             AddRequestToController(request, controller);
 
