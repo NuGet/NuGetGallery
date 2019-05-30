@@ -188,7 +188,11 @@ WHERE [Key] IN ({0})";
         {
             var query = string.Format(
                 UpdateBulkPackagesQueryFormat,
-                string.Join(", ", packages.Select(p => p.Key)));
+                string.Join(
+                    ", ", 
+                    packages
+                        .Select(p => p.Key)
+                        .OrderBy(k => k)));
 
             var result = await _entitiesContext
                 .GetDatabase()

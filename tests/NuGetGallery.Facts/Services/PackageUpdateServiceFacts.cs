@@ -229,7 +229,7 @@ namespace NuGetGallery.Services
                     () => service.UpdatePackagesAsync(packages, setListed));
             }
 
-            private enum PackageLatestState
+            public enum PackageLatestState
             {
                 Not,
                 Latest,
@@ -238,123 +238,25 @@ namespace NuGetGallery.Services
                 LatestStableSemVer2
             }
 
-            private static IEnumerable<IReadOnlyList<Package>> PossiblePackageCombinations
-            {
-                get
-                {
-                    var num = 0;
-                    foreach (var latestState in
-                        Enum.GetValues(typeof(PackageLatestState)).Cast<PackageLatestState>())
-                    {
-                        foreach (var listed in new[] { false, true })
-                        {
-                            var registration = new PackageRegistration
-                            {
-                                Id = "test" + num++
-                            };
-
-                            Package unselectedPackage;
-                            if (latestState == PackageLatestState.Not)
-                            {
-                                unselectedPackage = new Package
-                                {
-                                    Key = 1,
-                                    Version = "3.0.0",
-                                    PackageRegistration = registration,
-                                    IsLatest = true,
-                                    IsLatestStable = true,
-                                    IsLatestSemVer2 = true,
-                                    IsLatestStableSemVer2 = true,
-                                    Listed = true
-                                };
-                            }
-                            else
-                            {
-                                unselectedPackage = new Package
-                                {
-                                    Key = 1,
-                                    Version = "1.0.0",
-                                    PackageRegistration = registration,
-                                    IsLatest = false,
-                                    IsLatestStable = false,
-                                    IsLatestSemVer2 = false,
-                                    IsLatestStableSemVer2 = false,
-                                    Listed = true
-                                };
-                            }
-
-                            registration.Packages.Add(unselectedPackage);
-
-                            var selectedListedPackage = new Package
-                            {
-                                Key = 2,
-                                Version = "2.0.0",
-                                PackageRegistration = registration,
-                                Listed = true
-                            };
-
-                            registration.Packages.Add(selectedListedPackage);
-
-                            var selectedUnlistedPackage = new Package
-                            {
-                                Key = 3,
-                                Version = "2.1.0",
-                                PackageRegistration = registration,
-                                Listed = false
-                            };
-
-                            registration.Packages.Add(selectedUnlistedPackage);
-
-                            var selectedMaybeLatestPackage = new Package
-                            {
-                                Key = 4,
-                                Version = "2.5.0",
-                                PackageRegistration = registration,
-                                Listed = listed
-                            };
-
-                            registration.Packages.Add(selectedMaybeLatestPackage);
-
-                            switch (latestState)
-                            {
-                                case PackageLatestState.Latest:
-                                    selectedMaybeLatestPackage.IsLatest = true;
-                                    break;
-                                case PackageLatestState.LatestStable:
-                                    selectedMaybeLatestPackage.IsLatestStable = true;
-                                    break;
-                                case PackageLatestState.LatestSemVer2:
-                                    selectedMaybeLatestPackage.IsLatestSemVer2 = true;
-                                    break;
-                                case PackageLatestState.LatestStableSemVer2:
-                                    selectedMaybeLatestPackage.IsLatestStableSemVer2 = true;
-                                    break;
-                                default:
-                                    break;
-                            }
-
-                            yield return new[] { selectedListedPackage, selectedUnlistedPackage, selectedMaybeLatestPackage };
-                        }
-                    }
-                }
-            }
-
             public static IEnumerable<object[]> PackageCombinationsAndSetListed_Data =>
                 MemberDataHelper.Combine(
-                    MemberDataHelper.AsDataSet(PossiblePackageCombinations),
+                    MemberDataHelper.EnumDataSet<PackageLatestState>(),
+                    MemberDataHelper.BooleanDataSet(),
                     SetListed_Data);
 
             [Theory]
             [MemberData(nameof(PackageCombinationsAndSetListed_Data))]
-            public Task ThrowsWhenSqlQueryFails(IReadOnlyList<Package> packages, bool? setListed)
+            public Task ThrowsWhenSqlQueryFails(PackageLatestState latestState, bool listed, bool? setListed)
             {
+                var packages = GetPackagesForTest(latestState, listed);
                 return Assert.ThrowsAsync<InvalidOperationException>(() => SetupAndInvokeMethod(packages, setListed, false));
             }
 
             [Theory]
             [MemberData(nameof(PackageCombinationsAndSetListed_Data))]
-            public async Task SuccessfullyUpdatesPackages(IReadOnlyList<Package> packages, bool? setListed)
+            public async Task SuccessfullyUpdatesPackages(PackageLatestState latestState, bool listed, bool? setListed)
             {
+                var packages = GetPackagesForTest(latestState, listed);
                 var expectedListed = packages.ToDictionary(p => p.Key, p => setListed ?? p.Listed);
 
                 await SetupAndInvokeMethod(packages, setListed, true);
@@ -404,7 +306,11 @@ namespace NuGetGallery.Services
                         .Throws(new Exception($"Unexpected {nameof(IEntitiesContext.SaveChangesAsync)} call!"));
                 }
 
-                var packageKeyStrings = string.Join(", ", packages.Select(p => p.Key));
+                var packageKeyStrings = string.Join(
+                    ", ", 
+                    packages
+                        .Select(p => p.Key)
+                        .OrderBy(k => k));
 
                 var expectedQuery = $@"
 UPDATE [dbo].Packages
@@ -422,6 +328,101 @@ WHERE [Key] IN ({packageKeyStrings})";
 
                 return Get<PackageUpdateService>()
                     .UpdatePackagesAsync(packages, setListed);
+            }
+
+            private IReadOnlyList<Package> GetPackagesForTest(PackageLatestState latestState, bool listed)
+            {
+                var registration = new PackageRegistration
+                {
+                    Id = "updatePackagesAsyncTest"
+                };
+
+                Package unselectedPackage;
+                if (latestState == PackageLatestState.Not)
+                {
+                    unselectedPackage = new Package
+                    {
+                        Key = 1,
+                        Version = "3.0.0",
+                        PackageRegistration = registration,
+                        IsLatest = true,
+                        IsLatestStable = true,
+                        IsLatestSemVer2 = true,
+                        IsLatestStableSemVer2 = true,
+                        Listed = true
+                    };
+                }
+                else
+                {
+                    unselectedPackage = new Package
+                    {
+                        Key = 1,
+                        Version = "1.0.0",
+                        PackageRegistration = registration,
+                        IsLatest = false,
+                        IsLatestStable = false,
+                        IsLatestSemVer2 = false,
+                        IsLatestStableSemVer2 = false,
+                        Listed = true
+                    };
+                }
+
+                registration.Packages.Add(unselectedPackage);
+
+                var selectedListedPackage = new Package
+                {
+                    Key = 2,
+                    Version = "2.0.0",
+                    PackageRegistration = registration,
+                    Listed = true
+                };
+
+                registration.Packages.Add(selectedListedPackage);
+
+                var selectedUnlistedPackage = new Package
+                {
+                    Key = 3,
+                    Version = "2.1.0",
+                    PackageRegistration = registration,
+                    Listed = false
+                };
+
+                registration.Packages.Add(selectedUnlistedPackage);
+
+                var selectedMaybeLatestPackage = new Package
+                {
+                    Key = 4,
+                    Version = "2.5.0",
+                    PackageRegistration = registration,
+                    Listed = listed
+                };
+
+                registration.Packages.Add(selectedMaybeLatestPackage);
+
+                switch (latestState)
+                {
+                    case PackageLatestState.Latest:
+                        selectedMaybeLatestPackage.IsLatest = true;
+                        break;
+                    case PackageLatestState.LatestStable:
+                        selectedMaybeLatestPackage.IsLatestStable = true;
+                        break;
+                    case PackageLatestState.LatestSemVer2:
+                        selectedMaybeLatestPackage.IsLatestSemVer2 = true;
+                        break;
+                    case PackageLatestState.LatestStableSemVer2:
+                        selectedMaybeLatestPackage.IsLatestStableSemVer2 = true;
+                        break;
+                    default:
+                        break;
+                }
+
+                return new[]
+                {
+                    selectedListedPackage,
+                    selectedUnlistedPackage,
+                    selectedMaybeLatestPackage
+                };
             }
         }
     }
