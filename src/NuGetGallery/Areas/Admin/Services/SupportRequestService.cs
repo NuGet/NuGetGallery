@@ -33,7 +33,7 @@ namespace NuGetGallery.Areas.Admin
             _auditingService = auditingService ?? throw new ArgumentNullException(nameof(auditingService));
         }
 
-        public IReadOnlyCollection<NuGetGallery.Admin> GetAllAdmins()
+        public IReadOnlyCollection<Models.Admin> GetAllAdmins()
         {
             return _supportRequestDbContext.Admins.ToList();
         }
@@ -80,7 +80,7 @@ namespace NuGetGallery.Areas.Admin
                 throw new ArgumentException(nameof(galleryUsername));
             }
 
-            var admin = new NuGetGallery.Admin();
+            var admin = new Models.Admin();
             admin.GalleryUsername = galleryUsername;
 
             _supportRequestDbContext.Admins.Add(admin);
@@ -377,7 +377,7 @@ namespace NuGetGallery.Areas.Admin
             return orderedQueryable;
         }
 
-        private NuGetGallery.Admin GetAdminByKey(int key)
+        private Models.Admin GetAdminByKey(int key)
         {
             return _supportRequestDbContext.Admins.FirstOrDefault(a => a.Key == key);
         }

@@ -12,7 +12,7 @@ namespace NuGetGallery.Areas.Admin.ViewModels
         {
         }
 
-        public SupportRequestAdminViewModel(NuGetGallery.Admin a)
+        public SupportRequestAdminViewModel(Models.Admin a)
         {
             Key = a.Key;
             GalleryUsername = a.GalleryUsername;

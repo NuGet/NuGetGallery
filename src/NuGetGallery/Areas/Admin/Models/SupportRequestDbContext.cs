@@ -7,8 +7,6 @@ using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
 using System.Threading.Tasks;
 
-using Administrator = NuGetGallery.Admin;
-
 namespace NuGetGallery.Areas.Admin.Models
 {
     /// <summary>
@@ -51,7 +49,7 @@ namespace NuGetGallery.Areas.Admin.Models
         {
         }
 
-        public virtual IDbSet<Administrator> Admins { get; set; }
+        public virtual IDbSet<Models.Admin> Admins { get; set; }
 
         public virtual IDbSet<Issue> Issues { get; set; }
 
@@ -66,13 +64,13 @@ namespace NuGetGallery.Areas.Admin.Models
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<Administrator>()
+            modelBuilder.Entity<Models.Admin>()
                 .Property(e => e.GalleryUsername).IsUnicode(false);
-            modelBuilder.Entity<Administrator>()
+            modelBuilder.Entity<Models.Admin>()
                 .HasMany(e => e.Issues)
                 .WithOptional(e => e.AssignedTo)
                 .HasForeignKey(e => e.AssignedToId);
-            modelBuilder.Entity<Administrator>()
+            modelBuilder.Entity<Models.Admin>()
                 .HasMany(e => e.HistoryEntries)
                 .WithOptional()
                 .HasForeignKey(e => e.AssignedToId);

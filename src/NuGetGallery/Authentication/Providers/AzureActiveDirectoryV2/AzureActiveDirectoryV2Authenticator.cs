@@ -12,7 +12,6 @@ using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Notifications;
 using Microsoft.Owin.Security.OpenIdConnect;
 using NuGetGallery.Configuration;
-using NuGetGallery.Services.Authentication;
 using Owin;
 
 namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2

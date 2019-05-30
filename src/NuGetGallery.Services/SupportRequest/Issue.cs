@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using NuGet.Services.Entities;
 
-namespace NuGetGallery
+namespace NuGetGallery.Areas.Admin.Models
 {
     public partial class Issue : IEntity
     {
