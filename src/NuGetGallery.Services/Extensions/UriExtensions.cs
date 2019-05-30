@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using NuGetGallery.Services.Constants;
 using System;
 using System.Collections.Generic;
 using System.Web;
@@ -10,6 +11,16 @@ namespace NuGetGallery
     public static class UriExtensions
     {
         private static string ExternalLinkAnchorTagFormat = $"<a href=\"{{1}}\" target=\"_blank\">{{0}}</a>";
+
+        public static string ToEncodedUrlStringOrNull(this Uri uri)
+        {
+            if (uri == null)
+            {
+                return null;
+            }
+
+            return uri.AbsoluteUri;
+        }
 
         public static bool IsHttpsProtocol(this Uri uri)
         {
@@ -23,7 +34,7 @@ namespace NuGetGallery
 
         public static bool IsGitProtocol(this Uri uri)
         {
-            return uri.Scheme == GalleryConstants.GitRepository;
+            return uri.Scheme == GitConstants.GitRepository;
         }
 
         public static bool IsDomainWithHttpsSupport(this Uri uri)

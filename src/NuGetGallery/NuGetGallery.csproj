@@ -327,7 +327,6 @@
     <Compile Include="Helpers\RegexEx.cs" />
     <Compile Include="Helpers\RouteUrlTemplate.cs" />
     <Compile Include="Helpers\UploadHelper.cs" />
-    <Compile Include="Helpers\UriExtensions.cs" />
     <Compile Include="Infrastructure\Authentication\ApiKeyV3.cs" />
     <Compile Include="Infrastructure\Authentication\ApiKeyV4.cs" />
     <Compile Include="Infrastructure\Authentication\Base32Encoder.cs" />
@@ -468,12 +467,10 @@
       <DependentUpon>201711021733062_ApiKeyOwnerScope.cs</DependentUpon>
     </Compile>
     <Compile Include="RequestModels\SimulatedErrorType.cs" />
-    <Compile Include="Security\AutomaticOverwriteRequiredSignerPolicy.cs" />
     <Compile Include="Security\ControlRequiredSignerPolicy.cs" />
     <Compile Include="Security\MicrosoftTeamSubscription.cs" />
     <Compile Include="Security\PackageSecurityPolicyEvaluationContext.cs" />
     <Compile Include="Security\PackageSecurityPolicyHandler.cs" />
-    <Compile Include="Security\RequiredSignerPolicy.cs" />
     <Compile Include="Security\RequirePackageMetadataCompliancePolicy.cs" />
     <Compile Include="Services\ActionOnNewPackageContext.cs" />
     <Compile Include="Services\ActionRequiringAccountPermissions.cs" />
@@ -995,7 +992,6 @@
     <Compile Include="Helpers\EnumHelper.cs" />
     <Compile Include="Helpers\FileHelper.cs" />
     <Compile Include="Helpers\HtmlExtensions.cs" />
-    <Compile Include="Helpers\PackageHelper.cs" />
     <Compile Include="Helpers\StringExtensions.cs" />
     <Compile Include="Helpers\StatisticsHelper.cs" />
     <Compile Include="Helpers\TreeView.cs" />
@@ -1535,7 +1531,6 @@
     <Compile Include="App_Start\Routes.cs" />
     <Compile Include="Services\FileSystemService.cs" />
     <Compile Include="Services\IFileSystemService.cs" />
-    <Compile Include="Services\PackageService.cs" />
     <Compile Include="Configuration\AppConfiguration.cs" />
     <Compile Include="App_Start\DefaultDependenciesModule.cs" />
     <Compile Include="Services\FormsAuthenticationService.cs" />

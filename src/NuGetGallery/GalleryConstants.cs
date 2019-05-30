@@ -105,8 +105,6 @@ namespace NuGetGallery
 
         public const string DevelopmentEnvironment = "Development";
 
-        public const string GitRepository = "git";
-
         public const string LicenseDeprecationUrl = "https://aka.ms/deprecateLicenseUrl";
 
         public static class ContentNames

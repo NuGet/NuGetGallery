@@ -44,21 +44,30 @@
     <Compile Include="AccountManagement\AccountDeletionOrphanPackagePolicy.cs" />
     <Compile Include="Authentication\NuGetScopes.cs" />
     <Compile Include="AccountManagement\DeleteAccountService.cs" />
+    <Compile Include="Constants\GitConstants.cs" />
     <Compile Include="Extensions\ClaimsExtensions.cs" />
     <Compile Include="Extensions\CredentialExtensions.cs" />
     <Compile Include="Extensions\HttpContextBaseExtensions.cs" />
     <Compile Include="Authentication\IdentityInformation.cs" />
+    <Compile Include="Extensions\IEnumerableExtensions.cs" />
     <Compile Include="Extensions\IOwinContextExtensions.cs" />
+    <Compile Include="Extensions\ObjectExtensions.cs" />
+    <Compile Include="Extensions\PackageExtensions.cs" />
     <Compile Include="Extensions\PrincipalExtensions.cs" />
     <Compile Include="Extensions\ScopeExtensions.cs" />
     <Compile Include="Extensions\UserExtensions.cs" />
     <Compile Include="Authentication\IAuthenticationService.cs" />
     <Compile Include="AccountManagement\IDeleteAccountService.cs" />
+    <Compile Include="Helpers\PackageHelper.cs" />
+    <Compile Include="Extensions\UriExtensions.cs" />
     <Compile Include="PackageManagement\IPackageOwnershipManagementService.cs" />
     <Compile Include="PackageManagement\IPackageService.cs" />
     <Compile Include="PackageManagement\IReservedNamespaceService.cs" />
+    <Compile Include="PackageManagement\PackageService.cs" />
+    <Compile Include="Security\AutomaticOverwriteRequiredSignerPolicy.cs" />
     <Compile Include="Security\ISecurityPolicyService.cs" />
     <Compile Include="ServicesConstants.cs" />
+    <Compile Include="Security\RequiredSignerPolicy.cs" />
     <Compile Include="SupportRequest\ISupportRequestService.cs" />
     <Compile Include="Telemetry\ITelemetryClient.cs" />
     <Compile Include="UserManagement\IUserService.cs" />
@@ -150,6 +159,7 @@
       <CustomToolNamespace>NuGetGallery</CustomToolNamespace>
     </EmbeddedResource>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <SignPath>..\..\build</SignPath>
