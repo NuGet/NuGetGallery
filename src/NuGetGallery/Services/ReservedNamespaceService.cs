@@ -10,8 +10,6 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using NuGetGallery.Auditing;
 using NuGet.Services.Entities;
-using NuGetGallery.Services.PackageManagement;
-using NuGetGallery.Services.UserManagement;
 
 namespace NuGetGallery
 {

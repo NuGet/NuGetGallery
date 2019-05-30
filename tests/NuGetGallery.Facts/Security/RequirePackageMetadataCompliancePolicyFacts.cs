@@ -8,10 +8,6 @@ using System.Threading.Tasks;
 using System.Web;
 using Moq;
 using NuGet.Services.Entities;
-using NuGetGallery.Services.PackageManagement;
-using NuGetGallery.Services.Security;
-using NuGetGallery.Services.Telemetry;
-using NuGetGallery.Services.UserManagement;
 using Xunit;
 
 namespace NuGetGallery.Security

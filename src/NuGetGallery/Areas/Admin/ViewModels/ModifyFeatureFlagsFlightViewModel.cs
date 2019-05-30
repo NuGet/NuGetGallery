@@ -4,7 +4,6 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
-using NuGetGallery.Services.UserManagement;
 
 namespace NuGetGallery.Areas.Admin.ViewModels
 {

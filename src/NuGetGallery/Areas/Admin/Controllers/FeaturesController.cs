@@ -10,7 +10,6 @@ using NuGet.Services.FeatureFlags;
 using NuGetGallery.Areas.Admin.ViewModels;
 using NuGetGallery.Configuration;
 using NuGetGallery.Features;
-using NuGetGallery.Services.UserManagement;
 
 namespace NuGetGallery.Areas.Admin.Controllers
 {

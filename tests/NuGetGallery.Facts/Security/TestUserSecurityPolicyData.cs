@@ -6,7 +6,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Moq;
 using NuGet.Services.Entities;
-using NuGetGallery.Services.Security;
 using Xunit;
 
 namespace NuGetGallery.Security

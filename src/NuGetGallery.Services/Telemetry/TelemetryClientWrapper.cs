@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.DataContracts;
 
-namespace NuGetGallery.Services.Telemetry
+namespace NuGetGallery
 {
     /// <summary>
     /// Wrapper for the Application Insights TelemetryClient class.

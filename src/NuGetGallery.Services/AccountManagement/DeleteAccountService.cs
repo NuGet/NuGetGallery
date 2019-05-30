@@ -8,15 +8,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using NuGet.Services.Entities;
 using NuGetGallery.Auditing;
+using NuGetGallery.Authentication;
 using NuGetGallery.Features;
-using NuGetGallery.Services.Authentication;
-using NuGetGallery.Services.Models;
-using NuGetGallery.Services.PackageManagement;
-using NuGetGallery.Services.Security;
-using NuGetGallery.Services.SupportRequest;
-using NuGetGallery.Services.Telemetry;
+using NuGetGallery.Security;
 
-namespace NuGetGallery.Services.AccountManagement
+namespace NuGetGallery
 {
     public class DeleteAccountService : IDeleteAccountService
     {

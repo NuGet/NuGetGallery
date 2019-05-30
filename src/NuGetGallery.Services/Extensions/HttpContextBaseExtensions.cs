@@ -11,7 +11,7 @@ namespace NuGetGallery
 {
     public static class HttpContextBaseExtensions
     {
-        public static readonly string UserAgentHeaderName = "User-Agent";
+        internal static readonly string UserAgentHeaderName = "User-Agent";
 
         public static User GetCurrentUser(this HttpContextBase httpContext)
         {

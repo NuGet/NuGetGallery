@@ -6,7 +6,6 @@ using Moq;
 using NuGet.Services.Entities;
 using NuGetGallery.Configuration;
 using NuGetGallery.Controllers;
-using NuGetGallery.Services.Telemetry;
 
 namespace NuGetGallery.TestUtils.Infrastructure
 {

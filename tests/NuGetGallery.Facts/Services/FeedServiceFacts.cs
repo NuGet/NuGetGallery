@@ -19,7 +19,6 @@ using NuGetGallery.Diagnostics;
 using NuGetGallery.Infrastructure.Search;
 using NuGetGallery.OData;
 using NuGetGallery.OData.QueryFilter;
-using NuGetGallery.Services.Telemetry;
 using NuGetGallery.TestUtils.Infrastructure;
 using NuGetGallery.WebApi;
 using Xunit;

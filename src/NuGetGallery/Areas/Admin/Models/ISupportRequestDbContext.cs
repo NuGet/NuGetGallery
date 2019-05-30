@@ -3,13 +3,12 @@
 
 using System.Data.Entity;
 using System.Threading.Tasks;
-using NuGetGallery.Services.SupportRequest;
 
 namespace NuGetGallery.Areas.Admin.Models
 {
     public interface ISupportRequestDbContext
     {
-        IDbSet<NuGetGallery.Services.SupportRequest.Admin> Admins { get; set; }
+        IDbSet<NuGetGallery.Admin> Admins { get; set; }
         IDbSet<Issue> Issues { get; set; }
         IDbSet <History> Histories { get; set; }
         IDbSet<IssueStatus> IssueStatus { get; set; }

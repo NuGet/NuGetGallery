@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using System.Web.Mvc;
 using NuGetGallery.Areas.Admin.Services;
 using NuGetGallery.Areas.Admin.ViewModels;
-using NuGetGallery.Services.Telemetry;
 
 namespace NuGetGallery.Areas.Admin.Controllers
 {

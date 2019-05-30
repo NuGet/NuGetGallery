@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Web;
 using NuGet.Services.Entities;
 
-namespace NuGetGallery.Services.Security
+namespace NuGetGallery.Security
 {
     /// <summary>
     /// Context providing user security policy handlers with resources necessary for policy evaluation.

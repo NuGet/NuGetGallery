@@ -14,9 +14,7 @@ using NuGetGallery.Auditing;
 using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
 using NuGetGallery.Infrastructure.Authentication;
-using NuGetGallery.Services.Security;
-using NuGetGallery.Services.Telemetry;
-using NuGetGallery.Services.UserManagement;
+using NuGetGallery.Security;
 using Crypto = NuGetGallery.CryptographyService;
 
 namespace NuGetGallery

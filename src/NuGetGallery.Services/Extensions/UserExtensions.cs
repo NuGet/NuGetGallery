@@ -7,7 +7,7 @@ using System.Security.Claims;
 using System.Security.Principal;
 using NuGet.Services.Entities;
 using NuGetGallery.Authentication;
-using NuGetGallery.Services.Security;
+using NuGetGallery.Security;
 
 namespace NuGetGallery
 {

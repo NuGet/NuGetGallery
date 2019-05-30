@@ -13,8 +13,6 @@ using NuGet.Services.Messaging.Email;
 using NuGetGallery.Configuration;
 using NuGetGallery.Filters;
 using NuGetGallery.Infrastructure.Mail.Messages;
-using NuGetGallery.Services.PackageManagement;
-using NuGetGallery.Services.UserManagement;
 
 namespace NuGetGallery
 {

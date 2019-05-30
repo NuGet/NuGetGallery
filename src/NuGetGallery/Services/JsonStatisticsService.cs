@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using NuGetGallery.Services.Telemetry;
 
 namespace NuGetGallery
 {

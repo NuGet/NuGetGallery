@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using NuGet.Services.Entities;
 
-namespace NuGetGallery.Services.Security
+namespace NuGetGallery.Security
 {
     /// <summary>
     /// One or more security policies which a user can subscribe to.

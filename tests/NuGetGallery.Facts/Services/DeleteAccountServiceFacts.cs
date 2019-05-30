@@ -11,11 +11,7 @@ using NuGetGallery.Areas.Admin.Models;
 using NuGetGallery.Auditing;
 using NuGetGallery.Authentication;
 using NuGetGallery.Features;
-using NuGetGallery.Services.AccountManagement;
-using NuGetGallery.Services.PackageManagement;
-using NuGetGallery.Services.Security;
-using NuGetGallery.Services.SupportRequest;
-using NuGetGallery.Services.Telemetry;
+using NuGetGallery.Security;
 using Xunit;
 
 namespace NuGetGallery.Services

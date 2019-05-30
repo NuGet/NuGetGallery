@@ -3,7 +3,6 @@
 
 using System.Linq;
 using Xunit;
-using NuGetGallery.Services.Telemetry;
 
 namespace NuGetGallery.Telemetry
 {

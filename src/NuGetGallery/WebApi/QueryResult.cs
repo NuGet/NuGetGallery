@@ -16,7 +16,6 @@ using System.Web.Http.Results;
 using Microsoft.Data.OData;
 using Microsoft.Data.OData.Query;
 using NuGetGallery.OData.QueryFilter;
-using NuGetGallery.Services.Telemetry;
 
 namespace NuGetGallery.WebApi
 {

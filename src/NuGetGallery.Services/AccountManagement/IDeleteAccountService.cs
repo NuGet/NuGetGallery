@@ -3,9 +3,8 @@
 
 using System.Threading.Tasks;
 using NuGet.Services.Entities;
-using NuGetGallery.Services.Models;
 
-namespace NuGetGallery.Services.AccountManagement
+namespace NuGetGallery
 {
     public interface IDeleteAccountService
     {

@@ -10,8 +10,6 @@ using NuGet.Services.Entities;
 using NuGet.Versioning;
 using NuGetGallery.Diagnostics;
 using NuGetGallery.Framework;
-using NuGetGallery.Services.Models;
-using NuGetGallery.Services.Telemetry;
 using Xunit;
 
 using TrackAction = System.Action<NuGetGallery.TelemetryService>;

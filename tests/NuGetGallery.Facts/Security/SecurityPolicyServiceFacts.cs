@@ -13,10 +13,6 @@ using NuGetGallery.Auditing;
 using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
 using NuGetGallery.Framework;
-using NuGetGallery.Services.PackageManagement;
-using NuGetGallery.Services.Security;
-using NuGetGallery.Services.Telemetry;
-using NuGetGallery.Services.UserManagement;
 using Xunit;
 
 namespace NuGetGallery.Security

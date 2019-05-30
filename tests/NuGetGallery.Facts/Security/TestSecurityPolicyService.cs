@@ -10,7 +10,6 @@ using NuGet.Services.Entities;
 using NuGetGallery.Auditing;
 using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
-using NuGetGallery.Services.Security;
 
 namespace NuGetGallery.Security
 {

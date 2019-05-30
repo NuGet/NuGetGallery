@@ -445,45 +445,6 @@ namespace NuGetGallery
             return sb.ToString();
         }
 
-        // This is a method because the first call will perform a database call
-        /// <summary>
-        /// Get the current user, from the database, or if someone in this request has already
-        /// retrieved it, from memory. This will NEVER return null. It will throw an exception
-        /// that will yield an HTTP 401 if it would return null. As a result, it should only
-        /// be called in actions with the Authorize attribute or a Request.IsAuthenticated check
-        /// </summary>
-        /// <returns>The current user</returns>
-        //public static User GetCurrentUser(this IOwinContext self)
-        //{
-        //    if (self.Request.User == null || 
-        //        (self.Request.User.Identity != null && !self.Request.User.Identity.IsAuthenticated))
-        //    {
-        //        return null;
-        //    }
-
-        //    User user = null;
-        //    object obj;
-        //    if (self.Environment.TryGetValue(GalleryConstants.CurrentUserOwinEnvironmentKey, out obj))
-        //    {
-        //        user = obj as User;
-        //    }
-
-        //    if (user == null)
-        //    {
-        //        user = LoadUser(self);
-        //        self.Environment[GalleryConstants.CurrentUserOwinEnvironmentKey] = user;
-        //    }
-
-        //    if (user == null)
-        //    {
-        //        // Unauthorized! If we get here it's because a valid session token was presented, but the
-        //        // user doesn't exist any more. So we just have a generic error.
-        //        throw new HttpException(401, Strings.Unauthorized);
-        //    }
-
-        //    return user;
-        //}
-
         /// <summary>
         /// This method will add the claim to the OwinContext with default value and update the cookie with the updated claims
         /// </summary>

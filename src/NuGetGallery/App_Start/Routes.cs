@@ -4,7 +4,6 @@ using System.Web.Mvc;
 using System.Web.Routing;
 using NuGetGallery.Controllers;
 using RouteMagic;
-using NuGetGallery.Services.Telemetry;
 
 namespace NuGetGallery
 {

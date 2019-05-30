@@ -9,7 +9,6 @@ using Microsoft.ApplicationInsights.Channel;
 using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.ApplicationInsights.Extensibility;
 using Moq;
-using NuGetGallery.Services.Telemetry;
 using Xunit;
 
 namespace NuGetGallery.Telemetry

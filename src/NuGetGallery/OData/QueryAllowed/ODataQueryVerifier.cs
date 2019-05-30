@@ -3,7 +3,6 @@
 
 using System;
 using System.Web.Http.OData.Query;
-using NuGetGallery.Services.Telemetry;
 
 namespace NuGetGallery.OData.QueryFilter
 {

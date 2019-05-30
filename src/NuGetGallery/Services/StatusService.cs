@@ -14,7 +14,6 @@ using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.RetryPolicies;
 using NuGetGallery.Configuration;
 using NuGetGallery.Helpers;
-using NuGetGallery.Services.Telemetry;
 
 namespace NuGetGallery
 {

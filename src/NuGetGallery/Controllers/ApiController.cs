@@ -28,12 +28,7 @@ using NuGetGallery.Infrastructure.Authentication;
 using NuGetGallery.Infrastructure.Mail.Messages;
 using NuGetGallery.Packaging;
 using NuGetGallery.Security;
-using NuGetGallery.Services.PackageManagement;
-using NuGetGallery.Services.UserManagement;
-using NuGetGallery.Services.Telemetry;
-using NuGetGallery.Services.Security;
 using PackageIdValidator = NuGetGallery.Packaging.PackageIdValidator;
-using NuGetGallery.Services.Authentication;
 
 namespace NuGetGallery
 {

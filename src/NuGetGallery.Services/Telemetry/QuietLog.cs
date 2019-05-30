@@ -8,7 +8,7 @@ using System.Web.Routing;
 using Elmah;
 using NuGet.Services.Logging;
 
-namespace NuGetGallery.Services.Telemetry
+namespace NuGetGallery
 {
     public static class QuietLog
     {
@@ -109,7 +109,7 @@ namespace NuGetGallery.Services.Telemetry
             }
         }
 
-        public static bool IsPIIRoute(RouteData route, out string operation)
+        internal static bool IsPIIRoute(RouteData route, out string operation)
         {
             if(route == null)
             {
@@ -126,7 +126,7 @@ namespace NuGetGallery.Services.Telemetry
         /// </summary>
         /// <param name="currentContext">The current HttpContext.</param>
         /// <returns>A dictionary with the server variables that will be obfuscated.</returns>
-        public static Dictionary<string, string> GetObfuscatedServerVariables(HttpContextBase currentContext)
+        internal static Dictionary<string, string> GetObfuscatedServerVariables(HttpContextBase currentContext)
         {
             string operation = string.Empty;
             if(currentContext == null ||

@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NuGet.Services.Entities;
 
-namespace NuGetGallery.Services.Security
+namespace NuGetGallery.Security
 {
     public class RequireOrganizationTenantPolicy : UserSecurityPolicyHandler, IUserSecurityPolicySubscription
     {

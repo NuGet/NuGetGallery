@@ -10,8 +10,6 @@ using NuGet.Services.Entities;
 using NuGetGallery.Areas.Admin.Models;
 using NuGetGallery.Auditing;
 using NuGetGallery.Configuration;
-using NuGetGallery.Services.SupportRequest;
-using NuGetGallery.Services.Telemetry;
 
 namespace NuGetGallery.Areas.Admin
 {
@@ -35,7 +33,7 @@ namespace NuGetGallery.Areas.Admin
             _auditingService = auditingService ?? throw new ArgumentNullException(nameof(auditingService));
         }
 
-        public IReadOnlyCollection<NuGetGallery.Services.SupportRequest.Admin> GetAllAdmins()
+        public IReadOnlyCollection<NuGetGallery.Admin> GetAllAdmins()
         {
             return _supportRequestDbContext.Admins.ToList();
         }
@@ -82,7 +80,7 @@ namespace NuGetGallery.Areas.Admin
                 throw new ArgumentException(nameof(galleryUsername));
             }
 
-            var admin = new NuGetGallery.Services.SupportRequest.Admin();
+            var admin = new NuGetGallery.Admin();
             admin.GalleryUsername = galleryUsername;
 
             _supportRequestDbContext.Admins.Add(admin);
@@ -379,7 +377,7 @@ namespace NuGetGallery.Areas.Admin
             return orderedQueryable;
         }
 
-        private NuGetGallery.Services.SupportRequest.Admin GetAdminByKey(int key)
+        private NuGetGallery.Admin GetAdminByKey(int key)
         {
             return _supportRequestDbContext.Admins.FirstOrDefault(a => a.Key == key);
         }

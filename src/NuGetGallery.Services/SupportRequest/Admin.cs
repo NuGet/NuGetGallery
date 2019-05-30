@@ -6,7 +6,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using NuGet.Services.Entities;
 
-namespace NuGetGallery.Services.SupportRequest
+namespace NuGetGallery
 {
     public partial class Admin : IEntity
     {

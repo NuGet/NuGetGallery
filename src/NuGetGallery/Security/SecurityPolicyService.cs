@@ -12,10 +12,6 @@ using NuGet.Services.Entities;
 using NuGetGallery.Auditing;
 using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
-using NuGetGallery.Services.Security;
-using NuGetGallery.Services.UserManagement;
-using NuGetGallery.Services.PackageManagement;
-using NuGetGallery.Services.Telemetry;
 
 namespace NuGetGallery.Security
 {

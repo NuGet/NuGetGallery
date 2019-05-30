@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NuGet.Services.Entities;
-using NuGetGallery.Services.Security;
 
 namespace NuGetGallery.Security
 {

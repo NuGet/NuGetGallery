@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using NuGet.Services.Entities;
 
-namespace NuGetGallery.Services.SupportRequest
+namespace NuGetGallery
 {
     public interface ISupportRequestService
     {

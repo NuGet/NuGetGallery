@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using NuGet.Services.Entities;
 
-namespace NuGetGallery.Services.UserManagement
+namespace NuGetGallery
 {
     public interface IUserService
     {

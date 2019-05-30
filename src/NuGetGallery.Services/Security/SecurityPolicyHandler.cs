@@ -4,7 +4,7 @@
 using System;
 using System.Threading.Tasks;
 
-namespace NuGetGallery.Services.Security
+namespace NuGetGallery.Security
 {
     public abstract class SecurityPolicyHandler<TContext>
     {

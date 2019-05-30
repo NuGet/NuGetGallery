@@ -7,8 +7,6 @@ using System.Linq;
 using Moq;
 using NuGet.Services.Entities;
 using NuGetGallery.Framework;
-using NuGetGallery.Services.Authentication;
-using NuGetGallery.Services.UserManagement;
 using Xunit;
 
 namespace NuGetGallery.Authentication
