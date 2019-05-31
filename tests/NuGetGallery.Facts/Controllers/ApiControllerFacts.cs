@@ -2574,12 +2574,11 @@ namespace NuGetGallery
         public class TheHealthProbeMethod : TestContainer
         {
             [Fact]
-            public void Returns200()
+            public void ReturnsView()
             {
                 var controller = new TestableApiController(GetConfigurationService());
                 var result = controller.HealthProbe();
                 ResultAssert.IsView(result);
-                Assert.Equal((int)HttpStatusCode.OK, controller.Response.StatusCode);
             }
         }
 
