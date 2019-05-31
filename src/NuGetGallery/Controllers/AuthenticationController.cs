@@ -9,7 +9,6 @@ using System.Net;
 using System.Net.Mail;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using System.Web;
 using System.Web.Mvc;
 using NuGet.Services.Entities;
 using NuGet.Services.Messaging.Email;

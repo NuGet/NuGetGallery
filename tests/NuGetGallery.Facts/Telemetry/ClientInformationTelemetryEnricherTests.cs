@@ -43,7 +43,7 @@ namespace NuGetGallery.Telemetry
             {
                 { GalleryConstants.NuGetProtocolHeaderName, "1.0.0" },
                 { GalleryConstants.ClientVersionHeaderName, "1.0.0" },
-                { GalleryConstants.UserAgentHeaderName, "NuGet Command Line/4.1.0 (Microsoft Windows NT 6.2.9200.0)" }
+                { ServicesConstants.UserAgentHeaderName, "NuGet Command Line/4.1.0 (Microsoft Windows NT 6.2.9200.0)" }
             };
 
             var enricher = CreateTestEnricher(headers);
@@ -110,7 +110,7 @@ namespace NuGetGallery.Telemetry
 
             var headers = new NameValueCollection
             {
-                { GalleryConstants.UserAgentHeaderName, "user agent" }
+                { ServicesConstants.UserAgentHeaderName, "user agent" }
             };
 
             var enricher = CreateTestEnricher(headers);

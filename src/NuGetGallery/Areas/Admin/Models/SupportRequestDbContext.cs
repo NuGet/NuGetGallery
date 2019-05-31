@@ -64,13 +64,13 @@ namespace NuGetGallery.Areas.Admin.Models
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<Admin>()
+            modelBuilder.Entity<Models.Admin>()
                 .Property(e => e.GalleryUsername).IsUnicode(false);
-            modelBuilder.Entity<Admin>()
+            modelBuilder.Entity<Models.Admin>()
                 .HasMany(e => e.Issues)
                 .WithOptional(e => e.AssignedTo)
                 .HasForeignKey(e => e.AssignedToId);
-            modelBuilder.Entity<Admin>()
+            modelBuilder.Entity<Models.Admin>()
                 .HasMany(e => e.HistoryEntries)
                 .WithOptional()
                 .HasForeignKey(e => e.AssignedToId);

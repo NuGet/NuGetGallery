@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Net;
 using Moq;
 using NuGet.Services.Entities;
 using NuGet.Versioning;
