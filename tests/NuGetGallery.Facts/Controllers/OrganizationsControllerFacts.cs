@@ -14,6 +14,7 @@ using System.Web.Mvc;
 using Moq;
 using NuGet.Services.Entities;
 using NuGet.Services.Messaging.Email;
+using NuGetGallery.Areas.Admin.ViewModels;
 using NuGetGallery.Authentication;
 using NuGetGallery.Framework;
 using NuGetGallery.Infrastructure.Mail.Messages;
