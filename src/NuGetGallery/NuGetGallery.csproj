@@ -26,7 +26,7 @@
     <CodeContractsAssemblyMode>0</CodeContractsAssemblyMode>
     <MvcProjectUpgradeChecked>true</MvcProjectUpgradeChecked>
     <UseGlobalApplicationHostFile />
-    <MvcBuildViews Condition=" '$(MvcBuildViews)' == '' ">true</MvcBuildViews>
+    <MvcBuildViews Condition=" '$(MvcBuildViews)' == '' ">false</MvcBuildViews>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
