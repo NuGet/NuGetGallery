@@ -1,5 +1,4 @@
-﻿@using Strings = NuGetGallery.Strings
-@model PackageListViewModel
+﻿@model PackageListViewModel
 @{
     ViewBag.Title = String.IsNullOrWhiteSpace(Model.SearchTerm) ? "Packages" : "Packages matching " + Model.SearchTerm;
     ViewBag.SortText = String.IsNullOrWhiteSpace(Model.SearchTerm) ? "recent installs" : "relevance";

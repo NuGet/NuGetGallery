@@ -50,7 +50,8 @@ using NuGetGallery.Infrastructure.Search;
 using NuGetGallery.Infrastructure.Search.Correlation;
 using NuGetGallery.Security;
 using SecretReaderFactory = NuGetGallery.Configuration.SecretReader.SecretReaderFactory;
-using Microsoft.Extensions.Http;
+using ITelemetryClient = NuGetGallery.Services.Telemetry.ITelemetryClient;
+using TelemetryClientWrapper = NuGetGallery.Services.Telemetry.TelemetryClientWrapper;
 
 namespace NuGetGallery
 {
