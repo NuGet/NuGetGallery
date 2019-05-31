@@ -13,6 +13,7 @@ using System.Net;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
+using System.Web.UI.WebControls;
 using Newtonsoft.Json.Linq;
 using NuGet.Frameworks;
 using NuGet.Packaging;
@@ -273,7 +274,10 @@ namespace NuGetGallery
             {
                 return new HttpStatusCodeResult(HttpStatusCode.ServiceUnavailable, "Status service is unavailable");
             }
-            return await StatusService.GetStatus();
+
+            var status = await StatusService.GetStatus();
+            Response.StatusCode = (int)(status.GalleryServiceAvailable ? HttpStatusCode.OK : HttpStatusCode.ServiceUnavailable);
+            return View(status);
         }
 
         [HttpGet]

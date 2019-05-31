@@ -1,0 +1,19 @@
+﻿@model StatusViewModel
+
+@helper AvailabilityString(bool? isAvailable)
+{
+    @((isAvailable ?? true) ? "available" : "unavailable")
+}
+
+<section role="main" class="container main-container">
+    <div class="row">
+        <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
+            <h1>
+                Status
+            </h1>
+            <p>
+                NuGet Gallery instance @HostMachine.Name is @AvailabilityString(Model.GalleryServiceAvailable). SQL is @AvailabilityString(Model.SqlAzureAvailable). Storage is @AvailabilityString(Model.StorageAvailable).
+            </p>
+        </div>
+    </div>
+</section>

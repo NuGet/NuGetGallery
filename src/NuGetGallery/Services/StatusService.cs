@@ -4,16 +4,13 @@
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
-using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-using System.Web.Mvc;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.RetryPolicies;
 using NuGetGallery.Configuration;
-using NuGetGallery.Helpers;
 
 namespace NuGetGallery
 {
@@ -41,22 +38,11 @@ namespace NuGetGallery
             _config = config;
         }
 
-        public async Task<ActionResult> GetStatus()
+        public async Task<StatusViewModel> GetStatus()
         {
-            bool sqlAzureAvailable =  IsSqlAzureAvailable();
-            bool? storageAvailable = await IsAzureStorageAvailable();
-
-            bool galleryServiceAvailable =
-                sqlAzureAvailable
-                && (!storageAvailable.HasValue || storageAvailable.Value); // null == true for this condition.
-
-            return new HttpStatusCodeWithBodyResult(AvailabilityStatusCode(galleryServiceAvailable),
-                String.Format(CultureInfo.InvariantCulture,
-                    StatusMessageFormat,
-                    AvailabilityMessage(galleryServiceAvailable),
-                    AvailabilityMessage(sqlAzureAvailable),
-                    AvailabilityMessage(storageAvailable),
-                    HostMachine.Name));
+            return new StatusViewModel(
+                IsSqlAzureAvailable(), 
+                await IsAzureStorageAvailable());
         }
 
         private bool IsSqlAzureAvailable()
@@ -108,28 +94,6 @@ namespace NuGetGallery
             }
 
             return storageAvailable;
-        }
-
-        private async Task<bool> IsGetSuccessful(Uri uri)
-        {
-            // This method does not throw for unsuccessful responses
-            using (var responseMessage = await _httpClient.GetAsync(uri))
-            {
-                return responseMessage.IsSuccessStatusCode;
-            }
-        }
-
-        private static string AvailabilityMessage(bool? available)
-        {
-            return
-                !available.HasValue ?
-                    Unconfigured :
-                    (available.Value ? Available : Unavailable);
-        }
-
-        private static HttpStatusCode AvailabilityStatusCode(bool available)
-        {
-            return available ? HttpStatusCode.OK : HttpStatusCode.ServiceUnavailable;
         }
     }
 }

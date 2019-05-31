@@ -743,6 +743,7 @@
     <Compile Include="ViewModels\ManagePackageViewModel.cs" />
     <Compile Include="ViewModels\SearchSideBySideViewModel.cs" />
     <Compile Include="ViewModels\SignerViewModel.cs" />
+    <Compile Include="ViewModels\StatusViewModel.cs" />
     <Compile Include="WebRole.cs" />
     <Compile Include="Areas\Admin\AdminAreaRegistration.cs" />
     <Compile Include="Areas\Admin\Controllers\AdminControllerBase.cs" />
@@ -1932,6 +1933,7 @@
     <Content Include="Views\Packages\_DisplayPackageDeprecation.cshtml" />
     <Content Include="Views\Experiments\SearchSideBySide.cshtml" />
     <Content Include="Views\Api\HealthProbeApi.cshtml" />
+    <Content Include="Views\Api\StatusApi.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
