@@ -132,6 +132,7 @@
     <Compile Include="Entities\IEntityRepository.cs" />
     <Compile Include="Entities\ReadOnlyModeException.cs" />
     <Compile Include="Entities\SuspendDbExecutionStrategy.cs" />
+    <Compile Include="Extensions\DiagnosticsSourceExtensions.cs" />
     <Compile Include="Extensions\EntitiesContextExtensions.cs" />
     <Compile Include="Extensions\PackageValidationSetExtensions.cs" />
     <Compile Include="Extensions\StorageExceptionExtensions.cs" />
@@ -142,6 +143,7 @@
     <Compile Include="Features\FeatureFlagReference.cs" />
     <Compile Include="Features\FeatureFlagSaveResult.cs" />
     <Compile Include="Features\IEditableFeatureFlagStorageService.cs" />
+    <Compile Include="IAppConfiguration.cs" />
     <Compile Include="ICloudStorageStatusDependency.cs" />
     <Compile Include="Infrastructure\AzureEntityList.cs" />
     <Compile Include="Infrastructure\ElmahException.cs" />

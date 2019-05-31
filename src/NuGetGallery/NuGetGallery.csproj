@@ -466,11 +466,6 @@
       <DependentUpon>201711021733062_ApiKeyOwnerScope.cs</DependentUpon>
     </Compile>
     <Compile Include="RequestModels\SimulatedErrorType.cs" />
-    <Compile Include="Security\ControlRequiredSignerPolicy.cs" />
-    <Compile Include="Security\MicrosoftTeamSubscription.cs" />
-    <Compile Include="Security\PackageSecurityPolicyEvaluationContext.cs" />
-    <Compile Include="Security\PackageSecurityPolicyHandler.cs" />
-    <Compile Include="Security\RequirePackageMetadataCompliancePolicy.cs" />
     <Compile Include="Services\AsynchronousPackageValidationInitiator.cs" />
     <Compile Include="Infrastructure\Mail\BackgroundMarkdownMessageService.cs" />
     <Compile Include="Services\FeatureFlagService.cs" />
@@ -570,14 +565,10 @@
       <DependentUpon>201709202249402_AddPackageOwnershipRequestsPage.cs</DependentUpon>
     </Compile>
     <Compile Include="RequestModels\ReadMeRequest.cs" />
-    <Compile Include="Security\DefaultSubscription.cs" />
-    <Compile Include="Security\RequireMinProtocolVersionForPushPolicy.cs" />
     <Compile Include="OData\Serializers\FeedPackageAnnotationStrategy.cs" />
     <Compile Include="OData\Serializers\IFeedPackageAnnotationStrategy.cs" />
     <Compile Include="OData\Serializers\V1FeedPackageAnnotationStrategy.cs" />
     <Compile Include="OData\Serializers\V2FeedPackageAnnotationStrategy.cs" />
-    <Compile Include="Security\RequirePackageVerifyScopePolicy.cs" />
-    <Compile Include="Security\SecurityPolicyService.cs" />
     <Compile Include="Services\IReadMeService.cs" />
     <Compile Include="Services\IValidationService.cs" />
     <Compile Include="Services\PackageOwnerRequestService.cs" />
@@ -712,7 +703,6 @@
     <Compile Include="Infrastructure\Lucene\CloudDownloadCountServiceRefreshJob.cs" />
     <Compile Include="Infrastructure\MessageQueue.cs" />
     <Compile Include="Diagnostics\TraceDiagnosticsSource.cs" />
-    <Compile Include="Diagnostics\DiagnosticsSourceExtensions.cs" />
     <Compile Include="Configuration\StorageType.cs" />
     <Compile Include="UrlHelperExtensions.cs" />
     <Compile Include="ViewModels\AddOrganizationViewModel.cs" />
@@ -1522,7 +1512,6 @@
     <Compile Include="Configuration\AppConfiguration.cs" />
     <Compile Include="App_Start\DefaultDependenciesModule.cs" />
     <Compile Include="Services\FormsAuthenticationService.cs" />
-    <Compile Include="Configuration\IAppConfiguration.cs" />
     <Compile Include="Services\IFormsAuthenticationService.cs" />
     <Compile Include="Services\IPackageFileService.cs" />
     <Compile Include="RequestModels\DisplayPackageRequest.cs" />
@@ -2074,6 +2063,7 @@
   <ItemGroup>
     <Folder Include="Areas\Admin\DynamicData\CustomPages\" />
     <Folder Include="Areas\Admin\Views\Shared\" />
+    <Folder Include="Security\" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NuGet.Services.Entities\NuGet.Services.Entities.csproj">
