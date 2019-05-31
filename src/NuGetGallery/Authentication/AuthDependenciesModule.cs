@@ -13,9 +13,6 @@ namespace NuGetGallery.Authentication
         {
             builder.RegisterType<AuthenticationService>()
                 .As<AuthenticationService>()
-                .InstancePerLifetimeScope();
-
-            builder.RegisterType<AuthenticationService>()
                 .As<IAuthenticationService>()
                 .InstancePerLifetimeScope();
 

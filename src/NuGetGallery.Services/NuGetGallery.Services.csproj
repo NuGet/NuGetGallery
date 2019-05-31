@@ -58,11 +58,12 @@
     <Compile Include="PackageManagement\IPackageService.cs" />
     <Compile Include="PackageManagement\IReservedNamespaceService.cs" />
     <Compile Include="Security\ISecurityPolicyService.cs" />
+    <Compile Include="ServicesConstants.cs" />
     <Compile Include="SupportRequest\ISupportRequestService.cs" />
     <Compile Include="Telemetry\ITelemetryClient.cs" />
     <Compile Include="UserManagement\IUserService.cs" />
-    <Compile Include="ServiceStrings.Designer.cs">
-      <DependentUpon>ServiceStrings.resx</DependentUpon>
+    <Compile Include="ServicesStrings.Designer.cs">
+      <DependentUpon>ServicesStrings.resx</DependentUpon>
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </Compile>
@@ -131,10 +132,11 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="ServiceStrings.resx">
+    <EmbeddedResource Include="ServicesStrings.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
-      <LastGenOutput>ServiceStrings.Designer.cs</LastGenOutput>
+      <LastGenOutput>ServicesStrings.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
+      <CustomToolNamespace>NuGetGallery</CustomToolNamespace>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

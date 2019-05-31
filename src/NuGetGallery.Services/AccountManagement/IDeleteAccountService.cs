@@ -3,6 +3,7 @@
 
 using System.Threading.Tasks;
 using NuGet.Services.Entities;
+using NuGetGallery.Areas.Admin.ViewModels;
 
 namespace NuGetGallery
 {

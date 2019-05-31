@@ -47,7 +47,7 @@ namespace NuGetGallery
             {
                 // Unauthorized! If we get here it's because a valid session token was presented, but the
                 // user doesn't exist any more. So we just have a generic error.
-                throw new HttpException(401, ServiceStrings.Unauthorized);
+                throw new HttpException(401, ServicesStrings.Unauthorized);
             }
 
             return user;

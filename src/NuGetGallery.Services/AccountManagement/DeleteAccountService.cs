@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using NuGet.Services.Entities;
 using NuGetGallery.Areas.Admin;
+using NuGetGallery.Areas.Admin.ViewModels;
 using NuGetGallery.Auditing;
 using NuGetGallery.Authentication;
 using NuGetGallery.Features;
@@ -87,7 +88,7 @@ namespace NuGetGallery
                 {
                     Success = false,
                     Description = string.Format(CultureInfo.CurrentCulture,
-                        ServiceStrings.AccountDelete_AccountAlreadyDeleted,
+                        ServicesStrings.AccountDelete_AccountAlreadyDeleted,
                         userToBeDeleted.Username),
                     AccountName = userToBeDeleted.Username
                 };
@@ -382,7 +383,7 @@ namespace NuGetGallery
                 {
                     Success = true,
                     Description = string.Format(CultureInfo.CurrentCulture,
-                        ServiceStrings.AccountDelete_Success,
+                        ServicesStrings.AccountDelete_Success,
                         userToBeDeleted.Username),
                     AccountName = userToBeDeleted.Username
                 };
@@ -394,7 +395,7 @@ namespace NuGetGallery
                 {
                     Success = false,
                     Description = string.Format(CultureInfo.CurrentCulture,
-                        ServiceStrings.AccountDelete_Fail,
+                        ServicesStrings.AccountDelete_Fail,
                         userToBeDeleted.Username, e),
                     AccountName = userToBeDeleted.Username
                 };

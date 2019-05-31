@@ -49,7 +49,7 @@ namespace NuGetGallery.Areas.Admin.Models
         {
         }
 
-        public virtual IDbSet<Models.Admin> Admins { get; set; }
+        public virtual IDbSet<Admin> Admins { get; set; }
 
         public virtual IDbSet<Issue> Issues { get; set; }
 
