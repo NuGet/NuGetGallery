@@ -15,7 +15,7 @@ namespace NuGetGallery.TestUtils.Infrastructure
             IReadOnlyEntityRepository<Package> repo,
             IGalleryConfigurationService configuration,
             ISearchService searchService)
-            : base(repo, Mock.Of<IEntityRepository<Package>>(), configuration, searchService, Mock.Of<ITelemetryService>(), GetFeatureFlagService())
+            : base(repo, Mock.Of<IEntityRepository<Package>>(), configuration, GetNotNullISearchService(searchService), Mock.Of<ITelemetryService>(), GetFeatureFlagService())
         {
         }
 
@@ -24,7 +24,7 @@ namespace NuGetGallery.TestUtils.Infrastructure
             IGalleryConfigurationService configuration,
             ISearchService searchService,
             ITelemetryService telemetryService)
-            : base(repo, Mock.Of<IEntityRepository<Package>>(), configuration, searchService, telemetryService, GetFeatureFlagService())
+            : base(repo, Mock.Of<IEntityRepository<Package>>(), configuration, GetNotNullISearchService(searchService), telemetryService, GetFeatureFlagService())
         {
         }
 
@@ -50,6 +50,11 @@ namespace NuGetGallery.TestUtils.Infrastructure
             featureFlag.Setup(ff => ff.IsODataDatabaseReadOnlyEnabled()).Returns(true);
 
             return featureFlag.Object;
+        }
+
+        private static ISearchService GetNotNullISearchService(ISearchService searchService)
+        {
+            return searchService ?? Mock.Of<ISearchService>();
         }
     }
 }
