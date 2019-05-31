@@ -265,6 +265,10 @@ namespace NuGetGallery
             return new RedirectResult(NuGetExeUrl, permanent: false);
         }
 
+        /// <remarks>
+        /// This endpoint is used by our traffic manager to determine whether or not this instance is available.
+        /// We are returning a Razor view because it forces this request to wait for Razor to be initialized before becoming available.
+        /// </remarks>
         [HttpGet]
         [ActionName("StatusApi")]
         public virtual async Task<ActionResult> Status()
@@ -279,6 +283,10 @@ namespace NuGetGallery
             return View(status);
         }
 
+        /// <remarks>
+        /// This endpoint is used by our load balancer to determine whether or not this instance is available.
+        /// We are returning a Razor view because it forces this request to wait for Razor to be initialized before becoming available.
+        /// </remarks>
         [HttpGet]
         [ActionName("HealthProbeApi")]
         public ActionResult HealthProbe()
