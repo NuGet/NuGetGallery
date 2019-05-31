@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Moq;
 using NuGet.Services.Entities;
+using NuGetGallery.Areas.Admin;
 using NuGetGallery.Areas.Admin.Models;
 using NuGetGallery.Auditing;
 using NuGetGallery.Authentication;
