@@ -8,9 +8,9 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 
-namespace NuGet.Services.Search.Client
+namespace GalleryTools.Utils
 {
-    public class ServiceDiscoveryClient : IServiceDiscoveryClient
+    public class ServiceDiscoveryClient 
     {
         private readonly HttpClient _httpClient;
         private readonly Uri _serviceDiscoveryEndpoint;

@@ -402,6 +402,12 @@
         });
     };
 
+    nuget.sendAnalyticsEvent = function (category, action, label, eventValue, options) {
+        if (window.nuget.isGaAvailable()) {
+            ga('send', 'event', category, action, label, eventValue, options);
+        }
+    }
+
     window.nuget = nuget;
 
     jQuery.extend(jQuery.expr[':'], {
@@ -445,12 +451,13 @@
             $(this).click(function (e) {
                 var href = $(this).attr('href');
                 var category = $(this).data().track;
+                var trackValue = $(this).data().trackValue;
                 if (window.nuget.isGaAvailable() && href && category) {
                     if (e.altKey || e.ctrlKey || e.metaKey) {
-                        ga('send', 'event', category, 'click', href);
+                        window.nuget.sendAnalyticsEvent(category, 'click', href, trackValue);
                     } else {
                         e.preventDefault();
-                        ga('send', 'event', category, 'click', href, {
+                        window.nuget.sendAnalyticsEvent(category, 'click', href, trackValue, {
                             'transport': 'beacon',
                             'hitCallback': window.nuget.createFunctionWithTimeout(function () {
                                 document.location = href;

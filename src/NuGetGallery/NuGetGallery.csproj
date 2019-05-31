@@ -221,8 +221,16 @@
     <Compile Include="Authentication\Providers\AzureActiveDirectoryV2\AzureActiveDirectoryV2AuthenticatorConfiguration.cs" />
     <Compile Include="Authentication\Providers\AzureActiveDirectory\AzureActiveDirectoryAuthenticator.cs" />
     <Compile Include="Authentication\Providers\AzureActiveDirectory\AzureActiveDirectoryAuthenticatorConfiguration.cs" />
+    <Compile Include="Controllers\ExperimentsController.cs" />
     <Compile Include="Controllers\ManageDeprecationJsonApiController.cs" />
     <Compile Include="ExtensionMethods.cs" />
+    <Compile Include="Infrastructure\Lucene\Correlation\CorrelatingHttpClientHandler.cs" />
+    <Compile Include="Infrastructure\Lucene\Correlation\WebApiCorrelationHandler.cs" />
+    <Compile Include="Infrastructure\Lucene\ISearchClient.cs" />
+    <Compile Include="Infrastructure\Lucene\Models\SearchResults.cs" />
+    <Compile Include="Infrastructure\Lucene\Models\SortOrder.cs" />
+    <Compile Include="Infrastructure\Lucene\ServiceResponse.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\SearchSideBySideMessage.cs" />
     <Compile Include="Migrations\201903020136235_CvesCanBeEmpty.cs" />
     <Compile Include="Migrations\201903020136235_CvesCanBeEmpty.Designer.cs">
       <DependentUpon>201903020136235_CvesCanBeEmpty.cs</DependentUpon>
@@ -480,6 +488,7 @@
     <Compile Include="Services\IFeatureFlagService.cs" />
     <Compile Include="Services\InvalidLicenseUrlValidationMessage.cs" />
     <Compile Include="Services\InvalidUrlEncodingForLicenseUrlValidationMessage.cs" />
+    <Compile Include="Services\ISearchSideBySideService.cs" />
     <Compile Include="Services\ISymbolPackageUploadService.cs" />
     <Compile Include="Services\ISymbolPackageFileService.cs" />
     <Compile Include="Services\ITyposquattingCheckListCacheService.cs" />
@@ -493,6 +502,7 @@
     <Compile Include="Services\PackageDeprecationService.cs" />
     <Compile Include="Services\PackageShouldNotBeSignedUserFixableValidationMessage.cs" />
     <Compile Include="Services\PlainTextOnlyValidationMessage.cs" />
+    <Compile Include="Services\SearchSideBySideService.cs" />
     <Compile Include="Services\SymbolPackageValidationResult.cs" />
     <Compile Include="Services\FlatContainerContentFileMetadataService.cs" />
     <Compile Include="Infrastructure\Mail\MarkdownMessageService.cs" />
@@ -713,7 +723,6 @@
     </Compile>
     <Compile Include="Extensions\HttpRequestExtensions.cs" />
     <Compile Include="Helpers\HostMachine.cs" />
-    <Compile Include="Telemetry\AppInsightsHealthIndicatorLogger.cs" />
     <Compile Include="Infrastructure\DependencyResolverServiceProviderAdapter.cs" />
     <Compile Include="Infrastructure\Lucene\CloudDownloadCountServiceRefreshJob.cs" />
     <Compile Include="Infrastructure\MessageQueue.cs" />
@@ -732,6 +741,7 @@
     <Compile Include="ViewModels\HandleOrganizationMembershipRequestModel.cs" />
     <Compile Include="ViewModels\ListPackageItemRequiredSignerViewModel.cs" />
     <Compile Include="ViewModels\ManagePackageViewModel.cs" />
+    <Compile Include="ViewModels\SearchSideBySideViewModel.cs" />
     <Compile Include="ViewModels\SignerViewModel.cs" />
     <Compile Include="WebRole.cs" />
     <Compile Include="Areas\Admin\AdminAreaRegistration.cs" />
@@ -1920,6 +1930,7 @@
     <Content Include="Views\Packages\_ManageDeprecation.cshtml" />
     <Content Include="Views\Shared\_MultiSelectDropdown.cshtml" />
     <Content Include="Views\Packages\_DisplayPackageDeprecation.cshtml" />
+    <Content Include="Views\Experiments\SearchSideBySide.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
@@ -2082,10 +2093,6 @@
     <Folder Include="Areas\Admin\Views\Shared\" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\NuGet.Services.Search.Client\NuGet.Services.Search.Client.csproj">
-      <Project>{6931c2ee-e081-4518-9798-d34d83b35bf6}</Project>
-      <Name>NuGet.Services.Search.Client</Name>
-    </ProjectReference>
     <ProjectReference Include="..\NuGet.Services.Entities\NuGet.Services.Entities.csproj">
       <Project>{6262f4fc-29be-4226-b676-db391c89d396}</Project>
       <Name>NuGet.Services.Entities</Name>
@@ -2116,7 +2123,7 @@
       <Version>2.2.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Licenses">
-      <Version>2.46.0</Version>
+      <Version>2.48.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.StrongName.AnglicanGeek.MarkdownMailer">
       <Version>1.2.0</Version>
@@ -2340,16 +2347,16 @@
       <Version>5.0.0-preview1.5665</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.KeyVault">
-      <Version>2.46.0</Version>
+      <Version>2.48.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Logging">
-      <Version>2.46.0</Version>
+      <Version>2.48.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Owin">
-      <Version>2.46.0</Version>
+      <Version>2.48.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Sql">
-      <Version>2.46.0</Version>
+      <Version>2.48.0</Version>
     </PackageReference>
     <PackageReference Include="Owin">
       <Version>1.0.0</Version>

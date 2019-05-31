@@ -47,5 +47,10 @@ namespace NuGetGallery
         /// Whether the user is allowed to publish packages with an embedded icon.
         /// </summary>
         bool AreEmbeddedIconsEnabled(User user);
+
+        /// <summary>
+        /// Whether the user is able to access the search side-by-side experiment.
+        /// </summary>
+        bool IsSearchSideBySideEnabled(User user);
     }
 }

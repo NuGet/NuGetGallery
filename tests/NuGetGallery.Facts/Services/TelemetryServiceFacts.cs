@@ -268,6 +268,14 @@ namespace NuGetGallery
                     yield return new object[] { "SearchOnRetry",
                         (TrackAction)(s => s.TrackMetricForSearchOnRetry("SomeName", exception: null, correlationId: string.Empty, uri: string.Empty, circuitBreakerStatus: string.Empty))
                     };
+
+                    yield return new object[] { "SearchSideBySideFeedback",
+                        (TrackAction)(s => s.TrackSearchSideBySideFeedback("nuget", 1, 2, "new", "nuget.core", null, true, true))
+                    };
+
+                    yield return new object[] { "SearchSideBySide",
+                        (TrackAction)(s => s.TrackSearchSideBySide("nuget", true, 1, true, 2))
+                    };
                 }
             }
 

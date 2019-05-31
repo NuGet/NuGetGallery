@@ -6,7 +6,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 
-namespace NuGet.Services.Search.Client
+namespace NuGetGallery.Infrastructure.Search
 {
     public class ServiceResponse<T>
     {

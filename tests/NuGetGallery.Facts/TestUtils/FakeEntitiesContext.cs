@@ -237,5 +237,9 @@ namespace NuGetGallery
 
             return mockSet.Object;
         }
+
+        public void Dispose()
+        {
+        }
     }
 }

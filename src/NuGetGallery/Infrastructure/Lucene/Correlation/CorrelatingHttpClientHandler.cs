@@ -6,7 +6,7 @@ using System.Runtime.Remoting.Messaging;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace NuGet.Services.Search.Client.Correlation
+namespace NuGetGallery.Infrastructure.Search.Correlation
 {
     /// <summary>
     /// Attaches correlation id to outgoing HTTP requests when using HttpClient.

@@ -292,5 +292,41 @@ namespace NuGetGallery
         /// <param name="uri">The request uri.</param>
         /// <param name="circuitBreakerStatus">The CircuitBreakerStatus at the time of the Retry action.</param>
         void TrackMetricForSearchOnRetry(string searchName, Exception exception, string correlationId, string uri, string circuitBreakerStatus);
+
+        /// <summary>
+        /// Tracks that some feedback was left on the search side-by-side page.
+        /// </summary>
+        /// <param name="searchTerm">The search term used.</param>
+        /// <param name="oldHits">The total count of old results.</param>
+        /// <param name="newHits">The total count of new results.</param>
+        /// <param name="betterSide">Which side was better.</param>
+        /// <param name="mostRelevantPackage">The most relevant package.</param>
+        /// <param name="expectedPackages">The expected packages.</param>
+        /// <param name="hasComments">Whether or not comments were provided.</param>
+        /// <param name="hasEmailAddress">Whether or not an email address was provided.</param>
+        void TrackSearchSideBySideFeedback(
+            string searchTerm,
+            int oldHits,
+            int newHits,
+            string betterSide,
+            string mostRelevantPackage,
+            string expectedPackages,
+            bool hasComments,
+            bool hasEmailAddress);
+
+        /// <summary>
+        /// Track a search request made on the search side-by-side page.
+        /// </summary>
+        /// <param name="searchTerm">The search term used.</param>
+        /// <param name="oldSuccess">Whether or not the old query succeeded.</param>
+        /// <param name="oldHits">The total count of old results.</param>
+        /// <param name="oldSuccess">Whether or not the old query succeeded.</param>
+        /// <param name="newHits">The total count of new results.</param>
+        void TrackSearchSideBySide(
+            string searchTerm,
+            bool oldSuccess,
+            int oldHits,
+            bool newSuccess,
+            int newHits);
     }
 }

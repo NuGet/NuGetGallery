@@ -46,6 +46,7 @@
     <Compile Include="DatabaseMigrationFacts.cs" />
     <Compile Include="PendingMigrationsFacts.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ValidateMigrationsFacts.cs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Moq">

@@ -131,21 +131,6 @@ namespace NuGetGallery.Configuration
         bool DeprecateNuGetPasswordLogins { get; set; }
 
         /// <summary>
-        /// Gets the URI to the search service
-        /// </summary>
-        Uri ServiceDiscoveryUri { get; set; }
-
-        /// <summary>
-        /// Gets the @type for the Search endpoint
-        /// </summary>
-        string SearchServiceResourceType { get; set; }
-
-        /// <summary>
-        /// Gets the @type for the Autocomplete endpoint
-        /// </summary>
-        string AutocompleteServiceResourceType { get; set; }
-
-        /// <summary>
         /// Gets a boolean indicating if the site requires that email addresses be confirmed
         /// </summary>
         bool ConfirmEmailAddresses { get; set; }
@@ -397,14 +382,24 @@ namespace NuGetGallery.Configuration
         bool AllowLicenselessPackages { get; set; }
 
         /// <summary>
-        /// The Uri for the Primary Search endpoint
+        /// The URL for the primary search endpoint, for stable behavior.
         /// </summary>
         Uri SearchServiceUriPrimary { get; set; }
 
         /// <summary>
-        /// The Uri for the Secondary Search endpoint
+        /// The URL for the secondary search endpoint, for stable behavior.
         /// </summary>
         Uri SearchServiceUriSecondary { get; set; }
+
+        /// <summary>
+        /// The URL for the primary search endpoint, for preview behavior.
+        /// </summary>
+        Uri PreviewSearchServiceUriPrimary { get; set; }
+
+        /// <summary>
+        /// The URL for the secondary search endpoint, for preview behavior.
+        /// </summary>
+        Uri PreviewSearchServiceUriSecondary { get; set; }
 
         /// <summary>
         /// The time in seconds for the circuit breaker delay. (The time the circuit breaker will stay in open state)
@@ -425,5 +420,10 @@ namespace NuGetGallery.Configuration
         /// CircuitBreaker will open after this number of consecutive failed requests.
         /// </summary>
         int SearchCircuitBreakerBreakAfterCount { get; set; }
+
+        /// <summary>
+        /// The Search HttpClient timeout in seconds.
+        /// </summary>
+        int SearchHttpClientTimeoutInMilliseconds { get; set; }
     }
 }

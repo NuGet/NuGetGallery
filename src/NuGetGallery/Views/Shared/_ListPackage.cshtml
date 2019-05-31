@@ -1,16 +1,48 @@
 ﻿@model ListPackageItemViewModel
+@{
+    var eventName = "search-selection";
+    if (ViewData.ContainsKey("eventName"))
+    {
+        eventName = ViewData["eventName"].ToStringOrNull();
+    }
+
+    // This view data will sometimes be null or missing. For example, the profile page uses this partial and should not
+    // emit search selection events.
+    int? itemIndex = null;
+    int parsedItemIndex;
+    if (ViewData.ContainsKey("itemIndex")
+        && int.TryParse(ViewData["itemIndex"].ToStringOrNull(), out parsedItemIndex))
+    {
+        itemIndex = parsedItemIndex;
+    }
+
+    // Don't show the edit button in some cases. For example, on the search side-by-side page we don't need it.
+    bool showEditButton;
+    if (!ViewData.ContainsKey("showEditButton")
+        || !bool.TryParse(ViewData["showEditButton"].ToStringOrNull(), out showEditButton))
+    {
+        showEditButton = true;
+    }
+}
+
 
 <article class="package" role="listitem">
 
     <div class="row">
-        <div class="col-sm-1 hidden-xs hidden-sm">
+        <div class="col-sm-1 hidden-xs hidden-sm col-package-icon">
             <img class="package-icon img-responsive" aria-hidden="true" alt=""
                  src="@(PackageHelper.ShouldRenderUrl(Model.IconUrl) ? Model.IconUrl : Url.Absolute("~/Content/gallery/img/default-package-icon.svg"))"
                  @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/default-package-icon-256x256.png")) />
         </div>
         <div class="col-sm-11">
             <div class="package-header">
-                <a class="package-title" href="@Url.Package(Model.Id, Model.UseVersion ? Model.Version : null)">@Html.BreakWord(Model.Id)</a>
+                <a class="package-title"
+                   href="@Url.Package(Model.Id, Model.UseVersion ? Model.Version : null)"
+                   @if (itemIndex.HasValue)
+                   {
+                       @:data-track="@eventName" data-track-value="@itemIndex"
+                   }
+                   >@Html.BreakWord(Model.Id)</a>
 
                 @if (Model.IsVerified.HasValue && Model.IsVerified.Value)
                 {
@@ -20,7 +52,7 @@
                          title="@Strings.ReservedNamespace_ReservedIndicatorTooltip" />
                 }
 
-                @if (Model.CanEdit || Model.CanManageOwners || Model.CanUnlistOrRelist)
+                @if (showEditButton && (Model.CanEdit || Model.CanManageOwners || Model.CanUnlistOrRelist))
                 {
                     <a href="@Url.ManagePackage(Model)" class="icon-link edit-button" title="Manage @Model.Id">
                         <i class="ms-Icon ms-Icon--Edit" aria-hidden="true"></i>
@@ -41,7 +73,7 @@
 
             @if (!StringComparer.OrdinalIgnoreCase.Equals(Model.Id, Model.Title))
             {
-                <div class="package-title">
+                <div class="package-title package-legacy-title">
                     @Html.BreakWord(Model.Title)
                 </div>
             }
