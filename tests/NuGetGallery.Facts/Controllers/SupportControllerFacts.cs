@@ -8,6 +8,7 @@ using System.Web;
 using System.Web.Mvc;
 using Moq;
 using NuGet.Services.Entities;
+using NuGetGallery.Areas.Admin;
 using NuGetGallery.Areas.Admin.Controllers;
 using NuGetGallery.Areas.Admin.Models;
 using NuGetGallery.Areas.Admin.ViewModels;
