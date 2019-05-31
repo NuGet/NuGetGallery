@@ -15,6 +15,7 @@ using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
 using Autofac;
+using Microsoft.Ajax.Utilities;
 using Moq;
 using Newtonsoft.Json.Linq;
 using NuGet.Packaging;
@@ -62,7 +63,8 @@ namespace NuGetGallery
             IGalleryConfigurationService configurationService,
             MockBehavior behavior = MockBehavior.Default,
             ISecurityPolicyService securityPolicyService = null,
-            IUserService userService = null)
+            IUserService userService = null,
+            IStatusService statusService = null)
         {
             SetOwinContextOverride(Fakes.CreateOwinContext());
             ApiScopeEvaluator = (MockApiScopeEvaluator = new Mock<IApiScopeEvaluator>()).Object;
@@ -79,6 +81,8 @@ namespace NuGetGallery
             PackageUploadService = (MockPackageUploadService = new Mock<IPackageUploadService>()).Object;
             PackageDeleteService = (MockPackageDeleteService = new Mock<IPackageDeleteService>()).Object;
             SymbolPackageUploadService = (MockSymbolPackageUploadService = new Mock<ISymbolPackageUploadService>()).Object;
+
+            StatusService = statusService;
 
             SetupApiScopeEvaluatorOnAllInputs();
 
@@ -2531,6 +2535,51 @@ namespace NuGetGallery
                 var redirect = Assert.IsType<RedirectResult>(result);
                 Assert.False(redirect.Permanent, "The redirect should not be permanent");
                 Assert.Equal("https://dist.nuget.org/win-x86-commandline/v2.8.6/nuget.exe", redirect.Url);
+            }
+        }
+
+        public class TheStatusMethod : TestContainer
+        {
+            [Fact]
+            public async Task ReturnsServiceUnavailableIfStatusServiceNull()
+            {
+                var controller = new TestableApiController(GetConfigurationService());
+                var result = await controller.Status();
+                ResultAssert.IsStatusCode(result, HttpStatusCode.ServiceUnavailable);
+            }
+
+            [Theory]
+            public async Task ReturnsExpectedWithStatus(bool sqlAvailable, bool? storageAvailable)
+            {
+                var status = new StatusViewModel(sqlAvailable, storageAvailable);
+                var mockStatusService = new Mock<IStatusService>();
+                mockStatusService
+                    .Setup(x => x.GetStatus())
+                    .ReturnsAsync(status);
+
+                var controller = new TestableApiController(
+                    GetConfigurationService(), 
+                    statusService: mockStatusService.Object);
+
+                var result = await controller.Status();
+
+                var expectedStatus = status.GalleryServiceAvailable ? HttpStatusCode.OK : HttpStatusCode.ServiceUnavailable;
+                Assert.Equal((int)expectedStatus, controller.Response.StatusCode);
+
+                var actualStatus = ResultAssert.IsView<StatusViewModel>(result);
+                Assert.Equal(status, actualStatus);
+            }
+        }
+
+        public class TheHealthProbeMethod : TestContainer
+        {
+            [Fact]
+            public void Returns200()
+            {
+                var controller = new TestableApiController(GetConfigurationService());
+                var result = controller.HealthProbe();
+                ResultAssert.IsView(result);
+                Assert.Equal((int)HttpStatusCode.OK, controller.Response.StatusCode);
             }
         }
 
