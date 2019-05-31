@@ -11,8 +11,8 @@ using Newtonsoft.Json;
 using NuGet.Services.Entities;
 using NuGet.Services.FeatureFlags;
 using NuGet.Versioning;
-using NuGetGallery.Diagnostics;
 using NuGetGallery.Authentication;
+using NuGetGallery.Diagnostics;
 
 namespace NuGetGallery
 {
