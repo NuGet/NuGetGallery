@@ -280,7 +280,7 @@ namespace NuGetGallery
         [ActionName("HealthProbeApi")]
         public ActionResult HealthProbe()
         {
-            return new HttpStatusCodeWithBodyResult(HttpStatusCode.OK, "Gallery is Available");
+            return View();
         }
 
         [HttpGet]
