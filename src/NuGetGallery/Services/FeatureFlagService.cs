@@ -61,7 +61,7 @@ namespace NuGetGallery
 
         public bool IsODataDatabaseReadOnlyEnabled()
         {
-            return _client.IsEnabled(ODataReadOnlyDatabaseFeatureName, defaultValue: true);
+            return _client.IsEnabled(ODataReadOnlyDatabaseFeatureName, defaultValue: false);
         }
     }
 }
