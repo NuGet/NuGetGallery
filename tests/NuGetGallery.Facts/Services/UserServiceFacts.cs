@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Moq;
 using NuGet.Services.Entities;
 using NuGetGallery.Auditing;
-using NuGetGallery.Authentication;
 using NuGetGallery.Framework;
 using NuGetGallery.Infrastructure.Authentication;
 using NuGetGallery.Security;

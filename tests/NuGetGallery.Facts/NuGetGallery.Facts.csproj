@@ -308,6 +308,10 @@
       <Project>{097b2cdd-9623-4c34-93c2-d373d51f5b4e}</Project>
       <Name>NuGetGallery.Core</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\src\NuGetGallery.Services\NuGetGallery.Services.csproj">
+      <Project>{c7d5e850-33fa-4ec5-8d7f-b1c8dd5d48f9}</Project>
+      <Name>NuGetGallery.Services</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\src\NuGetGallery\NuGetGallery.csproj">
       <Project>{1DACF781-5CD0-4123-8BAC-CD385D864BE5}</Project>
       <Name>NuGetGallery</Name>

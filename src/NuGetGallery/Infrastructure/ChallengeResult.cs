@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Web;
 using System.Web.Mvc;
 using Microsoft.Owin.Security;
-using NuGetGallery.Authentication;
 
 namespace NuGetGallery
 {

@@ -13,6 +13,7 @@ namespace NuGetGallery.Authentication
         {
             builder.RegisterType<AuthenticationService>()
                 .As<AuthenticationService>()
+                .As<IAuthenticationService>()
                 .InstancePerLifetimeScope();
 
             foreach (var instance in Authenticator.GetAllAvailable())

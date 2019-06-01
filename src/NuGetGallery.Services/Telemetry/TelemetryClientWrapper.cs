@@ -15,7 +15,7 @@ namespace NuGetGallery
     {
         private static Lazy<TelemetryClientWrapper> Singleton = new Lazy<TelemetryClientWrapper>(() => new TelemetryClientWrapper());
 
-        internal static TelemetryClientWrapper Instance
+        public static TelemetryClientWrapper Instance
         {
             get
             {
@@ -28,7 +28,7 @@ namespace NuGetGallery
             UnderlyingClient = new TelemetryClient();
         }
 
-        internal TelemetryClient UnderlyingClient { get; }
+        public TelemetryClient UnderlyingClient { get; }
 
         public void TrackException(Exception exception, IDictionary<string, string> properties = null, IDictionary<string, double> metrics = null)
         {
