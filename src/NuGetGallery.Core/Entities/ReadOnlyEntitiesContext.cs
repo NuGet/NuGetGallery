@@ -42,7 +42,7 @@ namespace NuGetGallery
 
         public void Dispose()
         {
-            _entitiesContext.Dispose(); ;
+            _entitiesContext.Dispose();
         }
     }
 }
