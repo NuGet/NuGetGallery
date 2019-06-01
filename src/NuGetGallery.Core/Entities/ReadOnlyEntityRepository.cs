@@ -5,8 +5,7 @@ using System.Linq;
 
 namespace NuGetGallery
 {
-    public class ReadOnlyEntityRepository<T>
-        : IReadOnlyEntityRepository<T>
+    public class ReadOnlyEntityRepository<T> : IReadOnlyEntityRepository<T>
         where T : class, new()
     {
         private readonly IReadOnlyEntitiesContext _readOnlyEntitiesContext;
