@@ -16,6 +16,7 @@ namespace NuGetGallery
         private const string TyposquattingFeatureName = GalleryPrefix + "Typosquatting";
         private const string TyposquattingFlightName = GalleryPrefix + "TyposquattingFlight";
         private const string EmbeddedIconFlightName = GalleryPrefix + "EmbeddedIcons";
+        private const string SearchSideBySideFlightName = GalleryPrefix + "SearchSideBySide";
 
         private const string PackagesAtomFeedFeatureName = GalleryPrefix + "PackagesAtomFeed";
 
@@ -62,6 +63,11 @@ namespace NuGetGallery
         public bool IsODataDatabaseReadOnlyEnabled()
         {
             return _client.IsEnabled(ODataReadOnlyDatabaseFeatureName, defaultValue: false);
+        }
+
+        public bool IsSearchSideBySideEnabled(User user)
+        {
+            return _client.IsEnabled(SearchSideBySideFlightName, user, defaultValue: false);
         }
     }
 }

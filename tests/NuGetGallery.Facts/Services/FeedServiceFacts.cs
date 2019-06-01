@@ -15,6 +15,7 @@ using System.Web.Http.Results;
 using Moq;
 using NuGet.Services.Entities;
 using NuGetGallery.Configuration;
+using NuGetGallery.Diagnostics;
 using NuGetGallery.Infrastructure.Search;
 using NuGetGallery.OData;
 using NuGetGallery.OData.QueryFilter;
@@ -556,7 +557,11 @@ namespace NuGetGallery
                     configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
                     configuration.Setup(c => c.Current).Returns(new AppConfiguration() { IsODataFilterEnabled = false });
 
-                    var searchService = new Mock<ExternalSearchService>(MockBehavior.Loose);
+                    var searchService = new Mock<ExternalSearchService>(
+                        MockBehavior.Loose,
+                        Mock.Of<IAppConfiguration>(),
+                        Mock.Of<IDiagnosticsService>(),
+                        Mock.Of<ISearchClient>());
                     searchService.CallBase = true;
                     searchService
                         .Setup(x => x.RawSearch(It.IsAny<SearchFilter>()))
@@ -616,7 +621,11 @@ namespace NuGetGallery
                     configuration.Setup(c => c.Current).Returns(new AppConfiguration() { IsODataFilterEnabled = false });
 
                     bool called = false;
-                    var searchService = new Mock<ExternalSearchService>(MockBehavior.Loose);
+                    var searchService = new Mock<ExternalSearchService>(
+                        MockBehavior.Loose,
+                        Mock.Of<IAppConfiguration>(),
+                        Mock.Of<IDiagnosticsService>(),
+                        Mock.Of<ISearchClient>());
                     searchService
                         .Setup(x => x.RawSearch(It.IsAny<SearchFilter>()))
                         .ReturnsAsync(new SearchResults(0, indexTimestampUtc: null));

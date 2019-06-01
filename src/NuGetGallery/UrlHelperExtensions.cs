@@ -465,6 +465,21 @@ namespace NuGetGallery
                 });
         }
 
+        public static string SearchSideBySide(
+            this UrlHelper url,
+            string searchTerm = null,
+            bool relativeUrl = true)
+        {
+            return GetRouteLink(
+                url,
+                RouteName.ExperimentsSearchSideBySide,
+                relativeUrl,
+                routeValues: new RouteValueDictionary
+                {
+                    { "q", searchTerm }
+                });
+        }
+
         public static string UploadPackage(this UrlHelper url, bool relativeUrl = true)
         {
             return GetRouteLink(url, RouteName.UploadPackage, relativeUrl);

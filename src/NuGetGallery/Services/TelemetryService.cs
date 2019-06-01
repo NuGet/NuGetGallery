@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Security.Principal;
 using System.Web;
@@ -75,6 +74,8 @@ namespace NuGetGallery
             public const string SearchCircuitBreakerOnBreak = "SearchCircuitBreakerOnBreak";
             public const string SearchCircuitBreakerOnReset = "SearchCircuitBreakerOnReset";
             public const string SearchOnRetry = "SearchOnRetry";
+            public const string SearchSideBySideFeedback = "SearchSideBySideFeedback";
+            public const string SearchSideBySide = "SearchSideBySide";
         }
 
         private IDiagnosticsSource _diagnosticsSource;
@@ -175,6 +176,18 @@ namespace NuGetGallery
         public const string SearchName = "SearchName";
         public const string SearchPollyCorrelationId = "SearchPollyCorrelationId";
         public const string SearchCircuitBreakerStatus = "SearchCircuitBreakerStatus";
+
+        // Search side-by-side properties
+        public const string SearchTerm = "SearchTerm";
+        public const string OldHits = "OldHits";
+        public const string OldSuccess = "OldSuccess";
+        public const string NewHits = "NewHits";
+        public const string NewSuccess = "NewSuccess";
+        public const string BetterSide = "BetterSide";
+        public const string MostRelevantPackage = "MostRelevantPackage";
+        public const string ExpectedPackages = "ExpectedPackages";
+        public const string HasComments = "HasComments";
+        public const string HasEmailAddress = "HasEmailAddress";
 
         public TelemetryService(IDiagnosticsService diagnosticsService, ITelemetryClient telemetryClient = null)
         {
@@ -835,6 +848,45 @@ namespace NuGetGallery
                 properties.Add(SearchCircuitBreakerStatus, circuitBreakerStatus);
             });
         }
+
+        public void TrackSearchSideBySideFeedback(
+            string searchTerm,
+            int oldHits,
+            int newHits,
+            string betterSide,
+            string mostRelevantPackage,
+            string expectedPackages,
+            bool hasComments,
+            bool hasEmailAddress)
+        {
+            TrackMetric(Events.SearchSideBySideFeedback, 1, properties => {
+                properties.Add(SearchTerm, searchTerm);
+                properties.Add(OldHits, oldHits.ToString());
+                properties.Add(NewHits, newHits.ToString());
+                properties.Add(BetterSide, betterSide);
+                properties.Add(MostRelevantPackage, mostRelevantPackage);
+                properties.Add(ExpectedPackages, expectedPackages);
+                properties.Add(HasComments, hasComments.ToString());
+                properties.Add(HasEmailAddress, hasEmailAddress.ToString());
+            });
+        }
+
+        public void TrackSearchSideBySide(
+            string searchTerm,
+            bool oldSuccess,
+            int oldHits,
+            bool newSuccess,
+            int newHits)
+        {
+            TrackMetric(Events.SearchSideBySide, 1, properties => {
+                properties.Add(SearchTerm, searchTerm);
+                properties.Add(OldSuccess, oldSuccess.ToString());
+                properties.Add(OldHits, oldHits.ToString());
+                properties.Add(NewSuccess, newSuccess.ToString());
+                properties.Add(NewHits, newHits.ToString());
+            });
+        }
+
         /// <summary>
         /// We use <see cref="ITelemetryClient.TrackMetric(string, double, IDictionary{string, string})"/> instead of
         /// <see cref="ITelemetryClient.TrackEvent(string, IDictionary{string, string}, IDictionary{string, double})"/>

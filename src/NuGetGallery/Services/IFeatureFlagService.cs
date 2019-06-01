@@ -42,6 +42,13 @@ namespace NuGetGallery
         /// </summary>
         bool AreEmbeddedIconsEnabled(User user);
 
+        bool AreEmbeddedIconsEnabled(User user);
+
+        /// <summary>
+        /// Whether the user is able to access the search side-by-side experiment.
+        /// </summary>
+        bool IsSearchSideBySideEnabled(User user);
+
         /// <summary>
         /// Whether the OData controllers use the read-only replica.
         /// </summary>

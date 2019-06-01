@@ -40,7 +40,7 @@ namespace NuGetGallery
 
         public static bool IsSuccessful(SearchResults searchResults)
         {
-            return searchResults.ResponseMessage?.IsSuccessStatusCode ?? true ;
+            return searchResults.ResponseMessage?.IsSuccessStatusCode ?? true;
         }
     }
 }

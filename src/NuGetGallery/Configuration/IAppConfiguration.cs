@@ -387,14 +387,24 @@ namespace NuGetGallery.Configuration
         bool AllowLicenselessPackages { get; set; }
 
         /// <summary>
-        /// The Uri for the Primary Search endpoint
+        /// The URL for the primary search endpoint, for stable behavior.
         /// </summary>
         Uri SearchServiceUriPrimary { get; set; }
 
         /// <summary>
-        /// The Uri for the Secondary Search endpoint
+        /// The URL for the secondary search endpoint, for stable behavior.
         /// </summary>
         Uri SearchServiceUriSecondary { get; set; }
+
+        /// <summary>
+        /// The URL for the primary search endpoint, for preview behavior.
+        /// </summary>
+        Uri PreviewSearchServiceUriPrimary { get; set; }
+
+        /// <summary>
+        /// The URL for the secondary search endpoint, for preview behavior.
+        /// </summary>
+        Uri PreviewSearchServiceUriSecondary { get; set; }
 
         /// <summary>
         /// The time in seconds for the circuit breaker delay. (The time the circuit breaker will stay in open state)
