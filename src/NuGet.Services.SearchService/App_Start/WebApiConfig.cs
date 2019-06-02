@@ -8,7 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Hosting;
 using System.Web.Http;
-using System.Web.Http.Dependencies;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using Autofac.Integration.WebApi;
@@ -33,7 +32,14 @@ namespace NuGet.Services.SearchService
     {
         private const string ControllerSuffix = "Controller";
         private const string ConfigurationSectionName = "SearchService";
-        private static readonly TimeSpan KeyVaultSecretCachingTimeout = TimeSpan.FromDays(1);
+
+        /// <summary>
+        /// We use <see cref="int.MaxValue"/> number of seconds for the caching timeout to essentially cache the
+        /// KeyVault secrets for the entire life of the process. This duration is over 68 years so... close enough. 
+        /// This is necessary because the KeyVault secret injector waits for an asynchronous operation to complete
+        /// in a synchronous context. This can cause deadlocks in ASP.NET when this occurs in request context.
+        /// </summary>
+        private static readonly TimeSpan KeyVaultSecretCachingTimeout = TimeSpan.FromSeconds(int.MaxValue);
 
         public static void Register(HttpConfiguration config)
         {
@@ -93,16 +99,23 @@ namespace NuGet.Services.SearchService
 
             config.EnsureInitialized();
 
-            HostingEnvironment.QueueBackgroundWorkItem(token => ReloadAuxiliaryFilesAsync(dependencyResolver, token));
+            // Force the secrets to be loaded outside of a request context. This avoids deadlocks. As a side benefit,
+            // KeyVault errors also occur on start-up.
+            var searchServiceConfiguration = dependencyResolver
+                .Container
+                .Resolve<IOptionsSnapshot<SearchServiceConfiguration>>()
+                .Value;
+
+            HostingEnvironment.QueueBackgroundWorkItem(token => ReloadAuxiliaryFilesAsync(dependencyResolver.Container, token));
         }
 
-        private static async Task ReloadAuxiliaryFilesAsync(IDependencyResolver dependencyResolver, CancellationToken token)
+        private static async Task ReloadAuxiliaryFilesAsync(ILifetimeScope serviceProvider, CancellationToken token)
         {
-            var loader = (IAuxiliaryFileReloader)dependencyResolver.GetService(typeof(IAuxiliaryFileReloader));
+            var loader = serviceProvider.Resolve<IAuxiliaryFileReloader>();
             await loader.ReloadContinuouslyAsync(token);
         }
 
-        private static IDependencyResolver GetDependencyResolver(HttpConfiguration config)
+        private static AutofacWebApiDependencyResolver GetDependencyResolver(HttpConfiguration config)
         {
             var configurationRoot = GetConfigurationRoot();
 
