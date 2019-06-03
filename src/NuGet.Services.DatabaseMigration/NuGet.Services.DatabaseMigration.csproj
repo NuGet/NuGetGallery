@@ -109,7 +109,7 @@
       <Version>4.1.0-master-2602271</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Configuration">
-      <Version>2.48.0</Version>
+      <Version>2.49.0</Version>
     </PackageReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
