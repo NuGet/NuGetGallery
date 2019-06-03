@@ -213,7 +213,8 @@ namespace NuGetGallery.Services
                     .Verifiable();
             }
 
-            public static IEnumerable<object[]> SetListed_Data => MemberDataHelper.AsDataSet(null, false, true);
+            public static IEnumerable<object[]> SetListed_Data => 
+                MemberDataHelper.AsDataSet(null, false, true);
 
             public static IEnumerable<object[]> ThrowsIfNullOrEmptyPackages_Data =>
                 MemberDataHelper.Combine(
@@ -238,11 +239,27 @@ namespace NuGetGallery.Services
                 LatestStableSemVer2
             }
 
-            public static IEnumerable<object[]> PackageCombinationsAndSetListed_Data =>
-                MemberDataHelper.Combine(
-                    MemberDataHelper.EnumDataSet<PackageLatestState>(),
-                    MemberDataHelper.BooleanDataSet(),
-                    SetListed_Data);
+            public static IEnumerable<object[]> PackageCombinationsAndSetListed_Data
+            {
+                get
+                {
+                    foreach (var latestState in Enum.GetValues(typeof(PackageLatestState)).Cast<PackageLatestState>())
+                    {
+                        foreach (var listed in new[] { false, true })
+                        {
+                            if (latestState != PackageLatestState.Not && !listed)
+                            {
+                                continue;
+                            }
+
+                            foreach (var setListed in new[] { (bool?)null, false, true })
+                            {
+                                yield return MemberDataHelper.AsData(latestState, listed, setListed);
+                            }
+                        }
+                    }
+                }
+            }
 
             [Theory]
             [MemberData(nameof(PackageCombinationsAndSetListed_Data))]
@@ -283,7 +300,7 @@ namespace NuGetGallery.Services
                 {
                     foreach (var packagesByRegistration in packages.GroupBy(p => p.PackageRegistration))
                     {
-                        if (!packagesByRegistration.Any(p => p.IsLatest || p.IsLatestStable || p.IsLatestSemVer2 || p.IsLatestStableSemVer2))
+                        if (setListed.Value || packagesByRegistration.Any(p => p.IsLatest || p.IsLatestStable || p.IsLatestSemVer2 || p.IsLatestStableSemVer2))
                         {
                             continue;
                         }
