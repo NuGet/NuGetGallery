@@ -301,7 +301,6 @@
     <Compile Include="Authentication\Providers\MicrosoftAccount\MicrosoftAccountAuthenticatorConfiguration.cs" />
     <Compile Include="Configuration\ConfigurationService.cs" />
     <Compile Include="Configuration\FeatureConfiguration.cs" />
-    <Compile Include="Configuration\LuceneIndexLocation.cs" />
     <Compile Include="Configuration\MailAddressConverter.cs" />
     <Compile Include="Configuration\SmtpUri.cs" />
     <Compile Include="Controllers\AppController.cs" />
@@ -703,7 +702,6 @@
     <Compile Include="Infrastructure\Lucene\CloudDownloadCountServiceRefreshJob.cs" />
     <Compile Include="Infrastructure\MessageQueue.cs" />
     <Compile Include="Diagnostics\TraceDiagnosticsSource.cs" />
-    <Compile Include="Configuration\StorageType.cs" />
     <Compile Include="UrlHelperExtensions.cs" />
     <Compile Include="ViewModels\AddOrganizationViewModel.cs" />
     <Compile Include="ViewModels\AddPackageOwnerViewModel.cs" />

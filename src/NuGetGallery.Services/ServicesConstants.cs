@@ -5,6 +5,11 @@ namespace NuGetGallery
 {
     public static class ServicesConstants
     {
+        // X-NuGet-Client-Version header was deprecated and replaced with X-NuGet-Protocol-Version header
+        // It stays here for backwards compatibility
+        public const string ClientVersionHeaderName = "X-NuGet-Client-Version";
+        public const string NuGetProtocolHeaderName = "X-NuGet-Protocol-Version";
+
         internal static readonly string UserAgentHeaderName = "User-Agent";
     }
 }

@@ -58,7 +58,7 @@ namespace NuGetGallery
 
                 if (packageMetadata.IsSymbolsPackage())
                 {
-                    throw new InvalidPackageException(ServiceStrings.UploadPackage_SymbolsPackageNotAllowed);
+                    throw new InvalidPackageException(ServicesStrings.UploadPackage_SymbolsPackageNotAllowed);
                 }
 
                 PackageHelper.ValidateNuGetPackageMetadata(packageMetadata);
@@ -336,7 +336,7 @@ namespace NuGetGallery
 
             if (package == null)
             {
-                throw new EntityException(ServiceStrings.PackageWithIdAndVersionNotFound, id, version);
+                throw new EntityException(ServicesStrings.PackageWithIdAndVersionNotFound, id, version);
             }
 
             await PublishPackageAsync(package, commitChanges);
@@ -526,7 +526,7 @@ namespace NuGetGallery
             if (package != null)
             {
                 throw new PackageAlreadyExistsException(
-                    string.Format(ServiceStrings.PackageExistsAndCannotBeModified, packageRegistration.Id, package.Version));
+                    string.Format(ServicesStrings.PackageExistsAndCannotBeModified, packageRegistration.Id, package.Version));
             }
 
             package = new Package();
@@ -678,7 +678,7 @@ namespace NuGetGallery
             if (invalidPortableFramework != null)
             {
                 throw new EntityException(
-                    ServiceStrings.InvalidPortableFramework, invalidPortableFramework);
+                    ServicesStrings.InvalidPortableFramework, invalidPortableFramework);
             }
         }
 

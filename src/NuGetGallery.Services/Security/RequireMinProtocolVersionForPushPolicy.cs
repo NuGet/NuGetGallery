@@ -60,7 +60,7 @@ namespace NuGetGallery.Security
         /// </summary>
         private NuGetVersion GetClientVersion(UserSecurityPolicyEvaluationContext context)
         {
-            var clientVersionString = context.HttpContext.Request?.Headers[GalleryConstants.ClientVersionHeaderName];
+            var clientVersionString = context.HttpContext.Request?.Headers[ServicesConstants.ClientVersionHeaderName];
 
             return NuGetVersion.TryParse(clientVersionString, out NuGetVersion clientVersion) ? clientVersion : null;
         }
@@ -70,7 +70,7 @@ namespace NuGetGallery.Security
         /// </summary>
         private NuGetVersion GetProtocolVersion(UserSecurityPolicyEvaluationContext context)
         {
-            var protocolVersionString = context.HttpContext.Request?.Headers[GalleryConstants.NuGetProtocolHeaderName];
+            var protocolVersionString = context.HttpContext.Request?.Headers[ServicesConstants.NuGetProtocolHeaderName];
 
             return NuGetVersion.TryParse(protocolVersionString, out NuGetVersion protocolVersion) ? protocolVersion : null;
         }
@@ -99,7 +99,7 @@ namespace NuGetGallery.Security
             if (protocolVersion == null || protocolVersion < minProtocolVersion)
             {
                 return Task.FromResult(SecurityPolicyResult.CreateErrorResult(string.Format(CultureInfo.CurrentCulture,
-                    Strings.SecurityPolicy_RequireMinProtocolVersionForPush, minProtocolVersion)));
+                    ServicesStrings.SecurityPolicy_RequireMinProtocolVersionForPush, minProtocolVersion)));
             }
 
             return Task.FromResult(SecurityPolicyResult.SuccessResult);

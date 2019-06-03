@@ -42,6 +42,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AccountManagement\AccountDeletionOrphanPackagePolicy.cs" />
+    <Compile Include="Configuration\IAppConfiguration.cs" />
+    <Compile Include="Models\LuceneIndexLocation.cs" />
+    <Compile Include="Models\StorageType.cs" />
     <Compile Include="PackageManagement\ActionOnNewPackageContext.cs" />
     <Compile Include="Permissions\ActionRequiringAccountPermissions.cs" />
     <Compile Include="Permissions\ActionRequiringEntityPermissions.cs" />
@@ -80,7 +83,6 @@
     <Compile Include="Security\ControlRequiredSignerPolicy.cs" />
     <Compile Include="Security\DefaultSubscription.cs" />
     <Compile Include="Security\ISecurityPolicyService.cs" />
-    <Compile Include="ServicesConstants.cs" />
     <Compile Include="Security\MicrosoftTeamSubscription.cs" />
     <Compile Include="Security\PackageSecurityPolicyEvaluationContext.cs" />
     <Compile Include="Security\PackageSecurityPolicyHandler.cs" />
@@ -89,6 +91,7 @@
     <Compile Include="Security\RequirePackageMetadataCompliancePolicy.cs" />
     <Compile Include="Security\RequirePackageVerifyScopePolicy.cs" />
     <Compile Include="Security\SecurityPolicyService.cs" />
+    <Compile Include="ServicesConstants.cs" />
     <Compile Include="SupportRequest\ISupportRequestService.cs" />
     <Compile Include="Telemetry\ITelemetryClient.cs" />
     <Compile Include="UserManagement\IUserService.cs" />
@@ -163,6 +166,9 @@
       <Version>3.0.1</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Packaging">
+      <Version>5.0.0-preview1.5665</Version>
+    </PackageReference>
+    <PackageReference Include="NuGet.Protocol">
       <Version>5.0.0-preview1.5665</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Logging">

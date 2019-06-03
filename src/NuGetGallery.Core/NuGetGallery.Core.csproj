@@ -143,7 +143,6 @@
     <Compile Include="Features\FeatureFlagReference.cs" />
     <Compile Include="Features\FeatureFlagSaveResult.cs" />
     <Compile Include="Features\IEditableFeatureFlagStorageService.cs" />
-    <Compile Include="IAppConfiguration.cs" />
     <Compile Include="ICloudStorageStatusDependency.cs" />
     <Compile Include="Infrastructure\AzureEntityList.cs" />
     <Compile Include="Infrastructure\ElmahException.cs" />
