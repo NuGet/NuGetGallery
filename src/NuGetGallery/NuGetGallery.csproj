@@ -1964,6 +1964,7 @@
     <Content Include="Views\Packages\_ManageDeprecation.cshtml" />
     <Content Include="Views\Shared\_MultiSelectDropdown.cshtml" />
     <Content Include="Views\Packages\_DisplayPackageDeprecation.cshtml" />
+    <Content Include="Views\Api\HealthProbeApi.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
