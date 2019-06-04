@@ -32,7 +32,6 @@ namespace NuGetGallery
            PackageRegistration alternatePackageRegistration,
            Package alternatePackage,
            string customMessage,
-           bool shouldUnlist,
            User user)
         {
             if (user == null)
@@ -101,7 +100,7 @@ namespace NuGetGallery
 
                 await _entitiesContext.SaveChangesAsync();
 
-                await _packageUpdateService.UpdatePackagesAsync(packages, shouldUnlist ? false : (bool?)null, transaction);
+                await _packageUpdateService.UpdatePackagesAsync(packages, listed: null, transaction: transaction);
             }
         }
 

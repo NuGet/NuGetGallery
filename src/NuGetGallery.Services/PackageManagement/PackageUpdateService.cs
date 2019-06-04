@@ -83,11 +83,11 @@ namespace NuGetGallery
 
                 if (listed)
                 {
-                    await MarkPackageListedInternalAsync(package, updateIndex: false, commitChanges: false, updateIsLatest: false);
+                    await MarkPackageListedInternalAsync(package, commitChanges: false, updateIndex: false, updateIsLatest: false);
                 }
                 else
                 {
-                    await MarkPackageUnlistedInternalAsync(package, updateIndex: false, commitChanges: false, updateIsLatest: false);
+                    await MarkPackageUnlistedInternalAsync(package, commitChanges: false, updateIndex: false, updateIsLatest: false);
                 }
             }
 

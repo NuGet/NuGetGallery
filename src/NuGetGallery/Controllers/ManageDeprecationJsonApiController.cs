@@ -60,8 +60,7 @@ namespace NuGetGallery
             bool isOther,
             string alternatePackageId,
             string alternatePackageVersion,
-            string customMessage,
-            bool shouldUnlist)
+            string customMessage)
         {
             var status = PackageDeprecationStatus.NotDeprecated;
 
@@ -168,7 +167,6 @@ namespace NuGetGallery
                 alternatePackageRegistration,
                 alternatePackage,
                 customMessage,
-                shouldUnlist,
                 currentUser);
 
             foreach (var packageToUpdate in packagesToUpdate)

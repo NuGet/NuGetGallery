@@ -32,7 +32,6 @@ namespace NuGetGallery.Services
                         alternatePackageRegistration: null,
                         alternatePackage: null,
                         customMessage: null,
-                        shouldUnlist: false,
                         user: user));
             }
 
@@ -55,7 +54,6 @@ namespace NuGetGallery.Services
                         alternatePackageRegistration: null,
                         alternatePackage: null,
                         customMessage: null,
-                        shouldUnlist: false,
                         user: user));
             }
 
@@ -124,7 +122,6 @@ namespace NuGetGallery.Services
                     alternatePackageRegistration: null,
                     alternatePackage: null,
                     customMessage: null,
-                    shouldUnlist: false,
                     user: user);
 
                 // Assert
@@ -138,11 +135,8 @@ namespace NuGetGallery.Services
                 }
             }
 
-            public static IEnumerable<object[]> ReplacesExistingDeprecations_Data => MemberDataHelper.BooleanDataSet();
-
-            [Theory]
-            [MemberData(nameof(ReplacesExistingDeprecations_Data))]
-            public async Task ReplacesExistingDeprecations(bool shouldUnlist)
+            [Fact]
+            public async Task ReplacesExistingDeprecations()
             {
                 // Arrange
                 var registration = new PackageRegistration { Id = "theId" };
@@ -211,7 +205,7 @@ namespace NuGetGallery.Services
 
                 var packageUpdateService = GetMock<IPackageUpdateService>();
                 packageUpdateService
-                    .Setup(b => b.UpdatePackagesAsync(packages, shouldUnlist ? false : (bool?)null, transaction, true))
+                    .Setup(b => b.UpdatePackagesAsync(packages, null, transaction, true))
                     .Returns(Task.CompletedTask)
                     .Verifiable();
 
@@ -232,7 +226,6 @@ namespace NuGetGallery.Services
                     alternatePackageRegistration,
                     alternatePackage,
                     customMessage,
-                    shouldUnlist,
                     user);
 
                 // Assert
