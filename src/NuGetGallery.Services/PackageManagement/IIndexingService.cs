@@ -2,11 +2,8 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using NuGet.Services.Entities;
-using NuGetGallery.Configuration;
-using WebBackgrounder;
 
 namespace NuGetGallery
 {
@@ -19,8 +16,6 @@ namespace NuGetGallery
 
         Task<int> GetDocumentCount();
         Task<long> GetIndexSizeInBytes();
-
-        void RegisterBackgroundJobs(IList<IJob> jobs, IAppConfiguration configuration);
 
         string IndexPath { get; }
 

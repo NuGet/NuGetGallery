@@ -226,6 +226,7 @@
     <Compile Include="ExtensionMethods.cs" />
     <Compile Include="Infrastructure\Lucene\Correlation\CorrelatingHttpClientHandler.cs" />
     <Compile Include="Infrastructure\Lucene\Correlation\WebApiCorrelationHandler.cs" />
+    <Compile Include="Infrastructure\Lucene\IIndexingJobFactory.cs" />
     <Compile Include="Infrastructure\Lucene\ISearchClient.cs" />
     <Compile Include="Infrastructure\Lucene\Models\SearchResults.cs" />
     <Compile Include="Infrastructure\Lucene\Models\SortOrder.cs" />
@@ -468,7 +469,6 @@
     <Compile Include="Services\InvalidLicenseUrlValidationMessage.cs" />
     <Compile Include="Services\InvalidUrlEncodingForLicenseUrlValidationMessage.cs" />
     <Compile Include="Services\ISearchSideBySideService.cs" />
-    <Compile Include="Services\IPackageUpdateService.cs" />
     <Compile Include="Services\ISymbolPackageUploadService.cs" />
     <Compile Include="Services\ISymbolPackageFileService.cs" />
     <Compile Include="Services\ITyposquattingCheckListCacheService.cs" />
@@ -479,7 +479,6 @@
     <Compile Include="Services\PackageDeleteService.cs" />
     <Compile Include="Services\PackageDeprecationService.cs" />
     <Compile Include="Services\PackageShouldNotBeSignedUserFixableValidationMessage.cs" />
-    <Compile Include="Services\PackageUpdateService.cs" />
     <Compile Include="Services\PlainTextOnlyValidationMessage.cs" />
     <Compile Include="Services\SearchSideBySideService.cs" />
     <Compile Include="Services\SymbolPackageValidationResult.cs" />
@@ -1437,7 +1436,6 @@
     <Compile Include="Services\ICacheService.cs" />
     <Compile Include="Services\IStatisticsService.cs" />
     <Compile Include="Services\FileSystemFileStorageService.cs" />
-    <Compile Include="Services\IIndexingService.cs" />
     <Compile Include="Services\IAggregateStatsService.cs" />
     <Compile Include="Services\ISearchService.cs" />
     <Compile Include="Services\IUploadFileService.cs" />

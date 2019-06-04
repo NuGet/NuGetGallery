@@ -11,10 +11,11 @@ using Newtonsoft.Json.Linq;
 using NuGet.Services.Entities;
 using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
+using NuGetGallery.Infrastructure.Lucene;
 
 namespace NuGetGallery.Infrastructure.Search
 {
-    public class ExternalSearchService : ISearchService, IIndexingService, IRawSearchService
+    public class ExternalSearchService : ISearchService, IIndexingService, IRawSearchService, IIndexingJobFactory
     {
         public static readonly string SearchRoundtripTimePerfCounter = "SearchRoundtripTime";
         private readonly ISearchClient _searchClient;

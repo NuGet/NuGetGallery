@@ -82,8 +82,12 @@
     <Compile Include="Models\StorageType.cs" />
     <Compile Include="PackageManagement\ActionOnNewPackageContext.cs" />
     <Compile Include="PackageManagement\IPackageOwnerRequestService.cs" />
+    <Compile Include="Authentication\IAuthenticationService.cs" />
+    <Compile Include="AccountManagement\IDeleteAccountService.cs" />
+    <Compile Include="PackageManagement\IIndexingService.cs" />
     <Compile Include="PackageManagement\IPackageOwnershipManagementService.cs" />
     <Compile Include="PackageManagement\IPackageService.cs" />
+    <Compile Include="PackageManagement\IPackageUpdateService.cs" />
     <Compile Include="PackageManagement\IReservedNamespaceService.cs" />
     <Compile Include="PackageManagement\PackageDeleteDecision.cs" />
     <Compile Include="PackageManagement\PackageHelper.cs" />
@@ -99,6 +103,21 @@
     <Compile Include="Permissions\PermissionsCheckResult.cs" />
     <Compile Include="Permissions\PermissionsHelpers.cs" />
     <Compile Include="Permissions\PermissionsRequirement.cs" />
+    <Compile Include="PackageManagement\PackageUpdateService.cs" />
+    <Compile Include="Security\ISecurityPolicyService.cs" />
+    <Compile Include="ServicesConstants.cs" />
+    <Compile Include="SupportRequest\ISupportRequestService.cs" />
+    <Compile Include="Telemetry\ITelemetryClient.cs" />
+    <Compile Include="UserManagement\IUserService.cs" />
+    <Compile Include="ServicesStrings.Designer.cs">
+      <DependentUpon>ServicesStrings.resx</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Telemetry\ITelemetryService.cs" />
+    <Compile Include="Models\DeleteAccountStatus.cs" />
+    <Compile Include="Models\PackageDeleteDecision.cs" />
+    <Compile Include="Models\ReportPackageReason.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Providers\DateTimeProvider.cs" />
     <Compile Include="Providers\IDateTimeProvider.cs" />
