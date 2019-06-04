@@ -73,7 +73,7 @@ namespace NuGet.Services.DatabaseMigration.Facts
             {
                 _migrationJob.CheckIsValidMigration(databaseMigrations, localMigrations);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 Assert.True(false);
             }

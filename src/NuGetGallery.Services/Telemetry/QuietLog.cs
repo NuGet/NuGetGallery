@@ -9,7 +9,7 @@ using Elmah;
 
 namespace NuGetGallery
 {
-    internal static class QuietLog
+    public static class QuietLog
     {
         public static ITelemetryClient Telemetry = TelemetryClientWrapper.Instance;
 

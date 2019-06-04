@@ -1,0 +1,70 @@
+.page-search-sxs {
+    h1 {
+        font-size: @font-size-h2;
+        border-bottom: 1px solid lightgray;
+    }
+    
+    h2 {
+        font-size: @font-size-h3;
+        margin-top: 0;
+    }
+
+    .list-packages .package {
+        padding-top: 0;
+    }
+
+    .list-packages .package .package-details,
+    .list-packages .package .package-list,
+    .list-packages .package .package-by {
+        line-height: 16px;
+        font-size: 13px;
+    }
+    
+    .list-packages .package .package-details,
+    .list-packages .package .package-list {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+
+        li {
+          display: inline;
+        }
+    }
+
+    .list-packages .package .package-list {
+        margin-top: 4px;
+        margin-bottom: 4px;
+
+        li + li {
+            margin-left: @padding-small-horizontal;
+            padding-left: @padding-small-horizontal;
+            border-left-style: solid;
+            border-width: 1px;
+            border-color: @gray-lighter;
+        }
+    }
+
+    .list-packages .package .package-header .reserved-indicator {
+        width: 15px;
+    }
+
+    .radio label {
+        margin-right: 30px;
+    }
+
+    .list-packages .package .package-header .package-title {
+        font-size: 20px;
+    }
+
+    .col-package-icon {
+        padding-right: 0;
+    }
+
+    .package .package-legacy-title {
+        display: none;
+    }
+
+    .panel-body p:last-child {
+        margin-bottom: 0;
+    }
+}

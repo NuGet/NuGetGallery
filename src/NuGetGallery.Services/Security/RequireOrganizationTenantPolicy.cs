@@ -74,7 +74,7 @@ namespace NuGetGallery.Security
                 || !state.Tenant.Equals(targetCredential.TenantId, StringComparison.OrdinalIgnoreCase))
             {
                 return Task.FromResult(SecurityPolicyResult.CreateErrorResult(string.Format(CultureInfo.CurrentCulture,
-                        Strings.AddMember_UserDoesNotMeetOrganizationPolicy, targetAccount.Username)));
+                        ServicesStrings.AddMember_UserDoesNotMeetOrganizationPolicy, targetAccount.Username)));
             }
 
             return Task.FromResult(SecurityPolicyResult.SuccessResult);

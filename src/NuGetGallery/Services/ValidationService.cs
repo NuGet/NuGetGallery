@@ -7,7 +7,6 @@ using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
 using NuGet.Services.Entities;
-using NuGet.Services.Messaging.Email;
 using NuGet.Services.Validation;
 using NuGet.Services.Validation.Issues;
 using NuGetGallery.Configuration;

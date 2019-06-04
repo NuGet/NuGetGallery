@@ -16,18 +16,18 @@ namespace NuGetGallery.Authentication
             switch (scope.ToLowerInvariant())
             {
                 case All:
-                    return Strings.ScopeDescription_All;
+                    return ServicesStrings.ScopeDescription_All;
                 case PackagePush:
-                    return Strings.ScopeDescription_PushPackage;
+                    return ServicesStrings.ScopeDescription_PushPackage;
                 case PackagePushVersion:
-                    return Strings.ScopeDescription_PushPackageVersion;
+                    return ServicesStrings.ScopeDescription_PushPackageVersion;
                 case PackageUnlist:
-                    return Strings.ScopeDescription_UnlistPackage;
+                    return ServicesStrings.ScopeDescription_UnlistPackage;
                 case PackageVerify:
-                    return Strings.ScopeDescription_VerifyPackage;
+                    return ServicesStrings.ScopeDescription_VerifyPackage;
             }
 
-            return Strings.ScopeDescription_Unknown;
+            return ServicesStrings.ScopeDescription_Unknown;
         }
     }
 }

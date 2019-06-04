@@ -88,7 +88,6 @@ namespace NuGetGallery
         internal const string ClientVersionHeaderName = "X-NuGet-Client-Version";
         internal const string NuGetProtocolHeaderName = "X-NuGet-Protocol-Version";
         internal const string WarningHeaderName = "X-NuGet-Warning";
-        internal const string UserAgentHeaderName = "User-Agent";
         
         /// <summary>
         /// This header is for internal use only. It indicates whether an OData query is "custom". Custom means not

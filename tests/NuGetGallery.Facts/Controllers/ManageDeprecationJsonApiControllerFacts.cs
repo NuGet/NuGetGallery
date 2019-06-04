@@ -6,7 +6,6 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using System.Web.Mvc;
-using Moq;
 using Newtonsoft.Json.Linq;
 using NuGet.Services.Entities;
 using NuGetGallery.Auditing;
