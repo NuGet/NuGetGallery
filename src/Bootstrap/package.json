@@ -80,5 +80,8 @@
       "js"
     ]
   },
-  "dependencies": {}
+  "dependencies": {
+    "popper.js": "^1.15.0",
+    "tooltip.js": "^1.3.2"
+  }
 }
