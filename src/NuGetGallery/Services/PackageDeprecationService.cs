@@ -12,16 +12,16 @@ namespace NuGetGallery
 {
     public class PackageDeprecationService : IPackageDeprecationService
     {
-        private readonly IEntityRepository<PackageDeprecation> _deprecationRepository;
+        private readonly IEntitiesContext _entitiesContext;
         private readonly IPackageUpdateService _packageUpdateService;
         private readonly IIndexingService _indexingService;
 
         public PackageDeprecationService(
-           IEntityRepository<PackageDeprecation> deprecationRepository,
+           IEntitiesContext entitiesContext,
            IPackageUpdateService packageUpdateService,
            IIndexingService indexingService)
         {
-            _deprecationRepository = deprecationRepository ?? throw new ArgumentNullException(nameof(deprecationRepository));
+            _entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
             _packageUpdateService = packageUpdateService ?? throw new ArgumentNullException(nameof(packageUpdateService));
             _indexingService = indexingService ?? throw new ArgumentNullException(nameof(indexingService));
         }
@@ -52,7 +52,7 @@ namespace NuGetGallery
             }
 
             using (var strategy = new SuspendDbExecutionStrategy())
-            using (var transaction = _deprecationRepository.GetDatabase().BeginTransaction())
+            using (var transaction = _entitiesContext.GetDatabase().BeginTransaction())
             {
                 var shouldDelete = status == PackageDeprecationStatus.NotDeprecated;
                 var deprecations = new List<PackageDeprecation>();
@@ -92,14 +92,14 @@ namespace NuGetGallery
 
                 if (shouldDelete)
                 {
-                    _deprecationRepository.DeleteOnCommit(deprecations);
+                    _entitiesContext.Deprecations.RemoveRange(deprecations);
                 }
                 else
                 {
-                    _deprecationRepository.InsertOnCommit(deprecations);
+                    _entitiesContext.Deprecations.AddRange(deprecations);
                 }
 
-                await _deprecationRepository.CommitChangesAsync();
+                await _entitiesContext.SaveChangesAsync();
 
                 await _packageUpdateService.UpdatePackagesAsync(packages, shouldUnlist ? false : (bool?)null);
 
@@ -109,7 +109,7 @@ namespace NuGetGallery
 
         public PackageDeprecation GetDeprecationByPackage(Package package)
         {
-            return _deprecationRepository.GetAll()
+            return _entitiesContext.Deprecations
                 .Include(d => d.AlternatePackage.PackageRegistration)
                 .Include(d => d.AlternatePackageRegistration)
                 .SingleOrDefault(d => d.PackageKey == package.Key);

@@ -300,7 +300,7 @@ namespace NuGetGallery.Services
                 {
                     foreach (var packagesByRegistration in packages.GroupBy(p => p.PackageRegistration))
                     {
-                        if (setListed.Value || packagesByRegistration.Any(p => p.IsLatest || p.IsLatestStable || p.IsLatestSemVer2 || p.IsLatestStableSemVer2))
+                        if (!setListed.Value && !packagesByRegistration.Any(p => p.IsLatest || p.IsLatestStable || p.IsLatestSemVer2 || p.IsLatestStableSemVer2))
                         {
                             continue;
                         }
