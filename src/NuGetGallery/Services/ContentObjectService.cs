@@ -7,6 +7,12 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NuGetGallery.Services;
+using Microsoft.Web.XmlTransform;
+using System.Collections.ObjectModel;
+using Microsoft.Extensions.Logging.Abstractions;
+using System.Web.UI.WebControls;
+using System.Collections;
+using System.Diagnostics;
 
 namespace NuGetGallery
 {
@@ -73,10 +79,52 @@ namespace NuGetGallery
                await Refresh<TyposquattingConfiguration>(GalleryConstants.ContentNames.TyposquattingConfiguration) ??
                new TyposquattingConfiguration();
 
-            NuGetPackagesGitHubDependencies =
-                await Refresh<Dictionary<string, NuGetPackageInformation>>(
+            IReadOnlyList<RepositoryInformation> reposCache = await Refresh<IReadOnlyList<RepositoryInformation>>(
                     GalleryConstants.ContentNames.NuGetPackagesGitHubDependencies) ??
-               new Dictionary<string, NuGetPackageInformation>();
+               Array.Empty<RepositoryInformation>();
+
+            var tempDict = new Dictionary<string, List<RepositoryInformation>>(StringComparer.InvariantCultureIgnoreCase);
+            foreach (var repo in reposCache)
+            {
+                foreach (var dependency in repo.Dependencies)
+                {
+                    List<RepositoryInformation> nuGetPackageInformation = null;
+                    if (tempDict.ContainsKey(dependency))
+                    {
+                        nuGetPackageInformation = tempDict[dependency];
+                    }
+                    else
+                    {
+                        nuGetPackageInformation = new List<RepositoryInformation>();
+                    }
+                    nuGetPackageInformation.Add(repo);
+                    tempDict[dependency] = nuGetPackageInformation;
+                }
+            }
+
+            var tempSwapDict = new Dictionary<string, NuGetPackageInformation>(StringComparer.InvariantCultureIgnoreCase);
+            foreach (var entry in tempDict)
+            {
+                entry.Value.Sort(Comparer<RepositoryInformation>.Create((x, y) =>
+                {
+                    var result = y.CompareTo(x); // Inverted for descending sort order
+                    if (result != 0)
+                    {
+                        return result;
+                    }
+
+                    // Results have the same star count, compare their ids (not inverted) to sort in alphabetical order
+                    return string.Compare(x.Id, y.Id, true);
+                }));
+
+                var nuGetPackageInformation = new NuGetPackageInformation();
+                nuGetPackageInformation.TotalRepos = entry.Value.Count;
+                nuGetPackageInformation.Repos = entry.Value.Take(10).ToList().AsReadOnly();
+                tempSwapDict[entry.Key] = nuGetPackageInformation;
+            }
+
+            // This is done to avoid the Concurent read & modification of the dictionary
+            NuGetPackagesGitHubDependencies = tempSwapDict;
         }
 
         private async Task<T> Refresh<T>(string contentName) 
@@ -103,17 +151,17 @@ namespace NuGetGallery
             }
         }
 
-        public struct RepositoryInformation : IEquatable<RepositoryInformation>, IComparable<RepositoryInformation>
+        public class RepositoryInformation : IEquatable<RepositoryInformation>, IComparable<RepositoryInformation>
         {
+            [JsonIgnore]
             public string Name { get; set; }
+            [JsonIgnore]
             public string Owner { get; set; }
-            public string CloneUrl { get; set; }
+            public string Url { get; set; }
             public int Stars { get; set; }
-
-            public string FullName
+            public string Id
             {
-                get => Owner + "/" + Name;
-                set
+                get => Owner + "/" + Name; set
                 {
                     var split = value.Split('/');
                     if (split.Length == 2)
@@ -124,12 +172,18 @@ namespace NuGetGallery
                 }
             }
 
-            public RepositoryInformation(string owner, string repoName, string cloneUrl, int starCount)
+            public List<string> Dependencies { get; set; } = null;
+
+            public RepositoryInformation()
+            { }
+
+            public RepositoryInformation(string owner, string repoName, string cloneUrl, int starCount, List<string> dependencies)
             {
                 Owner = owner;
                 Name = repoName;
-                CloneUrl = cloneUrl;
+                Url = cloneUrl;
                 Stars = starCount;
+                Dependencies = dependencies;
             }
 
             public override bool Equals(object obj)
@@ -139,18 +193,17 @@ namespace NuGetGallery
 
             public bool Equals(RepositoryInformation other)
             {
-                return CloneUrl.Equals(other.CloneUrl, StringComparison.InvariantCultureIgnoreCase);
+                return Url.Equals(other.Url, StringComparison.InvariantCultureIgnoreCase);
             }
             public override int GetHashCode()
             {
                 // Using toLower() to make the hash case insensitive
-                return CloneUrl.ToLower().GetHashCode();
+                return Url.ToLower().GetHashCode();
             }
 
             public int CompareTo(RepositoryInformation other)
             {
-                // It is inverted here so the Repos would always be sorted from high starCount to low starCount
-                return other.Stars.CompareTo(Stars);
+                return Stars.CompareTo(other.Stars);
             }
         }
     }
