@@ -6,9 +6,9 @@ using NuGet.Services.Entities;
 using NuGetGallery.Auditing;
 using NuGetGallery.Framework;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -16,6 +16,15 @@ namespace NuGetGallery.Services
 {
     public class PackageUpdateServiceFacts
     {
+        public enum PackageLatestState
+        {
+            Not,
+            Latest,
+            LatestStable,
+            LatestSemVer2,
+            LatestStableSemVer2
+        }
+
         public class TheMarkPackageListedMethod : TestContainer
         {
             [Fact]
@@ -46,6 +55,41 @@ namespace NuGetGallery.Services
                     Listed = false,
                     PackageStatusKey = PackageStatus.FailedValidation,
                 };
+
+                var service = Get<PackageUpdateService>();
+
+                await Assert.ThrowsAsync<InvalidOperationException>(async () => await service.MarkPackageListedAsync(package));
+            }
+
+            public static IEnumerable<object[]> ThrowsWhenPackageIsLatest_Data
+            {
+                get
+                {
+                    foreach (var latestState in Enum.GetValues(typeof(PackageLatestState)).Cast<PackageLatestState>())
+                    {
+                        if (latestState == PackageLatestState.Not)
+                        {
+                            continue;
+                        }
+
+                        yield return MemberDataHelper.AsData(latestState);
+                    }
+                }
+            }
+
+            [Theory]
+            [MemberData(nameof(ThrowsWhenPackageIsLatest_Data))]
+            public async Task ThrowsWhenPackageIsLatest(PackageLatestState latestState)
+            {
+                var packageRegistration = new PackageRegistration { Id = "theId" };
+                var package = new Package
+                {
+                    Version = "1.0",
+                    PackageRegistration = packageRegistration,
+                    Listed = false
+                };
+
+                SetLatestOfPackage(package, latestState);
 
                 var service = Get<PackageUpdateService>();
 
@@ -93,15 +137,6 @@ namespace NuGetGallery.Services
 
         public class TheMarkPackageUnlistedMethod : TestContainer
         {
-            public enum PackageLatestState
-            {
-                Not,
-                Latest,
-                LatestStable,
-                LatestSemVer2,
-                LatestStableSemVer2
-            }
-
             public static IEnumerable<object[]> OnLatestPackageVersionSetsPreviousToLatestVersion_Data =>
                 MemberDataHelper.EnumDataSet<PackageLatestState>();
 
@@ -117,21 +152,7 @@ namespace NuGetGallery.Services
                     PackageRegistration = packageRegistration
                 };
 
-                switch (packageLatestState)
-                {
-                    case PackageLatestState.Latest:
-                        firstPackage.IsLatest = true;
-                        break;
-                    case PackageLatestState.LatestStable:
-                        firstPackage.IsLatestStable = true;
-                        break;
-                    case PackageLatestState.LatestSemVer2:
-                        firstPackage.IsLatestSemVer2 = true;
-                        break;
-                    case PackageLatestState.LatestStableSemVer2:
-                        firstPackage.IsLatestStableSemVer2 = true;
-                        break;
-                }
+                SetLatestOfPackage(firstPackage, packageLatestState);
 
                 var secondPackage = new Package
                 {
@@ -231,15 +252,6 @@ namespace NuGetGallery.Services
                 var service = Get<PackageUpdateService>();
                 await Assert.ThrowsAsync<ArgumentException>(
                     () => service.UpdatePackagesAsync(packages, setListed, _mockTransaction.Object));
-            }
-
-            public enum PackageLatestState
-            {
-                Not,
-                Latest,
-                LatestStable,
-                LatestSemVer2,
-                LatestStableSemVer2
             }
 
             public static IEnumerable<object[]> PackageCombinationsAndSetListed_Data
@@ -427,23 +439,7 @@ WHERE [Key] IN ({packageKeyStrings})";
 
                 registration.Packages.Add(selectedMaybeLatestPackage);
 
-                switch (latestState)
-                {
-                    case PackageLatestState.Latest:
-                        selectedMaybeLatestPackage.IsLatest = true;
-                        break;
-                    case PackageLatestState.LatestStable:
-                        selectedMaybeLatestPackage.IsLatestStable = true;
-                        break;
-                    case PackageLatestState.LatestSemVer2:
-                        selectedMaybeLatestPackage.IsLatestSemVer2 = true;
-                        break;
-                    case PackageLatestState.LatestStableSemVer2:
-                        selectedMaybeLatestPackage.IsLatestStableSemVer2 = true;
-                        break;
-                    default:
-                        break;
-                }
+                SetLatestOfPackage(selectedMaybeLatestPackage, latestState);
 
                 return new[]
                 {
@@ -451,6 +447,25 @@ WHERE [Key] IN ({packageKeyStrings})";
                     selectedUnlistedPackage,
                     selectedMaybeLatestPackage
                 };
+            }
+        }
+
+        private static void SetLatestOfPackage(Package package, PackageLatestState latestState)
+        {
+            switch (latestState)
+            {
+                case PackageLatestState.Latest:
+                    package.IsLatest = true;
+                    break;
+                case PackageLatestState.LatestStable:
+                    package.IsLatestStable = true;
+                    break;
+                case PackageLatestState.LatestSemVer2:
+                    package.IsLatestSemVer2 = true;
+                    break;
+                case PackageLatestState.LatestStableSemVer2:
+                    package.IsLatestStableSemVer2 = true;
+                    break;
             }
         }
     }
