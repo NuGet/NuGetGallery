@@ -15,6 +15,7 @@ namespace NuGetGallery
         public const string NuGetProtocolHeaderName = "X-NuGet-Protocol-Version";
 
         public const string DevelopmentEnvironment = "Development";
+        public const string GitRepository = "git";
 
         public const string MarkdownFileExtension = ".md";
         public const string HtmlFileExtension = ".html";

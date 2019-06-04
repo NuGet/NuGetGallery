@@ -63,7 +63,6 @@
     <Compile Include="Configuration\LoginDiscontinuationConfiguration.cs" />
     <Compile Include="Configuration\SymbolsConfiguration.cs" />
     <Compile Include="Configuration\TyposquattingConfiguration.cs" />
-    <Compile Include="Constants\GitConstants.cs" />
     <Compile Include="Extensions\Base32Encoder.cs" />
     <Compile Include="Extensions\ClaimsExtensions.cs" />
     <Compile Include="Extensions\CredentialExtensions.cs" />

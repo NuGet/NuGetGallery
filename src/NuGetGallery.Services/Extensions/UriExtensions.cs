@@ -34,7 +34,7 @@ namespace NuGetGallery
 
         public static bool IsGitProtocol(this Uri uri)
         {
-            return uri.Scheme == GitConstants.GitRepository;
+            return uri.Scheme == ServicesConstants.GitRepository;
         }
 
         public static bool IsDomainWithHttpsSupport(this Uri uri)
