@@ -549,10 +549,14 @@
 
             @if (Model.GitHubDependenciesInformation.Repos.Any())
             {
-                <div class="github-usage panel-collapse collapse in" aria-expanded="true" id="github-usage">
+                <div class="github-usage panel-collapse collapse" aria-expanded="true" id="github-usage">
                     <p>
-                        About @(Model.GitHubDependenciesInformation.TotalRepos) popular GitHub repositories depend on
-                        @(Model.Title), including the following:
+                        About @(Model.GitHubDependenciesInformation.TotalRepos) <a tabindex="0" data-toggle="popover" data-trigger="focus" 
+                       title="What is a popular repo?"
+                       data-content="A GitHub repository with more than 100 Stars." 
+                       role="button"
+                       style="font-weight: normal; text-decoration: underline; text-decoration-style: dotted;">popular</a> GitHub repositories depend on
+                        @(Model.Id), including the following:
                     </p>
 
                     @foreach (var dep in Model.GitHubDependenciesInformation.Repos.Take(10))
@@ -560,9 +564,9 @@
                         <div class="row top-buffer">
                             <div class="col-xs-12">
                                 <button class="btn btn-gh-repo text-left btn-block"
-                                        onclick="window.open('@dep.CloneUrl');">
+                                        onclick="window.open('@dep.Url');">
                                     <span class="pull-left">
-                                        <a>@(dep.FullName)</a>
+                                        <a>@(dep.Id)</a>
                                     </span>
                                     <span class="badge pull-right" style="background-color: #004880">
                                         @(dep.Stars.KiloFormat()) <i class="ms-Icon ms-Icon--FavoriteStarFill" aria-hidden="true" style="color:#ffac0e"></i>
@@ -904,6 +908,37 @@
             }
 
             <h2>Statistics</h2>
+            
+            <div id="popover-content" style="display: none">
+                <table>
+                @foreach (var dep in Model.GitHubDependenciesInformation.Repos.Take(10))
+                {
+                        <tr>
+                            <td><a>@(dep.Id)</a></td>
+                            <td>
+                                <span class="badge " style="background-color: #004880">
+                                    @(dep.Stars.KiloFormat()) <i class="ms-Icon ms-Icon--FavoriteStarFill" aria-hidden="true" style="color:#ffac0e"></i>
+                                </span>
+                            </td>
+                        </tr>
+                    
+                    @*<div class="row top-buffer">
+                        <div class="col-xs-2">
+                            <button class="btn btn-gh-repo text-left btn-block"
+                                    onclick="window.open('@dep.CloneUrl');">
+                                <span class="pull-left">
+                                    <a>@(dep.FullName)</a>
+                                </span>
+                                <span class="badge pull-right" style="background-color: #004880">
+                                    @(dep.Stars.KiloFormat()) <i class="ms-Icon ms-Icon--FavoriteStarFill" aria-hidden="true" style="color:#ffac0e"></i>
+                                </span>
+                            </button>
+                        </div>
+                    </div>*@
+                }
+                </table>
+            </div>
+            
             <ul class="list-unstyled ms-Icon-ul">
                 <li>
                     <i class="ms-Icon ms-Icon--Download" aria-hidden="true"></i>
@@ -922,40 +957,61 @@
 
                 @if (Model.GitHubDependenciesInformation.TotalRepos > 0)
                 {
-                <li>
-                    <img class="icon" aria-hidden="true" alt="GitHub logo"
-                         src="@Url.Absolute("~/Content/gallery/img/github.svg")"
-                         @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/github-32x32.png")) />
-                    @(Model.GitHubDependenciesInformation.TotalRepos) popular dependant GitHub repos
-                </li>
+            <li>
+                <img class="icon" aria-hidden="true" alt="GitHub logo"
+                     src="@Url.Absolute("~/Content/gallery/img/github.svg")"
+                     @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/github-32x32.png")) />
+                @(Model.GitHubDependenciesInformation.TotalRepos)
+                <a tabindex="0" data-toggle="popover" data-trigger="focus" 
+                       title="What is a popular repo?"
+                       data-content="A GitHub repository with more than 100 Stars." 
+                       role="button"
+                       style="font-weight: normal; text-decoration: underline; text-decoration-style: dotted;">popular</a> dependant GitHub repos
+                @*<a id="example-popover"
+                   tabindex="0"
+                   class="btn btn-lg btn-info"
+                   role="button"
+                   data-trigger="focus">Example popover</a>*@
+                @*
+        <a tabindex="0" class="btn btn-lg btn-danger"
+           role="button"
+           data-toggle="popover"
+           data-trigger="focus"
+           title="Dismissible popover"
+           data-html="true"
+           data-placement="bottom"
+           data-container="body"
+           data-target="#my-popover-content"
+
+           >Dismissible popover</a>*@
+            </li>
                 }
             </ul>
             @if (StatisticsHelper.IsStatisticsPageAvailable)
             {
                 <a href="@Url.StatisticsPackageDownloadByVersion(Model.Id)" title="Package Statistics">View full stats</a>
             }
-
             <h2>Owners</h2>
             <ul class="list-unstyled owner-list">
                 @if (!Model.Owners.Any())
-    {
-            @ViewHelpers.AlertWarning(@<text>This package has no owners and is not being actively maintained.</text>)
-}
-else
-{
-foreach (var owner in Model.Owners)
-{
-            <li>
-                @if (!String.IsNullOrEmpty(owner.EmailAddress))
-    {
-            <a href="@Url.User(owner)" title="@owner.Username">@ViewHelpers.GravatarImage(owner.EmailAddress, owner.Username, GalleryConstants.GravatarElementSize)</a>
-}
-                <a href="@Url.User(owner)" title="@owner.Username">
-                    @owner.Username
-                </a>
-            </li>
-}
-}
+                {
+                    @ViewHelpers.AlertWarning(@<text>This package has no owners and is not being actively maintained.</text>)
+                }
+                else
+                {
+                    foreach (var owner in Model.Owners)
+                    {
+                        <li>
+                            @if (!String.IsNullOrEmpty(owner.EmailAddress))
+                            {
+                                <a href="@Url.User(owner)" title="@owner.Username">@ViewHelpers.GravatarImage(owner.EmailAddress, owner.Username, GalleryConstants.GravatarElementSize)</a>
+                            }
+                            <a href="@Url.User(owner)" title="@owner.Username">
+                                @owner.Username
+                            </a>
+                        </li>
+                    }
+                }
             </ul>
 
             @if (!Model.Deleted)
@@ -1037,7 +1093,36 @@ foreach (var owner in Model.Owners)
     </style>
 
     <script type="text/javascript">
-        var packageManagers = [@Html.Raw(string.Join(",", packageManagers.Select(pm => "\"" + pm.Id + "\"")))];
+            var packageManagers = [@Html.Raw(string.Join(",", packageManagers.Select(pm => "\"" + pm.Id + "\"")))];
+
+            // Activate Popovers
+            $(function () {
+                $("[data-toggle='popover']").each(function (index, element) {
+                    var data = $(element).data();
+                    if (data.target) {
+                        var contentElementId = data.target;
+                        var contentHtml = $(contentElementId).html();
+                        data.content = contentHtml;
+                    }
+                    $(element).popover(data);
+                });
+            })
+
+            //$(function () {
+            //    // Enables popover
+            //    $("#example-popover").popover({
+            //        html: true,
+            //        content: function () {
+            //            return $("#popover-content").html();
+            //        },
+            //        title: function () {
+            //            return "GitHub Usage";
+            //        }
+            //    });
+            //});
+
+
+            
     </script>
 
     @Scripts.Render("~/Scripts/gallery/page-display-package.min.js")
