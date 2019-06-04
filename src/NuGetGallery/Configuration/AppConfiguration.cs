@@ -355,15 +355,13 @@ namespace NuGetGallery.Configuration
         [DefaultValue(true)]
         public bool AllowLicenselessPackages { get; set; }
 
-        /// <summary>
-        /// The Uri for the Primary Search endpoint
-        /// </summary>
         public Uri SearchServiceUriPrimary { get; set; }
 
-        /// <summary>
-        /// The Uri for the Secondary Search endpoint
-        /// </summary>
         public Uri SearchServiceUriSecondary { get; set; }
+
+        public Uri PreviewSearchServiceUriPrimary { get; set; }
+
+        public Uri PreviewSearchServiceUriSecondary { get; set; }
 
         [DefaultValue(600)]
         public int SearchCircuitBreakerDelayInSeconds { get; set; }

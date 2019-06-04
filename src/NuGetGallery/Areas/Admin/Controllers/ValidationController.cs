@@ -42,7 +42,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
         {
             var groups = validationSets
                 .Where(x => x.ValidatingType == validatingType)
-                .OrderBy(x => x.PackageId)
+                .OrderBy(x => x.PackageId, StringComparer.OrdinalIgnoreCase)
                 .ThenByDescending(x => NuGetVersion.Parse(x.PackageNormalizedVersion))
                 .ThenByDescending(x => x.PackageKey)
                 .ThenByDescending(x => x.Created)
@@ -53,10 +53,8 @@ namespace NuGetGallery.Areas.Admin.Controllers
             {
                 foreach (var set in group)
                 {
-                    // Put completed validations first then put new validations on top.
                     set.PackageValidations = set.PackageValidations
-                        .OrderByDescending(x => x.ValidationStatus)
-                        .ThenByDescending(x => x.ValidationStatusTimestamp)
+                        .OrderBy(x => x.Started)
                         .ToList();
                 }
                 var deletedStatus = _validationAdminService.GetDeletedStatus(group.Key, validatingType);

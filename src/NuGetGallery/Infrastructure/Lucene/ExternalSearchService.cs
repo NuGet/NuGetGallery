@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
 using System.Web;
 using Newtonsoft.Json.Linq;
@@ -35,10 +34,6 @@ namespace NuGetGallery.Infrastructure.Search
         }
 
         public bool ContainsAllVersions { get { return true; } }
-
-        public ExternalSearchService()
-        {
-        }
 
         public ExternalSearchService(IAppConfiguration config, IDiagnosticsService diagnostics, ISearchClient searchClient)
         {

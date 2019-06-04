@@ -165,6 +165,23 @@ module.exports = function (grunt) {
         expand: true,
         src: 'fonts/**',
         dest: 'dist/'
+      },
+      gallerycss: {
+        expand: true,
+        cwd: 'dist/css/',
+        src: [
+          'bootstrap.css',
+          'bootstrap-theme.css'
+        ],
+        dest: '../NuGetGallery/Content/gallery/css/'
+      },
+      galleryjs: {
+        expand: true,
+        cwd: 'dist/js/',
+        src: [
+          'bootstrap.js'
+        ],
+        dest: '../NuGetGallery/Scripts/gallery/'
       }
     },
 
@@ -187,10 +204,10 @@ module.exports = function (grunt) {
   grunt.registerTask('dist-css', ['less:core', 'less:theme', 'postcss:core', 'postcss:theme', 'cssmin:core', 'cssmin:theme']);
 
   // Full distribution task.
-  grunt.registerTask('dist', ['clean:dist', 'dist-css', 'copy:fonts', 'dist-js']);
+  grunt.registerTask('dist', ['clean:dist', 'dist-css', 'copy:fonts', 'dist-js', 'copy:gallerycss', 'copy:galleryjs']);
 
   // Default task.
-  grunt.registerTask('default', ['clean:dist', 'copy:fonts', 'dist-css', 'dist-js']);
+  grunt.registerTask('default', ['clean:dist', 'copy:fonts', 'dist-css', 'dist-js', 'copy:gallerycss', 'copy:galleryjs']);
 
   grunt.registerTask('build-glyphicons-data', function () {
     generateGlyphiconsData.call(this, grunt);

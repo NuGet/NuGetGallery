@@ -87,7 +87,23 @@
                         <b>Created:</b> @ShowTimestamp(set.Created)<br />
                         @if (set.Created != set.Updated)
                         {
-                            <b>Updated:</b> @ShowTimestamp(set.Updated)
+                            <b>Updated:</b> @ShowTimestamp(set.Updated)<br />
+                        }
+                        <b>Status:</b>
+                        @switch (set.ValidationSetStatus)
+                        {
+                            case ValidationSetStatus.Unknown:
+                                @:Unknown
+                                break;
+                            case ValidationSetStatus.InProgress:
+                                @:In progress
+                                break;
+                            case ValidationSetStatus.Completed:
+                                @:Complete
+                                break;
+                            default:
+                                @(set.ValidationSetStatus)
+                                break;
                         }
                     </p>
 

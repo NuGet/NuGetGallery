@@ -25,7 +25,7 @@ namespace NuGetGallery
         private readonly IPackageOwnershipManagementService _packageOwnershipManagementService;
         private readonly IReservedNamespaceService _reservedNamespaceService;
         private readonly ISecurityPolicyService _securityPolicyService;
-        private readonly AuthenticationService _authService;
+        private readonly IAuthenticationService _authService;
         private readonly IEntityRepository<PackageDeprecation> _deprecationRepository;
         private readonly IEntityRepository<User> _userRepository;
         private readonly IEntityRepository<Scope> _scopeRepository;
@@ -45,7 +45,7 @@ namespace NuGetGallery
             IPackageOwnershipManagementService packageOwnershipManagementService,
             IReservedNamespaceService reservedNamespaceService,
             ISecurityPolicyService securityPolicyService,
-            AuthenticationService authService,
+            IAuthenticationService authService,
             ISupportRequestService supportRequestService,
             IEditableFeatureFlagStorageService featureFlagService,
             IAuditingService auditingService,
@@ -88,7 +88,7 @@ namespace NuGetGallery
                 {
                     Success = false,
                     Description = string.Format(CultureInfo.CurrentCulture,
-                        Strings.AccountDelete_AccountAlreadyDeleted,
+                        ServicesStrings.AccountDelete_AccountAlreadyDeleted,
                         userToBeDeleted.Username),
                     AccountName = userToBeDeleted.Username
                 };
@@ -383,7 +383,7 @@ namespace NuGetGallery
                 {
                     Success = true,
                     Description = string.Format(CultureInfo.CurrentCulture,
-                        Strings.AccountDelete_Success,
+                        ServicesStrings.AccountDelete_Success,
                         userToBeDeleted.Username),
                     AccountName = userToBeDeleted.Username
                 };
@@ -395,7 +395,7 @@ namespace NuGetGallery
                 {
                     Success = false,
                     Description = string.Format(CultureInfo.CurrentCulture,
-                        Strings.AccountDelete_Fail,
+                        ServicesStrings.AccountDelete_Fail,
                         userToBeDeleted.Username, e),
                     AccountName = userToBeDeleted.Username
                 };
