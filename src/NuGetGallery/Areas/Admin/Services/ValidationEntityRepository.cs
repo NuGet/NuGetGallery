@@ -48,10 +48,5 @@ namespace NuGetGallery.Areas.Admin.Services
         {
             return _entities.Set<T>();
         }
-
-        public IDatabase GetDatabase()
-        {
-            throw new NotImplementedException();
-        }
     }
 }

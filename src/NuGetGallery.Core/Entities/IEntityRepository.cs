@@ -16,6 +16,5 @@ namespace NuGetGallery
         void DeleteOnCommit(T entity);
         void DeleteOnCommit(IEnumerable<T> entities);
         IQueryable<T> GetAll();
-        IDatabase GetDatabase();
     }
 }

@@ -47,10 +47,5 @@ namespace NuGetGallery
         {
             return _entities.Set<T>();
         }
-
-        public IDatabase GetDatabase()
-        {
-            return _entities.GetDatabase();
-        }
     }
 }
