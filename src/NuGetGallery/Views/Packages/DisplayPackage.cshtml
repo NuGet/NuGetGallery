@@ -531,8 +531,8 @@
 
             <h2>
                 <a role="button" data-toggle="collapse" data-target="#github-usage"
-                   aria-expanded="true" aria-controls="github-usage" id="show-github-usage">
-                    <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
+                   aria-expanded="false" aria-controls="github-usage" id="show-github-usage">
+                    <i class="ms-Icon ms-Icon--ChevronRight" aria-hidden="true"></i>
                     <span>GitHub Usage</span>
                 </a>
             </h2>
@@ -549,10 +549,10 @@
 
             @if (Model.GitHubDependenciesInformation.Repos.Any())
             {
-                <div class="github-usage panel-collapse collapse in" aria-expanded="true" id="github-usage">
+                <div class="github-usage panel-collapse collapse" aria-expanded="true" id="github-usage">
                     <p>
                         About @(Model.GitHubDependenciesInformation.TotalRepos) popular GitHub repositories depend on
-                        @(Model.Title), including the following:
+                        @(Model.Id), including the following:
                     </p>
 
                     @foreach (var dep in Model.GitHubDependenciesInformation.Repos.Take(10))
@@ -560,9 +560,9 @@
                         <div class="row top-buffer">
                             <div class="col-xs-12">
                                 <button class="btn btn-gh-repo text-left btn-block"
-                                        onclick="window.open('@dep.CloneUrl');">
+                                        onclick="window.open('@dep.Url');">
                                     <span class="pull-left">
-                                        <a>@(dep.FullName)</a>
+                                        <a>@(dep.Id)</a>
                                     </span>
                                     <span class="badge pull-right" style="background-color: #004880">
                                         @(dep.Stars.KiloFormat()) <i class="ms-Icon ms-Icon--FavoriteStarFill" aria-hidden="true" style="color:#ffac0e"></i>
