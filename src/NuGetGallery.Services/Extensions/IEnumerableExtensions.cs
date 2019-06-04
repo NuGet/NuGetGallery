@@ -1,14 +1,21 @@
-﻿using System;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Web.WebPages;
 
 namespace NuGetGallery
 {
     public static class IEnumerableExtensions
     {
+        public static void AddOrSet<TKey, TValue>(this ConcurrentDictionary<TKey, TValue> self, TKey key, TValue val)
+        {
+            self.AddOrUpdate(key, val, (_, __) => val);
+        }
+
         public static string Flatten(this IEnumerable<string> list)
         {
             if (list == null)

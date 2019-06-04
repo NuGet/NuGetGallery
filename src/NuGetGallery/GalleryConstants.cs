@@ -39,10 +39,6 @@ namespace NuGetGallery
         public const string ReadMeFileSavePathTemplateActive = "active/{0}/{1}{2}";
         public const string ReadMeFileSavePathTemplatePending = "pending/{0}/{1}{2}";
 
-        public const string MarkdownFileExtension = ".md";
-        public const string HtmlFileExtension = ".html";
-        public const string JsonFileExtension = ".json";
-
         public const string PopularitySortOrder = "package-download-count";
         public const string RecentSortOrder = "package-created";
         public const string RelevanceSortOrder = "relevance";
@@ -99,8 +95,6 @@ namespace NuGetGallery
         public static readonly string ReturnUrlParameterName = "ReturnUrl";
         public static readonly string CurrentUserOwinEnvironmentKey = "nuget.user";
 
-        public const string DevelopmentEnvironment = "Development";
-
         public const string LicenseDeprecationUrl = "https://aka.ms/deprecateLicenseUrl";
 
         public static class ContentNames
@@ -109,10 +103,6 @@ namespace NuGetGallery
             public static readonly string TermsOfUse = "Terms-Of-Use";
             public static readonly string PrivacyPolicy = "Privacy-Policy";
             public static readonly string Team = "Team";
-            public static readonly string LoginDiscontinuationConfiguration = "Login-Discontinuation-Configuration";
-            public static readonly string CertificatesConfiguration = "Certificates-Configuration";
-            public static readonly string SymbolsConfiguration = "Symbols-Configuration";
-            public static readonly string TyposquattingConfiguration = "Typosquatting-Configuration";
         }
 
         public static class StatisticsDimensions

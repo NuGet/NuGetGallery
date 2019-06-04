@@ -410,7 +410,7 @@ namespace NuGetGallery
                 .AsSelf()
                 .InstancePerLifetimeScope();
 
-            if (configuration.Current.Environment == GalleryConstants.DevelopmentEnvironment)
+            if (configuration.Current.Environment == ServicesConstants.DevelopmentEnvironment)
             {
                 builder.RegisterType<AllowLocalHttpRedirectPolicy>()
                     .As<ISourceDestinationRedirectPolicy>()

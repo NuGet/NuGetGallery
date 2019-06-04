@@ -56,14 +56,14 @@ namespace NuGetGallery
         {
             if (String.IsNullOrEmpty(name))
             {
-                throw new ArgumentException(String.Format(CultureInfo.CurrentCulture, Strings.ParameterCannotBeNullOrEmpty, nameof(name)), nameof(name));
+                throw new ArgumentException(String.Format(CultureInfo.CurrentCulture, ServicesStrings.ParameterCannotBeNullOrEmpty, nameof(name)), nameof(name));
             }
             
             return GetContentItemCore(
                 name, new [] { 
-                    GalleryConstants.HtmlFileExtension,
-                    GalleryConstants.MarkdownFileExtension,
-                    GalleryConstants.JsonFileExtension }, 
+                    ServicesConstants.HtmlFileExtension,
+                    ServicesConstants.MarkdownFileExtension,
+                    ServicesConstants.JsonFileExtension }, 
                 expiresIn);
         }
 
@@ -71,12 +71,12 @@ namespace NuGetGallery
         {
             if (String.IsNullOrEmpty(name))
             {
-                throw new ArgumentException(String.Format(CultureInfo.CurrentCulture, Strings.ParameterCannotBeNullOrEmpty, nameof(name)), nameof(name));
+                throw new ArgumentException(String.Format(CultureInfo.CurrentCulture, ServicesStrings.ParameterCannotBeNullOrEmpty, nameof(name)), nameof(name));
             }
 
             if (String.IsNullOrEmpty(extension))
             {
-                throw new ArgumentException(String.Format(CultureInfo.CurrentCulture, Strings.ParameterCannotBeNullOrEmpty, nameof(extension)), nameof(extension));
+                throw new ArgumentException(String.Format(CultureInfo.CurrentCulture, ServicesStrings.ParameterCannotBeNullOrEmpty, nameof(extension)), nameof(extension));
             }
 
             if (!extension.StartsWith(".", StringComparison.OrdinalIgnoreCase))

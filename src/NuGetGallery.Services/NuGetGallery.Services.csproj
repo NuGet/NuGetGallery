@@ -42,10 +42,28 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AccountManagement\AccountDeletionOrphanPackagePolicy.cs" />
+    <Compile Include="Authentication\ApiKeyV4.cs" />
+    <Compile Include="Authentication\AuthenticatedUser.cs" />
+    <Compile Include="Authentication\CredentialBuilder.cs" />
+    <Compile Include="Authentication\ICredentialBuilder.cs" />
+    <Compile Include="Authentication\V3Hasher.cs" />
+    <Compile Include="Configuration\AppConfiguration.cs" />
+    <Compile Include="Configuration\CertificatesConfiguration.cs" />
     <Compile Include="Configuration\IAppConfiguration.cs" />
+    <Compile Include="Configuration\ICertificatesConfiguration.cs" />
+    <Compile Include="Configuration\ILoginDiscontinuationConfiguration.cs" />
+    <Compile Include="Configuration\ISymbolsConfiguration.cs" />
+    <Compile Include="Configuration\ITyposquattingConfiguration.cs" />
+    <Compile Include="Configuration\LoginDiscontinuationConfiguration.cs" />
+    <Compile Include="Extensions\Base32Encoder.cs" />
+    <Compile Include="Helpers\MailAddressConverter.cs" />
+    <Compile Include="Helpers\StringArrayConverter.cs" />
+    <Compile Include="Configuration\SymbolsConfiguration.cs" />
+    <Compile Include="Configuration\TyposquattingConfiguration.cs" />
     <Compile Include="Models\LuceneIndexLocation.cs" />
     <Compile Include="Models\StorageType.cs" />
     <Compile Include="PackageManagement\ActionOnNewPackageContext.cs" />
+    <Compile Include="PackageManagement\ReservedNamespaceService.cs" />
     <Compile Include="Permissions\ActionRequiringAccountPermissions.cs" />
     <Compile Include="Permissions\ActionRequiringEntityPermissions.cs" />
     <Compile Include="Permissions\ActionRequiringPackagePermissions.cs" />
@@ -79,6 +97,12 @@
     <Compile Include="PackageManagement\IReservedNamespaceService.cs" />
     <Compile Include="PackageManagement\PackageOwnershipManagementService.cs" />
     <Compile Include="PackageManagement\PackageService.cs" />
+    <Compile Include="Providers\DateTimeProvider.cs" />
+    <Compile Include="Providers\IDateTimeProvider.cs" />
+    <Compile Include="Storage\ContentObjectService.cs" />
+    <Compile Include="Storage\ContentService.cs" />
+    <Compile Include="Storage\IContentObjectService.cs" />
+    <Compile Include="Storage\IContentService.cs" />
     <Compile Include="Security\AutomaticOverwriteRequiredSignerPolicy.cs" />
     <Compile Include="Security\ControlRequiredSignerPolicy.cs" />
     <Compile Include="Security\DefaultSubscription.cs" />
@@ -92,6 +116,7 @@
     <Compile Include="Security\RequirePackageVerifyScopePolicy.cs" />
     <Compile Include="Security\SecurityPolicyService.cs" />
     <Compile Include="ServicesConstants.cs" />
+    <Compile Include="Storage\IFileStorageService.cs" />
     <Compile Include="SupportRequest\ISupportRequestService.cs" />
     <Compile Include="Telemetry\ITelemetryClient.cs" />
     <Compile Include="UserManagement\IUserService.cs" />
@@ -127,6 +152,7 @@
     <Compile Include="Telemetry\TelemetryClientWrapper.cs" />
     <Compile Include="Telemetry\UserPackageDeleteEvent.cs" />
     <Compile Include="Telemetry\UserPackageDeleteOutcome.cs" />
+    <Compile Include="UserManagement\UserService.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NuGet.Services.Entities\NuGet.Services.Entities.csproj">
@@ -159,6 +185,9 @@
     <PackageReference Include="Microsoft.AspNet.Mvc">
       <Version>5.2.3</Version>
     </PackageReference>
+    <PackageReference Include="Microsoft.AspNetCore.Cryptography.KeyDerivation">
+      <Version>1.0.0</Version>
+    </PackageReference>
     <PackageReference Include="Microsoft.Owin">
       <Version>3.0.1</Version>
     </PackageReference>
@@ -186,9 +215,7 @@
       <CustomToolNamespace>NuGetGallery</CustomToolNamespace>
     </EmbeddedResource>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Helpers\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <SignPath>..\..\build</SignPath>
