@@ -5,7 +5,7 @@ using NuGet.Services.Logging;
 using System;
 using System.Collections.Generic;
 
-namespace NuGet.Jobs.Montoring.PackageLag.Telemetry
+namespace NuGet.Jobs.Monitoring.PackageLag.Telemetry
 {
     public class PackageLagTelemetryService : IPackageLagTelemetryService
     {

@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
-using NuGet.Jobs.Montoring.PackageLag;
+using NuGet.Jobs.Monitoring.PackageLag;
 using NuGet.Services.AzureManagement;
 using Xunit;
 using Xunit.Abstractions;

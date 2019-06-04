@@ -72,6 +72,9 @@ namespace NuGet.Services.Validation.Orchestrator
                 if (validatingEntity.Status == PackageStatus.Validating)
                 {
                     await _packageStateProcessor.SetStatusAsync(validatingEntity, validationSet, PackageStatus.FailedValidation);
+
+                    await MarkValidationSetAsCompletedAsync(validationSet);
+
                     await _messageService.SendValidationFailedMessageAsync(validatingEntity.EntityRecord, validationSet);
                 }
                 else
@@ -85,10 +88,13 @@ namespace NuGet.Services.Validation.Orchestrator
                         validationSet.PackageNormalizedVersion,
                         validatingEntity.Status,
                         validationSet.ValidationTrackingId);
+
+                    await MarkValidationSetAsCompletedAsync(validationSet);
                 }
 
-                await CleanupValidationStorageAsync(validationSet);
                 TrackValidationSetCompletion(validationSet, isSuccess: false);
+
+                await _packageFileService.DeletePackageForValidationSetAsync(validationSet);
             }
             else if (AllRequiredValidationsSucceeded(validationSet))
             {
@@ -106,6 +112,12 @@ namespace NuGet.Services.Validation.Orchestrator
                 // implemented. In this case, the processor has to play catch-up.
                 await _packageStateProcessor.SetStatusAsync(validatingEntity, validationSet, PackageStatus.Available);
 
+                var areOptionalValidationsRunning = AreOptionalValidationsRunning(validationSet);
+                if (!areOptionalValidationsRunning)
+                {
+                    await MarkValidationSetAsCompletedAsync(validationSet);
+                }
+
                 // Only send the email when first transitioning into the Available state.
                 if (fromStatus != PackageStatus.Available)
                 {
@@ -117,19 +129,28 @@ namespace NuGet.Services.Validation.Orchestrator
                     TrackValidationSetCompletion(validationSet, isSuccess: true);
                 }
 
-                if (AreOptionalValidationsRunning(validationSet))
+                if (areOptionalValidationsRunning)
                 {
                     await ScheduleCheckIfNotTimedOut(validationSet, validatingEntity, tooLongNotificationAllowed: false);
                 }
                 else
                 {
-                    await CleanupValidationStorageAsync(validationSet);
+                    await _packageFileService.DeletePackageForValidationSetAsync(validationSet);
                 }
             }
             else
             {
                 await ScheduleCheckIfNotTimedOut(validationSet, validatingEntity, tooLongNotificationAllowed: true);
             }
+        }
+
+        private async Task MarkValidationSetAsCompletedAsync(PackageValidationSet validationSet)
+        {
+            // Move the validation set to the completed status. This operation is done using optimistic concurrency
+            // meaning if another thread is processing this same validation set at the same time, one thread will win
+            // and one thread will fail. In other words, subsequent steps will be executed at most one time. From
+            validationSet.ValidationSetStatus = ValidationSetStatus.Completed;
+            await _validationStorageService.UpdateValidationSetAsync(validationSet);
         }
 
         private void TrackValidationSetCompletion(PackageValidationSet validationSet, bool isSuccess)
@@ -141,11 +162,6 @@ namespace NuGet.Services.Validation.Orchestrator
                 isSuccess);
 
             TrackTotalValidationDuration(validationSet, isSuccess);
-        }
-
-        private async Task CleanupValidationStorageAsync(PackageValidationSet validationSet)
-        {
-            await _packageFileService.DeletePackageForValidationSetAsync(validationSet);
         }
 
         private ValidationConfigurationItem GetValidationConfigurationItemByName(string name)

@@ -40,7 +40,11 @@ namespace NuGet.Services.Validation.Orchestrator
                                     packageSupportUrl,
                                     _serviceConfiguration.EmailConfiguration.EmailSettingsUrl,
                                     Array.Empty<string>());
-        
+
+            _logger.LogInformation(
+                "The publish email will be sent for the package {PackageId} {PackageVersion}",
+                package.Id,
+                package.NormalizedVersion);
             await _messageService.SendMessageAsync(packageAddedMessage);
         }
 
@@ -61,6 +65,12 @@ namespace NuGet.Services.Validation.Orchestrator
                                    _serviceConfiguration.EmailConfiguration.AnnouncementsUrl,
                                    _serviceConfiguration.EmailConfiguration.TwitterUrl);
 
+            _logger.LogInformation(
+                "The validation failed email will be sent for the package {PackageId} {PackageVersion} and " +
+                "{ValidationSetId}",
+                package.Id,
+                package.NormalizedVersion,
+                validationSet.ValidationTrackingId);
             await _messageService.SendMessageAsync(packageValidationFailedMessage);
         }
 
@@ -73,6 +83,10 @@ namespace NuGet.Services.Validation.Orchestrator
                                    package,
                                    _serviceConfiguration.GalleryPackageUrl(package.PackageRegistration.Id, package.NormalizedVersion));
 
+            _logger.LogInformation(
+                "The validating too long email will be sent for the package {PackageId} {PackageVersion}",
+                package.Id,
+                package.NormalizedVersion);
             await _messageService.SendMessageAsync(packageValidationTakingTooLongMessage);
         }
     }

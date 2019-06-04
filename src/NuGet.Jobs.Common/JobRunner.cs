@@ -38,10 +38,10 @@ namespace NuGet.Jobs
         /// </summary>
         /// <param name="job">Job to run</param>
         /// <param name="commandLineArgs">Args contains args to the job runner like (dbg, once and so on) and for the job itself</param>
-        /// <returns></returns>
-        public static async Task Run(JobBase job, string[] commandLineArgs)
+        /// <returns>The exit code, where 0 indicates success and non-zero indicates an error.</returns>
+        public static async Task<int> Run(JobBase job, string[] commandLineArgs)
         {
-            await Run(job, commandLineArgs, runContinuously: null);
+            return await Run(job, commandLineArgs, runContinuously: null);
         }
 
         /// <summary>
@@ -52,13 +52,13 @@ namespace NuGet.Jobs
         /// </summary>
         /// <param name="job">Job to run</param>
         /// <param name="commandLineArgs">Args contains args to the job runner like (dbg, once and so on) and for the job itself</param>
-        /// <returns></returns>
-        public static async Task RunOnce(JobBase job, string[] commandLineArgs)
+        /// <returns>The exit code, where 0 indicates success and non-zero indicates an error.</returns>
+        public static async Task<int> RunOnce(JobBase job, string[] commandLineArgs)
         {
-            await Run(job, commandLineArgs, runContinuously: false);
+            return await Run(job, commandLineArgs, runContinuously: false);
         }
 
-        private static async Task Run(JobBase job, string[] commandLineArgs, bool? runContinuously)
+        private static async Task<int> Run(JobBase job, string[] commandLineArgs, bool? runContinuously)
         {
             if (commandLineArgs.Length > 0 && string.Equals(commandLineArgs[0], "-" + JobArgumentNames.Dbg, StringComparison.OrdinalIgnoreCase))
             {
@@ -70,6 +70,7 @@ namespace NuGet.Jobs
             // This is done so, in case Application Insights fails to initialize, we still see output.
             var loggerFactory = ConfigureLogging(job);
 
+            int exitCode;
             try
             {
                 _logger.LogInformation("Started...");
@@ -154,15 +155,18 @@ namespace NuGet.Jobs
                 ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12;
 
                 // Run the job loop
-                await JobLoop(job, runContinuously.Value, sleepDuration.Value, reinitializeAfterSeconds, jobArgsDictionary);
+                exitCode = await JobLoop(job, runContinuously.Value, sleepDuration.Value, reinitializeAfterSeconds, jobArgsDictionary);
             }
             catch (Exception ex)
             {
+                exitCode = 1;
                 _logger.LogError("Job runner threw an exception: {Exception}", ex);
             }
 
             Trace.Close();
             TelemetryConfiguration.Active.TelemetryChannel.Flush();
+
+            return exitCode;
         }
 
         private static ILoggerFactory ConfigureLogging(JobBase job)
@@ -184,7 +188,7 @@ namespace NuGet.Jobs
                 $"'{milliSeconds:F3}' ms (or '{seconds:F3}' seconds or '{minutes:F3}' mins)";
         }
 
-        private static async Task JobLoop(
+        private static async Task<int> JobLoop(
             JobBase job,
             bool runContinuously,
             int sleepDuration,
@@ -195,6 +199,7 @@ namespace NuGet.Jobs
             var stopWatch = new Stopwatch();
             Stopwatch timeSinceInitialization = null;
 
+            int exitCode;
             while (true)
             {
                 _logger.LogInformation("Running {RunType}", (runContinuously ? " continuously..." : " once..."));
@@ -216,10 +221,12 @@ namespace NuGet.Jobs
 
                     await job.Run();
 
+                    exitCode = 0;
                     _logger.LogInformation(JobSucceeded);
                 }
                 catch (Exception e)
                 {
+                    exitCode = 1;
                     _logger.LogError("{JobState}: {Exception}", initialized ? JobFailed : JobUninitialized, e);
                 }
                 finally
@@ -241,6 +248,8 @@ namespace NuGet.Jobs
                 
                 await Task.Delay(sleepDuration);
             }
+
+            return exitCode;
         }
 
         private static bool ShouldInitialize(int? reinitializeAfterSeconds, Stopwatch timeSinceInitialization)

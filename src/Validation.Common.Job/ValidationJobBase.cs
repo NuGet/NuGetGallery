@@ -10,6 +10,7 @@ using System.Net.Http;
 using System.Reflection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NuGet.Jobs.Configuration;
 using NuGet.Services.ServiceBus;
@@ -58,7 +59,11 @@ namespace NuGet.Jobs.Validation
             {
                 var config = p.GetRequiredService<IOptionsSnapshot<ServiceBusConfiguration>>().Value;
 
-                return new SubscriptionClientWrapper(config.ConnectionString, config.TopicPath, config.SubscriptionName);
+                return new SubscriptionClientWrapper(
+                    config.ConnectionString,
+                    config.TopicPath,
+                    config.SubscriptionName,
+                    p.GetRequiredService<ILogger<SubscriptionClientWrapper>>());
             });
 
             services.AddSingleton(p =>

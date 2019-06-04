@@ -13,7 +13,7 @@ using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using NuGet.Services.AzureManagement;
 
-namespace NuGet.Jobs.Montoring.PackageLag
+namespace NuGet.Jobs.Monitoring.PackageLag
 {
     public class SearchServiceClient : ISearchServiceClient
     {
@@ -21,15 +21,17 @@ namespace NuGet.Jobs.Montoring.PackageLag
         /// To be used for <see cref="IAzureManagementAPIWrapper"/> request
         /// </summary>
         private const string ProductionSlot = "production";
+        private const string SearchQueryTemplate = "q=packageid:{0} version:{1}&ignorefilter=true&semverlevel=2.0.0";
+        private const string SearchUrlFormat = "{0}?{1}";
 
         private readonly IAzureManagementAPIWrapper _azureManagementApiWrapper;
-        private readonly HttpClient _httpClient;
+        private readonly IHttpClientWrapper _httpClient;
         private readonly IOptionsSnapshot<SearchServiceConfiguration> _configuration;
         private readonly ILogger<SearchServiceClient> _logger;
 
         public SearchServiceClient(
             IAzureManagementAPIWrapper azureManagementApiWrapper,
-            HttpClient httpClient,
+            IHttpClientWrapper httpClient,
             IOptionsSnapshot<SearchServiceConfiguration> configuration,
             ILogger<SearchServiceClient> logger)
         {
@@ -41,30 +43,63 @@ namespace NuGet.Jobs.Montoring.PackageLag
 
         public async Task<DateTimeOffset> GetCommitDateTimeAsync(Instance instance, CancellationToken token)
         {
-            using (var diagResponse = await _httpClient.GetAsync(
-                instance.DiagUrl,
-                HttpCompletionOption.ResponseContentRead,
-                token))
-            {
-                if (!diagResponse.IsSuccessStatusCode)
-                {
-                    throw new HttpResponseException(
-                        diagResponse.StatusCode,
-                        diagResponse.ReasonPhrase,
-                        $"The HTTP response when hitting {instance.DiagUrl} was {(int)diagResponse.StatusCode} " +
-                        $"{diagResponse.ReasonPhrase}, which is not successful.");
-                }
-
-                var diagContent = diagResponse.Content;
-                var searchDiagResultRaw = await diagContent.ReadAsStringAsync();
-                var searchDiagResultObject = JsonConvert.DeserializeObject<SearchDiagnosticResponse>(searchDiagResultRaw);
-
-                var commitDateTime = DateTimeOffset.Parse(
-                    searchDiagResultObject.CommitUserData.CommitTimeStamp,
+            var diagResponse = await GetSearchDiagnosticResponseAsync(instance, token);
+            return DateTimeOffset.Parse(
+                    diagResponse.CommitUserData.CommitTimeStamp,
                     CultureInfo.InvariantCulture,
                     DateTimeStyles.AssumeUniversal);
+        }
 
-                return commitDateTime;
+        public async Task<DateTimeOffset> GetIndexLastReloadTimeAsync(Instance instance, CancellationToken token)
+        {
+            var diagResponse = await GetSearchDiagnosticResponseAsync(instance, token);
+            return diagResponse.LastIndexReloadTime;
+        }
+
+        public Task<SearchResultResponse> GetResultForPackageIdVersion(Instance instance, string packageId, string packageVersion, CancellationToken token)
+        {
+            var queryString = String.Format(SearchQueryTemplate, packageId, packageVersion);
+            var result = GetSearchResultAsync(instance, queryString, token);
+
+            return result;
+        }
+
+        public async Task<SearchDiagnosticResponse> GetSearchDiagnosticResponseAsync(
+            Instance instance,
+            CancellationToken token)
+        {
+            try
+            {
+                using (var diagResponse = await _httpClient.GetAsync(
+                    instance.DiagUrl,
+                    HttpCompletionOption.ResponseContentRead,
+                    token))
+                {
+                    if (!diagResponse.IsSuccessStatusCode)
+                    {
+                        throw new HttpResponseException(
+                            diagResponse.StatusCode,
+                            diagResponse.ReasonPhrase,
+                            $"The HTTP response when hitting {instance.DiagUrl} was {(int)diagResponse.StatusCode} " +
+                            $"{diagResponse.ReasonPhrase}, which is not successful.");
+                    }
+
+                    var diagContent = diagResponse.Content;
+                    var searchDiagResultRaw = await diagContent.ReadAsStringAsync();
+                    var response = JsonConvert.DeserializeObject<SearchDiagnosticResponse>(searchDiagResultRaw);
+
+                    return response;
+                }
+            }
+            catch (JsonException je)
+            {
+                _logger.LogError("Error: Failed to deserialize response from diagnostic endpoint: {Error}", je.Message);
+                throw je;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError("Error: Failed to get diagnostic response due to unexpected error: {Error}", e.Message);
+                throw e;
             }
         }
 
@@ -84,6 +119,45 @@ namespace NuGet.Jobs.Montoring.PackageLag
             var instances = GetInstances(cloudService.Uri, cloudService.InstanceCount, regionInformation);
 
             return instances;
+        }
+
+        public async Task<SearchResultResponse> GetSearchResultAsync(Instance instance, string query, CancellationToken token)
+        {
+            try
+            {
+                var fullUrl = String.Format(SearchUrlFormat, instance.BaseQueryUrl, query);
+                using (var response = await _httpClient.GetAsync(
+                    fullUrl,
+                    HttpCompletionOption.ResponseContentRead,
+                    token))
+                {
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        throw new HttpResponseException(
+                            response.StatusCode,
+                            response.ReasonPhrase,
+                            $"The HTTP response when hitting {fullUrl} was {(int)response.StatusCode} " +
+                            $"{response.ReasonPhrase}, which is not successful.");
+                    }
+                    var content = response.Content;
+                    var searchResultRaw = await content.ReadAsStringAsync();
+                    var searchResultObject = JsonConvert.DeserializeObject<SearchResultResponse>(searchResultRaw);
+
+                    return searchResultObject;
+                }
+            }
+            catch (JsonException je)
+            {
+                _logger.LogError("Error: Failed to deserialize response from search endpoint: {Error}", je.Message);
+                throw je;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError("Error: Failed to get search result due to unexpected error: {Error}", e.Message);
+                throw e;
+            }
+
+            throw new NotImplementedException();
         }
 
         private List<Instance> GetInstances(Uri endpointUri, int instanceCount, RegionInformation regionInformation)

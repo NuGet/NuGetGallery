@@ -3,7 +3,7 @@
 
 using NuGet.Services.AzureManagement;
 
-namespace NuGet.Jobs.Montoring.PackageLag
+namespace NuGet.Jobs.Monitoring.PackageLag
 {
     public class AzureManagementAPIWrapperConfiguration : IAzureManagementAPIWrapperConfiguration
     {

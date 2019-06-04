@@ -3,7 +3,7 @@
 
 using System;
 
-namespace NuGet.Jobs.Montoring.PackageLag.Telemetry
+namespace NuGet.Jobs.Monitoring.PackageLag.Telemetry
 {
     public interface IPackageLagTelemetryService
     {

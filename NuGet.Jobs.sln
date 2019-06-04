@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27121.1
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28902.138
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Jobs.Common", "src\NuGet.Jobs.Common\NuGet.Jobs.Common.csproj", "{4B4B1EFB-8F33-42E6-B79F-54E7F3293D31}"
 EndProject
@@ -144,6 +144,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests.Stats.AzureCdnLogs.Common", "tests\Tests.Stats.AzureCdnLogs.Common\Tests.Stats.AzureCdnLogs.Common.csproj", "{5D10A44A-87E0-48D4-AF84-9DE1BCFF0CD6}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests.Stats.CDNLogsSanitizer", "tests\Tests.Stats.CDNLogsSanitizer\Tests.Stats.CDNLogsSanitizer.csproj", "{19EC1E99-89A8-445A-8C22-C1B0CD8CC777}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Monitoring.PackageLag.Tests", "tests\Monitoring.PackageLag.Tests\Monitoring.PackageLag.Tests.csproj", "{D3F1711A-25AC-4EC9-9971-4F838BCD2A07}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -381,6 +383,10 @@ Global
 		{19EC1E99-89A8-445A-8C22-C1B0CD8CC777}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{19EC1E99-89A8-445A-8C22-C1B0CD8CC777}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{19EC1E99-89A8-445A-8C22-C1B0CD8CC777}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D3F1711A-25AC-4EC9-9971-4F838BCD2A07}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D3F1711A-25AC-4EC9-9971-4F838BCD2A07}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D3F1711A-25AC-4EC9-9971-4F838BCD2A07}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D3F1711A-25AC-4EC9-9971-4F838BCD2A07}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -443,6 +449,7 @@ Global
 		{CE99E1CC-D474-4A5D-A3D4-6F357CFE4E40} = {B9D03824-A9CA-43AC-86D6-8BB399B9A228}
 		{5D10A44A-87E0-48D4-AF84-9DE1BCFF0CD6} = {6A776396-02B1-475D-A104-26940ADB04AB}
 		{19EC1E99-89A8-445A-8C22-C1B0CD8CC777} = {6A776396-02B1-475D-A104-26940ADB04AB}
+		{D3F1711A-25AC-4EC9-9971-4F838BCD2A07} = {6A776396-02B1-475D-A104-26940ADB04AB}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {284A7AC3-FB43-4F1F-9C9C-2AF0E1F46C2B}

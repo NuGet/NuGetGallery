@@ -3,7 +3,7 @@
 
 using System.Collections.Generic;
 
-namespace NuGet.Jobs.Montoring.PackageLag
+namespace NuGet.Jobs.Monitoring.PackageLag
 {
     public class SearchServiceConfiguration
     {

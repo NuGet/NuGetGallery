@@ -66,7 +66,7 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="NuGetGallery.Core">
-      <Version>4.4.5-master-39280</Version>
+      <Version>4.4.5-dev-2717380</Version>
     </PackageReference>
     <PackageReference Include="WindowsAzure.Storage">
       <Version>9.3.3</Version>

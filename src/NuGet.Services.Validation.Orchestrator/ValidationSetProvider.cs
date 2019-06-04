@@ -149,7 +149,8 @@ namespace NuGet.Services.Validation.Orchestrator
                 PackageValidations = new List<PackageValidation>(),
                 Updated = now,
                 ValidationTrackingId = message.ValidationTrackingId,
-                ValidatingType = message.ValidatingType
+                ValidatingType = message.ValidatingType,
+                ValidationSetStatus = ValidationSetStatus.InProgress,
             };
 
             var validationsToStart = _validationConfiguration

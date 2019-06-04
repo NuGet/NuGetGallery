@@ -191,6 +191,27 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         }
 
         [Fact]
+        public async Task SkipsCompletedValidationSets()
+        {
+            ValidationSet.ValidationSetStatus = ValidationSetStatus.Completed;
+
+            var handler = CreateHandler();
+            var output = await handler.HandleAsync(MessageData);
+
+            Assert.True(output, "The message should have been successfully processed.");
+
+            ValidationSetProcessorMock.Verify(
+                vop => vop.ProcessValidationsAsync(It.IsAny<PackageValidationSet>()),
+                Times.Never);
+            ValidationOutcomeProcessorMock.Verify(
+                vop => vop.ProcessValidationOutcomeAsync(
+                    It.IsAny<PackageValidationSet>(),
+                    It.IsAny<IValidatingEntity<Package>>(),
+                    It.IsAny<ValidationSetProcessorResult>()),
+                Times.Never);
+        }
+
+        [Fact]
         public async Task CallsProcessValidations()
         {
             var handler = CreateHandler();
