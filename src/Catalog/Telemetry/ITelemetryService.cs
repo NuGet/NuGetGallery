@@ -32,5 +32,6 @@ namespace NuGet.Services.Metadata.Catalog
         DurationMetric TrackDuration(string name, IDictionary<string, string> properties = null);
         void TrackIconExtractionFailure(string packageId, string normalizedPackageVersion);
         IDisposable TrackGetPackageDetailsQueryDuration(Db2CatalogCursor cursor);
+        IDisposable TrackGetPackageQueryDuration(string packageId, string packageVersion);
     }
 }

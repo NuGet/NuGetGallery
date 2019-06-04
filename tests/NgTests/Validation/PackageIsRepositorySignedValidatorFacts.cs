@@ -226,7 +226,7 @@ namespace NgTests.Validation
 
                 // Mock V2 feed response for the package's Created/LastEdited timestamps. These timestamps must match
                 // the mocked catalog entry's timestamps.
-                var timestamp = PackageTimestampMetadata.CreateForPackageExistingOnFeed(created: PackageCreationTime, lastEdited: PackageCreationTime);
+                var timestamp = PackageTimestampMetadata.CreateForExistingPackage(created: PackageCreationTime, lastEdited: PackageCreationTime);
                 var timestampMetadataResource = new Mock<IPackageTimestampMetadataResource>();
 
                 timestampMetadataResource.Setup(t => t.GetAsync(It.IsAny<ValidationContext>()))

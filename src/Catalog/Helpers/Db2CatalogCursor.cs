@@ -8,9 +8,6 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
 {
     public sealed class Db2CatalogCursor
     {
-        public const string ColumnNameCreated = "Created";
-        public const string ColumnNameLastEdited = "LastEdited";
-
         private Db2CatalogCursor(string columnName, DateTime cursorValue, int top)
         {
             ColumnName = columnName ?? throw new ArgumentNullException(nameof(columnName));
@@ -28,7 +25,7 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
         public DateTime CursorValue { get; }
         public int Top { get; }
 
-        public static Db2CatalogCursor ByCreated(DateTime since, int top) => new Db2CatalogCursor(ColumnNameCreated, since, top);
-        public static Db2CatalogCursor ByLastEdited(DateTime since, int top) => new Db2CatalogCursor(ColumnNameLastEdited, since, top);
+        public static Db2CatalogCursor ByCreated(DateTime since, int top) => new Db2CatalogCursor(Db2CatalogProjectionColumnNames.Created, since, top);
+        public static Db2CatalogCursor ByLastEdited(DateTime since, int top) => new Db2CatalogCursor(Db2CatalogProjectionColumnNames.LastEdited, since, top);
     }
 }

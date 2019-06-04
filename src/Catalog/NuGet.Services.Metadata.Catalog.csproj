@@ -105,6 +105,7 @@
     <Compile Include="Helpers\Db2CatalogCursor.cs" />
     <Compile Include="Helpers\Db2CatalogProjection.cs" />
     <Compile Include="Extensions\IDataRecordExtensions.cs" />
+    <Compile Include="Helpers\Db2CatalogProjectionColumnNames.cs" />
     <Compile Include="Helpers\GalleryDatabaseQueryService.cs" />
     <Compile Include="Helpers\IGalleryDatabaseQueryService.cs" />
     <Compile Include="Helpers\LicenseHelper.cs" />

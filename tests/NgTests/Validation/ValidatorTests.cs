@@ -95,7 +95,7 @@ namespace NgTests.Validation
             var metadataResource = new Mock<IPackageTimestampMetadataResource>();
 
             metadataResource.Setup(x => x.GetAsync(It.IsAny<ValidationContext>()))
-                .ReturnsAsync(PackageTimestampMetadata.CreateForPackageExistingOnFeed(DateTime.Now, DateTime.Now));
+                .ReturnsAsync(PackageTimestampMetadata.CreateForExistingPackage(DateTime.Now, DateTime.Now));
 
             sourceRepository.Setup(x => x.GetResource<IPackageTimestampMetadataResource>())
                 .Returns(metadataResource.Object);

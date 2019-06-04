@@ -26,9 +26,9 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
         public DateTime? Last => new[] { Created, LastEdited, Deleted }.Max();
 
         /// <summary>
-        /// Creates a <see cref="PackageTimestampMetadata"/> that represents a package that exists on the feed.
+        /// Creates a <see cref="PackageTimestampMetadata"/> that represents a package that exists on the package source.
         /// </summary>
-        public static PackageTimestampMetadata CreateForPackageExistingOnFeed(DateTime created, DateTime lastEdited)
+        public static PackageTimestampMetadata CreateForExistingPackage(DateTime created, DateTime lastEdited)
         {
             return new PackageTimestampMetadata
             {
@@ -40,9 +40,9 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
         }
 
         /// <summary>
-        /// Creates a <see cref="PackageTimestampMetadata"/> that represents a package that is missing fromn the feed.
+        /// Creates a <see cref="PackageTimestampMetadata"/> that represents a package that is missing from the package source.
         /// </summary>
-        public static PackageTimestampMetadata CreateForPackageMissingFromFeed(DateTime? deleted)
+        public static PackageTimestampMetadata CreateForMissingPackage(DateTime? deleted)
         {
             return new PackageTimestampMetadata
             {
@@ -66,14 +66,14 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
                     // On the catalog page for a delete, the published value is the timestamp the package was deleted from the audit records.
                     var deleted = catalogLeaf.GetValue("published").Value<DateTimeOffset>();
 
-                    return CreateForPackageMissingFromFeed(deleted.DateTime);
+                    return CreateForMissingPackage(deleted.DateTime);
                 }
                 else
                 {
                     var created = catalogLeaf.GetValue("created").Value<DateTimeOffset>();
                     var lastEdited = catalogLeaf.GetValue("lastEdited").Value<DateTimeOffset>();
 
-                    return CreateForPackageExistingOnFeed(created.DateTime, lastEdited.DateTime);
+                    return CreateForExistingPackage(created.DateTime, lastEdited.DateTime);
                 }
             }
             catch (Exception e)

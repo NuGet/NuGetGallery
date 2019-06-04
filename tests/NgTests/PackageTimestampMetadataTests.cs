@@ -66,11 +66,11 @@ namespace NgTests.Validation
 
             if (exists)
             {
-                package = PackageTimestampMetadata.CreateForPackageExistingOnFeed(created.Value, lastEdited.Value);
+                package = PackageTimestampMetadata.CreateForExistingPackage(created.Value, lastEdited.Value);
             }
             else
             {
-                package = PackageTimestampMetadata.CreateForPackageMissingFromFeed(deleted);
+                package = PackageTimestampMetadata.CreateForMissingPackage(deleted);
             }
 
             // Assert

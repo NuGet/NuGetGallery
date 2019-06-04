@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
+using System.Linq;
 using System.Threading.Tasks;
 using NuGet.Services.Entities;
 using NuGet.Services.Sql;
@@ -16,6 +17,21 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
     public class GalleryDatabaseQueryService : IGalleryDatabaseQueryService
     {
         private const string CursorParameterName = "Cursor";
+        private const string PackageIdParameterName = "PackageId";
+        private const string PackageVersionParameterName = "PackageVersion";
+
+        private static readonly string Db2CatalogSqlSubQuery = $@"PR.[Id],	
+                        P.[NormalizedVersion],	
+                        P.[Created],	
+                        P.[LastEdited],
+                        P.[Published],
+                        P.[Listed],
+                        P.[HideLicenseReport],
+                        P.[LicenseNames],
+                        P.[LicenseReportUrl]
+                    FROM [dbo].[Packages] AS P
+                    INNER JOIN [dbo].[PackageRegistrations] AS PR ON P.[PackageRegistrationKey] = PR.[Key]
+                    WHERE P.[PackageStatusKey] = {(int)PackageStatus.Available}";
 
         private readonly ISqlConnectionFactory _connectionFactory;
         private readonly Db2CatalogProjection _db2catalogProjection;
@@ -46,6 +62,47 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
             return GetPackagesInOrder(
                 package => package.LastEditedDate,
                 Db2CatalogCursor.ByLastEdited(since, top));
+        }
+
+        public async Task<FeedPackageDetails> GetPackageOrNull(string id, string version)
+        {
+            if (id == null)
+            {
+                throw new ArgumentNullException(nameof(id));
+            }
+
+            if (version == null)
+            {
+                throw new ArgumentNullException(nameof(version));
+            }
+
+            var packages = new List<FeedPackageDetails>();
+            var packageQuery = BuildGetPackageSqlQuery();
+
+            using (var sqlConnection = await _connectionFactory.OpenAsync())
+            {
+                using (var packagesCommand = new SqlCommand(packageQuery, sqlConnection)
+                {
+                    CommandTimeout = _commandTimeout
+                })
+                {
+                    packagesCommand.Parameters.AddWithValue(PackageIdParameterName, id);
+                    packagesCommand.Parameters.AddWithValue(PackageVersionParameterName, version);
+
+                    using (_telemetryService.TrackGetPackageQueryDuration(id, version))
+                    {
+                        using (var packagesReader = await packagesCommand.ExecuteReaderAsync())
+                        {
+                            while (await packagesReader.ReadAsync())
+                            {
+                                packages.Add(_db2catalogProjection.FromDataRecord(packagesReader));
+                            }
+                        }
+                    }
+                }
+            }
+
+            return packages.SingleOrDefault();
         }
 
         /// <summary>
@@ -110,20 +167,20 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
         internal static string BuildDb2CatalogSqlQuery(Db2CatalogCursor cursor)
         {
             return $@"SELECT TOP {cursor.Top} WITH TIES
-                        PR.[Id],
-                        P.[NormalizedVersion],
-                        P.[Created],
-                        P.[LastEdited],
-                        P.[Published],
-                        P.[Listed],
-                        P.[HideLicenseReport],
-                        P.[LicenseNames],
-                        P.[LicenseReportUrl]
-                    FROM [dbo].[Packages] AS P
-                    INNER JOIN [dbo].[PackageRegistrations] AS PR ON P.[PackageRegistrationKey] = PR.[Key]
-                    WHERE P.[PackageStatusKey] = {(int)PackageStatus.Available} 
+                        {Db2CatalogSqlSubQuery}
                         AND P.[{cursor.ColumnName}] > @{CursorParameterName}
                     ORDER BY P.[{cursor.ColumnName}]";
+        }
+
+        /// <summary>
+        /// Builds the parameterized SQL query for retrieving package details given an id and version.
+        /// </summary>
+        internal static string BuildGetPackageSqlQuery()
+        {
+            return $@"SELECT 
+                        {Db2CatalogSqlSubQuery}
+                        AND PR.[Id] = @PackageId
+                        AND P.[NormalizedVersion] = @PackageVersion";
         }
 
         /// <summary>

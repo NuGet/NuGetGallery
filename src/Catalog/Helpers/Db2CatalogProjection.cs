@@ -26,22 +26,22 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
                 throw new ArgumentNullException(nameof(dataRecord));
             }
 
-            var packageId = dataRecord["Id"].ToString();
-            var normalizedPackageVersion = dataRecord["NormalizedVersion"].ToString();
-            var listed = dataRecord.GetBoolean(dataRecord.GetOrdinal("Listed"));
-            var hideLicenseReport = dataRecord.GetBoolean(dataRecord.GetOrdinal("HideLicenseReport"));
+            var packageId = dataRecord[Db2CatalogProjectionColumnNames.PackageId].ToString();
+            var normalizedPackageVersion = dataRecord[Db2CatalogProjectionColumnNames.NormalizedVersion].ToString();
+            var listed = dataRecord.GetBoolean(dataRecord.GetOrdinal(Db2CatalogProjectionColumnNames.Listed));
+            var hideLicenseReport = dataRecord.GetBoolean(dataRecord.GetOrdinal(Db2CatalogProjectionColumnNames.HideLicenseReport));
 
             var packageContentUri = _packageContentUriBuilder.Build(packageId, normalizedPackageVersion);
 
             return new FeedPackageDetails(
                 packageContentUri,
-                dataRecord.ReadDateTime("Created").ForceUtc(),
-                dataRecord.ReadNullableUtcDateTime("LastEdited"),
-                listed ? dataRecord.ReadDateTime("Published").ForceUtc() : Constants.UnpublishedDate,
+                dataRecord.ReadDateTime(Db2CatalogProjectionColumnNames.Created).ForceUtc(),
+                dataRecord.ReadNullableUtcDateTime(Db2CatalogProjectionColumnNames.LastEdited),
+                listed ? dataRecord.ReadDateTime(Db2CatalogProjectionColumnNames.Published).ForceUtc() : Constants.UnpublishedDate,
                 packageId,
                 normalizedPackageVersion,
-                hideLicenseReport ? null : dataRecord["LicenseNames"]?.ToString(),
-                hideLicenseReport ? null : dataRecord["LicenseReportUrl"]?.ToString());
+                hideLicenseReport ? null : dataRecord[Db2CatalogProjectionColumnNames.LicenseNames]?.ToString(),
+                hideLicenseReport ? null : dataRecord[Db2CatalogProjectionColumnNames.LicenseReportUrl]?.ToString());
         }
     }
 }
