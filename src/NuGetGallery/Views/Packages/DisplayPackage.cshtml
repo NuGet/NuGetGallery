@@ -504,54 +504,57 @@
                 }
             }
 
-            <h2>
-                <a role="button" data-toggle="collapse" data-target="#github-usage"
-                   aria-expanded="false" aria-controls="github-usage" id="show-github-usage">
-                    <i class="ms-Icon ms-Icon--ChevronRight" aria-hidden="true"></i>
-                    <span>GitHub Usage</span>
-                </a>
-            </h2>
+            @if(Model.IsGitHubUsageEnabled)
+            {
+                <h2>
+                    <a role="button" data-toggle="collapse" data-target="#github-usage"
+                       aria-expanded="false" aria-controls="github-usage" id="show-github-usage">
+                        <i class="ms-Icon ms-Icon--ChevronRight" aria-hidden="true"></i>
+                        <span>GitHub Usage</span>
+                    </a>
+                </h2>
             
-            <style>
-                .btn-gh-repo {
-                    background-color: white;
-                }
-
-                    .btn-gh-repo:hover {
-                        background-color: #d9edf7;
+                <style>
+                    .btn-gh-repo {
+                        background-color: white;
                     }
-            </style>
 
-            @if (Model.GitHubDependenciesInformation.Repos.Any())
-            {
-                <div class="github-usage panel-collapse collapse" aria-expanded="true" id="github-usage">
-                    <p>
-                        About @(Model.GitHubDependenciesInformation.TotalRepos) popular GitHub repositories depend on
-                        @(Model.Id), including the following:
-                    </p>
+                        .btn-gh-repo:hover {
+                            background-color: #d9edf7;
+                        }
+                </style>
 
-                    @foreach (var dep in Model.GitHubDependenciesInformation.Repos.Take(10))
-                    {
-                        <div class="row top-buffer">
-                            <div class="col-xs-12">
-                                <button class="btn btn-gh-repo text-left btn-block"
-                                        onclick="window.open('@dep.Url');">
-                                    <span class="pull-left">
-                                        <a>@(dep.Id)</a>
-                                    </span>
-                                    <span class="badge pull-right" style="background-color: #004880">
-                                        @(dep.Stars.KiloFormat()) <i class="ms-Icon ms-Icon--FavoriteStarFill" aria-hidden="true" style="color:#ffac0e"></i>
-                                    </span>
-                                </button>
+                if (Model.GitHubDependenciesInformation.Repos.Any())
+                {
+                    <div class="github-usage panel-collapse collapse" aria-expanded="true" id="github-usage">
+                        <p>
+                            About @(Model.GitHubDependenciesInformation.TotalRepos) popular GitHub repositories depend on
+                            @(Model.Id), including the following:
+                        </p>
+
+                        @foreach (var dep in Model.GitHubDependenciesInformation.Repos.Take(10))
+                        {
+                            <div class="row top-buffer">
+                                <div class="col-xs-12">
+                                    <button class="btn btn-gh-repo text-left btn-block"
+                                            onclick="window.open('@dep.Url');">
+                                        <span class="pull-left">
+                                            <a>@(dep.Id)</a>
+                                        </span>
+                                        <span class="badge pull-right" style="background-color: #004880">
+                                            @(dep.Stars.KiloFormat()) <i class="ms-Icon ms-Icon--FavoriteStarFill" aria-hidden="true" style="color:#ffac0e"></i>
+                                        </span>
+                                    </button>
+                                </div>
                             </div>
-                        </div>
 
-                    }
-                </div>
-            }
-            else
-            {
-                @:This package is not used by any popular GitHub repository.
+                        }
+                    </div>
+                }
+                else
+                {
+                    @:This package is not used by any popular GitHub repository.
+                }
             }
 
             <h2>
@@ -895,7 +898,7 @@
                     per day (avg)
                 </li>
 
-                @if (Model.GitHubDependenciesInformation.TotalRepos > 0)
+                @if (Model.IsGitHubUsageEnabled && Model.GitHubDependenciesInformation.TotalRepos > 0)
                 {
                 <li>
                     <img class="icon" aria-hidden="true" alt="GitHub logo"

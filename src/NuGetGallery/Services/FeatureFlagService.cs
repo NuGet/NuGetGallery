@@ -17,6 +17,7 @@ namespace NuGetGallery
         private const string TyposquattingFlightName = GalleryPrefix + "TyposquattingFlight";
         private const string EmbeddedIconFlightName = GalleryPrefix + "EmbeddedIcons";
         private const string SearchSideBySideFlightName = GalleryPrefix + "SearchSideBySide";
+        private const string GitHubUsageFlightName = GalleryPrefix + "GitHubUsage";
 
         private const string PackagesAtomFeedFeatureName = GalleryPrefix + "PackagesAtomFeed";
 
@@ -68,6 +69,10 @@ namespace NuGetGallery
         public bool IsSearchSideBySideEnabled(User user)
         {
             return _client.IsEnabled(SearchSideBySideFlightName, user, defaultValue: false);
+        }
+        public bool IsGitHubUsageEnabled(User user)
+        {
+            return _client.IsEnabled(GitHubUsageFlightName, user, defaultValue: false);
         }
     }
 }

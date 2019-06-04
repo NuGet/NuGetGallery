@@ -749,6 +749,7 @@ namespace NuGetGallery
             model.IsCertificatesUIEnabled = _contentObjectService.CertificatesConfiguration?.IsUIEnabledForUser(currentUser) ?? false;
             model.IsAtomFeedEnabled = _featureFlagService.IsPackagesAtomFeedEnabled();
             model.IsPackageDeprecationEnabled = _featureFlagService.IsManageDeprecationEnabled(currentUser);
+            model.IsGitHubUsageEnabled = _featureFlagService.IsGitHubUsageEnabled(currentUser);
 
             var nupkgGitHubDependencies = _contentObjectService.NuGetPackagesGitHubDependencies;
             model.GitHubDependenciesInformation = nupkgGitHubDependencies.ContainsKey(id) ?

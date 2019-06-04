@@ -52,5 +52,13 @@ namespace NuGetGallery
         /// Whether the user is able to access the search side-by-side experiment.
         /// </summary>
         bool IsSearchSideBySideEnabled(User user);
+
+        /// <summary>
+        /// Whether a user can see the "GitHub Usage" section in a package's display page as well as 
+        /// well as the added "GitHub Usage count" in the "Statistics" section
+        /// </summary>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        bool IsGitHubUsageEnabled(User user);
     }
 }
