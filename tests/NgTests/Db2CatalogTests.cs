@@ -1640,7 +1640,10 @@ namespace NgTests
                 new JProperty(CatalogConstants.LastEdited,
                     new JObject(new JProperty(CatalogConstants.TypeKeyword, CatalogConstants.XsdDateTime))),
                 new JProperty(CatalogConstants.CatalogCommitTimeStamp,
-                    new JObject(new JProperty(CatalogConstants.TypeKeyword, CatalogConstants.XsdDateTime))));
+                    new JObject(new JProperty(CatalogConstants.TypeKeyword, CatalogConstants.XsdDateTime))),
+                new JProperty(CatalogConstants.Reasons,
+                    new JObject(
+                        new JProperty(CatalogConstants.ContainerKeyword, CatalogConstants.SetKeyword))));
 
             Assert.Equal(expectedContext.ToString(), packageDetails[CatalogConstants.ContextKeyword].ToString());
         }
