@@ -689,7 +689,7 @@ namespace NuGetGallery.Controllers
 
             [Theory]
             [MemberData(nameof(ReturnsSuccessful_Data))]
-            public Task ReturnsSuccessfulWithCustomMessageAndWithoutUnlist(
+            public Task ReturnsSuccessfulWithCustomMessage(
                 User currentUser,
                 User owner,
                 bool isLegacy,
@@ -698,7 +698,7 @@ namespace NuGetGallery.Controllers
                 PackageDeprecationStatus expectedStatus,
                 ReturnsSuccessful_AlternatePackage_State alternatePackageState)
             {
-                return AssertSuccessfulWithoutUnlist(
+                return AssertSuccessful(
                     currentUser,
                     owner,
                     isLegacy,
@@ -717,7 +717,7 @@ namespace NuGetGallery.Controllers
 
             [Theory]
             [MemberData(nameof(ReturnsSuccessfulWithoutCustomMessage_Data))]
-            public Task ReturnsSuccessfulWithoutCustomMessageOrUnlist(
+            public Task ReturnsSuccessfulWithoutCustomMessage(
                 User currentUser,
                 User owner,
                 bool isLegacy,
@@ -726,7 +726,7 @@ namespace NuGetGallery.Controllers
                 PackageDeprecationStatus expectedStatus,
                 ReturnsSuccessful_AlternatePackage_State alternatePackageState)
             {
-                return AssertSuccessfulWithoutUnlist(
+                return AssertSuccessful(
                     currentUser,
                     owner,
                     isLegacy,
@@ -737,7 +737,7 @@ namespace NuGetGallery.Controllers
                     false);
             }
 
-            private async Task AssertSuccessfulWithoutUnlist(
+            private async Task AssertSuccessful(
                 User currentUser,
                 User owner,
                 bool isLegacy,

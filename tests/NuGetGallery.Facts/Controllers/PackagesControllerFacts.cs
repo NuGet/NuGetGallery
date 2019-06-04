@@ -3348,7 +3348,7 @@ namespace NuGetGallery
                 var packageUpdateService = new Mock<IPackageUpdateService>(MockBehavior.Strict);
                 packageUpdateService
                     .Setup(svc => svc.MarkPackageUnlistedAsync(package, true, true))
-                    .Returns(Task.FromResult(0)).Verifiable();
+                    .Returns(Task.CompletedTask).Verifiable();
 
                 var packageService = new Mock<IPackageService>(MockBehavior.Strict);
                 packageService
