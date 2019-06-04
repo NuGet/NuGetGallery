@@ -200,6 +200,7 @@ namespace NuGetGallery.Services
             private readonly Mock<IEntitiesContext> _mockEntitiesContext;
             private readonly Mock<IPackageService> _mockPackageService;
             private readonly Mock<IDatabase> _mockDatabase;
+            private readonly Mock<IDbContextTransaction> _mockTransaction;
 
             public TheUpdatePackagesAsyncMethod()
             {
@@ -211,6 +212,8 @@ namespace NuGetGallery.Services
                     .Setup(x => x.GetDatabase())
                     .Returns(_mockDatabase.Object)
                     .Verifiable();
+
+                _mockTransaction = new Mock<IDbContextTransaction>();
             }
 
             public static IEnumerable<object[]> SetListed_Data => 
@@ -227,7 +230,7 @@ namespace NuGetGallery.Services
             {
                 var service = Get<PackageUpdateService>();
                 await Assert.ThrowsAsync<ArgumentException>(
-                    () => service.UpdatePackagesAsync(packages, setListed));
+                    () => service.UpdatePackagesAsync(packages, setListed, _mockTransaction.Object));
             }
 
             public enum PackageLatestState
@@ -286,6 +289,7 @@ namespace NuGetGallery.Services
                 _mockPackageService.Verify();
                 _mockEntitiesContext.Verify();
                 _mockDatabase.Verify();
+                _mockTransaction.Verify();
             }
 
             private Task SetupAndInvokeMethod(IReadOnlyList<Package> packages, bool? setListed, bool sqlQuerySucceeds)
@@ -343,8 +347,15 @@ WHERE [Key] IN ({packageKeyStrings})";
                     .Returns(Task.FromResult(sqlQuerySucceeds ? packages.Count() * 2 : 0))
                     .Verifiable();
 
+                if (sqlQuerySucceeds)
+                {
+                    _mockTransaction
+                        .Setup(x => x.Commit())
+                        .Verifiable();
+                }
+
                 return Get<PackageUpdateService>()
-                    .UpdatePackagesAsync(packages, setListed);
+                    .UpdatePackagesAsync(packages, setListed, _mockTransaction.Object);
             }
 
             private IReadOnlyList<Package> GetPackagesForTest(PackageLatestState latestState, bool listed)

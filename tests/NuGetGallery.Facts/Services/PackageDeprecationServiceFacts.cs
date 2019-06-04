@@ -94,10 +94,12 @@ namespace NuGetGallery.Services
                     packageWithoutDeprecation2
                 };
 
+                var transaction = Mock.Of<IDbContextTransaction>();
+
                 var databaseMock = new Mock<IDatabase>();
                 databaseMock
                     .Setup(x => x.BeginTransaction())
-                    .Returns(Mock.Of<IDbContextTransaction>());
+                    .Returns(transaction);
 
                 var context = GetFakeContext();
                 context.SetupDatabase(databaseMock.Object);
@@ -108,7 +110,7 @@ namespace NuGetGallery.Services
 
                 var packageUpdateService = GetMock<IPackageUpdateService>();
                 packageUpdateService
-                    .Setup(b => b.UpdatePackagesAsync(packages, null, true))
+                    .Setup(b => b.UpdatePackagesAsync(packages, null, transaction, true))
                     .Returns(Task.CompletedTask)
                     .Verifiable();
 
@@ -193,15 +195,12 @@ namespace NuGetGallery.Services
                     packageWithDeprecation3
                 };
 
-                var transactionMock = new Mock<IDbContextTransaction>();
-                transactionMock
-                    .Setup(x => x.Commit())
-                    .Verifiable();
+                var transaction = Mock.Of<IDbContextTransaction>();
 
                 var databaseMock = new Mock<IDatabase>();
                 databaseMock
                     .Setup(x => x.BeginTransaction())
-                    .Returns(transactionMock.Object);
+                    .Returns(transaction);
 
                 var context = GetFakeContext();
                 context.SetupDatabase(databaseMock.Object);
@@ -212,7 +211,7 @@ namespace NuGetGallery.Services
 
                 var packageUpdateService = GetMock<IPackageUpdateService>();
                 packageUpdateService
-                    .Setup(b => b.UpdatePackagesAsync(packages, shouldUnlist ? false : (bool?)null, true))
+                    .Setup(b => b.UpdatePackagesAsync(packages, shouldUnlist ? false : (bool?)null, transaction, true))
                     .Returns(Task.CompletedTask)
                     .Verifiable();
 
@@ -239,7 +238,6 @@ namespace NuGetGallery.Services
                 // Assert
                 context.VerifyCommitChanges();
                 databaseMock.Verify();
-                transactionMock.Verify();
 
                 packageUpdateService.Verify();
 

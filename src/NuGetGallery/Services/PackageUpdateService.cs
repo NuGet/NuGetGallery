@@ -118,7 +118,7 @@ namespace NuGetGallery
             }
         }
 
-        public async Task UpdatePackagesAsync(IReadOnlyList<Package> packages, bool? listed, bool updateIndex = true)
+        public async Task UpdatePackagesAsync(IReadOnlyList<Package> packages, bool? listed, IDbContextTransaction transaction, bool updateIndex = true)
         {
             if (packages == null || !packages.Any())
             {
@@ -137,6 +137,8 @@ namespace NuGetGallery
             }
 
             await UpdatePackagesInBulkAsync(packages);
+
+            transaction.Commit();
 
             if (updateIndex)
             {

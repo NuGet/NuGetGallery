@@ -101,9 +101,7 @@ namespace NuGetGallery
 
                 await _entitiesContext.SaveChangesAsync();
 
-                await _packageUpdateService.UpdatePackagesAsync(packages, shouldUnlist ? false : (bool?)null);
-
-                transaction.Commit();
+                await _packageUpdateService.UpdatePackagesAsync(packages, shouldUnlist ? false : (bool?)null, transaction);
             }
         }
 
