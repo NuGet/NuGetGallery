@@ -511,12 +511,12 @@ namespace NuGetGallery
         }
         private static string GetClientVersion()
         {
-            return HttpContext.Current?.Request?.Headers[GalleryConstants.ClientVersionHeaderName];
+            return HttpContext.Current?.Request?.Headers[ServicesConstants.ClientVersionHeaderName];
         }
 
         private static string GetProtocolVersion()
         {
-            return HttpContext.Current?.Request?.Headers[GalleryConstants.NuGetProtocolHeaderName];
+            return HttpContext.Current?.Request?.Headers[ServicesConstants.NuGetProtocolHeaderName];
         }
 
         private static string GetClientInformation()

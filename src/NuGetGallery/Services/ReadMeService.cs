@@ -278,10 +278,10 @@ namespace NuGetGallery
         /// <returns>Markdown content.</returns>
         private static async Task<string> GetReadMeMdFromPostedFileAsync(HttpPostedFileBase readMeMdPostedFile, Encoding encoding)
         {
-            if (!Path.GetExtension(readMeMdPostedFile.FileName).Equals(GalleryConstants.MarkdownFileExtension, StringComparison.InvariantCulture))
+            if (!Path.GetExtension(readMeMdPostedFile.FileName).Equals(ServicesConstants.MarkdownFileExtension, StringComparison.InvariantCulture))
             {
                 throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture,
-                    Strings.ReadMePostedFileExtensionInvalid, GalleryConstants.MarkdownFileExtension));
+                    Strings.ReadMePostedFileExtensionInvalid, ServicesConstants.MarkdownFileExtension));
             }
 
             using (var readMeMdStream = readMeMdPostedFile.InputStream)

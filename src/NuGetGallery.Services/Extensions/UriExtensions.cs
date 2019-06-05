@@ -11,6 +11,16 @@ namespace NuGetGallery
     {
         private static string ExternalLinkAnchorTagFormat = $"<a href=\"{{1}}\" target=\"_blank\">{{0}}</a>";
 
+        public static string ToEncodedUrlStringOrNull(this Uri uri)
+        {
+            if (uri == null)
+            {
+                return null;
+            }
+
+            return uri.AbsoluteUri;
+        }
+
         public static bool IsHttpsProtocol(this Uri uri)
         {
             return uri.Scheme == Uri.UriSchemeHttps;
@@ -23,7 +33,7 @@ namespace NuGetGallery
 
         public static bool IsGitProtocol(this Uri uri)
         {
-            return uri.Scheme == GalleryConstants.GitRepository;
+            return uri.Scheme == ServicesConstants.GitRepository;
         }
 
         public static bool IsDomainWithHttpsSupport(this Uri uri)

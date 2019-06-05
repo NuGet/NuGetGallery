@@ -32,7 +32,7 @@ namespace NuGetGallery.Security
                 return Task.FromResult(SecurityPolicyResult.SuccessResult);
             }
 
-            return Task.FromResult(SecurityPolicyResult.CreateErrorResult(Strings.SecurityPolicy_RequireApiKeyWithPackageVerifyScope));
+            return Task.FromResult(SecurityPolicyResult.CreateErrorResult(ServicesStrings.SecurityPolicy_RequireApiKeyWithPackageVerifyScope));
         }
     }
 }

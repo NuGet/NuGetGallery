@@ -151,7 +151,7 @@ namespace NuGetGallery
             }
             else
             {
-                throw new InvalidOperationException(string.Format(Strings.RemoveOwner_NotAllowed, requestingOwner.Username, ownerToBeRemoved.Username));
+                throw new InvalidOperationException(string.Format(ServicesStrings.RemoveOwner_NotAllowed, requestingOwner.Username, ownerToBeRemoved.Username));
             }
         }
 
