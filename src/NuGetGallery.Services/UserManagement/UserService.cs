@@ -81,7 +81,7 @@ namespace NuGetGallery
             if (membership != null)
             {
                 throw new EntityException(string.Format(CultureInfo.CurrentCulture,
-                    Strings.AddMember_AlreadyAMember, memberName));
+                    ServicesStrings.AddMember_AlreadyAMember, memberName));
             }
 
             var request = FindMembershipRequestByUsername(organization, memberName);
@@ -94,28 +94,28 @@ namespace NuGetGallery
                 return request;
             }
 
-            if (Regex.IsMatch(memberName, GalleryConstants.EmailValidationRegex, RegexOptions.None, GalleryConstants.EmailValidationRegexTimeout))
+            if (Regex.IsMatch(memberName, ServicesConstants.EmailValidationRegex, RegexOptions.None, ServicesConstants.EmailValidationRegexTimeout))
             {
-                throw new EntityException(Strings.AddMember_NameIsEmail);
+                throw new EntityException(ServicesStrings.AddMember_NameIsEmail);
             }
 
             var member = FindByUsername(memberName);
             if (member == null)
             {
                 throw new EntityException(string.Format(CultureInfo.CurrentCulture,
-                    Strings.AddMember_UserNotFound, memberName));
+                    ServicesStrings.AddMember_UserNotFound, memberName));
             }
 
             if (!member.Confirmed)
             {
                 throw new EntityException(string.Format(CultureInfo.CurrentCulture,
-                    Strings.AddMember_UserNotConfirmed, memberName));
+                    ServicesStrings.AddMember_UserNotConfirmed, memberName));
             }
 
             if (member is Organization)
             {
                 throw new EntityException(string.Format(CultureInfo.CurrentCulture,
-                    Strings.AddMember_UserIsOrganization, memberName));
+                    ServicesStrings.AddMember_UserIsOrganization, memberName));
             }
 
             // Ensure that the new member meets the AAD tenant policy for this organization.
@@ -150,7 +150,7 @@ namespace NuGetGallery
             catch (InvalidOperationException)
             {
                 throw new EntityException(string.Format(CultureInfo.CurrentCulture,
-                    Strings.RejectMembershipRequest_NotFound, memberName));
+                    ServicesStrings.RejectMembershipRequest_NotFound, memberName));
             }
         }
 
@@ -163,7 +163,7 @@ namespace NuGetGallery
             catch (InvalidOperationException)
             {
                 throw new EntityException(string.Format(CultureInfo.CurrentCulture,
-                    Strings.CancelMembershipRequest_MissingRequest, memberName));
+                    ServicesStrings.CancelMembershipRequest_MissingRequest, memberName));
             }
         }
 
@@ -193,7 +193,7 @@ namespace NuGetGallery
             if (request == null || request.ConfirmationToken != confirmationToken)
             {
                 throw new EntityException(string.Format(CultureInfo.CurrentCulture,
-                    Strings.AddMember_MissingRequest, memberName));
+                    ServicesStrings.AddMember_MissingRequest, memberName));
             }
 
             var member = request.NewMember;
@@ -203,13 +203,13 @@ namespace NuGetGallery
             if (!member.Confirmed)
             {
                 throw new EntityException(string.Format(CultureInfo.CurrentCulture,
-                    Strings.AddMember_UserNotConfirmed, memberName));
+                    ServicesStrings.AddMember_UserNotConfirmed, memberName));
             }
 
             if (member is Organization)
             {
                 throw new EntityException(string.Format(CultureInfo.CurrentCulture,
-                    Strings.AddMember_UserIsOrganization, memberName));
+                    ServicesStrings.AddMember_UserIsOrganization, memberName));
             }
 
             var membership = FindMembershipByUsername(organization, memberName);
@@ -221,7 +221,7 @@ namespace NuGetGallery
                 if (policyResult != SecurityPolicyResult.SuccessResult)
                 {
                     throw new EntityException(string.Format(CultureInfo.CurrentCulture,
-                        Strings.AddMember_PolicyFailure, policyResult.ErrorMessage));
+                        ServicesStrings.AddMember_PolicyFailure, policyResult.ErrorMessage));
                 }
 
                 membership = new Membership()
@@ -255,7 +255,7 @@ namespace NuGetGallery
             if (membership == null)
             {
                 throw new EntityException(string.Format(CultureInfo.CurrentCulture,
-                    Strings.UpdateOrDeleteMember_MemberNotFound, memberName));
+                    ServicesStrings.UpdateOrDeleteMember_MemberNotFound, memberName));
             }
 
             if (membership.IsAdmin != isAdmin)
@@ -263,7 +263,7 @@ namespace NuGetGallery
                 // block removal of last admin
                 if (membership.IsAdmin && organization.Administrators.Count() == 1)
                 {
-                    throw new EntityException(Strings.UpdateMember_CannotRemoveLastAdmin);
+                    throw new EntityException(ServicesStrings.UpdateMember_CannotRemoveLastAdmin);
                 }
 
                 membership.IsAdmin = isAdmin;
@@ -284,7 +284,7 @@ namespace NuGetGallery
             if (membership == null)
             {
                 throw new EntityException(string.Format(CultureInfo.CurrentCulture,
-                    Strings.UpdateOrDeleteMember_MemberNotFound, memberName));
+                    ServicesStrings.UpdateOrDeleteMember_MemberNotFound, memberName));
             }
 
             var memberToRemove = membership.Member;
@@ -292,7 +292,7 @@ namespace NuGetGallery
             // block removal of last admin
             if (membership.IsAdmin && organization.Administrators.Count() == 1)
             {
-                throw new EntityException(Strings.DeleteMember_CannotRemoveLastAdmin);
+                throw new EntityException(ServicesStrings.DeleteMember_CannotRemoveLastAdmin);
             }
 
             organization.Members.Remove(membership);
@@ -393,7 +393,7 @@ namespace NuGetGallery
             var existingUsers = FindAllByEmailAddress(newEmailAddress);
             if (existingUsers.AnySafe(u => u.Key != user.Key))
             {
-                throw new EntityException(Strings.EmailAddressBeingUsed, newEmailAddress);
+                throw new EntityException(ServicesStrings.EmailAddressBeingUsed, newEmailAddress);
             }
 
             await Auditing.SaveAuditRecordAsync(new UserAuditRecord(user, AuditedUserAction.ChangeEmail, newEmailAddress));
@@ -456,7 +456,7 @@ namespace NuGetGallery
             var conflictingUsers = FindAllByEmailAddress(user.UnconfirmedEmailAddress);
             if (conflictingUsers.AnySafe(u => u.Key != user.Key))
             {
-                throw new EntityException(Strings.EmailAddressBeingUsed, user.UnconfirmedEmailAddress);
+                throw new EntityException(ServicesStrings.EmailAddressBeingUsed, user.UnconfirmedEmailAddress);
             }
 
             await Auditing.SaveAuditRecordAsync(new UserAuditRecord(user, AuditedUserAction.ConfirmEmail, user.UnconfirmedEmailAddress));
@@ -493,16 +493,16 @@ namespace NuGetGallery
             if (!accountToTransform.Confirmed)
             {
                 errorReason = String.Format(CultureInfo.CurrentCulture,
-                    Strings.TransformAccount_AccountNotConfirmed, accountToTransform.Username);
+                    ServicesStrings.TransformAccount_AccountNotConfirmed, accountToTransform.Username);
             }
             else if (accountToTransform is Organization)
             {
                 errorReason = String.Format(CultureInfo.CurrentCulture,
-                    Strings.TransformAccount_AccountIsAnOrganization, accountToTransform.Username);
+                    ServicesStrings.TransformAccount_AccountIsAnOrganization, accountToTransform.Username);
             }
             else if (accountToTransform.Organizations.Any() || accountToTransform.OrganizationRequests.Any())
             {
-                errorReason = Strings.TransformAccount_AccountHasMemberships;
+                errorReason = ServicesStrings.TransformAccount_AccountHasMemberships;
             }
 
             return errorReason == null;
@@ -518,17 +518,17 @@ namespace NuGetGallery
             if (adminUser.MatchesUser(accountToTransform))
             {
                 errorReason = String.Format(CultureInfo.CurrentCulture,
-                    Strings.TransformAccount_AdminMustBeDifferentAccount, adminUser.Username);
+                    ServicesStrings.TransformAccount_AdminMustBeDifferentAccount, adminUser.Username);
             }
             else if (!adminUser.Confirmed)
             {
                 errorReason = String.Format(CultureInfo.CurrentCulture,
-                    Strings.TransformAccount_AdminAccountNotConfirmed, adminUser.Username);
+                    ServicesStrings.TransformAccount_AdminAccountNotConfirmed, adminUser.Username);
             }
             else if (adminUser is Organization)
             {
                 errorReason = String.Format(CultureInfo.CurrentCulture,
-                    Strings.TransformAccount_AdminAccountIsOrganization, adminUser.Username);
+                    ServicesStrings.TransformAccount_AdminAccountIsOrganization, adminUser.Username);
             }
 
             return errorReason == null;
@@ -554,12 +554,12 @@ namespace NuGetGallery
             {
                 if (existingUserWithIdentity.Username.Equals(username, StringComparison.OrdinalIgnoreCase))
                 {
-                    throw new EntityException(Strings.UsernameNotAvailable, username);
+                    throw new EntityException(ServicesStrings.UsernameNotAvailable, username);
                 }
 
                 if (string.Equals(existingUserWithIdentity.EmailAddress, emailAddress, StringComparison.OrdinalIgnoreCase))
                 {
-                    throw new EntityException(Strings.EmailAddressBeingUsed, emailAddress);
+                    throw new EntityException(ServicesStrings.EmailAddressBeingUsed, emailAddress);
                 }
             }
 

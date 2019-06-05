@@ -59,7 +59,7 @@ namespace NuGetGallery
             var matchingReservedNamespaces = FindAllReservedNamespacesForPrefix(prefix: newNamespace.Value, getExactMatches: !newNamespace.IsPrefix);
             if (matchingReservedNamespaces.Any())
             {
-                throw new InvalidOperationException(Strings.ReservedNamespace_NamespaceNotAvailable);
+                throw new InvalidOperationException(ServicesStrings.ReservedNamespace_NamespaceNotAvailable);
             }
 
             // Mark the new namespace as shared if it matches any liberal namespace which is a shared
@@ -82,7 +82,7 @@ namespace NuGetGallery
         {
             if (string.IsNullOrWhiteSpace(existingNamespace))
             {
-                throw new ArgumentException(Strings.ReservedNamespace_InvalidNamespace);
+                throw new ArgumentException(ServicesStrings.ReservedNamespace_InvalidNamespace);
             }
 
             using (var strategy = new SuspendDbExecutionStrategy())
@@ -90,7 +90,7 @@ namespace NuGetGallery
             {
                 var namespaceToDelete = FindReservedNamespaceForPrefix(existingNamespace)
                     ?? throw new InvalidOperationException(string.Format(
-                        CultureInfo.CurrentCulture, Strings.ReservedNamespace_NamespaceNotFound, existingNamespace));
+                        CultureInfo.CurrentCulture, ServicesStrings.ReservedNamespace_NamespaceNotFound, existingNamespace));
 
                 // Delete verified flags on corresponding packages for this prefix if 
                 // it is the only prefix matching the package registration.
@@ -118,12 +118,12 @@ namespace NuGetGallery
         {
             if (string.IsNullOrWhiteSpace(prefix))
             {
-                throw new ArgumentException(Strings.ReservedNamespace_InvalidNamespace);
+                throw new ArgumentException(ServicesStrings.ReservedNamespace_InvalidNamespace);
             }
 
             if (string.IsNullOrWhiteSpace(username))
             {
-                throw new ArgumentException(Strings.ReservedNamespace_InvalidUsername);
+                throw new ArgumentException(ServicesStrings.ReservedNamespace_InvalidUsername);
             }
 
             using (var strategy = new SuspendDbExecutionStrategy())
@@ -131,15 +131,15 @@ namespace NuGetGallery
             {
                 var namespaceToModify = FindReservedNamespaceForPrefix(prefix)
                     ?? throw new InvalidOperationException(string.Format(
-                        CultureInfo.CurrentCulture, Strings.ReservedNamespace_NamespaceNotFound, prefix));
+                        CultureInfo.CurrentCulture, ServicesStrings.ReservedNamespace_NamespaceNotFound, prefix));
 
                 var userToAdd = UserService.FindByUsername(username)
                     ?? throw new InvalidOperationException(string.Format(
-                        CultureInfo.CurrentCulture, Strings.ReservedNamespace_UserNotFound, username));
+                        CultureInfo.CurrentCulture, ServicesStrings.ReservedNamespace_UserNotFound, username));
 
                 if (namespaceToModify.Owners.Contains(userToAdd))
                 {
-                    throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, Strings.ReservedNamespace_UserAlreadyOwner, username));
+                    throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, ServicesStrings.ReservedNamespace_UserAlreadyOwner, username));
                 }
 
                 Expression<Func<PackageRegistration, bool>> predicate;
@@ -184,16 +184,16 @@ namespace NuGetGallery
         {
             if (string.IsNullOrWhiteSpace(prefix))
             {
-                throw new ArgumentException(Strings.ReservedNamespace_InvalidNamespace);
+                throw new ArgumentException(ServicesStrings.ReservedNamespace_InvalidNamespace);
             }
 
             if (string.IsNullOrWhiteSpace(username))
             {
-                throw new ArgumentException(Strings.ReservedNamespace_InvalidUsername);
+                throw new ArgumentException(ServicesStrings.ReservedNamespace_InvalidUsername);
             }
             var namespaceToModify = FindReservedNamespaceForPrefix(prefix)
                    ?? throw new InvalidOperationException(string.Format(
-                       CultureInfo.CurrentCulture, Strings.ReservedNamespace_NamespaceNotFound, prefix));
+                       CultureInfo.CurrentCulture, ServicesStrings.ReservedNamespace_NamespaceNotFound, prefix));
             List<PackageRegistration> packageRegistrationsToMarkUnverified;
             if (commitChanges)
             {
@@ -217,11 +217,11 @@ namespace NuGetGallery
         {
             var userToRemove = UserService.FindByUsername(username)
                 ?? throw new InvalidOperationException(string.Format(
-                    CultureInfo.CurrentCulture, Strings.ReservedNamespace_UserNotFound, username));
+                    CultureInfo.CurrentCulture, ServicesStrings.ReservedNamespace_UserNotFound, username));
 
             if (!namespaceToModify.Owners.Contains(userToRemove))
             {
-                throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, Strings.ReservedNamespace_UserNotAnOwner, username));
+                throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, ServicesStrings.ReservedNamespace_UserNotAnOwner, username));
             }
 
             var packagesOwnedByUserMatchingPrefix = namespaceToModify
@@ -271,7 +271,7 @@ namespace NuGetGallery
         {
             if (string.IsNullOrWhiteSpace(prefix))
             {
-                throw new ArgumentException(Strings.ReservedNamespace_InvalidNamespace);
+                throw new ArgumentException(ServicesStrings.ReservedNamespace_InvalidNamespace);
             }
 
             if (packageRegistration == null)
@@ -281,7 +281,7 @@ namespace NuGetGallery
 
             var namespaceToModify = FindReservedNamespaceForPrefix(prefix)
                 ?? throw new InvalidOperationException(string.Format(
-                    CultureInfo.CurrentCulture, Strings.ReservedNamespace_NamespaceNotFound, prefix));
+                    CultureInfo.CurrentCulture, ServicesStrings.ReservedNamespace_NamespaceNotFound, prefix));
 
             namespaceToModify.PackageRegistrations.Add(packageRegistration);
         }
@@ -356,14 +356,14 @@ namespace NuGetGallery
             // Same restrictions as that of NuGetGallery.Core.Packaging.PackageIdValidator except for the regex change, a namespace could end in a '.'
             if (string.IsNullOrWhiteSpace(value))
             {
-                throw new ArgumentException(Strings.ReservedNamespace_InvalidNamespace);
+                throw new ArgumentException(ServicesStrings.ReservedNamespace_InvalidNamespace);
             }
 
             if (value.Length > Constants.MaxPackageIdLength)
             {
                 throw new ArgumentException(string.Format(
                     CultureInfo.CurrentCulture,
-                    Strings.ReservedNamespace_NamespaceExceedsLength,
+                    ServicesStrings.ReservedNamespace_NamespaceExceedsLength,
                     Constants.MaxPackageIdLength));
             }
 
@@ -371,7 +371,7 @@ namespace NuGetGallery
             {
                 throw new ArgumentException(string.Format(
                     CultureInfo.CurrentCulture,
-                    Strings.ReservedNamespace_InvalidCharactersInNamespace,
+                    ServicesStrings.ReservedNamespace_InvalidCharactersInNamespace,
                     value));
             }
         }

@@ -64,7 +64,7 @@ namespace NuGetGallery.Security
                     allowedAuthors: new[] { MicrosoftUsername },
                     isLicenseUrlRequired: true,
                     isProjectUrlRequired: true,
-                    errorMessageFormat: Strings.SecurityPolicy_RequireMicrosoftPackageMetadataComplianceForPush)
+                    errorMessageFormat: ServicesStrings.SecurityPolicy_RequireMicrosoftPackageMetadataComplianceForPush)
             };
         }
     }
