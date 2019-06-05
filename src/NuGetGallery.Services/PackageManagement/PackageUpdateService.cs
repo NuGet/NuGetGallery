@@ -32,14 +32,90 @@ namespace NuGetGallery
             _indexingService = indexingService ?? throw new ArgumentNullException(nameof(indexingService));
         }
 
-        public Task MarkPackageListedAsync(Package package, bool commitChanges = true, bool updateIndex = true)
+        public async Task MarkPackageListedAsync(Package package, bool commitChanges = true, bool updateIndex = true)
         {
-            return MarkPackageListedInternalAsync(package, commitChanges, updateIndex, updateIsLatest: true);
+            if (package == null)
+            {
+                throw new ArgumentNullException(nameof(package));
+            }
+
+            if (package.Listed)
+            {
+                return;
+            }
+
+            if (package.PackageStatusKey == PackageStatus.Deleted)
+            {
+                throw new InvalidOperationException("A deleted package should never be listed!");
+            }
+
+            if (package.PackageStatusKey == PackageStatus.FailedValidation)
+            {
+                throw new InvalidOperationException("A package that failed validation should never be listed!");
+            }
+
+            if (!package.Listed && (package.IsLatestStable || package.IsLatest || package.IsLatestSemVer2 || package.IsLatestStableSemVer2))
+            {
+                throw new InvalidOperationException("An unlisted package should never be latest or latest stable!");
+            }
+
+            package.Listed = true;
+            package.LastUpdated = DateTime.UtcNow;
+            // NOTE: LastEdited will be overwritten by a trigger defined in the migration named "AddTriggerForPackagesLastEdited".
+            package.LastEdited = DateTime.UtcNow;
+
+            await _packageService.UpdateIsLatestAsync(package.PackageRegistration, commitChanges: false);
+
+            await _auditingService.SaveAuditRecordAsync(new PackageAuditRecord(package, AuditedPackageAction.List));
+
+            _telemetryService.TrackPackageListed(package);
+
+            if (commitChanges)
+            {
+                await _entitiesContext.SaveChangesAsync();
+            }
+
+            if (updateIndex)
+            {
+                _indexingService.UpdatePackage(package);
+            }
         }
 
-        public Task MarkPackageUnlistedAsync(Package package, bool commitChanges = true, bool updateIndex = true)
+        public async Task MarkPackageUnlistedAsync(Package package, bool commitChanges = true, bool updateIndex = true)
         {
-            return MarkPackageUnlistedInternalAsync(package, commitChanges, updateIndex, updateIsLatest: true);
+            if (package == null)
+            {
+                throw new ArgumentNullException(nameof(package));
+            }
+
+            if (!package.Listed)
+            {
+                return;
+            }
+
+            package.Listed = false;
+            package.LastUpdated = DateTime.UtcNow;
+            // NOTE: LastEdited will be overwritten by a trigger defined in the migration named "AddTriggerForPackagesLastEdited".
+            package.LastEdited = DateTime.UtcNow;
+
+            if (ShouldUpdateIsLatestForPackageWhenUnlisting(package))
+            {
+                await _packageService.UpdateIsLatestAsync(package.PackageRegistration, commitChanges: false);
+            }
+
+            await _auditingService.SaveAuditRecordAsync(new PackageAuditRecord(package, AuditedPackageAction.Unlist));
+
+            _telemetryService.TrackPackageUnlisted(package);
+
+            if (commitChanges)
+            {
+                await _entitiesContext.SaveChangesAsync();
+            }
+
+            if (updateIndex)
+            {
+                _indexingService.UpdatePackage(package);
+            }
         }
 
         public async Task UpdatePackagesAsync(IReadOnlyList<Package> packages, IDbContextTransaction transaction, bool updateIndex = true)
@@ -98,95 +174,6 @@ WHERE [Key] IN ({0})";
                 throw new InvalidOperationException(
                     $"Updated an unexpected number of packages when performing a bulk update! " +
                     $"Updated {result} packages instead of {expectedResult}.");
-            }
-        }
-
-        private async Task MarkPackageListedInternalAsync(Package package, bool commitChanges, bool updateIndex, bool updateIsLatest)
-        {
-            if (package == null)
-            {
-                throw new ArgumentNullException(nameof(package));
-            }
-
-            if (package.Listed)
-            {
-                return;
-            }
-
-            if (package.PackageStatusKey == PackageStatus.Deleted)
-            {
-                throw new InvalidOperationException("A deleted package should never be listed!");
-            }
-
-            if (package.PackageStatusKey == PackageStatus.FailedValidation)
-            {
-                throw new InvalidOperationException("A package that failed validation should never be listed!");
-            }
-
-            if (!package.Listed && (package.IsLatestStable || package.IsLatest || package.IsLatestSemVer2 || package.IsLatestStableSemVer2))
-            {
-                throw new InvalidOperationException("An unlisted package should never be latest or latest stable!");
-            }
-
-            package.Listed = true;
-            package.LastUpdated = DateTime.UtcNow;
-            // NOTE: LastEdited will be overwritten by a trigger defined in the migration named "AddTriggerForPackagesLastEdited".
-            package.LastEdited = DateTime.UtcNow;
-
-            if (updateIsLatest)
-            {
-                await _packageService.UpdateIsLatestAsync(package.PackageRegistration, commitChanges: false);
-            }
-
-            await _auditingService.SaveAuditRecordAsync(new PackageAuditRecord(package, AuditedPackageAction.List));
-
-            _telemetryService.TrackPackageListed(package);
-
-            if (commitChanges)
-            {
-                await _entitiesContext.SaveChangesAsync();
-            }
-
-            if (updateIndex)
-            {
-                _indexingService.UpdatePackage(package);
-            }
-        }
-
-        private async Task MarkPackageUnlistedInternalAsync(Package package, bool commitChanges, bool updateIndex, bool updateIsLatest)
-        {
-            if (package == null)
-            {
-                throw new ArgumentNullException(nameof(package));
-            }
-
-            if (!package.Listed)
-            {
-                return;
-            }
-
-            package.Listed = false;
-            package.LastUpdated = DateTime.UtcNow;
-            // NOTE: LastEdited will be overwritten by a trigger defined in the migration named "AddTriggerForPackagesLastEdited".
-            package.LastEdited = DateTime.UtcNow;
-
-            if (updateIsLatest && ShouldUpdateIsLatestForPackageWhenUnlisting(package))
-            {
-                await _packageService.UpdateIsLatestAsync(package.PackageRegistration, commitChanges: false);
-            }
-
-            await _auditingService.SaveAuditRecordAsync(new PackageAuditRecord(package, AuditedPackageAction.Unlist));
-
-            _telemetryService.TrackPackageUnlisted(package);
-
-            if (commitChanges)
-            {
-                await _entitiesContext.SaveChangesAsync();
-            }
-
-            if (updateIndex)
-            {
-                _indexingService.UpdatePackage(package);
             }
         }
 
