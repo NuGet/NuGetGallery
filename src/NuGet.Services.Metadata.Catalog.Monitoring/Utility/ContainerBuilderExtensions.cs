@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using NuGet.Configuration;
 using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
+using NuGet.Services.Metadata.Catalog.Helpers;
 
 namespace NuGet.Services.Metadata.Catalog.Monitoring
 {
@@ -105,7 +106,8 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
         public static void RegisterSourceRepositories(
             this ContainerBuilder builder,
             string galleryUrl,
-            string indexUrl)
+            string indexUrl,
+            IGalleryDatabaseQueryService galleryDatabase)
         {
             if (string.IsNullOrEmpty(galleryUrl))
             {
@@ -124,6 +126,11 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
             builder
                 .RegisterInstance(new PackageSource(indexUrl))
                 .Keyed<PackageSource>(FeedType.HttpV3);
+
+            builder
+                .RegisterInstance(galleryDatabase)
+                .AsImplementedInterfaces()
+                .AsSelf();
 
             builder.RegisterDefaultResourceProviders();
             builder.RegisterV2ResourceProviders();

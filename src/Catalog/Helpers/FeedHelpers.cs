@@ -65,14 +65,6 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
         }
 
         /// <summary>
-        /// Returns a <see cref="FeedPackageDetails"/> for a single package from the feed.
-        /// </summary>
-        public static async Task<FeedPackageDetails> GetPackage(HttpClient client, string source, string id, string version)
-        {
-            return (await GetPackages(client, MakeUriForPackage(source, id, version))).FirstOrDefault();
-        }
-
-        /// <summary>
         /// Asynchronously gets a <see cref="IList{FeedPackageDetails}"/> from the feed.
         /// </summary>
         /// <param name="client">An HTTP client.</param>

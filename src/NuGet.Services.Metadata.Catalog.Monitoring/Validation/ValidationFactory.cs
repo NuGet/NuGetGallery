@@ -7,6 +7,7 @@ using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGet.Services.Storage;
 using StorageFactory = NuGet.Services.Metadata.Catalog.Persistence.StorageFactory;
 
@@ -24,6 +25,7 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
             ValidatorConfiguration validatorConfig,
             EndpointConfiguration endpointConfig,
             Func<HttpMessageHandler> messageHandlerFactory,
+            IGalleryDatabaseQueryService galleryDatabase,
             ILoggerFactory loggerFactory)
         {
             if (auditingStorageFactory == null)
@@ -41,7 +43,7 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
             builder.RegisterEndpointConfiguration(endpointConfig);
             builder.RegisterMessageHandlerFactory(messageHandlerFactory);
             builder.RegisterEndpoints();
-            builder.RegisterSourceRepositories(galleryUrl, indexUrl);
+            builder.RegisterSourceRepositories(galleryUrl, indexUrl, galleryDatabase);
             builder.RegisterValidators();
 
             builder

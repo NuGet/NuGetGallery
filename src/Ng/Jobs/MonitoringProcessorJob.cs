@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Ng.Helpers;
 using NuGet.Packaging.Core;
 using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
@@ -14,6 +15,7 @@ using NuGet.Services.Configuration;
 using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGet.Services.Metadata.Catalog.Monitoring;
+using NuGet.Services.Sql;
 using NuGet.Services.Storage;
 using NuGet.Versioning;
 
@@ -45,6 +47,22 @@ namespace Ng.Jobs
             var requireRepositorySignature = arguments.GetOrDefault(Arguments.RequireRepositorySignature, false);
             var verbose = arguments.GetOrDefault(Arguments.Verbose, false);
 
+            var timeoutInSeconds = arguments.GetOrDefault(Arguments.SqlCommandTimeoutInSeconds, 300);
+            var sqlTimeout = TimeSpan.FromSeconds(timeoutInSeconds);
+
+            var connectionString = arguments.GetOrThrow<string>(Arguments.ConnectionString);
+            var galleryDbConnection = new AzureSqlConnectionFactory(
+                connectionString,
+                new EmptySecretInjector(),
+                LoggerFactory.CreateLogger<AzureSqlConnectionFactory>());
+            var packageContentUriBuilder = new PackageContentUriBuilder(
+                arguments.GetOrThrow<string>(Arguments.PackageContentUrlFormat));
+            var galleryDatabase = new GalleryDatabaseQueryService(
+                galleryDbConnection,
+                packageContentUriBuilder,
+                TelemetryService,
+                timeoutInSeconds);
+
             CommandHelpers.AssertAzureStorage(arguments);
 
             var monitoringStorageFactory = CommandHelpers.CreateStorageFactory(arguments, verbose);
@@ -62,12 +80,13 @@ namespace Ng.Jobs
                 requireRepositorySignature);
 
             _packageValidator = ValidationFactory.CreatePackageValidator(
-                gallery, 
-                index, 
+                gallery,
+                index,
                 auditingStorageFactory,
                 validatorConfig,
-                endpointConfiguration, 
-                messageHandlerFactory, 
+                endpointConfiguration,
+                messageHandlerFactory,
+                galleryDatabase,
                 LoggerFactory);
 
             _queue = CommandHelpers.CreateStorageQueue<PackageValidatorContext>(arguments, PackageValidatorContext.Version);
@@ -147,7 +166,7 @@ namespace Ng.Jobs
                     // We failed to run validations and failed to save the failed validation!
                     // We were not able to process this message. We need to log the exceptions so we can debug the issue.
                     var aggregateException = new AggregateException(
-                        "Validations failed to run and saving unsuccessful validation failed!", 
+                        "Validations failed to run and saving unsuccessful validation failed!",
                         new[] { validationFailedToRunException, failedValidationSaveFailureException });
 
                     Logger.LogCritical(

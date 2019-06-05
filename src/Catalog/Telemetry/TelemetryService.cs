@@ -218,5 +218,16 @@ namespace NuGet.Services.Metadata.Catalog
 
             return _telemetryClient.TrackDuration(TelemetryConstants.GetPackageDetailsSeconds, properties);
         }
+
+        public IDisposable TrackGetPackageQueryDuration(string packageId, string packageVersion)
+        {
+            var properties = new Dictionary<string, string>()
+            {
+                { TelemetryConstants.Id, packageId },
+                { TelemetryConstants.Version, packageVersion }
+            };
+
+            return _telemetryClient.TrackDuration(TelemetryConstants.GetPackageSeconds, properties);
+        }
     }
 }

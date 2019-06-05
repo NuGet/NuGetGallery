@@ -37,8 +37,8 @@ namespace CatalogTests.Helpers
 
         public static IEnumerable<object[]> CursorMethodToColumnNameMappings => new[]
         {
-            new object[] { (Func<DateTime, int, Db2CatalogCursor>)((since, top) => Db2CatalogCursor.ByCreated(since, top)), Db2CatalogCursor.ColumnNameCreated },
-            new object[] { (Func<DateTime, int, Db2CatalogCursor>)((since, top) => Db2CatalogCursor.ByLastEdited(since, top)), Db2CatalogCursor.ColumnNameLastEdited }
+            new object[] { (Func<DateTime, int, Db2CatalogCursor>)((since, top) => Db2CatalogCursor.ByCreated(since, top)), Db2CatalogProjectionColumnNames.Created },
+            new object[] { (Func<DateTime, int, Db2CatalogCursor>)((since, top) => Db2CatalogCursor.ByLastEdited(since, top)), Db2CatalogProjectionColumnNames.LastEdited }
         };
     }
 }

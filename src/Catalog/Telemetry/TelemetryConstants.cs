@@ -49,6 +49,7 @@ namespace NuGet.Services.Metadata.Catalog
         public const string Handler = "Handler";
         public const string IconExtractionFailed = "IconExtractionFailed";
         public const string GetPackageDetailsSeconds = "GetPackageDetailsSeconds";
+        public const string GetPackageSeconds = "GetPackageSeconds";
         public const string CursorValue = "CursorValue";
     }
 }

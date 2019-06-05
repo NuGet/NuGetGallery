@@ -7,15 +7,21 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
+using NuGet.Services.Metadata.Catalog.Helpers;
 
 namespace NuGet.Services.Metadata.Catalog.Monitoring
 {
     public class PackageTimestampMetadataResourceV2Provider : ResourceProvider
     {
-        public PackageTimestampMetadataResourceV2Provider(ILoggerFactory loggerFactory)
+        private readonly IGalleryDatabaseQueryService _galleryDatabase;
+
+        public PackageTimestampMetadataResourceV2Provider(
+            IGalleryDatabaseQueryService galleryDatabaseQueryService,
+            ILoggerFactory loggerFactory)
             : base(typeof(IPackageTimestampMetadataResource))
         {
-            _loggerFactory = loggerFactory;
+            _galleryDatabase = galleryDatabaseQueryService ?? throw new ArgumentNullException(nameof(galleryDatabaseQueryService));
+            _loggerFactory = loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory));
         }
 
         private readonly ILoggerFactory _loggerFactory;
@@ -27,7 +33,7 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
             if (await source.GetFeedType(token) == FeedType.HttpV2)
             {
                 resource = new PackageTimestampMetadataResourceV2(
-                    source.PackageSource.Source, 
+                    _galleryDatabase,
                     _loggerFactory.CreateLogger<PackageTimestampMetadataResourceV2>());
             }
 

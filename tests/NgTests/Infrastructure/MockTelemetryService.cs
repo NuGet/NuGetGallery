@@ -93,5 +93,16 @@ namespace NgTests.Infrastructure
 
             return TrackDuration(nameof(TrackGetPackageDetailsQueryDuration), properties);
         }
+
+        public IDisposable TrackGetPackageQueryDuration(string packageId, string packageVersion)
+        {
+            var properties = new Dictionary<string, string>()
+            {
+                { TelemetryConstants.Id, packageId },
+                { TelemetryConstants.Version, packageVersion }
+            };
+
+            return TrackDuration(nameof(TrackGetPackageQueryDuration), properties);
+        }
     }
 }

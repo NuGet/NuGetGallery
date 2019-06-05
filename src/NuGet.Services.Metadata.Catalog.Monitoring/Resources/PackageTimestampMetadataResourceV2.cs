@@ -11,32 +11,30 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
 {
     public class PackageTimestampMetadataResourceV2 : IPackageTimestampMetadataResource
     {
-        public PackageTimestampMetadataResourceV2(
-            string source,
-            ILogger<PackageTimestampMetadataResourceV2> logger)
-        {
-            _source = source;
-            _logger = logger;
-        }
-
-        private readonly string _source;
+        private readonly IGalleryDatabaseQueryService _galleryDatabase;
         private readonly ILogger<PackageTimestampMetadataResourceV2> _logger;
 
+        public PackageTimestampMetadataResourceV2(
+            IGalleryDatabaseQueryService galleryDatabase,
+            ILogger<PackageTimestampMetadataResourceV2> logger)
+        {
+            _galleryDatabase = galleryDatabase ?? throw new ArgumentNullException(nameof(galleryDatabase));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        }
+
         /// <summary>
-        /// Parses the feed for the package specified by the <see cref="ValidationContext"/> and returns a <see cref="PackageTimestampMetadata"/>.
-        /// If the package is missing from the feed, returns the package's deletion audit record timestamp.
+        /// Queries the gallery database for the package specified by the <see cref="ValidationContext"/> and returns a <see cref="PackageTimestampMetadata"/>.
+        /// If the package is missing from the repository, returns the package's deletion audit record timestamp.
         /// </summary>
         public async Task<PackageTimestampMetadata> GetAsync(ValidationContext context)
         {
-            var feedPackageDetails = await FeedHelpers.GetPackage(
-                context.Client,
-                _source,
+            var feedPackageDetails = await _galleryDatabase.GetPackageOrNull(
                 context.Package.Id,
-                context.Package.Version.ToString());
+                context.Package.Version.ToNormalizedString());
 
             if (feedPackageDetails != null)
             {
-                return PackageTimestampMetadata.CreateForPackageExistingOnFeed(
+                return PackageTimestampMetadata.CreateForExistingPackage(
                     feedPackageDetails.CreatedDate,
                     feedPackageDetails.LastEditedDate);
             }
@@ -47,7 +45,7 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
                 deleted = context.DeletionAuditEntries.Max(entry => entry.TimestampUtc);
             }
 
-            return PackageTimestampMetadata.CreateForPackageMissingFromFeed(deleted);
+            return PackageTimestampMetadata.CreateForMissingPackage(deleted);
         }
     }
 }

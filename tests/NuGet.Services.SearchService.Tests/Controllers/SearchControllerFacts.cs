@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
@@ -16,6 +17,61 @@ namespace NuGet.Services.SearchService.Controllers
 {
     public class SearchControllerFacts
     {
+        public class IndexAsync : BaseFacts
+        {
+            private readonly HttpRequestMessage _request;
+            private readonly SearchStatusResponse _status;
+
+            public IndexAsync()
+            {
+                _request = new HttpRequestMessage();
+                _request.SetConfiguration(new HttpConfiguration());
+
+                _status = new SearchStatusResponse
+                {
+                    Success = true,
+                    Duration = TimeSpan.FromTicks(123),
+                };
+
+                _statusService
+                    .Setup(x => x.GetStatusAsync(It.IsAny<SearchStatusOptions>(), It.IsAny<Assembly>()))
+                    .ReturnsAsync(() => _status);
+            }
+
+            [Fact]
+            public async Task DoesNotInitializeAuxiliaryDataCache()
+            {
+                await _target.IndexAsync(_request);
+
+                _auxiliaryDataCache.Verify(x => x.EnsureInitializedAsync(), Times.Never);
+            }
+
+            [Fact]
+            public async Task PassesAllOptionsAndControllersAssembly()
+            {
+                await _target.IndexAsync(_request);
+
+                _statusService.Verify(x => x.GetStatusAsync(SearchStatusOptions.All, _target.GetType().Assembly), Times.Once);
+                _statusService.Verify(x => x.GetStatusAsync(It.IsAny<SearchStatusOptions>(), It.IsAny<Assembly>()), Times.Once);
+            }
+
+            [Theory]
+            [InlineData(false, HttpStatusCode.InternalServerError)]
+            [InlineData(true, HttpStatusCode.OK)]
+            public async Task ReturnsProperStatusCode(bool success, HttpStatusCode expected)
+            {
+                _status.Success = success;
+
+                var response = await _target.IndexAsync(_request);
+
+                Assert.Equal(expected, response.StatusCode);
+                var content = Assert.IsType<ObjectContent<SearchStatusResponse>>(response.Content);
+                Assert.NotSame(_status, content.Value);
+                var status = Assert.IsType<SearchStatusResponse>(content.Value);
+                Assert.Null(status.Duration);
+            }
+        }
+
         public class GetStatusAsync : BaseFacts
         {
             private readonly HttpRequestMessage _request;
@@ -29,7 +85,7 @@ namespace NuGet.Services.SearchService.Controllers
                 _status = new SearchStatusResponse { Success = true };
 
                 _statusService
-                    .Setup(x => x.GetStatusAsync(It.IsAny<Assembly>()))
+                    .Setup(x => x.GetStatusAsync(It.IsAny<SearchStatusOptions>(), It.IsAny<Assembly>()))
                     .ReturnsAsync(() => _status);
             }
 
@@ -42,12 +98,12 @@ namespace NuGet.Services.SearchService.Controllers
             }
 
             [Fact]
-            public async Task PassesControllersAssembly()
+            public async Task PassesAllOptionsAndControllersAssembly()
             {
                 await _target.GetStatusAsync(_request);
 
-                _statusService.Verify(x => x.GetStatusAsync(_target.GetType().Assembly), Times.Once);
-                _statusService.Verify(x => x.GetStatusAsync(It.IsAny<Assembly>()), Times.Once);
+                _statusService.Verify(x => x.GetStatusAsync(SearchStatusOptions.All, _target.GetType().Assembly), Times.Once);
+                _statusService.Verify(x => x.GetStatusAsync(It.IsAny<SearchStatusOptions>(), It.IsAny<Assembly>()), Times.Once);
             }
 
             [Theory]
@@ -60,6 +116,8 @@ namespace NuGet.Services.SearchService.Controllers
                 var response = await _target.GetStatusAsync(_request);
 
                 Assert.Equal(expected, response.StatusCode);
+                var content = Assert.IsType<ObjectContent<SearchStatusResponse>>(response.Content);
+                Assert.Same(_status, content.Value);
             }
         }
 

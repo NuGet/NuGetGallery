@@ -13,7 +13,7 @@ namespace NuGet.Services.AzureSearch.SearchService
         /// if <see cref="Success"/> is false. If <see cref="Success"/> is true, all properties will be non-null.
         /// </summary>
         public bool Success { get; set; }
-        public TimeSpan Duration { get; set; }
+        public TimeSpan? Duration { get; set; }
         public ServerStatus Server { get; set; }
         public IndexStatus SearchIndex { get; set; }
         public IndexStatus HijackIndex { get; set; }

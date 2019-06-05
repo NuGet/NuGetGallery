@@ -9,6 +9,7 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
 {
     public interface IGalleryDatabaseQueryService
     {
+        Task<FeedPackageDetails> GetPackageOrNull(string id, string version);
         Task<SortedList<DateTime, IList<FeedPackageDetails>>> GetPackagesCreatedSince(DateTime since, int top);
         Task<SortedList<DateTime, IList<FeedPackageDetails>>> GetPackagesEditedSince(DateTime since, int top);
     }
