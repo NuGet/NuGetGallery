@@ -14,7 +14,7 @@ namespace NuGetGallery
         ICertificatesConfiguration CertificatesConfiguration { get; }
         ISymbolsConfiguration SymbolsConfiguration { get; }
         ITyposquattingConfiguration TyposquattingConfiguration { get; }
-        Dictionary<string, NuGetPackageGitHubInformation> NuGetPackagesGitHubDependencies { get; }
+        IGitHubUsageConfiguration GitHubUsageConfiguration { get; }
 
         Task Refresh();
     }

@@ -143,6 +143,8 @@
     <Compile Include="Features\FeatureFlagSaveResult.cs" />
     <Compile Include="Features\IEditableFeatureFlagStorageService.cs" />
     <Compile Include="GitHub\GitHubCacheTransformer.cs" />
+    <Compile Include="GitHub\GitHubUsageConfiguration.cs" />
+    <Compile Include="GitHub\IGitHubUsageConfiguration.cs" />
     <Compile Include="GitHub\KiloFormatExtension.cs" />
     <Compile Include="GitHub\NuGetPackageGitHubInformation.cs" />
     <Compile Include="GitHub\RepositoryInformation.cs" />

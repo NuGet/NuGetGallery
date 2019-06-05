@@ -15,17 +15,13 @@ namespace NuGetGallery.GitHub
             {
                 foreach (var dependency in repo.Dependencies)
                 {
-                    List<RepositoryInformation> packageDependents = null;
-                    if (dependentsPerPackage.ContainsKey(dependency))
-                    {
-                        packageDependents = dependentsPerPackage[dependency];
-                    }
-                    else
+                    if (!dependentsPerPackage.TryGetValue(dependency, out var packageDependents))
                     {
                         packageDependents = new List<RepositoryInformation>();
+                        dependentsPerPackage[dependency] = packageDependents;
                     }
+
                     packageDependents.Add(repo);
-                    dependentsPerPackage[dependency] = packageDependents;
                 }
             }
 
@@ -34,7 +30,7 @@ namespace NuGetGallery.GitHub
             {
                 entry.Value.Sort(Comparer<RepositoryInformation>.Create((x, y) =>
                 {
-                    var result = y.CompareTo(x); // Inverted for descending sort order
+                    var result = y.Stars.CompareTo(x.Stars); // Inverted for descending sort order
                     if (result != 0)
                     {
                         return result;
@@ -44,9 +40,7 @@ namespace NuGetGallery.GitHub
                     return string.Compare(x.Id, y.Id, true);
                 }));
 
-                var nuGetPackageInformation = new NuGetPackageGitHubInformation();
-                nuGetPackageInformation.TotalRepos = entry.Value.Count;
-                nuGetPackageInformation.Repos = entry.Value.Take(10).ToList().AsReadOnly();
+                var nuGetPackageInformation = new NuGetPackageGitHubInformation(entry.Value.Count, entry.Value.Take(10).ToList().AsReadOnly());
                 gitHubUsageMap[entry.Key] = nuGetPackageInformation;
             }
 

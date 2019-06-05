@@ -2,17 +2,10 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NuGetGallery.Services;
-using Microsoft.Web.XmlTransform;
-using System.Collections.ObjectModel;
-using Microsoft.Extensions.Logging.Abstractions;
-using System.Web.UI.WebControls;
-using System.Collections;
-using System.Diagnostics;
 using NuGetGallery.GitHub;
 
 namespace NuGetGallery
@@ -37,7 +30,7 @@ namespace NuGetGallery
         public ICertificatesConfiguration CertificatesConfiguration { get; set; }
         public ISymbolsConfiguration SymbolsConfiguration { get; set; }
         public ITyposquattingConfiguration TyposquattingConfiguration { get; set; }
-        public Dictionary<string, NuGetPackageGitHubInformation> NuGetPackagesGitHubDependencies { get; set; }
+        public IGitHubUsageConfiguration GitHubUsageConfiguration { get; set; }
 
         public async Task Refresh()
         {
@@ -56,15 +49,14 @@ namespace NuGetGallery
             TyposquattingConfiguration =
                await Refresh<TyposquattingConfiguration>(GalleryConstants.ContentNames.TyposquattingConfiguration) ??
                new TyposquattingConfiguration();
+            
+
 
             IReadOnlyList<RepositoryInformation> reposCache = await Refresh<IReadOnlyList<RepositoryInformation>>(
                     GalleryConstants.ContentNames.NuGetPackagesGitHubDependencies) ??
                Array.Empty<RepositoryInformation>();
 
-            if(reposCache.Any())
-            {
-                NuGetPackagesGitHubDependencies = GitHubCacheTransformer.GetNuGetPackagesDependents(reposCache);
-            }
+            GitHubUsageConfiguration = new GitHubUsageConfiguration(reposCache);
         }
 
         private async Task<T> Refresh<T>(string contentName) 

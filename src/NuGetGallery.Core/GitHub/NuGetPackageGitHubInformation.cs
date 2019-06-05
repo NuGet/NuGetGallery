@@ -4,13 +4,16 @@ namespace NuGetGallery.GitHub
 {
     public class NuGetPackageGitHubInformation
     {
-        public int TotalRepos { get; set; }
-        public IReadOnlyList<RepositoryInformation> Repos { get; set; }
+        public NuGetPackageGitHubInformation() : this(0, null)
+        { }
 
-        public NuGetPackageGitHubInformation()
+        public NuGetPackageGitHubInformation(int totalRepos, IReadOnlyList<RepositoryInformation> repos)
         {
-            TotalRepos = 0;
-            Repos = null;
+            TotalRepos = totalRepos;
+            Repos = repos;
         }
+
+        public int TotalRepos { get; }
+        public IReadOnlyList<RepositoryInformation> Repos { get; }
     }
 }
