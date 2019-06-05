@@ -142,6 +142,10 @@
     <Compile Include="Features\FeatureFlagReference.cs" />
     <Compile Include="Features\FeatureFlagSaveResult.cs" />
     <Compile Include="Features\IEditableFeatureFlagStorageService.cs" />
+    <Compile Include="GitHub\GitHubCacheTransformer.cs" />
+    <Compile Include="GitHub\KiloFormatExtension.cs" />
+    <Compile Include="GitHub\NuGetPackageGitHubInformation.cs" />
+    <Compile Include="GitHub\RepositoryInformation.cs" />
     <Compile Include="ICloudStorageStatusDependency.cs" />
     <Compile Include="Infrastructure\AzureEntityList.cs" />
     <Compile Include="Infrastructure\ElmahException.cs" />

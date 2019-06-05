@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using NuGetGallery.GitHub;
 using NuGetGallery.Services;
 
 namespace NuGetGallery
@@ -13,7 +14,7 @@ namespace NuGetGallery
         ICertificatesConfiguration CertificatesConfiguration { get; }
         ISymbolsConfiguration SymbolsConfiguration { get; }
         ITyposquattingConfiguration TyposquattingConfiguration { get; }
-        Dictionary<string, ContentObjectService.NuGetPackageInformation> NuGetPackagesGitHubDependencies { get; }
+        Dictionary<string, NuGetPackageGitHubInformation> NuGetPackagesGitHubDependencies { get; }
 
         Task Refresh();
     }

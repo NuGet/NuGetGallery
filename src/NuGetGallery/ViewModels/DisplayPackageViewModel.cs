@@ -8,6 +8,7 @@ using NuGet.Services.Entities;
 using NuGet.Services.Licenses;
 using NuGet.Services.Validation.Issues;
 using NuGet.Versioning;
+using NuGetGallery.GitHub;
 
 namespace NuGetGallery
 {
@@ -121,7 +122,7 @@ namespace NuGetGallery
         public bool IsAtomFeedEnabled { get; set; }
         public bool IsPackageDeprecationEnabled { get; set; }
         public bool IsGitHubUsageEnabled { get; set; }
-        public ContentObjectService.NuGetPackageInformation GitHubDependenciesInformation { get; set; }
+        public NuGetPackageGitHubInformation GitHubDependenciesInformation { get; set; }
 
         public bool HasNewerPrerelease
         {

@@ -27,6 +27,7 @@ using NuGetGallery.Auditing;
 using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
 using NuGetGallery.Filters;
+using NuGetGallery.GitHub;
 using NuGetGallery.Helpers;
 using NuGetGallery.Infrastructure;
 using NuGetGallery.Infrastructure.Mail.Messages;
@@ -753,7 +754,7 @@ namespace NuGetGallery
 
             var nupkgGitHubDependencies = _contentObjectService.NuGetPackagesGitHubDependencies;
             model.GitHubDependenciesInformation = nupkgGitHubDependencies.ContainsKey(id) ?
-                                            nupkgGitHubDependencies[id] : new ContentObjectService.NuGetPackageInformation();
+                                            nupkgGitHubDependencies[id] : new NuGetPackageGitHubInformation();
 
             model.ReadMeHtml = await _readMeService.GetReadMeHtmlAsync(package);
 
