@@ -42,7 +42,7 @@ namespace NuGetGallery
             return MarkPackageUnlistedInternalAsync(package, commitChanges, updateIndex, updateIsLatest: true);
         }
 
-        public async Task UpdatePackagesAsync(IReadOnlyList<Package> packages, bool? listed, IDbContextTransaction transaction, bool updateIndex = true)
+        public async Task UpdatePackagesAsync(IReadOnlyList<Package> packages, IDbContextTransaction transaction, bool updateIndex = true)
         {
             if (packages == null || !packages.Any())
             {
@@ -55,11 +55,6 @@ namespace NuGetGallery
                 throw new ArgumentException("All packages to update must have the same ID.", nameof(packages));
             }
 
-            if (listed.HasValue)
-            {
-                await MarkPackagesListingInBulkAsync(registration, packages, listed.Value);
-            }
-
             await UpdatePackagesInBulkAsync(packages);
 
             transaction.Commit();
@@ -69,34 +64,6 @@ namespace NuGetGallery
                 // The indexing service will find the latest version of the package to index--it doesn't matter what package we pass in.
                 _indexingService.UpdatePackage(packages.First());
             }
-        }
-
-        private async Task MarkPackagesListingInBulkAsync(PackageRegistration registration, IReadOnlyList<Package> packages, bool listed)
-        {
-            var shouldUpdateIsLatest = false;
-            foreach (var package in packages)
-            {
-                if (listed || ShouldUpdateIsLatestForPackageWhenUnlisting(package))
-                {
-                    shouldUpdateIsLatest = true;
-                }
-
-                if (listed)
-                {
-                    await MarkPackageListedInternalAsync(package, commitChanges: false, updateIndex: false, updateIsLatest: false);
-                }
-                else
-                {
-                    await MarkPackageUnlistedInternalAsync(package, commitChanges: false, updateIndex: false, updateIsLatest: false);
-                }
-            }
-
-            if (shouldUpdateIsLatest)
-            {
-                await _packageService.UpdateIsLatestAsync(registration, commitChanges: false);
-            }
-
-            await _entitiesContext.SaveChangesAsync();
         }
 
         private const string UpdateBulkPackagesQueryFormat = @"

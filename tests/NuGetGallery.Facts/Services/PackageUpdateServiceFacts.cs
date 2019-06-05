@@ -237,24 +237,18 @@ namespace NuGetGallery.Services
                 _mockTransaction = new Mock<IDbContextTransaction>();
             }
 
-            public static IEnumerable<object[]> SetListed_Data => 
-                MemberDataHelper.AsDataSet(null, false, true);
-
-            public static IEnumerable<object[]> ThrowsIfNullOrEmptyPackages_Data =>
-                MemberDataHelper.Combine(
-                    MemberDataHelper.AsDataSet(null, new Package[0]),
-                    SetListed_Data);
+            public static IEnumerable<object[]> ThrowsIfNullOrEmptyPackages_Data => MemberDataHelper.AsDataSet(null, new Package[0]);
 
             [Theory]
             [MemberData(nameof(ThrowsIfNullOrEmptyPackages_Data))]
-            public async Task ThrowsIfNullOrEmptyPackages(IReadOnlyList<Package> packages, bool? setListed)
+            public async Task ThrowsIfNullOrEmptyPackages(IReadOnlyList<Package> packages)
             {
                 var service = Get<PackageUpdateService>();
                 await Assert.ThrowsAsync<ArgumentException>(
-                    () => service.UpdatePackagesAsync(packages, setListed, _mockTransaction.Object));
+                    () => service.UpdatePackagesAsync(packages, _mockTransaction.Object));
             }
 
-            public static IEnumerable<object[]> PackageCombinationsAndSetListed_Data
+            public static IEnumerable<object[]> PackageCombinations_Data
             {
                 get
                 {
@@ -267,78 +261,33 @@ namespace NuGetGallery.Services
                                 continue;
                             }
 
-                            foreach (var setListed in new[] { (bool?)null, false, true })
-                            {
-                                yield return MemberDataHelper.AsData(latestState, listed, setListed);
-                            }
+                            yield return MemberDataHelper.AsData(latestState, listed);
                         }
                     }
                 }
             }
 
             [Theory]
-            [MemberData(nameof(PackageCombinationsAndSetListed_Data))]
-            public Task ThrowsWhenSqlQueryFails(PackageLatestState latestState, bool listed, bool? setListed)
+            [MemberData(nameof(PackageCombinations_Data))]
+            public Task ThrowsWhenSqlQueryFails(PackageLatestState latestState, bool listed)
             {
                 var packages = GetPackagesForTest(latestState, listed);
-                return Assert.ThrowsAsync<InvalidOperationException>(() => SetupAndInvokeMethod(packages, setListed, false));
+                return Assert.ThrowsAsync<InvalidOperationException>(() => SetupAndInvokeMethod(packages, false));
             }
 
             [Theory]
-            [MemberData(nameof(PackageCombinationsAndSetListed_Data))]
-            public async Task SuccessfullyUpdatesPackages(PackageLatestState latestState, bool listed, bool? setListed)
+            [MemberData(nameof(PackageCombinations_Data))]
+            public async Task SuccessfullyUpdatesPackages(PackageLatestState latestState, bool listed)
             {
                 var packages = GetPackagesForTest(latestState, listed);
-                var expectedListed = packages.ToDictionary(p => p.Key, p => setListed ?? p.Listed);
+                await SetupAndInvokeMethod(packages, true);
 
-                await SetupAndInvokeMethod(packages, setListed, true);
-
-                foreach (var package in packages)
-                {
-                    Assert.Equal(expectedListed[package.Key], package.Listed);
-                }
-
-                _mockPackageService.Verify();
-                _mockEntitiesContext.Verify();
                 _mockDatabase.Verify();
                 _mockTransaction.Verify();
             }
 
-            private Task SetupAndInvokeMethod(IReadOnlyList<Package> packages, bool? setListed, bool sqlQuerySucceeds)
+            private Task SetupAndInvokeMethod(IReadOnlyList<Package> packages, bool sqlQuerySucceeds)
             {
-                // Fallback UpdateIsLatestAsync setup
-                // The latter setups will override this one if they apply
-                _mockPackageService
-                    .Setup(x => x.UpdateIsLatestAsync(It.IsAny<PackageRegistration>(), It.IsAny<bool>()))
-                    .Throws(new Exception($"Unexpected {nameof(IPackageService.UpdateIsLatestAsync)} call!"));
-
-                if (setListed.HasValue)
-                {
-                    foreach (var packagesByRegistration in packages.GroupBy(p => p.PackageRegistration))
-                    {
-                        if (!setListed.Value && !packagesByRegistration.Any(p => p.IsLatest || p.IsLatestStable || p.IsLatestSemVer2 || p.IsLatestStableSemVer2))
-                        {
-                            continue;
-                        }
-
-                        _mockPackageService
-                            .Setup(x => x.UpdateIsLatestAsync(packagesByRegistration.Key, false))
-                            .Returns(Task.CompletedTask)
-                            .Verifiable();
-                    }
-
-                    _mockEntitiesContext
-                        .Setup(x => x.SaveChangesAsync())
-                        .Returns(Task.FromResult(0))
-                        .Verifiable();
-                }
-                else
-                {
-                    _mockEntitiesContext
-                        .Setup(x => x.SaveChangesAsync())
-                        .Throws(new Exception($"Unexpected {nameof(IEntitiesContext.SaveChangesAsync)} call!"));
-                }
-
                 var packageKeyStrings = string.Join(
                     ", ", 
                     packages
@@ -365,9 +314,15 @@ WHERE [Key] IN ({packageKeyStrings})";
                         .Setup(x => x.Commit())
                         .Verifiable();
                 }
+                else
+                {
+                    _mockTransaction
+                        .Setup(x => x.Commit())
+                        .Throws(new Exception($"Unexpected {nameof(IDbContextTransaction.Commit)} call!"));
+                }
 
                 return Get<PackageUpdateService>()
-                    .UpdatePackagesAsync(packages, setListed, _mockTransaction.Object);
+                    .UpdatePackagesAsync(packages, _mockTransaction.Object);
             }
 
             private IReadOnlyList<Package> GetPackagesForTest(PackageLatestState latestState, bool listed)

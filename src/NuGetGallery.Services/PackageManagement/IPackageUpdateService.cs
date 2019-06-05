@@ -32,13 +32,8 @@ namespace NuGetGallery
         /// <param name="packages">
         /// The packages to mark as updated. All packages must have the same <see cref="PackageRegistration"/>.
         /// </param>
-        /// <param name="listed">
-        /// If true, all packages will be listed. 
-        /// If false, all packages will be unlisted. 
-        /// If null, the listing state of the packages will not be changed.
-        /// </param>
         /// <param name="transaction">The transaction that this operation should run in.</param>
         /// <param name="updateIndex">If true, <see cref="IIndexingService.UpdatePackage(Package)"/> will be called.</param>
-        Task UpdatePackagesAsync(IReadOnlyList<Package> packages, bool? listed, IDbContextTransaction transaction, bool updateIndex = true);
+        Task UpdatePackagesAsync(IReadOnlyList<Package> packages, IDbContextTransaction transaction, bool updateIndex = true);
     }
 }

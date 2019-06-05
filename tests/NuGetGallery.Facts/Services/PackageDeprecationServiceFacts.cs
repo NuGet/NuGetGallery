@@ -108,7 +108,7 @@ namespace NuGetGallery.Services
 
                 var packageUpdateService = GetMock<IPackageUpdateService>();
                 packageUpdateService
-                    .Setup(b => b.UpdatePackagesAsync(packages, null, transaction, true))
+                    .Setup(b => b.UpdatePackagesAsync(packages, transaction, true))
                     .Returns(Task.CompletedTask)
                     .Verifiable();
 
@@ -205,7 +205,7 @@ namespace NuGetGallery.Services
 
                 var packageUpdateService = GetMock<IPackageUpdateService>();
                 packageUpdateService
-                    .Setup(b => b.UpdatePackagesAsync(packages, null, transaction, true))
+                    .Setup(b => b.UpdatePackagesAsync(packages, transaction, true))
                     .Returns(Task.CompletedTask)
                     .Verifiable();
 
