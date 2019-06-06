@@ -237,6 +237,14 @@ namespace NuGetGallery.Services
                 _mockTransaction = new Mock<IDbContextTransaction>();
             }
 
+            [Fact]
+            public async Task ThrowsIfNullTransaction()
+            {
+                var service = Get<PackageUpdateService>();
+                await Assert.ThrowsAsync<ArgumentNullException>(
+                    () => service.UpdatePackagesAsync(new[] { new Package() }, null));
+            }
+
             public static IEnumerable<object[]> ThrowsIfNullOrEmptyPackages_Data => MemberDataHelper.AsDataSet(null, new Package[0]);
 
             [Theory]

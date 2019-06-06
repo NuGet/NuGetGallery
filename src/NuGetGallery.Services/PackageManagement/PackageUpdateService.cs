@@ -120,6 +120,11 @@ namespace NuGetGallery
 
         public async Task UpdatePackagesAsync(IReadOnlyList<Package> packages, IDbContextTransaction transaction, bool updateIndex = true)
         {
+            if (transaction == null)
+            {
+                throw new ArgumentNullException(nameof(transaction));
+            }
+
             if (packages == null || !packages.Any())
             {
                 throw new ArgumentException(nameof(packages));
