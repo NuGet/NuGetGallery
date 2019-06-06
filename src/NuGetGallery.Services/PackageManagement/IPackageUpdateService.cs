@@ -26,14 +26,12 @@ namespace NuGetGallery
         Task MarkPackageListedAsync(Package package, bool commitChanges = true, bool updateIndex = true);
 
         /// <summary>
-        /// Marks the packages in <paramref name="packages"/> as updated in a transaction.
-        /// This method will commit the transaction.
+        /// Marks the packages in <paramref name="packages"/> as updated.
         /// </summary>
         /// <param name="packages">
         /// The packages to mark as updated. All packages must have the same <see cref="PackageRegistration"/>.
         /// </param>
-        /// <param name="transaction">The transaction that this operation should run in.</param>
         /// <param name="updateIndex">If true, <see cref="IIndexingService.UpdatePackage(Package)"/> will be called.</param>
-        Task UpdatePackagesAsync(IReadOnlyList<Package> packages, IDbContextTransaction transaction, bool updateIndex = true);
+        Task UpdatePackagesAsync(IReadOnlyList<Package> packages, bool updateIndex = true);
     }
 }

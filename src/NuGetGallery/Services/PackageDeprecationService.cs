@@ -100,7 +100,9 @@ namespace NuGetGallery
 
                 await _entitiesContext.SaveChangesAsync();
 
-                await _packageUpdateService.UpdatePackagesAsync(packages, transaction: transaction);
+                await _packageUpdateService.UpdatePackagesAsync(packages);
+
+                transaction.Commit();
             }
         }
 

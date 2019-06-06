@@ -221,7 +221,6 @@ namespace NuGetGallery.Services
             private readonly Mock<IEntitiesContext> _mockEntitiesContext;
             private readonly Mock<IPackageService> _mockPackageService;
             private readonly Mock<IDatabase> _mockDatabase;
-            private readonly Mock<IDbContextTransaction> _mockTransaction;
 
             public TheUpdatePackagesAsyncMethod()
             {
@@ -233,16 +232,6 @@ namespace NuGetGallery.Services
                     .Setup(x => x.GetDatabase())
                     .Returns(_mockDatabase.Object)
                     .Verifiable();
-
-                _mockTransaction = new Mock<IDbContextTransaction>();
-            }
-
-            [Fact]
-            public async Task ThrowsIfNullTransaction()
-            {
-                var service = Get<PackageUpdateService>();
-                await Assert.ThrowsAsync<ArgumentNullException>(
-                    () => service.UpdatePackagesAsync(new[] { new Package() }, null));
             }
 
             public static IEnumerable<object[]> ThrowsIfNullOrEmptyPackages_Data => MemberDataHelper.AsDataSet(null, new Package[0]);
@@ -253,7 +242,7 @@ namespace NuGetGallery.Services
             {
                 var service = Get<PackageUpdateService>();
                 await Assert.ThrowsAsync<ArgumentException>(
-                    () => service.UpdatePackagesAsync(packages, _mockTransaction.Object));
+                    () => service.UpdatePackagesAsync(packages));
             }
 
             public static IEnumerable<object[]> PackageCombinations_Data
@@ -291,7 +280,6 @@ namespace NuGetGallery.Services
                 await SetupAndInvokeMethod(packages, true);
 
                 _mockDatabase.Verify();
-                _mockTransaction.Verify();
             }
 
             private Task SetupAndInvokeMethod(IReadOnlyList<Package> packages, bool sqlQuerySucceeds)
@@ -316,21 +304,8 @@ WHERE [Key] IN ({packageKeyStrings})";
                     .Returns(Task.FromResult(sqlQuerySucceeds ? packages.Count() * 2 : 0))
                     .Verifiable();
 
-                if (sqlQuerySucceeds)
-                {
-                    _mockTransaction
-                        .Setup(x => x.Commit())
-                        .Verifiable();
-                }
-                else
-                {
-                    _mockTransaction
-                        .Setup(x => x.Commit())
-                        .Throws(new Exception($"Unexpected {nameof(IDbContextTransaction.Commit)} call!"));
-                }
-
                 return Get<PackageUpdateService>()
-                    .UpdatePackagesAsync(packages, _mockTransaction.Object);
+                    .UpdatePackagesAsync(packages);
             }
 
             private IReadOnlyList<Package> GetPackagesForTest(PackageLatestState latestState, bool listed)

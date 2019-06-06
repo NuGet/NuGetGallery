@@ -118,13 +118,8 @@ namespace NuGetGallery
             }
         }
 
-        public async Task UpdatePackagesAsync(IReadOnlyList<Package> packages, IDbContextTransaction transaction, bool updateIndex = true)
+        public async Task UpdatePackagesAsync(IReadOnlyList<Package> packages, bool updateIndex = true)
         {
-            if (transaction == null)
-            {
-                throw new ArgumentNullException(nameof(transaction));
-            }
-
             if (packages == null || !packages.Any())
             {
                 throw new ArgumentException(nameof(packages));
@@ -137,8 +132,6 @@ namespace NuGetGallery
             }
 
             await UpdatePackagesInBulkAsync(packages.Select(p => p.Key).ToList());
-
-            transaction.Commit();
 
             if (updateIndex)
             {
