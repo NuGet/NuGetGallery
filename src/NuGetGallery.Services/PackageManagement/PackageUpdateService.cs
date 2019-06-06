@@ -131,7 +131,7 @@ namespace NuGetGallery
                 throw new ArgumentException("All packages to update must have the same ID.", nameof(packages));
             }
 
-            await UpdatePackagesInBulkAsync(packages);
+            await UpdatePackagesInBulkAsync(packages.Select(p => p.Key).ToList());
 
             transaction.Commit();
 
@@ -153,14 +153,13 @@ WHERE [Key] IN ({0})";
         /// By writing a query containing the package keys directly we can remove this restriction.
         /// Furthermore, package keys are not user data, so there is no risk to writing a query in this way.
         /// </remarks>
-        private async Task UpdatePackagesInBulkAsync(IReadOnlyList<Package> packages)
+        private async Task UpdatePackagesInBulkAsync(IReadOnlyList<int> packageKeys)
         {
             var query = string.Format(
                 UpdateBulkPackagesQueryFormat,
                 string.Join(
                     ", ", 
-                    packages
-                        .Select(p => p.Key)
+                    packageKeys
                         .OrderBy(k => k)));
 
             var result = await _entitiesContext
@@ -168,7 +167,7 @@ WHERE [Key] IN ({0})";
                 .ExecuteSqlCommandAsync(query);
 
             // The query updates each row twice--once for the initial commit and a second time due to the trigger on LastEdited.
-            var expectedResult = packages.Count() * 2;
+            var expectedResult = packageKeys.Count() * 2;
             if (result != expectedResult)
             {
                 throw new InvalidOperationException(

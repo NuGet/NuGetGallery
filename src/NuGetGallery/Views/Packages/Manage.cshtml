@@ -80,6 +80,8 @@
         var strings_RemovingOrganization = "@Html.Raw(Strings.ManagePackageOwners_RemovingOrganization)";
         var strings_RemovingSelf = "@Html.Raw(Strings.ManagePackageOwners_RemovingSelf)";
 
+        // We are using JsonConvert instead of Json to serialize JSON in this CSHTML file because otherwise, with a large number of versions, this will overflow the maximum output JSON length limit for Json.
+
         // Set up delete section
         var versionListedState = @Html.Raw(JsonConvert.SerializeObject(Model.VersionListedStateDictionary));
 
