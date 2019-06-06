@@ -503,8 +503,8 @@ namespace NuGetGallery
                 var httpCachePolicy = new Mock<HttpCachePolicyBase>();
                 var contentObjectService = new Mock<IContentObjectService>();
                 contentObjectService
-                    .SetupGet(c => c.NuGetPackagesGitHubDependencies)
-                    .Returns(new Dictionary<string, GitHub.NuGetPackageGitHubInformation>());
+                    .SetupGet(c => c.GitHubUsageConfiguration)
+                    .Returns(new GitHub.GitHubUsageConfiguration(Array.Empty<GitHub.RepositoryInformation>().ToList()));
 
                 var controller = CreateController(
                     GetConfigurationService(),
@@ -636,8 +636,8 @@ namespace NuGetGallery
                 var httpCachePolicy = new Mock<HttpCachePolicyBase>();
                 var contentObjectService = new Mock<IContentObjectService>();
                 contentObjectService
-                    .SetupGet(c => c.NuGetPackagesGitHubDependencies)
-                    .Returns(new Dictionary<string, GitHub.NuGetPackageGitHubInformation>());
+                    .SetupGet(c => c.GitHubUsageConfiguration)
+                    .Returns(new GitHub.GitHubUsageConfiguration(Array.Empty<GitHub.RepositoryInformation>().ToList()));
 
                 var controller = CreateController(
                     GetConfigurationService(),
@@ -699,8 +699,8 @@ namespace NuGetGallery
                 var deprecationService = new Mock<IPackageDeprecationService>();
                 var contentObjectService = new Mock<IContentObjectService>();
                 contentObjectService
-                    .SetupGet(c => c.NuGetPackagesGitHubDependencies)
-                    .Returns(new Dictionary<string, GitHub.NuGetPackageGitHubInformation>());
+                    .SetupGet(c => c.GitHubUsageConfiguration)
+                    .Returns(new GitHub.GitHubUsageConfiguration(Array.Empty<GitHub.RepositoryInformation>().ToList()));
 
                 var controller = CreateController(
                     GetConfigurationService(),
@@ -784,8 +784,8 @@ namespace NuGetGallery
                 var deprecationService = new Mock<IPackageDeprecationService>();
                 var contentObjectService = new Mock<IContentObjectService>();
                 contentObjectService
-                    .SetupGet(c => c.NuGetPackagesGitHubDependencies)
-                    .Returns(new Dictionary<string, GitHub.NuGetPackageGitHubInformation>());
+                    .SetupGet(c => c.GitHubUsageConfiguration)
+                    .Returns(new GitHub.GitHubUsageConfiguration(Array.Empty<GitHub.RepositoryInformation>().ToList()));
 
                 var controller = CreateController(
                     GetConfigurationService(),
@@ -846,8 +846,8 @@ namespace NuGetGallery
                 var deprecationService = new Mock<IPackageDeprecationService>();
                 var contentObjectService = new Mock<IContentObjectService>();
                 contentObjectService
-                    .SetupGet(c => c.NuGetPackagesGitHubDependencies)
-                    .Returns(new Dictionary<string, GitHub.NuGetPackageGitHubInformation>());
+                    .SetupGet(c => c.GitHubUsageConfiguration)
+                    .Returns(new GitHub.GitHubUsageConfiguration(Array.Empty<GitHub.RepositoryInformation>().ToList()));
 
                 var controller = CreateController(
                     GetConfigurationService(),
@@ -958,8 +958,8 @@ namespace NuGetGallery
                 var fileService = new Mock<IPackageFileService>();
                 var contentObjectService = new Mock<IContentObjectService>();
                 contentObjectService
-                    .SetupGet(c => c.NuGetPackagesGitHubDependencies)
-                    .Returns(new Dictionary<string, GitHub.NuGetPackageGitHubInformation>());
+                    .SetupGet(c => c.GitHubUsageConfiguration)
+                    .Returns(new GitHub.GitHubUsageConfiguration(Array.Empty<GitHub.RepositoryInformation>().ToList()));
 
                 var controller = CreateController(
                     GetConfigurationService(),
@@ -1022,8 +1022,8 @@ namespace NuGetGallery
                 var validationService = new Mock<IValidationService>();
                 var contentObjectService = new Mock<IContentObjectService>();
                 contentObjectService
-                    .SetupGet(c => c.NuGetPackagesGitHubDependencies)
-                    .Returns(new Dictionary<string, GitHub.NuGetPackageGitHubInformation>());
+                    .SetupGet(c => c.GitHubUsageConfiguration)
+                    .Returns(new GitHub.GitHubUsageConfiguration(Array.Empty<GitHub.RepositoryInformation>().ToList()));
 
                 var controller = CreateController(
                     GetConfigurationService(),
@@ -1090,8 +1090,8 @@ namespace NuGetGallery
                 var deprecationService = new Mock<IPackageDeprecationService>();
                 var contentObjectService = new Mock<IContentObjectService>();
                 contentObjectService
-                    .SetupGet(c => c.NuGetPackagesGitHubDependencies)
-                    .Returns(new Dictionary<string, GitHub.NuGetPackageGitHubInformation>());
+                    .SetupGet(c => c.GitHubUsageConfiguration)
+                    .Returns(new GitHub.GitHubUsageConfiguration(Array.Empty<GitHub.RepositoryInformation>().ToList()));
 
                 var controller = CreateController(
                     GetConfigurationService(),
@@ -1151,8 +1151,8 @@ namespace NuGetGallery
                 var deprecationService = new Mock<IPackageDeprecationService>();
                 var contentObjectService = new Mock<IContentObjectService>();
                 contentObjectService
-                    .SetupGet(c => c.NuGetPackagesGitHubDependencies)
-                    .Returns(new Dictionary<string, GitHub.NuGetPackageGitHubInformation>());
+                    .SetupGet(c => c.GitHubUsageConfiguration)
+                    .Returns(new GitHub.GitHubUsageConfiguration(Array.Empty<GitHub.RepositoryInformation>().ToList()));
 
                 var controller = CreateController(
                     GetConfigurationService(),
@@ -1212,8 +1212,8 @@ namespace NuGetGallery
                 var deprecationService = new Mock<IPackageDeprecationService>();
                 var contentObjectService = new Mock<IContentObjectService>();
                 contentObjectService
-                    .SetupGet(c => c.NuGetPackagesGitHubDependencies)
-                    .Returns(new Dictionary<string, GitHub.NuGetPackageGitHubInformation>());
+                    .SetupGet(c => c.GitHubUsageConfiguration)
+                    .Returns(new GitHub.GitHubUsageConfiguration(Array.Empty<GitHub.RepositoryInformation>().ToList()));
 
                 var controller = CreateController(
                     GetConfigurationService(),
@@ -1308,8 +1308,8 @@ namespace NuGetGallery
 
                 var contentObjectService = new Mock<IContentObjectService>();
                 contentObjectService
-                    .SetupGet(c => c.NuGetPackagesGitHubDependencies)
-                    .Returns(new Dictionary<string, GitHub.NuGetPackageGitHubInformation>());
+                    .SetupGet(c => c.GitHubUsageConfiguration)
+                    .Returns(new GitHub.GitHubUsageConfiguration(Array.Empty<GitHub.RepositoryInformation>().ToList()));
 
                 var controller = CreateController(
                     GetConfigurationService(),
