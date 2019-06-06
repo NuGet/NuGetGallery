@@ -649,7 +649,7 @@ namespace NuGetGallery
                        It.Is<double>(value => value == 1),
                        It.Is<IDictionary<string, string>>(
                            properties => properties.Count == 4 &&
-                               properties["AccountDeletedByRole"] == "Admins" &&
+                               properties["AccountDeletedByRole"] == "[\"Admins\"]" &&
                                properties["AccountIsSelfDeleted"] == "False" &&
                                properties["AccountDeletedIsOrganization"] == "True" &&
                                properties["AccountDeleteSucceeded"] == "True")
