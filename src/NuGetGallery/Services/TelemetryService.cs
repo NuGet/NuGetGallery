@@ -7,6 +7,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Security.Principal;
 using System.Web;
+using System.Web.Helpers;
 using Newtonsoft.Json;
 using NuGet.Services.Entities;
 using NuGet.Services.FeatureFlags;
@@ -963,7 +964,7 @@ namespace NuGetGallery
 
         private string BuildArrayProperty(IEnumerable<string> list)
         {
-            return string.Join(", ", list);
+            return JsonConvert.SerializeObject(list);
         }
     }
 }
