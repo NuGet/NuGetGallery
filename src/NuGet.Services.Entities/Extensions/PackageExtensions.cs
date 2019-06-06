@@ -21,6 +21,19 @@ namespace NuGet.Services.Entities
         }
 
         /// <summary>
+        /// Get the last successfully uploaded symbols package for the given package.
+        /// </summary>
+        /// <param name="package"><see cref="Package"/> for which latest symbol package is to be retrieved.</param>
+        /// <returns>The last available symbol package if present, null otherwise</returns>
+        public static SymbolPackage LastAvailableSymbolPackage(this Package package)
+        {
+            return package
+                .SymbolPackages?
+                .OrderByDescending(sp => sp.Created)
+                .FirstOrDefault(sp => sp.StatusKey == PackageStatus.Available);
+        }
+
+        /// <summary>
         /// Returns true if there exists a symbol package which is latest and is in
         /// available state, false otherwise.
         /// </summary>
