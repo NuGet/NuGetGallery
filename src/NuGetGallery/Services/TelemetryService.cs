@@ -111,8 +111,8 @@ namespace NuGetGallery
 
         // Package deprecate properties
         public const string DeprecationReason = "PackageDeprecationReason";
-        public const string DeprecationAlternateRegistration = "PackageDeprecationAlternateRegistration";
-        public const string DeprecationAlternatePackage = "PackageDeprecationAlternatePackage";
+        public const string DeprecationAlternatePackageId = "PackageDeprecationAlternatePackageId";
+        public const string DeprecationAlternatePackageVersion = "PackageDeprecationAlternatePackageVersion";
         public const string DeprecationCustomMessage = "PackageDeprecationCustomMessage";
 
         // User properties
@@ -403,8 +403,8 @@ namespace NuGetGallery
         public void TrackPackageDeprecate(
             IReadOnlyList<Package> packages,
             PackageDeprecationStatus status,
-            bool hasAlternateRegistration,
-            bool hasAlternatePackage,
+            PackageRegistration alternateRegistration,
+            Package alternatePackage,
             bool hasCustomMessage)
         {
             TrackMetricForPackages(
@@ -413,8 +413,8 @@ namespace NuGetGallery
                 properties =>
                 {
                     properties.Add(DeprecationReason, ((int)status).ToString());
-                    properties.Add(DeprecationAlternateRegistration, hasAlternateRegistration.ToString());
-                    properties.Add(DeprecationAlternatePackage, hasAlternatePackage.ToString());
+                    properties.Add(DeprecationAlternatePackageId, alternateRegistration?.Id ?? alternatePackage?.Id);
+                    properties.Add(DeprecationAlternatePackageVersion, alternatePackage?.NormalizedVersion);
                     properties.Add(DeprecationCustomMessage, hasCustomMessage.ToString());
                 });
         }

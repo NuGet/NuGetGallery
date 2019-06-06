@@ -37,8 +37,8 @@ namespace NuGetGallery
         void TrackPackageDeprecate(
             IReadOnlyList<Package> packages,
             PackageDeprecationStatus status,
-            bool hasAlternateRegistration,
-            bool hasAlternatePackage,
+            PackageRegistration alternateRegistration,
+            Package alternatePackage,
             bool hasCustomMessage);
 
         void TrackPackageReadMeChangeEvent(Package package, string readMeSourceType, PackageEditReadMeState readMeState);

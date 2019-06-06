@@ -125,7 +125,7 @@ namespace NuGetGallery.Services
 
                 var telemetryService = GetMock<ITelemetryService>();
                 telemetryService
-                    .Setup(x => x.TrackPackageDeprecate(packages, PackageDeprecationStatus.NotDeprecated, false, false, false))
+                    .Setup(x => x.TrackPackageDeprecate(packages, PackageDeprecationStatus.NotDeprecated, null, null, false))
                     .Verifiable();
 
                 var user = new User { Key = 1 };
@@ -252,15 +252,15 @@ namespace NuGetGallery.Services
 
                 var status = (PackageDeprecationStatus)99;
 
+                var alternatePackageRegistration = new PackageRegistration();
+                var alternatePackage = new Package();
+
                 var telemetryService = GetMock<ITelemetryService>();
                 telemetryService
-                    .Setup(x => x.TrackPackageDeprecate(packages, status, true, true, true))
+                    .Setup(x => x.TrackPackageDeprecate(packages, status, alternatePackageRegistration, alternatePackage, true))
                     .Verifiable();
 
                 var service = Get<PackageDeprecationService>();
-
-                var alternatePackageRegistration = new PackageRegistration();
-                var alternatePackage = new Package();
 
                 var customMessage = "message";
                 var user = new User { Key = 1 };

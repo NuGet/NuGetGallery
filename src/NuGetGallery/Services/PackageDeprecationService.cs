@@ -111,8 +111,8 @@ namespace NuGetGallery
                 _telemetryService.TrackPackageDeprecate(
                     packages,
                     status,
-                    alternatePackageRegistration != null,
-                    alternatePackage != null,
+                    alternatePackageRegistration,
+                    alternatePackage,
                     !string.IsNullOrWhiteSpace(customMessage));
 
                 foreach (var package in packages)
