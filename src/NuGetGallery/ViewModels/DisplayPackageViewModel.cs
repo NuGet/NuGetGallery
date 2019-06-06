@@ -35,7 +35,7 @@ namespace NuGetGallery
             PackageFileSize = package.PackageFileSize;
 
             LatestSymbolsPackage = package.LatestSymbolPackage();
-            LastAvailableSymbolsPackage = LatestSymbolsPackage.StatusKey == PackageStatus.Available
+            LastAvailableSymbolsPackage = LatestSymbolsPackage != null && LatestSymbolsPackage.StatusKey == PackageStatus.Available
                 ? LatestSymbolsPackage
                 : package.LastAvailableSymbolPackage();
 

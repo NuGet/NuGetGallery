@@ -1723,7 +1723,7 @@ namespace NuGetGallery
             [InlineData(PackageStatus.Deleted)]
             [InlineData(PackageStatus.FailedValidation)]
             [InlineData(PackageStatus.Validating)]
-            public async Task GetPackageReturns404ForNotAvailableLatestSymbolPackage(PackageStatus status)
+            public async Task GetPackageReturnsLastAvailableSymbolPackage(PackageStatus status)
             {
                 // Arrange
                 const string packageId = "Baz";
@@ -1750,12 +1750,17 @@ namespace NuGetGallery
                 controller.MockPackageService
                     .Setup(x => x.FindPackageByIdAndVersionStrict(packageId, packageVersion))
                     .Returns(package).Verifiable();
+                controller.MockSymbolPackageFileService
+                    .Setup(x => x.CreateDownloadSymbolPackageActionResultAsync(It.IsAny<Uri>(), packageId, packageVersion))
+                    .Returns(Task.FromResult<ActionResult>(new HttpStatusCodeWithBodyResult(HttpStatusCode.OK, "Test package")))
+                    .Verifiable();
 
                 // Act
                 var result = (HttpStatusCodeWithBodyResult)await controller.GetPackageInternal(packageId, packageVersion, isSymbolPackage: true);
 
                 // Assert
-                Assert.Equal((int)HttpStatusCode.NotFound, result.StatusCode);
+                Assert.Equal((int)HttpStatusCode.OK, result.StatusCode);
+                controller.MockSymbolPackageFileService.Verify();
             }
 
             [Theory]
