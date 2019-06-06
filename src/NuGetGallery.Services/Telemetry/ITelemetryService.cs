@@ -34,6 +34,13 @@ namespace NuGetGallery
 
         void TrackPackageRevalidate(Package package);
 
+        void TrackPackageDeprecate(
+            IReadOnlyList<Package> packages,
+            PackageDeprecationStatus status,
+            bool hasAlternateRegistration,
+            bool hasAlternatePackage,
+            bool hasCustomMessage);
+
         void TrackPackageReadMeChangeEvent(Package package, string readMeSourceType, PackageEditReadMeState readMeState);
 
         void TrackCreatePackageVerificationKeyEvent(string packageId, string packageVersion, User user, IIdentity identity);
