@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -35,7 +36,8 @@ namespace NuGetGallery
             {
                 get
                 {
-                    var package = fakes.Package.Packages.First();
+                    var packages = fakes.Package.Packages.ToList();
+                    var package = packages.First();
                     var identity = Fakes.ToIdentity(fakes.User);
                     yield return new object[] { "CertificateActivated",
                         (TrackAction)(s => s.TrackCertificateActivated("thumbprint"))
@@ -95,6 +97,10 @@ namespace NuGetGallery
 
                     yield return new object[] { "PackageRevalidate",
                         (TrackAction)(s => s.TrackPackageRevalidate(package))
+                    };
+
+                    yield return new object[] { "PackageDeprecate",
+                        (TrackAction)(s => s.TrackPackageDeprecate(packages, PackageDeprecationStatus.Legacy, true, true, true))
                     };
 
                     yield return new object[] { "CreatePackageVerificationKey",
@@ -698,6 +704,35 @@ namespace NuGetGallery
                 var properties = Assert.Single(allProperties);
                 Assert.Contains("IsCustomQuery", properties.Keys);
                 Assert.Equal(customQuery.ToString(), properties["IsCustomQuery"]);
+            }
+
+            public static IEnumerable<object[]> TrackPackageDeprecateThrowsIfPackageListInvalid_Data =>
+                new[]
+                {
+                    new object[]
+                    {
+                        null
+                    },
+                    new object[]
+                    {
+                        new Package[0]
+                    },
+                    new object[]
+                    {
+                        new []
+                        {
+                            new Package { PackageRegistrationKey = 1 },
+                            new Package { PackageRegistrationKey = 2 }
+                        }
+                    }
+                };
+
+            [Theory]
+            [MemberData(nameof(TrackPackageDeprecateThrowsIfPackageListInvalid_Data))]
+            public void TrackPackageDeprecateThrowsIfPackageListInvalid(IReadOnlyList<Package> packages)
+            {
+                var service = CreateService();
+                Assert.Throws<ArgumentException>(() => service.TrackPackageDeprecate(packages, PackageDeprecationStatus.CriticalBugs, false, false, false));
             }
 
             private TelemetryServiceWrapper CreateServiceForCertificateTelemetry(string metricName, string thumbprint)

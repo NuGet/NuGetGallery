@@ -113,7 +113,7 @@ namespace NuGetGallery
                     status,
                     alternatePackageRegistration != null,
                     alternatePackage != null,
-                    string.IsNullOrWhiteSpace(customMessage));
+                    !string.IsNullOrWhiteSpace(customMessage));
 
                 foreach (var package in packages)
                 {

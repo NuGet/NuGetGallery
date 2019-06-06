@@ -680,7 +680,7 @@ namespace NuGetGallery
             IReadOnlyList<Package> packages,
             Action<Dictionary<string, string>> addProperties = null)
         {
-            if (packages == null || !packages.Any())
+            if (packages == null || !packages.Any() || packages.Select(p => p.PackageRegistrationKey).Distinct().Count() > 1)
             {
                 throw new ArgumentException(nameof(packages));
             }

@@ -250,14 +250,14 @@ namespace NuGetGallery.Services
 
                 var auditingService = GetService<IAuditingService>();
 
-                var service = Get<PackageDeprecationService>();
-
                 var status = (PackageDeprecationStatus)99;
 
                 var telemetryService = GetMock<ITelemetryService>();
                 telemetryService
                     .Setup(x => x.TrackPackageDeprecate(packages, status, true, true, true))
                     .Verifiable();
+
+                var service = Get<PackageDeprecationService>();
 
                 var alternatePackageRegistration = new PackageRegistration();
                 var alternatePackage = new Package();
