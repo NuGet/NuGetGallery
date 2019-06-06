@@ -82,6 +82,7 @@ namespace NuGetGallery
                 TelemetryConfiguration.Active.InstrumentationKey = instrumentationKey;
 
                 // Add enrichers
+                TelemetryConfiguration.Active.TelemetryInitializers.Add(new DeploymentIdTelemetryEnricher());
                 TelemetryConfiguration.Active.TelemetryInitializers.Add(new ClientInformationTelemetryEnricher());
 
                 var telemetryProcessorChainBuilder = TelemetryConfiguration.Active.TelemetryProcessorChainBuilder;

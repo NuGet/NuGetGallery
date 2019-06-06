@@ -568,6 +568,7 @@
     <Compile Include="Services\ValidationService.cs" />
     <Compile Include="Telemetry\ClientInformationTelemetryEnricher.cs" />
     <Compile Include="Telemetry\ClientTelemetryPIIProcessor.cs" />
+    <Compile Include="Telemetry\DeploymentIdTelemetryEnricher.cs" />
     <Compile Include="Telemetry\QuietExceptionLogger.cs" />
     <Compile Include="Infrastructure\Authentication\CredentialValidator.cs" />
     <Compile Include="Infrastructure\Authentication\ICredentialValidator.cs" />
