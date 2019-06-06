@@ -518,7 +518,7 @@
                 {
                     <div class="github-usage panel-collapse collapse" aria-expanded="true" id="github-usage">
                         <p>
-                            About @(NuGetGallery.GitHub.KiloFormatExtension.ToKiloFormat(Model.GitHubDependenciesInformation.TotalRepos)) popular GitHub repositories depend on
+                            About @(Model.GitHubDependenciesInformation.TotalRepos.ToKiloFormat()) popular GitHub repositories depend on
                             @(Model.Id), including the following:
                         </p>
 
@@ -532,7 +532,7 @@
                                             <a>@(dep.Id)</a>
                                         </span>
                                         <span class="badge pull-right" style="background-color: #004880">
-                                            @(NuGetGallery.GitHub.KiloFormatExtension.ToKiloFormat(dep.Stars)) <i class="ms-Icon ms-Icon--FavoriteStarFill" aria-hidden="true" style="color:#ffac0e"></i>
+                                            @(dep.Stars.ToKiloFormat()) <i class="ms-Icon ms-Icon--FavoriteStarFill" aria-hidden="true" style="color:#ffac0e"></i>
                                         </span>
                                     </button>
                                 </div>

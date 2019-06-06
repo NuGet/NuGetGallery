@@ -10,7 +10,7 @@ namespace NuGetGallery.GitHub
         public NuGetPackageGitHubInformation(int totalRepos, IReadOnlyList<RepositoryInformation> repos)
         {
             TotalRepos = totalRepos;
-            Repos = repos;
+            Repos = repos ?? throw new System.ArgumentException(string.Format("{0} cannot be null!", nameof(repos)));
         }
 
         public int TotalRepos { get; }

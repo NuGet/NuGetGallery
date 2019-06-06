@@ -1,10 +1,10 @@
 ﻿using System.Text;
 
-namespace NuGetGallery.GitHub
+namespace NuGetGallery
 {
-    public class KiloFormatExtension
+    public static class IntFormatExtensions
     {
-        public static string ToKiloFormat(int number)
+        public static string ToKiloFormat(this int number)
         {
             if (number >= 1_000_000_000)
             {

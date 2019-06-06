@@ -1,5 +1,4 @@
 ﻿using Newtonsoft.Json;
-using System;
 using System.Collections.Generic;
 
 namespace NuGetGallery.GitHub
@@ -9,13 +8,23 @@ namespace NuGetGallery.GitHub
         public RepositoryInformation()
         { }
 
-        public RepositoryInformation(string owner, string repoName, string cloneUrl, int starCount, List<string> dependencies)
+        public RepositoryInformation(
+            string owner,
+            string repoName,
+            string cloneUrl,
+            int starCount,
+            IReadOnlyList<string> dependencies)
         {
-            Owner = owner;
-            Name = repoName;
-            Url = cloneUrl;
+            if(starCount < 0)
+            {
+                throw new System.IndexOutOfRangeException(string.Format("{0} cannot have a negative value!", nameof(starCount)));
+            }
+
+            Owner = owner ?? throw new System.ArgumentException(string.Format("{0} cannot be null!", nameof(owner)));
+            Name = repoName ?? throw new System.ArgumentException(string.Format("{0} cannot be null!", nameof(repoName)));;
+            Url = cloneUrl ?? throw new System.ArgumentException(string.Format("{0} cannot be null!", nameof(cloneUrl)));;
             Stars = starCount;
-            Dependencies = dependencies;
+            Dependencies = dependencies ?? throw new System.ArgumentException(string.Format("{0} cannot be null!", nameof(dependencies)));;
         }
 
         [JsonIgnore]
@@ -37,6 +46,6 @@ namespace NuGetGallery.GitHub
             }
         }
 
-        public List<string> Dependencies { get; set; } = null;
+        public IReadOnlyList<string> Dependencies { get; set; } = null;
     }
 }

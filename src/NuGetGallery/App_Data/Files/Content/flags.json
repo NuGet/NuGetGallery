@@ -25,9 +25,7 @@
     "NuGetGallery.GitHubUsage": {
       "All": false,
       "SiteAdmins": false,
-      "Accounts": [
-        "test"
-      ],
+      "Accounts": [],
       "Domains": []
     }
   }
