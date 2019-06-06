@@ -314,7 +314,7 @@
                 @ViewHelpers.AlertIsSemVer2Package(Model.HasSemVer2Version, Model.HasSemVer2Dependency)
             }
 
-            @if (showSymbolsPackageStatus)
+            @if (Model.CanDisplayPrivateMetadata && showSymbolsPackageStatus)
             {
                 if (Model.LatestSymbolsPackage.StatusKey == PackageStatus.Validating)
                 {
