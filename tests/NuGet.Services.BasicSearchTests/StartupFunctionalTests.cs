@@ -23,7 +23,7 @@ namespace NuGet.Services.BasicSearchTests
 
                 // Assert
                 Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-                Assert.Equal(content, "READY");
+                Assert.Equal("READY", content);
             }
         }
 
@@ -39,7 +39,7 @@ namespace NuGet.Services.BasicSearchTests
 
                 // Assert
                 Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
-                Assert.Equal(content, "UNRECOGNIZED");
+                Assert.Equal("UNRECOGNIZED", content);
             }
         }
     }

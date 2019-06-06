@@ -65,9 +65,9 @@ namespace NgTests
             await aggregateStorageRoot.DeleteAsync(new Uri("http://tempuri.org/firstone/test.txt"), CancellationToken.None);
 
             // Assert
-            Assert.Equal(1, storage1.Content.Count);
-            Assert.Equal(1, storage2.Content.Count);
-            Assert.Equal(1, storage3.Content.Count);
+            Assert.Single(storage1.Content);
+            Assert.Single(storage2.Content);
+            Assert.Single(storage3.Content);
 
             AssertUriAndContentDoesNotExist(storage1, new Uri("http://tempuri.org/firstone/test.txt"), "test1");
             AssertUriAndContentDoesNotExist(storage2, new Uri("http://tempuri.org/secondone/test.txt"), "test1");

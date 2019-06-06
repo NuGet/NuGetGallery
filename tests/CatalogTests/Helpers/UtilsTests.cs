@@ -136,9 +136,9 @@ namespace CatalogTests.Helpers
                 );
             
             // Assert
-            Assert.Equal(0, licenseFileTriples.Count());
-            Assert.Equal(0, licenseExpressionTriples.Count());
-            Assert.Equal(1, licenseUrlTriples.Count());
+            Assert.Empty(licenseFileTriples);
+            Assert.Empty(licenseExpressionTriples);
+            Assert.Single(licenseUrlTriples);
         }
 
         [Theory]
@@ -168,7 +168,7 @@ namespace CatalogTests.Helpers
 
             // Assert
             Assert.Equal(expectedLicenseUrlNumber, licenseUrlTriples.Count());
-            Assert.Equal(1, licenseTriples.Count());
+            Assert.Single(licenseTriples);
             Assert.Equal(licenseContent, result.Value);
         }
 

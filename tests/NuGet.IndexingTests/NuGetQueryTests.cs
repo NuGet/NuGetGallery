@@ -50,7 +50,7 @@ namespace NuGet.IndexingTests
 
         [Theory]
         [MemberData(nameof(MakesFilteredQueriesSupportingFieldAliasesData))]
-        public void MakesFilteredQueriesSupportingFieldAliases(string inputField, string expectedField)
+        public void MakesFilteredQueriesSupportingFieldAliases(string inputField)
         {
             // arrange
             var owners = CreateOwnersResult(new Dictionary<string, HashSet<string>>
@@ -387,10 +387,10 @@ namespace NuGet.IndexingTests
         {
             get
             {
-                yield return new object[] { "owner", "Owner" };
-                yield return new object[] { "owners", "Owner" };
-                yield return new object[] { "OWNER", "Owner" };
-                yield return new object[] { "OWNERS", "Owner" };
+                yield return new object[] { "owner" };
+                yield return new object[] { "owners" };
+                yield return new object[] { "OWNER" };
+                yield return new object[] { "OWNERS" };
             }
         }
 

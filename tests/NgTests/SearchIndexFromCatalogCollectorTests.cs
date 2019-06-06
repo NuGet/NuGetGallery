@@ -102,7 +102,7 @@ namespace NgTests
                             .StringValue);
                     var commitDocuments = documentsByType[Schema.DataTypes.CatalogInfastructure.AbsoluteUri.ToString()].ToList();
                     var packageDocuments = documentsByType[null].ToList();
-                    Assert.Equal(1, commitDocuments.Count);
+                    Assert.Single(commitDocuments);
                     Assert.Equal(3, packageDocuments.Count);
 
                     Assert.Equal(

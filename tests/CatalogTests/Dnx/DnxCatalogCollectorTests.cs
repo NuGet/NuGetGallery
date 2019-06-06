@@ -296,7 +296,7 @@ namespace CatalogTests.Dnx
 
             await _target.RunAsync(front, back, CancellationToken.None);
 
-            Assert.Equal(1, _catalogToDnxStorage.Content.Count);
+            Assert.Single(_catalogToDnxStorage.Content);
             Assert.True(_catalogToDnxStorage.Content.ContainsKey(_cursorJsonUri));
             Assert.False(_catalogToDnxStorage.Content.ContainsKey(indexJsonUri));
             Assert.True(_catalogToDnxStorage.ContentBytes.ContainsKey(_cursorJsonUri));
@@ -357,7 +357,7 @@ namespace CatalogTests.Dnx
 
             await _target.RunAsync(front, back, CancellationToken.None);
 
-            Assert.Equal(1, _catalogToDnxStorage.Content.Count);
+            Assert.Single(_catalogToDnxStorage.Content);
             Assert.True(_catalogToDnxStorage.Content.ContainsKey(_cursorJsonUri));
             Assert.False(_catalogToDnxStorage.Content.ContainsKey(indexJsonUri));
             Assert.False(_catalogToDnxStorage.Content.ContainsKey(nupkgUri));
@@ -424,7 +424,7 @@ namespace CatalogTests.Dnx
 
             await _target.RunAsync(front, back, CancellationToken.None);
 
-            Assert.Equal(1, _catalogToDnxStorage.Content.Count);
+            Assert.Single(_catalogToDnxStorage.Content);
             Assert.True(_catalogToDnxStorage.Content.ContainsKey(_cursorJsonUri));
             Assert.False(_catalogToDnxStorage.Content.ContainsKey(indexJsonUri));
             Assert.False(_catalogToDnxStorage.Content.ContainsKey(nupkgUri));
@@ -454,7 +454,7 @@ namespace CatalogTests.Dnx
 
             await _target.RunAsync(front, back, CancellationToken.None);
 
-            Assert.Equal(1, _catalogToDnxStorage.Content.Count);
+            Assert.Single(_catalogToDnxStorage.Content);
             Assert.True(_catalogToDnxStorage.Content.ContainsKey(_cursorJsonUri));
             Assert.False(_catalogToDnxStorage.Content.ContainsKey(indexJsonUri));
             Assert.False(_catalogToDnxStorage.Content.ContainsKey(nupkgUri));
@@ -710,7 +710,7 @@ namespace CatalogTests.Dnx
             Assert.Equal(
                 $"Expected status code OK for package download, actual: {statusCode}",
                 exception.InnerException.Message);
-            Assert.Equal(0, _catalogToDnxStorage.Content.Count);
+            Assert.Empty(_catalogToDnxStorage.Content);
         }
 
         [Fact]

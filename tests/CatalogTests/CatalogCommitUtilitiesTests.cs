@@ -332,8 +332,8 @@ namespace CatalogTests
                     NoOpProcessBatchAsync,
                     CancellationToken.None);
 
-                Assert.Equal(1, unprocessedBatches.Count);
-                Assert.Equal(1, processingBatches.Count);
+                Assert.Single(unprocessedBatches);
+                Assert.Single(processingBatches);
             }
 
             [Fact]
@@ -357,8 +357,8 @@ namespace CatalogTests
                     NoOpProcessBatchAsync,
                     CancellationToken.None);
 
-                Assert.Equal(1, unprocessedBatches.Count);
-                Assert.Equal(1, processingBatches.Count);
+                Assert.Single(unprocessedBatches);
+                Assert.Single(processingBatches);
             }
 
             [Fact]
@@ -386,8 +386,8 @@ namespace CatalogTests
                         NoOpProcessBatchAsync,
                         CancellationToken.None);
 
-                    Assert.Equal(1, unprocessedBatches.Count);
-                    Assert.Equal(1, processingBatches.Count);
+                    Assert.Single(unprocessedBatches);
+                    Assert.Single(processingBatches);
                 }
             }
 
@@ -407,8 +407,8 @@ namespace CatalogTests
                     NoOpProcessBatchAsync,
                     CancellationToken.None);
 
-                Assert.Equal(0, unprocessedBatches.Count);
-                Assert.Equal(1, processingBatches.Count);
+                Assert.Empty(unprocessedBatches);
+                Assert.Single(processingBatches);
             }
 
             [Fact]
@@ -429,7 +429,7 @@ namespace CatalogTests
                     NoOpProcessBatchAsync,
                     CancellationToken.None);
 
-                Assert.Equal(0, unprocessedBatches.Count);
+                Assert.Empty(unprocessedBatches);
                 Assert.Equal(2, processingBatches.Count);
             }
         }

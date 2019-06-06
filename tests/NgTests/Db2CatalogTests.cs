@@ -27,7 +27,7 @@ using Xunit.Abstractions;
 
 namespace NgTests
 {
-    public class Db2CatalogTests
+    public class Db2CatalogTests : IDisposable
     {
         private const string PackageContentUrlFormat = "https://unittest.org/packages/{id-lower}/{version-lower}.nupkg";
 

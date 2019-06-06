@@ -571,8 +571,8 @@ namespace CatalogTests.Dnx
 
                 await maker.DeletePackageAsync(_packageId, version, CancellationToken.None);
 
-                Assert.Equal(0, catalogToDnxStorage.Content.Count);
-                Assert.Equal(0, storageForPackage.Content.Count);
+                Assert.Empty(catalogToDnxStorage.Content);
+                Assert.Empty(storageForPackage.Content);
             }
         }
 
@@ -637,8 +637,8 @@ namespace CatalogTests.Dnx
             var versions = indexObject["versions"].ToObject<string[]>();
             var expectedContent = GetExpectedIndexJsonContent(normalizedVersion);
 
-            Assert.Equal(1, catalogToDnxStorage.Content.Count);
-            Assert.Equal(1, storageForPackage.Content.Count);
+            Assert.Single(catalogToDnxStorage.Content);
+            Assert.Single(storageForPackage.Content);
 
             Verify(catalogToDnxStorage, indexJsonUri, expectedContent, _expectedPackageVersionIndexJsonCacheControl, _expectedPackageVersionIndexJsonContentType);
             Verify(storageForPackage, indexJsonUri, expectedContent, _expectedPackageVersionIndexJsonCacheControl, _expectedPackageVersionIndexJsonContentType);
@@ -661,16 +661,16 @@ namespace CatalogTests.Dnx
             var indexJson = await storageForPackage.LoadAsync(indexJsonUri, CancellationToken.None);
 
             Assert.NotNull(indexJson);
-            Assert.Equal(1, catalogToDnxStorage.Content.Count);
-            Assert.Equal(1, storageForPackage.Content.Count);
+            Assert.Single(catalogToDnxStorage.Content);
+            Assert.Single(storageForPackage.Content);
 
             await maker.UpdatePackageVersionIndexAsync(_packageId, v => v.Remove(version), CancellationToken.None);
 
             indexJson = await storageForPackage.LoadAsync(indexJsonUri, CancellationToken.None);
 
             Assert.Null(indexJson);
-            Assert.Equal(0, catalogToDnxStorage.Content.Count);
-            Assert.Equal(0, storageForPackage.Content.Count);
+            Assert.Empty(catalogToDnxStorage.Content);
+            Assert.Empty(storageForPackage.Content);
         }
 
         [Fact]
@@ -687,8 +687,8 @@ namespace CatalogTests.Dnx
             var indexJson = await storageForPackage.LoadAsync(indexJsonUri, CancellationToken.None);
 
             Assert.Null(indexJson);
-            Assert.Equal(0, catalogToDnxStorage.Content.Count);
-            Assert.Equal(0, storageForPackage.Content.Count);
+            Assert.Empty(catalogToDnxStorage.Content);
+            Assert.Empty(storageForPackage.Content);
         }
 
         [Fact]
@@ -715,8 +715,8 @@ namespace CatalogTests.Dnx
             var indexObject = JObject.Parse(indexJson.GetContentString());
             var versions = indexObject["versions"].ToObject<string[]>();
 
-            Assert.Equal(1, catalogToDnxStorage.Content.Count);
-            Assert.Equal(1, storageForPackage.Content.Count);
+            Assert.Single(catalogToDnxStorage.Content);
+            Assert.Single(storageForPackage.Content);
             Assert.Collection(
                 versions,
                 version => Assert.Equal(unorderedVersions[2].ToNormalizedString(), version),

@@ -179,11 +179,9 @@ namespace CatalogTests.Registration
                     content.CreateUriNode(Schema.Predicates.LicenseFile));
 
                 // Assert
-                Assert.Equal(1, licenseUrlTriples.Count());
-                Assert.Equal(expectedLicenseUrlValue, licenseUrlTriples.First().Object.ToString());
-                Assert.Equal(1, licenseExpressionTriples.Count());
-                Assert.Equal(licenseExpression == null ? "" : licenseExpression, licenseExpressionTriples.First().Object.ToString());
-                Assert.Equal(0, licenseFileTriples.Count());
+                Assert.Equal(expectedLicenseUrlValue, Assert.Single(licenseUrlTriples).Object.ToString());
+                Assert.Equal(licenseExpression ?? "", Assert.Single(licenseExpressionTriples).Object.ToString());
+                Assert.Empty(licenseFileTriples);
             }
 
             public static IEnumerable<object[]> CreatePageContent_SetsDeprecationInformationProperly_Data

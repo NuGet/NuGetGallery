@@ -5,6 +5,7 @@ using Lucene.Net.Support;
 using NuGet.Indexing;
 using NuGet.Versioning;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;
@@ -41,8 +42,8 @@ namespace NuGet.IndexingTests
         }
 
         [Theory]
-        [MemberData(nameof(VersionStringSets))]
-        public void StableResultContainsNoPrerelVersion(string[] versionSet, int expectedNumSemVer1)
+        [MemberData(nameof(VersionStringSetsOnly))]
+        public void StableResultContainsNoPrerelVersion(string[] versionSet)
         {
             var result = MakeVersionResult(versionSet, randomizeListing: true);
 
@@ -91,8 +92,8 @@ namespace NuGet.IndexingTests
         }
 
         [Theory]
-        [MemberData(nameof(VersionStringSets))]
-        public void ListedOnlyReturnsListed(string[] versionSet, int expectedNumSemVer1)
+        [MemberData(nameof(VersionStringSetsOnly))]
+        public void ListedOnlyReturnsListed(string[] versionSet)
         {
             var result = MakeVersionResult(versionSet, randomizeListing: true);
 
@@ -251,5 +252,9 @@ namespace NuGet.IndexingTests
                 };
             }
         }
+
+        public static IEnumerable<object[]> VersionStringSetsOnly =>
+            from testData in VersionStringSets
+            select new object[] { testData[0] };
     }
 }

@@ -163,7 +163,7 @@ namespace NgTests
             Assert.False(originalFactory.CompressContent, "compress should be false on the original storage factory");
             Assert.Equal(originalFactory.BaseAddress, new Uri("http://localhost/reg/testStoragePath/"));
 
-            Assert.Equal(1, legacy.SecondaryStorageFactories.Count());
+            Assert.Single(legacy.SecondaryStorageFactories);
             var compressFactory = Assert.IsType<AzureStorageFactory>(legacy.SecondaryStorageFactories.First());
             Assert.True(compressFactory.Verbose, "verbose should be true on the compress storage factory");
             Assert.True(compressFactory.CompressContent, "compress should be true on the compress storage factory");
@@ -251,7 +251,7 @@ namespace NgTests
             Assert.False(originalFactory.CompressContent, "compress should be false on the original storage factory");
             Assert.Equal(originalFactory.BaseAddress, new Uri("http://localhost/reg/testStoragePath/"));
 
-            Assert.Equal(1, legacy.SecondaryStorageFactories.Count());
+            Assert.Single(legacy.SecondaryStorageFactories);
             var compressFactory = Assert.IsType<AzureStorageFactory>(legacy.SecondaryStorageFactories.First());
             Assert.True(compressFactory.Verbose, "verbose should be true on the compress storage factory");
             Assert.True(compressFactory.CompressContent, "compress should be true on the compress storage factory");

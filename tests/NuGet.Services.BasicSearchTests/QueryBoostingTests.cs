@@ -33,19 +33,19 @@ namespace NuGet.Services.BasicSearchTests
             var fourth = Load("{}");
 
             // Assert
-            Assert.Equal(true, first.BoostByDownloads);
+            Assert.True(first.BoostByDownloads);
             Assert.Equal(2000, first.Threshold);
             Assert.Equal(40f, first.Factor);
 
-            Assert.Equal(false, second.BoostByDownloads);
+            Assert.False(second.BoostByDownloads);
             Assert.Equal(3000, second.Threshold);
             Assert.Equal(0.1f, second.Factor);
 
-            Assert.Equal(true, third.BoostByDownloads);
+            Assert.True(third.BoostByDownloads);
             Assert.Equal(1, third.Threshold);
             Assert.Equal(0.1f, third.Factor);
 
-            Assert.Equal(true, third.BoostByDownloads);
+            Assert.True(third.BoostByDownloads);
             Assert.Equal(1, third.Threshold);
             Assert.Equal(0.1f, third.Factor);
         }

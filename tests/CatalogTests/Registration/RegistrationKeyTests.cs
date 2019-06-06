@@ -38,7 +38,7 @@ namespace CatalogTests.Registration
 
         [Theory]
         [MemberData(nameof(EqualRegistrationKeys))]
-        public void GetHashCodeIgnoresCaseAndUsesNormalized(string idA, string idB, bool expectedEquals)
+        public void GetHashCodeIgnoresCaseAndUsesNormalized(string idA, string idB)
         {
             // Arrange
             var a = new RegistrationKey(idA);
@@ -72,6 +72,9 @@ namespace CatalogTests.Registration
             }
         }
 
-        public static IEnumerable<object[]> EqualRegistrationKeys => RegistrationKeys.Where(a => (bool)a[2]);
+        public static IEnumerable<object[]> EqualRegistrationKeys =>
+            RegistrationKeys
+                .Where(a => (bool)a[2])
+                .Select(a => new object[] { a[0], a[1] });
     }
 }
