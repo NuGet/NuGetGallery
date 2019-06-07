@@ -133,7 +133,6 @@
     <Compile Include="Entities\ReadOnlyModeException.cs" />
     <Compile Include="Entities\SuspendDbExecutionStrategy.cs" />
     <Compile Include="Extensions\EntitiesContextExtensions.cs" />
-    <Compile Include="Extensions\IntFormatExtensions.cs" />
     <Compile Include="Extensions\PackageValidationSetExtensions.cs" />
     <Compile Include="Extensions\StorageExceptionExtensions.cs" />
     <Compile Include="Extensions\UserExtensionsCore.cs" />
