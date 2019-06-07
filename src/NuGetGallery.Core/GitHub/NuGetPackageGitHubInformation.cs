@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -19,5 +19,7 @@ namespace NuGetGallery.GitHub
 
         public int TotalRepos { get; }
         public IReadOnlyList<RepositoryInformation> Repos { get; }
+
+        public static NuGetPackageGitHubInformation EMPTY = new NuGetPackageGitHubInformation(0, Array.Empty<RepositoryInformation>().ToList().AsReadOnly());
     }
 }
