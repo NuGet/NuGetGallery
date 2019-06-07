@@ -6,6 +6,7 @@ namespace NuGetGallery.GitHub
 {
     public class GitHubUsageConfiguration : IGitHubUsageConfiguration
     {
+        public const int ReposPerPackage = 10;
         private readonly Dictionary<string, NuGetPackageGitHubInformation> _nuGetPackagesGitHubDependencies;
 
         public GitHubUsageConfiguration(IReadOnlyList<RepositoryInformation> repositories)
@@ -32,7 +33,7 @@ namespace NuGetGallery.GitHub
                 return value;
             }
 
-            return NuGetPackageGitHubInformation.EMPTY;
+            return NuGetPackageGitHubInformation.Empty;
         }
 
         private static Dictionary<string, NuGetPackageGitHubInformation> GetNuGetPackagesDependents(IReadOnlyList<RepositoryInformation> repositories)
@@ -59,7 +60,7 @@ namespace NuGetGallery.GitHub
                              entry.Value.Count,
                              entry.Value
                                   .OrderByDescending(x => x.Stars)
-                                  .ThenBy(x => x.Id).Take(10).ToList()),
+                                  .ThenBy(x => x.Id).Take(ReposPerPackage).ToList()),
                     StringComparer.InvariantCultureIgnoreCase);
         }
     }
