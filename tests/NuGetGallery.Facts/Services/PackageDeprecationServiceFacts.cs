@@ -20,9 +20,31 @@ namespace NuGetGallery.Services
 
             [Theory]
             [MemberData(nameof(ThrowsIfPackagesEmpty_Data))]
-            public async Task ThrowsIfPackagesEmpty(IReadOnlyCollection<Package> packages)
+            public async Task ThrowsIfPackagesEmpty(IReadOnlyList<Package> packages)
             {
                 var service = Get<PackageDeprecationService>();
+
+                var user = new User { Key = 1 };
+                await Assert.ThrowsAsync<ArgumentException>(() =>
+                    service.UpdateDeprecation(
+                        packages,
+                        PackageDeprecationStatus.NotDeprecated,
+                        alternatePackageRegistration: null,
+                        alternatePackage: null,
+                        customMessage: null,
+                        user: user));
+            }
+
+            [Fact]
+            public async Task ThrowsIfPackagesHaveDifferentRegistrations()
+            {
+                var service = Get<PackageDeprecationService>();
+
+                var packages = new[]
+                {
+                    new Package { PackageRegistrationKey = 1 },
+                    new Package { PackageRegistrationKey = 2 },
+                };
 
                 var user = new User { Key = 1 };
                 await Assert.ThrowsAsync<ArgumentException>(() =>
@@ -39,19 +61,28 @@ namespace NuGetGallery.Services
             public async Task DeletesExistingDeprecationsIfStatusNotDeprecated()
             {
                 // Arrange
+                var registration = new PackageRegistration { Id = "theId" };
                 var packageWithDeprecation1 = new Package
                 {
+                    PackageRegistration = registration,
                     Deprecations = new List<PackageDeprecation> { new PackageDeprecation() }
                 };
 
-                var packageWithoutDeprecation1 = new Package();
+                var packageWithoutDeprecation1 = new Package
+                {
+                    PackageRegistration = registration
+                };
 
                 var packageWithDeprecation2 = new Package
                 {
+                    PackageRegistration = registration,
                     Deprecations = new List<PackageDeprecation> { new PackageDeprecation() }
                 };
 
-                var packageWithoutDeprecation2 = new Package();
+                var packageWithoutDeprecation2 = new Package
+                {
+                    PackageRegistration = registration
+                };
 
                 var packages = new[]
                 {
@@ -61,15 +92,27 @@ namespace NuGetGallery.Services
                     packageWithoutDeprecation2
                 };
 
-                var deprecationRepository = GetMock<IEntityRepository<PackageDeprecation>>();
-                var existingDeprecations = packages.Select(p => p.Deprecations.SingleOrDefault()).Where(d => d != null).ToList();
-                deprecationRepository
-                    .Setup(x => x.DeleteOnCommit(It.Is<IEnumerable<PackageDeprecation>>(d => d.SequenceEqual(existingDeprecations))))
+                var transactionMock = new Mock<IDbContextTransaction>();
+                transactionMock
+                    .Setup(x => x.Commit())
                     .Verifiable();
 
-                deprecationRepository
-                    .Setup(x => x.CommitChangesAsync())
-                    .Completes()
+                var databaseMock = new Mock<IDatabase>();
+                databaseMock
+                    .Setup(x => x.BeginTransaction())
+                    .Returns(transactionMock.Object);
+
+                var context = GetFakeContext();
+                context.SetupDatabase(databaseMock.Object);
+                context.Deprecations.AddRange(
+                    packages
+                        .Select(p => p.Deprecations.SingleOrDefault())
+                        .Where(d => d != null));
+
+                var packageUpdateService = GetMock<IPackageUpdateService>();
+                packageUpdateService
+                    .Setup(b => b.UpdatePackagesAsync(packages, true))
+                    .Returns(Task.CompletedTask)
                     .Verifiable();
 
                 var user = new User { Key = 1 };
@@ -85,7 +128,10 @@ namespace NuGetGallery.Services
                     user: user);
 
                 // Assert
-                deprecationRepository.Verify();
+                context.VerifyCommitChanges();
+                Assert.Equal(0, context.Deprecations.Count());
+                packageUpdateService.Verify();
+                transactionMock.Verify();
 
                 foreach (var package in packages)
                 {
@@ -93,28 +139,27 @@ namespace NuGetGallery.Services
                 }
             }
 
-            [Theory]
-            [InlineData(false)]
-            [InlineData(true)]
-            public async Task ReplacesExistingDeprecations(bool shouldUnlist)
+            [Fact]
+            public async Task ReplacesExistingDeprecations()
             {
                 // Arrange
-                var lastEdited = new DateTime(2019, 3, 4);
+                var registration = new PackageRegistration { Id = "theId" };
+                var lastTimestamp = new DateTime(2019, 3, 4);
 
                 var packageWithDeprecation1 = new Package
                 {
-                    Deprecations = new List<PackageDeprecation> { new PackageDeprecation() },
-                    LastEdited = lastEdited
+                    PackageRegistration = registration,
+                    Deprecations = new List<PackageDeprecation> { new PackageDeprecation() }
                 };
 
                 var packageWithoutDeprecation1 = new Package
                 {
-                    LastEdited = lastEdited
+                    PackageRegistration = registration
                 };
 
                 var packageWithDeprecation2 = new Package
                 {
-                    LastEdited = lastEdited,
+                    PackageRegistration = registration,
                     Deprecations = new List<PackageDeprecation>
                     {
                         new PackageDeprecation
@@ -125,12 +170,12 @@ namespace NuGetGallery.Services
 
                 var packageWithoutDeprecation2 = new Package
                 {
-                    LastEdited = lastEdited
+                    PackageRegistration = registration
                 };
 
                 var packageWithDeprecation3 = new Package
                 {
-                    LastEdited = lastEdited,
+                    PackageRegistration = registration,
                     Deprecations = new List<PackageDeprecation>
                     {
                         new PackageDeprecation
@@ -148,18 +193,27 @@ namespace NuGetGallery.Services
                     packageWithDeprecation3
                 };
 
-                var deprecationRepository = GetMock<IEntityRepository<PackageDeprecation>>();
-                var packagesWithoutDeprecations = packages.Where(p => p.Deprecations.SingleOrDefault() == null).ToList();
-                deprecationRepository
-                    .Setup(x => x.InsertOnCommit(
-                        It.Is<IEnumerable<PackageDeprecation>>(
-                            // The deprecations inserted must be identical to the list of packages without deprecations.
-                            i => packagesWithoutDeprecations.SequenceEqual(i.Select(d => d.Package)))))
+                var transactionMock = new Mock<IDbContextTransaction>();
+                transactionMock
+                    .Setup(x => x.Commit())
                     .Verifiable();
 
-                deprecationRepository
-                    .Setup(x => x.CommitChangesAsync())
-                    .Completes()
+                var databaseMock = new Mock<IDatabase>();
+                databaseMock
+                    .Setup(x => x.BeginTransaction())
+                    .Returns(transactionMock.Object);
+
+                var context = GetFakeContext();
+                context.SetupDatabase(databaseMock.Object);
+                context.Deprecations.AddRange(
+                    packages
+                        .Select(p => p.Deprecations.SingleOrDefault())
+                        .Where(d => d != null));
+
+                var packageUpdateService = GetMock<IPackageUpdateService>();
+                packageUpdateService
+                    .Setup(b => b.UpdatePackagesAsync(packages, true))
+                    .Returns(Task.CompletedTask)
                     .Verifiable();
 
                 var service = Get<PackageDeprecationService>();
@@ -182,11 +236,16 @@ namespace NuGetGallery.Services
                     user);
 
                 // Assert
-                deprecationRepository.Verify();
+                context.VerifyCommitChanges();
+                databaseMock.Verify();
+                transactionMock.Verify();
+                packageUpdateService.Verify();
 
+                Assert.Equal(packages.Count(), context.Deprecations.Count());
                 foreach (var package in packages)
                 {
                     var deprecation = package.Deprecations.Single();
+                    Assert.Contains(deprecation, context.Deprecations);
                     Assert.Equal(status, deprecation.Status);
                     Assert.Equal(alternatePackageRegistration, deprecation.AlternatePackageRegistration);
                     Assert.Equal(alternatePackage, deprecation.AlternatePackage);
@@ -217,14 +276,9 @@ namespace NuGetGallery.Services
                     PackageKey = key
                 };
 
-                var repository = GetMock<IEntityRepository<PackageDeprecation>>();
-                repository
-                    .Setup(x => x.GetAll())
-                    .Returns(new[]
-                    {
-                        differentDeprecation,
-                        matchingDeprecation
-                    }.AsQueryable());
+                var context = GetFakeContext();
+                context.Deprecations.AddRange(
+                    new[] { differentDeprecation, matchingDeprecation });
 
                 // Act
                 var deprecation = Get<PackageDeprecationService>()
@@ -254,14 +308,9 @@ namespace NuGetGallery.Services
                     PackageKey = key
                 };
 
-                var repository = GetMock<IEntityRepository<PackageDeprecation>>();
-                repository
-                    .Setup(x => x.GetAll())
-                    .Returns(new[]
-                    {
-                        matchingDeprecation1,
-                        matchingDeprecation2
-                    }.AsQueryable());
+                var context = GetFakeContext();
+                context.Deprecations.AddRange(
+                    new[] { matchingDeprecation1, matchingDeprecation2 });
 
                 // Act / Assert
                 Assert.Throws<InvalidOperationException>(

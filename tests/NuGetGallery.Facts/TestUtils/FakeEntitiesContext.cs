@@ -42,6 +42,18 @@ namespace NuGetGallery
             }
         }
 
+        public DbSet<PackageDeprecation> Deprecations
+        {
+            get
+            {
+                return Set<PackageDeprecation>();
+            }
+            set
+            {
+                throw new NotSupportedException();
+            }
+        }
+
         public DbSet<Credential> Credentials
         {
             get
@@ -182,9 +194,15 @@ namespace NuGetGallery
             throw new NotSupportedException();
         }
 
+        private IDatabase _database;
         public IDatabase GetDatabase()
         {
-            throw new NotSupportedException();
+            return _database ?? throw new NotSupportedException();
+        }
+
+        public void SetupDatabase(IDatabase database)
+        {
+            _database = database;
         }
 
         public static DbSet<T> CreateDbSet<T>() where T : class
@@ -229,7 +247,13 @@ namespace NuGetGallery
 
             mockSet
                 .Setup(x => x.RemoveRange(It.IsAny<IEnumerable<T>>()))
-                .Callback<IEnumerable<T>>(x => x.Select(y => data.Remove(y)));
+                .Callback<IEnumerable<T>>(x =>
+                {
+                    foreach (var item in x)
+                    {
+                        data.Remove(item);
+                    }
+                });
 
             mockSet
                 .Setup(x => x.Local)

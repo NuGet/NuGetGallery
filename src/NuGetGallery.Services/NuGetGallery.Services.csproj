@@ -82,8 +82,10 @@
     <Compile Include="Models\StorageType.cs" />
     <Compile Include="PackageManagement\ActionOnNewPackageContext.cs" />
     <Compile Include="PackageManagement\IPackageOwnerRequestService.cs" />
+    <Compile Include="PackageManagement\IIndexingService.cs" />
     <Compile Include="PackageManagement\IPackageOwnershipManagementService.cs" />
     <Compile Include="PackageManagement\IPackageService.cs" />
+    <Compile Include="PackageManagement\IPackageUpdateService.cs" />
     <Compile Include="PackageManagement\IReservedNamespaceService.cs" />
     <Compile Include="PackageManagement\PackageDeleteDecision.cs" />
     <Compile Include="PackageManagement\PackageHelper.cs" />
@@ -99,6 +101,7 @@
     <Compile Include="Permissions\PermissionsCheckResult.cs" />
     <Compile Include="Permissions\PermissionsHelpers.cs" />
     <Compile Include="Permissions\PermissionsRequirement.cs" />
+    <Compile Include="PackageManagement\PackageUpdateService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Providers\DateTimeProvider.cs" />
     <Compile Include="Providers\IDateTimeProvider.cs" />

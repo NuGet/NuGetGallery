@@ -92,6 +92,7 @@
     <Compile Include="Infrastructure\Mail\Messages\SearchSideBySideMessageFacts.cs" />
     <Compile Include="Services\PackageDeprecationServiceFacts.cs" />
     <Compile Include="Services\SearchSideBySideServiceFacts.cs" />
+    <Compile Include="Services\PackageUpdateServiceFacts.cs" />
     <Compile Include="Services\StatusServiceFacts.cs" />
     <Compile Include="Telemetry\DeploymentIdTelemetryEnricherFacts.cs" />
     <Compile Include="TestData\TestDataResourceUtility.cs" />

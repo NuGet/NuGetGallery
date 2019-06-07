@@ -226,6 +226,7 @@
     <Compile Include="ExtensionMethods.cs" />
     <Compile Include="Infrastructure\Lucene\Correlation\CorrelatingHttpClientHandler.cs" />
     <Compile Include="Infrastructure\Lucene\Correlation\WebApiCorrelationHandler.cs" />
+    <Compile Include="Infrastructure\Lucene\IIndexingJobFactory.cs" />
     <Compile Include="Infrastructure\Lucene\ISearchClient.cs" />
     <Compile Include="Infrastructure\Lucene\Models\SearchResults.cs" />
     <Compile Include="Infrastructure\Lucene\Models\SortOrder.cs" />
@@ -1436,7 +1437,6 @@
     <Compile Include="Services\ICacheService.cs" />
     <Compile Include="Services\IStatisticsService.cs" />
     <Compile Include="Services\FileSystemFileStorageService.cs" />
-    <Compile Include="Services\IIndexingService.cs" />
     <Compile Include="Services\IAggregateStatsService.cs" />
     <Compile Include="Services\ISearchService.cs" />
     <Compile Include="Services\IUploadFileService.cs" />

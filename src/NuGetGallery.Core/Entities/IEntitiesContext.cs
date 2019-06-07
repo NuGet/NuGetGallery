@@ -12,6 +12,7 @@ namespace NuGetGallery
     {
         DbSet<Certificate> Certificates { get; set; }
         DbSet<Package> Packages { get; set; }
+        DbSet<PackageDeprecation> Deprecations { get; set; }
         DbSet<PackageRegistration> PackageRegistrations { get; set; }
         DbSet<Credential> Credentials { get; set; }
         DbSet<Scope> Scopes { get; set; }
