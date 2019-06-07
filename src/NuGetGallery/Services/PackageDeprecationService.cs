@@ -7,6 +7,7 @@ using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
 using NuGet.Services.Entities;
+using NuGetGallery.Auditing;
 
 namespace NuGetGallery
 {
@@ -14,16 +15,19 @@ namespace NuGetGallery
     {
         private readonly IEntitiesContext _entitiesContext;
         private readonly IPackageUpdateService _packageUpdateService;
-        private readonly IIndexingService _indexingService;
+        private readonly ITelemetryService _telemetryService;
+        private readonly IAuditingService _auditingService;
 
         public PackageDeprecationService(
            IEntitiesContext entitiesContext,
            IPackageUpdateService packageUpdateService,
-           IIndexingService indexingService)
+           ITelemetryService telemetryService,
+           IAuditingService auditingService)
         {
             _entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
             _packageUpdateService = packageUpdateService ?? throw new ArgumentNullException(nameof(packageUpdateService));
-            _indexingService = indexingService ?? throw new ArgumentNullException(nameof(indexingService));
+            _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
+            _auditingService = auditingService ?? throw new ArgumentNullException(nameof(auditingService));
         }
 
         public async Task UpdateDeprecation(
@@ -103,6 +107,22 @@ namespace NuGetGallery
                 await _packageUpdateService.UpdatePackagesAsync(packages);
 
                 transaction.Commit();
+
+                _telemetryService.TrackPackageDeprecate(
+                    packages,
+                    status,
+                    alternatePackageRegistration,
+                    alternatePackage,
+                    !string.IsNullOrWhiteSpace(customMessage));
+
+                foreach (var package in packages)
+                {
+                    await _auditingService.SaveAuditRecordAsync(
+                        new PackageAuditRecord(
+                            package,
+                            status == PackageDeprecationStatus.NotDeprecated ? AuditedPackageAction.Undeprecate : AuditedPackageAction.Deprecate,
+                            status == PackageDeprecationStatus.NotDeprecated ? PackageUndeprecatedVia.Web : PackageDeprecatedVia.Web));
+                }
             }
         }
 
