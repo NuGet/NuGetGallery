@@ -4,7 +4,8 @@
     {
         /// <summary>
         /// Returns a NuGetPackageGitHubInformation object that contains the information about a NuGet package.
-        /// NOTE: If a packageId has no information, the NuGetPackageGitHubInformation's TotalRepos will be 0 and the Repos list will be null
+        /// NOTE: If a packageId has no information, the NuGetPackageGitHubInformation's TotalRepos will be 0
+        /// and the Repos list will be empty
         /// 
         /// throws an ArgumentException if the packageId is null
         /// </summary>
