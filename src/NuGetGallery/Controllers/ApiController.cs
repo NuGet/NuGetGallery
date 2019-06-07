@@ -236,7 +236,7 @@ namespace NuGetGallery
 
             if (isSymbolPackage)
             {
-                var lastAvailableSymbolsPackage = package.LastAvailableSymbolPackage();
+                var lastAvailableSymbolsPackage = package.LatestAvailableSymbolPackage();
 
                 if (lastAvailableSymbolsPackage == null)
                 {

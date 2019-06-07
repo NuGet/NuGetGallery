@@ -14,10 +14,7 @@ namespace NuGet.Services.Entities
         /// <returns>The latest symbol package if present, null otherwise</returns>
         public static SymbolPackage LatestSymbolPackage(this Package package)
         {
-            return package
-                .SymbolPackages?
-                .OrderByDescending(sp => sp.Created)
-                .FirstOrDefault();
+            return package.GetSymbolsPackagesInReverseOrder()?.FirstOrDefault();
         }
 
         /// <summary>
@@ -25,12 +22,14 @@ namespace NuGet.Services.Entities
         /// </summary>
         /// <param name="package"><see cref="Package"/> for which latest symbol package is to be retrieved.</param>
         /// <returns>The last available symbol package if present, null otherwise</returns>
-        public static SymbolPackage LastAvailableSymbolPackage(this Package package)
+        public static SymbolPackage LatestAvailableSymbolPackage(this Package package)
         {
-            return package
-                .SymbolPackages?
-                .OrderByDescending(sp => sp.Created)
-                .FirstOrDefault(sp => sp.StatusKey == PackageStatus.Available);
+            return package.GetSymbolsPackagesInReverseOrder()?.FirstOrDefault(sp => sp.StatusKey == PackageStatus.Available);
+        }
+
+        public static IOrderedEnumerable<SymbolPackage> GetSymbolsPackagesInReverseOrder(this Package package)
+        {
+            return package.SymbolPackages?.OrderByDescending(sp => sp.Created);
         }
 
         /// <summary>
