@@ -959,6 +959,9 @@ img.reserved-indicator-icon {
 .page-package-details .badge-gh-repo {
   background-color: #004880;
 }
+.page-package-details .star-gh-repo {
+  color: #ffac0e;
+}
 .page-package-details .install-tabs {
   font-size: 0.8em;
 }
