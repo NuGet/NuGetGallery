@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -32,7 +32,7 @@ namespace NuGetGallery.GitHub
                 return value;
             }
 
-            return new NuGetPackageGitHubInformation();
+            return NuGetPackageGitHubInformation.EMPTY;
         }
 
         private static Dictionary<string, NuGetPackageGitHubInformation> GetNuGetPackagesDependents(IReadOnlyList<RepositoryInformation> repositories)
