@@ -35,10 +35,10 @@
     </div>
 }
 
-@helper DisplayNavigationItem(string tab, string url, bool bold = false, string title = null, bool newWindow = false)
+@helper DisplayNavigationItem(string tab, string url, bool bold = false, string title = null)
 {
     <li class="@(ViewBag.Tab == tab ? "active" : string.Empty)" role="presentation">
-        <a role="tab" target= "@(newWindow ? "_blank" : "")" aria-selected="@(ViewBag.Tab == tab ? "true" : "false")" href="@url" title="@title">
+        <a role="tab" aria-selected="@(ViewBag.Tab == tab ? "true" : "false")" href="@url" title="@title">
             @if (bold)
             {
                 @:<b>
@@ -88,7 +88,7 @@
                         }
                         @DisplayNavigationItem("Documentation", "https://docs.microsoft.com/en-us/nuget/what-is-nuget")
                         @DisplayNavigationItem("Downloads", Url.Downloads())
-                        @DisplayNavigationItem("Blog", "https://devblogs.microsoft.com/nuget/", newWindow: true)
+                        @DisplayNavigationItem("Blog", "https://devblogs.microsoft.com/nuget/")
                     </ul>
                     @if (ShowAuthInHeader)
                     {
