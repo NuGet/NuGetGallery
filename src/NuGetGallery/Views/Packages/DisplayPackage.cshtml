@@ -890,12 +890,12 @@
 
                 @if (Model.IsGitHubUsageEnabled && Model.GitHubDependenciesInformation.TotalRepos > 0)
                 {
-                <li>
-                    <img class="icon" aria-hidden="true" alt="GitHub logo"
-                         src="@Url.Absolute("~/Content/gallery/img/github.svg")"
-                         @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/github-32x32.png")) />
-                    @(Model.GitHubDependenciesInformation.TotalRepos) popular dependent GitHub repos
-                </li>
+                    <li>
+                        <img class="icon" aria-hidden="true" alt="GitHub logo"
+                             src="@Url.Absolute("~/Content/gallery/img/github.svg")"
+                             @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/github-32x32.png")) />
+                        @(Model.GitHubDependenciesInformation.TotalRepos) popular dependent GitHub repos
+                    </li>
                 }
             </ul>
             @if (StatisticsHelper.IsStatisticsPageAvailable)
