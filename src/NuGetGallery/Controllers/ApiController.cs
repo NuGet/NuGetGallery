@@ -236,9 +236,9 @@ namespace NuGetGallery
 
             if (isSymbolPackage)
             {
-                var lastAvailableSymbolsPackage = package.LatestAvailableSymbolPackage();
+                var latestAvailableSymbolsPackage = package.LatestAvailableSymbolPackage();
 
-                if (lastAvailableSymbolsPackage == null)
+                if (latestAvailableSymbolsPackage == null)
                 {
                     return new HttpStatusCodeWithBodyResult(HttpStatusCode.NotFound, string.Format(CultureInfo.CurrentCulture, Strings.SymbolsPackage_PackageNotAvailable, id, version));
                 }
