@@ -125,7 +125,6 @@ namespace NuGetGallery
                 throw new ArgumentException(nameof(packages));
             }
 
-            var registration = packages.First().PackageRegistration;
             if (packages.Select(p => p.PackageRegistrationKey).Distinct().Count() > 1)
             {
                 throw new ArgumentException("All packages to update must have the same ID.", nameof(packages));
