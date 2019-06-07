@@ -956,6 +956,9 @@ img.reserved-indicator-icon {
 .page-package-details .btn-gh-repo:hover {
   background-color: #d9edf7;
 }
+.page-package-details .badge-gh-repo {
+  background-color: #004880;
+}
 .page-package-details .install-tabs {
   font-size: 0.8em;
 }
