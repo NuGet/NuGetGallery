@@ -70,6 +70,7 @@ namespace NuGetGallery
         {
             return _client.IsEnabled(SearchSideBySideFlightName, user, defaultValue: false);
         }
+
         public bool IsGitHubUsageEnabled(User user)
         {
             return _client.IsEnabled(GitHubUsageFlightName, user, defaultValue: false);
