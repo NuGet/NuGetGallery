@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -10,7 +10,7 @@ namespace NuGetGallery.GitHub
         {
             if (repositories == null)
             {
-                throw new ArgumentNullException(nameof(repositories) + " is null!");
+                throw new ArgumentNullException(nameof(repositories));
             }
 
             NuGetPackagesGitHubDependencies = repositories.Any()
@@ -22,9 +22,9 @@ namespace NuGetGallery.GitHub
 
         public NuGetPackageGitHubInformation GetPackageInformation(string packageId)
         {
-            if (null == packageId)
+            if (packageId == null)
             {
-                throw new ArgumentException(string.Format("{0} cannot be null!", nameof(packageId)));
+                throw new ArgumentNullException(nameof(packageId));
             }
 
             if (NuGetPackagesGitHubDependencies.TryGetValue(packageId, out var value))
