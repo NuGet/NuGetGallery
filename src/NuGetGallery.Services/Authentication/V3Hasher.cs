@@ -14,7 +14,7 @@ namespace NuGetGallery.Infrastructure.Authentication
     /// </summary>
     public static class V3Hasher
     {
-        private static readonly RandomNumberGenerator DefaultRng = RandomNumberGenerator.Create(); // secure PRNG
+        private static readonly RNGCryptoServiceProvider DefaultRng = new RNGCryptoServiceProvider();
 
         private const int IterationCount = 10000;
 
@@ -86,7 +86,7 @@ namespace NuGetGallery.Infrastructure.Authentication
             return VerifyHash(Convert.FromBase64String(hashedData), providedInput);
         }
 
-        private static byte[] GenerateHashInternal(string input, RandomNumberGenerator rng, KeyDerivationPrf prf, int iterCount, int saltSize, int numBytesRequested)
+        private static byte[] GenerateHashInternal(string input, RNGCryptoServiceProvider rng, KeyDerivationPrf prf, int iterCount, int saltSize, int numBytesRequested)
         {
             // Produce a version 3 (see comment above) text hash.
             byte[] salt = new byte[saltSize];
