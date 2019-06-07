@@ -1,51 +1,46 @@
 ﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 
 namespace NuGetGallery.GitHub
 {
     public class RepositoryInformation
     {
-        public RepositoryInformation()
-        { }
-
         public RepositoryInformation(
-            string owner,
-            string repoName,
-            string cloneUrl,
-            int starCount,
+            string id,
+            string url,
+            int stars,
             IReadOnlyList<string> dependencies)
         {
-            if(starCount < 0)
+            if (stars < 0)
             {
-                throw new System.IndexOutOfRangeException(string.Format("{0} cannot have a negative value!", nameof(starCount)));
+                throw new IndexOutOfRangeException(string.Format("{0} cannot have a negative value!", nameof(stars)));
             }
 
-            Owner = owner ?? throw new System.ArgumentException(string.Format("{0} cannot be null!", nameof(owner)));
-            Name = repoName ?? throw new System.ArgumentException(string.Format("{0} cannot be null!", nameof(repoName)));;
-            Url = cloneUrl ?? throw new System.ArgumentException(string.Format("{0} cannot be null!", nameof(cloneUrl)));;
-            Stars = starCount;
-            Dependencies = dependencies ?? throw new System.ArgumentException(string.Format("{0} cannot be null!", nameof(dependencies)));;
+            Id = id;
+            var idSplit = Id.Split('/');
+            if (idSplit.Length == 2)
+            {
+                Owner = idSplit[0];
+                Name = idSplit[1];
+            }
+            else
+            {
+                throw new ArgumentException(string.Format("{0} has an invalid format! It should be \"owner/repositoryName\", instead it is: {1}", nameof(Id), Id));
+            }
+
+            Url = url ?? throw new ArgumentNullException(nameof(url));
+            Stars = stars;
+            Dependencies = dependencies ?? throw new ArgumentNullException(nameof(dependencies));
         }
 
         [JsonIgnore]
-        public string Name { get; set; }
+        public string Name { get; }
         [JsonIgnore]
-        public string Owner { get; set; }
-        public string Url { get; set; }
-        public int Stars { get; set; }
-        public string Id
-        {
-            get => Owner + "/" + Name; set
-            {
-                var split = value.Split('/');
-                if (split.Length == 2)
-                {
-                    Owner = split[0];
-                    Name = split[1];
-                }
-            }
-        }
-
-        public IReadOnlyList<string> Dependencies { get; set; } = null;
+        public string Owner { get; }
+        public string Url { get; }
+        public int Stars { get; }
+        public string Id { get; }
+        public IReadOnlyList<string> Dependencies { get; }
     }
 }
