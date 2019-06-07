@@ -55,22 +55,11 @@ namespace NuGetGallery.GitHub
             return dependentsPerPackage
                 .ToDictionary(
                     entry => entry.Key,
-                    entry =>
-                    {
-                        entry.Value.Sort(Comparer<RepositoryInformation>.Create((x, y) =>
-                            {
-                                var result = y.Stars.CompareTo(x.Stars); // Inverted for descending sort order
-                                if (result != 0)
-                                {
-                                    return result;
-                                }
-
-                                // Results have the same star count, compare their ids (not inverted) to sort in alphabetical order
-                                return string.Compare(x.Id, y.Id, true);
-                            }));
-
-                        return new NuGetPackageGitHubInformation(entry.Value.Count, entry.Value.Take(10).ToList().AsReadOnly());
-                    },
+                    entry => new NuGetPackageGitHubInformation(
+                             entry.Value.Count,
+                             entry.Value
+                                  .OrderByDescending(x => x.Stars)
+                                  .ThenBy(x => x.Id).Take(10).ToList()),
                     StringComparer.InvariantCultureIgnoreCase);
         }
     }
