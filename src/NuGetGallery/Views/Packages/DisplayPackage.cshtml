@@ -9,7 +9,7 @@
 
     var absolutePackageUrl = Url.Absolute(Url.Package(Model.Id));
 
-    var hasSymbolsPackageAvailable = Model.LatestSymbolsPackage != null && Model.LatestSymbolsPackage.StatusKey == PackageStatus.Available;
+    var hasSymbolsPackageAvailable = Model.LatestAvailableSymbolsPackage != null;
     var showSymbolsPackageStatus = Model.LatestSymbolsPackage != null && Model.LatestSymbolsPackage.StatusKey != PackageStatus.Available;
 
     PackageManagerViewModel[] packageManagers;
@@ -163,6 +163,15 @@
     </div>
 }
 
+@helper AppendAvailableSymbolsMessage(bool hasSymbolsPackageAvailable)
+{
+    if(hasSymbolsPackageAvailable)
+    {
+        <br /><br />
+        <text><b>Please note:</b> The last successfully published symbols package is still available for debugging and download.</text>
+    }
+}
+
 @* The following two helpers must be on a single line each so no extra whitespace is introduced in the expression when rendered. *@
 @* Helpers themselves are needed not to introduce that extra whitespce, which happens if they are inlined. *@
 @helper MakeLicenseLink(CompositeLicenseExpressionSegment segment) {<a href="@LicenseExpressionRedirectUrlHelper.GetLicenseExpressionRedirectUrl(segment.Value)">@segment.Value</a>}
@@ -314,7 +323,7 @@
                 @ViewHelpers.AlertIsSemVer2Package(Model.HasSemVer2Version, Model.HasSemVer2Dependency)
             }
 
-            @if (showSymbolsPackageStatus)
+            @if (Model.CanDisplayPrivateMetadata && showSymbolsPackageStatus)
             {
                 if (Model.LatestSymbolsPackage.StatusKey == PackageStatus.Validating)
                 {
@@ -323,6 +332,8 @@
                             <strong>The symbols for this package have not been indexed yet.</strong> They are not available
                             for download from the NuGet.org symbol server. Symbols will be available for download after both validation and indexing are complete. 
                             Symbols validation and indexing may take up to an hour. <a href="https://aka.ms/NuGetSymbolsPackageValidation">Read more</a>.
+
+                        @AppendAvailableSymbolsMessage(hasSymbolsPackageAvailable)
                         </text>
                      )
                 }
@@ -346,6 +357,8 @@
                         {
                             <text>Please contact <a href="mailto:support@nuget.org">support@nuget.org</a> to help fix your symbols package.</text>
                         }
+
+                        @AppendAvailableSymbolsMessage(hasSymbolsPackageAvailable)
                     </text>)
                 }
             }

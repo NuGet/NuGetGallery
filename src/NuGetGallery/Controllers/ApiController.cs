@@ -198,6 +198,11 @@ namespace NuGetGallery
                     if (isSymbolPackage)
                     {
                         package = PackageService.FindPackageByIdAndVersionStrict(id, version);
+
+                        if (package == null)
+                        {
+                            return new HttpStatusCodeWithBodyResult(HttpStatusCode.NotFound, string.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
+                        }
                     }
                 }
                 else
@@ -235,12 +240,9 @@ namespace NuGetGallery
 
             if (isSymbolPackage)
             {
-                var latestSymbolPackage = package?
-                    .SymbolPackages
-                    .OrderByDescending(sp => sp.Created)
-                    .FirstOrDefault();
+                var latestAvailableSymbolsPackage = package.LatestAvailableSymbolPackage();
 
-                if (latestSymbolPackage == null || latestSymbolPackage.StatusKey != PackageStatus.Available)
+                if (latestAvailableSymbolsPackage == null)
                 {
                     return new HttpStatusCodeWithBodyResult(HttpStatusCode.NotFound, string.Format(CultureInfo.CurrentCulture, Strings.SymbolsPackage_PackageNotAvailable, id, version));
                 }
