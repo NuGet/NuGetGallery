@@ -6,6 +6,8 @@ namespace NuGetGallery.GitHub
 {
     public class GitHubUsageConfiguration : IGitHubUsageConfiguration
     {
+        private readonly Dictionary<string, NuGetPackageGitHubInformation> _nuGetPackagesGitHubDependencies;
+
         public GitHubUsageConfiguration(IReadOnlyList<RepositoryInformation> repositories)
         {
             if (repositories == null)
@@ -13,12 +15,10 @@ namespace NuGetGallery.GitHub
                 throw new ArgumentNullException(nameof(repositories));
             }
 
-            NuGetPackagesGitHubDependencies = repositories.Any()
+            _nuGetPackagesGitHubDependencies = repositories.Any()
                 ? GetNuGetPackagesDependents(repositories)
                 : new Dictionary<string, NuGetPackageGitHubInformation>();
         }
-
-        private Dictionary<string, NuGetPackageGitHubInformation> NuGetPackagesGitHubDependencies { get; }
 
         public NuGetPackageGitHubInformation GetPackageInformation(string packageId)
         {
@@ -27,7 +27,7 @@ namespace NuGetGallery.GitHub
                 throw new ArgumentNullException(nameof(packageId));
             }
 
-            if (NuGetPackagesGitHubDependencies.TryGetValue(packageId, out var value))
+            if (_nuGetPackagesGitHubDependencies.TryGetValue(packageId, out var value))
             {
                 return value;
             }
