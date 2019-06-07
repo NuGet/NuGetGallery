@@ -96,7 +96,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                         notModified: false,
                         data: data,
                         metadata: new AuxiliaryFileMetadata(
-                            lastModified: new DateTimeOffset(blob.LastModifiedUtc),
+                            lastModified: new DateTimeOffset(blob.LastModifiedUtc, TimeSpan.Zero),
                             loaded: DateTimeOffset.UtcNow,
                             loadDuration: stopwatch.Elapsed,
                             fileSize: blob.Properties.Length,

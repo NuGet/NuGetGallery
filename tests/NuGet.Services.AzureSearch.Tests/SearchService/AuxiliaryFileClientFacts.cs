@@ -56,6 +56,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                 Assert.Equal(_etag, actual.Metadata.ETag);
                 Assert.NotEqual(TimeSpan.Zero, actual.Metadata.LoadDuration);
                 Assert.NotEqual(default(DateTimeOffset), actual.Metadata.Loaded);
+                Assert.Equal(DateTimeOffset.MinValue, actual.Metadata.LastModified);
                 _blobClient.Verify(x => x.GetContainerReference("my-container"), Times.Once);
                 _blobClient.Verify(x => x.GetContainerReference(It.IsAny<string>()), Times.Once);
                 _container.Verify(x => x.GetBlobReference("my-downloads.json"), Times.Once);
@@ -119,6 +120,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                 Assert.Equal(_etag, actual.Metadata.ETag);
                 Assert.NotEqual(TimeSpan.Zero, actual.Metadata.LoadDuration);
                 Assert.NotEqual(default(DateTimeOffset), actual.Metadata.Loaded);
+                Assert.Equal(DateTimeOffset.MinValue, actual.Metadata.LastModified);
                 _blobClient.Verify(x => x.GetContainerReference("my-container"), Times.Once);
                 _blobClient.Verify(x => x.GetContainerReference(It.IsAny<string>()), Times.Once);
                 _container.Verify(x => x.GetBlobReference("my-verified-packages.json"), Times.Once);
