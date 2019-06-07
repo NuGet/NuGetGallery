@@ -408,7 +408,7 @@ namespace NuGetGallery
             Package alternatePackage,
             bool hasCustomMessage)
         {
-            TrackMetricForPackages(
+            TrackMetricForPackageVersions(
                 Events.PackageDeprecate, 
                 packages,
                 properties =>
@@ -676,7 +676,7 @@ namespace NuGetGallery
             });
         }
 
-        private void TrackMetricForPackages(
+        private void TrackMetricForPackageVersions(
             string metricName,
             IReadOnlyList<Package> packages,
             Action<Dictionary<string, string>> addProperties = null)
@@ -686,14 +686,14 @@ namespace NuGetGallery
                 throw new ArgumentException(nameof(packages));
             }
 
-            TrackMetricForPackages(
+            TrackMetricForPackageVersions(
                 metricName,
                 packages.First().PackageRegistration.Id,
                 packages.Select(p => p.NormalizedVersion).ToList(),
                 addProperties);
         }
 
-        private void TrackMetricForPackages(
+        private void TrackMetricForPackageVersions(
             string metricName,
             string packageId,
             IReadOnlyList<string> packageVersions,
