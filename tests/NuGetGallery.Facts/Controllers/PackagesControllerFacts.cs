@@ -1159,8 +1159,7 @@ namespace NuGetGallery
                     packageService: packageService,
                     featureFlagService: featureFlagService,
                     deprecationService: deprecationService,
-                    contentObjectService: contentObjectService
-                    );
+                    contentObjectService: contentObjectService);
 
                 var id = "Foo";
                 var package = new Package()
