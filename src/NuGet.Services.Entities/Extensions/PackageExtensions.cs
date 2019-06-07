@@ -27,7 +27,7 @@ namespace NuGet.Services.Entities
             return package.GetSymbolsPackagesInReverseOrder()?.FirstOrDefault(sp => sp.StatusKey == PackageStatus.Available);
         }
 
-        public static IOrderedEnumerable<SymbolPackage> GetSymbolsPackagesInReverseOrder(this Package package)
+        private static IOrderedEnumerable<SymbolPackage> GetSymbolsPackagesInReverseOrder(this Package package)
         {
             return package.SymbolPackages?.OrderByDescending(sp => sp.Created);
         }
