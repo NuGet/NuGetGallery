@@ -58,7 +58,6 @@ namespace NuGetGallery.GitHub
                 Assert.Equal(expectedRepo, nupkgInformation.Repos.First());
             }
 
-
             [Fact]
             public void MultiReposSameDependency()
             {
