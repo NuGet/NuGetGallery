@@ -15,6 +15,8 @@ namespace NuGet.Services.Metadata.Catalog.Registration
 {
     public class RegistrationMakerCatalogItem : CatalogItem
     {
+        public delegate IGraph PostProcessGraph(IGraph graph);
+
         private readonly Uri _catalogUri;
         private readonly IGraph _catalogItem;
         private Uri _itemAddress;
@@ -25,17 +27,26 @@ namespace NuGet.Services.Metadata.Catalog.Registration
         private Uri _registrationAddress;
         private DateTime _publishedDate;
         private bool _listed;
+        private readonly PostProcessGraph _postProcessGraph;
 
         // This should be set before class is instantiated
         public static IPackagePathProvider PackagePathProvider = null;
 
-        public RegistrationMakerCatalogItem(Uri catalogUri, IGraph catalogItem, Uri registrationBaseAddress, bool isExistingItem, Uri packageContentBaseAddress = null, Uri galleryBaseAddress = null)
+        public RegistrationMakerCatalogItem(
+            Uri catalogUri, 
+            IGraph catalogItem, 
+            Uri registrationBaseAddress, 
+            bool isExistingItem, 
+            PostProcessGraph postProcessGraph, 
+            Uri packageContentBaseAddress = null, 
+            Uri galleryBaseAddress = null)
         {
             _catalogUri = catalogUri;
             _catalogItem = catalogItem;
             _packageContentBaseAddress = packageContentBaseAddress;
             _galleryBaseAddress = galleryBaseAddress;
             _registrationBaseAddress = registrationBaseAddress;
+            _postProcessGraph = postProcessGraph;
 
             IsExistingItem = isExistingItem;
         }
@@ -108,9 +119,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
 
                 if (pubTriple != null)
                 {
-                    ILiteralNode node = pubTriple.Object as ILiteralNode;
-
-                    if (node != null)
+                    if (pubTriple.Object is ILiteralNode node)
                     {
                         _publishedDate = DateTime.Parse(node.Value, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
                     }
@@ -194,8 +203,10 @@ namespace NuGet.Services.Metadata.Catalog.Registration
                 {
                     store.Add(_catalogItem, true);
 
-                    SparqlParameterizedString sparql = new SparqlParameterizedString();
-                    sparql.CommandText = Utils.GetResource("sparql.ConstructRegistrationPageContentGraph.rq");
+                    SparqlParameterizedString sparql = new SparqlParameterizedString
+                    {
+                        CommandText = Utils.GetResource("sparql.ConstructRegistrationPageContentGraph.rq")
+                    };
 
                     sparql.SetUri("package", GetItemAddress());
                     sparql.SetUri("catalogEntry", _catalogUri);
@@ -207,7 +218,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
                     content = SparqlHelpers.Construct(store, sparql.ToString());
                 }
 
-                return content;
+                return _postProcessGraph(content);
             }
             catch (Exception e)
             {

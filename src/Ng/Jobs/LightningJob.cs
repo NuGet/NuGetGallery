@@ -135,7 +135,8 @@ namespace Ng.Jobs
         private string _contentBaseAddress;
         private string _galleryBaseAddress;
         private RegistrationStorageFactories _storageFactories;
-        private ShouldIncludeRegistrationPackage _shouldIncludeSemVer2;
+        private ShouldIncludeRegistrationPackage _shouldIncludeSemVer2ForLegacyStorageFactory;
+        private RegistrationMakerCatalogItem.PostProcessGraph _postProcessGraphForLegacyStorageFactory;
         private IDictionary<string, string> _arguments;
         #endregion
 
@@ -176,7 +177,8 @@ namespace Ng.Jobs
             _contentBaseAddress = arguments.GetOrThrow<string>(Arguments.ContentBaseAddress);
             _galleryBaseAddress = arguments.GetOrThrow<string>(Arguments.GalleryBaseAddress);
             _storageFactories = CommandHelpers.CreateRegistrationStorageFactories(arguments, _verbose);
-            _shouldIncludeSemVer2 = RegistrationCollector.GetShouldIncludeRegistrationPackage(_storageFactories.SemVer2StorageFactory);
+            _shouldIncludeSemVer2ForLegacyStorageFactory = RegistrationCollector.GetShouldIncludeRegistrationPackageForLegacyStorageFactory(_storageFactories.SemVer2StorageFactory);
+            _postProcessGraphForLegacyStorageFactory = RegistrationCollector.GetPostProcessGraphForLegacyStorageFactory(_storageFactories.SemVer2StorageFactory);
             // We save the arguments because the "prepare" command generates "strike" commands. Some of the arguments
             // used by "prepare" should be used when executing "strike".
             _arguments = arguments;
@@ -289,8 +291,11 @@ namespace Ng.Jobs
             // Write cursor to storage
             _log.WriteLine("Start writing new cursor...");
             var storage = _storageFactories.LegacyStorageFactory.Create();
-            var cursor = new DurableCursor(storage.ResolveUri("cursor.json"), storage, latestCommit);
-            cursor.Value = latestCommit;
+            var cursor = new DurableCursor(storage.ResolveUri("cursor.json"), storage, latestCommit)
+            {
+                Value = latestCommit
+            };
+
             await cursor.SaveAsync(CancellationToken.None);
             _log.WriteLine("Finished writing new cursor.");
 
@@ -340,16 +345,19 @@ namespace Ng.Jobs
                         string optionalArguments = string.Empty;
                         if (_arguments.ContainsKey(Arguments.StorageSuffix))
                         {
-                            optionalArguments = optionalArguments + $" -{Arguments.StorageSuffix} {_arguments[Arguments.StorageSuffix]}";
+                            optionalArguments += $" -{Arguments.StorageSuffix} {_arguments[Arguments.StorageSuffix]}";
                         }
+
                         if (_arguments.ContainsKey(Arguments.ContentIsFlatContainer))
                         {
-                            optionalArguments = optionalArguments + $" -{Arguments.ContentIsFlatContainer} {_arguments[Arguments.ContentIsFlatContainer]}";
+                            optionalArguments += $" -{Arguments.ContentIsFlatContainer} {_arguments[Arguments.ContentIsFlatContainer]}";
                         }
+
                         if (_arguments.ContainsKey(Arguments.FlatContainerName))
                         {
-                            optionalArguments = optionalArguments + $" -{Arguments.FlatContainerName} {_arguments[Arguments.FlatContainerName]}";
+                            optionalArguments += $" -{Arguments.FlatContainerName} {_arguments[Arguments.FlatContainerName]}";
                         }
+
                         commandStreamContents = commandStreamContents
                                .Replace($"[{optionalArgumentsTemplate}]", optionalArguments);
 
@@ -485,8 +493,9 @@ namespace Ng.Jobs
             await RegistrationMaker.ProcessAsync(
                 new RegistrationKey(packageId),
                 sortedGraphs,
-                _shouldIncludeSemVer2,
+                _shouldIncludeSemVer2ForLegacyStorageFactory,
                 _storageFactories.LegacyStorageFactory,
+                _postProcessGraphForLegacyStorageFactory,
                 new Uri(_contentBaseAddress),
                 new Uri(_galleryBaseAddress),
                 RegistrationCollector.PartitionSize,

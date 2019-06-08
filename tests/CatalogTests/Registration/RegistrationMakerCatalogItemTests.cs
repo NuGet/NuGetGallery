@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Newtonsoft.Json.Linq;
+using NuGet.ContentModel;
 using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using NuGet.Services.Metadata.Catalog.Registration;
@@ -54,6 +55,7 @@ namespace CatalogTests.Registration
                 graph,
                 registrationBaseAddress,
                 isExistingItem: false,
+                postProcessGraph: g => g,
                 packageContentBaseAddress: packageContentBaseAddress)
             {
                 BaseAddress = new Uri("http://example/registration/mypackage/"),
@@ -72,8 +74,7 @@ namespace CatalogTests.Registration
 
         private static string GetContentString(StorageContent content)
         {
-            var stringStorageContent = content as StringStorageContent;
-            if (stringStorageContent != null)
+            if (content is StringStorageContent stringStorageContent)
             {
                 return stringStorageContent.Content;
             }
@@ -90,7 +91,7 @@ namespace CatalogTests.Registration
             private readonly Uri _registrationBaseAddress = new Uri("http://example/registration/");
             private readonly Uri _packageContentBaseAddress = new Uri("http://example/content/");
             private readonly Uri _baseAddress = new Uri("http://example/registration/mypackage/");
-            private Graph _graph;
+            private readonly Graph _graph;
 
             public TheCreatePageContentMethod()
             {
@@ -158,11 +159,13 @@ namespace CatalogTests.Registration
                     _graph,
                     _registrationBaseAddress,
                     isExistingItem: false,
+                    postProcessGraph: g => g,
                     packageContentBaseAddress: _packageContentBaseAddress,
                     galleryBaseAddress: new Uri(galleryBaseAddress))
                 {
                     BaseAddress = _baseAddress,
                 };
+
                 RegistrationMakerCatalogItem.PackagePathProvider = new PackagesFolderPackagePathProvider();
                 var context = new CatalogContext();
 
@@ -188,17 +191,20 @@ namespace CatalogTests.Registration
             {
                 get
                 {
-                    foreach (var reason in 
-                        new []
-                        {
+                    foreach (var shouldPostProcess in new[] { false, true })
+                    {
+                        foreach (var reason in
+                            new[]
+                            {
                             new[] { "first" },
                             new[] { "first", "second" }
-                        })
-                    {
-                        foreach (var message in new[] { null, "this is the message" })
+                            })
                         {
-                            yield return new object[] { reason, message, null, null };
-                            yield return new object[] { reason, message, "theId", "homeOnTheRange" };
+                            foreach (var message in new[] { null, "this is the message" })
+                            {
+                                yield return new object[] { shouldPostProcess, reason, message, null, null };
+                                yield return new object[] { shouldPostProcess, reason, message, "theId", "homeOnTheRange" };
+                            }
                         }
                     }
                 }
@@ -207,6 +213,7 @@ namespace CatalogTests.Registration
             [Theory]
             [MemberData(nameof(CreatePageContent_SetsDeprecationInformationProperly_Data))]
             public void CreatePageContent_SetsDeprecationInformationProperly(
+                bool shouldPostProcess,
                 IEnumerable<string> reasons,
                 string message,
                 string alternatePackageId,
@@ -265,10 +272,12 @@ namespace CatalogTests.Registration
                     _graph,
                     _registrationBaseAddress,
                     isExistingItem: false,
+                    postProcessGraph: shouldPostProcess ? RegistrationCollector.FilterOutDeprecationInformation : g => g,
                     packageContentBaseAddress: _packageContentBaseAddress)
                 {
                     BaseAddress = _baseAddress,
                 };
+
                 RegistrationMakerCatalogItem.PackagePathProvider = new PackagesFolderPackagePathProvider();
                 var context = new CatalogContext();
 
@@ -276,56 +285,64 @@ namespace CatalogTests.Registration
                 var content = item.CreatePageContent(context);
 
                 // Assert
-                var deprecationObjectNode = _graph
+                var deprecationPredicateTriples = content
                     .GetTriplesWithSubjectPredicate(
-                        _graph.CreateUriNode(_catalogUri), 
-                        _graph.CreateUriNode(Schema.Predicates.Deprecation))
+                        content.CreateUriNode(_catalogUri),
+                        content.CreateUriNode(Schema.Predicates.Deprecation));
+
+                if (shouldPostProcess)
+                {
+                    Assert.Empty(deprecationPredicateTriples);
+                    return;
+                }
+
+                var deprecationObjectNode = deprecationPredicateTriples
                     .Single()
                     .Object;
 
-                var deprecationTriples = _graph.GetTriplesWithSubject(deprecationObjectNode);
+                var deprecationTriples = content.GetTriplesWithSubject(deprecationObjectNode);
                 var reasonTriples = deprecationTriples
-                    .Where(t => t.HasPredicate(_graph.CreateUriNode(Schema.Predicates.Reasons)));
+                    .Where(t => t.HasPredicate(content.CreateUriNode(Schema.Predicates.Reasons)));
 
                 foreach (var reason in reasons)
                 {
-                    Assert.Contains(reasonTriples, t => t.HasObject(_graph.CreateLiteralNode(reason)));
+                    Assert.Contains(reasonTriples, t => t.HasObject(content.CreateLiteralNode(reason)));
                 }
 
                 if (message == null)
                 {
                     Assert.DoesNotContain(
                         deprecationTriples, 
-                        t => t.HasPredicate(_graph.CreateUriNode(Schema.Predicates.Message)));
+                        t => t.HasPredicate(content.CreateUriNode(Schema.Predicates.Message)));
                 }
                 else
                 {
                     Assert.Contains(
                         deprecationTriples, 
-                        t => t.HasPredicate(_graph.CreateUriNode(Schema.Predicates.Message)) && t.HasObject(_graph.CreateLiteralNode(message)));
+                        t => t.HasPredicate(content.CreateUriNode(Schema.Predicates.Message)) && t.HasObject(content.CreateLiteralNode(message)));
                 }
 
                 if (alternatePackageId == null)
                 {
                     Assert.DoesNotContain(
                         deprecationTriples,
-                        t => t.HasPredicate(_graph.CreateUriNode(Schema.Predicates.AlternatePackage)));
+                        t => t.HasPredicate(content.CreateUriNode(Schema.Predicates.AlternatePackage)));
                 }
                 else
                 {
-                    var alternatePackageObjectNode = _graph
+                    var alternatePackageObjectNode = content
                         .GetTriplesWithSubjectPredicate(
                             deprecationObjectNode,
-                            _graph.CreateUriNode(Schema.Predicates.AlternatePackage))
+                            content.CreateUriNode(Schema.Predicates.AlternatePackage))
                         .Single()
                         .Object;
 
-                    var alternatePackageTriples = _graph.GetTriplesWithSubject(alternatePackageObjectNode);
+                    var alternatePackageTriples = content.GetTriplesWithSubject(alternatePackageObjectNode);
                     Assert.Contains(alternatePackageTriples,
-                        t => t.HasPredicate(_graph.CreateUriNode(Schema.Predicates.Id)) && t.HasObject(_graph.CreateLiteralNode(alternatePackageId)));
+                        t => t.HasPredicate(content.CreateUriNode(Schema.Predicates.Id)) && t.HasObject(content.CreateLiteralNode(alternatePackageId)));
 
                     Assert.Contains(alternatePackageTriples,
-                        t => t.HasPredicate(_graph.CreateUriNode(Schema.Predicates.Range)) && t.HasObject(_graph.CreateLiteralNode(alternatePackageRange)));
+                        t => t.HasPredicate(content.CreateUriNode(Schema.Predicates.Range)) && t.HasObject(content.CreateLiteralNode(alternatePackageRange)));
                 }
             }
         }

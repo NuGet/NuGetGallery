@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,7 +25,8 @@ namespace NuGet.Services.Metadata.Catalog.Registration
 
         private readonly StorageFactory _legacyStorageFactory;
         private readonly StorageFactory _semVer2StorageFactory;
-        private readonly ShouldIncludeRegistrationPackage _shouldIncludeSemVer2;
+        private readonly ShouldIncludeRegistrationPackage _shouldIncludeSemVer2ForLegacyStorageFactory;
+        private readonly RegistrationMakerCatalogItem.PostProcessGraph _postProcessGraphForLegacyStorageFactory;
         private readonly int _maxConcurrentBatches;
         private readonly ILogger _logger;
 
@@ -49,7 +51,8 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             _legacyStorageFactory = legacyStorageFactory ?? throw new ArgumentNullException(nameof(legacyStorageFactory));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _semVer2StorageFactory = semVer2StorageFactory;
-            _shouldIncludeSemVer2 = GetShouldIncludeRegistrationPackage(_semVer2StorageFactory);
+            _shouldIncludeSemVer2ForLegacyStorageFactory = GetShouldIncludeRegistrationPackageForLegacyStorageFactory(_semVer2StorageFactory);
+            _postProcessGraphForLegacyStorageFactory = GetPostProcessGraphForLegacyStorageFactory(_semVer2StorageFactory);
             ContentBaseAddress = contentBaseAddress;
             GalleryBaseAddress = galleryBaseAddress;
 
@@ -145,8 +148,9 @@ namespace NuGet.Services.Metadata.Catalog.Registration
                 var legacyTask = RegistrationMaker.ProcessAsync(
                     registrationKey: new RegistrationKey(sortedGraphs.Key),
                     newItems: sortedGraphs.Value,
-                    shouldInclude: _shouldIncludeSemVer2,
+                    shouldInclude: _shouldIncludeSemVer2ForLegacyStorageFactory,
                     storageFactory: _legacyStorageFactory,
+                    postProcessGraph: _postProcessGraphForLegacyStorageFactory,
                     contentBaseAddress: ContentBaseAddress,
                     galleryBaseAddress: GalleryBaseAddress,
                     partitionSize: PartitionSize,
@@ -174,7 +178,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             }
         }
 
-        public static ShouldIncludeRegistrationPackage GetShouldIncludeRegistrationPackage(StorageFactory semVer2StorageFactory)
+        public static ShouldIncludeRegistrationPackage GetShouldIncludeRegistrationPackageForLegacyStorageFactory(StorageFactory semVer2StorageFactory)
         {
             // If SemVer 2.0.0 storage is disabled, put SemVer 2.0.0 registration in the legacy storage factory. In no
             // case should a package be completely ignored. That is, if a package is SemVer 2.0.0 but SemVer 2.0.0
@@ -186,6 +190,30 @@ namespace NuGet.Services.Metadata.Catalog.Registration
 
             return (k, u, g) => !NuGetVersionUtility.IsGraphSemVer2(k.Version, u, g);
         }
+
+        public static RegistrationMakerCatalogItem.PostProcessGraph GetPostProcessGraphForLegacyStorageFactory(StorageFactory semVer2StorageFactory)
+        {
+            // If SemVer 2.0.0 storage is disabled, put deprecation metadata in the legacy storage.
+            // A package's deprecation metadata should never be completely ignored.
+            // If a package contains deprecation metadata but SemVer 2.0.0 storage is not enabled,
+            // our only choice is to put deprecation metadata in the legacy storage.
+            if (semVer2StorageFactory == null)
+            {
+                return g => g;
+            }
+
+            return FilterOutDeprecationInformation;
+        }
+
+        public static RegistrationMakerCatalogItem.PostProcessGraph FilterOutDeprecationInformation = g =>
+        {
+            var deprecationTriples = g
+                .GetTriplesWithPredicate(g.CreateUriNode(Schema.Predicates.Deprecation))
+                .ToList();
+
+            g.Retract(deprecationTriples);
+            return g;
+        };
 
         private async Task ProcessBatchAsync(
             CollectorHttpClient client,
