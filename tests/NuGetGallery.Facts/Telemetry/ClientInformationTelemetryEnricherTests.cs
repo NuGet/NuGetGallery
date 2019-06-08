@@ -79,7 +79,7 @@ namespace NuGetGallery.Telemetry
             enricher.Initialize(telemetry);
 
             // Assert
-            Assert.Equal("5.0.0", telemetry.Properties[TelemetryService.ClientVersion]);
+            Assert.Equal("5.0.0", telemetry.Context.GlobalProperties[TelemetryService.ClientVersion]);
         }
 
         [Fact]
@@ -99,7 +99,7 @@ namespace NuGetGallery.Telemetry
             enricher.Initialize(telemetry);
 
             // Assert
-            Assert.Equal("5.0.0", telemetry.Properties[TelemetryService.ProtocolVersion]);
+            Assert.Equal("5.0.0", telemetry.Context.GlobalProperties[TelemetryService.ProtocolVersion]);
         }
 
         [Fact]
@@ -119,7 +119,7 @@ namespace NuGetGallery.Telemetry
             enricher.Initialize(telemetry);
 
             // Assert
-            Assert.NotEmpty(telemetry.Properties[TelemetryService.ClientInformation]);
+            Assert.NotEmpty(telemetry.Context.GlobalProperties[TelemetryService.ClientInformation]);
         }
 
         [Theory]
@@ -135,7 +135,7 @@ namespace NuGetGallery.Telemetry
             enricher.Initialize(telemetry);
 
             // Assert
-            Assert.Equal(isAuthenticated, bool.Parse(telemetry.Properties[TelemetryService.IsAuthenticated]));
+            Assert.Equal(isAuthenticated, bool.Parse(telemetry.Context.GlobalProperties[TelemetryService.IsAuthenticated]));
         }
 
         private TestableClientInformationTelemetryEnricher CreateTestEnricher(NameValueCollection headers, bool isAuthenticated = false)
