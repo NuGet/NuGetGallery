@@ -49,7 +49,12 @@ namespace NuGetGallery.Extensions
             [InlineData(999_000, "999K")]
             [InlineData(999_999, "999K")]
             [InlineData(1_000_000, "1.00M")]
-            
+            [InlineData(1_999_000, "1.99M")]
+            [InlineData(99_990_000, "99.9M")]
+            [InlineData(100_990_000, "100M")]
+            [InlineData(999_990_000, "999M")]
+            [InlineData(1_000_000_000, "1.00G")]
+            [InlineData(1_999_000_000, "1.99G")]
             public void FormatsUsingExpectedUnit(int number, string expected)
             {
                 var actual = NumberExtensions.ToKiloFormat(number);
