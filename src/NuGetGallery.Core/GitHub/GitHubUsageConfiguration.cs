@@ -16,9 +16,7 @@ namespace NuGetGallery.GitHub
                 throw new ArgumentNullException(nameof(repositories));
             }
 
-            _nuGetPackagesGitHubDependencies = repositories.Any()
-                ? GetNuGetPackagesDependents(repositories)
-                : new Dictionary<string, NuGetPackageGitHubInformation>();
+            _nuGetPackagesGitHubDependencies = GetNuGetPackagesDependents(repositories);
         }
 
         public NuGetPackageGitHubInformation GetPackageInformation(string packageId)
