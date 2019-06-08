@@ -9,7 +9,7 @@
         /// 
         /// throws an ArgumentException if the packageId is null
         /// </summary>
-        /// <param name="packageId">NuGet package id</param>
+        /// <param name="packageId">NuGet package id, cannot be null</param>
         /// <returns></returns>
         NuGetPackageGitHubInformation GetPackageInformation(string packageId);
     }
