@@ -26,7 +26,7 @@ namespace NuGetGallery.GitHub
             }
             else
             {
-                throw new ArgumentException(string.Format("{0} has an invalid format! It should be \"owner/repositoryName\", instead it is: {1}", nameof(Id), Id));
+                throw new ArgumentException(string.Format("{0} has an invalid format! It should be \"owner/repositoryName\"!", nameof(Id)));
             }
 
             Url = url ?? throw new ArgumentNullException(nameof(url));

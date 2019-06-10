@@ -20,6 +20,7 @@ namespace NuGetGallery.GitHub
         {
             return new GitHubUsageConfiguration(repos);
         }
+
         public class TheConstructor
         {
             [Fact]
@@ -31,7 +32,6 @@ namespace NuGetGallery.GitHub
 
         public class TheGetPackageInformationMethod
         {
-
             [Fact]
             public void EmptyRepoCache()
             {
@@ -106,7 +106,7 @@ namespace NuGetGallery.GitHub
                 var gh = GenConfig(expectedRepos);
                 var nupkgInformation = gh.GetPackageInformation("nupkg1");
 
-                Assert.Equal(Math.Min(expectedRepos.Length, GitHubUsageConfiguration.ReposPerPackage), nupkgInformation.Repos.Count);
+                Assert.Equal(Math.Min(expectedRepos.Length, NuGetPackageGitHubInformation.ReposPerPackage), nupkgInformation.Repos.Count);
                 Assert.Equal(expectedRepos.Length, nupkgInformation.TotalRepos);
 
                 // Make sure they're ordered by descending order of stars
@@ -140,7 +140,7 @@ namespace NuGetGallery.GitHub
                 var gh = GenConfig(expectedRepos);
                 var nupkgInformation = gh.GetPackageInformation("nupkg1");
 
-                Assert.Equal(Math.Min(expectedRepos.Length, GitHubUsageConfiguration.ReposPerPackage), nupkgInformation.Repos.Count);
+                Assert.Equal(Math.Min(expectedRepos.Length, NuGetPackageGitHubInformation.ReposPerPackage), nupkgInformation.Repos.Count);
                 Assert.Equal(expectedRepos.Length, nupkgInformation.TotalRepos);
 
                 Assert.Equal(

@@ -522,7 +522,7 @@
                             @(Model.Id), including the following:
                         </p>
 
-                        @foreach (var dep in Model.GitHubDependenciesInformation.Repos.Take(10))
+                        @foreach (var dep in Model.GitHubDependenciesInformation.Repos)
                         {
                             <div class="row top-buffer">
                                 <div class="col-xs-12">

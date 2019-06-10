@@ -6,7 +6,6 @@ namespace NuGetGallery.GitHub
 {
     public class GitHubUsageConfiguration : IGitHubUsageConfiguration
     {
-        public const int ReposPerPackage = 10;
         private readonly Dictionary<string, NuGetPackageGitHubInformation> _nuGetPackagesGitHubDependencies;
 
         public GitHubUsageConfiguration(IReadOnlyList<RepositoryInformation> repositories)
@@ -56,9 +55,7 @@ namespace NuGetGallery.GitHub
                     entry => entry.Key,
                     entry => new NuGetPackageGitHubInformation(
                              entry.Value.Count,
-                             entry.Value
-                                  .OrderByDescending(x => x.Stars)
-                                  .ThenBy(x => x.Id).Take(ReposPerPackage).ToList()),
+                             entry.Value),
                     StringComparer.InvariantCultureIgnoreCase);
         }
     }
