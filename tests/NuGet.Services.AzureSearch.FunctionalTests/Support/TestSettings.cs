@@ -9,7 +9,7 @@ using BasicSearchTests.FunctionalTests.Core;
 using Microsoft.Extensions.Configuration;
 using NuGet.Services.Configuration;
 
-namespace NuGet.Services.AzureSearch.FunctionalTests.Support
+namespace NuGet.Services.AzureSearch.FunctionalTests
 {
     public class TestSettings
     {
@@ -25,6 +25,8 @@ namespace NuGet.Services.AzureSearch.FunctionalTests.Support
         public string AzureSearchIndexName { get; set; }
         public string AzureSearchIndexUrl { get; set; }
         public string AzureSearchIndexAdminApiKey { get; set; }
+
+        public string AzureSearchAppServiceUrl { get; set; }
 
         public static async Task<TestSettings> CreateAsync()
         {

@@ -9,14 +9,17 @@ using System.Text;
 using System.Threading.Tasks;
 using BasicSearchTests.FunctionalTests.Core;
 using Newtonsoft.Json;
-using NuGet.Services.AzureSearch.FunctionalTests.Support;
 using Xunit;
 
 namespace NuGet.Services.AzureSearch.FunctionalTests
 {
-    public class AzureIndexFunctionalTests : BaseFunctionalTests, IClassFixture<CommonFixture>
+    /// <summary>
+    /// Base for functional tests that use Azure Search index APIs.
+    /// See: https://docs.microsoft.com/en-us/rest/api/searchservice/index-operations
+    /// </summary>
+    public class AzureSearchIndexFunctionalTestBase : BaseFunctionalTests, IClassFixture<CommonFixture>
     {
-        public AzureIndexFunctionalTests(CommonFixture fixture)
+        public AzureSearchIndexFunctionalTestBase(CommonFixture fixture)
             : base(fixture.TestSettings.AzureSearchIndexUrl)
         {
             Fixture = fixture ?? throw new ArgumentNullException(nameof(fixture));

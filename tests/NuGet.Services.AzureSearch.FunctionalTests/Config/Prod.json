@@ -4,7 +4,9 @@
 
     "AzureSearchIndexName": "",
     "AzureSearchIndexUrl": "",
-    "AzureSearchIndexAdminApiKey": ""
+    "AzureSearchIndexAdminApiKey": "",
+
+    "AzureSearchAppServiceUrl": ""
   },
 
   "KeyVault_VaultName": "",

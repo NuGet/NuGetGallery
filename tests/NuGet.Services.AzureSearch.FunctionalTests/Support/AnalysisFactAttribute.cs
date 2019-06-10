@@ -3,7 +3,7 @@
 
 using Xunit;
 
-namespace NuGet.Services.AzureSearch.FunctionalTests.Support
+namespace NuGet.Services.AzureSearch.FunctionalTests
 {
     public class AnalysisFactAttribute : FactAttribute
     {

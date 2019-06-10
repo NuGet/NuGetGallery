@@ -4,7 +4,7 @@
 using System.Threading.Tasks;
 using Xunit;
 
-namespace NuGet.Services.AzureSearch.FunctionalTests.Support
+namespace NuGet.Services.AzureSearch.FunctionalTests
 {
     public class CommonFixture : IAsyncLifetime
     {
