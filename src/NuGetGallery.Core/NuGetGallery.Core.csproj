@@ -256,7 +256,7 @@
       <Version>1.0.0</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.Data.Services.Client">
-      <Version>5.7.0</Version>
+      <Version>5.8.4</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.WindowsAzure.ConfigurationManager">
       <Version>3.1.0</Version>
@@ -269,7 +269,7 @@
       <Version>5.0.0-preview1.5665</Version>
     </PackageReference>
     <PackageReference Include="WindowsAzure.Storage">
-      <Version>7.1.2</Version>
+      <Version>9.3.3</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
