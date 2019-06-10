@@ -87,6 +87,8 @@ namespace CatalogTests.Registration
 
         public class TheCreatePageContentMethod
         {
+            private const string PackageId = "MyPackage";
+            private const string PackageVersion = "01.02.03+ABC";
             private readonly Uri _catalogUri = new Uri("http://example/catalog/mypackage.1.0.0.json");
             private readonly Uri _registrationBaseAddress = new Uri("http://example/registration/");
             private readonly Uri _packageContentBaseAddress = new Uri("http://example/content/");
@@ -96,63 +98,36 @@ namespace CatalogTests.Registration
             public TheCreatePageContentMethod()
             {
                 _graph = new Graph();
-                _graph.Assert(
-                    _graph.CreateUriNode(_catalogUri),
-                    _graph.CreateUriNode(Schema.Predicates.Id),
-                    _graph.CreateLiteralNode("MyPackage"));
-                _graph.Assert(
-                    _graph.CreateUriNode(_catalogUri),
-                    _graph.CreateUriNode(Schema.Predicates.Version),
-                    _graph.CreateLiteralNode("01.02.03+ABC"));
-                _graph.Assert(
-                    _graph.CreateUriNode(_catalogUri),
-                    _graph.CreateUriNode(Schema.Predicates.Published),
-                    _graph.CreateLiteralNode("2015-01-01T00:00:00+00:00"));
+                AddTriple(_catalogUri, Schema.Predicates.Id, PackageId);
+                AddTriple(_catalogUri, Schema.Predicates.Version, PackageVersion);
+                AddTriple(_catalogUri, Schema.Predicates.Published, "2015-01-01T00:00:00+00:00");
             }
 
             [Theory]
-            [InlineData(null, null, null, "", "http://gallery.org")]
-            [InlineData("https://test.org", null, null, "https://test.org", "http://gallery.org")]
-            [InlineData("https://test.org", "TestExpression", null, "http://gallery.org/packages/MyPackage/1.2.3/license", "http://gallery.org")]
-            [InlineData("https://test.org", null, "TestLicense", "http://gallery.org/packages/MyPackage/1.2.3/license", "http://gallery.org")]
-            [InlineData(null, "TestExpression", null, "http://gallery.org/packages/MyPackage/1.2.3/license", "http://gallery.org")]
-            [InlineData(null, null, "TestLicense", "http://gallery.org/packages/MyPackage/1.2.3/license", "http://gallery.org")]
-            [InlineData(null, null, "TestFile", "http://gallery.org/packages/MyPackage/1.2.3/license", "http://gallery.org")]
-            [InlineData(null, null, "TestLicense.txt", "http://gallery.org/packages/MyPackage/1.2.3/license", "http://gallery.org")]
-            [InlineData(null, null, "TestLicense.exe", "http://gallery.org/packages/MyPackage/1.2.3/license", "http://gallery.org")]
-            [InlineData(null, null, "TestLicense.any", "http://gallery.org/packages/MyPackage/1.2.3/license", "http://gallery.org")]
-            [InlineData(null, null, "/Folder/TestLicense", "http://gallery.org/packages/MyPackage/1.2.3/license", "http://gallery.org")]
-            [InlineData(null, null, "TestLicense", "http://gallery.org/packages/MyPackage/1.2.3/license", "http://gallery.org/")]
-            [InlineData(null, null, "TestLicense", "http://gallery.org/packages/MyPackage/1.2.3/license", "http://gallery.org//")]
+            [InlineData(null, null, null, "", "http://gallery.test")]
+            [InlineData("https://test", null, null, "https://test", "http://gallery.test")]
+            [InlineData("https://test", "TestExpression", null, "http://gallery.test/packages/MyPackage/1.2.3/license", "http://gallery.test")]
+            [InlineData("https://test", null, "TestLicense", "http://gallery.test/packages/MyPackage/1.2.3/license", "http://gallery.test")]
+            [InlineData(null, "TestExpression", null, "http://gallery.test/packages/MyPackage/1.2.3/license", "http://gallery.test")]
+            [InlineData(null, null, "TestLicense", "http://gallery.test/packages/MyPackage/1.2.3/license", "http://gallery.test")]
+            [InlineData(null, null, "TestFile", "http://gallery.test/packages/MyPackage/1.2.3/license", "http://gallery.test")]
+            [InlineData(null, null, "TestLicense.txt", "http://gallery.test/packages/MyPackage/1.2.3/license", "http://gallery.test")]
+            [InlineData(null, null, "TestLicense.exe", "http://gallery.test/packages/MyPackage/1.2.3/license", "http://gallery.test")]
+            [InlineData(null, null, "TestLicense.any", "http://gallery.test/packages/MyPackage/1.2.3/license", "http://gallery.test")]
+            [InlineData(null, null, "/Folder/TestLicense", "http://gallery.test/packages/MyPackage/1.2.3/license", "http://gallery.test")]
+            [InlineData(null, null, "TestLicense", "http://gallery.test/packages/MyPackage/1.2.3/license", "http://gallery.test/")]
+            [InlineData(null, null, "TestLicense", "http://gallery.test/packages/MyPackage/1.2.3/license", "http://gallery.test//")]
             public void CreatePageContent_SetsLicenseUrlAndExpressionProperly(
-                string licenseUrl, 
-                string licenseExpression, 
+                string licenseUrl,
+                string licenseExpression,
                 string licenseFile,
-                string expectedLicenseUrlValue, 
+                string expectedLicenseUrlValue,
                 string galleryBaseAddress)
             {
                 // Arrange
-                if (licenseUrl != null)
-                {
-                    _graph.Assert(
-                    _graph.CreateUriNode(_catalogUri),
-                    _graph.CreateUriNode(Schema.Predicates.LicenseUrl),
-                    _graph.CreateLiteralNode(licenseUrl));
-                }
-                if (licenseExpression != null)
-                {
-                    _graph.Assert(
-                    _graph.CreateUriNode(_catalogUri),
-                    _graph.CreateUriNode(Schema.Predicates.LicenseExpression),
-                    _graph.CreateLiteralNode(licenseExpression));
-                }
-                if (licenseFile != null)
-                {
-                    _graph.Assert(
-                    _graph.CreateUriNode(_catalogUri),
-                    _graph.CreateUriNode(Schema.Predicates.LicenseFile),
-                    _graph.CreateLiteralNode(licenseFile));
-                }
+                AddTriple(_catalogUri, Schema.Predicates.LicenseUrl, licenseUrl);
+                AddTriple(_catalogUri, Schema.Predicates.LicenseExpression, licenseExpression);
+                AddTriple(_catalogUri, Schema.Predicates.LicenseFile, licenseFile);
 
                 var item = new RegistrationMakerCatalogItem(
                     _catalogUri,
@@ -171,20 +146,71 @@ namespace CatalogTests.Registration
 
                 // Act
                 var content = item.CreatePageContent(context);
-                var licenseUrlTriples = content.GetTriplesWithSubjectPredicate(
-                    content.CreateUriNode(_catalogUri),
-                    content.CreateUriNode(Schema.Predicates.LicenseUrl));
-                var licenseExpressionTriples = content.GetTriplesWithSubjectPredicate(
-                    content.CreateUriNode(_catalogUri),
-                    content.CreateUriNode(Schema.Predicates.LicenseExpression));
-                var licenseFileTriples = content.GetTriplesWithSubjectPredicate(
-                    content.CreateUriNode(_catalogUri),
-                    content.CreateUriNode(Schema.Predicates.LicenseFile));
+                var licenseUrlTriples = GetTriples(content, _catalogUri, Schema.Predicates.LicenseUrl);
+                var licenseExpressionTriples = GetTriples(content, _catalogUri, Schema.Predicates.LicenseExpression);
+                var licenseFileTriples = GetTriples(content, _catalogUri, Schema.Predicates.LicenseFile);
 
                 // Assert
                 Assert.Equal(expectedLicenseUrlValue, Assert.Single(licenseUrlTriples).Object.ToString());
                 Assert.Equal(licenseExpression ?? "", Assert.Single(licenseExpressionTriples).Object.ToString());
                 Assert.Empty(licenseFileTriples);
+            }
+
+            [Theory]
+            [InlineData(null, null, "")]
+            [InlineData("http://icon.test/", null, "http://icon.test/")]
+            [InlineData(null, "icon.png", "http://example/content/test-container/mypackage/1.2.3/icon")]
+            [InlineData("http://icon.test/", "icon.png", "http://example/content/test-container/mypackage/1.2.3/icon")]
+            [InlineData(null, "icon.jpg", "http://example/content/test-container/mypackage/1.2.3/icon")]
+            [InlineData(null, "icon.jpeg", "http://example/content/test-container/mypackage/1.2.3/icon")]
+            [InlineData(null, "icon.gif", "http://example/content/test-container/mypackage/1.2.3/icon")]
+            [InlineData(null, "icon.svg", "http://example/content/test-container/mypackage/1.2.3/icon")]
+            [InlineData(null, "icon.exe", "http://example/content/test-container/mypackage/1.2.3/icon")]
+            public void CreatePageContent_SetsIconUrlProperly(string iconUrl, string iconFile, string expectedIconUrl)
+            {
+                // Arrange
+                AddTriple(_catalogUri, Schema.Predicates.IconUrl, iconUrl);
+                AddTriple(_catalogUri, Schema.Predicates.IconFile, iconFile);
+
+                var item = new RegistrationMakerCatalogItem(
+                    _catalogUri,
+                    _graph,
+                    _registrationBaseAddress,
+                    isExistingItem: false,
+                    postProcessGraph: g => g,
+                    packageContentBaseAddress: _packageContentBaseAddress,
+                    galleryBaseAddress: new Uri("http://gallery.test"))
+                {
+                    BaseAddress = _baseAddress,
+                };
+                RegistrationMakerCatalogItem.PackagePathProvider = new FlatContainerPackagePathProvider("test-container");
+                var context = new CatalogContext();
+
+                // Act
+                var graph = item.CreatePageContent(context);
+
+                // Assert
+                var iconUrlTriples = GetTriples(graph, _catalogUri, Schema.Predicates.IconUrl);
+                var iconFileTriples = GetTriples(graph, _catalogUri, Schema.Predicates.IconFile);
+
+                Assert.Equal(expectedIconUrl, Assert.Single(iconUrlTriples).Object.ToString());
+                Assert.Empty(iconFileTriples);
+            }
+
+            private void AddTriple(Uri subject, Uri predicate, string @object)
+            {
+                if (@object != null)
+                {
+                    _graph.Assert(
+                        _graph.CreateUriNode(subject),
+                        _graph.CreateUriNode(predicate),
+                        _graph.CreateLiteralNode(@object));
+                }
+            }
+
+            private IEnumerable<Triple> GetTriples(IGraph graph, Uri subject, Uri predicate)
+            {
+                return graph.GetTriplesWithSubjectPredicate(graph.CreateUriNode(subject), graph.CreateUriNode(predicate));
             }
 
             public static IEnumerable<object[]> CreatePageContent_SetsDeprecationInformationProperly_Data

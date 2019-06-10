@@ -57,6 +57,8 @@ WHERE
 
 	BIND(@licenseUrl AS ?licenseUrl)
 
+	BIND(@iconUrl AS ?iconUrl)
+
     ?catalogEntry nuget:version ?version ;
                   nuget:id ?id ;
 	              nuget:published ?published .
@@ -67,8 +69,6 @@ WHERE
 	OPTIONAL { ?catalogEntry nuget:description ?optionalDescription . }
 	OPTIONAL { ?catalogEntry nuget:title ?optionalTitle . }
 	OPTIONAL { ?catalogEntry nuget:summary ?optionalSummary . }
-	OPTIONAL { ?catalogEntry nuget:iconUrl ?optionalIconUrl . }
-	OPTIONAL { ?catalogEntry nuget:licenseUrl ?licenseUrl . }
 	OPTIONAL { ?catalogEntry nuget:licenseExpression ?optionalLicenseExpression . }
 	OPTIONAL { ?catalogEntry nuget:projectUrl ?optionalProjectUrl . }
 	OPTIONAL { ?catalogEntry nuget:requireLicenseAcceptance ?optionalRequireLicenseAcceptance . }
@@ -81,7 +81,6 @@ WHERE
 	BIND(COALESCE(?optionalDescription, "") AS ?description)
 	BIND(COALESCE(?optionalTitle, "") AS ?title)
 	BIND(COALESCE(?optionalSummary, "") AS ?summary)
-	BIND(COALESCE(?optionalIconUrl, "") AS ?iconUrl)
 	BIND(COALESCE(?optionalLicenseExpression, "") AS ?licenseExpression)
 	BIND(COALESCE(?optionalProjectUrl, "") AS ?projectUrl)
 	BIND(COALESCE(?optionalRequireLicenseAcceptance, false) AS ?requireLicenseAcceptance)
