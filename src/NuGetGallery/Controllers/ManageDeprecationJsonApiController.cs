@@ -17,18 +17,15 @@ namespace NuGetGallery
     public partial class ManageDeprecationJsonApiController
         : AppController
     {
-        private readonly IAuditingService _auditingService;
         private readonly IPackageService _packageService;
         private readonly IPackageDeprecationService _deprecationService;
         private readonly IFeatureFlagService _featureFlagService;
 
         public ManageDeprecationJsonApiController(
-            IAuditingService auditingService,
             IPackageService packageService,
             IPackageDeprecationService deprecationService,
             IFeatureFlagService featureFlagService)
         {
-            _auditingService = auditingService ?? throw new ArgumentNullException(nameof(auditingService));
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
             _deprecationService = deprecationService ?? throw new ArgumentNullException(nameof(deprecationService));
             _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
@@ -168,16 +165,6 @@ namespace NuGetGallery
                 alternatePackage,
                 customMessage,
                 currentUser);
-
-            foreach (var packageToUpdate in packagesToUpdate)
-            {
-                await _auditingService.SaveAuditRecordAsync(
-                    new PackageAuditRecord(
-                        packageToUpdate,
-                        status == PackageDeprecationStatus.NotDeprecated ? AuditedPackageAction.Undeprecate : AuditedPackageAction.Deprecate,
-                        status == PackageDeprecationStatus.NotDeprecated ? PackageUndeprecatedVia.Web : PackageDeprecatedVia.Web));
-
-            }
 
             return Json(HttpStatusCode.OK);
         }

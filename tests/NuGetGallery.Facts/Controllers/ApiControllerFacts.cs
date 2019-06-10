@@ -41,6 +41,7 @@ namespace NuGetGallery
         public Mock<IApiScopeEvaluator> MockApiScopeEvaluator { get; private set; }
         public Mock<IEntitiesContext> MockEntitiesContext { get; private set; }
         public Mock<IPackageService> MockPackageService { get; private set; }
+        public Mock<IPackageUpdateService> MockPackageUpdateService { get; private set; }
         public Mock<IPackageFileService> MockPackageFileService { get; private set; }
         public Mock<IUserService> MockUserService { get; private set; }
         public Mock<IContentService> MockContentService { get; private set; }
@@ -68,6 +69,7 @@ namespace NuGetGallery
             ApiScopeEvaluator = (MockApiScopeEvaluator = new Mock<IApiScopeEvaluator>()).Object;
             EntitiesContext = (MockEntitiesContext = new Mock<IEntitiesContext>()).Object;
             PackageService = (MockPackageService = new Mock<IPackageService>(behavior)).Object;
+            PackageUpdateService = (MockPackageUpdateService = new Mock<IPackageUpdateService>()).Object;
             UserService = userService ?? (MockUserService = new Mock<IUserService>(behavior)).Object;
             ContentService = (MockContentService = new Mock<IContentService>()).Object;
             StatisticsService = (MockStatisticsService = new Mock<IStatisticsService>()).Object;
@@ -1538,7 +1540,7 @@ namespace NuGetGallery
                 var statusCodeResult = (HttpStatusCodeWithBodyResult)result;
                 Assert.Equal(404, statusCodeResult.StatusCode);
                 Assert.Equal(String.Format(Strings.PackageWithIdAndVersionNotFound, "theId", "1.0.42"), statusCodeResult.StatusDescription);
-                controller.MockPackageService.Verify(x => x.MarkPackageUnlistedAsync(It.IsAny<Package>(), true), Times.Never());
+                controller.MockPackageUpdateService.Verify(x => x.MarkPackageUnlistedAsync(It.IsAny<Package>(), true, true), Times.Never());
             }
 
             public static IEnumerable<object[]> WillNotUnlistThePackageIfScopesInvalid_Data => MemberDataHelper.Combine(
@@ -1580,7 +1582,7 @@ namespace NuGetGallery
                     expectedStatusCode,
                     description);
 
-                controller.MockPackageService.Verify(x => x.MarkPackageUnlistedAsync(package, true), Times.Never());
+                controller.MockPackageUpdateService.Verify(x => x.MarkPackageUnlistedAsync(package, true, true), Times.Never());
             }
 
             [Fact]
@@ -1602,8 +1604,7 @@ namespace NuGetGallery
 
                 ResultAssert.IsEmpty(await controller.DeletePackage(id, "1.0.42"));
 
-                controller.MockPackageService.Verify(x => x.MarkPackageUnlistedAsync(package, true));
-                controller.MockIndexingService.Verify(i => i.UpdatePackage(package));
+                controller.MockPackageUpdateService.Verify(x => x.MarkPackageUnlistedAsync(package, true, true));
 
                 controller.MockApiScopeEvaluator
                     .Verify(x => x.Evaluate(
@@ -1723,7 +1724,7 @@ namespace NuGetGallery
             [InlineData(PackageStatus.Deleted)]
             [InlineData(PackageStatus.FailedValidation)]
             [InlineData(PackageStatus.Validating)]
-            public async Task GetPackageReturns404ForNotAvailableLatestSymbolPackage(PackageStatus status)
+            public async Task GetPackageReturnsLastAvailableSymbolPackage(PackageStatus status)
             {
                 // Arrange
                 const string packageId = "Baz";
@@ -1750,12 +1751,17 @@ namespace NuGetGallery
                 controller.MockPackageService
                     .Setup(x => x.FindPackageByIdAndVersionStrict(packageId, packageVersion))
                     .Returns(package).Verifiable();
+                controller.MockSymbolPackageFileService
+                    .Setup(x => x.CreateDownloadSymbolPackageActionResultAsync(It.IsAny<Uri>(), packageId, packageVersion))
+                    .Returns(Task.FromResult<ActionResult>(new HttpStatusCodeWithBodyResult(HttpStatusCode.OK, "Test package")))
+                    .Verifiable();
 
                 // Act
                 var result = (HttpStatusCodeWithBodyResult)await controller.GetPackageInternal(packageId, packageVersion, isSymbolPackage: true);
 
                 // Assert
-                Assert.Equal((int)HttpStatusCode.NotFound, result.StatusCode);
+                Assert.Equal((int)HttpStatusCode.OK, result.StatusCode);
+                controller.MockSymbolPackageFileService.Verify();
             }
 
             [Theory]
@@ -1960,7 +1966,7 @@ namespace NuGetGallery
                     result,
                     HttpStatusCode.NotFound,
                     String.Format(Strings.PackageWithIdAndVersionNotFound, "theId", "1.0.42"));
-                controller.MockPackageService.Verify(x => x.MarkPackageListedAsync(It.IsAny<Package>(), It.IsAny<bool>()), Times.Never());
+                controller.MockPackageUpdateService.Verify(x => x.MarkPackageListedAsync(It.IsAny<Package>(), It.IsAny<bool>(), It.IsAny<bool>()), Times.Never());
             }
 
             public static IEnumerable<object[]> WillNotListThePackageIfScopesInvalid_Data => MemberDataHelper.Combine(
@@ -2002,7 +2008,7 @@ namespace NuGetGallery
                     expectedStatusCode,
                     description);
 
-                controller.MockPackageService.Verify(x => x.MarkPackageListedAsync(package, true), Times.Never());
+                controller.MockPackageUpdateService.Verify(x => x.MarkPackageListedAsync(package, true, It.IsAny<bool>()), Times.Never());
             }
 
             [Fact]
@@ -2024,8 +2030,7 @@ namespace NuGetGallery
 
                 ResultAssert.IsEmpty(await controller.PublishPackage("theId", "1.0.42"));
 
-                controller.MockPackageService.Verify(x => x.MarkPackageListedAsync(package, true));
-                controller.MockIndexingService.Verify(i => i.UpdatePackage(package));
+                controller.MockPackageUpdateService.Verify(x => x.MarkPackageListedAsync(package, true, true));
 
                 controller.MockApiScopeEvaluator
                     .Verify(x => x.Evaluate(

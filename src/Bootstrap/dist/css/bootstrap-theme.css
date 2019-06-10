@@ -1696,7 +1696,7 @@ img.reserved-indicator-icon {
   color: green;
 }
 .page-status .ms-Icon--Warning {
-  color: yellow;
+  color: orange;
 }
 .page-status .ms-Icon--Cancel {
   color: red;

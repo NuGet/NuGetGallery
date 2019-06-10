@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NuGet.Services.Entities;
+using NuGetGallery;
 
 namespace NuGetGallery.Security
 {
@@ -82,9 +83,9 @@ namespace NuGetGallery.Security
                 context.TelemetryService.TrackPackageMetadataComplianceWarning(
                     context.Package.Id,
                     context.Package.NormalizedVersion,
-                    complianceWarnings: new[] { Strings.SecurityPolicy_RequirePackagePrefixReserved });
+                    complianceWarnings: new[] { ServicesStrings.SecurityPolicy_RequirePackagePrefixReserved });
 
-                return SecurityPolicyResult.CreateWarningResult(Strings.SecurityPolicy_RequirePackagePrefixReserved);
+                return SecurityPolicyResult.CreateWarningResult(ServicesStrings.SecurityPolicy_RequirePackagePrefixReserved);
             }
 
             // All good!
@@ -123,19 +124,19 @@ namespace NuGetGallery.Security
             // Copyright validation
             if (!state.AllowedCopyrightNotices.Contains(package.Copyright))
             {
-                complianceFailures.Add(Strings.SecurityPolicy_CopyrightNotCompliant);
+                complianceFailures.Add(ServicesStrings.SecurityPolicy_CopyrightNotCompliant);
             }
 
             // LicenseUrl validation
             if (state.IsLicenseUrlRequired && string.IsNullOrWhiteSpace(package.LicenseUrl))
             {
-                complianceFailures.Add(Strings.SecurityPolicy_RequiredLicenseUrlMissing);
+                complianceFailures.Add(ServicesStrings.SecurityPolicy_RequiredLicenseUrlMissing);
             }
 
             // ProjectUrl validation
             if (state.IsProjectUrlRequired && string.IsNullOrWhiteSpace(package.ProjectUrl))
             {
-                complianceFailures.Add(Strings.SecurityPolicy_RequiredProjectUrlMissing);
+                complianceFailures.Add(ServicesStrings.SecurityPolicy_RequiredProjectUrlMissing);
             }
 
             return !complianceFailures.Any();
@@ -157,7 +158,7 @@ namespace NuGetGallery.Security
 
             if (duplicateAuthors.Any())
             {
-                complianceFailures.Add(string.Format(CultureInfo.CurrentCulture, Strings.SecurityPolicy_PackageAuthorDuplicatesNotAllowed, string.Join(",", duplicateAuthors)));
+                complianceFailures.Add(string.Format(CultureInfo.CurrentCulture, ServicesStrings.SecurityPolicy_PackageAuthorDuplicatesNotAllowed, string.Join(",", duplicateAuthors)));
             }
             else
             {
@@ -167,7 +168,7 @@ namespace NuGetGallery.Security
                     {
                         if (!state.AllowedAuthors.Contains(packageAuthor))
                         {
-                            complianceFailures.Add(string.Format(CultureInfo.CurrentCulture, Strings.SecurityPolicy_PackageAuthorNotAllowed, packageAuthor));
+                            complianceFailures.Add(string.Format(CultureInfo.CurrentCulture, ServicesStrings.SecurityPolicy_PackageAuthorNotAllowed, packageAuthor));
                         }
                     }
                 }
@@ -177,7 +178,7 @@ namespace NuGetGallery.Security
                     // We require the required co-owner to be defined as the only package author.
                     if (packageAuthors.Count() > 1 || packageAuthors.Single() != state.RequiredCoOwnerUsername)
                     {
-                        complianceFailures.Add(string.Format(CultureInfo.CurrentCulture, Strings.SecurityPolicy_RequiredAuthorMissing, state.RequiredCoOwnerUsername));
+                        complianceFailures.Add(string.Format(CultureInfo.CurrentCulture, ServicesStrings.SecurityPolicy_RequiredAuthorMissing, state.RequiredCoOwnerUsername));
                     }
                 }
             }

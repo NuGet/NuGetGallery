@@ -58,7 +58,7 @@ namespace NuGetGallery
 
                 if (packageMetadata.IsSymbolsPackage())
                 {
-                    throw new InvalidPackageException(Strings.UploadPackage_SymbolsPackageNotAllowed);
+                    throw new InvalidPackageException(ServicesStrings.UploadPackage_SymbolsPackageNotAllowed);
                 }
 
                 PackageHelper.ValidateNuGetPackageMetadata(packageMetadata);
@@ -336,7 +336,7 @@ namespace NuGetGallery
 
             if (package == null)
             {
-                throw new EntityException(Strings.PackageWithIdAndVersionNotFound, id, version);
+                throw new EntityException(ServicesStrings.PackageWithIdAndVersionNotFound, id, version);
             }
 
             await PublishPackageAsync(package, commitChanges);
@@ -423,81 +423,6 @@ namespace NuGetGallery
             return true;
         }
 
-        public async Task MarkPackageListedAsync(Package package, bool commitChanges = true)
-        {
-            if (package == null)
-            {
-                throw new ArgumentNullException(nameof(package));
-            }
-
-            if (package.Listed)
-            {
-                return;
-            }
-
-            if (package.PackageStatusKey == PackageStatus.Deleted)
-            {
-                throw new InvalidOperationException("A deleted package should never be listed!");
-            }
-
-            if (package.PackageStatusKey == PackageStatus.FailedValidation)
-            {
-                throw new InvalidOperationException("A package that failed validation should never be listed!");
-            }
-
-            if (!package.Listed && (package.IsLatestStable || package.IsLatest))
-            {
-                throw new InvalidOperationException("An unlisted package should never be latest or latest stable!");
-            }
-
-            package.Listed = true;
-            package.LastUpdated = DateTime.UtcNow;
-            // NOTE: LastEdited will be overwritten by a trigger defined in the migration named "AddTriggerForPackagesLastEdited".
-            package.LastEdited = DateTime.UtcNow;
-
-            await UpdateIsLatestAsync(package.PackageRegistration, commitChanges: false);
-
-            await _auditingService.SaveAuditRecordAsync(new PackageAuditRecord(package, AuditedPackageAction.List));
-
-            _telemetryService.TrackPackageListed(package);
-
-            if (commitChanges)
-            {
-                await _packageRepository.CommitChangesAsync();
-            }
-        }
-
-        public async Task MarkPackageUnlistedAsync(Package package, bool commitChanges = true)
-        {
-            if (package == null)
-            {
-                throw new ArgumentNullException(nameof(package));
-            }
-            if (!package.Listed)
-            {
-                return;
-            }
-
-            package.Listed = false;
-            package.LastUpdated = DateTime.UtcNow;
-            // NOTE: LastEdited will be overwritten by a trigger defined in the migration named "AddTriggerForPackagesLastEdited".
-            package.LastEdited = DateTime.UtcNow;
-
-            if (package.IsLatest || package.IsLatestStable)
-            {
-                await UpdateIsLatestAsync(package.PackageRegistration, commitChanges: false);
-            }
-
-            await _auditingService.SaveAuditRecordAsync(new PackageAuditRecord(package, AuditedPackageAction.Unlist));
-
-            _telemetryService.TrackPackageUnlisted(package);
-
-            if (commitChanges)
-            {
-                await _packageRepository.CommitChangesAsync();
-            }
-        }
-
         private PackageRegistration CreateOrGetPackageRegistration(User owner, PackageMetadata packageMetadata, bool isVerified)
         {
             var packageRegistration = FindPackageRegistrationById(packageMetadata.Id);
@@ -526,7 +451,7 @@ namespace NuGetGallery
             if (package != null)
             {
                 throw new PackageAlreadyExistsException(
-                    string.Format(Strings.PackageExistsAndCannotBeModified, packageRegistration.Id, package.Version));
+                    string.Format(ServicesStrings.PackageExistsAndCannotBeModified, packageRegistration.Id, package.Version));
             }
 
             package = new Package();
@@ -678,7 +603,7 @@ namespace NuGetGallery
             if (invalidPortableFramework != null)
             {
                 throw new EntityException(
-                    Strings.InvalidPortableFramework, invalidPortableFramework);
+                    ServicesStrings.InvalidPortableFramework, invalidPortableFramework);
             }
         }
 

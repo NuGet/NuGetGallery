@@ -111,12 +111,12 @@ namespace NuGetGallery.Security
             var headers = new NameValueCollection();
             if (!string.IsNullOrEmpty(actualClientVersion))
             {
-                headers[GalleryConstants.ClientVersionHeaderName] = actualClientVersion;
+                headers[ServicesConstants.ClientVersionHeaderName] = actualClientVersion;
             }
 
             if (!string.IsNullOrEmpty(actualProtocolVersion))
             {
-                headers[GalleryConstants.NuGetProtocolHeaderName] = actualProtocolVersion;
+                headers[ServicesConstants.NuGetProtocolHeaderName] = actualProtocolVersion;
             }
 
             var httpRequest = new Mock<HttpRequestBase>();

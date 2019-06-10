@@ -36,6 +36,9 @@ namespace NuGetGallery
             PackageFileSize = package.PackageFileSize;
 
             LatestSymbolsPackage = package.LatestSymbolPackage();
+            LatestAvailableSymbolsPackage = LatestSymbolsPackage != null && LatestSymbolsPackage.StatusKey == PackageStatus.Available
+                ? LatestSymbolsPackage
+                : package.LatestAvailableSymbolPackage();
 
             if (packageHistory.Any())
             {
@@ -115,6 +118,7 @@ namespace NuGetGallery
         public int TotalDaysSinceCreated { get; private set; }
         public long PackageFileSize { get; private set; }
         public SymbolPackage LatestSymbolsPackage { get; private set; }
+        public SymbolPackage LatestAvailableSymbolsPackage { get; private set; }
 
         public bool HasSemVer2Version { get; }
         public bool HasSemVer2Dependency { get; }

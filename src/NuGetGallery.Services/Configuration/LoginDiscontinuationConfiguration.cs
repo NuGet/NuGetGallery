@@ -106,15 +106,6 @@ namespace NuGetGallery
         }
     }
 
-    public interface ILoginDiscontinuationConfiguration
-    {
-        bool IsLoginDiscontinued(AuthenticatedUser authUser);
-        bool IsPasswordLoginDiscontinuedForAll();
-        bool IsUserOnWhitelist(User user);
-        bool ShouldUserTransformIntoOrganization(User user);
-        bool IsTenantIdPolicySupportedForOrganization(string emailAddress, string tenantId);
-    }
-
     public class OrganizationTenantPair : IEquatable<OrganizationTenantPair>
     {
         public string EmailDomain { get; }

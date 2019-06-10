@@ -132,6 +132,7 @@
     <Compile Include="Entities\IEntityRepository.cs" />
     <Compile Include="Entities\ReadOnlyModeException.cs" />
     <Compile Include="Entities\SuspendDbExecutionStrategy.cs" />
+    <Compile Include="Extensions\DiagnosticsSourceExtensions.cs" />
     <Compile Include="Extensions\EntitiesContextExtensions.cs" />
     <Compile Include="Extensions\PackageValidationSetExtensions.cs" />
     <Compile Include="Extensions\StorageExceptionExtensions.cs" />

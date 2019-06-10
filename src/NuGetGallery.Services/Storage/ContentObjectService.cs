@@ -34,23 +34,23 @@ namespace NuGetGallery
 
         public async Task Refresh()
         {
-            LoginDiscontinuationConfiguration =
-                await Refresh<LoginDiscontinuationConfiguration>(GalleryConstants.ContentNames.LoginDiscontinuationConfiguration) ??
+            LoginDiscontinuationConfiguration = 
+                await Refresh<LoginDiscontinuationConfiguration>(ServicesConstants.ContentNames.LoginDiscontinuationConfiguration) ??
                 new LoginDiscontinuationConfiguration();
 
             CertificatesConfiguration =
-                await Refresh<CertificatesConfiguration>(GalleryConstants.ContentNames.CertificatesConfiguration) ??
+                await Refresh<CertificatesConfiguration>(ServicesConstants.ContentNames.CertificatesConfiguration) ??
                 new CertificatesConfiguration();
 
             SymbolsConfiguration =
-                await Refresh<SymbolsConfiguration>(GalleryConstants.ContentNames.SymbolsConfiguration) ??
+                await Refresh<SymbolsConfiguration>(ServicesConstants.ContentNames.SymbolsConfiguration) ??
                 new SymbolsConfiguration();
 
             TyposquattingConfiguration =
-               await Refresh<TyposquattingConfiguration>(GalleryConstants.ContentNames.TyposquattingConfiguration) ??
+               await Refresh<TyposquattingConfiguration>(ServicesConstants.ContentNames.TyposquattingConfiguration) ??
                new TyposquattingConfiguration();
 
-            var reposCache = await Refresh<IReadOnlyList<RepositoryInformation>>(GalleryConstants.ContentNames.NuGetPackagesGitHubDependencies) ??
+            var reposCache = await Refresh<IReadOnlyList<RepositoryInformation>>(ServicesConstants.ContentNames.NuGetPackagesGitHubDependencies) ??
                              Array.Empty<RepositoryInformation>();
 
             GitHubUsageConfiguration = new GitHubUsageConfiguration(reposCache);
