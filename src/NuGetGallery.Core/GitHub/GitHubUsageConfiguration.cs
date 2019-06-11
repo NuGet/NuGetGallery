@@ -56,9 +56,7 @@ namespace NuGetGallery
             return dependentsPerPackage
                 .ToDictionary(
                     entry => entry.Key,
-                    entry => new NuGetPackageGitHubInformation(
-                             entry.Value.Count,
-                             entry.Value),
+                    entry => new NuGetPackageGitHubInformation(entry.Value),
                     StringComparer.OrdinalIgnoreCase);
         }
     }
