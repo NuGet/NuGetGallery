@@ -84,7 +84,7 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="WindowsAzure.Storage">
-      <Version>9.2.0</Version>
+      <Version>9.3.3</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
