@@ -20,7 +20,7 @@ namespace NuGetGallery.GitHub
                 throw new IndexOutOfRangeException(string.Format("{0} cannot have a negative value!", nameof(stars)));
             }
 
-            Id = id;
+            Id = id ?? throw new ArgumentNullException(nameof(id));
             var idSplit = Id.Split('/');
             if (idSplit.Length == 2)
             {
