@@ -49,8 +49,9 @@ namespace NuGetGallery
                await Refresh<TyposquattingConfiguration>(ServicesConstants.ContentNames.TyposquattingConfiguration) ??
                new TyposquattingConfiguration();
 
-            var reposCache = await Refresh<IReadOnlyCollection<RepositoryInformation>>(ServicesConstants.ContentNames.NuGetPackagesGitHubDependencies) ??
-                             Array.Empty<RepositoryInformation>();
+            var reposCache = 
+                await Refresh<IReadOnlyCollection<RepositoryInformation>>(ServicesConstants.ContentNames.NuGetPackagesGitHubDependencies) ??
+                Array.Empty<RepositoryInformation>();
 
             GitHubUsageConfiguration = new GitHubUsageConfiguration(reposCache);
         }
