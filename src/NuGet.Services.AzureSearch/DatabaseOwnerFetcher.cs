@@ -41,11 +41,10 @@ INNER JOIN Users u (NOLOCK) ON pro.UserKey = u.[Key]
 
         public async Task<string[]> GetOwnersOrEmptyAsync(string id)
         {
-            using (var entitiesContext = AsDisposable.Create(await _entitiesContextFactory.CreateAsync(readOnly: true)))
+            using (var entitiesContext = await _entitiesContextFactory.CreateAsync(readOnly: true))
             {
                 _logger.LogInformation("Fetching owners for package registration with ID {PackageId}.", id);
                 var owners = await entitiesContext
-                    .Value
                     .PackageRegistrations
                     .Where(pr => pr.Id == id)
                     .Select(pr => pr.Owners.Select(u => u.Username).ToList())

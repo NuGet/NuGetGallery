@@ -70,7 +70,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                 _collector.Verify(
                     x => x.RunAsync(
                         It.IsAny<ReadWriteCursor>(),
-                        It.Is<ReadCursor>(c => c.Value == DateTime.MaxValue),
+                        It.Is<ReadCursor>(c => c.Value == DateTime.MaxValue.ToUniversalTime()),
                         It.IsAny<CancellationToken>()),
                     Times.Once);
             }
