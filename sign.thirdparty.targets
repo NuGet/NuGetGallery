@@ -30,7 +30,6 @@
             <ThirdPartyBinaries Include="Lucene.Net.dll" />
             <ThirdPartyBinaries Include="Markdig.dll" />
             <ThirdPartyBinaries Include="MarkdownSharp.dll" />
-            <ThirdPartyBinaries Include="Microsoft.ApplicationInsights.TraceListener.dll" />
             <ThirdPartyBinaries Include="Microsoft.ApplicationServer.Caching.Client.dll" />
             <ThirdPartyBinaries Include="Microsoft.ApplicationServer.Caching.Core.dll" />
             <ThirdPartyBinaries Include="Microsoft.AspNet.WebApi.MessageHandlers.Compression.dll" />
