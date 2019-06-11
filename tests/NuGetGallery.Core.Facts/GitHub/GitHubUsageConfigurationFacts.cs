@@ -10,7 +10,7 @@ namespace NuGetGallery
 {
     public class GitHubUsageConfigurationFacts
     {
-        private static RepositoryInformation GenRepo(string id, int stars = 100, params string[] nugetDependencies)
+        private static RepositoryInformation CreateRepo(string id, int stars = 100, params string[] nugetDependencies)
         {
             return new RepositoryInformation(
                 id,
@@ -52,7 +52,7 @@ namespace NuGetGallery
             [Fact]
             public void SingleRepoOneDependency()
             {
-                var expectedRepo = GenRepo("owner/id1", 1, "nupkg1");
+                var expectedRepo = CreateRepo("owner/id1", 1, "nupkg1");
                 var gh = GenConfig(expectedRepo);
                 var nupkgInformation = gh.GetPackageInformation("nupkg1");
 
@@ -64,8 +64,8 @@ namespace NuGetGallery
             [Fact]
             public void MultiReposSameDependency()
             {
-                var expectedRepo1 = GenRepo("owner/B", 1, "nupkg1");
-                var expectedRepo2 = GenRepo("owner/A", 1, "nupkg1");
+                var expectedRepo1 = CreateRepo("owner/B", 1, "nupkg1");
+                var expectedRepo2 = CreateRepo("owner/A", 1, "nupkg1");
                 var gh = GenConfig(expectedRepo1, expectedRepo2);
                 var nupkgInformation = gh.GetPackageInformation("nupkg1");
 
@@ -80,7 +80,7 @@ namespace NuGetGallery
             [Fact]
             public void OneRepoMultiDependencies()
             {
-                var expectedRepo = GenRepo("owner/A", 1, "nupkg1", "nupkg2");
+                var expectedRepo = CreateRepo("owner/A", 1, "nupkg1", "nupkg2");
                 var gh = GenConfig(expectedRepo);
                 var nupkgInformation1 = gh.GetPackageInformation("nupkg1");
                 var nupkgInformation2 = gh.GetPackageInformation("nupkg2");
@@ -99,11 +99,11 @@ namespace NuGetGallery
             {
                 RepositoryInformation[] expectedRepos =
                 {
-                    GenRepo("owner/A",  1, "nupkg1"),
-                    GenRepo("owner/B",  2, "nupkg1"),
-                    GenRepo("owner/C",  3, "nupkg1"),
-                    GenRepo("owner/D",  4, "nupkg1"),
-                    GenRepo("owner/E",  5, "nupkg1")
+                    CreateRepo("owner/A",  1, "nupkg1"),
+                    CreateRepo("owner/B",  2, "nupkg1"),
+                    CreateRepo("owner/C",  3, "nupkg1"),
+                    CreateRepo("owner/D",  4, "nupkg1"),
+                    CreateRepo("owner/E",  5, "nupkg1")
                 };
 
                 var gh = GenConfig(expectedRepos);
@@ -126,18 +126,18 @@ namespace NuGetGallery
             {
                 RepositoryInformation[] expectedRepos =
                 {
-                    GenRepo("owner/A",  1, "nupkg1"),
-                    GenRepo("owner/B",  2, "nupkg1"),
-                    GenRepo("owner/C",  3, "nupkg1"),
-                    GenRepo("owner/D",  5, "nupkg1"),
-                    GenRepo("owner/E",  5, "nupkg1"),
-                    GenRepo("owner/F",  7, "nupkg1"),
-                    GenRepo("owner/G",  7, "nupkg1"),
-                    GenRepo("owner/H",  7, "nupkg1"),
-                    GenRepo("owner/I",  8, "nupkg1"),
-                    GenRepo("owner/J",  9, "nupkg1"),
-                    GenRepo("owner/K",  1, "nupkg1"),
-                    GenRepo("owner/L",  10, "nupkg1")
+                    CreateRepo("owner/A",  1, "nupkg1"),
+                    CreateRepo("owner/B",  2, "nupkg1"),
+                    CreateRepo("owner/C",  3, "nupkg1"),
+                    CreateRepo("owner/D",  5, "nupkg1"),
+                    CreateRepo("owner/E",  5, "nupkg1"),
+                    CreateRepo("owner/F",  7, "nupkg1"),
+                    CreateRepo("owner/G",  7, "nupkg1"),
+                    CreateRepo("owner/H",  7, "nupkg1"),
+                    CreateRepo("owner/I",  8, "nupkg1"),
+                    CreateRepo("owner/J",  9, "nupkg1"),
+                    CreateRepo("owner/K",  1, "nupkg1"),
+                    CreateRepo("owner/L",  10, "nupkg1")
                 };
 
                 var gh = GenConfig(expectedRepos);
@@ -157,7 +157,7 @@ namespace NuGetGallery
             [Fact]
             public void CaseInsensitive()
             {
-                var expectedRepo = GenRepo("owner/A", 1, "nupkg1");
+                var expectedRepo = CreateRepo("owner/A", 1, "nupkg1");
                 var gh = GenConfig(expectedRepo);
                 var nupkgInformation = gh.GetPackageInformation("NuPkG1");
 
