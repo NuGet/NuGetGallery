@@ -38,7 +38,7 @@ namespace NuGetGallery
 
         private static IReadOnlyDictionary<string, NuGetPackageGitHubInformation> GetNuGetPackagesDependents(IReadOnlyCollection<RepositoryInformation> repositories)
         {
-            var dependentsPerPackage = new Dictionary<string, List<RepositoryInformation>>(StringComparer.InvariantCultureIgnoreCase);
+            var dependentsPerPackage = new Dictionary<string, List<RepositoryInformation>>(StringComparer.OrdinalIgnoreCase);
             foreach (var repo in repositories)
             {
                 foreach (var dependency in repo.Dependencies)
@@ -59,7 +59,7 @@ namespace NuGetGallery
                     entry => new NuGetPackageGitHubInformation(
                              entry.Value.Count,
                              entry.Value),
-                    StringComparer.InvariantCultureIgnoreCase);
+                    StringComparer.OrdinalIgnoreCase);
         }
     }
 }
