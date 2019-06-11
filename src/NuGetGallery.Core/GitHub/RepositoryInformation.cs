@@ -5,7 +5,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 
-namespace NuGetGallery.GitHub
+namespace NuGetGallery
 {
     public class RepositoryInformation
     {

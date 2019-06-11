@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 
-namespace NuGetGallery.GitHub
+namespace NuGetGallery
 {
     public class GitHubUsageConfigurationFacts
     {

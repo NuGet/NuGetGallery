@@ -8,7 +8,6 @@ using NuGet.Services.Entities;
 using NuGet.Services.Licenses;
 using NuGet.Services.Validation.Issues;
 using NuGet.Versioning;
-using NuGetGallery.GitHub;
 
 namespace NuGetGallery
 {
