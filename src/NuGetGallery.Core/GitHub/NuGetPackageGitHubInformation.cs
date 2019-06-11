@@ -13,7 +13,7 @@ namespace NuGetGallery
 
         public readonly static NuGetPackageGitHubInformation Empty = new NuGetPackageGitHubInformation(new List<RepositoryInformation>());
 
-        public NuGetPackageGitHubInformation(IReadOnlyList<RepositoryInformation> repos)
+        public NuGetPackageGitHubInformation(IReadOnlyCollection<RepositoryInformation> repos)
         {
             if( repos == null)
             {
@@ -29,6 +29,6 @@ namespace NuGetGallery
         }
 
         public int TotalRepos { get; }
-        public IReadOnlyList<RepositoryInformation> Repos { get; }
+        public IReadOnlyCollection<RepositoryInformation> Repos { get; }
     }
 }
