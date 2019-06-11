@@ -55,6 +55,8 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
                 StorageContainer = "integration-tests-container",
                 StoragePath = "integration-tests-path",
                 RegistrationsBaseUrl = "https://example/registrations/",
+
+                Scoring = new AzureSearchScoringConfiguration()
             };
             _options = new Mock<IOptionsSnapshot<Catalog2AzureSearchConfiguration>>();
             _options.Setup(x => x.Value).Returns(() => _config);
@@ -82,7 +84,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
                 _catalogClient,
                 _options.Object,
                 output.GetLogger<CatalogLeafFetcher>());
-            _search = new SearchDocumentBuilder();
+            _search = new SearchDocumentBuilder(_options.Object);
             _hijack = new HijackDocumentBuilder();
             _builder = new CatalogIndexActionBuilder(
                 _versionListDataClient,

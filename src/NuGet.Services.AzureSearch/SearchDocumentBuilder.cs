@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using Microsoft.Extensions.Options;
 using NuGet.Protocol.Catalog;
 using NuGet.Services.Entities;
 
@@ -9,6 +10,13 @@ namespace NuGet.Services.AzureSearch
 {
     public class SearchDocumentBuilder : ISearchDocumentBuilder
     {
+        private readonly IOptionsSnapshot<AzureSearchJobConfiguration> _options;
+
+        public SearchDocumentBuilder(IOptionsSnapshot<AzureSearchJobConfiguration> options)
+        {
+            _options = options ?? throw new ArgumentNullException(nameof(options));
+        }
+
         public SearchDocument.LatestFlags LatestFlagsOrNull(VersionLists versionLists, SearchFilters searchFilters)
         {
             var latest = versionLists.GetLatestVersionInfoOrNull(searchFilters);
@@ -201,7 +209,7 @@ namespace NuGet.Services.AzureSearch
                 owners: owners);
             DocumentUtilities.PopulateMetadata(document, packageId, package);
             document.TotalDownloadCount = totalDownloadCount;
-            document.LogBase2DownloadCount = Math.Log(totalDownloadCount, 2.0);
+            document.LogOfDownloadCount = Math.Log(totalDownloadCount, _options.Value.Scoring.DownloadCountLogBase);
 
             return document;
         }

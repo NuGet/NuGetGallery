@@ -2,7 +2,9 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.Azure.Search.Models;
@@ -10,6 +12,8 @@ using Microsoft.Extensions.Options;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Moq;
+using NuGet.Services.AzureSearch.ScoringProfiles;
+using NuGet.Services.AzureSearch.SearchService;
 using NuGet.Services.AzureSearch.Support;
 using NuGet.Services.AzureSearch.Wrappers;
 using NuGetGallery;
@@ -210,6 +214,59 @@ namespace NuGet.Services.AzureSearch
                     x => x.CreateAsync(It.IsAny<Index>()),
                     Times.Once);
             }
+
+            [Fact]
+            public async Task CreatesScoringProfile()
+            {
+                Index createdIndex = null;
+                _indexesOperations
+                    .Setup(o => o.CreateAsync(It.IsAny<Index>()))
+                    .Callback<Index>(index => createdIndex = index)
+                    .Returns(() => Task.FromResult(createdIndex));
+
+                await _target.CreateSearchIndexAsync();
+
+                Assert.NotNull(createdIndex);
+
+                var result = Assert.Single(createdIndex.ScoringProfiles);
+                Assert.Equal(DefaultScoringProfile.Name, result.Name);
+
+                // Verify field weights
+                Assert.Equal(2, result.TextWeights.Weights.Count);
+
+                Assert.Contains(IndexFields.PackageId, result.TextWeights.Weights.Keys);
+                Assert.Equal(3.0, result.TextWeights.Weights[IndexFields.PackageId]);
+
+                Assert.Contains(IndexFields.TokenizedPackageId, result.TextWeights.Weights.Keys);
+                Assert.Equal(4.0, result.TextWeights.Weights[IndexFields.TokenizedPackageId]);
+
+                // Verify boosting functions
+                Assert.Equal(2, result.Functions.Count);
+                var downloadsBoost = result
+                    .Functions
+                    .Where(f => f.FieldName == IndexFields.Search.LogOfDownloadCount)
+                    .FirstOrDefault();
+                var freshnessBoost = result
+                    .Functions
+                    .Where(f => f.FieldName == IndexFields.Published)
+                    .FirstOrDefault();
+
+                Assert.NotNull(downloadsBoost);
+                Assert.Equal(5.0, downloadsBoost.Boost);
+
+                Assert.NotNull(freshnessBoost);
+                Assert.Equal(6.0, freshnessBoost.Boost);
+            }
+
+            [Fact]
+            public async Task ThrowsOnInvalidFieldInConfig()
+            {
+                _config.Scoring.FieldWeights["WARGLE"] = 123.0;
+
+                var exception = await Assert.ThrowsAsync<ArgumentException>(() => _target.CreateSearchIndexAsync());
+
+                Assert.Contains("Unknown field 'WARGLE'", exception.Message);
+            }
         }
 
         public class CreateHijackIndexAsync : BaseFacts
@@ -229,6 +286,21 @@ namespace NuGet.Services.AzureSearch
                 _indexesOperations.Verify(
                     x => x.CreateAsync(It.IsAny<Index>()),
                     Times.Once);
+            }
+
+            [Fact]
+            public async Task DoesNotCreateScoringProfile()
+            {
+                Index createdIndex = null;
+                _indexesOperations
+                    .Setup(o => o.CreateAsync(It.IsAny<Index>()))
+                    .Callback<Index>(index => createdIndex = index)
+                    .Returns(() => Task.FromResult(createdIndex));
+
+                await _target.CreateHijackIndexAsync();
+
+                Assert.NotNull(createdIndex);
+                Assert.Null(createdIndex.ScoringProfiles);
             }
         }
 
@@ -388,8 +460,8 @@ namespace NuGet.Services.AzureSearch
         {
             protected readonly Mock<ISearchServiceClientWrapper> _serviceClient;
             protected readonly Mock<IIndexesOperationsWrapper> _indexesOperations;
-            protected readonly Mock<IOptionsSnapshot<AzureSearchConfiguration>> _options;
-            protected readonly AzureSearchConfiguration _config;
+            protected readonly Mock<IOptionsSnapshot<AzureSearchJobConfiguration>> _options;
+            protected readonly AzureSearchJobConfiguration _config;
             protected readonly RecordingLogger<IndexBuilder> _logger;
             protected readonly IndexBuilder _target;
 
@@ -397,11 +469,25 @@ namespace NuGet.Services.AzureSearch
             {
                 _serviceClient = new Mock<ISearchServiceClientWrapper>();
                 _indexesOperations = new Mock<IIndexesOperationsWrapper>();
-                _options = new Mock<IOptionsSnapshot<AzureSearchConfiguration>>();
-                _config = new AzureSearchConfiguration
+                _options = new Mock<IOptionsSnapshot<AzureSearchJobConfiguration>>();
+                _config = new AzureSearchJobConfiguration
                 {
                     SearchIndexName = "search",
                     HijackIndexName = "hijack",
+
+                    Scoring = new AzureSearchScoringConfiguration
+                    {
+                        DownloadCountLogBase = 2.0,
+
+                        FieldWeights = new Dictionary<string, double>
+                        {
+                            { nameof(IndexFields.PackageId), 3.0 },
+                            { nameof(IndexFields.TokenizedPackageId), 4.0 },
+                        },
+
+                        LogOfDownloadCountMagnitudeBoost = 5.0,
+                        PublishedFreshnessBoost = 6.0
+                    }
                 };
                 _logger = output.GetLogger<IndexBuilder>();
 

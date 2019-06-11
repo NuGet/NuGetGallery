@@ -3,6 +3,8 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.Extensions.Options;
+using Moq;
 using NuGet.Protocol.Catalog;
 using NuGet.Services.Entities;
 using NuGetGallery;
@@ -76,7 +78,31 @@ namespace NuGet.Services.AzureSearch.Support
 
         public static readonly SearchFilters SearchFilters = SearchFilters.IncludePrereleaseAndSemVer2;
 
-        public static SearchDocument.Full SearchDocument => new SearchDocumentBuilder().FullFromDb(
+        public static readonly AzureSearchScoringConfiguration Config = new AzureSearchScoringConfiguration
+        {
+            LogOfDownloadCountMagnitudeBoost = 2
+        };
+
+        private static IOptionsSnapshot<AzureSearchJobConfiguration> Options
+        {
+            get
+            {
+                var mock = new Mock<IOptionsSnapshot<AzureSearchJobConfiguration>>();
+                var config = new AzureSearchJobConfiguration
+                {
+                    Scoring = new AzureSearchScoringConfiguration
+                    {
+                        DownloadCountLogBase = 2
+                    }
+                };
+
+                mock.Setup(o => o.Value).Returns(config);
+
+                return mock.Object;
+            }
+        }
+
+        public static SearchDocument.Full SearchDocument => new SearchDocumentBuilder(Options).FullFromDb(
             PackageId,
             SearchFilters.IncludePrereleaseAndSemVer2,
             Versions,

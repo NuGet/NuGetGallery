@@ -5,6 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
+using Moq;
 using NuGet.Services.AzureSearch.Support;
 using NuGet.Versioning;
 using NuGetGallery;
@@ -493,7 +495,7 @@ namespace NuGet.Services.AzureSearch
     {
       ""@search.action"": ""upload"",
       ""totalDownloadCount"": 1001,
-      ""logBase2DownloadCount"": 9.9672262588359928,
+      ""logOfDownloadCount"": 9.9672262588359928,
       ""owners"": [
         ""Microsoft"",
         ""azure-sdk""
@@ -579,6 +581,7 @@ namespace NuGet.Services.AzureSearch
         public abstract class BaseFacts
         {
             protected readonly ITestOutputHelper _output;
+            protected readonly AzureSearchJobConfiguration _config;
             protected readonly SearchDocumentBuilder _target;
 
             public static IEnumerable<object[]> MissingTitles = new[]
@@ -615,8 +618,18 @@ namespace NuGet.Services.AzureSearch
             public BaseFacts(ITestOutputHelper output)
             {
                 _output = output;
+                _config = new AzureSearchJobConfiguration
+                {
+                    Scoring = new AzureSearchScoringConfiguration
+                    {
+                        DownloadCountLogBase = 2.0
+                    }
+                };
 
-                _target = new SearchDocumentBuilder();
+                var options = new Mock<IOptionsSnapshot<AzureSearchJobConfiguration>>();
+                options.Setup(o => o.Value).Returns(_config);
+
+                _target = new SearchDocumentBuilder(options.Object);
             }
         }
     }

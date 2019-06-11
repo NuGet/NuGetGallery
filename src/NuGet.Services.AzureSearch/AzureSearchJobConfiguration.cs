@@ -12,6 +12,8 @@ namespace NuGet.Services.AzureSearch
         public string StorageContainer { get; set; }
         public string StoragePath { get; set; }
 
+        public AzureSearchScoringConfiguration Scoring { get; set; }
+
         public string NormalizeStoragePath()
         {
             var storagePath = StoragePath?.Trim('/') ?? string.Empty;
