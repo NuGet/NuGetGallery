@@ -2,7 +2,11 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
+using System.Linq;
+using NuGet.Services.Entities;
 
 namespace NuGet.Services.Metadata.Catalog.Helpers
 {
@@ -12,6 +16,8 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
     /// </summary>
     public class Db2CatalogProjection
     {
+        public const string AlternatePackageVersionWildCard = "*";
+
         private readonly PackageContentUriBuilder _packageContentUriBuilder;
 
         public Db2CatalogProjection(PackageContentUriBuilder packageContentUriBuilder)
@@ -19,29 +25,84 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
             _packageContentUriBuilder = packageContentUriBuilder ?? throw new ArgumentNullException(nameof(packageContentUriBuilder));
         }
 
-        public FeedPackageDetails FromDataRecord(IDataRecord dataRecord)
+        public FeedPackageDetails ReadFeedPackageDetailsFromDataReader(DbDataReader dataReader)
         {
-            if (dataRecord == null)
+            if (dataReader == null)
             {
-                throw new ArgumentNullException(nameof(dataRecord));
+                throw new ArgumentNullException(nameof(dataReader));
             }
 
-            var packageId = dataRecord[Db2CatalogProjectionColumnNames.PackageId].ToString();
-            var normalizedPackageVersion = dataRecord[Db2CatalogProjectionColumnNames.NormalizedVersion].ToString();
-            var listed = dataRecord.GetBoolean(dataRecord.GetOrdinal(Db2CatalogProjectionColumnNames.Listed));
-            var hideLicenseReport = dataRecord.GetBoolean(dataRecord.GetOrdinal(Db2CatalogProjectionColumnNames.HideLicenseReport));
+            var packageId = dataReader[Db2CatalogProjectionColumnNames.PackageId].ToString();
+            var normalizedPackageVersion = dataReader[Db2CatalogProjectionColumnNames.NormalizedVersion].ToString();
+            var listed = dataReader.GetBoolean(dataReader.GetOrdinal(Db2CatalogProjectionColumnNames.Listed));
+            var hideLicenseReport = dataReader.GetBoolean(dataReader.GetOrdinal(Db2CatalogProjectionColumnNames.HideLicenseReport));
 
             var packageContentUri = _packageContentUriBuilder.Build(packageId, normalizedPackageVersion);
+            var deprecationInfo = ReadDeprecationInfoFromDataReader(dataReader);
 
             return new FeedPackageDetails(
                 packageContentUri,
-                dataRecord.ReadDateTime(Db2CatalogProjectionColumnNames.Created).ForceUtc(),
-                dataRecord.ReadNullableUtcDateTime(Db2CatalogProjectionColumnNames.LastEdited),
-                listed ? dataRecord.ReadDateTime(Db2CatalogProjectionColumnNames.Published).ForceUtc() : Constants.UnpublishedDate,
+                dataReader.ReadDateTime(Db2CatalogProjectionColumnNames.Created).ForceUtc(),
+                dataReader.ReadNullableUtcDateTime(Db2CatalogProjectionColumnNames.LastEdited),
+                listed ? dataReader.ReadDateTime(Db2CatalogProjectionColumnNames.Published).ForceUtc() : Constants.UnpublishedDate,
                 packageId,
                 normalizedPackageVersion,
-                hideLicenseReport ? null : dataRecord[Db2CatalogProjectionColumnNames.LicenseNames]?.ToString(),
-                hideLicenseReport ? null : dataRecord[Db2CatalogProjectionColumnNames.LicenseReportUrl]?.ToString());
+                hideLicenseReport ? null : dataReader[Db2CatalogProjectionColumnNames.LicenseNames]?.ToString(),
+                hideLicenseReport ? null : dataReader[Db2CatalogProjectionColumnNames.LicenseReportUrl]?.ToString(),
+                deprecationInfo);
+        }
+
+        public PackageDeprecationItem ReadDeprecationInfoFromDataReader(DbDataReader dataReader)
+        {
+            if (dataReader == null)
+            {
+                throw new ArgumentNullException(nameof(dataReader));
+            }
+
+            var deprecationReasons = new List<string>();
+            var deprecationStatusValue = dataReader.ReadInt32OrNull(Db2CatalogProjectionColumnNames.DeprecationStatus);
+
+            if (!deprecationStatusValue.HasValue)
+            {
+                return null;
+            }
+
+            var deprecationStatus = (PackageDeprecationStatus)deprecationStatusValue.Value;
+
+            foreach (var deprecationStatusFlag in Enum.GetValues(typeof(PackageDeprecationStatus)).Cast<PackageDeprecationStatus>())
+            {
+                if (deprecationStatusFlag == PackageDeprecationStatus.NotDeprecated)
+                {
+                    continue;
+                }
+
+                if (deprecationStatus.HasFlag(deprecationStatusFlag))
+                {
+                    deprecationReasons.Add(deprecationStatusFlag.ToString());
+                }
+            }
+
+            var alternatePackageId = dataReader.ReadStringOrNull(Db2CatalogProjectionColumnNames.AlternatePackageId);
+            string alternatePackageVersion = null;
+            if (alternatePackageId != null)
+            {
+                alternatePackageVersion = dataReader.ReadStringOrNull(Db2CatalogProjectionColumnNames.AlternatePackageVersion);
+
+                if (alternatePackageVersion == null)
+                {
+                    alternatePackageVersion = AlternatePackageVersionWildCard;
+                }
+                else
+                {
+                    alternatePackageVersion = $"[{alternatePackageVersion}, {alternatePackageVersion}]";
+                }
+            }
+
+            return new PackageDeprecationItem(
+                deprecationReasons,
+                dataReader.ReadStringOrNull(Db2CatalogProjectionColumnNames.DeprecationMessage),
+                alternatePackageId,
+                alternatePackageVersion);
         }
     }
 }

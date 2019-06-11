@@ -3,10 +3,13 @@
 
 using System;
 using System.Data;
+using System.Data.Common;
+using System.Linq;
 using Moq;
-using NuGet.Services.Metadata.Catalog;
+using NuGet.Services.Entities;
 using NuGet.Services.Metadata.Catalog.Helpers;
 using Xunit;
+using Constants = NuGet.Services.Metadata.Catalog.Constants;
 
 namespace CatalogTests.Helpers
 {
@@ -28,13 +31,13 @@ namespace CatalogTests.Helpers
             }
         }
 
-        public class TheFromDataRecordMethod
+        public class TheReadFeedPackageDetailsFromDataReaderMethod
         {
             private const string PackageContentUrlFormat = "https://unittest.org/packages/{id-lower}/{version-lower}.nupkg";
             private readonly PackageContentUriBuilder _packageContentUriBuilder;
             private readonly Db2CatalogProjection _db2catalogProjection;
 
-            public TheFromDataRecordMethod()
+            public TheReadFeedPackageDetailsFromDataReaderMethod()
             {
                 _packageContentUriBuilder = new PackageContentUriBuilder(PackageContentUrlFormat);
                 _db2catalogProjection = new Db2CatalogProjection(_packageContentUriBuilder);
@@ -43,7 +46,7 @@ namespace CatalogTests.Helpers
             [Fact]
             public void ThrowsForNullArgument()
             {
-                Assert.Throws<ArgumentNullException>(() => _db2catalogProjection.FromDataRecord(null));
+                Assert.Throws<ArgumentNullException>(() => _db2catalogProjection.ReadFeedPackageDetailsFromDataReader(null));
             }
 
             [Theory]
@@ -68,7 +71,7 @@ namespace CatalogTests.Helpers
                 var expectedLicenseNames = hideLicenseReport ? null : licenseNames;
                 var expectedLicenseReportUrl = hideLicenseReport ? null : licenseReportUrl;
 
-                var dataRecordMock = MockDataRecord(
+                var dataRecordMock = MockDataReader(
                     packageId,
                     normalizedPackageVersion,
                     createdDate,
@@ -80,7 +83,7 @@ namespace CatalogTests.Helpers
                     licenseReportUrl);
 
                 // Act
-                var projection = _db2catalogProjection.FromDataRecord(dataRecordMock.Object);
+                var projection = _db2catalogProjection.ReadFeedPackageDetailsFromDataReader(dataRecordMock.Object);
 
                 // Assert
                 Assert.Equal(packageId, projection.PackageId);
@@ -91,9 +94,10 @@ namespace CatalogTests.Helpers
                 Assert.Equal(expectedContentUri, projection.ContentUri);
                 Assert.Equal(expectedLicenseNames, projection.LicenseNames);
                 Assert.Equal(expectedLicenseReportUrl, projection.LicenseReportUrl);
+                Assert.Null(projection.DeprecationInfo);
             }
 
-            private static Mock<IDataRecord> MockDataRecord(
+            private static Mock<DbDataReader> MockDataReader(
                 string packageId,
                 string normalizedPackageVersion,
                 DateTime createdDate,
@@ -110,33 +114,180 @@ namespace CatalogTests.Helpers
                 const int ordinalListed = 5;
                 const int ordinalHideLicenseReport = 6;
 
-                var dataRecordMock = new Mock<IDataRecord>(MockBehavior.Strict);
+                var dataReaderMock = new Mock<DbDataReader>(MockBehavior.Strict);
 
-                dataRecordMock.SetupGet(m => m["Id"]).Returns(packageId);
-                dataRecordMock.SetupGet(m => m["NormalizedVersion"]).Returns(normalizedPackageVersion);
+                dataReaderMock.SetupGet(m => m[Db2CatalogProjectionColumnNames.PackageId]).Returns(packageId);
+                dataReaderMock.SetupGet(m => m[Db2CatalogProjectionColumnNames.NormalizedVersion]).Returns(normalizedPackageVersion);
 
-                dataRecordMock.SetupGet(m => m["LicenseNames"]).Returns(licenseNames);
-                dataRecordMock.SetupGet(m => m["LicenseReportUrl"]).Returns(licenseReportUrl);
+                dataReaderMock.SetupGet(m => m[Db2CatalogProjectionColumnNames.LicenseNames]).Returns(licenseNames);
+                dataReaderMock.SetupGet(m => m[Db2CatalogProjectionColumnNames.LicenseReportUrl]).Returns(licenseReportUrl);
 
-                dataRecordMock.Setup(m => m.GetOrdinal("Listed")).Returns(ordinalListed);
-                dataRecordMock.Setup(m => m.GetBoolean(ordinalListed)).Returns(listed);
+                dataReaderMock.Setup(m => m.GetOrdinal(Db2CatalogProjectionColumnNames.Listed)).Returns(ordinalListed);
+                dataReaderMock.Setup(m => m.GetBoolean(ordinalListed)).Returns(listed);
 
-                dataRecordMock.Setup(m => m.GetOrdinal("HideLicenseReport")).Returns(ordinalHideLicenseReport);
-                dataRecordMock.Setup(m => m.GetBoolean(ordinalHideLicenseReport)).Returns(hideLicenseReport);
+                dataReaderMock.Setup(m => m.GetOrdinal(Db2CatalogProjectionColumnNames.HideLicenseReport)).Returns(ordinalHideLicenseReport);
+                dataReaderMock.Setup(m => m.GetBoolean(ordinalHideLicenseReport)).Returns(hideLicenseReport);
 
-                dataRecordMock.SetupGet(m => m["Created"]).Returns(createdDate);
-                dataRecordMock.Setup(m => m.GetOrdinal("Created")).Returns(ordinalCreated);
-                dataRecordMock.Setup(m => m.GetDateTime(ordinalCreated)).Returns(createdDate);
+                dataReaderMock.SetupGet(m => m[Db2CatalogProjectionColumnNames.Created]).Returns(createdDate);
+                dataReaderMock.Setup(m => m.GetOrdinal(Db2CatalogProjectionColumnNames.Created)).Returns(ordinalCreated);
+                dataReaderMock.Setup(m => m.GetDateTime(ordinalCreated)).Returns(createdDate);
 
-                dataRecordMock.SetupGet(m => m["LastEdited"]).Returns(lastEditedDate);
-                dataRecordMock.Setup(m => m.GetOrdinal("LastEdited")).Returns(ordinalLastEdited);
-                dataRecordMock.Setup(m => m.GetDateTime(ordinalLastEdited)).Returns(lastEditedDate);
+                dataReaderMock.SetupGet(m => m[Db2CatalogProjectionColumnNames.LastEdited]).Returns(lastEditedDate);
+                dataReaderMock.Setup(m => m.GetOrdinal(Db2CatalogProjectionColumnNames.LastEdited)).Returns(ordinalLastEdited);
+                dataReaderMock.Setup(m => m.GetDateTime(ordinalLastEdited)).Returns(lastEditedDate);
 
-                dataRecordMock.SetupGet(m => m["Published"]).Returns(publishedDate);
-                dataRecordMock.Setup(m => m.GetOrdinal("Published")).Returns(ordinalPublished);
-                dataRecordMock.Setup(m => m.GetDateTime(ordinalPublished)).Returns(publishedDate);
+                dataReaderMock.SetupGet(m => m[Db2CatalogProjectionColumnNames.Published]).Returns(publishedDate);
+                dataReaderMock.Setup(m => m.GetOrdinal(Db2CatalogProjectionColumnNames.Published)).Returns(ordinalPublished);
+                dataReaderMock.Setup(m => m.GetDateTime(ordinalPublished)).Returns(publishedDate);
 
-                return dataRecordMock;
+                // Simulate that these columns do not exist in the resultset.
+                dataReaderMock.Setup(m => m.GetOrdinal(Db2CatalogProjectionColumnNames.DeprecationStatus)).Throws<IndexOutOfRangeException>();
+
+                return dataReaderMock;
+            }
+        }
+
+        public class TheReadDeprecationInfoFromDataReaderMethod
+        {
+            private const string PackageContentUrlFormat = "https://unittest.org/packages/{id-lower}/{version-lower}.nupkg";
+            private readonly PackageContentUriBuilder _packageContentUriBuilder;
+            private readonly Db2CatalogProjection _db2catalogProjection;
+
+            public TheReadDeprecationInfoFromDataReaderMethod()
+            {
+                _packageContentUriBuilder = new PackageContentUriBuilder(PackageContentUrlFormat);
+                _db2catalogProjection = new Db2CatalogProjection(_packageContentUriBuilder);
+            }
+
+            [Fact]
+            public void ThrowsForNullArgument()
+            {
+                Assert.Throws<ArgumentNullException>(() => _db2catalogProjection.ReadDeprecationInfoFromDataReader(null));
+            }
+
+            [Theory]
+            [InlineData(null, null)]
+            [InlineData(null, "1.0.0")]
+            [InlineData("alternate.package.id", null)]
+            [InlineData("alternate.package.id", "1.0.0")]
+            public void PerformsCorrectProjections(string alternatePackageId, string alternatePackageVersionRange)
+            {
+                foreach (var packageDeprecationStatus in Enum.GetValues(typeof(PackageDeprecationStatus)).Cast<PackageDeprecationStatus>())
+                {
+                    VerifyDeprecationProjections(
+                        packageDeprecationStatus,
+                        alternatePackageId,
+                        alternatePackageVersionRange);
+                }
+            }
+
+            private void VerifyDeprecationProjections(
+                PackageDeprecationStatus status,
+                string alternatePackageId,
+                string alternatePackageVersionRange)
+            {
+                // Arrange
+                string customMessage = null;
+
+                Mock<DbDataReader> dataReaderMock;
+                if (status == PackageDeprecationStatus.NotDeprecated)
+                {
+                    dataReaderMock = MockDataReader(status);
+                }
+                else
+                {
+                    customMessage = "custom message";
+
+                    dataReaderMock = MockDataReader(
+                        status,
+                        customMessage,
+                        alternatePackageId,
+                        alternatePackageVersionRange);
+                }
+
+                // Act
+                var projection = _db2catalogProjection.ReadDeprecationInfoFromDataReader(dataReaderMock.Object);
+
+                // Assert
+                if (status == PackageDeprecationStatus.NotDeprecated)
+                {
+                    Assert.Null(projection);
+                }
+                else
+                {
+                    Assert.NotNull(projection);
+
+                    foreach (var deprecationStatusFlag in Enum.GetValues(typeof(PackageDeprecationStatus))
+                        .Cast<PackageDeprecationStatus>()
+                        .Except(new[] { PackageDeprecationStatus.NotDeprecated }))
+                    {
+                        if (status.HasFlag(deprecationStatusFlag))
+                        {
+                            Assert.Contains(deprecationStatusFlag.ToString(), projection.Reasons);
+                        }
+                        else
+                        {
+                            Assert.DoesNotContain(deprecationStatusFlag.ToString(), projection.Reasons);
+                        }
+                    }
+
+                    Assert.Equal(customMessage, projection.Message);
+                    Assert.Equal(alternatePackageId, projection.AlternatePackageId);
+
+                    if (alternatePackageId != null && alternatePackageVersionRange == null)
+                    {
+                        Assert.Equal(Db2CatalogProjection.AlternatePackageVersionWildCard, projection.AlternatePackageRange);
+                    }
+                    else if (alternatePackageId == null)
+                    {
+                        Assert.Null(projection.AlternatePackageRange);
+                    }
+                    else
+                    {
+                        Assert.Equal(
+                            $"[{alternatePackageVersionRange}, {alternatePackageVersionRange}]",
+                            projection.AlternatePackageRange);
+                    }
+                }
+            }
+
+            private static Mock<DbDataReader> MockDataReader(
+                PackageDeprecationStatus deprecationStatus,
+                string message = null,
+                string alternatePackageId = null,
+                string alternatePackageVersionRange = null)
+            {
+                var dataReaderMock = new Mock<DbDataReader>(MockBehavior.Strict);
+
+                if (deprecationStatus == PackageDeprecationStatus.NotDeprecated)
+                {
+                    // Simulate that these columns do not exist in the resultset.
+                    dataReaderMock.Setup(m => m.GetOrdinal(Db2CatalogProjectionColumnNames.DeprecationStatus)).Throws<IndexOutOfRangeException>();
+                }
+                else
+                {
+                    const int ordinalDeprecationStatus = 7;
+                    dataReaderMock.Setup(m => m.GetOrdinal(Db2CatalogProjectionColumnNames.DeprecationStatus)).Returns(ordinalDeprecationStatus);
+                    dataReaderMock.Setup(m => m.IsDBNull(ordinalDeprecationStatus)).Returns(false);
+                    dataReaderMock.Setup(m => m.GetInt32(ordinalDeprecationStatus)).Returns((int)deprecationStatus);
+
+                    const int ordinalDeprecationMessage = 8;
+                    dataReaderMock.Setup(m => m.GetOrdinal(Db2CatalogProjectionColumnNames.DeprecationMessage)).Returns(ordinalDeprecationMessage);
+                    dataReaderMock.Setup(m => m.IsDBNull(ordinalDeprecationMessage)).Returns(message == null);
+                    dataReaderMock.Setup(m => m.GetString(ordinalDeprecationMessage)).Returns(message);
+
+                    const int ordinalAlternatePackageId = 9;
+                    dataReaderMock.Setup(m => m.GetOrdinal(Db2CatalogProjectionColumnNames.AlternatePackageId)).Returns(ordinalAlternatePackageId);
+                    dataReaderMock.Setup(m => m.IsDBNull(ordinalAlternatePackageId)).Returns(alternatePackageId == null);
+                    dataReaderMock.Setup(m => m.GetString(ordinalAlternatePackageId)).Returns(alternatePackageId);
+
+                    const int ordinalAlternatePackageVersionRange = 10;
+                    dataReaderMock.Setup(m => m.GetOrdinal(Db2CatalogProjectionColumnNames.AlternatePackageVersion)).Returns(ordinalAlternatePackageVersionRange);
+                    dataReaderMock.Setup(m => m.IsDBNull(ordinalAlternatePackageVersionRange)).Returns(alternatePackageVersionRange == null);
+                    dataReaderMock.Setup(m => m.GetString(ordinalAlternatePackageVersionRange)).Returns(alternatePackageVersionRange);
+                }
+
+                return dataReaderMock;
             }
         }
     }

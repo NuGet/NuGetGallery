@@ -83,7 +83,9 @@
     <Compile Include="Dnx\DnxCatalogCollectorTests.cs" />
     <Compile Include="Dnx\DnxMakerTests.cs" />
     <Compile Include="Extensions\DateTimeExtensionsTests.cs" />
+    <Compile Include="Extensions\DbDataReaderExtensionsTests.cs" />
     <Compile Include="Helpers\AsyncExtensionsTests.cs" />
+    <Compile Include="Helpers\CatalogWriterHelperTests.cs" />
     <Compile Include="Helpers\RegistrationPackageDeprecationAlternatePackage.cs" />
     <Compile Include="Helpers\RegistrationPackageDeprecationDetails.cs" />
     <Compile Include="Helpers\CatalogIndependentPage.cs" />

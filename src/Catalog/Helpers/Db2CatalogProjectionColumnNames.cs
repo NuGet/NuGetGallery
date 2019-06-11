@@ -17,5 +17,9 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
         public const string Published = "Published";
         public const string LicenseNames = "LicenseNames";
         public const string LicenseReportUrl = "LicenseReportUrl";
+        public const string AlternatePackageId = "AlternatePackageId";
+        public const string AlternatePackageVersion = "AlternatePackageVersion";
+        public const string DeprecationStatus = "DeprecationStatus";
+        public const string DeprecationMessage = "DeprecationMessage";
     }
 }

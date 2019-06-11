@@ -193,7 +193,7 @@ namespace NuGet.Services.V3PerPackage
                     logger,
                     storage: null);
 
-                await FeedHelpers.DownloadMetadata2CatalogAsync(
+                await CatalogWriterHelper.WritePackageDetailsToCatalogAsync(
                     packageCatalogItemCreator,
                     packages,
                     storage,

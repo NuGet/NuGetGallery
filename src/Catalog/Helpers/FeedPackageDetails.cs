@@ -15,6 +15,9 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
         public string PackageVersion { get; }
         public string LicenseNames { get; }
         public string LicenseReportUrl { get; }
+        public PackageDeprecationItem DeprecationInfo { get; }
+
+        public bool HasDeprecationInfo => DeprecationInfo != null;
 
         public FeedPackageDetails(
             Uri contentUri,
@@ -31,7 +34,8 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
                 packageId,
                 packageVersion,
                 licenseNames: null,
-                licenseReportUrl: null)
+                licenseReportUrl: null,
+                deprecationInfo: null)
         {
         }
 
@@ -43,7 +47,8 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
             string packageId,
             string packageVersion,
             string licenseNames,
-            string licenseReportUrl)
+            string licenseReportUrl,
+            PackageDeprecationItem deprecationInfo)
         {
             ContentUri = contentUri;
             CreatedDate = createdDate;
@@ -53,6 +58,7 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
             PackageVersion = packageVersion;
             LicenseNames = licenseNames;
             LicenseReportUrl = licenseReportUrl;
+            DeprecationInfo = deprecationInfo;
         }
     }
 }

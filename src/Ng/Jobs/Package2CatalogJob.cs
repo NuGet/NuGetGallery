@@ -101,7 +101,7 @@ namespace Ng.Jobs
                     Logger,
                     storage: null);
 
-                await FeedHelpers.DownloadMetadata2CatalogAsync(
+                await CatalogWriterHelper.WritePackageDetailsToCatalogAsync(
                     packageCatalogItemCreator,
                     packages,
                     _storage,

@@ -1,10 +1,10 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using NuGet.Services.Entities;
-
 using GalleryPackageDependency = NuGet.Services.Entities.PackageDependency;
 
 namespace NuGet.Indexing
@@ -35,7 +35,7 @@ namespace NuGet.Indexing
             obj.Add("IsLatest", package.IsLatest);
             obj.Add("IsLatestStable", package.IsLatestStable);
             obj.Add("Listed", package.Listed);
-            
+
             obj.Add("Created", package.Created);
             obj.Add("Published", package.Published);
             obj.Add("LastUpdated", package.LastUpdated);
@@ -118,7 +118,7 @@ namespace NuGet.Indexing
             package.PackageRegistration = FromJson_PackageRegistration((JObject)obj["PackageRegistration"]);
             package.Version = obj["Version"].ToString();
             package.NormalizedVersion = obj["NormalizedVersion"].ToString();
-            
+
             package.Title = obj["Title"].ToString();
             package.Description = obj["Description"].ToString();
             package.Summary = obj["Summary"].ToString();
@@ -129,7 +129,7 @@ namespace NuGet.Indexing
             package.ReleaseNotes = obj["ReleaseNotes"].ToString();
             package.ProjectUrl = obj["ProjectUrl"].ToString();
             package.IconUrl = obj["IconUrl"].ToString();
-            
+
             package.IsLatest = obj["IsLatest"].ToObject<bool>();
             package.IsLatestStable = obj["IsLatestStable"].ToObject<bool>();
             package.Listed = obj["Listed"].ToObject<bool>();
@@ -139,7 +139,7 @@ namespace NuGet.Indexing
             package.LastUpdated = obj["LastUpdated"].ToObject<DateTime>();
 
             JToken lastEdited = obj["LastEdited"];
-            package.LastEdited = ( lastEdited.Type == JTokenType.Null) ? (DateTime?)null : lastEdited.ToObject<DateTime>();
+            package.LastEdited = (lastEdited.Type == JTokenType.Null) ? (DateTime?)null : lastEdited.ToObject<DateTime>();
 
             package.DownloadCount = obj["DownloadCount"].ToObject<int>();
 

@@ -1174,7 +1174,8 @@ namespace NgTests
                 packageId: package.Id,
                 packageVersion: normalizedVersion,
                 licenseNames: null,
-                licenseReportUrl: null);
+                licenseReportUrl: null,
+                deprecationInfo: null);
 
             return new PackageCreationOrEdit(package, feedPackageDetails);
         }
@@ -1207,7 +1208,8 @@ namespace NgTests
                 packageId: entry.FeedPackageDetails.PackageId,
                 packageVersion: entry.FeedPackageDetails.PackageVersion,
                 licenseNames: entry.FeedPackageDetails.LicenseNames,
-                licenseReportUrl: entry.FeedPackageDetails.LicenseReportUrl);
+                licenseReportUrl: entry.FeedPackageDetails.LicenseReportUrl,
+                deprecationInfo: entry.FeedPackageDetails.DeprecationInfo);
 
             var operation = new PackageCreationOrEdit(editedPackage, feedPackageDetails);
 

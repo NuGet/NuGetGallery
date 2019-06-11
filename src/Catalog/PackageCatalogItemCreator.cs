@@ -70,8 +70,8 @@ namespace NuGet.Services.Metadata.Catalog
             PackageCatalogItem item = null;
 
             _logger.LogInformation(
-                "Creating package catalog item for {Id} {Version}", 
-                packageItem.PackageId, 
+                "Creating package catalog item for {Id} {Version}",
+                packageItem.PackageId,
                 packageItem.PackageVersion);
 
             if (_storage != null)
@@ -136,7 +136,8 @@ namespace NuGet.Services.Metadata.Catalog
                             packageItem.PublishedDate,
                             licenseNames: null,
                             licenseReportUrl: null,
-                            packageHash: packageHash);
+                            packageHash: packageHash,
+                            deprecationItem: packageItem.DeprecationInfo);
 
                         if (item == null)
                         {
@@ -198,7 +199,7 @@ namespace NuGet.Services.Metadata.Catalog
             catch (TaskCanceledException tce)
             {
                 // If the HTTP request timed out, a TaskCanceledException will be thrown.
-                throw new HttpClientTimeoutException($"HttpClient request timed out in {nameof(FeedHelpers.DownloadMetadata2CatalogAsync)}.", tce);
+                throw new HttpClientTimeoutException($"HttpClient request timed out in {nameof(PackageCatalogItemCreator.GetPackageViaHttpAsync)}.", tce);
             }
 
             if (response.IsSuccessStatusCode)
@@ -210,7 +211,8 @@ namespace NuGet.Services.Metadata.Catalog
                         stream,
                         packageItem.CreatedDate,
                         packageItem.LastEditedDate,
-                        packageItem.PublishedDate);
+                        packageItem.PublishedDate,
+                        deprecationItem: packageItem.DeprecationInfo);
 
                     if (item == null)
                     {

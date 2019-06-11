@@ -96,12 +96,14 @@
     <Compile Include="Constants.cs" />
     <Compile Include="CreateCommitItemBatchesAsync.cs" />
     <Compile Include="Extensions\DateTimeExtensions.cs" />
+    <Compile Include="Extensions\DbDataReaderExtensions.cs" />
     <Compile Include="FetchCatalogCommitsAsync.cs" />
     <Compile Include="FixPackageHashHandler.cs" />
     <Compile Include="Dnx\DnxConstants.cs" />
     <Compile Include="Dnx\DnxEntry.cs" />
     <Compile Include="GetCatalogCommitItemKey.cs" />
     <Compile Include="Helpers\AsyncExtensions.cs" />
+    <Compile Include="Helpers\CatalogWriterHelper.cs" />
     <Compile Include="Helpers\Db2CatalogCursor.cs" />
     <Compile Include="Helpers\Db2CatalogProjection.cs" />
     <Compile Include="Extensions\IDataRecordExtensions.cs" />

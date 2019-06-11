@@ -20,7 +20,7 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
         private const string PackageIdParameterName = "PackageId";
         private const string PackageVersionParameterName = "PackageVersion";
 
-        private static readonly string Db2CatalogSqlSubQuery = $@"PR.[Id],	
+        private static readonly string Db2CatalogSqlSubQuery = $@" PR.[Id],	
                         P.[NormalizedVersion],	
                         P.[Created],	
                         P.[LastEdited],
@@ -28,10 +28,17 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
                         P.[Listed],
                         P.[HideLicenseReport],
                         P.[LicenseNames],
-                        P.[LicenseReportUrl]
+                        P.[LicenseReportUrl],
+                        PD.[Status] AS '{Db2CatalogProjectionColumnNames.DeprecationStatus}',
+                        APR.[Id] AS '{Db2CatalogProjectionColumnNames.AlternatePackageId}',
+                        AP.[NormalizedVersion] AS '{Db2CatalogProjectionColumnNames.AlternatePackageVersion}',
+                        PD.[CustomMessage] AS '{Db2CatalogProjectionColumnNames.DeprecationMessage}'
                     FROM [dbo].[Packages] AS P
                     INNER JOIN [dbo].[PackageRegistrations] AS PR ON P.[PackageRegistrationKey] = PR.[Key]
-                    WHERE P.[PackageStatusKey] = {(int)PackageStatus.Available}";
+                    LEFT JOIN [dbo].[PackageDeprecations] AS PD ON PD.[PackageKey] = P.[Key]
+                    LEFT JOIN [dbo].[Packages] AS AP ON AP.[Key] = PD.[AlternatePackageKey]
+                    LEFT JOIN [dbo].[PackageRegistrations] AS APR ON APR.[Key] = ISNULL(AP.[PackageRegistrationKey], PD.[AlternatePackageRegistrationKey])
+                    WHERE P.[PackageStatusKey] = {(int)PackageStatus.Available} ";
 
         private readonly ISqlConnectionFactory _connectionFactory;
         private readonly Db2CatalogProjection _db2catalogProjection;
@@ -95,7 +102,7 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
                         {
                             while (await packagesReader.ReadAsync())
                             {
-                                packages.Add(_db2catalogProjection.FromDataRecord(packagesReader));
+                                packages.Add(_db2catalogProjection.ReadFeedPackageDetailsFromDataReader(packagesReader));
                             }
                         }
                     }
@@ -218,7 +225,7 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
                     {
                         while (await packagesReader.ReadAsync())
                         {
-                            packages.Add(_db2catalogProjection.FromDataRecord(packagesReader));
+                            packages.Add(_db2catalogProjection.ReadFeedPackageDetailsFromDataReader(packagesReader));
                         }
                     }
                 }
