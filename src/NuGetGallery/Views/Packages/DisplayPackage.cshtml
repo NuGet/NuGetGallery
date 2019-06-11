@@ -539,15 +539,14 @@
                         {
                             <div class="row top-buffer">
                                 <div class="col-xs-12">
-                                    <button class="btn btn-gh-repo text-left btn-block"
-                                            onclick="window.open('@dep.Url');">
+                                    <a class="btn btn-gh-repo text-left" href="@dep.Url" target="_blank">
                                         <span class="pull-left">
-                                            <a>@(dep.Id)</a>
+                                            @(dep.Id)
                                         </span>
                                         <span class="badge pull-right badge-gh-repo">
                                             @(dep.Stars.ToKiloFormat()) <i class="ms-Icon ms-Icon--FavoriteStarFill star-gh-repo" aria-hidden="true"></i>
                                         </span>
-                                    </button>
+                                    </a>
                                 </div>
                             </div>
 
@@ -556,7 +555,9 @@
                 }
                 else
                 {
-                    @:This package is not used by any popular GitHub repository.
+                    <p class="github-usage panel-collapse collapse" aria-expanded="true" id="github-usage">
+                        This package is not used by any popular GitHub repository.
+                    </p>
                 }
             }
 

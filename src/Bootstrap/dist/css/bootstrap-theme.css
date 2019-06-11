@@ -951,6 +951,8 @@ img.reserved-indicator-icon {
   display: inline-block;
 }
 .page-package-details .btn-gh-repo {
+  display: inline-block;
+  width: 100%;
   background-color: white;
 }
 .page-package-details .btn-gh-repo:hover {
