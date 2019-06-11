@@ -158,6 +158,9 @@ namespace NuGetGallery
                 contentObjectService
                     .Setup(x => x.SymbolsConfiguration.IsSymbolsUploadEnabledForUser(It.IsAny<User>()))
                     .Returns(false);
+                contentObjectService
+                    .SetupGet(c => c.GitHubUsageConfiguration)
+                    .Returns(new GitHubUsageConfiguration(Array.Empty<RepositoryInformation>()));
             }
 
             if (symbolPackageUploadService == null)
@@ -504,17 +507,12 @@ namespace NuGetGallery
                 var deprecationService = new Mock<IPackageDeprecationService>();
                 var httpContext = new Mock<HttpContextBase>();
                 var httpCachePolicy = new Mock<HttpCachePolicyBase>();
-                var contentObjectService = new Mock<IContentObjectService>();
-                contentObjectService
-                    .SetupGet(c => c.GitHubUsageConfiguration)
-                    .Returns(new GitHub.GitHubUsageConfiguration(Array.Empty<GitHub.RepositoryInformation>().ToList()));
 
                 var controller = CreateController(
                     GetConfigurationService(),
                     packageService: packageService,
                     httpContext: httpContext,
-                    deprecationService: deprecationService,
-                    contentObjectService: contentObjectService);
+                    deprecationService: deprecationService);
                 controller.SetCurrentUser(currentUser);
 
                 httpContext.Setup(c => c.Response.Cache).Returns(httpCachePolicy.Object);
@@ -637,18 +635,13 @@ namespace NuGetGallery
                 var indexingService = new Mock<IIndexingService>();
                 var httpContext = new Mock<HttpContextBase>();
                 var httpCachePolicy = new Mock<HttpCachePolicyBase>();
-                var contentObjectService = new Mock<IContentObjectService>();
-                contentObjectService
-                    .SetupGet(c => c.GitHubUsageConfiguration)
-                    .Returns(new GitHub.GitHubUsageConfiguration(Array.Empty<GitHub.RepositoryInformation>().ToList()));
 
                 var controller = CreateController(
                     GetConfigurationService(),
                     packageService: packageService,
                     indexingService: indexingService,
                     httpContext: httpContext,
-                    deprecationService: deprecationService,
-                    contentObjectService: contentObjectService);
+                    deprecationService: deprecationService);
                 controller.SetCurrentUser(currentUser);
                 httpContext.Setup(c => c.Response.Cache).Returns(httpCachePolicy.Object);
                 var title = "A test package!";
@@ -700,17 +693,12 @@ namespace NuGetGallery
                 var packageService = new Mock<IPackageService>();
                 var indexingService = new Mock<IIndexingService>();
                 var deprecationService = new Mock<IPackageDeprecationService>();
-                var contentObjectService = new Mock<IContentObjectService>();
-                contentObjectService
-                    .SetupGet(c => c.GitHubUsageConfiguration)
-                    .Returns(new GitHub.GitHubUsageConfiguration(Array.Empty<GitHub.RepositoryInformation>().ToList()));
 
                 var controller = CreateController(
                     GetConfigurationService(),
                     packageService: packageService, 
                     indexingService: indexingService, 
-                    deprecationService: deprecationService,
-                    contentObjectService: contentObjectService);
+                    deprecationService: deprecationService);
                 controller.SetCurrentUser(TestUtility.FakeUser);
 
                 var id = "Foo";
@@ -785,17 +773,12 @@ namespace NuGetGallery
                 var packageService = new Mock<IPackageService>();
                 var indexingService = new Mock<IIndexingService>();
                 var deprecationService = new Mock<IPackageDeprecationService>();
-                var contentObjectService = new Mock<IContentObjectService>();
-                contentObjectService
-                    .SetupGet(c => c.GitHubUsageConfiguration)
-                    .Returns(new GitHub.GitHubUsageConfiguration(Array.Empty<GitHub.RepositoryInformation>().ToList()));
 
                 var controller = CreateController(
                     GetConfigurationService(),
                     packageService: packageService, 
                     indexingService: indexingService, 
-                    deprecationService: deprecationService,
-                    contentObjectService: contentObjectService);
+                    deprecationService: deprecationService);
                 controller.SetCurrentUser(TestUtility.FakeUser);
 
                 var id = "Foo";
@@ -847,19 +830,13 @@ namespace NuGetGallery
                 var packageService = new Mock<IPackageService>();
                 var indexingService = new Mock<IIndexingService>();
                 var deprecationService = new Mock<IPackageDeprecationService>();
-                var contentObjectService = new Mock<IContentObjectService>();
-                contentObjectService
-                    .SetupGet(c => c.GitHubUsageConfiguration)
-                    .Returns(new GitHub.GitHubUsageConfiguration(Array.Empty<GitHub.RepositoryInformation>().ToList()));
 
                 var controller = CreateController(
                     GetConfigurationService(),
                     packageService: packageService,
                     indexingService: indexingService,
-                    deprecationService: deprecationService,
-                    contentObjectService: contentObjectService);
+                    deprecationService: deprecationService);
                 controller.SetCurrentUser(TestUtility.FakeUser);
-
 
                 var package = new Package()
                 {
@@ -959,18 +936,13 @@ namespace NuGetGallery
                 var indexingService = new Mock<IIndexingService>();
                 var deprecationService = new Mock<IPackageDeprecationService>();
                 var fileService = new Mock<IPackageFileService>();
-                var contentObjectService = new Mock<IContentObjectService>();
-                contentObjectService
-                    .SetupGet(c => c.GitHubUsageConfiguration)
-                    .Returns(new GitHub.GitHubUsageConfiguration(Array.Empty<GitHub.RepositoryInformation>().ToList()));
 
                 var controller = CreateController(
                     GetConfigurationService(),
                     packageService: packageService, 
                     indexingService: indexingService, 
                     packageFileService: fileService,
-                    deprecationService: deprecationService,
-                    contentObjectService: contentObjectService);
+                    deprecationService: deprecationService);
                 controller.SetCurrentUser(TestUtility.FakeUser);
 
                 var id = "Foo";
@@ -1023,10 +995,6 @@ namespace NuGetGallery
                 var indexingService = new Mock<IIndexingService>();
                 var fileService = new Mock<IPackageFileService>();
                 var validationService = new Mock<IValidationService>();
-                var contentObjectService = new Mock<IContentObjectService>();
-                contentObjectService
-                    .SetupGet(c => c.GitHubUsageConfiguration)
-                    .Returns(new GitHub.GitHubUsageConfiguration(Array.Empty<GitHub.RepositoryInformation>().ToList()));
 
                 var controller = CreateController(
                     GetConfigurationService(),
@@ -1034,8 +1002,7 @@ namespace NuGetGallery
                     indexingService: indexingService, 
                     packageFileService: fileService, 
                     validationService: validationService,
-                    deprecationService: deprecationService,
-                    contentObjectService: contentObjectService);
+                    deprecationService: deprecationService);
                 controller.SetCurrentUser(TestUtility.FakeUser);
 
                 var package = new Package()
@@ -1091,17 +1058,12 @@ namespace NuGetGallery
                 var featureFlagService = new Mock<IFeatureFlagService>();
                 var packageService = new Mock<IPackageService>();
                 var deprecationService = new Mock<IPackageDeprecationService>();
-                var contentObjectService = new Mock<IContentObjectService>();
-                contentObjectService
-                    .SetupGet(c => c.GitHubUsageConfiguration)
-                    .Returns(new GitHub.GitHubUsageConfiguration(Array.Empty<GitHub.RepositoryInformation>().ToList()));
 
                 var controller = CreateController(
                     GetConfigurationService(),
                     packageService: packageService,
                     featureFlagService: featureFlagService,
-                    deprecationService: deprecationService,
-                    contentObjectService: contentObjectService);
+                    deprecationService: deprecationService);
                 controller.SetCurrentUser(TestUtility.FakeUser);
 
                 var id = "Foo";
@@ -1152,17 +1114,12 @@ namespace NuGetGallery
                 var featureFlagService = new Mock<IFeatureFlagService>();
                 var packageService = new Mock<IPackageService>();
                 var deprecationService = new Mock<IPackageDeprecationService>();
-                var contentObjectService = new Mock<IContentObjectService>();
-                contentObjectService
-                    .SetupGet(c => c.GitHubUsageConfiguration)
-                    .Returns(new GitHub.GitHubUsageConfiguration(Array.Empty<GitHub.RepositoryInformation>().ToList()));
 
                 var controller = CreateController(
                     GetConfigurationService(),
                     packageService: packageService,
                     featureFlagService: featureFlagService,
-                    deprecationService: deprecationService,
-                    contentObjectService: contentObjectService);
+                    deprecationService: deprecationService);
 
                 var id = "Foo";
                 var package = new Package()
@@ -1212,17 +1169,12 @@ namespace NuGetGallery
                 var featureFlagService = new Mock<IFeatureFlagService>();
                 var packageService = new Mock<IPackageService>();
                 var deprecationService = new Mock<IPackageDeprecationService>();
-                var contentObjectService = new Mock<IContentObjectService>();
-                contentObjectService
-                    .SetupGet(c => c.GitHubUsageConfiguration)
-                    .Returns(new GitHub.GitHubUsageConfiguration(Array.Empty<GitHub.RepositoryInformation>().ToList()));
 
                 var controller = CreateController(
                     GetConfigurationService(),
                     packageService: packageService,
                     featureFlagService: featureFlagService,
-                    deprecationService: deprecationService,
-                    contentObjectService: contentObjectService);
+                    deprecationService: deprecationService);
                 controller.SetCurrentUser(TestUtility.FakeUser);
 
                 var id = "Foo";
@@ -1308,18 +1260,12 @@ namespace NuGetGallery
 
                 indexingService.Setup(i => i.GetLastWriteTime()).Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
 
-                var contentObjectService = new Mock<IContentObjectService>();
-                contentObjectService
-                    .SetupGet(c => c.GitHubUsageConfiguration)
-                    .Returns(new GitHub.GitHubUsageConfiguration(Array.Empty<GitHub.RepositoryInformation>().ToList()));
-
                 var controller = CreateController(
                     GetConfigurationService(),
                     packageService: packageService,
                     indexingService: indexingService,
                     licenseExpressionSplitter: splitterMock,
-                    deprecationService: deprecationService,
-                    contentObjectService: contentObjectService);
+                    deprecationService: deprecationService);
 
                 var result = await controller.DisplayPackage(id, version: null);
 

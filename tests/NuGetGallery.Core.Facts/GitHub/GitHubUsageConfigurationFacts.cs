@@ -74,7 +74,7 @@ namespace NuGetGallery
 
                 // Make sure they're alphabetically ordered since they have the same star count!
                 Assert.Equal(expectedRepo2, nupkgInformation.Repos.First());
-                Assert.Equal(expectedRepo1, nupkgInformation.Repos[1]);
+                Assert.Equal(expectedRepo1, nupkgInformation.Repos.ToList()[1]);
             }
 
             [Fact]
