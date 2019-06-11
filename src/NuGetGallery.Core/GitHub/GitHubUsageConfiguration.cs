@@ -9,9 +9,9 @@ namespace NuGetGallery
 {
     public class GitHubUsageConfiguration : IGitHubUsageConfiguration
     {
-        private readonly Dictionary<string, NuGetPackageGitHubInformation> _nuGetPackagesGitHubDependencies;
+        private readonly IReadOnlyDictionary<string, NuGetPackageGitHubInformation> _nuGetPackagesGitHubDependencies;
 
-        public GitHubUsageConfiguration(IReadOnlyList<RepositoryInformation> repositories)
+        public GitHubUsageConfiguration(IReadOnlyCollection<RepositoryInformation> repositories)
         {
             if (repositories == null)
             {
@@ -36,7 +36,7 @@ namespace NuGetGallery
             return NuGetPackageGitHubInformation.Empty;
         }
 
-        private static Dictionary<string, NuGetPackageGitHubInformation> GetNuGetPackagesDependents(IReadOnlyList<RepositoryInformation> repositories)
+        private static IReadOnlyDictionary<string, NuGetPackageGitHubInformation> GetNuGetPackagesDependents(IReadOnlyCollection<RepositoryInformation> repositories)
         {
             var dependentsPerPackage = new Dictionary<string, List<RepositoryInformation>>(StringComparer.InvariantCultureIgnoreCase);
             foreach (var repo in repositories)
