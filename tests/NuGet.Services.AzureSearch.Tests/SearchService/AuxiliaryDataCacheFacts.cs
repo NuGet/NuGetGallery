@@ -162,6 +162,7 @@ namespace NuGet.Services.AzureSearch.SearchService
         public abstract class BaseFacts
         {
             protected readonly Mock<IAuxiliaryFileClient> _client;
+            protected readonly Mock<IAzureSearchTelemetryService> _telemetryService;
             protected readonly RecordingLogger<AuxiliaryDataCache> _logger;
             protected readonly CancellationToken _token;
             protected readonly AuxiliaryFileResult<Downloads> _downloads;
@@ -171,6 +172,7 @@ namespace NuGet.Services.AzureSearch.SearchService
             public BaseFacts(ITestOutputHelper output)
             {
                 _client = new Mock<IAuxiliaryFileClient>();
+                _telemetryService = new Mock<IAzureSearchTelemetryService>();
                 _logger = output.GetLogger<AuxiliaryDataCache>();
 
                 _token = CancellationToken.None;
@@ -202,6 +204,7 @@ namespace NuGet.Services.AzureSearch.SearchService
 
                 _target = new AuxiliaryDataCache(
                     _client.Object,
+                    _telemetryService.Object,
                     _logger);
             }
         }

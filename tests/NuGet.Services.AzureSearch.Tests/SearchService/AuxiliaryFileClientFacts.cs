@@ -161,6 +161,7 @@ namespace NuGet.Services.AzureSearch.SearchService
             protected readonly Mock<ICloudBlobClient> _blobClient;
             protected readonly SearchServiceConfiguration _config;
             protected readonly Mock<IOptionsSnapshot<SearchServiceConfiguration>> _options;
+            protected readonly Mock<IAzureSearchTelemetryService> _telemetryService;
             protected readonly RecordingLogger<AuxiliaryFileClient> _logger;
             protected readonly Mock<ICloudBlobContainer> _container;
             protected readonly Mock<ISimpleCloudBlob> _blob;
@@ -172,6 +173,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                 _blobClient = new Mock<ICloudBlobClient>();
                 _config = new SearchServiceConfiguration();
                 _options = new Mock<IOptionsSnapshot<SearchServiceConfiguration>>();
+                _telemetryService = new Mock<IAzureSearchTelemetryService>();
                 _logger = output.GetLogger<AuxiliaryFileClient>();
                 _container = new Mock<ICloudBlobContainer>();
                 _blob = new Mock<ISimpleCloudBlob>();
@@ -200,6 +202,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                 _target = new AuxiliaryFileClient(
                     _blobClient.Object,
                     _options.Object,
+                    _telemetryService.Object,
                     _logger);
             }
         }

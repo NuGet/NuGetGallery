@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using Moq;
 using NuGet.Services.AzureSearch.Support;
 using Xunit;
 using Xunit.Abstractions;
@@ -122,11 +123,15 @@ namespace NuGet.Services.AzureSearch.Owners2AzureSearch
         {
             public Facts(ITestOutputHelper output)
             {
+                TelemetryService = new Mock<IAzureSearchTelemetryService>();
                 Logger = output.GetLogger<OwnerSetComparer>();
 
-                Target = new OwnerSetComparer(Logger);
+                Target = new OwnerSetComparer(
+                    TelemetryService.Object,
+                    Logger);
             }
 
+            public Mock<IAzureSearchTelemetryService> TelemetryService { get; }
             public RecordingLogger<OwnerSetComparer> Logger { get; }
             public OwnerSetComparer Target { get; }
 

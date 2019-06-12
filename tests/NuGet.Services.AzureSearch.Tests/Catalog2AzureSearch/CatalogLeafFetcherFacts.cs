@@ -608,6 +608,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
             protected readonly Mock<ICatalogClient> _catalogClient;
             protected readonly Mock<IOptionsSnapshot<Catalog2AzureSearchConfiguration>> _options;
             protected readonly Catalog2AzureSearchConfiguration _config;
+            protected readonly Mock<IAzureSearchTelemetryService> _telemetryService;
             protected readonly RecordingLogger<CatalogLeafFetcher> _logger;
             protected readonly List<IReadOnlyList<NuGetVersion>> _versions;
             protected readonly NuGetVersion[] _eachVersion;
@@ -622,6 +623,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                 {
                     MaxConcurrentBatches = 1,
                 };
+                _telemetryService = new Mock<IAzureSearchTelemetryService>();
                 _logger = output.GetLogger<CatalogLeafFetcher>();
 
                 _options.Setup(x => x.Value).Returns(() => _config);
@@ -663,6 +665,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                     _registrationClient.Object,
                     _catalogClient.Object,
                     _options.Object,
+                    _telemetryService.Object,
                     _logger);
             }
 

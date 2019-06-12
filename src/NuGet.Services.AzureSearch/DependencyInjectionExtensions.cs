@@ -70,6 +70,7 @@ namespace NuGet.Services.AzureSearch
                     c.ResolveKeyed<ISearchIndexClientWrapper>(hijackIndexKey),
                     c.Resolve<IVersionListDataClient>(),
                     c.Resolve<IOptionsSnapshot<AzureSearchJobConfiguration>>(),
+                    c.Resolve<IAzureSearchTelemetryService>(),
                     c.Resolve<ILogger<BatchPusher>>()));
 
             containerBuilder
@@ -78,7 +79,8 @@ namespace NuGet.Services.AzureSearch
                     c.Resolve<ISearchParametersBuilder>(),
                     c.ResolveKeyed<ISearchIndexClientWrapper>(searchIndexKey),
                     c.ResolveKeyed<ISearchIndexClientWrapper>(hijackIndexKey),
-                    c.Resolve<ISearchResponseBuilder>()));
+                    c.Resolve<ISearchResponseBuilder>(),
+                    c.Resolve<IAzureSearchTelemetryService>()));
 
             containerBuilder
                 .Register<ISearchStatusService>(c => new SearchStatusService(
@@ -86,6 +88,7 @@ namespace NuGet.Services.AzureSearch
                     c.ResolveKeyed<ISearchIndexClientWrapper>(hijackIndexKey),
                     c.Resolve<IAuxiliaryDataCache>(),
                     c.Resolve<IOptionsSnapshot<SearchServiceConfiguration>>(),
+                    c.Resolve<IAzureSearchTelemetryService>(),
                     c.Resolve<ILogger<SearchStatusService>>()));
         }
 
@@ -144,6 +147,7 @@ namespace NuGet.Services.AzureSearch
                 .Register<IOwnerDataClient>(c => new OwnerDataClient(
                     c.ResolveKeyed<ICloudBlobClient>(key),
                     c.Resolve<IOptionsSnapshot<AzureSearchJobConfiguration>>(),
+                    c.Resolve<IAzureSearchTelemetryService>(),
                     c.Resolve<ILogger<OwnerDataClient>>()));
 
             containerBuilder
@@ -177,6 +181,7 @@ namespace NuGet.Services.AzureSearch
                     c.Resolve<IOwnerIndexActionBuilder>(),
                     c.Resolve<Func<IBatchPusher>>(),
                     c.Resolve<IOptionsSnapshot<AzureSearchJobConfiguration>>(),
+                    c.Resolve<IAzureSearchTelemetryService>(),
                     c.Resolve<ILogger<Owners2AzureSearchCommand>>()));
         }
 
@@ -196,6 +201,7 @@ namespace NuGet.Services.AzureSearch
                 .Register<IAuxiliaryFileClient>(c => new AuxiliaryFileClient(
                     c.ResolveKeyed<ICloudBlobClient>(key),
                     c.Resolve<IOptionsSnapshot<SearchServiceConfiguration>>(),
+                    c.Resolve<IAzureSearchTelemetryService>(),
                     c.Resolve<ILogger<AuxiliaryFileClient>>()));
         }
 
@@ -230,8 +236,9 @@ namespace NuGet.Services.AzureSearch
 
             services.AddSingleton<IAuxiliaryDataCache, AuxiliaryDataCache>();
             services.AddScoped(p => p.GetRequiredService<IAuxiliaryDataCache>().Get());
-
             services.AddSingleton<IAuxiliaryFileReloader, AuxiliaryFileReloader>();
+
+            services.AddTransient<IAzureSearchTelemetryService, AzureSearchTelemetryService>();
             services.AddTransient<ICatalogIndexActionBuilder, CatalogIndexActionBuilder>();
             services.AddTransient<ICatalogLeafFetcher, CatalogLeafFetcher>();
             services.AddTransient<ICollector, AzureSearchCollector>();

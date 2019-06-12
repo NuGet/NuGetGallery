@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -18,6 +19,7 @@ namespace NuGet.Services.AzureSearch
 
         private readonly ISqlConnectionFactory<GalleryDbConfiguration> _connectionFactory;
         private readonly IEntitiesContextFactory _entitiesContextFactory;
+        private readonly IAzureSearchTelemetryService _telemetryService;
         private readonly ILogger<DatabaseOwnerFetcher> _logger;
 
         private const string Sql = @"
@@ -32,15 +34,18 @@ INNER JOIN Users u (NOLOCK) ON pro.UserKey = u.[Key]
         public DatabaseOwnerFetcher(
             ISqlConnectionFactory<GalleryDbConfiguration> connectionFactory,
             IEntitiesContextFactory entitiesContextFactory,
+            IAzureSearchTelemetryService telemetryService,
             ILogger<DatabaseOwnerFetcher> logger)
         {
             _connectionFactory = connectionFactory ?? throw new ArgumentNullException(nameof(connectionFactory));
             _entitiesContextFactory = entitiesContextFactory ?? throw new ArgumentNullException(nameof(entitiesContextFactory));
+            _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _logger = logger;
         }
 
         public async Task<string[]> GetOwnersOrEmptyAsync(string id)
         {
+            var stopwatch = Stopwatch.StartNew();
             using (var entitiesContext = await _entitiesContextFactory.CreateAsync(readOnly: true))
             {
                 _logger.LogInformation("Fetching owners for package registration with ID {PackageId}.", id);
@@ -66,6 +71,9 @@ INNER JOIN Users u (NOLOCK) ON pro.UserKey = u.[Key]
                 var sortedOwners = owners
                     .OrderBy(o => o, StringComparer.OrdinalIgnoreCase)
                     .ToArray();
+
+                stopwatch.Stop();
+                _telemetryService.TrackGetOwnersForPackageId(sortedOwners.Length, stopwatch.Elapsed);
                 _logger.LogInformation("The package registration with ID {PackageId} has {Count} owners.", id, sortedOwners.Length);
                 return sortedOwners;
             }
@@ -73,6 +81,7 @@ INNER JOIN Users u (NOLOCK) ON pro.UserKey = u.[Key]
 
         public async Task<SortedDictionary<string, SortedSet<string>>> GetPackageIdToOwnersAsync()
         {
+            var stopwatch = Stopwatch.StartNew();
             using (var connection = await _connectionFactory.OpenAsync())
             using (var command = connection.CreateCommand())
             {
@@ -89,7 +98,11 @@ INNER JOIN Users u (NOLOCK) ON pro.UserKey = u.[Key]
                         builder.Add(id, username);
                     }
 
-                    return builder.GetResult();
+                    var output = builder.GetResult();
+                    stopwatch.Stop();
+                    _telemetryService.TrackReadLatestOwnersFromDatabase(output.Count, stopwatch.Elapsed);
+
+                    return output;
                 }
             }
         }

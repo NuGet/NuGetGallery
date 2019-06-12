@@ -240,6 +240,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
             protected readonly Mock<IBatchPusher> _batchPusher;
             protected readonly Mock<IOptionsSnapshot<Catalog2AzureSearchConfiguration>> _options;
             protected readonly Catalog2AzureSearchConfiguration _config;
+            protected readonly Mock<IAzureSearchTelemetryService> _telemetryService;
             protected readonly RecordingLogger<AzureSearchCollectorLogic> _logger;
             protected readonly AzureSearchCollectorLogic _target;
 
@@ -250,6 +251,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                 _batchPusher = new Mock<IBatchPusher>();
                 _options = new Mock<IOptionsSnapshot<Catalog2AzureSearchConfiguration>>();
                 _config = new Catalog2AzureSearchConfiguration();
+                _telemetryService = new Mock<IAzureSearchTelemetryService>();
                 _logger = output.GetLogger<AzureSearchCollectorLogic>();
 
                 _options.Setup(x => x.Value).Returns(() => _config);
@@ -260,6 +262,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                     _catalogIndexActionBuilder.Object,
                     () => _batchPusher.Object,
                     _options.Object,
+                    _telemetryService.Object,
                     _logger);
             }
         }

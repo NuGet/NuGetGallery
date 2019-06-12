@@ -49,6 +49,7 @@
     <Compile Include="Analysis\PackageIdCustomTokenizer.cs" />
     <Compile Include="AzureSearchScoringConfiguration.cs" />
     <Compile Include="DatabaseOwnerFetcher.cs" />
+    <Compile Include="IAzureSearchTelemetryService.cs" />
     <Compile Include="IDatabaseOwnerFetcher.cs" />
     <Compile Include="Owners2AzureSearch\IOwnerIndexActionBuilder.cs" />
     <Compile Include="Owners2AzureSearch\IOwnerSetComparer.cs" />
@@ -162,6 +163,7 @@
     <Compile Include="SearchService\SearchStatusOptions.cs" />
     <Compile Include="SearchService\SearchStatusService.cs" />
     <Compile Include="SearchService\SearchTextBuilder.cs" />
+    <Compile Include="AzureSearchTelemetryService.cs" />
     <Compile Include="VersionList\Guard.cs" />
     <Compile Include="VersionList\HijackIndexChange.cs" />
     <Compile Include="VersionList\HijackIndexChangeType.cs" />

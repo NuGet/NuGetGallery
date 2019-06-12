@@ -23,6 +23,7 @@ namespace NuGet.Services.AzureSearch
         private readonly ISearchIndexClientWrapper _hijackIndexClient;
         private readonly IVersionListDataClient _versionListDataClient;
         private readonly IOptionsSnapshot<AzureSearchJobConfiguration> _options;
+        private readonly IAzureSearchTelemetryService _telemetryService;
         private readonly ILogger<BatchPusher> _logger;
         internal readonly Dictionary<string, int> _idReferenceCount;
         internal readonly Queue<IdAndValue<IndexAction<KeyedDocument>>> _searchActions;
@@ -34,12 +35,14 @@ namespace NuGet.Services.AzureSearch
             ISearchIndexClientWrapper hijackIndexClient,
             IVersionListDataClient versionListDataClient,
             IOptionsSnapshot<AzureSearchJobConfiguration> options,
+            IAzureSearchTelemetryService telemetryService,
             ILogger<BatchPusher> logger)
         {
             _searchIndexClient = searchIndexClient ?? throw new ArgumentNullException(nameof(searchIndexClient));
             _hijackIndexClient = hijackIndexClient ?? throw new ArgumentNullException(nameof(hijackIndexClient));
             _versionListDataClient = versionListDataClient ?? throw new ArgumentNullException(nameof(versionListDataClient));
             _options = options ?? throw new ArgumentNullException(nameof(options));
+            _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _idReferenceCount = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 
@@ -142,29 +145,27 @@ namespace NuGet.Services.AzureSearch
                         workerCount,
                         versionListIdSample);
 
-                    var stopwatch = Stopwatch.StartNew();
                     var work = new ConcurrentBag<IdAndValue<ResultAndAccessCondition<VersionListData>>>(allFinished);
-                    var tasks = Enumerable
-                        .Range(0, workerCount)
-                        .Select(async x =>
-                        {
-                            await Task.Yield();
-                            while (work.TryTake(out var finished))
+                    using (_telemetryService.TrackVersionListsUpdated(allFinished.Count, workerCount))
+                    {
+                        var tasks = Enumerable
+                            .Range(0, workerCount)
+                            .Select(async x =>
                             {
-                                await _versionListDataClient.ReplaceAsync(
-                                    finished.Id,
-                                    finished.Value.Result,
-                                    finished.Value.AccessCondition);
-                            }
-                        })
-                        .ToList();
-                    await Task.WhenAll(tasks);
-                    stopwatch.Stop();
+                                await Task.Yield();
+                                while (work.TryTake(out var finished))
+                                {
+                                    await _versionListDataClient.ReplaceAsync(
+                                        finished.Id,
+                                        finished.Value.Result,
+                                        finished.Value.AccessCondition);
+                                }
+                            })
+                            .ToList();
+                        await Task.WhenAll(tasks);
 
-                    _logger.LogInformation(
-                        "Done updating {VersionListCount} version lists (took {Duration}).",
-                        allFinished.Count,
-                        stopwatch.Elapsed);
+                        _logger.LogInformation("Done updating {VersionListCount} version lists.", allFinished.Count);
+                    }
                 }
             }
 
@@ -203,13 +204,20 @@ namespace NuGet.Services.AzureSearch
 
             IList<IndexingResult> indexingResults = null;
             Exception innerException = null;
+            var stopwatch = Stopwatch.StartNew();
             try
             {
                 var batchResults = await indexClient.Documents.IndexAsync(new IndexBatch<KeyedDocument>(batch));
                 indexingResults = batchResults.Results;
+
+                stopwatch.Stop();
+                _telemetryService.TrackIndexPushSuccess(indexClient.IndexName, batch.Count, stopwatch.Elapsed);
             }
             catch (IndexBatchException ex)
             {
+                stopwatch.Stop();
+                _telemetryService.TrackIndexPushFailure(indexClient.IndexName, batch.Count, stopwatch.Elapsed);
+
                 _logger.LogError(
                     0,
                     ex,
@@ -218,12 +226,10 @@ namespace NuGet.Services.AzureSearch
                 indexingResults = ex.IndexingResults;
                 innerException = ex;
             }
-            catch (CloudException ex) when (ex.Response.StatusCode == HttpStatusCode.RequestEntityTooLarge)
+            catch (CloudException ex) when (ex.Response.StatusCode == HttpStatusCode.RequestEntityTooLarge && batch.Count > 1)
             {
-                if (batch.Count == 1)
-                {
-                    throw;
-                }
+                stopwatch.Stop();
+                _telemetryService.TrackIndexPushSplit(indexClient.IndexName, batch.Count);
 
                 var halfCount = batch.Count / 2;
                 var halfA = batch.Take(halfCount).ToList();

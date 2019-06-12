@@ -19,6 +19,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
         private readonly ICatalogIndexActionBuilder _indexActionBuilder;
         private readonly Func<IBatchPusher> _batchPusherFactory;
         private readonly IOptionsSnapshot<Catalog2AzureSearchConfiguration> _options;
+        private readonly IAzureSearchTelemetryService _telemetryService;
         private readonly ILogger<AzureSearchCollectorLogic> _logger;
 
         public AzureSearchCollectorLogic(
@@ -26,12 +27,14 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
             ICatalogIndexActionBuilder indexActionBuilder,
             Func<IBatchPusher> batchPusherFactory,
             IOptionsSnapshot<Catalog2AzureSearchConfiguration> options,
+            IAzureSearchTelemetryService telemetryService,
             ILogger<AzureSearchCollectorLogic> logger)
         {
             _catalogClient = catalogClient ?? throw new ArgumentNullException(nameof(catalogClient));
             _indexActionBuilder = indexActionBuilder ?? throw new ArgumentNullException(nameof(indexActionBuilder));
             _batchPusherFactory = batchPusherFactory ?? throw new ArgumentNullException(nameof(batchPusherFactory));
             _options = options ?? throw new ArgumentNullException(nameof(options));
+            _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -58,38 +61,44 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
         public async Task OnProcessBatchAsync(
             IEnumerable<CatalogCommitItem> items)
         {
-            // In parallel, generate all index actions required to handle this batch.
-            var allIndexActions = await ProcessWorkAsync(items);
+            var itemList = items.ToList();
 
-            // In sequence, push batches of index actions to Azure Search. We do this because the maximum set of catalog
-            // items that can be processed here is a single catalog page, which has around 550 items. The maximum batch
-            // size for pushing to Azure Search is 1000 documents so there is no benefit to parallelizing this part.
-            // Azure Search indexing on their side is more efficient with fewer, larger batches.
-            var batchPusher = _batchPusherFactory();
-            foreach (var indexAction in allIndexActions)
-            {
-                batchPusher.EnqueueIndexActions(indexAction.Id, indexAction.Value);
-            }
-            await batchPusher.FinishAsync();
-        }
-
-        private async Task<ConcurrentBag<IdAndValue<IndexActions>>> ProcessWorkAsync(
-            IEnumerable<CatalogCommitItem> items)
-        {
             // Ignore all but the latest catalog commit items per package identity.
             var latestItems = items
                 .GroupBy(x => x.PackageIdentity)
                 .Select(GetLatest)
                 .ToList();
 
-            // Fetch the full catalog leaf for each item that is the package details type.
-            var allEntryToLeaf = await GetEntryToLeafAsync(latestItems);
-
             // Group the catalog commit items by package ID.
             var workEnumerable = latestItems
                 .GroupBy(x => x.PackageIdentity.Id, StringComparer.OrdinalIgnoreCase)
                 .Select(x => new Work(x.Key, x.ToList()));
             var allWork = new ConcurrentBag<Work>(workEnumerable);
+
+            using (_telemetryService.TrackCatalog2AzureSearchProcessBatch(itemList.Count, latestItems.Count, allWork.Count))
+            {
+                // In parallel, generate all index actions required to handle this batch.
+                var allIndexActions = await ProcessWorkAsync(latestItems, allWork);
+
+                // In sequence, push batches of index actions to Azure Search. We do this because the maximum set of catalog
+                // items that can be processed here is a single catalog page, which has around 550 items. The maximum batch
+                // size for pushing to Azure Search is 1000 documents so there is no benefit to parallelizing this part.
+                // Azure Search indexing on their side is more efficient with fewer, larger batches.
+                var batchPusher = _batchPusherFactory();
+                foreach (var indexAction in allIndexActions)
+                {
+                    batchPusher.EnqueueIndexActions(indexAction.Id, indexAction.Value);
+                }
+                await batchPusher.FinishAsync();
+            }
+        }
+
+        private async Task<ConcurrentBag<IdAndValue<IndexActions>>> ProcessWorkAsync(
+            IReadOnlyList<CatalogCommitItem> latestItems,
+            ConcurrentBag<Work> allWork)
+        {
+            // Fetch the full catalog leaf for each item that is the package details type.
+            var allEntryToLeaf = await GetEntryToLeafAsync(latestItems);
 
             // Process the package ID groups in parallel, collecting all index actions for later.
             var output = new ConcurrentBag<IdAndValue<IndexActions>>();

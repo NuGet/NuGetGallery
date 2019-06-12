@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Threading.Tasks;
@@ -20,16 +21,19 @@ namespace NuGet.Services.AzureSearch
 
         private readonly ICloudBlobClient _cloudBlobClient;
         private readonly IOptionsSnapshot<AzureSearchJobConfiguration> _options;
+        private readonly IAzureSearchTelemetryService _telemetryService;
         private readonly ILogger<OwnerDataClient> _logger;
         private readonly Lazy<ICloudBlobContainer> _lazyContainer;
 
         public OwnerDataClient(
             ICloudBlobClient cloudBlobClient,
             IOptionsSnapshot<AzureSearchJobConfiguration> options,
+            IAzureSearchTelemetryService telemetryService,
             ILogger<OwnerDataClient> logger)
         {
             _cloudBlobClient = cloudBlobClient ?? throw new ArgumentNullException(nameof(cloudBlobClient));
             _options = options ?? throw new ArgumentNullException(nameof(cloudBlobClient));
+            _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
             _lazyContainer = new Lazy<ICloudBlobContainer>(
@@ -40,6 +44,7 @@ namespace NuGet.Services.AzureSearch
 
         public async Task<ResultAndAccessCondition<SortedDictionary<string, SortedSet<string>>>> ReadLatestIndexedAsync()
         {
+            var stopwatch = Stopwatch.StartNew();
             var blobName = GetLatestIndexedBlobName();
             var blobReference = Container.GetBlobReference(blobName);
 
@@ -61,9 +66,14 @@ namespace NuGet.Services.AzureSearch
                 _logger.LogInformation("The blob {BlobName} does not exist.", blobName);
             }
 
-            return new ResultAndAccessCondition<SortedDictionary<string, SortedSet<string>>>(
+            var output = new ResultAndAccessCondition<SortedDictionary<string, SortedSet<string>>>(
                 builder.GetResult(),
                 accessCondition);
+
+            stopwatch.Stop();
+            _telemetryService.TrackReadLatestIndexedOwners(output.Result.Count, stopwatch.Elapsed);
+
+            return output;
         }
 
         public async Task UploadChangeHistoryAsync(IReadOnlyList<string> packageIds)
@@ -73,18 +83,21 @@ namespace NuGet.Services.AzureSearch
                 throw new ArgumentException("The list of package IDs must have at least one element.", nameof(packageIds));
             }
 
-            var timestamp = DateTimeOffset.UtcNow.ToString("yyyy-MM-dd-HH-mm-ss-FFFFFFF");
-            var blobName = $"{_options.Value.NormalizeStoragePath()}owners/changes/{timestamp}.json";
-            _logger.LogInformation("Uploading owner changes to {BlobName}.", blobName);
-
-            var blobReference = Container.GetBlobReference(blobName);
-
-            using (var stream = await blobReference.OpenWriteAsync(AccessCondition.GenerateIfNotExistsCondition()))
-            using (var streamWriter = new StreamWriter(stream))
-            using (var jsonTextWriter = new JsonTextWriter(streamWriter))
+            using (_telemetryService.TrackUploadOwnerChangeHistory(packageIds.Count))
             {
-                blobReference.Properties.ContentType = "application/json";
-                Serializer.Serialize(jsonTextWriter, packageIds);
+                var timestamp = DateTimeOffset.UtcNow.ToString("yyyy-MM-dd-HH-mm-ss-FFFFFFF");
+                var blobName = $"{_options.Value.NormalizeStoragePath()}owners/changes/{timestamp}.json";
+                _logger.LogInformation("Uploading owner changes to {BlobName}.", blobName);
+
+                var blobReference = Container.GetBlobReference(blobName);
+
+                using (var stream = await blobReference.OpenWriteAsync(AccessCondition.GenerateIfNotExistsCondition()))
+                using (var streamWriter = new StreamWriter(stream))
+                using (var jsonTextWriter = new JsonTextWriter(streamWriter))
+                {
+                    blobReference.Properties.ContentType = "application/json";
+                    Serializer.Serialize(jsonTextWriter, packageIds);
+                }
             }
         }
 
@@ -92,23 +105,26 @@ namespace NuGet.Services.AzureSearch
             SortedDictionary<string, SortedSet<string>> newData,
             IAccessCondition accessCondition)
         {
-            var blobName = GetLatestIndexedBlobName();
-            _logger.LogInformation("Replacing the latest indexed owners from {BlobName}.", blobName);
-
-            var mappedAccessCondition = new AccessCondition
+            using (_telemetryService.TrackReplaceLatestIndexedOwners(newData.Count))
             {
-                IfNoneMatchETag = accessCondition.IfNoneMatchETag,
-                IfMatchETag = accessCondition.IfMatchETag,
-            };
+                var blobName = GetLatestIndexedBlobName();
+                _logger.LogInformation("Replacing the latest indexed owners from {BlobName}.", blobName);
 
-            var blobReference = Container.GetBlobReference(blobName);
+                var mappedAccessCondition = new AccessCondition
+                {
+                    IfNoneMatchETag = accessCondition.IfNoneMatchETag,
+                    IfMatchETag = accessCondition.IfMatchETag,
+                };
 
-            using (var stream = await blobReference.OpenWriteAsync(mappedAccessCondition))
-            using (var streamWriter = new StreamWriter(stream))
-            using (var jsonTextWriter = new JsonTextWriter(streamWriter))
-            {
-                blobReference.Properties.ContentType = "application/json";
-                Serializer.Serialize(jsonTextWriter, newData);
+                var blobReference = Container.GetBlobReference(blobName);
+
+                using (var stream = await blobReference.OpenWriteAsync(mappedAccessCondition))
+                using (var streamWriter = new StreamWriter(stream))
+                using (var jsonTextWriter = new JsonTextWriter(streamWriter))
+                {
+                    blobReference.Properties.ContentType = "application/json";
+                    Serializer.Serialize(jsonTextWriter, newData);
+                }
             }
         }
 

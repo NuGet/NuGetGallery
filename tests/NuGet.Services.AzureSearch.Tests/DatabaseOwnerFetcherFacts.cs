@@ -87,6 +87,7 @@ namespace NuGet.Services.AzureSearch
                 SqlConnectionFactory = new Mock<ISqlConnectionFactory<GalleryDbConfiguration>>();
                 EntitiesContextFactory = new Mock<IEntitiesContextFactory>();
                 EntitiesContext = new Mock<IEntitiesContext>();
+                TelemetryService = new Mock<IAzureSearchTelemetryService>();
                 Logger = output.GetLogger<DatabaseOwnerFetcher>();
 
                 PackageRegistrations = DbSetMockFactory.Create<PackageRegistration>();
@@ -101,12 +102,14 @@ namespace NuGet.Services.AzureSearch
                 Target = new DatabaseOwnerFetcher(
                     SqlConnectionFactory.Object,
                     EntitiesContextFactory.Object,
+                    TelemetryService.Object,
                     Logger);
             }
 
             public Mock<ISqlConnectionFactory<GalleryDbConfiguration>> SqlConnectionFactory { get; }
             public Mock<IEntitiesContextFactory> EntitiesContextFactory { get; }
             public Mock<IEntitiesContext> EntitiesContext { get; }
+            public Mock<IAzureSearchTelemetryService> TelemetryService { get; }
             public RecordingLogger<DatabaseOwnerFetcher> Logger { get; }
             public DbSet<PackageRegistration> PackageRegistrations { get; }
             public DatabaseOwnerFetcher Target { get; }

@@ -1,13 +1,10 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Azure.Search.Models;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using NuGet.Services.AzureSearch.Support;
@@ -175,6 +172,7 @@ namespace NuGet.Services.AzureSearch.Owners2AzureSearch
                 OwnerIndexActionBuilder = new Mock<IOwnerIndexActionBuilder>();
                 Pusher = new Mock<IBatchPusher>();
                 Options = new Mock<IOptionsSnapshot<AzureSearchJobConfiguration>>();
+                TelemetryService = new Mock<IAzureSearchTelemetryService>();
                 Logger = output.GetLogger<Owners2AzureSearchCommand>();
 
                 Configuration = new AzureSearchJobConfiguration
@@ -218,6 +216,7 @@ namespace NuGet.Services.AzureSearch.Owners2AzureSearch
                     OwnerIndexActionBuilder.Object,
                     () => Pusher.Object,
                     Options.Object,
+                    TelemetryService.Object,
                     Logger);
             }
 
@@ -227,6 +226,7 @@ namespace NuGet.Services.AzureSearch.Owners2AzureSearch
             public Mock<IOwnerIndexActionBuilder> OwnerIndexActionBuilder { get; }
             public Mock<IBatchPusher> Pusher { get; }
             public Mock<IOptionsSnapshot<AzureSearchJobConfiguration>> Options { get; }
+            public Mock<IAzureSearchTelemetryService> TelemetryService { get; }
             public RecordingLogger<Owners2AzureSearchCommand> Logger { get; }
             public AzureSearchJobConfiguration Configuration { get; }
             public SortedDictionary<string, SortedSet<string>> DatabaseResult { get; }

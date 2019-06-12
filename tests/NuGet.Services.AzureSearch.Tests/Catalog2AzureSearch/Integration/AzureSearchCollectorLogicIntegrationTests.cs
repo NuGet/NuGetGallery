@@ -16,6 +16,7 @@ using NuGet.Protocol.Registration;
 using NuGet.Services.AzureSearch.Support;
 using NuGet.Services.AzureSearch.Wrappers;
 using NuGet.Services.Entities;
+using NuGet.Services.Logging;
 using NuGet.Services.Metadata.Catalog;
 using NuGet.Versioning;
 using NuGetGallery;
@@ -28,6 +29,8 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
     {
         private Catalog2AzureSearchConfiguration _config;
         private Mock<IOptionsSnapshot<Catalog2AzureSearchConfiguration>> _options;
+        private Mock<ITelemetryClient> _telemetryClient;
+        private AzureSearchTelemetryService _telemetryService;
         private Mock<IEntitiesContextFactory> _entitiesContextFactory;
         private Mock<IEntitiesContext> _entitiesContext;
         private DatabaseOwnerFetcher _ownerFetcher;
@@ -61,6 +64,9 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
             _options = new Mock<IOptionsSnapshot<Catalog2AzureSearchConfiguration>>();
             _options.Setup(x => x.Value).Returns(() => _config);
 
+            _telemetryClient = new Mock<ITelemetryClient>();
+            _telemetryService = new AzureSearchTelemetryService(_telemetryClient.Object);
+
             // Mock the database that is used for fetching owner information. The product code only reads
             // from the database so it is less important to have a realistic, stateful implementation.
             _entitiesContextFactory = new Mock<IEntitiesContextFactory>();
@@ -70,6 +76,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
             _ownerFetcher = new DatabaseOwnerFetcher(
                 new Mock<ISqlConnectionFactory<GalleryDbConfiguration>>().Object,
                 _entitiesContextFactory.Object,
+                _telemetryService,
                 output.GetLogger<DatabaseOwnerFetcher>());
 
             _cloudBlobClient = new InMemoryCloudBlobClient();
@@ -83,6 +90,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
                 _registrationClient,
                 _catalogClient,
                 _options.Object,
+                _telemetryService,
                 output.GetLogger<CatalogLeafFetcher>());
             _search = new SearchDocumentBuilder(_options.Object);
             _hijack = new HijackDocumentBuilder();
@@ -109,8 +117,10 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
                     _hijackIndex.Object,
                     _versionListDataClient,
                     _options.Object,
+                    _telemetryService,
                     output.GetLogger<BatchPusher>()),
                 _options.Object,
+                _telemetryService,
                 output.GetLogger<AzureSearchCollectorLogic>());
         }
 

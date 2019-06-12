@@ -8,7 +8,6 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using Microsoft.WindowsAzure.Storage;
@@ -379,6 +378,7 @@ namespace NuGet.Services.AzureSearch.Owners2AzureSearch
                 CloudBlobContainer = new Mock<ICloudBlobContainer>();
                 CloudBlob = new Mock<ISimpleCloudBlob>();
                 Options = new Mock<IOptionsSnapshot<AzureSearchJobConfiguration>>();
+                TelemetryService = new Mock<IAzureSearchTelemetryService>();
                 Logger = output.GetLogger<OwnerDataClient>();
                 Config = new AzureSearchJobConfiguration
                 {
@@ -415,6 +415,7 @@ namespace NuGet.Services.AzureSearch.Owners2AzureSearch
                 Target = new OwnerDataClient(
                     CloudBlobClient.Object,
                     Options.Object,
+                    TelemetryService.Object,
                     Logger);
             }
 
@@ -422,6 +423,7 @@ namespace NuGet.Services.AzureSearch.Owners2AzureSearch
             public Mock<ICloudBlobContainer> CloudBlobContainer { get; }
             public Mock<ISimpleCloudBlob> CloudBlob { get; }
             public Mock<IOptionsSnapshot<AzureSearchJobConfiguration>> Options { get; }
+            public Mock<IAzureSearchTelemetryService> TelemetryService { get; }
             public RecordingLogger<OwnerDataClient> Logger { get; }
             public AzureSearchJobConfiguration Config { get; }
             public string ETag { get; }

@@ -516,6 +516,7 @@ namespace NuGet.Services.AzureSearch
             protected readonly Mock<IVersionListDataClient> _versionListDataClient;
             protected readonly AzureSearchJobConfiguration _config;
             protected readonly Mock<IOptionsSnapshot<AzureSearchJobConfiguration>> _options;
+            protected readonly Mock<IAzureSearchTelemetryService> _telemetryService;
             protected readonly IndexActions _indexActions;
             protected readonly BatchPusher _target;
 
@@ -542,6 +543,7 @@ namespace NuGet.Services.AzureSearch
                 _versionListDataClient = new Mock<IVersionListDataClient>();
                 _config = new AzureSearchJobConfiguration();
                 _options = new Mock<IOptionsSnapshot<AzureSearchJobConfiguration>>();
+                _telemetryService = new Mock<IAzureSearchTelemetryService>();
 
                 _searchIndexClientWrapper.Setup(x => x.IndexName).Returns("search");
                 _searchIndexClientWrapper.Setup(x => x.Documents).Returns(() => _searchDocumentsWrapper.Object);
@@ -600,6 +602,7 @@ namespace NuGet.Services.AzureSearch
                     _hijackIndexClientWrapper.Object,
                     _versionListDataClient.Object,
                     _options.Object,
+                    _telemetryService.Object,
                     _logger);
             }
         }

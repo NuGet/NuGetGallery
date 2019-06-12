@@ -11,6 +11,7 @@ using System.Web.Http;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using Autofac.Integration.WebApi;
+using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -130,6 +131,8 @@ namespace NuGet.Services.SearchService
             services.Configure<AzureSearchConfiguration>(configurationRoot.GetSection(ConfigurationSectionName));
             services.Configure<SearchServiceConfiguration>(configurationRoot.GetSection(ConfigurationSectionName));
             services.AddAzureSearch();
+            services.AddSingleton(new TelemetryClient());
+            services.AddTransient<ITelemetryClient, TelemetryClientWrapper>();
 
             var builder = new ContainerBuilder();
             builder.RegisterApiControllers(Assembly.GetExecutingAssembly());

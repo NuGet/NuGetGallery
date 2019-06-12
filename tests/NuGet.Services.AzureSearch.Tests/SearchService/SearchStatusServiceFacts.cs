@@ -177,6 +177,7 @@ namespace NuGet.Services.AzureSearch.SearchService
             protected readonly Mock<IAuxiliaryData> _auxiliaryData;
             protected readonly SearchServiceConfiguration _config;
             protected readonly Mock<IOptionsSnapshot<SearchServiceConfiguration>> _options;
+            protected readonly Mock<IAzureSearchTelemetryService> _telemetryService;
             protected readonly RecordingLogger<SearchStatusService> _logger;
             protected readonly AuxiliaryFilesMetadata _auxiliaryFilesMetadata;
             protected readonly Assembly _assembly;
@@ -191,6 +192,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                 _auxiliaryDataCache = new Mock<IAuxiliaryDataCache>();
                 _auxiliaryData = new Mock<IAuxiliaryData>();
                 _options = new Mock<IOptionsSnapshot<SearchServiceConfiguration>>();
+                _telemetryService = new Mock<IAzureSearchTelemetryService>();
                 _logger = output.GetLogger<SearchStatusService>();
 
                 _auxiliaryFilesMetadata = new AuxiliaryFilesMetadata(
@@ -234,6 +236,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                     _hijackIndex.Object,
                     _auxiliaryDataCache.Object,
                     _options.Object,
+                    _telemetryService.Object,
                     _logger);
             }
         }

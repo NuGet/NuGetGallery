@@ -19,6 +19,7 @@ namespace NuGet.Services.AzureSearch.SearchService
         private readonly ISearchIndexClientWrapper _hijackIndex;
         private readonly IAuxiliaryDataCache _auxiliaryDataCache;
         private readonly IOptionsSnapshot<SearchServiceConfiguration> _options;
+        private readonly IAzureSearchTelemetryService _telemetryService;
         private readonly ILogger<SearchStatusService> _logger;
 
         public SearchStatusService(
@@ -26,12 +27,14 @@ namespace NuGet.Services.AzureSearch.SearchService
             ISearchIndexClientWrapper hijackIndex,
             IAuxiliaryDataCache auxiliaryDataCache,
             IOptionsSnapshot<SearchServiceConfiguration> options,
+            IAzureSearchTelemetryService telemetryService,
             ILogger<SearchStatusService> logger)
         {
             _searchIndex = searchIndex ?? throw new ArgumentNullException(nameof(searchIndex));
             _hijackIndex = hijackIndex ?? throw new ArgumentNullException(nameof(hijackIndex));
             _auxiliaryDataCache = auxiliaryDataCache ?? throw new ArgumentNullException(nameof(auxiliaryDataCache));
             _options = options ?? throw new ArgumentNullException(nameof(options));
+            _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -44,10 +47,7 @@ namespace NuGet.Services.AzureSearch.SearchService
 
             response.Duration = await Measure.DurationAsync(() => PopulateResponseAsync(options, assemblyForMetadata, response));
 
-            _logger.LogInformation(
-                "It took {Duration} to fetch the search status. Success is {Success}.",
-                response.Duration,
-                response.Success);
+            _telemetryService.TrackGetSearchServiceStatus(options, response.Success, response.Duration.Value);
 
             return response;
         }
