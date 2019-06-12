@@ -65,6 +65,7 @@ namespace NuGetGallery.Extensions
             [InlineData(999_990_000,     "1.0B")]
             [InlineData(1_000_000_000,   "1.0B")]
             [InlineData(1_999_000_000,   "2.0B")]
+            [InlineData(2_147_483_647,   "2.1B")]
             [InlineData(-1,                 "-1")]
             [InlineData(-999,             "-999")]
             [InlineData(-1000,           "-1.0K")]
@@ -97,6 +98,7 @@ namespace NuGetGallery.Extensions
             [InlineData(-999_990_000,    "-1.0B")]
             [InlineData(-1_000_000_000,  "-1.0B")]
             [InlineData(-1_999_000_000,  "-2.0B")]
+            [InlineData(-2_147_483_648,  "-2.1B")]
             public void FormatsUsingExpectedUnit(int number, string expected)
             {
                 var actual = NumberExtensions.ToKiloFormat(number);
