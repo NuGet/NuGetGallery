@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -52,73 +51,11 @@ namespace CatalogTests.Helpers
             }
         }
 
-        public static IEnumerable<object[]> GetPackagesInOrder_GetsAllPackagesInOrder_data
-        {
-            get
-            {
-                var oDataPackages = ODataPackages;
-
-                var keyDateFuncs = new Func<FeedPackageDetails, DateTime>[]
-                {
-                    package => package.CreatedDate,
-                    package => package.LastEditedDate,
-                    package => package.PublishedDate,
-                };
-
-                return keyDateFuncs.Select(p => new object[] { oDataPackages, p });
-            }
-        }
-
-        [Theory]
-        [MemberData(nameof(GetPackagesInOrder_GetsAllPackagesInOrder_data))]
-        public async Task GetPackagesInOrder_GetsAllPackagesInOrder(IEnumerable<ODataPackage> oDataPackages, Func<FeedPackageDetails, DateTime> keyDateFunc)
-        {
-            //// Act
-            var feedPackagesInOrder = await TestGetPackagesInOrder(oDataPackages, keyDateFunc);
-
-            //// Assert
-            // All OData packages must exist in the result.
-            foreach (var oDataPackage in oDataPackages)
-            {
-                Assert.Contains(feedPackagesInOrder.SelectMany(p => p.Value),
-                    (feedPackage) =>
-                    {
-                        return ArePackagesEqual(feedPackage, oDataPackage);
-                    });
-            }
-
-            // The packages must be in order and grouped by timestamp.
-            var currentTimestamp = DateTime.MinValue;
-            foreach (var feedPackages in feedPackagesInOrder)
-            {
-                Assert.True(currentTimestamp < feedPackages.Key);
-
-                currentTimestamp = feedPackages.Key;
-                foreach (var feedPackage in feedPackages.Value)
-                {
-                    var packageKeyDate = keyDateFunc(feedPackage);
-                    Assert.Equal(packageKeyDate.Ticks, currentTimestamp.Ticks);
-
-                    VerifyDateTimesAreInUtc(feedPackage);
-                }
-            }
-        }
-
         private Task<IList<FeedPackageDetails>> TestGetPackagesAsync(IEnumerable<ODataPackage> oDataPackages)
         {
             return FeedHelpers.GetPackages(
                 new HttpClient(GetMessageHandlerForPackages(oDataPackages)),
                 new Uri(_baseUri + "/test"));
-        }
-
-        private Task<SortedList<DateTime, IList<FeedPackageDetails>>> TestGetPackagesInOrder(
-            IEnumerable<ODataPackage> oDataPackages,
-            Func<FeedPackageDetails, DateTime> keyDateFunc)
-        {
-            return FeedHelpers.GetPackagesInOrder(
-                new HttpClient(GetMessageHandlerForPackages(oDataPackages)),
-                new Uri(_baseUri + "/test"),
-                keyDateFunc);
         }
 
         private HttpMessageHandler GetMessageHandlerForPackages(IEnumerable<ODataPackage> oDataPackages)

@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web;
@@ -32,33 +31,6 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
         {
             var uri = new Uri($"{source.Trim('/')}/Packages(Id='{HttpUtility.UrlEncode(id)}',Version='{HttpUtility.UrlEncode(version)}')");
             return UriUtils.GetNonhijackableUri(uri);
-        }
-
-        /// <summary>
-        /// Returns a <see cref="SortedList{DateTime, IList{FeedPackageDetails}}"/> from the feed.
-        /// </summary>
-        /// <param name="keyDateFunc">The <see cref="DateTime"/> field to sort the <see cref="FeedPackageDetails"/> on.</param>
-        public static async Task<SortedList<DateTime, IList<FeedPackageDetails>>> GetPackagesInOrder(HttpClient client, Uri uri, Func<FeedPackageDetails, DateTime> keyDateFunc)
-        {
-            var result = new SortedList<DateTime, IList<FeedPackageDetails>>();
-
-            var allPackages = await GetPackages(client, uri);
-
-            foreach (var package in allPackages)
-            {
-                IList<FeedPackageDetails> packagesWithSameKeyDate;
-
-                var packageKeyDate = keyDateFunc(package);
-                if (!result.TryGetValue(packageKeyDate, out packagesWithSameKeyDate))
-                {
-                    packagesWithSameKeyDate = new List<FeedPackageDetails>();
-                    result.Add(packageKeyDate, packagesWithSameKeyDate);
-                }
-
-                packagesWithSameKeyDate.Add(package);
-            }
-
-            return result;
         }
 
         /// <summary>

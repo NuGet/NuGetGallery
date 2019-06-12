@@ -75,7 +75,6 @@
     <Compile Include="JobNameTelemetryInitializerTests.cs" />
     <Compile Include="JobPropertiesTelemetryInitializerTests.cs" />
     <Compile Include="NgJobFactoryTests.cs" />
-    <Compile Include="Package2CatalogJobTests.cs" />
     <Compile Include="PackageFixup\FixPackageHashHandlerFacts.cs" />
     <Compile Include="PackageFixup\PackagesContainerCatalogProcessorFacts.cs" />
     <Compile Include="PackageFixup\ValidatePackageHashHandlerFacts.cs" />
