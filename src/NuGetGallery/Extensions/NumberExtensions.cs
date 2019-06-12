@@ -70,28 +70,42 @@ namespace NuGetGallery
         }
 
         /// <summary>
-        /// Format the number to a 3 digit representation plus a letter to represent the scale (K for kilo, M for mega, or B for billion)
+        /// Format the number to a 1 decimal precision plus a letter to represent the scale (K for kilo, M for mega, or B for billion)
         /// </summary>
-        /// <param name="number"></param>
-        /// <returns></returns>
+        /// <param name="number">The number to format</param>
+        /// <returns>String representation of the formatted number</returns>
         public static string ToKiloFormat(this int number)
         {
-            var thresholds = new[]
+            bool isNegative = number < 0;
+            if (isNegative)
             {
-                new { Threshold = 1_000_000_000, Transform = new Func<int, float>((x) => x / 1_000_000_000f), Format = "{0:F3}B", Trim = true },
-                new { Threshold = 100_000_000, Transform =  new Func<int, float>((x) => x / 1_000_000), Format = "{0:F0}M", Trim = false},
-                new { Threshold = 10_000_000, Transform =  new Func<int, float>((x) => x / 1_000_000f), Format = "{0:F2}M", Trim = true},
-                new { Threshold = 1_000_000, Transform =  new Func<int, float>((x) => x / 1_000_000f), Format = "{0:F3}M", Trim = true},
-                new { Threshold = 100_000, Transform = new Func<int, float>((x) => x / 1_000), Format = "{0}K", Trim = false},
-                new { Threshold = 10_000, Transform = new Func<int, float>((x) => x / 1_000f), Format = "{0:F2}K", Trim = true},
-                new { Threshold = 1_000, Transform = new Func<int, float>((x) => x / 1_000f), Format = "{0:F3}K", Trim = true},
-                new { Threshold = int.MinValue, Transform = new Func<int, float>((x) => x), Format = "{0}", Trim = false}
+                number *= -1;
+            }
+
+            if (number < 1000)
+            {
+                return (isNegative ? "-" : "") + number.ToString();
+            }
+
+            var powers = new[]
+            {
+                new { Pow = 9 , Value = 1_000_000_000f, Unit = 'B'},
+                new { Pow = 6 , Value = 1_000_000f    , Unit = 'M'},
+                new { Pow = 3 , Value = 1_000f        , Unit = 'K'},
+                new { Pow = 0 , Value = 1f            , Unit = '\0'}
             };
 
-            var elem = thresholds.First(d => number >= d.Threshold);
-            var strFormat = string.Format(elem.Format, elem.Transform(number));
+            var multiplier = powers.First(x => number.ToString().Length > x.Pow);
+            var simplifiedNumber = (number / multiplier.Value);
+            var roundValue = (int)float.Parse(string.Format("{0:F1}", simplifiedNumber));
 
-            return elem.Trim ? strFormat.Remove(4, 1) : strFormat;
+            // This is used in some cases to get the right power with its unit (e.g: 999_999_000 is rounded to 1.0B)
+            if (roundValue > simplifiedNumber)
+            {
+                return (roundValue * (int)multiplier.Value * (isNegative ? -1 : 1)).ToKiloFormat();
+            }
+
+            return (isNegative ? "-" : "") + string.Format("{0:F1}", simplifiedNumber) + multiplier.Unit;
         }
     }
 }
