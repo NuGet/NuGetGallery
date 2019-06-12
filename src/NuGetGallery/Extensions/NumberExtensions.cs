@@ -3,6 +3,7 @@
 
 using System;
 using System.Globalization;
+using System.Linq;
 using System.Text;
 
 namespace NuGetGallery
@@ -75,32 +76,22 @@ namespace NuGetGallery
         /// <returns></returns>
         public static string ToKiloFormat(this int number)
         {
-            if (number >= 1_000_000_000)
+            var thresholds = new[]
             {
-                return new StringBuilder((number / 1_000_000_000.0f).ToString("F3")) { [4] = 'B' }.ToString();
-            }
+                new { Threshold = 1_000_000_000, Transform = new Func<int, float>((x) => x / 1_000_000_000f), Format = "{0:F3}B", Trim = true },
+                new { Threshold = 100_000_000, Transform =  new Func<int, float>((x) => x / 1_000_000), Format = "{0:F0}M", Trim = false},
+                new { Threshold = 10_000_000, Transform =  new Func<int, float>((x) => x / 1_000_000f), Format = "{0:F2}M", Trim = true},
+                new { Threshold = 1_000_000, Transform =  new Func<int, float>((x) => x / 1_000_000f), Format = "{0:F3}M", Trim = true},
+                new { Threshold = 100_000, Transform = new Func<int, float>((x) => x / 1_000), Format = "{0}K", Trim = false},
+                new { Threshold = 10_000, Transform = new Func<int, float>((x) => x / 1_000f), Format = "{0:F2}K", Trim = true},
+                new { Threshold = 1_000, Transform = new Func<int, float>((x) => x / 1_000f), Format = "{0:F3}K", Trim = true},
+                new { Threshold = int.MinValue, Transform = new Func<int, float>((x) => x), Format = "{0}", Trim = false}
+            };
 
-            if (number >= 100_000_000)
-            {
-                return (number / 1_000_000) + "M";
-            }
+            var elem = thresholds.First(d => number >= d.Threshold);
+            var strFormat = string.Format(elem.Format, elem.Transform(number));
 
-            if (number >= 1_000_000)
-            {
-                return new StringBuilder((number / 1_000_000.0f).ToString(number >= 10_000_000 ? "F2" : "F3")) { [4] = 'M' }.ToString();
-            }
-
-            if (number >= 100_000)
-            {
-                return (number / 1_000) + "K";
-            }
-
-            if (number >= 1000)
-            {
-                return new StringBuilder((number / 1_000.0f).ToString(number >= 10_000 ? "F2" : "F3")) { [4] = 'K' }.ToString();
-            }
-
-            return number.ToString("#,0");
+            return elem.Trim ? strFormat.Remove(4, 1) : strFormat;
         }
     }
 }
