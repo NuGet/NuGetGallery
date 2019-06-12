@@ -507,7 +507,6 @@ namespace NuGetGallery
                 var deprecationService = new Mock<IPackageDeprecationService>();
                 var httpContext = new Mock<HttpContextBase>();
                 var httpCachePolicy = new Mock<HttpCachePolicyBase>();
-
                 var controller = CreateController(
                     GetConfigurationService(),
                     packageService: packageService,
@@ -635,7 +634,6 @@ namespace NuGetGallery
                 var indexingService = new Mock<IIndexingService>();
                 var httpContext = new Mock<HttpContextBase>();
                 var httpCachePolicy = new Mock<HttpCachePolicyBase>();
-
                 var controller = CreateController(
                     GetConfigurationService(),
                     packageService: packageService,
@@ -693,7 +691,6 @@ namespace NuGetGallery
                 var packageService = new Mock<IPackageService>();
                 var indexingService = new Mock<IIndexingService>();
                 var deprecationService = new Mock<IPackageDeprecationService>();
-
                 var controller = CreateController(
                     GetConfigurationService(),
                     packageService: packageService, 
@@ -773,7 +770,6 @@ namespace NuGetGallery
                 var packageService = new Mock<IPackageService>();
                 var indexingService = new Mock<IIndexingService>();
                 var deprecationService = new Mock<IPackageDeprecationService>();
-
                 var controller = CreateController(
                     GetConfigurationService(),
                     packageService: packageService, 
@@ -830,7 +826,6 @@ namespace NuGetGallery
                 var packageService = new Mock<IPackageService>();
                 var indexingService = new Mock<IIndexingService>();
                 var deprecationService = new Mock<IPackageDeprecationService>();
-
                 var controller = CreateController(
                     GetConfigurationService(),
                     packageService: packageService,
@@ -936,7 +931,6 @@ namespace NuGetGallery
                 var indexingService = new Mock<IIndexingService>();
                 var deprecationService = new Mock<IPackageDeprecationService>();
                 var fileService = new Mock<IPackageFileService>();
-
                 var controller = CreateController(
                     GetConfigurationService(),
                     packageService: packageService, 
@@ -1058,7 +1052,6 @@ namespace NuGetGallery
                 var featureFlagService = new Mock<IFeatureFlagService>();
                 var packageService = new Mock<IPackageService>();
                 var deprecationService = new Mock<IPackageDeprecationService>();
-
                 var controller = CreateController(
                     GetConfigurationService(),
                     packageService: packageService,
@@ -1114,7 +1107,6 @@ namespace NuGetGallery
                 var featureFlagService = new Mock<IFeatureFlagService>();
                 var packageService = new Mock<IPackageService>();
                 var deprecationService = new Mock<IPackageDeprecationService>();
-
                 var controller = CreateController(
                     GetConfigurationService(),
                     packageService: packageService,
@@ -1169,7 +1161,6 @@ namespace NuGetGallery
                 var featureFlagService = new Mock<IFeatureFlagService>();
                 var packageService = new Mock<IPackageService>();
                 var deprecationService = new Mock<IPackageDeprecationService>();
-
                 var controller = CreateController(
                     GetConfigurationService(),
                     packageService: packageService,
