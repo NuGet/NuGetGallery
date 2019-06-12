@@ -419,7 +419,7 @@ namespace NuGetGallery.Controllers
             public IHttpActionResult ActionResult { get; }
         }
 
-        private IQueryable<Package> GetAll()
+        internal IQueryable<Package> GetAll()
         {
             if (_featureFlagService.IsODataDatabaseReadOnlyEnabled())
             {

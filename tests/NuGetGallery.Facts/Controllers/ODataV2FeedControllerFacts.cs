@@ -4,6 +4,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Moq;
 using NuGet.Services.Entities;
 using NuGet.Versioning;
 using NuGetGallery.Configuration;
@@ -400,6 +401,41 @@ namespace NuGetGallery.Controllers
 
             // Assert
             Assert.Equal(expected.Count(), searchCount);
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void TestReadOnlyFeatureFlag(bool readOnly)
+        {
+            var packagesRepositoryMock = new Mock<IReadOnlyEntityRepository<Package>>();          
+            var readWritePackagesRepositoryMock = new Mock<IEntityRepository<Package>>();
+            var configurationService = new Mock<IGalleryConfigurationService>().Object;
+            var searchService = new Mock<ISearchService>().Object;
+            var telemetryService = new Mock<ITelemetryService>().Object;
+            var featureFlagServiceMock = new Mock<IFeatureFlagService>();
+            featureFlagServiceMock.Setup(ffs => ffs.IsODataDatabaseReadOnlyEnabled()).Returns(readOnly);
+
+            var testController = new ODataV2FeedController(
+                packagesRepositoryMock.Object,
+                readWritePackagesRepositoryMock.Object,
+                configurationService,
+                searchService,
+                telemetryService,
+                featureFlagServiceMock.Object);
+
+            var pacakges = testController.GetAll();
+
+            if(readOnly)
+            {
+                packagesRepositoryMock.Verify(r => r.GetAll(), times: Times.Exactly(1));
+                readWritePackagesRepositoryMock.Verify(r => r.GetAll(), times: Times.Never);
+            }
+            else
+            {
+                packagesRepositoryMock.Verify(r => r.GetAll(), times: Times.Never);
+                readWritePackagesRepositoryMock.Verify(r => r.GetAll(), times: Times.Exactly(1));
+            }
         }
 
         protected override ODataV2FeedController CreateController(

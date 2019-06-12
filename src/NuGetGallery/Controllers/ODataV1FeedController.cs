@@ -288,7 +288,7 @@ namespace NuGetGallery.Controllers
             return searchResults.FormattedAsCountResult<V1FeedPackage>();
         }
 
-        private IQueryable<Package> GetAll()
+        internal IQueryable<Package> GetAll()
         {
             if (_featureFlagService.IsODataDatabaseReadOnlyEnabled())
             {

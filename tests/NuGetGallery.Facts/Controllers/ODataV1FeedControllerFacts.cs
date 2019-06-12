@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using NuGet.Services.Entities;
 using NuGetGallery.Configuration;
 using NuGetGallery.OData;
+using Moq;
 using Xunit;
 
 namespace NuGetGallery.Controllers
@@ -87,6 +88,41 @@ namespace NuGetGallery.Controllers
 
             // Assert
             Assert.Equal(NonSemVer2Packages.Where(p => !p.IsPrerelease).Count(), searchCount);
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void TestReadOnlyFeatureFlag(bool readOnly)
+        {
+            var packagesRepositoryMock = new Mock<IReadOnlyEntityRepository<Package>>();
+            var readWritePackagesRepositoryMock = new Mock<IEntityRepository<Package>>();
+            var configurationService = new Mock<IGalleryConfigurationService>().Object;
+            var searchService = new Mock<ISearchService>().Object;
+            var telemetryService = new Mock<ITelemetryService>().Object;
+            var featureFlagServiceMock = new Mock<IFeatureFlagService>();
+            featureFlagServiceMock.Setup(ffs => ffs.IsODataDatabaseReadOnlyEnabled()).Returns(readOnly);
+
+            var testController = new ODataV1FeedController(
+                packagesRepositoryMock.Object,
+                readWritePackagesRepositoryMock.Object,
+                configurationService,
+                searchService,
+                telemetryService,
+                featureFlagServiceMock.Object);
+
+            var pacakges = testController.GetAll();
+
+            if (readOnly)
+            {
+                packagesRepositoryMock.Verify(r => r.GetAll(), times: Times.Exactly(1));
+                readWritePackagesRepositoryMock.Verify(r => r.GetAll(), times: Times.Never);
+            }
+            else
+            {
+                packagesRepositoryMock.Verify(r => r.GetAll(), times: Times.Never);
+                readWritePackagesRepositoryMock.Verify(r => r.GetAll(), times: Times.Exactly(1));
+            }
         }
 
         protected override ODataV1FeedController CreateController(

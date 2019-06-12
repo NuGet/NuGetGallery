@@ -604,7 +604,7 @@ namespace NuGetGallery.Controllers
             return updates;
         }
 
-        private IQueryable<Package> GetAll()
+        internal IQueryable<Package> GetAll()
         {
             if (_featureFlagService.IsODataDatabaseReadOnlyEnabled())
             {

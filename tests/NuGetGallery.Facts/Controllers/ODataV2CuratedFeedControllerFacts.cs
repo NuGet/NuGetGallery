@@ -447,6 +447,41 @@ namespace NuGetGallery.Controllers
             Assert.Equal(AvailablePackages.Where(p => !p.IsPrerelease).Count(), searchCount);
         }
 
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void TestReadOnlyFeatureFlag(bool readOnly)
+        {
+            var packagesRepositoryMock = new Mock<IReadOnlyEntityRepository<Package>>();
+            var readWritePackagesRepositoryMock = new Mock<IEntityRepository<Package>>();
+            var configurationService = new Mock<IGalleryConfigurationService>().Object;
+            var searchService = new Mock<ISearchService>().Object;
+            var telemetryService = new Mock<ITelemetryService>().Object;
+            var featureFlagServiceMock = new Mock<IFeatureFlagService>();
+            featureFlagServiceMock.Setup(ffs => ffs.IsODataDatabaseReadOnlyEnabled()).Returns(readOnly);
+
+            var testController = new ODataV2CuratedFeedController(
+                configurationService,
+                searchService,
+                packagesRepositoryMock.Object,
+                readWritePackagesRepositoryMock.Object,
+                telemetryService,
+                featureFlagServiceMock.Object);
+
+            var pacakges = testController.GetAll();
+
+            if (readOnly)
+            {
+                packagesRepositoryMock.Verify(r => r.GetAll(), times: Times.Exactly(1));
+                readWritePackagesRepositoryMock.Verify(r => r.GetAll(), times: Times.Never);
+            }
+            else
+            {
+                packagesRepositoryMock.Verify(r => r.GetAll(), times: Times.Never);
+                readWritePackagesRepositoryMock.Verify(r => r.GetAll(), times: Times.Exactly(1));
+            }
+        }
+
         protected override ODataV2CuratedFeedController CreateController(
             IReadOnlyEntityRepository<Package> packagesRepository,
             IEntityRepository<Package> readWritePackagesRepository,

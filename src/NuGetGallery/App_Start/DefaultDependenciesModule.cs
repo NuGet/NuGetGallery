@@ -576,12 +576,10 @@ namespace NuGetGallery
                 secretInjector);
 
             builder.Register(c => new ReadOnlyEntitiesContext(CreateDbConnection(galleryDbReadOnlyReplicaConnectionFactory)))
-                .AsSelf()
                 .As<IReadOnlyEntitiesContext>()
                 .InstancePerLifetimeScope();
 
             builder.RegisterType<ReadOnlyEntityRepository<Package>>()
-                .AsSelf()
                 .As<IReadOnlyEntityRepository<Package>>()
                 .InstancePerLifetimeScope();   
         }
