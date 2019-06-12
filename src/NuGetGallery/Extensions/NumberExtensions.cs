@@ -69,7 +69,7 @@ namespace NuGetGallery
         }
 
         /// <summary>
-        /// Format the number to a 3 digit representation plus a letter to represent the scale (K for kilo, M for mega, or G for giga)
+        /// Format the number to a 3 digit representation plus a letter to represent the scale (K for kilo, M for mega, or B for billion)
         /// </summary>
         /// <param name="number"></param>
         /// <returns></returns>
@@ -77,7 +77,7 @@ namespace NuGetGallery
         {
             if (number >= 1_000_000_000)
             {
-                return new StringBuilder((number / 1_000_000_000.0f).ToString("F3")) { [4] = 'G' }.ToString();
+                return new StringBuilder((number / 1_000_000_000.0f).ToString("F3")) { [4] = 'B' }.ToString();
             }
 
             if (number >= 100_000_000)
