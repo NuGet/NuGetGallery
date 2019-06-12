@@ -38,6 +38,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.DatabaseMigr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGetGallery.Services", "src\NuGetGallery.Services\NuGetGallery.Services.csproj", "{C7D5E850-33FA-4EC5-8D7F-B1C8DD5D48F9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AccountDeleter", "src\AccountDeleter\AccountDeleter.csproj", "{8EE102B9-DA4E-4FDF-B6FD-FB12E6584DD7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -88,6 +90,10 @@ Global
 		{C7D5E850-33FA-4EC5-8D7F-B1C8DD5D48F9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C7D5E850-33FA-4EC5-8D7F-B1C8DD5D48F9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C7D5E850-33FA-4EC5-8D7F-B1C8DD5D48F9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8EE102B9-DA4E-4FDF-B6FD-FB12E6584DD7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8EE102B9-DA4E-4FDF-B6FD-FB12E6584DD7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8EE102B9-DA4E-4FDF-B6FD-FB12E6584DD7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8EE102B9-DA4E-4FDF-B6FD-FB12E6584DD7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -104,6 +110,7 @@ Global
 		{F4C8C34F-72A9-4773-A315-8FA3F2D5CE4E} = {155100FF-524B-4CAF-93C6-A57478B3DBAD}
 		{082357A1-682E-4CCC-8FCD-FA250204CDB6} = {39E54EC3-CBAA-453A-BE64-748FE1559A58}
 		{C7D5E850-33FA-4EC5-8D7F-B1C8DD5D48F9} = {155100FF-524B-4CAF-93C6-A57478B3DBAD}
+		{8EE102B9-DA4E-4FDF-B6FD-FB12E6584DD7} = {2204C510-A559-4ED7-9590-FDC09093575B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {064A3BDE-5203-4AD6-A6C9-5CF08301EC8F}
