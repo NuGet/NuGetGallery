@@ -57,7 +57,7 @@ namespace NuGetGallery
         /// Whether a user can see the "GitHub Usage" section in a package's display page as well
         /// as the added "GitHub Usage count" in the "Statistics" section
         /// </summary>
-        /// <param name="user">The user to test fot the Flight</param>
+        /// <param name="user">The user to test for the Flight</param>
         /// <returns>Whether or not the Flight is enabled for the user</returns>
         bool IsGitHubUsageEnabled(User user);
     }

@@ -76,36 +76,28 @@ namespace NuGetGallery
         /// <returns>String representation of the formatted number</returns>
         public static string ToKiloFormat(this int number)
         {
-            bool isNegative = number < 0;
-            if (isNegative)
+            // To avoid overflow (with Math.Abs()). 1 difference won't make a difference in the simplified format :)
+            if (number == int.MinValue)
             {
-                number *= -1;
+                number = -1 * int.MaxValue;
             }
 
-            if (number < 1000)
+            if (Math.Abs(number) < 1000)
             {
-                return (isNegative ? "-" : "") + number.ToString();
+                return number.ToString();
             }
 
             var powers = new[]
             {
-                new { Pow = 9 , Value = 1_000_000_000f, Unit = 'B'},
-                new { Pow = 6 , Value = 1_000_000f    , Unit = 'M'},
-                new { Pow = 3 , Value = 1_000f        , Unit = 'K'},
-                new { Pow = 0 , Value = 1f            , Unit = '\0'}
+                new { Value = 1_000_000_000f, Unit = 'B'},
+                new { Value = 1_000_000f    , Unit = 'M'},
+                new { Value = 1_000f        , Unit = 'K'}
             };
 
-            var multiplier = powers.First(x => number.ToString().Length > x.Pow);
-            var simplifiedNumber = (number / multiplier.Value);
-            var roundValue = (int)float.Parse(string.Format("{0:F1}", simplifiedNumber));
-
-            // This is used in some cases to get the right power with its unit (e.g: 999_999_000 is rounded to 1.0B)
-            if (roundValue > simplifiedNumber)
-            {
-                return (roundValue * (int)multiplier.Value * (isNegative ? -1 : 1)).ToKiloFormat();
-            }
-
-            return (isNegative ? "-" : "") + string.Format("{0:F1}", simplifiedNumber) + multiplier.Unit;
+            return powers
+                .Where(pow => Math.Abs(Math.Round(number / pow.Value, 3)) >= 1f)
+                .Select(pow => string.Format("{0:F1}{1}", number / pow.Value, pow.Unit))
+                .First();
         }
     }
 }
