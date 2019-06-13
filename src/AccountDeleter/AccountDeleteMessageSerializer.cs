@@ -8,17 +8,33 @@ namespace NuGetGallery.AccountDeleter
 {
     public class AccoundDeleteMessageSerializer : IBrokeredMessageSerializer<AccountDeleteMessage>
     {
-        private IBrokeredMessageSerializer<AccountDeleteMessage> _serializer = new BrokeredMessageSerializer<AccountDeleteMessage>();
+        private const string AccountDeleteMessageSchemaName = "AccountDeleteMessageData";
+
+        private IBrokeredMessageSerializer<AccountDeleteMessageData> _serializer = new BrokeredMessageSerializer<AccountDeleteMessageData>();
 
         public AccountDeleteMessage Deserialize(IBrokeredMessage brokeredMessage)
         {
             var message = _serializer.Deserialize(brokeredMessage);
-            return new AccountDeleteMessage(message.Subject, message.Source);
+
+            return new AccountDeleteMessage(
+                message.Subject, 
+                message.Source);
         }
 
         public IBrokeredMessage Serialize(AccountDeleteMessage message)
         {
-            throw new NotImplementedException();
+            return _serializer.Serialize(new AccountDeleteMessageData
+            {
+                Subject = message.Subject,
+                Source = message.Source
+            });
+        }
+
+        [Schema(Name = AccountDeleteMessageSchemaName, Version = 1)]
+        private struct AccountDeleteMessageData
+        {
+            public string Subject;
+            public string Source;
         }
     }
 }

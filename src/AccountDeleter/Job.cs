@@ -17,8 +17,11 @@ namespace NuGetGallery.AccountDeleter
 {
     public class Job : SubcriptionProcessorJob<AccountDeleteMessage>
     {
+        private const string AccountDeleteConfigurationSectionName = "AccountDeleteSettings";
+
         protected override void ConfigureJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
         {
+            services.Configure<AccountDeleteConfiguration>(configurationRoot.GetSection(AccountDeleteConfigurationSectionName));
             SetupDefaultSubscriptionProcessorConfiguration(services, configurationRoot);
 
             services.AddTransient<IBrokeredMessageSerializer<AccountDeleteMessage>, AccoundDeleteMessageSerializer>();

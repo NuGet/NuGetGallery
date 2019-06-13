@@ -12,6 +12,7 @@
     <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -44,6 +45,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AccountDeleteMessageHandler.cs" />
+    <Compile Include="Configuration\AccountDeleteConfiguration.cs" />
     <Compile Include="Evaluators\AggregateEvaluator.cs" />
     <Compile Include="Evaluators\AlwayRejectEvaluator.cs" />
     <Compile Include="Evaluators\UserOrganizationEvaluator.cs" />
@@ -95,7 +97,7 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Configuration\" />
+    <None Include="App.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
