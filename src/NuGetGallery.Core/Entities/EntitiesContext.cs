@@ -53,7 +53,7 @@ namespace NuGetGallery
         public EntitiesContext(DbConnection connection, bool readOnly)
             : base(connection, contextOwnsConnection: true)
         {
-            ReadOnly = readOnly;
+           ReadOnly = readOnly;
         }
 
         public bool ReadOnly { get; private set; }
@@ -73,7 +73,7 @@ namespace NuGetGallery
         /// </summary>
         public DbSet<User> Users { get; set; }
 
-        DbSet<T> IEntitiesContext.Set<T>()
+        DbSet<T> IReadOnlyEntitiesContext.Set<T>()
         {
             return base.Set<T>();
         }

@@ -22,7 +22,7 @@ namespace NuGetGallery
         private const string PackagesAtomFeedFeatureName = GalleryPrefix + "PackagesAtomFeed";
 
         private const string ManageDeprecationFeatureName = GalleryPrefix + "ManageDeprecation";
-        private const string SearchCircuitBreakerFeatureName = GalleryPrefix + "SearchCircuitBreaker";
+        private const string ODataReadOnlyDatabaseFeatureName = GalleryPrefix + "ODataReadOnlyDatabase";
 
         private readonly IFeatureFlagClient _client;
 
@@ -61,9 +61,9 @@ namespace NuGetGallery
             return _client.IsEnabled(flight, user, defaultValue);
         }
 
-        public bool IsSearchCircuitBreakerEnabled()
+        public bool IsODataDatabaseReadOnlyEnabled()
         {
-            return _client.IsEnabled(SearchCircuitBreakerFeatureName, defaultValue: false);
+            return _client.IsEnabled(ODataReadOnlyDatabaseFeatureName, defaultValue: false);
         }
 
         public bool IsSearchSideBySideEnabled(User user)

@@ -38,12 +38,6 @@ namespace NuGetGallery
         bool IsManageDeprecationEnabled(User user);
 
         /// <summary>
-        /// Whether or not the search is using circuit breaker.
-        /// </summary>
-        /// <returns></returns>
-        bool IsSearchCircuitBreakerEnabled();
-
-        /// <summary>
         /// Whether the user is allowed to publish packages with an embedded icon.
         /// </summary>
         bool AreEmbeddedIconsEnabled(User user);
@@ -60,5 +54,11 @@ namespace NuGetGallery
         /// <param name="user">The user to test for the Flight</param>
         /// <returns>Whether or not the Flight is enabled for the user</returns>
         bool IsGitHubUsageEnabled(User user);
+        
+
+        /// <summary>
+        /// Whether the OData controllers use the read-only replica.
+        /// </summary>
+        bool IsODataDatabaseReadOnlyEnabled();
     }
 }
