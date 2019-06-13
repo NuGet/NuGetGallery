@@ -15,9 +15,11 @@ namespace NuGet.Services.AzureSearch.Support
 {
     public static class Data
     {
+        public const string GalleryBaseUrl = "https://example/";
         public const string PackageId = "WindowsAzure.Storage";
         public const string NormalizedVersion = "7.1.2-alpha";
         public const string FullVersion = "7.1.2-alpha+git";
+        public const string GalleryLicenseUrl = GalleryBaseUrl + "packages/" + PackageId + "/" + NormalizedVersion + "/license";
         public static readonly DateTimeOffset DocumentLastUpdated = new DateTimeOffset(2018, 12, 14, 9, 30, 0, TimeSpan.Zero);
         public static readonly DateTimeOffset CommitTimestamp = new DateTimeOffset(2018, 12, 13, 12, 30, 0, TimeSpan.Zero);
         public static readonly string CommitId = "6b9b24dd-7aec-48ae-afc1-2a117e3d50d1";
@@ -90,6 +92,7 @@ namespace NuGet.Services.AzureSearch.Support
                 var mock = new Mock<IOptionsSnapshot<AzureSearchJobConfiguration>>();
                 var config = new AzureSearchJobConfiguration
                 {
+                    GalleryBaseUrl = GalleryBaseUrl,
                     Scoring = new AzureSearchScoringConfiguration
                     {
                         DownloadCountLogBase = 2
@@ -121,7 +124,7 @@ namespace NuGet.Services.AzureSearch.Support
             latestStableSemVer2: false,
             latestSemVer2: true);
 
-        public static HijackDocument.Full HijackDocument => new HijackDocumentBuilder().FullFromDb(
+        public static HijackDocument.Full HijackDocument => new HijackDocumentBuilder(Options).FullFromDb(
             PackageId,
             HijackDocumentChanges,
             PackageEntity);

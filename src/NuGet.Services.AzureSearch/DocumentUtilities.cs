@@ -75,7 +75,8 @@ namespace NuGet.Services.AzureSearch
         public static void PopulateMetadata(
             IBaseMetadataDocument document,
             string packageId,
-            Package package)
+            Package package,
+            Uri galleryBaseUrl)
         {
             document.Authors = package.FlattenedAuthors;
             document.Copyright = package.Copyright;
@@ -88,7 +89,6 @@ namespace NuGet.Services.AzureSearch
             document.IconUrl = package.IconUrl;
             document.Language = package.Language;
             document.LastEdited = AssumeUtc(package.LastEdited);
-            document.LicenseUrl = package.LicenseUrl;
             document.MinClientVersion = package.MinClientVersion;
             document.NormalizedVersion = package.NormalizedVersion;
             document.OriginalVersion = package.Version;
@@ -104,12 +104,25 @@ namespace NuGet.Services.AzureSearch
             document.Tags = package.Tags == null ? null : Utils.SplitTags(package.Tags);
             document.Title = package.Title;
             document.TokenizedPackageId = packageId;
+
+            if (package.LicenseExpression != null || package.EmbeddedLicenseType != EmbeddedLicenseFileType.Absent)
+            {
+                document.LicenseUrl = LicenseHelper.GetGalleryLicenseUrl(
+                    packageId,
+                    package.NormalizedVersion,
+                    galleryBaseUrl);
+            }
+            else
+            {
+                document.LicenseUrl = package.LicenseUrl;
+            }
         }
 
         public static void PopulateMetadata(
             IBaseMetadataDocument document,
             string normalizedVersion,
-            PackageDetailsCatalogLeaf leaf)
+            PackageDetailsCatalogLeaf leaf,
+            Uri galleryBaseUrl)
         {
             document.Authors = leaf.Authors;
             document.Copyright = leaf.Copyright;
@@ -122,7 +135,6 @@ namespace NuGet.Services.AzureSearch
             document.IconUrl = leaf.IconUrl;
             document.Language = leaf.Language;
             document.LastEdited = leaf.LastEdited;
-            document.LicenseUrl = leaf.LicenseUrl;
             document.MinClientVersion = leaf.MinClientVersion;
             document.NormalizedVersion = normalizedVersion;
             document.OriginalVersion = leaf.VerbatimVersion;
@@ -138,6 +150,18 @@ namespace NuGet.Services.AzureSearch
             document.Tags = leaf.Tags == null ? null : leaf.Tags.ToArray();
             document.Title = leaf.Title;
             document.TokenizedPackageId = leaf.PackageId;
+
+            if (leaf.LicenseExpression != null || leaf.LicenseFile != null)
+            {
+                document.LicenseUrl = LicenseHelper.GetGalleryLicenseUrl(
+                    document.PackageId,
+                    normalizedVersion,
+                    galleryBaseUrl);
+            }
+            else
+            {
+                document.LicenseUrl = leaf.LicenseUrl;
+            }
         }
 
         private static string GetSortableTitle(string title, string packageId)

@@ -12,6 +12,8 @@ namespace NuGet.Services.AzureSearch
 {
     public class DocumentUtilitiesFacts
     {
+        private static readonly Uri GalleryBaseUrl = new Uri(Data.GalleryBaseUrl, UriKind.Absolute);
+
         public class GetHijackDocumentKey
         {
             [Theory]
@@ -101,7 +103,7 @@ namespace NuGet.Services.AzureSearch
                 };
                 var full = new HijackDocument.Full();
 
-                DocumentUtilities.PopulateMetadata(full, NormalizedVersion, leaf);
+                DocumentUtilities.PopulateMetadata(full, NormalizedVersion, leaf, GalleryBaseUrl);
 
                 Assert.Equal("NuGet.Versioning:2.0.0|NuGet.Frameworks:3.0.0", full.FlattenedDependencies);
             }
@@ -127,7 +129,7 @@ namespace NuGet.Services.AzureSearch
                 };
                 var full = new HijackDocument.Full();
 
-                DocumentUtilities.PopulateMetadata(full, NormalizedVersion, leaf);
+                DocumentUtilities.PopulateMetadata(full, NormalizedVersion, leaf, GalleryBaseUrl);
 
                 Assert.Equal(expected, full.FlattenedDependencies);
             }
@@ -157,7 +159,7 @@ namespace NuGet.Services.AzureSearch
                 };
                 var full = new HijackDocument.Full();
 
-                DocumentUtilities.PopulateMetadata(full, NormalizedVersion, leaf);
+                DocumentUtilities.PopulateMetadata(full, NormalizedVersion, leaf, GalleryBaseUrl);
 
                 Assert.Equal("NuGet.Versioning::net40", full.FlattenedDependencies);
             }
@@ -193,7 +195,7 @@ namespace NuGet.Services.AzureSearch
                 };
                 var full = new HijackDocument.Full();
 
-                DocumentUtilities.PopulateMetadata(full, NormalizedVersion, leaf);
+                DocumentUtilities.PopulateMetadata(full, NormalizedVersion, leaf, GalleryBaseUrl);
 
                 Assert.Equal("NuGet.Versioning:" + expected + ":net40", full.FlattenedDependencies);
             }
@@ -209,7 +211,7 @@ namespace NuGet.Services.AzureSearch
                 };
                 var full = new HijackDocument.Full();
 
-                DocumentUtilities.PopulateMetadata(full, NormalizedVersion, leaf);
+                DocumentUtilities.PopulateMetadata(full, NormalizedVersion, leaf, GalleryBaseUrl);
 
                 Assert.Null(full.FlattenedDependencies);
             }

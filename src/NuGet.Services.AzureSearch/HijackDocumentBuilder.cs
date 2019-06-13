@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using Microsoft.Extensions.Options;
 using NuGet.Protocol.Catalog;
 using NuGet.Services.Entities;
 
@@ -9,6 +10,13 @@ namespace NuGet.Services.AzureSearch
 {
     public class HijackDocumentBuilder : IHijackDocumentBuilder
     {
+        private readonly IOptionsSnapshot<AzureSearchJobConfiguration> _options;
+
+        public HijackDocumentBuilder(IOptionsSnapshot<AzureSearchJobConfiguration> options)
+        {
+            _options = options ?? throw new ArgumentNullException(nameof(options));
+        }
+
         public KeyedDocument Keyed(
             string packageId,
             string normalizedVersion)
@@ -56,7 +64,7 @@ namespace NuGet.Services.AzureSearch
                 lastCommitTimestamp: leaf.CommitTimestamp,
                 lastCommitId: leaf.CommitId,
                 changes: changes);
-            DocumentUtilities.PopulateMetadata(document, normalizedVersion, leaf);
+            DocumentUtilities.PopulateMetadata(document, normalizedVersion, leaf, _options.Value.ParseGalleryBaseUrl());
             document.Listed = leaf.IsListed();
 
             return document;
@@ -77,7 +85,7 @@ namespace NuGet.Services.AzureSearch
                 lastCommitId: null,
                 normalizedVersion: package.NormalizedVersion,
                 changes: changes);
-            DocumentUtilities.PopulateMetadata(document, packageId, package);
+            DocumentUtilities.PopulateMetadata(document, packageId, package, _options.Value.ParseGalleryBaseUrl());
             document.Listed = package.Listed;
 
             return document;

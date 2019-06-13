@@ -4,7 +4,10 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
+using Moq;
 using NuGet.Services.AzureSearch.Support;
+using NuGet.Services.Entities;
 using NuGetGallery;
 using Xunit;
 using Xunit.Abstractions;
@@ -229,6 +232,30 @@ namespace NuGet.Services.AzureSearch
 
                 Assert.False(document.Prerelease);
             }
+
+            [Fact]
+            public void SetsLicenseUrlToGalleryWhenPackageHasLicenseExpression()
+            {
+                var package = Data.PackageEntity;
+                package.LicenseExpression = "MIT";
+
+                var document = _target.FullFromDb(Data.PackageId, Data.HijackDocumentChanges, package);
+
+                Assert.Equal(Data.GalleryLicenseUrl, document.LicenseUrl);
+            }
+
+            [Theory]
+            [InlineData(EmbeddedLicenseFileType.PlainText)]
+            [InlineData(EmbeddedLicenseFileType.Markdown)]
+            public void SetsLicenseUrlToGalleryWhenPackageHasLicenseFile(EmbeddedLicenseFileType type)
+            {
+                var package = Data.PackageEntity;
+                package.EmbeddedLicenseType = type;
+
+                var document = _target.FullFromDb(Data.PackageId, Data.HijackDocumentChanges, package);
+
+                Assert.Equal(Data.GalleryLicenseUrl, document.LicenseUrl);
+            }
         }
 
         public class FullFromCatalog : BaseFacts
@@ -346,11 +373,35 @@ namespace NuGet.Services.AzureSearch
 
                 Assert.Null(document.OriginalVersion);
             }
+
+            [Fact]
+            public void SetsLicenseUrlToGalleryWhenPackageHasLicenseExpression()
+            {
+                var leaf = Data.Leaf;
+                leaf.LicenseExpression = "MIT";
+
+                var document = _target.FullFromCatalog(Data.NormalizedVersion, Data.HijackDocumentChanges, leaf);
+
+                Assert.Equal(Data.GalleryLicenseUrl, document.LicenseUrl);
+            }
+
+            [Fact]
+            public void SetsLicenseUrlToGalleryWhenPackageHasLicenseFile()
+            {
+                var leaf = Data.Leaf;
+                leaf.LicenseFile = "LICENSE.txt";
+
+                var document = _target.FullFromCatalog(Data.NormalizedVersion, Data.HijackDocumentChanges, leaf);
+
+                Assert.Equal(Data.GalleryLicenseUrl, document.LicenseUrl);
+            }
         }
 
         public abstract class BaseFacts
         {
             protected readonly ITestOutputHelper _output;
+            protected readonly Mock<IOptionsSnapshot<AzureSearchJobConfiguration>> _options;
+            protected readonly AzureSearchJobConfiguration _config;
             protected readonly HijackDocumentBuilder _target;
 
             public static IEnumerable<object[]> MissingTitles = new[]
@@ -369,8 +420,15 @@ namespace NuGet.Services.AzureSearch
             public BaseFacts(ITestOutputHelper output)
             {
                 _output = output;
+                _options = new Mock<IOptionsSnapshot<AzureSearchJobConfiguration>>();
+                _config = new AzureSearchJobConfiguration
+                {
+                    GalleryBaseUrl = Data.GalleryBaseUrl,
+                };
 
-                _target = new HijackDocumentBuilder();
+                _options.Setup(o => o.Value).Returns(() => _config);
+
+                _target = new HijackDocumentBuilder(_options.Object);
             }
         }
     }

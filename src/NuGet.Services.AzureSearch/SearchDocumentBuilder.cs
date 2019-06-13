@@ -177,7 +177,7 @@ namespace NuGet.Services.AzureSearch
                 isLatest: isLatest,
                 fullVersion: fullVersion,
                 owners: owners);
-            DocumentUtilities.PopulateMetadata(document, normalizedVersion, leaf);
+            DocumentUtilities.PopulateMetadata(document, normalizedVersion, leaf, _options.Value.ParseGalleryBaseUrl());
 
             return document;
         }
@@ -207,7 +207,7 @@ namespace NuGet.Services.AzureSearch
                 isLatest: isLatest,
                 fullVersion: fullVersion,
                 owners: owners);
-            DocumentUtilities.PopulateMetadata(document, packageId, package);
+            DocumentUtilities.PopulateMetadata(document, packageId, package, _options.Value.ParseGalleryBaseUrl());
             document.TotalDownloadCount = totalDownloadCount;
             document.LogOfDownloadCount = Math.Log(totalDownloadCount, _options.Value.Scoring.DownloadCountLogBase);
 
