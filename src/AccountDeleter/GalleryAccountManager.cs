@@ -12,6 +12,7 @@ namespace NuGetGallery.AccountDeleter
     {
         private readonly IDeleteAccountService _deleteAccountService;
         private readonly IUserService _userService;
+        private readonly IUserEvaluator _userEvaluator;
         private readonly ITelemetryService _telemetryService;
         private readonly ILogger<GalleryAccountManager> _logger;
 
@@ -24,6 +25,7 @@ namespace NuGetGallery.AccountDeleter
         {
             _deleteAccountService = deleteAccountService ?? throw new ArgumentNullException(nameof(deleteAccountService));
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
+            _userEvaluator = userEvaluator ?? throw new ArgumentNullException(nameof(userEvaluator));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
@@ -31,18 +33,13 @@ namespace NuGetGallery.AccountDeleter
         public bool DeleteAccount(string username)
         {
             var user = _userService.FindByUsername(username);
-            if (ShouldDeleteAccount(user))
+            if (_userEvaluator.CanUserBeDeleted(user))
             {
                 _deleteAccountService.DeleteAccountAsync(user, user, AccountDeletionOrphanPackagePolicy.UnlistOrphans);
                 _telemetryService.TrackAccountDelete();
                 return true;
             }
 
-            return false;
-        }
-
-        private bool ShouldDeleteAccount(User user)
-        {
             return false;
         }
     }

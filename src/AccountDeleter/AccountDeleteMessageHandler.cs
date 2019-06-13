@@ -33,6 +33,19 @@ namespace NuGetGallery.AccountDeleter
 
             if (!_accountManager.DeleteAccount(username))
             {
+                switch (command.Source)
+                {
+                    case "Gallery":
+                        break;
+                    case "DSR":
+                        break;
+                    case "GalleryAdmin":
+                        break;
+                    default:
+                        // Log unknown source and fail.
+                        break;
+                }
+
                 // switch on command source here?
                 // Should definitely log if source isn't expected. Should we even send mail? or log and alert?
                 _messenger.SendMessageAsync(username, 0); // This will probalby need to be expanded to flag the source somehow if we want to send varying messages. Who should be responsible for formatting?

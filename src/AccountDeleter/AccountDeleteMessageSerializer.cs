@@ -13,10 +13,7 @@ namespace NuGetGallery.AccountDeleter
         public AccountDeleteMessage Deserialize(IBrokeredMessage brokeredMessage)
         {
             var message = _serializer.Deserialize(brokeredMessage);
-            return new AccountDeleteMessage()
-            {
-                Subject
-            }
+            return new AccountDeleteMessage(message.Subject, message.Source);
         }
 
         public IBrokeredMessage Serialize(AccountDeleteMessage message)
