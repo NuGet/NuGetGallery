@@ -4,10 +4,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Security.Principal;
 using System.Web;
+using System.Web.Helpers;
 using Newtonsoft.Json;
 using NuGet.Services.Entities;
 using NuGet.Services.FeatureFlags;
@@ -40,6 +40,7 @@ namespace NuGetGallery
             public const string PackageUnlisted = "PackageUnlisted";
             public const string PackageListed = "PackageListed";
             public const string PackageDelete = "PackageDelete";
+            public const string PackageDeprecate = "PackageDeprecate";
             public const string PackageReupload = "PackageReupload";
             public const string PackageHardDeleteReflow = "PackageHardDeleteReflow";
             public const string PackageRevalidate = "PackageRevalidate";
@@ -75,6 +76,8 @@ namespace NuGetGallery
             public const string SearchCircuitBreakerOnBreak = "SearchCircuitBreakerOnBreak";
             public const string SearchCircuitBreakerOnReset = "SearchCircuitBreakerOnReset";
             public const string SearchOnRetry = "SearchOnRetry";
+            public const string SearchSideBySideFeedback = "SearchSideBySideFeedback";
+            public const string SearchSideBySide = "SearchSideBySide";
         }
 
         private IDiagnosticsSource _diagnosticsSource;
@@ -95,7 +98,7 @@ namespace NuGetGallery
         // ODataCustomQuery properties
         public const string IsCustomQuery = "IsCustomQuery";
 
-        // Package push properties
+        // Package event properties
         public const string AuthenticationMethod = "AuthenticationMethod";
         public const string ClientVersion = "ClientVersion";
         public const string ProtocolVersion = "ProtocolVersion";
@@ -105,6 +108,13 @@ namespace NuGetGallery
         public const string KeyCreationDate = "KeyCreationDate";
         public const string PackageId = "PackageId";
         public const string PackageVersion = "PackageVersion";
+        public const string PackageVersions = "PackageVersions";
+
+        // Package deprecate properties
+        public const string DeprecationReason = "PackageDeprecationReason";
+        public const string DeprecationAlternatePackageId = "PackageDeprecationAlternatePackageId";
+        public const string DeprecationAlternatePackageVersion = "PackageDeprecationAlternatePackageVersion";
+        public const string DeprecationCustomMessage = "PackageDeprecationCustomMessage";
 
         // User properties
         public const string RegistrationMethod = "RegistrationMethod";
@@ -175,6 +185,18 @@ namespace NuGetGallery
         public const string SearchName = "SearchName";
         public const string SearchPollyCorrelationId = "SearchPollyCorrelationId";
         public const string SearchCircuitBreakerStatus = "SearchCircuitBreakerStatus";
+
+        // Search side-by-side properties
+        public const string SearchTerm = "SearchTerm";
+        public const string OldHits = "OldHits";
+        public const string OldSuccess = "OldSuccess";
+        public const string NewHits = "NewHits";
+        public const string NewSuccess = "NewSuccess";
+        public const string BetterSide = "BetterSide";
+        public const string MostRelevantPackage = "MostRelevantPackage";
+        public const string ExpectedPackages = "ExpectedPackages";
+        public const string HasComments = "HasComments";
+        public const string HasEmailAddress = "HasEmailAddress";
 
         public TelemetryService(IDiagnosticsService diagnosticsService, ITelemetryClient telemetryClient = null)
         {
@@ -379,6 +401,25 @@ namespace NuGetGallery
             TrackMetricForPackage(Events.PackageRevalidate, package);
         }
 
+        public void TrackPackageDeprecate(
+            IReadOnlyList<Package> packages,
+            PackageDeprecationStatus status,
+            PackageRegistration alternateRegistration,
+            Package alternatePackage,
+            bool hasCustomMessage)
+        {
+            TrackMetricForPackageVersions(
+                Events.PackageDeprecate, 
+                packages,
+                properties =>
+                {
+                    properties.Add(DeprecationReason, ((int)status).ToString());
+                    properties.Add(DeprecationAlternatePackageId, alternateRegistration?.Id ?? alternatePackage?.Id);
+                    properties.Add(DeprecationAlternatePackageVersion, alternatePackage?.NormalizedVersion);
+                    properties.Add(DeprecationCustomMessage, hasCustomMessage.ToString());
+                });
+        }
+
         public void TrackPackageMetadataComplianceError(string packageId, string packageVersion, IEnumerable<string> complianceFailures)
         {
             TrackMetricForPackage(
@@ -498,12 +539,12 @@ namespace NuGetGallery
         }
         private static string GetClientVersion()
         {
-            return HttpContext.Current?.Request?.Headers[GalleryConstants.ClientVersionHeaderName];
+            return HttpContext.Current?.Request?.Headers[ServicesConstants.ClientVersionHeaderName];
         }
 
         private static string GetProtocolVersion()
         {
-            return HttpContext.Current?.Request?.Headers[GalleryConstants.NuGetProtocolHeaderName];
+            return HttpContext.Current?.Request?.Headers[ServicesConstants.NuGetProtocolHeaderName];
         }
 
         private static string GetClientInformation()
@@ -635,6 +676,39 @@ namespace NuGetGallery
             });
         }
 
+        private void TrackMetricForPackageVersions(
+            string metricName,
+            IReadOnlyList<Package> packages,
+            Action<Dictionary<string, string>> addProperties = null)
+        {
+            if (packages == null || !packages.Any() || packages.Select(p => p.PackageRegistrationKey).Distinct().Count() > 1)
+            {
+                throw new ArgumentException(nameof(packages));
+            }
+
+            TrackMetricForPackageVersions(
+                metricName,
+                packages.First().PackageRegistration.Id,
+                packages.Select(p => p.NormalizedVersion).ToList(),
+                addProperties);
+        }
+
+        private void TrackMetricForPackageVersions(
+            string metricName,
+            string packageId,
+            IReadOnlyList<string> packageVersions,
+            Action<Dictionary<string, string>> addProperties = null)
+        {
+            TrackMetric(metricName, packageVersions.Count(), properties => {
+                properties.Add(ClientVersion, GetClientVersion());
+                properties.Add(ProtocolVersion, GetProtocolVersion());
+                properties.Add(ClientInformation, GetClientInformation());
+                properties.Add(PackageId, packageId);
+                properties.Add(PackageVersion, BuildArrayProperty(packageVersions));
+                addProperties?.Invoke(properties);
+            });
+        }
+
         public void TrackUserPackageDeleteChecked(UserPackageDeleteEvent details, UserPackageDeleteOutcome outcome)
         {
             if (details == null)
@@ -714,7 +788,7 @@ namespace NuGetGallery
             }
 
             TrackMetric(Events.AccountDeleteCompleted, 1, properties => {
-                properties.Add(AccountDeletedByRole, string.Join(",", deletedBy.Roles?.Select( role => role.Name) ?? new List<string>()));
+                properties.Add(AccountDeletedByRole, BuildArrayProperty(deletedBy.Roles?.Select(role => role.Name) ?? new string[0]));
                 properties.Add(AccountIsSelfDeleted, $"{deletedUser.Key == deletedBy.Key}");
                 properties.Add(AccountDeletedIsOrganization, $"{deletedUser is Organization}");
                 properties.Add(AccountDeleteSucceeded, $"{success}");
@@ -753,7 +827,7 @@ namespace NuGetGallery
             TrackMetric(Events.TyposquattingCheckResultAndTotalTimeInMs, totalTime.TotalMilliseconds, properties => {
                 properties.Add(PackageId, packageId);
                 properties.Add(WasUploadBlocked, wasUploadBlocked.ToString());
-                properties.Add(CollisionPackageIds, string.Join(",", collisionPackageIds.Take(TyposquattingCollisionIdsMaxPropertyValue)));
+                properties.Add(CollisionPackageIds, BuildArrayProperty(collisionPackageIds.Take(TyposquattingCollisionIdsMaxPropertyValue)));
                 properties.Add(CollisionPackageIdsCount, collisionPackageIds.Count.ToString());
                 properties.Add(CheckListLength, checkListLength.ToString());
                 properties.Add(HasExtraCollisionPackageIds, (collisionPackageIds.Count > TyposquattingCollisionIdsMaxPropertyValue).ToString());
@@ -835,6 +909,45 @@ namespace NuGetGallery
                 properties.Add(SearchCircuitBreakerStatus, circuitBreakerStatus);
             });
         }
+
+        public void TrackSearchSideBySideFeedback(
+            string searchTerm,
+            int oldHits,
+            int newHits,
+            string betterSide,
+            string mostRelevantPackage,
+            string expectedPackages,
+            bool hasComments,
+            bool hasEmailAddress)
+        {
+            TrackMetric(Events.SearchSideBySideFeedback, 1, properties => {
+                properties.Add(SearchTerm, searchTerm);
+                properties.Add(OldHits, oldHits.ToString());
+                properties.Add(NewHits, newHits.ToString());
+                properties.Add(BetterSide, betterSide);
+                properties.Add(MostRelevantPackage, mostRelevantPackage);
+                properties.Add(ExpectedPackages, expectedPackages);
+                properties.Add(HasComments, hasComments.ToString());
+                properties.Add(HasEmailAddress, hasEmailAddress.ToString());
+            });
+        }
+
+        public void TrackSearchSideBySide(
+            string searchTerm,
+            bool oldSuccess,
+            int oldHits,
+            bool newSuccess,
+            int newHits)
+        {
+            TrackMetric(Events.SearchSideBySide, 1, properties => {
+                properties.Add(SearchTerm, searchTerm);
+                properties.Add(OldSuccess, oldSuccess.ToString());
+                properties.Add(OldHits, oldHits.ToString());
+                properties.Add(NewSuccess, newSuccess.ToString());
+                properties.Add(NewHits, newHits.ToString());
+            });
+        }
+
         /// <summary>
         /// We use <see cref="ITelemetryClient.TrackMetric(string, double, IDictionary{string, string})"/> instead of
         /// <see cref="ITelemetryClient.TrackEvent(string, IDictionary{string, string}, IDictionary{string, double})"/>
@@ -847,6 +960,11 @@ namespace NuGetGallery
             addProperties(telemetryProperties);
 
             _telemetryClient.TrackMetric(metricName, value, telemetryProperties);
+        }
+
+        private string BuildArrayProperty(IEnumerable<string> list)
+        {
+            return JsonConvert.SerializeObject(list);
         }
     }
 }

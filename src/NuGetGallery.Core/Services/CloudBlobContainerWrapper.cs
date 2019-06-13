@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
+using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 
 namespace NuGetGallery
@@ -34,9 +35,9 @@ namespace NuGetGallery
             return new CloudBlobWrapper(_blobContainer.GetBlockBlobReference(blobAddressUri));
         }
 
-        public Task<bool> ExistsAsync()
+        public Task<bool> ExistsAsync(BlobRequestOptions blobRequestOptions, OperationContext context)
         {
-            return _blobContainer.ExistsAsync();
+            return _blobContainer.ExistsAsync(blobRequestOptions, context);
         }
 
         public async Task<bool> DeleteIfExistsAsync()

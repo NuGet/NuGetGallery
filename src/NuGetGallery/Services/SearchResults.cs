@@ -3,7 +3,6 @@
 
 using System;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
 using NuGet.Services.Entities;
 
@@ -40,7 +39,7 @@ namespace NuGetGallery
 
         public static bool IsSuccessful(SearchResults searchResults)
         {
-            return searchResults.ResponseMessage?.IsSuccessStatusCode ?? true ;
+            return searchResults.ResponseMessage?.IsSuccessStatusCode ?? true;
         }
     }
 }

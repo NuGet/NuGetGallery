@@ -172,16 +172,11 @@
     <Compile Include="Areas\Admin\Models\DeletedStatus.cs" />
     <Compile Include="Areas\Admin\Models\IssueStatusKeys.cs" />
     <Compile Include="Areas\Admin\Migrations\SupportRequestMigrationsConfiguration.cs" />
-    <Compile Include="Areas\Admin\Models\Admin.cs" />
-    <Compile Include="Areas\Admin\Models\History.cs" />
-    <Compile Include="Areas\Admin\Models\Issue.cs" />
-    <Compile Include="Areas\Admin\Models\IssueStatus.cs" />
     <Compile Include="Areas\Admin\Models\ISupportRequestDbContext.cs" />
     <Compile Include="Areas\Admin\Models\SupportRequestDbContext.cs" />
     <Compile Include="Areas\Admin\Services\RevalidationAdminService.cs" />
     <Compile Include="Areas\Admin\Services\ValidationAdminService.cs" />
     <Compile Include="Areas\Admin\ViewModels\DeleteAccountAsAdminViewModel.cs" />
-    <Compile Include="Areas\Admin\ViewModels\DeleteAccountStatus.cs" />
     <Compile Include="Areas\Admin\ViewModels\FeatureFlagsFeatureViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\FeatureFlagsFlightViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\FeatureFlagsViewModel.cs" />
@@ -196,7 +191,6 @@
     <Compile Include="Areas\Admin\ViewModels\ValidatedPackageViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\RevalidationPageViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\ValidationPageViewModel.cs" />
-    <Compile Include="Areas\Admin\Services\ISupportRequestService.cs" />
     <Compile Include="Areas\Admin\Services\SupportRequestService.cs" />
     <Compile Include="Areas\Admin\ViewModels\DeleteAccountSearchResult.cs" />
     <Compile Include="Areas\Admin\Services\ValidationEntityRepository.cs" />
@@ -220,16 +214,24 @@
     <Compile Include="Authentication\IApiScopeEvaluator.cs" />
     <Compile Include="Authentication\NuGetPackagePattern.cs" />
     <Compile Include="Authentication\PasswordAuthenticationResult.cs" />
-    <Compile Include="Authentication\NuGetScopes.cs" />
     <Compile Include="Authentication\PasswordResetResult.cs" />
     <Compile Include="Authentication\Providers\AuthenticationPolicy.cs" />
     <Compile Include="Authentication\Providers\AuthenticatorT.cs" />
-    <Compile Include="Authentication\Providers\IdentityInformation.cs" />
     <Compile Include="Authentication\Providers\AzureActiveDirectoryV2\AzureActiveDirectoryV2Authenticator.cs" />
     <Compile Include="Authentication\Providers\AzureActiveDirectoryV2\AzureActiveDirectoryV2AuthenticatorConfiguration.cs" />
     <Compile Include="Authentication\Providers\AzureActiveDirectory\AzureActiveDirectoryAuthenticator.cs" />
     <Compile Include="Authentication\Providers\AzureActiveDirectory\AzureActiveDirectoryAuthenticatorConfiguration.cs" />
+    <Compile Include="Controllers\ExperimentsController.cs" />
     <Compile Include="Controllers\ManageDeprecationJsonApiController.cs" />
+    <Compile Include="ExtensionMethods.cs" />
+    <Compile Include="Infrastructure\Lucene\Correlation\CorrelatingHttpClientHandler.cs" />
+    <Compile Include="Infrastructure\Lucene\Correlation\WebApiCorrelationHandler.cs" />
+    <Compile Include="Infrastructure\Lucene\IIndexingJobFactory.cs" />
+    <Compile Include="Infrastructure\Lucene\ISearchClient.cs" />
+    <Compile Include="Infrastructure\Lucene\Models\SearchResults.cs" />
+    <Compile Include="Infrastructure\Lucene\Models\SortOrder.cs" />
+    <Compile Include="Infrastructure\Lucene\ServiceResponse.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\SearchSideBySideMessage.cs" />
     <Compile Include="Migrations\201903020136235_CvesCanBeEmpty.cs" />
     <Compile Include="Migrations\201903020136235_CvesCanBeEmpty.Designer.cs">
       <DependentUpon>201903020136235_CvesCanBeEmpty.cs</DependentUpon>
@@ -266,7 +268,6 @@
     <Compile Include="Queries\IAutocompletePackageVersionsQuery.cs" />
     <Compile Include="Queries\IAutocompletePackageIdsQuery.cs" />
     <Compile Include="Diagnostics\TraceDiagnosticsSourceScope.cs" />
-    <Compile Include="Extensions\ClaimsExtensions.cs" />
     <Compile Include="Configuration\IGalleryConfigurationService.cs" />
     <Compile Include="Configuration\IPackageDeleteConfiguration.cs" />
     <Compile Include="Configuration\IServiceBusConfiguration.cs" />
@@ -274,7 +275,6 @@
     <Compile Include="Configuration\SecretReader\EmptySecretReaderFactory.cs" />
     <Compile Include="Configuration\SecretReader\SecretReaderFactory.cs" />
     <Compile Include="Configuration\ServiceBusConfiguration.cs" />
-    <Compile Include="Configuration\StringArrayConverter.cs" />
     <Compile Include="Controllers\AccountsController.cs" />
     <Compile Include="Controllers\NuGetContext.cs" />
     <Compile Include="Controllers\OrganizationsController.cs" />
@@ -293,7 +293,6 @@
     <Compile Include="Authentication\Providers\ApiKey\ApiKeyAuthenticationHandler.cs" />
     <Compile Include="Authentication\Providers\ApiKey\ApiKeyAuthenticationMiddleware.cs" />
     <Compile Include="Authentication\Providers\ApiKey\ApiKeyAuthenticationOptions.cs" />
-    <Compile Include="Authentication\AuthenticatedUser.cs" />
     <Compile Include="Authentication\AuthenticationService.cs" />
     <Compile Include="Authentication\AuthenticationTypes.cs" />
     <Compile Include="Authentication\AuthDependenciesModule.cs" />
@@ -307,20 +306,14 @@
     <Compile Include="Authentication\Providers\MicrosoftAccount\MicrosoftAccountAuthenticatorConfiguration.cs" />
     <Compile Include="Configuration\ConfigurationService.cs" />
     <Compile Include="Configuration\FeatureConfiguration.cs" />
-    <Compile Include="Configuration\LuceneIndexLocation.cs" />
-    <Compile Include="Configuration\MailAddressConverter.cs" />
     <Compile Include="Configuration\SmtpUri.cs" />
     <Compile Include="Controllers\AppController.cs" />
     <Compile Include="Controllers\ErrorsController.cs" />
     <Compile Include="Controllers\PagesController.cs" />
     <Compile Include="Extensions\HttpExceptionExtensions.cs" />
     <Compile Include="Extensions\OrganizationExtensions.cs" />
-    <Compile Include="Extensions\PrincipalExtensions.cs" />
     <Compile Include="Extensions\RouteExtensions.cs" />
-    <Compile Include="Extensions\ScopeExtensions.cs" />
-    <Compile Include="Extensions\CredentialExtensions.cs" />
     <Compile Include="Extensions\SimulatedErrorTypeExtensions.cs" />
-    <Compile Include="Extensions\UserExtensions.cs" />
     <Compile Include="Filters\ApiScopeRequiredAttribute.cs" />
     <Compile Include="Filters\UIAuthorizeAttribute.cs" />
     <Compile Include="Filters\ValidateRecaptchaResponseAttribute.cs" />
@@ -333,14 +326,10 @@
     <Compile Include="Helpers\StreamHelper.cs" />
     <Compile Include="Helpers\TextHelper.cs" />
     <Compile Include="Helpers\ZipArchiveHelpers.cs" />
-    <Compile Include="Helpers\PermissionsHelpers.cs" />
     <Compile Include="Helpers\RegexEx.cs" />
     <Compile Include="Helpers\RouteUrlTemplate.cs" />
     <Compile Include="Helpers\UploadHelper.cs" />
-    <Compile Include="Helpers\UriExtensions.cs" />
     <Compile Include="Infrastructure\Authentication\ApiKeyV3.cs" />
-    <Compile Include="Infrastructure\Authentication\ApiKeyV4.cs" />
-    <Compile Include="Infrastructure\Authentication\Base32Encoder.cs" />
     <Compile Include="Infrastructure\Lucene\HttpClientWrapper.cs" />
     <Compile Include="Infrastructure\Lucene\IResilientSearchClient.cs" />
     <Compile Include="Infrastructure\Lucene\IHttpClientWrapper.cs" />
@@ -478,22 +467,6 @@
       <DependentUpon>201711021733062_ApiKeyOwnerScope.cs</DependentUpon>
     </Compile>
     <Compile Include="RequestModels\SimulatedErrorType.cs" />
-    <Compile Include="Security\AutomaticOverwriteRequiredSignerPolicy.cs" />
-    <Compile Include="Security\ControlRequiredSignerPolicy.cs" />
-    <Compile Include="Security\MicrosoftTeamSubscription.cs" />
-    <Compile Include="Security\PackageSecurityPolicyEvaluationContext.cs" />
-    <Compile Include="Security\PackageSecurityPolicyHandler.cs" />
-    <Compile Include="Security\RequiredSignerPolicy.cs" />
-    <Compile Include="Security\RequirePackageMetadataCompliancePolicy.cs" />
-    <Compile Include="Security\RequireOrganizationTenantPolicy.cs" />
-    <Compile Include="Security\SecurityPolicyHandler.cs" />
-    <Compile Include="Services\AccountDeletionOrphanPackagePolicy.cs" />
-    <Compile Include="Services\ActionOnNewPackageContext.cs" />
-    <Compile Include="Services\ActionRequiringAccountPermissions.cs" />
-    <Compile Include="Services\ActionRequiringEntityPermissions.cs" />
-    <Compile Include="Services\ActionRequiringPackagePermissions.cs" />
-    <Compile Include="Services\ActionRequiringReservedNamespacePermissions.cs" />
-    <Compile Include="Services\ActionsRequiringPermissions.cs" />
     <Compile Include="Services\AsynchronousPackageValidationInitiator.cs" />
     <Compile Include="Infrastructure\Mail\BackgroundMarkdownMessageService.cs" />
     <Compile Include="Services\FeatureFlagService.cs" />
@@ -501,18 +474,19 @@
     <Compile Include="Services\IFeatureFlagService.cs" />
     <Compile Include="Services\InvalidLicenseUrlValidationMessage.cs" />
     <Compile Include="Services\InvalidUrlEncodingForLicenseUrlValidationMessage.cs" />
+    <Compile Include="Services\ISearchSideBySideService.cs" />
     <Compile Include="Services\ISymbolPackageUploadService.cs" />
     <Compile Include="Services\ISymbolPackageFileService.cs" />
     <Compile Include="Services\ITyposquattingCheckListCacheService.cs" />
-    <Compile Include="Services\ITyposquattingConfiguration.cs" />
-    <Compile Include="Services\ISymbolsConfiguration.cs" />
     <Compile Include="Services\ITyposquattingService.cs" />
     <Compile Include="Services\IValidationMessage.cs" />
     <Compile Include="Services\JsonValidationMessage.cs" />
     <Compile Include="Services\LicenseUrlDeprecationValidationMessage.cs" />
+    <Compile Include="Services\PackageDeleteService.cs" />
     <Compile Include="Services\PackageDeprecationService.cs" />
     <Compile Include="Services\PackageShouldNotBeSignedUserFixableValidationMessage.cs" />
     <Compile Include="Services\PlainTextOnlyValidationMessage.cs" />
+    <Compile Include="Services\SearchSideBySideService.cs" />
     <Compile Include="Services\SymbolPackageValidationResult.cs" />
     <Compile Include="Services\FlatContainerContentFileMetadataService.cs" />
     <Compile Include="Infrastructure\Mail\MarkdownMessageService.cs" />
@@ -520,28 +494,15 @@
     <Compile Include="Services\SymbolPackageFileService.cs" />
     <Compile Include="Services\SymbolPackageService.cs" />
     <Compile Include="Services\TyposquattingCheckListCacheService.cs" />
-    <Compile Include="Services\TyposquattingConfiguration.cs" />
-    <Compile Include="Services\SymbolsConfiguration.cs" />
-    <Compile Include="Services\CertificatesConfiguration.cs" />
     <Compile Include="Services\CertificateService.cs" />
     <Compile Include="Services\CertificateValidator.cs" />
     <Compile Include="Services\CloudBlobFileStorageService.cs" />
-    <Compile Include="Services\DeleteAccountService.cs" />
-    <Compile Include="Services\IActionRequiringEntityPermissions.cs" />
     <Compile Include="Services\ICertificateService.cs" />
-    <Compile Include="Services\ICertificatesConfiguration.cs" />
     <Compile Include="Services\ICertificateValidator.cs" />
-    <Compile Include="Services\IDeleteAccountService.cs" />
-    <Compile Include="Services\IFileStorageService.cs" />
-    <Compile Include="Services\IContentObjectService.cs" />
     <Compile Include="Services\ImmediatePackageValidator.cs" />
-    <Compile Include="Services\ContentObjectService.cs" />
     <Compile Include="Services\ISymbolPackageService.cs" />
     <Compile Include="Services\PackageCommitResult.cs" />
-    <Compile Include="Services\PackageOwnershipManagementService.cs" />
-    <Compile Include="Services\IPackageOwnershipManagementService.cs" />
     <Compile Include="Services\IPackageValidationInitiator.cs" />
-    <Compile Include="Services\ITelemetryClient.cs" />
     <Compile Include="Infrastructure\HttpStatusCodeWithServerWarningResult.cs" />
     <Compile Include="Migrations\201704191802404_AddIndexPackageRegistrationKeySemVer.cs" />
     <Compile Include="Migrations\201704191802404_AddIndexPackageRegistrationKeySemVer.Designer.cs">
@@ -596,50 +557,28 @@
       <DependentUpon>201709202249402_AddPackageOwnershipRequestsPage.cs</DependentUpon>
     </Compile>
     <Compile Include="RequestModels\ReadMeRequest.cs" />
-    <Compile Include="Security\DefaultSubscription.cs" />
-    <Compile Include="Security\RequireMinProtocolVersionForPushPolicy.cs" />
-    <Compile Include="Security\IUserSecurityPolicySubscription.cs" />
     <Compile Include="OData\Serializers\FeedPackageAnnotationStrategy.cs" />
     <Compile Include="OData\Serializers\IFeedPackageAnnotationStrategy.cs" />
     <Compile Include="OData\Serializers\V1FeedPackageAnnotationStrategy.cs" />
     <Compile Include="OData\Serializers\V2FeedPackageAnnotationStrategy.cs" />
-    <Compile Include="Security\UserSecurityPolicyHandler.cs" />
-    <Compile Include="Security\ISecurityPolicyService.cs" />
-    <Compile Include="Security\RequirePackageVerifyScopePolicy.cs" />
-    <Compile Include="Security\SecurityPolicyAction.cs" />
-    <Compile Include="Security\SecurityPolicyService.cs" />
-    <Compile Include="Security\UserSecurityPolicyEvaluationContext.cs" />
-    <Compile Include="Security\SecurityPolicyResult.cs" />
-    <Compile Include="Security\UserSecurityPolicySubscriptionContext.cs" />
-    <Compile Include="Services\IPackageOwnerRequestService.cs" />
     <Compile Include="Services\IReadMeService.cs" />
     <Compile Include="Services\IValidationService.cs" />
     <Compile Include="Services\PackageOwnerRequestService.cs" />
     <Compile Include="Services\PackageUploadService.cs" />
-    <Compile Include="Services\IReservedNamespaceService.cs" />
     <Compile Include="Services\IPackageUploadService.cs" />
-    <Compile Include="Services\LoginDiscontinuationConfiguration.cs" />
     <Compile Include="Services\PackageValidationResult.cs" />
     <Compile Include="Services\PackageValidationResultType.cs" />
-    <Compile Include="Services\PermissionsCheckResult.cs" />
-    <Compile Include="Services\PermissionsRequirement.cs" />
-    <Compile Include="Services\ReservedNamespaceService.cs" />
     <Compile Include="Services\ReadMeService.cs" />
-    <Compile Include="Services\TelemetryClientWrapper.cs" />
     <Compile Include="Services\TyposquattingService.cs" />
     <Compile Include="Services\TyposquattingDistanceCalculation.cs" />
     <Compile Include="Services\TyposquattingStringNormalization.cs" />
     <Compile Include="Services\ValidationService.cs" />
     <Compile Include="Telemetry\ClientInformationTelemetryEnricher.cs" />
     <Compile Include="Telemetry\ClientTelemetryPIIProcessor.cs" />
-    <Compile Include="Telemetry\Obfuscator.cs" />
+    <Compile Include="Telemetry\DeploymentIdTelemetryEnricher.cs" />
     <Compile Include="Telemetry\QuietExceptionLogger.cs" />
-    <Compile Include="Infrastructure\Authentication\CredentialBuilder.cs" />
     <Compile Include="Infrastructure\Authentication\CredentialValidator.cs" />
-    <Compile Include="Infrastructure\Authentication\ICredentialBuilder.cs" />
     <Compile Include="Infrastructure\Authentication\ICredentialValidator.cs" />
-    <Compile Include="Infrastructure\DateTimeProvider.cs" />
-    <Compile Include="Infrastructure\IDateTimeProvider.cs" />
     <Compile Include="Infrastructure\PasswordValidationAttribute.cs" />
     <Compile Include="Migrations\201602181939424_RemovePackageStatistics.cs" />
     <Compile Include="Migrations\201602181939424_RemovePackageStatistics.Designer.cs">
@@ -747,15 +686,10 @@
     </Compile>
     <Compile Include="Extensions\HttpRequestExtensions.cs" />
     <Compile Include="Helpers\HostMachine.cs" />
-    <Compile Include="Telemetry\AppInsightsHealthIndicatorLogger.cs" />
     <Compile Include="Infrastructure\DependencyResolverServiceProviderAdapter.cs" />
     <Compile Include="Infrastructure\Lucene\CloudDownloadCountServiceRefreshJob.cs" />
     <Compile Include="Infrastructure\MessageQueue.cs" />
     <Compile Include="Diagnostics\TraceDiagnosticsSource.cs" />
-    <Compile Include="Diagnostics\DiagnosticsSourceExtensions.cs" />
-    <Compile Include="Configuration\StorageType.cs" />
-    <Compile Include="Telemetry\UserPackageDeleteEvent.cs" />
-    <Compile Include="Telemetry\UserPackageDeleteOutcome.cs" />
     <Compile Include="UrlHelperExtensions.cs" />
     <Compile Include="ViewModels\AddOrganizationViewModel.cs" />
     <Compile Include="ViewModels\AddPackageOwnerViewModel.cs" />
@@ -768,6 +702,7 @@
     <Compile Include="ViewModels\HandleOrganizationMembershipRequestModel.cs" />
     <Compile Include="ViewModels\ListPackageItemRequiredSignerViewModel.cs" />
     <Compile Include="ViewModels\ManagePackageViewModel.cs" />
+    <Compile Include="ViewModels\SearchSideBySideViewModel.cs" />
     <Compile Include="ViewModels\SignerViewModel.cs" />
     <Compile Include="WebRole.cs" />
     <Compile Include="Areas\Admin\AdminAreaRegistration.cs" />
@@ -1018,12 +953,9 @@
     <Compile Include="Filters\CompressFilter.cs" />
     <Compile Include="Filters\RequiresAccountConfirmationAttribute.cs" />
     <Compile Include="Helpers\AccordeonHelper.cs" />
-    <Compile Include="Helpers\HttpContextBaseExtensions.cs" />
     <Compile Include="Helpers\EnumHelper.cs" />
     <Compile Include="Helpers\FileHelper.cs" />
     <Compile Include="Helpers\HtmlExtensions.cs" />
-    <Compile Include="Helpers\PackageHelper.cs" />
-    <Compile Include="Telemetry\QuietLog.cs" />
     <Compile Include="Helpers\StringExtensions.cs" />
     <Compile Include="Helpers\StatisticsHelper.cs" />
     <Compile Include="Helpers\TreeView.cs" />
@@ -1305,10 +1237,8 @@
     <Compile Include="RequestModels\EditPackageVersionRequest.cs" />
     <Compile Include="RequestModels\VerifyPackageRequest.cs" />
     <Compile Include="Infrastructure\Authentication\LegacyHasher.cs" />
-    <Compile Include="Infrastructure\Authentication\V3Hasher.cs" />
     <Compile Include="Services\AllowLocalHttpRedirectPolicy.cs" />
     <Compile Include="Services\ISourceDestinationRedirectPolicy.cs" />
-    <Compile Include="Services\ITelemetryService.cs" />
     <Compile Include="Services\NoLessSecureDestinationRedirectPolicy.cs" />
     <Compile Include="Services\ReflowPackageService.cs" />
     <Compile Include="Services\TelemetryService.cs" />
@@ -1322,7 +1252,6 @@
     <Compile Include="ViewModels\ListPackageOwnerViewModel.cs" />
     <Compile Include="ViewModels\OrganizationAccountViewModel.cs" />
     <Compile Include="ViewModels\OrganizationMemberViewModel.cs" />
-    <Compile Include="ViewModels\PackageDeleteDecision.cs" />
     <Compile Include="ViewModels\DeleteAccountViewModel.cs" />
     <Compile Include="ViewModels\ApiKeyOwnerViewModel.cs" />
     <Compile Include="ViewModels\PackageOwnersResultViewModel.cs" />
@@ -1503,8 +1432,6 @@
     <Compile Include="Services\CloudDownloadCountService.cs" />
     <Compile Include="Services\ConfirmOwnershipResult.cs" />
     <Compile Include="Services\DownloadCountObjectMaterializedInterceptor.cs" />
-    <Compile Include="Services\ContentService.cs" />
-    <Compile Include="Services\IContentService.cs" />
     <Compile Include="Services\IDownloadCountService.cs" />
     <Compile Include="Services\IPackageDeleteService.cs" />
     <Compile Include="Services\IRawSearchService.cs" />
@@ -1516,14 +1443,12 @@
     <Compile Include="Services\ICacheService.cs" />
     <Compile Include="Services\IStatisticsService.cs" />
     <Compile Include="Services\FileSystemFileStorageService.cs" />
-    <Compile Include="Services\IIndexingService.cs" />
     <Compile Include="Services\IAggregateStatsService.cs" />
     <Compile Include="Services\ISearchService.cs" />
     <Compile Include="Services\IUploadFileService.cs" />
     <Compile Include="Services\LocalFileReference.cs" />
     <Compile Include="Services\NullReportService.cs" />
     <Compile Include="Services\NullStatisticsService.cs" />
-    <Compile Include="Services\PackageDeleteService.cs" />
     <Compile Include="Services\PackageFileService.cs" />
     <Compile Include="Services\PackageSearchResults.cs" />
     <Compile Include="Services\JsonAggregateStatsService.cs" />
@@ -1539,7 +1464,6 @@
     <Compile Include="ViewModels\ContactSupportViewModel.cs" />
     <Compile Include="ViewModels\DeletePackageViewModel.cs" />
     <Compile Include="ViewModels\LogOnViewModel.cs" />
-    <Compile Include="ViewModels\ReportPackageReason.cs" />
     <Compile Include="ViewModels\StatisticsWeeklyUsageItem.cs" />
     <Compile Include="ViewModels\StatisticsNuGetUsageItem.cs" />
     <Compile Include="ViewModels\StatisticsFact.cs" />
@@ -1567,23 +1491,16 @@
     <Compile Include="App_Start\Routes.cs" />
     <Compile Include="Services\FileSystemService.cs" />
     <Compile Include="Services\IFileSystemService.cs" />
-    <Compile Include="Services\IPackageService.cs" />
-    <Compile Include="Services\PackageService.cs" />
-    <Compile Include="Configuration\AppConfiguration.cs" />
     <Compile Include="App_Start\DefaultDependenciesModule.cs" />
-    <Compile Include="ExtensionMethods.cs" />
     <Compile Include="Services\FormsAuthenticationService.cs" />
-    <Compile Include="Configuration\IAppConfiguration.cs" />
     <Compile Include="Services\IFormsAuthenticationService.cs" />
     <Compile Include="Services\IPackageFileService.cs" />
-    <Compile Include="Services\IUserService.cs" />
     <Compile Include="RequestModels\DisplayPackageRequest.cs" />
     <Compile Include="Strings.Designer.cs">
       <DependentUpon>Strings.resx</DependentUpon>
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </Compile>
-    <Compile Include="Services\UserService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.*.cs" />
     <Compile Include="RequestModels\SubmitPackageRequest.cs" />
@@ -1968,6 +1885,8 @@
     <Content Include="Views\Packages\_ManageDeprecation.cshtml" />
     <Content Include="Views\Shared\_MultiSelectDropdown.cshtml" />
     <Content Include="Views\Packages\_DisplayPackageDeprecation.cshtml" />
+    <Content Include="Views\Experiments\SearchSideBySide.cshtml" />
+    <Content Include="Views\Api\HealthProbeApi.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
@@ -2128,12 +2047,9 @@
   <ItemGroup>
     <Folder Include="Areas\Admin\DynamicData\CustomPages\" />
     <Folder Include="Areas\Admin\Views\Shared\" />
+    <Folder Include="Security\" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\NuGet.Services.Search.Client\NuGet.Services.Search.Client.csproj">
-      <Project>{6931c2ee-e081-4518-9798-d34d83b35bf6}</Project>
-      <Name>NuGet.Services.Search.Client</Name>
-    </ProjectReference>
     <ProjectReference Include="..\NuGet.Services.Entities\NuGet.Services.Entities.csproj">
       <Project>{6262f4fc-29be-4226-b676-db391c89d396}</Project>
       <Name>NuGet.Services.Entities</Name>
@@ -2141,6 +2057,10 @@
     <ProjectReference Include="..\NuGetGallery.Core\NuGetGallery.Core.csproj">
       <Project>{097b2cdd-9623-4c34-93c2-d373d51f5b4e}</Project>
       <Name>NuGetGallery.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NuGetGallery.Services\NuGetGallery.Services.csproj">
+      <Project>{c7d5e850-33fa-4ec5-8d7f-b1c8dd5d48f9}</Project>
+      <Name>NuGetGallery.Services</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
@@ -2160,7 +2080,7 @@
       <Version>2.2.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Licenses">
-      <Version>2.46.0</Version>
+      <Version>2.50.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.StrongName.AnglicanGeek.MarkdownMailer">
       <Version>1.2.0</Version>
@@ -2308,17 +2228,8 @@
     <PackageReference Include="Microsoft.Bcl.Compression">
       <Version>3.9.85</Version>
     </PackageReference>
-    <PackageReference Include="Microsoft.Data.Edm">
-      <Version>5.7.0</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Data.OData">
-      <Version>5.7.0</Version>
-    </PackageReference>
     <PackageReference Include="Microsoft.Data.Services">
-      <Version>5.7.0</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Data.Services.Client">
-      <Version>5.7.0</Version>
+      <Version>5.8.4</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Logging">
       <Version>2.2.0</Version>
@@ -2374,9 +2285,6 @@
     <PackageReference Include="MvcTreeView">
       <Version>1.4.0</Version>
     </PackageReference>
-    <PackageReference Include="Newtonsoft.Json">
-      <Version>9.0.1</Version>
-    </PackageReference>
     <PackageReference Include="NuGet.Configuration">
       <Version>5.0.0-preview1.5665</Version>
     </PackageReference>
@@ -2384,16 +2292,13 @@
       <Version>5.0.0-preview1.5665</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.KeyVault">
-      <Version>2.46.0</Version>
-    </PackageReference>
-    <PackageReference Include="NuGet.Services.Logging">
-      <Version>2.46.0</Version>
+      <Version>2.50.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Owin">
-      <Version>2.46.0</Version>
+      <Version>2.50.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Sql">
-      <Version>2.46.0</Version>
+      <Version>2.50.0</Version>
     </PackageReference>
     <PackageReference Include="Owin">
       <Version>1.0.0</Version>
@@ -2441,7 +2346,7 @@
       <Version>4.1.3</Version>
     </PackageReference>
     <PackageReference Include="WindowsAzure.Storage">
-      <Version>7.1.2</Version>
+      <Version>9.3.3</Version>
     </PackageReference>
   </ItemGroup>
   <PropertyGroup>

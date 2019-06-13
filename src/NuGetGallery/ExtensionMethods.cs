@@ -26,10 +26,6 @@ namespace NuGetGallery
 {
     public static class ExtensionMethods
     {
-        public static void AddOrSet<TKey, TValue>(this ConcurrentDictionary<TKey, TValue> self, TKey key, TValue val)
-        {
-            self.AddOrUpdate(key, val, (_, __) => val);
-        }
 
         public static SecureString ToSecureString(this string str)
         {
@@ -40,141 +36,6 @@ namespace NuGetGallery
             }
             output.MakeReadOnly();
             return output;
-        }
-
-        public static string ToStringOrNull(this object obj)
-        {
-            if (obj == null)
-            {
-                return null;
-            }
-
-            return obj.ToString();
-        }
-
-        public static string ToEncodedUrlStringOrNull(this Uri uri)
-        {
-            if (uri == null)
-            {
-                return null;
-            }
-
-            return uri.AbsoluteUri;
-        }
-
-        public static string ToStringSafe(this object obj)
-        {
-            if (obj != null)
-            {
-                return obj.ToString();
-            }
-            return String.Empty;
-        }
-
-        public static IEnumerable<PackageDependency> AsPackageDependencyEnumerable(this IEnumerable<PackageDependencyGroup> dependencyGroups)
-        {
-            foreach (var dependencyGroup in dependencyGroups)
-            {
-                if (!dependencyGroup.Packages.Any())
-                {
-                    yield return new PackageDependency
-                    {
-                        Id = null,
-                        VersionSpec = null,
-                        TargetFramework = dependencyGroup.TargetFramework.ToShortNameOrNull()
-                    };
-                }
-                else
-                {
-                    foreach (var dependency in dependencyGroup.Packages.Select(
-                        d => new { d.Id, d.VersionRange, dependencyGroup.TargetFramework }))
-                    {
-                        yield return new PackageDependency
-                        {
-                            Id = dependency.Id,
-                            VersionSpec = dependency.VersionRange?.ToString(),
-                            TargetFramework = dependency.TargetFramework.ToShortNameOrNull()
-                        };
-                    }
-                }
-            }
-        }
-
-        public static IEnumerable<PackageType> AsPackageTypeEnumerable(this IEnumerable<NuGet.Packaging.Core.PackageType> packageTypes)
-        {
-            foreach (var packageType in packageTypes)
-            {
-                yield return new PackageType
-                {
-                    Name = packageType.Name,
-                    Version = packageType.Version.ToString()
-                };
-            }
-
-        }
-
-        public static string Flatten(this IEnumerable<string> list)
-        {
-            if (list == null)
-            {
-                return String.Empty;
-            }
-
-            return String.Join(", ", list.ToArray());
-        }
-
-        public static string Flatten(this IEnumerable<PackageDependencyGroup> dependencyGroups)
-        {
-            return FlattenDependencies(
-                AsPackageDependencyEnumerable(dependencyGroups).ToList());
-        }
-
-        public static string Flatten(this IEnumerable<PackageType> packageTypes)
-        {
-            return String.Join("|", packageTypes.Select(d => String.Format(CultureInfo.InvariantCulture, "{0}:{1}", d.Name, d.Version)));
-        }
-
-        public static string Flatten(this ICollection<PackageDependency> dependencies)
-        {
-            return
-                FlattenDependencies(
-                    dependencies.Select(
-                        d => new { d.Id, VersionSpec = d.VersionSpec.ToStringSafe(), TargetFramework = d.TargetFramework.ToStringSafe() }));
-        }
-
-        private static string FlattenDependencies(IEnumerable<dynamic> dependencies)
-        {
-            return String.Join(
-                "|", dependencies.Select(d => String.Format(CultureInfo.InvariantCulture, "{0}:{1}:{2}", d.Id, d.VersionSpec, d.TargetFramework)));
-        }
-
-        public static HelperResult Flatten<T>(this IEnumerable<T> items, Func<T, HelperResult> template)
-        {
-            if (items == null)
-            {
-                return null;
-            }
-            var formattedItems = items.Select(item => template(item).ToHtmlString());
-
-            return new HelperResult(writer => { writer.Write(String.Join(", ", formattedItems.ToArray())); });
-        }
-
-        public static bool AnySafe<T>(this IEnumerable<T> items)
-        {
-            if (items == null)
-            {
-                return false;
-            }
-            return items.Any();
-        }
-
-        public static bool AnySafe<T>(this IEnumerable<T> items, Func<T, bool> predicate)
-        {
-            if (items == null)
-            {
-                return false;
-            }
-            return items.Any(predicate);
         }
 
         // apple polish!
@@ -372,25 +233,6 @@ namespace NuGetGallery
             { "aria-live", "assertive" },
         };
 
-        public static string ToShortNameOrNull(this NuGetFramework frameworkName)
-        {
-            if (frameworkName == null)
-            {
-                return null;
-            }
-
-            var shortFolderName = frameworkName.GetShortFolderName();
-
-            // If the shortFolderName is "any", we want to return null to preserve NuGet.Core
-            // compatibility in the V2 feed.
-            if (String.Equals(shortFolderName, "any", StringComparison.OrdinalIgnoreCase))
-            {
-                return null;
-            }
-
-            return shortFolderName;
-        }
-
         public static string ToFriendlyName(this NuGetFramework frameworkName, bool allowRecurseProfile = true)
         {
             if (frameworkName == null)
@@ -443,45 +285,6 @@ namespace NuGetGallery
                 }
             }
             return sb.ToString();
-        }
-
-        // This is a method because the first call will perform a database call
-        /// <summary>
-        /// Get the current user, from the database, or if someone in this request has already
-        /// retrieved it, from memory. This will NEVER return null. It will throw an exception
-        /// that will yield an HTTP 401 if it would return null. As a result, it should only
-        /// be called in actions with the Authorize attribute or a Request.IsAuthenticated check
-        /// </summary>
-        /// <returns>The current user</returns>
-        public static User GetCurrentUser(this IOwinContext self)
-        {
-            if (self.Request.User == null || 
-                (self.Request.User.Identity != null && !self.Request.User.Identity.IsAuthenticated))
-            {
-                return null;
-            }
-
-            User user = null;
-            object obj;
-            if (self.Environment.TryGetValue(GalleryConstants.CurrentUserOwinEnvironmentKey, out obj))
-            {
-                user = obj as User;
-            }
-
-            if (user == null)
-            {
-                user = LoadUser(self);
-                self.Environment[GalleryConstants.CurrentUserOwinEnvironmentKey] = user;
-            }
-
-            if (user == null)
-            {
-                // Unauthorized! If we get here it's because a valid session token was presented, but the
-                // user doesn't exist any more. So we just have a generic error.
-                throw new HttpException(401, Strings.Unauthorized);
-            }
-
-            return user;
         }
 
         /// <summary>

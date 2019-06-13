@@ -43,7 +43,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="MigrationTargetDatabaseArgumentNames.cs" />
     <Compile Include="SupportRequestDbMigrationContext.cs" />
     <Compile Include="GalleryDbMigrationContext.cs" />
     <Compile Include="MigrationContextFactory.cs" />
@@ -55,9 +54,6 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Autofac.Extensions.DependencyInjection">
-      <Version>4.2.0</Version>
-    </PackageReference>
     <PackageReference Include="EntityFramework">
       <Version>6.2.0</Version>
     </PackageReference>
@@ -65,15 +61,6 @@
       <Version>0.3.0</Version>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.Configuration">
-      <Version>1.1.2</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions">
-      <Version>1.1.2</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.Configuration.Binder">
-      <Version>1.1.2</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables">
       <Version>1.1.2</Version>
@@ -84,12 +71,6 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.Json">
       <Version>1.1.2</Version>
     </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.Logging">
-      <Version>1.0.0</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.Options">
-      <Version>1.1.2</Version>
-    </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions">
       <Version>1.1.2</Version>
     </PackageReference>
@@ -97,10 +78,10 @@
       <Version>4.1.0-master-2602271</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Configuration">
-      <Version>2.46.0</Version>
+      <Version>2.50.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Validation">
-      <Version>2.47.0-master-2652814</Version>
+      <Version>2.50.0</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
@@ -126,4 +107,11 @@
   </PropertyGroup>
   <Import Project="$(SignPath)\sign.targets" Condition="Exists('$(SignPath)\sign.targets')" />
   <Import Project="$(SignPath)\sign.microbuild.targets" Condition="Exists('$(SignPath)\sign.microbuild.targets')" />
+  <ItemGroup>
+    <PowerShellScriptsToNotSign Include="PreDeploy.ps1" Visible="false" />
+    <PowerShellScriptsToNotSign Include="Functions.ps1" Visible="false" />
+    <ExecutablesToNotSign Include="nssm.exe" Visible="false" />
+  </ItemGroup>
+  <Import Project="$(SignPath)\sign.scripts.targets" Condition="Exists('$(SignPath)\sign.scripts.targets')" />
+  <Import Project="..\..\sign.thirdparty.targets" />
 </Project>

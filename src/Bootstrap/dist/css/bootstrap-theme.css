@@ -60,6 +60,7 @@ body h3 {
 .footer .container {
   margin-top: 50px;
   margin-bottom: 50px;
+  background-color: #002440;
 }
 .footer a {
   color: #e3ebf1;
@@ -1399,6 +1400,62 @@ img.reserved-indicator-icon {
 .page-reset-password .reset-form {
   margin-top: 80px;
 }
+.page-search-sxs h1 {
+  font-size: 34px;
+  border-bottom: 1px solid lightgray;
+}
+.page-search-sxs h2 {
+  font-size: 28px;
+  margin-top: 0;
+}
+.page-search-sxs .list-packages .package {
+  padding-top: 0;
+}
+.page-search-sxs .list-packages .package .package-details,
+.page-search-sxs .list-packages .package .package-list,
+.page-search-sxs .list-packages .package .package-by {
+  line-height: 16px;
+  font-size: 13px;
+}
+.page-search-sxs .list-packages .package .package-details,
+.page-search-sxs .list-packages .package .package-list {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.page-search-sxs .list-packages .package .package-details li,
+.page-search-sxs .list-packages .package .package-list li {
+  display: inline;
+}
+.page-search-sxs .list-packages .package .package-list {
+  margin-top: 4px;
+  margin-bottom: 4px;
+}
+.page-search-sxs .list-packages .package .package-list li + li {
+  margin-left: 10px;
+  padding-left: 10px;
+  border-left-style: solid;
+  border-width: 1px;
+  border-color: #dbdbdb;
+}
+.page-search-sxs .list-packages .package .package-header .reserved-indicator {
+  width: 15px;
+}
+.page-search-sxs .radio label {
+  margin-right: 30px;
+}
+.page-search-sxs .list-packages .package .package-header .package-title {
+  font-size: 20px;
+}
+.page-search-sxs .col-package-icon {
+  padding-right: 0;
+}
+.page-search-sxs .package .package-legacy-title {
+  display: none;
+}
+.page-search-sxs .panel-body p:last-child {
+  margin-bottom: 0;
+}
 .page-sign-in .deprecate-alert {
   margin-top: -15px;
   padding: 0px;
@@ -1627,7 +1684,7 @@ img.reserved-indicator-icon {
   color: green;
 }
 .page-status .ms-Icon--Warning {
-  color: yellow;
+  color: orange;
 }
 .page-status .ms-Icon--Cancel {
   color: red;

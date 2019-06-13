@@ -15,6 +15,12 @@
       "SiteAdmins": true,
       "Accounts": [],
       "Domains": []
+    },
+    "NuGetGallery.SearchSideBySide": {
+      "All": true,
+      "SiteAdmins": false,
+      "Accounts": [],
+      "Domains": []
     }
   }
 }

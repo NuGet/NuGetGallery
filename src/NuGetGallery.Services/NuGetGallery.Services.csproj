@@ -1,0 +1,223 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{C7D5E850-33FA-4EC5-8D7F-B1C8DD5D48F9}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>NuGetGallery.Services</RootNamespace>
+    <AssemblyName>NuGetGallery.Services</AssemblyName>
+    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AccountManagement\AccountDeletionOrphanPackagePolicy.cs" />
+    <Compile Include="AccountManagement\DeleteAccountService.cs" />
+    <Compile Include="AccountManagement\DeleteAccountStatus.cs" />
+    <Compile Include="AccountManagement\IDeleteAccountService.cs" />
+    <Compile Include="Authentication\ApiKeyV4.cs" />
+    <Compile Include="Authentication\AuthenticatedUser.cs" />
+    <Compile Include="Authentication\CredentialBuilder.cs" />
+    <Compile Include="Authentication\IAuthenticationService.cs" />
+    <Compile Include="Authentication\ICredentialBuilder.cs" />
+    <Compile Include="Authentication\IdentityInformation.cs" />
+    <Compile Include="Authentication\NuGetScopes.cs" />
+    <Compile Include="Authentication\V3Hasher.cs" />
+    <Compile Include="Configuration\AppConfiguration.cs" />
+    <Compile Include="Configuration\CertificatesConfiguration.cs" />
+    <Compile Include="Configuration\IAppConfiguration.cs" />
+    <Compile Include="Configuration\ICertificatesConfiguration.cs" />
+    <Compile Include="Configuration\ILoginDiscontinuationConfiguration.cs" />
+    <Compile Include="Configuration\ISymbolsConfiguration.cs" />
+    <Compile Include="Configuration\ITyposquattingConfiguration.cs" />
+    <Compile Include="Configuration\LoginDiscontinuationConfiguration.cs" />
+    <Compile Include="Configuration\SymbolsConfiguration.cs" />
+    <Compile Include="Configuration\TyposquattingConfiguration.cs" />
+    <Compile Include="Extensions\Base32Encoder.cs" />
+    <Compile Include="Extensions\ClaimsExtensions.cs" />
+    <Compile Include="Extensions\CredentialExtensions.cs" />
+    <Compile Include="Extensions\HttpContextBaseExtensions.cs" />
+    <Compile Include="Extensions\IEnumerableExtensions.cs" />
+    <Compile Include="Extensions\IOwinContextExtensions.cs" />
+    <Compile Include="Extensions\ObjectExtensions.cs" />
+    <Compile Include="Extensions\PackageExtensions.cs" />
+    <Compile Include="Extensions\PrincipalExtensions.cs" />
+    <Compile Include="Extensions\ScopeExtensions.cs" />
+    <Compile Include="Extensions\UriExtensions.cs" />
+    <Compile Include="Extensions\UserExtensions.cs" />
+    <Compile Include="Helpers\MailAddressConverter.cs" />
+    <Compile Include="Helpers\StringArrayConverter.cs" />
+    <Compile Include="Models\LuceneIndexLocation.cs" />
+    <Compile Include="Models\ReportPackageReason.cs" />
+    <Compile Include="Models\StorageType.cs" />
+    <Compile Include="PackageManagement\ActionOnNewPackageContext.cs" />
+    <Compile Include="PackageManagement\IPackageOwnerRequestService.cs" />
+    <Compile Include="PackageManagement\IIndexingService.cs" />
+    <Compile Include="PackageManagement\IPackageOwnershipManagementService.cs" />
+    <Compile Include="PackageManagement\IPackageService.cs" />
+    <Compile Include="PackageManagement\IPackageUpdateService.cs" />
+    <Compile Include="PackageManagement\IReservedNamespaceService.cs" />
+    <Compile Include="PackageManagement\PackageDeleteDecision.cs" />
+    <Compile Include="PackageManagement\PackageHelper.cs" />
+    <Compile Include="PackageManagement\PackageOwnershipManagementService.cs" />
+    <Compile Include="PackageManagement\PackageService.cs" />
+    <Compile Include="PackageManagement\ReservedNamespaceService.cs" />
+    <Compile Include="Permissions\ActionRequiringAccountPermissions.cs" />
+    <Compile Include="Permissions\ActionRequiringEntityPermissions.cs" />
+    <Compile Include="Permissions\ActionRequiringPackagePermissions.cs" />
+    <Compile Include="Permissions\ActionRequiringReservedNamespacePermissions.cs" />
+    <Compile Include="Permissions\ActionsRequiringPermissions.cs" />
+    <Compile Include="Permissions\IActionRequiringEntityPermissions.cs" />
+    <Compile Include="Permissions\PermissionsCheckResult.cs" />
+    <Compile Include="Permissions\PermissionsHelpers.cs" />
+    <Compile Include="Permissions\PermissionsRequirement.cs" />
+    <Compile Include="PackageManagement\PackageUpdateService.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Providers\DateTimeProvider.cs" />
+    <Compile Include="Providers\IDateTimeProvider.cs" />
+    <Compile Include="Security\AutomaticOverwriteRequiredSignerPolicy.cs" />
+    <Compile Include="Security\ControlRequiredSignerPolicy.cs" />
+    <Compile Include="Security\DefaultSubscription.cs" />
+    <Compile Include="Security\ISecurityPolicyService.cs" />
+    <Compile Include="Security\IUserSecurityPolicySubscription.cs" />
+    <Compile Include="Security\MicrosoftTeamSubscription.cs" />
+    <Compile Include="Security\PackageSecurityPolicyEvaluationContext.cs" />
+    <Compile Include="Security\PackageSecurityPolicyHandler.cs" />
+    <Compile Include="Security\RequiredSignerPolicy.cs" />
+    <Compile Include="Security\RequireMinProtocolVersionForPushPolicy.cs" />
+    <Compile Include="Security\RequireOrganizationTenantPolicy.cs" />
+    <Compile Include="Security\RequirePackageMetadataCompliancePolicy.cs" />
+    <Compile Include="Security\RequirePackageVerifyScopePolicy.cs" />
+    <Compile Include="Security\SecurityPolicyAction.cs" />
+    <Compile Include="Security\SecurityPolicyHandler.cs" />
+    <Compile Include="Security\SecurityPolicyResult.cs" />
+    <Compile Include="Security\SecurityPolicyService.cs" />
+    <Compile Include="Security\UserSecurityPolicyEvaluationContext.cs" />
+    <Compile Include="Security\UserSecurityPolicyHandler.cs" />
+    <Compile Include="Security\UserSecurityPolicySubscriptionContext.cs" />
+    <Compile Include="Storage\ContentObjectService.cs" />
+    <Compile Include="Storage\ContentService.cs" />
+    <Compile Include="Storage\IContentObjectService.cs" />
+    <Compile Include="Storage\IContentService.cs" />
+    <Compile Include="Storage\IFileStorageService.cs" />
+    <Compile Include="SupportRequest\Admin.cs" />
+    <Compile Include="SupportRequest\History.cs" />
+    <Compile Include="SupportRequest\Issue.cs" />
+    <Compile Include="SupportRequest\IssueStatus.cs" />
+    <Compile Include="SupportRequest\ISupportRequestService.cs" />
+    <Compile Include="Telemetry\ITelemetryClient.cs" />
+    <Compile Include="Telemetry\ITelemetryService.cs" />
+    <Compile Include="Telemetry\Obfuscator.cs" />
+    <Compile Include="Telemetry\QuietLog.cs" />
+    <Compile Include="Telemetry\TelemetryClientWrapper.cs" />
+    <Compile Include="Telemetry\UserPackageDeleteEvent.cs" />
+    <Compile Include="Telemetry\UserPackageDeleteOutcome.cs" />
+    <Compile Include="UserManagement\IUserService.cs" />
+    <Compile Include="UserManagement\UserService.cs" />
+    <Compile Include="ServicesConstants.cs" />
+    <Compile Include="ServicesStrings.Designer.cs">
+      <DependentUpon>ServicesStrings.resx</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NuGet.Services.Entities\NuGet.Services.Entities.csproj">
+      <Project>{6262f4fc-29be-4226-b676-db391c89d396}</Project>
+      <Name>NuGet.Services.Entities</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NuGetGallery.Core\NuGetGallery.Core.csproj">
+      <Project>{097b2cdd-9623-4c34-93c2-d373d51f5b4e}</Project>
+      <Name>NuGetGallery.Core</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="EntityFramework">
+      <Version>6.1.3</Version>
+    </PackageReference>
+    <PackageReference Include="MicroBuild.Core">
+      <Version>0.3.0</Version>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.ApplicationInsights">
+      <Version>2.2.0</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.AspNet.Mvc">
+      <Version>5.2.3</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.ApplicationInsights">
+      <Version>2.2.0</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.AspNet.Mvc">
+      <Version>5.2.3</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.AspNetCore.Cryptography.KeyDerivation">
+      <Version>1.0.0</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Owin">
+      <Version>3.0.1</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Owin.Host.SystemWeb">
+      <Version>3.0.1</Version>
+    </PackageReference>
+    <PackageReference Include="NuGet.Packaging">
+      <Version>5.0.0-preview1.5665</Version>
+    </PackageReference>
+    <PackageReference Include="NuGet.Protocol">
+      <Version>5.0.0-preview1.5665</Version>
+    </PackageReference>
+    <PackageReference Include="NuGet.Services.Logging">
+      <Version>2.50.0</Version>
+    </PackageReference>
+    <PackageReference Include="System.Runtime">
+      <Version>4.3.1</Version>
+    </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="ServicesStrings.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>ServicesStrings.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+      <CustomToolNamespace>NuGetGallery</CustomToolNamespace>
+    </EmbeddedResource>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <SignPath>..\..\build</SignPath>
+    <SignPath Condition="'$(BUILD_SOURCESDIRECTORY)' != ''">$(BUILD_SOURCESDIRECTORY)\build</SignPath>
+    <SignPath Condition="'$(NuGetBuildPath)' != ''">$(NuGetBuildPath)</SignPath>
+    <SignType Condition="'$(SignType)' == ''">none</SignType>
+  </PropertyGroup>
+  <Import Project="$(SignPath)\sign.targets" Condition="Exists('$(SignPath)\sign.targets')" />
+  <Import Project="$(SignPath)\sign.microbuild.targets" Condition="Exists('$(SignPath)\sign.microbuild.targets')" />
+</Project>

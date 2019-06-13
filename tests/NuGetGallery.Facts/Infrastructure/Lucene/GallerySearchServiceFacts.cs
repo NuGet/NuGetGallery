@@ -7,7 +7,7 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
-using NuGet.Services.Search.Models;
+using NuGetGallery.Infrastructure.Search.Models;
 using Newtonsoft.Json.Linq;
 using Xunit;
 

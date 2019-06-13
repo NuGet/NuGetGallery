@@ -70,6 +70,10 @@ body {
   .container {
     margin-top: 50px;
     margin-bottom: 50px;
+
+    // This is a workaround for the following bug:
+    // https://github.com/microsoft/accessibility-insights-web/issues/692
+    background-color: @panel-footer-bg;
   }
 
   a {

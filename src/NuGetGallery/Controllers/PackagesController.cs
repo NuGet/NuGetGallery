@@ -87,6 +87,7 @@ namespace NuGetGallery
         private readonly IAppConfiguration _config;
         private readonly IMessageService _messageService;
         private readonly IPackageService _packageService;
+        private readonly IPackageUpdateService _packageUpdateService;
         private readonly IPackageFileService _packageFileService;
         private readonly ISearchService _searchService;
         private readonly IUploadFileService _uploadFileService;
@@ -115,6 +116,7 @@ namespace NuGetGallery
 
         public PackagesController(
             IPackageService packageService,
+            IPackageUpdateService packageUpdateService,
             IUploadFileService uploadFileService,
             IUserService userService,
             IMessageService messageService,
@@ -144,6 +146,7 @@ namespace NuGetGallery
             IIconUrlProvider iconUrlProvider)
         {
             _packageService = packageService;
+            _packageUpdateService = packageUpdateService ?? throw new ArgumentNullException(nameof(packageUpdateService));
             _uploadFileService = uploadFileService;
             _userService = userService;
             _messageService = messageService;
@@ -723,7 +726,7 @@ namespace NuGetGallery
                 }
                 else
                 {
-                    package = packages.SingleOrDefault(p => p.NormalizedVersion == NuGetVersionFormatter.Normalize(version));
+                    package = _packageService.FilterExactPackage(packages, version);
                 }
             }
 
@@ -1461,7 +1464,7 @@ namespace NuGetGallery
             if (version != null)
             {
                 // Try to find the exact version if it was specified.
-                package = packages.SingleOrDefault(p => p.NormalizedVersion == NuGetVersionFormatter.Normalize(version));
+                package = _packageService.FilterExactPackage(packages, version);
             }
 
             if (package == null)
@@ -1506,7 +1509,7 @@ namespace NuGetGallery
             if (version != null)
             {
                 // Try to find the exact version if it was specified.
-                package = packages.SingleOrDefault(p => p.NormalizedVersion == NuGetVersionFormatter.Normalize(version));
+                package = _packageService.FilterExactPackage(packages, version);
             }
 
             if (package == null)
@@ -2031,20 +2034,18 @@ namespace NuGetGallery
             if (!(listed ?? false))
             {
                 action = "unlisted";
-                await _packageService.MarkPackageUnlistedAsync(package);
+                await _packageUpdateService.MarkPackageUnlistedAsync(package);
             }
             else
             {
                 action = "listed";
-                await _packageService.MarkPackageListedAsync(package);
+                await _packageUpdateService.MarkPackageListedAsync(package);
             }
             TempData["Message"] = string.Format(
                 CultureInfo.CurrentCulture,
                 "The package has been {0}. It may take several hours for this change to propagate through our system.",
                 action);
 
-            // Update the index
-            _indexingService.UpdatePackage(package);
             return Redirect(urlFactory(package, /*relativeUrl:*/ true));
         }
 
@@ -2405,7 +2406,7 @@ namespace NuGetGallery
 
                 if (!formData.Listed)
                 {
-                    await _packageService.MarkPackageUnlistedAsync(package, commitChanges: false);
+                    await _packageUpdateService.MarkPackageUnlistedAsync(package, commitChanges: false, updateIndex: false);
                 }
 
                 // Commit the package to storage and to the database.
@@ -2520,7 +2521,7 @@ namespace NuGetGallery
                     httpStatusCode = HttpStatusCode.Conflict;
                     break;
                 case SymbolPackageValidationResultType.UserNotAllowedToUpload:
-                    httpStatusCode = HttpStatusCode.Unauthorized;
+                    httpStatusCode = HttpStatusCode.Forbidden;
                     break;
                 default:
                     throw new NotImplementedException($"The symbol package validation result type {validationResult.Type} is not supported.");

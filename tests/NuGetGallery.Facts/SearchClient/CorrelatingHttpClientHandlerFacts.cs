@@ -6,7 +6,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Runtime.Remoting.Messaging;
 using System.Threading.Tasks;
-using NuGet.Services.Search.Client.Correlation;
+using NuGetGallery.Infrastructure.Search.Correlation;
 using Xunit;
 
 namespace NuGetGallery.SearchClient

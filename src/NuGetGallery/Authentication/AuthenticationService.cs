@@ -23,7 +23,7 @@ using static NuGetGallery.GalleryConstants;
 
 namespace NuGetGallery.Authentication
 {
-    public class AuthenticationService
+    public class AuthenticationService: IAuthenticationService
     {
         private Dictionary<string, Func<string, string>> _credentialFormatters;
         private readonly IDiagnosticsSource _trace;

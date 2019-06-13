@@ -6,7 +6,6 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using System.Web.Mvc;
-using Moq;
 using Newtonsoft.Json.Linq;
 using NuGet.Services.Entities;
 using NuGetGallery.Auditing;
@@ -832,8 +831,6 @@ namespace NuGetGallery.Controllers
                     .Completes()
                     .Verifiable();
 
-                var auditingService = GetService<IAuditingService>();
-
                 var controller = GetController<ManageDeprecationJsonApiController>();
                 controller.SetCurrentUser(currentUser);
 
@@ -852,31 +849,6 @@ namespace NuGetGallery.Controllers
 
                 // Assert
                 AssertSuccessResponse(controller);
-
-                if (expectedStatus == PackageDeprecationStatus.NotDeprecated)
-                {
-                    foreach (var normalizedVersion in packageNormalizedVersions)
-                    {
-                        auditingService.WroteRecord<PackageAuditRecord>(
-                            r => r.Action == AuditedPackageAction.Undeprecate
-                            && r.Reason == PackageUndeprecatedVia.Web
-                            && r.DeprecationRecord == null
-                            && r.Id == id
-                            && r.PackageRecord.NormalizedVersion == normalizedVersion);
-                    }
-                }
-                else
-                {
-                    foreach (var normalizedVersion in packageNormalizedVersions)
-                    {
-                        auditingService.WroteRecord<PackageAuditRecord>(
-                            r => r.Action == AuditedPackageAction.Deprecate
-                            && r.Reason == PackageDeprecatedVia.Web
-                            && r.DeprecationRecord.Status == (int)expectedStatus
-                            && r.Id == id
-                            && r.PackageRecord.NormalizedVersion == normalizedVersion);
-                    }
-                }
 
                 featureFlagService.Verify();
                 packageService.Verify();
