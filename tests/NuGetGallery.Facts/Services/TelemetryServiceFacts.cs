@@ -2,10 +2,12 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Net;
+using CommonMark.Syntax;
+using Microsoft.Ajax.Utilities;
 using Moq;
 using NuGet.Services.Entities;
 using NuGet.Versioning;
@@ -36,7 +38,8 @@ namespace NuGetGallery
             {
                 get
                 {
-                    var package = fakes.Package.Packages.First();
+                    var packages = fakes.Package.Packages.ToList();
+                    var package = packages.First();
                     var identity = Fakes.ToIdentity(fakes.User);
                     yield return new object[] { "CertificateActivated",
                         (TrackAction)(s => s.TrackCertificateActivated("thumbprint"))
@@ -96,6 +99,14 @@ namespace NuGetGallery
 
                     yield return new object[] { "PackageRevalidate",
                         (TrackAction)(s => s.TrackPackageRevalidate(package))
+                    };
+
+                    yield return new object[] { "PackageDeprecate",
+                        (TrackAction)(s => s.TrackPackageDeprecate(
+                            packages, 
+                            PackageDeprecationStatus.Legacy, 
+                            new PackageRegistration { Id = "alt" }, 
+                            new Package { PackageRegistration = new PackageRegistration { Id = "alt-2" }, NormalizedVersion = "1.2.3" }, true))
                     };
 
                     yield return new object[] { "CreatePackageVerificationKey",
@@ -638,7 +649,7 @@ namespace NuGetGallery
                        It.Is<double>(value => value == 1),
                        It.Is<IDictionary<string, string>>(
                            properties => properties.Count == 4 &&
-                               properties["AccountDeletedByRole"] == "Admins" &&
+                               properties["AccountDeletedByRole"] == "[\"Admins\"]" &&
                                properties["AccountIsSelfDeleted"] == "False" &&
                                properties["AccountDeletedIsOrganization"] == "True" &&
                                properties["AccountDeleteSucceeded"] == "True")
@@ -699,6 +710,125 @@ namespace NuGetGallery
                 var properties = Assert.Single(allProperties);
                 Assert.Contains("IsCustomQuery", properties.Keys);
                 Assert.Equal(customQuery.ToString(), properties["IsCustomQuery"]);
+            }
+
+            public static IEnumerable<object[]> TrackPackageDeprecateThrowsIfPackageListInvalid_Data =>
+                new[]
+                {
+                    new object[]
+                    {
+                        null
+                    },
+                    new object[]
+                    {
+                        new Package[0]
+                    },
+                    new object[]
+                    {
+                        new []
+                        {
+                            new Package { PackageRegistrationKey = 1 },
+                            new Package { PackageRegistrationKey = 2 }
+                        }
+                    }
+                };
+
+            [Theory]
+            [MemberData(nameof(TrackPackageDeprecateThrowsIfPackageListInvalid_Data))]
+            public void TrackPackageDeprecateThrowsIfPackageListInvalid(IReadOnlyList<Package> packages)
+            {
+                var service = CreateService();
+                Assert.Throws<ArgumentException>(() => service.TrackPackageDeprecate(packages, PackageDeprecationStatus.CriticalBugs, null, null, false));
+            }
+
+            public static IEnumerable<object[]> TrackPackageDeprecateSucceedsWithoutAlternate_Data =>
+                MemberDataHelper.Combine(
+                    MemberDataHelper.EnumDataSet<PackageDeprecationStatus>(),
+                    MemberDataHelper.BooleanDataSet());
+
+            [Theory]
+            [MemberData(nameof(TrackPackageDeprecateSucceedsWithoutAlternate_Data))]
+            public void TrackPackageDeprecateSucceedsWithoutAlternate(PackageDeprecationStatus status, bool hasCustomMessage)
+            {
+                var service = CreateService();
+                var packages = fakes.Package.Packages.ToList();
+                var allProperties = new List<IDictionary<string, string>>();
+                service.TelemetryClient
+                    .Setup(x => x.TrackMetric(It.IsAny<string>(), It.IsAny<double>(), It.IsAny<IDictionary<string, string>>()))
+                    .Callback<string, double, IDictionary<string, string>>((_, __, p) => allProperties.Add(p));
+
+                service.TrackPackageDeprecate(packages, status, null, null, hasCustomMessage);
+
+                service.TelemetryClient.Verify(
+                    x => x.TrackMetric("PackageDeprecate", packages.Count(), It.IsAny<IDictionary<string, string>>()),
+                    Times.Once);
+
+                var properties = Assert.Single(allProperties);
+                Assert.Contains(
+                    new KeyValuePair<string, string>("PackageDeprecationReason", ((int)status).ToString()), 
+                    properties);
+
+                Assert.Contains(
+                    new KeyValuePair<string, string>("PackageDeprecationAlternatePackageId", null),
+                    properties);
+
+                Assert.Contains(
+                    new KeyValuePair<string, string>("PackageDeprecationAlternatePackageVersion", null),
+                    properties);
+
+                Assert.Contains(
+                    new KeyValuePair<string, string>("PackageDeprecationCustomMessage", hasCustomMessage.ToString()),
+                    properties);
+            }
+
+            public static IEnumerable<object[]> TrackPackageDeprecateSucceedsWithAlternate_Data =>
+                MemberDataHelper.Combine(
+                    MemberDataHelper.BooleanDataSet(),
+                    MemberDataHelper.BooleanDataSet());
+
+            [Theory]
+            [MemberData(nameof(TrackPackageDeprecateSucceedsWithAlternate_Data))]
+            public void TrackPackageDeprecateSucceedsWithAlternate(bool hasRegistration, bool hasPackage)
+            {
+                var service = CreateService();
+                var allProperties = new List<IDictionary<string, string>>();
+                service.TelemetryClient
+                    .Setup(x => x.TrackMetric(It.IsAny<string>(), It.IsAny<double>(), It.IsAny<IDictionary<string, string>>()))
+                    .Callback<string, double, IDictionary<string, string>>((_, __, p) => allProperties.Add(p));
+
+                var packages = fakes.Package.Packages.ToList();
+                var alternateRegistration = hasRegistration ? new PackageRegistration { Id = "alt-R" } : null;
+                var alternatePackage = hasPackage ? new Package { PackageRegistration = new PackageRegistration { Id = "alt-P" }, NormalizedVersion = "4.3.2" } : null;
+
+                var status = PackageDeprecationStatus.NotDeprecated;
+                service.TrackPackageDeprecate(packages, status, alternateRegistration, alternatePackage, false);
+
+                service.TelemetryClient.Verify(
+                    x => x.TrackMetric("PackageDeprecate", packages.Count(), It.IsAny<IDictionary<string, string>>()),
+                    Times.Once);
+
+                var properties = Assert.Single(allProperties);
+                Assert.Contains(
+                    new KeyValuePair<string, string>("PackageDeprecationReason", ((int)PackageDeprecationStatus.NotDeprecated).ToString()),
+                    properties);
+
+                var expectedAlternateId = hasRegistration 
+                    ? alternateRegistration.Id 
+                    : (hasPackage ? alternatePackage.Id : null);
+
+                Assert.Contains(
+                    new KeyValuePair<string, string>("PackageDeprecationAlternatePackageId", expectedAlternateId),
+                    properties);
+
+                var expectedAlternateVersion = hasPackage ? alternatePackage.NormalizedVersion : null;
+
+                Assert.Contains(
+                    new KeyValuePair<string, string>("PackageDeprecationAlternatePackageVersion", expectedAlternateVersion),
+                    properties);
+
+                Assert.Contains(
+                    new KeyValuePair<string, string>("PackageDeprecationCustomMessage", false.ToString()),
+                    properties);
             }
 
             private TelemetryServiceWrapper CreateServiceForCertificateTelemetry(string metricName, string thumbprint)

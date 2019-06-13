@@ -41,9 +41,9 @@ namespace NuGetGallery.Telemetry
 
             var headers = new NameValueCollection
             {
-                { GalleryConstants.NuGetProtocolHeaderName, "1.0.0" },
-                { GalleryConstants.ClientVersionHeaderName, "1.0.0" },
-                { GalleryConstants.UserAgentHeaderName, "NuGet Command Line/4.1.0 (Microsoft Windows NT 6.2.9200.0)" }
+                { ServicesConstants.NuGetProtocolHeaderName, "1.0.0" },
+                { ServicesConstants.ClientVersionHeaderName, "1.0.0" },
+                { ServicesConstants.UserAgentHeaderName, "NuGet Command Line/4.1.0 (Microsoft Windows NT 6.2.9200.0)" }
             };
 
             var enricher = CreateTestEnricher(headers);
@@ -70,7 +70,7 @@ namespace NuGetGallery.Telemetry
 
             var headers = new NameValueCollection
             {
-                { GalleryConstants.ClientVersionHeaderName, "5.0.0" }
+                { ServicesConstants.ClientVersionHeaderName, "5.0.0" }
             };
 
             var enricher = CreateTestEnricher(headers);
@@ -90,7 +90,7 @@ namespace NuGetGallery.Telemetry
 
             var headers = new NameValueCollection
             {
-                { GalleryConstants.NuGetProtocolHeaderName, "5.0.0" }
+                { ServicesConstants.NuGetProtocolHeaderName, "5.0.0" }
             };
 
             var enricher = CreateTestEnricher(headers);
@@ -110,7 +110,7 @@ namespace NuGetGallery.Telemetry
 
             var headers = new NameValueCollection
             {
-                { GalleryConstants.UserAgentHeaderName, "user agent" }
+                { ServicesConstants.UserAgentHeaderName, "user agent" }
             };
 
             var enricher = CreateTestEnricher(headers);

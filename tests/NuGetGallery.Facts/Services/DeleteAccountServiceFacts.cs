@@ -585,6 +585,7 @@ namespace NuGetGallery.Services
                     SetupScopeRepository().Object,
                     SetupEntitiesContext().Object,
                     SetupPackageService(isPackageOrphaned).Object,
+                    SetupPackageUpdateService().Object,
                     SetupPackageOwnershipManagementService().Object,
                     SetupReservedNamespaceService().Object,
                     SetupSecurityPolicyService().Object,
@@ -761,12 +762,21 @@ namespace NuGetGallery.Services
                     .Setup(p => p.WillPackageBeOrphanedIfOwnerRemoved(It.IsAny<PackageRegistration>(), It.IsAny<User>()))
                     .Returns(isPackageOrphaned);
 
-                //the .Returns(Task.CompletedTask) to avoid NullRef exception by the Mock infrastructure when invoking async operations
-                packageService.Setup(m => m.MarkPackageUnlistedAsync(It.IsAny<Package>(), false))
-                    .Returns(Task.CompletedTask)
-                    .Callback<Package, bool>((package, commit) => { package.Listed = false; });
-
                 return packageService;
+            }
+
+            private Mock<IPackageUpdateService> SetupPackageUpdateService()
+            {
+                var packageUpdateService = new Mock<IPackageUpdateService>();
+
+                //the .Returns(Task.CompletedTask) to avoid NullRef exception by the Mock infrastructure when invoking async operations
+                packageUpdateService
+                    .Setup(m => m.MarkPackageUnlistedAsync(It.IsAny<Package>(), false, false))
+                    .Returns(Task.CompletedTask)
+                    .Callback<Package, bool, bool>(
+                        (package, commitChanges, updateIndex) => { package.Listed = false; });
+
+                return packageUpdateService;
             }
 
             private Mock<AuthenticationService> SetupAuthenticationService()

@@ -51,6 +51,7 @@ using NuGetGallery.Infrastructure.Search.Correlation;
 using NuGetGallery.Security;
 using SecretReaderFactory = NuGetGallery.Configuration.SecretReader.SecretReaderFactory;
 using Microsoft.Extensions.Http;
+using NuGetGallery.Infrastructure.Lucene;
 
 namespace NuGetGallery
 {
@@ -378,6 +379,10 @@ namespace NuGetGallery
                 .As<IPackageDeprecationService>()
                 .InstancePerLifetimeScope();
 
+            builder.RegisterType<PackageUpdateService>()
+                .As<IPackageUpdateService>()
+                .InstancePerLifetimeScope();
+
             RegisterFeatureFlagsService(builder, configuration);
             RegisterMessagingService(builder, configuration);
 
@@ -411,7 +416,7 @@ namespace NuGetGallery
                 .AsSelf()
                 .InstancePerLifetimeScope();
 
-            if (configuration.Current.Environment == GalleryConstants.DevelopmentEnvironment)
+            if (configuration.Current.Environment == ServicesConstants.DevelopmentEnvironment)
             {
                 builder.RegisterType<AllowLocalHttpRedirectPolicy>()
                     .As<ISourceDestinationRedirectPolicy>()
@@ -771,6 +776,7 @@ namespace NuGetGallery
                 builder.RegisterType<LuceneIndexingService>()
                     .AsSelf()
                     .As<IIndexingService>()
+                    .As<IIndexingJobFactory>()
                     .InstancePerLifetimeScope();
             }
 
@@ -880,6 +886,7 @@ namespace NuGetGallery
                     .AsSelf()
                     .As<ISearchService>()
                     .As<IIndexingService>()
+                    .As<IIndexingJobFactory>()
                     .InstancePerLifetimeScope();
             }
         }

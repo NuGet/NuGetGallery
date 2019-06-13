@@ -22,6 +22,7 @@ using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
 using NuGetGallery.Infrastructure;
 using NuGetGallery.Infrastructure.Jobs;
+using NuGetGallery.Infrastructure.Lucene;
 using NuGetGallery.Infrastructure.Search.Correlation;
 using WebActivatorEx;
 using WebBackgrounder;
@@ -256,11 +257,11 @@ namespace NuGetGallery
 
         private static void BackgroundJobsPostStart(IAppConfiguration configuration)
         {
-            var indexer = DependencyResolver.Current.GetService<IIndexingService>();
+            var indexingJobFactory = DependencyResolver.Current.GetService<IIndexingJobFactory>();
             var jobs = new List<IJob>();
-            if (indexer != null)
+            if (indexingJobFactory != null)
             {
-                indexer.RegisterBackgroundJobs(jobs, configuration);
+                indexingJobFactory.RegisterBackgroundJobs(jobs, configuration);
             }
 
             if (configuration.CollectPerfLogs)

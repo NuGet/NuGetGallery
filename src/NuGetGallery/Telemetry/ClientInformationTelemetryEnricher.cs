@@ -23,11 +23,11 @@ namespace NuGetGallery
                     // Was deprecated and replaced by Protocol version
                     telemetry.Context.Properties.Add(
                         TelemetryService.ClientVersion,
-                        httpContext.Request.Headers[GalleryConstants.ClientVersionHeaderName]);
+                        httpContext.Request.Headers[ServicesConstants.ClientVersionHeaderName]);
 
                     telemetry.Context.Properties.Add(
                         TelemetryService.ProtocolVersion,
-                        httpContext.Request.Headers[GalleryConstants.NuGetProtocolHeaderName]);
+                        httpContext.Request.Headers[ServicesConstants.NuGetProtocolHeaderName]);
 
                     telemetry.Context.Properties.Add(TelemetryService.ClientInformation, httpContext.GetClientInformation());
 

@@ -43,6 +43,7 @@ namespace NuGetGallery
         public IEntitiesContext EntitiesContext { get; set; }
         public IPackageFileService PackageFileService { get; set; }
         public IPackageService PackageService { get; set; }
+        public IPackageUpdateService PackageUpdateService { get; set; }
         public IUserService UserService { get; set; }
         public IStatisticsService StatisticsService { get; set; }
         public IContentService ContentService { get; set; }
@@ -71,6 +72,7 @@ namespace NuGetGallery
             IApiScopeEvaluator apiScopeEvaluator,
             IEntitiesContext entitiesContext,
             IPackageService packageService,
+            IPackageUpdateService packageUpdateService,
             IPackageFileService packageFileService,
             IUserService userService,
             IContentService contentService,
@@ -95,6 +97,7 @@ namespace NuGetGallery
             ApiScopeEvaluator = apiScopeEvaluator;
             EntitiesContext = entitiesContext;
             PackageService = packageService;
+            PackageUpdateService = packageUpdateService;
             PackageFileService = packageFileService;
             UserService = userService;
             ContentService = contentService;
@@ -121,6 +124,7 @@ namespace NuGetGallery
             IApiScopeEvaluator apiScopeEvaluator,
             IEntitiesContext entitiesContext,
             IPackageService packageService,
+            IPackageUpdateService packageUpdateService,
             IPackageFileService packageFileService,
             IUserService userService,
             IContentService contentService,
@@ -142,8 +146,8 @@ namespace NuGetGallery
             ISymbolPackageUploadService symbolPackageUploadServivce,
             IAutocompletePackageIdsQuery autocompletePackageIdsQuery,
             IAutocompletePackageVersionsQuery autocompletePackageVersionsQuery)
-            : this(apiScopeEvaluator, entitiesContext, packageService, packageFileService, userService, contentService,
-                  indexingService, searchService, statusService, messageService, auditingService,
+            : this(apiScopeEvaluator, entitiesContext, packageService, packageUpdateService, packageFileService, userService, 
+                  contentService, indexingService, searchService, statusService, messageService, auditingService,
                   configurationService, telemetryService, authenticationService, credentialBuilder, securityPolicies,
                   reservedNamespaceService, packageUploadService, packageDeleteService, symbolPackageFileService,
                   symbolPackageUploadServivce, autocompletePackageIdsQuery, autocompletePackageVersionsQuery)
@@ -194,6 +198,11 @@ namespace NuGetGallery
                     if (isSymbolPackage)
                     {
                         package = PackageService.FindPackageByIdAndVersionStrict(id, version);
+
+                        if (package == null)
+                        {
+                            return new HttpStatusCodeWithBodyResult(HttpStatusCode.NotFound, string.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
+                        }
                     }
                 }
                 else
@@ -231,12 +240,9 @@ namespace NuGetGallery
 
             if (isSymbolPackage)
             {
-                var latestSymbolPackage = package?
-                    .SymbolPackages
-                    .OrderByDescending(sp => sp.Created)
-                    .FirstOrDefault();
+                var latestAvailableSymbolsPackage = package.LatestAvailableSymbolPackage();
 
-                if (latestSymbolPackage == null || latestSymbolPackage.StatusKey != PackageStatus.Available)
+                if (latestAvailableSymbolsPackage == null)
                 {
                     return new HttpStatusCodeWithBodyResult(HttpStatusCode.NotFound, string.Format(CultureInfo.CurrentCulture, Strings.SymbolsPackage_PackageNotAvailable, id, version));
                 }
@@ -280,7 +286,7 @@ namespace NuGetGallery
         [ActionName("HealthProbeApi")]
         public ActionResult HealthProbe()
         {
-            return new HttpStatusCodeWithBodyResult(HttpStatusCode.OK, "Gallery is Available");
+            return View();
         }
 
         [HttpGet]
@@ -819,8 +825,7 @@ namespace NuGetGallery
                     string.Format(CultureInfo.CurrentCulture, Strings.PackageIsLocked, package.PackageRegistration.Id));
             }
 
-            await PackageService.MarkPackageUnlistedAsync(package);
-            IndexingService.UpdatePackage(package);
+            await PackageUpdateService.MarkPackageUnlistedAsync(package);
             return new EmptyResult();
         }
 
@@ -851,8 +856,7 @@ namespace NuGetGallery
                     string.Format(CultureInfo.CurrentCulture, Strings.PackageIsLocked, package.PackageRegistration.Id));
             }
 
-            await PackageService.MarkPackageListedAsync(package);
-            IndexingService.UpdatePackage(package);
+            await PackageUpdateService.MarkPackageListedAsync(package);
             return new EmptyResult();
         }
 

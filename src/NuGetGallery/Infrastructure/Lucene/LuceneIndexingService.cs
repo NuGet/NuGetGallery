@@ -14,11 +14,12 @@ using Lucene.Net.Index;
 using NuGet.Services.Entities;
 using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
+using NuGetGallery.Infrastructure.Lucene;
 using WebBackgrounder;
 
 namespace NuGetGallery
 {
-    public class LuceneIndexingService : IIndexingService
+    public class LuceneIndexingService : IIndexingService, IIndexingJobFactory
     {
         private static readonly object IndexWriterLock = new object();
 

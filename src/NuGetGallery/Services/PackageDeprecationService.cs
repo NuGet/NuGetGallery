@@ -7,88 +7,128 @@ using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
 using NuGet.Services.Entities;
+using NuGetGallery.Auditing;
 
 namespace NuGetGallery
 {
     public class PackageDeprecationService : IPackageDeprecationService
     {
-        private readonly IEntityRepository<PackageDeprecation> _deprecationRepository;
+        private readonly IEntitiesContext _entitiesContext;
+        private readonly IPackageUpdateService _packageUpdateService;
+        private readonly ITelemetryService _telemetryService;
+        private readonly IAuditingService _auditingService;
 
         public PackageDeprecationService(
-           IEntityRepository<PackageDeprecation> deprecationRepository)
+           IEntitiesContext entitiesContext,
+           IPackageUpdateService packageUpdateService,
+           ITelemetryService telemetryService,
+           IAuditingService auditingService)
         {
-            _deprecationRepository = deprecationRepository ?? throw new ArgumentNullException(nameof(deprecationRepository));
+            _entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
+            _packageUpdateService = packageUpdateService ?? throw new ArgumentNullException(nameof(packageUpdateService));
+            _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
+            _auditingService = auditingService ?? throw new ArgumentNullException(nameof(auditingService));
         }
 
         public async Task UpdateDeprecation(
-           IReadOnlyCollection<Package> packages,
+           IReadOnlyList<Package> packages,
            PackageDeprecationStatus status,
            PackageRegistration alternatePackageRegistration,
            Package alternatePackage,
            string customMessage,
            User user)
         {
-            if (packages == null || !packages.Any())
-            {
-                throw new ArgumentException(nameof(packages));
-            }
-
             if (user == null)
             {
                 throw new ArgumentNullException(nameof(user));
             }
 
-            var shouldDelete = status == PackageDeprecationStatus.NotDeprecated;
-            var deprecations = new List<PackageDeprecation>();
-            foreach (var package in packages)
+            if (packages == null || !packages.Any())
             {
-                var deprecation = package.Deprecations.SingleOrDefault();
+                throw new ArgumentException(nameof(packages));
+            }
+
+            var registration = packages.First().PackageRegistration;
+            if (packages.Select(p => p.PackageRegistrationKey).Distinct().Count() > 1)
+            {
+                throw new ArgumentException("All packages to deprecate must have the same ID.", nameof(packages));
+            }
+
+            using (var strategy = new SuspendDbExecutionStrategy())
+            using (var transaction = _entitiesContext.GetDatabase().BeginTransaction())
+            {
+                var shouldDelete = status == PackageDeprecationStatus.NotDeprecated;
+                var deprecations = new List<PackageDeprecation>();
+                foreach (var package in packages)
+                {
+                    var deprecation = package.Deprecations.SingleOrDefault();
+                    if (shouldDelete)
+                    {
+                        if (deprecation != null)
+                        {
+                            package.Deprecations.Remove(deprecation);
+                            deprecations.Add(deprecation);
+                        }
+                    }
+                    else
+                    {
+                        if (deprecation == null)
+                        {
+                            deprecation = new PackageDeprecation
+                            {
+                                Package = package
+                            };
+
+                            package.Deprecations.Add(deprecation);
+                            deprecations.Add(deprecation);
+                        }
+
+                        deprecation.Status = status;
+                        deprecation.DeprecatedByUser = user;
+
+                        deprecation.AlternatePackageRegistration = alternatePackageRegistration;
+                        deprecation.AlternatePackage = alternatePackage;
+
+                        deprecation.CustomMessage = customMessage;
+                    }
+                }
+
                 if (shouldDelete)
                 {
-                    if (deprecation != null)
-                    {
-                        package.Deprecations.Remove(deprecation);
-                        deprecations.Add(deprecation);
-                    }
+                    _entitiesContext.Deprecations.RemoveRange(deprecations);
                 }
                 else
                 {
-                    if (deprecation == null)
-                    {
-                        deprecation = new PackageDeprecation
-                        {
-                            Package = package
-                        };
+                    _entitiesContext.Deprecations.AddRange(deprecations);
+                }
 
-                        package.Deprecations.Add(deprecation);
-                        deprecations.Add(deprecation);
-                    }
+                await _entitiesContext.SaveChangesAsync();
 
-                    deprecation.Status = status;
-                    deprecation.DeprecatedByUser = user;
+                await _packageUpdateService.UpdatePackagesAsync(packages);
 
-                    deprecation.AlternatePackageRegistration = alternatePackageRegistration;
-                    deprecation.AlternatePackage = alternatePackage;
+                transaction.Commit();
 
-                    deprecation.CustomMessage = customMessage;
+                _telemetryService.TrackPackageDeprecate(
+                    packages,
+                    status,
+                    alternatePackageRegistration,
+                    alternatePackage,
+                    !string.IsNullOrWhiteSpace(customMessage));
+
+                foreach (var package in packages)
+                {
+                    await _auditingService.SaveAuditRecordAsync(
+                        new PackageAuditRecord(
+                            package,
+                            status == PackageDeprecationStatus.NotDeprecated ? AuditedPackageAction.Undeprecate : AuditedPackageAction.Deprecate,
+                            status == PackageDeprecationStatus.NotDeprecated ? PackageUndeprecatedVia.Web : PackageDeprecatedVia.Web));
                 }
             }
-
-            if (shouldDelete)
-            {
-                _deprecationRepository.DeleteOnCommit(deprecations);
-            }
-            else
-            {
-                _deprecationRepository.InsertOnCommit(deprecations);
-            }
-
-            await _deprecationRepository.CommitChangesAsync();
         }
 
         public PackageDeprecation GetDeprecationByPackage(Package package)
         {
-            return _deprecationRepository.GetAll()
+            return _entitiesContext.Deprecations
                 .Include(d => d.AlternatePackage.PackageRegistration)
                 .Include(d => d.AlternatePackageRegistration)
                 .SingleOrDefault(d => d.PackageKey == package.Key);

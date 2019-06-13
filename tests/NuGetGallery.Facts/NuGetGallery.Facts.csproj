@@ -92,7 +92,9 @@
     <Compile Include="Infrastructure\Mail\Messages\SearchSideBySideMessageFacts.cs" />
     <Compile Include="Services\PackageDeprecationServiceFacts.cs" />
     <Compile Include="Services\SearchSideBySideServiceFacts.cs" />
+    <Compile Include="Services\PackageUpdateServiceFacts.cs" />
     <Compile Include="Services\StatusServiceFacts.cs" />
+    <Compile Include="Telemetry\DeploymentIdTelemetryEnricherFacts.cs" />
     <Compile Include="TestData\TestDataResourceUtility.cs" />
     <Compile Include="UsernameValidationRegex.cs" />
     <Compile Include="Extensions\NumberExtensionsFacts.cs" />
@@ -308,6 +310,10 @@
       <Project>{097b2cdd-9623-4c34-93c2-d373d51f5b4e}</Project>
       <Name>NuGetGallery.Core</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\src\NuGetGallery.Services\NuGetGallery.Services.csproj">
+      <Project>{c7d5e850-33fa-4ec5-8d7f-b1c8dd5d48f9}</Project>
+      <Name>NuGetGallery.Services</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\src\NuGetGallery\NuGetGallery.csproj">
       <Project>{1DACF781-5CD0-4123-8BAC-CD385D864BE5}</Project>
       <Name>NuGetGallery</Name>
@@ -321,17 +327,8 @@
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Data.Edm">
-      <Version>5.7.0</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Data.OData">
-      <Version>5.7.0</Version>
-    </PackageReference>
     <PackageReference Include="Microsoft.Data.Services">
-      <Version>5.7.0</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Data.Services.Client">
-      <Version>5.7.0</Version>
+      <Version>5.8.4</Version>
     </PackageReference>
     <PackageReference Include="Moq">
       <Version>4.8.2</Version>

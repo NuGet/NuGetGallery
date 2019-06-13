@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using NuGet;
 using NuGet.Versioning;
 using Xunit;
 

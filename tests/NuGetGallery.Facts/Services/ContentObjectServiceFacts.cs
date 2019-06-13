@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 using Moq;
@@ -87,19 +86,19 @@ namespace NuGetGallery.Services
                 var contentService = GetMock<IContentService>();
 
                 contentService
-                    .Setup(x => x.GetContentItemAsync(GalleryConstants.ContentNames.LoginDiscontinuationConfiguration, It.IsAny<TimeSpan>()))
+                    .Setup(x => x.GetContentItemAsync(ServicesConstants.ContentNames.LoginDiscontinuationConfiguration, It.IsAny<TimeSpan>()))
                     .Returns(Task.FromResult<IHtmlString>(new HtmlString(loginJson)));
 
                 contentService
-                    .Setup(x => x.GetContentItemAsync(GalleryConstants.ContentNames.CertificatesConfiguration, It.IsAny<TimeSpan>()))
+                    .Setup(x => x.GetContentItemAsync(ServicesConstants.ContentNames.CertificatesConfiguration, It.IsAny<TimeSpan>()))
                     .Returns(Task.FromResult<IHtmlString>(new HtmlString(certificatesJson)));
 
                 contentService
-                    .Setup(x => x.GetContentItemAsync(GalleryConstants.ContentNames.SymbolsConfiguration, It.IsAny<TimeSpan>()))
+                    .Setup(x => x.GetContentItemAsync(ServicesConstants.ContentNames.SymbolsConfiguration, It.IsAny<TimeSpan>()))
                     .Returns(Task.FromResult<IHtmlString>(new HtmlString(symbolsJson)));
 
                 contentService
-                    .Setup(x => x.GetContentItemAsync(GalleryConstants.ContentNames.TyposquattingConfiguration, It.IsAny<TimeSpan>()))
+                    .Setup(x => x.GetContentItemAsync(ServicesConstants.ContentNames.TyposquattingConfiguration, It.IsAny<TimeSpan>()))
                     .Returns(Task.FromResult<IHtmlString>(new HtmlString(typosquattingJson)));
 
                 var service = GetService<ContentObjectService>();

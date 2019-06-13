@@ -10,6 +10,7 @@ namespace NuGetGallery
     public interface IEntitiesContext : IReadOnlyEntitiesContext
     {
         DbSet<Certificate> Certificates { get; set; }
+        DbSet<PackageDeprecation> Deprecations { get; set; }
         DbSet<PackageRegistration> PackageRegistrations { get; set; }
         DbSet<Credential> Credentials { get; set; }
         DbSet<Scope> Scopes { get; set; }

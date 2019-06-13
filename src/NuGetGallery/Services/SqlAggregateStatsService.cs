@@ -3,7 +3,6 @@
 
 using System.Data;
 using System.Threading.Tasks;
-using Autofac.Features.Indexed;
 using NuGet.Services.Sql;
 using NuGetGallery.Configuration;
 
