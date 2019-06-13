@@ -38,12 +38,6 @@ namespace NuGetGallery
         bool IsManageDeprecationEnabled(User user);
 
         /// <summary>
-        /// Whether or not the search is using circuit breaker.
-        /// </summary>
-        /// <returns></returns>
-        bool IsSearchCircuitBreakerEnabled();
-
-        /// <summary>
         /// Whether the user is allowed to publish packages with an embedded icon.
         /// </summary>
         bool AreEmbeddedIconsEnabled(User user);
@@ -52,5 +46,10 @@ namespace NuGetGallery
         /// Whether the user is able to access the search side-by-side experiment.
         /// </summary>
         bool IsSearchSideBySideEnabled(User user);
+
+        /// <summary>
+        /// Whether the OData controllers use the read-only replica.
+        /// </summary>
+        bool IsODataDatabaseReadOnlyEnabled();
     }
 }

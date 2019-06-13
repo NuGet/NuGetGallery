@@ -31,13 +31,13 @@ namespace NuGetGallery.TestUtils.Infrastructure
             return httpContext.Object;
         }
 
-        public static Mock<IEntityRepository<Package>> SetupTestPackageRepository()
+        public static Mock<IReadOnlyEntityRepository<Package>> SetupTestPackageRepository()
         {
             var fooPackage = new PackageRegistration { Id = "Foo" };
             var barPackage = new PackageRegistration { Id = "Bar" };
             var bazPackage = new PackageRegistration { Id = "Baz" };
 
-            var repo = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
+            var repo = new Mock<IReadOnlyEntityRepository<Package>>(MockBehavior.Strict);
             repo.Setup(r => r.GetAll()).Returns(new[]
             {
                 new Package
