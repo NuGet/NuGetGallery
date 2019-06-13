@@ -135,6 +135,10 @@ namespace NuGetGallery.Packaging
         /// </summary>
         public LicenseMetadata LicenseMetadata { get; }
 
+        /// <summary>
+        /// Contains the embedded icon filename taken from the 'icon' node of the nuspec file.
+        /// Null if not specified.
+        /// </summary>
         public string Icon { get; private set; }
 
         public string GetValueFromMetadata(string key)

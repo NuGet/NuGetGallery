@@ -27,20 +27,17 @@ namespace NuGetGallery.Controllers
         private readonly IGalleryConfigurationService _configurationService;
         private readonly ISearchService _searchService;
         private readonly IEntityRepository<Package> _packagesRepository;
-        private readonly IIconUrlProvider _iconUrlProvider;
 
         public ODataV2CuratedFeedController(
             IGalleryConfigurationService configurationService,
             ISearchService searchService,
             IEntityRepository<Package> packagesRepository,
-            ITelemetryService telemetryService,
-            IIconUrlProvider iconUrlProvider)
+            ITelemetryService telemetryService)
             : base(configurationService, telemetryService)
         {
             _configurationService = configurationService;
             _searchService = searchService;
             _packagesRepository = packagesRepository;
-            _iconUrlProvider = iconUrlProvider ?? throw new ArgumentNullException(nameof(iconUrlProvider));
         }
 
         // /api/v2/curated-feed/curatedFeedName/Packages?semVerLevel=
@@ -67,8 +64,7 @@ namespace NuGetGallery.Controllers
                 .ToV2FeedPackageQuery(
                     _configurationService.GetSiteRoot(UseHttps()),
                     _configurationService.Features.FriendlyLicenses, 
-                    semVerLevelKey,
-                    _iconUrlProvider)
+                    semVerLevelKey)
                 .InterceptWith(new NormalizeVersionInterceptor());
 
             return TrackedQueryResult(options, queryable, MaxPageSize, customQuery: true);
@@ -123,7 +119,7 @@ namespace NuGetGallery.Controllers
                 var semVerLevelKey = SemVerLevelKey.ForSemVerLevel(semVerLevel);
 
                 var emptyResult = Enumerable.Empty<Package>().AsQueryable()
-                    .ToV2FeedPackageQuery(GetSiteRoot(), _configurationService.Features.FriendlyLicenses, semVerLevelKey, _iconUrlProvider);
+                    .ToV2FeedPackageQuery(GetSiteRoot(), _configurationService.Features.FriendlyLicenses, semVerLevelKey);
 
                 return TrackedQueryResult(options, emptyResult, MaxPageSize, customQuery: false);
             }
@@ -202,7 +198,7 @@ namespace NuGetGallery.Controllers
 
                     var pagedQueryable = packages
                         .Take(options.Top != null ? Math.Min(options.Top.Value, MaxPageSize) : MaxPageSize)
-                        .ToV2FeedPackageQuery(GetSiteRoot(), _configurationService.Features.FriendlyLicenses, semVerLevelKey, _iconUrlProvider);
+                        .ToV2FeedPackageQuery(GetSiteRoot(), _configurationService.Features.FriendlyLicenses, semVerLevelKey);
 
                     return TrackedQueryResult(
                         options,
@@ -233,8 +229,7 @@ namespace NuGetGallery.Controllers
             var queryable = packages.ToV2FeedPackageQuery(
                 GetSiteRoot(), 
                 _configurationService.Features.FriendlyLicenses, 
-                semVerLevelKey,
-                _iconUrlProvider);
+                semVerLevelKey);
 
             return TrackedQueryResult(options, queryable, MaxPageSize, customQuery);
         }
@@ -322,8 +317,7 @@ namespace NuGetGallery.Controllers
                     .ToV2FeedPackageQuery(
                         GetSiteRoot(), 
                         _configurationService.Features.FriendlyLicenses, 
-                        semVerLevelKey,
-                        _iconUrlProvider);
+                        semVerLevelKey);
 
                 return TrackedQueryResult(
                     options,
@@ -357,8 +351,7 @@ namespace NuGetGallery.Controllers
             var queryable = query.ToV2FeedPackageQuery(
                 GetSiteRoot(), 
                 _configurationService.Features.FriendlyLicenses, 
-                semVerLevelKey,
-                _iconUrlProvider);
+                semVerLevelKey);
 
             return TrackedQueryResult(options, queryable, MaxPageSize, customQuery);
         }

@@ -14,7 +14,7 @@ namespace NuGetGallery.OData
     {
         internal static readonly DateTime UnpublishedDate = new DateTime(1900, 1, 1, 0, 0, 0);
 
-        public static IQueryable<V1FeedPackage> ToV1FeedPackageQuery(this IQueryable<Package> packages, string siteRoot, IIconUrlProvider iconUrlProvider)
+        public static IQueryable<V1FeedPackage> ToV1FeedPackageQuery(this IQueryable<Package> packages, string siteRoot)
         {
             siteRoot = EnsureTrailingSlash(siteRoot);
             return packages
@@ -60,15 +60,13 @@ namespace NuGetGallery.OData
             this IQueryable<Package> packages,
             string siteRoot,
             bool includeLicenseReport,
-            int? semVerLevelKey,
-            IIconUrlProvider iconUrlProvider)
+            int? semVerLevelKey)
         {
             return ProjectV2FeedPackage(
                 packages.Include(p => p.PackageRegistration),
                 siteRoot,
                 includeLicenseReport,
-                semVerLevelKey,
-                iconUrlProvider);
+                semVerLevelKey);
         }
 
         // Does the actual projection of a Package object to a V2FeedPackage.
@@ -77,8 +75,7 @@ namespace NuGetGallery.OData
             this IQueryable<Package> packages,
             string siteRoot,
             bool includeLicenseReport,
-            int? semVerLevelKey,
-            IIconUrlProvider iconUrlProvider)
+            int? semVerLevelKey)
         {
             siteRoot = EnsureTrailingSlash(siteRoot);
             return packages.Select(p => new V2FeedPackage

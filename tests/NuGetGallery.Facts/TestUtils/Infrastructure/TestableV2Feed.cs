@@ -15,7 +15,7 @@ namespace NuGetGallery.TestUtils.Infrastructure
             IEntityRepository<Package> repo,
             IGalleryConfigurationService configuration,
             ISearchService searchService)
-            : base(repo, configuration, searchService, Mock.Of<ITelemetryService>(), Mock.Of<IIconUrlProvider>())
+            : base(repo, configuration, searchService, Mock.Of<ITelemetryService>())
         {
         }
 
@@ -24,7 +24,7 @@ namespace NuGetGallery.TestUtils.Infrastructure
             IGalleryConfigurationService configuration,
             ISearchService searchService,
             ITelemetryService telemetryService)
-            : base(repo, configuration, searchService, telemetryService, Mock.Of<IIconUrlProvider>())
+            : base(repo, configuration, searchService, telemetryService)
         {
         }
 

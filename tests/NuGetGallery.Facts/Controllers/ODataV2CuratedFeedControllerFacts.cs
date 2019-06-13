@@ -81,8 +81,7 @@ namespace NuGetGallery.Controllers
                     _config.Object,
                     _searchService.Object,
                     _packages.Object,
-                    _telemetryService.Object,
-                    _iconUrlProvider.Object);
+                    _telemetryService.Object);
 
                 _request = new HttpRequestMessage(HttpMethod.Get, $"{_siteRoot}/api/v2/curated-feed/{_curatedFeedName}/Packages");
                 _options = new ODataQueryOptions<V2FeedPackage>(CreateODataQueryContext<V2FeedPackage>(), _request);
@@ -454,8 +453,7 @@ namespace NuGetGallery.Controllers
                 configurationService,
                 searchService,
                 packagesRepository,
-                telemetryService,
-                iconUrlProvider);
+                telemetryService);
         }
 
         private static IDbSet<T> GetQueryableMockDbSet<T>(params T[] sourceList) where T : class

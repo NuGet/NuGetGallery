@@ -100,8 +100,7 @@ namespace NuGetGallery.Controllers
                 packagesRepository,
                 configurationService,
                 searchService,
-                telemetryService,
-                iconUrlProvider);
+                telemetryService);
         }
 
         private void AssertSemVer2PackagesFilteredFromResult(IEnumerable<V1FeedPackage> resultSet)

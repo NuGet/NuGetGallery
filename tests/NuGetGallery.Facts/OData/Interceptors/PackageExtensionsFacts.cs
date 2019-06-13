@@ -25,19 +25,12 @@ namespace NuGetGallery.OData.Interceptors
                     CreateFakeBasePackage()
                 }.AsQueryable();
 
-                var iconUrlProvider = new Mock<IIconUrlProvider>();
-                const string iconUrlString = "sample icon url";
-                iconUrlProvider
-                    .Setup(iup => iup.GetIconUrlString(packages.First()))
-                    .Returns(iconUrlString);
-
                 // Act
                 var projected = PackageExtensions.ProjectV2FeedPackage(
                     packages,
                     siteRoot: "http://nuget.org",
                     includeLicenseReport: true,
-                    semVerLevelKey: semVerLevelKey,
-                    iconUrlProvider: iconUrlProvider.Object).ToList();
+                    semVerLevelKey: semVerLevelKey).ToList();
 
                 // Assert
                 var actual = projected.Single();
@@ -87,8 +80,7 @@ namespace NuGetGallery.OData.Interceptors
                     packages,
                     siteRoot: "http://nuget.org",
                     includeLicenseReport: true,
-                    semVerLevelKey: SemVerLevelKey.Unknown,
-                    iconUrlProvider: Mock.Of<IIconUrlProvider>()).ToList();
+                    semVerLevelKey: SemVerLevelKey.Unknown).ToList();
 
                 // Assert
                 var actual = projected.Single();
@@ -112,8 +104,7 @@ namespace NuGetGallery.OData.Interceptors
                     packages,
                     siteRoot: "http://nuget.org",
                     includeLicenseReport: true,
-                    semVerLevelKey: SemVerLevelKey.Unknown,
-                    iconUrlProvider: Mock.Of<IIconUrlProvider>()).ToList();
+                    semVerLevelKey: SemVerLevelKey.Unknown).ToList();
 
                 // Assert
                 var actual = projected.Single();
@@ -134,8 +125,7 @@ namespace NuGetGallery.OData.Interceptors
                     packages,
                     siteRoot: "http://nuget.org",
                     includeLicenseReport: false,
-                    semVerLevelKey: SemVerLevelKey.Unknown,
-                    iconUrlProvider: Mock.Of<IIconUrlProvider>()).ToList();
+                    semVerLevelKey: SemVerLevelKey.Unknown).ToList();
 
                 // Assert
                 var actual = projected.Single();
