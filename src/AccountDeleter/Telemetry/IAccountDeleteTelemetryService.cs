@@ -5,7 +5,7 @@ using System;
 
 namespace NuGetGallery.AccountDeleter
 {
-    public interface ITelemetryService
+    public interface IAccountDeleteTelemetryService
     {
         void TrackException(Exception exception);
 

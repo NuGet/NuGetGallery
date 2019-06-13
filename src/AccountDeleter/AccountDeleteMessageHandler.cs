@@ -12,13 +12,13 @@ namespace NuGetGallery.AccountDeleter
     {
         private IAccountManager _accountManager;
         private IMessenger _messenger;
-        private readonly ITelemetryService _telemetryService;
+        private readonly IAccountDeleteTelemetryService _telemetryService;
         private readonly ILogger<AccountDeleteMessageHandler> _logger;
 
         public AccountDeleteMessageHandler (
             IAccountManager accountManager,
             IMessenger messenger,
-            ITelemetryService telemetryService,
+            IAccountDeleteTelemetryService telemetryService,
             ILogger<AccountDeleteMessageHandler> logger)
         {
             _accountManager = accountManager ?? throw new ArgumentNullException(nameof(accountManager));
@@ -27,31 +27,33 @@ namespace NuGetGallery.AccountDeleter
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public Task<bool> HandleAsync(AccountDeleteMessage command)
+        public async Task<bool> HandleAsync(AccountDeleteMessage command)
         {
+            bool messageProcessed = false;
             var username = command.Subject;
+            _logger.LogInformation("Processing Request from Source {Source}", command.Source);
 
-            if (!_accountManager.DeleteAccount(username))
+            if (!await _accountManager.DeleteAccount(username))
             {
+                // switch on command source here?
                 switch (command.Source)
                 {
                     case "Gallery":
                         break;
                     case "DSR":
+                        messageProcessed = messageProcessed || await _messenger.SendMessageAsync(username, 0); // This will probalby need to be expanded to flag the source somehow if we want to send varying messages. Who should be responsible for formatting?
                         break;
                     case "GalleryAdmin":
                         break;
                     default:
+                        // Should definitely log if source isn't expected. Should we even send mail? or log and alert?
                         // Log unknown source and fail.
+                        _logger.LogError("Unknown message source detected: {Source}", command.Source);
                         break;
                 }
-
-                // switch on command source here?
-                // Should definitely log if source isn't expected. Should we even send mail? or log and alert?
-                _messenger.SendMessageAsync(username, 0); // This will probalby need to be expanded to flag the source somehow if we want to send varying messages. Who should be responsible for formatting?
             }
 
-            return Task.FromResult(true);
+            return messageProcessed;
         }
     }
 }

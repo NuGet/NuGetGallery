@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using NuGet.Services.Entities;
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace NuGetGallery.AccountDeleter
 {
@@ -13,14 +14,14 @@ namespace NuGetGallery.AccountDeleter
         private readonly IDeleteAccountService _deleteAccountService;
         private readonly IUserService _userService;
         private readonly IUserEvaluator _userEvaluator;
-        private readonly ITelemetryService _telemetryService;
+        private readonly IAccountDeleteTelemetryService _telemetryService;
         private readonly ILogger<GalleryAccountManager> _logger;
 
         public GalleryAccountManager(
             IDeleteAccountService deleteAccountService,
             IUserService userService,
             IUserEvaluator userEvaluator,
-            ITelemetryService telemetryService,
+            IAccountDeleteTelemetryService telemetryService,
             ILogger<GalleryAccountManager> logger)
         {
             _deleteAccountService = deleteAccountService ?? throw new ArgumentNullException(nameof(deleteAccountService));
@@ -30,14 +31,32 @@ namespace NuGetGallery.AccountDeleter
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public bool DeleteAccount(string username)
+        public async Task<bool> DeleteAccount(string username)
         {
+            _logger.LogInformation("Attempting delete...");
             var user = _userService.FindByUsername(username);
+            if (user == null)
+            {
+                _logger.LogWarning("Requested user was not found in DB. Assuming delete was already done.");
+                return true;
+            }
+
             if (_userEvaluator.CanUserBeDeleted(user))
             {
-                _deleteAccountService.DeleteAccountAsync(user, user, AccountDeletionOrphanPackagePolicy.UnlistOrphans);
-                _telemetryService.TrackAccountDelete();
-                return true;
+                _logger.LogInformation("All criteria passed.");
+                var result = await _deleteAccountService.DeleteAccountAsync(user, user, AccountDeletionOrphanPackagePolicy.UnlistOrphans);
+                if (result.Success)
+                {
+                    _logger.LogInformation("Deleted user successfully.");
+                    _telemetryService.TrackAccountDelete();
+                    return true;
+                }
+                else
+                {
+                    _logger.LogError("Criteria passed but delete failed.");
+                    _telemetryService.TrackAccountDelete();
+                    return false;
+                }
             }
 
             return false;

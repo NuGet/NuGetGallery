@@ -7,13 +7,13 @@ using System;
 
 namespace NuGetGallery.AccountDeleter
 {
-    public class TelemetryService : ITelemetryService, ISubscriptionProcessorTelemetryService
+    public class AccountDeleteTelemetryService : IAccountDeleteTelemetryService, ISubscriptionProcessorTelemetryService
     {
         private const string Prefix = "AccountDeleter.";
 
         private readonly TelemetryClient _telemetryClient;
 
-        public TelemetryService(TelemetryClient telemetryClient)
+        public AccountDeleteTelemetryService(TelemetryClient telemetryClient)
         {
             _telemetryClient = telemetryClient ?? throw new ArgumentNullException(nameof(telemetryClient));
         }

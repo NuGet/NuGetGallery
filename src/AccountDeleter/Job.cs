@@ -26,8 +26,8 @@ namespace NuGetGallery.AccountDeleter
 
             services.AddTransient<IAccountManager, GalleryAccountManager>();
 
-            services.AddTransient<ITelemetryService, TelemetryService>();
-            services.AddTransient<ISubscriptionProcessorTelemetryService, TelemetryService>();
+            services.AddTransient<IAccountDeleteTelemetryService, AccountDeleteTelemetryService>();
+            services.AddTransient<ISubscriptionProcessorTelemetryService, AccountDeleteTelemetryService>();
             services.AddSingleton(new TelemetryClient());
         }
 

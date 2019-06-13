@@ -5,7 +5,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{8EE102B9-DA4E-4FDF-B6FD-FB12E6584DD7}</ProjectGuid>
-    <OutputType>Library</OutputType>
+    <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>NuGetGallery.AccountDeleter</RootNamespace>
     <AssemblyName>AccountDeleter</AssemblyName>
@@ -30,6 +30,9 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -41,7 +44,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AccountDeleteMessageHandler.cs" />
+    <Compile Include="Evaluators\AggregateEvaluator.cs" />
     <Compile Include="Evaluators\AlwayRejectEvaluator.cs" />
+    <Compile Include="Evaluators\UserOrganizationEvaluator.cs" />
     <Compile Include="GalleryAccountManager.cs" />
     <Compile Include="IAccountManager.cs" />
     <Compile Include="AccountDeleteMessage.cs" />
@@ -51,8 +56,8 @@
     <Compile Include="Job.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Telemetry\ITelemetryService.cs" />
-    <Compile Include="Telemetry\TelemetryService.cs" />
+    <Compile Include="Telemetry\IAccountDeleteTelemetryService.cs" />
+    <Compile Include="Telemetry\AccountDeleteTelemetryService.cs" />
     <Compile Include="Evaluators\UserPackageEvaluator.cs" />
   </ItemGroup>
   <ItemGroup>
