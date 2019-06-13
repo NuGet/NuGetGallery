@@ -768,7 +768,8 @@ namespace NuGetGallery
                     c.ResolveKeyed<ISearchService>(BindingKeys.PreviewSearchClient),
                     c.Resolve<ITelemetryService>(),
                     c.Resolve<IMessageService>(),
-                    c.Resolve<IMessageServiceConfiguration>()))
+                    c.Resolve<IMessageServiceConfiguration>(),
+                    c.Resolve<IIconUrlProvider>()))
                 .As<ISearchSideBySideService>()
                 .InstancePerLifetimeScope();
         }
