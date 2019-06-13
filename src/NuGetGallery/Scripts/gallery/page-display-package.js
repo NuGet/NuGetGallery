@@ -111,4 +111,24 @@ $(function () {
             ga('send', 'event', 'dependencies', e.type);
         });
     }
+
+    if (window.nuget.isGaAvailable()) {
+        // Emit a Google Analytics event when the user expands or collapses the GitHub Usage section.
+        $("#github-usage").on('hide.bs.collapse show.bs.collapse', function (e) {
+            ga('send', 'event', 'github-usage', e.type);
+        });
+
+        // Emit a Google Analytics event when the user clicks on a repo link in the GitHub Usage section.
+        $(".btn-gh-repo").on('click', function (e) {
+            let elem = e.delegateTarget.parentElement.parentElement;
+            let linkIndex = 0;
+            while ((elem = elem.previousSibling) != null) {
+                if (elem.nodeName === "DIV") {
+                    linkIndex++;
+                }
+            }
+
+            ga('send', 'event', 'github-usage', 'link-click-' + linkIndex);
+        });
+    }
 });
