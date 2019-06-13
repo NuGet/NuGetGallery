@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NuGetGallery.Services;
@@ -28,6 +29,7 @@ namespace NuGetGallery
         public ICertificatesConfiguration CertificatesConfiguration { get; set; }
         public ISymbolsConfiguration SymbolsConfiguration { get; set; }
         public ITyposquattingConfiguration TyposquattingConfiguration { get; set; }
+        public IGitHubUsageConfiguration GitHubUsageConfiguration { get; set; }
 
         public async Task Refresh()
         {
@@ -46,9 +48,15 @@ namespace NuGetGallery
             TyposquattingConfiguration =
                await Refresh<TyposquattingConfiguration>(ServicesConstants.ContentNames.TyposquattingConfiguration) ??
                new TyposquattingConfiguration();
+
+            var reposCache = 
+                await Refresh<IReadOnlyCollection<RepositoryInformation>>(ServicesConstants.ContentNames.NuGetPackagesGitHubDependencies) ??
+                Array.Empty<RepositoryInformation>();
+
+            GitHubUsageConfiguration = new GitHubUsageConfiguration(reposCache);
         }
 
-        private async Task<T> Refresh<T>(string contentName) 
+        private async Task<T> Refresh<T>(string contentName)
             where T : class
         {
             var configString = (await _contentService.GetContentItemAsync(contentName, RefreshInterval))?.ToString();

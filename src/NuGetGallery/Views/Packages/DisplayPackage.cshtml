@@ -517,6 +517,50 @@
                 }
             }
 
+            @if(Model.IsGitHubUsageEnabled)
+            {
+                <h2>
+                    <a role="button" data-toggle="collapse" data-target="#github-usage"
+                       aria-expanded="false" aria-controls="github-usage" id="show-github-usage">
+                        <i class="ms-Icon ms-Icon--ChevronRight" aria-hidden="true"></i>
+                        <span>GitHub Usage</span>
+                    </a>
+                </h2>
+            
+                if (Model.GitHubDependenciesInformation.Repos.Any())
+                {
+                    <div class="github-usage panel-collapse collapse" aria-expanded="true" id="github-usage">
+                        <p>
+                            About @(Model.GitHubDependenciesInformation.TotalRepos.ToKiloFormat()) popular GitHub repositories depend on
+                            @(Model.Id), including the following:
+                        </p>
+
+                        @foreach (var dep in Model.GitHubDependenciesInformation.Repos)
+                        {
+                            <div class="row top-buffer">
+                                <div class="col-xs-12">
+                                    <a class="btn btn-gh-repo text-left" href="@dep.Url" target="_blank">
+                                        <span class="pull-left">
+                                            @(dep.Id)
+                                        </span>
+                                        <span class="badge pull-right badge-gh-repo">
+                                            @(dep.Stars.ToKiloFormat()) <i class="ms-Icon ms-Icon--FavoriteStarFill star-gh-repo" aria-hidden="true"></i>
+                                        </span>
+                                    </a>
+                                </div>
+                            </div>
+
+                        }
+                    </div>
+                }
+                else
+                {
+                    <p class="github-usage panel-collapse collapse" aria-expanded="true" id="github-usage">
+                        This package is not used by any popular GitHub repositories.
+                    </p>
+                }
+            }
+
             <h2>
                 <a href="#" role="button" data-toggle="collapse" data-target="#version-history"
                    aria-expanded="true" aria-controls="version-history" id="show-version-history">
@@ -857,6 +901,16 @@
                     @Model.DownloadsPerDayLabel @(Model.DownloadsPerDayLabel == "1" || Model.DownloadsPerDayLabel == "<1" ? "download" : "downloads")
                     per day (avg)
                 </li>
+
+                @if (Model.IsGitHubUsageEnabled && Model.GitHubDependenciesInformation.TotalRepos > 0)
+                {
+                    <li>
+                        <img class="icon" aria-hidden="true" alt="GitHub logo"
+                             src="@Url.Absolute("~/Content/gallery/img/github.svg")"
+                             @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/github-32x32.png")) />
+                        @(Model.GitHubDependenciesInformation.TotalRepos) popular dependent GitHub repos
+                    </li>
+                }
             </ul>
             @if (StatisticsHelper.IsStatisticsPageAvailable)
             {
