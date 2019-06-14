@@ -6,7 +6,9 @@ using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using NuGet.Jobs.Validation;
+using NuGet.Services.Messaging.Email;
 using NuGet.Services.ServiceBus;
 using NuGetGallery.Areas.Admin;
 using NuGetGallery.Auditing;
@@ -32,7 +34,7 @@ namespace NuGetGallery.AccountDeleter
 
             services.AddTransient<IAccountDeleteTelemetryService, AccountDeleteTelemetryService>();
             services.AddTransient<ISubscriptionProcessorTelemetryService, AccountDeleteTelemetryService>();
-            services.AddTransient<IMessenger, EmptyMessenger>();
+            services.AddTransient<IMessageService, EmptyMessenger>();
             services.AddSingleton<IUserEvaluator>(sp =>
             {
                 var telemetry = sp.GetRequiredService<IAccountDeleteTelemetryService>();
@@ -47,6 +49,8 @@ namespace NuGetGallery.AccountDeleter
 
                 return evaluator;
             });
+
+            services.AddSingleton<IEmailBuilderFactory, EmailBuilderFactory>();
 
             services.AddSingleton(new TelemetryClient());
 

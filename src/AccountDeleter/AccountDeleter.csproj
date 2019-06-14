@@ -46,8 +46,14 @@
   <ItemGroup>
     <Compile Include="AccountDeleteMessageHandler.cs" />
     <Compile Include="Configuration\AccountDeleteConfiguration.cs" />
+    <Compile Include="Configuration\SourceConfiguration.cs" />
+    <Compile Include="Exceptions\EmailContactNotAllowedException.cs" />
+    <Compile Include="Exceptions\UnknownSourceException.cs" />
+    <Compile Include="Messaging\AccountDeleteEmailBuilder.cs" />
+    <Compile Include="Messaging\DisposableEmailBuilder.cs" />
+    <Compile Include="Messaging\EmailBuilderFactory.cs" />
     <Compile Include="EmptyDeleteAccountService.cs" />
-    <Compile Include="EmptyMessenger.cs" />
+    <Compile Include="Messaging\EmptyMessenger.cs" />
     <Compile Include="EmptyUserService.cs" />
     <Compile Include="Evaluators\AggregateEvaluator.cs" />
     <Compile Include="Evaluators\AlwayRejectEvaluator.cs" />
@@ -56,7 +62,7 @@
     <Compile Include="IAccountManager.cs" />
     <Compile Include="AccountDeleteMessage.cs" />
     <Compile Include="AccountDeleteMessageSerializer.cs" />
-    <Compile Include="IMessenger.cs" />
+    <Compile Include="Messaging\IEmailBuilderFactory.cs" />
     <Compile Include="Evaluators\IUserEvaluator.cs" />
     <Compile Include="Job.cs" />
     <Compile Include="Program.cs" />

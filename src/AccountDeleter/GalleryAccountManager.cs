@@ -2,9 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Microsoft.Extensions.Logging;
-using NuGet.Services.Entities;
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace NuGetGallery.AccountDeleter
@@ -61,6 +59,21 @@ namespace NuGetGallery.AccountDeleter
 
             _logger.LogInformation("User was not able to be automatically deleted. Criteria check failed.");
             return false;
+        }
+
+        public async Task<string> GetEmailAddresForUser(string username)
+        {
+            var user = _userService.FindByUsername(username);
+            // We may want to ignore this setting, but respect contact for now
+            if(user.EmailAllowed)
+            {
+                return user.EmailAddress ?? user.UnconfirmedEmailAddress;
+            }
+            else
+            {
+                _logger.LogWarning("User did not allow contact by email.");
+                throw new EmailContactNotAllowedException();
+            }
         }
     }
 }
