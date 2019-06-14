@@ -119,16 +119,13 @@ $(function () {
         });
 
         // Emit a Google Analytics event when the user clicks on a repo link in the GitHub Usage section.
-        $(".btn-gh-repo").on('click', function (e) {
-            let elem = e.delegateTarget.parentElement.parentElement;
-            let linkIndex = 0;
-            while ((elem = elem.previousSibling) != null) {
-                if (elem.nodeName === "DIV") {
-                    linkIndex++;
-                }
+        $(".btn-gh-repo").on('click', function (elem) {
+            if (!elem.delegateTarget.dataset.indexNumber) {
+                console.error("indexNumber property doesn't exist!");
+            } else {
+                let linkIndex = elem.delegateTarget.dataset.indexNumber;
+                ga('send', 'event', 'github-usage', 'link-click-' + linkIndex);
             }
-
-            ga('send', 'event', 'github-usage', 'link-click-' + linkIndex);
         });
     }
 });
