@@ -6,15 +6,20 @@ using System.Threading;
 using System.Threading.Tasks;
 using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
+using NuGet.Services.Metadata.Catalog.Helpers;
 
 namespace NuGet.Services.Metadata.Catalog.Monitoring
 {
-    public class PackageRegistrationMetadataResourceV2FeedProvider : ResourceProvider
+    public class PackageRegistrationMetadataResourceDatabaseFeedProvider : ResourceProvider
     {
-        public PackageRegistrationMetadataResourceV2FeedProvider() :
+        private readonly IGalleryDatabaseQueryService _queryService;
+
+        public PackageRegistrationMetadataResourceDatabaseFeedProvider(
+            IGalleryDatabaseQueryService queryService) :
             base(typeof(IPackageRegistrationMetadataResource),
                 nameof(IPackageRegistrationMetadataResource))
         {
+            _queryService = queryService ?? throw new ArgumentNullException(nameof(queryService));
         }
 
         public override async Task<Tuple<bool, INuGetResource>> TryCreate(SourceRepository source, CancellationToken token)
@@ -23,12 +28,7 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
 
             if (await source.GetFeedType(token) == FeedType.HttpV2)
             {
-                var serviceDocumentResource = await source.GetResourceAsync<ODataServiceDocumentResourceV2>(token);
-
-                var httpSourceResource = await source.GetResourceAsync<HttpSourceResource>(token);
-                var feedParser = new V2FeedParser(httpSourceResource.HttpSource, serviceDocumentResource.BaseAddress, source.PackageSource.Source);
-
-                resource = new PackageRegistrationMetadataResourceV2Feed(feedParser);
+                resource = new PackageRegistrationMetadataResourceDatabase(_queryService);
             }
 
             return new Tuple<bool, INuGetResource>(resource != null, resource);

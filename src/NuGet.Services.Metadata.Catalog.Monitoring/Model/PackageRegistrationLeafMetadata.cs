@@ -2,7 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using NuGet.Protocol;
+using NuGet.Services.Metadata.Catalog.Helpers;
 
 namespace NuGet.Services.Metadata.Catalog.Monitoring
 {
@@ -14,8 +14,6 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
     {
         public bool Listed { get; set; }
 
-        public string PackageContent { get; set; }
-
         public DateTimeOffset? Published { get; set; }
 
         /// <summary>
@@ -26,13 +24,12 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
         }
 
         /// <summary>
-        /// Converts a <see cref="V2FeedPackageInfo"/> into a format that can be directly compared to a <see cref="PackageRegistrationLeafMetadata"/>.
+        /// Converts a <see cref="FeedPackageDetails"/> into a format that can be directly compared to a <see cref="PackageRegistrationLeafMetadata"/>.
         /// </summary>
-        public PackageRegistrationLeafMetadata(V2FeedPackageInfo package)
+        public PackageRegistrationLeafMetadata(FeedPackageDetails package)
         {
-            Listed = package.IsListed;
-            PackageContent = package.DownloadUrl;
-            Published = package.Published;
+            Listed = PackageCatalogItem.GetListed(package.PublishedDate);
+            Published = package.PublishedDate;
         }
     }
 }

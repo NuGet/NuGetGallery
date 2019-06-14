@@ -61,6 +61,7 @@ namespace CatalogTests.Helpers
                 const string normalizedPackageVersion = "1.0.0";
                 const string licenseNames = "MIT";
                 const string licenseReportUrl = "https://unittest.org/licenses/MIT";
+                const bool requiresLicenseAcceptance = true;
 
                 var utcNow = DateTime.UtcNow;
                 var createdDate = utcNow.AddDays(-1);
@@ -70,6 +71,7 @@ namespace CatalogTests.Helpers
                 var expectedPublishedDate = listed ? publishedDate : Constants.UnpublishedDate;
                 var expectedLicenseNames = hideLicenseReport ? null : licenseNames;
                 var expectedLicenseReportUrl = hideLicenseReport ? null : licenseReportUrl;
+                var expectedRequiresLicenseAcceptance = true;
 
                 var dataRecordMock = MockDataReader(
                     packageId,
@@ -80,7 +82,8 @@ namespace CatalogTests.Helpers
                     listed,
                     hideLicenseReport,
                     licenseNames,
-                    licenseReportUrl);
+                    licenseReportUrl,
+                    requiresLicenseAcceptance);
 
                 // Act
                 var projection = _db2catalogProjection.ReadFeedPackageDetailsFromDataReader(dataRecordMock.Object);
@@ -94,6 +97,7 @@ namespace CatalogTests.Helpers
                 Assert.Equal(expectedContentUri, projection.ContentUri);
                 Assert.Equal(expectedLicenseNames, projection.LicenseNames);
                 Assert.Equal(expectedLicenseReportUrl, projection.LicenseReportUrl);
+                Assert.Equal(expectedRequiresLicenseAcceptance, projection.RequiresLicenseAcceptance);
                 Assert.Null(projection.DeprecationInfo);
             }
 
@@ -106,13 +110,15 @@ namespace CatalogTests.Helpers
                 bool listed,
                 bool hideLicenseReport,
                 string licenseNames,
-                string licenseReportUrl)
+                string licenseReportUrl,
+                bool requiresLicenseAcceptance)
             {
                 const int ordinalCreated = 2;
                 const int ordinalLastEdited = 3;
                 const int ordinalPublished = 4;
                 const int ordinalListed = 5;
                 const int ordinalHideLicenseReport = 6;
+                const int ordinalRequiresLicenseAcceptance = 9;
 
                 var dataReaderMock = new Mock<DbDataReader>(MockBehavior.Strict);
 
@@ -139,6 +145,10 @@ namespace CatalogTests.Helpers
                 dataReaderMock.SetupGet(m => m[Db2CatalogProjectionColumnNames.Published]).Returns(publishedDate);
                 dataReaderMock.Setup(m => m.GetOrdinal(Db2CatalogProjectionColumnNames.Published)).Returns(ordinalPublished);
                 dataReaderMock.Setup(m => m.GetDateTime(ordinalPublished)).Returns(publishedDate);
+
+                dataReaderMock.SetupGet(m => m[Db2CatalogProjectionColumnNames.RequiresLicenseAcceptance]).Returns(requiresLicenseAcceptance);
+                dataReaderMock.Setup(m => m.GetOrdinal(Db2CatalogProjectionColumnNames.RequiresLicenseAcceptance)).Returns(ordinalRequiresLicenseAcceptance);
+                dataReaderMock.Setup(m => m.GetBoolean(ordinalRequiresLicenseAcceptance)).Returns(requiresLicenseAcceptance);
 
                 // Simulate that these columns do not exist in the resultset.
                 dataReaderMock.Setup(m => m.GetOrdinal(Db2CatalogProjectionColumnNames.DeprecationStatus)).Throws<IndexOutOfRangeException>();

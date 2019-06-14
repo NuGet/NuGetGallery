@@ -3,7 +3,6 @@
 using Lucene.Net.Index;
 using Lucene.Net.Search;
 using Lucene.Net.Util;
-using System;
 
 namespace NuGet.Indexing
 {

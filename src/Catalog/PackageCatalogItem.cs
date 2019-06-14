@@ -152,13 +152,14 @@ namespace NuGet.Services.Metadata.Catalog
             return graph;
         }
 
-        private bool GetListed(DateTime published)
+        public static bool GetListed(DateTime published)
         {
             //If the published date is 1900/01/01, then the package is unlisted
-            if (published.ToUniversalTime() == Convert.ToDateTime("1900-01-01T00:00:00Z").ToUniversalTime())
+            if (published.ToUniversalTime() == Constants.UnpublishedDate)
             {
                 return false;
             }
+
             return true;
         }
 

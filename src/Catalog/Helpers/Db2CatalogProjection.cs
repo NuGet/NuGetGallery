@@ -49,7 +49,8 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
                 normalizedPackageVersion,
                 hideLicenseReport ? null : dataReader[Db2CatalogProjectionColumnNames.LicenseNames]?.ToString(),
                 hideLicenseReport ? null : dataReader[Db2CatalogProjectionColumnNames.LicenseReportUrl]?.ToString(),
-                deprecationInfo);
+                deprecationInfo,
+                dataReader.GetBoolean(dataReader.GetOrdinal(Db2CatalogProjectionColumnNames.RequiresLicenseAcceptance)));
         }
 
         public PackageDeprecationItem ReadDeprecationInfoFromDataReader(DbDataReader dataReader)

@@ -15,14 +15,14 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
         {
         }
 
-        public override Task CompareIndexAsync(ValidationContext context, PackageRegistrationIndexMetadata v2, PackageRegistrationIndexMetadata v3)
+        public override Task CompareIndexAsync(ValidationContext context, PackageRegistrationIndexMetadata database, PackageRegistrationIndexMetadata v3)
         {
-            var isEqual = v2.Version == v3.Version;
+            var isEqual = database.Version == v3.Version;
 
             if (!isEqual)
             {
                 throw new MetadataFieldInconsistencyException<PackageRegistrationIndexMetadata>(
-                    v2, v3,
+                    database, v3,
                     nameof(PackageRegistrationIndexMetadata.Version),
                     m => m.Version.ToFullString());
             }

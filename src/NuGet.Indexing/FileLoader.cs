@@ -4,7 +4,6 @@
 using Newtonsoft.Json;
 using System.IO;
 using System;
-using System.Threading.Tasks;
 
 namespace NuGet.Indexing
 {

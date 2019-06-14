@@ -122,7 +122,7 @@ namespace Ng.Jobs
 
         private async Task ProcessPackagesAsync(CancellationToken token)
         {
-            StorageQueueMessage<PackageValidatorContext> queueMessage = null;
+            StorageQueueMessage<PackageValidatorContext> queueMessage;
             do
             {
                 Logger.LogInformation("Fetching next queue message.");

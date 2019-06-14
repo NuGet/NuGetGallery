@@ -63,34 +63,34 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
         }
 
         /// <summary>
-        /// Checks that the current batch of catalog entries contains the entry that was created from the current state of the V2 feed.
+        /// Checks that the current batch of catalog entries contains the entry that was created from the current state of the database.
         /// </summary>
         protected virtual async Task<bool> ShouldRunAsync(ValidationContext context)
         {
-            var timestampV2 = await context.GetTimestampMetadataV2Async();
+            var timestampDatabase = await context.GetTimestampMetadataDatabaseAsync();
             var timestampCatalog = await PackageTimestampMetadata.FromCatalogEntries(context.Client, context.Entries);
 
-            if (!timestampV2.Last.HasValue)
+            if (!timestampDatabase.Last.HasValue)
             {
-                throw new TimestampComparisonException(timestampV2, timestampCatalog,
-                    "Cannot get timestamp data for package from the V2 feed!");
+                throw new TimestampComparisonException(timestampDatabase, timestampCatalog,
+                    "Cannot get timestamp data for package from the database!");
             }
 
             if (!timestampCatalog.Last.HasValue)
             {
-                throw new TimestampComparisonException(timestampV2, timestampCatalog,
+                throw new TimestampComparisonException(timestampDatabase, timestampCatalog,
                     "Cannot get timestamp data for package from the catalog!");
             }
 
-            if (timestampCatalog.Last > timestampV2.Last)
+            if (timestampCatalog.Last > timestampDatabase.Last)
             {
-                throw new TimestampComparisonException(timestampV2, timestampCatalog,
-                    "The timestamp in the catalog is newer than the timestamp in the feed! This should never happen because all data flows from the feed into the catalog!");
+                throw new TimestampComparisonException(timestampDatabase, timestampCatalog,
+                    "The timestamp in the catalog is newer than the timestamp in the database! This should never happen because all data flows from the feed into the catalog!");
             }
 
-            // If the timestamp metadata in the catalog is LESS than that of the feed, we must not be looking at the latest entry that corresponds with this package, so skip the test for now.
-            // If the timestamp metadata in the catalog is EQUAL to that of the feed, we are looking at the latest catalog entry that corresponds with this package, so run the test.
-            return timestampCatalog.Last == timestampV2.Last;
+            // If the timestamp metadata in the catalog is LESS than that of the database, we must not be looking at the latest entry that corresponds with this package, so skip the test for now.
+            // If the timestamp metadata in the catalog is EQUAL to that of the database, we are looking at the latest catalog entry that corresponds with this package, so run the test.
+            return timestampCatalog.Last == timestampDatabase.Last;
         }
 
         protected abstract Task RunInternalAsync(ValidationContext context);

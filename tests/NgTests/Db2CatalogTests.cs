@@ -1175,7 +1175,8 @@ namespace NgTests
                 packageVersion: normalizedVersion,
                 licenseNames: null,
                 licenseReportUrl: null,
-                deprecationInfo: null);
+                deprecationInfo: null,
+                requiresLicenseAcceptance: false);
 
             return new PackageCreationOrEdit(package, feedPackageDetails);
         }
@@ -1209,7 +1210,8 @@ namespace NgTests
                 packageVersion: entry.FeedPackageDetails.PackageVersion,
                 licenseNames: entry.FeedPackageDetails.LicenseNames,
                 licenseReportUrl: entry.FeedPackageDetails.LicenseReportUrl,
-                deprecationInfo: entry.FeedPackageDetails.DeprecationInfo);
+                deprecationInfo: entry.FeedPackageDetails.DeprecationInfo,
+                requiresLicenseAcceptance: entry.FeedPackageDetails.RequiresLicenseAcceptance);
 
             var operation = new PackageCreationOrEdit(editedPackage, feedPackageDetails);
 

@@ -6,7 +6,6 @@ using System.Threading;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
 using Lucene.Net.Store;
-using System.Threading.Tasks;
 
 namespace NuGet.Indexing
 {

@@ -1,5 +1,4 @@
-﻿using System.Threading.Tasks;
-using Lucene.Net.Store;
+﻿using Lucene.Net.Store;
 
 namespace NuGet.Indexing.IndexDirectoryProvider
 {

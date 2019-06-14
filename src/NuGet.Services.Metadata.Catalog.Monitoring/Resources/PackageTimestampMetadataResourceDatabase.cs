@@ -9,14 +9,14 @@ using NuGet.Services.Metadata.Catalog.Helpers;
 
 namespace NuGet.Services.Metadata.Catalog.Monitoring
 {
-    public class PackageTimestampMetadataResourceV2 : IPackageTimestampMetadataResource
+    public class PackageTimestampMetadataResourceDatabase : IPackageTimestampMetadataResource
     {
         private readonly IGalleryDatabaseQueryService _galleryDatabase;
-        private readonly ILogger<PackageTimestampMetadataResourceV2> _logger;
+        private readonly ILogger<PackageTimestampMetadataResourceDatabase> _logger;
 
-        public PackageTimestampMetadataResourceV2(
+        public PackageTimestampMetadataResourceDatabase(
             IGalleryDatabaseQueryService galleryDatabase,
-            ILogger<PackageTimestampMetadataResourceV2> logger)
+            ILogger<PackageTimestampMetadataResourceDatabase> logger)
         {
             _galleryDatabase = galleryDatabase ?? throw new ArgumentNullException(nameof(galleryDatabase));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));

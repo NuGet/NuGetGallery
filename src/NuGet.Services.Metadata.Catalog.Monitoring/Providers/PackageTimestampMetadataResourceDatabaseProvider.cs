@@ -11,11 +11,11 @@ using NuGet.Services.Metadata.Catalog.Helpers;
 
 namespace NuGet.Services.Metadata.Catalog.Monitoring
 {
-    public class PackageTimestampMetadataResourceV2Provider : ResourceProvider
+    public class PackageTimestampMetadataResourceDatabaseProvider : ResourceProvider
     {
         private readonly IGalleryDatabaseQueryService _galleryDatabase;
 
-        public PackageTimestampMetadataResourceV2Provider(
+        public PackageTimestampMetadataResourceDatabaseProvider(
             IGalleryDatabaseQueryService galleryDatabaseQueryService,
             ILoggerFactory loggerFactory)
             : base(typeof(IPackageTimestampMetadataResource))
@@ -28,13 +28,13 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
 
         public override async Task<Tuple<bool, INuGetResource>> TryCreate(SourceRepository source, CancellationToken token)
         {
-            PackageTimestampMetadataResourceV2 resource = null;
+            PackageTimestampMetadataResourceDatabase resource = null;
 
             if (await source.GetFeedType(token) == FeedType.HttpV2)
             {
-                resource = new PackageTimestampMetadataResourceV2(
+                resource = new PackageTimestampMetadataResourceDatabase(
                     _galleryDatabase,
-                    _loggerFactory.CreateLogger<PackageTimestampMetadataResourceV2>());
+                    _loggerFactory.CreateLogger<PackageTimestampMetadataResourceDatabase>());
             }
 
             return new Tuple<bool, INuGetResource>(resource != null, resource);

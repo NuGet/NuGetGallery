@@ -96,7 +96,6 @@
     <Compile Include="Helpers\CatalogPropertiesTests.cs" />
     <Compile Include="Helpers\Db2CatalogCursorTests.cs" />
     <Compile Include="Helpers\Db2CatalogProjectionTests.cs" />
-    <Compile Include="Helpers\FeedHelpersTests.cs" />
     <Compile Include="Helpers\FeedPackageIdentityTests.cs" />
     <Compile Include="Helpers\GalleryDatabaseQueryServiceTests.cs" />
     <Compile Include="Helpers\LicenseHelperTests.cs" />

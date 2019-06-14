@@ -110,6 +110,7 @@
     <Compile Include="Validation\PackageIsRepositorySignedValidatorFacts.cs" />
     <Compile Include="Validation\PackageValidatorTests.cs" />
     <Compile Include="Validation\PackageValidatorContextTests.cs" />
+    <Compile Include="Validation\RegistrationDeprecationValidatorTestData.cs" />
     <Compile Include="Validation\RegistrationIndexValidatorTestData.cs" />
     <Compile Include="Validation\RegistrationIndexValidatorTests.cs" />
     <Compile Include="Validation\RegistrationListedValidatorTestData.cs" />

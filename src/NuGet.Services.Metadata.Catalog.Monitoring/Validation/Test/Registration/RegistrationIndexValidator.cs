@@ -16,38 +16,38 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
 
         protected override async Task<bool> ShouldRunAsync(ValidationContext context)
         {
-            var v2Index = await context.GetIndexV2Async();
+            var databaseIndex = await context.GetIndexDatabaseAsync();
             var v3Index = await context.GetIndexV3Async();
 
-            return await base.ShouldRunAsync(context) && await ShouldRunIndexAsync(context, v2Index, v3Index);
+            return await base.ShouldRunAsync(context) && await ShouldRunIndexAsync(context, databaseIndex, v3Index);
         }
 
         protected override async Task RunInternalAsync(ValidationContext context)
         {
-            var v2Index = await context.GetIndexV2Async();
+            var databaseIndex = await context.GetIndexDatabaseAsync();
             var v3Index = await context.GetIndexV3Async();
 
             try
             {
-                await CompareIndexAsync(context, v2Index, v3Index);
+                await CompareIndexAsync(context, databaseIndex, v3Index);
             }
             catch (Exception e)
             {
-                throw new ValidationException("Registration index metadata does not match the FindPackagesById metadata!", e);
+                throw new ValidationException("Registration index metadata does not match the database metadata!", e);
             }
         }
 
         public Task<bool> ShouldRunIndexAsync(
             ValidationContext context,
-            PackageRegistrationIndexMetadata v2,
+            PackageRegistrationIndexMetadata database,
             PackageRegistrationIndexMetadata v3)
         {
-            return Task.FromResult(v2 != null && v3 != null);
+            return Task.FromResult(database != null && v3 != null);
         }
 
         public abstract Task CompareIndexAsync(
             ValidationContext context,
-            PackageRegistrationIndexMetadata v2,
+            PackageRegistrationIndexMetadata database,
             PackageRegistrationIndexMetadata v3);
     }
 }

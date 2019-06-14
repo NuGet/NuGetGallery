@@ -29,6 +29,7 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
                         P.[HideLicenseReport],
                         P.[LicenseNames],
                         P.[LicenseReportUrl],
+                        P.[RequiresLicenseAcceptance],
                         PD.[Status] AS '{Db2CatalogProjectionColumnNames.DeprecationStatus}',
                         APR.[Id] AS '{Db2CatalogProjectionColumnNames.AlternatePackageId}',
                         AP.[NormalizedVersion] AS '{Db2CatalogProjectionColumnNames.AlternatePackageVersion}',
