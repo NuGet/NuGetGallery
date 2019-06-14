@@ -33,8 +33,8 @@ namespace NuGetGallery.AccountDeleter
         [Schema(Name = AccountDeleteMessageSchemaName, Version = 1)]
         private struct AccountDeleteMessageData
         {
-            public string Subject;
-            public string Source;
+            public string Subject { get; set; }
+            public string Source { get; set; }
         }
     }
 }

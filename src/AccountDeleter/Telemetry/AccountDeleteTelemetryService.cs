@@ -20,42 +20,50 @@ namespace NuGetGallery.AccountDeleter
 
         public void TrackAccountDelete()
         {
-            throw new NotImplementedException();
+            return;
+            //throw new NotImplementedException();
         }
 
         public void TrackEmailSent()
         {
-            throw new NotImplementedException();
+            return;
+            //throw new NotImplementedException();
         }
 
         public void TrackEnqueueLag<TMessage>(TimeSpan enqueueLag)
         {
-            throw new NotImplementedException();
+            return;
+            //throw new NotImplementedException();
         }
 
         public void TrackException(Exception exception)
         {
-            throw new NotImplementedException();
+            return;
+            //throw new NotImplementedException();
         }
 
         public void TrackIncomingCommand(AccountDeleteMessage command)
         {
-            throw new NotImplementedException();
+            return;
+            //throw new NotImplementedException();
         }
 
         public void TrackMessageDeliveryLag<TMessage>(TimeSpan deliveryLag)
         {
-            throw new NotImplementedException();
+            return;
+            //throw new NotImplementedException();
         }
 
         public void TrackMessageHandlerDuration<TMessage>(TimeSpan duration, Guid callGuid, bool handled)
         {
-            throw new NotImplementedException();
+            return;
+            //throw new NotImplementedException();
         }
 
         public void TrackMessageLockLost<TMessage>(Guid callGuid)
         {
-            throw new NotImplementedException();
+            return;
+            //throw new NotImplementedException();
         }
     }
 }

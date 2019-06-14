@@ -5,6 +5,7 @@ using Autofac;
 using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using NuGet.Jobs.Validation;
 using NuGet.Services.ServiceBus;
 using NuGetGallery.Areas.Admin;
@@ -31,22 +32,40 @@ namespace NuGetGallery.AccountDeleter
 
             services.AddTransient<IAccountDeleteTelemetryService, AccountDeleteTelemetryService>();
             services.AddTransient<ISubscriptionProcessorTelemetryService, AccountDeleteTelemetryService>();
+            services.AddTransient<IMessenger, EmptyMessenger>();
+            services.AddSingleton<IUserEvaluator>(sp =>
+            {
+                var telemetry = sp.GetRequiredService<IAccountDeleteTelemetryService>();
+                var aeLogger = sp.GetRequiredService<ILogger<AggregateEvaluator>>();
+                var areLogger = sp.GetRequiredService<ILogger<AlwayRejectEvaluator>>();
+                var evaluator = new AggregateEvaluator(telemetry, aeLogger);
+
+                // we can configure evaluators here.
+                var alwaysReject = new AlwayRejectEvaluator(areLogger);
+
+                evaluator.AddEvaluator(alwaysReject);
+
+                return evaluator;
+            });
+
             services.AddSingleton(new TelemetryClient());
+
+            ConfigureGalleryServices(services, configurationRoot);
         }
 
         protected void ConfigureGalleryServices(IServiceCollection services, IConfigurationRoot configurationRoot)
         {
-            services.AddSingleton<IDeleteAccountService, DeleteAccountService>();
-            services.AddSingleton<IUserService, UserService>();
-            services.AddSingleton<IPackageService, PackageService>();
-            services.AddSingleton<IPackageUpdateService, PackageUpdateService>();
-            services.AddSingleton<IPackageOwnershipManagementService, PackageOwnershipManagementService>();
-            services.AddSingleton<IReservedNamespaceService, ReservedNamespaceService>();
-            services.AddSingleton<ISecurityPolicyService, SecurityPolicyService>();
-            //services.AddSingleton<IAuthenticationService, AuthenticationService>(); // This guy needs to come out of gallery.
-            //services.AddSingleton<ISupportRequestService, SupportRequestService>(); // This guy too
-            services.AddSingleton<IEditableFeatureFlagStorageService, FeatureFlagFileStorageService>();
-            services.AddSingleton<IAuditingService, AuditingService>();
+            services.AddSingleton<IDeleteAccountService, EmptyDeleteAccountService>();
+            services.AddSingleton<IUserService, EmptyUserService>();
+            //services.AddSingleton<IPackageService, PackageService>();
+            //services.AddSingleton<IPackageUpdateService, PackageUpdateService>();
+            //services.AddSingleton<IPackageOwnershipManagementService, PackageOwnershipManagementService>();
+            //services.AddSingleton<IReservedNamespaceService, ReservedNamespaceService>();
+            //services.AddSingleton<ISecurityPolicyService, SecurityPolicyService>();
+            ////services.AddSingleton<IAuthenticationService, AuthenticationService>(); // This guy needs to come out of gallery.
+            ////services.AddSingleton<ISupportRequestService, SupportRequestService>(); // This guy too
+            //services.AddSingleton<IEditableFeatureFlagStorageService, FeatureFlagFileStorageService>();
+            //services.AddSingleton<IAuditingService, AuditingService>();
             //ITelemetryService telemetryService // Gallery Telemetry Service
         }
 

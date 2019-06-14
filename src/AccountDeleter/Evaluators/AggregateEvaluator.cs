@@ -21,7 +21,7 @@ namespace NuGetGallery.AccountDeleter
             _telemtryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _evaluatorList = new Dictionary<string, IUserEvaluator>();
-            _id = new Guid();
+            _id = Guid.NewGuid();
         }
 
         public string EvaluatorId

@@ -19,7 +19,7 @@ namespace NuGetGallery.AccountDeleter
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
             _telemtryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _id = new Guid();
+            _id = Guid.NewGuid();
         }
 
         public string EvaluatorId

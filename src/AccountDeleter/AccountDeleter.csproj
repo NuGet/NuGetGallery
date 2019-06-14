@@ -46,6 +46,9 @@
   <ItemGroup>
     <Compile Include="AccountDeleteMessageHandler.cs" />
     <Compile Include="Configuration\AccountDeleteConfiguration.cs" />
+    <Compile Include="EmptyDeleteAccountService.cs" />
+    <Compile Include="EmptyMessenger.cs" />
+    <Compile Include="EmptyUserService.cs" />
     <Compile Include="Evaluators\AggregateEvaluator.cs" />
     <Compile Include="Evaluators\AlwayRejectEvaluator.cs" />
     <Compile Include="Evaluators\UserOrganizationEvaluator.cs" />

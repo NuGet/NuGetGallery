@@ -59,6 +59,7 @@ namespace NuGetGallery.AccountDeleter
                 }
             }
 
+            _logger.LogInformation("User was not able to be automatically deleted. Criteria check failed.");
             return false;
         }
     }
