@@ -105,10 +105,25 @@ $(function () {
         });
     }
 
-    // Emit a Google Analytics event when the user expands or collapses the Dependencies section.
     if (window.nuget.isGaAvailable()) {
+        // Emit a Google Analytics event when the user expands or collapses the Dependencies section.
         $("#dependency-groups").on('hide.bs.collapse show.bs.collapse', function (e) {
             ga('send', 'event', 'dependencies', e.type);
+        });
+
+        // Emit a Google Analytics event when the user expands or collapses the GitHub Usage section.
+        $("#github-usage").on('hide.bs.collapse show.bs.collapse', function (e) {
+            ga('send', 'event', 'github-usage', e.type);
+        });
+
+        // Emit a Google Analytics event when the user clicks on a repo link in the GitHub Usage section.
+        $(".btn-gh-repo").on('click', function (elem) {
+            if (!elem.delegateTarget.dataset.indexNumber) {
+                console.error("indexNumber property doesn't exist!");
+            } else {
+                let linkIndex = elem.delegateTarget.dataset.indexNumber;
+                ga('send', 'event', 'github-usage', 'link-click-' + linkIndex);
+            }
         });
     }
 });

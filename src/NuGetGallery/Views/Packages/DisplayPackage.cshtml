@@ -535,16 +535,16 @@
                             @(Model.Id), including the following:
                         </p>
 
-                        @foreach (var dep in Model.GitHubDependenciesInformation.Repos)
+                        @foreach (var item in Model.GitHubDependenciesInformation.Repos.Select((elem, i) => new { Value = elem, Idx = i}))
                         {
                             <div class="row top-buffer">
                                 <div class="col-xs-12">
-                                    <a class="btn btn-gh-repo text-left" href="@dep.Url" target="_blank">
+                                    <a data-index-number="@item.Idx" class="btn btn-gh-repo text-left" href="@item.Value.Url" target="_blank">
                                         <span class="pull-left">
-                                            @(dep.Id)
+                                            @(item.Value.Id)
                                         </span>
                                         <span class="badge pull-right badge-gh-repo">
-                                            @(dep.Stars.ToKiloFormat()) <i class="ms-Icon ms-Icon--FavoriteStarFill star-gh-repo" aria-hidden="true"></i>
+                                            @(item.Value.Stars.ToKiloFormat()) <i class="ms-Icon ms-Icon--FavoriteStarFill star-gh-repo" aria-hidden="true"></i>
                                         </span>
                                     </a>
                                 </div>
