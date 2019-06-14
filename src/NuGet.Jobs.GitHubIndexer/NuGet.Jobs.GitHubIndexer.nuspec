@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>GitHubIndexer</id>
+    <version>$version$</version>
+    <title>NuGet.Jobs.GitHubIndexer</title>
+    <authors>.NET Foundation</authors>
+    <owners>.NET Foundation</owners>
+    <description>The job used to index popular GitHub repos</description>
+    <copyright>Copyright .NET Foundation</copyright>
+  </metadata>
+  <files>
+    <file src="bin\$configuration$\*.*" target="bin"/>
+    <file src="Scripts\*.ps1" />
+    <file src="Scripts\nssm.exe" />
+  </files>
+</package>
