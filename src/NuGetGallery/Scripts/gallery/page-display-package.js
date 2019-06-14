@@ -105,14 +105,12 @@ $(function () {
         });
     }
 
-    // Emit a Google Analytics event when the user expands or collapses the Dependencies section.
     if (window.nuget.isGaAvailable()) {
+        // Emit a Google Analytics event when the user expands or collapses the Dependencies section.
         $("#dependency-groups").on('hide.bs.collapse show.bs.collapse', function (e) {
             ga('send', 'event', 'dependencies', e.type);
         });
-    }
 
-    if (window.nuget.isGaAvailable()) {
         // Emit a Google Analytics event when the user expands or collapses the GitHub Usage section.
         $("#github-usage").on('hide.bs.collapse show.bs.collapse', function (e) {
             ga('send', 'event', 'github-usage', e.type);
