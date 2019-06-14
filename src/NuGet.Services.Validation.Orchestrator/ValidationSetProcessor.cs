@@ -238,7 +238,7 @@ namespace NuGet.Services.Validation.Orchestrator
                             await validator.CleanUpAsync(validationRequest);
                         }
 
-                        _telemetryService.TrackValidatorStarted(packageValidation.Type);
+                        _telemetryService.TrackValidatorStarted(validationSet.PackageId, validationSet.PackageNormalizedVersion, validationSet.ValidationTrackingId, packageValidation.Type);
 
                         if (validationResult.Status == ValidationStatus.Succeeded)
                         {

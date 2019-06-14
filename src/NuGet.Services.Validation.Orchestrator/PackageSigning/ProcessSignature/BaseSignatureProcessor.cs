@@ -87,7 +87,7 @@ namespace NuGet.Services.Validation.PackageSigning.ProcessSignature
 
             // Kick off the verification process. Note that the jobs will not verify the package until the
             // state of this validator has been persisted to the database.
-            using (_telemetryService.TrackDurationToStartPackageSigningValidator())
+            using (_telemetryService.TrackDurationToStartPackageSigningValidator(request.PackageId, request.PackageVersion))
             {
                 await _signatureVerificationEnqueuer.EnqueueProcessSignatureAsync(request, RequiresRepositorySignature);
 

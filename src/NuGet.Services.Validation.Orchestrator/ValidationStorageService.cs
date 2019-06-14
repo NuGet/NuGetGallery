@@ -177,26 +177,34 @@ namespace NuGet.Services.Validation.Orchestrator
                 validatorDuration = packageValidation.ValidationStatusTimestamp - packageValidation.Started.Value;
             }
 
+            var validationSet = packageValidation.PackageValidationSet;
+
             _telemetryService.TrackValidatorDuration(
-               validatorDuration,
-               packageValidation.Type,
-               isSuccess);
+                validationSet.PackageId,
+                validationSet.PackageNormalizedVersion,
+                validationSet.ValidationTrackingId,
+                validatorDuration,
+                packageValidation.Type,
+                isSuccess);
 
             var issues = (packageValidation.PackageValidationIssues ?? Enumerable.Empty<PackageValidationIssue>()).ToList();
             _telemetryService.TrackValidationIssueCount(
+                validationSet.PackageId,
+                validationSet.PackageNormalizedVersion,
+                validationSet.ValidationTrackingId,
                 issues.Count,
                 packageValidation.Type,
                 isSuccess);
 
             foreach (var issue in issues)
             {
-                _telemetryService.TrackValidationIssue(packageValidation.Type, issue.IssueCode);
+                _telemetryService.TrackValidationIssue(validationSet.PackageId, validationSet.PackageNormalizedVersion, validationSet.ValidationTrackingId, packageValidation.Type, issue.IssueCode);
 
                 var deserializedIssue = ValidationIssue.Deserialize(issue.IssueCode, issue.Data);
                 if (issue.IssueCode == ValidationIssueCode.ClientSigningVerificationFailure
                     && deserializedIssue is ClientSigningVerificationFailure typedIssue)
                 {
-                    _telemetryService.TrackClientValidationIssue(packageValidation.Type, typedIssue.ClientCode);
+                    _telemetryService.TrackClientValidationIssue(validationSet.PackageId, validationSet.PackageNormalizedVersion, validationSet.ValidationTrackingId, packageValidation.Type, typedIssue.ClientCode);
                 }
             }
         }

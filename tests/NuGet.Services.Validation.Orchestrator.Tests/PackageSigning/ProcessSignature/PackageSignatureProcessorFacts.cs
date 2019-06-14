@@ -144,7 +144,7 @@ namespace NuGet.Services.Validation.PackageSigning
                     .Verify(x => x.AddStatusAsync(It.IsAny<ValidatorStatus>()), Times.Never);
 
                 _telemetryService.Verify(
-                    x => x.TrackDurationToStartPackageSigningValidator(),
+                    x => x.TrackDurationToStartPackageSigningValidator(It.IsAny<string>(), It.IsAny<string>()),
                     Times.Never);
             }
 
@@ -206,7 +206,7 @@ namespace NuGet.Services.Validation.PackageSigning
                         Times.Once);
 
                 _telemetryService.Verify(
-                    x => x.TrackDurationToStartPackageSigningValidator(),
+                    x => x.TrackDurationToStartPackageSigningValidator(It.IsAny<string>(), It.IsAny<string>()),
                     Times.Once);
 
                 Assert.True(verificationQueuedBeforeStatePersisted);

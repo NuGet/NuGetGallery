@@ -85,16 +85,16 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 ValidationStorageMock.Verify(
                     vs => vs.MarkValidationStartedAsync(It.IsAny<PackageValidation>(), It.IsAny<ValidationResult>()), Times.Once);
                 TelemetryServiceMock.Verify(
-                    ts => ts.TrackValidatorStarted(validationName), Times.Once);
+                    ts => ts.TrackValidatorStarted(ValidationSet.PackageId, ValidationSet.PackageNormalizedVersion, ValidationSet.ValidationTrackingId, validationName), Times.Once);
                 TelemetryServiceMock.Verify(
-                    ts => ts.TrackValidatorStarted(It.IsAny<string>()), Times.Once);
+                    ts => ts.TrackValidatorStarted(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<string>()), Times.Once);
             }
             else
             {
                 ValidationStorageMock.Verify(
                     vs => vs.MarkValidationStartedAsync(It.IsAny<PackageValidation>(), It.IsAny<ValidationResult>()), Times.Never);
                 TelemetryServiceMock.Verify(
-                    ts => ts.TrackValidatorStarted(It.IsAny<string>()), Times.Never);
+                    ts => ts.TrackValidatorStarted(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<string>()), Times.Never);
             }
 
             if (expectCleanup)

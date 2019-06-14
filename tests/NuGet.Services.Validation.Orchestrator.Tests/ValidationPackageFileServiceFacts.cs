@@ -327,6 +327,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     x => x.TrackDurationToHashPackage(
                         _package.PackageRegistration.Id,
                         _package.NormalizedVersion,
+                        _validationSet.ValidationTrackingId,
                         stream.Length,
                         CoreConstants.Sha512HashAlgorithmId,
                         "System.IO.MemoryStream"))
@@ -373,6 +374,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     x => x.TrackDurationToHashPackage(
                         _package.PackageRegistration.Id,
                         _package.NormalizedVersion,
+                        _validationSet.ValidationTrackingId,
                         stream.Length,
                         CoreConstants.Sha512HashAlgorithmId,
                         "System.IO.MemoryStream"))

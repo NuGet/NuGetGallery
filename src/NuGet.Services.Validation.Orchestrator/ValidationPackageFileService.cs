@@ -272,6 +272,7 @@ namespace NuGet.Services.Validation.Orchestrator
                     using (_telemetryService.TrackDurationToHashPackage(
                         validationSet.PackageId,
                         validationSet.PackageNormalizedVersion,
+                        validationSet.ValidationTrackingId,
                         packageStream.Length,
                         CoreConstants.Sha512HashAlgorithmId,
                         packageStream.GetType().FullName))

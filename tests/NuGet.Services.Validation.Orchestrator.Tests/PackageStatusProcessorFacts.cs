@@ -75,16 +75,16 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 if (fromStatus != toStatus)
                 {
                     TelemetryServiceMock.Verify(
-                        x => x.TrackPackageStatusChange(fromStatus, toStatus),
+                        x => x.TrackPackageStatusChange(ValidationSet.PackageId, ValidationSet.PackageNormalizedVersion, ValidationSet.ValidationTrackingId, fromStatus, toStatus),
                         Times.Once);
                     TelemetryServiceMock.Verify(
-                        x => x.TrackPackageStatusChange(It.IsAny<PackageStatus>(), It.IsAny<PackageStatus>()),
+                        x => x.TrackPackageStatusChange(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<PackageStatus>(), It.IsAny<PackageStatus>()),
                         Times.Once);
                 }
                 else
                 {
                     TelemetryServiceMock.Verify(
-                        x => x.TrackPackageStatusChange(It.IsAny<PackageStatus>(), It.IsAny<PackageStatus>()),
+                        x => x.TrackPackageStatusChange(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<PackageStatus>(), It.IsAny<PackageStatus>()),
                         Times.Never);
                 }
             }
@@ -561,7 +561,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     x => x.UpdateStatusAsync(It.IsAny<Package>(), It.IsAny<PackageStatus>(), It.IsAny<bool>()),
                     Times.Once);
                 TelemetryServiceMock.Verify(
-                    x => x.TrackPackageStatusChange(PackageStatus.Validating, PackageStatus.FailedValidation),
+                    x => x.TrackPackageStatusChange(ValidationSet.PackageId, ValidationSet.PackageNormalizedVersion, ValidationSet.ValidationTrackingId, PackageStatus.Validating, PackageStatus.FailedValidation),
                     Times.Once);
                 PackageFileServiceMock.Verify(
                     x => x.DeletePackageForValidationSetAsync(ValidationSet),

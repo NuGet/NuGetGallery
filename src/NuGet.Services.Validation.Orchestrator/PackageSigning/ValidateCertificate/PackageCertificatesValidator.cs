@@ -201,7 +201,7 @@ namespace NuGet.Services.Validation.PackageSigning.ValidateCertificate
 
             if (certificates.Any())
             {
-                using (_telemetryService.TrackDurationToStartPackageCertificatesValidator())
+                using (_telemetryService.TrackDurationToStartPackageCertificatesValidator(request.PackageId, request.PackageVersion))
                 {
                     await StartCertificateValidationsAsync(request, certificates);
 

@@ -69,6 +69,7 @@ namespace NuGet.Services.Validation.Orchestrator.Telemetry
         public IDisposable TrackDurationToHashPackage(
             string packageId,
             string normalizedVersion,
+            Guid validationTrackingId,
             long packageSize,
             string hashAlgorithm,
             string streamType)
@@ -79,17 +80,24 @@ namespace NuGet.Services.Validation.Orchestrator.Telemetry
                 {
                     { PackageId, packageId },
                     { NormalizedVersion, normalizedVersion },
+                    { ValidationTrackingId, validationTrackingId.ToString() },
                     { PackageSize, packageSize.ToString() },
                     { HashAlgorithm, hashAlgorithm },
                     { StreamType, streamType },
                 });
         }
 
-        public void TrackDurationToValidationSetCreation(TimeSpan duration)
+        public void TrackDurationToValidationSetCreation(string packageId, string normalizedVersion, Guid validationTrackingId, TimeSpan duration)
         {
             _telemetryClient.TrackMetric(
                 DurationToValidationSetCreationSeconds,
-                duration.TotalSeconds);
+                duration.TotalSeconds,
+                new Dictionary<string, string>
+                {
+                    { PackageId, packageId },
+                    { NormalizedVersion, normalizedVersion },
+                    { ValidationTrackingId, validationTrackingId.ToString() },
+                });
         }
 
         public IDisposable TrackDurationToBackupPackage(PackageValidationSet validationSet)
@@ -104,25 +112,31 @@ namespace NuGet.Services.Validation.Orchestrator.Telemetry
                 });
         }
 
-        public void TrackPackageStatusChange(PackageStatus fromStatus, PackageStatus toStatus)
+        public void TrackPackageStatusChange(string packageId, string normalizedVersion, Guid validationTrackingId, PackageStatus fromStatus, PackageStatus toStatus)
         {
             _telemetryClient.TrackMetric(
                 PackageStatusChange,
                 1,
                 new Dictionary<string, string>
                 {
+                    { PackageId, packageId },
+                    { NormalizedVersion, normalizedVersion },
+                    { ValidationTrackingId, validationTrackingId.ToString() },
                     { FromStatus, fromStatus.ToString() },
                     { ToStatus, toStatus.ToString() },
                 });
         }
 
-        public void TrackTotalValidationDuration(TimeSpan duration, bool isSuccess)
+        public void TrackTotalValidationDuration(string packageId, string normalizedVersion, Guid validationTrackingId, TimeSpan duration, bool isSuccess)
         {
             _telemetryClient.TrackMetric(
                 TotalValidationDurationSeconds,
                 duration.TotalSeconds,
                 new Dictionary<string, string>
                 {
+                    { PackageId, packageId },
+                    { NormalizedVersion, normalizedVersion },
+                    { ValidationTrackingId, validationTrackingId.ToString() },
                     { IsSuccess, isSuccess.ToString() },
                 });
         }
@@ -149,71 +163,89 @@ namespace NuGet.Services.Validation.Orchestrator.Telemetry
                         { ValidationTrackingId, validationTrackingId.ToString() },
                     });
 
-        public void TrackValidationIssue(string validatorType, ValidationIssueCode code)
+        public void TrackValidationIssue(string packageId, string normalizedVersion, Guid validationTrackingId, string validatorType, ValidationIssueCode code)
         {
             _telemetryClient.TrackMetric(
                 ValidationIssue,
                 1,
                 new Dictionary<string, string>
                 {
+                    { PackageId, packageId },
+                    { NormalizedVersion, normalizedVersion },
+                    { ValidationTrackingId, validationTrackingId.ToString() },
                     { ValidatorType, validatorType },
                     { IssueCode, code.ToString() },
                 });
         }
 
-        public void TrackValidationIssueCount(int count, string validatorType, bool isSuccess)
+        public void TrackValidationIssueCount(string packageId, string normalizedVersion, Guid validationTrackingId, int count, string validatorType, bool isSuccess)
         {
             _telemetryClient.TrackMetric(
                 ValidationIssueCount,
                 count,
                 new Dictionary<string, string>
                 {
+                    { PackageId, packageId },
+                    { NormalizedVersion, normalizedVersion },
+                    { ValidationTrackingId, validationTrackingId.ToString() },
                     { ValidatorType, validatorType },
                     { IsSuccess, isSuccess.ToString() },
                 });
         }
 
-        public void TrackValidatorTimeout(string validatorType)
+        public void TrackValidatorTimeout(string packageId, string normalizedVersion, Guid validationTrackingId, string validatorType)
         {
             _telemetryClient.TrackMetric(
                 ValidatorTimeout,
                 1,
                 new Dictionary<string, string>
                 {
+                    { PackageId, packageId },
+                    { NormalizedVersion, normalizedVersion },
+                    { ValidationTrackingId, validationTrackingId.ToString() },
                     { ValidatorType, validatorType },
                 });
         }
 
-        public void TrackValidatorDuration(TimeSpan duration, string validatorType, bool isSuccess)
+        public void TrackValidatorDuration(string packageId, string normalizedVersion, Guid validationTrackingId, TimeSpan duration, string validatorType, bool isSuccess)
         {
             _telemetryClient.TrackMetric(
                 ValidatorDurationSeconds,
                 duration.TotalSeconds,
                 new Dictionary<string, string>
                 {
+                    { PackageId, packageId },
+                    { NormalizedVersion, normalizedVersion },
+                    { ValidationTrackingId, validationTrackingId.ToString() },
                     { ValidatorType, validatorType },
                     { IsSuccess, isSuccess.ToString() },
                 });
         }
 
-        public void TrackValidatorStarted(string validatorType)
+        public void TrackValidatorStarted(string packageId, string normalizedVersion, Guid validationTrackingId, string validatorType)
         {
             _telemetryClient.TrackMetric(
                 ValidatorStarted,
                 1,
                 new Dictionary<string, string>
                 {
+                    { PackageId, packageId },
+                    { NormalizedVersion, normalizedVersion },
+                    { ValidationTrackingId, validationTrackingId.ToString() },
                     { ValidatorType, validatorType },
                 });
         }
 
-        public void TrackClientValidationIssue(string validatorType, string clientCode)
+        public void TrackClientValidationIssue(string packageId, string normalizedVersion, Guid validationTrackingId, string validatorType, string clientCode)
         {
             _telemetryClient.TrackMetric(
                 ClientValidationIssue,
                 1,
                 new Dictionary<string, string>
                 {
+                    { PackageId, packageId },
+                    { NormalizedVersion, normalizedVersion },
+                    { ValidationTrackingId, validationTrackingId.ToString() },
                     { ValidatorType, validatorType },
                     { ClientCode, clientCode },
                 });
@@ -241,11 +273,23 @@ namespace NuGet.Services.Validation.Orchestrator.Telemetry
                         { ValidationTrackingId, validationTrackingId },
                     });
 
-        public IDisposable TrackDurationToStartPackageSigningValidator()
-            => _telemetryClient.TrackDuration(DurationToStartPackageSigningValidatorSeconds);
+        public IDisposable TrackDurationToStartPackageSigningValidator(string packageId, string normalizedVersion)
+            => _telemetryClient.TrackDuration(
+                DurationToStartPackageSigningValidatorSeconds,
+                new Dictionary<string, string>
+                {
+                    { PackageId, packageId },
+                    { NormalizedVersion, normalizedVersion },
+                });
 
-        public IDisposable TrackDurationToStartPackageCertificatesValidator()
-            => _telemetryClient.TrackDuration(DurationToStartPackageCertificatesValidatorSeconds);
+        public IDisposable TrackDurationToStartPackageCertificatesValidator(string packageId, string normalizedVersion)
+            => _telemetryClient.TrackDuration(
+                DurationToStartPackageCertificatesValidatorSeconds,
+                new Dictionary<string, string>
+                {
+                    { PackageId, packageId },
+                    { NormalizedVersion, normalizedVersion },
+                });
 
         public void TrackMessageDeliveryLag<TMessage>(TimeSpan deliveryLag)
             => _telemetryClient.TrackMetric(
@@ -290,15 +334,17 @@ namespace NuGet.Services.Validation.Orchestrator.Telemetry
                     { MessageType, typeof(TMessage).Name }
                 });
 
-        public void TrackSymbolsMessageEnqueued(string validatorName, Guid validationId)
-           => _telemetryClient.TrackMetric(
-               SymbolsMessageEnqueued,
-               1,
-               new Dictionary<string, string>
-               {
-                   { ValidatorType, validatorName },
-                   { ValidationId, validationId.ToString()}
-               });
+        public void TrackSymbolsMessageEnqueued(string packageId, string normalizedVersion, string validatorName, Guid validationId)
+            => _telemetryClient.TrackMetric(
+                SymbolsMessageEnqueued,
+                1,
+                new Dictionary<string, string>
+                {
+                    { PackageId, packageId },
+                    { NormalizedVersion, normalizedVersion },
+                    { ValidatorType, validatorName },
+                    { ValidationId, validationId.ToString()}
+                });
 
         public IDisposable TrackDurationToExtractLicenseFile(string packageId, string normalizedVersion, string validationTrackingId)
             => _telemetryClient.TrackDuration(ExtractLicenseFileDuration,

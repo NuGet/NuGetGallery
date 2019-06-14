@@ -85,7 +85,7 @@ namespace NuGet.Services.Validation.Orchestrator
 
             if (fromStatus != PackageStatus.FailedValidation)
             {
-                _telemetryService.TrackPackageStatusChange(fromStatus, PackageStatus.FailedValidation);
+                _telemetryService.TrackPackageStatusChange(validationSet.PackageId, validationSet.PackageNormalizedVersion, validationSet.ValidationTrackingId, fromStatus, PackageStatus.FailedValidation);
             }
         }
 
@@ -109,7 +109,7 @@ namespace NuGet.Services.Validation.Orchestrator
             // 5) Emit telemetry and clean up.
             if (fromStatus != PackageStatus.Available)
             {
-                _telemetryService.TrackPackageStatusChange(fromStatus, PackageStatus.Available);
+                _telemetryService.TrackPackageStatusChange(validationSet.PackageId, validationSet.PackageNormalizedVersion, validationSet.ValidationTrackingId, fromStatus, PackageStatus.Available);
 
                 _logger.LogInformation("Deleting from the source for package {PackageId} {PackageVersion}, validation set {ValidationSetId}",
                     validationSet.PackageId,
