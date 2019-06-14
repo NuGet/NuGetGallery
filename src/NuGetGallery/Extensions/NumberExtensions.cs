@@ -96,7 +96,7 @@ namespace NuGetGallery
 
             return powers
                 .Where(pow => Math.Abs(Math.Round(number / pow.Value, 3)) >= 1f)
-                .Select(pow => string.Format("{0:F1}{1}", number / pow.Value, pow.Unit))
+                .Select(pow => string.Format(CultureInfo.InvariantCulture, "{0:F1}{1}", number / pow.Value, pow.Unit))
                 .First();
         }
     }
