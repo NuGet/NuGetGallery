@@ -7,12 +7,12 @@ using System;
 
 namespace NuGetGallery.AccountDeleter
 {
-    public class AlwayRejectEvaluator : IUserEvaluator
+    public class AlwaysAllowEvaluator : IUserEvaluator
     {
         private readonly Guid _id;
-        private readonly ILogger<AlwayRejectEvaluator> _logger;
+        private readonly ILogger<AlwaysAllowEvaluator> _logger;
 
-        public AlwayRejectEvaluator(ILogger<AlwayRejectEvaluator> logger)
+        public AlwaysAllowEvaluator(ILogger<AlwaysAllowEvaluator> logger)
         {
             _id = Guid.NewGuid();
             _logger = logger;
@@ -28,8 +28,8 @@ namespace NuGetGallery.AccountDeleter
 
         public bool CanUserBeDeleted(User user)
         {
-            _logger.LogWarning("{Evaluator} User cannot be deleted for reason", nameof(AlwayRejectEvaluator));
-            return false;
+            _logger.LogInformation("{Evaluator} User can be deleted", nameof(AlwaysAllowEvaluator));
+            return true;
         }
 
     }

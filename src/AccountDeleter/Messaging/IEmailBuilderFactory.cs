@@ -12,6 +12,6 @@ namespace NuGetGallery.AccountDeleter
         /// </summary>
         /// <param name="source"></param>
         /// <returns>An email builder that can build a message for messages from given source. Throws <see cref="UnknownSourceException"/> if an unknown source is requested</returns>
-        IEmailBuilder GetEmailBuilder(string source);
+        IEmailBuilder GetEmailBuilder(string source, bool success);
     }
 }

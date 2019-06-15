@@ -12,7 +12,10 @@ namespace NuGetGallery.AccountDeleter
     {
         public Task<DeleteAccountStatus> DeleteAccountAsync(User userToBeDeleted, User userToExecuteTheDelete, AccountDeletionOrphanPackagePolicy orphanPackagePolicy = AccountDeletionOrphanPackagePolicy.DoNotAllowOrphans)
         {
-            throw new NotImplementedException();
+            return Task.FromResult(new DeleteAccountStatus()
+            {
+                Success = true,
+            });
         }
     }
 }

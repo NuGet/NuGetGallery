@@ -47,6 +47,7 @@
     <Compile Include="AccountDeleteMessageHandler.cs" />
     <Compile Include="Configuration\AccountDeleteConfiguration.cs" />
     <Compile Include="Configuration\SourceConfiguration.cs" />
+    <Compile Include="Evaluators\AlwaysAllowEvaluator.cs" />
     <Compile Include="Exceptions\EmailContactNotAllowedException.cs" />
     <Compile Include="Exceptions\UnknownSourceException.cs" />
     <Compile Include="Messaging\AccountDeleteEmailBuilder.cs" />
@@ -56,7 +57,7 @@
     <Compile Include="Messaging\EmptyMessenger.cs" />
     <Compile Include="EmptyUserService.cs" />
     <Compile Include="Evaluators\AggregateEvaluator.cs" />
-    <Compile Include="Evaluators\AlwayRejectEvaluator.cs" />
+    <Compile Include="Evaluators\AlwaysRejectEvaluator.cs" />
     <Compile Include="Evaluators\UserOrganizationEvaluator.cs" />
     <Compile Include="GalleryAccountManager.cs" />
     <Compile Include="IAccountManager.cs" />

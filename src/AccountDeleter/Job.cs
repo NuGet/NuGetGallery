@@ -50,15 +50,18 @@ namespace NuGetGallery.AccountDeleter
             {
                 var telemetry = sp.GetRequiredService<IAccountDeleteTelemetryService>();
                 var aeLogger = sp.GetRequiredService<ILogger<AggregateEvaluator>>();
-                var areLogger = sp.GetRequiredService<ILogger<AlwayRejectEvaluator>>();
+                var areLogger = sp.GetRequiredService<ILogger<AlwaysRejectEvaluator>>();
+                var aaeLogger = sp.GetRequiredService<ILogger<AlwaysAllowEvaluator>>();
                 var evaluator = new AggregateEvaluator(telemetry, aeLogger);
 
                 // we can configure evaluators here.
                 if (IsDebugMode)
                 {
-                    var alwaysReject = new AlwayRejectEvaluator(areLogger);
+                    var alwaysReject = new AlwaysRejectEvaluator(areLogger);
+                    var alwaysAllow = new AlwaysAllowEvaluator(aaeLogger);
 
-                    evaluator.AddEvaluator(alwaysReject);
+                    //evaluator.AddEvaluator(alwaysReject);
+                    evaluator.AddEvaluator(alwaysAllow);
                 }
 
                 return evaluator;

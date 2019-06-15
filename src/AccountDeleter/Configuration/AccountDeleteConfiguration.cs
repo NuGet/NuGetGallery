@@ -10,6 +10,8 @@ namespace NuGetGallery.AccountDeleter
 {
     public class AccountDeleteConfiguration
     {
+        public static string SourceSuccessSuffix = "Success";
+
         public string Thing1 { get; set; }
 
         public bool RespectEmailContactSetting { get; set; }
@@ -18,13 +20,27 @@ namespace NuGetGallery.AccountDeleter
 
         public List<SourceConfiguration> SourceConfigurations { get; set; }
 
-        public IEmailBuilder GetEmailBuilder(string source)
+        public IEmailBuilder GetEmailBuilder(string source, bool success = false)
         {
             foreach (var sourceConfig in SourceConfigurations)
             {
                 if (sourceConfig.SourceName == source)
                 {
-                    return new AccountDeleteEmailBuilder(sourceConfig.SubjectTemplate, sourceConfig.MessageTemplate, SenderEmail);
+                    if (success)
+                    {
+                        if (sourceConfig.SendMessageOnSuccess)
+                        {
+                            return new AccountDeleteEmailBuilder(sourceConfig.SuccessSubjectTemplate, sourceConfig.SuccessMessageTemplate, SenderEmail);
+                        }
+                        else
+                        {
+                            return null;
+                        }
+                    }
+                    else
+                    {
+                        return new AccountDeleteEmailBuilder(sourceConfig.SubjectTemplate, sourceConfig.MessageTemplate, SenderEmail);
+                    }
                 }
             }
 

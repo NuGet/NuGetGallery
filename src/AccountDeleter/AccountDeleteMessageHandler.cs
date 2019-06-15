@@ -41,23 +41,22 @@ namespace NuGetGallery.AccountDeleter
             _logger.LogInformation("Processing Request from Source {Source}", command.Source);
 
             var source = command.Source;
-            if (await _accountManager.DeleteAccount(username))
-            {
-                // Use success message here
-                source = command.Source;
-            }
+            var deleteSuccess = await _accountManager.DeleteAccount(username);
 
             try
             {
-                var baseEmailBuilder = _emailBuilderFactory.GetEmailBuilder(source);
-                var recipientEmail = await _accountManager.GetEmailAddresForUser(username);
+                var baseEmailBuilder = _emailBuilderFactory.GetEmailBuilder(source, deleteSuccess);
+                if (baseEmailBuilder != null)
+                {
+                    var recipientEmail = await _accountManager.GetEmailAddresForUser(username);
 
-                var toEmail = new List<MailAddress>();
-                toEmail.Add(new MailAddress(recipientEmail));
+                    var toEmail = new List<MailAddress>();
+                    toEmail.Add(new MailAddress(recipientEmail));
 
-                var recipients = new EmailRecipients(toEmail);
-                var emailBuilder = new DisposableEmailBuilder(baseEmailBuilder, recipients);
-                await _messenger.SendMessageAsync(emailBuilder, copySender: true);
+                    var recipients = new EmailRecipients(toEmail);
+                    var emailBuilder = new DisposableEmailBuilder(baseEmailBuilder, recipients);
+                    await _messenger.SendMessageAsync(emailBuilder, copySender: true);
+                }
             }
             catch (UnknownSourceException)
             {

@@ -11,5 +11,11 @@ namespace NuGetGallery.AccountDeleter.Configuration
         public string SubjectTemplate { get; set; }
 
         public string MessageTemplate { get; set; }
+
+        public bool SendMessageOnSuccess { get; set; }
+
+        public string SuccessSubjectTemplate { get; set; }
+
+        public string SuccessMessageTemplate { get; set; }
     }
 }

@@ -21,11 +21,11 @@ namespace NuGetGallery.AccountDeleter
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public IEmailBuilder GetEmailBuilder(string source)
+        public IEmailBuilder GetEmailBuilder(string source, bool success)
         {
             var options = _options.Value;
 
-            return options.GetEmailBuilder(source);
+            return options.GetEmailBuilder(source, success);
         }
     }
 }
