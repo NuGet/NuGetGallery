@@ -35,6 +35,7 @@ namespace NuGetGallery.AccountDeleter
         public bool CanUserBeDeleted(User user)
         {
             var evaluators = _evaluatorList.Values;
+            _logger.LogInformation("Running {EvaluatorCount} evaluators.", evaluators.Count);
             return evaluators.All(e => e.CanUserBeDeleted(user));
         }
 
@@ -46,7 +47,7 @@ namespace NuGetGallery.AccountDeleter
                 return false;
             }
 
-            _logger.LogInformation("Adding evaluator {EvaluatorId} to aggregate.", userEvaluator.EvaluatorId);
+            _logger.LogInformation("Adding evaluator {EvaluatorName} with id {EvaluatorId} to aggregate.", userEvaluator.GetType().FullName, userEvaluator.EvaluatorId);
             _evaluatorList.Add(userEvaluator.EvaluatorId, userEvaluator);
 
             return true;

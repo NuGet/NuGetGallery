@@ -4,13 +4,18 @@
 using NuGet.Services.Messaging.Email;
 using NuGetGallery.AccountDeleter.Configuration;
 using System.Collections.Generic;
+using System.Net.Mail;
 
 namespace NuGetGallery.AccountDeleter
 {
     public class AccountDeleteConfiguration
     {
         public string Thing1 { get; set; }
+
+        public bool RespectEmailContactSetting { get; set; }
+
         public string SenderEmail { get; set; }
+
         public List<SourceConfiguration> SourceConfigurations { get; set; }
 
         public IEmailBuilder GetEmailBuilder(string source)

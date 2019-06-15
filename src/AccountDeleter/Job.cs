@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NuGet.Jobs.Validation;
+using NuGet.Services.Messaging;
 using NuGet.Services.Messaging.Email;
 using NuGet.Services.ServiceBus;
 using NuGetGallery.Areas.Admin;
@@ -15,12 +16,23 @@ using NuGetGallery.Auditing;
 using NuGetGallery.Authentication;
 using NuGetGallery.Features;
 using NuGetGallery.Security;
+using System.Collections.Generic;
+using System.ComponentModel.Design;
 
 namespace NuGetGallery.AccountDeleter
 {
     public class Job : SubcriptionProcessorJob<AccountDeleteMessage>
     {
         private const string AccountDeleteConfigurationSectionName = "AccountDeleteSettings";
+        private const string DebugArgumentName = "Debug";
+
+        private bool IsDebugMode { get; set; }
+
+        public override void Init(IServiceContainer serviceContainer, IDictionary<string, string> jobArgsDictionary)
+        {
+            IsDebugMode = jobArgsDictionary.ContainsKey(DebugArgumentName);
+            base.Init(serviceContainer, jobArgsDictionary);
+        }
 
         protected override void ConfigureJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
         {
@@ -34,7 +46,6 @@ namespace NuGetGallery.AccountDeleter
 
             services.AddTransient<IAccountDeleteTelemetryService, AccountDeleteTelemetryService>();
             services.AddTransient<ISubscriptionProcessorTelemetryService, AccountDeleteTelemetryService>();
-            services.AddTransient<IMessageService, EmptyMessenger>();
             services.AddSingleton<IUserEvaluator>(sp =>
             {
                 var telemetry = sp.GetRequiredService<IAccountDeleteTelemetryService>();
@@ -43,15 +54,26 @@ namespace NuGetGallery.AccountDeleter
                 var evaluator = new AggregateEvaluator(telemetry, aeLogger);
 
                 // we can configure evaluators here.
-                var alwaysReject = new AlwayRejectEvaluator(areLogger);
+                if (IsDebugMode)
+                {
+                    var alwaysReject = new AlwayRejectEvaluator(areLogger);
 
-                evaluator.AddEvaluator(alwaysReject);
+                    evaluator.AddEvaluator(alwaysReject);
+                }
 
                 return evaluator;
             });
+            if (IsDebugMode)
+            {
+                services.AddTransient<IMessageService, EmptyMessenger>();
+            }
+            else
+            {
+                services.AddTransient<IMessageService, AsynchronousEmailMessageService>();
+            }
+
 
             services.AddSingleton<IEmailBuilderFactory, EmailBuilderFactory>();
-
             services.AddSingleton(new TelemetryClient());
 
             ConfigureGalleryServices(services, configurationRoot);
@@ -59,8 +81,16 @@ namespace NuGetGallery.AccountDeleter
 
         protected void ConfigureGalleryServices(IServiceCollection services, IConfigurationRoot configurationRoot)
         {
-            services.AddSingleton<IDeleteAccountService, EmptyDeleteAccountService>();
-            services.AddSingleton<IUserService, EmptyUserService>();
+            if (IsDebugMode)
+            {
+                services.AddSingleton<IDeleteAccountService, EmptyDeleteAccountService>();
+                services.AddSingleton<IUserService, EmptyUserService>();
+            }
+            else
+            {
+                services.AddSingleton<IDeleteAccountService, DeleteAccountService>();
+                services.AddSingleton<IUserService, UserService>();
+            }
             //services.AddSingleton<IPackageService, PackageService>();
             //services.AddSingleton<IPackageUpdateService, PackageUpdateService>();
             //services.AddSingleton<IPackageOwnershipManagementService, PackageOwnershipManagementService>();

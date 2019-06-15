@@ -101,7 +101,7 @@ namespace NuGetGallery.AccountDeleter
             user.Username = "test";
             user.EmailAddress = "test@test.test";
             user.UnconfirmedEmailAddress = "test2@test.test";
-            user.EmailAllowed = true;
+            user.EmailAllowed = false;
             return user;
         }
 

@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System;
 using System.Threading.Tasks;
 
@@ -9,6 +10,7 @@ namespace NuGetGallery.AccountDeleter
 {
     public class GalleryAccountManager : IAccountManager
     {
+        private readonly IOptionsSnapshot<AccountDeleteConfiguration> _options;
         private readonly IDeleteAccountService _deleteAccountService;
         private readonly IUserService _userService;
         private readonly IUserEvaluator _userEvaluator;
@@ -16,12 +18,14 @@ namespace NuGetGallery.AccountDeleter
         private readonly ILogger<GalleryAccountManager> _logger;
 
         public GalleryAccountManager(
+            IOptionsSnapshot<AccountDeleteConfiguration> options,
             IDeleteAccountService deleteAccountService,
             IUserService userService,
             IUserEvaluator userEvaluator,
             IAccountDeleteTelemetryService telemetryService,
             ILogger<GalleryAccountManager> logger)
         {
+            _options = options ?? throw new ArgumentNullException(nameof(options));
             _deleteAccountService = deleteAccountService ?? throw new ArgumentNullException(nameof(deleteAccountService));
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _userEvaluator = userEvaluator ?? throw new ArgumentNullException(nameof(userEvaluator));
@@ -61,19 +65,25 @@ namespace NuGetGallery.AccountDeleter
             return false;
         }
 
-        public async Task<string> GetEmailAddresForUser(string username)
+        public Task<string> GetEmailAddresForUser(string username)
         {
             var user = _userService.FindByUsername(username);
             // We may want to ignore this setting, but respect contact for now
-            if(user.EmailAllowed)
-            {
-                return user.EmailAddress ?? user.UnconfirmedEmailAddress;
-            }
-            else
+            if(!user.EmailAllowed)
             {
                 _logger.LogWarning("User did not allow contact by email.");
-                throw new EmailContactNotAllowedException();
+
+                if (_options.Value.RespectEmailContactSetting)
+                {
+                    throw new EmailContactNotAllowedException();
+                }
+                else
+                {
+                    _logger.LogWarning("Ignoring EmailAllowed due to configuration.");
+                }
             }
+
+            return Task.FromResult(user.EmailAddress ?? user.UnconfirmedEmailAddress);
         }
     }
 }

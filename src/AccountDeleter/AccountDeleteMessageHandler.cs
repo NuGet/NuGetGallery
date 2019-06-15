@@ -36,40 +36,45 @@ namespace NuGetGallery.AccountDeleter
 
         public async Task<bool> HandleAsync(AccountDeleteMessage command)
         {
-            bool messageProcessed = true;
+            var messageProcessed = true;
             var username = command.Subject;
             _logger.LogInformation("Processing Request from Source {Source}", command.Source);
 
-            if (!await _accountManager.DeleteAccount(username))
+            var source = command.Source;
+            if (await _accountManager.DeleteAccount(username))
             {
-                try
-                {
-                    var baseEmailBuilder = _emailBuilderFactory.GetEmailBuilder(command.Source);
-                    var recipientEmail = await _accountManager.GetEmailAddresForUser(username);
+                // Use success message here
+                source = command.Source;
+            }
 
-                    var toEmail = new List<MailAddress>();
-                    toEmail.Add(new MailAddress(recipientEmail));
+            try
+            {
+                var baseEmailBuilder = _emailBuilderFactory.GetEmailBuilder(source);
+                var recipientEmail = await _accountManager.GetEmailAddresForUser(username);
 
-                    var recipients = new EmailRecipients(toEmail);
-                    var emailBuilder = new DisposableEmailBuilder(baseEmailBuilder, recipients);
-                    await _messenger.SendMessageAsync(emailBuilder, copySender: true);
-                }
-                catch (UnknownSourceException e)
-                {
-                    // Should definitely log if source isn't expected. Should we even send mail? or log and alert?
-                    // Log unknown source and fail.
-                    _logger.LogError("Unknown message source detected: {Source}", command.Source);
-                }
-                catch (EmailContactNotAllowedException)
-                {
-                    // Should we not send? or should we ignore the setting.
-                    _logger.LogWarning("User did not allow Email Contact.");
-                }
-                catch (Exception e)
-                {
-                    _logger.LogError("An unknown exception occured: {ExceptionMessage}", e.Message);
-                    throw e;
-                }
+                var toEmail = new List<MailAddress>();
+                toEmail.Add(new MailAddress(recipientEmail));
+
+                var recipients = new EmailRecipients(toEmail);
+                var emailBuilder = new DisposableEmailBuilder(baseEmailBuilder, recipients);
+                await _messenger.SendMessageAsync(emailBuilder, copySender: true);
+            }
+            catch (UnknownSourceException)
+            {
+                // Should definitely log if source isn't expected. Should we even send mail? or log and alert?
+                // Log unknown source and fail.
+                _logger.LogError("Unknown message source detected: {Source}.", command.Source);
+                messageProcessed = false;
+            }
+            catch (EmailContactNotAllowedException)
+            {
+                // Should we not send? or should we ignore the setting.
+                _logger.LogWarning("User did not allow Email Contact.");
+            }
+            catch (Exception e)
+            {
+                _logger.LogError("An unknown exception occured: {ExceptionMessage}", e.Message);
+                throw e;
             }
 
             return messageProcessed;

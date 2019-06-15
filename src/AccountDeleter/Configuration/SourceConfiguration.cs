@@ -7,7 +7,9 @@ namespace NuGetGallery.AccountDeleter.Configuration
     public class SourceConfiguration
     {
         public string SourceName { get; set; }
+
         public string SubjectTemplate { get; set; }
+
         public string MessageTemplate { get; set; }
     }
 }
