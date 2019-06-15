@@ -36,6 +36,20 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
             _options = options ?? throw new ArgumentNullException(nameof(options));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+
+            if (_options.Value.MaxConcurrentBatches <= 0)
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(options),
+                    $"The {nameof(AzureSearchJobConfiguration.MaxConcurrentBatches)} must be greater than zero.");
+            }
+
+            if (_options.Value.MaxConcurrentCatalogLeafDownloads <= 0)
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(options),
+                    $"The {nameof(Catalog2AzureSearchConfiguration.MaxConcurrentCatalogLeafDownloads)} must be greater than zero.");
+            }
         }
 
         public Task<IEnumerable<CatalogCommitItemBatch>> CreateBatchesAsync(IEnumerable<CatalogCommitItem> catalogItems)
@@ -164,40 +178,43 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
             var allWork = new ConcurrentBag<CatalogCommitItem>(packageDetailsEntries);
             var output = new ConcurrentBag<KeyValuePair<CatalogCommitItem, PackageDetailsCatalogLeaf>>();
 
-            var tasks = Enumerable
-                .Range(0, _options.Value.MaxConcurrentBatches)
-                .Select(async x =>
-                {
-                    await Task.Yield();
-                    while (allWork.TryTake(out var work))
+            using (_telemetryService.TrackCatalogLeafDownloadBatch(allWork.Count))
+            {
+                var tasks = Enumerable
+                    .Range(0, _options.Value.MaxConcurrentCatalogLeafDownloads)
+                    .Select(async x =>
                     {
-                        try
+                        await Task.Yield();
+                        while (allWork.TryTake(out var work))
                         {
-                            var leaf = await _catalogClient.GetPackageDetailsLeafAsync(work.Uri.AbsoluteUri);
-                            output.Add(KeyValuePair.Create(work, leaf));
+                            try
+                            {
+                                var leaf = await _catalogClient.GetPackageDetailsLeafAsync(work.Uri.AbsoluteUri);
+                                output.Add(KeyValuePair.Create(work, leaf));
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.LogError(
+                                    0,
+                                    ex,
+                                    "An exception was thrown when fetching the package details leaf for {Id} {Version}. " +
+                                    "The URL is {Url}",
+                                    work.PackageIdentity.Id,
+                                    work.PackageIdentity.Version,
+                                    work.Uri.AbsoluteUri);
+                                throw;
+                            }
                         }
-                        catch (Exception ex)
-                        {
-                            _logger.LogError(
-                                0,
-                                ex,
-                                "An exception was thrown when fetching the package details leaf for {Id} {Version}. " +
-                                "The URL is {Url}",
-                                work.PackageIdentity.Id,
-                                work.PackageIdentity.Version,
-                                work.Uri.AbsoluteUri);
-                            throw;
-                        }
-                    }
-                })
-                .ToList();
+                    })
+                    .ToList();
 
-            await Task.WhenAll(tasks);
+                await Task.WhenAll(tasks);
 
-            return output.ToDictionary(
-                x => x.Key,
-                x => x.Value,
-                ReferenceEqualityComparer<CatalogCommitItem>.Default);
+                return output.ToDictionary(
+                    x => x.Key,
+                    x => x.Value,
+                    ReferenceEqualityComparer<CatalogCommitItem>.Default);
+            }
         }
 
         private static bool IsOnlyPackageDetails(CatalogCommitItem e)

@@ -54,7 +54,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
             {
                 MaxConcurrentBatches = 1,
                 MaxConcurrentVersionListWriters = 1,
-                AzureSearchBatchSize = 1000,
+                MaxConcurrentCatalogLeafDownloads = 1,
                 StorageContainer = "integration-tests-container",
                 StoragePath = "integration-tests-path",
                 RegistrationsBaseUrl = "https://example/registrations/",

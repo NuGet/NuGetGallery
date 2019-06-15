@@ -7,9 +7,9 @@ namespace NuGet.Services.AzureSearch
 {
     public class AzureSearchJobConfiguration : AzureSearchConfiguration
     {
-        public int AzureSearchBatchSize { get; set; }
-        public int MaxConcurrentBatches { get; set; }
-        public int MaxConcurrentVersionListWriters { get; set; }
+        public int AzureSearchBatchSize { get; set; } = 1000;
+        public int MaxConcurrentBatches { get; set; } = 4;
+        public int MaxConcurrentVersionListWriters { get; set; } = 8;
         public string StorageConnectionString { get; set; }
         public string StorageContainer { get; set; }
         public string StoragePath { get; set; }

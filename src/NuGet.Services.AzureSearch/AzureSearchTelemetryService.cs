@@ -240,5 +240,15 @@ namespace NuGet.Services.AzureSearch
                     { "Success", success.ToString() },
                 });
         }
+
+        public IDisposable TrackCatalogLeafDownloadBatch(int count)
+        {
+            return _telemetryClient.TrackDuration(
+                Prefix + "CatalogLeafDownloadBatchSeconds",
+                new Dictionary<string, string>
+                {
+                    { "Count", count.ToString() },
+                });
+        }
     }
 }

@@ -52,16 +52,16 @@ namespace NuGet.Services.AzureSearch
 
             if (_options.Value.MaxConcurrentVersionListWriters <= 0)
             {
-                throw new ArgumentException(
-                    $"The {nameof(AzureSearchJobConfiguration.MaxConcurrentVersionListWriters)} must be greater than zero.",
-                    nameof(options));
+                throw new ArgumentOutOfRangeException(
+                    nameof(options),
+                    $"The {nameof(AzureSearchJobConfiguration.MaxConcurrentVersionListWriters)} must be greater than zero.");
             }
 
             if (_options.Value.AzureSearchBatchSize <= 0)
             {
-                throw new ArgumentException(
-                    $"The {nameof(AzureSearchJobConfiguration.AzureSearchBatchSize)} must be greater than zero.",
-                    nameof(options));
+                throw new ArgumentOutOfRangeException(
+                    nameof(options),
+                    $"The {nameof(AzureSearchJobConfiguration.AzureSearchBatchSize)} must be greater than zero.");
             }
         }
 

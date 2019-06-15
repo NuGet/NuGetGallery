@@ -37,9 +37,9 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
 
             if (_options.Value.MaxConcurrentBatches <= 0)
             {
-                throw new ArgumentException(
-                    $"The {nameof(AzureSearchJobConfiguration.MaxConcurrentBatches)} must be greater than zero.",
-                    nameof(options));
+                throw new ArgumentOutOfRangeException(
+                    nameof(options),
+                    $"The {nameof(AzureSearchJobConfiguration.MaxConcurrentBatches)} must be greater than zero.");
             }
 
             if (_options.Value.RegistrationsBaseUrl == null)

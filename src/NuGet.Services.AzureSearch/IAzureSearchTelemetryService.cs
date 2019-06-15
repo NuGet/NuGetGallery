@@ -30,5 +30,6 @@ namespace NuGet.Services.AzureSearch
         void TrackAutocompleteQuery(TimeSpan duration);
         void TrackV3SearchQuery(TimeSpan duration);
         void TrackGetSearchServiceStatus(SearchStatusOptions options, bool success, TimeSpan duration);
+        IDisposable TrackCatalogLeafDownloadBatch(int count);
     }
 }

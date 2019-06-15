@@ -256,6 +256,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
 
                 _options.Setup(x => x.Value).Returns(() => _config);
                 _config.MaxConcurrentBatches = 1;
+                _config.MaxConcurrentCatalogLeafDownloads = 1;
 
                 _target = new AzureSearchCollectorLogic(
                     _catalogClient.Object,
