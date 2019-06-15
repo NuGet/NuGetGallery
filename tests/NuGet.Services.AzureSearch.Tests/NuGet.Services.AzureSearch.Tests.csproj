@@ -37,6 +37,7 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BaseDocumentBuilderFacts.cs" />
     <Compile Include="BatchPusherFacts.cs" />
     <Compile Include="Catalog2AzureSearch\AzureSearchCollectorLogicFacts.cs" />
     <Compile Include="Catalog2AzureSearch\Integration\AzureSearchCollectorLogicIntegrationTests.cs" />

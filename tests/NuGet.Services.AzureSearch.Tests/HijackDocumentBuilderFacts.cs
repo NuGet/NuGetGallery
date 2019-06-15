@@ -395,12 +395,37 @@ namespace NuGet.Services.AzureSearch
 
                 Assert.Equal(Data.GalleryLicenseUrl, document.LicenseUrl);
             }
+
+            [Fact]
+            public void SetsIconUrlToFlatContainerWhenPackageHasIconFileAndIconUrl()
+            {
+                var leaf = Data.Leaf;
+                leaf.IconUrl = "https://other-example/icon.png";
+                leaf.IconFile = "icon.png";
+
+                var document = _target.FullFromCatalog(Data.NormalizedVersion, Data.HijackDocumentChanges, leaf);
+
+                Assert.Equal(Data.FlatContainerIconUrl, document.IconUrl);
+            }
+
+            [Fact]
+            public void SetsIconUrlToFlatContainerWhenPackageHasIconFileAndNoIconUrl()
+            {
+                var leaf = Data.Leaf;
+                leaf.IconUrl = null;
+                leaf.IconFile = "icon.png";
+
+                var document = _target.FullFromCatalog(Data.NormalizedVersion, Data.HijackDocumentChanges, leaf);
+
+                Assert.Equal(Data.FlatContainerIconUrl, document.IconUrl);
+            }
         }
 
         public abstract class BaseFacts
         {
             protected readonly ITestOutputHelper _output;
             protected readonly Mock<IOptionsSnapshot<AzureSearchJobConfiguration>> _options;
+            protected readonly BaseDocumentBuilder _baseDocumentBuilder;
             protected readonly AzureSearchJobConfiguration _config;
             protected readonly HijackDocumentBuilder _target;
 
@@ -421,14 +446,17 @@ namespace NuGet.Services.AzureSearch
             {
                 _output = output;
                 _options = new Mock<IOptionsSnapshot<AzureSearchJobConfiguration>>();
+                _baseDocumentBuilder = new BaseDocumentBuilder(_options.Object); // We intentionally don't mock this.
                 _config = new AzureSearchJobConfiguration
                 {
                     GalleryBaseUrl = Data.GalleryBaseUrl,
+                    FlatContainerBaseUrl = Data.FlatContainerBaseUrl,
+                    FlatContainerContainerName = Data.FlatContainerContainerName,
                 };
 
                 _options.Setup(o => o.Value).Returns(() => _config);
 
-                _target = new HijackDocumentBuilder(_options.Object);
+                _target = new HijackDocumentBuilder(_baseDocumentBuilder);
             }
         }
     }

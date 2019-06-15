@@ -7,6 +7,7 @@ using Microsoft.Extensions.Options;
 using Moq;
 using NuGet.Protocol.Catalog;
 using NuGet.Services.Entities;
+using NuGet.Versioning;
 using NuGetGallery;
 using Xunit.Abstractions;
 using PackageDependency = NuGet.Protocol.Catalog.PackageDependency;
@@ -16,10 +17,15 @@ namespace NuGet.Services.AzureSearch.Support
     public static class Data
     {
         public const string GalleryBaseUrl = "https://example/";
+        public const string FlatContainerBaseUrl = "https://example/flat-container/";
+        public const string FlatContainerContainerName = "v3-flatcontainer";
         public const string PackageId = "WindowsAzure.Storage";
-        public const string NormalizedVersion = "7.1.2-alpha";
         public const string FullVersion = "7.1.2-alpha+git";
-        public const string GalleryLicenseUrl = GalleryBaseUrl + "packages/" + PackageId + "/" + NormalizedVersion + "/license";
+        public static readonly string NormalizedVersion = NuGetVersion.Parse(FullVersion).ToNormalizedString();
+        public static readonly string LowerPackageId = PackageId.ToLowerInvariant();
+        public static readonly string LowerNormalizedVersion = NormalizedVersion.ToLowerInvariant();
+        public static readonly string GalleryLicenseUrl = $"{GalleryBaseUrl}packages/{PackageId}/{NormalizedVersion}/license";
+        public static readonly string FlatContainerIconUrl = $"{FlatContainerBaseUrl}{FlatContainerContainerName}/{LowerPackageId}/{LowerNormalizedVersion}/icon";
         public static readonly DateTimeOffset DocumentLastUpdated = new DateTimeOffset(2018, 12, 14, 9, 30, 0, TimeSpan.Zero);
         public static readonly DateTimeOffset CommitTimestamp = new DateTimeOffset(2018, 12, 13, 12, 30, 0, TimeSpan.Zero);
         public static readonly string CommitId = "6b9b24dd-7aec-48ae-afc1-2a117e3d50d1";
@@ -93,6 +99,8 @@ namespace NuGet.Services.AzureSearch.Support
                 var config = new AzureSearchJobConfiguration
                 {
                     GalleryBaseUrl = GalleryBaseUrl,
+                    FlatContainerBaseUrl = FlatContainerBaseUrl,
+                    FlatContainerContainerName = FlatContainerContainerName,
                     Scoring = new AzureSearchScoringConfiguration
                     {
                         DownloadCountLogBase = 2
@@ -105,7 +113,9 @@ namespace NuGet.Services.AzureSearch.Support
             }
         }
 
-        public static SearchDocument.Full SearchDocument => new SearchDocumentBuilder(Options).FullFromDb(
+        private static BaseDocumentBuilder BaseDocumentBuilder => new BaseDocumentBuilder(Options);
+
+        public static SearchDocument.Full SearchDocument => new SearchDocumentBuilder(BaseDocumentBuilder, Options).FullFromDb(
             PackageId,
             SearchFilters.IncludePrereleaseAndSemVer2,
             Versions,
@@ -124,7 +134,7 @@ namespace NuGet.Services.AzureSearch.Support
             latestStableSemVer2: false,
             latestSemVer2: true);
 
-        public static HijackDocument.Full HijackDocument => new HijackDocumentBuilder(Options).FullFromDb(
+        public static HijackDocument.Full HijackDocument => new HijackDocumentBuilder(BaseDocumentBuilder).FullFromDb(
             PackageId,
             HijackDocumentChanges,
             PackageEntity);

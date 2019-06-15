@@ -442,6 +442,46 @@ namespace NuGet.Services.AzureSearch
 
                 Assert.Equal(Data.GalleryLicenseUrl, document.LicenseUrl);
             }
+
+            [Fact]
+            public void SetsIconUrlToFlatContainerWhenPackageHasIconFileAndIconUrl()
+            {
+                var leaf = Data.Leaf;
+                leaf.IconUrl = "https://other-example/icon.png";
+                leaf.IconFile = "icon.png";
+
+                var document = _target.UpdateLatestFromCatalog(
+                    Data.SearchFilters,
+                    Data.Versions,
+                    isLatestStable: false,
+                    isLatest: true,
+                    normalizedVersion: Data.NormalizedVersion,
+                    fullVersion: Data.FullVersion,
+                    leaf: leaf,
+                    owners: Data.Owners);
+
+                Assert.Equal(Data.FlatContainerIconUrl, document.IconUrl);
+            }
+
+            [Fact]
+            public void SetsIconUrlToFlatContainerWhenPackageHasIconFileAndNoIconUrl()
+            {
+                var leaf = Data.Leaf;
+                leaf.IconUrl = null;
+                leaf.IconFile = "icon.png";
+
+                var document = _target.UpdateLatestFromCatalog(
+                    Data.SearchFilters,
+                    Data.Versions,
+                    isLatestStable: false,
+                    isLatest: true,
+                    normalizedVersion: Data.NormalizedVersion,
+                    fullVersion: Data.FullVersion,
+                    leaf: leaf,
+                    owners: Data.Owners);
+
+                Assert.Equal(Data.FlatContainerIconUrl, document.IconUrl);
+            }
         }
 
         public class FullFromDb : BaseFacts
@@ -664,6 +704,7 @@ namespace NuGet.Services.AzureSearch
         {
             protected readonly ITestOutputHelper _output;
             protected readonly Mock<IOptionsSnapshot<AzureSearchJobConfiguration>> _options;
+            protected readonly BaseDocumentBuilder _baseDocumentBuilder;
             protected readonly AzureSearchJobConfiguration _config;
             protected readonly SearchDocumentBuilder _target;
 
@@ -702,9 +743,12 @@ namespace NuGet.Services.AzureSearch
             {
                 _output = output;
                 _options = new Mock<IOptionsSnapshot<AzureSearchJobConfiguration>>();
+                _baseDocumentBuilder = new BaseDocumentBuilder(_options.Object); // We intentionally don't mock this.
                 _config = new AzureSearchJobConfiguration
                 {
                     GalleryBaseUrl = Data.GalleryBaseUrl,
+                    FlatContainerBaseUrl = Data.FlatContainerBaseUrl,
+                    FlatContainerContainerName = Data.FlatContainerContainerName,
                     Scoring = new AzureSearchScoringConfiguration
                     {
                         DownloadCountLogBase = 2.0
@@ -713,7 +757,7 @@ namespace NuGet.Services.AzureSearch
 
                 _options.Setup(o => o.Value).Returns(() => _config);
 
-                _target = new SearchDocumentBuilder(_options.Object);
+                _target = new SearchDocumentBuilder(_baseDocumentBuilder, _options.Object);
             }
         }
     }

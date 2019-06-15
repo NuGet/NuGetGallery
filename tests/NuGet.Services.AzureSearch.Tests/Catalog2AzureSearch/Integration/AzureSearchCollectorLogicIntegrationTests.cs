@@ -37,6 +37,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
         private InMemoryRegistrationClient _registrationClient;
         private InMemoryCatalogClient _catalogClient;
         private CatalogLeafFetcher _leafFetcher;
+        private BaseDocumentBuilder _baseDocumentBuilder;
         private SearchDocumentBuilder _search;
         private HijackDocumentBuilder _hijack;
         private CatalogIndexActionBuilder _builder;
@@ -59,6 +60,8 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
                 StoragePath = "integration-tests-path",
                 RegistrationsBaseUrl = "https://example/registrations/",
                 GalleryBaseUrl = Data.GalleryBaseUrl,
+                FlatContainerBaseUrl = Data.FlatContainerBaseUrl,
+                FlatContainerContainerName = Data.FlatContainerContainerName,
 
                 Scoring = new AzureSearchScoringConfiguration()
             };
@@ -93,8 +96,9 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
                 _options.Object,
                 _telemetryService,
                 output.GetLogger<CatalogLeafFetcher>());
-            _search = new SearchDocumentBuilder(_options.Object);
-            _hijack = new HijackDocumentBuilder(_options.Object);
+            _baseDocumentBuilder = new BaseDocumentBuilder(_options.Object);
+            _search = new SearchDocumentBuilder(_baseDocumentBuilder, _options.Object);
+            _hijack = new HijackDocumentBuilder(_baseDocumentBuilder);
             _builder = new CatalogIndexActionBuilder(
                 _versionListDataClient,
                 _leafFetcher,
