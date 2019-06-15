@@ -5,6 +5,7 @@ using System;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using NuGet.Services.Validation;
+using TestUtil;
 using Validation.PackageSigning.ValidateCertificate.Tests.Support;
 using Xunit;
 
@@ -25,7 +26,7 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
             _target = new OnlineCertificateVerifier();
         }
 
-        [Fact]
+        [AdminOnlyFact]
         public async Task ValidCodeSigningCertificate()
         {
             // Arrange
@@ -40,7 +41,7 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
             Assert.Null(result.RevocationTime);
         }
 
-        [Fact]
+        [AdminOnlyFact]
         public async Task ValidTimestampingCertificate()
         {
             // Arrange
@@ -55,7 +56,7 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
             Assert.Null(result.RevocationTime);
         }
 
-        [Fact]
+        [AdminOnlyFact]
         public async Task ValidCodeSigningCertificateFailsAsTimestampingCertificate()
         {
             // Arrange
@@ -70,7 +71,7 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
             Assert.Null(result.RevocationTime);
         }
 
-        [Fact]
+        [AdminOnlyFact]
         public async Task ValidTimestampingCertificateFailsAsSigningCertificate()
         {
             // Arrange
@@ -85,7 +86,7 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
             Assert.Null(result.RevocationTime);
         }
 
-        [Fact]
+        [AdminOnlyFact]
         public async Task UnknownCertificate()
         {
             // Arrange
@@ -100,7 +101,7 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
             Assert.Null(result.RevocationTime);
         }
 
-        [Fact]
+        [AdminOnlyFact]
         public async Task RevokedEndCertificate()
         {
             // Arrange - create a revocation date with no milliseconds
@@ -121,7 +122,7 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
             }
         }
 
-        [Fact]
+        [AdminOnlyFact]
         public async Task RevokedParentCertificate()
         {
             // Arrange
@@ -142,7 +143,7 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
             Assert.Null(result.RevocationTime);
         }
 
-        [Fact]
+        [AdminOnlyFact]
         public async Task PartialChainEndCertificate()
         {
             // Arrange
@@ -164,7 +165,7 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
             }
         }
 
-        [Fact]
+        [AdminOnlyFact]
         public async Task PartialChainButIntermediateCertificateIsProvided()
         {
             // Arrange
@@ -182,7 +183,7 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
             }
         }
 
-        [Fact]
+        [AdminOnlyFact]
         public async Task PartialChainAndRevokedEndCertificate()
         {
             // Arrange
@@ -204,7 +205,7 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
             }
         }
 
-        [Fact]
+        [AdminOnlyFact]
         public async Task ExpiredEndCertificate()
         {
             // Arrange
@@ -219,7 +220,7 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
             Assert.Null(result.RevocationTime);
         }
 
-        [Fact]
+        [AdminOnlyFact]
         public async Task ExpiredAndRevokedEndCertificate()
         {
             // Arrange
@@ -236,7 +237,7 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
             Assert.NotNull(result.RevocationTime);
         }
 
-        [Fact]
+        [AdminOnlyFact]
         public async Task WeakSignatureParentCertificate()
         {
             // Arrange

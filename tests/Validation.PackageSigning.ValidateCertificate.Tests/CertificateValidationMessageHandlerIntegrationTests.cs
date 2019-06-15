@@ -12,6 +12,7 @@ using NuGet.Jobs.Validation.PackageSigning.Messages;
 using NuGet.Jobs.Validation.PackageSigning.Storage;
 using NuGet.Services.Validation;
 using Tests.ContextHelpers;
+using TestUtil;
 using Validation.PackageSigning.ValidateCertificate.Tests.Support;
 using Xunit;
 
@@ -52,7 +53,7 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
                 Mock.Of<ILogger<CertificateValidationMessageHandler>>());
         }
 
-        [Theory]
+        [AdminOnlyTheory]
         [MemberData(nameof(ValidateSigningCertificateData))]
         public async Task ValidateSigningCertificate(
             Func<CertificateIntegrationTestFixture, Task<X509Certificate2>> createCertificateFunc,
@@ -213,7 +214,7 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
             };
         }
 
-        [Fact]
+        [AdminOnlyFact]
         public async Task ValidateTimestampingCertificate()
         {
             // Arrange

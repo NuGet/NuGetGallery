@@ -799,7 +799,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 .Returns(Task.CompletedTask)
                 .Callback(() => operations.Add(nameof(IMessageService<Package>.SendValidationFailedMessageAsync)));
             TelemetryServiceMock
-                .Setup(x => x.TrackTotalValidationDuration(It.IsAny<TimeSpan>(), It.IsAny<bool>()))
+                .Setup(x => x.TrackTotalValidationDuration(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<TimeSpan>(), It.IsAny<bool>()))
                 .Callback(() => operations.Add(nameof(ITelemetryService.TrackTotalValidationDuration)));
             PackageFileServiceMock
                 .Setup(x => x.DeletePackageForValidationSetAsync(It.IsAny<PackageValidationSet>()))
