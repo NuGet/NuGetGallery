@@ -1,5 +1,5 @@
 ---
-name: NuGet.Org issue
+name: NuGet.org issue
 about: Report issues on NuGet.org
 ---
 
