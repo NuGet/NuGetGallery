@@ -46,6 +46,9 @@
   <ItemGroup>
     <Compile Include="AccountDeleteMessageHandler.cs" />
     <Compile Include="Configuration\AccountDeleteConfiguration.cs" />
+    <Compile Include="Configuration\CoreMessageServiceConfiguration.cs" />
+    <Compile Include="Configuration\EmailConfiguration.cs" />
+    <Compile Include="Configuration\EmailServiceBusConfiguration.cs" />
     <Compile Include="Configuration\SourceConfiguration.cs" />
     <Compile Include="Evaluators\AlwaysAllowEvaluator.cs" />
     <Compile Include="Exceptions\EmailContactNotAllowedException.cs" />

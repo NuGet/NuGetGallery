@@ -16,9 +16,9 @@ namespace NuGetGallery.AccountDeleter
 
         public bool RespectEmailContactSetting { get; set; }
 
-        public string SenderEmail { get; set; }
-
         public List<SourceConfiguration> SourceConfigurations { get; set; }
+
+        public EmailConfiguration EmailConfiguration { get; set; }
 
         public IEmailBuilder GetEmailBuilder(string source, bool success = false)
         {
@@ -30,7 +30,7 @@ namespace NuGetGallery.AccountDeleter
                     {
                         if (sourceConfig.SendMessageOnSuccess)
                         {
-                            return new AccountDeleteEmailBuilder(sourceConfig.SuccessSubjectTemplate, sourceConfig.SuccessMessageTemplate, SenderEmail);
+                            return new AccountDeleteEmailBuilder(sourceConfig.SuccessSubjectTemplate, sourceConfig.SuccessMessageTemplate, EmailConfiguration.GalleryOwner);
                         }
                         else
                         {
@@ -39,7 +39,7 @@ namespace NuGetGallery.AccountDeleter
                     }
                     else
                     {
-                        return new AccountDeleteEmailBuilder(sourceConfig.SubjectTemplate, sourceConfig.MessageTemplate, SenderEmail);
+                        return new AccountDeleteEmailBuilder(sourceConfig.SubjectTemplate, sourceConfig.MessageTemplate, EmailConfiguration.GalleryOwner);
                     }
                 }
             }

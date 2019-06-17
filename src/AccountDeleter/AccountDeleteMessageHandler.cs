@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Net.Mail;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using NuGet.Services.Messaging.Email;
 using NuGet.Services.ServiceBus;
 using NuGetGallery.AccountDeleter.Messengers;
@@ -14,6 +15,7 @@ namespace NuGetGallery.AccountDeleter
 {
     public class AccountDeleteMessageHandler : IMessageHandler<AccountDeleteMessage>
     {
+        private readonly IOptionsSnapshot<AccountDeleteConfiguration> _options;
         private readonly IAccountManager _accountManager;
         private readonly IMessageService _messenger;
         private readonly IEmailBuilderFactory _emailBuilderFactory;
@@ -21,12 +23,14 @@ namespace NuGetGallery.AccountDeleter
         private readonly ILogger<AccountDeleteMessageHandler> _logger;
 
         public AccountDeleteMessageHandler (
+            IOptionsSnapshot<AccountDeleteConfiguration> options,
             IAccountManager accountManager,
             IMessageService messenger,
             IEmailBuilderFactory emailBuilderFactory,
             IAccountDeleteTelemetryService telemetryService,
             ILogger<AccountDeleteMessageHandler> logger)
         {
+            _options = options ?? throw new ArgumentNullException(nameof(options));
             _accountManager = accountManager ?? throw new ArgumentNullException(nameof(accountManager));
             _messenger = messenger ?? throw new ArgumentNullException(nameof(messenger));
             _emailBuilderFactory = emailBuilderFactory ?? throw new ArgumentNullException(nameof(emailBuilderFactory));
@@ -53,9 +57,14 @@ namespace NuGetGallery.AccountDeleter
                     var toEmail = new List<MailAddress>();
                     toEmail.Add(new MailAddress(recipientEmail));
 
-                    var recipients = new EmailRecipients(toEmail);
+                    var configuration = _options.Value;
+                    var senderAddress = configuration.EmailConfiguration.GalleryOwner;
+                    var ccEmail = new List<MailAddress>();
+                    ccEmail.Add(new MailAddress(senderAddress));
+
+                    var recipients = new EmailRecipients(toEmail, ccEmail);
                     var emailBuilder = new DisposableEmailBuilder(baseEmailBuilder, recipients);
-                    await _messenger.SendMessageAsync(emailBuilder, copySender: true);
+                    await _messenger.SendMessageAsync(emailBuilder);
                 }
             }
             catch (UnknownSourceException)

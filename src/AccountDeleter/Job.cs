@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NuGet.Jobs.Validation;
+using NuGet.Jobs.Configuration;
 using NuGet.Services.Messaging;
 using NuGet.Services.Messaging.Email;
 using NuGet.Services.ServiceBus;
@@ -18,6 +19,7 @@ using NuGetGallery.Features;
 using NuGetGallery.Security;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
+using NuGetGallery.AccountDeleter.Configuration;
 
 namespace NuGetGallery.AccountDeleter
 {
@@ -60,7 +62,7 @@ namespace NuGetGallery.AccountDeleter
                     var alwaysReject = new AlwaysRejectEvaluator(areLogger);
                     var alwaysAllow = new AlwaysAllowEvaluator(aaeLogger);
 
-                    //evaluator.AddEvaluator(alwaysReject);
+                    evaluator.AddEvaluator(alwaysReject);
                     evaluator.AddEvaluator(alwaysAllow);
                 }
 
@@ -73,6 +75,15 @@ namespace NuGetGallery.AccountDeleter
             else
             {
                 services.AddTransient<IMessageService, AsynchronousEmailMessageService>();
+                services.AddTransient<IEmailMessageEnqueuer, EmailMessageEnqueuer>();
+                services.AddTransient<IServiceBusMessageSerializer, ServiceBusMessageSerializer>();
+                services.AddTransient<ITopicClient>(serviceProvider =>
+                {
+                    var configuration = serviceProvider.GetRequiredService<IOptionsSnapshot<AccountDeleteConfiguration>>().Value;
+                    var emailServiceBusConfiguration = configuration.EmailConfiguration.ServiceBus;
+                    return new TopicClientWrapper(emailServiceBusConfiguration.ConnectionString, emailServiceBusConfiguration.TopicPath);
+                });
+                services.AddTransient<IMessageServiceConfiguration, CoreMessageServiceConfiguration>();
             }
 
 
@@ -91,8 +102,10 @@ namespace NuGetGallery.AccountDeleter
             }
             else
             {
-                services.AddSingleton<IDeleteAccountService, DeleteAccountService>();
-                services.AddSingleton<IUserService, UserService>();
+                services.AddSingleton<IDeleteAccountService, EmptyDeleteAccountService>();
+                services.AddSingleton<IUserService, EmptyUserService>();
+                //services.AddSingleton<IDeleteAccountService, DeleteAccountService>();
+                //services.AddSingleton<IUserService, UserService>();
             }
             //services.AddSingleton<IPackageService, PackageService>();
             //services.AddSingleton<IPackageUpdateService, PackageUpdateService>();
