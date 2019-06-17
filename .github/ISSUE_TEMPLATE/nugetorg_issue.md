@@ -5,7 +5,7 @@ about: Report issues on NuGet.org
 
 ### For issues regarding the NuGet client tools (the Visual Studio extension, NuGet.exe command line tool, etc.), file a bug on [NuGet Home](https://github.com/nuget/home/issues).
 
-### For issues connecting to NuGet.org, please refer to [this guide](https://docs.microsoft.com/en-us/nuget/faqs/nuget-faq#nugetorg-not-accessible)
+### For issues connecting to NuGet.org, please refer to [this guide](https://docs.microsoft.com/en-us/nuget/faqs/nuget-faq#nugetorg-not-accessible).
 
 ### For issues regarding your NuGet.org account, please refer to [this guide](https://docs.microsoft.com/en-us/nuget/faqs/nuget-faq#nugetorg-account-management).
 
