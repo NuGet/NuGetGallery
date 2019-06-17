@@ -20,6 +20,7 @@ using NuGetGallery.Security;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
 using NuGetGallery.AccountDeleter.Configuration;
+using NuGet.Services.Entities;
 
 namespace NuGetGallery.AccountDeleter
 {
@@ -103,9 +104,9 @@ namespace NuGetGallery.AccountDeleter
             else
             {
                 services.AddSingleton<IDeleteAccountService, EmptyDeleteAccountService>();
-                services.AddSingleton<IUserService, EmptyUserService>();
+                //services.AddSingleton<IUserService, EmptyUserService>();
                 //services.AddSingleton<IDeleteAccountService, DeleteAccountService>();
-                //services.AddSingleton<IUserService, UserService>();
+                services.AddSingleton<IUserService, MicroUserService>();
             }
             //services.AddSingleton<IPackageService, PackageService>();
             //services.AddSingleton<IPackageUpdateService, PackageUpdateService>();
@@ -122,6 +123,10 @@ namespace NuGetGallery.AccountDeleter
         protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder)
         {
             ConfigureDefaultSubscriptionProcessor(containerBuilder);
+            containerBuilder.RegisterType<EntityRepository<User>>()
+                .AsSelf()
+                .As<IEntityRepository<User>>()
+                .InstancePerLifetimeScope();
         }
     }
 }
