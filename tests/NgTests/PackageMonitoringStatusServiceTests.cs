@@ -12,6 +12,7 @@ using Moq;
 using Newtonsoft.Json.Linq;
 using NgTests.Infrastructure;
 using NuGet.Packaging.Core;
+using NuGet.Services.Entities;
 using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGet.Services.Metadata.Catalog.Monitoring;
@@ -438,13 +439,12 @@ namespace NgTests
                 new MemoryStorageFactory(),
                 new Mock<ILogger<PackageMonitoringStatusService>>().Object);
 
-            // Act
-            var validStatuses = await statusService.GetAsync(PackageState.Valid, CancellationToken.None);
-            var invalidStatuses = await statusService.GetAsync(PackageState.Invalid, CancellationToken.None);
-
-            // Assert
-            Assert.Empty(validStatuses);
-            Assert.Empty(invalidStatuses);
+            // Act & Assert
+            foreach (var state in Enum.GetValues(typeof(PackageState)).Cast<PackageState>())
+            {
+                var statuses = await statusService.GetAsync(state, CancellationToken.None);
+                Assert.Empty(statuses);
+            }
         }
 
         [Fact]
@@ -470,27 +470,46 @@ namespace NgTests
                 CreateStatusWithException("NUnit", "3.6.1")
             };
 
+            var expectedUnknownStatuses = new PackageMonitoringStatus[]
+            {
+                CreateStatusWithPackageValidationResult("xunit", "2.4.1", new ValidationResult[] { CreateValidationResult(TestResult.Pending, null) }),
+                CreateStatusWithPackageValidationResult("a.b", "99.9.99", new ValidationResult[] { CreateValidationResult(TestResult.Pending, null) })
+            };
+
             foreach (var expectedValidStatus in expectedValidStatuses)
             {
                 await statusService.UpdateAsync(expectedValidStatus, CancellationToken.None);
             }
+
             foreach (var expectedInvalidStatus in expectedInvalidStatuses)
             {
                 await statusService.UpdateAsync(expectedInvalidStatus, CancellationToken.None);
             }
 
+            foreach (var expectedSkippedStatus in expectedUnknownStatuses)
+            {
+                await statusService.UpdateAsync(expectedSkippedStatus, CancellationToken.None);
+            }
+
             // Act
             var validStatuses = await statusService.GetAsync(PackageState.Valid, CancellationToken.None);
             var invalidStatuses = await statusService.GetAsync(PackageState.Invalid, CancellationToken.None);
+            var unknownStatuses = await statusService.GetAsync(PackageState.Unknown, CancellationToken.None);
 
             // Assert
             AssertAll(
                 expectedValidStatuses.OrderBy(s => s.Package.Id).ThenBy(s => s.Package.Version),
                 validStatuses.OrderBy(s => s.Package.Id).ThenBy(s => s.Package.Version),
                 AssertStatus);
+
             AssertAll(
                 expectedInvalidStatuses.OrderBy(s => s.Package.Id).ThenBy(s => s.Package.Version),
                 invalidStatuses.OrderBy(s => s.Package.Id).ThenBy(s => s.Package.Version),
+                AssertStatus);
+
+            AssertAll(
+                expectedUnknownStatuses.OrderBy(s => s.Package.Id).ThenBy(s => s.Package.Version),
+                unknownStatuses.OrderBy(s => s.Package.Id).ThenBy(s => s.Package.Version),
                 AssertStatus);
         }
     }

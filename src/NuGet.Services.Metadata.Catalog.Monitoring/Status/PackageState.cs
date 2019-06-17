@@ -18,6 +18,16 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
         /// The package is in an invalid state.
         /// Its metadata is missing or in an unexpected state.
         /// </summary>
-        Invalid
+        Invalid,
+
+        /// <summary>
+        /// The package's state could not be determined.
+        /// Its metadata is in an unknown state.
+        /// </summary>
+        /// <remarks>
+        /// Typically, a package is in this state if there is a newer catalog entry for a package that needs to be processed.
+        /// If a package is in this state for an extended period of time, there is likely a problem with it or the monitoring pipeline.
+        /// </remarks>
+        Unknown,
     }
 }

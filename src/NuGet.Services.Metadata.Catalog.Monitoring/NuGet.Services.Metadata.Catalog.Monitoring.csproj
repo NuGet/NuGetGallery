@@ -91,6 +91,7 @@
     <Compile Include="Utility\LogEvents.cs" />
     <Compile Include="Utility\ILoggerFactoryExtensions.cs" />
     <Compile Include="Utility\SafeExceptionConverter.cs" />
+    <Compile Include="Validation\Result\ShouldRunTestResult.cs" />
     <Compile Include="Validation\Test\Endpoint\AggregateEndpointCursor.cs" />
     <Compile Include="Validation\Test\Exceptions\AggregateMetadataInconsistencyException.cs" />
     <Compile Include="Validation\Test\Registration\RegistrationDeprecationValidator.cs" />

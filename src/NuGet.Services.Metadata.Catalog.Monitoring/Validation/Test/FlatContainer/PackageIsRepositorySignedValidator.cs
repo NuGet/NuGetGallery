@@ -22,14 +22,16 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
         {
         }
 
-        protected async override Task<bool> ShouldRunAsync(ValidationContext context)
+        protected async override Task<ShouldRunTestResult> ShouldRunAsync(ValidationContext context)
         {
             if (!Config.RequireRepositorySignature)
             {
-                return false;
+                return ShouldRunTestResult.No;
             }
 
-            return await base.ShouldRunAsync(context) && await PackageExistsAsync(context);
+            return await ShouldRunTestUtility.Combine(
+                () => base.ShouldRunAsync(context), 
+                () => PackageExistsAsync(context));
         }
 
         protected async override Task RunInternalAsync(ValidationContext context)
@@ -99,14 +101,14 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
             }
         }
 
-        private async Task<bool> PackageExistsAsync(ValidationContext context)
+        private async Task<ShouldRunTestResult> PackageExistsAsync(ValidationContext context)
         {
             var uri = GetV3PackageUri(context);
 
             using (var request = new HttpRequestMessage(HttpMethod.Head, uri))
             using (var response = await context.Client.SendAsync(request))
             {
-                return response.IsSuccessStatusCode;
+                return response.IsSuccessStatusCode ? ShouldRunTestResult.Yes : ShouldRunTestResult.No;
             }
         }
     }

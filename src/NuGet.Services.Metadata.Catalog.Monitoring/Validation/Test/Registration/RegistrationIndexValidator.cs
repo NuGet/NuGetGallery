@@ -14,12 +14,14 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
         {
         }
 
-        protected override async Task<bool> ShouldRunAsync(ValidationContext context)
+        protected override async Task<ShouldRunTestResult> ShouldRunAsync(ValidationContext context)
         {
             var databaseIndex = await context.GetIndexDatabaseAsync();
             var v3Index = await context.GetIndexV3Async();
 
-            return await base.ShouldRunAsync(context) && await ShouldRunIndexAsync(context, databaseIndex, v3Index);
+            return await ShouldRunTestUtility.Combine(
+                () => base.ShouldRunAsync(context),
+                () => ShouldRunIndexAsync(context, databaseIndex, v3Index));
         }
 
         protected override async Task RunInternalAsync(ValidationContext context)
@@ -37,12 +39,12 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
             }
         }
 
-        public Task<bool> ShouldRunIndexAsync(
+        public Task<ShouldRunTestResult> ShouldRunIndexAsync(
             ValidationContext context,
             PackageRegistrationIndexMetadata database,
             PackageRegistrationIndexMetadata v3)
         {
-            return Task.FromResult(database != null && v3 != null);
+            return Task.FromResult(database != null && v3 != null ? ShouldRunTestResult.Yes : ShouldRunTestResult.No);
         }
 
         public abstract Task CompareIndexAsync(

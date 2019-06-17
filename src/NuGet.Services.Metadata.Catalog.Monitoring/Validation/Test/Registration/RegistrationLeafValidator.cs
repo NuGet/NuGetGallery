@@ -16,16 +16,17 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
         {
         }
 
-        protected override async Task<bool> ShouldRunAsync(ValidationContext context)
+        protected override async Task<ShouldRunTestResult> ShouldRunAsync(ValidationContext context)
         {
             var databaseIndex = await context.GetIndexDatabaseAsync();
             var v3Index = await context.GetIndexV3Async();
             var databaseLeaf = await context.GetLeafDatabaseAsync();
             var v3Leaf = await context.GetLeafV3Async();
 
-            return await base.ShouldRunAsync(context)
-                && await ShouldRunLeafAsync(context, databaseIndex, v3Index)
-                && await ShouldRunLeafAsync(context, databaseLeaf, v3Leaf);
+            return await ShouldRunTestUtility.Combine(
+                () => base.ShouldRunAsync(context),
+                () => ShouldRunLeafAsync(context, databaseIndex, v3Index),
+                () => ShouldRunLeafAsync(context, databaseLeaf, v3Leaf));
         }
 
         protected override async Task RunInternalAsync(ValidationContext context)
@@ -62,7 +63,7 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
             }
         }
 
-        public abstract Task<bool> ShouldRunLeafAsync(
+        public abstract Task<ShouldRunTestResult> ShouldRunLeafAsync(
             ValidationContext context,
             PackageRegistrationLeafMetadata database,
             PackageRegistrationLeafMetadata v3);

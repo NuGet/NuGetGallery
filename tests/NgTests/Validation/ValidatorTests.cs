@@ -19,7 +19,7 @@ namespace NgTests.Validation
         public async Task Run_ReturnsPass()
         {
             // Arrange
-            Func<bool> shouldRun = () => true;
+            Func<ShouldRunTestResult> shouldRun = () => ShouldRunTestResult.Yes;
             Action runInternal = () => { };
 
             var validator = new TestableValidator(shouldRun, runInternal);
@@ -39,7 +39,7 @@ namespace NgTests.Validation
         public async Task Run_ReturnsSkip()
         {
             // Arrange
-            Func<bool> shouldRun = () => false;
+            Func<ShouldRunTestResult> shouldRun = () => ShouldRunTestResult.No;
             Action runInternal = () => { };
 
             var validator = new TestableValidator(shouldRun, runInternal);
@@ -56,12 +56,32 @@ namespace NgTests.Validation
         }
 
         [Fact]
+        public async Task Run_ReturnsPending()
+        {
+            // Arrange
+            Func<ShouldRunTestResult> shouldRun = () => ShouldRunTestResult.RetryLater;
+            Action runInternal = () => { };
+
+            var validator = new TestableValidator(shouldRun, runInternal);
+
+            var context = CreateContext();
+
+            // Act
+            var result = await validator.ValidateAsync(context);
+
+            // Assert
+            Assert.Same(validator, result.Validator);
+            Assert.Equal(TestResult.Pending, result.Result);
+            Assert.Null(result.Exception);
+        }
+
+        [Fact]
         public async Task Run_ReturnsFail()
         {
             // Arrange
             var exception = new Exception();
 
-            Func<bool> shouldRun = () => true;
+            Func<ShouldRunTestResult> shouldRun = () => ShouldRunTestResult.Yes;
             Action runInternal = () => { throw exception; };
 
             var validator = new TestableValidator(shouldRun, runInternal);
@@ -85,7 +105,6 @@ namespace NgTests.Validation
 
     public class TestableValidator : Validator
     {
-        private static readonly IDictionary<FeedType, SourceRepository> _feedToSource;
         private static readonly ILogger<Validator> _logger;
         private static readonly ValidatorConfiguration _validatorConfiguration;
 
@@ -104,19 +123,18 @@ namespace NgTests.Validation
 
             feedToSource.Setup(x => x[It.IsAny<FeedType>()]).Returns(sourceRepository.Object);
 
-            _feedToSource = feedToSource.Object;
             _validatorConfiguration = new ValidatorConfiguration(packageBaseAddress: "a", requireRepositorySignature: true);
             _logger = Mock.Of<ILogger<Validator>>();
         }
 
-        public TestableValidator(Func<bool> shouldRun, Action runInternal)
+        public TestableValidator(Func<ShouldRunTestResult> shouldRun, Action runInternal)
             : base(_validatorConfiguration, _logger)
         {
             _shouldRun = shouldRun;
             _runInternal = runInternal;
         }
 
-        protected override Task<bool> ShouldRunAsync(ValidationContext context)
+        protected override Task<ShouldRunTestResult> ShouldRunAsync(ValidationContext context)
         {
             return Task.FromResult(_shouldRun());
         }
@@ -128,7 +146,7 @@ namespace NgTests.Validation
             return Task.FromResult(0);
         }
 
-        private Func<bool> _shouldRun;
+        private Func<ShouldRunTestResult> _shouldRun;
         private Action _runInternal;
     }
 }

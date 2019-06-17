@@ -168,7 +168,7 @@ namespace NgTests.Validation
                     PackageRegistrationIndexMetadata v2,
                     PackageRegistrationIndexMetadata v3)
                 {
-                    Assert.True(await validator.ShouldRunLeafAsync(ValidatorTestUtility.GetFakeValidationContext(), v2, v3));
+                    Assert.Equal(ShouldRunTestResult.Yes, await validator.ShouldRunLeafAsync(ValidatorTestUtility.GetFakeValidationContext(), v2, v3));
                 }
 
                 [Theory]
@@ -178,7 +178,7 @@ namespace NgTests.Validation
                     PackageRegistrationIndexMetadata v2,
                     PackageRegistrationIndexMetadata v3)
                 {
-                    Assert.False(await validator.ShouldRunLeafAsync(ValidatorTestUtility.GetFakeValidationContext(), v2, v3));
+                    Assert.Equal(ShouldRunTestResult.No, await validator.ShouldRunLeafAsync(ValidatorTestUtility.GetFakeValidationContext(), v2, v3));
                 }
             }
 
@@ -195,7 +195,7 @@ namespace NgTests.Validation
                     PackageRegistrationLeafMetadata v2,
                     PackageRegistrationLeafMetadata v3)
                 {
-                    Assert.True(await validator.ShouldRunLeafAsync(ValidatorTestUtility.GetFakeValidationContext(), v2, v3));
+                    Assert.Equal(ShouldRunTestResult.Yes, await validator.ShouldRunLeafAsync(ValidatorTestUtility.GetFakeValidationContext(), v2, v3));
                 }
 
                 [Theory]
@@ -205,7 +205,7 @@ namespace NgTests.Validation
                     PackageRegistrationLeafMetadata v2,
                     PackageRegistrationLeafMetadata v3)
                 {
-                    Assert.False(await validator.ShouldRunLeafAsync(ValidatorTestUtility.GetFakeValidationContext(), v2, v3));
+                    Assert.Equal(ShouldRunTestResult.No, await validator.ShouldRunLeafAsync(ValidatorTestUtility.GetFakeValidationContext(), v2, v3));
                 }
             }
         }

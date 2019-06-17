@@ -24,12 +24,14 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
         {
             get
             {
-                if (ValidationException != null || 
-                    ValidationResult.AggregateValidationResults.Any(
-                        r => r.ValidationResults.Any(
-                            v => v.Result == TestResult.Fail)))
+                if (ValidationException != null || HasResultsOfType(TestResult.Fail))
                 {
                     return PackageState.Invalid;
+                }
+
+                if (HasResultsOfType(TestResult.Pending))
+                {
+                    return PackageState.Unknown;
                 }
 
                 return PackageState.Valid;
@@ -66,6 +68,13 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
         {
             Package = package ?? throw new ArgumentNullException(nameof(package));
             ValidationException = exception ?? throw new ArgumentNullException(nameof(exception));
+        }
+
+        private bool HasResultsOfType(TestResult result)
+        {
+            return ValidationResult.AggregateValidationResults.Any(
+                r => r.ValidationResults.Any(
+                    v => v.Result == result));
         }
     }
 }

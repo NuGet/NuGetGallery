@@ -112,7 +112,7 @@ namespace NgTests.Validation
                 PackageRegistrationIndexMetadata v2,
                 PackageRegistrationIndexMetadata v3)
             {
-                Assert.True(await validator.ShouldRunIndexAsync(ValidatorTestUtility.GetFakeValidationContext(), v2, v3));
+                Assert.Equal(ShouldRunTestResult.Yes, await validator.ShouldRunIndexAsync(ValidatorTestUtility.GetFakeValidationContext(), v2, v3));
             }
 
             [Theory]
@@ -122,7 +122,7 @@ namespace NgTests.Validation
                 PackageRegistrationIndexMetadata v2,
                 PackageRegistrationIndexMetadata v3)
             {
-                Assert.False(await validator.ShouldRunIndexAsync(ValidatorTestUtility.GetFakeValidationContext(), v2, v3));
+                Assert.Equal(ShouldRunTestResult.No, await validator.ShouldRunIndexAsync(ValidatorTestUtility.GetFakeValidationContext(), v2, v3));
             }
         }
     }

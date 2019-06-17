@@ -13,12 +13,12 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
         {
         }
 
-        public override Task<bool> ShouldRunLeafAsync(
+        public override Task<ShouldRunTestResult> ShouldRunLeafAsync(
             ValidationContext context,
             PackageRegistrationLeafMetadata database,
             PackageRegistrationLeafMetadata v3)
         {
-            return Task.FromResult(true);
+            return Task.FromResult(ShouldRunTestResult.Yes);
         }
 
         public override Task CompareLeafAsync(
