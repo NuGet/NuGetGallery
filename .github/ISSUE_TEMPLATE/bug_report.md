@@ -12,8 +12,7 @@ A clear and concise description of what the bug is.
 Steps to reproduce the behavior:
 1. Using this git commit of NuGetGallery '...'
 2. Run this code '....'
-3. With these arguments '....'
-4. See error
+3. See error
 
 ### Expected behavior
 A clear and concise description of what you expected to happen.

@@ -16,7 +16,7 @@ A clear and concise description of what the bug is.
 Steps to reproduce the behavior:
 1. On this URL '...'
 2. Perform this operation '...'
-4. See error
+3. See error
 
 ### Expected behavior
 A clear and concise description of what you expected to happen.
