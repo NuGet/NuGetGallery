@@ -154,11 +154,11 @@ namespace NuGet.Services.Validation.Orchestrator
                 using (_logger.BeginScope("Not started {ValidationType} Key {ValidationId}", packageValidation.Type, packageValidation.Key))
                 {
                     _logger.LogInformation("Processing not started validation {ValidationType} for {PackageId} {PackageVersion}, validation set {ValidationSetId}, {ValidationId}",
-                    packageValidation.Type,
-                    validationSet.PackageId,
-                    validationSet.PackageNormalizedVersion,
-                    validationSet.ValidationTrackingId,
-                    packageValidation.Key);
+                        packageValidation.Type,
+                        validationSet.PackageId,
+                        validationSet.PackageNormalizedVersion,
+                        validationSet.ValidationTrackingId,
+                        packageValidation.Key);
                     var validationConfiguration = GetValidationConfiguration(packageValidation.Type);
                     if (validationConfiguration == null)
                     {
@@ -283,7 +283,7 @@ namespace NuGet.Services.Validation.Orchestrator
         {
             var nupkgUrl = await _packageFileService.GetPackageForValidationSetReadUriAsync(
                 packageValidationSet,
-                DateTimeOffset.UtcNow.Add(_validationConfiguration.TimeoutValidationSetAfter));
+                DateTimeOffset.UtcNow.Add(_validationConfiguration.NupkgUrlValidityPeriod));
 
             var validationRequest = new ValidationRequest(
                 validationId: packageValidation.Key,

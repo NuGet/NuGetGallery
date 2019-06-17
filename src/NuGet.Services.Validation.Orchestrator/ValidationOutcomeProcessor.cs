@@ -133,10 +133,10 @@ namespace NuGet.Services.Validation.Orchestrator
                 {
                     await ScheduleCheckIfNotTimedOut(validationSet, validatingEntity, tooLongNotificationAllowed: false);
                 }
-                else
-                {
-                    await _packageFileService.DeletePackageForValidationSetAsync(validationSet);
-                }
+
+                // TODO: implement delayed cleanup that would allow internal services
+                // to access original packages for some time after package become available:
+                // https://github.com/NuGet/Engineering/issues/2506
             }
             else
             {
