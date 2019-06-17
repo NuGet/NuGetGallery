@@ -7,7 +7,7 @@ about: Report issues on NuGet.org
 
 ### For issues connecting to NuGet.org, please refer to [this guide](https://docs.microsoft.com/en-us/nuget/faqs/nuget-faq#nugetorg-not-accessible)
 
-### For issues regarding your NuGet.Org account, please refer to [this guide](https://docs.microsoft.com/en-us/nuget/faqs/nuget-faq#nugetorg-account-management).
+### For issues regarding your NuGet.org account, please refer to [this guide](https://docs.microsoft.com/en-us/nuget/faqs/nuget-faq#nugetorg-account-management).
 
 ### Describe the bug
 A clear and concise description of what the bug is.
