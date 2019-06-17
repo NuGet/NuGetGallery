@@ -73,17 +73,17 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             return _primaryStorage.LoadAsync(resourceUri, cancellationToken);
         }
 
-        protected override Task OnDeleteAsync(Uri resourceUri, CancellationToken cancellationToken)
+        protected override Task OnDeleteAsync(Uri resourceUri, DeleteRequestOptions deleteRequestOptions, CancellationToken cancellationToken)
         {
             var tasks = new List<Task>();
-            tasks.Add(_primaryStorage.DeleteAsync(resourceUri, cancellationToken));
+            tasks.Add(_primaryStorage.DeleteAsync(resourceUri, cancellationToken, deleteRequestOptions));
 
             foreach (var storage in _secondaryStorage)
             {
                 var secondaryResourceUri = new Uri(resourceUri.ToString()
                     .Replace(_primaryStorage.BaseAddress.ToString(), storage.BaseAddress.ToString()));
 
-                tasks.Add(storage.DeleteAsync(secondaryResourceUri, cancellationToken));
+                tasks.Add(storage.DeleteAsync(secondaryResourceUri, cancellationToken, deleteRequestOptions));
             }
 
             return Task.WhenAll(tasks);

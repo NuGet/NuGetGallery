@@ -7,6 +7,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Queue.Protocol;
 using Ng.Helpers;
 using NuGet.Packaging.Core;
 using NuGet.Protocol;
@@ -172,14 +174,35 @@ namespace Ng.Jobs
                     Logger.LogCritical(
                         NuGet.Services.Metadata.Catalog.Monitoring.LogEvents.QueueMessageFatalFailure,
                         aggregateException,
-                        "Failed to process queue message");
+                        "Failed to process queue message.");
                 }
             }
 
             // If we failed to run validations and failed to save the failed validation, we cannot remove the message from the queue.
             if (messageWasProcessed)
             {
-                await _queue.RemoveAsync(queueMessage, token);
+                try
+                {
+                    await _queue.RemoveAsync(queueMessage, token);
+                }
+                catch (StorageException storageException)
+                {
+                    if (storageException.RequestInformation.ExtendedErrorInformation.ErrorCode == QueueErrorCodeStrings.MessageNotFound)
+                    {
+                        Logger.LogWarning(
+                            NuGet.Services.Metadata.Catalog.Monitoring.LogEvents.QueueMessageRemovalFailure,
+                            storageException,
+                            "Queue message for {PackageId} {PackageVersion} no longer exists. Message was likely handled by another instance of the job.",
+                            queuedContext.Package.Id, queuedContext.Package.Version);
+                    }
+                    else
+                    {
+                        Logger.LogCritical(
+                            NuGet.Services.Metadata.Catalog.Monitoring.LogEvents.QueueMessageRemovalFailure,
+                            storageException,
+                            "Failed to remove queue message.");
+                    }
+                }
             }
         }
 
@@ -216,6 +239,8 @@ namespace Ng.Jobs
             await _notificationService.OnPackageValidationFinishedAsync(result, token);
 
             var status = new PackageMonitoringStatus(result);
+            PackageMonitoringStatusAccessConditionHelper.UpdateFromExisting(status, existingStatus);
+
             await _statusService.UpdateAsync(status, token);
         }
 

@@ -2,7 +2,9 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using Microsoft.WindowsAzure.Storage;
 using Newtonsoft.Json;
 using NuGet.Services.Metadata.Catalog.Helpers;
 
@@ -49,9 +51,22 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
         /// </summary>
         [JsonProperty("validationException")]
         public Exception ValidationException { get; }
-        
+
+        /// <summary>
+        /// If this status was loaded from storage, this access condition should be used to overwrite it.
+        /// </summary>
+        [JsonIgnore]
+        public AccessCondition AccessCondition { get; set; }
+
+        /// <summary>
+        /// When this status is saved to storage, the save operation should use these <see cref="AccessCondition"/>s to save to the containers associated with each <see cref="PackageState"/>.
+        /// </summary>
+        [JsonIgnore]
+        public IDictionary<PackageState, AccessCondition> ExistingState { get; }
+
         [JsonConstructor]
         public PackageMonitoringStatus(FeedPackageIdentity package, PackageValidationResult validationResult, Exception validationException)
+            : this()
         {
             Package = package;
             ValidationResult = validationResult;
@@ -59,15 +74,27 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
         }
 
         public PackageMonitoringStatus(PackageValidationResult result)
+            : this()
         {
             ValidationResult = result ?? throw new ArgumentNullException(nameof(result));
             Package = new FeedPackageIdentity(result.Package);
         }
 
         public PackageMonitoringStatus(FeedPackageIdentity package, Exception exception)
+            : this()
         {
             Package = package ?? throw new ArgumentNullException(nameof(package));
             ValidationException = exception ?? throw new ArgumentNullException(nameof(exception));
+        }
+
+        private PackageMonitoringStatus()
+        {
+            AccessCondition = PackageMonitoringStatusAccessConditionHelper.FromUnknown();
+            ExistingState = new Dictionary<PackageState, AccessCondition>();
+            foreach (var state in Enum.GetValues(typeof(PackageState)).Cast<PackageState>())
+            {
+                ExistingState[state] = PackageMonitoringStatusAccessConditionHelper.FromUnknown();
+            }
         }
 
         private bool HasResultsOfType(TestResult result)

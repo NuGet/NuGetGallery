@@ -26,7 +26,6 @@ namespace Ng.Jobs
 
         protected override void Init(IDictionary<string, string> arguments, CancellationToken cancellationToken)
         {
-            var gallery = arguments.GetOrThrow<string>(Arguments.Gallery);
             var index = arguments.GetOrThrow<string>(Arguments.Index);
             var source = arguments.GetOrThrow<string>(Arguments.Source);
             var verbose = arguments.GetOrDefault(Arguments.Verbose, false);
@@ -44,8 +43,8 @@ namespace Ng.Jobs
             var queue = CommandHelpers.CreateStorageQueue<PackageValidatorContext>(arguments, PackageValidatorContext.Version);
 
             Logger.LogInformation(
-                "CONFIG gallery: {Gallery} index: {Index} storage: {Storage} registration cursor uri: {RegistrationCursorUri} flat-container cursor uri: {FlatContainerCursorUri}",
-                gallery, index, monitoringStorageFactory, endpointConfiguration.RegistrationCursorUri, endpointConfiguration.FlatContainerCursorUri);
+                "CONFIG index: {Index} storage: {Storage} registration cursor uri: {RegistrationCursorUri} flat-container cursor uri: {FlatContainerCursorUri}",
+                index, monitoringStorageFactory, endpointConfiguration.RegistrationCursorUri, endpointConfiguration.FlatContainerCursorUri);
 
             _enqueuer = ValidationFactory.CreatePackageValidatorContextEnqueuer(
                 queue,

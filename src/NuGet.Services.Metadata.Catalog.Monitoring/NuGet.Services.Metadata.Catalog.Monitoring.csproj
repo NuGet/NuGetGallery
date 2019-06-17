@@ -73,6 +73,7 @@
     <Compile Include="Resources\PackageRegistrationMetadataResourceDatabaseFeed.cs" />
     <Compile Include="Resources\PackageRegistrationMetadataResourceV3.cs" />
     <Compile Include="Resources\PackageTimestampMetadataResourceDatabase.cs" />
+    <Compile Include="Status\PackageMonitoringStatusAccessConditionHelper.cs" />
     <Compile Include="Status\PackageMonitoringStatusListItem.cs" />
     <Compile Include="Status\PackageMonitoringStatusService.cs" />
     <Compile Include="Status\PackageMonitoringStatus.cs" />

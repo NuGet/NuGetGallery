@@ -55,9 +55,9 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             return result;
         }
 
-        public Task DeleteAsync(Uri resourceUri, CancellationToken cancellationToken)
+        public Task DeleteAsync(Uri resourceUri, CancellationToken cancellationToken, DeleteRequestOptions deleteRequestOptions = null)
         {
-            return _innerStorage.DeleteAsync(resourceUri, cancellationToken);
+            return _innerStorage.DeleteAsync(resourceUri, cancellationToken, deleteRequestOptions);
         }
 
         public Task<string> LoadStringAsync(Uri resourceUri, CancellationToken cancellationToken)

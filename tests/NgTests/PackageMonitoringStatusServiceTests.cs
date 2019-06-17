@@ -2,18 +2,16 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Microsoft.WindowsAzure.Storage;
 using Moq;
-using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
 using NgTests.Infrastructure;
 using NuGet.Packaging.Core;
-using NuGet.Services.Entities;
-using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGet.Services.Metadata.Catalog.Monitoring;
 using NuGet.Services.Metadata.Catalog.Persistence;
@@ -67,12 +65,24 @@ namespace NgTests
                 .Exists(GetPackageFileName(feedPackageIdentity.Id, feedPackageIdentity.Version)));
         }
 
-        [Fact]
-        public async Task UpdateDeletesOldStatuses()
+        public static IEnumerable<object[]> UpdateDeletesOldStatuses_Data
+        {
+            get
+            {
+                yield return new object[] { null };
+                foreach (var state in Enum.GetValues(typeof(PackageState)).Cast<PackageState>())
+                {
+                    yield return new object[] { state };
+                }
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(UpdateDeletesOldStatuses_Data))]
+        public async Task UpdateDeletesOldStatuses(PackageState? previousState)
         {
             // Arrange
             var feedPackageIdentity = new FeedPackageIdentity("howdy", "3.4.6");
-            var packageFileName = GetPackageFileName(feedPackageIdentity.Id, feedPackageIdentity.Version);
 
             var packageValidationResult = new PackageValidationResult(
                 new PackageIdentity(feedPackageIdentity.Id, new NuGetVersion(feedPackageIdentity.Version)),
@@ -87,224 +97,34 @@ namespace NgTests
                 storageFactory,
                 new Mock<ILogger<PackageMonitoringStatusService>>().Object);
 
-            foreach (var state in Enum.GetNames(typeof(PackageState)))
+            var etag = "theETag";
+            foreach (var state in Enum.GetValues(typeof(PackageState)).Cast<PackageState>())
             {
-                var storage = storageFactory.Create(state.ToLowerInvariant());
-                await storage.SaveAsync(storage.ResolveUri(packageFileName), new StringStorageContent("{}"), CancellationToken.None);
-                Assert.True(storage.Exists(packageFileName));
+                if (previousState != state)
+                {
+                    status.ExistingState[state] = AccessCondition.GenerateIfNotExistsCondition();
+                    continue;
+                }
+
+                var content = new StringStorageContentWithETag("{}", etag);
+                await SaveToStorage(storageFactory, state, feedPackageIdentity, content);
+                status.ExistingState[state] = AccessCondition.GenerateIfMatchCondition(etag);
             }
 
             // Act
             await statusService.UpdateAsync(status, CancellationToken.None);
 
             // Assert
-            foreach (var state in Enum.GetNames(typeof(PackageState)))
+            foreach (var state in Enum.GetValues(typeof(PackageState)).Cast<PackageState>())
             {
-                var storage = storageFactory.Create(state.ToLowerInvariant());
-
-                if ((PackageState)Enum.Parse(typeof(PackageState), state) == status.State)
-                {
-                    Assert.True(storage.Exists(packageFileName));
-                }
-                else
-                {
-                    Assert.False(storage.Exists(packageFileName));
-                }
+                Assert.Equal(
+                    state == status.State,
+                    DoesPackageExists(storageFactory, state, feedPackageIdentity));
             }
 
-            AssertStatus(status, await statusService.GetAsync(feedPackageIdentity, CancellationToken.None));
-        }
-
-        private static ValidationResult CreateValidationResult(TestResult result, Exception e)
-        {
-            return new DummyValidator(result, e).Validate();
-        }
-
-        private static CatalogIndexEntry CreateCatalogIndexEntry(string id, string version)
-        {
-            return new CatalogIndexEntry(
-                new UriBuilder() { Path = $"{id.ToLowerInvariant()}/{id.ToLowerInvariant()}.{version.ToLowerInvariant()}" }.Uri,
-                CatalogConstants.NuGetPackageDetails,
-                Guid.NewGuid().ToString(),
-                DateTime.UtcNow,
-                new PackageIdentity(id, new NuGetVersion(version)));
-        }
-
-        private static DeletionAuditEntry CreateDeletionAuditEntry(string id, string version)
-        {
-            return new DeletionAuditEntry(
-                new UriBuilder() { Path = $"auditing/{id}/{version}/{Guid.NewGuid().ToString()}{DeletionAuditEntry.FileNameSuffixes[0]}" }.Uri,
-                JObject.Parse("{\"help\":\"i'm trapped in a json factory!\"}"),
-                id,
-                version,
-                DateTime.UtcNow);
-        }
-
-        private static PackageMonitoringStatus CreateStatusWithPackageValidationResult(string packageId, string packageVersion, IEnumerable<ValidationResult> results)
-        {
-            var version = new NuGetVersion(packageVersion);
-
-            var aggregateValidationResult = new DummyAggregateValidator(results).Validate();
-
-            var packageValidationResult = new PackageValidationResult(
-                new PackageIdentity(packageId, version),
-                new CatalogIndexEntry[] {
-                        CreateCatalogIndexEntry(packageId, packageVersion),
-                        CreateCatalogIndexEntry(packageId, packageVersion),
-                        CreateCatalogIndexEntry(packageId, packageVersion)
-                    },
-                new DeletionAuditEntry[] {
-                        CreateDeletionAuditEntry(packageId, packageVersion),
-                        CreateDeletionAuditEntry(packageId, packageVersion),
-                        CreateDeletionAuditEntry(packageId, packageVersion)
-                    },
-                new AggregateValidationResult[] { aggregateValidationResult });
-
-            return new PackageMonitoringStatus(packageValidationResult);
-        }
-
-        private static PackageMonitoringStatus CreateStatusWithException(string packageId, string packageVersion)
-        {
-            return new PackageMonitoringStatus(new FeedPackageIdentity(packageId, packageVersion), new Exception());
-        }
-
-        private static void AssertFieldEqual<TParent, TField>(
-            TParent expected,
-            TParent actual,
-            Func<TParent, TField> accessor)
-        {
-            Assert.Equal(accessor(expected), accessor(actual));
-        }
-
-        private static void AssertFieldEqual<TParent, TField>(
-            TParent expected,
-            TParent actual,
-            Func<TParent, TField> accessor,
-            Action<TField, TField> assert)
-        {
-            assert(accessor(expected), accessor(actual));
-        }
-
-        private static void AssertFieldEqual<TParent, TField>(
-            TParent expected,
-            TParent actual,
-            Func<TParent, IEnumerable<TField>> accessor,
-            Action<TField, TField> assert)
-        {
-            AssertAll(accessor(expected), accessor(actual), assert);
-        }
-
-        private static void AssertStatus(PackageMonitoringStatus expected, PackageMonitoringStatus actual)
-        {
-            AssertFieldEqual(expected, actual, i => i.Package.Id);
-            AssertFieldEqual(expected, actual, i => i.Package.Version);
-            AssertFieldEqual(expected, actual, i => i.State);
-
-            AssertFieldEqual(expected, actual, i => i.ValidationResult, AssertPackageValidationResult);
-            AssertFieldEqual(expected, actual, i => i.ValidationException, AssertException);
-        }
-
-        private static void AssertException(Exception expected, Exception actual)
-        {
-            if (expected == null)
-            {
-                Assert.Null(actual);
-
-                return;
-            }
-
-            AssertFieldEqual(expected, actual, i => i.Message);
-            AssertFieldEqual(expected, actual, i => i.StackTrace);
-            AssertFieldEqual(expected, actual, i => i.Data, AssertDictionary);
-            AssertFieldEqual(expected, actual, i => i.InnerException, AssertException);
-        }
-
-        private static void AssertDictionary(IDictionary expected, IDictionary actual)
-        {
-            foreach (var expectedKey in expected.Keys)
-            {
-                Assert.True(actual.Contains(expectedKey));
-                Assert.Equal(expected[expectedKey], actual[expectedKey]);
-            }
-        }
-
-        private static void AssertPackageValidationResult(PackageValidationResult expected, PackageValidationResult actual)
-        {
-            if (expected == null)
-            {
-                Assert.Null(actual);
-
-                return;
-            }
-
-            AssertFieldEqual(expected, actual, i => i.Package.Id);
-            AssertFieldEqual(expected, actual, i => i.Package.Version);
-
-            AssertFieldEqual(expected, actual, i => i.CatalogEntries, AssertCatalogIndexEntry);
-            AssertFieldEqual(expected, actual, i => i.DeletionAuditEntries, AssertDeletionAuditEntry);
-
-            AssertFieldEqual(expected, actual, i => i.AggregateValidationResults, AssertAggregateValidationResult);
-        }
-
-        private static void AssertCatalogIndexEntry(CatalogIndexEntry expected, CatalogIndexEntry actual)
-        {
-            if (expected == null)
-            {
-                Assert.Null(actual);
-
-                return;
-            }
-
-            AssertFieldEqual(expected, actual, i => i.Uri);
-            AssertFieldEqual(expected, actual, i => i.Types);
-            AssertFieldEqual(expected, actual, i => i.Id);
-            AssertFieldEqual(expected, actual, i => i.Version);
-            AssertFieldEqual(expected, actual, i => i.CommitId);
-            AssertFieldEqual(expected, actual, i => i.CommitTimeStamp);
-        }
-
-        private static void AssertDeletionAuditEntry(DeletionAuditEntry expected, DeletionAuditEntry actual)
-        {
-            if (expected == null)
-            {
-                Assert.Null(actual);
-
-                return;
-            }
-
-            AssertFieldEqual(expected, actual, i => i.PackageId);
-            AssertFieldEqual(expected, actual, i => i.PackageVersion);
-            AssertFieldEqual(expected, actual, i => i.Record);
-            AssertFieldEqual(expected, actual, i => i.TimestampUtc);
-            AssertFieldEqual(expected, actual, i => i.Uri);
-        }
-
-        private static void AssertAggregateValidationResult(AggregateValidationResult expected, AggregateValidationResult actual)
-        {
-            if (expected == null)
-            {
-                Assert.Null(actual);
-
-                return;
-            }
-
-            AssertFieldEqual(expected, actual, i => i.AggregateValidator.Name);
-            AssertFieldEqual(expected, actual, i => i.ValidationResults, AssertValidationResult);
-        }
-
-        private static void AssertValidationResult(ValidationResult expected, ValidationResult actual)
-        {
-            if (expected == null)
-            {
-                Assert.Null(actual);
-
-                return;
-            }
-
-            AssertFieldEqual(expected, actual, i => i.Validator.Name);
-            AssertFieldEqual(expected, actual, i => i.Result);
-
-            AssertFieldEqual(expected, actual, i => i.Exception, AssertException);
+            PackageMonitoringStatusTestUtility.AssertStatus(
+                status, 
+                await statusService.GetAsync(feedPackageIdentity, CancellationToken.None));
         }
 
         [Fact]
@@ -335,15 +155,30 @@ namespace NgTests
 
             var undesiredStatuses = new PackageMonitoringStatus[]
             {
-                CreateStatusWithPackageValidationResult("json.newtonsoft", "1.0.9", new ValidationResult[] { CreateValidationResult(TestResult.Pass, null) }),
-                CreateStatusWithPackageValidationResult("json.newtonsoft.json", "1.0.9.1", new ValidationResult[] { CreateValidationResult(TestResult.Fail, null) }),
-                CreateStatusWithPackageValidationResult("j.n.j", "1.9.1", new ValidationResult[] { CreateValidationResult(TestResult.Skip, null) }),
-                CreateStatusWithPackageValidationResult("newtonsoft.json", "9.0.2", new ValidationResult[] { CreateValidationResult(TestResult.Pass, null) })
+                PackageMonitoringStatusTestUtility.CreateStatusWithPackageValidationResult(
+                    "json.newtonsoft", 
+                    "1.0.9",
+                    TestResult.Pass),
+                PackageMonitoringStatusTestUtility.CreateStatusWithPackageValidationResult(
+                    "json.newtonsoft.json", 
+                    "1.0.9.1", 
+                    TestResult.Fail),
+                PackageMonitoringStatusTestUtility.CreateStatusWithPackageValidationResult(
+                    "j.n.j", 
+                    "1.9.1", 
+                    TestResult.Skip),
+                PackageMonitoringStatusTestUtility.CreateStatusWithPackageValidationResult(
+                    "newtonsoft.json", 
+                    "9.0.2",
+                    TestResult.Pass)
             };
 
             var desiredPackageId = "newtonsoft.json";
             var desiredPackageVersion = "9.0.1";
-            var desiredStatus = CreateStatusWithPackageValidationResult(desiredPackageId, desiredPackageVersion, new ValidationResult[] { CreateValidationResult(TestResult.Pass, null) });
+            var desiredStatus = PackageMonitoringStatusTestUtility.CreateStatusWithPackageValidationResult(
+                desiredPackageId, 
+                desiredPackageVersion,
+                TestResult.Pass);
 
             await statusService.UpdateAsync(desiredStatus, CancellationToken.None);
             await Task.WhenAll(undesiredStatuses.Select(s => statusService.UpdateAsync(s, CancellationToken.None)));
@@ -352,7 +187,7 @@ namespace NgTests
             var status = await statusService.GetAsync(new FeedPackageIdentity(desiredPackageId, desiredPackageVersion), CancellationToken.None);
 
             // Assert
-            AssertStatus(desiredStatus, status);
+            PackageMonitoringStatusTestUtility.AssertStatus(desiredStatus, status);
         }
 
         [Fact]
@@ -365,15 +200,27 @@ namespace NgTests
 
             var undesiredStatuses = new PackageMonitoringStatus[]
             {
-                CreateStatusWithPackageValidationResult("json.newtonsoft", "1.0.9", new ValidationResult[] { CreateValidationResult(TestResult.Pass, null) }),
-                CreateStatusWithPackageValidationResult("json.newtonsoft.json", "1.0.9.1", new ValidationResult[] { CreateValidationResult(TestResult.Fail, null) }),
-                CreateStatusWithPackageValidationResult("j.n.j", "1.9.1", new ValidationResult[] { CreateValidationResult(TestResult.Skip, null) }),
-                CreateStatusWithPackageValidationResult("newtonsoft.json", "9.0.2", new ValidationResult[] { CreateValidationResult(TestResult.Pass, null) })
+                PackageMonitoringStatusTestUtility.CreateStatusWithPackageValidationResult(
+                    "json.newtonsoft", 
+                    "1.0.9", 
+                    TestResult.Pass),
+                PackageMonitoringStatusTestUtility.CreateStatusWithPackageValidationResult(
+                    "json.newtonsoft.json", 
+                    "1.0.9.1", 
+                    TestResult.Fail),
+                PackageMonitoringStatusTestUtility.CreateStatusWithPackageValidationResult(
+                    "j.n.j", 
+                    "1.9.1", 
+                    TestResult.Skip),
+                PackageMonitoringStatusTestUtility.CreateStatusWithPackageValidationResult(
+                    "newtonsoft.json", 
+                    "9.0.2", 
+                    TestResult.Pass)
             };
 
             var desiredPackageId = "newtonsoft.json";
             var desiredPackageVersion = "9.0.1";
-            var desiredStatus = CreateStatusWithException(desiredPackageId, desiredPackageVersion);
+            var desiredStatus = PackageMonitoringStatusTestUtility.CreateStatusWithException(desiredPackageId, desiredPackageVersion);
 
             await statusService.UpdateAsync(desiredStatus, CancellationToken.None);
             await Task.WhenAll(undesiredStatuses.Select(s => statusService.UpdateAsync(s, CancellationToken.None)));
@@ -382,7 +229,7 @@ namespace NgTests
             var status = await statusService.GetAsync(new FeedPackageIdentity(desiredPackageId, desiredPackageVersion), CancellationToken.None);
 
             // Assert
-            AssertStatus(desiredStatus, status);
+            PackageMonitoringStatusTestUtility.AssertStatus(desiredStatus, status);
         }
 
         [Fact]
@@ -396,7 +243,7 @@ namespace NgTests
             var storage = storageFactory.Create(PackageState.Valid.ToString().ToLowerInvariant());
 
             await storage.SaveAsync(
-                storage.ResolveUri($"{desiredPackageId}/{desiredPackageId}.{desiredPackageVersion}.json"),
+                storage.ResolveUri(GetPackageFileName(desiredPackageId, desiredPackageVersion)),
                 new StringStorageContent("this isn't json"),
                 CancellationToken.None);
 
@@ -413,22 +260,55 @@ namespace NgTests
             Assert.IsType<StatusDeserializationException>(status.ValidationException);
         }
 
-        private static void AssertAll<T>(IEnumerable<T> expecteds, IEnumerable<T> actuals, Action<T, T> assert)
+        public static IEnumerable<object[]> GetByPackageDeletesOutdatedStatuses_Data
         {
-            if (expecteds == null)
+            get
             {
-                Assert.Null(actuals);
-
-                return;
+                foreach (var latest in Enum.GetValues(typeof(PackageState)).Cast<PackageState>())
+                {
+                    foreach (var outdated in Enum.GetValues(typeof(PackageState)).Cast<PackageState>())
+                    {
+                        yield return new object[] { latest, outdated };
+                    }
+                }
             }
+        }
 
-            Assert.Equal(expecteds.Count(), actuals.Count());
-            var expectedsArray = expecteds.ToArray();
-            var actualsArray = actuals.ToArray();
-            for (int i = 0; i < expecteds.Count(); i++)
-            {
-                assert(expectedsArray[i], actualsArray[i]);
-            }
+        [Theory]
+        [MemberData(nameof(GetByPackageDeletesOutdatedStatuses_Data))]
+        public async Task GetByPackageDeletesOutdatedStatuses(PackageState latest, PackageState outdated)
+        {
+            // Arrange
+            var storageFactory = new MemoryStorageFactory();
+            var statusService = new PackageMonitoringStatusService(
+                storageFactory,
+                new Mock<ILogger<PackageMonitoringStatusService>>().Object);
+
+            var id = "howdyFriend";
+            var version = "5.5.5";
+            var package = new FeedPackageIdentity(id, version);
+            var outdatedStatus = PackageMonitoringStatusTestUtility.CreateStatusWithPackageValidationResult(
+                id, 
+                version, 
+                PackageMonitoringStatusTestUtility.GetTestResultFromPackageState(latest),
+                new DateTime(2019, 6, 10));
+
+            var latestStatus = PackageMonitoringStatusTestUtility.CreateStatusWithPackageValidationResult(
+                id,
+                version,
+                PackageMonitoringStatusTestUtility.GetTestResultFromPackageState(outdated),
+                new DateTime(2019, 6, 11));
+
+            await SaveToStorage(storageFactory, outdatedStatus);
+            await SaveToStorage(storageFactory, latestStatus);
+
+            // Act
+            var status = await statusService.GetAsync(package, CancellationToken.None);
+
+            // Assert
+            PackageMonitoringStatusTestUtility.AssertStatus(latestStatus, status);
+            Assert.False(DoesPackageExists(storageFactory, outdatedStatus.State, package));
+            Assert.True(DoesPackageExists(storageFactory, latestStatus.State, package));
         }
 
         [Fact]
@@ -457,23 +337,47 @@ namespace NgTests
 
             var expectedValidStatuses = new PackageMonitoringStatus[]
             {
-                CreateStatusWithPackageValidationResult("newtonsoft.json", "9.0.2", new ValidationResult[] { CreateValidationResult(TestResult.Pass, null) }),
-                CreateStatusWithPackageValidationResult("a.b", "1.2.3", new ValidationResult[] { CreateValidationResult(TestResult.Pass, null) }),
-                CreateStatusWithPackageValidationResult("newtonsoft.json", "6.0.8", new ValidationResult[] { CreateValidationResult(TestResult.Skip, null) }),
-                CreateStatusWithPackageValidationResult("a.b", "0.8.9", new ValidationResult[] { CreateValidationResult(TestResult.Skip, null) })
+                PackageMonitoringStatusTestUtility.CreateStatusWithPackageValidationResult(
+                    "newtonsoft.json", "9.0.2", TestResult.Pass),
+                PackageMonitoringStatusTestUtility.CreateStatusWithPackageValidationResult(
+                    "a.b", "1.2.3", TestResult.Pass),
+                PackageMonitoringStatusTestUtility.CreateStatusWithPackageValidationResult(
+                    "newtonsoft.json", "6.0.8", TestResult.Skip),
+                PackageMonitoringStatusTestUtility.CreateStatusWithPackageValidationResult(
+                    "a.b", "0.8.9", TestResult.Skip)
             };
 
             var expectedInvalidStatuses = new PackageMonitoringStatus[]
             {
-                CreateStatusWithPackageValidationResult("jQuery", "3.1.2", new ValidationResult[] { CreateValidationResult(TestResult.Fail, new ValidationException("malarky!")) }),
-                CreateStatusWithPackageValidationResult("EntityFramework", "6.1.2", new ValidationResult[] { CreateValidationResult(TestResult.Fail, new ValidationException("absurd!")) }),
-                CreateStatusWithException("NUnit", "3.6.1")
+                PackageMonitoringStatusTestUtility.CreateStatusWithPackageValidationResult(
+                    "jQuery", 
+                    "3.1.2", 
+                    new ValidationResult[] 
+                    {
+                        PackageMonitoringStatusTestUtility.CreateValidationResult(
+                            TestResult.Fail, 
+                            new ValidationException("malarky!"))
+                    }),
+                PackageMonitoringStatusTestUtility.CreateStatusWithPackageValidationResult(
+                    "EntityFramework", 
+                    "6.1.2", 
+                    new ValidationResult[] 
+                    {
+                        PackageMonitoringStatusTestUtility.CreateValidationResult(
+                            TestResult.Fail, 
+                            new ValidationException("absurd!"))
+                    }),
+                PackageMonitoringStatusTestUtility.CreateStatusWithException(
+                    "NUnit", 
+                    "3.6.1")
             };
 
             var expectedUnknownStatuses = new PackageMonitoringStatus[]
             {
-                CreateStatusWithPackageValidationResult("xunit", "2.4.1", new ValidationResult[] { CreateValidationResult(TestResult.Pending, null) }),
-                CreateStatusWithPackageValidationResult("a.b", "99.9.99", new ValidationResult[] { CreateValidationResult(TestResult.Pending, null) })
+                PackageMonitoringStatusTestUtility.CreateStatusWithPackageValidationResult(
+                    "xunit", "2.4.1", TestResult.Pending),
+                PackageMonitoringStatusTestUtility.CreateStatusWithPackageValidationResult(
+                    "a.b", "99.9.99", TestResult.Pending)
             };
 
             foreach (var expectedValidStatus in expectedValidStatuses)
@@ -497,20 +401,47 @@ namespace NgTests
             var unknownStatuses = await statusService.GetAsync(PackageState.Unknown, CancellationToken.None);
 
             // Assert
-            AssertAll(
+            PackageMonitoringStatusTestUtility.AssertAll(
                 expectedValidStatuses.OrderBy(s => s.Package.Id).ThenBy(s => s.Package.Version),
                 validStatuses.OrderBy(s => s.Package.Id).ThenBy(s => s.Package.Version),
-                AssertStatus);
+                PackageMonitoringStatusTestUtility.AssertStatus);
 
-            AssertAll(
+            PackageMonitoringStatusTestUtility.AssertAll(
                 expectedInvalidStatuses.OrderBy(s => s.Package.Id).ThenBy(s => s.Package.Version),
                 invalidStatuses.OrderBy(s => s.Package.Id).ThenBy(s => s.Package.Version),
-                AssertStatus);
+                PackageMonitoringStatusTestUtility.AssertStatus);
 
-            AssertAll(
+            PackageMonitoringStatusTestUtility.AssertAll(
                 expectedUnknownStatuses.OrderBy(s => s.Package.Id).ThenBy(s => s.Package.Version),
                 unknownStatuses.OrderBy(s => s.Package.Id).ThenBy(s => s.Package.Version),
-                AssertStatus);
+                PackageMonitoringStatusTestUtility.AssertStatus);
+        }
+
+        private Task SaveToStorage(MemoryStorageFactory storageFactory, PackageMonitoringStatus status)
+        {
+            var json = JsonConvert.SerializeObject(status, JsonSerializerUtility.SerializerSettings);
+            var content = new StringStorageContentWithAccessCondition(
+                json,
+                AccessCondition.GenerateIfNotExistsCondition(),
+                "application/json");
+
+            return SaveToStorage(storageFactory, status.State, status.Package, content);
+        }
+
+        private Task SaveToStorage(MemoryStorageFactory storageFactory, PackageState state, FeedPackageIdentity package, StorageContent content)
+        {
+            var stateName = Enum.GetName(typeof(PackageState), state);
+            var storage = storageFactory.Create(stateName.ToLowerInvariant());
+            var packageFileName = GetPackageFileName(package.Id, package.Version);
+            return storage.SaveAsync(storage.ResolveUri(packageFileName), content, CancellationToken.None);
+        }
+
+        private bool DoesPackageExists(MemoryStorageFactory storageFactory, PackageState state, FeedPackageIdentity package)
+        {
+            var stateName = Enum.GetName(typeof(PackageState), state);
+            var storage = storageFactory.Create(stateName.ToLowerInvariant());
+            var packageFileName = GetPackageFileName(package.Id, package.Version);
+            return storage.Exists(packageFileName);
         }
     }
 }

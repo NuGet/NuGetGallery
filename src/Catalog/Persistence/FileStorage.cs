@@ -131,7 +131,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             return null;
         }
 
-        protected override async Task OnDeleteAsync(Uri resourceUri, CancellationToken cancellationToken)
+        protected override async Task OnDeleteAsync(Uri resourceUri, DeleteRequestOptions deleteRequestOptions, CancellationToken cancellationToken)
         {
             string name = GetName(resourceUri);
 

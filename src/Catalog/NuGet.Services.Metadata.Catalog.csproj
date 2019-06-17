@@ -130,11 +130,14 @@
     <Compile Include="LogEvents.cs" />
     <Compile Include="Helpers\NuGetVersionUtility.cs" />
     <Compile Include="Persistence\AzureCloudBlockBlob.cs" />
+    <Compile Include="Persistence\DeleteRequestOptions.cs" />
     <Compile Include="Persistence\IAzureStorage.cs" />
     <Compile Include="Persistence\ICloudBlockBlob.cs" />
     <Compile Include="Persistence\NamedStorageFactory.cs" />
     <Compile Include="Persistence\OptimisticConcurrencyControlToken.cs" />
     <Compile Include="Persistence\StorageConstants.cs" />
+    <Compile Include="Persistence\StringStorageContentWithAccessCondition.cs" />
+    <Compile Include="Persistence\StringStorageContentWithETag.cs" />
     <Compile Include="ProcessCommitItemBatchAsync.cs" />
     <Compile Include="ReadOnlyGraph.cs" />
     <Compile Include="Persistence\StorageListItem.cs" />

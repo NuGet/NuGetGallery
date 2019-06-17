@@ -78,6 +78,7 @@
     <Compile Include="PackageFixup\FixPackageHashHandlerFacts.cs" />
     <Compile Include="PackageFixup\PackagesContainerCatalogProcessorFacts.cs" />
     <Compile Include="PackageFixup\ValidatePackageHashHandlerFacts.cs" />
+    <Compile Include="PackageMonitoringStatusAccessConditionHelperTests.cs" />
     <Compile Include="PackageMonitoringStatusTests.cs" />
     <Compile Include="Infrastructure\StorageContentExtensions.cs" />
     <Compile Include="Infrastructure\TestDirectory.cs" />
@@ -87,6 +88,7 @@
     <Compile Include="Infrastructure\ODataPackage.cs" />
     <Compile Include="PackageMonitoringStatusServiceTests.cs" />
     <Compile Include="Infrastructure\TestPackage.cs" />
+    <Compile Include="PackageMonitoringStatusTestUtility.cs" />
     <Compile Include="StuckIndexWriter.cs" />
     <Compile Include="Infrastructure\TestLoggerFactory.cs" />
     <Compile Include="Infrastructure\TestLogger.cs" />
