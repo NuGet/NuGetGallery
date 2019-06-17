@@ -3,7 +3,7 @@ name: Bug report
 about: Report issues when hosting the NuGet Gallery
 ---
 
-### If you're having trouble with the NuGet client tools (the Visual Studio extension, NuGet.exe command line tool, etc.), file a bug on [NuGet Home](https://github.com/nuget/home/issues).
+### For issues regarding the NuGet client tools (the Visual Studio extension, NuGet.exe command line tool, etc.), file a bug on [NuGet Home](https://github.com/nuget/home/issues).
 
 ### Describe the bug
 A clear and concise description of what the bug is.
