@@ -37,7 +37,7 @@ namespace NuGet.Services.DatabaseMigration.Facts
 
         [Theory]
         [MemberData(nameof(InvalidMigrations))]
-        public void ValidateMigrationsThrowInvalidOperationExceptions(List<string> databaseMigrations,List<string> localMigrations, string expectedExceptionMessage)
+        public void ValidateMigrationsThrowInvalidOperationExceptions(List<string> databaseMigrations, List<string> localMigrations, string expectedExceptionMessage)
         {
             var exception = Assert.Throws<InvalidOperationException>(() => _migrationJob.CheckIsValidMigration(databaseMigrations, localMigrations));
             Assert.Equal(expectedExceptionMessage, exception.Message);
@@ -55,13 +55,16 @@ namespace NuGet.Services.DatabaseMigration.Facts
                     "Migration validation failed: Unexpected empty history of local migrations."};
                 yield return new object[] { new List<string>() { "2011_Migration_1", "2012_Migration_3" },
                     new List<string>() { "2011_Migration_2", "2012_Migration_3"},
-                    "Migration validation failed: Mismatch local migration file: 2011_Migration_2." };
+                    "Migration validation failed: Mismatch local migration file: 2011_Migration_2 and database migration file: 2011_Migration_1." };
                 yield return new object[] { new List<string>() { "2011_Migration_1", "2012_Migration_2" },
                     new List<string>() { "2011_Migration_1", "2012_Migration_3"},
-                    "Migration validation failed: Mismatch local migration file: 2012_Migration_3." };
+                    "Migration validation failed: Mismatch local migration file: 2012_Migration_3 and database migration file: 2012_Migration_2." };
                 yield return new object[] { new List<string>() { "2011_Migration_1", "2012_Migration_2", "2012_Migration_4" },
                     new List<string>() { "2011_Migration_1", "2012_Migration_3", "2012_Migration_4" },
-                    "Migration validation failed: Mismatch local migration file: 2012_Migration_3." };
+                    "Migration validation failed: Mismatch local migration file: 2012_Migration_3 and database migration file: 2012_Migration_2." };
+                yield return new object[] { new List<string>() { "2011_Migration_1", "2012_Migration_2", "2012_Migration_4" },
+                    new List<string>() { "2011_Migration_1", "2012_Migration_3", "2012_Migration_5" },
+                    "Migration validation failed: Mismatch local migration file: 2012_Migration_3 and database migration file: 2012_Migration_2." };
             }
         }
 
@@ -89,6 +92,8 @@ namespace NuGet.Services.DatabaseMigration.Facts
                     new List<string> { "2011_Migration_1", "2012_Migration_2" } };
                 yield return new object[] { new List<string>() { "2011_Migration_1", "2012_Migration_2" },
                     new List<string> { "2011_Migration_1", "2012_Migration_2", "2012_Migration_3" } };
+                yield return new object[] { new List<string>() { "2011_Migration_1", "2012_Migration_2", "2012_Migration_3" },
+                    new List<string> { "2011_Migration_1", "2012_Migration_2" } };
             }
         }
     }

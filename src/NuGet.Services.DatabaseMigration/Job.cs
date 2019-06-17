@@ -20,8 +20,6 @@ namespace NuGet.Services.DatabaseMigration
 {
     public class Job : JsonConfigurationJob
     {
-        public int ExitCode { get; set; }
-
         private string _migrationTargetDatabase;
         private IMigrationContextFactory _migrationContextFactory;
 
@@ -37,40 +35,21 @@ namespace NuGet.Services.DatabaseMigration
 
         public override void Init(IServiceContainer serviceContainer, IDictionary<string, string> jobArgsDictionary)
         {
-            try
-            {
-                base.Init(serviceContainer, jobArgsDictionary);
-                _migrationTargetDatabase = JobConfigurationManager.GetArgument(jobArgsDictionary, MigrationTargetDatabaseArgument);
-            }
-            catch (Exception)
-            {
-                ExitCode = 1;
-                throw;
-            }
+            base.Init(serviceContainer, jobArgsDictionary);
+            _migrationTargetDatabase = JobConfigurationManager.GetArgument(jobArgsDictionary, MigrationTargetDatabaseArgument);
         }
 
         public override async Task Run()
         {
             Logger.LogInformation("Initializing database migration context...");
 
-            IMigrationContext migrationContext = null;
-            try
-            {
-                migrationContext = await _migrationContextFactory.CreateMigrationContextAsync(_migrationTargetDatabase, _serviceProvider);
+            var migrationContext = await _migrationContextFactory.CreateMigrationContextAsync(_migrationTargetDatabase, _serviceProvider);
 
-                ExecuteDatabaseMigration(migrationContext.GetDbMigrator,
-                    migrationContext.SqlConnection,
-                    migrationContext.SqlConnectionAccessToken);
-            }
-            catch (Exception)
-            {
-                ExitCode = 1;
-                throw;
-            }
-            finally
-            {
-                migrationContext?.SqlConnection?.Dispose();
-            }
+            ExecuteDatabaseMigration(migrationContext.GetDbMigrator,
+                migrationContext.SqlConnection,
+                migrationContext.SqlConnectionAccessToken);
+
+            migrationContext.SqlConnection.Dispose();
         }
 
         public void CheckIsValidMigration(List<string> databaseMigrations, List<string> localMigrations)
@@ -107,7 +86,8 @@ namespace NuGet.Services.DatabaseMigration
                 {
                     if (!databaseMigrations[databaseMigrationsCursor].Equals(localMigrations[localMigrationsCursor]))
                     {
-                        throw new InvalidOperationException($"Migration validation failed: Mismatch local migration file: {localMigrations[localMigrationsCursor]}.");
+                        throw new InvalidOperationException($"Migration validation failed: Mismatch local migration file: {localMigrations[localMigrationsCursor]}" +
+                            $" and database migration file: {databaseMigrations[databaseMigrationsCursor]}.");
                     }
 
                     localMigrationsCursor++;
