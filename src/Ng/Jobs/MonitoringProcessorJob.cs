@@ -195,18 +195,10 @@ namespace Ng.Jobs
             {
                 catalogEntries = queuedContext.CatalogEntries;
             }
-            else
-            {
-                Logger.LogInformation("PackageValidatorContext for {PackageId} {PackageVersion} is missing catalog entries! " +
-                    "Attempting to fetch most recent catalog entry from registration.",
-                    feedPackage.Id, feedPackage.Version);
-
-                catalogEntries = await FetchCatalogIndexEntriesFromRegistrationAsync(feedPackage, token);
-            }
 
             var existingStatus = await _statusService.GetAsync(feedPackage, token);
 
-            if (existingStatus?.ValidationResult != null && CompareCatalogEntries(catalogEntries, existingStatus.ValidationResult.CatalogEntries))
+            if (catalogEntries != null && existingStatus?.ValidationResult != null && CompareCatalogEntries(catalogEntries, existingStatus.ValidationResult.CatalogEntries))
             {
                 // A newer catalog entry of this package has already been validated.
                 Logger.LogInformation("A newer catalog entry of {PackageId} {PackageVersion} has already been processed ({OldCommitTimeStamp} < {NewCommitTimeStamp}).",
@@ -225,37 +217,6 @@ namespace Ng.Jobs
 
             var status = new PackageMonitoringStatus(result);
             await _statusService.UpdateAsync(status, token);
-        }
-
-        private async Task<IEnumerable<CatalogIndexEntry>> FetchCatalogIndexEntriesFromRegistrationAsync(
-            FeedPackageIdentity feedPackage,
-            CancellationToken token)
-        {
-            var id = feedPackage.Id;
-            var version = NuGetVersion.Parse(feedPackage.Version);
-            var leafBlob = await _regResource.GetPackageMetadata(
-                new PackageIdentity(id, version),
-                NullSourceCacheContext.Instance,
-                Logger.AsCommon(),
-                token);
-
-            if (leafBlob == null)
-            {
-                throw new Exception("Package is missing from registration!");
-            }
-
-            var catalogPageUri = new Uri(leafBlob["@id"].ToString());
-            var catalogPage = await _client.GetJObjectAsync(catalogPageUri, token);
-
-            return new CatalogIndexEntry[]
-            {
-                new CatalogIndexEntry(
-                    catalogPageUri,
-                    Schema.DataTypes.PackageDetails.ToString(),
-                    catalogPage["catalog:commitId"].ToString(),
-                    DateTime.Parse(catalogPage["catalog:commitTimeStamp"].ToString()),
-                    new PackageIdentity(id, version))
-            };
         }
 
         private async Task SaveFailedPackageMonitoringStatusAsync(

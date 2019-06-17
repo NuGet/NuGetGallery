@@ -34,6 +34,13 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
         /// <summary>
         /// The <see cref="CatalogIndexEntry"/>s for the package that were collected.
         /// </summary>
+        /// <remarks>
+        /// This can be null.
+        /// Most validations are queued with the catalog entries of a package, 
+        /// but sometimes we do not know the catalog entries associated with a package but still want to run validations against the current state of V3.
+        /// This could happen if a change was never ingested by V3 and there is no catalog entry associated the package.
+        /// It could also happen if we lose the catalog entries of a package due to a message processing failure (<see cref="PackageMonitoringStatus.ValidationException"/>).
+        /// </remarks>
         public IReadOnlyList<CatalogIndexEntry> Entries { get; }
 
         /// <summary>
@@ -60,11 +67,6 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
             CancellationToken token,
             ILogger<ValidationContext> logger)
         {
-            if (entries == null)
-            {
-                throw new ArgumentNullException(nameof(entries));
-            }
-
             if (deletionAuditEntries == null)
             {
                 throw new ArgumentNullException(nameof(deletionAuditEntries));
@@ -81,7 +83,7 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
             }
 
             Package = package ?? throw new ArgumentNullException(nameof(package));
-            Entries = entries.ToList();
+            Entries = entries?.ToList();
             DeletionAuditEntries = deletionAuditEntries.ToList();
             Client = client ?? throw new ArgumentNullException(nameof(client));
             CancellationToken = token;

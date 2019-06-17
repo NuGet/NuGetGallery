@@ -44,24 +44,6 @@ namespace NgTests.Validation
         }
 
         [Fact]
-        public void Constructor_WhenEntriesIsNull_Throws()
-        {
-            IEnumerable<CatalogIndexEntry> entries = null;
-
-            var exception = Assert.Throws<ArgumentNullException>(
-                () => new ValidationContext(
-                    _packageIdentity,
-                    entries,
-                    Enumerable.Empty<DeletionAuditEntry>(),
-                    _mockValidationSourceRepositories,
-                    new CollectorHttpClient(),
-                    CancellationToken.None,
-                    Mock.Of<ILogger<ValidationContext>>()));
-
-            Assert.Equal("entries", exception.ParamName);
-        }
-
-        [Fact]
         public void Constructor_WhenDeletionAuditEntriesIsNull_Throws()
         {
             IEnumerable<DeletionAuditEntry> deletionAuditEntries = null;

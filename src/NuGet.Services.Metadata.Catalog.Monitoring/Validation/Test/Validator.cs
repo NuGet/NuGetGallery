@@ -67,8 +67,18 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
         /// <summary>
         /// Checks that the current batch of catalog entries contains the entry that was created from the current state of the database.
         /// </summary>
+        /// <remarks>
+        /// Our validations depend on the fact that the database and V3 are expected to have the same version of a package.
+        /// If the catalog entry we're running validations on, which is supposed to represent the current state of V3, is less recent than the database, then we shouldn't run validations.
+        /// </remarks>
         protected virtual async Task<ShouldRunTestResult> ShouldRunAsync(ValidationContext context)
         {
+            if (context.Entries == null)
+            {
+                // If we don't have any catalog entries to use to compare timestamps, assume the database and V3 are in the same state and run validations anyway.
+                return ShouldRunTestResult.Yes;
+            }
+
             var timestampDatabase = await context.GetTimestampMetadataDatabaseAsync();
             var timestampCatalog = await PackageTimestampMetadata.FromCatalogEntries(context.Client, context.Entries);
 

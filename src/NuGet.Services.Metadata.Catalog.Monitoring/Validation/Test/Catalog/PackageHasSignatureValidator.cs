@@ -45,7 +45,7 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
                 return ShouldRunTestResult.No;
             }
 
-            var latest = context.Entries
+            var latest = context.Entries?
                 .OrderByDescending(e => e.CommitTimeStamp)
                 .FirstOrDefault();
 
