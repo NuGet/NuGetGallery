@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
@@ -86,6 +87,30 @@ namespace NuGet.Services.DatabaseMigration.Facts
                 yield return new object[] { "EntityFramework", "6.2.0" };
                 yield return new object[] { "Microsoft.Extensions.Logging", "1.1.2" };
                 yield return new object[] { "Microsoft.Extensions.Options", "1.1.2" };
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(PackageDLLNameAndVersion))]
+        public void verifyPackageDLLVersion(string packageDLLPath, string packageVersion)
+        {
+            Assert.Equal(packageVersion, FileVersionInfo.GetVersionInfo(packageDLLPath).ProductVersion);
+        }
+
+        public static IEnumerable<object[]> PackageDLLNameAndVersion
+        {
+            get
+            {
+                yield return new object[] { @".\Autofac.Extensions.DependencyInjection.dll", "4.2.0" };
+                yield return new object[] { @".\EntityFramework.dll", "6.2.0-61023" };
+                yield return new object[] { @".\Microsoft.Extensions.Logging.dll", "1.1.2" };
+                yield return new object[] { @".\Microsoft.Extensions.Options.dll", "1.1.2" };
+                yield return new object[] { @".\Microsoft.Extensions.Configuration.dll", "1.1.2" };
+                yield return new object[] { @".\Microsoft.Extensions.Configuration.Abstractions.dll", "1.1.2" };
+                yield return new object[] { @".\Microsoft.Extensions.Configuration.Binder.dll", "1.1.2" };
+                yield return new object[] { @".\Microsoft.Extensions.Configuration.EnvironmentVariables.dll", "1.1.2" };
+                yield return new object[] { @".\Microsoft.Extensions.Configuration.FileExtensions.dll", "1.1.2" };
+                yield return new object[] { @".\Microsoft.Extensions.Configuration.Json.dll", "1.1.2" };
             }
         }
 
