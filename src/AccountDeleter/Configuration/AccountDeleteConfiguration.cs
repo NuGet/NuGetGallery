@@ -2,24 +2,30 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using NuGet.Services.Messaging.Email;
-using NuGetGallery.AccountDeleter.Configuration;
 using System.Collections.Generic;
-using System.Net.Mail;
 
 namespace NuGetGallery.AccountDeleter
 {
     public class AccountDeleteConfiguration
     {
-        public static string SourceSuccessSuffix = "Success";
-
-        public string Thing1 { get; set; }
-
+        /// <summary>
+        /// Indicates if a users' AllowEmailContact setting is respected by the instance.
+        /// </summary>
         public bool RespectEmailContactSetting { get; set; }
 
+        /// <summary>
+        /// List of configurations indicating possible sources of message and how they should be handled.
+        /// </summary>
         public List<SourceConfiguration> SourceConfigurations { get; set; }
 
+        /// <summary>
+        /// Nested configurations for sending email messages.
+        /// </summary>
         public EmailConfiguration EmailConfiguration { get; set; }
 
+        /// <summary>
+        /// Default template replacements list.
+        /// </summary>
         public Dictionary<string, string> TemplateReplacements { get; set; }
 
         public IEmailBuilder GetEmailBuilder(string source, bool success = false)
@@ -32,7 +38,7 @@ namespace NuGetGallery.AccountDeleter
                     {
                         if (sourceConfig.SendMessageOnSuccess)
                         {
-                            return new AccountDeleteEmailBuilder(sourceConfig.SuccessSubjectTemplate, sourceConfig.SuccessMessageTemplate, EmailConfiguration.GalleryOwner);
+                            return new AccountDeleteEmailBuilder(sourceConfig.DeletedMailTemplate.SubjectTemplate, sourceConfig.DeletedMailTemplate.MessageTemplate, EmailConfiguration.GalleryOwner);
                         }
                         else
                         {
@@ -41,7 +47,7 @@ namespace NuGetGallery.AccountDeleter
                     }
                     else
                     {
-                        return new AccountDeleteEmailBuilder(sourceConfig.SubjectTemplate, sourceConfig.MessageTemplate, EmailConfiguration.GalleryOwner);
+                        return new AccountDeleteEmailBuilder(sourceConfig.NotifyMailTemplate.SubjectTemplate, sourceConfig.NotifyMailTemplate.MessageTemplate, EmailConfiguration.GalleryOwner);
                     }
                 }
             }

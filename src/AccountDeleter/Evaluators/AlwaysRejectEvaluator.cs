@@ -28,9 +28,8 @@ namespace NuGetGallery.AccountDeleter
 
         public bool CanUserBeDeleted(User user)
         {
-            _logger.LogWarning("{Evaluator} User cannot be deleted for reason", nameof(AlwaysRejectEvaluator));
+            _logger.LogWarning("{Evaluator}:{EvaluatorId} User cannot be deleted because this evaluator always disallows delete.", nameof(AlwaysRejectEvaluator), EvaluatorId);
             return false;
         }
-
     }
 }

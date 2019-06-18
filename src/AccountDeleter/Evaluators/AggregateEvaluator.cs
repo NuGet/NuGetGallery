@@ -41,7 +41,7 @@ namespace NuGetGallery.AccountDeleter
         {
             if (_evaluatorList.ContainsKey(userEvaluator.EvaluatorId))
             {
-                _logger.LogWarning("Evaluator {EvaluatorId} was attmped to be added to aggregate more than once!", userEvaluator.EvaluatorId);
+                _logger.LogWarning("Evaluator {EvaluatorId} was attempted to be added to aggregate more than once!", userEvaluator.EvaluatorId);
                 return false;
             }
 

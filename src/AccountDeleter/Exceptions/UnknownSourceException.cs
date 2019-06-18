@@ -5,5 +5,8 @@ using System;
 
 namespace NuGetGallery.AccountDeleter
 {
+    /// <summary>
+    /// Exception to indicate that a message was processed that had a source that we don't know about. Note this could indicate a malicious actor, or out of date configuration.
+    /// </summary>
     public class UnknownSourceException : Exception { }
 }

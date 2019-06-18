@@ -5,5 +5,8 @@ using System;
 
 namespace NuGetGallery.AccountDeleter
 {
+    /// <summary>
+    /// Used to indicate that we attempted to get contact information for a user that disallowed email contact.
+    /// </summary>
     public class EmailContactNotAllowedException : Exception { }
 }
