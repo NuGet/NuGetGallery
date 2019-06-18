@@ -68,8 +68,7 @@ namespace NuGet.Services.SearchService.Controllers
         }
 
         [HttpGet]
-        [ResponseType(typeof(V2SearchResponse))]
-        public async Task<IHttpActionResult> V2SearchAsync(
+        public async Task<V2SearchResponse> V2SearchAsync(
             int skip = DefaultSkip,
             int take = DefaultTake,
             bool ignoreFilter = false,
@@ -97,12 +96,11 @@ namespace NuGet.Services.SearchService.Controllers
                 ShowDebug = debug,
             };
 
-            return await ExecuteSearchAsync(() => _searchService.V2SearchAsync(request));
+            return await _searchService.V2SearchAsync(request);
         }
 
         [HttpGet]
-        [ResponseType(typeof(V3SearchResponse))]
-        public async Task<IHttpActionResult> V3SearchAsync(
+        public async Task<V3SearchResponse> V3SearchAsync(
             int skip = DefaultSkip,
             int take = DefaultTake,
             bool prerelease = false,
@@ -122,12 +120,11 @@ namespace NuGet.Services.SearchService.Controllers
                 ShowDebug = debug,
             };
 
-            return await ExecuteSearchAsync(() => _searchService.V3SearchAsync(request));
+            return await _searchService.V3SearchAsync(request);
         }
 
         [HttpGet]
-        [ResponseType(typeof(AutocompleteResponse))]
-        public async Task<IHttpActionResult> AutocompleteAsync(
+        public async Task<AutocompleteResponse> AutocompleteAsync(
             int skip = DefaultSkip,
             int take = DefaultTake,
             bool prerelease = false,
@@ -154,7 +151,7 @@ namespace NuGet.Services.SearchService.Controllers
                 ShowDebug = debug,
             };
 
-            return await ExecuteSearchAsync(() => _searchService.AutocompleteAsync(request));
+            return await _searchService.AutocompleteAsync(request);
         }
 
         private async Task EnsureInitializedAsync()
@@ -190,18 +187,6 @@ namespace NuGet.Services.SearchService.Controllers
             else
             {
                 return SemVerHelpers.ShouldIncludeSemVer2Results(semVerLevelVersion);
-            }
-        }
-
-        private async Task<IHttpActionResult> ExecuteSearchAsync<TResponse>(Func<Task<TResponse>> searchAction)
-        {
-            try
-            {
-                return Json(await searchAction(), Configuration.Formatters.JsonFormatter.SerializerSettings);
-            }
-            catch (InvalidSearchRequestException e)
-            {
-                return BadRequest(e.Message);
             }
         }
     }

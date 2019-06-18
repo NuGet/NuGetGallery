@@ -95,6 +95,7 @@
     <Compile Include="VersionList\VersionListDataClientFacts.cs" />
     <Compile Include="VersionList\TestExtensionMethods.cs" />
     <Compile Include="VersionList\VersionListsFacts.cs" />
+    <Compile Include="Wrappers\DocumentOperationsWrapperFacts.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Catalog\NuGet.Services.Metadata.Catalog.csproj">

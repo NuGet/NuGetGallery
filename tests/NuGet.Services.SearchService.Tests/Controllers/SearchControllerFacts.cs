@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Reflection;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Http;
 using Moq;
@@ -224,38 +223,6 @@ namespace NuGet.Services.SearchService.Controllers
                     x => x.V2SearchAsync(It.Is<V2SearchRequest>(r => r.IncludeSemVer2 == includeSemVer2)),
                     Times.Once);
             }
-
-            [Fact]
-            public async Task ReturnBadRequest()
-            {
-                _searchService
-                    .Setup(x => x.V2SearchAsync(It.IsAny<V2SearchRequest>()))
-                    .ThrowsAsync(new InvalidSearchRequestException("Foo"));
-
-                var result = await _target.V2SearchAsync();
-                var response = await result.ExecuteAsync(CancellationToken.None);
-
-                Assert.False(response.IsSuccessStatusCode);
-                Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-                Assert.Equal("{\"Message\":\"Foo\"}", await response.Content.ReadAsStringAsync());
-            }
-
-            [Fact]
-            public async Task IgnoresNullValues()
-            {
-                _searchService
-                    .Setup(x => x.V2SearchAsync(It.IsAny<V2SearchRequest>()))
-                    .ReturnsAsync(new V2SearchResponse
-                    {
-                        TotalHits = 0,
-                        Data = new List<V2SearchPackage>(),
-                    });
-
-                var result = await _target.V2SearchAsync();
-                var response = await result.ExecuteAsync(CancellationToken.None);
-
-                Assert.Equal("{\"totalHits\":0,\"data\":[]}", await response.Content.ReadAsStringAsync());
-            }
         }
 
         public class V3SearchAsync : BaseFacts
@@ -325,38 +292,6 @@ namespace NuGet.Services.SearchService.Controllers
                 _searchService.Verify(
                     x => x.V3SearchAsync(It.Is<V3SearchRequest>(r => r.IncludeSemVer2 == includeSemVer2)),
                     Times.Once);
-            }
-
-            [Fact]
-            public async Task ReturnBadRequest()
-            {
-                _searchService
-                    .Setup(x => x.V3SearchAsync(It.IsAny<V3SearchRequest>()))
-                    .ThrowsAsync(new InvalidSearchRequestException("Foo"));
-
-                var result = await _target.V3SearchAsync();
-                var response = await result.ExecuteAsync(CancellationToken.None);
-
-                Assert.False(response.IsSuccessStatusCode);
-                Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-                Assert.Equal("{\"Message\":\"Foo\"}", await response.Content.ReadAsStringAsync());
-            }
-
-            [Fact]
-            public async Task IgnoresNullValues()
-            {
-                _searchService
-                    .Setup(x => x.V3SearchAsync(It.IsAny<V3SearchRequest>()))
-                    .ReturnsAsync(new V3SearchResponse
-                    {
-                        TotalHits = 0,
-                        Data = new List<V3SearchPackage>(),
-                    });
-
-                var result = await _target.V3SearchAsync();
-                var response = await result.ExecuteAsync(CancellationToken.None);
-
-                Assert.Equal("{\"totalHits\":0,\"data\":[]}", await response.Content.ReadAsStringAsync());
             }
         }
 
@@ -486,38 +421,6 @@ namespace NuGet.Services.SearchService.Controllers
                 _searchService.Verify(
                     x => x.AutocompleteAsync(It.Is<AutocompleteRequest>(r => r.IncludeSemVer2 == includeSemVer2)),
                     Times.Once);
-            }
-
-            [Fact]
-            public async Task ReturnBadRequest()
-            {
-                _searchService
-                    .Setup(x => x.AutocompleteAsync(It.IsAny<AutocompleteRequest>()))
-                    .ThrowsAsync(new InvalidSearchRequestException("Foo"));
-
-                var result = await _target.AutocompleteAsync();
-                var response = await result.ExecuteAsync(CancellationToken.None);
-
-                Assert.False(response.IsSuccessStatusCode);
-                Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-                Assert.Equal("{\"Message\":\"Foo\"}", await response.Content.ReadAsStringAsync());
-            }
-
-            [Fact]
-            public async Task IgnoresNullValues()
-            {
-                _searchService
-                    .Setup(x => x.AutocompleteAsync(It.IsAny<AutocompleteRequest>()))
-                    .ReturnsAsync(new AutocompleteResponse
-                    {
-                        TotalHits = 0,
-                        Data = new List<string>(),
-                    });
-
-                var result = await _target.AutocompleteAsync();
-                var response = await result.ExecuteAsync(CancellationToken.None);
-
-                Assert.Equal("{\"totalHits\":0,\"data\":[]}", await response.Content.ReadAsStringAsync());
             }
         }
 

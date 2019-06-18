@@ -3,6 +3,7 @@
 
 using System;
 using Microsoft.Azure.Search;
+using Microsoft.Extensions.Logging;
 
 namespace NuGet.Services.AzureSearch.Wrappers
 {
@@ -10,10 +11,12 @@ namespace NuGet.Services.AzureSearch.Wrappers
     {
         private readonly ISearchIndexClient _inner;
 
-        public SearchIndexClientWrapper(ISearchIndexClient inner)
+        public SearchIndexClientWrapper(
+            ISearchIndexClient inner,
+            ILogger<DocumentsOperationsWrapper> documentsOperationsLogger)
         {
             _inner = inner ?? throw new ArgumentNullException(nameof(inner));
-            Documents = new DocumentsOperationsWrapper(_inner.Documents);
+            Documents = new DocumentsOperationsWrapper(_inner.Documents, documentsOperationsLogger);
         }
 
         public string IndexName => _inner.IndexName;

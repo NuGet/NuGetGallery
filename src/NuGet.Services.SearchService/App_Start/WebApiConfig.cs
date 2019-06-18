@@ -44,6 +44,8 @@ namespace NuGet.Services.SearchService
 
         public static void Register(HttpConfiguration config)
         {
+            config.Filters.Add(new ApiExceptionFilterAttribute());
+
             config.Formatters.Remove(config.Formatters.XmlFormatter);
             SetSerializerSettings(config.Formatters.JsonFormatter.SerializerSettings);
 
