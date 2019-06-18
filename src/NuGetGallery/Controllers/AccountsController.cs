@@ -116,7 +116,14 @@ namespace NuGetGallery
             ConfirmationViewModel model;
             if (!alreadyConfirmed)
             {
-                await SendNewAccountEmailAsync(account);
+                if (account.EmailAddress == null)
+                {
+                    await SendNewAccountEmailAsync(account);
+                }
+                else
+                {
+                    await SendEmailChangedConfirmationNoticeAsync(account);
+                }
 
                 model = new ConfirmationViewModel(account)
                 {
