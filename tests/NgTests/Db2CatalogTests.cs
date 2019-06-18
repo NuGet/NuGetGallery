@@ -1072,14 +1072,16 @@ namespace NgTests
                     lastEditedDate: DateTime.MinValue,
                     publishedDate: new DateTime(2015, 1, 1).ForceUtc(),
                     packageId: "ListedPackage",
-                    packageVersion: "1.0.0"),
+                    packageNormalizedVersion: "1.0.0",
+                    packageFullVersion: "1.0.0.0"),
                 new FeedPackageDetails(
                     contentUri: _packageContentUriBuilder.Build("UnlistedPackage", "1.0.0"),
                     createdDate: new DateTime(2015, 1, 1).ForceUtc(),
                     lastEditedDate: DateTime.MinValue,
                     publishedDate: Constants.UnpublishedDate,
                     packageId: "UnlistedPackage",
-                    packageVersion: "1.0.0"),
+                    packageNormalizedVersion: "1.0.0",
+                    packageFullVersion: "1.0.0+metadata"),
 
                 // The real SemVer2 version is embedded in the nupkg.
                 // The below FeedPackageDetails entity expects normalized versions.
@@ -1089,7 +1091,8 @@ namespace NgTests
                     lastEditedDate: DateTime.MinValue,
                     publishedDate: new DateTime(2015, 1, 1).ForceUtc(),
                     packageId: "TestPackage.SemVer2",
-                    packageVersion: "1.0.0-alpha.1")
+                    packageNormalizedVersion: "1.0.0-alpha.1",
+                    packageFullVersion: "1.0.0-alpha.1")
             };
 
             return GalleryDatabaseQueryService.OrderPackagesByKeyDate(packages, p => p.CreatedDate);
@@ -1105,7 +1108,8 @@ namespace NgTests
                     lastEditedDate: new DateTime(2015, 1, 1).ForceUtc(),
                     publishedDate: new DateTime(2014, 1, 1).ForceUtc(),
                     packageId: "ListedPackage",
-                    packageVersion: "1.0.1")
+                    packageNormalizedVersion: "1.0.1",
+                    packageFullVersion: "1.0.1")
             };
 
             return GalleryDatabaseQueryService.OrderPackagesByKeyDate(packages, p => p.LastEditedDate);
@@ -1126,7 +1130,8 @@ namespace NgTests
                     lastEditedDate: new DateTime(2015, 1, 1, 1, 1, 3).ForceUtc(),
                     publishedDate: new DateTime(2015, 1, 1, 1, 1, 3).ForceUtc(),
                     packageId: "OtherPackage",
-                    packageVersion: "1.0.0")
+                    packageNormalizedVersion: "1.0.0",
+                    packageFullVersion: "1.0.0")
             };
 
             return GalleryDatabaseQueryService.OrderPackagesByKeyDate(packages, p => p.CreatedDate);
@@ -1166,13 +1171,15 @@ namespace NgTests
             }
 
             var normalizedVersion = package.Version.ToNormalizedString();
+            var fullVersion = package.Version.ToFullString();
             var feedPackageDetails = new FeedPackageDetails(
                 contentUri: _packageContentUriBuilder.Build(package.Id, normalizedVersion),
                 createdDate: created.UtcDateTime,
                 lastEditedDate: DateTime.MinValue,
                 publishedDate: isListed ? created.UtcDateTime : Constants.UnpublishedDate,
                 packageId: package.Id,
-                packageVersion: normalizedVersion,
+                packageNormalizedVersion: normalizedVersion,
+                packageFullVersion: fullVersion,
                 licenseNames: null,
                 licenseReportUrl: null,
                 deprecationInfo: null,
@@ -1207,7 +1214,8 @@ namespace NgTests
                 lastEditedDate: edited,
                 publishedDate: entry.FeedPackageDetails.PublishedDate,
                 packageId: entry.FeedPackageDetails.PackageId,
-                packageVersion: entry.FeedPackageDetails.PackageVersion,
+                packageNormalizedVersion: entry.FeedPackageDetails.PackageNormalizedVersion,
+                packageFullVersion: entry.FeedPackageDetails.PackageFullVersion,
                 licenseNames: entry.FeedPackageDetails.LicenseNames,
                 licenseReportUrl: entry.FeedPackageDetails.LicenseReportUrl,
                 deprecationInfo: entry.FeedPackageDetails.DeprecationInfo,

@@ -59,6 +59,7 @@ namespace CatalogTests.Helpers
                 // Arrange
                 const string packageId = "Package.Id";
                 const string normalizedPackageVersion = "1.0.0";
+                const string fullPackageVersion = "1.0.0.0";
                 const string licenseNames = "MIT";
                 const string licenseReportUrl = "https://unittest.org/licenses/MIT";
                 const bool requiresLicenseAcceptance = true;
@@ -76,6 +77,7 @@ namespace CatalogTests.Helpers
                 var dataRecordMock = MockDataReader(
                     packageId,
                     normalizedPackageVersion,
+                    fullPackageVersion,
                     createdDate,
                     lastEditedDate,
                     publishedDate,
@@ -90,7 +92,8 @@ namespace CatalogTests.Helpers
 
                 // Assert
                 Assert.Equal(packageId, projection.PackageId);
-                Assert.Equal(normalizedPackageVersion, projection.PackageVersion);
+                Assert.Equal(normalizedPackageVersion, projection.PackageNormalizedVersion);
+                Assert.Equal(fullPackageVersion, projection.PackageFullVersion);
                 Assert.Equal(createdDate, projection.CreatedDate);
                 Assert.Equal(lastEditedDate, projection.LastEditedDate);
                 Assert.Equal(expectedPublishedDate, projection.PublishedDate);
@@ -104,6 +107,7 @@ namespace CatalogTests.Helpers
             private static Mock<DbDataReader> MockDataReader(
                 string packageId,
                 string normalizedPackageVersion,
+                string fullPackageVersion,
                 DateTime createdDate,
                 DateTime lastEditedDate,
                 DateTime publishedDate,
@@ -113,17 +117,18 @@ namespace CatalogTests.Helpers
                 string licenseReportUrl,
                 bool requiresLicenseAcceptance)
             {
-                const int ordinalCreated = 2;
-                const int ordinalLastEdited = 3;
-                const int ordinalPublished = 4;
-                const int ordinalListed = 5;
-                const int ordinalHideLicenseReport = 6;
-                const int ordinalRequiresLicenseAcceptance = 9;
+                const int ordinalCreated = 3;
+                const int ordinalLastEdited = 4;
+                const int ordinalPublished = 5;
+                const int ordinalListed = 6;
+                const int ordinalHideLicenseReport = 7;
+                const int ordinalRequiresLicenseAcceptance = 10;
 
                 var dataReaderMock = new Mock<DbDataReader>(MockBehavior.Strict);
 
                 dataReaderMock.SetupGet(m => m[Db2CatalogProjectionColumnNames.PackageId]).Returns(packageId);
                 dataReaderMock.SetupGet(m => m[Db2CatalogProjectionColumnNames.NormalizedVersion]).Returns(normalizedPackageVersion);
+                dataReaderMock.SetupGet(m => m[Db2CatalogProjectionColumnNames.FullVersion]).Returns(fullPackageVersion);
 
                 dataReaderMock.SetupGet(m => m[Db2CatalogProjectionColumnNames.LicenseNames]).Returns(licenseNames);
                 dataReaderMock.SetupGet(m => m[Db2CatalogProjectionColumnNames.LicenseReportUrl]).Returns(licenseReportUrl);

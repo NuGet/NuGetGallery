@@ -130,7 +130,7 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
             return container.Resolve<PackageValidatorContextEnqueuer>();
         }
 
-        private static DurableCursor GetFront(Persistence.IStorageFactory storageFactory)
+        public static DurableCursor GetFront(Persistence.IStorageFactory storageFactory)
         {
             var storage = storageFactory.Create();
             return new DurableCursor(storage.ResolveUri("cursor.json"), storage, MemoryCursor.MinValue);

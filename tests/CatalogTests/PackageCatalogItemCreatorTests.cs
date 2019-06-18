@@ -112,7 +112,8 @@ namespace CatalogTests
                 DateTime.UtcNow,
                 DateTime.UtcNow,
                 packageId: "a",
-                packageVersion: "1.0.0");
+                packageNormalizedVersion: "1.0.0",
+                packageFullVersion: "1.0.0");
 
             await Assert.ThrowsAsync<OperationCanceledException>(
                 () => creator.CreateAsync(packageItem, DateTime.UtcNow, new CancellationToken(canceled: true)));
@@ -383,6 +384,7 @@ namespace CatalogTests
                     Timestamp.AddHours(-2),
                     Timestamp.AddHours(-1),
                     PackageId,
+                    PackageVersion,
                     PackageVersion);
 
                 var stream = TestHelper.GetStream(PackageFileName);

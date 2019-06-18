@@ -405,7 +405,8 @@ namespace CatalogTests.Helpers
                     UtcNow.AddMinutes(-30),
                     UtcNow.AddMinutes(-15),
                     packageId: "a",
-                    packageVersion: "1.0.0");
+                    packageNormalizedVersion: "1.0.0",
+                    packageFullVersion: "1.0.0.0");
             }
 
             public void Dispose()

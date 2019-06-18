@@ -307,7 +307,7 @@ namespace NgTests
 
             // Assert
             PackageMonitoringStatusTestUtility.AssertStatus(latestStatus, status);
-            Assert.False(DoesPackageExists(storageFactory, outdatedStatus.State, package));
+            Assert.Equal(latest == outdated, DoesPackageExists(storageFactory, outdatedStatus.State, package));
             Assert.True(DoesPackageExists(storageFactory, latestStatus.State, package));
         }
 
@@ -422,7 +422,7 @@ namespace NgTests
             var json = JsonConvert.SerializeObject(status, JsonSerializerUtility.SerializerSettings);
             var content = new StringStorageContentWithAccessCondition(
                 json,
-                AccessCondition.GenerateIfNotExistsCondition(),
+                AccessCondition.GenerateEmptyCondition(),
                 "application/json");
 
             return SaveToStorage(storageFactory, status.State, status.Package, content);

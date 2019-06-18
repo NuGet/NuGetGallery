@@ -107,14 +107,16 @@ namespace CatalogTests.Helpers
                         lastEditedDate: utcNow,
                         publishedDate: utcNow.AddDays(-2),
                         packageId: "Package.Id",
-                        packageVersion: "1.0.1");
+                        packageNormalizedVersion: "1.0.1",
+                        packageFullVersion: "1.0.1");
                 var firstEditedPackage = new FeedPackageDetails(
                         new Uri("https://unittest.org/packages/Package.Id/1.0.0"),
                         createdDate: utcNow.AddDays(-1),
                         lastEditedDate: utcNow.AddHours(-8),
                         publishedDate: utcNow.AddDays(-1),
                         packageId: "Package.Id",
-                        packageVersion: "1.0.0");
+                        packageNormalizedVersion: "1.0.0",
+                        packageFullVersion: "1.0.0");
 
                 var packages = new List<FeedPackageDetails>
                 {
@@ -153,7 +155,8 @@ namespace CatalogTests.Helpers
                         lastEditedDate: utcNow.AddDays(-i),
                         publishedDate: utcNow.AddDays(-i),
                         packageId: $"Package.Id{i}",
-                        packageVersion: $"1.0.{i}"));
+                        packageNormalizedVersion: $"1.0.{i}",
+                        packageFullVersion: $"1.0.{i}"));
                 }
 
                 // Ensure the last timestamp has enough packages to have it exceed the max page size.
@@ -167,7 +170,8 @@ namespace CatalogTests.Helpers
                         lastEditedDate: lastTimestamp,
                         publishedDate: utcNow.AddHours(-9),
                         packageId: "BatchUpdatedPackage.Id",
-                        packageVersion: $"1.0.{i}"));
+                        packageNormalizedVersion: $"1.0.{i}",
+                        packageFullVersion: $"1.0.{i}"));
                 }
 
                 // Act
@@ -196,7 +200,8 @@ namespace CatalogTests.Helpers
                         lastEditedDate: utcNow.AddDays(-i),
                         publishedDate: utcNow.AddDays(-i),
                         packageId: $"Package.Id{i}",
-                        packageVersion: $"1.0.{i}"));
+                        packageNormalizedVersion: $"1.0.{i}",
+                        packageFullVersion: $"1.0.{i}"));
                 }
 
                 // Ensure the next timestamp has enough packages to have it reach the max page size.
@@ -210,7 +215,8 @@ namespace CatalogTests.Helpers
                         lastEditedDate: timestampForBulkChanges,
                         publishedDate: utcNow.AddHours(-9),
                         packageId: "BatchUpdatedPackage.Id",
-                        packageVersion: $"1.0.{i}"));
+                        packageNormalizedVersion: $"1.0.{i}",
+                        packageFullVersion: $"1.0.{i}"));
                 }
 
                 // Add some more timestamps with a package each to the end of the top 20 resultset.
@@ -222,7 +228,8 @@ namespace CatalogTests.Helpers
                         lastEditedDate: utcNow.AddMinutes(-i),
                         publishedDate: utcNow.AddDays(-i),
                         packageId: $"Another.Package.Id{i}",
-                        packageVersion: $"1.0.{i}"));
+                        packageNormalizedVersion: $"1.0.{i}",
+                        packageFullVersion: $"1.0.{i}"));
                 }
 
                 // Act
@@ -251,7 +258,8 @@ namespace CatalogTests.Helpers
                         lastEditedDate: timestampForBulkChanges,
                         publishedDate: utcNow.AddDays(-i),
                         packageId: $"BatchUpdatedPackage.Id{i}",
-                        packageVersion: $"1.0.{i}"));
+                        packageNormalizedVersion: $"1.0.{i}",
+                        packageFullVersion: $"1.0.{i}"));
                 }
 
                 // Add 19 more timestamps to simulate top 20.
@@ -263,7 +271,8 @@ namespace CatalogTests.Helpers
                         lastEditedDate: utcNow.AddMinutes(-i),
                         publishedDate: utcNow.AddHours(-9),
                         packageId: "Package.Id",
-                        packageVersion: $"1.0.{i}"));
+                        packageNormalizedVersion: $"1.0.{i}",
+                        packageFullVersion: $"1.0.{i}"));
                 }
 
                 // Act

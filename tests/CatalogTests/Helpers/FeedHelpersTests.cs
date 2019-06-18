@@ -78,7 +78,7 @@ namespace CatalogTests.Helpers
         {
             return
                 feedPackage.PackageId == oDataPackage.Id &&
-                feedPackage.PackageVersion == oDataPackage.Version &&
+                feedPackage.PackageNormalizedVersion == oDataPackage.Version &&
                 feedPackage.ContentUri.ToString() == $"{_baseUri}/package/{oDataPackage.Id}/{NuGetVersion.Parse(oDataPackage.Version).ToNormalizedString()}" &&
                 feedPackage.CreatedDate.Ticks == oDataPackage.Created.Ticks &&
                 feedPackage.LastEditedDate.Ticks == oDataPackage.LastEdited.Value.Ticks &&

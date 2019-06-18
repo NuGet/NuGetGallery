@@ -10,6 +10,7 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
     {
         public const string PackageId = "Id";
         public const string NormalizedVersion = "NormalizedVersion";
+        public const string FullVersion = "Version";
         public const string Listed = "Listed";
         public const string HideLicenseReport = "HideLicenseReport";
         public const string Created = "Created";

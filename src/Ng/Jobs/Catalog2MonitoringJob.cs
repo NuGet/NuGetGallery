@@ -26,25 +26,20 @@ namespace Ng.Jobs
 
         protected override void Init(IDictionary<string, string> arguments, CancellationToken cancellationToken)
         {
-            var index = arguments.GetOrThrow<string>(Arguments.Index);
             var source = arguments.GetOrThrow<string>(Arguments.Source);
             var verbose = arguments.GetOrDefault(Arguments.Verbose, false);
 
             CommandHelpers.AssertAzureStorage(arguments);
 
             var monitoringStorageFactory = CommandHelpers.CreateStorageFactory(arguments, verbose);
-
             var endpointConfiguration = CommandHelpers.GetEndpointConfiguration(arguments);
-
             var messageHandlerFactory = CommandHelpers.GetHttpMessageHandlerFactory(TelemetryService, verbose);
-
             var statusService = CommandHelpers.GetPackageMonitoringStatusService(arguments, monitoringStorageFactory, LoggerFactory);
-
             var queue = CommandHelpers.CreateStorageQueue<PackageValidatorContext>(arguments, PackageValidatorContext.Version);
 
             Logger.LogInformation(
-                "CONFIG index: {Index} storage: {Storage} registration cursor uri: {RegistrationCursorUri} flat-container cursor uri: {FlatContainerCursorUri}",
-                index, monitoringStorageFactory, endpointConfiguration.RegistrationCursorUri, endpointConfiguration.FlatContainerCursorUri);
+                "CONFIG storage: {Storage} registration cursor uri: {RegistrationCursorUri} flat-container cursor uri: {FlatContainerCursorUri}",
+                monitoringStorageFactory, endpointConfiguration.RegistrationCursorUri, endpointConfiguration.FlatContainerCursorUri);
 
             _enqueuer = ValidationFactory.CreatePackageValidatorContextEnqueuer(
                 queue,

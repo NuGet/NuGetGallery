@@ -10,7 +10,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Queue.Protocol;
 using Ng.Helpers;
-using NuGet.Packaging.Core;
 using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
 using NuGet.Services.Configuration;
@@ -32,7 +31,6 @@ namespace Ng.Jobs
         private IStorageQueue<PackageValidatorContext> _queue;
         private IPackageMonitoringStatusService _statusService;
         private IMonitoringNotificationService _notificationService;
-        private RegistrationResourceV3 _regResource;
         private CollectorHttpClient _client;
 
         public MonitoringProcessorJob(ITelemetryService telemetryService, ILoggerFactory loggerFactory)
@@ -96,8 +94,6 @@ namespace Ng.Jobs
             _statusService = CommandHelpers.GetPackageMonitoringStatusService(arguments, monitoringStorageFactory, LoggerFactory);
 
             _notificationService = new LoggerMonitoringNotificationService(LoggerFactory.CreateLogger<LoggerMonitoringNotificationService>());
-
-            _regResource = Repository.Factory.GetCoreV3(index).GetResource<RegistrationResourceV3>(cancellationToken);
 
             _client = new CollectorHttpClient(messageHandlerFactory());
 
@@ -249,7 +245,11 @@ namespace Ng.Jobs
             Exception exception,
             CancellationToken token)
         {
-            var feedPackage = new FeedPackageIdentity(queuedContext.Package.Id, queuedContext.Package.Version);
+            var queuedVersion = queuedContext.Package.Version;
+            var version = NuGetVersion.TryParse(queuedVersion, out var parsedVersion)
+                ? parsedVersion.ToFullString() : queuedVersion;
+
+            var feedPackage = new FeedPackageIdentity(queuedContext.Package.Id, version);
 
             await _notificationService.OnPackageValidationFailedAsync(feedPackage.Id, feedPackage.Version, exception, token);
 

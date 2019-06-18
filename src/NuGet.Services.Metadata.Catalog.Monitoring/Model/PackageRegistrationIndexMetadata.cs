@@ -40,7 +40,7 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
             : base(package)
         {
             Id = package.PackageId;
-            Version = NuGetVersion.Parse(package.PackageVersion);
+            Version = NuGetVersion.Parse(package.PackageNormalizedVersion);
             RequireLicenseAcceptance = package.RequiresLicenseAcceptance;
             if (package.HasDeprecationInfo)
             {

@@ -22,6 +22,7 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
 
         private static readonly string Db2CatalogSqlSubQuery = $@" PR.[Id],	
                         P.[NormalizedVersion],	
+                        P.[Version],
                         P.[Created],	
                         P.[LastEdited],
                         P.[Published],

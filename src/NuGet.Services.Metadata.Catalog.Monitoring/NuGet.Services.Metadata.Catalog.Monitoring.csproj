@@ -59,6 +59,10 @@
     <Compile Include="Model\PackageRegistrationIndexMetadata.cs" />
     <Compile Include="Model\PackageRegistrationLeafMetadata.cs" />
     <Compile Include="Model\PackageTimestampMetadata.cs" />
+    <Compile Include="Monitoring\AuditingStoragePackageStatusOutdatedCheckSource.cs" />
+    <Compile Include="Monitoring\DatabasePackageStatusOutdatedCheckSource.cs" />
+    <Compile Include="Monitoring\PackageStatusOutdatedCheck.cs" />
+    <Compile Include="Monitoring\PackageStatusOutdatedCheckSource.cs" />
     <Compile Include="Notification\IMonitoringNotificationService.cs" />
     <Compile Include="Status\IPackageMonitoringStatusService.cs" />
     <Compile Include="Notification\LoggerMonitoringNotificationService.cs" />

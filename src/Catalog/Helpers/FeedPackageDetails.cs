@@ -12,7 +12,8 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
         public DateTime LastEditedDate { get; }
         public DateTime PublishedDate { get; }
         public string PackageId { get; }
-        public string PackageVersion { get; }
+        public string PackageNormalizedVersion { get; }
+        public string PackageFullVersion { get; }
         public string LicenseNames { get; }
         public string LicenseReportUrl { get; }
         public bool RequiresLicenseAcceptance { get; }
@@ -26,14 +27,16 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
             DateTime lastEditedDate,
             DateTime publishedDate,
             string packageId,
-            string packageVersion)
+            string packageNormalizedVersion,
+            string packageFullVersion)
             : this(
                 contentUri,
                 createdDate,
                 lastEditedDate,
                 publishedDate,
                 packageId,
-                packageVersion,
+                packageNormalizedVersion,
+                packageFullVersion,
                 licenseNames: null,
                 licenseReportUrl: null,
                 deprecationInfo: null,
@@ -47,7 +50,8 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
             DateTime lastEditedDate,
             DateTime publishedDate,
             string packageId,
-            string packageVersion,
+            string packageNormalizedVersion,
+            string packageFullVersion,
             string licenseNames,
             string licenseReportUrl,
             PackageDeprecationItem deprecationInfo,
@@ -58,7 +62,8 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
             LastEditedDate = lastEditedDate;
             PublishedDate = publishedDate;
             PackageId = packageId;
-            PackageVersion = packageVersion;
+            PackageNormalizedVersion = packageNormalizedVersion;
+            PackageFullVersion = packageFullVersion;
             LicenseNames = licenseNames;
             LicenseReportUrl = licenseReportUrl;
             DeprecationInfo = deprecationInfo;
