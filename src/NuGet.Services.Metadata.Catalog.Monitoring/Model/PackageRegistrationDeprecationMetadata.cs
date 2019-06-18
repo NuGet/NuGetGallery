@@ -25,7 +25,10 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring.Model
         {
             Reasons = deprecation.Reasons;
             Message = deprecation.Message;
-            AlternatePackage = new PackageRegistrationAlternatePackageMetadata(deprecation);
+            if (deprecation.AlternatePackageId != null || deprecation.AlternatePackageRange != null)
+            {
+                AlternatePackage = new PackageRegistrationAlternatePackageMetadata(deprecation);
+            }
         }
     }
 }
