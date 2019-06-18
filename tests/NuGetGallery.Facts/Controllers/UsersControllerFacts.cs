@@ -2256,6 +2256,10 @@ namespace NuGetGallery
                 GetMock<ISupportRequestService>()
                    .Setup(stub => stub.GetIssues(null, null, null, null))
                    .Returns(issues);
+                const string iconUrl = "https://icon.test/url";
+                GetMock<IIconUrlProvider>()
+                    .Setup(iup => iup.GetIconUrlString(It.IsAny<Package>()))
+                    .Returns(iconUrl);
 
                 // act
                 var result = controller.DeleteRequest() as ViewResult;
@@ -2263,7 +2267,9 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.Equal(testUser.Username, model.AccountName);
-                Assert.Single(model.Packages);
+                var package = Assert.Single(model.Packages);
+                GetMock<IIconUrlProvider>()
+                    .Verify(iup => iup.GetIconUrlString(It.IsAny<Package>()), Times.AtLeastOnce);
                 Assert.Equal(isPackageOrphaned, model.HasPackagesThatWillBeOrphaned);
                 Assert.Equal(withPendingIssues, model.HasPendingRequests);
             }
