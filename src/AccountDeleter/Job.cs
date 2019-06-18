@@ -55,7 +55,7 @@ namespace NuGetGallery.AccountDeleter
                 var aeLogger = sp.GetRequiredService<ILogger<AggregateEvaluator>>();
                 var areLogger = sp.GetRequiredService<ILogger<AlwaysRejectEvaluator>>();
                 var aaeLogger = sp.GetRequiredService<ILogger<AlwaysAllowEvaluator>>();
-                var evaluator = new AggregateEvaluator(telemetry, aeLogger);
+                var evaluator = new AggregateEvaluator(aeLogger);
 
                 // we can configure evaluators here.
                 if (IsDebugMode)

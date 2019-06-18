@@ -12,13 +12,11 @@ namespace NuGetGallery.AccountDeleter
     public class AggregateEvaluator : IUserEvaluator
     {
         private readonly Guid _id;
-        private readonly IAccountDeleteTelemetryService _telemtryService;
         private readonly ILogger<AggregateEvaluator> _logger;
         private Dictionary<string, IUserEvaluator> _evaluatorList;
 
-        public AggregateEvaluator(IAccountDeleteTelemetryService telemetryService, ILogger<AggregateEvaluator> logger)
+        public AggregateEvaluator(ILogger<AggregateEvaluator> logger)
         {
-            _telemtryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _evaluatorList = new Dictionary<string, IUserEvaluator>();
             _id = Guid.NewGuid();

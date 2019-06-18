@@ -25,7 +25,6 @@ namespace NuGetGallery.AccountDeleter
         {
             // dump message tempalte for now.
             return _messageTemplate;
-            // throw new NotImplementedException();
         }
 
         public IEmailRecipients GetRecipients()
@@ -36,7 +35,6 @@ namespace NuGetGallery.AccountDeleter
         public string GetSubject()
         {
             return _subjectTemplate;
-            // throw new NotImplementedException();
         }
     }
 }
