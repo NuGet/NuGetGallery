@@ -9,15 +9,19 @@ namespace NuGetGallery.AccountDeleter.Messengers
 {
     public class DisposableEmailBuilder : IEmailBuilder
     {
+        private const string USERNAME_PLACEHOLDER = "USERNAME";
+
         private readonly IEmailBuilder _parentEmailBuilder;
         private readonly IEmailRecipients _emailRecipients;
-        private readonly string _username;
+        private readonly ITemplater _templater;
 
-        public DisposableEmailBuilder(IEmailBuilder parentBuilder, IEmailRecipients emailRecipients, string username)
+        public DisposableEmailBuilder(IEmailBuilder parentBuilder, IEmailRecipients emailRecipients, string username, ITemplater templater)
         {
             _parentEmailBuilder = parentBuilder ?? throw new ArgumentNullException(nameof(parentBuilder));
             _emailRecipients = emailRecipients ?? throw new ArgumentNullException(nameof(emailRecipients));
-            _username = username;
+            _templater = templater ?? throw new ArgumentNullException(nameof(templater));
+
+            _templater.AddReplacement(USERNAME_PLACEHOLDER, username);
         }
 
         public MailAddress Sender
@@ -31,7 +35,7 @@ namespace NuGetGallery.AccountDeleter.Messengers
         public string GetBody(EmailFormat format)
         {
             // run through a replacer
-            return _parentEmailBuilder.GetBody(format).Replace("USERNAME", _username);
+            return _templater.FillTemplate(_parentEmailBuilder.GetBody(format));
         }
 
         public IEmailRecipients GetRecipients()
@@ -42,7 +46,7 @@ namespace NuGetGallery.AccountDeleter.Messengers
         public string GetSubject()
         {
             // run through a replacer
-            return _parentEmailBuilder.GetSubject().Replace("USERNAME", _username);
+            return _templater.FillTemplate(_parentEmailBuilder.GetSubject());
         }
     }
 }

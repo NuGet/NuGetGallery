@@ -63,7 +63,7 @@ namespace NuGetGallery.AccountDeleter
                     ccEmail.Add(new MailAddress(senderAddress));
 
                     var recipients = new EmailRecipients(toEmail, ccEmail);
-                    var emailBuilder = new DisposableEmailBuilder(baseEmailBuilder, recipients, username);
+                    var emailBuilder = new DisposableEmailBuilder(baseEmailBuilder, recipients, username, new AccountDeleteTemplater(_options));
                     await _messenger.SendMessageAsync(emailBuilder);
                 }
             }

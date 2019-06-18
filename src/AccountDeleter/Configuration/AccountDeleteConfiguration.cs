@@ -20,6 +20,8 @@ namespace NuGetGallery.AccountDeleter
 
         public EmailConfiguration EmailConfiguration { get; set; }
 
+        public Dictionary<string, string> TemplateReplacements { get; set; }
+
         public IEmailBuilder GetEmailBuilder(string source, bool success = false)
         {
             foreach (var sourceConfig in SourceConfigurations)
