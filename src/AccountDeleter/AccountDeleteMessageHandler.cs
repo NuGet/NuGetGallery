@@ -54,11 +54,12 @@ namespace NuGetGallery.AccountDeleter
                     var recipientEmail = await _accountManager.GetEmailAddresForUser(username);
 
                     var toEmail = new List<MailAddress>();
-                    toEmail.Add(new MailAddress(recipientEmail));
 
                     var configuration = _options.Value;
                     var senderAddress = configuration.EmailConfiguration.GalleryOwner;
                     var ccEmail = new List<MailAddress>();
+                    // toEmail.Add(new MailAddress(recipientEmail)); // Temporarily disable sending to end user while we are in phase 1.
+                    toEmail.Add(new MailAddress(senderAddress)); // Remove this when we switch to phase 2.
                     ccEmail.Add(new MailAddress(senderAddress));
 
                     var recipients = new EmailRecipients(toEmail, ccEmail);
