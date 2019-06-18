@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Threading.Tasks;
 using NuGet.Services.Entities;
 using NuGetGallery.Configuration;
 
@@ -31,10 +30,10 @@ namespace NuGetGallery
             {
                 if (string.IsNullOrWhiteSpace(_configuration.InternalIconUrlBaseAddress))
                 {
+                    // never fall back to iconUrl if UsesIconFromFlatContainer is true
                     return null;
                 }
 
-                // never fall back to iconUrl if UsesIconFromFlatContainer is true
                 return ConstructInternalIconUrl(_configuration.InternalIconUrlBaseAddress, package.Id, package.NormalizedVersion);
             }
             else
