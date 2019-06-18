@@ -2329,5 +2329,53 @@ namespace NuGetGallery
                 telemetryService.Verify(x => x.TrackRequiredSignerSet(It.IsAny<string>()), Times.Never);
             }
         }
+
+        public class TheEnrichPackageFromNuGetPackageMethod
+        {
+            [Theory]
+            [InlineData("iconfilename", true)]
+            [InlineData(null, false)]
+            public void SetsEmbeddedIconFlagProperly(string iconFilename, bool expectedFlag)
+            {
+                var service = CreateService();
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration
+                    {
+                        Id = "SomePackage"
+                    },
+                    UsesIconFromFlatContainer = false,
+                };
+
+                // the EnrichPackageFromNuGetPackage method does not read icon filename from the PackageArchiveReader
+                // so we won't bother setting it up here.
+                var packageStream = PackageServiceUtility.CreateNuGetPackageStream(package.Id);
+
+                var packageArchiveReader = new PackageArchiveReader(packageStream);
+
+                var metadataDictionary = new Dictionary<string, string>
+                {
+                    { "version", "1.2.3" },
+                };
+
+                if (iconFilename != null)
+                {
+                    metadataDictionary.Add("icon", iconFilename);
+                }
+
+                var packageMetadata = new PackageMetadata(
+                    metadataDictionary,
+                    Enumerable.Empty<PackageDependencyGroup>(),
+                    Enumerable.Empty<FrameworkSpecificGroup>(),
+                    Enumerable.Empty<NuGet.Packaging.Core.PackageType>(),
+                    new NuGetVersion(3, 2, 1),
+                    repositoryMetadata: null,
+                    licenseMetadata: null);
+
+                service.EnrichPackageFromNuGetPackage(package, packageArchiveReader, packageMetadata, new PackageStreamMetadata(), new User());
+
+                Assert.Equal(expectedFlag, package.UsesIconFromFlatContainer);
+            }
+        }
     }
 }
