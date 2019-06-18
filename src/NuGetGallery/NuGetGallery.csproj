@@ -157,6 +157,8 @@
       <DependentUpon>ListDetails.aspx</DependentUpon>
     </Compile>
     <Compile Include="Areas\Admin\Helpers.cs" />
+    <Compile Include="Areas\Admin\Models\IssueStatusKeys.cs" />
+    <Compile Include="Areas\Admin\Models\ISupportRequestDbContext.cs" />
     <Compile Include="Areas\Admin\Migrations\201602111647053_SupportRequestDbModel.cs" />
     <Compile Include="Areas\Admin\Migrations\201602111647053_SupportRequestDbModel.Designer.cs">
       <DependentUpon>201602111647053_SupportRequestDbModel.cs</DependentUpon>
@@ -170,12 +172,11 @@
       <DependentUpon>201805221605033_DropPagerDutyColumn.cs</DependentUpon>
     </Compile>
     <Compile Include="Areas\Admin\Models\DeletedStatus.cs" />
-    <Compile Include="Areas\Admin\Models\IssueStatusKeys.cs" />
     <Compile Include="Areas\Admin\Migrations\SupportRequestMigrationsConfiguration.cs" />
-    <Compile Include="Areas\Admin\Models\ISupportRequestDbContext.cs" />
-    <Compile Include="Areas\Admin\Models\SupportRequestDbContext.cs" />
     <Compile Include="Areas\Admin\Services\RevalidationAdminService.cs" />
     <Compile Include="Areas\Admin\Services\ValidationAdminService.cs" />
+    <Compile Include="Areas\Admin\Models\SupportRequestDbContext.cs" />
+    <Compile Include="Areas\Admin\Services\SupportRequestService.cs" />
     <Compile Include="Areas\Admin\ViewModels\DeleteAccountAsAdminViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\FeatureFlagsFeatureViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\FeatureFlagsFlightViewModel.cs" />
@@ -191,7 +192,6 @@
     <Compile Include="Areas\Admin\ViewModels\ValidatedPackageViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\RevalidationPageViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\ValidationPageViewModel.cs" />
-    <Compile Include="Areas\Admin\Services\SupportRequestService.cs" />
     <Compile Include="Areas\Admin\ViewModels\DeleteAccountSearchResult.cs" />
     <Compile Include="Areas\Admin\Services\ValidationEntityRepository.cs" />
     <Compile Include="Areas\Admin\ViewModels\DeleteSearchResult.cs" />
@@ -209,13 +209,16 @@
     <Compile Include="Areas\Admin\ViewModels\SupportRequestViewModel.cs" />
     <Compile Include="Authentication\ApiScopeEvaluationResult.cs" />
     <Compile Include="Authentication\ApiScopeEvaluator.cs" />
-    <Compile Include="Authentication\AuthenticateExternalLoginResult.cs" />
     <Compile Include="Authentication\FeedOnlyModeException.cs" />
     <Compile Include="Authentication\IApiScopeEvaluator.cs" />
     <Compile Include="Authentication\NuGetPackagePattern.cs" />
     <Compile Include="Authentication\PasswordAuthenticationResult.cs" />
     <Compile Include="Authentication\PasswordResetResult.cs" />
+    <Compile Include="Authentication\AuthenticateExternalLoginResult.cs" />
     <Compile Include="Authentication\Providers\AuthenticationPolicy.cs" />
+    <Compile Include="Authentication\AuthenticationService.cs" />
+    <Compile Include="Authentication\AuthenticationTypes.cs" />
+    <Compile Include="Authentication\Providers\Authenticator.cs" />
     <Compile Include="Authentication\Providers\AuthenticatorT.cs" />
     <Compile Include="Authentication\Providers\AzureActiveDirectoryV2\AzureActiveDirectoryV2Authenticator.cs" />
     <Compile Include="Authentication\Providers\AzureActiveDirectoryV2\AzureActiveDirectoryV2AuthenticatorConfiguration.cs" />
@@ -287,12 +290,9 @@
     <Compile Include="Authentication\Providers\ApiKey\ApiKeyAuthenticationHandler.cs" />
     <Compile Include="Authentication\Providers\ApiKey\ApiKeyAuthenticationMiddleware.cs" />
     <Compile Include="Authentication\Providers\ApiKey\ApiKeyAuthenticationOptions.cs" />
-    <Compile Include="Authentication\AuthenticationService.cs" />
-    <Compile Include="Authentication\AuthenticationTypes.cs" />
     <Compile Include="Authentication\AuthDependenciesModule.cs" />
     <Compile Include="Authentication\Providers\ApiKey\ApiKeyAuthenticator.cs" />
     <Compile Include="Authentication\Providers\ApiKey\ApiKeyAuthenticatorConfiguration.cs" />
-    <Compile Include="Authentication\Providers\Authenticator.cs" />
     <Compile Include="Authentication\Providers\AuthenticatorConfiguration.cs" />
     <Compile Include="Authentication\Providers\AuthenticatorUI.cs" />
     <Compile Include="Authentication\Providers\LocalUser\LocalUserAuthenticator.cs" />
@@ -557,7 +557,6 @@
     <Compile Include="OData\Serializers\V2FeedPackageAnnotationStrategy.cs" />
     <Compile Include="Services\IReadMeService.cs" />
     <Compile Include="Services\IValidationService.cs" />
-    <Compile Include="Services\PackageOwnerRequestService.cs" />
     <Compile Include="Services\PackageUploadService.cs" />
     <Compile Include="Services\IPackageUploadService.cs" />
     <Compile Include="Services\PackageValidationResult.cs" />

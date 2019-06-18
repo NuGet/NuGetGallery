@@ -31,8 +31,15 @@ namespace NuGetGallery.AccountDeleter
 
         public bool CanUserBeDeleted(User user)
         {
-            // Current implementation is not allowed if user owns any listed packages
-            return !_packageService.FindPackagesByOwner(user, includeUnlisted: false).AnySafe();
+            var userPackages = _packageService.FindPackagesByOwner(user, includeUnlisted: false);
+
+            if(userPackages.AnySafe())
+            {
+                _logger.LogWarning("{Evaluator}:{EvaluatorId} User cannot be deleted because they owned listed packages.", nameof(UserPackageEvaluator), EvaluatorId);
+                return false;
+            }
+
+            return true;
         }
     }
 }

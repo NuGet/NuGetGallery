@@ -20,6 +20,13 @@ using NuGetGallery.Security;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
 using NuGet.Services.Entities;
+using NuGetGallery.Diagnostics;
+using NuGet.Services.Logging;
+using System.Web.Hosting;
+using NuGetGallery.Configuration;
+using System.Runtime.Remoting.Messaging;
+using NuGetGallery.Areas.Admin.Models;
+using NuGet.Jobs;
 
 namespace NuGetGallery.AccountDeleter
 {
@@ -48,19 +55,20 @@ namespace NuGetGallery.AccountDeleter
 
             services.AddTransient<IAccountDeleteTelemetryService, AccountDeleteTelemetryService>();
             services.AddTransient<ISubscriptionProcessorTelemetryService, AccountDeleteTelemetryService>();
+
+            services.AddSingleton<AggregateEvaluator>();
+            services.AddTransient<AlwaysRejectEvaluator>();
+            services.AddTransient<AlwaysAllowEvaluator>();
+            services.AddTransient<UserPackageEvaluator>();
+
             services.AddSingleton<IUserEvaluator>(sp =>
             {
-                var telemetry = sp.GetRequiredService<IAccountDeleteTelemetryService>();
-                var aeLogger = sp.GetRequiredService<ILogger<AggregateEvaluator>>();
-                var evaluator = new AggregateEvaluator(aeLogger);
+                var evaluator = sp.GetRequiredService<AggregateEvaluator>();
 
                 if (IsDebugMode)
                 {
-                    var areLogger = sp.GetRequiredService<ILogger<AlwaysRejectEvaluator>>();
-                    var aaeLogger = sp.GetRequiredService<ILogger<AlwaysAllowEvaluator>>();
-
-                    var alwaysReject = new AlwaysRejectEvaluator(areLogger);
-                    var alwaysAllow = new AlwaysAllowEvaluator(aaeLogger);
+                    var alwaysReject = sp.GetRequiredService<AlwaysRejectEvaluator>();
+                    var alwaysAllow = sp.GetRequiredService<AlwaysAllowEvaluator>();
 
                     evaluator.AddEvaluator(alwaysReject);
                     evaluator.AddEvaluator(alwaysAllow);
@@ -68,9 +76,11 @@ namespace NuGetGallery.AccountDeleter
                 else
                 {
                     // Configure evaluators here.
-                    var areLogger = sp.GetRequiredService<ILogger<AlwaysRejectEvaluator>>();
-                    var alwaysReject = new AlwaysRejectEvaluator(areLogger);
+                    var alwaysReject = sp.GetRequiredService<AlwaysRejectEvaluator>();
                     evaluator.AddEvaluator(alwaysReject);
+
+                    var userPackageEvaluator = sp.GetRequiredService<UserPackageEvaluator>();
+                    evaluator.AddEvaluator(userPackageEvaluator);
                 }
 
                 return evaluator;
@@ -96,7 +106,7 @@ namespace NuGetGallery.AccountDeleter
 
 
             services.AddSingleton<IEmailBuilderFactory, EmailBuilderFactory>();
-            services.AddSingleton(new TelemetryClient());
+            services.AddSingleton<ITelemetryClient, TelemetryClientWrapper>();
 
             ConfigureGalleryServices(services, configurationRoot);
         }
@@ -111,20 +121,22 @@ namespace NuGetGallery.AccountDeleter
             else
             {
                 services.AddSingleton<IDeleteAccountService, EmptyDeleteAccountService>();
-                //services.AddSingleton<IUserService, EmptyUserService>();
                 //services.AddSingleton<IDeleteAccountService, DeleteAccountService>();
+
                 services.AddSingleton<IUserService, MicroUserService>();
+                services.AddSingleton<IDiagnosticsService, LoggerDiagnosticsService>();
+
+                services.AddSingleton<IPackageService, PackageService>();
+
+                services.AddSingleton<ITelemetryService, GalleryTelemetryService>();
+                services.AddSingleton<ISecurityPolicyService, SecurityPolicyService>();
+                services.AddSingleton<IAuditingService>(sp => { return AuditingService.None; }); //Replace with real when we start doing deletes. For now, we are a readonly operation.
+                services.AddSingleton<IAppConfiguration, GalleryConfiguration>();
+                services.AddSingleton<IPackageOwnershipManagementService, PackageOwnershipManagementService>();
+                services.AddSingleton<IPackageOwnerRequestService, PackageOwnerRequestService>();
+                services.AddSingleton<IReservedNamespaceService, ReservedNamespaceService>();
+                services.AddSingleton<MicrosoftTeamSubscription>();
             }
-            //services.AddSingleton<IPackageService, PackageService>();
-            //services.AddSingleton<IPackageUpdateService, PackageUpdateService>();
-            //services.AddSingleton<IPackageOwnershipManagementService, PackageOwnershipManagementService>();
-            //services.AddSingleton<IReservedNamespaceService, ReservedNamespaceService>();
-            //services.AddSingleton<ISecurityPolicyService, SecurityPolicyService>();
-            ////services.AddSingleton<IAuthenticationService, AuthenticationService>(); // This guy needs to come out of gallery.
-            ////services.AddSingleton<ISupportRequestService, SupportRequestService>(); // This guy too
-            //services.AddSingleton<IEditableFeatureFlagStorageService, FeatureFlagFileStorageService>();
-            //services.AddSingleton<IAuditingService, AuditingService>();
-            //ITelemetryService telemetryService // Gallery Telemetry Service
         }
 
         protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder)
@@ -133,6 +145,36 @@ namespace NuGetGallery.AccountDeleter
             containerBuilder.RegisterType<EntityRepository<User>>()
                 .AsSelf()
                 .As<IEntityRepository<User>>()
+                .InstancePerLifetimeScope();
+
+            containerBuilder.RegisterType<EntityRepository<Credential>>()
+                .AsSelf()
+                .As<IEntityRepository<Credential>>()
+                .InstancePerLifetimeScope();
+
+            containerBuilder.RegisterType<EntityRepository<Organization>>()
+                .AsSelf()
+                .As<IEntityRepository<Organization>>()
+                .InstancePerLifetimeScope();
+
+            containerBuilder.RegisterType<EntityRepository<Package>>()
+                .AsSelf()
+                .As<IEntityRepository<Package>>()
+                .InstancePerLifetimeScope();
+
+            containerBuilder.RegisterType<EntityRepository<PackageRegistration>>()
+                .AsSelf()
+                .As<IEntityRepository<PackageRegistration>>()
+                .InstancePerLifetimeScope();
+
+            containerBuilder.RegisterType<EntityRepository<Certificate>>()
+                .AsSelf()
+                .As<IEntityRepository<Certificate>>()
+                .InstancePerLifetimeScope();
+
+            containerBuilder.RegisterType<EntityRepository<ReservedNamespace>>()
+                .AsSelf()
+                .As<IEntityRepository<ReservedNamespace>>()
                 .InstancePerLifetimeScope();
         }
     }
