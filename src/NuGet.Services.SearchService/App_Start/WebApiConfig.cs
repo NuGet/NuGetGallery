@@ -45,8 +45,7 @@ namespace NuGet.Services.SearchService
         public static void Register(HttpConfiguration config)
         {
             config.Formatters.Remove(config.Formatters.XmlFormatter);
-            config.Formatters.JsonFormatter.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
-            config.Formatters.JsonFormatter.SerializerSettings.Converters.Add(new StringEnumConverter());
+            SetSerializerSettings(config.Formatters.JsonFormatter.SerializerSettings);
 
             var dependencyResolver = GetDependencyResolver(config);
             config.DependencyResolver = dependencyResolver;
@@ -108,6 +107,12 @@ namespace NuGet.Services.SearchService
                 .Value;
 
             HostingEnvironment.QueueBackgroundWorkItem(token => ReloadAuxiliaryFilesAsync(dependencyResolver.Container, token));
+        }
+
+        public static void SetSerializerSettings(JsonSerializerSettings settings)
+        {
+            settings.NullValueHandling = NullValueHandling.Ignore;
+            settings.Converters.Add(new StringEnumConverter());
         }
 
         private static async Task ReloadAuxiliaryFilesAsync(ILifetimeScope serviceProvider, CancellationToken token)

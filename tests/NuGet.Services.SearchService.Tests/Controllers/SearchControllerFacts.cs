@@ -239,6 +239,23 @@ namespace NuGet.Services.SearchService.Controllers
                 Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
                 Assert.Equal("{\"Message\":\"Foo\"}", await response.Content.ReadAsStringAsync());
             }
+
+            [Fact]
+            public async Task IgnoresNullValues()
+            {
+                _searchService
+                    .Setup(x => x.V2SearchAsync(It.IsAny<V2SearchRequest>()))
+                    .ReturnsAsync(new V2SearchResponse
+                    {
+                        TotalHits = 0,
+                        Data = new List<V2SearchPackage>(),
+                    });
+
+                var result = await _target.V2SearchAsync();
+                var response = await result.ExecuteAsync(CancellationToken.None);
+
+                Assert.Equal("{\"totalHits\":0,\"data\":[]}", await response.Content.ReadAsStringAsync());
+            }
         }
 
         public class V3SearchAsync : BaseFacts
@@ -323,6 +340,23 @@ namespace NuGet.Services.SearchService.Controllers
                 Assert.False(response.IsSuccessStatusCode);
                 Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
                 Assert.Equal("{\"Message\":\"Foo\"}", await response.Content.ReadAsStringAsync());
+            }
+
+            [Fact]
+            public async Task IgnoresNullValues()
+            {
+                _searchService
+                    .Setup(x => x.V3SearchAsync(It.IsAny<V3SearchRequest>()))
+                    .ReturnsAsync(new V3SearchResponse
+                    {
+                        TotalHits = 0,
+                        Data = new List<V3SearchPackage>(),
+                    });
+
+                var result = await _target.V3SearchAsync();
+                var response = await result.ExecuteAsync(CancellationToken.None);
+
+                Assert.Equal("{\"totalHits\":0,\"data\":[]}", await response.Content.ReadAsStringAsync());
             }
         }
 
@@ -468,8 +502,24 @@ namespace NuGet.Services.SearchService.Controllers
                 Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
                 Assert.Equal("{\"Message\":\"Foo\"}", await response.Content.ReadAsStringAsync());
             }
-        }
 
+            [Fact]
+            public async Task IgnoresNullValues()
+            {
+                _searchService
+                    .Setup(x => x.AutocompleteAsync(It.IsAny<AutocompleteRequest>()))
+                    .ReturnsAsync(new AutocompleteResponse
+                    {
+                        TotalHits = 0,
+                        Data = new List<string>(),
+                    });
+
+                var result = await _target.AutocompleteAsync();
+                var response = await result.ExecuteAsync(CancellationToken.None);
+
+                Assert.Equal("{\"totalHits\":0,\"data\":[]}", await response.Content.ReadAsStringAsync());
+            }
+        }
 
         public abstract class BaseFacts
         {
@@ -523,6 +573,7 @@ namespace NuGet.Services.SearchService.Controllers
 
                 _target.Request = new HttpRequestMessage();
                 _target.Configuration = new HttpConfiguration();
+                WebApiConfig.SetSerializerSettings(_target.Configuration.Formatters.JsonFormatter.SerializerSettings);
             }
         }
     }

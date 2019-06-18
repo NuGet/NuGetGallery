@@ -197,7 +197,7 @@ namespace NuGet.Services.SearchService.Controllers
         {
             try
             {
-                return Json(await searchAction());
+                return Json(await searchAction(), Configuration.Formatters.JsonFormatter.SerializerSettings);
             }
             catch (InvalidSearchRequestException e)
             {
