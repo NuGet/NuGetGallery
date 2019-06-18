@@ -1271,6 +1271,50 @@ namespace NuGetGallery
                 Assert.Same(segments, model.LicenseExpressionSegments);
             }
 
+            [Fact]
+            public async Task UsesProperIconUrl()
+            {
+                var iconUrlProvider = new Mock<IIconUrlProvider>();
+                const string iconUrl = "https://some.test/icon";
+                iconUrlProvider
+                    .Setup(iup => iup.GetIconUrlString(It.IsAny<Package>()))
+                    .Returns(iconUrl);
+                var packageService = new Mock<IPackageService>();
+
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService,
+                    iconUrlProvider: iconUrlProvider);
+
+                var id = "Foo";
+                var package = new Package()
+                {
+                    PackageRegistration = new PackageRegistration()
+                    {
+                        Id = id,
+                        Owners = new List<User>()
+                    },
+                    Version = "01.1.01",
+                    NormalizedVersion = "1.1.1",
+                    Title = "A test package!",
+                };
+
+                var packages = new[] { package };
+                packageService
+                    .Setup(p => p.FindPackagesById(id, PackageDeprecationFieldsToInclude.Deprecation))
+                    .Returns(packages);
+
+                packageService
+                    .Setup(p => p.FilterLatestPackage(packages, SemVerLevelKey.SemVer2, true))
+                    .Returns(package);
+
+                var result = await controller.DisplayPackage(id, version: null);
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
+                iconUrlProvider
+                    .Verify(iup => iup.GetIconUrlString(package), Times.AtLeastOnce);
+                Assert.Equal(iconUrl, model.IconUrl);
+            }
+
             private class TestIssue : ValidationIssue
             {
                 private readonly string _message;
@@ -1586,6 +1630,46 @@ namespace NuGetGallery
                 Assert.Equal("Test Package", (syndicationFeedItems[2].Content as System.ServiceModel.Syndication.TextSyndicationContent).Text);
                 Assert.Equal(dateTimeTwoDaysAgo, syndicationFeedItems[2].PublishDate);
                 Assert.Equal(dateTimeTwoDaysAgo, syndicationFeedItems[2].LastUpdatedTime);
+            }
+
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public void UsesProperIconUrl(bool prerel)
+            {
+                var iconUrlProvider = new Mock<IIconUrlProvider>();
+                const string iconUrl = "https://some.test/icon";
+                iconUrlProvider
+                    .Setup(iup => iup.GetIconUrl(It.IsAny<Package>()))
+                    .Returns(new Uri(iconUrl));
+                var packageService = new Mock<IPackageService>();
+
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService,
+                    iconUrlProvider: iconUrlProvider);
+
+                var packageId = "someId";
+                var packageVersion = "1.2.3-someVersion";
+                var packageRegistration = new PackageRegistration { Id = packageId };
+                var package = new Package
+                {
+                    PackageRegistration = packageRegistration,
+                    Version = packageVersion,
+                    NormalizedVersion = packageVersion,
+                    LicenseUrl = "https://license.test/"
+                };
+                packageRegistration.Packages.Add(package);
+
+                packageService
+                    .Setup(p => p.FindPackageRegistrationById(packageId))
+                    .Returns(packageRegistration);
+
+                var result = controller.AtomFeed(packageId, prerel);
+                var model = Assert.IsType<SyndicationAtomActionResult>(result);
+                iconUrlProvider
+                    .Verify(iup => iup.GetIconUrl(package), Times.AtLeastOnce);
+                Assert.Equal(iconUrl, model.SyndicationFeed.ImageUrl.AbsoluteUri);
             }
         }
 
@@ -2693,6 +2777,31 @@ namespace NuGetGallery
 
                 Assert.Equal(isManageDeprecationEnabled, model.IsManageDeprecationEnabled);
             }
+
+            [Theory]
+            [MemberData(nameof(Owner_Data))]
+            public async Task UsesProperIconUrl(User currentUser, User owner)
+            {
+                PackageRegistration.Owners.Add(owner);
+                var iconUrlProvider = new Mock<IIconUrlProvider>();
+                const string iconUrl = "https://some.test/icon";
+                iconUrlProvider
+                    .Setup(iup => iup.GetIconUrlString(It.IsAny<Package>()))
+                    .Returns(iconUrl);
+                var packageService = SetupPackageService();
+
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService,
+                    iconUrlProvider: iconUrlProvider);
+                controller.SetCurrentUser(currentUser);
+
+                var result = await GetManageResult(controller);
+                var model = ResultAssert.IsView<ManagePackageViewModel>(result);
+                iconUrlProvider
+                    .Verify(iup => iup.GetIconUrlString(Package), Times.AtLeastOnce);
+                Assert.Equal(iconUrl, model.IconUrl);
+            }
         }
 
         public class TheManageMethodWithExactVersion : TheManageMethod
@@ -3769,6 +3878,42 @@ namespace NuGetGallery
                 var model = result.Model as PackageListViewModel;
                 Assert.Equal(prerel, model.IncludePrerelease);
                 searchService.Verify(x => x.Search(It.Is<SearchFilter>(f => f.IncludePrerelease == prerel)));
+            }
+
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public async Task UsesProperIconUrl(bool prerel)
+            {
+                var iconUrlProvider = new Mock<IIconUrlProvider>();
+                const string iconUrl = "https://some.test/icon";
+                iconUrlProvider
+                    .Setup(iup => iup.GetIconUrlString(It.IsAny<Package>()))
+                    .Returns(iconUrl);
+                var searchService = new Mock<ISearchService>();
+
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    searchService: searchService,
+                    iconUrlProvider: iconUrlProvider);
+
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration { Id = "packageId" },
+                    Version = "1.2.3",
+                    LicenseUrl = "https://license.test/"
+                };
+
+                searchService
+                    .Setup(s => s.Search(It.IsAny<SearchFilter>()))
+                    .ReturnsAsync(new SearchResults(1, DateTime.UtcNow, new[] { package }.AsQueryable()));
+
+                var result = await controller.ListPackages(new PackageListSearchViewModel { Q = "test", Prerel = prerel });
+                var model = ResultAssert.IsView<PackageListViewModel>(result);
+                iconUrlProvider
+                    .Verify(iup => iup.GetIconUrlString(package), Times.AtLeastOnce);
+                var packageViewModel = Assert.Single(model.Items);
+                Assert.Equal(iconUrl, packageViewModel.IconUrl);
             }
         }
 
@@ -8329,6 +8474,38 @@ namespace NuGetGallery
                 // Assert
                 var model = ResultAssert.IsView<DisplayLicenseViewModel>(result);
                 Assert.Equal(licenseUrl, model.LicenseUrl);
+            }
+
+            [Fact]
+            public async Task UsesProperIconUrl()
+            {
+                var iconUrlProvider = new Mock<IIconUrlProvider>();
+                const string iconUrl = "https://some.test/icon";
+                iconUrlProvider
+                    .Setup(iup => iup.GetIconUrlString(It.IsAny<Package>()))
+                    .Returns(iconUrl);
+
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: _packageService,
+                    iconUrlProvider: iconUrlProvider);
+
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration { Id = _packageId },
+                    Version = _packageVersion,
+                    LicenseUrl = "https://license.test/"
+                };
+
+                _packageService
+                    .Setup(p => p.FindPackageByIdAndVersionStrict(_packageId, _packageVersion))
+                    .Returns(package);
+
+                var result = await controller.License(_packageId, _packageVersion);
+                var model = ResultAssert.IsView<DisplayLicenseViewModel>(result);
+                iconUrlProvider
+                    .Verify(iup => iup.GetIconUrlString(package), Times.AtLeastOnce);
+                Assert.Equal(iconUrl, model.IconUrl);
             }
         }
 
