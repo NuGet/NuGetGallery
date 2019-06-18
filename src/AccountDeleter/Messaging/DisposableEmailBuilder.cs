@@ -5,11 +5,11 @@ using NuGet.Services.Messaging.Email;
 using System;
 using System.Net.Mail;
 
-namespace NuGetGallery.AccountDeleter.Messengers
+namespace NuGetGallery.AccountDeleter
 {
     public class DisposableEmailBuilder : IEmailBuilder
     {
-        private const string USERNAME_PLACEHOLDER = "USERNAME";
+        protected static string USERNAME_PLACEHOLDER = "USERNAME";
 
         private readonly IEmailBuilder _parentEmailBuilder;
         private readonly IEmailRecipients _emailRecipients;

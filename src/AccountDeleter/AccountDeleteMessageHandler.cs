@@ -9,7 +9,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NuGet.Services.Messaging.Email;
 using NuGet.Services.ServiceBus;
-using NuGetGallery.AccountDeleter.Messengers;
 
 namespace NuGetGallery.AccountDeleter
 {

@@ -12,7 +12,7 @@ using System.Collections.Generic;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace AccountDeleter.Facts
+namespace NuGetGallery.AccountDeleter.Facts
 {
     public class EvaluatorFacts
     {

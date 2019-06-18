@@ -29,13 +29,20 @@ namespace NuGetGallery.AccountDeleter
         public string FillTemplate(string template)
         {
             var baseReplacements = _options.Value.TemplateReplacements;
-            var output = template;
-            foreach (var replacement in baseReplacements)
+            foreach (var replacement in _replacements)
             {
-                output = output.Replace(replacement.Key, replacement.Value);
+                if (baseReplacements.ContainsKey(replacement.Key))
+                {
+                    baseReplacements[replacement.Key] = replacement.Value;
+                }
+                else
+                {
+                    baseReplacements.Add(replacement.Key, replacement.Value);
+                }
             }
 
-            foreach (var replacement in _replacements)
+            var output = template;
+            foreach (var replacement in baseReplacements)
             {
                 output = output.Replace(replacement.Key, replacement.Value);
             }
