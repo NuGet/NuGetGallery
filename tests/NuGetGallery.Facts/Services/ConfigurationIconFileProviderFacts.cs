@@ -59,28 +59,49 @@ namespace NuGetGallery
             }
 
             [Theory]
-            [InlineData(null, "SomeId", "1.2.3", null, true, null)]
-            [InlineData(null, "SomeId", "1.2.3", "", true, null)]
-            [InlineData(null, "SomeId", "1.2.3", "https://external.test/icon", true, null)]
-            [InlineData("", "SomeId", "1.2.3", null, true, null)]
-            [InlineData("", "SomeId", "1.2.3", "", true, null)]
-            [InlineData("", "SomeId", "1.2.3", "https://external.test/icon", true, null)]
-            [InlineData("https://internal.test/teststorage", "SomeId", "1.2.3", null, true, "https://internal.test/teststorage/someid/1.2.3/icon")]
-            [InlineData("https://internal.test/teststorage", "SomeId", "1.2.3", "", true, "https://internal.test/teststorage/someid/1.2.3/icon")]
-            [InlineData("https://internal.test/teststorage", "SomeId", "1.2.3", "https://external.test/icon", true, "https://internal.test/teststorage/someid/1.2.3/icon")]
-            [InlineData(null, "SomeId", "1.2.3", null, false, null)]
-            [InlineData(null, "SomeId", "1.2.3", "", false, null)]
-            [InlineData(null, "SomeId", "1.2.3", "https://external.test/icon", false, "https://external.test/icon")]
-            [InlineData("", "SomeId", "1.2.3", null, false, null)]
-            [InlineData("", "SomeId", "1.2.3", "", false, null)]
-            [InlineData("", "SomeId", "1.2.3", "https://external.test/icon", false, "https://external.test/icon")]
-            [InlineData("https://internal.test/teststorage", "SomeId", "1.2.3", null, false, null)]
-            [InlineData("https://internal.test/teststorage", "SomeId", "1.2.3", "", false, null)]
-            [InlineData("https://internal.test/teststorage", "SomeId", "1.2.3", "https://external.test/icon", false, "https://external.test/icon")]
-            public void ProducesExpectedIconUrl(string baseUrl, string id, string normalizedVersion, string iconUrl, bool usesIconFromFlatContainer, string expectedIconUrl)
+            [InlineData(null, false, "SomeId", "1.2.3", null, true, null)]
+            [InlineData(null, false, "SomeId", "1.2.3", "", true, null)]
+            [InlineData(null, false, "SomeId", "1.2.3", "https://external.test/icon", true, null)]
+            [InlineData("", false, "SomeId", "1.2.3", null, true, null)]
+            [InlineData("", false, "SomeId", "1.2.3", "", true, null)]
+            [InlineData("", false, "SomeId", "1.2.3", "https://external.test/icon", true, null)]
+            [InlineData("https://internal.test/teststorage", false, "SomeId", "1.2.3", null, true, "https://internal.test/teststorage/someid/1.2.3/icon")]
+            [InlineData("https://internal.test/teststorage", false, "SomeId", "1.2.3", "", true, "https://internal.test/teststorage/someid/1.2.3/icon")]
+            [InlineData("https://internal.test/teststorage", false, "SomeId", "1.2.3", "https://external.test/icon", true, "https://internal.test/teststorage/someid/1.2.3/icon")]
+
+            [InlineData(null, true, "SomeId", "1.2.3", null, true, null)]
+            [InlineData(null, true, "SomeId", "1.2.3", "", true, null)]
+            [InlineData(null, true, "SomeId", "1.2.3", "https://external.test/icon", true, null)]
+            [InlineData("", true, "SomeId", "1.2.3", null, true, null)]
+            [InlineData("", true, "SomeId", "1.2.3", "", true, null)]
+            [InlineData("", true, "SomeId", "1.2.3", "https://external.test/icon", true, null)]
+            [InlineData("https://internal.test/teststorage", true, "SomeId", "1.2.3", null, true, "https://internal.test/teststorage/someid/1.2.3/icon")]
+            [InlineData("https://internal.test/teststorage", true, "SomeId", "1.2.3", "", true, "https://internal.test/teststorage/someid/1.2.3/icon")]
+            [InlineData("https://internal.test/teststorage", true, "SomeId", "1.2.3", "https://external.test/icon", true, "https://internal.test/teststorage/someid/1.2.3/icon")]
+
+            [InlineData(null, false, "SomeId", "1.2.3", null, false, null)]
+            [InlineData(null, false, "SomeId", "1.2.3", "", false, null)]
+            [InlineData(null, false, "SomeId", "1.2.3", "https://external.test/icon", false, "https://external.test/icon")]
+            [InlineData("", false, "SomeId", "1.2.3", null, false, null)]
+            [InlineData("", false, "SomeId", "1.2.3", "", false, null)]
+            [InlineData("", false, "SomeId", "1.2.3", "https://external.test/icon", false, "https://external.test/icon")]
+            [InlineData("https://internal.test/teststorage", false, "SomeId", "1.2.3", null, false, null)]
+            [InlineData("https://internal.test/teststorage", false, "SomeId", "1.2.3", "", false, null)]
+            [InlineData("https://internal.test/teststorage", false, "SomeId", "1.2.3", "https://external.test/icon", false, "https://external.test/icon")]
+
+            [InlineData(null, true, "SomeId", "1.2.3", null, false, null)]
+            [InlineData(null, true, "SomeId", "1.2.3", "", false, null)]
+            [InlineData(null, true, "SomeId", "1.2.3", "https://external.test/icon", false, null)]
+            [InlineData("", true, "SomeId", "1.2.3", null, false, null)]
+            [InlineData("", true, "SomeId", "1.2.3", "", false, null)]
+            [InlineData("", true, "SomeId", "1.2.3", "https://external.test/icon", false, null)]
+            [InlineData("https://internal.test/teststorage", true, "SomeId", "1.2.3", null, false, null)]
+            [InlineData("https://internal.test/teststorage", true, "SomeId", "1.2.3", "", false, null)]
+            [InlineData("https://internal.test/teststorage", true, "SomeId", "1.2.3", "https://external.test/icon", false, null)]
+            public void ProducesExpectedIconUrl(string baseUrl, bool ignoreIconUrl, string id, string normalizedVersion, string iconUrl, bool usesIconFromFlatContainer, string expectedIconUrl)
             {
                 _configuration.InternalIconUrlBaseAddress = baseUrl;
-                _configuration.IgnoreIconUrl = false;
+                _configuration.IgnoreIconUrl = ignoreIconUrl;
 
                 var package = new Package
                 {
