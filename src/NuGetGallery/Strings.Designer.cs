@@ -776,6 +776,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Your custom message is too long. It must be under {0} characters..
+        /// </summary>
+        public static string DeprecatePackage_CustomMessageTooLong {
+            get {
+                return ResourceManager.GetString("DeprecatePackage_CustomMessageTooLong", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to You do not have permission to deprecate this package..
         /// </summary>
         public static string DeprecatePackage_Forbidden {

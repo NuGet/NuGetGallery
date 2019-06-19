@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using System.Web.Mvc;
 using NuGet.Services.Entities;
 using NuGet.Versioning;
-using NuGetGallery.Auditing;
 using NuGetGallery.Filters;
 
 namespace NuGetGallery
@@ -17,6 +16,8 @@ namespace NuGetGallery
     public partial class ManageDeprecationJsonApiController
         : AppController
     {
+        private const int MaxCustomMessageLength = 4000;
+
         private readonly IPackageService _packageService;
         private readonly IPackageDeprecationService _deprecationService;
         private readonly IFeatureFlagService _featureFlagService;
@@ -79,6 +80,13 @@ namespace NuGetGallery
                 }
 
                 status |= PackageDeprecationStatus.Other;
+            }
+
+            if (customMessage != null && customMessage.Length > MaxCustomMessageLength)
+            {
+                return DeprecateErrorResponse(
+                    HttpStatusCode.BadRequest, 
+                    string.Format(Strings.DeprecatePackage_CustomMessageTooLong, MaxCustomMessageLength));
             }
 
             if (versions == null || !versions.Any())
