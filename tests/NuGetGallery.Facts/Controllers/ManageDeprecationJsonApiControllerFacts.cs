@@ -144,6 +144,31 @@ namespace NuGetGallery.Controllers
                 AssertErrorResponse(controller, result, HttpStatusCode.BadRequest, Strings.DeprecatePackage_NoVersions);
             }
 
+            [Fact]
+            public async Task ReturnsBadRequestIfLongCustomMessage()
+            {
+                // Arrange
+                var currentUser = TestUtility.FakeUser;
+                var controller = GetController<ManageDeprecationJsonApiController>();
+                controller.SetCurrentUser(currentUser);
+
+                var customMessage = new string('a', 4001);
+
+                // Act
+                var result = await controller.Deprecate(
+                    CreateDeprecatePackageRequest(
+                        "id",
+                        new[] { "1.0.0" },
+                        customMessage: customMessage));
+
+                // Assert
+                AssertErrorResponse(
+                    controller,
+                    result,
+                    HttpStatusCode.BadRequest,
+                    string.Format(Strings.DeprecatePackage_CustomMessageTooLong, 4000));
+            }
+
             public static IEnumerable<object[]> ReturnsNotFoundIfNoPackagesOrRegistrationMissing_Data
             {
                 get
@@ -361,52 +386,6 @@ namespace NuGetGallery.Controllers
                     HttpStatusCode.Forbidden,
                     string.Format(Strings.DeprecatePackage_Locked, id));
                 featureFlagService.Verify();
-                packageService.Verify();
-            }
-
-            [Theory]
-            [MemberData(nameof(Owner_Data))]
-            public async Task ReturnsBadRequestIfLongCustomMessage(User currentUser, User owner)
-            {
-                // Arrange
-                var id = "id";
-
-                var registration = new PackageRegistration
-                {
-                    Id = id
-                };
-
-                registration.Owners.Add(owner);
-
-                var package = new Package
-                {
-                    PackageRegistration = registration
-                };
-
-                var packageService = GetMock<IPackageService>();
-                packageService
-                    .Setup(x => x.FindPackagesById(id, PackageDeprecationFieldsToInclude.DeprecationAndRelationships))
-                    .Returns(new[] { package })
-                    .Verifiable();
-
-                var controller = GetController<ManageDeprecationJsonApiController>();
-                controller.SetCurrentUser(currentUser);
-
-                var customMessage = new string('a', 4001);
-
-                // Act
-                var result = await controller.Deprecate(
-                    CreateDeprecatePackageRequest(
-                        id,
-                        new[] { "1.0.0" },
-                        customMessage: customMessage));
-
-                // Assert
-                AssertErrorResponse(
-                    controller,
-                    result,
-                    HttpStatusCode.BadRequest,
-                    string.Format(Strings.DeprecatePackage_CustomMessageTooLong, 4000));
                 packageService.Verify();
             }
 
