@@ -6,10 +6,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using System.Web;
 using System.Web.Mvc;
 using NuGet.Services.Entities;
 using NuGet.Versioning;
 using NuGetGallery.Filters;
+using NuGetGallery.RequestModels;
 
 namespace NuGetGallery
 {
@@ -51,30 +53,23 @@ namespace NuGetGallery
         [RequiresAccountConfirmation("deprecate a package")]
         [ValidateAntiForgeryToken]
         public virtual async Task<JsonResult> Deprecate(
-            string id,
-            IEnumerable<string> versions,
-            bool isLegacy,
-            bool hasCriticalBugs,
-            bool isOther,
-            string alternatePackageId,
-            string alternatePackageVersion,
-            string customMessage)
+            DeprecatePackageRequest request)
         {
             var status = PackageDeprecationStatus.NotDeprecated;
 
-            if (isLegacy)
+            if (request.IsLegacy)
             {
                 status |= PackageDeprecationStatus.Legacy;
             }
 
-            if (hasCriticalBugs)
+            if (request.HasCriticalBugs)
             {
                 status |= PackageDeprecationStatus.CriticalBugs;
             }
 
-            if (isOther)
+            if (request.IsOther)
             {
-                if (string.IsNullOrWhiteSpace(customMessage))
+                if (string.IsNullOrWhiteSpace(request.CustomMessage))
                 {
                     return DeprecateErrorResponse(HttpStatusCode.BadRequest, Strings.DeprecatePackage_CustomMessageRequired);
                 }
@@ -82,26 +77,32 @@ namespace NuGetGallery
                 status |= PackageDeprecationStatus.Other;
             }
 
-            if (customMessage != null && customMessage.Length > MaxCustomMessageLength)
+            string customMessage = null;
+            if (request.CustomMessage != null)
             {
-                return DeprecateErrorResponse(
-                    HttpStatusCode.BadRequest, 
-                    string.Format(Strings.DeprecatePackage_CustomMessageTooLong, MaxCustomMessageLength));
+                if (request.CustomMessage.Length > MaxCustomMessageLength)
+                {
+                    return DeprecateErrorResponse(
+                        HttpStatusCode.BadRequest,
+                        string.Format(Strings.DeprecatePackage_CustomMessageTooLong, MaxCustomMessageLength));
+                }
+
+                customMessage = HttpUtility.HtmlEncode(request.CustomMessage);
             }
 
-            if (versions == null || !versions.Any())
+            if (request.Versions == null || !request.Versions.Any())
             {
                 return DeprecateErrorResponse(HttpStatusCode.BadRequest, Strings.DeprecatePackage_NoVersions);
             }
 
-            var packages = _packageService.FindPackagesById(id, PackageDeprecationFieldsToInclude.DeprecationAndRelationships);
+            var packages = _packageService.FindPackagesById(request.Id, PackageDeprecationFieldsToInclude.DeprecationAndRelationships);
             var registration = packages.FirstOrDefault()?.PackageRegistration;
             if (registration == null)
             {
                 // This should only happen if someone hacks the form or if the package is deleted while the user is filling out the form.
                 return DeprecateErrorResponse(
                     HttpStatusCode.NotFound,
-                    string.Format(Strings.DeprecatePackage_MissingRegistration, id));
+                    string.Format(Strings.DeprecatePackage_MissingRegistration, request.Id));
             }
 
             var currentUser = GetCurrentUser();
@@ -119,37 +120,37 @@ namespace NuGetGallery
             {
                 return DeprecateErrorResponse(
                     HttpStatusCode.Forbidden,
-                    string.Format(Strings.DeprecatePackage_Locked, id));
+                    string.Format(Strings.DeprecatePackage_Locked, request.Id));
             }
 
             PackageRegistration alternatePackageRegistration = null;
             Package alternatePackage = null;
-            if (!string.IsNullOrWhiteSpace(alternatePackageId))
+            if (!string.IsNullOrWhiteSpace(request.AlternatePackageId))
             {
-                if (!string.IsNullOrWhiteSpace(alternatePackageVersion))
+                if (!string.IsNullOrWhiteSpace(request.AlternatePackageVersion))
                 {
-                    alternatePackage = _packageService.FindPackageByIdAndVersionStrict(alternatePackageId, alternatePackageVersion);
+                    alternatePackage = _packageService.FindPackageByIdAndVersionStrict(request.AlternatePackageId, request.AlternatePackageVersion);
                     if (alternatePackage == null)
                     {
                         return DeprecateErrorResponse(
                             HttpStatusCode.NotFound,
-                            string.Format(Strings.DeprecatePackage_NoAlternatePackage, alternatePackageId, alternatePackageVersion));
+                            string.Format(Strings.DeprecatePackage_NoAlternatePackage, request.AlternatePackageId, request.AlternatePackageVersion));
                     }
                 }
                 else
                 {
-                    alternatePackageRegistration = _packageService.FindPackageRegistrationById(alternatePackageId);
+                    alternatePackageRegistration = _packageService.FindPackageRegistrationById(request.AlternatePackageId);
                     if (alternatePackageRegistration == null)
                     {
                         return DeprecateErrorResponse(
                             HttpStatusCode.NotFound,
-                            string.Format(Strings.DeprecatePackage_NoAlternatePackageRegistration, alternatePackageId));
+                            string.Format(Strings.DeprecatePackage_NoAlternatePackageRegistration, request.AlternatePackageId));
                     }
                 }
             }
 
             var packagesToUpdate = new List<Package>();
-            foreach (var version in versions)
+            foreach (var version in request.Versions)
             {
                 var normalizedVersion = NuGetVersionFormatter.Normalize(version);
                 var package = packages.SingleOrDefault(v => v.NormalizedVersion == normalizedVersion);
@@ -158,7 +159,7 @@ namespace NuGetGallery
                     // This should only happen if someone hacks the form or if a version of the package is deleted while the user is filling out the form.
                     return DeprecateErrorResponse(
                         HttpStatusCode.NotFound,
-                        string.Format(Strings.DeprecatePackage_MissingVersion, id));
+                        string.Format(Strings.DeprecatePackage_MissingVersion, request.Id));
                 }
                 else
                 {

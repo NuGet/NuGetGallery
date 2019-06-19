@@ -8,8 +8,8 @@ using System.Threading.Tasks;
 using System.Web.Mvc;
 using Newtonsoft.Json.Linq;
 using NuGet.Services.Entities;
-using NuGetGallery.Auditing;
 using NuGetGallery.Framework;
+using NuGetGallery.RequestModels;
 using Xunit;
 
 namespace NuGetGallery.Controllers
@@ -117,14 +117,7 @@ namespace NuGetGallery.Controllers
 
                 // Act
                 var result = await controller.Deprecate(
-                    id: "id", 
-                    versions: null, 
-                    isLegacy: false, 
-                    hasCriticalBugs: false, 
-                    isOther: true, 
-                    alternatePackageId: null, 
-                    alternatePackageVersion: null, 
-                    customMessage: null);
+                    CreateDeprecatePackageRequest("id", isOther: true));
 
                 // Assert
                 AssertErrorResponse(controller, result, HttpStatusCode.BadRequest, Strings.DeprecatePackage_CustomMessageRequired);
@@ -145,14 +138,7 @@ namespace NuGetGallery.Controllers
 
                 // Act
                 var result = await controller.Deprecate(
-                    id: "id",
-                    versions: versions,
-                    isLegacy: false,
-                    hasCriticalBugs: false,
-                    isOther: false,
-                    alternatePackageId: null,
-                    alternatePackageVersion: null,
-                    customMessage: null);
+                    CreateDeprecatePackageRequest("id", versions));
 
                 // Assert
                 AssertErrorResponse(controller, result, HttpStatusCode.BadRequest, Strings.DeprecatePackage_NoVersions);
@@ -188,14 +174,7 @@ namespace NuGetGallery.Controllers
 
                 // Act
                 var result = await controller.Deprecate(
-                    id: id,
-                    versions: new[] { "1.0.0" },
-                    isLegacy: false,
-                    hasCriticalBugs: false,
-                    isOther: false,
-                    alternatePackageId: null,
-                    alternatePackageVersion: null,
-                    customMessage: null);
+                    CreateDeprecatePackageRequest("id", new[] { "1.0.0" }));
 
                 // Assert
                 AssertErrorResponse(controller, result, HttpStatusCode.NotFound, string.Format(Strings.DeprecatePackage_MissingRegistration, id));
@@ -237,14 +216,7 @@ namespace NuGetGallery.Controllers
 
                 // Act
                 var result = await controller.Deprecate(
-                    id: id,
-                    versions: new[] { "1.0.0" },
-                    isLegacy: false,
-                    hasCriticalBugs: false,
-                    isOther: false,
-                    alternatePackageId: null,
-                    alternatePackageVersion: null,
-                    customMessage: null);
+                    CreateDeprecatePackageRequest(id, new[] { "1.0.0" }));
 
                 // Assert
                 AssertErrorResponse(controller, result, HttpStatusCode.Forbidden, Strings.DeprecatePackage_Forbidden);
@@ -305,14 +277,7 @@ namespace NuGetGallery.Controllers
 
                 // Act
                 var result = await controller.Deprecate(
-                    id: id,
-                    versions: new[] { "1.0.0" },
-                    isLegacy: false,
-                    hasCriticalBugs: false,
-                    isOther: false,
-                    alternatePackageId: null,
-                    alternatePackageVersion: null,
-                    customMessage: null);
+                    CreateDeprecatePackageRequest(id, new[] { "1.0.0" }));
 
                 // Assert
                 AssertErrorResponse(controller, result, HttpStatusCode.Forbidden, Strings.DeprecatePackage_Forbidden);
@@ -387,14 +352,7 @@ namespace NuGetGallery.Controllers
 
                 // Act
                 var result = await controller.Deprecate(
-                    id: id,
-                    versions: new[] { "1.0.0" },
-                    isLegacy: false,
-                    hasCriticalBugs: false,
-                    isOther: false,
-                    alternatePackageId: null,
-                    alternatePackageVersion: null,
-                    customMessage: null);
+                    CreateDeprecatePackageRequest(id, new[] { "1.0.0" }));
 
                 // Assert
                 AssertErrorResponse(
@@ -403,6 +361,52 @@ namespace NuGetGallery.Controllers
                     HttpStatusCode.Forbidden,
                     string.Format(Strings.DeprecatePackage_Locked, id));
                 featureFlagService.Verify();
+                packageService.Verify();
+            }
+
+            [Theory]
+            [MemberData(nameof(Owner_Data))]
+            public async Task ReturnsBadRequestIfLongCustomMessage(User currentUser, User owner)
+            {
+                // Arrange
+                var id = "id";
+
+                var registration = new PackageRegistration
+                {
+                    Id = id
+                };
+
+                registration.Owners.Add(owner);
+
+                var package = new Package
+                {
+                    PackageRegistration = registration
+                };
+
+                var packageService = GetMock<IPackageService>();
+                packageService
+                    .Setup(x => x.FindPackagesById(id, PackageDeprecationFieldsToInclude.DeprecationAndRelationships))
+                    .Returns(new[] { package })
+                    .Verifiable();
+
+                var controller = GetController<ManageDeprecationJsonApiController>();
+                controller.SetCurrentUser(currentUser);
+
+                var customMessage = new string('a', 4001);
+
+                // Act
+                var result = await controller.Deprecate(
+                    CreateDeprecatePackageRequest(
+                        id,
+                        new[] { "1.0.0" },
+                        customMessage: customMessage));
+
+                // Assert
+                AssertErrorResponse(
+                    controller,
+                    result,
+                    HttpStatusCode.BadRequest,
+                    string.Format(Strings.DeprecatePackage_CustomMessageTooLong, 4000));
                 packageService.Verify();
             }
 
@@ -448,14 +452,10 @@ namespace NuGetGallery.Controllers
 
                 // Act
                 var result = await controller.Deprecate(
-                    id: id,
-                    versions: new[] { "1.0.0" },
-                    isLegacy: false,
-                    hasCriticalBugs: false,
-                    isOther: false,
-                    alternatePackageId: alternatePackageId,
-                    alternatePackageVersion: null,
-                    customMessage: null);
+                    CreateDeprecatePackageRequest(
+                        id, 
+                        new[] { "1.0.0" }, 
+                        alternatePackageId: alternatePackageId));
 
                 // Assert
                 AssertErrorResponse(
@@ -510,14 +510,11 @@ namespace NuGetGallery.Controllers
 
                 // Act
                 var result = await controller.Deprecate(
-                    id: id,
-                    versions: new[] { "1.0.0" },
-                    isLegacy: false,
-                    hasCriticalBugs: false,
-                    isOther: false,
-                    alternatePackageId: alternatePackageId,
-                    alternatePackageVersion: alternatePackageVersion,
-                    customMessage: null);
+                    CreateDeprecatePackageRequest(
+                        id, 
+                        new[] { "1.0.0" }, 
+                        alternatePackageId: alternatePackageId, 
+                        alternatePackageVersion: alternatePackageVersion));
 
                 // Assert
                 AssertErrorResponse(
@@ -566,14 +563,7 @@ namespace NuGetGallery.Controllers
 
                 // Act
                 var result = await controller.Deprecate(
-                    id: id,
-                    versions: new[] { "1.0.0" },
-                    isLegacy: false,
-                    hasCriticalBugs: false,
-                    isOther: false,
-                    alternatePackageId: null,
-                    alternatePackageVersion: null,
-                    customMessage: null);
+                    CreateDeprecatePackageRequest(id, new[] { "1.0.0" }));
 
                 // Assert
                 AssertErrorResponse(
@@ -622,14 +612,7 @@ namespace NuGetGallery.Controllers
 
                 // Act
                 var result = await controller.Deprecate(
-                    id: id,
-                    versions: new[] { "1.0.0" },
-                    isLegacy: false,
-                    hasCriticalBugs: false,
-                    isOther: false,
-                    alternatePackageId: null,
-                    alternatePackageVersion: null,
-                    customMessage: null);
+                    CreateDeprecatePackageRequest(id, new[] { "1.0.0" }));
 
                 // Assert
                 AssertErrorResponse(
@@ -822,7 +805,8 @@ namespace NuGetGallery.Controllers
 
                 var deprecationService = GetMock<IPackageDeprecationService>();
 
-                var customMessage = hasCustomMessage ? "message" : null;
+                var customMessage = hasCustomMessage ? "<message>" : null;
+                var encodedCustomMessage = hasCustomMessage ? "&lt;message&gt;" : null;
 
                 deprecationService
                     .Setup(x => x.UpdateDeprecation(
@@ -830,7 +814,7 @@ namespace NuGetGallery.Controllers
                         expectedStatus,
                         alternatePackageState == ReturnsSuccessful_AlternatePackage_State.Registration ? alternatePackageRegistration : null,
                         alternatePackageState == ReturnsSuccessful_AlternatePackage_State.Package ? alternatePackage : null,
-                        customMessage,
+                        encodedCustomMessage,
                         currentUser))
                     .Completes()
                     .Verifiable();
@@ -842,14 +826,15 @@ namespace NuGetGallery.Controllers
 
                 // Act
                 var result = await controller.Deprecate(
-                    id,
-                    packageNormalizedVersions,
-                    isLegacy,
-                    hasCriticalBugs,
-                    isOther,
-                    alternatePackageId,
-                    alternatePackageVersion,
-                    customMessage);
+                    CreateDeprecatePackageRequest(
+                        id,
+                        packageNormalizedVersions,
+                        isLegacy,
+                        hasCriticalBugs,
+                        isOther,
+                        alternatePackageId,
+                        alternatePackageVersion,
+                        customMessage));
 
                 // Assert
                 AssertSuccessResponse(controller);
@@ -870,6 +855,29 @@ namespace NuGetGallery.Controllers
                 HttpStatusCode code)
             {
                 Assert.Equal((int)code, controller.Response.StatusCode);
+            }
+
+            private static DeprecatePackageRequest CreateDeprecatePackageRequest(
+                string id = null,
+                IEnumerable<string> versions = null,
+                bool isLegacy = false,
+                bool hasCriticalBugs = false,
+                bool isOther = false,
+                string alternatePackageId = null,
+                string alternatePackageVersion = null,
+                string customMessage = null)
+            {
+                return new DeprecatePackageRequest
+                {
+                    Id = id,
+                    Versions = versions,
+                    IsLegacy = isLegacy,
+                    HasCriticalBugs = hasCriticalBugs,
+                    IsOther = isOther,
+                    AlternatePackageId = alternatePackageId,
+                    AlternatePackageVersion = alternatePackageVersion,
+                    CustomMessage = customMessage
+                };
             }
         }
     }
