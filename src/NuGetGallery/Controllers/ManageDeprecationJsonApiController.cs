@@ -81,12 +81,6 @@ namespace NuGetGallery
                 status |= PackageDeprecationStatus.Other;
             }
 
-            var currentUser = GetCurrentUser();
-            if (!_featureFlagService.IsManageDeprecationEnabled(GetCurrentUser()))
-            {
-                return DeprecateErrorResponse(HttpStatusCode.Forbidden, Strings.DeprecatePackage_Forbidden);
-            }
-
             if (versions == null || !versions.Any())
             {
                 return DeprecateErrorResponse(HttpStatusCode.BadRequest, Strings.DeprecatePackage_NoVersions);
@@ -100,6 +94,12 @@ namespace NuGetGallery
                 return DeprecateErrorResponse(
                     HttpStatusCode.NotFound,
                     string.Format(Strings.DeprecatePackage_MissingRegistration, id));
+            }
+
+            var currentUser = GetCurrentUser();
+            if (!_featureFlagService.IsManageDeprecationEnabled(GetCurrentUser(), registration))
+            {
+                return DeprecateErrorResponse(HttpStatusCode.Forbidden, Strings.DeprecatePackage_Forbidden);
             }
 
             if (ActionsRequiringPermissions.DeprecatePackage.CheckPermissionsOnBehalfOfAnyAccount(currentUser, registration) != PermissionsCheckResult.Allowed)

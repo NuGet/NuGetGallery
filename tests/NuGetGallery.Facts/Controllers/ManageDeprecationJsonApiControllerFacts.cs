@@ -130,37 +130,6 @@ namespace NuGetGallery.Controllers
                 AssertErrorResponse(controller, result, HttpStatusCode.BadRequest, Strings.DeprecatePackage_CustomMessageRequired);
             }
 
-            [Fact]
-            public async Task ReturnsForbiddenIfFeatureFlagDisabled()
-            {
-                // Arrange
-                var currentUser = TestUtility.FakeUser;
-
-                var featureFlagService = GetMock<IFeatureFlagService>();
-                featureFlagService
-                    .Setup(x => x.IsManageDeprecationEnabled(currentUser))
-                    .Returns(false)
-                    .Verifiable();
-
-                var controller = GetController<ManageDeprecationJsonApiController>();
-                controller.SetCurrentUser(currentUser);
-
-                // Act
-                var result = await controller.Deprecate(
-                    id: "id",
-                    versions: null,
-                    isLegacy: false,
-                    hasCriticalBugs: false,
-                    isOther: false,
-                    alternatePackageId: null,
-                    alternatePackageVersion: null,
-                    customMessage: null);
-
-                // Assert
-                AssertErrorResponse(controller, result, HttpStatusCode.Forbidden, Strings.DeprecatePackage_Forbidden);
-                featureFlagService.Verify();
-            }
-
             public static IEnumerable<object[]> ReturnsBadRequestIfNoVersions_Data =
                 MemberDataHelper.AsDataSet(null, new string[0]);
 
@@ -170,12 +139,6 @@ namespace NuGetGallery.Controllers
             {
                 // Arrange
                 var currentUser = TestUtility.FakeUser;
-
-                var featureFlagService = GetMock<IFeatureFlagService>();
-                featureFlagService
-                    .Setup(x => x.IsManageDeprecationEnabled(currentUser))
-                    .Returns(true)
-                    .Verifiable();
 
                 var controller = GetController<ManageDeprecationJsonApiController>();
                 controller.SetCurrentUser(currentUser);
@@ -193,7 +156,6 @@ namespace NuGetGallery.Controllers
 
                 // Assert
                 AssertErrorResponse(controller, result, HttpStatusCode.BadRequest, Strings.DeprecatePackage_NoVersions);
-                featureFlagService.Verify();
             }
 
             public static IEnumerable<object[]> ReturnsNotFoundIfNoPackagesOrRegistrationMissing_Data
@@ -214,12 +176,6 @@ namespace NuGetGallery.Controllers
                 // Arrange
                 var id = "id";
                 var currentUser = TestUtility.FakeUser;
-
-                var featureFlagService = GetMock<IFeatureFlagService>();
-                featureFlagService
-                    .Setup(x => x.IsManageDeprecationEnabled(currentUser))
-                    .Returns(true)
-                    .Verifiable();
 
                 var packageService = GetMock<IPackageService>();
                 packageService
@@ -243,8 +199,56 @@ namespace NuGetGallery.Controllers
 
                 // Assert
                 AssertErrorResponse(controller, result, HttpStatusCode.NotFound, string.Format(Strings.DeprecatePackage_MissingRegistration, id));
-                featureFlagService.Verify();
                 packageService.Verify();
+            }
+
+
+            [Fact]
+            public async Task ReturnsForbiddenIfFeatureFlagDisabled()
+            {
+                // Arrange
+                var id = "id";
+                var currentUser = TestUtility.FakeUser;
+
+                var registration = new PackageRegistration
+                {
+                    Id = id
+                };
+
+                var package = new Package
+                {
+                    PackageRegistration = registration
+                };
+
+                var packageService = GetMock<IPackageService>();
+                packageService
+                    .Setup(x => x.FindPackagesById(id, PackageDeprecationFieldsToInclude.DeprecationAndRelationships))
+                    .Returns(new[] { package })
+                    .Verifiable();
+
+                var featureFlagService = GetMock<IFeatureFlagService>();
+                featureFlagService
+                    .Setup(x => x.IsManageDeprecationEnabled(currentUser, registration))
+                    .Returns(false)
+                    .Verifiable();
+
+                var controller = GetController<ManageDeprecationJsonApiController>();
+                controller.SetCurrentUser(currentUser);
+
+                // Act
+                var result = await controller.Deprecate(
+                    id: id,
+                    versions: new[] { "1.0.0" },
+                    isLegacy: false,
+                    hasCriticalBugs: false,
+                    isOther: false,
+                    alternatePackageId: null,
+                    alternatePackageVersion: null,
+                    customMessage: null);
+
+                // Assert
+                AssertErrorResponse(controller, result, HttpStatusCode.Forbidden, Strings.DeprecatePackage_Forbidden);
+                featureFlagService.Verify();
             }
 
             public static IEnumerable<object[]> NotOwner_Data
@@ -272,16 +276,16 @@ namespace NuGetGallery.Controllers
                 // Arrange
                 var id = "id";
 
-                var featureFlagService = GetMock<IFeatureFlagService>();
-                featureFlagService
-                    .Setup(x => x.IsManageDeprecationEnabled(currentUser))
-                    .Returns(true)
-                    .Verifiable();
-
                 var registration = new PackageRegistration
                 {
                     Id = id
                 };
+
+                var featureFlagService = GetMock<IFeatureFlagService>();
+                featureFlagService
+                    .Setup(x => x.IsManageDeprecationEnabled(currentUser, registration))
+                    .Returns(true)
+                    .Verifiable();
 
                 registration.Owners.Add(owner);
 
@@ -353,17 +357,17 @@ namespace NuGetGallery.Controllers
                 // Arrange
                 var id = "id";
 
-                var featureFlagService = GetMock<IFeatureFlagService>();
-                featureFlagService
-                    .Setup(x => x.IsManageDeprecationEnabled(currentUser))
-                    .Returns(true)
-                    .Verifiable();
-
                 var registration = new PackageRegistration
                 {
                     Id = id,
                     IsLocked = true
                 };
+
+                var featureFlagService = GetMock<IFeatureFlagService>();
+                featureFlagService
+                    .Setup(x => x.IsManageDeprecationEnabled(currentUser, registration))
+                    .Returns(true)
+                    .Verifiable();
 
                 registration.Owners.Add(owner);
 
@@ -409,16 +413,16 @@ namespace NuGetGallery.Controllers
                 // Arrange
                 var id = "id";
 
-                var featureFlagService = GetMock<IFeatureFlagService>();
-                featureFlagService
-                    .Setup(x => x.IsManageDeprecationEnabled(currentUser))
-                    .Returns(true)
-                    .Verifiable();
-
                 var registration = new PackageRegistration
                 {
                     Id = id
                 };
+
+                var featureFlagService = GetMock<IFeatureFlagService>();
+                featureFlagService
+                    .Setup(x => x.IsManageDeprecationEnabled(currentUser, registration))
+                    .Returns(true)
+                    .Verifiable();
 
                 registration.Owners.Add(owner);
 
@@ -470,16 +474,16 @@ namespace NuGetGallery.Controllers
                 // Arrange
                 var id = "id";
 
-                var featureFlagService = GetMock<IFeatureFlagService>();
-                featureFlagService
-                    .Setup(x => x.IsManageDeprecationEnabled(currentUser))
-                    .Returns(true)
-                    .Verifiable();
-
                 var registration = new PackageRegistration
                 {
                     Id = id
                 };
+
+                var featureFlagService = GetMock<IFeatureFlagService>();
+                featureFlagService
+                    .Setup(x => x.IsManageDeprecationEnabled(currentUser, registration))
+                    .Returns(true)
+                    .Verifiable();
 
                 registration.Owners.Add(owner);
 
@@ -532,16 +536,16 @@ namespace NuGetGallery.Controllers
                 // Arrange
                 var id = "id";
 
-                var featureFlagService = GetMock<IFeatureFlagService>();
-                featureFlagService
-                    .Setup(x => x.IsManageDeprecationEnabled(currentUser))
-                    .Returns(true)
-                    .Verifiable();
-
                 var registration = new PackageRegistration
                 {
                     Id = id
                 };
+
+                var featureFlagService = GetMock<IFeatureFlagService>();
+                featureFlagService
+                    .Setup(x => x.IsManageDeprecationEnabled(currentUser, registration))
+                    .Returns(true)
+                    .Verifiable();
 
                 registration.Owners.Add(owner);
 
@@ -588,16 +592,16 @@ namespace NuGetGallery.Controllers
                 // Arrange
                 var id = "id";
 
-                var featureFlagService = GetMock<IFeatureFlagService>();
-                featureFlagService
-                    .Setup(x => x.IsManageDeprecationEnabled(currentUser))
-                    .Returns(true)
-                    .Verifiable();
-
                 var registration = new PackageRegistration
                 {
                     Id = id
                 };
+
+                var featureFlagService = GetMock<IFeatureFlagService>();
+                featureFlagService
+                    .Setup(x => x.IsManageDeprecationEnabled(currentUser, registration))
+                    .Returns(true)
+                    .Verifiable();
 
                 registration.Owners.Add(owner);
 
@@ -750,16 +754,16 @@ namespace NuGetGallery.Controllers
                 // Arrange
                 var id = "id";
 
-                var featureFlagService = GetMock<IFeatureFlagService>();
-                featureFlagService
-                    .Setup(x => x.IsManageDeprecationEnabled(currentUser))
-                    .Returns(true)
-                    .Verifiable();
-
                 var registration = new PackageRegistration
                 {
                     Id = id
                 };
+
+                var featureFlagService = GetMock<IFeatureFlagService>();
+                featureFlagService
+                    .Setup(x => x.IsManageDeprecationEnabled(currentUser, registration))
+                    .Returns(true)
+                    .Verifiable();
 
                 registration.Owners.Add(owner);
 

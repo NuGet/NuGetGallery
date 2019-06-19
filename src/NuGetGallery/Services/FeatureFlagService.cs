@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
 using NuGet.Services.Entities;
 using NuGet.Services.FeatureFlags;
 using NuGetGallery.Features;
@@ -22,6 +23,7 @@ namespace NuGetGallery
         private const string PackagesAtomFeedFeatureName = GalleryPrefix + "PackagesAtomFeed";
 
         private const string ManageDeprecationFeatureName = GalleryPrefix + "ManageDeprecation";
+        private const string ManageDeprecationForManyVersionsFeatureName = GalleryPrefix + "ManageDeprecationMany";
         private const string ODataReadOnlyDatabaseFeatureName = GalleryPrefix + "ODataReadOnlyDatabase";
 
         private readonly IFeatureFlagClient _client;
@@ -46,9 +48,17 @@ namespace NuGetGallery
             return _client.IsEnabled(PackagesAtomFeedFeatureName, defaultValue: false);
         }
 
-        public bool IsManageDeprecationEnabled(User user)
+        /// <summary>
+        /// The number of versions a package needs to have before it should be flighted using <see cref="ManageDeprecationForManyVersionsFeatureName"/> instead of <see cref="ManageDeprecationFeatureName"/>.
+        /// </summary>
+        private const int _manageDeprecationForManyVersionsThreshold = 500;
+
+        public bool IsManageDeprecationEnabled(User user, PackageRegistration registration)
         {
-            return _client.IsEnabled(ManageDeprecationFeatureName, user, defaultValue: false);
+            var isEnabled = _client.IsEnabled(ManageDeprecationFeatureName, user, defaultValue: false);
+            return registration.Packages.Count() > _manageDeprecationForManyVersionsThreshold
+                ? _client.IsEnabled(ManageDeprecationForManyVersionsFeatureName, user, defaultValue: isEnabled)
+                : isEnabled;
         }
 
         public bool AreEmbeddedIconsEnabled(User user)
