@@ -25,7 +25,8 @@ namespace Ng
     {
         private readonly string _baseAddress;
         private readonly Uri _galleryBaseAddress;
-
+        private readonly Uri _flatContainerBaseAddress;
+        private readonly string _flatContainerContainerName;
         private readonly IndexWriter _indexWriter;
         private readonly bool _commitEachBatch;
         private readonly TimeSpan? _commitTimeout;
@@ -40,6 +41,8 @@ namespace Ng
             TimeSpan? commitTimeout,
             string baseAddress,
             Uri galleryBaseAddress,
+            Uri flatContainerBaseAddress,
+            string flatContainerContainerName,
             ITelemetryService telemetryService,
             ILogger logger,
             Func<HttpMessageHandler> handlerFunc = null,
@@ -51,6 +54,8 @@ namespace Ng
             _commitTimeout = commitTimeout;
             _baseAddress = baseAddress;
             _galleryBaseAddress = galleryBaseAddress;
+            _flatContainerBaseAddress = flatContainerBaseAddress ?? throw new ArgumentNullException(nameof(flatContainerBaseAddress));
+            _flatContainerContainerName = flatContainerContainerName ?? throw new ArgumentNullException(nameof(flatContainerContainerName));
             _logger = logger;
         }
 
@@ -267,7 +272,7 @@ namespace Ng
 
             indexWriter.DeleteDocuments(CreateDeleteQuery(catalogItem));
 
-            var package = CatalogPackageMetadataExtraction.MakePackageMetadata(catalogItem, _galleryBaseAddress);
+            var package = CatalogPackageMetadataExtraction.MakePackageMetadata(catalogItem, _galleryBaseAddress, _flatContainerBaseAddress, _flatContainerContainerName);
             var document = DocumentCreator.CreateDocument(package);
             indexWriter.AddDocument(document);
         }

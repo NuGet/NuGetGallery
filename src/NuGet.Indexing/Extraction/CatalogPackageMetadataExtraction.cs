@@ -12,15 +12,35 @@ using NuGet.Packaging;
 using NuGet.Packaging.Core;
 using NuGet.Versioning;
 using NuGet.Services.Metadata.Catalog;
+using NuGet.Services.Metadata.Catalog.Registration;
 
 namespace NuGet.Indexing
 {
     public static class CatalogPackageMetadataExtraction
     {
-        public static IDictionary<string, string> MakePackageMetadata(JObject catalogItem, Uri galleryBaseAddress)
+        public static IDictionary<string, string> MakePackageMetadata(
+            JObject catalogItem,
+            Uri galleryBaseAddress,
+            Uri flatContainerBaseAddress,
+            string flatContainerContainerName)
         {
+            if (catalogItem == null)
+            {
+                throw new ArgumentNullException(nameof(catalogItem));
+            }
+
+            if (flatContainerBaseAddress == null)
+            {
+                throw new ArgumentNullException(nameof(flatContainerBaseAddress));
+            }
+
+            if (flatContainerContainerName == null)
+            {
+                throw new ArgumentNullException(nameof(flatContainerContainerName));
+            }
+
             var extractor = new Extractor();
-            return extractor.Extract(catalogItem, galleryBaseAddress);
+            return extractor.Extract(catalogItem, galleryBaseAddress, flatContainerBaseAddress, flatContainerContainerName);
         }
 
         private class Extractor
@@ -30,7 +50,7 @@ namespace NuGet.Indexing
             private Dictionary<string, string> _metadata;
             private Uri _galleryBaseAddress;
 
-            public IDictionary<string, string> Extract(JObject catalog, Uri galleryBaseAddress)
+            public IDictionary<string, string> Extract(JObject catalog, Uri galleryBaseAddress, Uri flatContainerBaseAddress, string flatContainerContainerName)
             {
                 _catalog = catalog;
                 _reader = new CatalogPackageReader(_catalog);
@@ -52,7 +72,6 @@ namespace NuGet.Indexing
                 AddString(MetadataConstants.PublishedPropertyName);
                 AddString(MetadataConstants.LastEditedPropertyName);
 
-                AddString(MetadataConstants.IconUrlPropertyName);
                 AddString(MetadataConstants.ProjectUrlPropertyName);
                 AddString(MetadataConstants.MinClientVersionPropertyName);
                 AddString(MetadataConstants.ReleaseNotesPropertyName);
@@ -64,10 +83,30 @@ namespace NuGet.Indexing
                 AddString(MetadataConstants.CatalogMetadata.RequiresLicenseAcceptancePropertyName, MetadataConstants.RequiresLicenseAcceptancePropertyName);
 
                 AddLicenseUrl();
+                AddIconUrl(flatContainerBaseAddress, flatContainerContainerName);
                 AddFlattenedDependencies();
                 AddSupportedFrameworks();
 
                 return _metadata;
+            }
+
+            private void AddIconUrl(Uri flatContainerBaseAddress, string flatContainerContainerName)
+            {
+                var iconFile = JTokenToString(_catalog[MetadataConstants.IconFilePropertyName]);
+                if (!string.IsNullOrWhiteSpace(iconFile))
+                {
+                    var packageId = JTokenToString(_catalog[MetadataConstants.IdPropertyName]);
+                    var packageVersion = JTokenToString(_catalog[MetadataConstants.NormalizedVersionPropertyName]);
+
+                    var pathProvider = new FlatContainerPackagePathProvider(flatContainerContainerName);
+                    var path = pathProvider.GetIconPath(packageId, packageVersion);
+                    var flatContainerIconUrl = new Uri(flatContainerBaseAddress, path);
+                    _metadata[MetadataConstants.IconUrlPropertyName] = flatContainerIconUrl.AbsoluteUri;
+                }
+                else
+                {
+                    AddString(MetadataConstants.IconUrlPropertyName);
+                }
             }
 
             private void AddLicenseUrl()

@@ -68,6 +68,7 @@ namespace Ng
         public const string CatalogBaseAddress = "catalogBaseAddress";
         public const string Registration = "registration";
         public const string CommitTimeoutInSeconds = "commitTimeoutInSeconds";
+        public const string FlatContainerBaseAddress = "flatContainerBaseAddress";
         #endregion
 
         #region Catalog2Registration

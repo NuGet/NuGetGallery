@@ -11,6 +11,7 @@ using Lucene.Net.Index;
 using Microsoft.Extensions.Logging;
 using NuGet.Indexing;
 using NuGet.Services.Configuration;
+using NuGet.Services.Entities;
 using NuGet.Services.Metadata.Catalog;
 
 namespace Ng.Jobs
@@ -24,6 +25,8 @@ namespace Ng.Jobs
         private string _catalogBaseAddress;
         private string _storageBaseAddress;
         private string _galleryBaseAddress;
+        private Uri _flatContainerBaseAddress;
+        private string _flatContainerContainerName;
         private TimeSpan? _commitTimeout;
         private Func<HttpMessageHandler> _handlerFunc;
         private string _destination;
@@ -51,7 +54,9 @@ namespace Ng.Jobs
                    + $"[-{Arguments.ValidateCertificate} true|false]]] "
                    + $"[-{Arguments.Verbose} true|false] "
                    + $"[-{Arguments.Interval} <seconds>] "
-                   + $"[-{Arguments.GalleryBaseAddress} <gallery-base-address>]";
+                   + $"[-{Arguments.GalleryBaseAddress} <gallery-base-address>] "
+                   + $"-{Arguments.FlatContainerBaseAddress} <flat-container-base-adress> "
+                   + $"-{Arguments.FlatContainerName} <flat-container-container-name>";
         }
 
         protected override void Init(IDictionary<string, string> arguments, CancellationToken cancellationToken)
@@ -74,6 +79,18 @@ namespace Ng.Jobs
 
             _storageBaseAddress = arguments.GetOrDefault<string>(Arguments.StorageBaseAddress);
             _galleryBaseAddress = arguments.GetOrDefault<string>(Arguments.GalleryBaseAddress);
+            _flatContainerBaseAddress = arguments.GetOrThrow<Uri>(Arguments.FlatContainerBaseAddress);
+            _flatContainerContainerName = arguments.GetOrThrow<string>(Arguments.FlatContainerName);
+
+            if (!_flatContainerBaseAddress.IsAbsoluteUri)
+            {
+                throw new InvalidOperationException($"{Arguments.FlatContainerBaseAddress} value is not an absolute URL: '{_flatContainerBaseAddress}'");
+            }
+
+            if (_flatContainerBaseAddress.Scheme != Uri.UriSchemeHttps)
+            {
+                throw new InvalidOperationException($"Only https scheme is supported for {Arguments.FlatContainerBaseAddress}");
+            }
 
             var commitTimeoutInSeconds = arguments.GetOrDefault<int?>(Arguments.CommitTimeoutInSeconds);
             if (commitTimeoutInSeconds.HasValue)
@@ -85,14 +102,16 @@ namespace Ng.Jobs
                 _commitTimeout = null;
             }
 
-            Logger.LogInformation("CONFIG source: \"{ConfigSource}\" registration: \"{Registration}\"" +
-                                   " catalogBaseAddress: \"{CatalogBaseAddress}\" storageBaseAddress: \"{StorageBaseAddress}\" commitTimeout: \"{CommmitTimeout}\"",
+            Logger.LogInformation("CONFIG source: {ConfigSource} registration: {Registration}" +
+                                   " catalogBaseAddress: {CatalogBaseAddress} storageBaseAddress: {StorageBaseAddress} commitTimeout: {CommmitTimeout}" +
+                                   " flatContainerBaseAddress: {FlatContainerBaseAddress}",
                                    _source,
                                    _registration ?? "(null)",
                                    _catalogBaseAddress ?? "(null)",
                                    _storageBaseAddress ?? "(null)",
                                    _galleryBaseAddress ?? "(null)",
-                                   _commitTimeout?.ToString() ?? "(null)");
+                                   _commitTimeout?.ToString() ?? "(null)",
+                                   _flatContainerBaseAddress);
 
             _handlerFunc = CommandHelpers.GetHttpMessageHandlerFactory(
                 TelemetryService,
@@ -117,6 +136,8 @@ namespace Ng.Jobs
                     commitTimeout: _commitTimeout,
                     baseAddress: _catalogBaseAddress,
                     galleryBaseAddress: _galleryBaseAddress == null ? null : new Uri(_galleryBaseAddress),
+                    flatContainerBaseAddress: _flatContainerBaseAddress,
+                    flatContainerContainerName: _flatContainerContainerName,
                     telemetryService: TelemetryService,
                     logger: Logger,
                     handlerFunc: _handlerFunc);
