@@ -55,7 +55,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 x => x.BackupPackageFileFromValidationSetPackageAsync(It.IsAny<PackageValidationSet>()),
                 Times.Never);
             TelemetryServiceMock.Verify(
-                x => x.TrackDurationToValidationSetCreation(It.IsAny<TimeSpan>()),
+                x => x.TrackDurationToValidationSetCreation(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<TimeSpan>()),
                 Times.Never);
         }
 
@@ -377,7 +377,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 x => x.CopyValidationPackageForValidationSetAsync(returnedSet),
                 Times.Once);
             TelemetryServiceMock.Verify(
-                x => x.TrackDurationToValidationSetCreation(createdSet.Created - Package.Created),
+                x => x.TrackDurationToValidationSetCreation(createdSet.PackageId, createdSet.PackageNormalizedVersion, createdSet.ValidationTrackingId, createdSet.Created - Package.Created),
                 Times.Once);
         }
 
@@ -466,7 +466,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 x => x.CopyValidationPackageForValidationSetAsync(returnedSet),
                 Times.Once);
             TelemetryServiceMock.Verify(
-                x => x.TrackDurationToValidationSetCreation(createdSet.Created - Package.Created),
+                x => x.TrackDurationToValidationSetCreation(createdSet.PackageId, createdSet.PackageNormalizedVersion, createdSet.ValidationTrackingId, createdSet.Created - Package.Created),
                 Times.Once);
         }
 
@@ -519,7 +519,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 .Verify(vs => vs.CreateValidationSetAsync(It.IsAny<PackageValidationSet>()), Times.Once);
 
             TelemetryServiceMock.Verify(
-                x => x.TrackDurationToValidationSetCreation(It.IsAny<TimeSpan>()),
+                x => x.TrackDurationToValidationSetCreation(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<TimeSpan>()),
                 Times.Never);
         }
 

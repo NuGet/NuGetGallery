@@ -357,8 +357,8 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 // Arrange
                 TimeSpan duration = default(TimeSpan);
                 _telemetryService
-                    .Setup(x => x.TrackValidatorDuration(It.IsAny<TimeSpan>(), It.IsAny<string>(), It.IsAny<bool>()))
-                    .Callback<TimeSpan, string, bool>((d, _, __) => duration = d);
+                    .Setup(x => x.TrackValidatorDuration(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<TimeSpan>(), It.IsAny<string>(), It.IsAny<bool>()))
+                    .Callback<string, string, Guid, TimeSpan, string, bool>((_1, _2, _3, d, _, __) => duration = d);
 
                 var validationResult = new ValidationResult(
                     toStatus,
@@ -375,17 +375,18 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 var after = DateTime.UtcNow;
 
                 // Assert
+                var validationSet = _packageValidation.PackageValidationSet;
                 _telemetryService.Verify(
-                    x => x.TrackValidatorDuration(It.IsAny<TimeSpan>(), _validatorType, isSuccess),
+                    x => x.TrackValidatorDuration(validationSet.PackageId, validationSet.PackageNormalizedVersion, validationSet.ValidationTrackingId, It.IsAny<TimeSpan>(), _validatorType, isSuccess),
                     Times.Once);
                 Assert.InRange(duration, before - _packageValidation.Started.Value, after - _packageValidation.Started.Value);
 
-                _telemetryService.Verify(x => x.TrackValidationIssueCount(3, _validatorType, isSuccess), Times.Once);
-                _telemetryService.Verify(x => x.TrackValidationIssue(_validatorType, ValidationIssueCode.PackageIsSigned));
-                _telemetryService.Verify(x => x.TrackValidationIssue(_validatorType, ValidationIssueCode.ClientSigningVerificationFailure));
-                _telemetryService.Verify(x => x.TrackValidationIssue(_validatorType, ValidationIssueCode.ClientSigningVerificationFailure));
-                _telemetryService.Verify(x => x.TrackClientValidationIssue(_validatorType, "NU3000"), Times.Once);
-                _telemetryService.Verify(x => x.TrackClientValidationIssue(_validatorType, "NU3001"), Times.Once);
+                _telemetryService.Verify(x => x.TrackValidationIssueCount(validationSet.PackageId, validationSet.PackageNormalizedVersion, validationSet.ValidationTrackingId, 3, _validatorType, isSuccess), Times.Once);
+                _telemetryService.Verify(x => x.TrackValidationIssue(validationSet.PackageId, validationSet.PackageNormalizedVersion, validationSet.ValidationTrackingId, _validatorType, ValidationIssueCode.PackageIsSigned));
+                _telemetryService.Verify(x => x.TrackValidationIssue(validationSet.PackageId, validationSet.PackageNormalizedVersion, validationSet.ValidationTrackingId, _validatorType, ValidationIssueCode.ClientSigningVerificationFailure));
+                _telemetryService.Verify(x => x.TrackValidationIssue(validationSet.PackageId, validationSet.PackageNormalizedVersion, validationSet.ValidationTrackingId, _validatorType, ValidationIssueCode.ClientSigningVerificationFailure));
+                _telemetryService.Verify(x => x.TrackClientValidationIssue(validationSet.PackageId, validationSet.PackageNormalizedVersion, validationSet.ValidationTrackingId, _validatorType, "NU3000"), Times.Once);
+                _telemetryService.Verify(x => x.TrackClientValidationIssue(validationSet.PackageId, validationSet.PackageNormalizedVersion, validationSet.ValidationTrackingId, _validatorType, "NU3001"), Times.Once);
             }
 
             [Fact]
@@ -400,8 +401,9 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 await ExecuteAsync(validationResult);
 
                 // Assert
+                var validationSet = _packageValidation.PackageValidationSet;
                 _telemetryService.Verify(
-                    x => x.TrackValidatorDuration(TimeSpan.Zero, _validatorType, false),
+                    x => x.TrackValidatorDuration(validationSet.PackageId, validationSet.PackageNormalizedVersion, validationSet.ValidationTrackingId, TimeSpan.Zero, _validatorType, false),
                     Times.Once);
             }
 

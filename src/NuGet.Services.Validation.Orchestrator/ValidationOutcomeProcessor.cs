@@ -133,10 +133,10 @@ namespace NuGet.Services.Validation.Orchestrator
                 {
                     await ScheduleCheckIfNotTimedOut(validationSet, validatingEntity, tooLongNotificationAllowed: false);
                 }
-                else
-                {
-                    await _packageFileService.DeletePackageForValidationSetAsync(validationSet);
-                }
+
+                // TODO: implement delayed cleanup that would allow internal services
+                // to access original packages for some time after package become available:
+                // https://github.com/NuGet/Engineering/issues/2506
             }
             else
             {
@@ -174,6 +174,9 @@ namespace NuGet.Services.Validation.Orchestrator
         private void TrackTotalValidationDuration(PackageValidationSet validationSet, bool isSuccess)
         {
             _telemetryService.TrackTotalValidationDuration(
+                validationSet.PackageId,
+                validationSet.PackageNormalizedVersion,
+                validationSet.ValidationTrackingId,
                 DateTime.UtcNow - validationSet.Created,
                 isSuccess);
         }
@@ -266,7 +269,7 @@ namespace NuGet.Services.Validation.Orchestrator
                         validationSet.PackageNormalizedVersion,
                         duration);
 
-                    _telemetryService.TrackValidatorTimeout(validation.Type);
+                    _telemetryService.TrackValidatorTimeout(validationSet.PackageId, validationSet.PackageNormalizedVersion, validationSet.ValidationTrackingId, validation.Type);
                 }
             }
 

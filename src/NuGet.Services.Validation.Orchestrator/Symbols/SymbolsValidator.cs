@@ -84,7 +84,7 @@ namespace NuGet.Services.Validation.Symbols
 
             // Due to race conditions or failure of method TryAddValidatorStatusAsync the same message can be enqueued multiple times
             // Log this information to postmortem evaluate this behavior
-            _telemetryService.TrackSymbolsMessageEnqueued(ValidatorName.SymbolsValidator, request.ValidationId);
+            _telemetryService.TrackSymbolsMessageEnqueued(request.PackageId, request.PackageVersion, ValidatorName.SymbolsValidator, request.ValidationId);
             await _symbolMessageEnqueuer.EnqueueSymbolsValidationMessageAsync(request);
 
             var result = await _validatorStateService.TryAddValidatorStatusAsync(request, validatorStatus, ValidationStatus.Incomplete);

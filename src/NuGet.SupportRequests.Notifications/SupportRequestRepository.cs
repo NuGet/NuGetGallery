@@ -48,21 +48,15 @@ namespace NuGet.SupportRequests.Notifications
         }
 
         internal async Task<List<SupportRequest>> GetUnresolvedIssues(
-            SqlConnection connection,
-            string onCallPagerDutyUserName = null)
+            SqlConnection connection)
         {
             connection = await EnsureConnectionOpenAsync(connection);
 
             var unresolvedIssues = new List<SupportRequest>();
 
             // Get unresolved issues
-            var query = SqlQuery.GetUnresolvedIssues(onCallPagerDutyUserName);
+            var query = SqlQuery.GetUnresolvedIssues;
             var sqlCommand = new SqlCommand(query, connection);
-
-            if (!string.IsNullOrEmpty(onCallPagerDutyUserName))
-            {
-                sqlCommand.Parameters.AddWithValue(_parameterNamePagerDutyUsername, onCallPagerDutyUserName);
-            }
 
             using (var sqlDataReader = await sqlCommand.ExecuteReaderAsync())
             {
@@ -76,9 +70,8 @@ namespace NuGet.SupportRequests.Notifications
                     supportRequest.OwnerEmail = sqlDataReader.GetString(4);
                     supportRequest.Reason = sqlDataReader.GetString(5);
                     supportRequest.PackageRegistrationKey = sqlDataReader.IsDBNull(6) ? (int?)null : sqlDataReader.GetInt32(6);
-                    supportRequest.AdminPagerDutyUsername = sqlDataReader.GetString(7);
-                    supportRequest.AdminGalleryUsername = sqlDataReader.GetString(8);
-                    supportRequest.IssueStatus = sqlDataReader.GetInt32(9);
+                    supportRequest.AdminGalleryUsername = sqlDataReader.GetString(7);
+                    supportRequest.IssueStatus = sqlDataReader.GetInt32(8);
 
                     unresolvedIssues.Add(supportRequest);
                 }

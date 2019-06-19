@@ -63,6 +63,10 @@
       <Project>{a245e448-8ae0-452b-9338-8c0e0b637d72}</Project>
       <Name>Validation.PackageSigning.ValidateCertificate</Name>
     </ProjectReference>
+    <ProjectReference Include="..\TestUtil\TestUtil.csproj">
+      <Project>{c3f84bad-acfa-4ae3-8286-d12f5a5bbc62}</Project>
+      <Name>TestUtil</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Validation.PackageSigning.Core.Tests\Validation.PackageSigning.Core.Tests.csproj">
       <Project>{B4B7564A-965B-447B-927F-6749E2C08880}</Project>
       <Name>Validation.PackageSigning.Core.Tests</Name>
@@ -75,9 +79,6 @@
   <ItemGroup>
     <PackageReference Include="moq">
       <Version>4.7.145</Version>
-    </PackageReference>
-    <PackageReference Include="System.Net.Http">
-      <Version>4.3.3</Version>
     </PackageReference>
     <PackageReference Include="xunit">
       <Version>2.3.1</Version>

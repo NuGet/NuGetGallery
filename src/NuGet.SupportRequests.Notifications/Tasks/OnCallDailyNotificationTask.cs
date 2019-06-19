@@ -17,8 +17,6 @@ namespace NuGet.SupportRequests.Notifications.Tasks
     internal class OnCallDailyNotificationTask
       : SupportRequestsNotificationScheduledTask<OnCallDailyNotification>
     {
-        private const string _argumentNamePagerDutyAccountName = "PagerDutyAccountName";
-        private const string _argumentNamePagerDutyApiKey = "PagerDutyApiKey";
         private const string _targetEmailAddressFormat = "{0}@microsoft.com";
         private readonly PagerDutyClient _pagerDutyClient;
 
@@ -46,7 +44,7 @@ namespace NuGet.SupportRequests.Notifications.Tasks
             List<SupportRequest> unresolvedIssues;
             using (var connection = await supportRequestRepository.OpenConnectionAsync())
             {
-                unresolvedIssues = await supportRequestRepository.GetUnresolvedIssues(connection, onCallAlias);
+                unresolvedIssues = await supportRequestRepository.GetUnresolvedIssues(connection);
             }
 
             return new OnCallDailyNotification(referenceTime, unresolvedIssues, targetEmailAddress);

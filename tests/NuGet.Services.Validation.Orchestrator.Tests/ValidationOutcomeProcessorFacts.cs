@@ -29,10 +29,6 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             PackageStateProcessorMock.Verify(
                 x => x.SetStatusAsync(PackageValidatingEntity, ValidationSet, expectedPackageStatus),
                 Times.Once);
-            PackageFileServiceMock.Verify(
-                x => x.DeletePackageForValidationSetAsync(ValidationSet),
-                Times.Once);
-
             Assert.Equal(ValidationSetStatus.Completed, ValidationSet.ValidationSetStatus);
         }
 
@@ -83,7 +79,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             await processor.ProcessValidationOutcomeAsync(ValidationSet, PackageValidatingEntity, ProcessorStats);
 
             TelemetryServiceMock
-                .Verify(t => t.TrackValidatorTimeout("IncompleteButTimedOut"));
+                .Verify(t => t.TrackValidatorTimeout(ValidationSet.PackageId, ValidationSet.PackageNormalizedVersion, ValidationSet.ValidationTrackingId, "IncompleteButTimedOut"));
             ValidationEnqueuerMock
                 .Verify(ve => ve.StartValidationAsync(It.IsAny<PackageValidationMessageData>(), It.IsAny<DateTimeOffset>()), Times.Once);
             PackageFileServiceMock
@@ -305,7 +301,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
 
             PackageFileServiceMock.Verify(
                 x => x.DeletePackageForValidationSetAsync(ValidationSet),
-                Times.Once);
+                Times.Never);
 
             MessageServiceMock
                 .Verify(ms => ms.SendPublishedMessageAsync(Package), Times.Once());
@@ -336,7 +332,6 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     nameof(IValidationStorageService.UpdateValidationSetAsync),
                     nameof(IMessageService<Package>.SendPublishedMessageAsync),
                     nameof(ITelemetryService.TrackTotalValidationDuration),
-                    nameof(IValidationFileService.DeletePackageForValidationSetAsync),
                 },
                 operations.ToArray());
         }
@@ -359,7 +354,6 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     nameof(IStatusProcessor<Package>.SetStatusAsync),
                     nameof(IValidationStorageService.UpdateValidationSetAsync),
                     nameof(ITelemetryService.TrackTotalValidationDuration),
-                    nameof(IValidationFileService.DeletePackageForValidationSetAsync),
                 },
                 operations.ToArray());
         }
@@ -428,8 +422,8 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
 
             TimeSpan duration = default(TimeSpan);
             TelemetryServiceMock
-                .Setup(ts => ts.TrackTotalValidationDuration(It.IsAny<TimeSpan>(), It.IsAny<bool>()))
-                .Callback<TimeSpan, bool>((t, _) => duration = t);
+                .Setup(ts => ts.TrackTotalValidationDuration(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<TimeSpan>(), It.IsAny<bool>()))
+                .Callback<string, string, Guid, TimeSpan, bool>((_1, _2, _3, t, _4) => duration = t);
 
             ProcessorStats.AnyRequiredValidationSucceeded = true;
             ProcessorStats.AnyValidationSucceeded = true;
@@ -456,11 +450,21 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     Times.Never);
             }
 
-            PackageFileServiceMock.Verify(
-                x => x.DeletePackageForValidationSetAsync(ValidationSet),
-                Times.Once);
+            if (validation != ValidationStatus.Failed)
+            {
+                PackageFileServiceMock.Verify(
+                    x => x.DeletePackageForValidationSetAsync(ValidationSet),
+                    Times.Never);
+            }
+            else
+            {
+                PackageFileServiceMock.Verify(
+                    x => x.DeletePackageForValidationSetAsync(ValidationSet),
+                    Times.Once);
+            }
+
             TelemetryServiceMock
-                .Verify(ts => ts.TrackTotalValidationDuration(It.IsAny<TimeSpan>(), It.IsAny<bool>()), Times.Once());
+                .Verify(ts => ts.TrackTotalValidationDuration(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<TimeSpan>(), It.IsAny<bool>()), Times.Once());
             Assert.InRange(duration, before - ValidationSet.Created, after - ValidationSet.Created);
 
             Assert.Equal(ValidationSetStatus.Completed, ValidationSet.ValidationSetStatus);
@@ -481,14 +485,14 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             if (expectedCompletionTracking)
             {
                 TelemetryServiceMock
-                    .Verify(ts => ts.TrackTotalValidationDuration(It.IsAny<TimeSpan>(), true), Times.Once());
+                    .Verify(ts => ts.TrackTotalValidationDuration(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<TimeSpan>(), true), Times.Once());
                 TelemetryServiceMock
-                    .Verify(ts => ts.TrackTotalValidationDuration(It.IsAny<TimeSpan>(), It.IsAny<bool>()), Times.Once());
+                    .Verify(ts => ts.TrackTotalValidationDuration(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<TimeSpan>(), It.IsAny<bool>()), Times.Once());
             }
             else
             {
                 TelemetryServiceMock
-                    .Verify(ts => ts.TrackTotalValidationDuration(It.IsAny<TimeSpan>(), It.IsAny<bool>()), Times.Never());
+                    .Verify(ts => ts.TrackTotalValidationDuration(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<TimeSpan>(), It.IsAny<bool>()), Times.Never());
             }
         }
 
@@ -799,7 +803,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 .Returns(Task.CompletedTask)
                 .Callback(() => operations.Add(nameof(IMessageService<Package>.SendValidationFailedMessageAsync)));
             TelemetryServiceMock
-                .Setup(x => x.TrackTotalValidationDuration(It.IsAny<TimeSpan>(), It.IsAny<bool>()))
+                .Setup(x => x.TrackTotalValidationDuration(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<TimeSpan>(), It.IsAny<bool>()))
                 .Callback(() => operations.Add(nameof(ITelemetryService.TrackTotalValidationDuration)));
             PackageFileServiceMock
                 .Setup(x => x.DeletePackageForValidationSetAsync(It.IsAny<PackageValidationSet>()))

@@ -60,6 +60,10 @@
       <Project>{91c060da-736f-4da9-a57f-cb3ac0e6cb10}</Project>
       <Name>Validation.PackageSigning.Core</Name>
     </ProjectReference>
+    <ProjectReference Include="..\TestUtil\TestUtil.csproj">
+      <Project>{c3f84bad-acfa-4ae3-8286-d12f5a5bbc62}</Project>
+      <Name>TestUtil</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Validation.PackageSigning.Helpers\Tests.ContextHelpers.csproj">
       <Project>{2c5be067-adfd-49e3-ba9f-13a74436e5db}</Project>
       <Name>Tests.ContextHelpers</Name>

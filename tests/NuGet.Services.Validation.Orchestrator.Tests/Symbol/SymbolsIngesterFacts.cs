@@ -104,7 +104,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests.Symbol
                     .Verify(x => x.AddSymbolsServerRequestAsync(It.IsAny<SymbolsServerRequest>()), Times.Never);
 
                 _telemetryService.Verify(
-                    x => x.TrackSymbolsMessageEnqueued(It.IsAny<string>(), It.IsAny<Guid>()),
+                    x => x.TrackSymbolsMessageEnqueued(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Guid>()),
                     Times.Never);
             }
 
@@ -158,7 +158,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests.Symbol
                         Times.Once);
 
                 _telemetryService.Verify(
-                    x => x.TrackSymbolsMessageEnqueued( ValidatorName.SymbolsIngester, _validationRequest.Object.ValidationId),
+                    x => x.TrackSymbolsMessageEnqueued(_validationRequest.Object.PackageId, _validationRequest.Object.PackageVersion, ValidatorName.SymbolsIngester, _validationRequest.Object.ValidationId),
                     Times.Once);
 
                 Assert.True(verificationQueuedBeforeStatePersisted);

@@ -85,16 +85,16 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 ValidationStorageMock.Verify(
                     vs => vs.MarkValidationStartedAsync(It.IsAny<PackageValidation>(), It.IsAny<ValidationResult>()), Times.Once);
                 TelemetryServiceMock.Verify(
-                    ts => ts.TrackValidatorStarted(validationName), Times.Once);
+                    ts => ts.TrackValidatorStarted(ValidationSet.PackageId, ValidationSet.PackageNormalizedVersion, ValidationSet.ValidationTrackingId, validationName), Times.Once);
                 TelemetryServiceMock.Verify(
-                    ts => ts.TrackValidatorStarted(It.IsAny<string>()), Times.Once);
+                    ts => ts.TrackValidatorStarted(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<string>()), Times.Once);
             }
             else
             {
                 ValidationStorageMock.Verify(
                     vs => vs.MarkValidationStartedAsync(It.IsAny<PackageValidation>(), It.IsAny<ValidationResult>()), Times.Never);
                 TelemetryServiceMock.Verify(
-                    ts => ts.TrackValidatorStarted(It.IsAny<string>()), Times.Never);
+                    ts => ts.TrackValidatorStarted(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<string>()), Times.Never);
             }
 
             if (expectCleanup)
@@ -308,11 +308,11 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 .ReturnsAsync(ValidationResult.Incomplete);
 
             var processor = CreateProcessor();
-            var expectedEndOfAccessLower = DateTimeOffset.UtcNow.Add(Configuration.TimeoutValidationSetAfter);
+            var expectedEndOfAccessLower = DateTimeOffset.UtcNow.Add(Configuration.NupkgUrlValidityPeriod);
 
             await processor.ProcessValidationsAsync(ValidationSet);
 
-            var expectedEndOfAccessUpper = DateTimeOffset.UtcNow.Add(Configuration.TimeoutValidationSetAfter);
+            var expectedEndOfAccessUpper = DateTimeOffset.UtcNow.Add(Configuration.NupkgUrlValidityPeriod);
 
             validator
                 .Verify(v => v.GetResultAsync(It.IsAny<IValidationRequest>()), Times.AtLeastOnce());
@@ -402,6 +402,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 {
                 },
                 TimeoutValidationSetAfter = TimeSpan.FromDays(5),
+                NupkgUrlValidityPeriod = TimeSpan.FromDays(9),
             };
             ConfigurationAccessorMock
                 .SetupGet(ca => ca.Value)

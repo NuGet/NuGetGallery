@@ -8,6 +8,7 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using NuGet.Jobs;
 using Stats.AzureCdnLogs.Common;
 using Stopwatch = System.Diagnostics.Stopwatch;
 
@@ -48,48 +49,53 @@ namespace Stats.ImportAzureCdnStatistics
             _logger.LogDebug("Inserting into facts table...");
             var stopwatch = Stopwatch.StartNew();
 
-            using (var connection = await _openStatisticsSqlConnectionAsync())
-            using (var transaction = connection.BeginTransaction(IsolationLevel.Snapshot))
+            try
             {
-                try
+                await SqlRetryUtility.RetrySql(
+                    () => RunInsertDownloadFactsQueryAsync(downloadFactsDataTable, logFileName));
+
+                stopwatch.Stop();
+                ApplicationInsightsHelper.TrackMetric("Insert facts duration (ms)", stopwatch.ElapsedMilliseconds, logFileName);
+            }
+            catch (Exception exception)
+            {
+                if (stopwatch.IsRunning)
                 {
-                    var bulkCopy = new SqlBulkCopy(connection, SqlBulkCopyOptions.Default, transaction)
-                    {
-                        BatchSize = 25000,
-                        DestinationTableName = downloadFactsDataTable.TableName,
-                        BulkCopyTimeout = _defaultCommandTimeout
-                    };
-
-                    // This avoids identity insert issues, as these are db-generated.
-                    foreach (DataColumn column in downloadFactsDataTable.Columns)
-                    {
-                        bulkCopy.ColumnMappings.Add(column.ColumnName, column.ColumnName);
-                    }
-
-                    await bulkCopy.WriteToServerAsync(downloadFactsDataTable);
-
-                    transaction.Commit();
-
                     stopwatch.Stop();
-                    ApplicationInsightsHelper.TrackMetric("Insert facts duration (ms)", stopwatch.ElapsedMilliseconds, logFileName);
                 }
-                catch (Exception exception)
-                {
-                    if (stopwatch.IsRunning)
-                    {
-                        stopwatch.Stop();
-                    }
 
-                    _logger.LogError("Failed to insert download facts for {LogFile}.", logFileName);
+                _logger.LogError("Failed to insert download facts for {LogFile}.", logFileName);
 
-                    ApplicationInsightsHelper.TrackException(exception, logFileName);
+                ApplicationInsightsHelper.TrackException(exception, logFileName);
 
-                    transaction.Rollback();
-                    throw;
-                }
+                throw;
             }
 
             _logger.LogDebug("  DONE");
+        }
+
+        private async Task RunInsertDownloadFactsQueryAsync(DataTable downloadFactsDataTable, string logFileName)
+        {
+            using (var connection = await _openStatisticsSqlConnectionAsync())
+            using (var transaction = connection.BeginTransaction(IsolationLevel.Snapshot))
+            {
+                var bulkCopy = new SqlBulkCopy(connection, SqlBulkCopyOptions.Default, transaction)
+                {
+                    BatchSize = 25000,
+                    DestinationTableName = downloadFactsDataTable.TableName,
+                    BulkCopyTimeout = _defaultCommandTimeout
+                };
+
+                // This avoids identity insert issues, as these are db-generated.
+                foreach (DataColumn column in downloadFactsDataTable.Columns)
+                {
+                    bulkCopy.ColumnMappings.Add(column.ColumnName, column.ColumnName);
+                }
+
+                await bulkCopy.WriteToServerAsync(downloadFactsDataTable);
+
+                transaction.Commit();
+            }
         }
 
         public async Task<DataTable> CreateAsync(IReadOnlyCollection<PackageStatistics> sourceData, string logFileName)
@@ -342,33 +348,38 @@ namespace Stats.ImportAzureCdnStatistics
         {
             _logger.LogDebug("Storing log file aggregates...");
 
-            using (var connection = await _openStatisticsSqlConnectionAsync())
+            try
             {
-                try
-                {
-                    var command = connection.CreateCommand();
-                    command.CommandText = "[dbo].[StoreLogFileAggregates]";
-                    command.CommandTimeout = _defaultCommandTimeout;
-                    command.CommandType = CommandType.StoredProcedure;
+                await SqlRetryUtility.RetrySql(() => RunStoreLogFileAggregatesQueryAsync(logFileAggregates));
+            }
+            catch (Exception exception)
+            {
+                _logger.LogError("Failed to insert log file aggregates for {LogFile}.", logFileAggregates.LogFileName);
 
-                    var parameterValue = CreateDataTableForLogFileAggregatesPackageDownloadsByDate(logFileAggregates);
-                    var parameter = command.Parameters.AddWithValue("packageDownloadsByDate", parameterValue);
-                    parameter.SqlDbType = SqlDbType.Structured;
-                    parameter.TypeName = "[dbo].[LogFileAggregatesPackageDownloadsByDateTableType]";
+                ApplicationInsightsHelper.TrackException(exception, logFileAggregates.LogFileName);
 
-                    await command.ExecuteNonQueryAsync();
-                }
-                catch (Exception exception)
-                {
-                    _logger.LogError("Failed to insert log file aggregates for {LogFile}.", logFileAggregates.LogFileName);
-
-                    ApplicationInsightsHelper.TrackException(exception, logFileAggregates.LogFileName);
-
-                    throw;
-                }
+                throw;
             }
 
             _logger.LogDebug("  DONE");
+        }
+
+        private async Task RunStoreLogFileAggregatesQueryAsync(LogFileAggregates logFileAggregates)
+        {
+            using (var connection = await _openStatisticsSqlConnectionAsync())
+            {
+                var command = connection.CreateCommand();
+                command.CommandText = "[dbo].[StoreLogFileAggregates]";
+                command.CommandTimeout = _defaultCommandTimeout;
+                command.CommandType = CommandType.StoredProcedure;
+
+                var parameterValue = CreateDataTableForLogFileAggregatesPackageDownloadsByDate(logFileAggregates);
+                var parameter = command.Parameters.AddWithValue("packageDownloadsByDate", parameterValue);
+                parameter.SqlDbType = SqlDbType.Structured;
+                parameter.TypeName = "[dbo].[LogFileAggregatesPackageDownloadsByDateTableType]";
+
+                await command.ExecuteNonQueryAsync();
+            }
         }
 
         public async Task<IReadOnlyCollection<string>> GetAlreadyAggregatedLogFilesAsync()

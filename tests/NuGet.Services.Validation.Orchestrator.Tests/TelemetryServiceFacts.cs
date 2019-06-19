@@ -35,6 +35,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             const string PackageId = "a";
             const string NormalizedVersion = "b";
             const long PackageSize = 3;
+            Guid validationTrackingId = new Guid();
             const string HashAlgorithm = "c";
             const string StreamType = "d";
 
@@ -54,6 +55,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     {
                         { "PackageId", PackageId },
                         { "NormalizedVersion", NormalizedVersion },
+                        { "ValidationTrackingId", validationTrackingId.ToString() },
                         { "PackageSize", PackageSize.ToString() },
                         { "HashAlgorithm", HashAlgorithm },
                         { "StreamType", StreamType }
@@ -63,6 +65,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             using (_telemetryService.TrackDurationToHashPackage(
                 PackageId,
                 NormalizedVersion,
+                validationTrackingId,
                 PackageSize,
                 HashAlgorithm,
                 StreamType))

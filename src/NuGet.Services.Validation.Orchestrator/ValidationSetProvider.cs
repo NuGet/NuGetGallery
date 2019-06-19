@@ -123,7 +123,7 @@ namespace NuGet.Services.Validation.Orchestrator
             // case.
             if (await _validationStorageService.GetValidationSetCountAsync(validatingEntity) == 1)
             {
-                _telemetryService.TrackDurationToValidationSetCreation(validationSet.Created - validatingEntity.Created);
+                _telemetryService.TrackDurationToValidationSetCreation(validationSet.PackageId, validationSet.PackageNormalizedVersion, validationSet.ValidationTrackingId, validationSet.Created - validatingEntity.Created);
             }
 
             return persistedValidationSet;

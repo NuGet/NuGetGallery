@@ -78,7 +78,7 @@ namespace NuGet.Services.Validation.Symbols
                 return result;
             }
 
-            _telemetryService.TrackSymbolsMessageEnqueued(ValidatorName.SymbolsIngester, request.ValidationId);
+            _telemetryService.TrackSymbolsMessageEnqueued(request.PackageId, request.PackageVersion, ValidatorName.SymbolsIngester, request.ValidationId);
             var message = await _symbolMessageEnqueuer.EnqueueSymbolsIngestionMessageAsync(request);
 
             var newSymbolsRequest = SymbolsValidationEntitiesService.CreateFromValidationRequest(request, SymbolsPackageIngestRequestStatus.Ingesting, message.RequestName);

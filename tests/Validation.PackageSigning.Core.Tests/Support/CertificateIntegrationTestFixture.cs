@@ -3,7 +3,6 @@
 
 using System;
 using System.Security.Cryptography.X509Certificates;
-using System.Security.Principal;
 using System.Threading.Tasks;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto.Parameters;
@@ -11,6 +10,7 @@ using Org.BouncyCastle.Security;
 using Org.BouncyCastle.X509;
 using Org.BouncyCastle.X509.Extension;
 using Test.Utility.Signing;
+using TestUtil;
 using Xunit;
 using BCCertificate = Org.BouncyCastle.X509.X509Certificate;
 
@@ -35,8 +35,8 @@ namespace Validation.PackageSigning.Core.Tests.Support
         public CertificateIntegrationTestFixture()
         {
             Assert.True(
-                IsAdministrator(),
-                "This test must be executing with administrator privileges since it installs a trusted root.");
+                UserHelper.IsAdministrator(),
+                $"This test must be executing with administrator privileges since it installs a trusted root. Add {UserHelper.EnableSkipVariableName} environment variable to skip this test.");
 
             _testServer = new Lazy<Task<SigningTestServer>>(SigningTestServer.CreateAsync);
             _rootCertificateAuthority = new Lazy<Task<CertificateAuthority>>(CreateDefaultTrustedRootCertificateAuthorityAsync);
@@ -336,16 +336,6 @@ namespace Validation.PackageSigning.Core.Tests.Support
         {
             var certificate = await GetSigningCertificateAsync();
             return certificate.ComputeSHA256Thumbprint();
-        }
-
-        /// <summary>
-        /// Source: https://stackoverflow.com/a/11660205
-        /// </summary>
-        private static bool IsAdministrator()
-        {
-            var identity = WindowsIdentity.GetCurrent();
-            var principal = new WindowsPrincipal(identity);
-            return principal.IsInRole(WindowsBuiltInRole.Administrator);
         }
 
         public class RevokableCertificate
