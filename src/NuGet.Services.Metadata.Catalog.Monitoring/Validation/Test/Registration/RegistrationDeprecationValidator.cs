@@ -36,7 +36,7 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring.Validation.Test.Registratio
                     i => i.Deprecation);
             }
 
-            if (!database.Deprecation.Reasons.SequenceEqual(v3.Deprecation.Reasons))
+            if (!database.Deprecation.Reasons.OrderBy(r => r).SequenceEqual(v3.Deprecation.Reasons.OrderBy(r => r)))
             {
                 AddDeprecationInconsistencyException(
                     exceptions,

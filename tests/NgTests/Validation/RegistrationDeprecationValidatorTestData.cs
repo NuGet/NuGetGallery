@@ -73,6 +73,33 @@ namespace NgTests.Validation
             }
         }
 
+        public override IEnumerable<Func<Tuple<PackageRegistrationIndexMetadata, PackageRegistrationIndexMetadata, bool>>> CreateSpecialIndexes
+        {
+            get
+            {
+                // Multiple reasons can be in different orders
+                foreach (var reasons in GetPossibleDeprecationReasonCombinations().Where(c => c.Count() > 1))
+                {
+                    yield return () => Tuple.Create(
+                        new PackageRegistrationIndexMetadata
+                        {
+                            Deprecation = new PackageRegistrationDeprecationMetadata
+                            {
+                                Reasons = reasons.OrderBy(r => r).ToList()
+                            }
+                        },
+                        new PackageRegistrationIndexMetadata
+                        {
+                            Deprecation = new PackageRegistrationDeprecationMetadata
+                            {
+                                Reasons = reasons.OrderByDescending(r => r).ToList()
+                            }
+                        },
+                        true);
+                }
+            }
+        }
+
         public override IEnumerable<Func<PackageRegistrationIndexMetadata>> CreateSkippedIndexes => new Func<PackageRegistrationIndexMetadata>[]
         {
             () => null
@@ -104,10 +131,8 @@ namespace NgTests.Validation
                     yield return nextPossibleStatus.Concat(new[] { nextStatus });
                 }
             }
-            else
-            {
-                yield return new[] { nextStatus };
-            }
+
+            yield return new[] { nextStatus };
         }
     }
 }
