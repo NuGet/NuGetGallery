@@ -1656,8 +1656,7 @@ namespace NuGetGallery
                 {
                     PackageRegistration = packageRegistration,
                     Version = packageVersion,
-                    NormalizedVersion = packageVersion,
-                    LicenseUrl = "https://license.test/"
+                    NormalizedVersion = packageVersion
                 };
                 packageRegistration.Packages.Add(package);
 
@@ -3048,14 +3047,34 @@ namespace NuGetGallery
                 Assert.True(model.IsLocked);
             }
 
-            private ActionResult GetDeleteSymbolsResult(User currentUser, User owner, out PackagesController controller)
+            [Theory]
+            [MemberData(nameof(Owner_Data))]
+            public void UsesProperIconUrl(User currentUser, User owner)
+            {
+                var iconUrlProvider = new Mock<IIconUrlProvider>();
+                const string iconUrl = "https://some.test/icon";
+                iconUrlProvider
+                    .Setup(iup => iup.GetIconUrlString(It.IsAny<Package>()))
+                    .Returns(iconUrl);
+                var packageService = CreatePackageService();
+
+                var result = GetDeleteSymbolsResult(currentUser, owner, out var controller, iconUrlProvider);
+                var model = ResultAssert.IsView<DeletePackageViewModel>(result);
+                iconUrlProvider
+                    .Verify(iup => iup.GetIconUrlString(_package), Times.AtLeastOnce);
+                Assert.Equal(iconUrl, model.IconUrl);
+            }
+
+
+            private ActionResult GetDeleteSymbolsResult(User currentUser, User owner, out PackagesController controller, Mock<IIconUrlProvider> iconUrlProvider = null)  
             {
                 _packageRegistration.Owners.Add(owner);
 
                 var packageService = CreatePackageService();
                 controller = CreateController(
                     GetConfigurationService(),
-                    packageService: packageService);
+                    packageService: packageService,
+                    iconUrlProvider: iconUrlProvider);
                 controller.SetCurrentUser(currentUser);
 
                 var routeCollection = new RouteCollection();
@@ -3900,8 +3919,7 @@ namespace NuGetGallery
                 var package = new Package
                 {
                     PackageRegistration = new PackageRegistration { Id = "packageId" },
-                    Version = "1.2.3",
-                    LicenseUrl = "https://license.test/"
+                    Version = "1.2.3"
                 };
 
                 searchService
