@@ -3,11 +3,7 @@
 
 using Microsoft.Extensions.Logging;
 using Moq;
-using NuGet.Jobs.Validation.Storage;
 using NuGet.Services.Entities;
-using NuGetGallery;
-using NuGetGallery.AccountDeleter;
-using System;
 using System.Collections.Generic;
 using Xunit;
 using Xunit.Abstractions;

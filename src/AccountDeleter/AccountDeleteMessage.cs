@@ -5,14 +5,20 @@ namespace NuGetGallery.AccountDeleter
 {
     public class AccountDeleteMessage
     {
-        public AccountDeleteMessage(string subject, string source)
+        public AccountDeleteMessage(string username, string source)
         {
-            Subject = subject;
+            Username = username;
             Source = source;
         }
 
-        public string Subject { get; }
+        /// <summary>
+        /// Username specifying the account this message is for.
+        /// </summary>
+        public string Username { get; }
 
+        /// <summary>
+        /// Source of the delete message. This will be validated against known sources.
+        /// </summary>
         public string Source { get; }
     }
 }

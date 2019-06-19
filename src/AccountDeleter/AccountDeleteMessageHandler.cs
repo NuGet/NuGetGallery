@@ -16,14 +16,16 @@ namespace NuGetGallery.AccountDeleter
     {
         private readonly IOptionsSnapshot<AccountDeleteConfiguration> _options;
         private readonly IAccountManager _accountManager;
+        private readonly IUserService _userService;
         private readonly IMessageService _messenger;
         private readonly IEmailBuilderFactory _emailBuilderFactory;
         private readonly IAccountDeleteTelemetryService _telemetryService;
         private readonly ILogger<AccountDeleteMessageHandler> _logger;
 
-        public AccountDeleteMessageHandler (
+        public AccountDeleteMessageHandler(
             IOptionsSnapshot<AccountDeleteConfiguration> options,
             IAccountManager accountManager,
+            IUserService userService,
             IMessageService messenger,
             IEmailBuilderFactory emailBuilderFactory,
             IAccountDeleteTelemetryService telemetryService,
@@ -37,22 +39,32 @@ namespace NuGetGallery.AccountDeleter
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
+        /// <summary>
+        /// Handles incoming messages of AccountDeleteMessage type
+        /// </summary>
+        /// <param name="command"></param>
+        /// <returns>True if processed successfully, false if we failed for some reason.</returns>
+        /// <remarks>If accountManager.DeleteAccount throws, the entire method will throw and the message will go back into the queue.</remarks>
         public async Task<bool> HandleAsync(AccountDeleteMessage command)
         {
             var messageProcessed = true;
-            var username = command.Subject;
-            _logger.LogInformation("Processing Request from Source {Source}", command.Source);
-
-            var source = command.Source;
-            var deleteSuccess = await _accountManager.DeleteAccount(username);
 
             try
             {
+                var username = command.Username;
+                _logger.LogInformation("Processing Request from Source {Source}", command.Source);
+
+                var source = command.Source;
+                _options.Value.VerifySource(source);
+
+                var user = _userService.FindByUsername(username);
+                var recipientEmail = await _accountManager.GetEmailAddressForUser(user);
+                var deleteSuccess = await _accountManager.DeleteAccount(user);
+
+
                 var baseEmailBuilder = _emailBuilderFactory.GetEmailBuilder(source, deleteSuccess);
                 if (baseEmailBuilder != null)
                 {
-                    var recipientEmail = await _accountManager.GetEmailAddresForUser(username);
-
                     var toEmail = new List<MailAddress>();
 
                     var configuration = _options.Value;
@@ -63,7 +75,7 @@ namespace NuGetGallery.AccountDeleter
                     ccEmail.Add(new MailAddress(senderAddress));
 
                     var recipients = new EmailRecipients(toEmail, ccEmail);
-                    var emailBuilder = new DisposableEmailBuilder(baseEmailBuilder, recipients, username, new AccountDeleteTemplater(_options));
+                    var emailBuilder = new DisposableEmailBuilder(baseEmailBuilder, recipients, username);
                     await _messenger.SendMessageAsync(emailBuilder);
                 }
             }

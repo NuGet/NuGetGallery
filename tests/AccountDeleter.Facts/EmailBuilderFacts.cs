@@ -1,9 +1,9 @@
-﻿
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Moq;
 using NuGet.Services.Messaging.Email;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Net.Mail;
 using Xunit;
 
@@ -12,72 +12,54 @@ namespace NuGetGallery.AccountDeleter.Facts
     public class EmailBuilderFacts
     {
         private Mock<IEmailBuilder> _accountDeleteEmailBuilder;
-        private Mock<ITemplater> _templater;
 
         public EmailBuilderFacts()
         {
             _accountDeleteEmailBuilder = new Mock<IEmailBuilder>();
-            _templater = new Mock<ITemplater>();
         }
 
-        [Fact]
-        public void GetBodyCallsTemplater()
+
+
+        [Theory]
+        [InlineData("test1test2", "none", "test1test2")]
+        [InlineData("test1USERNAME", "replaceUser", "test1replaceUser")]
+        [InlineData("USERNAME", "justUser", "justUser")]
+        public void UsernamerReplacedInBody(string template, string username, string expected)
         {
             // Setup
-            var username = "testUser";
-            var templaterReturn = "replaced";
-            _accountDeleteEmailBuilder
-                .Setup(adeb => adeb.GetBody(It.IsAny<EmailFormat>()))
-                .Returns("BODY");
+            _accountDeleteEmailBuilder.Setup(adeb => adeb.GetBody(It.IsAny<EmailFormat>()))
+                .Returns(template);
 
-            _templater
-                .Setup(t => t.AddReplacement(It.IsAny<string>(), It.IsAny<string>()))
-                .Returns(true);
-            _templater
-                .Setup(t => t.FillTemplate(It.IsAny<string>()))
-                .Returns(templaterReturn);
-
-            var disposableBuilder = new DisposableEmailBuilder(_accountDeleteEmailBuilder.Object, new EmailRecipients(new List<MailAddress>()), username, _templater.Object);
+            var disposableBuilder = new DisposableEmailBuilder(_accountDeleteEmailBuilder.Object, new EmailRecipients(new List<MailAddress>()), username);
 
             // Act
             var resultHtml = disposableBuilder.GetBody(EmailFormat.Html);
-            var resultMd = disposableBuilder.GetBody(EmailFormat.Markdown);
-            var resultText = disposableBuilder.GetBody(EmailFormat.PlainText);
+            var resultMarkdown = disposableBuilder.GetBody(EmailFormat.Markdown);
+            var resultPlainText = disposableBuilder.GetBody(EmailFormat.PlainText);
 
             // Assert
-            Assert.Equal(templaterReturn, resultHtml);
-            Assert.Equal(templaterReturn, resultMd);
-            Assert.Equal(templaterReturn, resultText);
-            _templater.Verify(t => t.AddReplacement(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
-            _templater.Verify(t => t.FillTemplate(It.IsAny<string>()), Times.Exactly(3));
+            Assert.Equal(expected, resultHtml);
+            Assert.Equal(expected, resultMarkdown);
+            Assert.Equal(expected, resultPlainText);
         }
 
-        [Fact]
-        public void GetSubjectCallsTemplater()
+        [Theory]
+        [InlineData("test1test2", "none", "test1test2")]
+        [InlineData("test1USERNAME", "replaceUser", "test1replaceUser")]
+        [InlineData("USERNAME", "justUser", "justUser")]
+        public void UsernamerReplacedInSubject(string template, string username, string expected)
         {
             // Setup
-            var username = "testUser";
-            var templaterReturn = "replaced";
-            _accountDeleteEmailBuilder
-                .Setup(adeb => adeb.GetBody(It.IsAny<EmailFormat>()))
-                .Returns("BODY");
+            _accountDeleteEmailBuilder.Setup(adeb => adeb.GetSubject())
+                .Returns(template);
 
-            _templater
-                .Setup(t => t.AddReplacement(It.IsAny<string>(), It.IsAny<string>()))
-                .Returns(true);
-            _templater
-                .Setup(t => t.FillTemplate(It.IsAny<string>()))
-                .Returns(templaterReturn);
-
-            var disposableBuilder = new DisposableEmailBuilder(_accountDeleteEmailBuilder.Object, new EmailRecipients(new List<MailAddress>()), username, _templater.Object);
+            var disposableBuilder = new DisposableEmailBuilder(_accountDeleteEmailBuilder.Object, new EmailRecipients(new List<MailAddress>()), username);
 
             // Act
             var result = disposableBuilder.GetSubject();
 
             // Assert
-            Assert.Equal(templaterReturn, result);
-            _templater.Verify(t => t.AddReplacement(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
-            _templater.Verify(t => t.FillTemplate(It.IsAny<string>()), Times.Once);
+            Assert.Equal(expected, result);
         }
     }
 }

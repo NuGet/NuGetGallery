@@ -5,7 +5,7 @@ using NuGet.Services.ServiceBus;
 
 namespace NuGetGallery.AccountDeleter
 {
-    public class AccoundDeleteMessageSerializer : IBrokeredMessageSerializer<AccountDeleteMessage>
+    public class AccountDeleteMessageSerializer : IBrokeredMessageSerializer<AccountDeleteMessage>
     {
         private const string AccountDeleteMessageSchemaName = "AccountDeleteMessageData";
 
@@ -24,7 +24,7 @@ namespace NuGetGallery.AccountDeleter
         {
             return _serializer.Serialize(new AccountDeleteMessageData
             {
-                Subject = message.Subject,
+                Subject = message.Username,
                 Source = message.Source
             });
         }

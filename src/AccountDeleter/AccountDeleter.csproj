@@ -56,7 +56,6 @@
     <Compile Include="Exceptions\EmailContactNotAllowedException.cs" />
     <Compile Include="Exceptions\UnknownSourceException.cs" />
     <Compile Include="Messaging\AccountDeleteEmailBuilder.cs" />
-    <Compile Include="Messaging\AccountDeleteTemplater.cs" />
     <Compile Include="Messaging\DisposableEmailBuilder.cs" />
     <Compile Include="Messaging\EmailBuilderFactory.cs" />
     <Compile Include="EmptyDeleteAccountService.cs" />
@@ -72,7 +71,6 @@
     <Compile Include="Messaging\IEmailBuilderFactory.cs" />
     <Compile Include="Evaluators\IUserEvaluator.cs" />
     <Compile Include="Job.cs" />
-    <Compile Include="Messaging\ITemplater.cs" />
     <Compile Include="MicroUserService.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

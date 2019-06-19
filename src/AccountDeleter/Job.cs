@@ -48,7 +48,7 @@ namespace NuGetGallery.AccountDeleter
             services.Configure<AccountDeleteConfiguration>(configurationRoot.GetSection(AccountDeleteConfigurationSectionName));
             SetupDefaultSubscriptionProcessorConfiguration(services, configurationRoot);
 
-            services.AddTransient<IBrokeredMessageSerializer<AccountDeleteMessage>, AccoundDeleteMessageSerializer>();
+            services.AddTransient<IBrokeredMessageSerializer<AccountDeleteMessage>, AccountDeleteMessageSerializer>();
             services.AddTransient<IMessageHandler<AccountDeleteMessage>, AccountDeleteMessageHandler>();
 
             services.AddTransient<IAccountManager, GalleryAccountManager>();

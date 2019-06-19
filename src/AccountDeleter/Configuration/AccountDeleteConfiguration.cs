@@ -54,5 +54,18 @@ namespace NuGetGallery.AccountDeleter
 
             throw new UnknownSourceException();
         }
+
+        public void VerifySource(string source)
+        {
+            foreach (var sourceConfig in SourceConfigurations)
+            {
+                if (sourceConfig.SourceName == source)
+                {
+                    return;
+                }
+            }
+
+            throw new UnknownSourceException();
+        }
     }
 }
