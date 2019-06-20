@@ -1186,7 +1186,7 @@ namespace NuGetGallery
             [MemberData(nameof(PossibleOwnershipScenarios_Data))]
             public void UsesProperIconUrl(User currentUser, User owner)
             {
-                string username = "RegularUser";
+                string username = "test";
 
                 var packageRegistration = new PackageRegistration();
                 packageRegistration.Owners.Add(owner);
@@ -1215,7 +1215,7 @@ namespace NuGetGallery
 
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(currentUser);
-                var model = ResultAssert.IsView<UserProfileModel>(controller.Packages());
+                var model = ResultAssert.IsView<UserProfileModel>(controller.Profiles(username));
 
                 GetMock<IIconUrlProvider>()
                     .Verify(iup => iup.GetIconUrlString(userPackage), Times.AtLeastOnce);
