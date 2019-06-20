@@ -55,10 +55,13 @@ namespace NuGetGallery
 
         public bool IsManageDeprecationEnabled(User user, PackageRegistration registration)
         {
-            var isEnabled = _client.IsEnabled(ManageDeprecationFeatureName, user, defaultValue: false);
-            return registration.Packages.Count() > _manageDeprecationForManyVersionsThreshold
-                ? _client.IsEnabled(ManageDeprecationForManyVersionsFeatureName, user, defaultValue: isEnabled)
-                : isEnabled;
+            if (!_client.IsEnabled(ManageDeprecationFeatureName, user, defaultValue: false))
+            {
+                return false;
+            }
+
+            return registration.Packages.Count() < _manageDeprecationForManyVersionsThreshold 
+                || _client.IsEnabled(ManageDeprecationForManyVersionsFeatureName, user, defaultValue: true);
         }
 
         public bool AreEmbeddedIconsEnabled(User user)

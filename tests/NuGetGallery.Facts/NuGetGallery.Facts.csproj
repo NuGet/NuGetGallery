@@ -90,6 +90,7 @@
     <Compile Include="Infrastructure\Lucene\GallerySearchServiceFacts.cs" />
     <Compile Include="Helpers\StreamHelperFacts.cs" />
     <Compile Include="Infrastructure\Mail\Messages\SearchSideBySideMessageFacts.cs" />
+    <Compile Include="Services\FeatureFlagServiceFacts.cs" />
     <Compile Include="Services\PackageDeprecationServiceFacts.cs" />
     <Compile Include="Services\SearchSideBySideServiceFacts.cs" />
     <Compile Include="Services\PackageUpdateServiceFacts.cs" />
