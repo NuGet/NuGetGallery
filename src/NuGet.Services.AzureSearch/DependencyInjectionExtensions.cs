@@ -239,6 +239,7 @@ namespace NuGet.Services.AzureSearch
             services.AddSingleton<IAuxiliaryFileReloader, AuxiliaryFileReloader>();
 
             services.AddTransient<IAzureSearchTelemetryService, AzureSearchTelemetryService>();
+            services.AddTransient<IBaseDocumentBuilder, BaseDocumentBuilder>();
             services.AddTransient<ICatalogIndexActionBuilder, CatalogIndexActionBuilder>();
             services.AddTransient<ICatalogLeafFetcher, CatalogLeafFetcher>();
             services.AddTransient<ICollector, AzureSearchCollector>();
