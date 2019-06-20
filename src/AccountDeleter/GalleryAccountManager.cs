@@ -51,41 +51,13 @@ namespace NuGetGallery.AccountDeleter
             if (result.Success)
             {
                 _logger.LogInformation("Deleted user successfully.");
-                _telemetryService.TrackAccountDelete();
                 return true;
             }
             else
             {
                 _logger.LogError("Criteria passed but delete failed.");
-                _telemetryService.TrackAccountDelete();
                 return false;
             }
-        }
-
-        public Task<string> GetEmailAddressForUser(User user)
-        {
-            if (user == null)
-            {
-                _logger.LogWarning("User email could not be found. User was null.");
-                throw new UserNotFoundException();
-            }
-
-            // We may want to ignore this setting, but respect contact for now
-            if (!user.EmailAllowed)
-            {
-                _logger.LogWarning("User did not allow contact by email.");
-
-                if (_accountDeleteConfigurationAccessor.Value.RespectEmailContactSetting)
-                {
-                    throw new EmailContactNotAllowedException();
-                }
-                else
-                {
-                    _logger.LogWarning("Ignoring EmailAllowed due to configuration.");
-                }
-            }
-
-            return Task.FromResult(user.EmailAddress);
         }
     }
 }

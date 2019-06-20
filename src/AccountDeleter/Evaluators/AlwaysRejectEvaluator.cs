@@ -7,6 +7,9 @@ using System;
 
 namespace NuGetGallery.AccountDeleter
 {
+    /// <summary>
+    /// Evaluator that always fails
+    /// </summary>
     public class AlwaysRejectEvaluator : IUserEvaluator
     {
         private readonly Guid _id;

@@ -64,7 +64,12 @@ namespace NuGetGallery.AccountDeleter
                     throw new UserNotFoundException();
                 }
 
-                var recipientEmail = await _accountManager.GetEmailAddressForUser(user);
+                if (_accountDeleteConfigurationAccessor.Value.RespectEmailContactSetting && !user.EmailAllowed)
+                {
+                    throw new EmailContactNotAllowedException();
+                }
+
+                var recipientEmail = user.EmailAddress;
                 var deleteSuccess = await _accountManager.DeleteAccount(user);
                 _telemetryService.TrackDeleteResult(deleteSuccess);
 

@@ -5,6 +5,9 @@ using NuGet.Services.Entities;
 
 namespace NuGetGallery.AccountDeleter
 {
+    /// <summary>
+    /// Interface for user evaluators that determine if a user can be deleted or not
+    /// </summary>
     public interface IUserEvaluator
     {
         /// <summary>

@@ -7,6 +7,9 @@ using System;
 
 namespace NuGetGallery.AccountDeleter
 {
+    /// <summary>
+    /// Evaluator that always passes
+    /// </summary>
     public class AlwaysAllowEvaluator : IUserEvaluator
     {
         private readonly Guid _id;

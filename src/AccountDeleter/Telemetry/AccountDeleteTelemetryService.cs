@@ -28,12 +28,6 @@ namespace NuGetGallery.AccountDeleter
             return;
         }
 
-        public void TrackAccountDelete()
-        {
-            return;
-            //throw new NotImplementedException();
-        }
-
         public void TrackEmailSent()
         {
             return;

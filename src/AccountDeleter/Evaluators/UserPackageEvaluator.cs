@@ -7,6 +7,9 @@ using NuGet.Services.Entities;
 
 namespace NuGetGallery.AccountDeleter
 {
+    /// <summary>
+    /// Evaluates a user's package ownership status
+    /// </summary>
     public class UserPackageEvaluator : IUserEvaluator
     {
         private readonly Guid _id;

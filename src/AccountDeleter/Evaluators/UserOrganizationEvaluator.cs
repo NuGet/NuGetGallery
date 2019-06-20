@@ -7,6 +7,9 @@ using System;
 
 namespace NuGetGallery.AccountDeleter
 {
+    /// <summary>
+    /// Evaluates a user's organization memebership (WIP)
+    /// </summary>
     public class UserOrganizationEvaluator : IUserEvaluator
     {
         private readonly Guid _id;
@@ -32,7 +35,7 @@ namespace NuGetGallery.AccountDeleter
 
         public bool CanUserBeDeleted(User user)
         {
-            return false;
+            throw new NotImplementedException();
         }
     }
 }

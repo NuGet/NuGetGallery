@@ -15,8 +15,6 @@ namespace NuGetGallery.AccountDeleter
 
         void TrackDeleteResult(bool deleteSuccess);
 
-        void TrackAccountDelete();
-
         void TrackEmailSent();
     }
 }

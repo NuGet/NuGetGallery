@@ -9,6 +9,9 @@ using System.Linq;
 
 namespace NuGetGallery.AccountDeleter
 {
+    /// <summary>
+    /// Evaluator that runs other evaluators and returns a single result
+    /// </summary>
     public class AggregateEvaluator : IUserEvaluator
     {
         private readonly Guid _id;

@@ -7,6 +7,10 @@ using NuGet.Services.Entities;
 
 namespace NuGetGallery.AccountDeleter
 {
+    /// <summary>
+    /// This class implements the minimal function of the full <see cref="UserService"/> that we currently need for AccountDeleter
+    /// This is done for now in order to not pollute DI with things that we won't use.
+    /// </summary>
     public class MicroUserService : IUserService
     {
         public IEntityRepository<User> UserRepository { get; protected set; }
