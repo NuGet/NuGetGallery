@@ -80,7 +80,12 @@
 
 @section bottomScripts {
     <script type="text/javascript">
+        // Used to track how long the user waited before clicking a search selection.
+        var pageLoadTime = Date.now();
 
+        // Used to track how many selections were made on this page. Multiple selections can happen if the user opens
+        // a search selection in a new tab, instead of navigating away from this page.
+        var sincePageLoadCount = 0;
         @if (!string.IsNullOrWhiteSpace(Model.SearchTerm) && (Model.PageIndex == 0 || Model.Items.Count() > 0))
         {
             var action = Model.IncludePrerelease ? "search-prerel" : "search-stable";
@@ -88,6 +93,12 @@
             // event to be correlated in Google Analytics.
             <text>
             window.nuget.sendAnalyticsEvent('search-page', '@action', @Html.Raw(Json.Encode(Model.SearchTerm)), @Model.PageIndex);
+            window.nuget.sendAiMetric('BrowserSearchPage', @Model.PageIndex, {
+                SearchTerm: @Html.Raw(Json.Encode(Model.SearchTerm)),
+                IncludePrerelease: '@Model.IncludePrerelease',
+                PageIndex: @Model.PageIndex,
+                TotalCount: @Model.TotalCount
+            });
             </text>
         }
 
@@ -111,7 +122,42 @@
                     queryString
                 ].join('');
                 window.location.href = url;
-            })
+            });
+
+            var emitAiClickEvent = function () {
+                if (!window.nuget.isAiAvailable()) {
+                    return;
+                }
+
+                var $this = $(this);
+                var data = $this.data();
+                if ($this.attr('href') && data.track) {
+                    window.nuget.sendAiMetric('BrowserSearchSelection', data.trackValue, {
+                        SearchTerm: @Html.Raw(Json.Encode(Model.SearchTerm)),
+                        IncludePrerelease: '@Model.IncludePrerelease',
+                        PageIndex: @Model.PageIndex,
+                        TotalCount: @Model.TotalCount,
+                        ClickIndex: data.trackValue,
+                        PackageId: data.packageId,
+                        PackageVersion: data.packageVersion,
+                        UseVersion: data.useVersion,
+                        SincePageLoadMs: Date.now() - pageLoadTime,
+                        SincePageLoadCount: sincePageLoadCount
+                    });
+
+                    sincePageLoadCount++;
+                }
+            };
+            $.each($('a[data-track]'), function () {
+                $(this).mouseup(function (e) {
+                    if (e.which === 2) { // Middle-mouse click
+                        emitAiClickEvent.call(this, e);
+                    }
+                });
+                $(this).click(function (e) {
+                    emitAiClickEvent.call(this, e);
+                });
+            });
         });
     </script>
 }

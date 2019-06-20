@@ -26,7 +26,6 @@
     }
 }
 
-
 <article class="package" role="listitem">
 
     <div class="row">
@@ -42,6 +41,7 @@
                    @if (itemIndex.HasValue)
                    {
                        @:data-track="@eventName" data-track-value="@itemIndex"
+                       @:data-package-id="@Model.Id" data-package-version="@Model.Version" data-use-version="@Model.UseVersion"
                    }
                    >@Html.BreakWord(Model.Id)</a>
 
