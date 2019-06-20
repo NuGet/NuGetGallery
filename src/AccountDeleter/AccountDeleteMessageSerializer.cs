@@ -16,7 +16,7 @@ namespace NuGetGallery.AccountDeleter
             var message = _serializer.Deserialize(brokeredMessage);
 
             return new AccountDeleteMessage(
-                message.Subject, 
+                message.Username, 
                 message.Source);
         }
 
@@ -24,7 +24,7 @@ namespace NuGetGallery.AccountDeleter
         {
             return _serializer.Serialize(new AccountDeleteMessageData
             {
-                Subject = message.Username,
+                Username = message.Username,
                 Source = message.Source
             });
         }
@@ -32,7 +32,8 @@ namespace NuGetGallery.AccountDeleter
         [Schema(Name = AccountDeleteMessageSchemaName, Version = 1)]
         private struct AccountDeleteMessageData
         {
-            public string Subject { get; set; }
+            public string Username { get; set; }
+
             public string Source { get; set; }
         }
     }
