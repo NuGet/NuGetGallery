@@ -9,7 +9,7 @@ namespace NuGetGallery.AccountDeleter
 {
     public class DisposableEmailBuilder : IEmailBuilder
     {
-        protected static string USERNAME_PLACEHOLDER = "USERNAME";
+        protected static string USERNAME_PLACEHOLDER = "{username}";
 
         private readonly IEmailBuilder _parentEmailBuilder;
         private readonly IEmailRecipients _emailRecipients;

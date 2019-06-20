@@ -18,6 +18,16 @@ namespace NuGetGallery.AccountDeleter
             _telemetryClient = telemetryClient ?? throw new ArgumentNullException(nameof(telemetryClient));
         }
 
+        public void TrackUserNotFound()
+        {
+            return;
+        }
+
+        public void TrackDeleteResult(bool deleteSuccess)
+        {
+            return;
+        }
+
         public void TrackAccountDelete()
         {
             return;
@@ -42,7 +52,7 @@ namespace NuGetGallery.AccountDeleter
             //throw new NotImplementedException();
         }
 
-        public void TrackIncomingCommand(AccountDeleteMessage command)
+        public void TrackSource(string source)
         {
             return;
             //throw new NotImplementedException();

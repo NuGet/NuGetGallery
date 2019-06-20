@@ -14,7 +14,7 @@ namespace NuGetGallery.AccountDeleter
 {
     public class AccountDeleteMessageHandler : IMessageHandler<AccountDeleteMessage>
     {
-        private readonly IOptionsSnapshot<AccountDeleteConfiguration> _options;
+        private readonly IOptionsSnapshot<AccountDeleteConfiguration> _accountDeleteConfigurationAccessor;
         private readonly IAccountManager _accountManager;
         private readonly IUserService _userService;
         private readonly IMessageService _messenger;
@@ -23,7 +23,7 @@ namespace NuGetGallery.AccountDeleter
         private readonly ILogger<AccountDeleteMessageHandler> _logger;
 
         public AccountDeleteMessageHandler(
-            IOptionsSnapshot<AccountDeleteConfiguration> options,
+            IOptionsSnapshot<AccountDeleteConfiguration> accountDeleteConfigurationAccessor,
             IAccountManager accountManager,
             IUserService userService,
             IMessageService messenger,
@@ -31,7 +31,7 @@ namespace NuGetGallery.AccountDeleter
             IAccountDeleteTelemetryService telemetryService,
             ILogger<AccountDeleteMessageHandler> logger)
         {
-            _options = options ?? throw new ArgumentNullException(nameof(options));
+            _accountDeleteConfigurationAccessor = accountDeleteConfigurationAccessor ?? throw new ArgumentNullException(nameof(accountDeleteConfigurationAccessor));
             _accountManager = accountManager ?? throw new ArgumentNullException(nameof(accountManager));
             _messenger = messenger ?? throw new ArgumentNullException(nameof(messenger));
             _emailBuilderFactory = emailBuilderFactory ?? throw new ArgumentNullException(nameof(emailBuilderFactory));
@@ -55,19 +55,25 @@ namespace NuGetGallery.AccountDeleter
                 _logger.LogInformation("Processing Request from Source {Source}", command.Source);
 
                 var source = command.Source;
-                _options.Value.VerifySource(source);
+                _telemetryService.TrackSource(source);
+                _accountDeleteConfigurationAccessor.Value.VerifySource(source);
 
                 var user = _userService.FindByUsername(username);
+                if (user == null)
+                {
+                    throw new UserNotFoundException();
+                }
+
                 var recipientEmail = await _accountManager.GetEmailAddressForUser(user);
                 var deleteSuccess = await _accountManager.DeleteAccount(user);
-
+                _telemetryService.TrackDeleteResult(deleteSuccess);
 
                 var baseEmailBuilder = _emailBuilderFactory.GetEmailBuilder(source, deleteSuccess);
                 if (baseEmailBuilder != null)
                 {
                     var toEmail = new List<MailAddress>();
 
-                    var configuration = _options.Value;
+                    var configuration = _accountDeleteConfigurationAccessor.Value;
                     var senderAddress = configuration.EmailConfiguration.GalleryOwner;
                     var ccEmail = new List<MailAddress>();
                     // toEmail.Add(new MailAddress(recipientEmail)); // Temporarily disable sending to end user while we are in phase 1.
@@ -90,6 +96,12 @@ namespace NuGetGallery.AccountDeleter
             {
                 // Should we not send? or should we ignore the setting.
                 _logger.LogWarning("User did not allow Email Contact.");
+            }
+            catch (UserNotFoundException)
+            {
+                _logger.LogWarning("User was not found. They may have already been deleted.");
+                _telemetryService.TrackUserNotFound();
+                messageProcessed = true;
             }
             catch (Exception e)
             {

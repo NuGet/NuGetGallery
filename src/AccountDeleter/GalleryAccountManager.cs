@@ -11,20 +11,20 @@ namespace NuGetGallery.AccountDeleter
 {
     public class GalleryAccountManager : IAccountManager
     {
-        private readonly IOptionsSnapshot<AccountDeleteConfiguration> _options;
+        private readonly IOptionsSnapshot<AccountDeleteConfiguration> _accountDeleteConfigurationAccessor;
         private readonly IDeleteAccountService _deleteAccountService;
         private readonly IUserEvaluator _userEvaluator;
         private readonly IAccountDeleteTelemetryService _telemetryService;
         private readonly ILogger<GalleryAccountManager> _logger;
 
         public GalleryAccountManager(
-            IOptionsSnapshot<AccountDeleteConfiguration> options,
+            IOptionsSnapshot<AccountDeleteConfiguration> accountDeleteConfigurationAccessor,
             IDeleteAccountService deleteAccountService,
             IUserEvaluator userEvaluator,
             IAccountDeleteTelemetryService telemetryService,
             ILogger<GalleryAccountManager> logger)
         {
-            _options = options ?? throw new ArgumentNullException(nameof(options));
+            _accountDeleteConfigurationAccessor = accountDeleteConfigurationAccessor ?? throw new ArgumentNullException(nameof(accountDeleteConfigurationAccessor));
             _deleteAccountService = deleteAccountService ?? throw new ArgumentNullException(nameof(deleteAccountService));
             _userEvaluator = userEvaluator ?? throw new ArgumentNullException(nameof(userEvaluator));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
@@ -36,8 +36,8 @@ namespace NuGetGallery.AccountDeleter
             _logger.LogInformation("Attempting delete...");
             if (user == null)
             {
-                _logger.LogWarning("Requested user was not found in DB. Assuming delete was already done.");
-                return true;
+                _logger.LogWarning("Requested user was not found in DB. Delete was probalby already done.");
+                throw new UserNotFoundException();
             }
 
             if (!_userEvaluator.CanUserBeDeleted(user))
@@ -47,7 +47,7 @@ namespace NuGetGallery.AccountDeleter
             }
 
             _logger.LogInformation("All criteria passed.");
-            var result = await _deleteAccountService.DeleteAccountAsync(user, user, AccountDeletionOrphanPackagePolicy.UnlistOrphans);
+            var result = await _deleteAccountService.DeleteAccountAsync(userToBeDeleted: user, userToExecuteTheDelete: user, orphanPackagePolicy: AccountDeletionOrphanPackagePolicy.UnlistOrphans);
             if (result.Success)
             {
                 _logger.LogInformation("Deleted user successfully.");
@@ -64,12 +64,18 @@ namespace NuGetGallery.AccountDeleter
 
         public Task<string> GetEmailAddressForUser(User user)
         {
+            if (user == null)
+            {
+                _logger.LogWarning("User email could not be found. User was null.");
+                throw new UserNotFoundException();
+            }
+
             // We may want to ignore this setting, but respect contact for now
-            if(!user.EmailAllowed)
+            if (!user.EmailAllowed)
             {
                 _logger.LogWarning("User did not allow contact by email.");
 
-                if (_options.Value.RespectEmailContactSetting)
+                if (_accountDeleteConfigurationAccessor.Value.RespectEmailContactSetting)
                 {
                     throw new EmailContactNotAllowedException();
                 }
@@ -79,7 +85,7 @@ namespace NuGetGallery.AccountDeleter
                 }
             }
 
-            return Task.FromResult(user.EmailAddress ?? user.UnconfirmedEmailAddress);
+            return Task.FromResult(user.EmailAddress);
         }
     }
 }

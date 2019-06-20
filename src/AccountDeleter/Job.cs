@@ -77,7 +77,7 @@ namespace NuGetGallery.AccountDeleter
                 {
                     // Configure evaluators here.
                     var alwaysReject = sp.GetRequiredService<AlwaysRejectEvaluator>();
-                    evaluator.AddEvaluator(alwaysReject);
+                    evaluator.AddEvaluator(alwaysReject); // For phase 1, we never want to actually delete, so we will add this here to guarantee that
 
                     var userPackageEvaluator = sp.GetRequiredService<UserPackageEvaluator>();
                     evaluator.AddEvaluator(userPackageEvaluator);

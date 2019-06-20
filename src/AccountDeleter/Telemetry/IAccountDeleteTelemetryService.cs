@@ -7,9 +7,13 @@ namespace NuGetGallery.AccountDeleter
 {
     public interface IAccountDeleteTelemetryService
     {
+        void TrackUserNotFound();
+
         void TrackException(Exception exception);
 
-        void TrackIncomingCommand(AccountDeleteMessage command);
+        void TrackSource(string source);
+
+        void TrackDeleteResult(bool deleteSuccess);
 
         void TrackAccountDelete();
 

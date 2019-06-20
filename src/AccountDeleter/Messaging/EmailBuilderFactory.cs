@@ -10,20 +10,20 @@ namespace NuGetGallery.AccountDeleter
 {
     public class EmailBuilderFactory : IEmailBuilderFactory
     {
-        private readonly IOptionsSnapshot<AccountDeleteConfiguration> _options;
+        private readonly IOptionsSnapshot<AccountDeleteConfiguration> _accountDeleteConfigurationAccessor;
         private readonly ILogger<EmailBuilderFactory> _logger;
 
         public EmailBuilderFactory(
-            IOptionsSnapshot<AccountDeleteConfiguration> options,
+            IOptionsSnapshot<AccountDeleteConfiguration> accountDeleteConfigurationAccessor,
             ILogger<EmailBuilderFactory> logger)
         {
-            _options = options ?? throw new ArgumentNullException(nameof(options));
+            _accountDeleteConfigurationAccessor = accountDeleteConfigurationAccessor ?? throw new ArgumentNullException(nameof(accountDeleteConfigurationAccessor));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         public IEmailBuilder GetEmailBuilder(string source, bool success)
         {
-            var options = _options.Value;
+            var options = _accountDeleteConfigurationAccessor.Value;
 
             return options.GetEmailBuilder(source, success);
         }
