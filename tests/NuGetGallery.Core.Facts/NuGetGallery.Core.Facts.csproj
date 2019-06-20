@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -81,6 +81,7 @@
     <Compile Include="Cookies\CookieComplianceServiceBaseFacts.cs" />
     <Compile Include="Features\FeatureFlagClientExtensionsFacts.cs" />
     <Compile Include="Features\FeatureFlagFileStorageServiceFacts.cs" />
+    <Compile Include="GitHub\GitHubUsageConfigurationFacts.cs" />
     <Compile Include="Infrastructure\ElmahExceptionFacts.cs" />
     <Compile Include="Extensions\UserExtensionsCoreFacts.cs" />
     <Compile Include="Infrastructure\Mail\Messages\MarkdownMessageBuilderFacts.cs" />

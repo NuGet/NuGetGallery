@@ -237,6 +237,8 @@ namespace NuGetGallery
                 .As<IEntityRepository<PackageDeprecation>>()
                 .InstancePerLifetimeScope();
 
+            ConfigureGalleryReadOnlyReplicaEntitiesContext(builder, diagnosticsService, configuration, secretInjector);
+
             var supportDbConnectionFactory = CreateDbConnectionFactory(
                 diagnosticsService,
                 nameof(SupportRequestDbContext),
@@ -569,6 +571,26 @@ namespace NuGetGallery
         private static DbConnection CreateDbConnection(ISqlConnectionFactory connectionFactory)
         {
             return Task.Run(() => connectionFactory.CreateAsync()).Result;
+        }
+
+        private static void ConfigureGalleryReadOnlyReplicaEntitiesContext(ContainerBuilder builder,
+            IDiagnosticsService diagnostics, 
+            ConfigurationService configuration,
+            ISecretInjector secretInjector)
+        {
+            var galleryDbReadOnlyReplicaConnectionFactory = CreateDbConnectionFactory(
+                diagnostics,
+                nameof(ReadOnlyEntitiesContext),
+                configuration.Current.SqlReadOnlyReplicaConnectionString ?? configuration.Current.SqlConnectionString,
+                secretInjector);
+
+            builder.Register(c => new ReadOnlyEntitiesContext(CreateDbConnection(galleryDbReadOnlyReplicaConnectionFactory)))
+                .As<IReadOnlyEntitiesContext>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<ReadOnlyEntityRepository<Package>>()
+                .As<IReadOnlyEntityRepository<Package>>()
+                .InstancePerLifetimeScope();   
         }
 
         private static void ConfigureValidationEntitiesContext(ContainerBuilder builder, IDiagnosticsService diagnostics,

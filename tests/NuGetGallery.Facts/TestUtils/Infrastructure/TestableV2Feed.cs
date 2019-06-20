@@ -12,19 +12,19 @@ namespace NuGetGallery.TestUtils.Infrastructure
     public class TestableV2Feed : ODataV2FeedController
     {
         public TestableV2Feed(
-            IEntityRepository<Package> repo,
+            IReadOnlyEntityRepository<Package> repo,
             IGalleryConfigurationService configuration,
             ISearchService searchService)
-            : base(repo, configuration, searchService, Mock.Of<ITelemetryService>())
+            : base(repo, Mock.Of<IEntityRepository<Package>>(), configuration, GetNotNullISearchService(searchService), Mock.Of<ITelemetryService>(), GetFeatureFlagService())
         {
         }
 
         public TestableV2Feed(
-            IEntityRepository<Package> repo,
+            IReadOnlyEntityRepository<Package> repo,
             IGalleryConfigurationService configuration,
             ISearchService searchService,
             ITelemetryService telemetryService)
-            : base(repo, configuration, searchService, telemetryService)
+            : base(repo, Mock.Of<IEntityRepository<Package>>(), configuration, GetNotNullISearchService(searchService), telemetryService, GetFeatureFlagService())
         {
         }
 
@@ -42,6 +42,19 @@ namespace NuGetGallery.TestUtils.Infrastructure
         public string GetSiteRootForTest()
         {
             return GetSiteRoot();
+        }
+
+        private static IFeatureFlagService GetFeatureFlagService()
+        {
+            var featureFlag = new Mock<IFeatureFlagService>();
+            featureFlag.Setup(ff => ff.IsODataDatabaseReadOnlyEnabled()).Returns(true);
+
+            return featureFlag.Object;
+        }
+
+        private static ISearchService GetNotNullISearchService(ISearchService searchService)
+        {
+            return searchService ?? Mock.Of<ISearchService>();
         }
     }
 }

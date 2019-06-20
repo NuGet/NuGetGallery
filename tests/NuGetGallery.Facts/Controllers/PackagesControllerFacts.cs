@@ -159,6 +159,9 @@ namespace NuGetGallery
                 contentObjectService
                     .Setup(x => x.SymbolsConfiguration.IsSymbolsUploadEnabledForUser(It.IsAny<User>()))
                     .Returns(false);
+                contentObjectService
+                    .SetupGet(c => c.GitHubUsageConfiguration)
+                    .Returns(new GitHubUsageConfiguration(Array.Empty<RepositoryInformation>()));
             }
 
             if (symbolPackageUploadService == null)

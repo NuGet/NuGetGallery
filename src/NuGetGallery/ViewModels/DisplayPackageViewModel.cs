@@ -124,6 +124,8 @@ namespace NuGetGallery
         public bool IsDotnetToolPackageType { get; set; }
         public bool IsAtomFeedEnabled { get; set; }
         public bool IsPackageDeprecationEnabled { get; set; }
+        public bool IsGitHubUsageEnabled { get; set; }
+        public NuGetPackageGitHubInformation GitHubDependenciesInformation { get; set; }
 
         public bool HasNewerPrerelease
         {

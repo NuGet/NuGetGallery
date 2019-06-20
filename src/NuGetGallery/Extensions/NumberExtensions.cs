@@ -3,6 +3,8 @@
 
 using System;
 using System.Globalization;
+using System.Linq;
+using System.Text;
 
 namespace NuGetGallery
 {
@@ -65,6 +67,37 @@ namespace NuGetGallery
             }
 
             return "0 bytes";
+        }
+
+        /// <summary>
+        /// Format the number to a 1 decimal precision plus a letter to represent the scale (K for kilo, M for mega, or B for billion)
+        /// </summary>
+        /// <param name="number">The number to format</param>
+        /// <returns>String representation of the formatted number</returns>
+        public static string ToKiloFormat(this int number)
+        {
+            // To avoid overflow (with Math.Abs()). 1 difference won't make a difference in the simplified format :)
+            if (number == int.MinValue)
+            {
+                number = -1 * int.MaxValue;
+            }
+
+            if (Math.Abs(number) < 1000)
+            {
+                return number.ToString();
+            }
+
+            var powers = new[]
+            {
+                new { Value = 1_000_000_000f, Unit = 'B'},
+                new { Value = 1_000_000f    , Unit = 'M'},
+                new { Value = 1_000f        , Unit = 'K'}
+            };
+
+            return powers
+                .Where(pow => Math.Abs(Math.Round(number / pow.Value, 3)) >= 1f)
+                .Select(pow => string.Format(CultureInfo.InvariantCulture, "{0:F1}{1}", number / pow.Value, pow.Unit))
+                .First();
         }
     }
 }
