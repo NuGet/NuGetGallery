@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using System.Web;
 using System.Web.Mvc;
 using NuGet.Services.Entities;
 using NuGet.Versioning;
@@ -18,7 +17,7 @@ namespace NuGetGallery
     public partial class ManageDeprecationJsonApiController
         : AppController
     {
-        private const int MaxCustomMessageLength = 4000;
+        private const int MaxCustomMessageLength = 1000;
 
         private readonly IPackageService _packageService;
         private readonly IPackageDeprecationService _deprecationService;
@@ -87,7 +86,7 @@ namespace NuGetGallery
                         string.Format(Strings.DeprecatePackage_CustomMessageTooLong, MaxCustomMessageLength));
                 }
 
-                customMessage = HttpUtility.HtmlEncode(request.CustomMessage);
+                customMessage = request.CustomMessage;
             }
 
             if (request.Versions == null || !request.Versions.Any())

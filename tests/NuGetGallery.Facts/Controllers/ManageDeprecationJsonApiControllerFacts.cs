@@ -152,7 +152,7 @@ namespace NuGetGallery.Controllers
                 var controller = GetController<ManageDeprecationJsonApiController>();
                 controller.SetCurrentUser(currentUser);
 
-                var customMessage = new string('a', 4001);
+                var customMessage = new string('a', 1001);
 
                 // Act
                 var result = await controller.Deprecate(
@@ -166,7 +166,7 @@ namespace NuGetGallery.Controllers
                     controller,
                     result,
                     HttpStatusCode.BadRequest,
-                    string.Format(Strings.DeprecatePackage_CustomMessageTooLong, 4000));
+                    string.Format(Strings.DeprecatePackage_CustomMessageTooLong, 1000));
             }
 
             public static IEnumerable<object[]> ReturnsNotFoundIfNoPackagesOrRegistrationMissing_Data
@@ -785,7 +785,6 @@ namespace NuGetGallery.Controllers
                 var deprecationService = GetMock<IPackageDeprecationService>();
 
                 var customMessage = hasCustomMessage ? "<message>" : null;
-                var encodedCustomMessage = hasCustomMessage ? "&lt;message&gt;" : null;
 
                 deprecationService
                     .Setup(x => x.UpdateDeprecation(
@@ -793,7 +792,7 @@ namespace NuGetGallery.Controllers
                         expectedStatus,
                         alternatePackageState == ReturnsSuccessful_AlternatePackage_State.Registration ? alternatePackageRegistration : null,
                         alternatePackageState == ReturnsSuccessful_AlternatePackage_State.Package ? alternatePackage : null,
-                        encodedCustomMessage,
+                        customMessage,
                         currentUser))
                     .Completes()
                     .Verifiable();
