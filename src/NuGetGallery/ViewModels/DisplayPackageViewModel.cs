@@ -65,6 +65,8 @@ namespace NuGetGallery
 
                 CustomMessage = deprecation.CustomMessage;
             }
+
+            UsesIconFromFlatContainer = package.UsesIconFromFlatContainer;
         }
 
         private DisplayPackageViewModel(Package package, User currentUser, string pushedBy, string overrideIconUrl)
@@ -126,6 +128,7 @@ namespace NuGetGallery
         public bool IsPackageDeprecationEnabled { get; set; }
         public bool IsGitHubUsageEnabled { get; set; }
         public NuGetPackageGitHubInformation GitHubDependenciesInformation { get; set; }
+        public bool UsesIconFromFlatContainer { get; set; }
 
         public bool HasNewerPrerelease
         {

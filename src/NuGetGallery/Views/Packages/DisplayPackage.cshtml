@@ -318,6 +318,15 @@
                 )
             }
 
+            @if (Model.UsesIconFromFlatContainer && Model.IsIndexed.HasValue && !Model.IsIndexed.Value && Model.Available)
+            {
+                @ViewHelpers.AlertWarning(
+                    @<text>
+                        The package icon will become available once package validation has completed successfully.
+                    </text>
+                )
+            }
+
             @if (Model.IsSemVer2)
             {
                 @ViewHelpers.AlertIsSemVer2Package(Model.HasSemVer2Version, Model.HasSemVer2Dependency)
