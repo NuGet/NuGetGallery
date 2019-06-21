@@ -6,7 +6,7 @@ param (
     [Parameter(Mandatory=$true)][string]$Repository,
     [Parameter(Mandatory=$true)][string]$Branch = "master",
     [Parameter(Mandatory=$true)][ValidateSet("production", "staging")][string]$Slot = "production",
-    [Parameter(Mandatory=$true)][ValidateSet("Dev", "Int", "Prod", "AMEDev")][string]$Environment,
+    [Parameter(Mandatory=$true)][ValidateSet("Dev", "Int", "Prod", "ADev")][string]$Environment,
     [Parameter(Mandatory=$true)][ValidateSet("USNC", "USSC")][string]$Region
 )
 
