@@ -1136,7 +1136,7 @@ namespace NuGetGallery
                     .Returns(package);
 
                 featureFlagService
-                    .Setup(x => x.IsManageDeprecationEnabled(It.IsAny<User>()))
+                    .Setup(x => x.IsManageDeprecationEnabled(It.IsAny<User>(), package.PackageRegistration))
                     .Returns(isDeprecationEnabled);
 
                 deprecationService
@@ -1191,7 +1191,7 @@ namespace NuGetGallery
                     .Returns(package);
 
                 featureFlagService
-                    .Setup(x => x.IsManageDeprecationEnabled(TestUtility.FakeUser))
+                    .Setup(x => x.IsManageDeprecationEnabled(TestUtility.FakeUser, package.PackageRegistration))
                     .Returns(isDeprecationEnabled);
 
                 deprecationService
@@ -2668,7 +2668,7 @@ namespace NuGetGallery
 
                 var featureFlagService = GetMock<IFeatureFlagService>();
                 featureFlagService
-                    .Setup(x => x.IsManageDeprecationEnabled(currentUser))
+                    .Setup(x => x.IsManageDeprecationEnabled(currentUser, PackageRegistration))
                     .Returns(isManageDeprecationEnabled)
                     .Verifiable();
 
