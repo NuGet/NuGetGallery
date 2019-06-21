@@ -2445,15 +2445,6 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to License files are not yet supported..
-        /// </summary>
-        public static string UploadPackage_LicenseFilesAreNotAllowed {
-            get {
-                return ResourceManager.GetString("UploadPackage_LicenseFilesAreNotAllowed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The license file cannot be longer than {0}..
         /// </summary>
         public static string UploadPackage_LicenseFileTooLong {
