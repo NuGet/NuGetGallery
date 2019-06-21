@@ -10,7 +10,7 @@ using System.Linq;
 namespace NuGetGallery.AccountDeleter
 {
     /// <summary>
-    /// Evaluator that runs other evaluators and returns a single result
+    /// Evaluator that runs other evaluators and returns a single result. Runs "AND" logic between evaluators.
     /// </summary>
     public class AggregateEvaluator : IUserEvaluator
     {
