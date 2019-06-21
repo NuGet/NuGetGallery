@@ -163,6 +163,17 @@ namespace Ng
         /// If true, packages are expected to have at least a repository signature.
         /// </summary>
         public const string RequireRepositorySignature = "requireRepositorySignature";
+
+        /// <summary>
+        /// Continue to poll for messages until this amount of time is elapsed.
+        /// Then, refresh the job loop.
+        /// </summary>
+        public const string QueueLoopDurationHours = "queueLoopDurationHours";
+
+        /// <summary>
+        /// When the queue is empty or processing a message fails, wait this long before polling more.
+        /// </summary>
+        public const string QueueDelaySeconds = "queueDelaySeconds";
         #endregion
 
         #region KeyVault
