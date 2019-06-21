@@ -217,7 +217,7 @@ namespace Ng.Jobs
 
             var existingStatus = await _statusService.GetAsync(feedPackage, token);
 
-            if (catalogEntries != null && existingStatus?.ValidationResult != null && CompareCatalogEntries(catalogEntries, existingStatus.ValidationResult.CatalogEntries))
+            if (catalogEntries != null && existingStatus?.ValidationResult?.CatalogEntries != null && CompareCatalogEntries(catalogEntries, existingStatus.ValidationResult.CatalogEntries))
             {
                 // A newer catalog entry of this package has already been validated.
                 Logger.LogInformation("A newer catalog entry of {PackageId} {PackageVersion} has already been processed ({OldCommitTimeStamp} < {NewCommitTimeStamp}).",
