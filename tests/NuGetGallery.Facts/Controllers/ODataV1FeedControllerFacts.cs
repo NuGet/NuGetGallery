@@ -131,8 +131,7 @@ namespace NuGetGallery.Controllers
             IGalleryConfigurationService configurationService,
             ISearchService searchService,
             ITelemetryService telemetryService,
-            IFeatureFlagService featureFlagService,
-            IIconUrlProvider iconUrlProvider)
+            IFeatureFlagService featureFlagService)
         {
             return new ODataV1FeedController(
                 packagesRepository,

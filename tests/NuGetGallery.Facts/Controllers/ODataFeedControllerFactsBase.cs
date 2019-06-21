@@ -55,8 +55,7 @@ namespace NuGetGallery.Controllers
             IGalleryConfigurationService configurationService,
             ISearchService searchService,
             ITelemetryService telemetryService,
-            IFeatureFlagService featureFlagService,
-            IIconUrlProvider iconUrlProvider);
+            IFeatureFlagService featureFlagService);
 
         protected TController CreateTestableODataFeedController(HttpRequestMessage request)
         {
@@ -67,7 +66,6 @@ namespace NuGetGallery.Controllers
             var featureFlagService = new Mock<IFeatureFlagService>();
             featureFlagService.Setup(ff => ff.IsODataDatabaseReadOnlyEnabled()).Returns(true);
             var readWritePackagesRepositoryMock = new Mock<IEntityRepository<Package>>();
-            var iconUrlProvider = new Mock<IIconUrlProvider>();
 
             var controller = CreateController(
                 PackagesRepository,
@@ -75,8 +73,7 @@ namespace NuGetGallery.Controllers
                 configurationService,
                 searchService,
                 telemetryService.Object,
-                featureFlagService.Object,
-                iconUrlProvider.Object);
+                featureFlagService.Object);
 
             AddRequestToController(request, controller);
 

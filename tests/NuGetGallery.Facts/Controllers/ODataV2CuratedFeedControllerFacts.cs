@@ -34,7 +34,6 @@ namespace NuGetGallery.Controllers
             private readonly Mock<ISearchService> _searchService;
             private readonly Mock<IReadOnlyEntityRepository<Package>> _packages;
             private readonly Mock<ITelemetryService> _telemetryService;
-            private readonly Mock<IIconUrlProvider> _iconUrlProvider;
             private readonly ODataV2CuratedFeedController _target;
             private readonly HttpRequestMessage _request;
             private readonly ODataQueryOptions<V2FeedPackage> _options;
@@ -66,7 +65,6 @@ namespace NuGetGallery.Controllers
                 _telemetryService = new Mock<ITelemetryService>();
                 _readWritePackages = new Mock<IEntityRepository<Package>>();
                 _featureFlagService = new Mock<IFeatureFlagService>();
-                _iconUrlProvider = new Mock<IIconUrlProvider>();
 
                 _config
                     .Setup(x => x.Current)
@@ -490,8 +488,7 @@ namespace NuGetGallery.Controllers
             IGalleryConfigurationService configurationService,
             ISearchService searchService,
             ITelemetryService telemetryService,
-            IFeatureFlagService featureFlagService,
-            IIconUrlProvider iconUrlProvider)
+            IFeatureFlagService featureFlagService)
         {
             configurationService.Current.RedirectedCuratedFeeds = new[] { _curatedFeedName };
 
