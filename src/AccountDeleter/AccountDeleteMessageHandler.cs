@@ -33,6 +33,7 @@ namespace NuGetGallery.AccountDeleter
         {
             _accountDeleteConfigurationAccessor = accountDeleteConfigurationAccessor ?? throw new ArgumentNullException(nameof(accountDeleteConfigurationAccessor));
             _accountManager = accountManager ?? throw new ArgumentNullException(nameof(accountManager));
+            _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _messenger = messenger ?? throw new ArgumentNullException(nameof(messenger));
             _emailBuilderFactory = emailBuilderFactory ?? throw new ArgumentNullException(nameof(emailBuilderFactory));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
