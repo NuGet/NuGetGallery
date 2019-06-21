@@ -754,7 +754,7 @@ namespace NuGetGallery
             model.SymbolsPackageValidationIssues = _validationService.GetLatestPackageValidationIssues(model.LatestSymbolsPackage);
             model.IsCertificatesUIEnabled = _contentObjectService.CertificatesConfiguration?.IsUIEnabledForUser(currentUser) ?? false;
             model.IsAtomFeedEnabled = _featureFlagService.IsPackagesAtomFeedEnabled();
-            model.IsPackageDeprecationEnabled = _featureFlagService.IsManageDeprecationEnabled(currentUser);
+            model.IsPackageDeprecationEnabled = _featureFlagService.IsManageDeprecationEnabled(currentUser, package.PackageRegistration);
 
             if(model.IsGitHubUsageEnabled = _featureFlagService.IsGitHubUsageEnabled(currentUser))
             {
@@ -1466,6 +1466,7 @@ namespace NuGetGallery
             // Load all versions of the package.
             var packages = _packageService.FindPackagesById(
                 id, PackageDeprecationFieldsToInclude.DeprecationAndRelationships);
+
             if (version != null)
             {
                 // Try to find the exact version if it was specified.
@@ -1491,7 +1492,7 @@ namespace NuGetGallery
                 ReportMyPackageReasons,
                 Url,
                 await _readMeService.GetReadMeMdAsync(package),
-                _featureFlagService.IsManageDeprecationEnabled(currentUser),
+                _featureFlagService.IsManageDeprecationEnabled(currentUser, package.PackageRegistration),
                 _iconUrlProvider.GetIconUrlString(package));
 
             if (!model.CanEdit && !model.CanManageOwners && !model.CanUnlistOrRelist)

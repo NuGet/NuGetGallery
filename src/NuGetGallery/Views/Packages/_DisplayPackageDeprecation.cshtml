@@ -63,7 +63,7 @@
             @if (!string.IsNullOrEmpty(Model.CustomMessage))
             {
                 <b>Additional Details</b>
-                <p>@Model.CustomMessage</p>
+                <p>@Html.PreFormattedText(Model.CustomMessage)</p>
             }
         </div>
     </div>
