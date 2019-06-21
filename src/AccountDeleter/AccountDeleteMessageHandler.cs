@@ -48,16 +48,14 @@ namespace NuGetGallery.AccountDeleter
         public async Task<bool> HandleAsync(AccountDeleteMessage command)
         {
             var messageProcessed = true;
+            var source = command.Source;
 
             try
             {
-                var username = command.Username;
-                _logger.LogInformation("Processing Request from Source {Source}", command.Source);
-
-                var source = command.Source;
-                _telemetryService.TrackSource(source);
+                _logger.LogInformation("Processing Request from Source {Source}", source);
                 _accountDeleteConfigurationAccessor.Value.VerifySource(source);
 
+                var username = command.Username;
                 var user = _userService.FindByUsername(username);
                 if (user == null)
                 {
@@ -71,7 +69,7 @@ namespace NuGetGallery.AccountDeleter
 
                 var recipientEmail = user.EmailAddress;
                 var deleteSuccess = await _accountManager.DeleteAccount(user);
-                _telemetryService.TrackDeleteResult(deleteSuccess);
+                _telemetryService.TrackDeleteResult(source, deleteSuccess);
 
                 var baseEmailBuilder = _emailBuilderFactory.GetEmailBuilder(source, deleteSuccess);
                 if (baseEmailBuilder != null)
@@ -88,6 +86,7 @@ namespace NuGetGallery.AccountDeleter
                     var recipients = new EmailRecipients(toEmail, ccEmail);
                     var emailBuilder = new DisposableEmailBuilder(baseEmailBuilder, recipients, username);
                     await _messenger.SendMessageAsync(emailBuilder);
+                    _telemetryService.TrackEmailSent(source, user.EmailAllowed);
                 }
             }
             catch (UnknownSourceException)
@@ -95,17 +94,19 @@ namespace NuGetGallery.AccountDeleter
                 // Should definitely log if source isn't expected. Should we even send mail? or log and alert?
                 // Log unknown source and fail.
                 _logger.LogError("Unknown message source detected: {Source}.", command.Source);
+                _telemetryService.TrackUnknownSource(source);
                 messageProcessed = false;
             }
             catch (EmailContactNotAllowedException)
             {
                 // Should we not send? or should we ignore the setting.
                 _logger.LogWarning("User did not allow Email Contact.");
+                _telemetryService.TrackEmailBlocked(source);
             }
             catch (UserNotFoundException)
             {
                 _logger.LogWarning("User was not found. They may have already been deleted.");
-                _telemetryService.TrackUserNotFound();
+                _telemetryService.TrackUserNotFound(source);
                 messageProcessed = true;
             }
             catch (Exception e)

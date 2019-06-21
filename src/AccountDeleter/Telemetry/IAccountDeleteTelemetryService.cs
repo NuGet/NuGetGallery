@@ -7,14 +7,14 @@ namespace NuGetGallery.AccountDeleter
 {
     public interface IAccountDeleteTelemetryService
     {
-        void TrackUserNotFound();
+        void TrackUserNotFound(string source);
 
-        void TrackException(Exception exception);
+        void TrackDeleteResult(string source, bool deleteSuccess);
 
-        void TrackSource(string source);
+        void TrackEmailSent(string source, bool contactAllowed);
 
-        void TrackDeleteResult(bool deleteSuccess);
+        void TrackEmailBlocked(string source);
 
-        void TrackEmailSent();
+        void TrackUnknownSource(string source);
     }
 }
