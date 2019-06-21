@@ -56,12 +56,12 @@ namespace NuGetGallery.AccountDeleter
             services.AddTransient<IAccountDeleteTelemetryService, AccountDeleteTelemetryService>();
             services.AddTransient<ISubscriptionProcessorTelemetryService, AccountDeleteTelemetryService>();
 
-            services.AddSingleton<AggregateEvaluator>();
+            services.AddScoped<AggregateEvaluator>();
             services.AddTransient<AlwaysRejectEvaluator>();
             services.AddTransient<AlwaysAllowEvaluator>();
             services.AddTransient<UserPackageEvaluator>();
 
-            services.AddSingleton<IUserEvaluator>(sp =>
+            services.AddScoped<IUserEvaluator>(sp =>
             {
                 var evaluator = sp.GetRequiredService<AggregateEvaluator>();
 
@@ -105,8 +105,8 @@ namespace NuGetGallery.AccountDeleter
             }
 
 
-            services.AddSingleton<IEmailBuilderFactory, EmailBuilderFactory>();
-            services.AddSingleton<ITelemetryClient, TelemetryClientWrapper>();
+            services.AddScoped<IEmailBuilderFactory, EmailBuilderFactory>();
+            services.AddScoped<ITelemetryClient, TelemetryClientWrapper>();
 
             ConfigureGalleryServices(services, configurationRoot);
         }
@@ -115,27 +115,27 @@ namespace NuGetGallery.AccountDeleter
         {
             if (IsDebugMode)
             {
-                services.AddSingleton<IDeleteAccountService, EmptyDeleteAccountService>();
-                services.AddSingleton<IUserService, EmptyUserService>();
+                services.AddScoped<IDeleteAccountService, EmptyDeleteAccountService>();
+                services.AddScoped<IUserService, EmptyUserService>();
             }
             else
             {
-                services.AddSingleton<IDeleteAccountService, EmptyDeleteAccountService>();
-                //services.AddSingleton<IDeleteAccountService, DeleteAccountService>();
+                services.AddScoped<IDeleteAccountService, EmptyDeleteAccountService>();
+                //services.AddScoped<IDeleteAccountService, DeleteAccountService>();
 
-                services.AddSingleton<IUserService, MicroUserService>();
-                services.AddSingleton<IDiagnosticsService, LoggerDiagnosticsService>();
+                services.AddScoped<IUserService, MicroUserService>();
+                services.AddScoped<IDiagnosticsService, LoggerDiagnosticsService>();
 
-                services.AddSingleton<IPackageService, PackageService>();
+                services.AddScoped<IPackageService, PackageService>();
 
-                services.AddSingleton<ITelemetryService, GalleryTelemetryService>();
-                services.AddSingleton<ISecurityPolicyService, SecurityPolicyService>();
-                services.AddSingleton<IAuditingService>(sp => { return AuditingService.None; }); //Replace with real when we start doing deletes. For now, we are a readonly operation.
-                services.AddSingleton<IAppConfiguration, GalleryConfiguration>();
-                services.AddSingleton<IPackageOwnershipManagementService, PackageOwnershipManagementService>();
-                services.AddSingleton<IPackageOwnerRequestService, PackageOwnerRequestService>();
-                services.AddSingleton<IReservedNamespaceService, ReservedNamespaceService>();
-                services.AddSingleton<MicrosoftTeamSubscription>();
+                services.AddScoped<ITelemetryService, GalleryTelemetryService>();
+                services.AddScoped<ISecurityPolicyService, SecurityPolicyService>();
+                services.AddScoped<IAuditingService>(sp => { return AuditingService.None; }); //Replace with real when we start doing deletes. For now, we are a readonly operation.
+                services.AddScoped<IAppConfiguration, GalleryConfiguration>();
+                services.AddScoped<IPackageOwnershipManagementService, PackageOwnershipManagementService>();
+                services.AddScoped<IPackageOwnerRequestService, PackageOwnerRequestService>();
+                services.AddScoped<IReservedNamespaceService, ReservedNamespaceService>();
+                services.AddScoped<MicrosoftTeamSubscription>();
             }
         }
 
