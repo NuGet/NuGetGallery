@@ -66,9 +66,10 @@ namespace NuGetGallery
                 status |= PackageDeprecationStatus.CriticalBugs;
             }
 
+            var customMessage = request.CustomMessage;
             if (request.IsOther)
             {
-                if (string.IsNullOrWhiteSpace(request.CustomMessage))
+                if (string.IsNullOrWhiteSpace(customMessage))
                 {
                     return DeprecateErrorResponse(HttpStatusCode.BadRequest, Strings.DeprecatePackage_CustomMessageRequired);
                 }
@@ -76,17 +77,14 @@ namespace NuGetGallery
                 status |= PackageDeprecationStatus.Other;
             }
 
-            string customMessage = null;
-            if (request.CustomMessage != null)
+            if (customMessage != null)
             {
-                if (request.CustomMessage.Length > MaxCustomMessageLength)
+                if (customMessage.Length > MaxCustomMessageLength)
                 {
                     return DeprecateErrorResponse(
                         HttpStatusCode.BadRequest,
                         string.Format(Strings.DeprecatePackage_CustomMessageTooLong, MaxCustomMessageLength));
                 }
-
-                customMessage = request.CustomMessage;
             }
 
             if (request.Versions == null || !request.Versions.Any())
