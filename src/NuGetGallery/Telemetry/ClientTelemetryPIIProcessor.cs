@@ -28,7 +28,7 @@ namespace NuGetGallery
         private void ModifyItem(ITelemetry item)
         {
             var requestTelemetryItem = item as RequestTelemetry;
-            if(requestTelemetryItem != null && requestTelemetryItem.Url != null)
+            if(requestTelemetryItem != null)
             {
                 var route = GetCurrentRoute();
                 if(route == null)
