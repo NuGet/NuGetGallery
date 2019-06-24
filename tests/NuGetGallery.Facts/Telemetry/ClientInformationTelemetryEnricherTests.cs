@@ -37,7 +37,7 @@ namespace NuGetGallery.Telemetry
         {
             // Arrange
             var telemetry = (ITelemetry)telemetryType.GetConstructor(new Type[] { }).Invoke(new object[] { });
-            telemetry.Context.GlobalProperties.Add("Test", "blala");
+            telemetry.Context.Properties.Add("Test", "blala");
 
             var headers = new NameValueCollection
             {
@@ -54,11 +54,11 @@ namespace NuGetGallery.Telemetry
             // Assert
             if (telemetry is RequestTelemetry)
             {
-                Assert.Equal(5, telemetry.Context.GlobalProperties.Count);
+                Assert.Equal(5, telemetry.Context.Properties.Count);
             }
             else
             {
-                Assert.Equal(1, telemetry.Context.GlobalProperties.Count);
+                Assert.Equal(1, telemetry.Context.Properties.Count);
             }
         }
 
@@ -79,7 +79,7 @@ namespace NuGetGallery.Telemetry
             enricher.Initialize(telemetry);
 
             // Assert
-            Assert.Equal("5.0.0", telemetry.Context.GlobalProperties[TelemetryService.ClientVersion]);
+            Assert.Equal("5.0.0", telemetry.Properties[TelemetryService.ClientVersion]);
         }
 
         [Fact]
@@ -99,7 +99,7 @@ namespace NuGetGallery.Telemetry
             enricher.Initialize(telemetry);
 
             // Assert
-            Assert.Equal("5.0.0", telemetry.Context.GlobalProperties[TelemetryService.ProtocolVersion]);
+            Assert.Equal("5.0.0", telemetry.Properties[TelemetryService.ProtocolVersion]);
         }
 
         [Fact]
@@ -119,7 +119,7 @@ namespace NuGetGallery.Telemetry
             enricher.Initialize(telemetry);
 
             // Assert
-            Assert.NotEmpty(telemetry.Context.GlobalProperties[TelemetryService.ClientInformation]);
+            Assert.NotEmpty(telemetry.Properties[TelemetryService.ClientInformation]);
         }
 
         [Theory]
@@ -135,7 +135,7 @@ namespace NuGetGallery.Telemetry
             enricher.Initialize(telemetry);
 
             // Assert
-            Assert.Equal(isAuthenticated, bool.Parse(telemetry.Context.GlobalProperties[TelemetryService.IsAuthenticated]));
+            Assert.Equal(isAuthenticated, bool.Parse(telemetry.Properties[TelemetryService.IsAuthenticated]));
         }
 
         private TestableClientInformationTelemetryEnricher CreateTestEnricher(NameValueCollection headers, bool isAuthenticated = false)

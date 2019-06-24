@@ -21,18 +21,18 @@ namespace NuGetGallery
                 {
                     // ClientVersion is available for NuGet clients starting version 4.1.0-~4.5.0 
                     // Was deprecated and replaced by Protocol version
-                    telemetry.Context.GlobalProperties.Add(
+                    telemetry.Context.Properties.Add(
                         TelemetryService.ClientVersion,
                         httpContext.Request.Headers[GalleryConstants.ClientVersionHeaderName]);
 
-                    telemetry.Context.GlobalProperties.Add(
+                    telemetry.Context.Properties.Add(
                         TelemetryService.ProtocolVersion,
                         httpContext.Request.Headers[GalleryConstants.NuGetProtocolHeaderName]);
 
-                    telemetry.Context.GlobalProperties.Add(TelemetryService.ClientInformation, httpContext.GetClientInformation());
+                    telemetry.Context.Properties.Add(TelemetryService.ClientInformation, httpContext.GetClientInformation());
 
                     // Is the user authenticated or this is an anonymous request?
-                    telemetry.Context.GlobalProperties.Add(TelemetryService.IsAuthenticated, httpContext.Request.IsAuthenticated.ToString());
+                    telemetry.Context.Properties.Add(TelemetryService.IsAuthenticated, httpContext.Request.IsAuthenticated.ToString());
                 }
             }
         }
