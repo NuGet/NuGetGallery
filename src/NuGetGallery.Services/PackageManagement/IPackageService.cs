@@ -98,9 +98,6 @@ namespace NuGetGallery
         Task PublishPackageAsync(string id, string version, bool commitChanges = true);
         Task PublishPackageAsync(Package package, bool commitChanges = true);
 
-        Task MarkPackageUnlistedAsync(Package package, bool commitChanges = true);
-        Task MarkPackageListedAsync(Package package, bool commitChanges = true);
-
         /// <summary>
         /// Performs database changes to add a new package owner while removing the corresponding package owner request.
         /// </summary>

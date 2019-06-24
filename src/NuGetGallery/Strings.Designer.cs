@@ -776,6 +776,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Your custom message is too long. It must be under {0} characters..
+        /// </summary>
+        public static string DeprecatePackage_CustomMessageTooLong {
+            get {
+                return ResourceManager.GetString("DeprecatePackage_CustomMessageTooLong", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to You do not have permission to deprecate this package..
         /// </summary>
         public static string DeprecatePackage_Forbidden {
@@ -2432,15 +2441,6 @@ namespace NuGetGallery {
         public static string UploadPackage_LicenseFileDoesNotExist {
             get {
                 return ResourceManager.GetString("UploadPackage_LicenseFileDoesNotExist", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to License files are not yet supported..
-        /// </summary>
-        public static string UploadPackage_LicenseFilesAreNotAllowed {
-            get {
-                return ResourceManager.GetString("UploadPackage_LicenseFilesAreNotAllowed", resourceCulture);
             }
         }
         

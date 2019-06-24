@@ -22,6 +22,7 @@ namespace NuGetGallery
         private readonly IEntityRepository<PackageDelete> _packageDeleteRepository;
         private readonly IEntitiesContext _entitiesContext;
         private readonly IPackageService _packageService;
+        private readonly IPackageUpdateService _packageUpdateService;
         private readonly IPackageOwnershipManagementService _packageOwnershipManagementService;
         private readonly IReservedNamespaceService _reservedNamespaceService;
         private readonly ISecurityPolicyService _securityPolicyService;
@@ -42,6 +43,7 @@ namespace NuGetGallery
             IEntityRepository<Scope> scopeRepository,
             IEntitiesContext entitiesContext,
             IPackageService packageService,
+            IPackageUpdateService packageUpdateService,
             IPackageOwnershipManagementService packageOwnershipManagementService,
             IReservedNamespaceService reservedNamespaceService,
             ISecurityPolicyService securityPolicyService,
@@ -58,6 +60,7 @@ namespace NuGetGallery
             _scopeRepository = scopeRepository ?? throw new ArgumentNullException(nameof(scopeRepository));
             _entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
+            _packageUpdateService = packageUpdateService ?? throw new ArgumentNullException(nameof(packageUpdateService));
             _packageOwnershipManagementService = packageOwnershipManagementService ?? throw new ArgumentNullException(nameof(packageOwnershipManagementService));
             _reservedNamespaceService = reservedNamespaceService ?? throw new ArgumentNullException(nameof(reservedNamespaceService));
             _securityPolicyService = securityPolicyService ?? throw new ArgumentNullException(nameof(securityPolicyService));
@@ -210,7 +213,7 @@ namespace NuGetGallery
                     }
                     else if (orphanPackagePolicy == AccountDeletionOrphanPackagePolicy.UnlistOrphans)
                     {
-                        await _packageService.MarkPackageUnlistedAsync(package, commitChanges: false);
+                        await _packageUpdateService.MarkPackageUnlistedAsync(package, commitChanges: false, updateIndex: false);
                     }
                 }
 

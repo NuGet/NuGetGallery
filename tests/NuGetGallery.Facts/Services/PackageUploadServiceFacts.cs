@@ -866,58 +866,6 @@ namespace NuGetGallery
                 return new Uri(string.Format("https://licenses.nuget.org/{0}", licenseExpression));
             }
 
-            private static string[] LicenseNodeVariants => new string[]
-            {
-                "<license/>",
-                "<license></license>",
-                "<license> </license>",
-                "<license>ttt</license>",
-                "<license type='file'>fff</license>",
-                "<license type='expression'>ee</license>",
-                "<license type='foobar'>ttt</license>",
-                "<license type='file'><someChildNode /></license>",
-                "<license type='file' version='1.0.0'>fff</license>",
-                "<license type='expression' version='1.0.0'>ee</license>",
-                "<license type='foobar' version='1.0.0'>ttt</license>",
-                "<license type='file' version='1.0.0'><someChildNode /></license>",
-                "<license type='file' version='2.0.0'>fff</license>",
-                "<license type='expression' version='2.0.0'>ee</license>",
-                "<license type='foobar' version='2.0.0'>ttt</license>",
-                "<license type='file' version='2.0.0'><someChildNode /></license>",
-            };
-
-            public static IEnumerable<object[]> RejectsLicensedPackagesWhenConfigured_Input =>
-                from licenseNode in LicenseNodeVariants
-                select new object[] { licenseNode, true, false };
-
-            [Theory]
-            [MemberData(nameof(RejectsLicensedPackagesWhenConfigured_Input))]
-            public async Task RejectsLicensedPackagesWhenConfigured(string licenseNode, bool rejectPackagesWithLicense, bool expectedSuccess)
-            {
-                _config
-                    .SetupGet(x => x.RejectPackagesWithLicense)
-                    .Returns(rejectPackagesWithLicense);
-                _nuGetPackage = GeneratePackageWithUserContent(getCustomNuspecNodes: () => licenseNode);
-
-                var result = await _target.ValidateBeforeGeneratePackageAsync(
-                    _nuGetPackage.Object,
-                    GetPackageMetadata(_nuGetPackage),
-                    _currentUser);
-
-                if (expectedSuccess)
-                {
-                    Assert.Equal(PackageValidationResultType.Accepted, result.Type);
-                    Assert.Null(result.Message);
-                    Assert.Empty(result.Warnings);
-                }
-                else
-                {
-                    Assert.Equal(PackageValidationResultType.Invalid, result.Type);
-                    Assert.Contains("license", result.Message.PlainTextMessage);
-                    Assert.Empty(result.Warnings);
-                }
-            }
-
             [Fact]
             public async Task RejectsLongLicenses()
             {

@@ -8,8 +8,8 @@ using System.Threading.Tasks;
 using System.Web.Mvc;
 using Newtonsoft.Json.Linq;
 using NuGet.Services.Entities;
-using NuGetGallery.Auditing;
 using NuGetGallery.Framework;
+using NuGetGallery.RequestModels;
 using Xunit;
 
 namespace NuGetGallery.Controllers
@@ -117,48 +117,10 @@ namespace NuGetGallery.Controllers
 
                 // Act
                 var result = await controller.Deprecate(
-                    id: "id", 
-                    versions: null, 
-                    isLegacy: false, 
-                    hasCriticalBugs: false, 
-                    isOther: true, 
-                    alternatePackageId: null, 
-                    alternatePackageVersion: null, 
-                    customMessage: null);
+                    CreateDeprecatePackageRequest("id", isOther: true));
 
                 // Assert
                 AssertErrorResponse(controller, result, HttpStatusCode.BadRequest, Strings.DeprecatePackage_CustomMessageRequired);
-            }
-
-            [Fact]
-            public async Task ReturnsForbiddenIfFeatureFlagDisabled()
-            {
-                // Arrange
-                var currentUser = TestUtility.FakeUser;
-
-                var featureFlagService = GetMock<IFeatureFlagService>();
-                featureFlagService
-                    .Setup(x => x.IsManageDeprecationEnabled(currentUser))
-                    .Returns(false)
-                    .Verifiable();
-
-                var controller = GetController<ManageDeprecationJsonApiController>();
-                controller.SetCurrentUser(currentUser);
-
-                // Act
-                var result = await controller.Deprecate(
-                    id: "id",
-                    versions: null,
-                    isLegacy: false,
-                    hasCriticalBugs: false,
-                    isOther: false,
-                    alternatePackageId: null,
-                    alternatePackageVersion: null,
-                    customMessage: null);
-
-                // Assert
-                AssertErrorResponse(controller, result, HttpStatusCode.Forbidden, Strings.DeprecatePackage_Forbidden);
-                featureFlagService.Verify();
             }
 
             public static IEnumerable<object[]> ReturnsBadRequestIfNoVersions_Data =
@@ -171,29 +133,40 @@ namespace NuGetGallery.Controllers
                 // Arrange
                 var currentUser = TestUtility.FakeUser;
 
-                var featureFlagService = GetMock<IFeatureFlagService>();
-                featureFlagService
-                    .Setup(x => x.IsManageDeprecationEnabled(currentUser))
-                    .Returns(true)
-                    .Verifiable();
-
                 var controller = GetController<ManageDeprecationJsonApiController>();
                 controller.SetCurrentUser(currentUser);
 
                 // Act
                 var result = await controller.Deprecate(
-                    id: "id",
-                    versions: versions,
-                    isLegacy: false,
-                    hasCriticalBugs: false,
-                    isOther: false,
-                    alternatePackageId: null,
-                    alternatePackageVersion: null,
-                    customMessage: null);
+                    CreateDeprecatePackageRequest("id", versions));
 
                 // Assert
                 AssertErrorResponse(controller, result, HttpStatusCode.BadRequest, Strings.DeprecatePackage_NoVersions);
-                featureFlagService.Verify();
+            }
+
+            [Fact]
+            public async Task ReturnsBadRequestIfLongCustomMessage()
+            {
+                // Arrange
+                var currentUser = TestUtility.FakeUser;
+                var controller = GetController<ManageDeprecationJsonApiController>();
+                controller.SetCurrentUser(currentUser);
+
+                var customMessage = new string('a', 1001);
+
+                // Act
+                var result = await controller.Deprecate(
+                    CreateDeprecatePackageRequest(
+                        "id",
+                        new[] { "1.0.0" },
+                        customMessage: customMessage));
+
+                // Assert
+                AssertErrorResponse(
+                    controller,
+                    result,
+                    HttpStatusCode.BadRequest,
+                    string.Format(Strings.DeprecatePackage_CustomMessageTooLong, 1000));
             }
 
             public static IEnumerable<object[]> ReturnsNotFoundIfNoPackagesOrRegistrationMissing_Data
@@ -215,12 +188,6 @@ namespace NuGetGallery.Controllers
                 var id = "id";
                 var currentUser = TestUtility.FakeUser;
 
-                var featureFlagService = GetMock<IFeatureFlagService>();
-                featureFlagService
-                    .Setup(x => x.IsManageDeprecationEnabled(currentUser))
-                    .Returns(true)
-                    .Verifiable();
-
                 var packageService = GetMock<IPackageService>();
                 packageService
                     .Setup(x => x.FindPackagesById(id, PackageDeprecationFieldsToInclude.DeprecationAndRelationships))
@@ -232,19 +199,53 @@ namespace NuGetGallery.Controllers
 
                 // Act
                 var result = await controller.Deprecate(
-                    id: id,
-                    versions: new[] { "1.0.0" },
-                    isLegacy: false,
-                    hasCriticalBugs: false,
-                    isOther: false,
-                    alternatePackageId: null,
-                    alternatePackageVersion: null,
-                    customMessage: null);
+                    CreateDeprecatePackageRequest("id", new[] { "1.0.0" }));
 
                 // Assert
                 AssertErrorResponse(controller, result, HttpStatusCode.NotFound, string.Format(Strings.DeprecatePackage_MissingRegistration, id));
-                featureFlagService.Verify();
                 packageService.Verify();
+            }
+
+
+            [Fact]
+            public async Task ReturnsForbiddenIfFeatureFlagDisabled()
+            {
+                // Arrange
+                var id = "id";
+                var currentUser = TestUtility.FakeUser;
+
+                var registration = new PackageRegistration
+                {
+                    Id = id
+                };
+
+                var package = new Package
+                {
+                    PackageRegistration = registration
+                };
+
+                var packageService = GetMock<IPackageService>();
+                packageService
+                    .Setup(x => x.FindPackagesById(id, PackageDeprecationFieldsToInclude.DeprecationAndRelationships))
+                    .Returns(new[] { package })
+                    .Verifiable();
+
+                var featureFlagService = GetMock<IFeatureFlagService>();
+                featureFlagService
+                    .Setup(x => x.IsManageDeprecationEnabled(currentUser, registration))
+                    .Returns(false)
+                    .Verifiable();
+
+                var controller = GetController<ManageDeprecationJsonApiController>();
+                controller.SetCurrentUser(currentUser);
+
+                // Act
+                var result = await controller.Deprecate(
+                    CreateDeprecatePackageRequest(id, new[] { "1.0.0" }));
+
+                // Assert
+                AssertErrorResponse(controller, result, HttpStatusCode.Forbidden, Strings.DeprecatePackage_Forbidden);
+                featureFlagService.Verify();
             }
 
             public static IEnumerable<object[]> NotOwner_Data
@@ -272,16 +273,16 @@ namespace NuGetGallery.Controllers
                 // Arrange
                 var id = "id";
 
-                var featureFlagService = GetMock<IFeatureFlagService>();
-                featureFlagService
-                    .Setup(x => x.IsManageDeprecationEnabled(currentUser))
-                    .Returns(true)
-                    .Verifiable();
-
                 var registration = new PackageRegistration
                 {
                     Id = id
                 };
+
+                var featureFlagService = GetMock<IFeatureFlagService>();
+                featureFlagService
+                    .Setup(x => x.IsManageDeprecationEnabled(currentUser, registration))
+                    .Returns(true)
+                    .Verifiable();
 
                 registration.Owners.Add(owner);
 
@@ -301,14 +302,7 @@ namespace NuGetGallery.Controllers
 
                 // Act
                 var result = await controller.Deprecate(
-                    id: id,
-                    versions: new[] { "1.0.0" },
-                    isLegacy: false,
-                    hasCriticalBugs: false,
-                    isOther: false,
-                    alternatePackageId: null,
-                    alternatePackageVersion: null,
-                    customMessage: null);
+                    CreateDeprecatePackageRequest(id, new[] { "1.0.0" }));
 
                 // Assert
                 AssertErrorResponse(controller, result, HttpStatusCode.Forbidden, Strings.DeprecatePackage_Forbidden);
@@ -353,17 +347,17 @@ namespace NuGetGallery.Controllers
                 // Arrange
                 var id = "id";
 
-                var featureFlagService = GetMock<IFeatureFlagService>();
-                featureFlagService
-                    .Setup(x => x.IsManageDeprecationEnabled(currentUser))
-                    .Returns(true)
-                    .Verifiable();
-
                 var registration = new PackageRegistration
                 {
                     Id = id,
                     IsLocked = true
                 };
+
+                var featureFlagService = GetMock<IFeatureFlagService>();
+                featureFlagService
+                    .Setup(x => x.IsManageDeprecationEnabled(currentUser, registration))
+                    .Returns(true)
+                    .Verifiable();
 
                 registration.Owners.Add(owner);
 
@@ -383,14 +377,7 @@ namespace NuGetGallery.Controllers
 
                 // Act
                 var result = await controller.Deprecate(
-                    id: id,
-                    versions: new[] { "1.0.0" },
-                    isLegacy: false,
-                    hasCriticalBugs: false,
-                    isOther: false,
-                    alternatePackageId: null,
-                    alternatePackageVersion: null,
-                    customMessage: null);
+                    CreateDeprecatePackageRequest(id, new[] { "1.0.0" }));
 
                 // Assert
                 AssertErrorResponse(
@@ -409,16 +396,16 @@ namespace NuGetGallery.Controllers
                 // Arrange
                 var id = "id";
 
-                var featureFlagService = GetMock<IFeatureFlagService>();
-                featureFlagService
-                    .Setup(x => x.IsManageDeprecationEnabled(currentUser))
-                    .Returns(true)
-                    .Verifiable();
-
                 var registration = new PackageRegistration
                 {
                     Id = id
                 };
+
+                var featureFlagService = GetMock<IFeatureFlagService>();
+                featureFlagService
+                    .Setup(x => x.IsManageDeprecationEnabled(currentUser, registration))
+                    .Returns(true)
+                    .Verifiable();
 
                 registration.Owners.Add(owner);
 
@@ -444,14 +431,10 @@ namespace NuGetGallery.Controllers
 
                 // Act
                 var result = await controller.Deprecate(
-                    id: id,
-                    versions: new[] { "1.0.0" },
-                    isLegacy: false,
-                    hasCriticalBugs: false,
-                    isOther: false,
-                    alternatePackageId: alternatePackageId,
-                    alternatePackageVersion: null,
-                    customMessage: null);
+                    CreateDeprecatePackageRequest(
+                        id, 
+                        new[] { "1.0.0" }, 
+                        alternatePackageId: alternatePackageId));
 
                 // Assert
                 AssertErrorResponse(
@@ -470,16 +453,16 @@ namespace NuGetGallery.Controllers
                 // Arrange
                 var id = "id";
 
-                var featureFlagService = GetMock<IFeatureFlagService>();
-                featureFlagService
-                    .Setup(x => x.IsManageDeprecationEnabled(currentUser))
-                    .Returns(true)
-                    .Verifiable();
-
                 var registration = new PackageRegistration
                 {
                     Id = id
                 };
+
+                var featureFlagService = GetMock<IFeatureFlagService>();
+                featureFlagService
+                    .Setup(x => x.IsManageDeprecationEnabled(currentUser, registration))
+                    .Returns(true)
+                    .Verifiable();
 
                 registration.Owners.Add(owner);
 
@@ -506,14 +489,11 @@ namespace NuGetGallery.Controllers
 
                 // Act
                 var result = await controller.Deprecate(
-                    id: id,
-                    versions: new[] { "1.0.0" },
-                    isLegacy: false,
-                    hasCriticalBugs: false,
-                    isOther: false,
-                    alternatePackageId: alternatePackageId,
-                    alternatePackageVersion: alternatePackageVersion,
-                    customMessage: null);
+                    CreateDeprecatePackageRequest(
+                        id, 
+                        new[] { "1.0.0" }, 
+                        alternatePackageId: alternatePackageId, 
+                        alternatePackageVersion: alternatePackageVersion));
 
                 // Assert
                 AssertErrorResponse(
@@ -532,16 +512,16 @@ namespace NuGetGallery.Controllers
                 // Arrange
                 var id = "id";
 
-                var featureFlagService = GetMock<IFeatureFlagService>();
-                featureFlagService
-                    .Setup(x => x.IsManageDeprecationEnabled(currentUser))
-                    .Returns(true)
-                    .Verifiable();
-
                 var registration = new PackageRegistration
                 {
                     Id = id
                 };
+
+                var featureFlagService = GetMock<IFeatureFlagService>();
+                featureFlagService
+                    .Setup(x => x.IsManageDeprecationEnabled(currentUser, registration))
+                    .Returns(true)
+                    .Verifiable();
 
                 registration.Owners.Add(owner);
 
@@ -562,14 +542,7 @@ namespace NuGetGallery.Controllers
 
                 // Act
                 var result = await controller.Deprecate(
-                    id: id,
-                    versions: new[] { "1.0.0" },
-                    isLegacy: false,
-                    hasCriticalBugs: false,
-                    isOther: false,
-                    alternatePackageId: null,
-                    alternatePackageVersion: null,
-                    customMessage: null);
+                    CreateDeprecatePackageRequest(id, new[] { "1.0.0" }));
 
                 // Assert
                 AssertErrorResponse(
@@ -588,16 +561,16 @@ namespace NuGetGallery.Controllers
                 // Arrange
                 var id = "id";
 
-                var featureFlagService = GetMock<IFeatureFlagService>();
-                featureFlagService
-                    .Setup(x => x.IsManageDeprecationEnabled(currentUser))
-                    .Returns(true)
-                    .Verifiable();
-
                 var registration = new PackageRegistration
                 {
                     Id = id
                 };
+
+                var featureFlagService = GetMock<IFeatureFlagService>();
+                featureFlagService
+                    .Setup(x => x.IsManageDeprecationEnabled(currentUser, registration))
+                    .Returns(true)
+                    .Verifiable();
 
                 registration.Owners.Add(owner);
 
@@ -618,14 +591,7 @@ namespace NuGetGallery.Controllers
 
                 // Act
                 var result = await controller.Deprecate(
-                    id: id,
-                    versions: new[] { "1.0.0" },
-                    isLegacy: false,
-                    hasCriticalBugs: false,
-                    isOther: false,
-                    alternatePackageId: null,
-                    alternatePackageVersion: null,
-                    customMessage: null);
+                    CreateDeprecatePackageRequest(id, new[] { "1.0.0" }));
 
                 // Assert
                 AssertErrorResponse(
@@ -750,16 +716,16 @@ namespace NuGetGallery.Controllers
                 // Arrange
                 var id = "id";
 
-                var featureFlagService = GetMock<IFeatureFlagService>();
-                featureFlagService
-                    .Setup(x => x.IsManageDeprecationEnabled(currentUser))
-                    .Returns(true)
-                    .Verifiable();
-
                 var registration = new PackageRegistration
                 {
                     Id = id
                 };
+
+                var featureFlagService = GetMock<IFeatureFlagService>();
+                featureFlagService
+                    .Setup(x => x.IsManageDeprecationEnabled(currentUser, registration))
+                    .Returns(true)
+                    .Verifiable();
 
                 registration.Owners.Add(owner);
 
@@ -818,7 +784,7 @@ namespace NuGetGallery.Controllers
 
                 var deprecationService = GetMock<IPackageDeprecationService>();
 
-                var customMessage = hasCustomMessage ? "message" : null;
+                var customMessage = hasCustomMessage ? "<message>" : null;
 
                 deprecationService
                     .Setup(x => x.UpdateDeprecation(
@@ -831,8 +797,6 @@ namespace NuGetGallery.Controllers
                     .Completes()
                     .Verifiable();
 
-                var auditingService = GetService<IAuditingService>();
-
                 var controller = GetController<ManageDeprecationJsonApiController>();
                 controller.SetCurrentUser(currentUser);
 
@@ -840,42 +804,18 @@ namespace NuGetGallery.Controllers
 
                 // Act
                 var result = await controller.Deprecate(
-                    id,
-                    packageNormalizedVersions,
-                    isLegacy,
-                    hasCriticalBugs,
-                    isOther,
-                    alternatePackageId,
-                    alternatePackageVersion,
-                    customMessage);
+                    CreateDeprecatePackageRequest(
+                        id,
+                        packageNormalizedVersions,
+                        isLegacy,
+                        hasCriticalBugs,
+                        isOther,
+                        alternatePackageId,
+                        alternatePackageVersion,
+                        customMessage));
 
                 // Assert
                 AssertSuccessResponse(controller);
-
-                if (expectedStatus == PackageDeprecationStatus.NotDeprecated)
-                {
-                    foreach (var normalizedVersion in packageNormalizedVersions)
-                    {
-                        auditingService.WroteRecord<PackageAuditRecord>(
-                            r => r.Action == AuditedPackageAction.Undeprecate
-                            && r.Reason == PackageUndeprecatedVia.Web
-                            && r.DeprecationRecord == null
-                            && r.Id == id
-                            && r.PackageRecord.NormalizedVersion == normalizedVersion);
-                    }
-                }
-                else
-                {
-                    foreach (var normalizedVersion in packageNormalizedVersions)
-                    {
-                        auditingService.WroteRecord<PackageAuditRecord>(
-                            r => r.Action == AuditedPackageAction.Deprecate
-                            && r.Reason == PackageDeprecatedVia.Web
-                            && r.DeprecationRecord.Status == (int)expectedStatus
-                            && r.Id == id
-                            && r.PackageRecord.NormalizedVersion == normalizedVersion);
-                    }
-                }
 
                 featureFlagService.Verify();
                 packageService.Verify();
@@ -893,6 +833,29 @@ namespace NuGetGallery.Controllers
                 HttpStatusCode code)
             {
                 Assert.Equal((int)code, controller.Response.StatusCode);
+            }
+
+            private static DeprecatePackageRequest CreateDeprecatePackageRequest(
+                string id = null,
+                IEnumerable<string> versions = null,
+                bool isLegacy = false,
+                bool hasCriticalBugs = false,
+                bool isOther = false,
+                string alternatePackageId = null,
+                string alternatePackageVersion = null,
+                string customMessage = null)
+            {
+                return new DeprecatePackageRequest
+                {
+                    Id = id,
+                    Versions = versions,
+                    IsLegacy = isLegacy,
+                    HasCriticalBugs = hasCriticalBugs,
+                    IsOther = isOther,
+                    AlternatePackageId = alternatePackageId,
+                    AlternatePackageVersion = alternatePackageVersion,
+                    CustomMessage = customMessage
+                };
             }
         }
     }

@@ -66,6 +66,9 @@ function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defau
     this.isLegacy = ko.observable(false);
     this.hasCriticalBugs = ko.observable(false);
     this.isOther = ko.observable(false);
+    this.hasReason = ko.pureComputed(function () {
+        return self.isLegacy() || self.hasCriticalBugs() || self.isOther();
+    }, this);
 
     // The ID entered into the alternate package ID textbox.
     this.chosenAlternatePackageId = ko.observable('');
@@ -132,10 +135,10 @@ function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defau
 
     // The alternate package ID to submit with the form.
     this.alternatePackageId = ko.pureComputed(function () {
-        if (self.isLegacy()) {
+        if (self.hasReason()) {
             return self.chosenAlternatePackageId();
         } else {
-            // If the legacy checkbox is not selected, this section of the form is hidden.
+            // If a reason is not selected, this section of the form is hidden.
             // Don't submit the chosen alternate package ID with the form.
             return null;
         }

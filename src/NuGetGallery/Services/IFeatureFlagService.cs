@@ -33,15 +33,7 @@ namespace NuGetGallery
         /// Whether or not users can manage their package's deprecation state.
         /// If disabled, 
         /// </summary>
-        /// <param name="user"></param>
-        /// <returns></returns>
-        bool IsManageDeprecationEnabled(User user);
-
-        /// <summary>
-        /// Whether or not the search is using circuit breaker.
-        /// </summary>
-        /// <returns></returns>
-        bool IsSearchCircuitBreakerEnabled();
+        bool IsManageDeprecationEnabled(User user, PackageRegistration registration);
 
         /// <summary>
         /// Whether the user is allowed to publish packages with an embedded icon.
@@ -52,5 +44,19 @@ namespace NuGetGallery
         /// Whether the user is able to access the search side-by-side experiment.
         /// </summary>
         bool IsSearchSideBySideEnabled(User user);
+
+        /// <summary>
+        /// Whether a user can see the "GitHub Usage" section in a package's display page as well
+        /// as the added "GitHub Usage count" in the "Statistics" section
+        /// </summary>
+        /// <param name="user">The user to test for the Flight</param>
+        /// <returns>Whether or not the Flight is enabled for the user</returns>
+        bool IsGitHubUsageEnabled(User user);
+        
+
+        /// <summary>
+        /// Whether the OData controllers use the read-only replica.
+        /// </summary>
+        bool IsODataDatabaseReadOnlyEnabled();
     }
 }

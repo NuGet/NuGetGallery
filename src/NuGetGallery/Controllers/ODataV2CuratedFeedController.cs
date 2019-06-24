@@ -26,18 +26,24 @@ namespace NuGetGallery.Controllers
 
         private readonly IGalleryConfigurationService _configurationService;
         private readonly ISearchService _searchService;
-        private readonly IEntityRepository<Package> _packagesRepository;
+        private readonly IReadOnlyEntityRepository<Package> _packagesRepository;
+        private readonly IEntityRepository<Package> _readWritePackagesRepository;
+        private readonly IFeatureFlagService _featureFlagService;
 
         public ODataV2CuratedFeedController(
             IGalleryConfigurationService configurationService,
             ISearchService searchService,
-            IEntityRepository<Package> packagesRepository,
-            ITelemetryService telemetryService)
+            IReadOnlyEntityRepository<Package> packagesRepository,
+            IEntityRepository<Package> readWritePackagesRepository,
+            ITelemetryService telemetryService,
+            IFeatureFlagService featureFlagService)
             : base(configurationService, telemetryService)
         {
-            _configurationService = configurationService;
-            _searchService = searchService;
-            _packagesRepository = packagesRepository;
+            _packagesRepository = packagesRepository ?? throw new ArgumentNullException(nameof(packagesRepository));
+            _readWritePackagesRepository = readWritePackagesRepository ?? throw new ArgumentNullException(nameof(readWritePackagesRepository));
+            _configurationService = configurationService ?? throw new ArgumentNullException(nameof(configurationService));
+            _searchService = searchService ?? throw new ArgumentNullException(nameof(searchService));
+            _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
         }
 
         // /api/v2/curated-feed/curatedFeedName/Packages?semVerLevel=
@@ -388,7 +394,7 @@ namespace NuGetGallery.Controllers
         {
             if (IsCuratedFeedRedirected(curatedFeedName))
             {
-                return new CuratedFeedResult(_packagesRepository.GetAll());
+                return new CuratedFeedResult(GetAll());
             }
             else
             {
@@ -410,6 +416,15 @@ namespace NuGetGallery.Controllers
 
             public IQueryable<Package> Packages { get; }
             public IHttpActionResult ActionResult { get; }
+        }
+
+        internal IQueryable<Package> GetAll()
+        {
+            if (_featureFlagService.IsODataDatabaseReadOnlyEnabled())
+            {
+                return _packagesRepository.GetAll();
+            }
+            return _readWritePackagesRepository.GetAll();
         }
     }
 }

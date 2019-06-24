@@ -950,6 +950,20 @@ img.reserved-indicator-icon {
   margin-right: 8px;
   display: inline-block;
 }
+.page-package-details .btn-gh-repo {
+  display: inline-block;
+  width: 100%;
+  background-color: white;
+}
+.page-package-details .btn-gh-repo:hover {
+  background-color: #d9edf7;
+}
+.page-package-details .badge-gh-repo {
+  background-color: #004880;
+}
+.page-package-details .star-gh-repo {
+  color: #ffac0e;
+}
 .page-package-details .install-tabs {
   font-size: 0.8em;
 }
@@ -1684,7 +1698,7 @@ img.reserved-indicator-icon {
   color: green;
 }
 .page-status .ms-Icon--Warning {
-  color: yellow;
+  color: orange;
 }
 .page-status .ms-Icon--Cancel {
   color: red;

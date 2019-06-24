@@ -51,6 +51,7 @@ using NuGetGallery.Infrastructure.Search.Correlation;
 using NuGetGallery.Security;
 using SecretReaderFactory = NuGetGallery.Configuration.SecretReader.SecretReaderFactory;
 using Microsoft.Extensions.Http;
+using NuGetGallery.Infrastructure.Lucene;
 
 namespace NuGetGallery
 {
@@ -236,6 +237,8 @@ namespace NuGetGallery
                 .As<IEntityRepository<PackageDeprecation>>()
                 .InstancePerLifetimeScope();
 
+            ConfigureGalleryReadOnlyReplicaEntitiesContext(builder, diagnosticsService, configuration, secretInjector);
+
             var supportDbConnectionFactory = CreateDbConnectionFactory(
                 diagnosticsService,
                 nameof(SupportRequestDbContext),
@@ -376,6 +379,10 @@ namespace NuGetGallery
                 .As<IPackageDeprecationService>()
                 .InstancePerLifetimeScope();
 
+            builder.RegisterType<PackageUpdateService>()
+                .As<IPackageUpdateService>()
+                .InstancePerLifetimeScope();
+
             RegisterFeatureFlagsService(builder, configuration);
             RegisterMessagingService(builder, configuration);
 
@@ -409,7 +416,7 @@ namespace NuGetGallery
                 .AsSelf()
                 .InstancePerLifetimeScope();
 
-            if (configuration.Current.Environment == GalleryConstants.DevelopmentEnvironment)
+            if (configuration.Current.Environment == ServicesConstants.DevelopmentEnvironment)
             {
                 builder.RegisterType<AllowLocalHttpRedirectPolicy>()
                     .As<ISourceDestinationRedirectPolicy>()
@@ -560,6 +567,26 @@ namespace NuGetGallery
         private static DbConnection CreateDbConnection(ISqlConnectionFactory connectionFactory)
         {
             return Task.Run(() => connectionFactory.CreateAsync()).Result;
+        }
+
+        private static void ConfigureGalleryReadOnlyReplicaEntitiesContext(ContainerBuilder builder,
+            IDiagnosticsService diagnostics, 
+            ConfigurationService configuration,
+            ISecretInjector secretInjector)
+        {
+            var galleryDbReadOnlyReplicaConnectionFactory = CreateDbConnectionFactory(
+                diagnostics,
+                nameof(ReadOnlyEntitiesContext),
+                configuration.Current.SqlReadOnlyReplicaConnectionString ?? configuration.Current.SqlConnectionString,
+                secretInjector);
+
+            builder.Register(c => new ReadOnlyEntitiesContext(CreateDbConnection(galleryDbReadOnlyReplicaConnectionFactory)))
+                .As<IReadOnlyEntitiesContext>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<ReadOnlyEntityRepository<Package>>()
+                .As<IReadOnlyEntityRepository<Package>>()
+                .InstancePerLifetimeScope();   
         }
 
         private static void ConfigureValidationEntitiesContext(ContainerBuilder builder, IDiagnosticsService diagnostics,
@@ -749,6 +776,7 @@ namespace NuGetGallery
                 builder.RegisterType<LuceneIndexingService>()
                     .AsSelf()
                     .As<IIndexingService>()
+                    .As<IIndexingJobFactory>()
                     .InstancePerLifetimeScope();
             }
 
@@ -858,6 +886,7 @@ namespace NuGetGallery
                     .AsSelf()
                     .As<ISearchService>()
                     .As<IIndexingService>()
+                    .As<IIndexingJobFactory>()
                     .InstancePerLifetimeScope();
             }
         }

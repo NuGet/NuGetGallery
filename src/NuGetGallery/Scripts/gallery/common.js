@@ -304,6 +304,10 @@
         return typeof ga === 'function';
     };
 
+    nuget.isAiAvailable = function () {
+        return typeof window.appInsights === 'object';
+    };
+
     nuget.getDateFormats = function (input) {
         var datetime = moment.utc(input);
 
@@ -406,7 +410,13 @@
         if (window.nuget.isGaAvailable()) {
             ga('send', 'event', category, action, label, eventValue, options);
         }
-    }
+    };
+
+    nuget.sendAiMetric = function (name, value, properties) {
+        if (window.nuget.isAiAvailable()) {
+            window.appInsights.trackMetric(name, value, 1, value, value, properties);
+        }
+    };
 
     window.nuget = nuget;
 
@@ -447,24 +457,38 @@
             .focus();
 
         // Handle Google analytics tracking event on specific links.
-        $.each($('a[data-track]'), function () {
-            $(this).click(function (e) {
-                var href = $(this).attr('href');
-                var category = $(this).data().track;
-                var trackValue = $(this).data().trackValue;
-                if (window.nuget.isGaAvailable() && href && category) {
-                    if (e.altKey || e.ctrlKey || e.metaKey) {
-                        window.nuget.sendAnalyticsEvent(category, 'click', href, trackValue);
-                    } else {
-                        e.preventDefault();
-                        window.nuget.sendAnalyticsEvent(category, 'click', href, trackValue, {
-                            'transport': 'beacon',
-                            'hitCallback': window.nuget.createFunctionWithTimeout(function () {
-                                document.location = href;
-                            })
-                        });
-                    }
+        var emitClickEvent = function (e, emitDirectly) {
+            if (!window.nuget.isGaAvailable()) {
+                return;
+            }
+
+            var href = $(this).attr('href');
+            var category = $(this).data().track;
+            var trackValue = $(this).data().trackValue;
+            if (href && category) {
+                if (emitDirectly) {
+                    window.nuget.sendAnalyticsEvent(category, 'click', href, trackValue);
+                } else {
+                    // This path is used when the click will result in a page transition. Because of this we need to
+                    // emit telemetry in a special way so that the event gets out before the page transition occurs.
+                    e.preventDefault();
+                    window.nuget.sendAnalyticsEvent(category, 'click', href, trackValue, {
+                        'transport': 'beacon',
+                        'hitCallback': window.nuget.createFunctionWithTimeout(function () {
+                            document.location = href;
+                        })
+                    });
                 }
+            }
+        };
+        $.each($('a[data-track]'), function () {
+            $(this).mouseup(function (e) {
+                if (e.which === 2) { // Middle-mouse click
+                    emitClickEvent.call(this, e, true);
+                }
+            });
+            $(this).click(function (e) {
+                emitClickEvent.call(this, e, e.altKey || e.ctrlKey || e.metaKey);
             });
         });
 
