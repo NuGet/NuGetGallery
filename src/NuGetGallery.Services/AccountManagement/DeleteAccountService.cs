@@ -203,21 +203,24 @@ namespace NuGetGallery
 
         private async Task RemovePackageOwnership(User user, User requestingUser, AccountDeletionOrphanPackagePolicy orphanPackagePolicy)
         {
-            foreach (var package in GetPackagesOwnedByUser(user))
+            foreach (var packageRegistation in GetPackageRegistrationsOwnedByUser(user))
             {
-                if (_packageService.WillPackageBeOrphanedIfOwnerRemoved(package.PackageRegistration, user))
+                if (_packageService.WillPackageBeOrphanedIfOwnerRemoved(packageRegistation, user))
                 {
                     if (orphanPackagePolicy == AccountDeletionOrphanPackagePolicy.DoNotAllowOrphans)
                     {
-                        throw new InvalidOperationException($"Deleting user '{user.Username}' will make package '{package.PackageRegistration.Id}' an orphan, but no orphans were expected.");
+                        throw new InvalidOperationException($"Deleting user '{user.Username}' will make package '{packageRegistation.Id}' an orphan, but no orphans were expected.");
                     }
                     else if (orphanPackagePolicy == AccountDeletionOrphanPackagePolicy.UnlistOrphans)
                     {
-                        await _packageUpdateService.MarkPackageUnlistedAsync(package, commitChanges: false, updateIndex: false);
+                        foreach (var package in packageRegistation.Packages)
+                        {
+                            await _packageUpdateService.MarkPackageUnlistedAsync(package, commitChanges: false, updateIndex: false);
+                        }
                     }
                 }
 
-                await _packageOwnershipManagementService.RemovePackageOwnerAsync(package.PackageRegistration, requestingUser, user, commitChanges: false);
+                await _packageOwnershipManagementService.RemovePackageOwnerAsync(packageRegistation, requestingUser, user, commitChanges: false);
             }
         }
 
@@ -232,10 +235,10 @@ namespace NuGetGallery
             }
         }
 
-        private List<Package> GetPackagesOwnedByUser(User user)
+        private List<PackageRegistration> GetPackageRegistrationsOwnedByUser(User user)
         {
             return _packageService
-                .FindPackagesByAnyMatchingOwner(user, includeUnlisted: true, includeVersions: true)
+                .FindPackageRegistrationsByOwner(user)
                 .ToList();
         }
 
