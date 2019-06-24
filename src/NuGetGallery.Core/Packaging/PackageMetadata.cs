@@ -100,7 +100,7 @@ namespace NuGetGallery.Packaging
             Title = GetValue(PackageMetadataStrings.Title, (string)null);
             Tags = GetValue(PackageMetadataStrings.Tags, (string)null);
             Language = GetValue(PackageMetadataStrings.Language, (string)null);
-            Icon = GetValue(PackageMetadataStrings.Icon, (string)null);
+            IconFile = GetValue(PackageMetadataStrings.Icon, (string)null);
 
             Owners = GetValue(PackageMetadataStrings.Owners, (string)null);
 
@@ -139,7 +139,7 @@ namespace NuGetGallery.Packaging
         /// Contains the embedded icon filename taken from the 'icon' node of the nuspec file.
         /// Null if not specified.
         /// </summary>
-        public string Icon { get; private set; }
+        public string IconFile { get; private set; }
 
         public string GetValueFromMetadata(string key)
         {

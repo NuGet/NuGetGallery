@@ -542,7 +542,7 @@ namespace NuGetGallery
 
             package.EmbeddedLicenseType = GetEmbeddedLicenseType(packageMetadata);
             package.LicenseExpression = GetLicenseExpression(packageMetadata);
-            package.UsesIconFromFlatContainer = !string.IsNullOrWhiteSpace(packageMetadata.Icon);
+            package.UsesIconFromFlatContainer = !string.IsNullOrWhiteSpace(packageMetadata.IconFile);
 
             return package;
         }
