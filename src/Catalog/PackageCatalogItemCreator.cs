@@ -70,9 +70,9 @@ namespace NuGet.Services.Metadata.Catalog
             PackageCatalogItem item = null;
 
             _logger.LogInformation(
-                "Creating package catalog item for {Id} {Version}", 
-                packageItem.PackageId, 
-                packageItem.PackageVersion);
+                "Creating package catalog item for {Id} {Version}",
+                packageItem.PackageId,
+                packageItem.PackageNormalizedVersion);
 
             if (_storage != null)
             {
@@ -87,7 +87,7 @@ namespace NuGet.Services.Metadata.Catalog
             _logger.LogInformation(
                 "Finished creating package catalog item for {Id} {Version}",
                 packageItem.PackageId,
-                packageItem.PackageVersion);
+                packageItem.PackageNormalizedVersion);
 
             return item;
         }
@@ -98,8 +98,8 @@ namespace NuGet.Services.Metadata.Catalog
         {
             PackageCatalogItem item = null;
             var packageId = packageItem.PackageId.ToLowerInvariant();
-            var packageVersion = packageItem.PackageVersion.ToLowerInvariant();
-            var packageFileName = PackageUtility.GetPackageFileName(packageId, packageVersion);
+            var packageNormalizedVersion = packageItem.PackageNormalizedVersion.ToLowerInvariant();
+            var packageFileName = PackageUtility.GetPackageFileName(packageId, packageNormalizedVersion);
             var blobUri = _storage.ResolveUri(packageFileName);
             var blob = await _storage.GetCloudBlockBlobReferenceAsync(blobUri);
 
@@ -108,14 +108,14 @@ namespace NuGet.Services.Metadata.Catalog
                 _telemetryService.TrackMetric(
                     TelemetryConstants.NonExistentBlob,
                     metric: 1,
-                    properties: GetProperties(packageId, packageVersion, blob));
+                    properties: GetProperties(packageId, packageNormalizedVersion, blob));
 
                 return item;
             }
 
             using (_telemetryService.TrackDuration(
                 TelemetryConstants.PackageBlobReadSeconds,
-                GetProperties(packageId, packageVersion, blob: null)))
+                GetProperties(packageId, packageNormalizedVersion, blob: null)))
             {
                 await blob.FetchAttributesAsync(cancellationToken);
 
@@ -136,7 +136,8 @@ namespace NuGet.Services.Metadata.Catalog
                             packageItem.PublishedDate,
                             licenseNames: null,
                             licenseReportUrl: null,
-                            packageHash: packageHash);
+                            packageHash: packageHash,
+                            deprecationItem: packageItem.DeprecationInfo);
 
                         if (item == null)
                         {
@@ -161,7 +162,7 @@ namespace NuGet.Services.Metadata.Catalog
                             _telemetryService.TrackMetric(
                                 TelemetryConstants.BlobModified,
                                 metric: 1,
-                                properties: GetProperties(packageId, packageVersion, blob));
+                                properties: GetProperties(packageId, packageNormalizedVersion, blob));
                         }
                     }
                 }
@@ -170,7 +171,7 @@ namespace NuGet.Services.Metadata.Catalog
                     _telemetryService.TrackMetric(
                         TelemetryConstants.NonExistentPackageHash,
                         metric: 1,
-                        properties: GetProperties(packageId, packageVersion, blob));
+                        properties: GetProperties(packageId, packageNormalizedVersion, blob));
                 }
             }
 
@@ -198,7 +199,7 @@ namespace NuGet.Services.Metadata.Catalog
             catch (TaskCanceledException tce)
             {
                 // If the HTTP request timed out, a TaskCanceledException will be thrown.
-                throw new HttpClientTimeoutException($"HttpClient request timed out in {nameof(FeedHelpers.DownloadMetadata2CatalogAsync)}.", tce);
+                throw new HttpClientTimeoutException($"HttpClient request timed out in {nameof(PackageCatalogItemCreator.GetPackageViaHttpAsync)}.", tce);
             }
 
             if (response.IsSuccessStatusCode)
@@ -210,7 +211,8 @@ namespace NuGet.Services.Metadata.Catalog
                         stream,
                         packageItem.CreatedDate,
                         packageItem.LastEditedDate,
-                        packageItem.PublishedDate);
+                        packageItem.PublishedDate,
+                        deprecationItem: packageItem.DeprecationInfo);
 
                     if (item == null)
                     {
@@ -241,16 +243,16 @@ namespace NuGet.Services.Metadata.Catalog
         {
             return GetProperties(
                 packageItem.PackageId.ToLowerInvariant(),
-                packageItem.PackageVersion.ToLowerInvariant(),
+                packageItem.PackageNormalizedVersion.ToLowerInvariant(),
                 blob);
         }
 
-        private static Dictionary<string, string> GetProperties(string packageId, string packageVersion, ICloudBlockBlob blob)
+        private static Dictionary<string, string> GetProperties(string packageId, string packageNormalizedVersion, ICloudBlockBlob blob)
         {
             var properties = new Dictionary<string, string>()
             {
                 { TelemetryConstants.Id, packageId },
-                { TelemetryConstants.Version, packageVersion }
+                { TelemetryConstants.Version, packageNormalizedVersion }
             };
 
             if (blob != null)

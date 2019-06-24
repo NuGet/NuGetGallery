@@ -3,12 +3,11 @@
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using NuGet.Services.AzureSearch.FunctionalTests.Support;
 using Xunit;
 
 namespace NuGet.Services.AzureSearch.FunctionalTests
 {
-    public class DescriptionCustomAnalyzerFacts : AzureIndexFunctionalTests
+    public class DescriptionCustomAnalyzerFacts : AzureSearchIndexFunctionalTestBase
     {
         private const string AnalyzerName = "nuget_description_analyzer";
 

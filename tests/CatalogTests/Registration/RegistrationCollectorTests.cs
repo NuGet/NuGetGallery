@@ -315,7 +315,7 @@ namespace CatalogTests.Registration
 
             // Assert
             // Verify the contents of the legacy (non-SemVer 2.0.0) storage
-            Assert.Equal(1, _legacyStorage.Content.Count);
+            Assert.Single(_legacyStorage.Content);
 
             var legacyCursorJson = _legacyStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("cursor.json"));
             Assert.NotNull(legacyCursorJson.Key);
@@ -367,7 +367,7 @@ namespace CatalogTests.Registration
             Assert.Null(legacyIndex.Key);
             var legacyLeaf = _legacyStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/testpackage.semver2/1.0.0-alpha.1.json"));
             Assert.Null(legacyLeaf.Key);
-            Assert.Equal(1, _legacyStorage.Content.Count);
+            Assert.Single(_legacyStorage.Content);
 
             var semVer2Cursor = _semVer2Storage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("cursor.json"));
             Assert.Null(semVer2Cursor.Key);

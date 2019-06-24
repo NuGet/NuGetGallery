@@ -53,11 +53,33 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
             };
         }
 
+        /// <remarks>
+        /// In the past, the catalog entries referred to the CDN's host instead our DNS.
+        /// If we encounter one of these outdated hosts, we should hit the proper host instead.
+        /// </remarks>
+        private static readonly IDictionary<string, string> _catalogEntryUriHostMap =
+            new Dictionary<string, string>
+            {
+                { "az635243.vo.msecnd.net", "apidev.nugettest.org" },
+                { "az636225.vo.msecnd.net", "apiint.nugettest.org" }
+            };
+
         public static async Task<PackageTimestampMetadata> FromCatalogEntry(
             CollectorHttpClient client,
             CatalogIndexEntry catalogEntry)
         {
-            var catalogLeaf = await client.GetJObjectAsync(catalogEntry.Uri);
+            var uri = catalogEntry.Uri;
+            if (_catalogEntryUriHostMap.TryGetValue(catalogEntry.Uri.Host, out var replacementHost))
+            {
+                var builder = new UriBuilder(uri)
+                {
+                    Host = replacementHost
+                };
+
+                uri = builder.Uri;
+            }
+
+            var catalogLeaf = await client.GetJObjectAsync(uri);
 
             try
             {
@@ -88,8 +110,11 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
         {
             var packageTimestampMetadatas =
                 await Task.WhenAll(catalogEntries.Select(entry => FromCatalogEntry(client, entry)));
-            var maxTimestamp = packageTimestampMetadatas.Where(p => p != null).Max(p => p.Last);
-            return packageTimestampMetadatas.FirstOrDefault(p => p.Last == maxTimestamp);
+
+            return packageTimestampMetadatas
+                .Where(p => p != null)
+                .OrderByDescending(p => p.Last)
+                .First();
         }
     }
 }

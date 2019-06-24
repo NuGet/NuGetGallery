@@ -61,7 +61,7 @@ namespace NgTests.Validation
                 var target = CreateTarget(requirePackageSignature);
                 var context = CreateValidationContext(catalogEntries: new CatalogIndexEntry[0]);
 
-                Assert.False(target.ShouldRunValidator(context));
+                Assert.Equal(ShouldRunTestResult.No, target.ShouldRunValidator(context));
             }
 
             [Theory]
@@ -88,7 +88,7 @@ namespace NgTests.Validation
                             packageIdentity: PackageIdentity),
                     });
 
-                Assert.False(target.ShouldRunValidator(context));
+                Assert.Equal(ShouldRunTestResult.No, target.ShouldRunValidator(context));
             }
 
             [Fact]
@@ -96,7 +96,7 @@ namespace NgTests.Validation
             {
                 var target = CreateTarget(requireRepositorySignature: false);
                 var context = CreateValidationContextWithLatestEntryWithDetails();
-                Assert.False(target.ShouldRunValidator(context));
+                Assert.Equal(ShouldRunTestResult.No, target.ShouldRunValidator(context));
             }
 
             [Fact]
@@ -104,7 +104,7 @@ namespace NgTests.Validation
             {
                 var target = CreateTarget();
                 var context = CreateValidationContextWithLatestEntryWithDetails();
-                Assert.True(target.ShouldRunValidator(context));
+                Assert.Equal(ShouldRunTestResult.Yes, target.ShouldRunValidator(context));
             }
 
             private ValidationContext CreateValidationContextWithLatestEntryWithDetails()

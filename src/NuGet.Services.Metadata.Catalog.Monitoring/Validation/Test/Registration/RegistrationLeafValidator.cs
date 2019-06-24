@@ -16,44 +16,45 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
         {
         }
 
-        protected override async Task<bool> ShouldRunAsync(ValidationContext context)
+        protected override async Task<ShouldRunTestResult> ShouldRunAsync(ValidationContext context)
         {
-            var v2Index = await context.GetIndexV2Async();
+            var databaseIndex = await context.GetIndexDatabaseAsync();
             var v3Index = await context.GetIndexV3Async();
-            var v2Leaf = await context.GetLeafV2Async();
+            var databaseLeaf = await context.GetLeafDatabaseAsync();
             var v3Leaf = await context.GetLeafV3Async();
 
-            return await base.ShouldRunAsync(context)
-                && await ShouldRunLeafAsync(context, v2Index, v3Index)
-                && await ShouldRunLeafAsync(context, v2Leaf, v3Leaf);
+            return await ShouldRunTestUtility.Combine(
+                () => base.ShouldRunAsync(context),
+                () => ShouldRunLeafAsync(context, databaseIndex, v3Index),
+                () => ShouldRunLeafAsync(context, databaseLeaf, v3Leaf));
         }
 
         protected override async Task RunInternalAsync(ValidationContext context)
         {
             var exceptions = new List<Exception>();
 
-            var v2Index = await context.GetIndexV2Async();
+            var databaseIndex = await context.GetIndexDatabaseAsync();
             var v3Index = await context.GetIndexV3Async();
 
             try
             {
-                await CompareLeafAsync(context, v2Index, v3Index);
+                await CompareLeafAsync(context, databaseIndex, v3Index);
             }
             catch (Exception e)
             {
-                exceptions.Add(new ValidationException("Registration index metadata does not match the FindPackagesById metadata!", e));
+                exceptions.Add(new ValidationException("Registration index metadata does not match the database!", e));
             }
 
-            var v2Leaf = await context.GetLeafV2Async();
+            var databaseLeaf = await context.GetLeafDatabaseAsync();
             var v3Leaf = await context.GetLeafV3Async();
 
             try
             {
-                await CompareLeafAsync(context, v2Leaf, v3Leaf);
+                await CompareLeafAsync(context, databaseLeaf, v3Leaf);
             }
             catch (Exception e)
             {
-                exceptions.Add(new ValidationException("Registration leaf metadata does not match the Packages(Id='...',Version='...') metadata!", e));
+                exceptions.Add(new ValidationException("Registration leaf metadata does not match the database!", e));
             }
 
             if (exceptions.Any())
@@ -62,14 +63,14 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
             }
         }
 
-        public abstract Task<bool> ShouldRunLeafAsync(
+        public abstract Task<ShouldRunTestResult> ShouldRunLeafAsync(
             ValidationContext context,
-            PackageRegistrationLeafMetadata v2,
+            PackageRegistrationLeafMetadata database,
             PackageRegistrationLeafMetadata v3);
 
         public abstract Task CompareLeafAsync(
             ValidationContext context,
-            PackageRegistrationLeafMetadata v2,
+            PackageRegistrationLeafMetadata database,
             PackageRegistrationLeafMetadata v3);
     }
 }

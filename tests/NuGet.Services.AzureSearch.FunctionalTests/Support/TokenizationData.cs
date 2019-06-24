@@ -4,7 +4,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace NuGet.Services.AzureSearch.FunctionalTests.Support
+namespace NuGet.Services.AzureSearch.FunctionalTests
 {
     public static class TokenizationData
     {

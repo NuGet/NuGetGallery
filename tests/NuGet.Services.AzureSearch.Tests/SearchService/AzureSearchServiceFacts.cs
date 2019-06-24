@@ -92,6 +92,7 @@ namespace NuGet.Services.AzureSearch.SearchService
             protected readonly Mock<ISearchIndexClientWrapper> _hijackIndex;
             protected readonly Mock<IDocumentsOperationsWrapper> _hijackOperations;
             protected readonly Mock<ISearchResponseBuilder> _responseBuilder;
+            protected readonly Mock<IAzureSearchTelemetryService> _telemetryService;
             protected readonly V2SearchRequest _v2Request;
             protected readonly V3SearchRequest _v3Request;
             protected readonly string _v2Text;
@@ -113,6 +114,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                 _hijackIndex = new Mock<ISearchIndexClientWrapper>();
                 _hijackOperations = new Mock<IDocumentsOperationsWrapper>();
                 _responseBuilder = new Mock<ISearchResponseBuilder>();
+                _telemetryService = new Mock<IAzureSearchTelemetryService>();
 
                 _v2Request = new V2SearchRequest();
                 _v3Request = new V3SearchRequest();
@@ -182,7 +184,8 @@ namespace NuGet.Services.AzureSearch.SearchService
                     _parametersBuilder.Object,
                     _searchIndex.Object,
                     _hijackIndex.Object,
-                    _responseBuilder.Object);
+                    _responseBuilder.Object,
+                    _telemetryService.Object);
             }
         }
     }

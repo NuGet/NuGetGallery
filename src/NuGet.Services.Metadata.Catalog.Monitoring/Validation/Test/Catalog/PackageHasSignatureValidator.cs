@@ -26,14 +26,11 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        protected override async Task<bool> ShouldRunAsync(ValidationContext context)
+        protected override Task<ShouldRunTestResult> ShouldRunAsync(ValidationContext context)
         {
-            if (!ShouldRunValidator(context))
-            {
-                return false;
-            }
-
-            return await base.ShouldRunAsync(context);
+            return ShouldRunTestUtility.Combine(
+                () => Task.FromResult(ShouldRunValidator(context)),
+                () => base.ShouldRunAsync(context));
         }
 
         protected override async Task RunInternalAsync(ValidationContext context)
@@ -41,14 +38,14 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
             await RunValidatorAsync(context);
         }
 
-        public bool ShouldRunValidator(ValidationContext context)
+        public ShouldRunTestResult ShouldRunValidator(ValidationContext context)
         {
             if (!Config.RequireRepositorySignature)
             {
-                return false;
+                return ShouldRunTestResult.No;
             }
 
-            var latest = context.Entries
+            var latest = context.Entries?
                 .OrderByDescending(e => e.CommitTimeStamp)
                 .FirstOrDefault();
 
@@ -59,7 +56,7 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
                     context.Package.Id,
                     context.Package.Version);
 
-                return false;
+                return ShouldRunTestResult.No;
             }
 
             // We don't need to validate the package if the latest entry indicates deletion.
@@ -70,10 +67,10 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
                     context.Package.Id,
                     context.Package.Version);
 
-                return false;
+                return ShouldRunTestResult.No;
             }
 
-            return true;
+            return ShouldRunTestResult.Yes;
         }
 
         public async Task RunValidatorAsync(ValidationContext context)

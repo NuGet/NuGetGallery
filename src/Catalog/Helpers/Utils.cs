@@ -535,12 +535,18 @@ namespace NuGet.Services.Metadata.Catalog
             DateTime? publishedDate = null,
             string licenseNames = null,
             string licenseReportUrl = null,
-            string packageHash = null)
+            string packageHash = null,
+            PackageDeprecationItem deprecationItem = null)
         {
             try
             {
                 NupkgMetadata nupkgMetadata = GetNupkgMetadata(stream, packageHash);
-                return new PackageCatalogItem(nupkgMetadata, createdDate, lastEditedDate, publishedDate);
+                return new PackageCatalogItem(
+                    nupkgMetadata, 
+                    createdDate, 
+                    lastEditedDate, 
+                    publishedDate, 
+                    deprecation: deprecationItem);
             }
             catch (InvalidDataException e)
             {

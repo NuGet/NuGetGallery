@@ -215,7 +215,7 @@ namespace Ng.Jobs
                                 packagesCreated = (uint)createdPackages.SelectMany(x => x.Value).Count();
                                 Logger.LogInformation("DATABASE CreatedPackages: {CreatedPackagesCount}", packagesCreated);
 
-                                lastCreated = await FeedHelpers.DownloadMetadata2CatalogAsync(
+                                lastCreated = await CatalogWriterHelper.WritePackageDetailsToCatalogAsync(
                                     packageCatalogItemCreator,
                                     createdPackages,
                                     CatalogStorage,
@@ -240,7 +240,7 @@ namespace Ng.Jobs
                             packagesEdited = (uint)editedPackages.SelectMany(x => x.Value).Count();
                             Logger.LogInformation("DATABASE EditedPackages: {EditedPackagesCount}", packagesEdited);
 
-                            lastEdited = await FeedHelpers.DownloadMetadata2CatalogAsync(
+                            lastEdited = await CatalogWriterHelper.WritePackageDetailsToCatalogAsync(
                                 packageCatalogItemCreator,
                                 editedPackages,
                                 CatalogStorage,

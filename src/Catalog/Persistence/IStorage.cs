@@ -18,7 +18,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             Uri destinationUri,
             IReadOnlyDictionary<string, string> destinationProperties,
             CancellationToken cancellation);
-        Task DeleteAsync(Uri resourceUri, CancellationToken cancellationToken);
+        Task DeleteAsync(Uri resourceUri, CancellationToken cancellationToken, DeleteRequestOptions deleteRequestOptions = null);
         Task<OptimisticConcurrencyControlToken> GetOptimisticConcurrencyControlTokenAsync(
             Uri resourceUri,
             CancellationToken cancellationToken);

@@ -2,12 +2,11 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
-using NuGet.Services.AzureSearch.FunctionalTests.Support;
 using Xunit;
 
 namespace NuGet.Services.AzureSearch.FunctionalTests
 {
-    public class ExactMatchCustomAnalyzerFacts : AzureIndexFunctionalTests
+    public class ExactMatchCustomAnalyzerFacts : AzureSearchIndexFunctionalTestBase
     {
         private const string AnalyzerName = "nuget_exact_match_analyzer";
 

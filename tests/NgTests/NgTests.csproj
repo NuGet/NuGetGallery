@@ -75,10 +75,10 @@
     <Compile Include="JobNameTelemetryInitializerTests.cs" />
     <Compile Include="JobPropertiesTelemetryInitializerTests.cs" />
     <Compile Include="NgJobFactoryTests.cs" />
-    <Compile Include="Package2CatalogJobTests.cs" />
     <Compile Include="PackageFixup\FixPackageHashHandlerFacts.cs" />
     <Compile Include="PackageFixup\PackagesContainerCatalogProcessorFacts.cs" />
     <Compile Include="PackageFixup\ValidatePackageHashHandlerFacts.cs" />
+    <Compile Include="PackageMonitoringStatusAccessConditionHelperTests.cs" />
     <Compile Include="PackageMonitoringStatusTests.cs" />
     <Compile Include="Infrastructure\StorageContentExtensions.cs" />
     <Compile Include="Infrastructure\TestDirectory.cs" />
@@ -88,6 +88,7 @@
     <Compile Include="Infrastructure\ODataPackage.cs" />
     <Compile Include="PackageMonitoringStatusServiceTests.cs" />
     <Compile Include="Infrastructure\TestPackage.cs" />
+    <Compile Include="PackageMonitoringStatusTestUtility.cs" />
     <Compile Include="StuckIndexWriter.cs" />
     <Compile Include="Infrastructure\TestLoggerFactory.cs" />
     <Compile Include="Infrastructure\TestLogger.cs" />
@@ -109,8 +110,10 @@
     <Compile Include="Validation\DummyValidator.cs" />
     <Compile Include="Validation\PackageHasSignatureValidatorFacts.cs" />
     <Compile Include="Validation\PackageIsRepositorySignedValidatorFacts.cs" />
+    <Compile Include="Validation\PackageRegistrationDeprecationMetadataTests.cs" />
     <Compile Include="Validation\PackageValidatorTests.cs" />
     <Compile Include="Validation\PackageValidatorContextTests.cs" />
+    <Compile Include="Validation\RegistrationDeprecationValidatorTestData.cs" />
     <Compile Include="Validation\RegistrationIndexValidatorTestData.cs" />
     <Compile Include="Validation\RegistrationIndexValidatorTests.cs" />
     <Compile Include="Validation\RegistrationListedValidatorTestData.cs" />

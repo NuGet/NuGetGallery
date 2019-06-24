@@ -15,13 +15,13 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
 
         public override Task CompareIndexAsync(
             ValidationContext context,
-            PackageRegistrationIndexMetadata v2,
+            PackageRegistrationIndexMetadata database,
             PackageRegistrationIndexMetadata v3)
         {
-            if (!v2.Id.Equals(v3.Id, System.StringComparison.OrdinalIgnoreCase))
+            if (!database.Id.Equals(v3.Id, System.StringComparison.OrdinalIgnoreCase))
             {
                 throw new MetadataFieldInconsistencyException<PackageRegistrationIndexMetadata>(
-                    v2, v3,
+                    database, v3,
                     nameof(PackageRegistrationIndexMetadata.Id),
                     m => m.Id);
             }

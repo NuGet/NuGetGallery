@@ -7,9 +7,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Queue.Protocol;
 using Ng.Helpers;
-using NuGet.Packaging.Core;
-using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
 using NuGet.Services.Configuration;
 using NuGet.Services.Metadata.Catalog;
@@ -26,12 +26,16 @@ namespace Ng.Jobs
     /// </summary>
     public class MonitoringProcessorJob : LoopingNgJob
     {
+        private const int DefaultQueueLoopDurationHours = 24;
+        private const int DefaultQueueDelaySeconds = 30;
+
         private PackageValidator _packageValidator;
         private IStorageQueue<PackageValidatorContext> _queue;
         private IPackageMonitoringStatusService _statusService;
         private IMonitoringNotificationService _notificationService;
-        private RegistrationResourceV3 _regResource;
         private CollectorHttpClient _client;
+        private TimeSpan _queueLoopDuration;
+        private TimeSpan _queueDelay;
 
         public MonitoringProcessorJob(ITelemetryService telemetryService, ILoggerFactory loggerFactory)
             : base(telemetryService, loggerFactory)
@@ -95,9 +99,17 @@ namespace Ng.Jobs
 
             _notificationService = new LoggerMonitoringNotificationService(LoggerFactory.CreateLogger<LoggerMonitoringNotificationService>());
 
-            _regResource = Repository.Factory.GetCoreV3(index).GetResource<RegistrationResourceV3>(cancellationToken);
-
             _client = new CollectorHttpClient(messageHandlerFactory());
+
+            _queueLoopDuration = TimeSpan.FromHours(
+                arguments.GetOrDefault(
+                    Arguments.QueueLoopDurationHours, 
+                    DefaultQueueLoopDurationHours));
+
+            _queueDelay = TimeSpan.FromSeconds(
+                arguments.GetOrDefault(
+                    Arguments.QueueDelaySeconds, 
+                    DefaultQueueDelaySeconds));
 
             SetUserAgentString();
         }
@@ -117,20 +129,88 @@ namespace Ng.Jobs
 
         protected override async Task RunInternalAsync(CancellationToken cancellationToken)
         {
-            await ParallelAsync.Repeat(() => ProcessPackagesAsync(cancellationToken));
+            // We should stop processing messages if the job runner cancels us.
+            var queueMessageCancellationToken = cancellationToken;
+            // We should stop dequeuing more messages if too much time elapses.
+            var queueLoopCancellationToken = new CancellationTokenSource(_queueLoopDuration).Token;
+
+            await ParallelAsync.Repeat(
+                () => ProcessPackagesAsync(queueLoopCancellationToken, queueMessageCancellationToken));
         }
 
-        private async Task ProcessPackagesAsync(CancellationToken token)
+        /// <param name="queueLoopCancellationToken">
+        /// When this token is cancelled, the process will stop dequeuing new messages.
+        /// Messages that we already dequeued will continue being processed.
+        /// </param>
+        /// <param name="queueMessageCancellationToken">
+        /// When this token is cancelled, messages that have already been dequeued will stop being processed.
+        /// The process will also stop dequeuing new messages because they wouldn't be processed anyway.
+        /// </param>
+        private async Task ProcessPackagesAsync(
+            CancellationToken queueLoopCancellationToken, 
+            CancellationToken queueMessageCancellationToken)
         {
-            StorageQueueMessage<PackageValidatorContext> queueMessage = null;
+            // We will never listen to cancellation of the queue loop token individually.
+            // If the queue message token is cancelled, we will always want to stop dequeuing new messages.
+            // We combine the two tokens here so we don't have to call "IsCancellationRequested" multiple times.
+            var combinedQueueLoopCancellationToken = CancellationTokenSource
+                .CreateLinkedTokenSource(
+                    queueLoopCancellationToken, 
+                    queueMessageCancellationToken)
+                .Token;
+
+            await HandleQueueMessagesAsync(combinedQueueLoopCancellationToken, queueMessageCancellationToken);
+        }
+
+        private async Task HandleQueueMessagesAsync(
+            CancellationToken combinedQueueLoopCancellationToken,
+            CancellationToken queueMessageCancellationToken)
+        {
+            Logger.LogInformation("Beginning fetching queue messages.");
             do
             {
-                Logger.LogInformation("Fetching next queue message.");
-                queueMessage = await _queue.GetNextAsync(token);
-                await HandleQueueMessageAsync(queueMessage, token);
-            } while (queueMessage != null);
+                var shouldWaitBeforeNextMessage = false;
+                try
+                {
+                    Logger.LogInformation("Fetching next queue message.");
+                    var queueMessage = await _queue.GetNextAsync(queueMessageCancellationToken);
+                    await HandleQueueMessageAsync(queueMessage, queueMessageCancellationToken);
 
-            Logger.LogInformation("No messages left in queue.");
+                    if (queueMessage == null)
+                    {
+                        Logger.LogInformation(
+                            "Failed to fetch last message or no messages left in queue.");
+
+                        shouldWaitBeforeNextMessage = true;
+                    }
+                }
+                catch (Exception e)
+                {
+                    Logger.LogCritical(
+                        NuGet.Services.Metadata.Catalog.Monitoring.LogEvents.QueueMessageFatalFailure,
+                        e,
+                        "Failed to process queue message.");
+
+                    shouldWaitBeforeNextMessage = true;
+                }
+
+                if (shouldWaitBeforeNextMessage && !combinedQueueLoopCancellationToken.IsCancellationRequested)
+                {
+                    Logger.LogInformation(
+                        "Waiting {QueueDelaySeconds} seconds before polling again.",
+                        _queueDelay.TotalSeconds);
+
+                    try
+                    {
+                        await Task.Delay(_queueDelay, combinedQueueLoopCancellationToken);
+                    }
+                    catch (TaskCanceledException e)
+                    {
+                        Logger.LogInformation("Stopped waiting before polling because task was cancelled.");
+                    }
+                }
+            } while (!combinedQueueLoopCancellationToken.IsCancellationRequested);
+            Logger.LogInformation("Finished fetching queue messages.");
         }
 
         private async Task HandleQueueMessageAsync(
@@ -165,21 +245,37 @@ namespace Ng.Jobs
                 {
                     // We failed to run validations and failed to save the failed validation!
                     // We were not able to process this message. We need to log the exceptions so we can debug the issue.
-                    var aggregateException = new AggregateException(
+                    throw new AggregateException(
                         "Validations failed to run and saving unsuccessful validation failed!",
                         new[] { validationFailedToRunException, failedValidationSaveFailureException });
-
-                    Logger.LogCritical(
-                        NuGet.Services.Metadata.Catalog.Monitoring.LogEvents.QueueMessageFatalFailure,
-                        aggregateException,
-                        "Failed to process queue message");
                 }
             }
 
             // If we failed to run validations and failed to save the failed validation, we cannot remove the message from the queue.
             if (messageWasProcessed)
             {
-                await _queue.RemoveAsync(queueMessage, token);
+                try
+                {
+                    await _queue.RemoveAsync(queueMessage, token);
+                }
+                catch (StorageException storageException)
+                {
+                    if (storageException.RequestInformation.ExtendedErrorInformation.ErrorCode == QueueErrorCodeStrings.MessageNotFound)
+                    {
+                        Logger.LogWarning(
+                            NuGet.Services.Metadata.Catalog.Monitoring.LogEvents.QueueMessageRemovalFailure,
+                            storageException,
+                            "Queue message for {PackageId} {PackageVersion} no longer exists. Message was likely already processed.",
+                            queuedContext.Package.Id, queuedContext.Package.Version);
+                    }
+                    else
+                    {
+                        Logger.LogCritical(
+                            NuGet.Services.Metadata.Catalog.Monitoring.LogEvents.QueueMessageRemovalFailure,
+                            storageException,
+                            "Failed to remove queue message.");
+                    }
+                }
             }
         }
 
@@ -189,24 +285,9 @@ namespace Ng.Jobs
         {
             var feedPackage = queuedContext.Package;
             Logger.LogInformation("Running PackageValidator on PackageValidatorContext for {PackageId} {PackageVersion}.", feedPackage.Id, feedPackage.Version);
-            IEnumerable<CatalogIndexEntry> catalogEntries = null;
-
-            if (queuedContext.CatalogEntries != null)
-            {
-                catalogEntries = queuedContext.CatalogEntries;
-            }
-            else
-            {
-                Logger.LogInformation("PackageValidatorContext for {PackageId} {PackageVersion} is missing catalog entries! " +
-                    "Attempting to fetch most recent catalog entry from registration.",
-                    feedPackage.Id, feedPackage.Version);
-
-                catalogEntries = await FetchCatalogIndexEntriesFromRegistrationAsync(feedPackage, token);
-            }
-
+            var catalogEntries = queuedContext.CatalogEntries;
             var existingStatus = await _statusService.GetAsync(feedPackage, token);
-
-            if (existingStatus?.ValidationResult != null && CompareCatalogEntries(catalogEntries, existingStatus.ValidationResult.CatalogEntries))
+            if (catalogEntries != null && existingStatus?.ValidationResult?.CatalogEntries != null && CompareCatalogEntries(catalogEntries, existingStatus.ValidationResult.CatalogEntries))
             {
                 // A newer catalog entry of this package has already been validated.
                 Logger.LogInformation("A newer catalog entry of {PackageId} {PackageVersion} has already been processed ({OldCommitTimeStamp} < {NewCommitTimeStamp}).",
@@ -218,44 +299,11 @@ namespace Ng.Jobs
             }
 
             var context = new PackageValidatorContext(feedPackage, catalogEntries);
-
             var result = await _packageValidator.ValidateAsync(context, _client, token);
-
             await _notificationService.OnPackageValidationFinishedAsync(result, token);
-
             var status = new PackageMonitoringStatus(result);
+            PackageMonitoringStatusAccessConditionHelper.UpdateFromExisting(status, existingStatus);
             await _statusService.UpdateAsync(status, token);
-        }
-
-        private async Task<IEnumerable<CatalogIndexEntry>> FetchCatalogIndexEntriesFromRegistrationAsync(
-            FeedPackageIdentity feedPackage,
-            CancellationToken token)
-        {
-            var id = feedPackage.Id;
-            var version = NuGetVersion.Parse(feedPackage.Version);
-            var leafBlob = await _regResource.GetPackageMetadata(
-                new PackageIdentity(id, version),
-                NullSourceCacheContext.Instance,
-                Logger.AsCommon(),
-                token);
-
-            if (leafBlob == null)
-            {
-                throw new Exception("Package is missing from registration!");
-            }
-
-            var catalogPageUri = new Uri(leafBlob["@id"].ToString());
-            var catalogPage = await _client.GetJObjectAsync(catalogPageUri, token);
-
-            return new CatalogIndexEntry[]
-            {
-                new CatalogIndexEntry(
-                    catalogPageUri,
-                    Schema.DataTypes.PackageDetails.ToString(),
-                    catalogPage["catalog:commitId"].ToString(),
-                    DateTime.Parse(catalogPage["catalog:commitTimeStamp"].ToString()),
-                    new PackageIdentity(id, version))
-            };
         }
 
         private async Task SaveFailedPackageMonitoringStatusAsync(
@@ -263,10 +311,12 @@ namespace Ng.Jobs
             Exception exception,
             CancellationToken token)
         {
-            var feedPackage = new FeedPackageIdentity(queuedContext.Package.Id, queuedContext.Package.Version);
+            var queuedVersion = queuedContext.Package.Version;
+            var version = NuGetVersion.TryParse(queuedVersion, out var parsedVersion)
+                ? parsedVersion.ToFullString() : queuedVersion;
 
+            var feedPackage = new FeedPackageIdentity(queuedContext.Package.Id, version);
             await _notificationService.OnPackageValidationFailedAsync(feedPackage.Id, feedPackage.Version, exception, token);
-
             var status = new PackageMonitoringStatus(feedPackage, exception);
             await _statusService.UpdateAsync(status, token);
         }

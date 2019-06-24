@@ -54,6 +54,7 @@ namespace CatalogTests.Registration
                 graph,
                 registrationBaseAddress,
                 isExistingItem: false,
+                postProcessGraph: g => g,
                 packageContentBaseAddress: packageContentBaseAddress)
             {
                 BaseAddress = new Uri("http://example/registration/mypackage/"),
@@ -72,8 +73,7 @@ namespace CatalogTests.Registration
 
         private static string GetContentString(StorageContent content)
         {
-            var stringStorageContent = content as StringStorageContent;
-            if (stringStorageContent != null)
+            if (content is StringStorageContent stringStorageContent)
             {
                 return stringStorageContent.Content;
             }
@@ -86,121 +86,150 @@ namespace CatalogTests.Registration
 
         public class TheCreatePageContentMethod
         {
+            private const string PackageId = "MyPackage";
+            private const string PackageVersion = "01.02.03+ABC";
             private readonly Uri _catalogUri = new Uri("http://example/catalog/mypackage.1.0.0.json");
             private readonly Uri _registrationBaseAddress = new Uri("http://example/registration/");
             private readonly Uri _packageContentBaseAddress = new Uri("http://example/content/");
             private readonly Uri _baseAddress = new Uri("http://example/registration/mypackage/");
-            private Graph _graph;
+            private readonly Graph _graph;
 
             public TheCreatePageContentMethod()
             {
                 _graph = new Graph();
-                _graph.Assert(
-                    _graph.CreateUriNode(_catalogUri),
-                    _graph.CreateUriNode(Schema.Predicates.Id),
-                    _graph.CreateLiteralNode("MyPackage"));
-                _graph.Assert(
-                    _graph.CreateUriNode(_catalogUri),
-                    _graph.CreateUriNode(Schema.Predicates.Version),
-                    _graph.CreateLiteralNode("01.02.03+ABC"));
-                _graph.Assert(
-                    _graph.CreateUriNode(_catalogUri),
-                    _graph.CreateUriNode(Schema.Predicates.Published),
-                    _graph.CreateLiteralNode("2015-01-01T00:00:00+00:00"));
+                AddTriple(_catalogUri, Schema.Predicates.Id, PackageId);
+                AddTriple(_catalogUri, Schema.Predicates.Version, PackageVersion);
+                AddTriple(_catalogUri, Schema.Predicates.Published, "2015-01-01T00:00:00+00:00");
             }
 
             [Theory]
-            [InlineData(null, null, null, "", "http://gallery.org")]
-            [InlineData("https://test.org", null, null, "https://test.org", "http://gallery.org")]
-            [InlineData("https://test.org", "TestExpression", null, "http://gallery.org/packages/MyPackage/1.2.3/license", "http://gallery.org")]
-            [InlineData("https://test.org", null, "TestLicense", "http://gallery.org/packages/MyPackage/1.2.3/license", "http://gallery.org")]
-            [InlineData(null, "TestExpression", null, "http://gallery.org/packages/MyPackage/1.2.3/license", "http://gallery.org")]
-            [InlineData(null, null, "TestLicense", "http://gallery.org/packages/MyPackage/1.2.3/license", "http://gallery.org")]
-            [InlineData(null, null, "TestFile", "http://gallery.org/packages/MyPackage/1.2.3/license", "http://gallery.org")]
-            [InlineData(null, null, "TestLicense.txt", "http://gallery.org/packages/MyPackage/1.2.3/license", "http://gallery.org")]
-            [InlineData(null, null, "TestLicense.exe", "http://gallery.org/packages/MyPackage/1.2.3/license", "http://gallery.org")]
-            [InlineData(null, null, "TestLicense.any", "http://gallery.org/packages/MyPackage/1.2.3/license", "http://gallery.org")]
-            [InlineData(null, null, "/Folder/TestLicense", "http://gallery.org/packages/MyPackage/1.2.3/license", "http://gallery.org")]
-            [InlineData(null, null, "TestLicense", "http://gallery.org/packages/MyPackage/1.2.3/license", "http://gallery.org/")]
-            [InlineData(null, null, "TestLicense", "http://gallery.org/packages/MyPackage/1.2.3/license", "http://gallery.org//")]
+            [InlineData(null, null, null, "", "http://gallery.test")]
+            [InlineData("https://test", null, null, "https://test", "http://gallery.test")]
+            [InlineData("https://test", "TestExpression", null, "http://gallery.test/packages/MyPackage/1.2.3/license", "http://gallery.test")]
+            [InlineData("https://test", null, "TestLicense", "http://gallery.test/packages/MyPackage/1.2.3/license", "http://gallery.test")]
+            [InlineData(null, "TestExpression", null, "http://gallery.test/packages/MyPackage/1.2.3/license", "http://gallery.test")]
+            [InlineData(null, null, "TestLicense", "http://gallery.test/packages/MyPackage/1.2.3/license", "http://gallery.test")]
+            [InlineData(null, null, "TestFile", "http://gallery.test/packages/MyPackage/1.2.3/license", "http://gallery.test")]
+            [InlineData(null, null, "TestLicense.txt", "http://gallery.test/packages/MyPackage/1.2.3/license", "http://gallery.test")]
+            [InlineData(null, null, "TestLicense.exe", "http://gallery.test/packages/MyPackage/1.2.3/license", "http://gallery.test")]
+            [InlineData(null, null, "TestLicense.any", "http://gallery.test/packages/MyPackage/1.2.3/license", "http://gallery.test")]
+            [InlineData(null, null, "/Folder/TestLicense", "http://gallery.test/packages/MyPackage/1.2.3/license", "http://gallery.test")]
+            [InlineData(null, null, "TestLicense", "http://gallery.test/packages/MyPackage/1.2.3/license", "http://gallery.test/")]
+            [InlineData(null, null, "TestLicense", "http://gallery.test/packages/MyPackage/1.2.3/license", "http://gallery.test//")]
             public void CreatePageContent_SetsLicenseUrlAndExpressionProperly(
-                string licenseUrl, 
-                string licenseExpression, 
+                string licenseUrl,
+                string licenseExpression,
                 string licenseFile,
-                string expectedLicenseUrlValue, 
+                string expectedLicenseUrlValue,
                 string galleryBaseAddress)
             {
                 // Arrange
-                if (licenseUrl != null)
-                {
-                    _graph.Assert(
-                    _graph.CreateUriNode(_catalogUri),
-                    _graph.CreateUriNode(Schema.Predicates.LicenseUrl),
-                    _graph.CreateLiteralNode(licenseUrl));
-                }
-                if (licenseExpression != null)
-                {
-                    _graph.Assert(
-                    _graph.CreateUriNode(_catalogUri),
-                    _graph.CreateUriNode(Schema.Predicates.LicenseExpression),
-                    _graph.CreateLiteralNode(licenseExpression));
-                }
-                if (licenseFile != null)
-                {
-                    _graph.Assert(
-                    _graph.CreateUriNode(_catalogUri),
-                    _graph.CreateUriNode(Schema.Predicates.LicenseFile),
-                    _graph.CreateLiteralNode(licenseFile));
-                }
+                AddTriple(_catalogUri, Schema.Predicates.LicenseUrl, licenseUrl);
+                AddTriple(_catalogUri, Schema.Predicates.LicenseExpression, licenseExpression);
+                AddTriple(_catalogUri, Schema.Predicates.LicenseFile, licenseFile);
 
                 var item = new RegistrationMakerCatalogItem(
                     _catalogUri,
                     _graph,
                     _registrationBaseAddress,
                     isExistingItem: false,
+                    postProcessGraph: g => g,
                     packageContentBaseAddress: _packageContentBaseAddress,
                     galleryBaseAddress: new Uri(galleryBaseAddress))
                 {
                     BaseAddress = _baseAddress,
                 };
+
                 RegistrationMakerCatalogItem.PackagePathProvider = new PackagesFolderPackagePathProvider();
                 var context = new CatalogContext();
 
                 // Act
                 var content = item.CreatePageContent(context);
-                var licenseUrlTriples = content.GetTriplesWithSubjectPredicate(
-                    content.CreateUriNode(_catalogUri),
-                    content.CreateUriNode(Schema.Predicates.LicenseUrl));
-                var licenseExpressionTriples = content.GetTriplesWithSubjectPredicate(
-                    content.CreateUriNode(_catalogUri),
-                    content.CreateUriNode(Schema.Predicates.LicenseExpression));
-                var licenseFileTriples = content.GetTriplesWithSubjectPredicate(
-                    content.CreateUriNode(_catalogUri),
-                    content.CreateUriNode(Schema.Predicates.LicenseFile));
+                var licenseUrlTriples = GetTriples(content, _catalogUri, Schema.Predicates.LicenseUrl);
+                var licenseExpressionTriples = GetTriples(content, _catalogUri, Schema.Predicates.LicenseExpression);
+                var licenseFileTriples = GetTriples(content, _catalogUri, Schema.Predicates.LicenseFile);
 
                 // Assert
-                Assert.Equal(1, licenseUrlTriples.Count());
-                Assert.Equal(expectedLicenseUrlValue, licenseUrlTriples.First().Object.ToString());
-                Assert.Equal(1, licenseExpressionTriples.Count());
-                Assert.Equal(licenseExpression == null ? "" : licenseExpression, licenseExpressionTriples.First().Object.ToString());
-                Assert.Equal(0, licenseFileTriples.Count());
+                Assert.Equal(expectedLicenseUrlValue, Assert.Single(licenseUrlTriples).Object.ToString());
+                Assert.Equal(licenseExpression ?? "", Assert.Single(licenseExpressionTriples).Object.ToString());
+                Assert.Empty(licenseFileTriples);
+            }
+
+            [Theory]
+            [InlineData(null, null, "")]
+            [InlineData("http://icon.test/", null, "http://icon.test/")]
+            [InlineData(null, "icon.png", "http://example/content/test-container/mypackage/1.2.3/icon")]
+            [InlineData("http://icon.test/", "icon.png", "http://example/content/test-container/mypackage/1.2.3/icon")]
+            [InlineData(null, "icon.jpg", "http://example/content/test-container/mypackage/1.2.3/icon")]
+            [InlineData(null, "icon.jpeg", "http://example/content/test-container/mypackage/1.2.3/icon")]
+            [InlineData(null, "icon.gif", "http://example/content/test-container/mypackage/1.2.3/icon")]
+            [InlineData(null, "icon.svg", "http://example/content/test-container/mypackage/1.2.3/icon")]
+            [InlineData(null, "icon.exe", "http://example/content/test-container/mypackage/1.2.3/icon")]
+            public void CreatePageContent_SetsIconUrlProperly(string iconUrl, string iconFile, string expectedIconUrl)
+            {
+                // Arrange
+                AddTriple(_catalogUri, Schema.Predicates.IconUrl, iconUrl);
+                AddTriple(_catalogUri, Schema.Predicates.IconFile, iconFile);
+
+                var item = new RegistrationMakerCatalogItem(
+                    _catalogUri,
+                    _graph,
+                    _registrationBaseAddress,
+                    isExistingItem: false,
+                    postProcessGraph: g => g,
+                    packageContentBaseAddress: _packageContentBaseAddress,
+                    galleryBaseAddress: new Uri("http://gallery.test"))
+                {
+                    BaseAddress = _baseAddress,
+                };
+                RegistrationMakerCatalogItem.PackagePathProvider = new FlatContainerPackagePathProvider("test-container");
+                var context = new CatalogContext();
+
+                // Act
+                var graph = item.CreatePageContent(context);
+
+                // Assert
+                var iconUrlTriples = GetTriples(graph, _catalogUri, Schema.Predicates.IconUrl);
+                var iconFileTriples = GetTriples(graph, _catalogUri, Schema.Predicates.IconFile);
+
+                Assert.Equal(expectedIconUrl, Assert.Single(iconUrlTriples).Object.ToString());
+                Assert.Empty(iconFileTriples);
+            }
+
+            private void AddTriple(Uri subject, Uri predicate, string @object)
+            {
+                if (@object != null)
+                {
+                    _graph.Assert(
+                        _graph.CreateUriNode(subject),
+                        _graph.CreateUriNode(predicate),
+                        _graph.CreateLiteralNode(@object));
+                }
+            }
+
+            private IEnumerable<Triple> GetTriples(IGraph graph, Uri subject, Uri predicate)
+            {
+                return graph.GetTriplesWithSubjectPredicate(graph.CreateUriNode(subject), graph.CreateUriNode(predicate));
             }
 
             public static IEnumerable<object[]> CreatePageContent_SetsDeprecationInformationProperly_Data
             {
                 get
                 {
-                    foreach (var reason in 
-                        new []
-                        {
+                    foreach (var shouldPostProcess in new[] { false, true })
+                    {
+                        foreach (var reason in
+                            new[]
+                            {
                             new[] { "first" },
                             new[] { "first", "second" }
-                        })
-                    {
-                        foreach (var message in new[] { null, "this is the message" })
+                            })
                         {
-                            yield return new object[] { reason, message, null, null };
-                            yield return new object[] { reason, message, "theId", "homeOnTheRange" };
+                            foreach (var message in new[] { null, "this is the message" })
+                            {
+                                yield return new object[] { shouldPostProcess, reason, message, null, null };
+                                yield return new object[] { shouldPostProcess, reason, message, "theId", "homeOnTheRange" };
+                            }
                         }
                     }
                 }
@@ -209,6 +238,7 @@ namespace CatalogTests.Registration
             [Theory]
             [MemberData(nameof(CreatePageContent_SetsDeprecationInformationProperly_Data))]
             public void CreatePageContent_SetsDeprecationInformationProperly(
+                bool shouldPostProcess,
                 IEnumerable<string> reasons,
                 string message,
                 string alternatePackageId,
@@ -267,10 +297,12 @@ namespace CatalogTests.Registration
                     _graph,
                     _registrationBaseAddress,
                     isExistingItem: false,
+                    postProcessGraph: shouldPostProcess ? RegistrationCollector.FilterOutDeprecationInformation : g => g,
                     packageContentBaseAddress: _packageContentBaseAddress)
                 {
                     BaseAddress = _baseAddress,
                 };
+
                 RegistrationMakerCatalogItem.PackagePathProvider = new PackagesFolderPackagePathProvider();
                 var context = new CatalogContext();
 
@@ -278,56 +310,64 @@ namespace CatalogTests.Registration
                 var content = item.CreatePageContent(context);
 
                 // Assert
-                var deprecationObjectNode = _graph
+                var deprecationPredicateTriples = content
                     .GetTriplesWithSubjectPredicate(
-                        _graph.CreateUriNode(_catalogUri), 
-                        _graph.CreateUriNode(Schema.Predicates.Deprecation))
+                        content.CreateUriNode(_catalogUri),
+                        content.CreateUriNode(Schema.Predicates.Deprecation));
+
+                if (shouldPostProcess)
+                {
+                    Assert.Empty(deprecationPredicateTriples);
+                    return;
+                }
+
+                var deprecationObjectNode = deprecationPredicateTriples
                     .Single()
                     .Object;
 
-                var deprecationTriples = _graph.GetTriplesWithSubject(deprecationObjectNode);
+                var deprecationTriples = content.GetTriplesWithSubject(deprecationObjectNode);
                 var reasonTriples = deprecationTriples
-                    .Where(t => t.HasPredicate(_graph.CreateUriNode(Schema.Predicates.Reasons)));
+                    .Where(t => t.HasPredicate(content.CreateUriNode(Schema.Predicates.Reasons)));
 
                 foreach (var reason in reasons)
                 {
-                    Assert.Contains(reasonTriples, t => t.HasObject(_graph.CreateLiteralNode(reason)));
+                    Assert.Contains(reasonTriples, t => t.HasObject(content.CreateLiteralNode(reason)));
                 }
 
                 if (message == null)
                 {
                     Assert.DoesNotContain(
                         deprecationTriples, 
-                        t => t.HasPredicate(_graph.CreateUriNode(Schema.Predicates.Message)));
+                        t => t.HasPredicate(content.CreateUriNode(Schema.Predicates.Message)));
                 }
                 else
                 {
                     Assert.Contains(
                         deprecationTriples, 
-                        t => t.HasPredicate(_graph.CreateUriNode(Schema.Predicates.Message)) && t.HasObject(_graph.CreateLiteralNode(message)));
+                        t => t.HasPredicate(content.CreateUriNode(Schema.Predicates.Message)) && t.HasObject(content.CreateLiteralNode(message)));
                 }
 
                 if (alternatePackageId == null)
                 {
                     Assert.DoesNotContain(
                         deprecationTriples,
-                        t => t.HasPredicate(_graph.CreateUriNode(Schema.Predicates.AlternatePackage)));
+                        t => t.HasPredicate(content.CreateUriNode(Schema.Predicates.AlternatePackage)));
                 }
                 else
                 {
-                    var alternatePackageObjectNode = _graph
+                    var alternatePackageObjectNode = content
                         .GetTriplesWithSubjectPredicate(
                             deprecationObjectNode,
-                            _graph.CreateUriNode(Schema.Predicates.AlternatePackage))
+                            content.CreateUriNode(Schema.Predicates.AlternatePackage))
                         .Single()
                         .Object;
 
-                    var alternatePackageTriples = _graph.GetTriplesWithSubject(alternatePackageObjectNode);
+                    var alternatePackageTriples = content.GetTriplesWithSubject(alternatePackageObjectNode);
                     Assert.Contains(alternatePackageTriples,
-                        t => t.HasPredicate(_graph.CreateUriNode(Schema.Predicates.Id)) && t.HasObject(_graph.CreateLiteralNode(alternatePackageId)));
+                        t => t.HasPredicate(content.CreateUriNode(Schema.Predicates.Id)) && t.HasObject(content.CreateLiteralNode(alternatePackageId)));
 
                     Assert.Contains(alternatePackageTriples,
-                        t => t.HasPredicate(_graph.CreateUriNode(Schema.Predicates.Range)) && t.HasObject(_graph.CreateLiteralNode(alternatePackageRange)));
+                        t => t.HasPredicate(content.CreateUriNode(Schema.Predicates.Range)) && t.HasObject(content.CreateLiteralNode(alternatePackageRange)));
                 }
             }
         }

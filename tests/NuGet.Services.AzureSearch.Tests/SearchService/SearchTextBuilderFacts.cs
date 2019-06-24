@@ -43,7 +43,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                 if (shouldThrow)
                 {
                     var e = Assert.Throws<InvalidSearchRequestException>(() => _target.V2Search(request));
-                    Assert.Equal("A query can only have up to 1024 clauses", e.Message);
+                    Assert.Equal("A query can only have up to 1024 clauses.", e.Message);
                 }
                 else
                 {
@@ -58,7 +58,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                 var request = new V2SearchRequest { Query = query };
                 var e = Assert.Throws<InvalidSearchRequestException>(() => _target.V2Search(request));
 
-                Assert.Equal("Query terms cannot exceed 32768 bytes", e.Message);
+                Assert.Equal("Query terms cannot exceed 32768 bytes.", e.Message);
             }
         }
 
@@ -82,7 +82,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                 if (shouldThrow)
                 {
                     var e = Assert.Throws<InvalidSearchRequestException>(() => _target.V3Search(request));
-                    Assert.Equal("A query can only have up to 1024 clauses", e.Message);
+                    Assert.Equal("A query can only have up to 1024 clauses.", e.Message);
                 }
                 else
                 {
@@ -97,7 +97,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                 var request = new V3SearchRequest { Query = query };
                 var e = Assert.Throws<InvalidSearchRequestException>(() => _target.V3Search(request));
 
-                Assert.Equal("Query terms cannot exceed 32768 bytes", e.Message);
+                Assert.Equal("Query terms cannot exceed 32768 bytes.", e.Message);
             }
         }
 

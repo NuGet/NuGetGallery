@@ -37,6 +37,7 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BaseDocumentBuilderFacts.cs" />
     <Compile Include="BatchPusherFacts.cs" />
     <Compile Include="Catalog2AzureSearch\AzureSearchCollectorLogicFacts.cs" />
     <Compile Include="Catalog2AzureSearch\Integration\AzureSearchCollectorLogicIntegrationTests.cs" />
@@ -94,6 +95,7 @@
     <Compile Include="VersionList\VersionListDataClientFacts.cs" />
     <Compile Include="VersionList\TestExtensionMethods.cs" />
     <Compile Include="VersionList\VersionListsFacts.cs" />
+    <Compile Include="Wrappers\DocumentOperationsWrapperFacts.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Catalog\NuGet.Services.Metadata.Catalog.csproj">

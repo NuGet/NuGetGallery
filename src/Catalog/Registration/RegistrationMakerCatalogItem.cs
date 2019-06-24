@@ -15,6 +15,8 @@ namespace NuGet.Services.Metadata.Catalog.Registration
 {
     public class RegistrationMakerCatalogItem : CatalogItem
     {
+        public delegate IGraph PostProcessGraph(IGraph graph);
+
         private readonly Uri _catalogUri;
         private readonly IGraph _catalogItem;
         private Uri _itemAddress;
@@ -25,17 +27,26 @@ namespace NuGet.Services.Metadata.Catalog.Registration
         private Uri _registrationAddress;
         private DateTime _publishedDate;
         private bool _listed;
+        private readonly PostProcessGraph _postProcessGraph;
 
         // This should be set before class is instantiated
         public static IPackagePathProvider PackagePathProvider = null;
 
-        public RegistrationMakerCatalogItem(Uri catalogUri, IGraph catalogItem, Uri registrationBaseAddress, bool isExistingItem, Uri packageContentBaseAddress = null, Uri galleryBaseAddress = null)
+        public RegistrationMakerCatalogItem(
+            Uri catalogUri, 
+            IGraph catalogItem, 
+            Uri registrationBaseAddress, 
+            bool isExistingItem, 
+            PostProcessGraph postProcessGraph, 
+            Uri packageContentBaseAddress = null, 
+            Uri galleryBaseAddress = null)
         {
             _catalogUri = catalogUri;
             _catalogItem = catalogItem;
             _packageContentBaseAddress = packageContentBaseAddress;
             _galleryBaseAddress = galleryBaseAddress;
             _registrationBaseAddress = registrationBaseAddress;
+            _postProcessGraph = postProcessGraph;
 
             IsExistingItem = isExistingItem;
         }
@@ -72,10 +83,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             if (_itemAddress == null)
             {
                 INode subject = _catalogItem.CreateUriNode(_catalogUri);
-                string version = _catalogItem.GetTriplesWithSubjectPredicate(subject, _catalogItem.CreateUriNode(Schema.Predicates.Version))
-                    .FirstOrDefault()
-                    .Object
-                    .ToString()
+                string version = GetRequiredObject(_catalogItem, subject, Schema.Predicates.Version)
                     .ToLowerInvariant();
 
                 version = NuGetVersionUtility.NormalizeVersion(version);
@@ -91,7 +99,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             if (_registrationAddress == null)
             {
                 INode subject = _catalogItem.CreateUriNode(_catalogUri);
-                string id = _catalogItem.GetTriplesWithSubjectPredicate(subject, _catalogItem.CreateUriNode(Schema.Predicates.Id)).FirstOrDefault().Object.ToString().ToLowerInvariant();
+                string id = GetRequiredObject(_catalogItem, subject, Schema.Predicates.Id).ToLowerInvariant();
                 string path = string.Format("{0}/index.json", id.ToLowerInvariant());
                 _registrationAddress = new Uri(_registrationBaseAddress, path);
             }
@@ -108,9 +116,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
 
                 if (pubTriple != null)
                 {
-                    ILiteralNode node = pubTriple.Object as ILiteralNode;
-
-                    if (node != null)
+                    if (pubTriple.Object is ILiteralNode node)
                     {
                         _publishedDate = DateTime.Parse(node.Value, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
                     }
@@ -147,8 +153,8 @@ namespace NuGet.Services.Metadata.Catalog.Registration
                 }
                 else
                 {
-                    string id = _catalogItem.GetTriplesWithSubjectPredicate(subject, _catalogItem.CreateUriNode(Schema.Predicates.Id)).FirstOrDefault().Object.ToString().ToLowerInvariant();
-                    string version = _catalogItem.GetTriplesWithSubjectPredicate(subject, _catalogItem.CreateUriNode(Schema.Predicates.Version)).FirstOrDefault().Object.ToString().ToLowerInvariant();
+                    string id = GetRequiredObject(_catalogItem, subject, Schema.Predicates.Id).ToLowerInvariant();
+                    string version = GetRequiredObject(_catalogItem, subject, Schema.Predicates.Version).ToLowerInvariant();
                     string path = PackagePathProvider.GetPackagePath(id, version);
                     _packageContentAddress = new Uri(_packageContentBaseAddress, path);
                 }
@@ -161,24 +167,24 @@ namespace NuGet.Services.Metadata.Catalog.Registration
         {
             INode subject = _catalogItem.CreateUriNode(_catalogUri);
 
-            string packageId = _catalogItem.GetTriplesWithSubjectPredicate(subject, _catalogItem.CreateUriNode(Schema.Predicates.Id)).FirstOrDefault().Object.ToString();
-            string packageVersion = NuGetVersionUtility.NormalizeVersion(_catalogItem.GetTriplesWithSubjectPredicate(subject, _catalogItem.CreateUriNode(Schema.Predicates.Version)).FirstOrDefault().Object.ToString());
-            Triple licenseExpression = _catalogItem.GetTriplesWithSubjectPredicate(subject, _catalogItem.CreateUriNode(Schema.Predicates.LicenseExpression)).FirstOrDefault();
-            Triple licenseFile = _catalogItem.GetTriplesWithSubjectPredicate(subject, _catalogItem.CreateUriNode(Schema.Predicates.LicenseFile)).FirstOrDefault();
-            Triple licenseUrl = _catalogItem.GetTriplesWithSubjectPredicate(subject, _catalogItem.CreateUriNode(Schema.Predicates.LicenseUrl)).FirstOrDefault();
+            string packageId = GetRequiredObject(_catalogItem, subject, Schema.Predicates.Id);
+            string packageVersion = NuGetVersionUtility.NormalizeVersion(GetRequiredObject(_catalogItem, subject, Schema.Predicates.Version));
+            string licenseExpression = GetOptionalObject(_catalogItem, subject, Schema.Predicates.LicenseExpression);
+            string licenseFile = GetOptionalObject(_catalogItem, subject, Schema.Predicates.LicenseFile);
+            string licenseUrl = GetOptionalObject(_catalogItem, subject, Schema.Predicates.LicenseUrl);
 
             if (_galleryBaseAddress != null &&
                 !string.IsNullOrWhiteSpace(packageId) &&
                 !string.IsNullOrWhiteSpace(packageVersion) &&
-                (!string.IsNullOrWhiteSpace(licenseExpression?.Object.ToString()) ||
-                 !string.IsNullOrWhiteSpace(licenseFile?.Object.ToString())))
+                (!string.IsNullOrWhiteSpace(licenseExpression) ||
+                 !string.IsNullOrWhiteSpace(licenseFile)))
             {
                 return LicenseHelper.GetGalleryLicenseUrl(packageId, packageVersion, _galleryBaseAddress);
             }
 
-            if (licenseUrl != null)
+            if (!string.IsNullOrWhiteSpace(licenseUrl))
             {
-                return licenseUrl.Object.ToString();
+                return licenseUrl;
             }
 
             return string.Empty;
@@ -194,8 +200,10 @@ namespace NuGet.Services.Metadata.Catalog.Registration
                 {
                     store.Add(_catalogItem, true);
 
-                    SparqlParameterizedString sparql = new SparqlParameterizedString();
-                    sparql.CommandText = Utils.GetResource("sparql.ConstructRegistrationPageContentGraph.rq");
+                    SparqlParameterizedString sparql = new SparqlParameterizedString
+                    {
+                        CommandText = Utils.GetResource("sparql.ConstructRegistrationPageContentGraph.rq")
+                    };
 
                     sparql.SetUri("package", GetItemAddress());
                     sparql.SetUri("catalogEntry", _catalogUri);
@@ -203,16 +211,54 @@ namespace NuGet.Services.Metadata.Catalog.Registration
                     sparql.SetUri("packageContent", GetPackageContentAddress());
                     sparql.SetUri("registrationBaseAddress", _registrationBaseAddress);
                     sparql.SetLiteral("licenseUrl", GetLicenseUrl());
+                    sparql.SetLiteral("iconUrl", GetIconUrl());
 
                     content = SparqlHelpers.Construct(store, sparql.ToString());
                 }
 
-                return content;
+                return _postProcessGraph(content);
             }
             catch (Exception e)
             {
                 throw new Exception(string.Format("Exception processing catalog item {0}", _catalogUri), e);
             }
+        }
+
+        private string GetIconUrl()
+        {
+            var subject = _catalogItem.CreateUriNode(_catalogUri);
+
+            var packageId = GetRequiredObject(_catalogItem, subject, Schema.Predicates.Id);
+            var packageVersion = NuGetVersionUtility.NormalizeVersion(GetRequiredObject(_catalogItem, subject, Schema.Predicates.Version));
+            var iconUrl = GetOptionalObject(_catalogItem, subject, Schema.Predicates.IconUrl);
+            var iconFile = GetOptionalObject(_catalogItem, subject, Schema.Predicates.IconFile);
+
+            if (!string.IsNullOrWhiteSpace(iconFile) && !string.IsNullOrWhiteSpace(packageId) && !string.IsNullOrWhiteSpace(packageVersion))
+            {
+                // The embedded icon file case. We assume here that catalog2dnx did its job
+                // and extracted the icon file to the appropriate location.
+                string path = PackagePathProvider.GetIconPath(packageId, packageVersion);
+                return new Uri(_packageContentBaseAddress, path).AbsoluteUri;
+            }
+
+            // TODO: Update when iconUrl ingestion work is done: https://github.com/nuget/nugetgallery/issues/7061
+            return iconUrl ?? string.Empty;
+        }
+
+        private static string GetRequiredObject(IGraph graph, INode subject, Uri predicate)
+        {
+            var predicateNode = graph.CreateUriNode(predicate);
+            var triple = graph.GetTriplesWithSubjectPredicate(subject, predicateNode).First();
+
+            return triple.Object.ToString();
+        }
+
+        private static string GetOptionalObject(IGraph graph, INode subject, Uri predicate)
+        {
+            var predicateNode = graph.CreateUriNode(predicate);
+            var triple = graph.GetTriplesWithSubjectPredicate(subject, predicateNode).FirstOrDefault();
+
+            return triple?.Object.ToString();
         }
     }
 }

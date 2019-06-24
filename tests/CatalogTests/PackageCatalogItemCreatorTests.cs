@@ -112,7 +112,8 @@ namespace CatalogTests
                 DateTime.UtcNow,
                 DateTime.UtcNow,
                 packageId: "a",
-                packageVersion: "1.0.0");
+                packageNormalizedVersion: "1.0.0",
+                packageFullVersion: "1.0.0");
 
             await Assert.ThrowsAsync<OperationCanceledException>(
                 () => creator.CreateAsync(packageItem, DateTime.UtcNow, new CancellationToken(canceled: true)));
@@ -320,9 +321,9 @@ namespace CatalogTests
                         CancellationToken.None);
 
                     AssertCorrect(item, test.FeedPackageDetails);
-                    Assert.Equal(1, test.Handler.Requests.Count());
+                    Assert.Single(test.Handler.Requests);
 
-                    Assert.Equal(1, test.TelemetryService.TrackMetricCalls.Count);
+                    Assert.Single(test.TelemetryService.TrackMetricCalls);
 
                     var call = test.TelemetryService.TrackMetricCalls[0];
 
@@ -383,6 +384,7 @@ namespace CatalogTests
                     Timestamp.AddHours(-2),
                     Timestamp.AddHours(-1),
                     PackageId,
+                    PackageVersion,
                     PackageVersion);
 
                 var stream = TestHelper.GetStream(PackageFileName);

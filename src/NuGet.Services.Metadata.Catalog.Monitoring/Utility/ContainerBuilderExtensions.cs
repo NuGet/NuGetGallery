@@ -5,11 +5,11 @@ using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using Autofac;
-using Microsoft.Extensions.DependencyInjection;
 using NuGet.Configuration;
 using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
 using NuGet.Services.Metadata.Catalog.Helpers;
+using NuGet.Services.Metadata.Catalog.Monitoring.Validation.Test.Registration;
 
 namespace NuGet.Services.Metadata.Catalog.Monitoring
 {
@@ -89,6 +89,7 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
             builder.RegisterValidator<RegistrationEndpoint, RegistrationListedValidator>();
             builder.RegisterValidator<RegistrationEndpoint, RegistrationRequireLicenseAcceptanceValidator>();
             builder.RegisterValidator<RegistrationEndpoint, RegistrationVersionValidator>();
+            builder.RegisterValidator<RegistrationEndpoint, RegistrationDeprecationValidator>();
 
             // Flat-container validators
             builder.RegisterValidator<FlatContainerEndpoint, PackageIsRepositorySignedValidator>();
@@ -177,8 +178,8 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
         private static void RegisterV2ResourceProviders(this ContainerBuilder builder)
         {
             builder.RegisterResourceProvider<NonhijackableV2HttpHandlerResourceProvider>(FeedType.HttpV2);
-            builder.RegisterResourceProvider<PackageTimestampMetadataResourceV2Provider>(FeedType.HttpV2);
-            builder.RegisterResourceProvider<PackageRegistrationMetadataResourceV2FeedProvider>(FeedType.HttpV2);
+            builder.RegisterResourceProvider<PackageTimestampMetadataResourceDatabaseProvider>(FeedType.HttpV2);
+            builder.RegisterResourceProvider<PackageRegistrationMetadataResourceDatabaseFeedProvider>(FeedType.HttpV2);
         }
 
         private static void RegisterV3ResourceProviders(this ContainerBuilder builder)

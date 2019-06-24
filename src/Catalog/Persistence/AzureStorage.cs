@@ -226,7 +226,14 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
                     destinationStream.Seek(0, SeekOrigin.Begin);
 
-                    await blob.UploadFromStreamAsync(destinationStream, cancellationToken);
+                    var accessCondition = (content as StringStorageContentWithAccessCondition)?.AccessCondition;
+
+                    await blob.UploadFromStreamAsync(
+                        destinationStream, 
+                        accessCondition, 
+                        options: null, 
+                        operationContext: null,
+                        cancellationToken: cancellationToken);
 
                     Trace.WriteLine(string.Format("Saved compressed blob {0} to container {1}", blob.Uri.ToString(), _directory.Container.Name));
                 }
@@ -322,7 +329,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
                     }
                 }
 
-                return new StringStorageContent(content);
+                return new StringStorageContentWithETag(content, blob.Properties.ETag);
             }
             catch (StorageException ex) when (ex.RequestInformation?.HttpStatusCode == (int)HttpStatusCode.NotFound)
             {
@@ -339,13 +346,15 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             }
         }
 
-        protected override async Task OnDeleteAsync(Uri resourceUri, CancellationToken cancellationToken)
+        protected override async Task OnDeleteAsync(Uri resourceUri, DeleteRequestOptions deleteRequestOptions, CancellationToken cancellationToken)
         {
             string name = GetName(resourceUri);
 
+            var accessCondition = (deleteRequestOptions as DeleteRequestOptionsWithAccessCondition)?.AccessCondition;
+
             CloudBlockBlob blob = GetBlockBlobReference(name);
             await blob.DeleteAsync(deleteSnapshotsOption: DeleteSnapshotsOption.IncludeSnapshots,
-                                   accessCondition: null,
+                                   accessCondition: accessCondition,
                                    options: null,
                                    operationContext: null,
                                    cancellationToken: cancellationToken);

@@ -21,8 +21,10 @@ namespace NgTests
 
         public override IEnumerable<Func<PackageRegistrationIndexMetadata>> CreateIndexes => new Func<PackageRegistrationIndexMetadata>[]
         {
-            () => new PackageRegistrationIndexMetadata() { Version = new NuGetVersion(1, 0, 0) },
-            () => new PackageRegistrationIndexMetadata() { Version = new NuGetVersion(2, 0, 0) }
+            () => new PackageRegistrationIndexMetadata() { Version = new NuGetVersion("1.0.0") },
+            () => new PackageRegistrationIndexMetadata() { Version = new NuGetVersion("2.0.0-pre") },
+            () => new PackageRegistrationIndexMetadata() { Version = new NuGetVersion("3.4.3+build") },
+            () => new PackageRegistrationIndexMetadata() { Version = new NuGetVersion("87.23.11-alpha.9") }
         };
 
         public override IEnumerable<Func<PackageRegistrationIndexMetadata>> CreateSkippedIndexes => new Func<PackageRegistrationIndexMetadata>[]

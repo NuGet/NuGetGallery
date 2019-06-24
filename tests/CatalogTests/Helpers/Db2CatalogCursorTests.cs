@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data.SqlTypes;
+using System.Linq;
 using NuGet.Services.Metadata.Catalog.Helpers;
 using Xunit;
 
@@ -25,8 +26,8 @@ namespace CatalogTests.Helpers
         }
 
         [Theory]
-        [MemberData(nameof(CursorMethodToColumnNameMappings))]
-        public void ProtectsAgainstSqlMinDate(Func<DateTime, int, Db2CatalogCursor> cursorMethod, string expectedColumnName)
+        [MemberData(nameof(CursorMethods))]
+        public void ProtectsAgainstSqlMinDate(Func<DateTime, int, Db2CatalogCursor> cursorMethod)
         {
             const int top = 1;
             var since = new DateTime(SqlDateTime.MinValue.Value.Ticks - 1, DateTimeKind.Utc);
@@ -40,5 +41,9 @@ namespace CatalogTests.Helpers
             new object[] { (Func<DateTime, int, Db2CatalogCursor>)((since, top) => Db2CatalogCursor.ByCreated(since, top)), Db2CatalogProjectionColumnNames.Created },
             new object[] { (Func<DateTime, int, Db2CatalogCursor>)((since, top) => Db2CatalogCursor.ByLastEdited(since, top)), Db2CatalogProjectionColumnNames.LastEdited }
         };
+
+        public static IEnumerable<object[]> CursorMethods =>
+            from testData in CursorMethodToColumnNameMappings
+            select new object[] { testData[0] };
     }
 }

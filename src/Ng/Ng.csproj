@@ -63,6 +63,7 @@
     <Compile Include="Extensions\TaskExtensions.cs" />
     <Compile Include="Helpers\EmptySecretInjector.cs" />
     <Compile Include="Jobs\Catalog2PackageFixupJob.cs" />
+    <Compile Include="Jobs\Db2MonitoringJob.cs" />
     <Compile Include="Telemetry\JobNameTelemetryInitializer.cs" />
     <Compile Include="Jobs\Catalog2DnxJob.cs" />
     <Compile Include="Jobs\Catalog2LuceneJob.cs" />
@@ -78,7 +79,6 @@
     <Compile Include="Jobs\Monitoring2MonitoringJob.cs" />
     <Compile Include="Jobs\MonitoringProcessorJob.cs" />
     <Compile Include="Jobs\NgJob.cs" />
-    <Compile Include="Jobs\Package2CatalogJob.cs" />
     <Compile Include="Json\RegistrationBaseUrlRewritingJsonReader.cs" />
     <Compile Include="Json\InterceptingJsonReader.cs" />
     <Compile Include="Json\JTokenExtensions.cs" />

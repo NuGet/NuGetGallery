@@ -20,16 +20,19 @@ namespace NuGet.Services.AzureSearch.SearchService
     {
         private readonly ICloudBlobClient _cloudBlobClient;
         private readonly IOptionsSnapshot<SearchServiceConfiguration> _options;
+        private readonly IAzureSearchTelemetryService _telemetryService;
         private readonly ILogger<AuxiliaryFileClient> _logger;
         private readonly Lazy<ICloudBlobContainer> _lazyContainer;
 
         public AuxiliaryFileClient(
             ICloudBlobClient cloudBlobClient,
             IOptionsSnapshot<SearchServiceConfiguration> options,
+            IAzureSearchTelemetryService telemetryService,
             ILogger<AuxiliaryFileClient> logger)
         {
             _cloudBlobClient = cloudBlobClient ?? throw new ArgumentNullException(nameof(cloudBlobClient));
             _options = options ?? throw new ArgumentNullException(nameof(options));
+            _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
             _lazyContainer = new Lazy<ICloudBlobContainer>(
@@ -85,6 +88,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                     var data = loadData(loader);
                     stopwatch.Stop();
 
+                    _telemetryService.TrackAuxiliaryFileDownloaded(blobName, stopwatch.Elapsed);
                     _logger.LogInformation(
                         "Loaded blob {BlobName} with etag {OldETag}. New etag is {NewETag}. Took {Duration}.",
                         blobName,
@@ -96,7 +100,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                         notModified: false,
                         data: data,
                         metadata: new AuxiliaryFileMetadata(
-                            lastModified: new DateTimeOffset(blob.LastModifiedUtc),
+                            lastModified: new DateTimeOffset(blob.LastModifiedUtc, TimeSpan.Zero),
                             loaded: DateTimeOffset.UtcNow,
                             loadDuration: stopwatch.Elapsed,
                             fileSize: blob.Properties.Length,
@@ -106,6 +110,8 @@ namespace NuGet.Services.AzureSearch.SearchService
             catch (StorageException ex) when (ex.RequestInformation?.HttpStatusCode == (int)HttpStatusCode.NotModified)
             {
                 stopwatch.Stop();
+
+                _telemetryService.TrackAuxiliaryFileNotModified(blobName, stopwatch.Elapsed);
                 _logger.LogInformation(
                     "Blob {BlobName} has not changed from the previous etag {ETag}. Took {Duration}.",
                     blobName,

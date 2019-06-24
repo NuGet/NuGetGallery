@@ -14,14 +14,17 @@ namespace NuGet.Services.AzureSearch.SearchService
     {
         private readonly SemaphoreSlim _lock = new SemaphoreSlim(1);
         private readonly IAuxiliaryFileClient _client;
+        private readonly IAzureSearchTelemetryService _telemetryService;
         private readonly ILogger<AuxiliaryDataCache> _logger;
         private AuxiliaryData _data;
 
         public AuxiliaryDataCache(
             IAuxiliaryFileClient client,
+            IAzureSearchTelemetryService telemetryService,
             ILogger<AuxiliaryDataCache> logger)
         {
             _client = client ?? throw new ArgumentNullException(nameof(client));
+            _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -62,6 +65,8 @@ namespace NuGet.Services.AzureSearch.SearchService
                     var stopwatch = Stopwatch.StartNew();
 
                     // Load the auxiliary files in parallel.
+                    const string downloadsName = nameof(_data.Downloads);
+                    const string verifiedPackagesName = nameof(_data.VerifiedPackages);
                     var downloadsTask = LoadAsync(_data?.Downloads, _client.LoadDownloadsAsync);
                     var verifiedPackagesTask = LoadAsync(_data?.VerifiedPackages, _client.LoadVerifiedPackagesAsync);
                     await Task.WhenAll(downloadsTask, verifiedPackagesTask);
@@ -71,14 +76,14 @@ namespace NuGet.Services.AzureSearch.SearchService
                     // Keep track of what was actually reloaded and what didn't change.
                     var reloadedNames = new List<string>();
                     var notModifiedNames = new List<string>();
-                    (ReferenceEquals(_data?.Downloads, downloads) ? notModifiedNames : reloadedNames).Add(nameof(_data.Downloads));
-                    (ReferenceEquals(_data?.VerifiedPackages, verifiedPackages) ? notModifiedNames : reloadedNames).Add(nameof(_data.VerifiedPackages));
+                    (ReferenceEquals(_data?.Downloads, downloads) ? notModifiedNames : reloadedNames).Add(downloadsName);
+                    (ReferenceEquals(_data?.VerifiedPackages, verifiedPackages) ? notModifiedNames : reloadedNames).Add(verifiedPackagesName);
 
                     // Reference assignment is atomic, so this is what makes the data available for readers.
                     _data = new AuxiliaryData(downloads, verifiedPackages);
 
                     stopwatch.Stop();
-
+                    _telemetryService.TrackAuxiliaryFilesReload(reloadedNames, notModifiedNames, stopwatch.Elapsed);
                     _logger.LogInformation(
                         "Done reloading auxiliary data. Took {Duration}. Reloaded: {Reloaded}. Not modified: {NotModified}",
                         stopwatch.Elapsed,

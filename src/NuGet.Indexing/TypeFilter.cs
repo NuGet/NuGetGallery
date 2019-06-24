@@ -2,8 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 using Lucene.Net.Index;
 using Lucene.Net.Search;
-using Lucene.Net.Util;
-using System;
 
 namespace NuGet.Indexing
 {

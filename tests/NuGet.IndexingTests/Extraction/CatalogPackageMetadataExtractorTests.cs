@@ -12,6 +12,57 @@ namespace NuGet.IndexingTests.Extraction
 {
     public class CatalogPackageMetadataExtractorTests
     {
+        [Fact]
+        public void ThrowsWhenCatalogItemIsNull()
+        {
+            var ex = Assert.Throws<ArgumentNullException>(() =>
+                CatalogPackageMetadataExtraction.MakePackageMetadata(
+                    catalogItem: null,
+                    galleryBaseAddress: new Uri("https://test"),
+                    flatContainerBaseAddress: new Uri("https://test"),
+                    flatContainerContainerName: "fc"));
+
+            Assert.Equal("catalogItem", ex.ParamName);
+        }
+
+        [Fact]
+        public void DoesNotThrowWhenGalleryBaseUrlIsNull()
+        {
+            var ex = Record.Exception(() =>
+                CatalogPackageMetadataExtraction.MakePackageMetadata(
+                    catalogItem: CatalogEntry(new { }),
+                    galleryBaseAddress: null,
+                    flatContainerBaseAddress: new Uri("https://test"),
+                    flatContainerContainerName: "fc"));
+            Assert.Null(ex);
+        }
+
+        [Fact]
+        public void ThrowsWhenFlatContainerBaseAddressIsNull()
+        {
+            var ex = Assert.Throws<ArgumentNullException>(() =>
+                CatalogPackageMetadataExtraction.MakePackageMetadata(
+                    catalogItem: CatalogEntry(new { }),
+                    galleryBaseAddress: new Uri("https://test"),
+                    flatContainerBaseAddress: null,
+                    flatContainerContainerName: "fc"));
+
+            Assert.Equal("flatContainerBaseAddress", ex.ParamName);
+        }
+
+        [Fact]
+        public void ThrowsWhenFlatContainerContainerNameIsNull()
+        {
+            var ex = Assert.Throws<ArgumentNullException>(() =>
+                CatalogPackageMetadataExtraction.MakePackageMetadata(
+                    catalogItem: CatalogEntry(new { }),
+                    galleryBaseAddress: new Uri("https://test"),
+                    flatContainerBaseAddress: new Uri("https://test"),
+                    flatContainerContainerName: null));
+
+            Assert.Equal("flatContainerContainerName", ex.ParamName);
+        }
+
         [Theory, MemberData(nameof(AddsListedData))]
         public void AddsListed(object catalogEntry, string expected)
         {
@@ -19,7 +70,7 @@ namespace NuGet.IndexingTests.Extraction
             var catalogEntryJObject = CatalogEntry(catalogEntry);
 
             // Act
-            var metadata = CatalogPackageMetadataExtraction.MakePackageMetadata(catalogEntryJObject, null);
+            var metadata = CatalogPackageMetadataExtraction.MakePackageMetadata(catalogEntryJObject, null, new Uri("https://test"), "fc");
 
             // Assert
             Assert.Contains(MetadataConstants.ListedPropertyName, metadata.Keys);
@@ -33,7 +84,7 @@ namespace NuGet.IndexingTests.Extraction
             var catalogEntryJObject = CatalogEntry(catalogEntry);
 
             // Act
-            var metadata = CatalogPackageMetadataExtraction.MakePackageMetadata(catalogEntryJObject, null);
+            var metadata = CatalogPackageMetadataExtraction.MakePackageMetadata(catalogEntryJObject, null, new Uri("https://test"), "fc");
 
 
             // Assert
@@ -51,7 +102,7 @@ namespace NuGet.IndexingTests.Extraction
             var catalogEntryJObject = CatalogEntry(catalogEntry);
 
             // Act
-            var metadata = CatalogPackageMetadataExtraction.MakePackageMetadata(catalogEntryJObject, null);
+            var metadata = CatalogPackageMetadataExtraction.MakePackageMetadata(catalogEntryJObject, null, new Uri("https://test"), "fc");
 
             // Assert
             if (expected != null)
@@ -72,7 +123,7 @@ namespace NuGet.IndexingTests.Extraction
             var catalogEntryJObject = CatalogEntry(catalogEntry);
 
             // Act
-            var metadata = CatalogPackageMetadataExtraction.MakePackageMetadata(catalogEntryJObject, null);
+            var metadata = CatalogPackageMetadataExtraction.MakePackageMetadata(catalogEntryJObject, null, new Uri("https://test"), "fc");
 
             // Assert
             Assert.Contains(MetadataConstants.FlattenedDependenciesPropertyName, metadata.Keys);
@@ -97,7 +148,7 @@ namespace NuGet.IndexingTests.Extraction
             });
 
             // Act
-            var metadata = CatalogPackageMetadataExtraction.MakePackageMetadata(catalogEntryJObject, null);
+            var metadata = CatalogPackageMetadataExtraction.MakePackageMetadata(catalogEntryJObject, null, new Uri("https://test"), "fc");
 
             // Assert
             Assert.Equal(new[] { "id", "listed", "version" }, metadata.Keys.OrderBy(x => x));
@@ -111,11 +162,54 @@ namespace NuGet.IndexingTests.Extraction
             var catalogEntryJObject = CatalogEntry(catalogEntry);
 
             // Act
-            var metadata = CatalogPackageMetadataExtraction.MakePackageMetadata(catalogEntryJObject, galleryBaseAddress);
+            var metadata = CatalogPackageMetadataExtraction.MakePackageMetadata(catalogEntryJObject, galleryBaseAddress, new Uri("https://test"), "fc");
 
             // Assert
             Assert.Contains(MetadataConstants.LicenseUrlPropertyName, metadata.Keys);
             Assert.Equal(expectedLicenseurl, metadata[MetadataConstants.LicenseUrlPropertyName]);
+        }
+
+        [Theory]
+        [InlineData("testPackage", "1.0.0", null, null, "https://fc.test", "fc", null)]
+        [InlineData("testPackage", "1.0.0", "http://icon.test", null, "https://fc.test", "fc", "http://icon.test")]
+        [InlineData("testPackage", "1.0.0", "", null, "https://fc.test", "fc", "")]
+        [InlineData("testPackage", "1.0.0", null, "iconfile", "https://fc.test", "fc", "https://fc.test/fc/testpackage/1.0.0/icon")]
+        [InlineData("testPackage", "1.0.0", null, "", "https://fc.test", "fc", null)]
+        [InlineData("testPackage", "1.0.0", "http://icon.test", "iconfile", "https://fc.test", "fc", "https://fc.test/fc/testpackage/1.0.0/icon")]
+        [InlineData("testPackage", "1.0.0", "", "", "https://fc.test", "fc", "")]
+        public void AddsIconUrl(string packageId, string packageVersion, string iconUrl, string iconFile, string flatContainerBase, string flatContainerContainerName, string expectedIconUrl)
+        {
+            var catalogEntryJObject = CatalogEntry(GetCatalogObject(packageId, packageVersion, iconUrl, iconFile));
+
+            var metadata = CatalogPackageMetadataExtraction.MakePackageMetadata(catalogEntryJObject, null, new Uri(flatContainerBase), flatContainerContainerName);
+
+            if (expectedIconUrl == null)
+            {
+                Assert.False(metadata.ContainsKey(MetadataConstants.IconUrlPropertyName));
+            }
+            else
+            {
+                Assert.True(metadata.ContainsKey(MetadataConstants.IconUrlPropertyName));
+                Assert.Equal(expectedIconUrl, metadata[MetadataConstants.IconUrlPropertyName]);
+            }
+        }
+
+        private static object GetCatalogObject(string packageId, string packageVersion, string iconUrl, string iconFile)
+        {
+            if (iconUrl == null && iconFile == null)
+            {
+                return new { id = packageId, version = packageVersion };
+            }
+            if (iconUrl == null && iconFile != null)
+            {
+                return new { id = packageId, version = packageVersion, iconFile };
+            }
+            if (iconUrl != null && iconFile == null)
+            {
+                return new { id = packageId, version = packageVersion, iconUrl };
+            }
+
+            return new { id = packageId, version = packageVersion, iconUrl, iconFile };
         }
 
         [Theory]
@@ -133,7 +227,7 @@ namespace NuGet.IndexingTests.Extraction
             var catalogEntryJObject = CatalogEntry(new { id = packageId, version = packageVersion, licenseExpression, licenseFile });
 
             // Act
-            var metadata = CatalogPackageMetadataExtraction.MakePackageMetadata(catalogEntryJObject, galleryBaseAddress == null ? null : new Uri(galleryBaseAddress));
+            var metadata = CatalogPackageMetadataExtraction.MakePackageMetadata(catalogEntryJObject, galleryBaseAddress == null ? null : new Uri(galleryBaseAddress), new Uri("https://test"), "fc");
 
             // Assert
             Assert.False(metadata.ContainsKey(MetadataConstants.LicenseUrlPropertyName));

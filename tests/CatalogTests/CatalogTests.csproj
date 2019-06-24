@@ -83,7 +83,9 @@
     <Compile Include="Dnx\DnxCatalogCollectorTests.cs" />
     <Compile Include="Dnx\DnxMakerTests.cs" />
     <Compile Include="Extensions\DateTimeExtensionsTests.cs" />
+    <Compile Include="Extensions\DbDataReaderExtensionsTests.cs" />
     <Compile Include="Helpers\AsyncExtensionsTests.cs" />
+    <Compile Include="Helpers\CatalogWriterHelperTests.cs" />
     <Compile Include="Helpers\RegistrationPackageDeprecationAlternatePackage.cs" />
     <Compile Include="Helpers\RegistrationPackageDeprecationDetails.cs" />
     <Compile Include="Helpers\CatalogIndependentPage.cs" />
@@ -94,7 +96,6 @@
     <Compile Include="Helpers\CatalogPropertiesTests.cs" />
     <Compile Include="Helpers\Db2CatalogCursorTests.cs" />
     <Compile Include="Helpers\Db2CatalogProjectionTests.cs" />
-    <Compile Include="Helpers\FeedHelpersTests.cs" />
     <Compile Include="Helpers\FeedPackageIdentityTests.cs" />
     <Compile Include="Helpers\GalleryDatabaseQueryServiceTests.cs" />
     <Compile Include="Helpers\LicenseHelperTests.cs" />

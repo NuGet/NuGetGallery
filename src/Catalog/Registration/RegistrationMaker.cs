@@ -29,6 +29,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
                 newItems,
                 (k, u, g) => true,
                 storageFactory,
+                g => g,
                 contentBaseAddress,
                 galleryBaseAddress,
                 partitionSize,
@@ -42,6 +43,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             IReadOnlyDictionary<string, IGraph> newItems,
             ShouldIncludeRegistrationPackage shouldInclude,
             StorageFactory storageFactory,
+            RegistrationMakerCatalogItem.PostProcessGraph postProcessGraph,
             Uri contentBaseAddress,
             Uri galleryBaseAddress,
             int partitionSize,
@@ -51,7 +53,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
         {
             Trace.TraceInformation("RegistrationMaker.Process: registrationKey = {0} newItems: {1}", registrationKey, newItems.Count);
 
-            IRegistrationPersistence registration = new RegistrationPersistence(storageFactory, registrationKey, partitionSize, packageCountThreshold, contentBaseAddress, galleryBaseAddress);
+            IRegistrationPersistence registration = new RegistrationPersistence(storageFactory, postProcessGraph, registrationKey, partitionSize, packageCountThreshold, contentBaseAddress, galleryBaseAddress);
 
             IDictionary<RegistrationEntryKey, RegistrationCatalogEntry> existing = await registration.Load(cancellationToken);
 

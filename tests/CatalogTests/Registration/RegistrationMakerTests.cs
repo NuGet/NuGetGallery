@@ -167,8 +167,10 @@ namespace CatalogTests.Registration
             }
         }
 
-        [Fact]
-        public async Task ProcessAsync_WithDeprecationInformation_FormatsPageCorrectly()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task ProcessAsync_WithDeprecationInformation_FormatsPageCorrectly(bool filterOutDeprecation)
         {
             const int partitionSize = 1;
             var pages = new List<ExpectedPage>();
@@ -220,13 +222,21 @@ namespace CatalogTests.Registration
             foreach (var packageDetails in packageDetailsList)
             {
                 newItem = CreateNewItem(packageDetails);
-                storage = await ProcessAsync(newItem, packageDetails.Id, partitionSize);
+                storage = await ProcessAsync(
+                    newItem, 
+                    packageDetails.Id, 
+                    partitionSize, 
+                    filterOutDeprecation: filterOutDeprecation);
 
                 pages.Add(new ExpectedPage(packageDetails));
 
                 expectedPages = Repaginate(pages, partitionSize);
 
-                Verify(storage, expectedPages, partitionSize);
+                Verify(
+                    storage, 
+                    expectedPages, 
+                    partitionSize, 
+                    filterOutDeprecation: filterOutDeprecation);
             }
         }
 
@@ -252,14 +262,17 @@ namespace CatalogTests.Registration
             IReadOnlyDictionary<string, IGraph> newItems,
             string packageId,
             int partitionSize,
-            int packageCountThreshold = _defaultPackageCountThreshold)
+            int packageCountThreshold = _defaultPackageCountThreshold,
+            bool filterOutDeprecation = false)
         {
             var registrationKey = new RegistrationKey(packageId?.ToLowerInvariant() ?? string.Empty);
 
             await RegistrationMaker.ProcessAsync(
                 registrationKey,
                 newItems,
+                (g, u, k) => true,
                 _storageFactory,
+                filterOutDeprecation ? RegistrationCollector.FilterOutDeprecationInformation : g => g,
                 _contentBaseAddress,
                 _galleryBaseAddress,
                 partitionSize,
@@ -274,7 +287,8 @@ namespace CatalogTests.Registration
             MemoryStorage registrationStorage,
             IReadOnlyList<ExpectedPage> expectedPages,
             int partitionSize,
-            int packageCountThreshold = _defaultPackageCountThreshold)
+            int packageCountThreshold = _defaultPackageCountThreshold,
+            bool filterOutDeprecation = false)
         {
             var expectedStorageContentCount = expectedPages.SelectMany(page => page.Details).Count();
 
@@ -296,7 +310,8 @@ namespace CatalogTests.Registration
                 packageId,
                 expectedPages,
                 partitionSize,
-                packageCountThreshold);
+                packageCountThreshold,
+                filterOutDeprecation);
         }
 
         private void VerifyRegistrationIndex(
@@ -306,7 +321,8 @@ namespace CatalogTests.Registration
             string packageId,
             IReadOnlyList<ExpectedPage> expectedPages,
             int partitionSize,
-            int packageCountThreshold)
+            int packageCountThreshold,
+            bool filterOutDeprecation)
         {
             Assert.Equal(indexUri.AbsoluteUri, index.IdKeyword);
             Assert.Equal(
@@ -341,7 +357,8 @@ namespace CatalogTests.Registration
                         packageId,
                         expectedPage,
                         index.CommitId,
-                        index.CommitTimeStamp);
+                        index.CommitTimeStamp,
+                        filterOutDeprecation);
                 }
                 else
                 {
@@ -354,7 +371,8 @@ namespace CatalogTests.Registration
                         packageId,
                         expectedPage,
                         index.CommitId,
-                        index.CommitTimeStamp);
+                        index.CommitTimeStamp,
+                        filterOutDeprecation);
                 }
             }
 
@@ -419,7 +437,8 @@ namespace CatalogTests.Registration
             string packageId,
             ExpectedPage expectedPage,
             string commitId,
-            string commitTimeStamp)
+            string commitTimeStamp,
+            bool filterOutDeprecation)
         {
             var packageIndexUri = GetRegistrationPackageIndexUri(registrationStorage.BaseAddress);
 
@@ -437,7 +456,13 @@ namespace CatalogTests.Registration
                 var item = page.Items[i];
                 var packageDetails = expectedPage.Details[i];
 
-                VerifyRegistrationPackage(registrationStorage, item, packageDetails, commitId, commitTimeStamp);
+                VerifyRegistrationPackage(
+                    registrationStorage, 
+                    item, 
+                    packageDetails, 
+                    commitId, 
+                    commitTimeStamp, 
+                    filterOutDeprecation);
             }
         }
 
@@ -447,7 +472,8 @@ namespace CatalogTests.Registration
             string packageId,
             ExpectedPage expectedPage,
             string commitId,
-            string commitTimeStamp)
+            string commitTimeStamp,
+            bool filterOutDeprecation)
         {
             var pageUri = GetRegistrationPageReferenceUri(packageId, expectedPage);
 
@@ -470,7 +496,8 @@ namespace CatalogTests.Registration
                 packageId,
                 expectedPage,
                 commitId,
-                commitTimeStamp);
+                commitTimeStamp,
+                filterOutDeprecation);
 
             JObject expectedContext = GetExpectedIndexOrPageContext();
 
@@ -482,7 +509,8 @@ namespace CatalogTests.Registration
             RegistrationPackage package,
             CatalogIndependentPackageDetails packageDetails,
             string commitId,
-            string commitTimeStamp)
+            string commitTimeStamp,
+            bool filterOutDeprecation)
         {
             var packageId = packageDetails.Id.ToLowerInvariant();
             var packageVersion = packageDetails.Version.ToLowerInvariant();
@@ -514,7 +542,7 @@ namespace CatalogTests.Registration
 
             var actualDeprecation = package.CatalogEntry.Deprecation;
             var expectedDeprecation = packageDetails.Deprecation;
-            if (expectedDeprecation == null)
+            if (filterOutDeprecation || expectedDeprecation == null)
             {
                 Assert.Null(actualDeprecation);
             }

@@ -15,23 +15,23 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
         {
         }
 
-        public override Task<bool> ShouldRunLeafAsync(
+        public override Task<ShouldRunTestResult> ShouldRunLeafAsync(
             ValidationContext context,
-            PackageRegistrationLeafMetadata v2,
+            PackageRegistrationLeafMetadata database,
             PackageRegistrationLeafMetadata v3)
         {
-            return Task.FromResult(v2 != null && v3 != null);
+            return Task.FromResult(database != null && v3 != null ? ShouldRunTestResult.Yes : ShouldRunTestResult.No);
         }
 
         public override Task CompareLeafAsync(
             ValidationContext context,
-            PackageRegistrationLeafMetadata v2,
+            PackageRegistrationLeafMetadata database,
             PackageRegistrationLeafMetadata v3)
         {
-            if (v2.Listed != v3.Listed)
+            if (database.Listed != v3.Listed)
             {
                 throw new MetadataFieldInconsistencyException<PackageRegistrationLeafMetadata>(
-                    v2, v3,
+                    database, v3,
                     nameof(PackageRegistrationLeafMetadata.Listed),
                     m => m.Listed);
             }

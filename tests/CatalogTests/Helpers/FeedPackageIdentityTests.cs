@@ -84,7 +84,7 @@ namespace CatalogTests.Helpers
             }
 
             Assert.False(feedPackage.Equals(differentFeedPackage));
-            Assert.Equal(false, feedPackage.GetHashCode() == differentFeedPackage.GetHashCode());
+            Assert.NotEqual(feedPackage.GetHashCode(), differentFeedPackage.GetHashCode());
         }
     }
 }

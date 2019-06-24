@@ -37,7 +37,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             CancellationToken cancellationToken);
         protected abstract Task OnSaveAsync(Uri resourceUri, StorageContent content, CancellationToken cancellationToken);
         protected abstract Task<StorageContent> OnLoadAsync(Uri resourceUri, CancellationToken cancellationToken);
-        protected abstract Task OnDeleteAsync(Uri resourceUri, CancellationToken cancellationToken);
+        protected abstract Task OnDeleteAsync(Uri resourceUri, DeleteRequestOptions deleteRequestOptions, CancellationToken cancellationToken);
 
         public virtual Task<OptimisticConcurrencyControlToken> GetOptimisticConcurrencyControlTokenAsync(
             Uri resourceUri,
@@ -112,7 +112,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             return storageContent;
         }
 
-        public async Task DeleteAsync(Uri resourceUri, CancellationToken cancellationToken)
+        public async Task DeleteAsync(Uri resourceUri, CancellationToken cancellationToken, DeleteRequestOptions deleteRequestOptions = null)
         {
             TraceMethod(nameof(DeleteAsync), resourceUri);
 
@@ -120,7 +120,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
             try
             {
-                await OnDeleteAsync(resourceUri, cancellationToken);
+                await OnDeleteAsync(resourceUri, deleteRequestOptions, cancellationToken);
             }
             catch (StorageException e)
             {

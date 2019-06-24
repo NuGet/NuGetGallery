@@ -8,7 +8,6 @@ using Lucene.Net.Search;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NuGet.Indexing;
-using NuGet.Services.Configuration;
 
 namespace NuGet.IndexingTests.TestSupport
 {

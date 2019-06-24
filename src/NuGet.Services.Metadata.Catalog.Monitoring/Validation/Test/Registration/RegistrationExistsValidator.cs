@@ -13,31 +13,31 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
         {
         }
 
-        public override Task<bool> ShouldRunLeafAsync(
+        public override Task<ShouldRunTestResult> ShouldRunLeafAsync(
             ValidationContext context,
-            PackageRegistrationLeafMetadata v2,
+            PackageRegistrationLeafMetadata database,
             PackageRegistrationLeafMetadata v3)
         {
-            return Task.FromResult(true);
+            return Task.FromResult(ShouldRunTestResult.Yes);
         }
 
         public override Task CompareLeafAsync(
             ValidationContext context,
-            PackageRegistrationLeafMetadata v2,
+            PackageRegistrationLeafMetadata database,
             PackageRegistrationLeafMetadata v3)
         {
-            var v2Exists = v2 != null;
+            var databaseExists = database != null;
             var v3Exists = v3 != null;
             var completedTask = Task.FromResult(0);
 
-            if (v2Exists != v3Exists)
+            if (databaseExists != v3Exists)
             {
                 // Currently, leaf nodes are not deleted after a package is deleted.
                 // This is a known bug. Do not fail validations because of it.
                 // See https://github.com/NuGet/NuGetGallery/issues/4475
                 if (v3Exists && !(v3 is PackageRegistrationIndexMetadata))
                 {
-                    Logger.LogInformation("{PackageId} {PackageVersion} doesn't exist in V2 but has a leaf node in V3!", context.Package.Id, context.Package.Version);
+                    Logger.LogInformation("{PackageId} {PackageVersion} doesn't exist in the database but has a leaf node in V3!", context.Package.Id, context.Package.Version);
                     return completedTask;
                 }
 
@@ -45,9 +45,9 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
                 const string doesNotExistString = "doesn't exist";
 
                 throw new MetadataInconsistencyException<PackageRegistrationLeafMetadata>(
-                    v2,
+                    database,
                     v3,
-                    $"V2 {(v2Exists ? existsString : doesNotExistString)} but V3 {(v3Exists ? existsString : doesNotExistString)}!");
+                    $"Database {(databaseExists ? existsString : doesNotExistString)} but V3 {(v3Exists ? existsString : doesNotExistString)}!");
             }
 
             return completedTask;

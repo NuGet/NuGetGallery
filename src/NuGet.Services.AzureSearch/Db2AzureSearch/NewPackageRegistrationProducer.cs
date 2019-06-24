@@ -105,7 +105,6 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             {
                 var minKey = range.MinKey;
                 var query = context
-                    .Value
                     .Set<Package>()
                     .Include(x => x.PackageRegistration)
                     .Where(p => p.PackageStatusKey == PackageStatus.Available)
@@ -148,7 +147,6 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             {
                 var minKey = range.MinKey;
                 var query = context
-                    .Value
                     .Set<PackageRegistration>()
                     .Include(x => x.Owners)
                     .Where(pr => pr.Key >= minKey);
@@ -183,7 +181,6 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 // Get the number of packages per package registration key, in ascending order.
                 var stopwatch = Stopwatch.StartNew();
                 var packageCounts = await context
-                    .Value
                     .Set<PackageRegistration>()
                     .OrderBy(pr => pr.Key)
                     .Select(pr => new
@@ -241,9 +238,9 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             }
         }
 
-        private async Task<AsDisposable<IEntitiesContext>> CreateContextAsync()
+        private async Task<IEntitiesContext> CreateContextAsync()
         {
-            return AsDisposable.Create(await _contextFactory.CreateAsync(readOnly: true));
+            return await _contextFactory.CreateAsync(readOnly: true);
         }
 
         private class PackageRegistrationRange

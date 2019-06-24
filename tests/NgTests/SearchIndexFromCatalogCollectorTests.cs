@@ -75,6 +75,8 @@ namespace NgTests
                         commitTimeout: Timeout.InfiniteTimeSpan,
                         baseAddress: null,
                         galleryBaseAddress: null,
+                        flatContainerBaseAddress: new Uri("http://test"),
+                        flatContainerContainerName: "fc",
                         telemetryService: telemetryService.Object,
                         logger: new TestLogger(_testOutputHelper),
                         handlerFunc: () => mockServer,
@@ -102,7 +104,7 @@ namespace NgTests
                             .StringValue);
                     var commitDocuments = documentsByType[Schema.DataTypes.CatalogInfastructure.AbsoluteUri.ToString()].ToList();
                     var packageDocuments = documentsByType[null].ToList();
-                    Assert.Equal(1, commitDocuments.Count);
+                    Assert.Single(commitDocuments);
                     Assert.Equal(3, packageDocuments.Count);
 
                     Assert.Equal(
@@ -165,6 +167,8 @@ namespace NgTests
                         commitTimeout: commitTimeout,
                         baseAddress: null,
                         galleryBaseAddress: null,
+                        flatContainerBaseAddress: new Uri("https://test"),
+                        flatContainerContainerName: "fc",
                         telemetryService: telemetryService.Object,
                         logger: new TestLogger(_testOutputHelper),
                         handlerFunc: () => mockServer,

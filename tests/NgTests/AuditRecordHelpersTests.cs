@@ -75,7 +75,7 @@ namespace NgTests
             var auditEntries = await DeletionAuditEntry.GetAsync(CreateStorageFactory(auditingStorage, targetPackageIdentity), CancellationToken.None, targetPackageIdentity, logger: _logger);
 
             // Assert
-            Assert.Equal(1, auditEntries.Count());
+            Assert.Single(auditEntries);
 
             var auditEntry = auditEntries.ElementAt(0);
 
@@ -113,7 +113,7 @@ namespace NgTests
             var auditEntries = await DeletionAuditEntry.GetAsync(auditingStorage, CancellationToken.None, minTime: minTimestamp, logger: _logger);
 
             // Assert
-            Assert.Equal(1, auditEntries.Count());
+            Assert.Single(auditEntries);
 
             var auditEntry = auditEntries.ElementAt(0);
 
@@ -153,7 +153,7 @@ namespace NgTests
             var auditEntries = await DeletionAuditEntry.GetAsync(auditingStorage, CancellationToken.None, maxTime: maxTimestamp, logger: _logger);
 
             // Assert
-            Assert.Equal(1, auditEntries.Count());
+            Assert.Single(auditEntries);
 
             var auditEntry = auditEntries.ElementAt(0);
 
@@ -195,7 +195,7 @@ namespace NgTests
             var auditEntries = await DeletionAuditEntry.GetAsync(CreateStorageFactory(auditingStorage, targetPackageIdentity), CancellationToken.None, targetPackageIdentity, minTimestamp, maxTimestamp, logger: _logger);
 
             // Assert
-            Assert.Equal(1, auditEntries.Count());
+            Assert.Single(auditEntries);
 
             var auditEntry = auditEntries.ElementAt(0);
 

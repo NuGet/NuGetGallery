@@ -8,7 +8,9 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.WindowsAzure.Storage;
 using NuGet.Services.Metadata.Catalog.Persistence;
+using Xunit;
 
 namespace NgTests.Infrastructure
 {
@@ -76,6 +78,23 @@ namespace NgTests.Infrastructure
 
         protected override async Task OnSaveAsync(Uri resourceUri, StorageContent content, CancellationToken cancellationToken)
         {
+            if (content is StringStorageContentWithAccessCondition accessConditionContent)
+            {
+                // Verify the access condition of this request.
+                var accessCondition = accessConditionContent.AccessCondition;
+                AssertAccessCondition(resourceUri, accessCondition);
+            }
+
+            if (content is StringStorageContent stringStorageContent && !(content is StringStorageContentWithETag))
+            {
+                // Give this content an ETag
+                content = new StringStorageContentWithETag(
+                    stringStorageContent.Content,
+                    Guid.NewGuid().ToString(),
+                    stringStorageContent.ContentType,
+                    stringStorageContent.CacheControl);
+            }
+
             Content[resourceUri] = content;
 
             using (var memoryStream = new MemoryStream())
@@ -96,18 +115,23 @@ namespace NgTests.Infrastructure
 
         protected override Task<StorageContent> OnLoadAsync(Uri resourceUri, CancellationToken cancellationToken)
         {
-            StorageContent content;
-
-            Content.TryGetValue(resourceUri, out content);
+            Content.TryGetValue(resourceUri, out StorageContent content);
 
             return Task.FromResult(content);
         }
 
-        protected override Task OnDeleteAsync(Uri resourceUri, CancellationToken cancellationToken)
+        protected override Task OnDeleteAsync(Uri resourceUri, DeleteRequestOptions deleteRequestOptions, CancellationToken cancellationToken)
         {
-            Content.TryRemove(resourceUri, out var content);
-            ContentBytes.TryRemove(resourceUri, out var contentBytes);
-            ListMock.TryRemove(resourceUri, out var item);
+            if (deleteRequestOptions is DeleteRequestOptionsWithAccessCondition deleteRequestOptionsWithAccessCondition)
+            {
+                // Verify the access condition of this request.
+                var accessCondition = deleteRequestOptionsWithAccessCondition.AccessCondition;
+                AssertAccessCondition(resourceUri, accessCondition);
+            }
+
+            Content.TryRemove(resourceUri, out _);
+            ContentBytes.TryRemove(resourceUri, out _);
+            ListMock.TryRemove(resourceUri, out _);
 
             return Task.FromResult(true);
         }
@@ -121,6 +145,51 @@ namespace NgTests.Infrastructure
         {
             return Task.FromResult(Content.Keys.AsEnumerable().Select(x =>
                 ListMock.ContainsKey(x) ? ListMock[x] : new StorageListItem(x, DateTime.UtcNow)));
+        }
+
+        private void AssertAccessCondition(Uri resourceUri, AccessCondition accessCondition)
+        {
+            Content.TryGetValue(resourceUri, out var existingContent);
+            if (IsAccessCondition(AccessCondition.GenerateEmptyCondition(), accessCondition))
+            {
+                return;
+            }
+
+            if (IsAccessCondition(AccessCondition.GenerateIfNotExistsCondition(), accessCondition))
+            {
+                Assert.Null(existingContent);
+                return;
+            }
+
+            if (IsAccessCondition(AccessCondition.GenerateIfExistsCondition(), accessCondition))
+            {
+                Assert.NotNull(existingContent);
+                return;
+            }
+
+            if (existingContent is StringStorageContentWithETag eTagContent)
+            {
+                var eTag = eTagContent.ETag;
+                if (IsAccessCondition(AccessCondition.GenerateIfMatchCondition(eTag), accessCondition))
+                {
+                    return;
+                }
+            }
+
+            throw new InvalidOperationException("Could not validate access condition!");
+        }
+
+        private static bool IsAccessCondition(AccessCondition expected, AccessCondition actual)
+        {
+            try
+            {
+                PackageMonitoringStatusTestUtility.AssertAccessCondition(expected, actual);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
 }

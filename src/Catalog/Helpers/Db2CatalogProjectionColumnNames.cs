@@ -10,6 +10,7 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
     {
         public const string PackageId = "Id";
         public const string NormalizedVersion = "NormalizedVersion";
+        public const string FullVersion = "Version";
         public const string Listed = "Listed";
         public const string HideLicenseReport = "HideLicenseReport";
         public const string Created = "Created";
@@ -17,5 +18,10 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
         public const string Published = "Published";
         public const string LicenseNames = "LicenseNames";
         public const string LicenseReportUrl = "LicenseReportUrl";
+        public const string AlternatePackageId = "AlternatePackageId";
+        public const string AlternatePackageVersion = "AlternatePackageVersion";
+        public const string DeprecationStatus = "DeprecationStatus";
+        public const string DeprecationMessage = "DeprecationMessage";
+        public const string RequiresLicenseAcceptance = "RequiresLicenseAcceptance";
     }
 }

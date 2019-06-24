@@ -204,7 +204,7 @@ namespace CatalogTests
             var idTriples = readOnlyGraph.GetTriplesWithSubjectPredicate(
                             readOnlyGraph.CreateUriNode(PackageUri),
                             readOnlyGraph.CreateUriNode(Schema.Predicates.Id));
-            Assert.Equal(1, idTriples.Count());
+            Assert.Single(idTriples);
             Assert.Equal(PackageId, ((LiteralNode)idTriples.First().Object).Value);
         }
     }

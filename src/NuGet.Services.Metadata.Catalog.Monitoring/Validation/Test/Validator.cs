@@ -35,7 +35,7 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
         {
             try
             {
-                bool shouldRun = false;
+                ShouldRunTestResult shouldRun;
                 try
                 {
                     shouldRun = await ShouldRunAsync(context);
@@ -45,13 +45,15 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
                     throw new ValidationException("Threw an exception while trying to determine whether or not validation should run!", e);
                 }
 
-                if (shouldRun)
+                switch (shouldRun)
                 {
-                    await RunInternalAsync(context);
-                }
-                else
-                {
-                    return new ValidationResult(this, TestResult.Skip);
+                    case ShouldRunTestResult.Yes:
+                        await RunInternalAsync(context);
+                        break;
+                    case ShouldRunTestResult.No:
+                        return new ValidationResult(this, TestResult.Skip);
+                    case ShouldRunTestResult.RetryLater:
+                        return new ValidationResult(this, TestResult.Pending);
                 }
             }
             catch (Exception e)
@@ -63,34 +65,46 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
         }
 
         /// <summary>
-        /// Checks that the current batch of catalog entries contains the entry that was created from the current state of the V2 feed.
+        /// Checks that the current batch of catalog entries contains the entry that was created from the current state of the database.
         /// </summary>
-        protected virtual async Task<bool> ShouldRunAsync(ValidationContext context)
+        /// <remarks>
+        /// Our validations depend on the fact that the database and V3 are expected to have the same version of a package.
+        /// If the catalog entry we're running validations on, which is supposed to represent the current state of V3, is less recent than the database, then we shouldn't run validations.
+        /// </remarks>
+        protected virtual async Task<ShouldRunTestResult> ShouldRunAsync(ValidationContext context)
         {
-            var timestampV2 = await context.GetTimestampMetadataV2Async();
+            if (context.Entries == null)
+            {
+                // If we don't have any catalog entries to use to compare timestamps, assume the database and V3 are in the same state and run validations anyway.
+                return ShouldRunTestResult.Yes;
+            }
+
+            var timestampDatabase = await context.GetTimestampMetadataDatabaseAsync();
             var timestampCatalog = await PackageTimestampMetadata.FromCatalogEntries(context.Client, context.Entries);
 
-            if (!timestampV2.Last.HasValue)
+            if (!timestampDatabase.Last.HasValue)
             {
-                throw new TimestampComparisonException(timestampV2, timestampCatalog,
-                    "Cannot get timestamp data for package from the V2 feed!");
+                throw new TimestampComparisonException(timestampDatabase, timestampCatalog,
+                    "Cannot get timestamp data for package from the database!");
             }
 
             if (!timestampCatalog.Last.HasValue)
             {
-                throw new TimestampComparisonException(timestampV2, timestampCatalog,
+                throw new TimestampComparisonException(timestampDatabase, timestampCatalog,
                     "Cannot get timestamp data for package from the catalog!");
             }
 
-            if (timestampCatalog.Last > timestampV2.Last)
+            if (timestampCatalog.Last > timestampDatabase.Last)
             {
-                throw new TimestampComparisonException(timestampV2, timestampCatalog,
-                    "The timestamp in the catalog is newer than the timestamp in the feed! This should never happen because all data flows from the feed into the catalog!");
+                throw new TimestampComparisonException(timestampDatabase, timestampCatalog,
+                    "The timestamp in the catalog is newer than the timestamp in the database! This should never happen because all data flows from the feed into the catalog!");
             }
 
-            // If the timestamp metadata in the catalog is LESS than that of the feed, we must not be looking at the latest entry that corresponds with this package, so skip the test for now.
-            // If the timestamp metadata in the catalog is EQUAL to that of the feed, we are looking at the latest catalog entry that corresponds with this package, so run the test.
-            return timestampCatalog.Last == timestampV2.Last;
+            return timestampCatalog.Last == timestampDatabase.Last
+                // If the timestamp metadata in the catalog is EQUAL to that of the database, we are looking at the latest catalog entry that corresponds with this package, so run the test.
+                ? ShouldRunTestResult.Yes
+                // If the timestamp metadata in the catalog is LESS than that of the database, we must not be looking at the latest entry that corresponds with this package, so we must attempt this test again later with more information.
+                : ShouldRunTestResult.RetryLater;
         }
 
         protected abstract Task RunInternalAsync(ValidationContext context);

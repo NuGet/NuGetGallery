@@ -9,6 +9,13 @@ namespace NuGet.Services.AzureSearch
 {
     public class HijackDocumentBuilder : IHijackDocumentBuilder
     {
+        private readonly IBaseDocumentBuilder _baseDocumentBuilder;
+
+        public HijackDocumentBuilder(IBaseDocumentBuilder baseDocumentBuilder)
+        {
+            _baseDocumentBuilder = baseDocumentBuilder ?? throw new ArgumentNullException(nameof(baseDocumentBuilder));
+        }
+
         public KeyedDocument Keyed(
             string packageId,
             string normalizedVersion)
@@ -56,7 +63,7 @@ namespace NuGet.Services.AzureSearch
                 lastCommitTimestamp: leaf.CommitTimestamp,
                 lastCommitId: leaf.CommitId,
                 changes: changes);
-            DocumentUtilities.PopulateMetadata(document, normalizedVersion, leaf);
+            _baseDocumentBuilder.PopulateMetadata(document, normalizedVersion, leaf);
             document.Listed = leaf.IsListed();
 
             return document;
@@ -77,13 +84,13 @@ namespace NuGet.Services.AzureSearch
                 lastCommitId: null,
                 normalizedVersion: package.NormalizedVersion,
                 changes: changes);
-            DocumentUtilities.PopulateMetadata(document, packageId, package);
+            _baseDocumentBuilder.PopulateMetadata(document, packageId, package);
             document.Listed = package.Listed;
 
             return document;
         }
 
-        private static void PopulateLatest<T>(
+        private void PopulateLatest<T>(
             T document,
             string packageId,
             string normalizedVersion,
@@ -93,7 +100,7 @@ namespace NuGet.Services.AzureSearch
             HijackDocumentChanges changes) where T : KeyedDocument, HijackDocument.ILatest
         {
             PopulateKey(document, packageId, normalizedVersion);
-            DocumentUtilities.PopulateCommitted(
+            _baseDocumentBuilder.PopulateCommitted(
                 document,
                 lastUpdatedFromCatalog,
                 lastCommitTimestamp,

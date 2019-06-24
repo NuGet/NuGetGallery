@@ -81,7 +81,11 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
                 client,
                 cancellationToken,
                 _contextLogger);
-            var results = await Task.WhenAll(AggregateValidators.Select(endpoint => endpoint.ValidateAsync(validationContext)).ToList());
+
+            var results = await Task.WhenAll(
+                AggregateValidators
+                    .Select(endpoint => endpoint.ValidateAsync(validationContext))
+                    .ToList());
 
             return new PackageValidationResult(validationContext, results);
         }

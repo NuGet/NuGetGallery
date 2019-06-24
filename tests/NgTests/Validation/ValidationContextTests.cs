@@ -44,24 +44,6 @@ namespace NgTests.Validation
         }
 
         [Fact]
-        public void Constructor_WhenEntriesIsNull_Throws()
-        {
-            IEnumerable<CatalogIndexEntry> entries = null;
-
-            var exception = Assert.Throws<ArgumentNullException>(
-                () => new ValidationContext(
-                    _packageIdentity,
-                    entries,
-                    Enumerable.Empty<DeletionAuditEntry>(),
-                    _mockValidationSourceRepositories,
-                    new CollectorHttpClient(),
-                    CancellationToken.None,
-                    Mock.Of<ILogger<ValidationContext>>()));
-
-            Assert.Equal("entries", exception.ParamName);
-        }
-
-        [Fact]
         public void Constructor_WhenDeletionAuditEntriesIsNull_Throws()
         {
             IEnumerable<DeletionAuditEntry> deletionAuditEntries = null;
@@ -189,8 +171,8 @@ namespace NgTests.Validation
         {
             var context = CreateContext();
 
-            var task1 = context.GetIndexV2Async();
-            var task2 = context.GetIndexV2Async();
+            var task1 = context.GetIndexDatabaseAsync();
+            var task2 = context.GetIndexDatabaseAsync();
 
             Assert.Same(task1, task2);
         }
@@ -206,7 +188,7 @@ namespace NgTests.Validation
 
             var context = CreateContext(v2Resource: v2Resource.Object);
 
-            var actualResult = await context.GetIndexV2Async();
+            var actualResult = await context.GetIndexDatabaseAsync();
 
             Assert.Same(expectedResult, actualResult);
         }
@@ -243,8 +225,8 @@ namespace NgTests.Validation
         {
             var context = CreateContext();
 
-            var task1 = context.GetLeafV2Async();
-            var task2 = context.GetLeafV2Async();
+            var task1 = context.GetLeafDatabaseAsync();
+            var task2 = context.GetLeafDatabaseAsync();
 
             Assert.Same(task1, task2);
         }
@@ -260,7 +242,7 @@ namespace NgTests.Validation
 
             var context = CreateContext(v2Resource: v2Resource.Object);
 
-            var actualResult = await context.GetLeafV2Async();
+            var actualResult = await context.GetLeafDatabaseAsync();
 
             Assert.Same(expectedResult, actualResult);
         }
@@ -303,7 +285,7 @@ namespace NgTests.Validation
             timestampMetadataResourceV2.Setup(x => x.GetAsync(It.Is<ValidationContext>(vc => vc == context)))
                 .ReturnsAsync(timestampMetadata);
 
-            var actualResult = await context.GetTimestampMetadataV2Async();
+            var actualResult = await context.GetTimestampMetadataDatabaseAsync();
 
             Assert.Same(timestampMetadata, actualResult);
         }
@@ -319,8 +301,8 @@ namespace NgTests.Validation
             timestampMetadataResourceV2.Setup(x => x.GetAsync(It.Is<ValidationContext>(vc => vc == context)))
                 .ReturnsAsync(timestampMetadata);
 
-            var task1 = context.GetTimestampMetadataV2Async();
-            var task2 = context.GetTimestampMetadataV2Async();
+            var task1 = context.GetTimestampMetadataDatabaseAsync();
+            var task2 = context.GetTimestampMetadataDatabaseAsync();
 
             Assert.Same(task1, task2);
         }

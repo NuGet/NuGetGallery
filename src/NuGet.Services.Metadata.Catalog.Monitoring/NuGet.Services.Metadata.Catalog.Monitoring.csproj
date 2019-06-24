@@ -54,23 +54,30 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Model\NonhijackedV2HttpMessageHandler.cs" />
+    <Compile Include="Model\PackageRegistrationAlternatePackageMetadata.cs" />
+    <Compile Include="Model\PackageRegistrationDeprecationMetadata.cs" />
     <Compile Include="Model\PackageRegistrationIndexMetadata.cs" />
     <Compile Include="Model\PackageRegistrationLeafMetadata.cs" />
     <Compile Include="Model\PackageTimestampMetadata.cs" />
+    <Compile Include="Monitoring\AuditingStoragePackageStatusOutdatedCheckSource.cs" />
+    <Compile Include="Monitoring\DatabasePackageStatusOutdatedCheckSource.cs" />
+    <Compile Include="Monitoring\PackageStatusOutdatedCheck.cs" />
+    <Compile Include="Monitoring\PackageStatusOutdatedCheckSource.cs" />
     <Compile Include="Notification\IMonitoringNotificationService.cs" />
     <Compile Include="Status\IPackageMonitoringStatusService.cs" />
     <Compile Include="Notification\LoggerMonitoringNotificationService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.*.cs" />
     <Compile Include="Providers\NonhijackedV2HttpHandlerResourceProvider.cs" />
-    <Compile Include="Providers\PackageRegistrationMetadataResourceV2FeedProvider.cs" />
+    <Compile Include="Providers\PackageRegistrationMetadataResourceDatabaseProvider.cs" />
     <Compile Include="Providers\PackageRegistrationMetadataResourceV3Provider.cs" />
-    <Compile Include="Providers\PackageTimestampMetadataResourceV2Provider.cs" />
+    <Compile Include="Providers\PackageTimestampMetadataResourceDatabaseProvider.cs" />
     <Compile Include="Resources\IPackageRegistrationMetadataResource.cs" />
     <Compile Include="Resources\IPackageTimestampMetadataResource.cs" />
-    <Compile Include="Resources\PackageRegistrationMetadataResourceV2Feed.cs" />
+    <Compile Include="Resources\PackageRegistrationMetadataResourceDatabaseFeed.cs" />
     <Compile Include="Resources\PackageRegistrationMetadataResourceV3.cs" />
-    <Compile Include="Resources\PackageTimestampMetadataResourceV2.cs" />
+    <Compile Include="Resources\PackageTimestampMetadataResourceDatabase.cs" />
+    <Compile Include="Status\PackageMonitoringStatusAccessConditionHelper.cs" />
     <Compile Include="Status\PackageMonitoringStatusListItem.cs" />
     <Compile Include="Status\PackageMonitoringStatusService.cs" />
     <Compile Include="Status\PackageMonitoringStatus.cs" />
@@ -89,7 +96,10 @@
     <Compile Include="Utility\LogEvents.cs" />
     <Compile Include="Utility\ILoggerFactoryExtensions.cs" />
     <Compile Include="Utility\SafeExceptionConverter.cs" />
+    <Compile Include="Validation\Result\ShouldRunTestResult.cs" />
     <Compile Include="Validation\Test\Endpoint\AggregateEndpointCursor.cs" />
+    <Compile Include="Validation\Test\Exceptions\AggregateMetadataInconsistencyException.cs" />
+    <Compile Include="Validation\Test\Registration\RegistrationDeprecationValidator.cs" />
     <Compile Include="Validation\ValidationCollector.cs" />
     <Compile Include="Validation\Result\AggregateValidationResult.cs" />
     <Compile Include="Validation\Result\PackageValidationResult.cs" />

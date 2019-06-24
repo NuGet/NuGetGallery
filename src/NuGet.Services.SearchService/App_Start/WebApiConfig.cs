@@ -11,6 +11,7 @@ using System.Web.Http;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using Autofac.Integration.WebApi;
+using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -43,9 +44,10 @@ namespace NuGet.Services.SearchService
 
         public static void Register(HttpConfiguration config)
         {
+            config.Filters.Add(new ApiExceptionFilterAttribute());
+
             config.Formatters.Remove(config.Formatters.XmlFormatter);
-            config.Formatters.JsonFormatter.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
-            config.Formatters.JsonFormatter.SerializerSettings.Converters.Add(new StringEnumConverter());
+            SetSerializerSettings(config.Formatters.JsonFormatter.SerializerSettings);
 
             var dependencyResolver = GetDependencyResolver(config);
             config.DependencyResolver = dependencyResolver;
@@ -109,6 +111,12 @@ namespace NuGet.Services.SearchService
             HostingEnvironment.QueueBackgroundWorkItem(token => ReloadAuxiliaryFilesAsync(dependencyResolver.Container, token));
         }
 
+        public static void SetSerializerSettings(JsonSerializerSettings settings)
+        {
+            settings.NullValueHandling = NullValueHandling.Ignore;
+            settings.Converters.Add(new StringEnumConverter());
+        }
+
         private static async Task ReloadAuxiliaryFilesAsync(ILifetimeScope serviceProvider, CancellationToken token)
         {
             var loader = serviceProvider.Resolve<IAuxiliaryFileReloader>();
@@ -130,6 +138,8 @@ namespace NuGet.Services.SearchService
             services.Configure<AzureSearchConfiguration>(configurationRoot.GetSection(ConfigurationSectionName));
             services.Configure<SearchServiceConfiguration>(configurationRoot.GetSection(ConfigurationSectionName));
             services.AddAzureSearch();
+            services.AddSingleton(new TelemetryClient());
+            services.AddTransient<ITelemetryClient, TelemetryClientWrapper>();
 
             var builder = new ContainerBuilder();
             builder.RegisterApiControllers(Assembly.GetExecutingAssembly());

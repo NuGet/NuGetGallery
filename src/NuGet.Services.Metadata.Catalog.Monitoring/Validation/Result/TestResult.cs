@@ -12,13 +12,23 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
         /// The test completed successfully.
         /// </summary>
         Pass,
+
         /// <summary>
         /// The test failed and should be investigated.
         /// </summary>
         Fail,
+
         /// <summary>
-        /// The test was skipped (<see cref="Validator.ShouldRunAsync(ValidationContext)"/> threw or returned false).
+        /// The test was skipped (<see cref="Validator.ShouldRunAsync(ValidationContext)"/> returned <see cref="ShouldRunTestResult.No"/>).
         /// </summary>
-        Skip
+        Skip,
+
+        /// <summary>
+        /// The result of the test could not be determined (<see cref="Validator.ShouldRunAsync(ValidationContext)"/> returned <see cref="ShouldRunTestResult.RetryLater"/>).
+        /// </summary>
+        /// <remarks>
+        /// This result is returned if there is a newer catalog entry for this package. When that catalog entry is processed, a different result should be returned.
+        /// </remarks>
+        Pending,
     }
 }

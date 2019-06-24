@@ -20,7 +20,6 @@ namespace NuGet.IndexingTests
             bool includeUnlisted,
             bool includePrerelease,
             bool includeSemVer2,
-            string readerName,
             string id,
             Document[] documents,
             NuGetVersion[] versions,
@@ -103,7 +102,6 @@ namespace NuGet.IndexingTests
                     true,           // includeUnlisted
                     true,           // includePrerelease
                     true,           // includeSemVer2
-                    "includeAll",
                     "fake.Package",
                     Constants.FullDocMatrix,
                     Constants.FullVersionMatrix,
@@ -117,7 +115,6 @@ namespace NuGet.IndexingTests
                     true,           // includeUnlisted
                     true,           // includePrerelease
                     false,          // includeSemVer2
-                    "includeUnlistedPrerelease",
                     "fake.Package",
                     Constants.FullDocMatrix,
                     Constants.FullVersionMatrix,
@@ -131,7 +128,6 @@ namespace NuGet.IndexingTests
                     true,           // includeUnlisted
                     false,          // includePrerelease
                     true,           // includeSemVer2
-                    "includeUnlistedSemVer2",
                     "fake.Package",
                     Constants.FullDocMatrix,
                     Constants.FullVersionMatrix,
@@ -144,7 +140,6 @@ namespace NuGet.IndexingTests
                     true,           // includeUnlisted
                     false,          // includePrerelease
                     false,          // includeSemVer2
-                    "includeUnlisted",
                     "fake.Package",
                     Constants.FullDocMatrix,
                     Constants.FullVersionMatrix,
@@ -158,7 +153,6 @@ namespace NuGet.IndexingTests
                     false,          // includeUnlisted
                     true,           // includePrerelease
                     true,           // includeSemVer2
-                    "includePrereleaseSemVer2",
                     "fake.Package",
                     Constants.FullDocMatrix,
                     Constants.FullVersionMatrix,
@@ -172,7 +166,6 @@ namespace NuGet.IndexingTests
                     false,          // includeUnlisted
                     true,           // includePrerelease
                     false,          // includeSemVer2
-                    "includePrerelease",
                     "fake.Package",
                     Constants.FullDocMatrix,
                     Constants.FullVersionMatrix,
@@ -186,7 +179,6 @@ namespace NuGet.IndexingTests
                     false,          // includeUnlisted
                     false,          // includePrerelease
                     true,           // includeSemVer2
-                    "includeSemVer2",
                     "fake.Package",
                     Constants.FullDocMatrix,
                     Constants.FullVersionMatrix,
@@ -200,7 +192,6 @@ namespace NuGet.IndexingTests
                     false,          // includeUnlisted
                     false,          // includePrerelease
                     false,          // includeSemVer2
-                    "includeNone",
                     "fake.Package",
                     Constants.FullDocMatrix,
                     Constants.FullVersionMatrix,

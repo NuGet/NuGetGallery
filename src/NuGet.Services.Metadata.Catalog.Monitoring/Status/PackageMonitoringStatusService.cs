@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Microsoft.WindowsAzure.Storage;
 using Newtonsoft.Json;
 using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGet.Services.Metadata.Catalog.Persistence;
@@ -21,15 +22,15 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
     /// </summary>
     public class PackageMonitoringStatusService : IPackageMonitoringStatusService
     {
-        private static string[] _packageStateNames = Enum.GetNames(typeof(PackageState));
-        private static Array _packageStateValues = Enum.GetValues(typeof(PackageState));
+        private static readonly string[] _packageStateNames = Enum.GetNames(typeof(PackageState));
+        private static readonly Array _packageStateValues = Enum.GetValues(typeof(PackageState));
 
-        private ILogger<PackageMonitoringStatusService> _logger;
+        private readonly ILogger<PackageMonitoringStatusService> _logger;
 
         /// <summary>
         /// The <see cref="IStorageFactory"/> to use to save status of packages.
         /// </summary>
-        private IStorageFactory _storageFactory;
+        private readonly IStorageFactory _storageFactory;
 
         public PackageMonitoringStatusService(IStorageFactory storageFactory, ILogger<PackageMonitoringStatusService> logger)
         {
@@ -86,17 +87,27 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
             }
 
             // If more than one status exist for a single package, find the status with the latest timestamp.
+            // We then must delete the other statuses, so that we can later update the storage safely.
             var statusesWithTimeStamps = statuses.Where(s => s.ValidationResult != null && s.ValidationResult.CatalogEntries != null && s.ValidationResult.CatalogEntries.Any());
+            IEnumerable<PackageMonitoringStatus> orderedStatuses;
             if (statusesWithTimeStamps.Any())
             {
-                return statusesWithTimeStamps.OrderByDescending(s => s.ValidationResult.CatalogEntries.Max(c => c.CommitTimeStamp)).First();
+                orderedStatuses = statusesWithTimeStamps.OrderByDescending(s => s.ValidationResult.CatalogEntries.Max(c => c.CommitTimeStamp));
             }
             else
             {
                 // No statuses have timestamps (they all failed to process).
                 // Because they are all in a bad state, choose an arbitrary one.
-                return statuses.First();
+                orderedStatuses = statuses;
             }
+
+            var result = orderedStatuses.First();
+            foreach (var statusToDelete in orderedStatuses.Skip(1))
+            {
+                await DeleteAsync(statusToDelete.Package, statusToDelete.State, statusToDelete.AccessCondition, token);
+            }
+
+            return result;
         }
 
         public async Task<IEnumerable<PackageMonitoringStatus>> GetAsync(PackageState state, CancellationToken token)
@@ -121,13 +132,18 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
             // If we save it after deleting the existing status, the save could fail and then we'd lose the data.
             await SaveAsync(status, token);
 
+            // Delete the other statuses.
             foreach (int stateInt in _packageStateValues)
             {
                 var state = (PackageState)stateInt;
                 if (state != status.State)
                 {
                     // Delete the existing status.
-                    await DeleteAsync(status.Package, state, token);
+                    await DeleteAsync(
+                        status.Package, 
+                        state,
+                        status.ExistingState[state],
+                        token);
                 }
             }
         }
@@ -137,14 +153,17 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
             var storage = GetStorage(status.State);
 
             var packageStatusJson = JsonConvert.SerializeObject(status, JsonSerializerUtility.SerializerSettings);
-            var storageContent = new StringStorageContent(packageStatusJson, "application/json");
+            var storageContent = new StringStorageContentWithAccessCondition(
+                packageStatusJson,
+                status.ExistingState[status.State],
+                "application/json");
 
             var packageUri = GetPackageUri(storage, status.Package);
 
             await storage.SaveAsync(packageUri, storageContent, token);
         }
 
-        private async Task DeleteAsync(FeedPackageIdentity package, PackageState state, CancellationToken token)
+        private async Task DeleteAsync(FeedPackageIdentity package, PackageState state, AccessCondition accessCondition, CancellationToken token)
         {
             var storage = GetStorage(state);
             if (!storage.Exists(GetPackageFileName(package)))
@@ -152,7 +171,11 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
                 return;
             }
 
-            await storage.DeleteAsync(GetPackageUri(storage, package), token);
+            await storage.DeleteAsync(
+                GetPackageUri(storage, package), 
+                token, 
+                new DeleteRequestOptionsWithAccessCondition(
+                    accessCondition));
         }
 
         private CatalogStorage GetStorage(PackageState state)
@@ -229,7 +252,7 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
                 }
 
                 var status = JsonConvert.DeserializeObject<PackageMonitoringStatus>(statusString, JsonSerializerUtility.SerializerSettings);
-
+                status.AccessCondition = PackageMonitoringStatusAccessConditionHelper.FromContent(content);
                 return status;
             }
             catch (Exception deserializationException)

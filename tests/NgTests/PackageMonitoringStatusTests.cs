@@ -66,6 +66,30 @@ namespace NgTests
 
                 Assert.Equal(PackageState.Invalid, status.State);
             }
+
+            [Fact]
+            public void Unknown()
+            {
+                var validationResults = new ValidationResult[]
+                {
+                    new ValidationResult(null, TestResult.Pass),
+                    new ValidationResult(null, TestResult.Pending)
+                };
+
+                var aggregateValidationResults = new AggregateValidationResult(
+                    null,
+                    validationResults);
+
+                var packageValidationResult = new PackageValidationResult(
+                    new PackageIdentity("testPackage", new NuGetVersion(4, 5, 6)),
+                    null,
+                    null,
+                    new AggregateValidationResult[] { aggregateValidationResults });
+
+                var status = new PackageMonitoringStatus(packageValidationResult);
+
+                Assert.Equal(PackageState.Unknown, status.State);
+            }
         }
 
         public class WithException

@@ -16,6 +16,7 @@ using NuGet.Protocol.Registration;
 using NuGet.Services.AzureSearch.Support;
 using NuGet.Services.AzureSearch.Wrappers;
 using NuGet.Services.Entities;
+using NuGet.Services.Logging;
 using NuGet.Services.Metadata.Catalog;
 using NuGet.Versioning;
 using NuGetGallery;
@@ -28,12 +29,15 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
     {
         private Catalog2AzureSearchConfiguration _config;
         private Mock<IOptionsSnapshot<Catalog2AzureSearchConfiguration>> _options;
+        private Mock<ITelemetryClient> _telemetryClient;
+        private AzureSearchTelemetryService _telemetryService;
         private Mock<IEntitiesContextFactory> _entitiesContextFactory;
         private Mock<IEntitiesContext> _entitiesContext;
         private DatabaseOwnerFetcher _ownerFetcher;
         private InMemoryRegistrationClient _registrationClient;
         private InMemoryCatalogClient _catalogClient;
         private CatalogLeafFetcher _leafFetcher;
+        private BaseDocumentBuilder _baseDocumentBuilder;
         private SearchDocumentBuilder _search;
         private HijackDocumentBuilder _hijack;
         private CatalogIndexActionBuilder _builder;
@@ -51,13 +55,21 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
             {
                 MaxConcurrentBatches = 1,
                 MaxConcurrentVersionListWriters = 1,
-                AzureSearchBatchSize = 1000,
+                MaxConcurrentCatalogLeafDownloads = 1,
                 StorageContainer = "integration-tests-container",
                 StoragePath = "integration-tests-path",
                 RegistrationsBaseUrl = "https://example/registrations/",
+                GalleryBaseUrl = Data.GalleryBaseUrl,
+                FlatContainerBaseUrl = Data.FlatContainerBaseUrl,
+                FlatContainerContainerName = Data.FlatContainerContainerName,
+
+                Scoring = new AzureSearchScoringConfiguration()
             };
             _options = new Mock<IOptionsSnapshot<Catalog2AzureSearchConfiguration>>();
             _options.Setup(x => x.Value).Returns(() => _config);
+
+            _telemetryClient = new Mock<ITelemetryClient>();
+            _telemetryService = new AzureSearchTelemetryService(_telemetryClient.Object);
 
             // Mock the database that is used for fetching owner information. The product code only reads
             // from the database so it is less important to have a realistic, stateful implementation.
@@ -68,6 +80,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
             _ownerFetcher = new DatabaseOwnerFetcher(
                 new Mock<ISqlConnectionFactory<GalleryDbConfiguration>>().Object,
                 _entitiesContextFactory.Object,
+                _telemetryService,
                 output.GetLogger<DatabaseOwnerFetcher>());
 
             _cloudBlobClient = new InMemoryCloudBlobClient();
@@ -81,9 +94,11 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
                 _registrationClient,
                 _catalogClient,
                 _options.Object,
+                _telemetryService,
                 output.GetLogger<CatalogLeafFetcher>());
-            _search = new SearchDocumentBuilder();
-            _hijack = new HijackDocumentBuilder();
+            _baseDocumentBuilder = new BaseDocumentBuilder(_options.Object);
+            _search = new SearchDocumentBuilder(_baseDocumentBuilder, _options.Object);
+            _hijack = new HijackDocumentBuilder(_baseDocumentBuilder);
             _builder = new CatalogIndexActionBuilder(
                 _versionListDataClient,
                 _leafFetcher,
@@ -107,8 +122,10 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
                     _hijackIndex.Object,
                     _versionListDataClient,
                     _options.Object,
+                    _telemetryService,
                     output.GetLogger<BatchPusher>()),
                 _options.Object,
+                _telemetryService,
                 output.GetLogger<AzureSearchCollectorLogic>());
         }
 

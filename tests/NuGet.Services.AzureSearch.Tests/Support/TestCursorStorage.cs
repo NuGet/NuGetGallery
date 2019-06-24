@@ -58,7 +58,8 @@ namespace NuGet.Services.AzureSearch.Support
             IReadOnlyDictionary<string, string> destinationProperties,
             CancellationToken cancellationToken) => throw new NotImplementedException();
         protected override Task OnDeleteAsync(
-            Uri resourceUri,
+            Uri resourceUri, 
+            DeleteRequestOptions deleteRequestOptions,
             CancellationToken cancellationToken) => throw new NotImplementedException();
     }
 }

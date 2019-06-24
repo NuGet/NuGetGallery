@@ -4,10 +4,11 @@
 namespace NuGet.Services.Metadata.Catalog.Registration
 {
     /// <summary>
-    /// An interface for providing the relative path of a package in the base address
+    /// An interface for providing the relative path of a package or an icon in the base address
     /// </summary>
     public interface IPackagePathProvider
     {
+        string GetIconPath(string id, string version);
         string GetPackagePath(string id, string version);
     }
 }

@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.Extensions.Logging;
 
@@ -12,10 +13,14 @@ namespace NuGet.Services.AzureSearch.Owners2AzureSearch
     {
         private static readonly string[] EmptyStringArray = new string[0];
 
+        private readonly IAzureSearchTelemetryService _telemetryService;
         private readonly ILogger<OwnerSetComparer> _logger;
 
-        public OwnerSetComparer(ILogger<OwnerSetComparer> logger)
+        public OwnerSetComparer(
+            IAzureSearchTelemetryService telemetryService,
+            ILogger<OwnerSetComparer> logger)
         {
+            _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -32,6 +37,8 @@ namespace NuGet.Services.AzureSearch.Owners2AzureSearch
             {
                 throw new ArgumentException("The new data should have a case-insensitive comparer.", nameof(newData));
             }
+
+            var stopwatch = Stopwatch.StartNew();
 
             // We use a very simplistic algorithm here. Perform one pass on the new data to find the added or changed
             // package IDs. Then perform a second pass on the old data to find removed package IDs. We can optimize
@@ -93,6 +100,9 @@ namespace NuGet.Services.AzureSearch.Owners2AzureSearch
                         oldOwners.Count);
                 }
             }
+
+            stopwatch.Stop();
+            _telemetryService.TrackOwnerSetComparison(oldData.Count, newData.Count, result.Count, stopwatch.Elapsed);
 
             return result;
         }

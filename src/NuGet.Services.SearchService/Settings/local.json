@@ -1,26 +1,2 @@
 {
-  "SearchService": {
-    "SearchServiceName": "",
-    "SearchServiceApiKey": "",
-    "SearchIndexName": "",
-    "HijackIndexName": "",
-    "SemVer1RegistrationsBaseUrl": "",
-    "SemVer2RegistrationsBaseUrl": "",
-    "AuxiliaryDataStorageConnectionString": "",
-    "AuxiliaryDataStorageContainer": "",
-    "AuxiliaryDataStorageDownloadsPath": "downloads.v1.json",
-    "AuxiliaryDataStorageVerifiedPackagesPath": "verifiedPackages.json",
-    "AuxiliaryDataReloadFrequency": "01:00:00",
-    "AuxiliaryDataReloadFailureRetryFrequency": "00:00:30",
-    "DeploymentLabel": "1.0.0-zlocal"
-  },
-
-  "ApplicationInsights_InstrumentationKey": "",
-
-  "KeyVault_VaultName": "",
-  "KeyVault_ClientId": "",
-  "KeyVault_CertificateThumbprint": "",
-  "KeyVault_ValidateCertificate": true,
-  "KeyVault_StoreName": "My",
-  "KeyVault_StoreLocation": "LocalMachine"
 }

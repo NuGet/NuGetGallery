@@ -16,12 +16,12 @@ namespace NuGet.Services.AzureSearch
     public class IndexBuilder : IIndexBuilder
     {
         private readonly ISearchServiceClientWrapper _serviceClient;
-        private readonly IOptionsSnapshot<AzureSearchConfiguration> _options;
+        private readonly IOptionsSnapshot<AzureSearchJobConfiguration> _options;
         private readonly ILogger<IndexBuilder> _logger;
 
         public IndexBuilder(
             ISearchServiceClientWrapper serviceClient,
-            IOptionsSnapshot<AzureSearchConfiguration> options,
+            IOptionsSnapshot<AzureSearchJobConfiguration> options,
             ILogger<IndexBuilder> logger)
         {
             _serviceClient = serviceClient ?? throw new ArgumentNullException(nameof(serviceClient));
@@ -128,7 +128,9 @@ namespace NuGet.Services.AzureSearch
 
             if (addScoringProfile)
             {
-                index.ScoringProfiles = new List<ScoringProfile> { DefaultScoringProfile.Instance };
+                var scoringProfile = DefaultScoringProfile.Create(_options.Value.Scoring);
+
+                index.ScoringProfiles = new List<ScoringProfile> { scoringProfile };
                 index.DefaultScoringProfile = DefaultScoringProfile.Name;
             }
 

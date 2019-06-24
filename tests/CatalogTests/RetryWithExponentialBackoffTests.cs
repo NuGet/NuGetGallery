@@ -74,6 +74,8 @@ namespace CatalogTests
                 }
             }
 
+            [Theory]
+            [MemberData(nameof(ReturnsFalseIfResponseStatusBelow500OrWhitelisted_Data))]
             public void ReturnsFalseIfResponseStatusBelow500OrWhitelisted(Exception e, HttpStatusCode status)
             {
                 var response = new HttpResponseMessage(status);
@@ -103,6 +105,8 @@ namespace CatalogTests
                 }
             }
 
+            [Theory]
+            [MemberData(nameof(ReturnsTrueIfResponseStatusAbove500_Data))]
             public void ReturnsTrueIfResponseStatusAbove500(Exception e, HttpStatusCode status)
             {
                 var response = new HttpResponseMessage(status);

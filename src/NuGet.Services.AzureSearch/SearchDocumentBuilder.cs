@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using Microsoft.Extensions.Options;
 using NuGet.Protocol.Catalog;
 using NuGet.Services.Entities;
 
@@ -9,6 +10,17 @@ namespace NuGet.Services.AzureSearch
 {
     public class SearchDocumentBuilder : ISearchDocumentBuilder
     {
+        private readonly IBaseDocumentBuilder _baseDocumentBuilder;
+        private readonly IOptionsSnapshot<AzureSearchJobConfiguration> _options;
+
+        public SearchDocumentBuilder(
+            IBaseDocumentBuilder baseDocumentBuilder,
+            IOptionsSnapshot<AzureSearchJobConfiguration> options)
+        {
+            _baseDocumentBuilder = baseDocumentBuilder ?? throw new ArgumentNullException(nameof(baseDocumentBuilder));
+            _options = options ?? throw new ArgumentNullException(nameof(options));
+        }
+
         public SearchDocument.LatestFlags LatestFlagsOrNull(VersionLists versionLists, SearchFilters searchFilters)
         {
             var latest = versionLists.GetLatestVersionInfoOrNull(searchFilters);
@@ -169,7 +181,7 @@ namespace NuGet.Services.AzureSearch
                 isLatest: isLatest,
                 fullVersion: fullVersion,
                 owners: owners);
-            DocumentUtilities.PopulateMetadata(document, normalizedVersion, leaf);
+            _baseDocumentBuilder.PopulateMetadata(document, normalizedVersion, leaf);
 
             return document;
         }
@@ -199,14 +211,14 @@ namespace NuGet.Services.AzureSearch
                 isLatest: isLatest,
                 fullVersion: fullVersion,
                 owners: owners);
-            DocumentUtilities.PopulateMetadata(document, packageId, package);
+            _baseDocumentBuilder.PopulateMetadata(document, packageId, package);
             document.TotalDownloadCount = totalDownloadCount;
-            document.LogBase2DownloadCount = Math.Log(totalDownloadCount, 2.0);
+            document.LogOfDownloadCount = Math.Log(totalDownloadCount, _options.Value.Scoring.DownloadCountLogBase);
 
             return document;
         }
 
-        private static void PopulateVersions<T>(
+        private void PopulateVersions<T>(
             T document,
             string packageId,
             SearchFilters searchFilters,
@@ -218,7 +230,7 @@ namespace NuGet.Services.AzureSearch
             bool isLatest) where T : KeyedDocument, SearchDocument.IVersions
         {
             PopulateKey(document, packageId, searchFilters);
-            DocumentUtilities.PopulateCommitted(
+            _baseDocumentBuilder.PopulateCommitted(
                 document,
                 lastUpdatedFromCatalog,
                 lastCommitTimestamp,
@@ -233,7 +245,7 @@ namespace NuGet.Services.AzureSearch
             document.Key = DocumentUtilities.GetSearchDocumentKey(packageId, searchFilters);
         }
 
-        private static void PopulateUpdateLatest(
+        private void PopulateUpdateLatest(
             SearchDocument.UpdateLatest document,
             string packageId,
             SearchFilters searchFilters,
@@ -278,7 +290,7 @@ namespace NuGet.Services.AzureSearch
             var document = new SearchDocument.UpdateOwners();
 
             PopulateKey(document, packageId, searchFilters);
-            DocumentUtilities.PopulateCommitted(
+            _baseDocumentBuilder.PopulateCommitted(
                 document,
                 lastUpdatedFromCatalog: false,
                 lastCommitTimestamp: null,

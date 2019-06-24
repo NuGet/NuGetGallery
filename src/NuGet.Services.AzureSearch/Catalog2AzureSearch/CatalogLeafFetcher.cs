@@ -19,24 +19,27 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
         private readonly IRegistrationClient _registrationClient;
         private readonly ICatalogClient _catalogClient;
         private readonly IOptionsSnapshot<Catalog2AzureSearchConfiguration> _options;
+        private readonly IAzureSearchTelemetryService _telemetryService;
         private readonly ILogger<CatalogLeafFetcher> _logger;
 
         public CatalogLeafFetcher(
             IRegistrationClient registrationClient,
             ICatalogClient catalogClient,
             IOptionsSnapshot<Catalog2AzureSearchConfiguration> options,
+            IAzureSearchTelemetryService telemetryService,
             ILogger<CatalogLeafFetcher> logger)
         {
             _registrationClient = registrationClient ?? throw new ArgumentNullException(nameof(registrationClient));
             _catalogClient = catalogClient ?? throw new ArgumentNullException(nameof(catalogClient));
             _options = options ?? throw new ArgumentNullException(nameof(options));
+            _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
             if (_options.Value.MaxConcurrentBatches <= 0)
             {
-                throw new ArgumentException(
-                    $"The {nameof(AzureSearchJobConfiguration.MaxConcurrentBatches)} must be greater than zero.",
-                    nameof(options));
+                throw new ArgumentOutOfRangeException(
+                    nameof(options),
+                    $"The {nameof(AzureSearchJobConfiguration.MaxConcurrentBatches)} must be greater than zero.");
             }
 
             if (_options.Value.RegistrationsBaseUrl == null)
@@ -66,72 +69,75 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                 throw new ArgumentException("At least one version list must be provided.", nameof(versions));
             }
 
-            var unavailable = new HashSet<NuGetVersion>();
-            var fetched = new Dictionary<NuGetVersion, PackageDetailsCatalogLeaf>();
-            var unlisted = new Dictionary<NuGetVersion, string>();
-
-            var registrationIndexUrl = RegistrationUrlBuilder.GetIndexUrl(_options.Value.RegistrationsBaseUrl, packageId);
-            var registrationIndex = await _registrationClient.GetIndexOrNullAsync(registrationIndexUrl);
-            if (registrationIndex == null)
+            using (_telemetryService.TrackGetLatestLeaves(packageId, versions.SelectMany(v => v).Distinct().Count()))
             {
-                _logger.LogWarning(
-                    "No registation index was found. ID: {PackageId}, registration index URL: {RegistrationIndexUrl}",
-                    packageId,
-                    registrationIndexUrl);
+                var unavailable = new HashSet<NuGetVersion>();
+                var fetched = new Dictionary<NuGetVersion, PackageDetailsCatalogLeaf>();
+                var unlisted = new Dictionary<NuGetVersion, string>();
 
-                foreach (var version in versions.SelectMany(x => x))
+                var registrationIndexUrl = RegistrationUrlBuilder.GetIndexUrl(_options.Value.RegistrationsBaseUrl, packageId);
+                var registrationIndex = await _registrationClient.GetIndexOrNullAsync(registrationIndexUrl);
+                if (registrationIndex == null)
                 {
-                    unavailable.Add(version);
+                    _logger.LogWarning(
+                        "No registation index was found. ID: {PackageId}, registration index URL: {RegistrationIndexUrl}",
+                        packageId,
+                        registrationIndexUrl);
+
+                    foreach (var version in versions.SelectMany(x => x))
+                    {
+                        unavailable.Add(version);
+                    }
+
+                    return new LatestCatalogLeaves(unavailable, fetched);
+                }
+
+                var pageUrlToInfo = registrationIndex
+                    .Items
+                    .ToDictionary(x => x.Url, x => new RegistrationPageInfo(x));
+
+                // Make a list of ranges for logging purposes.
+                var ranges = pageUrlToInfo
+                    .OrderBy(x => x.Value.Range.MinVersion)
+                    .Select(x => x.Value.RangeString)
+                    .ToList();
+
+                foreach (var versionList in versions)
+                {
+                    await AddLatestLeafAsync(
+                        packageId,
+                        versionList,
+                        pageUrlToInfo,
+                        ranges,
+                        unavailable,
+                        fetched,
+                        unlisted);
+                }
+
+                // Fetch the unlisted version's metadata in parallel. This can be many versions in the case of a bulk
+                // unlist.
+                var allWork = new ConcurrentBag<KeyValuePair<NuGetVersion, string>>(unlisted);
+                var allResults = new ConcurrentBag<KeyValuePair<NuGetVersion, PackageDetailsCatalogLeaf>>();
+                var tasks = Enumerable
+                    .Range(0, _options.Value.MaxConcurrentBatches)
+                    .Select(async x =>
+                    {
+                        await Task.Yield();
+                        while (allWork.TryTake(out var work))
+                        {
+                            var leaf = await _catalogClient.GetPackageDetailsLeafAsync(work.Value);
+                            allResults.Add(KeyValuePair.Create(work.Key, leaf));
+                        }
+                    })
+                    .ToList();
+                await Task.WhenAll(tasks);
+                foreach (var pair in allResults)
+                {
+                    fetched.Add(pair.Key, pair.Value);
                 }
 
                 return new LatestCatalogLeaves(unavailable, fetched);
             }
-
-            var pageUrlToInfo = registrationIndex
-                .Items
-                .ToDictionary(x => x.Url, x => new RegistrationPageInfo(x));
-
-            // Make a list of ranges for logging purposes.
-            var ranges = pageUrlToInfo
-                .OrderBy(x => x.Value.Range.MinVersion)
-                .Select(x => x.Value.RangeString)
-                .ToList();
-
-            foreach (var versionList in versions)
-            {
-                await AddLatestLeafAsync(
-                    packageId,
-                    versionList,
-                    pageUrlToInfo,
-                    ranges,
-                    unavailable,
-                    fetched,
-                    unlisted);
-            }
-
-            // Fetch the unlisted version's metadata in parallel. This can be many versions in the case of a bulk
-            // unlist.
-            var allWork = new ConcurrentBag<KeyValuePair<NuGetVersion, string>>(unlisted);
-            var allResults = new ConcurrentBag<KeyValuePair<NuGetVersion, PackageDetailsCatalogLeaf>>();
-            var tasks = Enumerable
-                .Range(0, _options.Value.MaxConcurrentBatches)
-                .Select(async x =>
-                {
-                    await Task.Yield();
-                    while (allWork.TryTake(out var work))
-                    {
-                        var leaf = await _catalogClient.GetPackageDetailsLeafAsync(work.Value);
-                        allResults.Add(KeyValuePair.Create(work.Key, leaf));
-                    }
-                })
-                .ToList();
-            await Task.WhenAll(tasks);
-            foreach (var pair in allResults)
-            {
-                fetched.Add(pair.Key, pair.Value);
-            }
-
-            return new LatestCatalogLeaves(unavailable, fetched);
         }
 
         private async Task AddLatestLeafAsync(

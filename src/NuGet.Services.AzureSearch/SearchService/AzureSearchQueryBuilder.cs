@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -209,12 +208,12 @@ namespace NuGet.Services.AzureSearch.SearchService
             {
                 if ((_clauses + additionalClauses) > MaxClauses)
                 {
-                    throw new InvalidSearchRequestException($"A query can only have up to {MaxClauses} clauses");
+                    throw new InvalidSearchRequestException($"A query can only have up to {MaxClauses} clauses.");
                 }
 
                 if (terms.Any(TermExceedsMaxSize))
                 {
-                    throw new InvalidSearchRequestException($"Query terms cannot exceed {MaxTermSizeBytes} bytes");
+                    throw new InvalidSearchRequestException($"Query terms cannot exceed {MaxTermSizeBytes} bytes.");
                 }
 
                 _clauses += additionalClauses;

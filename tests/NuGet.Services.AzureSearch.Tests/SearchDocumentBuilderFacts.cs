@@ -5,7 +5,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
+using Moq;
 using NuGet.Services.AzureSearch.Support;
+using NuGet.Services.Entities;
 using NuGet.Versioning;
 using NuGetGallery;
 using Xunit;
@@ -401,6 +404,84 @@ namespace NuGet.Services.AzureSearch
 
                 Assert.Null(document.RequiresLicenseAcceptance);
             }
+
+            [Fact]
+            public void SetsLicenseUrlToGalleryWhenPackageHasLicenseExpression()
+            {
+                var leaf = Data.Leaf;
+                leaf.LicenseExpression = "MIT";
+
+                var document = _target.UpdateLatestFromCatalog(
+                    Data.SearchFilters,
+                    Data.Versions,
+                    isLatestStable: false,
+                    isLatest: true,
+                    normalizedVersion: Data.NormalizedVersion,
+                    fullVersion: Data.FullVersion,
+                    leaf: leaf,
+                    owners: Data.Owners);
+
+                Assert.Equal(Data.GalleryLicenseUrl, document.LicenseUrl);
+            }
+
+            [Fact]
+            public void SetsLicenseUrlToGalleryWhenPackageHasLicenseFile()
+            {
+                var leaf = Data.Leaf;
+                leaf.LicenseFile = "LICENSE.txt";
+
+                var document = _target.UpdateLatestFromCatalog(
+                    Data.SearchFilters,
+                    Data.Versions,
+                    isLatestStable: false,
+                    isLatest: true,
+                    normalizedVersion: Data.NormalizedVersion,
+                    fullVersion: Data.FullVersion,
+                    leaf: leaf,
+                    owners: Data.Owners);
+
+                Assert.Equal(Data.GalleryLicenseUrl, document.LicenseUrl);
+            }
+
+            [Fact]
+            public void SetsIconUrlToFlatContainerWhenPackageHasIconFileAndIconUrl()
+            {
+                var leaf = Data.Leaf;
+                leaf.IconUrl = "https://other-example/icon.png";
+                leaf.IconFile = "icon.png";
+
+                var document = _target.UpdateLatestFromCatalog(
+                    Data.SearchFilters,
+                    Data.Versions,
+                    isLatestStable: false,
+                    isLatest: true,
+                    normalizedVersion: Data.NormalizedVersion,
+                    fullVersion: Data.FullVersion,
+                    leaf: leaf,
+                    owners: Data.Owners);
+
+                Assert.Equal(Data.FlatContainerIconUrl, document.IconUrl);
+            }
+
+            [Fact]
+            public void SetsIconUrlToFlatContainerWhenPackageHasIconFileAndNoIconUrl()
+            {
+                var leaf = Data.Leaf;
+                leaf.IconUrl = null;
+                leaf.IconFile = "icon.png";
+
+                var document = _target.UpdateLatestFromCatalog(
+                    Data.SearchFilters,
+                    Data.Versions,
+                    isLatestStable: false,
+                    isLatest: true,
+                    normalizedVersion: Data.NormalizedVersion,
+                    fullVersion: Data.FullVersion,
+                    leaf: leaf,
+                    owners: Data.Owners);
+
+                Assert.Equal(Data.FlatContainerIconUrl, document.IconUrl);
+            }
         }
 
         public class FullFromDb : BaseFacts
@@ -493,7 +574,7 @@ namespace NuGet.Services.AzureSearch
     {
       ""@search.action"": ""upload"",
       ""totalDownloadCount"": 1001,
-      ""logBase2DownloadCount"": 9.9672262588359928,
+      ""logOfDownloadCount"": 9.9672262588359928,
       ""owners"": [
         ""Microsoft"",
         ""azure-sdk""
@@ -561,6 +642,7 @@ namespace NuGet.Services.AzureSearch
             {
                 var package = Data.PackageEntity;
                 package.Tags = "foo; BAR |     Baz";
+
                 var document = _target.FullFromDb(
                     Data.PackageId,
                     Data.SearchFilters,
@@ -574,11 +656,56 @@ namespace NuGet.Services.AzureSearch
 
                 Assert.Equal(new[] { "foo", "BAR", "Baz" }, document.Tags);
             }
+
+            [Fact]
+            public void SetsLicenseUrlToGalleryWhenPackageHasLicenseExpression()
+            {
+                var package = Data.PackageEntity;
+                package.LicenseExpression = "MIT";
+
+                var document = _target.FullFromDb(
+                    Data.PackageId,
+                    Data.SearchFilters,
+                    Data.Versions,
+                    isLatestStable: false,
+                    isLatest: true,
+                    fullVersion: Data.FullVersion,
+                    package: package,
+                    owners: Data.Owners,
+                    totalDownloadCount: Data.TotalDownloadCount);
+
+                Assert.Equal(Data.GalleryLicenseUrl, document.LicenseUrl);
+            }
+
+            [Theory]
+            [InlineData(EmbeddedLicenseFileType.PlainText)]
+            [InlineData(EmbeddedLicenseFileType.Markdown)]
+            public void SetsLicenseUrlToGalleryWhenPackageHasLicenseFile(EmbeddedLicenseFileType type)
+            {
+                var package = Data.PackageEntity;
+                package.EmbeddedLicenseType = type;
+
+                var document = _target.FullFromDb(
+                    Data.PackageId,
+                    Data.SearchFilters,
+                    Data.Versions,
+                    isLatestStable: false,
+                    isLatest: true,
+                    fullVersion: Data.FullVersion,
+                    package: package,
+                    owners: Data.Owners,
+                    totalDownloadCount: Data.TotalDownloadCount);
+
+                Assert.Equal(Data.GalleryLicenseUrl, document.LicenseUrl);
+            }
         }
 
         public abstract class BaseFacts
         {
             protected readonly ITestOutputHelper _output;
+            protected readonly Mock<IOptionsSnapshot<AzureSearchJobConfiguration>> _options;
+            protected readonly BaseDocumentBuilder _baseDocumentBuilder;
+            protected readonly AzureSearchJobConfiguration _config;
             protected readonly SearchDocumentBuilder _target;
 
             public static IEnumerable<object[]> MissingTitles = new[]
@@ -615,8 +742,22 @@ namespace NuGet.Services.AzureSearch
             public BaseFacts(ITestOutputHelper output)
             {
                 _output = output;
+                _options = new Mock<IOptionsSnapshot<AzureSearchJobConfiguration>>();
+                _baseDocumentBuilder = new BaseDocumentBuilder(_options.Object); // We intentionally don't mock this.
+                _config = new AzureSearchJobConfiguration
+                {
+                    GalleryBaseUrl = Data.GalleryBaseUrl,
+                    FlatContainerBaseUrl = Data.FlatContainerBaseUrl,
+                    FlatContainerContainerName = Data.FlatContainerContainerName,
+                    Scoring = new AzureSearchScoringConfiguration
+                    {
+                        DownloadCountLogBase = 2.0
+                    }
+                };
 
-                _target = new SearchDocumentBuilder();
+                _options.Setup(o => o.Value).Returns(() => _config);
+
+                _target = new SearchDocumentBuilder(_baseDocumentBuilder, _options.Object);
             }
         }
     }

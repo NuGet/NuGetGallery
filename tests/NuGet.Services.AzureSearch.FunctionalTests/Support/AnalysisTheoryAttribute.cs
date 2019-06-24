@@ -3,13 +3,13 @@
 
 using Xunit;
 
-namespace NuGet.Services.AzureSearch.FunctionalTests.Support
+namespace NuGet.Services.AzureSearch.FunctionalTests
 {
     public class AnalysisTheoryAttribute : TheoryAttribute
     {
         public AnalysisTheoryAttribute()
         {
-            if (!TestSettings.Create().RunAzureSearchAnalysisTests)
+            if (!AzureSearchConfiguration.Create().TestSettings.RunAzureSearchAnalysisTests)
             {
                 Skip = "Azure Search Analyzer tests are disabled";
             }

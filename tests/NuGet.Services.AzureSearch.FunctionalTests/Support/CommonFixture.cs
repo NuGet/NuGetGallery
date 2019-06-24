@@ -4,15 +4,15 @@
 using System.Threading.Tasks;
 using Xunit;
 
-namespace NuGet.Services.AzureSearch.FunctionalTests.Support
+namespace NuGet.Services.AzureSearch.FunctionalTests
 {
     public class CommonFixture : IAsyncLifetime
     {
-        public TestSettings TestSettings { get; private set; }
+        public AzureSearchConfiguration AzureSearchConfiguration { get; private set; }
 
         public async Task InitializeAsync()
         {
-            TestSettings = await TestSettings.CreateAsync();
+            AzureSearchConfiguration = await AzureSearchConfiguration.CreateAsync();
         }
 
         public Task DisposeAsync() => Task.CompletedTask;
