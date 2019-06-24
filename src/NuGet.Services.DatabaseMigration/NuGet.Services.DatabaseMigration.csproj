@@ -11,6 +11,7 @@
     <AssemblyName>NuGet.Services.DatabaseMigration</AssemblyName>
     <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
   </PropertyGroup>
   <PropertyGroup>
@@ -75,21 +76,6 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Configuration">
-      <Version>1.1.2</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions">
-      <Version>1.1.2</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.Configuration.Binder">
-      <Version>1.1.2</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables">
-      <Version>1.1.2</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions">
-      <Version>1.1.2</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json">
       <Version>1.1.2</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Logging">

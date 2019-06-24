@@ -120,10 +120,11 @@ namespace NuGet.Services.DatabaseMigration
                 }
                 catch (Exception e)
                 {
-                    Logger.LogError(0, e, "Validation check of database migrations failed.");
+                    Logger.LogError(0, e, "Validation check of migration context failed.");
                     throw;
                 }
 
+                Logger.LogInformation("Validation check of migration context finished successfully.");
                 Logger.LogInformation("Applying pending migrations: \n {PendingMigrations}.", String.Join("\n", pendingMigrations));
 
                 var migratorScripter = new MigratorScriptingDecorator(migratorForScripting);

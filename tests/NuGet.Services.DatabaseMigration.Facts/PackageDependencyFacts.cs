@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
@@ -22,10 +21,15 @@ namespace NuGet.Services.DatabaseMigration.Facts
 
         /// <summary>
         /// 1. Verify that the version of EntityFramework equals to 6.2.0;
-        /// We hit a bug of EntityFramework 6.2.0, and We use some special ways to fix it which only targets version 6.2.0.
+        /// We hit a bug of EntityFramework 6.2.0: https://github.com/aspnet/EntityFramework6/issues/522
+        /// And We use some special ways to fix it which only targets version 6.2.0:
         /// <see cref="NuGet.Services.DatabaseMigration.Job"/>: "NuGet.Services.DatabaseMigration.Job/OverwriteSqlConnection"
-        /// 2. Verify that the version of Microsoft.Extensions.* package equals to 1.1.2;
-        /// 3. Verify that the version of Autofac package equals to 4.2.0.
+        /// 2. Verify that the version of "Microsoft.Extensions.*" packages equals to 1.1.2;
+        /// The "NuGet.Jobs.Common" depends on "Microsoft.Extensions.*" packages with the version 1.1.2, while "NuGetGallery" depends on the version 2.2.0.
+        /// Need to downgrade the package to version 1.1.2 to ensure the job is initialized successfully, otherwise there will be runtime issues.
+        /// 3. Verify that the version of "Autofac" package equals to 4.2.0.
+        /// The "NuGet.Jobs.Common" depends on "Autofac" with the version 4.2.0, while "NuGetGallery" depends on the version 4.3.1. The API is changed between these two versions.
+        /// Need to downgrade the package to version 4.2.0 to ensure the job is initialized succesfully, otherwise there will be runtime issues.
         /// </summary>
         [Theory]
         [MemberData(nameof(NuGet_Services_DatabaseMigration_PackageNameAndVersion))]
@@ -33,7 +37,7 @@ namespace NuGet.Services.DatabaseMigration.Facts
         {
             var csproj = new FileInfo(Path.Combine(_sln.Directory.FullName, @"src\NuGet.Services.DatabaseMigration\NuGet.Services.DatabaseMigration.csproj"));
             var csprojPackageReferences = XDocument.Load(csproj.FullName).Root.Descendants().Where(e => e.Name.LocalName == "PackageReference").ToList();
-            var packageElement = csprojPackageReferences.Where(d => d.Attribute("Include").Value.Equals(packageName, StringComparison.OrdinalIgnoreCase)).Single();
+            var packageElement = csprojPackageReferences.Single(d => d.Attribute("Include").Value.Equals(packageName, StringComparison.OrdinalIgnoreCase));
             Assert.NotNull(packageElement);
 
             var packageElementVersion = packageElement.Elements().FirstOrDefault(xa => xa.Name.LocalName == "Version");
@@ -48,11 +52,6 @@ namespace NuGet.Services.DatabaseMigration.Facts
                 yield return new object[] { "Autofac.Extensions.DependencyInjection", "4.2.0" };
                 yield return new object[] { "EntityFramework", "6.2.0" };
                 yield return new object[] { "Microsoft.Extensions.Configuration", "1.1.2" };
-                yield return new object[] { "Microsoft.Extensions.Configuration.Abstractions", "1.1.2" };
-                yield return new object[] { "Microsoft.Extensions.Configuration.Binder", "1.1.2" };
-                yield return new object[] { "Microsoft.Extensions.Configuration.EnvironmentVariables", "1.1.2" };
-                yield return new object[] { "Microsoft.Extensions.Configuration.FileExtensions", "1.1.2" };
-                yield return new object[] { "Microsoft.Extensions.Configuration.Json", "1.1.2" };
                 yield return new object[] { "Microsoft.Extensions.Logging", "1.1.2" };
                 yield return new object[] { "Microsoft.Extensions.Options", "1.1.2" };
             }
@@ -60,10 +59,15 @@ namespace NuGet.Services.DatabaseMigration.Facts
 
         /// <summary>
         /// 1. Verify that the version of EntityFramework equals to 6.2.0;
-        /// We hit a bug of EntityFramework 6.2.0, and We use some special ways to fix it which only targets version 6.2.0.
+        /// We hit a bug of EntityFramework 6.2.0: https://github.com/aspnet/EntityFramework6/issues/522
+        /// And We use some special ways to fix it which only targets version 6.2.0:
         /// <see cref="NuGet.Services.DatabaseMigration.Job"/>: "NuGet.Services.DatabaseMigration.Job/OverwriteSqlConnection"
-        /// 2. Verify that the version of Microsoft.Extensions.* package equals to 1.1.2;
+        /// 2. Verify that the version of "Microsoft.Extensions.*" packages equals to 1.1.2;
+        /// The "NuGet.Jobs.Common" depends on "Microsoft.Extensions.*" packages with the version 1.1.2, while "NuGetGallery" depends on the version 2.2.0.
+        /// Need to downgrade the package to version 1.1.2 to ensure the job is initialized successfully, otherwise there will be runtime issues.
         /// 3. Verify that the version of Autofac package equals to 4.2.0.
+        /// The "NuGet.Jobs.Common" depends on "Autofac" package with the version 4.2.0, while "NuGetGallery" depends on the version 4.3.1. The API is changed between these two versions.
+        /// Need to downgrade the package to version 4.2.0 to ensure the job is initialized succesfully, otherwise there will be runtime issues.
         /// </summary>
         [Theory]
         [MemberData(nameof(DatabaseMigrationTools_PackageNameAndVersion))]
@@ -71,7 +75,7 @@ namespace NuGet.Services.DatabaseMigration.Facts
         {
             var csproj = new FileInfo(Path.Combine(_sln.Directory.FullName, @"src\DatabaseMigrationTools\DatabaseMigrationTools.csproj"));
             var csprojPackageReferences = XDocument.Load(csproj.FullName).Root.Descendants().Where(e => e.Name.LocalName == "PackageReference").ToList();
-            var packageElement = csprojPackageReferences.Where(d => d.Attribute("Include").Value.Equals(packageName, StringComparison.OrdinalIgnoreCase)).Single();
+            var packageElement = csprojPackageReferences.Single(d => d.Attribute("Include").Value.Equals(packageName, StringComparison.OrdinalIgnoreCase));
             Assert.NotNull(packageElement);
 
             var packageElementVersion = packageElement.Elements().FirstOrDefault(xa => xa.Name.LocalName == "Version");
@@ -87,30 +91,6 @@ namespace NuGet.Services.DatabaseMigration.Facts
                 yield return new object[] { "EntityFramework", "6.2.0" };
                 yield return new object[] { "Microsoft.Extensions.Logging", "1.1.2" };
                 yield return new object[] { "Microsoft.Extensions.Options", "1.1.2" };
-            }
-        }
-
-        [Theory]
-        [MemberData(nameof(PackageDLLNameAndVersion))]
-        public void verifyPackageDLLVersion(string packageDLLPath, string packageVersion)
-        {
-            Assert.Equal(packageVersion, FileVersionInfo.GetVersionInfo(packageDLLPath).ProductVersion);
-        }
-
-        public static IEnumerable<object[]> PackageDLLNameAndVersion
-        {
-            get
-            {
-                yield return new object[] { @".\Autofac.Extensions.DependencyInjection.dll", "4.2.0" };
-                yield return new object[] { @".\EntityFramework.dll", "6.2.0-61023" };
-                yield return new object[] { @".\Microsoft.Extensions.Logging.dll", "1.1.2" };
-                yield return new object[] { @".\Microsoft.Extensions.Options.dll", "1.1.2" };
-                yield return new object[] { @".\Microsoft.Extensions.Configuration.dll", "1.1.2" };
-                yield return new object[] { @".\Microsoft.Extensions.Configuration.Abstractions.dll", "1.1.2" };
-                yield return new object[] { @".\Microsoft.Extensions.Configuration.Binder.dll", "1.1.2" };
-                yield return new object[] { @".\Microsoft.Extensions.Configuration.EnvironmentVariables.dll", "1.1.2" };
-                yield return new object[] { @".\Microsoft.Extensions.Configuration.FileExtensions.dll", "1.1.2" };
-                yield return new object[] { @".\Microsoft.Extensions.Configuration.Json.dll", "1.1.2" };
             }
         }
 
