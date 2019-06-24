@@ -150,11 +150,6 @@ namespace NuGetGallery
 
             if (licenseElement != null)
             {
-                if (_config.RejectPackagesWithLicense)
-                {
-                    return PackageValidationResult.Invalid(Strings.UploadPackage_NotAcceptingPackagesWithLicense);
-                }
-
                 if (licenseElement.Value.Length > MaxAllowedLicenseNodeValueLength)
                 {
                     return PackageValidationResult.Invalid(Strings.UploadPackage_LicenseNodeValueTooLong);

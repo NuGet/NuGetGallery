@@ -354,9 +354,6 @@ namespace NuGetGallery.Configuration
         public bool AsynchronousEmailServiceEnabled { get; set; }
 
         [DefaultValue(false)]
-        public bool RejectPackagesWithLicense { get; set; }
-
-        [DefaultValue(false)]
         public bool BlockLegacyLicenseUrl { get; set; }
 
         [DefaultValue(true)]
