@@ -9,7 +9,7 @@ namespace NuGet.Services.AzureSearch.FunctionalTests
     {
         public AnalysisFactAttribute()
         {
-            if (!TestSettings.Create().RunAzureSearchAnalysisTests)
+            if (!AzureSearchConfiguration.Create().TestSettings.RunAzureSearchAnalysisTests)
             {
                 Skip = "Azure Search Analyzer tests are disabled";
             }

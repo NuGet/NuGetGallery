@@ -33,9 +33,8 @@ call %msbuild% "%solutionPath%" /p:Configuration="%config%" /p:Platform="Any CPU
 if not "%errorlevel%"=="0" goto failure
 
 REM Run functional tests
-
-echo "Running basic search functional core tests..."
-call %xunit% "BasicSearchTests.FunctionalTests.Core\bin\%config%\BasicSearchTests.FunctionalTests.Core.dll" -xml functionaltests.BasicSearchTests.xml
+echo "Running Azure Search functional tests..."
+call %xunit% "NuGet.Services.AzureSearch.FunctionalTests\bin\%config%\NuGet.Services.AzureSearch.FunctionalTests.dll" -xml functionaltests.AzureSearchTests.xml
 if not "%errorlevel%"=="0" set exitCode=-1
 
 exit /B %exitCode%

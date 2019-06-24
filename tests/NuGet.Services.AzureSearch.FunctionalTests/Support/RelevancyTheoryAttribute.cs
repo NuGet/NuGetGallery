@@ -5,13 +5,13 @@ using Xunit;
 
 namespace NuGet.Services.AzureSearch.FunctionalTests
 {
-    public class AnalysisTheoryAttribute : TheoryAttribute
+    public class RelevancyTheoryAttribute : TheoryAttribute
     {
-        public AnalysisTheoryAttribute()
+        public RelevancyTheoryAttribute()
         {
-            if (!AzureSearchConfiguration.Create().TestSettings.RunAzureSearchAnalysisTests)
+            if (!AzureSearchConfiguration.Create().TestSettings.RunAzureSearchRelevancyTests)
             {
-                Skip = "Azure Search Analyzer tests are disabled";
+                Skip = "Azure search Relevancy tests are disabled";
             }
         }
     }

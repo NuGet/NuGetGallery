@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace NuGet.Services.AzureSearch.FunctionalTests
 {
@@ -17,10 +18,14 @@ namespace NuGet.Services.AzureSearch.FunctionalTests
     /// </summary>
     public class NuGetSearchFunctionalTestBase : BaseFunctionalTests, IClassFixture<CommonFixture>
     {
-        public NuGetSearchFunctionalTestBase(CommonFixture fixture)
-            : base(fixture.TestSettings.AzureSearchAppServiceUrl)
+        private ITestOutputHelper _testOutputHelper;
+
+        public NuGetSearchFunctionalTestBase(CommonFixture fixture, ITestOutputHelper testOutputHelper)
+            : base(fixture.AzureSearchConfiguration.AzureSearchAppServiceUrl)
         {
             Fixture = fixture ?? throw new ArgumentNullException(nameof(fixture));
+            _testOutputHelper = testOutputHelper ?? throw new ArgumentNullException(nameof(testOutputHelper));
+            _testOutputHelper.WriteLine($"Running tests against: {fixture.AzureSearchConfiguration.AzureSearchAppServiceUrl}");
         }
 
         protected CommonFixture Fixture { get; private set; }

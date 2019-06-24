@@ -1,17 +1,20 @@
-﻿using System.Linq;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System.Threading.Tasks;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace NuGet.Services.AzureSearch.FunctionalTests
 {
     public class V3RelevancyFunctionalTests : NuGetSearchFunctionalTestBase
     {
-        public V3RelevancyFunctionalTests(CommonFixture fixture)
-            : base(fixture)
+        public V3RelevancyFunctionalTests(CommonFixture fixture, ITestOutputHelper testOutputHelper)
+            : base(fixture, testOutputHelper)
         {
         }
 
-        [Fact]
+        [RelevancyFact]
         public async Task Json()
         {
             var results = await SearchAsync("json");
@@ -21,7 +24,7 @@ namespace NuGet.Services.AzureSearch.FunctionalTests
             Assert.Equal("newtonsoft.json", results[1]);
         }
 
-        [Fact]
+        [RelevancyFact]
         public async Task NewtonsoftJson()
         {
             var results = await SearchAsync("Newtonsoft.Json");
@@ -30,7 +33,7 @@ namespace NuGet.Services.AzureSearch.FunctionalTests
             Assert.Equal("newtonsoft.json", results[0]);
         }
 
-        [Fact]
+        [RelevancyFact]
         public async Task Log()
         {
             var results = await SearchAsync("Log");
@@ -44,7 +47,7 @@ namespace NuGet.Services.AzureSearch.FunctionalTests
             //Assert.Contains("microsoft.extensions.logging, results);
         }
 
-        [Fact]
+        [RelevancyFact]
         public async Task EntityFrameworkCore()
         {
             var results = await SearchAsync("EntityFrameworkCore");
@@ -53,7 +56,7 @@ namespace NuGet.Services.AzureSearch.FunctionalTests
             //Assert.Contains("microsoft.entityframeworkcore", results);
         }
 
-        [Fact]
+        [RelevancyFact]
         public async Task MicrosoftExtensions()
         {
             var results = await SearchAsync("Microsoft.Extensions");
@@ -64,7 +67,7 @@ namespace NuGet.Services.AzureSearch.FunctionalTests
             //Assert.Contains("microsoft.extensions.dependencyinjection", results);
         }
 
-        [Fact]
+        [RelevancyFact]
         public async Task Mvc()
         {
             var results = await SearchAsync("mvc");

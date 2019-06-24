@@ -20,10 +20,10 @@ namespace NuGet.Services.AzureSearch.FunctionalTests
     public class AzureSearchIndexFunctionalTestBase : BaseFunctionalTests, IClassFixture<CommonFixture>
     {
         public AzureSearchIndexFunctionalTestBase(CommonFixture fixture)
-            : base(fixture.TestSettings.AzureSearchIndexUrl)
+            : base(fixture.AzureSearchConfiguration.TestSettings.AzureSearchIndexUrl)
         {
             Fixture = fixture ?? throw new ArgumentNullException(nameof(fixture));
-            Client.DefaultRequestHeaders.Add("Api-Key", Fixture.TestSettings.AzureSearchIndexAdminApiKey);
+            Client.DefaultRequestHeaders.Add("Api-Key", Fixture.AzureSearchConfiguration.TestSettings.AzureSearchIndexAdminApiKey);
         }
 
         protected CommonFixture Fixture { get; private set; }
@@ -36,7 +36,7 @@ namespace NuGet.Services.AzureSearch.FunctionalTests
                 text
             });
 
-            var index = Fixture.TestSettings.AzureSearchIndexName;
+            var index = Fixture.AzureSearchConfiguration.TestSettings.AzureSearchIndexName;
             var requestUri = $"/indexes/{index}/analyze?api-version=2017-11-11";
             var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 

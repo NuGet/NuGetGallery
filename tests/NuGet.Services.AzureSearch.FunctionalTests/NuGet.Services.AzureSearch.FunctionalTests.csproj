@@ -53,6 +53,9 @@
     <Compile Include="Analysis\DescriptionCustomAnalyzerFunctionTests.cs" />
     <Compile Include="Analysis\ExactMatchCustomAnalyzerFunctionalTests.cs" />
     <Compile Include="Analysis\PackageIdCustomAnalyzer.cs" />
+    <Compile Include="BasicTests\SearchAvailabilityTests.cs" />
+    <Compile Include="Support\RelevancyTheoryAttribute.cs" />
+    <Compile Include="Support\RelevancyFactAttribute.cs" />
     <Compile Include="Support\AzureSearchIndexFunctionalTestBase.cs" />
     <Compile Include="Support\NuGetSearchFunctionalTestBase.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -60,7 +63,7 @@
     <Compile Include="Support\AnalysisTheoryAttribute.cs" />
     <Compile Include="Support\CommonFixture.cs" />
     <Compile Include="Support\TokenizationData.cs" />
-    <Compile Include="Support\TestSettings.cs" />
+    <Compile Include="Support\AzureSearchConfiguration.cs" />
     <Compile Include="Relevancy\V3RelevancyFunctionalTests.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -87,17 +90,6 @@
       <Project>{eea7b6c1-0358-4e67-9d2a-e30b8ff9ff3d}</Project>
       <Name>BasicSearchTests.FunctionalTests.Core</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Config\Dev.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="Config\Int.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="Config\Prod.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <ExternalConfig Include="ExternalConfig/*.*">
