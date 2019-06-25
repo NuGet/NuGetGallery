@@ -123,7 +123,7 @@ namespace NuGetGallery.AccountDeleter
                 services.AddScoped<IDeleteAccountService, EmptyDeleteAccountService>();
                 //services.AddScoped<IDeleteAccountService, DeleteAccountService>();
 
-                services.AddScoped<IUserService, MicroUserService>();
+                services.AddScoped<IUserService, AccountDeleteUserService>();
                 services.AddScoped<IDiagnosticsService, LoggerDiagnosticsService>();
 
                 services.AddScoped<IPackageService, PackageService>();

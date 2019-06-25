@@ -11,11 +11,11 @@ namespace NuGetGallery.AccountDeleter
     /// This class implements the minimal function of the full <see cref="UserService"/> that we currently need for AccountDeleter
     /// This is done for now in order to not pollute DI with things that we won't use.
     /// </summary>
-    public class MicroUserService : IUserService
+    public class AccountDeleteUserService : IUserService
     {
         public IEntityRepository<User> UserRepository { get; protected set; }
 
-        public MicroUserService(
+        public AccountDeleteUserService(
             IEntityRepository<User> userRepository)
         {
             UserRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
