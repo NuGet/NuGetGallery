@@ -111,10 +111,10 @@ namespace NuGetGallery
                 return new HttpStatusCodeResult(HttpStatusCode.Forbidden, Strings.Unauthorized);
             }
 
-            var hasUnconfirmedEmailAddress = account.UnconfirmedEmailAddress == null;
+            var hasUnconfirmedEmailAddress = account.UnconfirmedEmailAddress != null;
 
             ConfirmationViewModel model;
-            if (!hasUnconfirmedEmailAddress)
+            if (hasUnconfirmedEmailAddress)
             {
                 if (account.EmailAddress == null)
                 {
