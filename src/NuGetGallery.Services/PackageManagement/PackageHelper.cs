@@ -77,61 +77,61 @@ namespace NuGetGallery
             // TODO: Change this to use DataAnnotations
             if (packageMetadata.Id.Length > NuGet.Services.Entities.Constants.MaxPackageIdLength)
             {
-                throw new EntityException(ServicesStrings.NuGetPackagePropertyTooLong, "Id", NuGet.Services.Entities.Constants.MaxPackageIdLength);
+                throw new EntityException(ServicesStrings.NuGetPackagePropertyTooLong, "ID", NuGet.Services.Entities.Constants.MaxPackageIdLength);
             }
-            if (packageMetadata.Authors != null && packageMetadata.Authors.Flatten().Length > 4000)
+            if (packageMetadata.Authors != null && packageMetadata.Authors.Flatten().Length > Constants.MaxAuthorsLength)
             {
-                throw new EntityException(ServicesStrings.NuGetPackagePropertyTooLong, "Authors", "4000");
+                throw new EntityException(ServicesStrings.NuGetPackagePropertyTooLong, "Authors", Constants.MaxAuthorsLength);
             }
-            if (packageMetadata.Copyright != null && packageMetadata.Copyright.Length > 4000)
+            if (packageMetadata.Copyright != null && packageMetadata.Copyright.Length > Constants.MaxCopyrightLength)
             {
-                throw new EntityException(ServicesStrings.NuGetPackagePropertyTooLong, "Copyright", "4000");
+                throw new EntityException(ServicesStrings.NuGetPackagePropertyTooLong, "Copyright", Constants.MaxCopyrightLength);
             }
             if (packageMetadata.Description == null)
             {
                 throw new EntityException(ServicesStrings.NuGetPackagePropertyMissing, "Description");
             }
-            else if (packageMetadata.Description != null && packageMetadata.Description.Length > 4000)
+            else if (packageMetadata.Description != null && packageMetadata.Description.Length > Constants.MaxDescriptionLength)
             {
-                throw new EntityException(ServicesStrings.NuGetPackagePropertyTooLong, "Description", "4000");
+                throw new EntityException(ServicesStrings.NuGetPackagePropertyTooLong, "Description", Constants.MaxDescriptionLength);
             }
-            if (packageMetadata.IconUrl != null && packageMetadata.IconUrl.AbsoluteUri.Length > 4000)
+            if (packageMetadata.IconUrl != null && packageMetadata.IconUrl.AbsoluteUri.Length > Constants.MaxIconUrlLength)
             {
-                throw new EntityException(ServicesStrings.NuGetPackagePropertyTooLong, "IconUrl", "4000");
+                throw new EntityException(ServicesStrings.NuGetPackagePropertyTooLong, "IconUrl", Constants.MaxIconUrlLength);
             }
-            if (packageMetadata.LicenseUrl != null && packageMetadata.LicenseUrl.AbsoluteUri.Length > 4000)
+            if (packageMetadata.LicenseUrl != null && packageMetadata.LicenseUrl.AbsoluteUri.Length > Constants.MaxLicenseUrlLength)
             {
-                throw new EntityException(ServicesStrings.NuGetPackagePropertyTooLong, "LicenseUrl", "4000");
+                throw new EntityException(ServicesStrings.NuGetPackagePropertyTooLong, "LicenseUrl", Constants.MaxLicenseUrlLength);
             }
-            if (packageMetadata.ProjectUrl != null && packageMetadata.ProjectUrl.AbsoluteUri.Length > 4000)
+            if (packageMetadata.ProjectUrl != null && packageMetadata.ProjectUrl.AbsoluteUri.Length > Constants.MaxProjectUrlLength)
             {
-                throw new EntityException(ServicesStrings.NuGetPackagePropertyTooLong, "ProjectUrl", "4000");
+                throw new EntityException(ServicesStrings.NuGetPackagePropertyTooLong, "ProjectUrl", Constants.MaxProjectUrlLength);
             }
-            if (packageMetadata.Summary != null && packageMetadata.Summary.Length > 4000)
+            if (packageMetadata.Summary != null && packageMetadata.Summary.Length > Constants.MaxSummaryLength)
             {
-                throw new EntityException(ServicesStrings.NuGetPackagePropertyTooLong, "Summary", "4000");
+                throw new EntityException(ServicesStrings.NuGetPackagePropertyTooLong, "Summary", Constants.MaxSummaryLength);
             }
-            if (packageMetadata.ReleaseNotes != null && packageMetadata.ReleaseNotes.Length > 35000)
+            if (packageMetadata.ReleaseNotes != null && packageMetadata.ReleaseNotes.Length > Constants.MaxReleaseNotesLength)
             {
-                throw new EntityException(ServicesStrings.NuGetPackagePropertyTooLong, "ReleaseNotes", "35000");
+                throw new EntityException(ServicesStrings.NuGetPackagePropertyTooLong, "ReleaseNotes", Constants.MaxReleaseNotesLength);
             }
-            if (packageMetadata.Tags != null && packageMetadata.Tags.Length > 4000)
+            if (packageMetadata.Tags != null && packageMetadata.Tags.Length > Constants.MaxTagsLength)
             {
-                throw new EntityException(ServicesStrings.NuGetPackagePropertyTooLong, "Tags", "4000");
+                throw new EntityException(ServicesStrings.NuGetPackagePropertyTooLong, "Tags", Constants.MaxTagsLength);
             }
-            if (packageMetadata.Title != null && packageMetadata.Title.Length > 256)
+            if (packageMetadata.Title != null && packageMetadata.Title.Length > Constants.MaxTitleLength)
             {
-                throw new EntityException(ServicesStrings.NuGetPackagePropertyTooLong, "Title", "256");
-            }
-
-            if (packageMetadata.Version != null && packageMetadata.Version.ToFullString().Length > 64)
-            {
-                throw new EntityException(ServicesStrings.NuGetPackagePropertyTooLong, "Version", "64");
+                throw new EntityException(ServicesStrings.NuGetPackagePropertyTooLong, "Title", Constants.MaxTitleLength);
             }
 
-            if (packageMetadata.Language != null && packageMetadata.Language.Length > 20)
+            if (packageMetadata.Version != null && packageMetadata.Version.ToFullString().Length > Constants.MaxVersionLength)
             {
-                throw new EntityException(ServicesStrings.NuGetPackagePropertyTooLong, "Language", "20");
+                throw new EntityException(ServicesStrings.NuGetPackagePropertyTooLong, "Version", Constants.MaxVersionLength);
+            }
+
+            if (packageMetadata.Language != null && packageMetadata.Language.Length > Constants.MaxLanguageLength)
+            {
+                throw new EntityException(ServicesStrings.NuGetPackagePropertyTooLong, "Language", Constants.MaxLanguageLength);
             }
 
             // Validate dependencies
@@ -148,9 +148,9 @@ namespace NuGetGallery
                     }
 
                     // NuGet.Core compatibility - dependency versionspec can not be > 256 characters
-                    if (dependency.VersionRange != null && dependency.VersionRange.ToString().Length > 256)
+                    if (dependency.VersionRange != null && dependency.VersionRange.ToString().Length > Constants.MaxDependencyVersionRangeLength)
                     {
-                        throw new EntityException(ServicesStrings.NuGetPackagePropertyTooLong, "Dependency.VersionSpec", "256");
+                        throw new EntityException(ServicesStrings.NuGetPackagePropertyTooLong, "Dependency.VersionSpec", Constants.MaxDependencyVersionRangeLength);
                     }
                 }
 
@@ -162,14 +162,14 @@ namespace NuGetGallery
             }
 
             // Validate repository metadata	
-            if (packageMetadata.RepositoryType != null && packageMetadata.RepositoryType.Length > 100)
+            if (packageMetadata.RepositoryType != null && packageMetadata.RepositoryType.Length > Constants.MaxRepositoryTypeLength)
             {
-                throw new EntityException(ServicesStrings.NuGetPackagePropertyTooLong, "RepositoryType", "100");
+                throw new EntityException(ServicesStrings.NuGetPackagePropertyTooLong, "RepositoryType", Constants.MaxRepositoryTypeLength);
             }
 
-            if (packageMetadata.RepositoryUrl != null && packageMetadata.RepositoryUrl.AbsoluteUri.Length > 4000)
+            if (packageMetadata.RepositoryUrl != null && packageMetadata.RepositoryUrl.AbsoluteUri.Length > Constants.MaxRepositoryUrlLength)
             {
-                throw new EntityException(ServicesStrings.NuGetPackagePropertyTooLong, "RepositoryUrl", "4000");
+                throw new EntityException(ServicesStrings.NuGetPackagePropertyTooLong, "RepositoryUrl", Constants.MaxRepositoryUrlLength);
             }
         }
 
