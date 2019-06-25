@@ -77,7 +77,7 @@ namespace NuGetGallery
             // TODO: Change this to use DataAnnotations
             if (packageMetadata.Id.Length > NuGet.Services.Entities.Constants.MaxPackageIdLength)
             {
-                throw new EntityException(ServicesStrings.NuGetPackagePropertyTooLong, "Id", NuGet.Services.Entities.Constants.MaxPackageIdLength);
+                throw new EntityException(ServicesStrings.NuGetPackagePropertyTooLong, "ID", NuGet.Services.Entities.Constants.MaxPackageIdLength);
             }
             if (packageMetadata.Authors != null && packageMetadata.Authors.Flatten().Length > 4000)
             {
@@ -132,6 +132,11 @@ namespace NuGetGallery
             if (packageMetadata.Language != null && packageMetadata.Language.Length > 20)
             {
                 throw new EntityException(ServicesStrings.NuGetPackagePropertyTooLong, "Language", "20");
+            }
+
+            if (packageMetadata.Id.Length + (packageMetadata.Version?.ToFullString().Length ?? 0) > 160)
+            {
+                throw new EntityException(ServicesStrings.NuGetPackageIdVersionCombinedTooLong, "160");
             }
 
             // Validate dependencies
