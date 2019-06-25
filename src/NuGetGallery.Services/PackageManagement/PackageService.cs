@@ -386,9 +386,14 @@ namespace NuGetGallery
             }
         }
 
-        public bool WillPackageBeOrphanedIfOwnerRemoved(PackageRegistration package, User ownerToRemove)
+        public bool WillPackageBeOrphanedIfOwnerRemoved(PackageRegistration packageRegistration, User ownerToRemove)
         {
-            return WillPackageBeOrphanedIfOwnerRemovedHelper(package.Owners, ownerToRemove);
+            // If the package was hard deleted it will return false as there is not any package to be orphaned. 
+            if(!packageRegistration.Packages.Any())
+            {
+                return false;
+            }
+            return WillPackageBeOrphanedIfOwnerRemovedHelper(packageRegistration.Owners, ownerToRemove);
         }
 
         private bool WillPackageBeOrphanedIfOwnerRemovedHelper(IEnumerable<User> owners, User ownerToRemove)

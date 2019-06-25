@@ -203,24 +203,24 @@ namespace NuGetGallery
 
         private async Task RemovePackageOwnership(User user, User requestingUser, AccountDeletionOrphanPackagePolicy orphanPackagePolicy)
         {
-            foreach (var packageRegistation in GetPackageRegistrationsOwnedByUser(user))
+            foreach (var packageRegistration in GetPackageRegistrationsOwnedByUser(user))
             {
-                if (_packageService.WillPackageBeOrphanedIfOwnerRemoved(packageRegistation, user))
+                if (_packageService.WillPackageBeOrphanedIfOwnerRemoved(packageRegistration, user))
                 {
                     if (orphanPackagePolicy == AccountDeletionOrphanPackagePolicy.DoNotAllowOrphans)
                     {
-                        throw new InvalidOperationException($"Deleting user '{user.Username}' will make package '{packageRegistation.Id}' an orphan, but no orphans were expected.");
+                        throw new InvalidOperationException($"Deleting user '{user.Username}' will make package '{packageRegistration.Id}' an orphan, but no orphans were expected.");
                     }
                     else if (orphanPackagePolicy == AccountDeletionOrphanPackagePolicy.UnlistOrphans)
                     {
-                        foreach (var package in packageRegistation.Packages)
+                        foreach (var package in packageRegistration.Packages)
                         {
                             await _packageUpdateService.MarkPackageUnlistedAsync(package, commitChanges: false, updateIndex: false);
                         }
                     }
                 }
 
-                await _packageOwnershipManagementService.RemovePackageOwnerAsync(packageRegistation, requestingUser, user, commitChanges: false);
+                await _packageOwnershipManagementService.RemovePackageOwnerAsync(packageRegistration, requestingUser, user, commitChanges: false);
             }
         }
 

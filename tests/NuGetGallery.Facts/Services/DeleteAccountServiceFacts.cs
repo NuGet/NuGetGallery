@@ -395,7 +395,7 @@ namespace NuGetGallery.Services
             [Theory]
             [InlineData(true)]
             [InlineData(false)]
-            public async Task DeleteUserThatOwnsOrphanRegistartionWillCleanTheRegistartion(bool multipleOwners)
+            public async Task DeleteUserThatOwnsOrphanRegistrationWillCleanTheRegistration(bool multipleOwners)
             {
                 // Arrange
                 PackageRegistration registration = null;
@@ -417,7 +417,7 @@ namespace NuGetGallery.Services
                     orphanPackagePolicy: AccountDeletionOrphanPackagePolicy.UnlistOrphans);
 
                 // Assert
-                if(multipleOwners)
+                if (multipleOwners)
                 {
                     Assert.Contains<User>(newOwner, registration.Owners);
                     Assert.Equal(1, registration.Owners.Count());
@@ -806,7 +806,12 @@ namespace NuGetGallery.Services
                 if (_user != null)
                 {
                     packageService.Setup(m => m.FindPackagesByAnyMatchingOwner(_user, true, It.IsAny<bool>())).Returns(_userPackages);
-                    packageService.Setup(m => m.FindPackageRegistrationsByOwner(_user)).Returns(new List<PackageRegistration>() { _userPackagesRegistration }.AsQueryable());
+                    var packageRegistraionList = new List<PackageRegistration>();
+                    if(_userPackagesRegistration != null)
+                    {
+                        packageRegistraionList.Add(_userPackagesRegistration);
+                    }
+                    packageService.Setup(m => m.FindPackageRegistrationsByOwner(_user)).Returns(packageRegistraionList.AsQueryable());
                 }
 
                 packageService
