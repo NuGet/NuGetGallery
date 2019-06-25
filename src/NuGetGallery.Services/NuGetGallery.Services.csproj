@@ -88,6 +88,7 @@
     <Compile Include="PackageManagement\IReservedNamespaceService.cs" />
     <Compile Include="PackageManagement\PackageDeleteDecision.cs" />
     <Compile Include="PackageManagement\PackageHelper.cs" />
+    <Compile Include="PackageManagement\PackageOwnerRequestService.cs" />
     <Compile Include="PackageManagement\PackageOwnershipManagementService.cs" />
     <Compile Include="PackageManagement\PackageService.cs" />
     <Compile Include="PackageManagement\ReservedNamespaceService.cs" />
