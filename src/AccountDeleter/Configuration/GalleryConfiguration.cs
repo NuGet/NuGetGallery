@@ -93,5 +93,6 @@ namespace NuGetGallery.AccountDeleter
         public int SearchHttpClientTimeoutInMilliseconds { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public MailAddress GalleryOwner { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public MailAddress GalleryNoReplyAddress { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public string SqlReadOnlyReplicaConnectionString { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
     }
 }
