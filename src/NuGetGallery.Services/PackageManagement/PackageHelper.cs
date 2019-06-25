@@ -77,7 +77,7 @@ namespace NuGetGallery
             // TODO: Change this to use DataAnnotations
             if (packageMetadata.Id.Length > NuGet.Services.Entities.Constants.MaxPackageIdLength)
             {
-                throw new EntityException(ServicesStrings.NuGetPackagePropertyTooLong, "Id", NuGet.Services.Entities.Constants.MaxPackageIdLength);
+                throw new EntityException(ServicesStrings.NuGetPackagePropertyTooLong, "ID", NuGet.Services.Entities.Constants.MaxPackageIdLength);
             }
             if (packageMetadata.Authors != null && packageMetadata.Authors.Flatten().Length > 4000)
             {
