@@ -13,9 +13,9 @@ namespace NuGetGallery
     {
         internal static readonly char[] IdSeparators = new[] { '.', '-' };
 
-        public Package Package { get; set; }
-
         private readonly IIconUrlProvider _iconUrlProvider;
+
+        public Package Package { get; set; }
 
         public PackageIndexEntity(Package package, IIconUrlProvider iconUrlProvider)
         {

@@ -437,7 +437,7 @@ namespace NuGetGallery.Configuration
         bool IgnoreIconUrl { get; set; }
 
         /// <summary>
-        /// Base URL for the internal storage if package icons.
+        /// Base URL for the internal storage of package icons.
         /// </summary>
         string InternalIconUrlBaseAddress { get; set; }
     }
