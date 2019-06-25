@@ -1229,6 +1229,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A nuget package&apos;s id and version properties combined may not be more than {0} characters long..
+        /// </summary>
+        public static string NuGetPackageIdVersionCombinedTooLong {
+            get {
+                return ResourceManager.GetString("NuGetPackageIdVersionCombinedTooLong", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A nuget package&apos;s {0} property is required..
         /// </summary>
         public static string NuGetPackagePropertyMissing {

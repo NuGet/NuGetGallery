@@ -134,6 +134,11 @@ namespace NuGetGallery
                 throw new EntityException(ServicesStrings.NuGetPackagePropertyTooLong, "Language", "20");
             }
 
+            if (packageMetadata.Id.Length + (packageMetadata.Version?.ToFullString().Length ?? 0) > 160)
+            {
+                throw new EntityException(ServicesStrings.NuGetPackageIdVersionCombinedTooLong, "160");
+            }
+
             // Validate dependencies
             if (packageMetadata.GetDependencyGroups() != null)
             {
