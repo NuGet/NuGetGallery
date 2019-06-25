@@ -1652,6 +1652,9 @@ img.reserved-indicator-icon {
 .page-stats-per-package #stats-graph-svg .bartext {
   font-size: 1em;
 }
+.page-stats-per-package #stats-graph-svg body {
+  background-color: transparent;
+}
 .page-stats-per-package #stats-graph-svg p {
   margin-bottom: none;
 }
