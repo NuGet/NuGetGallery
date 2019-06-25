@@ -59,7 +59,7 @@
     <Compile Include="Messaging\DisposableEmailBuilder.cs" />
     <Compile Include="Messaging\EmailBuilderFactory.cs" />
     <Compile Include="EmptyDeleteAccountService.cs" />
-    <Compile Include="Messaging\EmptyMessenger.cs" />
+    <Compile Include="Messaging\DebugMessageService.cs" />
     <Compile Include="EmptyUserService.cs" />
     <Compile Include="Evaluators\AggregateEvaluator.cs" />
     <Compile Include="Evaluators\AlwaysRejectEvaluator.cs" />

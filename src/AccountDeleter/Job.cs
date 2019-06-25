@@ -88,7 +88,7 @@ namespace NuGetGallery.AccountDeleter
 
             if (IsDebugMode)
             {
-                services.AddTransient<IMessageService, EmptyMessenger>();
+                services.AddTransient<IMessageService, DebugMessageService>();
             }
             else
             {

@@ -18,8 +18,6 @@ namespace NuGetGallery.AccountDeleter.Facts
             _accountDeleteEmailBuilder = new Mock<IEmailBuilder>();
         }
 
-
-
         [Theory]
         [InlineData("test1test2", "none", "test1test2")]
         [InlineData("test1USERNAME", "replaceUser", "test1replaceUser")]

@@ -28,33 +28,6 @@ namespace NuGetGallery.AccountDeleter
         /// </summary>
         public Dictionary<string, string> TemplateReplacements { get; set; }
 
-        public IEmailBuilder GetEmailBuilder(string source, bool success = false)
-        {
-            foreach (var sourceConfig in SourceConfigurations)
-            {
-                if (sourceConfig.SourceName == source)
-                {
-                    if (success)
-                    {
-                        if (sourceConfig.SendMessageOnSuccess)
-                        {
-                            return new AccountDeleteEmailBuilder(sourceConfig.DeletedMailTemplate.SubjectTemplate, sourceConfig.DeletedMailTemplate.MessageTemplate, EmailConfiguration.GalleryOwner);
-                        }
-                        else
-                        {
-                            return null;
-                        }
-                    }
-                    else
-                    {
-                        return new AccountDeleteEmailBuilder(sourceConfig.NotifyMailTemplate.SubjectTemplate, sourceConfig.NotifyMailTemplate.MessageTemplate, EmailConfiguration.GalleryOwner);
-                    }
-                }
-            }
-
-            throw new UnknownSourceException();
-        }
-
         public void VerifySource(string source)
         {
             foreach (var sourceConfig in SourceConfigurations)

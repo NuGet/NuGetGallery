@@ -88,6 +88,7 @@ namespace NuGetGallery.AccountDeleter
                     var emailBuilder = new DisposableEmailBuilder(baseEmailBuilder, recipients, username);
                     await _messenger.SendMessageAsync(emailBuilder);
                     _telemetryService.TrackEmailSent(source, user.EmailAllowed);
+                    messageProcessed = true;
                 }
             }
             catch (UnknownSourceException)
@@ -112,7 +113,7 @@ namespace NuGetGallery.AccountDeleter
             }
             catch (Exception e)
             {
-                _logger.LogError("An unknown exception occured: {ExceptionMessage}", e.Message);
+                _logger.LogError(0, e, "An unknown exception occured: {ExceptionMessage}");
                 throw e;
             }
 

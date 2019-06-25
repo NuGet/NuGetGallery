@@ -25,7 +25,29 @@ namespace NuGetGallery.AccountDeleter
         {
             var options = _accountDeleteConfigurationAccessor.Value;
 
-            return options.GetEmailBuilder(source, success);
+            foreach (var sourceConfig in options.SourceConfigurations)
+            {
+                if (sourceConfig.SourceName == source)
+                {
+                    if (success)
+                    {
+                        if (sourceConfig.SendMessageOnSuccess)
+                        {
+                            return new AccountDeleteEmailBuilder(sourceConfig.DeletedMailTemplate.SubjectTemplate, sourceConfig.DeletedMailTemplate.MessageTemplate, options.EmailConfiguration.GalleryOwner);
+                        }
+                        else
+                        {
+                            return null;
+                        }
+                    }
+                    else
+                    {
+                        return new AccountDeleteEmailBuilder(sourceConfig.NotifyMailTemplate.SubjectTemplate, sourceConfig.NotifyMailTemplate.MessageTemplate, options.EmailConfiguration.GalleryOwner);
+                    }
+                }
+            }
+
+            throw new UnknownSourceException();
         }
     }
 }

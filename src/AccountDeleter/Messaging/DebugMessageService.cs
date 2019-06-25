@@ -8,11 +8,14 @@ using System.Threading.Tasks;
 
 namespace NuGetGallery.AccountDeleter
 {
-    public class EmptyMessenger : IMessageService
+    /// <summary>
+    /// This message service is a debug tool that will log, but will not send any messages.
+    /// </summary>
+    public class DebugMessageService : IMessageService
     {
-        private readonly ILogger<EmptyMessenger> _logger;
+        private readonly ILogger<DebugMessageService> _logger;
 
-        public EmptyMessenger(ILogger<EmptyMessenger> logger)
+        public DebugMessageService(ILogger<DebugMessageService> logger)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }

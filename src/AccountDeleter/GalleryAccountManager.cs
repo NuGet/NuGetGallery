@@ -36,7 +36,7 @@ namespace NuGetGallery.AccountDeleter
             _logger.LogInformation("Attempting delete...");
             if (user == null)
             {
-                _logger.LogWarning("Requested user was not found in DB. Delete was probalby already done.");
+                _logger.LogWarning("Requested user was not found in DB. Delete was probably already done.");
                 throw new UserNotFoundException();
             }
 

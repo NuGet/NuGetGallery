@@ -3,7 +3,6 @@
 
 namespace NuGetGallery.AccountDeleter
 {
-    // Should evaluator config be in here? should we even allow different evaluator config for different sources?
     /// <summary>
     /// Used to configure how to respond to a message source.
     /// </summary>

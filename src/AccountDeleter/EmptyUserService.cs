@@ -10,6 +10,16 @@ namespace NuGetGallery.AccountDeleter
 {
     public class EmptyUserService : IUserService
     {
+        public User FindByUsername(string username, bool includeDeleted = false)
+        {
+            var user = new User();
+            user.Username = "test";
+            user.EmailAddress = "test@test.test";
+            user.UnconfirmedEmailAddress = "test2@test.test";
+            user.EmailAllowed = false;
+            return user;
+        }
+
         public Task<Membership> AddMemberAsync(Organization organization, string memberName, string confirmationToken)
         {
             throw new NotImplementedException();
@@ -93,16 +103,6 @@ namespace NuGetGallery.AccountDeleter
         public IList<User> FindByUnconfirmedEmailAddress(string unconfirmedEmailAddress, string optionalUsername)
         {
             throw new NotImplementedException();
-        }
-
-        public User FindByUsername(string username, bool includeDeleted = false)
-        {
-            var user = new User();
-            user.Username = "test";
-            user.EmailAddress = "test@test.test";
-            user.UnconfirmedEmailAddress = "test2@test.test";
-            user.EmailAllowed = false;
-            return user;
         }
 
         public Task<IDictionary<int, string>> GetEmailAddressesForUserKeysAsync(IReadOnlyCollection<int> distinctUserKeys)
