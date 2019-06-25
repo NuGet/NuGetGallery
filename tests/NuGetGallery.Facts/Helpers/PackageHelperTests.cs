@@ -104,7 +104,7 @@ namespace NuGetGallery.Helpers
                     repositoryMetadata: null);
 
                 var ex = Assert.Throws<EntityException>(() => PackageHelper.ValidateNuGetPackageMetadata(metadata));
-                Assert.Contains("id and version", ex.Message);
+                Assert.Contains("ID and version", ex.Message);
             }
         }
     }
