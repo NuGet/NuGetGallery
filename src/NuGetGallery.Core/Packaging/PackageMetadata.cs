@@ -14,7 +14,7 @@ namespace NuGetGallery.Packaging
     public class PackageMetadata
     {
         /// <summary>
-        /// These are properties generated in the V3 pipeline (feed2catalog job) and could collide if the .nuspec
+        /// These are properties generated in the V3 pipeline (db2catalog job) and could collide if the .nuspec
         /// itself also contains these properties.
         /// </summary>
         private static readonly HashSet<string> RestrictedMetadataElements = new HashSet<string>
