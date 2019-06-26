@@ -8,7 +8,7 @@ using NuGetGallery.Configuration;
 namespace NuGetGallery
 {
     /// <summary>
-    /// Produces the icon URL based on the service configuration value of <see cref="IAppConfiguration.EmbeddedIconUrlTemplate"/>.
+    /// Produces the icon URL based on the service configuration.
     /// </summary>
     public class ConfigurationIconFileProvider : IIconUrlProvider
     {
@@ -30,19 +30,19 @@ namespace NuGetGallery
 
             if (package.HasEmbeddedIcon)
             {
-                if (string.IsNullOrWhiteSpace(_configuration.EmbeddedIconUrlTemplate))
-                {
-                    // never fall back to iconUrl if UsesIconFromFlatContainer is true
-                    return null;
-                }
-
-                return _iconUrlTemplateProcessor.Process(package);
+                // never fall back to iconUrl if HasEmbeddedIcon is true
+                return GetIconUrlFromTemplate(package);
             }
             else
             {
-                if (_configuration.IgnoreIconUrl || string.IsNullOrWhiteSpace(package.IconUrl))
+                if (string.IsNullOrWhiteSpace(package.IconUrl))
                 {
                     return null;
+                }
+                if (_configuration.IgnoreIconUrl)
+                {
+                    // Assuming the icon was copied to the embedded storage
+                    return GetIconUrlFromTemplate(package);
                 }
 
                 return package.IconUrl;
@@ -58,6 +58,17 @@ namespace NuGetGallery
             }
 
             return new Uri(iconUrl);
+        }
+
+        private string GetIconUrlFromTemplate(Package package)
+        {
+            var iconUrl = _iconUrlTemplateProcessor.Process(package);
+            if (string.IsNullOrWhiteSpace(iconUrl))
+            {
+                return null;
+            }
+
+            return iconUrl;
         }
     }
 }

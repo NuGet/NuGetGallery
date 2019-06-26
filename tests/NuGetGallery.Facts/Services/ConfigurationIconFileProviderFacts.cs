@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using CommonMark.Syntax;
 using Moq;
 using NuGet.Services.Entities;
 using NuGetGallery.Configuration;
@@ -74,60 +75,83 @@ namespace NuGetGallery
             }
 
             [Theory]
-            [InlineData(null, false, "SomeId", "1.2.3", null, true, null)]
-            [InlineData(null, false, "SomeId", "1.2.3", "", true, null)]
-            [InlineData(null, false, "SomeId", "1.2.3", "https://external.test/icon", true, null)]
-            [InlineData("", false, "SomeId", "1.2.3", null, true, null)]
-            [InlineData("", false, "SomeId", "1.2.3", "", true, null)]
-            [InlineData("", false, "SomeId", "1.2.3", "https://external.test/icon", true, null)]
-            [InlineData("https://internal.test/teststorage", false, "SomeId", "1.2.3", null, true, DefaultIconUrlTemplateProcessorResult)]
-            [InlineData("https://internal.test/teststorage", false, "SomeId", "1.2.3", "", true, DefaultIconUrlTemplateProcessorResult)]
-            [InlineData("https://internal.test/teststorage", false, "SomeId", "1.2.3", "https://external.test/icon", true, DefaultIconUrlTemplateProcessorResult)]
-
-            [InlineData(null, true, "SomeId", "1.2.3", null, true, null)]
-            [InlineData(null, true, "SomeId", "1.2.3", "", true, null)]
-            [InlineData(null, true, "SomeId", "1.2.3", "https://external.test/icon", true, null)]
-            [InlineData("", true, "SomeId", "1.2.3", null, true, null)]
-            [InlineData("", true, "SomeId", "1.2.3", "", true, null)]
-            [InlineData("", true, "SomeId", "1.2.3", "https://external.test/icon", true, null)]
-            [InlineData("https://internal.test/teststorage", true, "SomeId", "1.2.3", null, true, DefaultIconUrlTemplateProcessorResult)]
-            [InlineData("https://internal.test/teststorage", true, "SomeId", "1.2.3", "", true, DefaultIconUrlTemplateProcessorResult)]
-            [InlineData("https://internal.test/teststorage", true, "SomeId", "1.2.3", "https://external.test/icon", true, DefaultIconUrlTemplateProcessorResult)]
-
-            [InlineData(null, false, "SomeId", "1.2.3", null, false, null)]
-            [InlineData(null, false, "SomeId", "1.2.3", "", false, null)]
-            [InlineData(null, false, "SomeId", "1.2.3", "https://external.test/icon", false, "https://external.test/icon")]
-            [InlineData("", false, "SomeId", "1.2.3", null, false, null)]
-            [InlineData("", false, "SomeId", "1.2.3", "", false, null)]
-            [InlineData("", false, "SomeId", "1.2.3", "https://external.test/icon", false, "https://external.test/icon")]
-            [InlineData("https://internal.test/teststorage", false, "SomeId", "1.2.3", null, false, null)]
-            [InlineData("https://internal.test/teststorage", false, "SomeId", "1.2.3", "", false, null)]
-            [InlineData("https://internal.test/teststorage", false, "SomeId", "1.2.3", "https://external.test/icon", false, "https://external.test/icon")]
-
-            [InlineData(null, true, "SomeId", "1.2.3", null, false, null)]
-            [InlineData(null, true, "SomeId", "1.2.3", "", false, null)]
-            [InlineData(null, true, "SomeId", "1.2.3", "https://external.test/icon", false, null)]
-            [InlineData("", true, "SomeId", "1.2.3", null, false, null)]
-            [InlineData("", true, "SomeId", "1.2.3", "", false, null)]
-            [InlineData("", true, "SomeId", "1.2.3", "https://external.test/icon", false, null)]
-            [InlineData("https://internal.test/teststorage", true, "SomeId", "1.2.3", null, false, null)]
-            [InlineData("https://internal.test/teststorage", true, "SomeId", "1.2.3", "", false, null)]
-            [InlineData("https://internal.test/teststorage", true, "SomeId", "1.2.3", "https://external.test/icon", false, null)]
-            public void ProducesExpectedIconUrl(string baseUrl, bool ignoreIconUrl, string id, string normalizedVersion, string iconUrl, bool hasEmbeddedIcon, string expectedIconUrl)
+            [InlineData(null, null, null)]
+            [InlineData("", null, null)]
+            [InlineData("https://example.test/icon", null, null)]
+            [InlineData(null, "", null)]
+            [InlineData("", "", null)]
+            [InlineData("https://example.test/icon", "", null)]
+            [InlineData(null, " ", null)]
+            [InlineData("", " ", null)]
+            [InlineData("https://example.test/icon", " ", null)]
+            [InlineData(null, "https://storage.test/icon", "https://storage.test/icon")]
+            [InlineData("", "https://storage.test/icon", "https://storage.test/icon")]
+            [InlineData("https://example.test/icon", "https://storage.test/icon", "https://storage.test/icon")]
+            public void AlwaysUsesEmbeddedIconUrlTemplateWhenPackageHasEmbeddedIcon(string iconUrl, string templateProcessorOutput, string expectedIconUrl)
             {
-                _configuration.EmbeddedIconUrlTemplate = baseUrl;
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration
+                    {
+                        Id = "someId",
+                    },
+                    NormalizedVersion = "1.2.3",
+                    IconUrl = iconUrl,
+                    HasEmbeddedIcon = true,
+                };
+
+                _iconUrlTemplateProcessorMock
+                    .Setup(x => x.Process(package))
+                    .Returns(templateProcessorOutput);
+
+                var producedIconUrl = CallTarget(package);
+
+                _iconUrlTemplateProcessorMock
+                    .Verify(x => x.Process(package), Times.Once);
+                _iconUrlTemplateProcessorMock
+                    .Verify(x => x.Process(It.IsAny<Package>()), Times.Once);
+
+                Assert.Equal(expectedIconUrl, producedIconUrl);
+            }
+
+            [Theory]
+            [InlineData(false, null, null, null)]
+            [InlineData(false, "", null, null)]
+            [InlineData(false, " ", null, null)]
+            [InlineData(false, null, "https://internal.test/icon", null)]
+            [InlineData(false, "", "https://internal.test/icon", null)]
+            [InlineData(false, " ", "https://internal.test/icon", null)]
+            [InlineData(false, "https://external.test/icon", null, "https://external.test/icon")]
+            [InlineData(false, "https://external.test/icon", "https://internal.test/icon", "https://external.test/icon")]
+
+            [InlineData(true, null, null, null)]
+            [InlineData(true, "", null, null)]
+            [InlineData(true, " ", null, null)]
+            [InlineData(true, null, "https://internal.test/icon", null)]
+            [InlineData(true, "", "https://internal.test/icon", null)]
+            [InlineData(true, " ", "https://internal.test/icon", null)]
+            [InlineData(true, "https://external.test/icon", null, null)]
+            [InlineData(true, "https://external.test/icon", "", null)]
+            [InlineData(true, "https://external.test/icon", " ", null)]
+            [InlineData(true, "https://external.test/icon", "https://internal.test/icon", "https://internal.test/icon")]
+            public void ProducesExpectedIconUrlWhenNoEmbeddedIcon(bool ignoreIconUrl, string iconUrl, string templateProcessorOutput, string expectedIconUrl)
+            {
                 _configuration.IgnoreIconUrl = ignoreIconUrl;
 
                 var package = new Package
                 {
                     PackageRegistration = new PackageRegistration
                     {
-                        Id = id,
+                        Id = "someId",
                     },
-                    NormalizedVersion = normalizedVersion,
+                    NormalizedVersion = "1.2.3",
                     IconUrl = iconUrl,
-                    HasEmbeddedIcon = hasEmbeddedIcon,
+                    HasEmbeddedIcon = false,
                 };
+
+                _iconUrlTemplateProcessorMock
+                    .Setup(x => x.Process(package))
+                    .Returns(templateProcessorOutput);
 
                 var producedIconUrl = CallTarget(package);
 
