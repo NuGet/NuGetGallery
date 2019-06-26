@@ -388,8 +388,8 @@ namespace NuGetGallery
 
         public bool WillPackageBeOrphanedIfOwnerRemoved(PackageRegistration packageRegistration, User ownerToRemove)
         {
-            // If the package was hard deleted it will return false as there is not any package to be orphaned. 
-            if(!packageRegistration.Packages.Any())
+            // If the registration has no packages, no packages will be orphaned if the owner is removed. 
+            if (!packageRegistration.Packages.Any())
             {
                 return false;
             }
