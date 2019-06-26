@@ -2,10 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Moq;
 using NuGet.Services.Entities;
 using NuGetGallery.Configuration;
@@ -18,9 +14,22 @@ namespace NuGetGallery
         [Fact]
         public void ConstructorThrowsWhenConfigurationIsNull()
         {
-            var ex = Assert.Throws<ArgumentNullException>(() => new ConfigurationIconFileProvider(configuration: null));
+            var ex = Assert.Throws<ArgumentNullException>(
+                () => new ConfigurationIconFileProvider(
+                    configuration: null,
+                    iconUrlTemplateProcessor: Mock.Of<IIconUrlTemplateProcessor>()));
 
             Assert.Equal("configuration", ex.ParamName);
+        }
+
+        public void ConstructorThrowsWhenIconUrlTemplateProcessorIsNull()
+        {
+            var ex = Assert.Throws<ArgumentNullException>(
+                () => new ConfigurationIconFileProvider(
+                    configuration: Mock.Of<IAppConfiguration>(),
+                    iconUrlTemplateProcessor: null));
+
+            Assert.Equal("iconUrlTemplateProcessor", ex.ParamName);
         }
 
         public class TheGetIconUrlStringMethod : TheGetIconUrlMethodsBase
@@ -37,13 +46,19 @@ namespace NuGetGallery
 
         public class ConfigurationIconFileProviderFactsBase
         {
+            protected const string DefaultIconUrlTemplateProcessorResult = "https://processor.call.expected.test/";
             protected ConfigurationIconFileProvider _target;
             protected AppConfiguration _configuration;
+            protected Mock<IIconUrlTemplateProcessor> _iconUrlTemplateProcessorMock;
 
             public ConfigurationIconFileProviderFactsBase()
             {
                 _configuration = new AppConfiguration();
-                _target = new ConfigurationIconFileProvider(_configuration);
+                _iconUrlTemplateProcessorMock = new Mock<IIconUrlTemplateProcessor>();
+                _iconUrlTemplateProcessorMock
+                    .Setup(x => x.Process(It.IsAny<Package>()))
+                    .Returns(DefaultIconUrlTemplateProcessorResult);
+                _target = new ConfigurationIconFileProvider(_configuration, _iconUrlTemplateProcessorMock.Object);
             }
         }
 
@@ -65,9 +80,9 @@ namespace NuGetGallery
             [InlineData("", false, "SomeId", "1.2.3", null, true, null)]
             [InlineData("", false, "SomeId", "1.2.3", "", true, null)]
             [InlineData("", false, "SomeId", "1.2.3", "https://external.test/icon", true, null)]
-            [InlineData("https://internal.test/teststorage", false, "SomeId", "1.2.3", null, true, "https://internal.test/teststorage/someid/1.2.3/icon")]
-            [InlineData("https://internal.test/teststorage", false, "SomeId", "1.2.3", "", true, "https://internal.test/teststorage/someid/1.2.3/icon")]
-            [InlineData("https://internal.test/teststorage", false, "SomeId", "1.2.3", "https://external.test/icon", true, "https://internal.test/teststorage/someid/1.2.3/icon")]
+            [InlineData("https://internal.test/teststorage", false, "SomeId", "1.2.3", null, true, DefaultIconUrlTemplateProcessorResult)]
+            [InlineData("https://internal.test/teststorage", false, "SomeId", "1.2.3", "", true, DefaultIconUrlTemplateProcessorResult)]
+            [InlineData("https://internal.test/teststorage", false, "SomeId", "1.2.3", "https://external.test/icon", true, DefaultIconUrlTemplateProcessorResult)]
 
             [InlineData(null, true, "SomeId", "1.2.3", null, true, null)]
             [InlineData(null, true, "SomeId", "1.2.3", "", true, null)]
@@ -75,9 +90,9 @@ namespace NuGetGallery
             [InlineData("", true, "SomeId", "1.2.3", null, true, null)]
             [InlineData("", true, "SomeId", "1.2.3", "", true, null)]
             [InlineData("", true, "SomeId", "1.2.3", "https://external.test/icon", true, null)]
-            [InlineData("https://internal.test/teststorage", true, "SomeId", "1.2.3", null, true, "https://internal.test/teststorage/someid/1.2.3/icon")]
-            [InlineData("https://internal.test/teststorage", true, "SomeId", "1.2.3", "", true, "https://internal.test/teststorage/someid/1.2.3/icon")]
-            [InlineData("https://internal.test/teststorage", true, "SomeId", "1.2.3", "https://external.test/icon", true, "https://internal.test/teststorage/someid/1.2.3/icon")]
+            [InlineData("https://internal.test/teststorage", true, "SomeId", "1.2.3", null, true, DefaultIconUrlTemplateProcessorResult)]
+            [InlineData("https://internal.test/teststorage", true, "SomeId", "1.2.3", "", true, DefaultIconUrlTemplateProcessorResult)]
+            [InlineData("https://internal.test/teststorage", true, "SomeId", "1.2.3", "https://external.test/icon", true, DefaultIconUrlTemplateProcessorResult)]
 
             [InlineData(null, false, "SomeId", "1.2.3", null, false, null)]
             [InlineData(null, false, "SomeId", "1.2.3", "", false, null)]

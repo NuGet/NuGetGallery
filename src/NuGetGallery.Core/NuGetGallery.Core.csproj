@@ -189,6 +189,7 @@
     <Compile Include="Services\FileNameHelper.cs" />
     <Compile Include="Services\IContentFileMetadataService.cs" />
     <Compile Include="Services\ICoreLicenseFileService.cs" />
+    <Compile Include="Services\IStringTemplateProcessor.cs" />
     <Compile Include="Services\PackageAlreadyExistsException.cs" />
     <Compile Include="Services\FileAlreadyExistsException.cs" />
     <Compile Include="Services\FileUriPermissions.cs" />
@@ -204,6 +205,7 @@
     <Compile Include="Services\IRevalidationStateService.cs" />
     <Compile Include="Services\ISimpleCloudBlob.cs" />
     <Compile Include="Services\PackageDeprecationFieldsToInclude.cs" />
+    <Compile Include="Services\StringReplaceTemplateProcessor.cs" />
     <Compile Include="Services\SymbolPackageFileServiceMetadata.cs" />
     <Compile Include="Services\PackageFileServiceMetadata.cs" />
     <Compile Include="Services\RevalidationState.cs" />

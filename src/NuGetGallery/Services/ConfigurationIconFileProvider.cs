@@ -13,10 +13,12 @@ namespace NuGetGallery
     public class ConfigurationIconFileProvider : IIconUrlProvider
     {
         private readonly IAppConfiguration _configuration;
+        private readonly IIconUrlTemplateProcessor _iconUrlTemplateProcessor;
 
-        public ConfigurationIconFileProvider(IAppConfiguration configuration)
+        public ConfigurationIconFileProvider(IAppConfiguration configuration, IIconUrlTemplateProcessor iconUrlTemplateProcessor)
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+            _iconUrlTemplateProcessor = iconUrlTemplateProcessor ?? throw new ArgumentNullException(nameof(iconUrlTemplateProcessor));
         }
 
         public string GetIconUrlString(Package package)
@@ -34,7 +36,7 @@ namespace NuGetGallery
                     return null;
                 }
 
-                return ConstructInternalIconUrl(_configuration.InternalIconUrlBaseAddress, package.Id, package.NormalizedVersion);
+                return _iconUrlTemplateProcessor.Process(package);
             }
             else
             {
@@ -56,12 +58,6 @@ namespace NuGetGallery
             }
 
             return new Uri(iconUrl);
-        }
-
-        private static string ConstructInternalIconUrl(string baseUrl, string packageId, string normalizedVersion)
-        {
-            string trailingSlash = baseUrl.EndsWith("/") ? string.Empty : "/";
-            return $"{baseUrl}{trailingSlash}{packageId.ToLowerInvariant()}/{normalizedVersion.ToLowerInvariant()}/icon";
         }
     }
 }

@@ -253,6 +253,8 @@
       <DependentUpon>201905092143342_IconFlatContainerFlag.cs</DependentUpon>
     </Compile>
     <Compile Include="Services\ConfigurationIconFileProvider.cs" />
+    <Compile Include="Services\IconUrlTemplateProcessor.cs" />
+    <Compile Include="Services\IIconUrlTemplateProcessor.cs" />
     <Compile Include="Services\IInternalIconUrlProvider.cs" />
     <Compile Include="Migrations\201905071526573_DevelopmentDependencyMetadata.cs" />
     <Compile Include="Migrations\201905071526573_DevelopmentDependencyMetadata.Designer.cs">

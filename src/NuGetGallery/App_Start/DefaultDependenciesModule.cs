@@ -387,6 +387,10 @@ namespace NuGetGallery
                 .As<IIconUrlProvider>()
                 .InstancePerLifetimeScope();
 
+            builder.RegisterType<IconUrlTemplateProcessor>()
+                .As<IIconUrlTemplateProcessor>()
+                .InstancePerLifetimeScope();
+
             RegisterFeatureFlagsService(builder, configuration);
             RegisterMessagingService(builder, configuration);
 
