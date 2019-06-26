@@ -213,7 +213,7 @@ namespace NuGet.Services.AzureSearch
                 owners: owners);
             _baseDocumentBuilder.PopulateMetadata(document, packageId, package);
             document.TotalDownloadCount = totalDownloadCount;
-            document.LogOfDownloadCount = Math.Log(totalDownloadCount, _options.Value.Scoring.DownloadCountLogBase);
+            document.DownloadScore = DocumentUtilities.GetDownloadScore(totalDownloadCount);
 
             return document;
         }

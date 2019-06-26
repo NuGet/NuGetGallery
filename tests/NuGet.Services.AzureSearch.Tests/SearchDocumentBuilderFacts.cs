@@ -574,7 +574,7 @@ namespace NuGet.Services.AzureSearch
     {
       ""@search.action"": ""upload"",
       ""totalDownloadCount"": 1001,
-      ""logOfDownloadCount"": 9.9672262588359928,
+      ""downloadScore"": 0.14381174563233068,
       ""owners"": [
         ""Microsoft"",
         ""azure-sdk""
@@ -749,10 +749,7 @@ namespace NuGet.Services.AzureSearch
                     GalleryBaseUrl = Data.GalleryBaseUrl,
                     FlatContainerBaseUrl = Data.FlatContainerBaseUrl,
                     FlatContainerContainerName = Data.FlatContainerContainerName,
-                    Scoring = new AzureSearchScoringConfiguration
-                    {
-                        DownloadCountLogBase = 2.0
-                    }
+                    Scoring = new AzureSearchScoringConfiguration(),
                 };
 
                 _options.Setup(o => o.Value).Returns(() => _config);

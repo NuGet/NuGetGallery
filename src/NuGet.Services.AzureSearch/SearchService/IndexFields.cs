@@ -33,7 +33,7 @@ namespace NuGet.Services.AzureSearch.SearchService
             public static readonly string Owners = Name(nameof(SearchDocument.Full.Owners));
             public static readonly string SearchFilters = Name(nameof(SearchDocument.UpdateLatest.SearchFilters));
             public static readonly string TotalDownloadCount = Name(nameof(SearchDocument.Full.TotalDownloadCount));
-            public static readonly string LogOfDownloadCount = Name(nameof(SearchDocument.Full.LogOfDownloadCount));
+            public static readonly string DownloadScore = Name(nameof(SearchDocument.Full.DownloadScore));
             public static readonly string Versions = Name(nameof(SearchDocument.UpdateLatest.Versions));
         }
     }

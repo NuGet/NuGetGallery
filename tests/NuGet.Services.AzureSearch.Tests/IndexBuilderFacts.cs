@@ -244,7 +244,7 @@ namespace NuGet.Services.AzureSearch
                 Assert.Equal(2, result.Functions.Count);
                 var downloadsBoost = result
                     .Functions
-                    .Where(f => f.FieldName == IndexFields.Search.LogOfDownloadCount)
+                    .Where(f => f.FieldName == IndexFields.Search.DownloadScore)
                     .FirstOrDefault();
                 var freshnessBoost = result
                     .Functions
@@ -477,15 +477,13 @@ namespace NuGet.Services.AzureSearch
 
                     Scoring = new AzureSearchScoringConfiguration
                     {
-                        DownloadCountLogBase = 2.0,
-
                         FieldWeights = new Dictionary<string, double>
                         {
                             { nameof(IndexFields.PackageId), 3.0 },
                             { nameof(IndexFields.TokenizedPackageId), 4.0 },
                         },
 
-                        LogOfDownloadCountMagnitudeBoost = 5.0,
+                        DownloadScoreBoost = 5.0,
                         PublishedFreshnessBoost = 6.0
                     }
                 };

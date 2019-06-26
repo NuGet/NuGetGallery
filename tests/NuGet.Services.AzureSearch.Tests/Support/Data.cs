@@ -88,7 +88,7 @@ namespace NuGet.Services.AzureSearch.Support
 
         public static readonly AzureSearchScoringConfiguration Config = new AzureSearchScoringConfiguration
         {
-            LogOfDownloadCountMagnitudeBoost = 2
+            DownloadScoreBoost = 2
         };
 
         private static IOptionsSnapshot<AzureSearchJobConfiguration> Options
@@ -101,10 +101,7 @@ namespace NuGet.Services.AzureSearch.Support
                     GalleryBaseUrl = GalleryBaseUrl,
                     FlatContainerBaseUrl = FlatContainerBaseUrl,
                     FlatContainerContainerName = FlatContainerContainerName,
-                    Scoring = new AzureSearchScoringConfiguration
-                    {
-                        DownloadCountLogBase = 2
-                    }
+                    Scoring = new AzureSearchScoringConfiguration(),
                 };
 
                 mock.Setup(o => o.Value).Returns(config);
