@@ -113,7 +113,7 @@ namespace NuGetGallery
             [InlineData("https://internal.test/teststorage", true, "SomeId", "1.2.3", null, false, null)]
             [InlineData("https://internal.test/teststorage", true, "SomeId", "1.2.3", "", false, null)]
             [InlineData("https://internal.test/teststorage", true, "SomeId", "1.2.3", "https://external.test/icon", false, null)]
-            public void ProducesExpectedIconUrl(string baseUrl, bool ignoreIconUrl, string id, string normalizedVersion, string iconUrl, bool usesIconFromFlatContainer, string expectedIconUrl)
+            public void ProducesExpectedIconUrl(string baseUrl, bool ignoreIconUrl, string id, string normalizedVersion, string iconUrl, bool hasEmbeddedIcon, string expectedIconUrl)
             {
                 _configuration.EmbeddedIconUrlTemplate = baseUrl;
                 _configuration.IgnoreIconUrl = ignoreIconUrl;
@@ -126,7 +126,7 @@ namespace NuGetGallery
                     },
                     NormalizedVersion = normalizedVersion,
                     IconUrl = iconUrl,
-                    UsesIconFromFlatContainer = usesIconFromFlatContainer,
+                    HasEmbeddedIcon = hasEmbeddedIcon,
                 };
 
                 var producedIconUrl = CallTarget(package);

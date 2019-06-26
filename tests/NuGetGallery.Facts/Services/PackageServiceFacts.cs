@@ -2344,7 +2344,7 @@ namespace NuGetGallery
                     {
                         Id = "SomePackage"
                     },
-                    UsesIconFromFlatContainer = false,
+                    HasEmbeddedIcon = false,
                 };
 
                 // the EnrichPackageFromNuGetPackage method does not read icon filename from the PackageArchiveReader
@@ -2374,7 +2374,7 @@ namespace NuGetGallery
 
                 service.EnrichPackageFromNuGetPackage(package, packageArchiveReader, packageMetadata, new PackageStreamMetadata(), new User());
 
-                Assert.Equal(expectedFlag, package.UsesIconFromFlatContainer);
+                Assert.Equal(expectedFlag, package.HasEmbeddedIcon);
             }
         }
     }

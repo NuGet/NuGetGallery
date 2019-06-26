@@ -28,7 +28,7 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(package));
             }
 
-            if (package.UsesIconFromFlatContainer)
+            if (package.HasEmbeddedIcon)
             {
                 if (string.IsNullOrWhiteSpace(_configuration.EmbeddedIconUrlTemplate))
                 {

@@ -276,9 +276,8 @@ namespace NuGet.Services.Entities
         public virtual ICollection<PackageDeprecation> AlternativeOf { get; set; }
 
         /// <summary>
-        /// A flag that indicates that the icon in flat container is assumed to exist and must be
-        /// used everywhere instead of the <see cref="IconUrl"/>.
+        /// A flag that indicates that the package metadata had an embedded icon specified.
         /// </summary>
-        public bool UsesIconFromFlatContainer { get; set; }
+        public bool HasEmbeddedIcon { get; set; }
     }
 }
