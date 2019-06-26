@@ -304,6 +304,10 @@
         return typeof ga === 'function';
     };
 
+    nuget.isAiAvailable = function () {
+        return typeof window.appInsights === 'object';
+    };
+
     nuget.getDateFormats = function (input) {
         var datetime = moment.utc(input);
 
@@ -405,6 +409,12 @@
     nuget.sendAnalyticsEvent = function (category, action, label, eventValue, options) {
         if (window.nuget.isGaAvailable()) {
             ga('send', 'event', category, action, label, eventValue, options);
+        }
+    };
+
+    nuget.sendAiMetric = function (name, value, properties) {
+        if (window.nuget.isAiAvailable()) {
+            window.appInsights.trackMetric(name, value, 1, value, value, properties);
         }
     };
 

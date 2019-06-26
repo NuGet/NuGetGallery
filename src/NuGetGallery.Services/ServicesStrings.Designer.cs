@@ -19,7 +19,7 @@ namespace NuGetGallery {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     public class ServicesStrings {
@@ -1229,6 +1229,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A nuget package&apos;s ID and version properties combined may not be more than {0} characters long..
+        /// </summary>
+        public static string NuGetPackageIdVersionCombinedTooLong {
+            get {
+                return ResourceManager.GetString("NuGetPackageIdVersionCombinedTooLong", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A nuget package&apos;s {0} property is required..
         /// </summary>
         public static string NuGetPackagePropertyMissing {
@@ -2432,15 +2441,6 @@ namespace NuGetGallery {
         public static string UploadPackage_LicenseFileDoesNotExist {
             get {
                 return ResourceManager.GetString("UploadPackage_LicenseFileDoesNotExist", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to License files are not yet supported..
-        /// </summary>
-        public static string UploadPackage_LicenseFilesAreNotAllowed {
-            get {
-                return ResourceManager.GetString("UploadPackage_LicenseFilesAreNotAllowed", resourceCulture);
             }
         }
         

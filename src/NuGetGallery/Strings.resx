@@ -1053,9 +1053,6 @@ The {1} Team</value>
     <value>Unsupported license type '{0}'.</value>
     <comment>{0} is the license type read from the nuspec</comment>
   </data>
-  <data name="UploadPackage_LicenseFilesAreNotAllowed" xml:space="preserve">
-    <value>License files are not yet supported.</value>
-  </data>
   <data name="UploadPackage_DeprecationUrlRequiredForLicenseExpressions" xml:space="preserve">
     <value>To provide a better experience for older clients when a license expression is specified, &lt;licenseUrl&gt; must be set to '{0}'.</value>
     <comment>{0} is the licenses.nuget.org link with license expression</comment>

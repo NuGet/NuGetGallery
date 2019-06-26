@@ -536,7 +536,7 @@ namespace NuGetGallery
 
                 var ex = await Assert.ThrowsAsync<InvalidPackageException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), owner: null, currentUser: null, isVerified: false));
 
-                Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Id", NuGet.Services.Entities.Constants.MaxPackageIdLength), ex.Message);
+                Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "ID", NuGet.Services.Entities.Constants.MaxPackageIdLength), ex.Message);
             }
 
             [Fact]
@@ -1906,25 +1906,28 @@ namespace NuGetGallery
                 }
 
                 // Configure package ownership
-                var package = new PackageRegistration() { Key = 4 };
+                var package = new Package();
+                var packageRegistration = new PackageRegistration() { Key = 4 };
+                packageRegistration.Packages.Add(package);
+
                 if (state.HasFlag(OwnershipState.OwnedByUser1))
                 {
-                    package.Owners.Add(user1);
+                    packageRegistration.Owners.Add(user1);
                 }
 
                 if (state.HasFlag(OwnershipState.OwnedByUser2))
                 {
-                    package.Owners.Add(user2);
+                    packageRegistration.Owners.Add(user2);
                 }
 
                 if (state.HasFlag(OwnershipState.OwnedByOrganization1))
                 {
-                    package.Owners.Add(organization1);
+                    packageRegistration.Owners.Add(organization1);
                 }
 
                 if (state.HasFlag(OwnershipState.OwnedByOrganization2))
                 {
-                    package.Owners.Add(organization2);
+                    packageRegistration.Owners.Add(organization2);
                 }
 
                 // Determine expected result and account to delete
@@ -1985,10 +1988,28 @@ namespace NuGetGallery
 
                 // Delete account
                 var service = CreateService();
-                var result = service.WillPackageBeOrphanedIfOwnerRemoved(package, userToDelete);
+                var result = service.WillPackageBeOrphanedIfOwnerRemoved(packageRegistration, userToDelete);
 
                 // Assert expected result
                 Assert.Equal(expectedResult, result);
+            }
+
+            [Fact]
+            public void APackageIdThatHasOnlyARegistrationCannotBeOrphaned()
+            {
+                // Create users to test
+                var user = new User("testUser") { Key = 0 };
+               
+                // Configure package registration ownership
+                var packageRegistration = new PackageRegistration() { Key = 1 };
+                packageRegistration.Owners.Add(user);
+
+                // Delete account
+                var service = CreateService();
+                var result = service.WillPackageBeOrphanedIfOwnerRemoved(packageRegistration, user);
+
+                // Assert expected result
+                Assert.False(result);
             }
 
             private void AddMemberToOrganization(Organization organization, User member)
