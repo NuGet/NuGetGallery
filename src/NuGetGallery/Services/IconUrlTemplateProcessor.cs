@@ -27,7 +27,7 @@ namespace NuGetGallery
             {
                 throw new ArgumentNullException(nameof(configuration));
             }
-            return configuration.InternalIconUrlBaseAddress;
+            return configuration.EmbeddedIconUrlTemplate;
         }
     }
 }

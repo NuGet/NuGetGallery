@@ -115,7 +115,7 @@ namespace NuGetGallery
             [InlineData("https://internal.test/teststorage", true, "SomeId", "1.2.3", "https://external.test/icon", false, null)]
             public void ProducesExpectedIconUrl(string baseUrl, bool ignoreIconUrl, string id, string normalizedVersion, string iconUrl, bool usesIconFromFlatContainer, string expectedIconUrl)
             {
-                _configuration.InternalIconUrlBaseAddress = baseUrl;
+                _configuration.EmbeddedIconUrlTemplate = baseUrl;
                 _configuration.IgnoreIconUrl = ignoreIconUrl;
 
                 var package = new Package

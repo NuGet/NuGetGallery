@@ -8,7 +8,7 @@ using NuGetGallery.Configuration;
 namespace NuGetGallery
 {
     /// <summary>
-    /// Produces the icon URL based on the service configuration value of <see cref="IAppConfiguration.InternalIconUrlBaseAddress"/>.
+    /// Produces the icon URL based on the service configuration value of <see cref="IAppConfiguration.EmbeddedIconUrlTemplate"/>.
     /// </summary>
     public class ConfigurationIconFileProvider : IIconUrlProvider
     {
@@ -30,7 +30,7 @@ namespace NuGetGallery
 
             if (package.UsesIconFromFlatContainer)
             {
-                if (string.IsNullOrWhiteSpace(_configuration.InternalIconUrlBaseAddress))
+                if (string.IsNullOrWhiteSpace(_configuration.EmbeddedIconUrlTemplate))
                 {
                     // never fall back to iconUrl if UsesIconFromFlatContainer is true
                     return null;

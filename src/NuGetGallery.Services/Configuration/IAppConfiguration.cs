@@ -437,8 +437,10 @@ namespace NuGetGallery.Configuration
         bool IgnoreIconUrl { get; set; }
 
         /// <summary>
-        /// Base URL for the internal storage of package icons.
+        /// Template for the storage URL for packages with embedded icons.
+        /// When expanded the '{id-lower}' will be replaced with the package id in lowercase,
+        /// '{version-lower}' will be replaced with the normalized package version in lowercase.
         /// </summary>
-        string InternalIconUrlBaseAddress { get; set; }
+        string EmbeddedIconUrlTemplate { get; set; }
     }
 }

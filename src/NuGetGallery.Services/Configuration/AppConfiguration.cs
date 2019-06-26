@@ -394,6 +394,6 @@ namespace NuGetGallery.Configuration
         public bool IgnoreIconUrl { get; set; }
 
         [DefaultValue("")]
-        public string InternalIconUrlBaseAddress { get; set; }
+        public string EmbeddedIconUrlTemplate { get; set; }
     }
 }

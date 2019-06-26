@@ -25,7 +25,7 @@ namespace NuGetGallery.Services
         {
             var configurationMock = new Mock<IAppConfiguration>();
             configurationMock
-                .SetupGet(c => c.InternalIconUrlBaseAddress)
+                .SetupGet(c => c.EmbeddedIconUrlTemplate)
                 .Returns(template);
 
             var package = new Package
