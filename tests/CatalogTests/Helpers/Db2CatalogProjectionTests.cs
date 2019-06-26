@@ -260,7 +260,7 @@ namespace CatalogTests.Helpers
                     else
                     {
                         Assert.Equal(
-                            $"[{alternatePackageVersionRange}, {alternatePackageVersionRange}]",
+                            $"[{alternatePackageVersionRange}, )",
                             projection.AlternatePackageRange);
                     }
                 }

@@ -97,7 +97,8 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
                 }
                 else
                 {
-                    alternatePackageVersion = $"[{alternatePackageVersion}, {alternatePackageVersion}]";
+                    // The alternate package version range is defined by a minimum version (lower-bound), or higher (no upper-bound).
+                    alternatePackageVersion = $"[{alternatePackageVersion}, )";
                 }
             }
 
