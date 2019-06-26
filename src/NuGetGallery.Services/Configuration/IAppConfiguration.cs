@@ -433,6 +433,9 @@ namespace NuGetGallery.Configuration
 
         /// <summary>
         /// Indicates whether the contents of the IconUrl package metadata should be ignored.
+        /// Specifically, Gallery will not expose those URLs in its responses and will assume
+        /// that the icon was copied to the embedded icon storage location in the V3 indexing
+        /// process (see <see cref="EmbeddedIconUrlTemplate"/>).
         /// </summary>
         bool IgnoreIconUrl { get; set; }
 
