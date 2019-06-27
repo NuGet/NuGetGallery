@@ -1,0 +1,11 @@
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+namespace NuGetGallery
+{
+    public class BasicUserViewModel
+    {
+        public string EmailAddress { get; set; } // we might want to make it private and expose Gravatar URL instead to reduce chance to leak the email address to public
+        public string Username { get; set; }
+    }
+}

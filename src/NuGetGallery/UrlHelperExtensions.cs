@@ -635,7 +635,6 @@ namespace NuGetGallery
         public static string User(
             this UrlHelper url,
             string username,
-            string scheme = null,
             bool relativeUrl = true)
         {
             return GetActionLink(

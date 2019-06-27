@@ -57,29 +57,65 @@ namespace NuGetGallery
         }
 
         public static DisplayLicenseViewModel SetupFromPackage(
-            this DisplayLicenseViewModel v,
+            this DisplayLicenseViewModel viewModel,
             Package package,
             IReadOnlyCollection<CompositeLicenseExpressionSegment> licenseExpressionSegments,
             string licenseFileContents)
         {
-            v.SetupFromPackage(package);
+            viewModel.SetupFromPackage(package);
 
-            v.EmbeddedLicenseType = package.EmbeddedLicenseType;
-            v.LicenseExpression = package.LicenseExpression;
+            viewModel.EmbeddedLicenseType = package.EmbeddedLicenseType;
+            viewModel.LicenseExpression = package.LicenseExpression;
             if (PackageHelper.TryPrepareUrlForRendering(package.LicenseUrl, out string licenseUrl))
             {
-                v.LicenseUrl = licenseUrl;
+                viewModel.LicenseUrl = licenseUrl;
 
                 var licenseNames = package.LicenseNames;
                 if (!string.IsNullOrEmpty(licenseNames))
                 {
-                    v.LicenseNames = licenseNames.Split(',').Select(l => l.Trim());
+                    viewModel.LicenseNames = licenseNames.Split(',').Select(l => l.Trim());
                 }
             }
-            v.LicenseExpressionSegments = licenseExpressionSegments;
-            v.LicenseFileContents = licenseFileContents;
+            viewModel.LicenseExpressionSegments = licenseExpressionSegments;
+            viewModel.LicenseFileContents = licenseFileContents;
 
-            return v;
+            return viewModel;
+        }
+
+        public static ListPackageItemViewModel SetupFromPackage(this ListPackageItemViewModel viewModel, Package package, User currentUser)
+        {
+            viewModel.SetupFromPackage(package);
+
+            viewModel.Tags = package.Tags?
+                .Split(' ')
+                .Where(t => !string.IsNullOrEmpty(t))
+                .Select(t => t.Trim())
+                .ToArray();
+
+            viewModel.Authors = package.FlattenedAuthors;
+            viewModel.MinClientVersion = package.MinClientVersion;
+            viewModel.Owners = package.PackageRegistration?.Owners?.Select(GetBasicUserViewModel).ToList();
+            viewModel.IsVerified = package.PackageRegistration?.IsVerified;
+
+            viewModel.CanDisplayPrivateMetadata = CanPerformAction(currentUser, package, ActionsRequiringPermissions.DisplayPrivatePackageMetadata);
+            viewModel.CanEdit = CanPerformAction(currentUser, package, ActionsRequiringPermissions.EditPackage);
+            viewModel.CanUnlistOrRelist = CanPerformAction(currentUser, package, ActionsRequiringPermissions.UnlistOrRelistPackage);
+            viewModel.CanManageOwners = CanPerformAction(currentUser, package, ActionsRequiringPermissions.ManagePackageOwnership);
+            viewModel.CanReportAsOwner = CanPerformAction(currentUser, package, ActionsRequiringPermissions.ReportPackageAsOwner);
+            viewModel.CanSeeBreadcrumbWithProfile = CanPerformAction(currentUser, package, ActionsRequiringPermissions.ShowProfileBreadcrumb);
+            viewModel.CanDeleteSymbolsPackage = CanPerformAction(currentUser, package, ActionsRequiringPermissions.DeleteSymbolPackage);
+            viewModel.CanDeprecate = CanPerformAction(currentUser, package, ActionsRequiringPermissions.DeprecatePackage);
+
+            viewModel.SetShortDescriptionFrom(viewModel.Description);
+
+            if (package.Certificate != null)
+            {
+                var owners = package.PackageRegistration?.Owners ?? Enumerable.Empty<User>();
+                var signers = owners.Where(owner => owner.UserCertificates.Any(uc => uc.CertificateKey == package.CertificateKey)).Select(GetBasicUserViewModel).ToList();
+                viewModel.UpdateSignatureInformation(signers, package.Certificate.Sha1Thumbprint);
+            }
+
+            return viewModel;
         }
 
         private static PackageStatusSummary GetPackageStatusSummary(PackageStatus packageStatus, bool listed)
@@ -105,6 +141,16 @@ namespace NuGetGallery
                 default:
                     throw new ArgumentOutOfRangeException(nameof(packageStatus));
             }
+        }
+
+        private static bool CanPerformAction(User currentUser, Package package, ActionRequiringPackagePermissions action)
+        {
+            return action.CheckPermissionsOnBehalfOfAnyAccount(currentUser, package) == PermissionsCheckResult.Allowed;
+        }
+
+        private static BasicUserViewModel GetBasicUserViewModel(User user)
+        {
+            return new BasicUserViewModel { Username = user.Username, EmailAddress = user.EmailAddress };
         }
     }
 }
