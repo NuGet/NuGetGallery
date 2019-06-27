@@ -29,6 +29,14 @@ namespace NuGet.Services.AzureSearch
             return EncodeKey($"{lowerId}/{lowerVersion}");
         }
 
+        public static double GetDownloadScore(double totalDownloadCount)
+        {
+            // This score ranges from 0 to less than 100, assuming that the most downloaded
+            // package has less than 500 million downloads. This scoring function increases
+            // quickly at first and then becomes approximately linear near the upper bound.
+            return Math.Sqrt(totalDownloadCount) / 220;
+        }
+
         private static string EncodeKey(string rawKey)
         {
             // First, encode the raw value for uniqueness.

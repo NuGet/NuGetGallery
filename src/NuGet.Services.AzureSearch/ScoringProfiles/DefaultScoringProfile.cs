@@ -40,14 +40,9 @@ namespace NuGet.Services.AzureSearch.ScoringProfiles
                 throw new ArgumentNullException(nameof(config));
             }
 
-            if (config.DownloadCountLogBase <= 1)
+            if (config.DownloadScoreBoost <= 1)
             {
-                throw new ArgumentOutOfRangeException(nameof(config.DownloadCountLogBase));
-            }
-
-            if (config.LogOfDownloadCountMagnitudeBoost <= 1)
-            {
-                throw new ArgumentOutOfRangeException(nameof(config.LogOfDownloadCountMagnitudeBoost));
+                throw new ArgumentOutOfRangeException(nameof(config.DownloadScoreBoost));
             }
 
             if (config.PublishedFreshnessBoost <= 1)
@@ -86,11 +81,11 @@ namespace NuGet.Services.AzureSearch.ScoringProfiles
                     // use the raw download count with a log interpolation as that would result in a large boosting
                     // range, which would need to be offset by an unmanageably high boosting factor.
                     new MagnitudeScoringFunction(
-                        fieldName: IndexFields.Search.LogOfDownloadCount,
-                        boost: config.LogOfDownloadCountMagnitudeBoost,
+                        fieldName: IndexFields.Search.DownloadScore,
+                        boost: config.DownloadScoreBoost,
                         parameters: new MagnitudeScoringParameters(
                             boostingRangeStart: 0,
-                            boostingRangeEnd: Math.Log(999_999_999_999, config.DownloadCountLogBase),
+                            boostingRangeEnd: DocumentUtilities.GetDownloadScore(999_999_999_999),
                             shouldBoostBeyondRangeByConstant: true),
                         interpolation: ScoringFunctionInterpolation.Linear),
 

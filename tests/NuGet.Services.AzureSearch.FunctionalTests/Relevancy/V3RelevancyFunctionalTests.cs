@@ -52,8 +52,7 @@ namespace NuGet.Services.AzureSearch.FunctionalTests
         {
             var results = await SearchAsync("EntityFrameworkCore");
 
-            // TODO: This should be on the first page!
-            //Assert.Contains("microsoft.entityframeworkcore", results);
+            Assert.Equal("microsoft.entityframeworkcore", results[0]);
         }
 
         [RelevancyFact]
@@ -61,10 +60,9 @@ namespace NuGet.Services.AzureSearch.FunctionalTests
         {
             var results = await SearchAsync("Microsoft.Extensions");
 
-            // TODO: This should be on the first page!
-            //Assert.Contains("microsoft.extensions.logging", results);
-            //Assert.Contains("microsoft.extensions.configuration", results);
-            //Assert.Contains("microsoft.extensions.dependencyinjection", results);
+            Assert.Contains("microsoft.extensions.logging", results);
+            Assert.Contains("microsoft.extensions.configuration", results);
+            Assert.Contains("microsoft.extensions.dependencyinjection", results);
         }
 
         [RelevancyFact]
@@ -74,9 +72,7 @@ namespace NuGet.Services.AzureSearch.FunctionalTests
 
             Assert.NotEmpty(results);
             Assert.Equal("microsoft.aspnet.mvc", results[0]);
-
-            // TODO: This should be on the first page!
-            // Assert.Contains("Microsoft.AspNetCore.Mvc", results);
+            Assert.Contains("microsoft.aspnetcore.mvc", results);
         }
     }
 }

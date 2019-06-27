@@ -23,7 +23,7 @@ namespace NuGet.Services.AzureSearch
             public long? TotalDownloadCount { get; set; }
 
             [IsFilterable]
-            public double? LogOfDownloadCount { get; set; }
+            public double? DownloadScore { get; set; }
         }
 
         /// <summary>
