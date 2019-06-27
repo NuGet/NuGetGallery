@@ -23,6 +23,7 @@ namespace NuGet.Services.DatabaseMigration.Facts
                 BindingFlags.NonPublic | BindingFlags.Instance);
 
             Assert.NotNull(connectionField);
+            Assert.True(connectionField.FieldType.IsAssignableFrom(typeof(System.Data.SqlClient.SqlConnection)));
         }
     }
 }
