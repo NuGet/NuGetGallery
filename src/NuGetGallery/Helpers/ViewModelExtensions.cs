@@ -6,14 +6,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using NuGet.Services.Entities;
+using NuGet.Services.Licenses;
 using NuGet.Versioning;
 
 namespace NuGetGallery
 {
     public static class ViewModelExtensions
     {
-        public static TViewModel SetupFromPackage<TViewModel> (this TViewModel viewModel, Package package)
-            where TViewModel: PackageViewModel
+        public static PackageViewModel SetupFromPackage(this PackageViewModel viewModel, Package package)
         {
             if (viewModel == null)
             {
@@ -54,6 +54,32 @@ namespace NuGetGallery
             viewModel.Title = string.IsNullOrEmpty(package.Title) ? package.PackageRegistration.Id : package.Title;
 
             return viewModel;
+        }
+
+        public static DisplayLicenseViewModel SetupFromPackage(
+            this DisplayLicenseViewModel v,
+            Package package,
+            IReadOnlyCollection<CompositeLicenseExpressionSegment> licenseExpressionSegments,
+            string licenseFileContents)
+        {
+            v.SetupFromPackage(package);
+
+            v.EmbeddedLicenseType = package.EmbeddedLicenseType;
+            v.LicenseExpression = package.LicenseExpression;
+            if (PackageHelper.TryPrepareUrlForRendering(package.LicenseUrl, out string licenseUrl))
+            {
+                v.LicenseUrl = licenseUrl;
+
+                var licenseNames = package.LicenseNames;
+                if (!string.IsNullOrEmpty(licenseNames))
+                {
+                    v.LicenseNames = licenseNames.Split(',').Select(l => l.Trim());
+                }
+            }
+            v.LicenseExpressionSegments = licenseExpressionSegments;
+            v.LicenseFileContents = licenseFileContents;
+
+            return v;
         }
 
         private static PackageStatusSummary GetPackageStatusSummary(PackageStatus packageStatus, bool listed)

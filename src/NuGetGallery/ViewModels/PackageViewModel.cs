@@ -8,8 +8,14 @@ namespace NuGetGallery
 {
     public class PackageViewModel : IPackageVersionModel
     {
+        public PackageViewModel()
+        {
+            // TODO: remove with the other constructor
+        }
+
         public PackageViewModel(Package package)
         {
+            // TODO: Remove
             this.SetupFromPackage(package);
         }
 
