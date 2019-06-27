@@ -211,7 +211,7 @@ namespace NuGetGallery
         }
 
         // Used by ODataQueryVerifier. Should consider refactoring to make this non-static.
-        internal TelemetryService() : this(new DiagnosticsService(), TelemetryClientWrapper.Instance)
+        public TelemetryService() : this(new DiagnosticsService(), TelemetryClientWrapper.Instance)
         {
         }
 
@@ -469,7 +469,7 @@ namespace NuGetGallery
         {
             if (string.IsNullOrEmpty(packageId))
             {
-                throw new ArgumentException(Strings.ArgumentCannotBeNullOrEmpty, nameof(packageId));
+                throw new ArgumentException(ServicesStrings.ArgumentCannotBeNullOrEmpty, nameof(packageId));
             }
 
             TrackMetric(Events.PackageRegistrationRequiredSignerSet, 1, properties => {
@@ -530,7 +530,7 @@ namespace NuGetGallery
         {
             if (string.IsNullOrEmpty(thumbprint))
             {
-                throw new ArgumentException(Strings.ArgumentCannotBeNullOrEmpty, nameof(thumbprint));
+                throw new ArgumentException(ServicesStrings.ArgumentCannotBeNullOrEmpty, nameof(thumbprint));
             }
 
             TrackMetric(eventName, 1, properties => {

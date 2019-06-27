@@ -265,7 +265,6 @@
     <Compile Include="Queries\AutocompleteServiceQuery.cs" />
     <Compile Include="Queries\IAutocompletePackageVersionsQuery.cs" />
     <Compile Include="Queries\IAutocompletePackageIdsQuery.cs" />
-    <Compile Include="Diagnostics\TraceDiagnosticsSourceScope.cs" />
     <Compile Include="Configuration\IGalleryConfigurationService.cs" />
     <Compile Include="Configuration\IPackageDeleteConfiguration.cs" />
     <Compile Include="Configuration\IServiceBusConfiguration.cs" />
@@ -276,13 +275,10 @@
     <Compile Include="Controllers\AccountsController.cs" />
     <Compile Include="Controllers\NuGetContext.cs" />
     <Compile Include="Controllers\OrganizationsController.cs" />
-    <Compile Include="Diagnostics\ElmahHandleErrorAttribute.cs" />
     <Compile Include="Extensions\DateTimeExtensions.cs" />
     <Compile Include="Controllers\ODataV1FeedController.cs" />
     <Compile Include="Controllers\ODataV2CuratedFeedController.cs" />
     <Compile Include="Controllers\ODataV2FeedController.cs" />
-    <Compile Include="Diagnostics\PerfCounters.cs" />
-    <Compile Include="Diagnostics\ProcessPerfEvents.cs" />
     <Compile Include="App_Start\OwinStartup.cs" />
     <Compile Include="Areas\Admin\DynamicData\OrderedFieldGenerator.cs" />
     <Compile Include="Areas\Admin\Controllers\LuceneController.cs" />
@@ -672,9 +668,6 @@
     <Compile Include="OData\QueryInterceptors\ODataRemoveSorter.cs" />
     <Compile Include="OData\SearchService\SearchAdaptorResult.cs" />
     <Compile Include="OData\SearchService\SearchHijacker.cs" />
-    <Compile Include="Diagnostics\DiagnosticsService.cs" />
-    <Compile Include="Diagnostics\PerfEvent.cs" />
-    <Compile Include="Diagnostics\SendErrorsToTelemetryAttribute.cs" />
     <Compile Include="Extensions\NumberExtensions.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -682,8 +675,6 @@
     <Compile Include="Helpers\HostMachine.cs" />
     <Compile Include="Infrastructure\DependencyResolverServiceProviderAdapter.cs" />
     <Compile Include="Infrastructure\Lucene\CloudDownloadCountServiceRefreshJob.cs" />
-    <Compile Include="Infrastructure\MessageQueue.cs" />
-    <Compile Include="Diagnostics\TraceDiagnosticsSource.cs" />
     <Compile Include="UrlHelperExtensions.cs" />
     <Compile Include="ViewModels\AddOrganizationViewModel.cs" />
     <Compile Include="ViewModels\AddPackageOwnerViewModel.cs" />
@@ -1235,7 +1226,6 @@
     <Compile Include="Services\ISourceDestinationRedirectPolicy.cs" />
     <Compile Include="Services\NoLessSecureDestinationRedirectPolicy.cs" />
     <Compile Include="Services\ReflowPackageService.cs" />
-    <Compile Include="Services\TelemetryService.cs" />
     <Compile Include="ViewModels\ManageOrganizationsItemViewModel.cs" />
     <Compile Include="ViewModels\ManageOrganizationsViewModel.cs" />
     <Compile Include="ViewModels\ChangeEmailViewModel.cs" />

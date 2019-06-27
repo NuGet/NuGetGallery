@@ -161,6 +161,7 @@
     <Compile Include="Infrastructure\Mail\Messages\SymbolPackageAddedMessage.cs" />
     <Compile Include="Infrastructure\Mail\Messages\SymbolPackageValidationFailedMessage.cs" />
     <Compile Include="Infrastructure\Mail\Messages\SymbolPackageValidationTakingTooLongMessage.cs" />
+    <Compile Include="Infrastructure\MessageQueue.cs" />
     <Compile Include="Infrastructure\TableErrorLog.cs" />
     <Compile Include="Authentication\NuGetClaims.cs" />
     <Compile Include="PackageMetadataExtensions.cs" />
