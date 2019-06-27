@@ -16,7 +16,7 @@ namespace NuGetGallery
         private const string _omissionString = "...";
 
         private string _signatureInformation;
-        private IReadOnlyCollection<BasicUserViewModel> _signers;
+        private IReadOnlyCollection<string> _signerUsernames;
         private string _sha1Thumbprint;
 
         public ListPackageItemViewModel(Package package, User currentUser)
@@ -71,26 +71,26 @@ namespace NuGetGallery
             IsDescriptionTruncated = wasTruncated;
         }
 
-        public void UpdateSignatureInformation(IReadOnlyCollection<BasicUserViewModel> signers, string sha1Thumbprint)
+        public void UpdateSignatureInformation(IReadOnlyCollection<string> signerUsernames, string sha1Thumbprint)
         {
-            if ((signers == null && sha1Thumbprint != null) || (signers != null && sha1Thumbprint == null))
+            if ((signerUsernames == null && sha1Thumbprint != null) || (signerUsernames != null && sha1Thumbprint == null))
             {
-                throw new ArgumentException($"{nameof(signers)} and {nameof(sha1Thumbprint)} arguments must either be both null or both non-null.");
+                throw new ArgumentException($"{nameof(signerUsernames)} and {nameof(sha1Thumbprint)} arguments must either be both null or both non-null.");
             }
 
-            _signers = signers;
+            _signerUsernames = signerUsernames;
             _sha1Thumbprint = sha1Thumbprint;
             _signatureInformation = null;
         }
 
         private string GetSignerInformation()
         {
-            if (_signers == null)
+            if (_signerUsernames == null)
             {
                 return null;
             }
 
-            var signersCount = _signers.Count();
+            var signersCount = _signerUsernames.Count();
 
             var builder = new StringBuilder();
 
@@ -98,20 +98,20 @@ namespace NuGetGallery
 
             if (signersCount == 1)
             {
-                builder.Append($" {_signers.Single().Username}'s");
+                builder.Append($" {_signerUsernames.Single()}'s");
             }
             else if (signersCount == 2)
             {
-                builder.Append($" {_signers.First().Username} and {_signers.Last().Username}'s");
+                builder.Append($" {_signerUsernames.First()} and {_signerUsernames.Last()}'s");
             }
             else if (signersCount != 0)
             {
-                foreach (var signer in _signers.Take(signersCount - 1))
+                foreach (var signerUsername in _signerUsernames.Take(signersCount - 1))
                 {
-                    builder.Append($" {signer.Username},");
+                    builder.Append($" {signerUsername},");
                 }
 
-                builder.Append($" and {_signers.Last().Username}'s");
+                builder.Append($" and {_signerUsernames.Last()}'s");
             }
 
             builder.Append($" certificate ({_sha1Thumbprint})");

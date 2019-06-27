@@ -12,14 +12,8 @@ namespace NuGetGallery
 {
     public sealed class ListPackageItemRequiredSignerViewModel : ListPackageItemViewModel
     {
-        // username must be an empty string because <select /> option values are based on username
-        // and this "user" must be distinguishable from an account named "Any" and any other user;
-        // null would be ideal, but null won't work as a <select /> option value.
-        private static readonly SignerViewModel AnySigner = 
-            new SignerViewModel(username: "", displayText: "Any");
-
         public SignerViewModel RequiredSigner { get; set; }
-        public string RequiredSignerMessage { get; set; }
+        public string RequiredSignerMessage { get; private set; }
         public IEnumerable<SignerViewModel> AllSigners { get; set; }
         public bool ShowRequiredSigner { get; set; }
         public bool ShowTextBox { get; set; }
@@ -32,139 +26,18 @@ namespace NuGetGallery
             bool wasAADLoginOrMultiFactorAuthenticated)
             : base(package, currentUser)
         {
-            if (package == null)
-            {
-                throw new ArgumentNullException(nameof(package));
-            }
-
-            if (currentUser == null)
-            {
-                throw new ArgumentNullException(nameof(currentUser));
-            }
-
-            if (securityPolicyService == null)
-            {
-                throw new ArgumentNullException(nameof(securityPolicyService));
-            }
-
-            var owners = package.PackageRegistration?.Owners ?? Enumerable.Empty<User>();
-
-            if (owners.Any())
-            {
-                ShowRequiredSigner = true;
-
-                var currentUserCanManageRequiredSigner = false;
-                var currentUserHasRequiredSignerControl = false;
-                var noOwnerHasRequiredSignerControl = true;
-
-                foreach (var owner in owners)
-                {
-                    if (!currentUserCanManageRequiredSigner &&
-                        ActionsRequiringPermissions.ManagePackageRequiredSigner.CheckPermissions(currentUser, owner, package)
-                            == PermissionsCheckResult.Allowed)
-                    {
-                        currentUserCanManageRequiredSigner = true;
-                    }
-
-                    if (!currentUserHasRequiredSignerControl)
-                    {
-                        if (securityPolicyService.IsSubscribed(owner, ControlRequiredSignerPolicy.PolicyName))
-                        {
-                            noOwnerHasRequiredSignerControl = false;
-
-                            if (owner == currentUser)
-                            {
-                                currentUserHasRequiredSignerControl = true;
-                            }
-                            else
-                            {
-                                currentUserHasRequiredSignerControl = (owner as Organization)?.GetMembershipOfUser(currentUser)?.IsAdmin ?? false;
-                            }
-                        }
-                    }
-                }
-
-                CanEditRequiredSigner = currentUserCanManageRequiredSigner &&
-                    (currentUserHasRequiredSignerControl || noOwnerHasRequiredSignerControl);
-
-                var requiredSigner = package.PackageRegistration?.RequiredSigners.FirstOrDefault();
-
-                if (requiredSigner == null)
-                {
-                    if (owners.Count() == 1)
-                    {
-                        RequiredSigner = Convert(owners.Single());
-                    }
-                    else
-                    {
-                        RequiredSigner = AnySigner;
-                    }
-                }
-                else
-                {
-                    RequiredSigner = Convert(requiredSigner);
-                }
-
-                if (CanEditRequiredSigner)
-                {
-                    if (owners.Count() == 1)
-                    {
-                        if (requiredSigner != null && requiredSigner != currentUser)
-                        {
-                            // Suppose users A and B own a package and user A is the required signer.
-                            // Then suppose user A removes herself as package owner.
-                            // User B must be able to change the required signer.
-                            AllSigners = new[] { RequiredSigner, Convert(currentUser) };
-                        }
-                        else
-                        {
-                            AllSigners = Enumerable.Empty<SignerViewModel>();
-                            CanEditRequiredSigner = false;
-                            ShowTextBox = true;
-                        }
-                    }
-                    else
-                    {
-                        AllSigners = new[] { AnySigner }.Concat(owners.Select(owner => Convert(owner)));
-                    }
-                }
-                else
-                {
-                    AllSigners = new[] { RequiredSigner };
-
-                    var ownersWithRequiredSignerControl = owners.Where(
-                        owner => securityPolicyService.IsSubscribed(owner, ControlRequiredSignerPolicy.PolicyName));
-
-                    if (owners.Count() == 1)
-                    {
-                        ShowTextBox = true;
-                    }
-                    else
-                    {
-                        RequiredSignerMessage = GetRequiredSignerMessage(ownersWithRequiredSignerControl);
-                    }
-                }
-
-                CanEditRequiredSigner &= wasAADLoginOrMultiFactorAuthenticated;
-            }
+            // TODO: remove
+            this.SetupFromPackage(package, currentUser, securityPolicyService, wasAADLoginOrMultiFactorAuthenticated);
         }
 
-        private static SignerViewModel Convert(User user)
+        public void UpdateRequiredSignerMessage(IReadOnlyCollection<string> signerUsernames)
         {
-            if (user == null)
-            {
-                return null;
-            }
-
-            var certificatesCount = user.UserCertificates.Count();
-            var displayText = $"{user.Username} ({certificatesCount} certificate{(certificatesCount == 1 ? string.Empty : "s")})";
-
-            return new SignerViewModel(user.Username, displayText, certificatesCount > 0);
+            RequiredSignerMessage = GetRequiredSignerMessage(signerUsernames);
         }
 
-        private static string GetRequiredSignerMessage(IEnumerable<User> users)
+        private static string GetRequiredSignerMessage(IReadOnlyCollection<string> signerUsernames)
         {
-            var count = users.Count();
+            var count = signerUsernames.Count();
 
             if (count == 0)
             {
@@ -177,20 +50,20 @@ namespace NuGetGallery
 
             if (count == 1)
             {
-                builder.Append($"'{users.Single().Username}' account.");
+                builder.Append($"'{signerUsernames.Single()}' account.");
             }
             else if (count == 2)
             {
-                builder.Append($"'{users.First().Username}' and '{users.Last().Username}' accounts.");
+                builder.Append($"'{signerUsernames.First()}' and '{signerUsernames.Last()}' accounts.");
             }
             else
             {
-                foreach (var user in users.Take(count - 1))
+                foreach (var username in signerUsernames.Take(count - 1))
                 {
-                    builder.Append($"'{user.Username}', ");
+                    builder.Append($"'{username}', ");
                 }
 
-                builder.Append($"and '{users.Last().Username}' accounts.");
+                builder.Append($"and '{signerUsernames.Last()}' accounts.");
             }
 
             return builder.ToString();
