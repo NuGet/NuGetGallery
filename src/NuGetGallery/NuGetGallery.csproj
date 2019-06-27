@@ -227,6 +227,7 @@
     <Compile Include="Controllers\ExperimentsController.cs" />
     <Compile Include="Controllers\ManageDeprecationJsonApiController.cs" />
     <Compile Include="ExtensionMethods.cs" />
+    <Compile Include="Helpers\ViewModelExtensions.cs" />
     <Compile Include="Infrastructure\Lucene\Correlation\CorrelatingHttpClientHandler.cs" />
     <Compile Include="Infrastructure\Lucene\Correlation\WebApiCorrelationHandler.cs" />
     <Compile Include="Infrastructure\Lucene\IIndexingJobFactory.cs" />

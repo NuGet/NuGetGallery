@@ -3,43 +3,14 @@
 
 using System;
 using NuGet.Services.Entities;
-using NuGet.Versioning;
 
 namespace NuGetGallery
 {
     public class PackageViewModel : IPackageVersionModel
     {
-        protected readonly Package _package;
-
-        private readonly PackageStatus _packageStatus;
-        internal readonly NuGetVersion NuGetVersion;
-
         public PackageViewModel(Package package)
         {
-            _package = package ?? throw new ArgumentNullException(nameof(package));
-
-            FullVersion = NuGetVersionFormatter.ToFullString(package.Version);
-            IsSemVer2 = package.SemVerLevelKey == SemVerLevelKey.SemVer2;
-
-            Version = String.IsNullOrEmpty(package.NormalizedVersion) ?
-                NuGetVersionFormatter.Normalize(package.Version) :
-                package.NormalizedVersion;
-
-            NuGetVersion = NuGetVersion.Parse(FullVersion);
-
-            Description = package.Description;
-            ReleaseNotes = package.ReleaseNotes;
-            IconUrl = package.IconUrl;
-            LatestVersion = package.IsLatest;
-            LatestVersionSemVer2 = package.IsLatestSemVer2;
-            LatestStableVersion = package.IsLatestStable;
-            LatestStableVersionSemVer2 = package.IsLatestStableSemVer2;
-            DevelopmentDependency = package.DevelopmentDependency;
-            LastUpdated = package.Published;
-            Listed = package.Listed;
-            _packageStatus = package.PackageStatusKey;
-            DownloadCount = package.DownloadCount;
-            Prerelease = package.IsPrerelease;
+            this.SetupFromPackage(package);
         }
 
         public string Description { get; set; }
@@ -54,61 +25,21 @@ namespace NuGetGallery
         public bool Prerelease { get; set; }
         public int DownloadCount { get; set; }
         public bool Listed { get; set; }
-        public bool FailedValidation => _packageStatus == PackageStatus.FailedValidation;
-        public bool Available => _packageStatus == PackageStatus.Available;
-        public bool Validating => _packageStatus == PackageStatus.Validating;
-        public bool Deleted => _packageStatus == PackageStatus.Deleted;
-
-        public int TotalDownloadCount
-        {
-            get { return _package.PackageRegistration.DownloadCount; }
-        }
-
-        public string Id
-        {
-            get { return _package.PackageRegistration.Id; }
-        }
-
+        public bool FailedValidation { get; set; }
+        public bool Available { get; set; }
+        public bool Validating { get; set; }
+        public bool Deleted { get; set; }
+        public int TotalDownloadCount { get; set; }
+        public string Id { get; set; }
         public string Version { get; set; }
-        public string FullVersion { get; }
-        public bool IsSemVer2 { get; }
-
-        public string Title
-        {
-            get { return String.IsNullOrEmpty(_package.Title) ? _package.PackageRegistration.Id : _package.Title; }
-        }
+        public string FullVersion { get; set; }
+        public bool IsSemVer2 { get; set; }
+        public string Title { get; set; }
+        public PackageStatusSummary PackageStatusSummary { get; set; }
 
         public bool IsCurrent(IPackageVersionModel current)
         {
             return current.Version == Version && current.Id == Id;
-        }
-
-        public PackageStatusSummary PackageStatusSummary
-        {
-            get
-            {
-                switch (_packageStatus)
-                {
-                    case PackageStatus.Validating:
-                        {
-                            return PackageStatusSummary.Validating;
-                        }
-                    case PackageStatus.FailedValidation:
-                        {
-                            return PackageStatusSummary.FailedValidation;
-                        }
-                    case PackageStatus.Available:
-                        {
-                            return Listed ? PackageStatusSummary.Listed : PackageStatusSummary.Unlisted;
-                        }
-                    case PackageStatus.Deleted:
-                        {
-                            return PackageStatusSummary.None;
-                        }
-                    default:
-                        throw new ArgumentOutOfRangeException(nameof(PackageStatus));
-                }
-            }
         }
     }
 }

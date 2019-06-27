@@ -13,9 +13,13 @@ namespace NuGetGallery
 {
     public class DisplayPackageViewModel : ListPackageItemViewModel
     {
+        internal readonly NuGetVersion NuGetVersion;
+
         public DisplayPackageViewModel(Package package, User currentUser, PackageDeprecation deprecation)
             : this(package, currentUser, (string)null)
         {
+            NuGetVersion = NuGetVersion.Parse(FullVersion);
+
             HasSemVer2Version = NuGetVersion.IsSemVer2;
             HasSemVer2Dependency = package.Dependencies.ToList()
                 .Where(pd => !string.IsNullOrEmpty(pd.VersionSpec))
