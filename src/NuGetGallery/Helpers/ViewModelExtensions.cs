@@ -374,6 +374,32 @@ namespace NuGetGallery
             return viewModel;
         }
 
+        public static DeletePackageViewModel SetupFromPackage(
+            this DeletePackageViewModel v,
+            Package package,
+            User currentUser,
+            IReadOnlyList<ReportPackageReason> reasons)
+        {
+            ((DisplayPackageViewModel)v).SetupFromPackage(package, currentUser, deprecation: null);
+
+            v.DeletePackagesRequest = new DeletePackagesRequest
+            {
+                Packages = new List<string>
+                {
+                    string.Format(
+                        CultureInfo.InvariantCulture,
+                        "{0}|{1}",
+                        package.PackageRegistration.Id,
+                        package.Version)
+                },
+                ReasonChoices = reasons
+            };
+
+            v.IsLocked = package.PackageRegistration.IsLocked;
+
+            return v;
+        }
+
         private static DisplayPackageViewModel GetPackageHistoryItemViewModel(
             Package package,
             User currentUser,
