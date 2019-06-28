@@ -613,9 +613,11 @@ namespace NuGetGallery
             var packages = PackageService.FindPackagesByOwner(user, includeUnlisted: false)
                 .Where(p => p.PackageStatusKey == PackageStatus.Available)
                 .OrderByDescending(p => p.PackageRegistration.DownloadCount)
-                .Select(p => new ListPackageItemViewModel(p, currentUser)
+                .Select(p => 
                 {
-                    DownloadCount = p.PackageRegistration.DownloadCount
+                    var viewModel = new ListPackageItemViewModel().Setup(p, currentUser);
+                    viewModel.DownloadCount = p.PackageRegistration.DownloadCount;
+                    return viewModel;
                 }).ToList();
 
             var model = new UserProfileModel(user, currentUser, packages, page - 1, GalleryConstants.DefaultPackageListPageSize, Url);

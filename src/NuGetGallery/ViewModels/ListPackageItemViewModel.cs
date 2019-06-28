@@ -19,17 +19,6 @@ namespace NuGetGallery
         private IReadOnlyCollection<string> _signerUsernames;
         private string _sha1Thumbprint;
 
-        public ListPackageItemViewModel()
-        {
-            // TODO: remove
-        }
-
-        public ListPackageItemViewModel(Package package, User currentUser)
-        {
-            // TODO: remove
-            this.Setup(package, currentUser);
-        }
-
         public string Authors { get; set; }
         public ICollection<BasicUserViewModel> Owners { get; set; }
         public ICollection<string> Tags { get; set; }
