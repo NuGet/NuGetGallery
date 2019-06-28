@@ -435,12 +435,12 @@ namespace NuGetGallery
             var packages = PackageService.FindPackagesByAnyMatchingOwner(currentUser, includeUnlisted: true);
             var listedPackages = packages
                 .Where(p => p.Listed && p.PackageStatusKey == PackageStatus.Available)
-                .Select(p => new ListPackageItemRequiredSignerViewModel(p, currentUser, SecurityPolicyService, wasAADLoginOrMultiFactorAuthenticated))
+                .Select(p => new ListPackageItemRequiredSignerViewModel().Setup(p, currentUser, SecurityPolicyService, wasAADLoginOrMultiFactorAuthenticated))
                 .OrderBy(p => p.Id)
                 .ToList();
             var unlistedPackages = packages
                 .Where(p => !p.Listed || p.PackageStatusKey != PackageStatus.Available)
-                .Select(p => new ListPackageItemRequiredSignerViewModel(p, currentUser, SecurityPolicyService, wasAADLoginOrMultiFactorAuthenticated))
+                .Select(p => new ListPackageItemRequiredSignerViewModel().Setup(p, currentUser, SecurityPolicyService, wasAADLoginOrMultiFactorAuthenticated))
                 .OrderBy(p => p.Id)
                 .ToList();
 

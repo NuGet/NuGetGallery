@@ -35,29 +35,30 @@ namespace NuGetGallery.ViewModels
         }
 
         [Fact]
-        public void Constructor_WhenPackageIsNull_Throws()
+        public void SetupExtension_WhenPackageIsNull_Throws()
         {
-            var exception = Assert.Throws<ArgumentNullException>(
-                () => new ListPackageItemRequiredSignerViewModel(
-                    package: null,
-                    currentUser: _currentUser,
-                    securityPolicyService: _securityPolicyService.Object,
-                    wasAADLoginOrMultiFactorAuthenticated: true));
+            var target = new ListPackageItemRequiredSignerViewModel();
+            var exception = Assert.Throws<ArgumentNullException>(() => target.Setup(
+                package: null,
+                currentUser: _currentUser,
+                securityPolicyService: _securityPolicyService.Object,
+                wasAADLoginOrMultiFactorAuthenticated: true));
 
             Assert.Equal("package", exception.ParamName);
         }
 
         [Fact]
-        public void Constructor_WhenCurrentUserIsNull_Throws()
+        public void SetupExtension_WhenCurrentUserIsNull_Throws()
         {
             var package = new Package()
             {
                 PackageRegistration = new PackageRegistration(),
                 Version = "1.0.0"
             };
+            var target = new ListPackageItemRequiredSignerViewModel();
 
             var exception = Assert.Throws<ArgumentNullException>(
-                () => new ListPackageItemRequiredSignerViewModel(
+                () => target.Setup(
                     package,
                     currentUser: null,
                     securityPolicyService: _securityPolicyService.Object,
@@ -67,16 +68,17 @@ namespace NuGetGallery.ViewModels
         }
 
         [Fact]
-        public void Constructor_WhenSecurityPolicyServiceIsNull_Throws()
+        public void SetupExtension_WhenSecurityPolicyServiceIsNull_Throws()
         {
             var package = new Package()
             {
                 PackageRegistration = new PackageRegistration(),
                 Version = "1.0.0"
             };
+            var target = new ListPackageItemRequiredSignerViewModel();
 
             var exception = Assert.Throws<ArgumentNullException>(
-                () => new ListPackageItemRequiredSignerViewModel(
+                () => target.Setup(
                     package,
                     _currentUser,
                     securityPolicyService: null,
@@ -86,7 +88,7 @@ namespace NuGetGallery.ViewModels
         }
 
         [Fact]
-        public void Constructor_WhenPackageHasOneOwnerAndItIsTheCurrentUser_WhenRequiredSignerIsNull()
+        public void SetupExtension_WhenPackageHasOneOwnerAndItIsTheCurrentUser_WhenRequiredSignerIsNull()
         {
             var package = new Package()
             {
@@ -101,8 +103,9 @@ namespace NuGetGallery.ViewModels
                     It.Is<User>(user => user == _currentUser),
                     It.Is<string>(policyName => policyName == ControlRequiredSignerPolicy.PolicyName)))
                 .Returns(false);
+            var target = new ListPackageItemRequiredSignerViewModel();
 
-            var viewModel = new ListPackageItemRequiredSignerViewModel(
+            var viewModel = target.Setup(
                 package,
                 _currentUser,
                 _securityPolicyService.Object,
@@ -120,7 +123,7 @@ namespace NuGetGallery.ViewModels
         }
 
         [Fact]
-        public void Constructor_WhenPackageHasOneOwnerAndItIsTheCurrentUser_WhenRequiredSignerIsCurrentUser()
+        public void SetupExtension_WhenPackageHasOneOwnerAndItIsTheCurrentUser_WhenRequiredSignerIsCurrentUser()
         {
             var package = new Package()
             {
@@ -131,13 +134,14 @@ namespace NuGetGallery.ViewModels
                 },
                 Version = "1.0.0"
             };
+            var target = new ListPackageItemRequiredSignerViewModel();
 
             _securityPolicyService.Setup(x => x.IsSubscribed(
                     It.Is<User>(user => user == _currentUser),
                     It.Is<string>(policyName => policyName == ControlRequiredSignerPolicy.PolicyName)))
                 .Returns(false);
 
-            var viewModel = new ListPackageItemRequiredSignerViewModel(
+            var viewModel = target.Setup(
                 package,
                 _currentUser,
                 _securityPolicyService.Object,
@@ -155,7 +159,7 @@ namespace NuGetGallery.ViewModels
         }
 
         [Fact]
-        public void Constructor_WhenPackageHasOneOwnerAndItIsTheCurrentUser_WhenRequiredSignerIsAnotherUser()
+        public void SetupExtension_WhenPackageHasOneOwnerAndItIsTheCurrentUser_WhenRequiredSignerIsAnotherUser()
         {
             var package = new Package()
             {
@@ -166,13 +170,14 @@ namespace NuGetGallery.ViewModels
                 },
                 Version = "1.0.0"
             };
+            var target = new ListPackageItemRequiredSignerViewModel();
 
             _securityPolicyService.Setup(x => x.IsSubscribed(
                     It.Is<User>(user => user == _currentUser),
                     It.Is<string>(policyName => policyName == ControlRequiredSignerPolicy.PolicyName)))
                 .Returns(false);
 
-            var viewModel = new ListPackageItemRequiredSignerViewModel(
+            var viewModel = target.Setup(
                 package,
                 _currentUser,
                 _securityPolicyService.Object,
@@ -190,7 +195,7 @@ namespace NuGetGallery.ViewModels
         }
 
         [Fact]
-        public void Constructor_WhenPackageHasTwoOwnersAndTheCurrentUserIsAnOwner_WhenRequiredSignerIsNull()
+        public void SetupExtension_WhenPackageHasTwoOwnersAndTheCurrentUserIsAnOwner_WhenRequiredSignerIsNull()
         {
             var package = new Package()
             {
@@ -200,6 +205,7 @@ namespace NuGetGallery.ViewModels
                 },
                 Version = "1.0.0"
             };
+            var target = new ListPackageItemRequiredSignerViewModel();
 
             _securityPolicyService.Setup(
                 x => x.IsSubscribed(
@@ -207,7 +213,7 @@ namespace NuGetGallery.ViewModels
                     It.Is<string>(s => s == ControlRequiredSignerPolicy.PolicyName)))
                 .Returns(false);
 
-            var viewModel = new ListPackageItemRequiredSignerViewModel(
+            var viewModel = target.Setup(
                 package,
                 _currentUser,
                 _securityPolicyService.Object,
@@ -225,7 +231,7 @@ namespace NuGetGallery.ViewModels
         }
 
         [Fact]
-        public void Constructor_WhenPackageHasTwoOwnersAndTheCurrentUserIsAnOwnerAndNotMultiFactorAuthenticated_WhenRequiredSignerIsNull()
+        public void SetupExtension_WhenPackageHasTwoOwnersAndTheCurrentUserIsAnOwnerAndNotMultiFactorAuthenticated_WhenRequiredSignerIsNull()
         {
             var package = new Package()
             {
@@ -235,6 +241,7 @@ namespace NuGetGallery.ViewModels
                 },
                 Version = "1.0.0"
             };
+            var target = new ListPackageItemRequiredSignerViewModel();
 
             _securityPolicyService.Setup(
                 x => x.IsSubscribed(
@@ -242,7 +249,7 @@ namespace NuGetGallery.ViewModels
                     It.Is<string>(s => s == ControlRequiredSignerPolicy.PolicyName)))
                 .Returns(false);
 
-            var viewModel = new ListPackageItemRequiredSignerViewModel(
+            var viewModel = target.Setup(
                 package,
                 _currentUser,
                 _securityPolicyService.Object,
@@ -260,7 +267,7 @@ namespace NuGetGallery.ViewModels
         }
 
         [Fact]
-        public void Constructor_WhenPackageHasOneOwnerAndTheCurrentUserIsACollaborator_WhenRequiredSignerIsNull()
+        public void SetupExtension_WhenPackageHasOneOwnerAndTheCurrentUserIsACollaborator_WhenRequiredSignerIsNull()
         {
             var organization = new Organization()
             {
@@ -285,6 +292,7 @@ namespace NuGetGallery.ViewModels
                 },
                 Version = "1.0.0"
             };
+            var target = new ListPackageItemRequiredSignerViewModel();
 
             _securityPolicyService.Setup(
                 x => x.IsSubscribed(
@@ -292,7 +300,7 @@ namespace NuGetGallery.ViewModels
                     It.Is<string>(s => s == ControlRequiredSignerPolicy.PolicyName)))
                 .Returns(false);
 
-            var viewModel = new ListPackageItemRequiredSignerViewModel(
+            var viewModel = target.Setup(
                 package,
                 _currentUser,
                 _securityPolicyService.Object,
@@ -310,7 +318,7 @@ namespace NuGetGallery.ViewModels
         }
 
         [Fact]
-        public void Constructor_WhenPackageHasTwoOwnersAndTheCurrentUserIsAnOwner_WhenRequiredSignerIsCurrentUser()
+        public void SetupExtension_WhenPackageHasTwoOwnersAndTheCurrentUserIsAnOwner_WhenRequiredSignerIsCurrentUser()
         {
             var package = new Package()
             {
@@ -321,6 +329,7 @@ namespace NuGetGallery.ViewModels
                 },
                 Version = "1.0.0"
             };
+            var target = new ListPackageItemRequiredSignerViewModel();
 
             _securityPolicyService.Setup(
                 x => x.IsSubscribed(
@@ -328,7 +337,7 @@ namespace NuGetGallery.ViewModels
                     It.Is<string>(s => s == ControlRequiredSignerPolicy.PolicyName)))
                 .Returns(false);
 
-            var viewModel = new ListPackageItemRequiredSignerViewModel(
+            var viewModel = target.Setup(
                 package,
                 _currentUser,
                 _securityPolicyService.Object,
@@ -346,7 +355,7 @@ namespace NuGetGallery.ViewModels
         }
 
         [Fact]
-        public void Constructor_WhenPackageHasTwoOwnersAndTheCurrentUserIsAnOwner_WhenRequiredSignerIsAnotherUser()
+        public void SetupExtension_WhenPackageHasTwoOwnersAndTheCurrentUserIsAnOwner_WhenRequiredSignerIsAnotherUser()
         {
             var package = new Package()
             {
@@ -357,6 +366,7 @@ namespace NuGetGallery.ViewModels
                 },
                 Version = "1.0.0"
             };
+            var target = new ListPackageItemRequiredSignerViewModel();
 
             _securityPolicyService.Setup(
                 x => x.IsSubscribed(
@@ -364,7 +374,7 @@ namespace NuGetGallery.ViewModels
                     It.Is<string>(s => s == ControlRequiredSignerPolicy.PolicyName)))
                 .Returns(false);
 
-            var viewModel = new ListPackageItemRequiredSignerViewModel(
+            var viewModel = target.Setup(
                 package,
                 _currentUser,
                 _securityPolicyService.Object,
@@ -382,7 +392,7 @@ namespace NuGetGallery.ViewModels
         }
 
         [Fact]
-        public void Constructor_WhenPackageHasMultipleOwners_WhenOwnersHaveVaryingCertificateCounts()
+        public void SetupExtension_WhenPackageHasMultipleOwners_WhenOwnersHaveVaryingCertificateCounts()
         {
             User currentUser = new User()
             {
@@ -420,6 +430,7 @@ namespace NuGetGallery.ViewModels
                 },
                 Version = "1.0.0"
             };
+            var target = new ListPackageItemRequiredSignerViewModel();
 
             _securityPolicyService.Setup(
                 x => x.IsSubscribed(
@@ -427,7 +438,7 @@ namespace NuGetGallery.ViewModels
                     It.Is<string>(s => s == ControlRequiredSignerPolicy.PolicyName)))
                 .Returns(false);
 
-            var viewModel = new ListPackageItemRequiredSignerViewModel(
+            var viewModel = target.Setup(
                 package,
                 currentUser,
                 _securityPolicyService.Object,
@@ -445,7 +456,7 @@ namespace NuGetGallery.ViewModels
         }
 
         [Fact]
-        public void Constructor_WhenPackageHasTwoOwnersAndTheCurrentUserIsAnOwner_WhenCurrentUserHasRequiredSignerControl()
+        public void SetupExtension_WhenPackageHasTwoOwnersAndTheCurrentUserIsAnOwner_WhenCurrentUserHasRequiredSignerControl()
         {
             var package = new Package()
             {
@@ -456,6 +467,7 @@ namespace NuGetGallery.ViewModels
                 },
                 Version = "1.0.0"
             };
+            var target = new ListPackageItemRequiredSignerViewModel();
 
             _securityPolicyService.Setup(
                 x => x.IsSubscribed(
@@ -463,7 +475,7 @@ namespace NuGetGallery.ViewModels
                     It.Is<string>(s => s == ControlRequiredSignerPolicy.PolicyName)))
                 .Returns(true);
 
-            var viewModel = new ListPackageItemRequiredSignerViewModel(
+            var viewModel = target.Setup(
                 package,
                 _currentUser,
                 _securityPolicyService.Object,
@@ -481,7 +493,7 @@ namespace NuGetGallery.ViewModels
         }
 
         [Fact]
-        public void Constructor_WhenPackageHasTwoOwnersAndTheCurrentUserIsAnOwner_WhenCurrentUserDoesNotHaveRequiredSignerControl()
+        public void SetupExtension_WhenPackageHasTwoOwnersAndTheCurrentUserIsAnOwner_WhenCurrentUserDoesNotHaveRequiredSignerControl()
         {
             var package = new Package()
             {
@@ -492,6 +504,7 @@ namespace NuGetGallery.ViewModels
                 },
                 Version = "1.0.0"
             };
+            var target = new ListPackageItemRequiredSignerViewModel();
 
             _securityPolicyService.Setup(
                 x => x.IsSubscribed(
@@ -504,7 +517,7 @@ namespace NuGetGallery.ViewModels
                     It.Is<string>(s => s == ControlRequiredSignerPolicy.PolicyName)))
                 .Returns(true);
 
-            var viewModel = new ListPackageItemRequiredSignerViewModel(
+            var viewModel = target.Setup(
                 package,
                 _currentUser,
                 _securityPolicyService.Object,
@@ -522,7 +535,7 @@ namespace NuGetGallery.ViewModels
         }
 
         [Fact]
-        public void Constructor_WhenPackageHasThreeOwnersAndTheCurrentUserIsAnOwner_WhenTwoOtherOwnersHaveRequiredSignerControl()
+        public void SetupExtension_WhenPackageHasThreeOwnersAndTheCurrentUserIsAnOwner_WhenTwoOtherOwnersHaveRequiredSignerControl()
         {
             var otherUser2 = new User()
             {
@@ -539,6 +552,7 @@ namespace NuGetGallery.ViewModels
                 },
                 Version = "1.0.0"
             };
+            var target = new ListPackageItemRequiredSignerViewModel();
 
             _securityPolicyService.Setup(
                 x => x.IsSubscribed(
@@ -556,7 +570,7 @@ namespace NuGetGallery.ViewModels
                     It.Is<string>(s => s == ControlRequiredSignerPolicy.PolicyName)))
                 .Returns(true);
 
-            var viewModel = new ListPackageItemRequiredSignerViewModel(
+            var viewModel = target.Setup(
                 package,
                 _currentUser,
                 _securityPolicyService.Object,
@@ -574,7 +588,7 @@ namespace NuGetGallery.ViewModels
         }
 
         [Fact]
-        public void Constructor_WhenPackageHasFourOwnersAndTheCurrentUserIsAnOwner_WhenThreeOtherOwnersHaveRequiredSignerControl()
+        public void SetupExtension_WhenPackageHasFourOwnersAndTheCurrentUserIsAnOwner_WhenThreeOtherOwnersHaveRequiredSignerControl()
         {
             var otherUser2 = new User()
             {
@@ -597,6 +611,7 @@ namespace NuGetGallery.ViewModels
                 },
                 Version = "1.0.0"
             };
+            var target = new ListPackageItemRequiredSignerViewModel();
 
             _securityPolicyService.Setup(
                 x => x.IsSubscribed(
@@ -619,7 +634,7 @@ namespace NuGetGallery.ViewModels
                     It.Is<string>(s => s == ControlRequiredSignerPolicy.PolicyName)))
                 .Returns(true);
 
-            var viewModel = new ListPackageItemRequiredSignerViewModel(
+            var viewModel = target.Setup(
                 package,
                 _currentUser,
                 _securityPolicyService.Object,

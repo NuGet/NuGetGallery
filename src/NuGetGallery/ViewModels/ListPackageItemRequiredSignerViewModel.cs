@@ -1,12 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using NuGet.Services.Entities;
-using NuGetGallery.Security;
 
 namespace NuGetGallery
 {
@@ -18,16 +15,6 @@ namespace NuGetGallery
         public bool ShowRequiredSigner { get; set; }
         public bool ShowTextBox { get; set; }
         public bool CanEditRequiredSigner { get; set; }
-
-        public ListPackageItemRequiredSignerViewModel(
-            Package package,
-            User currentUser,
-            ISecurityPolicyService securityPolicyService,
-            bool wasAADLoginOrMultiFactorAuthenticated)
-        {
-            // TODO: remove
-            this.Setup(package, currentUser, securityPolicyService, wasAADLoginOrMultiFactorAuthenticated);
-        }
 
         public void UpdateRequiredSignerMessage(IReadOnlyCollection<string> signerUsernames)
         {
