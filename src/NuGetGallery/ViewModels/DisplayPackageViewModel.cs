@@ -15,19 +15,6 @@ namespace NuGetGallery
     {
         internal readonly NuGetVersion NuGetVersion;
 
-        public DisplayPackageViewModel()
-        {
-            // TODO: remove
-        }
-
-        public DisplayPackageViewModel(Package package, User currentUser, PackageDeprecation deprecation)
-        {
-            // TODO: remove
-            NuGetVersion = NuGetVersion.Parse(NuGetVersionFormatter.ToFullString(package.Version));
-
-            this.Setup(package, currentUser, deprecation);
-        }
-
         public bool ValidatingTooLong { get; set; }
         public IReadOnlyList<ValidationIssue> PackageValidationIssues { get; set; }
         public IReadOnlyList<ValidationIssue> SymbolsPackageValidationIssues { get; set; }
