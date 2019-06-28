@@ -298,6 +298,18 @@ namespace NuGetGallery
             return viewModel;
         }
 
+        public static DeleteAccountListPackageItemViewModel SetupFromPackage(
+            this DeleteAccountListPackageItemViewModel viewModel,
+            Package package,
+            User userToDelete,
+            User currentUser,
+            IPackageService packageService)
+        {
+            ((ListPackageItemViewModel)viewModel).SetupFromPackage(package, currentUser);
+            viewModel.WillBeOrphaned = packageService.WillPackageBeOrphanedIfOwnerRemoved(package.PackageRegistration, userToDelete);
+            return viewModel;
+        }
+
         private static PackageStatusSummary GetPackageStatusSummary(PackageStatus packageStatus, bool listed)
         {
             switch (packageStatus)

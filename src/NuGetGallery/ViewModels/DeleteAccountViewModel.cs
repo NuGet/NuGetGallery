@@ -54,12 +54,12 @@ namespace NuGetGallery
             User userToDelete, 
             User currentUser, 
             IPackageService packageService)
-            : base(package, currentUser)
         {
-            WillBeOrphaned = packageService.WillPackageBeOrphanedIfOwnerRemoved(package.PackageRegistration, userToDelete);
+            // TODO: remove
+            this.SetupFromPackage(package, userToDelete, currentUser, packageService);
         }
 
-        public bool WillBeOrphaned { get; }
+        public bool WillBeOrphaned { get; set; }
     }
 
     public interface IDeleteAccountViewModel
