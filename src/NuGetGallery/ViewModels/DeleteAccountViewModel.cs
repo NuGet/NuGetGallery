@@ -32,7 +32,7 @@ namespace NuGetGallery
 
             Packages = packageService
                  .FindPackagesByAnyMatchingOwner(User, includeUnlisted: true)
-                 .Select(p => new DeleteAccountListPackageItemViewModel(p, userToDelete, currentUser, packageService))
+                 .Select(p => new DeleteAccountListPackageItemViewModel().Setup(p, userToDelete, currentUser, packageService))
                  .ToList();
 
             HasPackagesThatWillBeOrphaned = Packages.Any(p => p.WillBeOrphaned);
@@ -49,16 +49,6 @@ namespace NuGetGallery
 
     public class DeleteAccountListPackageItemViewModel : ListPackageItemViewModel
     {
-        public DeleteAccountListPackageItemViewModel(
-            Package package, 
-            User userToDelete, 
-            User currentUser, 
-            IPackageService packageService)
-        {
-            // TODO: remove
-            this.Setup(package, userToDelete, currentUser, packageService);
-        }
-
         public bool WillBeOrphaned { get; set; }
     }
 
