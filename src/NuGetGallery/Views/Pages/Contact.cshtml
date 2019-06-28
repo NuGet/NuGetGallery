@@ -89,7 +89,7 @@
                             @Html.ShowValidationMessagesFor(m => m.CopySender)
                         </div>
                         <div class="form-group">
-                            <input type="submit" class="btn btn-primary form-control" value="Contact" title="Contact Support" />
+                            <input id="Submit" type="submit" class="btn btn-primary form-control" value="Contact" title="Contact Support" />
                         </div>
                     </fieldset>
                 }
@@ -108,4 +108,5 @@
             $("#emailUs").append(link);
         });
     </script>
+    @ViewHelpers.RecatpchaScripts(Config.Current.ReCaptchaPublicKey, "Submit")
 }
