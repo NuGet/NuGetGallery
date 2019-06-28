@@ -2,11 +2,8 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
 using System.Web.Mvc;
 using NuGet.Services.Entities;
-using NuGet.Versioning;
 
 namespace NuGetGallery
 {
@@ -15,90 +12,18 @@ namespace NuGetGallery
         public ManagePackageViewModel(Package package, User currentUser, IReadOnlyList<ReportPackageReason> reasons, UrlHelper url, string readMe, bool isManageDeprecationEnabled)
             : base(package, currentUser)
         {
-            IsCurrentUserAnAdmin = currentUser != null && currentUser.IsAdministrator;
-
-            DeletePackagesRequest = new DeletePackagesRequest
-            {
-                Packages = new List<string>
-                {
-                    string.Format(
-                        CultureInfo.InvariantCulture,
-                        "{0}|{1}",
-                        package.PackageRegistration.Id,
-                        package.Version)
-                },
-                ReasonChoices = reasons
-            };
-
-            IsLocked = package.PackageRegistration.IsLocked;
-
-            IsManageDeprecationEnabled = isManageDeprecationEnabled;
-
-            var versionSelectPackages = package.PackageRegistration.Packages
-                .Where(p => p.PackageStatusKey == PackageStatus.Available || p.PackageStatusKey == PackageStatus.Validating)
-                .OrderByDescending(p => new NuGetVersion(p.Version))
-                .ToList();
-
-            VersionSelectList = new List<SelectListItem>();
-            VersionListedStateDictionary = new Dictionary<string, VersionListedState>();
-            VersionReadMeStateDictionary = new Dictionary<string, VersionReadMeState>();
-            VersionDeprecationStateDictionary = new Dictionary<string, VersionDeprecationState>();
-
-            var submitUrlTemplate = url.PackageVersionActionTemplate("Edit");
-            var getReadMeUrlTemplate = url.PackageVersionActionTemplate("GetReadMeMd");
-            foreach (var versionSelectPackage in versionSelectPackages)
-            {
-                var text = PackageHelper.GetSelectListText(versionSelectPackage);
-                var value = NuGetVersionFormatter.Normalize(versionSelectPackage.Version);
-                VersionSelectList.Add(new SelectListItem
-                {
-                    Text = text,
-                    Value = value,
-                    Selected = package == versionSelectPackage
-                });
-
-                VersionListedStateDictionary.Add(
-                    value,
-                    new VersionListedState(versionSelectPackage));
-
-                var model = new TrivialPackageVersionModel(versionSelectPackage);
-                VersionReadMeStateDictionary.Add(
-                    value,
-                    new VersionReadMeState(
-                        submitUrlTemplate.Resolve(model),
-                        getReadMeUrlTemplate.Resolve(model),
-                        null));
-
-                VersionDeprecationStateDictionary.Add(
-                    value,
-                    new VersionDeprecationState(versionSelectPackage, text));
-            }
-
-            // Update edit model with the readme.md data.
-            ReadMe = new EditPackageVersionReadMeRequest();
-            if (package.HasReadMe)
-            {
-                ReadMe.ReadMe.SourceType = ReadMeService.TypeWritten;
-                ReadMe.ReadMe.SourceText = readMe;
-            }
+            // TODO: remove
+            this.SetupFromPackage(package, currentUser, reasons, url, readMe, isManageDeprecationEnabled);
         }
 
         public List<SelectListItem> VersionSelectList { get; set; }
-
-        public bool IsCurrentUserAnAdmin { get; }
-
+        public bool IsCurrentUserAnAdmin { get; set; }
         public DeletePackagesRequest DeletePackagesRequest { get; set; }
-
-        public bool IsLocked { get; }
-
+        public bool IsLocked { get; set; }
         public EditPackageVersionReadMeRequest ReadMe { get; set; }
-
         public Dictionary<string, VersionListedState> VersionListedStateDictionary { get; set; }
-
         public Dictionary<string, VersionReadMeState> VersionReadMeStateDictionary { get; set; }
-
-        public bool IsManageDeprecationEnabled { get; }
-
+        public bool IsManageDeprecationEnabled { get; set; }
         public Dictionary<string, VersionDeprecationState> VersionDeprecationStateDictionary { get; set; }
 
         /// <remarks>
@@ -107,10 +32,10 @@ namespace NuGetGallery
         /// </remarks>
         public class VersionListedState
         {
-            public VersionListedState(Package package)
+            public VersionListedState(bool listed, int downloadCount)
             {
-                Listed = package.Listed;
-                DownloadCount = package.DownloadCount;
+                Listed = listed;
+                DownloadCount = downloadCount;
             }
 
             public bool Listed { get; }
@@ -141,39 +66,13 @@ namespace NuGetGallery
         /// </remarks>
         public class VersionDeprecationState
         {
-            public VersionDeprecationState(Package package, string text)
-            {
-                Text = text;
-
-                var deprecation = package.Deprecations.SingleOrDefault();
-                if (deprecation != null)
-                {
-                    IsLegacy = deprecation.Status.HasFlag(PackageDeprecationStatus.Legacy);
-                    HasCriticalBugs = deprecation.Status.HasFlag(PackageDeprecationStatus.CriticalBugs);
-                    IsOther = deprecation.Status.HasFlag(PackageDeprecationStatus.Other);
-
-                    AlternatePackageId = deprecation.AlternatePackageRegistration?.Id;
-
-                    var alternatePackage = deprecation.AlternatePackage;
-                    if (alternatePackage != null)
-                    {
-                        // A deprecation should not have both an alternate package registration and an alternate package.
-                        // In case a deprecation does have both, we will hide the alternate package registration's ID in this model.
-                        AlternatePackageId = alternatePackage?.Id;
-                        AlternatePackageVersion = alternatePackage?.Version;
-                    }
-
-                    CustomMessage = deprecation.CustomMessage;
-                }
-            }
-
-            public string Text { get; }
-            public bool IsLegacy { get; }
-            public bool HasCriticalBugs { get; }
-            public bool IsOther { get; }
-            public string AlternatePackageId { get; }
-            public string AlternatePackageVersion { get; }
-            public string CustomMessage { get; }
+            public string Text { get; set; }
+            public bool IsLegacy { get; set; }
+            public bool HasCriticalBugs { get; set; }
+            public bool IsOther { get; set; }
+            public string AlternatePackageId { get; set; }
+            public string AlternatePackageVersion { get; set; }
+            public string CustomMessage { get; set; }
         }
     }
 }
