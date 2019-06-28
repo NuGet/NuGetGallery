@@ -19,6 +19,11 @@ namespace NuGetGallery
         private IReadOnlyCollection<string> _signerUsernames;
         private string _sha1Thumbprint;
 
+        public ListPackageItemViewModel()
+        {
+            // TODO: remove
+        }
+
         public ListPackageItemViewModel(Package package, User currentUser)
         {
             // TODO: remove

@@ -64,7 +64,7 @@ namespace NuGetGallery
             IReadOnlyCollection<CompositeLicenseExpressionSegment> licenseExpressionSegments,
             string licenseFileContents)
         {
-            viewModel.SetupFromPackage(package);
+            ((PackageViewModel)viewModel).SetupFromPackage(package);
 
             viewModel.EmbeddedLicenseType = package.EmbeddedLicenseType;
             viewModel.LicenseExpression = package.LicenseExpression;
@@ -86,7 +86,8 @@ namespace NuGetGallery
 
         public static ListPackageItemViewModel SetupFromPackage(this ListPackageItemViewModel viewModel, Package package, User currentUser)
         {
-            viewModel.SetupFromPackage(package);
+            ((PackageViewModel)viewModel).SetupFromPackage(package);
+
             viewModel.Tags = package.Tags?
                 .Split(' ')
                 .Where(t => !string.IsNullOrEmpty(t))
@@ -133,6 +134,7 @@ namespace NuGetGallery
             bool wasAADLoginOrMultiFactorAuthenticated)
         {
             ((ListPackageItemViewModel)viewModel).SetupFromPackage(package, currentUser);
+
             if (currentUser == null)
             {
                 throw new ArgumentNullException(nameof(currentUser));
@@ -224,6 +226,8 @@ namespace NuGetGallery
             string readMe,
             bool isManageDeprecationEnabled)
         {
+            ((ListPackageItemViewModel)viewModel).SetupFromPackage(package, currentUser);
+
             viewModel.IsCurrentUserAnAdmin = currentUser != null && currentUser.IsAdministrator;
 
             viewModel.DeletePackagesRequest = new DeletePackagesRequest

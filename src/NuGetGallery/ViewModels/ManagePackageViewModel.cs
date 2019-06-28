@@ -10,7 +10,6 @@ namespace NuGetGallery
     public class ManagePackageViewModel : ListPackageItemViewModel
     {
         public ManagePackageViewModel(Package package, User currentUser, IReadOnlyList<ReportPackageReason> reasons, UrlHelper url, string readMe, bool isManageDeprecationEnabled)
-            : base(package, currentUser)
         {
             // TODO: remove
             this.SetupFromPackage(package, currentUser, reasons, url, readMe, isManageDeprecationEnabled);

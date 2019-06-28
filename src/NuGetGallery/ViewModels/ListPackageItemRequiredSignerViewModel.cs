@@ -24,7 +24,6 @@ namespace NuGetGallery
             User currentUser,
             ISecurityPolicyService securityPolicyService,
             bool wasAADLoginOrMultiFactorAuthenticated)
-            : base(package, currentUser)
         {
             // TODO: remove
             this.SetupFromPackage(package, currentUser, securityPolicyService, wasAADLoginOrMultiFactorAuthenticated);
