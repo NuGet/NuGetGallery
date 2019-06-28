@@ -21,6 +21,7 @@ namespace NuGetGallery.ViewModels
             var package = new Package
             {
                 Version = "1.0.0",
+                PackageRegistration = new PackageRegistration { Id = "SomeId" },
                 EmbeddedLicenseType = embeddedLicenseType,
                 LicenseExpression = licenseExpression,
             };
@@ -42,6 +43,7 @@ namespace NuGetGallery.ViewModels
             {
                 LicenseUrl = licenseUrl,
                 Version = "1.0.0",
+                PackageRegistration = new PackageRegistration { Id = "SomeId" },
                 LicenseNames = "l1,l2, l3 ,l4  ,  l5 ",
             };
 
@@ -69,6 +71,7 @@ namespace NuGetGallery.ViewModels
             var package = new Package
             {
                 Version = "1.0.0",
+                PackageRegistration = new PackageRegistration { Id = "SomeId" },
                 LicenseUrl = licenseUrl
             };
 
@@ -86,6 +89,7 @@ namespace NuGetGallery.ViewModels
             var package = new Package
             {
                 Version = "1.0.0",
+                PackageRegistration = new PackageRegistration { Id = "SomeId" },
             };
             var segments = new List<CompositeLicenseExpressionSegment>();
 
@@ -103,6 +107,7 @@ namespace NuGetGallery.ViewModels
             var package = new Package
             {
                 Version = "1.0.0",
+                PackageRegistration = new PackageRegistration { Id = "SomeId" },
             };
             var licenseFileContents = "It's a license";
 
