@@ -19,6 +19,7 @@ namespace NuGetGallery.ViewModels
             var package = new Package()
             {
                 Version = "01.02.00.00",
+                PackageRegistration = new PackageRegistration { Id = "SomeId" },
                 NormalizedVersion = "1.3.0" // Different just to prove the View Model is using the DB column.
             };
             var packageViewModel = new ListPackageItemViewModel().Setup(package, currentUser: null);
@@ -30,7 +31,8 @@ namespace NuGetGallery.ViewModels
         {
             var package = new Package()
             {
-                Version = "01.02.00.00"
+                Version = "01.02.00.00",
+                PackageRegistration = new PackageRegistration { Id = "SomeId" },
             };
             var packageViewModel = new ListPackageItemViewModel().Setup(package, currentUser: null);
             Assert.Equal("1.2.0", packageViewModel.Version);
@@ -45,6 +47,7 @@ namespace NuGetGallery.ViewModels
             var package = new Package()
             {
                 Version = "1.0.0",
+                PackageRegistration = new PackageRegistration { Id = "SomeId" },
                 Description = description
             };
 
@@ -65,6 +68,7 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
             var package = new Package()
             {
                 Version = "1.0.0",
+                PackageRegistration = new PackageRegistration { Id = "SomeId" },
                 Description = description
             };
 
@@ -86,6 +90,7 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
             var package = new Package()
             {
                 Version = "1.0.0",
+                PackageRegistration = new PackageRegistration { Id = "SomeId" },
                 Description = description
             };
 
@@ -101,7 +106,8 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
         {
             var package = new Package()
             {
-                Version = "1.0.0"
+                Version = "1.0.0",
+                PackageRegistration = new PackageRegistration { Id = "SomeId" },
             };
 
             var listPackageItemViewModel = new ListPackageItemViewModel().Setup(package, currentUser: null);
@@ -115,6 +121,7 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
             var package = new Package()
             {
                 Version = "1.0.0",
+                PackageRegistration = new PackageRegistration { Id = "SomeId" },
                 Tags = "tag1 tag2 tag3"
             };
 
@@ -147,6 +154,7 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
             var package = new Package()
             {
                 Version = "1.0.0",
+                PackageRegistration = new PackageRegistration { Id = "SomeId" },
 #pragma warning disable 0618
                 Authors = authors,
 #pragma warning restore 0618
@@ -164,6 +172,7 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
             var package = new Package()
             {
                 Version = "1.0.0",
+                PackageRegistration = new PackageRegistration { Id = "SomeId" },
                 IsLatest = true,
                 IsLatestStable = false
             };
@@ -190,6 +199,7 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
             var package = new Package()
             {
                 Version = "1.0.0",
+                PackageRegistration = new PackageRegistration { Id = "SomeId" },
                 SemVerLevelKey = SemVerLevelKey.SemVer2,
                 IsLatestSemVer2 = true,
                 IsLatestStableSemVer2 = false
