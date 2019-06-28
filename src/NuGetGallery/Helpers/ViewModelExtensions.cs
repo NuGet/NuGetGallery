@@ -316,7 +316,7 @@ namespace NuGetGallery
             User currentUser,
             PackageDeprecation deprecation)
         {
-            ((ListPackageItemViewModel)viewModel).Setup(package, currentUser);
+            viewModel.SetupDisplayViewModelCommon(package, currentUser, pushedBy: null);
 
             var nuGetVersion = NuGetVersion.Parse(NuGetVersionFormatter.ToFullString(package.Version));
 
@@ -334,7 +334,11 @@ namespace NuGetGallery
                 .OrderByDescending(p => new NuGetVersion(p.Version))
                 .ToList();
             var pushedByCache = new Dictionary<User, string>();
-            viewModel.PackageVersions = packageHistory.Select(p => GetPackageHistoryItemViewModel(p, currentUser, GetPushedBy(p, currentUser, pushedByCache))).ToList();
+            viewModel.PackageVersions = packageHistory
+                .Select(
+                    p => new DisplayPackageViewModel()
+                        .SetupDisplayViewModelCommon(p, currentUser, GetPushedBy(p, currentUser, pushedByCache)))
+                .ToList();
 
             viewModel.PushedBy = GetPushedBy(package, currentUser, pushedByCache);
             viewModel.PackageFileSize = package.PackageFileSize;
@@ -400,13 +404,12 @@ namespace NuGetGallery
             return v;
         }
 
-        private static DisplayPackageViewModel GetPackageHistoryItemViewModel(
+        private static DisplayPackageViewModel SetupDisplayViewModelCommon(
+            this DisplayPackageViewModel viewModel,
             Package package,
             User currentUser,
             string pushedBy)
         {
-            var viewModel = new DisplayPackageViewModel();
-
             ((ListPackageItemViewModel)viewModel).Setup(package, currentUser);
 
             viewModel.Copyright = package.Copyright;
