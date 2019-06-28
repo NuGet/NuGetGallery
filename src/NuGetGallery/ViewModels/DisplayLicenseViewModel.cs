@@ -9,12 +9,6 @@ namespace NuGetGallery
 {
     public class DisplayLicenseViewModel : PackageViewModel
     {
-        public DisplayLicenseViewModel(Package package, IReadOnlyCollection<CompositeLicenseExpressionSegment> licenseExpressionSegments, string licenseFileContents)
-        {
-            // TODO: remove
-            this.Setup(package, licenseExpressionSegments, licenseFileContents);
-        }
-
         public EmbeddedLicenseFileType EmbeddedLicenseType { get; set; }
         public string LicenseExpression { get; set; }
         public string LicenseUrl { get; set; }

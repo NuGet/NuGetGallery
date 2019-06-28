@@ -950,7 +950,7 @@ namespace NuGetGallery
                 throw;
             }
 
-            var model = new DisplayLicenseViewModel(package, licenseExpressionSegments, licenseFileContents);
+            var model = new DisplayLicenseViewModel().Setup(package, licenseExpressionSegments, licenseFileContents);
 
             return View(model);
         }
