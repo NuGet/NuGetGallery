@@ -2,23 +2,11 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using NuGet.Services.Entities;
 
 namespace NuGetGallery
 {
     public class PackageViewModel : IPackageVersionModel
     {
-        public PackageViewModel()
-        {
-            // TODO: remove with the other constructor
-        }
-
-        public PackageViewModel(Package package)
-        {
-            // TODO: Remove
-            this.Setup(package);
-        }
-
         public string Description { get; set; }
         public string ReleaseNotes { get; set; }
         public string IconUrl { get; set; }
