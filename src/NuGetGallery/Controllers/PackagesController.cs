@@ -1487,7 +1487,7 @@ namespace NuGetGallery
             }
 
             var currentUser = GetCurrentUser();
-            var model = new ManagePackageViewModel(
+            var model = new ManagePackageViewModel().Setup(
                 package,
                 GetCurrentUser(),
                 ReportMyPackageReasons,
