@@ -56,7 +56,7 @@ namespace NuGetGallery
             IPackageService packageService)
         {
             // TODO: remove
-            this.SetupFromPackage(package, userToDelete, currentUser, packageService);
+            this.Setup(package, userToDelete, currentUser, packageService);
         }
 
         public bool WillBeOrphaned { get; set; }

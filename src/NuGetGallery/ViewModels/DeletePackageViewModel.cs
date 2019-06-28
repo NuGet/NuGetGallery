@@ -13,7 +13,7 @@ namespace NuGetGallery
         public DeletePackageViewModel(Package package, User currentUser, IReadOnlyList<ReportPackageReason> reasons)
         {
             // TODO: remove
-            this.SetupFromPackage(package, currentUser, reasons);
+            this.Setup(package, currentUser, reasons);
         }
 
         public IEnumerable<SelectListItem> VersionSelectList { get; set; }

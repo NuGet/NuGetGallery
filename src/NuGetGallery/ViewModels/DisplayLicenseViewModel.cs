@@ -12,7 +12,7 @@ namespace NuGetGallery
         public DisplayLicenseViewModel(Package package, IReadOnlyCollection<CompositeLicenseExpressionSegment> licenseExpressionSegments, string licenseFileContents)
         {
             // TODO: remove
-            this.SetupFromPackage(package, licenseExpressionSegments, licenseFileContents);
+            this.Setup(package, licenseExpressionSegments, licenseFileContents);
         }
 
         public EmbeddedLicenseFileType EmbeddedLicenseType { get; set; }

@@ -16,7 +16,7 @@ namespace NuGetGallery
         public PackageViewModel(Package package)
         {
             // TODO: Remove
-            this.SetupFromPackage(package);
+            this.Setup(package);
         }
 
         public string Description { get; set; }

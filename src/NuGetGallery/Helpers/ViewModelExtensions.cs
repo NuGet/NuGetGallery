@@ -15,7 +15,7 @@ namespace NuGetGallery
 {
     public static class ViewModelExtensions
     {
-        public static PackageViewModel SetupFromPackage(this PackageViewModel viewModel, Package package)
+        public static PackageViewModel Setup(this PackageViewModel viewModel, Package package)
         {
             if (viewModel == null)
             {
@@ -58,13 +58,13 @@ namespace NuGetGallery
             return viewModel;
         }
 
-        public static DisplayLicenseViewModel SetupFromPackage(
+        public static DisplayLicenseViewModel Setup(
             this DisplayLicenseViewModel viewModel,
             Package package,
             IReadOnlyCollection<CompositeLicenseExpressionSegment> licenseExpressionSegments,
             string licenseFileContents)
         {
-            ((PackageViewModel)viewModel).SetupFromPackage(package);
+            ((PackageViewModel)viewModel).Setup(package);
 
             viewModel.EmbeddedLicenseType = package.EmbeddedLicenseType;
             viewModel.LicenseExpression = package.LicenseExpression;
@@ -84,9 +84,9 @@ namespace NuGetGallery
             return viewModel;
         }
 
-        public static ListPackageItemViewModel SetupFromPackage(this ListPackageItemViewModel viewModel, Package package, User currentUser)
+        public static ListPackageItemViewModel Setup(this ListPackageItemViewModel viewModel, Package package, User currentUser)
         {
-            ((PackageViewModel)viewModel).SetupFromPackage(package);
+            ((PackageViewModel)viewModel).Setup(package);
 
             viewModel.Tags = package.Tags?
                 .Split(' ')
@@ -126,14 +126,14 @@ namespace NuGetGallery
         private static readonly SignerViewModel AnySigner =
             new SignerViewModel(username: "", displayText: "Any");
 
-        public static ListPackageItemRequiredSignerViewModel SetupFromPackage(
+        public static ListPackageItemRequiredSignerViewModel Setup(
             this ListPackageItemRequiredSignerViewModel viewModel,
             Package package,
             User currentUser,
             ISecurityPolicyService securityPolicyService,
             bool wasAADLoginOrMultiFactorAuthenticated)
         {
-            ((ListPackageItemViewModel)viewModel).SetupFromPackage(package, currentUser);
+            ((ListPackageItemViewModel)viewModel).Setup(package, currentUser);
 
             if (currentUser == null)
             {
@@ -217,7 +217,7 @@ namespace NuGetGallery
             return viewModel;
         }
 
-        public static ManagePackageViewModel SetupFromPackage(
+        public static ManagePackageViewModel Setup(
             this ManagePackageViewModel viewModel,
             Package package,
             User currentUser,
@@ -226,7 +226,7 @@ namespace NuGetGallery
             string readMe,
             bool isManageDeprecationEnabled)
         {
-            ((ListPackageItemViewModel)viewModel).SetupFromPackage(package, currentUser);
+            ((ListPackageItemViewModel)viewModel).Setup(package, currentUser);
 
             viewModel.IsCurrentUserAnAdmin = currentUser != null && currentUser.IsAdministrator;
 
@@ -298,25 +298,25 @@ namespace NuGetGallery
             return viewModel;
         }
 
-        public static DeleteAccountListPackageItemViewModel SetupFromPackage(
+        public static DeleteAccountListPackageItemViewModel Setup(
             this DeleteAccountListPackageItemViewModel viewModel,
             Package package,
             User userToDelete,
             User currentUser,
             IPackageService packageService)
         {
-            ((ListPackageItemViewModel)viewModel).SetupFromPackage(package, currentUser);
+            ((ListPackageItemViewModel)viewModel).Setup(package, currentUser);
             viewModel.WillBeOrphaned = packageService.WillPackageBeOrphanedIfOwnerRemoved(package.PackageRegistration, userToDelete);
             return viewModel;
         }
 
-        public static DisplayPackageViewModel SetupFromPackage(
+        public static DisplayPackageViewModel Setup(
             this DisplayPackageViewModel viewModel,
             Package package,
             User currentUser,
             PackageDeprecation deprecation)
         {
-            ((ListPackageItemViewModel)viewModel).SetupFromPackage(package, currentUser);
+            ((ListPackageItemViewModel)viewModel).Setup(package, currentUser);
 
             var nuGetVersion = NuGetVersion.Parse(NuGetVersionFormatter.ToFullString(package.Version));
 
@@ -374,13 +374,13 @@ namespace NuGetGallery
             return viewModel;
         }
 
-        public static DeletePackageViewModel SetupFromPackage(
+        public static DeletePackageViewModel Setup(
             this DeletePackageViewModel v,
             Package package,
             User currentUser,
             IReadOnlyList<ReportPackageReason> reasons)
         {
-            ((DisplayPackageViewModel)v).SetupFromPackage(package, currentUser, deprecation: null);
+            ((DisplayPackageViewModel)v).Setup(package, currentUser, deprecation: null);
 
             v.DeletePackagesRequest = new DeletePackagesRequest
             {
@@ -407,7 +407,7 @@ namespace NuGetGallery
         {
             var viewModel = new DisplayPackageViewModel();
 
-            ((ListPackageItemViewModel)viewModel).SetupFromPackage(package, currentUser);
+            ((ListPackageItemViewModel)viewModel).Setup(package, currentUser);
 
             viewModel.Copyright = package.Copyright;
 

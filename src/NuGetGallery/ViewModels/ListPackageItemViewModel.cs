@@ -27,7 +27,7 @@ namespace NuGetGallery
         public ListPackageItemViewModel(Package package, User currentUser)
         {
             // TODO: remove
-            this.SetupFromPackage(package, currentUser);
+            this.Setup(package, currentUser);
         }
 
         public string Authors { get; set; }

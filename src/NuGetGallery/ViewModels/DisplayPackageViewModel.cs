@@ -25,7 +25,7 @@ namespace NuGetGallery
             // TODO: remove
             NuGetVersion = NuGetVersion.Parse(NuGetVersionFormatter.ToFullString(package.Version));
 
-            this.SetupFromPackage(package, currentUser, deprecation);
+            this.Setup(package, currentUser, deprecation);
         }
 
         public bool ValidatingTooLong { get; set; }

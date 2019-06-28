@@ -26,7 +26,7 @@ namespace NuGetGallery
             bool wasAADLoginOrMultiFactorAuthenticated)
         {
             // TODO: remove
-            this.SetupFromPackage(package, currentUser, securityPolicyService, wasAADLoginOrMultiFactorAuthenticated);
+            this.Setup(package, currentUser, securityPolicyService, wasAADLoginOrMultiFactorAuthenticated);
         }
 
         public void UpdateRequiredSignerMessage(IReadOnlyCollection<string> signerUsernames)

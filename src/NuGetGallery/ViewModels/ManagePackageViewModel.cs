@@ -12,7 +12,7 @@ namespace NuGetGallery
         public ManagePackageViewModel(Package package, User currentUser, IReadOnlyList<ReportPackageReason> reasons, UrlHelper url, string readMe, bool isManageDeprecationEnabled)
         {
             // TODO: remove
-            this.SetupFromPackage(package, currentUser, reasons, url, readMe, isManageDeprecationEnabled);
+            this.Setup(package, currentUser, reasons, url, readMe, isManageDeprecationEnabled);
         }
 
         public List<SelectListItem> VersionSelectList { get; set; }
