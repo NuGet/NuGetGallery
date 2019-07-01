@@ -13,18 +13,17 @@ namespace NuGetGallery
     {
         private const string GalleryPrefix = "NuGetGallery.";
 
-        // Typosquatting detection
-        private const string TyposquattingFeatureName = GalleryPrefix + "Typosquatting";
-        private const string TyposquattingFlightName = GalleryPrefix + "TyposquattingFlight";
+        private const string ABTestingFlightName = GalleryPrefix + "ABTesting";
         private const string EmbeddedIconFlightName = GalleryPrefix + "EmbeddedIcons";
-        private const string SearchSideBySideFlightName = GalleryPrefix + "SearchSideBySide";
         private const string GitHubUsageFlightName = GalleryPrefix + "GitHubUsage";
-
-        private const string PackagesAtomFeedFeatureName = GalleryPrefix + "PackagesAtomFeed";
-
         private const string ManageDeprecationFeatureName = GalleryPrefix + "ManageDeprecation";
         private const string ManageDeprecationForManyVersionsFeatureName = GalleryPrefix + "ManageDeprecationMany";
         private const string ODataReadOnlyDatabaseFeatureName = GalleryPrefix + "ODataReadOnlyDatabase";
+        private const string PackagesAtomFeedFeatureName = GalleryPrefix + "PackagesAtomFeed";
+        private const string SearchCircuitBreakerFeatureName = GalleryPrefix + "SearchCircuitBreaker";
+        private const string SearchSideBySideFlightName = GalleryPrefix + "SearchSideBySide";
+        private const string TyposquattingFeatureName = GalleryPrefix + "Typosquatting";
+        private const string TyposquattingFlightName = GalleryPrefix + "TyposquattingFlight";
 
         private readonly IFeatureFlagClient _client;
 
@@ -87,6 +86,11 @@ namespace NuGetGallery
         public bool IsGitHubUsageEnabled(User user)
         {
             return _client.IsEnabled(GitHubUsageFlightName, user, defaultValue: false);
+        }
+
+        public bool IsABTestingEnabled(User user)
+        {
+            return _client.IsEnabled(ABTestingFlightName, user, defaultValue: false);
         }
     }
 }

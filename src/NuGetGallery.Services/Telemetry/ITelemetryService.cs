@@ -335,5 +335,29 @@ namespace NuGetGallery
             int oldHits,
             bool newSuccess,
             int newHits);
+
+        /// <summary>
+        /// Track when an A/B test enrollment is initialized.
+        /// </summary>
+        /// <param name="schemaVersion">The schema version.</param>
+        /// <param name="previewSearchBucket">The bucket for the preview search test.</param>
+        void TrackABTestEnrollmentInitialized(
+            int schemaVersion,
+            int previewSearchBucket);
+
+        /// <summary>
+        /// Track when an A/B test is evaluated.
+        /// </summary>
+        /// <param name="name">The name of the A/B test.</param>
+        /// <param name="isActive">Whether or not the test evaluated to being active.</param>
+        /// <param name="isAuthenticated">Whether or not the user is authenticated.</param>
+        /// <param name="testBucket">The bucket the user is in.</param>
+        /// <param name="testPercentage">The percentage of users in the test.</param>
+        void TrackABTestEvaluated(
+            string name,
+            bool isActive,
+            bool isAuthenticated,
+            int testBucket,
+            int testPercentage);
     }
 }

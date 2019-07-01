@@ -1828,6 +1828,7 @@
     <Content Include="Areas\Admin\Views\Features\_AddFeature.cshtml" />
     <Content Include="Areas\Admin\Views\Features\_AddFlight.cshtml" />
     <Content Include="Areas\Admin\Views\Features\_EditFlight.cshtml" />
+    <Content Include="App_Data\Files\Content\AB-Test-Configuration.json" />
     <None Include="Properties\PublishProfiles\nuget-staging-frontend.pubxml" />
     <Content Include="Scripts\gallery\**\*" />
     <Content Include="Web.config">

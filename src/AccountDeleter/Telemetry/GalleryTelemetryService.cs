@@ -17,6 +17,16 @@ namespace NuGetGallery.AccountDeleter
             throw new NotImplementedException();
         }
 
+        public void TrackABTestEnrollmentInitialized(int schemaVersion, int previewSearchBucket)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void TrackABTestEvaluated(string name, bool isActive, bool isAuthenticated, int testBucket, int testPercentage)
+        {
+            throw new NotImplementedException();
+        }
+
         public void TrackAccountDeletionCompleted(User deletedUser, User deletedBy, bool success)
         {
             throw new NotImplementedException();

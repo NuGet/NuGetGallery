@@ -7,7 +7,6 @@ using System.Linq;
 using System.Net.Http;
 using System.Security.Principal;
 using System.Web;
-using System.Web.Helpers;
 using Newtonsoft.Json;
 using NuGet.Services.Entities;
 using NuGet.Services.FeatureFlags;
@@ -78,10 +77,12 @@ namespace NuGetGallery
             public const string SearchOnRetry = "SearchOnRetry";
             public const string SearchSideBySideFeedback = "SearchSideBySideFeedback";
             public const string SearchSideBySide = "SearchSideBySide";
+            public const string ABTestEnrollmentInitialized = "ABTestEnrollmentInitialized";
+            public const string ABTestEvaluated = "ABTestEvaluated";
         }
 
-        private IDiagnosticsSource _diagnosticsSource;
-        private ITelemetryClient _telemetryClient;
+        private readonly IDiagnosticsSource _diagnosticsSource;
+        private readonly ITelemetryClient _telemetryClient;
 
         private readonly JsonSerializerSettings _defaultJsonSerializerSettings = new JsonSerializerSettings
         {
@@ -197,6 +198,14 @@ namespace NuGetGallery
         public const string ExpectedPackages = "ExpectedPackages";
         public const string HasComments = "HasComments";
         public const string HasEmailAddress = "HasEmailAddress";
+
+        // A/B testing properties
+        public const string SchemaVersion = "SchemaVersion";
+        public const string PreviewSearchBucket = "PreviewSearchBucket";
+        public const string TestName = "TestName";
+        public const string IsActive = "IsActive";
+        public const string TestBucket = "TestBucket";
+        public const string TestPercentage = "TestPercentage";
 
         public TelemetryService(IDiagnosticsService diagnosticsService, ITelemetryClient telemetryClient = null)
         {
@@ -592,27 +601,6 @@ namespace NuGetGallery
 
         private void TrackMetricForPackage(
             string metricName,
-            Package package,
-            User user,
-            IIdentity identity,
-            Action<Dictionary<string, string>> addProperties = null)
-        {
-            if (package == null)
-            {
-                throw new ArgumentNullException(nameof(package));
-            }
-
-            TrackMetricForPackage(
-                metricName,
-                package.PackageRegistration.Id,
-                package.NormalizedVersion,
-                user,
-                identity,
-                addProperties);
-        }
-
-        private void TrackMetricForPackage(
-            string metricName,
             string packageId,
             string packageVersion,
             User user,
@@ -945,6 +933,32 @@ namespace NuGetGallery
                 properties.Add(OldHits, oldHits.ToString());
                 properties.Add(NewSuccess, newSuccess.ToString());
                 properties.Add(NewHits, newHits.ToString());
+            });
+        }
+
+        public void TrackABTestEnrollmentInitialized(
+            int schemaVersion,
+            int previewSearchBucket)
+        {
+            TrackMetric(Events.ABTestEnrollmentInitialized, 1, properties => {
+                properties.Add(SchemaVersion, schemaVersion.ToString());
+                properties.Add(PreviewSearchBucket, previewSearchBucket.ToString());
+            });
+        }
+
+        public void TrackABTestEvaluated(
+            string name,
+            bool isActive,
+            bool isAuthenticated,
+            int testBucket,
+            int testPercentage)
+        {
+            TrackMetric(Events.ABTestEvaluated, 1, properties => {
+                properties.Add(TestName, name);
+                properties.Add(IsActive, isActive.ToString());
+                properties.Add(IsAuthenticated, isAuthenticated.ToString());
+                properties.Add(TestBucket, testBucket.ToString());
+                properties.Add(TestPercentage, testPercentage.ToString());
             });
         }
 

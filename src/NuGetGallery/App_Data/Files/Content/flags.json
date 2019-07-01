@@ -27,6 +27,12 @@
       "SiteAdmins": false,
       "Accounts": [],
       "Domains": []
+    },
+    "NuGetGallery.ABTesting": {
+      "All": true,
+      "SiteAdmins": false,
+      "Accounts": [],
+      "Domains": []
     }
   }
 }

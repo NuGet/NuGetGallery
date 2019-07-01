@@ -52,8 +52,10 @@
     <Compile Include="Authentication\IdentityInformation.cs" />
     <Compile Include="Authentication\NuGetScopes.cs" />
     <Compile Include="Authentication\V3Hasher.cs" />
+    <Compile Include="Configuration\ABTestConfiguration.cs" />
     <Compile Include="Configuration\AppConfiguration.cs" />
     <Compile Include="Configuration\CertificatesConfiguration.cs" />
+    <Compile Include="Configuration\IABTestConfiguration.cs" />
     <Compile Include="Configuration\IAppConfiguration.cs" />
     <Compile Include="Configuration\ICertificatesConfiguration.cs" />
     <Compile Include="Configuration\ILoginDiscontinuationConfiguration.cs" />

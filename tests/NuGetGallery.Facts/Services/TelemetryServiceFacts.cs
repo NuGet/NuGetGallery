@@ -288,6 +288,14 @@ namespace NuGetGallery
                     yield return new object[] { "SearchSideBySide",
                         (TrackAction)(s => s.TrackSearchSideBySide("nuget", true, 1, true, 2))
                     };
+
+                    yield return new object[] { "ABTestEnrollmentInitialized",
+                        (TrackAction)(s => s.TrackABTestEnrollmentInitialized(1, 42))
+                    };
+
+                    yield return new object[] { "ABTestEvaluated",
+                        (TrackAction)(s => s.TrackABTestEvaluated("SearchPreview", true, true, 0, 20))
+                    };
                 }
             }
 
