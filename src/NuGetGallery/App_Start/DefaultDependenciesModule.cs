@@ -412,6 +412,8 @@ namespace NuGetGallery
 
             RegisterCookieComplianceService(builder, configuration, diagnosticsService);
 
+            RegisterABTestServices(builder);
+
             builder.RegisterType<MicrosoftTeamSubscription>()
                 .AsSelf()
                 .InstancePerLifetimeScope();
@@ -431,6 +433,17 @@ namespace NuGetGallery
 
             ConfigureAutocomplete(builder, configuration);
             builder.Populate(services);
+        }
+
+        private void RegisterABTestServices(ContainerBuilder builder)
+        {
+            builder
+                .RegisterType<ABTestEnrollmentFactory>()
+                .As<IABTestEnrollmentFactory>();
+
+            builder
+                .RegisterType<CookieBasedABTestService>()
+                .As<IABTestService>();
         }
 
         private static void RegisterFeatureFlagsService(ContainerBuilder builder, ConfigurationService configuration)
