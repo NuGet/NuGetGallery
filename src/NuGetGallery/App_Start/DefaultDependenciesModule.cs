@@ -68,6 +68,11 @@ namespace NuGetGallery
             public const string PreviewSearchClient = "PreviewSearchClientBindingKey";
         }
 
+        public static class ParameterNames
+        {
+            public const string PackagesController_PreviewSearchService = "previewSearchService";
+        }
+
         protected override void Load(ContainerBuilder builder)
         {
             var services = new ServiceCollection();
@@ -801,6 +806,14 @@ namespace NuGetGallery
                     c.Resolve<IMessageService>(),
                     c.Resolve<IMessageServiceConfiguration>()))
                 .As<ISearchSideBySideService>()
+                .InstancePerLifetimeScope();
+
+            builder
+                .RegisterType<PackagesController>()
+                .WithParameter(new ResolvedParameter(
+                    (pi, ctx) => pi.ParameterType == typeof(ISearchService) && pi.Name == ParameterNames.PackagesController_PreviewSearchService,
+                    (pi, ctx) => ctx.ResolveKeyed<ISearchService>(BindingKeys.PreviewSearchClient)))
+                .As<PackagesController>()
                 .InstancePerLifetimeScope();
         }
 
