@@ -1053,7 +1053,7 @@ namespace NuGetGallery
                 .AsSelf()
                 .As<IDownloadCountService>()
                 .SingleInstance();
-            ObjectMaterializedInterception.AddInterceptor(new DownloadCountObjectMaterializedInterceptor(downloadCountService));
+            ObjectMaterializedInterception.AddInterceptor(new DownloadCountObjectMaterializedInterceptor(downloadCountService, telemetryClient));
 
             builder.RegisterType<JsonStatisticsService>()
                 .AsSelf()
