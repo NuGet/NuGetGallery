@@ -32,6 +32,12 @@ namespace NuGetGallery
             public const string NewUserRegistration = "NewUserRegistration";
             public const string CredentialAdded = "CredentialAdded";
             public const string CredentialUsed = "CredentialUsed";
+            public const string DownloadCountDecreasedDuringRefresh = "DownloadCountDecreasedDuringRefresh";
+            public const string DownloadJsonRefreshDuration = "DownloadJsonRefreshDuration";
+            public const string GalleryDownloadGreaterThanJsonForPackage = "GalleryDownloadGreaterThanJsonForPackage";
+            public const string GalleryDownloadGreaterThanJsonForPackageRegistration = "GalleryDownloadGreaterThanJsonForPackageRegistration";
+            public const string GetPackageDownloadCountFailed = "GetPackageDownloadCountFailed";
+            public const string GetPackageRegistrationDownloadCountFailed = "GetPackageRegistrationDownloadCountFailed";
             public const string UserPackageDeleteCheckedAfterHours = "UserPackageDeleteCheckedAfterHours";
             public const string UserPackageDeleteExecuted = "UserPackageDeleteExecuted";
             public const string UserMultiFactorAuthenticationEnabled = "UserMultiFactorAuthenticationEnabled";
@@ -88,6 +94,12 @@ namespace NuGetGallery
             ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
             Formatting = Formatting.None
         };
+
+        // Download Count properties
+        public const string OldJsonDownloadCount = "OldDownloadCount";
+        public const string NewJsonDownloadCount = "NewDownloadCount";
+        public const string GalleryDownloadCount = "GalleryDownloadCount";
+        public const string JsonDownloadCount = "JsonDownloadCount";
 
         // ODataQueryFilter properties
         public const string CallContext = "CallContext";
@@ -223,6 +235,60 @@ namespace NuGetGallery
             }
 
             _diagnosticsSource.Warning(exception.ToString());
+        }
+
+        public void TrackGetPackageDownloadCountFailed(string packageId, string packageVersion)
+        {
+            TrackMetric(Events.GetPackageRegistrationDownloadCountFailed, 1, properties =>
+            {
+                properties.Add(PackageId, packageId);
+                properties.Add(PackageVersion, packageVersion);
+            });
+        }
+
+        public void TrackGetPackageRegistrationDownloadCountFailed(string packageId)
+        {
+            TrackMetric(Events.GetPackageRegistrationDownloadCountFailed, 1, properties =>
+            {
+                properties.Add(PackageId, packageId);
+            });
+        }
+
+        public void TrackDownloadJsonRefreshDuration(long milliseconds)
+        {
+            TrackMetric(Events.DownloadJsonRefreshDuration, milliseconds, properties => { });
+        }
+
+        public void TrackDownloadCountDecreasedDuringRefresh(string packageId, string packageVersion, long oldCount, long newCount)
+        {
+            TrackMetric(Events.DownloadCountDecreasedDuringRefresh, 1, properties =>
+            {
+                properties.Add(PackageId, packageId);
+                properties.Add(PackageVersion, packageVersion);
+                properties.Add(OldJsonDownloadCount, oldCount.ToString());
+                properties.Add(NewJsonDownloadCount, newCount.ToString());
+            });
+        }
+
+        public void TrackPackageDownloadCountDecreasedFromGallery(string packageId, string packageVersion, long galleryCount, long jsonCount)
+        {
+            TrackMetric(Events.GalleryDownloadGreaterThanJsonForPackage, 1, properties =>
+            {
+                properties.Add(PackageId, packageId);
+                properties.Add(PackageVersion, packageVersion);
+                properties.Add(GalleryDownloadCount, galleryCount.ToString());
+                properties.Add(JsonDownloadCount, jsonCount.ToString());
+            });
+        }
+
+        public void TrackPackageRegistrationDownloadCountDecreasedFromGallery(string packageId, long galleryCount, long jsonCount)
+        {
+            TrackMetric(Events.GalleryDownloadGreaterThanJsonForPackageRegistration, 1, properties =>
+            {
+                properties.Add(PackageId, packageId);
+                properties.Add(GalleryDownloadCount, galleryCount.ToString());
+                properties.Add(JsonDownloadCount, jsonCount.ToString());
+            });
         }
 
         public void TrackODataQueryFilterEvent(string callContext, bool isEnabled, bool isAllowed, string queryPattern)

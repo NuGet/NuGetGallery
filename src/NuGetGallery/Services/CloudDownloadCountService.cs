@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -18,22 +17,14 @@ namespace NuGetGallery
 {
     public class CloudDownloadCountService : IDownloadCountService
     {
-        private const string TelemetrySourcePrefix = "CloudDownloadCountService.";
-
         private const string AdditionalInfoDimensionName = "AdditionalInfo";
-        private const string PackageIdDimensionName = "PackageId";
-        private const string PackageVersionDimensionName = "PackageVersion";
         private const string TelemetryOriginDimensionName = "Origin";
-
-        private const string DownloadCountDecreasedMetricName = TelemetrySourcePrefix + "DownloadCountDecreased";
-        private const string DownloadJsonRefreshDurationMetricName = TelemetrySourcePrefix + "DownloadJsonRefreshDuration";
-        private const string GetDownloadCountFailedMetricName = TelemetrySourcePrefix + "GetDownloadCountFailed";
 
         private const string StatsContainerName = "nuget-cdnstats";
         private const string DownloadCountBlobName = "downloads.v1.json";
         private const string TelemetryOriginForRefreshMethod = "CloudDownloadCountService.Refresh";
 
-        private readonly ITelemetryClient _telemetryClient;
+        private readonly ITelemetryService _telemetryService;
         private readonly string _connectionString;
         private readonly bool _readAccessGeoRedundant;
 
@@ -43,9 +34,9 @@ namespace NuGetGallery
         private readonly ConcurrentDictionary<string, ConcurrentDictionary<string, int>> _downloadCounts
             = new ConcurrentDictionary<string, ConcurrentDictionary<string, int>>(StringComparer.OrdinalIgnoreCase);
 
-        public CloudDownloadCountService(ITelemetryClient telemetryClient, string connectionString, bool readAccessGeoRedundant)
+        public CloudDownloadCountService(ITelemetryService telemetryService, string connectionString, bool readAccessGeoRedundant)
         {
-            _telemetryClient = telemetryClient ?? throw new ArgumentNullException(nameof(telemetryClient));
+            _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
 
             _connectionString = connectionString;
             _readAccessGeoRedundant = readAccessGeoRedundant;
@@ -64,7 +55,7 @@ namespace NuGetGallery
                 return true;
             }
 
-            _telemetryClient.TrackMetric(GetDownloadCountFailedMetricName, 0, GetTelemetryDimensions(id, "", TelemetrySourcePrefix + "TryGetDownloadCountForPackageRegistration"));
+            _telemetryService.TrackGetPackageRegistrationDownloadCountFailed(id);
 
             downloadCount = 0;
             return false;
@@ -88,7 +79,7 @@ namespace NuGetGallery
                 return true;
             }
 
-            _telemetryClient.TrackMetric(GetDownloadCountFailedMetricName, 0, GetTelemetryDimensions(id, version, TelemetrySourcePrefix + "TryGetDownloadCountForPackage"));
+            _telemetryService.TrackGetPackageDownloadCountFailed(id, version);
 
             downloadCount = 0;
             return false;
@@ -113,10 +104,7 @@ namespace NuGetGallery
                     var stopwatch = Stopwatch.StartNew();
                     RefreshCore();
                     stopwatch.Stop();
-                    _telemetryClient.TrackMetric(DownloadJsonRefreshDurationMetricName, stopwatch.Elapsed.TotalSeconds, new Dictionary<string, string>
-                        {
-                            { TelemetryOriginDimensionName, TelemetryOriginForRefreshMethod }
-                        });
+                    _telemetryService.TrackDownloadJsonRefreshDuration(stopwatch.ElapsedMilliseconds);
 
                 }
                 catch (WebException ex)
@@ -217,7 +205,7 @@ namespace NuGetGallery
 
                                                 if (versions.ContainsKey(version) && downloadCount < versions[version])
                                                 {
-                                                    _telemetryClient.TrackMetric(DownloadCountDecreasedMetricName, downloadCount - versions[version], GetTelemetryDimensions(id, version));
+                                                    _telemetryService.TrackDownloadCountDecreasedDuringRefresh(id, version, versions[version], downloadCount);
                                                 }
                                                 else
                                                 {
@@ -229,20 +217,20 @@ namespace NuGetGallery
                                 }
                                 catch (JsonReaderException ex)
                                 {
-                                    _telemetryClient.TrackException(ex, new Dictionary<string, string>
+                                    _telemetryService.TrackException(ex, properties =>
                                     {
-                                        { TelemetryOriginDimensionName, TelemetryOriginForRefreshMethod },
-                                        { AdditionalInfoDimensionName, "Invalid entry found in downloads.v1.json." }
+                                        properties.Add(TelemetryOriginDimensionName, TelemetryOriginForRefreshMethod);
+                                        properties.Add(AdditionalInfoDimensionName, "Invalid entry found in downloads.v1.json.");
                                     });
                                 }
                             }
                         }
                         catch (JsonReaderException ex)
                         {
-                            _telemetryClient.TrackException(ex, new Dictionary<string, string>
+                            _telemetryService.TrackException(ex, properties =>
                             {
-                                { TelemetryOriginDimensionName, TelemetryOriginForRefreshMethod },
-                                { AdditionalInfoDimensionName, "Data present in downloads.v1.json is invalid. Couldn't get download data." }
+                                properties.Add(TelemetryOriginDimensionName, TelemetryOriginForRefreshMethod);
+                                properties.Add(AdditionalInfoDimensionName, "Data present in downloads.v1.json is invalid. Couldn't get download data.");
                             });
                         }
                     }
@@ -250,22 +238,12 @@ namespace NuGetGallery
             }
             catch (Exception ex)
             {
-                _telemetryClient.TrackException(ex, new Dictionary<string, string>
+                _telemetryService.TrackException(ex, properties =>
                 {
-                    { TelemetryOriginDimensionName, TelemetryOriginForRefreshMethod },
-                    { AdditionalInfoDimensionName, "Unknown exception." }
+                    properties.Add(TelemetryOriginDimensionName, TelemetryOriginForRefreshMethod);
+                    properties.Add(AdditionalInfoDimensionName, "Unknown exception.");
                 });
             }
-        }
-
-        private Dictionary<string, string> GetTelemetryDimensions(string packageId, string packageVersion, string origin = TelemetryOriginForRefreshMethod)
-        {
-            return new Dictionary<string, string>
-                {
-                    { TelemetryOriginDimensionName, TelemetryOriginForRefreshMethod },
-                    { PackageIdDimensionName, packageId },
-                    { PackageVersionDimensionName, packageVersion }
-                };
         }
 
         private CloudBlockBlob GetBlobReference()

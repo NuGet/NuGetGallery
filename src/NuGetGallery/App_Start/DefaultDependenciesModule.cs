@@ -401,7 +401,7 @@ namespace NuGetGallery
                     defaultAuditingService = GetAuditingServiceForLocalFileSystem(configuration);
                     break;
                 case StorageType.AzureStorage:
-                    ConfigureForAzureStorage(builder, configuration, telemetryClient);
+                    ConfigureForAzureStorage(builder, configuration, telemetryService);
                     defaultAuditingService = GetAuditingServiceForAzureStorage(builder, configuration);
                     break;
             }
@@ -982,7 +982,7 @@ namespace NuGetGallery
             return new FileSystemAuditingService(auditingPath, AuditActor.GetAspNetOnBehalfOfAsync);
         }
 
-        private static void ConfigureForAzureStorage(ContainerBuilder builder, IGalleryConfigurationService configuration, ITelemetryClient telemetryClient)
+        private static void ConfigureForAzureStorage(ContainerBuilder builder, IGalleryConfigurationService configuration, ITelemetryService telemetryService)
         {
             /// The goal here is to initialize a <see cref="ICloudBlobClient"/> and <see cref="IFileStorageService"/>
             /// instance for each unique connection string. Each dependent of <see cref="IFileStorageService"/> (that
@@ -1045,7 +1045,7 @@ namespace NuGetGallery
 
             // when running on Windows Azure, download counts come from the downloads.v1.json blob
             var downloadCountService = new CloudDownloadCountService(
-                telemetryClient,
+                telemetryService,
                 configuration.Current.AzureStorage_Statistics_ConnectionString,
                 configuration.Current.AzureStorageReadAccessGeoRedundant);
 
@@ -1053,7 +1053,7 @@ namespace NuGetGallery
                 .AsSelf()
                 .As<IDownloadCountService>()
                 .SingleInstance();
-            ObjectMaterializedInterception.AddInterceptor(new DownloadCountObjectMaterializedInterceptor(downloadCountService, telemetryClient));
+            ObjectMaterializedInterception.AddInterceptor(new DownloadCountObjectMaterializedInterceptor(downloadCountService, telemetryService));
 
             builder.RegisterType<JsonStatisticsService>()
                 .AsSelf()

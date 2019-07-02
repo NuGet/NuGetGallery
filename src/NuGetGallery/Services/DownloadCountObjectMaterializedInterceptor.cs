@@ -11,21 +11,13 @@ namespace NuGetGallery
     public class DownloadCountObjectMaterializedInterceptor
         : IObjectMaterializedInterceptor
     {
-        private const string TelemetrySourcePrefix = "DownloadCountObjectMaterializedInterceptor.";
-
-        private const string PackageIdDimensionName = "PackageId";
-        private const string PackageVersionDimensionName = "PackageVersion";
-        private const string TelemetryOriginDimensionName = "Origin";
-
-        private const string GalleryDownloadCountLargerThanDownloadJsonByMetricName = TelemetrySourcePrefix + "GalleryDownloadCountLargerThanDownloadJsonBy";
-
-        private readonly ITelemetryClient _telemetryClient;
+        private readonly ITelemetryService _telemetryService;
         private readonly IDownloadCountService _downloadCountService;
 
-        public DownloadCountObjectMaterializedInterceptor(IDownloadCountService downloadCountService, ITelemetryClient telemetryClient)
+        public DownloadCountObjectMaterializedInterceptor(IDownloadCountService downloadCountService, ITelemetryService telemetryService)
         {
             _downloadCountService = downloadCountService;
-            _telemetryClient = telemetryClient;
+            _telemetryService = telemetryService;
         }
 
         public void InterceptObjectMaterialized(object entity)
@@ -50,12 +42,7 @@ namespace NuGetGallery
             {
                 if (downloadCount < package.DownloadCount)
                 {
-                    _telemetryClient.TrackMetric(GalleryDownloadCountLargerThanDownloadJsonByMetricName, package.DownloadCount - downloadCount, new Dictionary<string, string>
-                        {
-                            { TelemetryOriginDimensionName, TelemetrySourcePrefix + "InterceptPackageMaterialized" },
-                            { PackageIdDimensionName, package.PackageRegistration.Id },
-                            { PackageVersionDimensionName, packageNormalizedVersion }
-                        });
+                    _telemetryService.TrackPackageDownloadCountDecreasedFromGallery(package.PackageRegistration.Id, packageNormalizedVersion, package.DownloadCount, downloadCount);
                 }
 
                 package.DownloadCount = downloadCount;
@@ -74,12 +61,7 @@ namespace NuGetGallery
             {
                 if (downloadCount < packageRegistration.DownloadCount)
                 {
-                    _telemetryClient.TrackMetric(GalleryDownloadCountLargerThanDownloadJsonByMetricName, packageRegistration.DownloadCount - downloadCount, new Dictionary<string, string>
-                        {
-                            { TelemetryOriginDimensionName,  TelemetrySourcePrefix + "InterceptPackageRegistrationMaterialized" },
-                            { PackageIdDimensionName, packageRegistration.Id },
-                            { PackageVersionDimensionName, "" }
-                        });
+                    _telemetryService.TrackPackageRegistrationDownloadCountDecreasedFromGallery(packageRegistration.Id, packageRegistration.DownloadCount, downloadCount);
                 }
 
                 packageRegistration.DownloadCount = downloadCount;

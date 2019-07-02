@@ -12,6 +12,18 @@ namespace NuGetGallery
 {
     public interface ITelemetryService
     {
+        void TrackGetPackageDownloadCountFailed(string packageId, string packageVersion);
+
+        void TrackGetPackageRegistrationDownloadCountFailed(string packageId);
+
+        void TrackDownloadJsonRefreshDuration(long milliseconds);
+
+        void TrackDownloadCountDecreasedDuringRefresh(string packageId, string packageVersion, long oldCount, long newCount);
+
+        void TrackPackageDownloadCountDecreasedFromGallery(string packageId, string packageVersion, long galleryCount, long jsonCount);
+
+        void TrackPackageRegistrationDownloadCountDecreasedFromGallery(string packageId, long galleryCount, long jsonCount);
+
         void TrackODataQueryFilterEvent(string callContext, bool isEnabled, bool isAllowed, string queryPattern);
 
         void TrackODataCustomQuery(bool? customQuery);

@@ -42,7 +42,27 @@ namespace NuGetGallery.AccountDeleter
             throw new NotImplementedException();
         }
 
+        public void TrackDownloadCountDecreasedDuringRefresh(string packageId, string packageVersion, long oldCount, long newCount)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void TrackDownloadJsonRefreshDuration(long milliseconds)
+        {
+            throw new NotImplementedException();
+        }
+
         public void TrackException(Exception exception, Action<Dictionary<string, string>> addProperties)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void TrackGetPackageDownloadCountFailed(string packageId, string packageVersion)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void TrackGetPackageRegistrationDownloadCountFailed(string packageId)
         {
             throw new NotImplementedException();
         }
@@ -162,6 +182,11 @@ namespace NuGetGallery.AccountDeleter
             throw new NotImplementedException();
         }
 
+        public void TrackPackageDownloadCountDecreasedFromGallery(string packageId, string packageVersion, long galleryCount, long jsonCount)
+        {
+            throw new NotImplementedException();
+        }
+
         public void TrackPackageHardDeleteReflow(string packageId, string packageVersion)
         {
             throw new NotImplementedException();
@@ -208,6 +233,11 @@ namespace NuGetGallery.AccountDeleter
         }
 
         public void TrackPackageReflow(Package package)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void TrackPackageRegistrationDownloadCountDecreasedFromGallery(string packageId, long galleryCount, long jsonCount)
         {
             throw new NotImplementedException();
         }
