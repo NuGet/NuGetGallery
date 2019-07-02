@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -17,6 +18,17 @@ namespace NuGetGallery
 {
     public class CloudDownloadCountService : IDownloadCountService
     {
+        private const string TelemetrySourcePrefix = "CloudDownloadCountService.";
+
+        private const string AdditionalInfoDimensionName = "AdditionalInfo";
+        private const string PackageIdDimensionName = "PackageId";
+        private const string PackageVersionDimensionName = "PackageVersion";
+        private const string TelemetryOriginDimensionName = "Origin";
+
+        private const string DownloadCountDecreasedMetricName = TelemetrySourcePrefix + "DownloadCountDecreased";
+        private const string DownloadJsonRefreshDurationMetricName = TelemetrySourcePrefix + "DownloadJsonRefreshDuration";
+        private const string GetDownloadCountFailedMetricName = TelemetrySourcePrefix + "GetDownloadCountFailed";
+
         private const string StatsContainerName = "nuget-cdnstats";
         private const string DownloadCountBlobName = "downloads.v1.json";
         private const string TelemetryOriginForRefreshMethod = "CloudDownloadCountService.Refresh";
@@ -52,6 +64,8 @@ namespace NuGetGallery
                 return true;
             }
 
+            _telemetryClient.TrackMetric(GetDownloadCountFailedMetricName, 0, GetTelemetryDimensions(id, "", TelemetrySourcePrefix + "TryGetDownloadCountForPackageRegistration"));
+
             downloadCount = 0;
             return false;
         }
@@ -74,6 +88,8 @@ namespace NuGetGallery
                 return true;
             }
 
+            _telemetryClient.TrackMetric(GetDownloadCountFailedMetricName, 0, GetTelemetryDimensions(id, version, TelemetrySourcePrefix + "TryGetDownloadCountForPackage"));
+
             downloadCount = 0;
             return false;
         }
@@ -94,7 +110,14 @@ namespace NuGetGallery
             {
                 try
                 {
+                    var stopwatch = Stopwatch.StartNew();
                     RefreshCore();
+                    stopwatch.Stop();
+                    _telemetryClient.TrackMetric(DownloadJsonRefreshDurationMetricName, stopwatch.Elapsed.TotalSeconds, new Dictionary<string, string>
+                        {
+                            { TelemetryOriginDimensionName, TelemetryOriginForRefreshMethod }
+                        });
+
                 }
                 catch (WebException ex)
                 {
@@ -192,7 +215,14 @@ namespace NuGetGallery
                                                 var version = token[0].ToString();
                                                 var downloadCount = token[1].ToObject<int>();
 
-                                                versions.AddOrSet(version, downloadCount);
+                                                if (versions.ContainsKey(version) && downloadCount < versions[version])
+                                                {
+                                                    _telemetryClient.TrackMetric(DownloadCountDecreasedMetricName, downloadCount - versions[version], GetTelemetryDimensions(id, version));
+                                                }
+                                                else
+                                                {
+                                                    versions.AddOrSet(version, downloadCount);
+                                                }
                                             }
                                         }
                                     }
@@ -201,8 +231,8 @@ namespace NuGetGallery
                                 {
                                     _telemetryClient.TrackException(ex, new Dictionary<string, string>
                                     {
-                                        { "Origin", TelemetryOriginForRefreshMethod },
-                                        { "AdditionalInfo", "Invalid entry found in downloads.v1.json." }
+                                        { TelemetryOriginDimensionName, TelemetryOriginForRefreshMethod },
+                                        { AdditionalInfoDimensionName, "Invalid entry found in downloads.v1.json." }
                                     });
                                 }
                             }
@@ -211,8 +241,8 @@ namespace NuGetGallery
                         {
                             _telemetryClient.TrackException(ex, new Dictionary<string, string>
                             {
-                                { "Origin", TelemetryOriginForRefreshMethod },
-                                { "AdditionalInfo", "Data present in downloads.v1.json is invalid. Couldn't get download data." }
+                                { TelemetryOriginDimensionName, TelemetryOriginForRefreshMethod },
+                                { AdditionalInfoDimensionName, "Data present in downloads.v1.json is invalid. Couldn't get download data." }
                             });
                         }
                     }
@@ -222,10 +252,20 @@ namespace NuGetGallery
             {
                 _telemetryClient.TrackException(ex, new Dictionary<string, string>
                 {
-                    { "Origin", TelemetryOriginForRefreshMethod },
-                    { "AdditionalInfo", "Unknown exception." }
+                    { TelemetryOriginDimensionName, TelemetryOriginForRefreshMethod },
+                    { AdditionalInfoDimensionName, "Unknown exception." }
                 });
             }
+        }
+
+        private Dictionary<string, string> GetTelemetryDimensions(string packageId, string packageVersion, string origin = TelemetryOriginForRefreshMethod)
+        {
+            return new Dictionary<string, string>
+                {
+                    { TelemetryOriginDimensionName, TelemetryOriginForRefreshMethod },
+                    { PackageIdDimensionName, packageId },
+                    { PackageVersionDimensionName, packageVersion }
+                };
         }
 
         private CloudBlockBlob GetBlobReference()
