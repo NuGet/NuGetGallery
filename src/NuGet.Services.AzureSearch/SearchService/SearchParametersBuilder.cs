@@ -13,15 +13,29 @@ namespace NuGet.Services.AzureSearch.SearchService
         public const int DefaultTake = 20;
         private const int MaximumTake = 1000;
 
+        private static readonly List<string> LastCommitTimestampSelect = new List<string> { IndexFields.LastCommitTimestamp };
         private static readonly List<string> PackageIdsAutocompleteSelect = new List<string> { IndexFields.PackageId };
         private static readonly List<string> PackageVersionsAutocompleteSelect = new List<string> { IndexFields.Search.Versions };
 
         private static readonly string Ascending = " asc";
         private static readonly string Descending = " desc";
+        private static readonly List<string> LastCommitTimestampDescending = new List<string> { IndexFields.LastCommitTimestamp + Descending };
         private static readonly List<string> LastEditedDescending = new List<string> { IndexFields.LastEdited + Descending };
         private static readonly List<string> PublishedDescending = new List<string> { IndexFields.Published + Descending };
         private static readonly List<string> SortableTitleAscending = new List<string> { IndexFields.SortableTitle + Ascending };
         private static readonly List<string> SortableTitleDescending = new List<string> { IndexFields.SortableTitle + Descending };
+
+        public SearchParameters LatestCommitTimestamp()
+        {
+            return new SearchParameters
+            {
+                QueryType = QueryType.Full,
+                Select = LastCommitTimestampSelect,
+                OrderBy = LastCommitTimestampDescending,
+                Skip = 0,
+                Top = 1,
+            };
+        }
 
         public SearchParameters V2Search(V2SearchRequest request)
         {
