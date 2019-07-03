@@ -57,6 +57,30 @@ namespace NuGetGallery
                         (TrackAction)(s => s.TrackRequiredSignerSet(package.PackageRegistration.Id))
                     };
 
+                    yield return new object[] { "",
+                        (TrackAction)(s => s.TrackDownloadJsonRefreshDuration(0))
+                    };
+
+                    yield return new object[] { "",
+                        (TrackAction)(s => s.TrackDownloadCountDecreasedDuringRefresh(package.PackageRegistration.Id, package.Version, 0, 0))
+                    };
+
+                    yield return new object[] { "",
+                        (TrackAction)(s => s.TrackPackageDownloadCountDecreasedFromGallery(package.PackageRegistration.Id, package.Version, 0, 0))
+                    };
+
+                    yield return new object[] { "",
+                        (TrackAction)(s => s.TrackPackageRegistrationDownloadCountDecreasedFromGallery(package.PackageRegistration.Id, 0, 0))
+                    };
+
+                    yield return new object[] { "",
+                        (TrackAction)(s => s.TrackGetPackageDownloadCountFailed(package.PackageRegistration.Id, package.Version))
+                    };
+
+                    yield return new object[] { "",
+                        (TrackAction)(s => s.TrackGetPackageRegistrationDownloadCountFailed(package.PackageRegistration.Id))
+                    };
+
                     yield return new object[] { "ODataQueryFilter",
                         (TrackAction)(s => s.TrackODataQueryFilterEvent("callContext", true, true, "queryPattern"))
                     };
