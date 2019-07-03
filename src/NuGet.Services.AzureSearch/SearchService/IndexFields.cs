@@ -17,6 +17,7 @@ namespace NuGet.Services.AzureSearch.SearchService
         public static readonly string Authors = Name(nameof(BaseMetadataDocument.Authors));
         public static readonly string Created = Name(nameof(BaseMetadataDocument.Created));
         public static readonly string Description = Name(nameof(BaseMetadataDocument.Description));
+        public static readonly string LastCommitTimestamp = Name(nameof(BaseMetadataDocument.LastCommitTimestamp));
         public static readonly string LastEdited = Name(nameof(BaseMetadataDocument.LastEdited));
         public static readonly string NormalizedVersion = Name(nameof(BaseMetadataDocument.NormalizedVersion));
         public static readonly string PackageId = Name(nameof(BaseMetadataDocument.PackageId));

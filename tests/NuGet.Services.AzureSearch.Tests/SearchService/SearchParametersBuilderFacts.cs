@@ -11,6 +11,22 @@ namespace NuGet.Services.AzureSearch.SearchService
 {
     public class SearchParametersBuilderFacts
     {
+        public class LatestCommitTimestamp : BaseFacts
+        {
+            [Fact]
+            public void Defaults()
+            {
+                var output = _target.LatestCommitTimestamp();
+
+                Assert.Equal(QueryType.Full, output.QueryType);
+                Assert.False(output.IncludeTotalResultCount);
+                Assert.Equal(new[] { "lastCommitTimestamp desc" }, output.OrderBy.ToArray());
+                Assert.Equal(0, output.Skip);
+                Assert.Equal(1, output.Top);
+                Assert.Null(output.Filter);
+            }
+        }
+
         public class V2Search : BaseFacts
         {
             [Fact]

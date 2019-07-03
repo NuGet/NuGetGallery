@@ -17,6 +17,7 @@ namespace NuGet.Services.AzureSearch.SearchService
     {
         private readonly ISearchIndexClientWrapper _searchIndex;
         private readonly ISearchIndexClientWrapper _hijackIndex;
+        private readonly ISearchParametersBuilder _parametersBuilder;
         private readonly IAuxiliaryDataCache _auxiliaryDataCache;
         private readonly IOptionsSnapshot<SearchServiceConfiguration> _options;
         private readonly IAzureSearchTelemetryService _telemetryService;
@@ -25,6 +26,7 @@ namespace NuGet.Services.AzureSearch.SearchService
         public SearchStatusService(
             ISearchIndexClientWrapper searchIndex,
             ISearchIndexClientWrapper hijackIndex,
+            ISearchParametersBuilder parametersBuilder,
             IAuxiliaryDataCache auxiliaryDataCache,
             IOptionsSnapshot<SearchServiceConfiguration> options,
             IAzureSearchTelemetryService telemetryService,
@@ -32,6 +34,7 @@ namespace NuGet.Services.AzureSearch.SearchService
         {
             _searchIndex = searchIndex ?? throw new ArgumentNullException(nameof(searchIndex));
             _hijackIndex = hijackIndex ?? throw new ArgumentNullException(nameof(hijackIndex));
+            _parametersBuilder = parametersBuilder ?? throw new ArgumentNullException(nameof(parametersBuilder));
             _auxiliaryDataCache = auxiliaryDataCache ?? throw new ArgumentNullException(nameof(auxiliaryDataCache));
             _options = options ?? throw new ArgumentNullException(nameof(options));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
@@ -163,9 +166,17 @@ namespace NuGet.Services.AzureSearch.SearchService
                 .FirstOrDefault();
         }
 
-        private static async Task<IndexStatus> GetIndexStatusAsync(ISearchIndexClientWrapper index)
+        private async Task<IndexStatus> GetIndexStatusAsync(ISearchIndexClientWrapper index)
         {
             var documentCount = await index.Documents.CountAsync();
+
+            var lastCommitTimestampParameters = _parametersBuilder.LatestCommitTimestamp();
+            var lastCommitTimestampResult = await index.Documents.SearchAsync("*", lastCommitTimestampParameters);
+            var lastCommitTimestamp = lastCommitTimestampResult?
+                .Results?
+                .FirstOrDefault()?
+                .Document[IndexFields.LastCommitTimestamp] as DateTimeOffset?;
+
             var warmQueryDuration = await Measure.DurationAsync(() => index.Documents.SearchAsync("*", new SearchParameters()));
 
             return new IndexStatus
@@ -173,6 +184,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                 DocumentCount = documentCount,
                 Name = index.IndexName,
                 WarmQueryDuration = warmQueryDuration,
+                LastCommitTimestamp = lastCommitTimestamp,
             };
         }
     }

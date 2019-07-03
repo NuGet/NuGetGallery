@@ -86,6 +86,7 @@ namespace NuGet.Services.AzureSearch
                 .Register<ISearchStatusService>(c => new SearchStatusService(
                     c.ResolveKeyed<ISearchIndexClientWrapper>(searchIndexKey),
                     c.ResolveKeyed<ISearchIndexClientWrapper>(hijackIndexKey),
+                    c.Resolve<ISearchParametersBuilder>(),
                     c.Resolve<IAuxiliaryDataCache>(),
                     c.Resolve<IOptionsSnapshot<SearchServiceConfiguration>>(),
                     c.Resolve<IAzureSearchTelemetryService>(),

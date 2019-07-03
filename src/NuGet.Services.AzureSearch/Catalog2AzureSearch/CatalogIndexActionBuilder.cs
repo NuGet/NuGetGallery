@@ -434,7 +434,9 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                     .Select(x => x.Key)
                     .OrderByDescending(x => x.CommitTimeStamp)
                     .First();
-                LatestCommitTimestamp = new DateTimeOffset(latestCommit.CommitTimeStamp.ToUniversalTime());
+
+                // Assume UTC on the commit timestamp.
+                LatestCommitTimestamp = new DateTimeOffset(latestCommit.CommitTimeStamp.Ticks, TimeSpan.Zero);
                 LatestCommitId = latestCommit.CommitId;
             }
 

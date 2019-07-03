@@ -623,6 +623,43 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                 Assert.False(properties[_packageVersion].Listed);
                 Assert.False(properties[_packageVersion].SemVer2);
             }
+
+            [Fact]
+            public async Task AssumesDateTimeIsUtc()
+            {
+                var existingVersion = "1.0.1";
+                _versionListDataResult = new ResultAndAccessCondition<VersionListData>(
+                    new VersionListData(new Dictionary<string, VersionPropertiesData>
+                    {
+                        { existingVersion, new VersionPropertiesData(listed: true, semVer2: false) },
+                    }),
+                    _versionListDataResult.AccessCondition);
+
+                await _target.AddCatalogEntriesAsync(
+                    _packageId,
+                    _latestEntries,
+                    _entryToLeaf);
+
+                _search.Verify(
+                    x => x.UpdateVersionListFromCatalog(
+                        It.IsAny<string>(),
+                        It.IsAny<SearchFilters>(),
+                        new DateTimeOffset(_commitItem.CommitTimeStamp.Ticks, TimeSpan.Zero),
+                        It.IsAny<string>(),
+                        It.IsAny<string[]>(),
+                        It.IsAny<bool>(),
+                        It.IsAny<bool>()),
+                    Times.AtLeastOnce);
+
+                _hijack.Verify(
+                    x => x.LatestFromCatalog(
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        new DateTimeOffset(_commitItem.CommitTimeStamp.Ticks, TimeSpan.Zero),
+                        It.IsAny<string>(),
+                        It.IsAny<HijackDocumentChanges>()),
+                    Times.AtLeastOnce);
+            }
         }
 
         public abstract class BaseFacts
