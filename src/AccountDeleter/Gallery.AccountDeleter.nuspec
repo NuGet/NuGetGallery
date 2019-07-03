@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>Gallery.AccountDeleter</id>
+    <version>$version$</version>
+    <title>Gallery.AccountDeleter</title>
+    <authors>Microsoft corp.</authors>
+    <owners>Microsoft corp.</owners>
+    <description>Job that will take action on account delete requests from any defined source</description>
+    <copyright>Copyright Microsoft corp.</copyright>
+  </metadata>
+  <files>
+    <file src="bin\$configuration$\*.*" target="bin"/>
+
+    <file src="Scripts\Functions.ps1" />
+    <file src="Scripts\PreDeploy.ps1" />
+    <file src="Scripts\PostDeploy.ps1" />
+    <file src="Scripts\nssm.exe" />
+  </files>
+</package>

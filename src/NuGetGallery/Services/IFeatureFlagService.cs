@@ -58,5 +58,10 @@ namespace NuGetGallery
         /// Whether the OData controllers use the read-only replica.
         /// </summary>
         bool IsODataDatabaseReadOnlyEnabled();
+
+        /// <summary>
+        /// Whether the user can participate in A/B tests.
+        /// </summary>
+        bool IsABTestingEnabled(User user);
     }
 }

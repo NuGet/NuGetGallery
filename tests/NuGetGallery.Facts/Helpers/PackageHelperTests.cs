@@ -1,7 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Linq;
+using NuGet.Packaging;
 using NuGet.Services.Entities;
+using NuGetGallery.Packaging;
 using Xunit;
 
 namespace NuGetGallery.Helpers
@@ -78,6 +82,29 @@ namespace NuGetGallery.Helpers
                 }
 
                 Assert.Equal(expected, PackageHelper.GetSelectListText(package));
+            }
+        }
+
+        public class TheValidateNuGetPackageMetadataMethod
+        {
+            [Fact]
+            public void ChecksIdVersionCombinedLength()
+            {
+                var metadata = new PackageMetadata(
+                    new Dictionary<string, string>
+                    {
+                        { "id", "someidthatis128characterslong.padding.padding.padding.padding.padding.padding.padding.padding.padding.padding.padding.padding.a" },
+                        { "version", "1.2.3-versionthatis64characterslong-padding-padding-padding-pad" },
+                        { "description", "test description" }
+                    },
+                    Enumerable.Empty<PackageDependencyGroup>(),
+                    Enumerable.Empty<FrameworkSpecificGroup>(),
+                    Enumerable.Empty<NuGet.Packaging.Core.PackageType>(),
+                    minClientVersion: null,
+                    repositoryMetadata: null);
+
+                var ex = Assert.Throws<EntityException>(() => PackageHelper.ValidateNuGetPackageMetadata(metadata));
+                Assert.Contains("ID and version", ex.Message);
             }
         }
     }

@@ -14,10 +14,6 @@
   "homepage": "https://getbootstrap.com/",
   "author": "Twitter, Inc.",
   "scripts": {
-    "sri": "node grunt/generate-sri.js",
-    "release": "grunt prep-release && npm run sri && npm run release-zip",
-    "release-zip": "cross-env-shell \"shx rm -rf bootstrap-$npm_package_version-dist && shx cp -r dist/ bootstrap-$npm_package_version-dist && zip -r9 bootstrap-$npm_package_version-dist.zip bootstrap-$npm_package_version-dist && shx rm -rf bootstrap-$npm_package_version-dist\"",
-    "change-version": "node grunt/change-version.js",
     "test": "grunt test"
   },
   "style": "dist/css/bootstrap.css",
@@ -50,8 +46,6 @@
     "load-grunt-tasks": "^4.0.0",
     "markdown-it": "^8.4.2",
     "replace-in-file": "^3.4.3",
-    "shelljs": "^0.8.3",
-    "shx": "^0.3.2",
     "time-grunt": "^2.0.0"
   },
   "engines": {

@@ -74,6 +74,7 @@ namespace NuGetGallery
         [HttpPost]
         [UIAuthorize]
         [ValidateAntiForgeryToken]
+        [ValidateRecaptchaResponse]
         public virtual async Task<ActionResult> Contact(ContactSupportViewModel contactForm)
         {
             if (!ModelState.IsValid)

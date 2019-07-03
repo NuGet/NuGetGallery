@@ -115,7 +115,7 @@
 
         svg.append("foreignObject")
             .attr("x", "1.71em")
-            .attr("y", -10)
+            .attr("y", -30)
             .attr("width", width - 20 + "px")
             .attr("height", "2em")
             .attr("font-weight", "bold")

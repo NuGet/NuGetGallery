@@ -389,6 +389,56 @@ namespace NuGetGallery.Services
                 Assert.Contains("An exception was encountered while trying to delete the account 'TestsUser'", result.Description);
             }
 
+            /// <summary>
+            /// An user that does not own any package but owns a registration will have the registration cleaned after deletion.
+            /// </summary>
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public async Task DeleteUserThatOwnsOrphanRegistrationWillCleanTheRegistration(bool multipleOwners)
+            {
+                // Arrange
+                PackageRegistration registration = null;
+                var testUser = CreateTestUserWithRegistration(ref registration);
+                var newOwner = new User("newOwner");
+                newOwner.EmailAddress = "newOwner@email.com";
+                if (multipleOwners)
+                {                  
+                    registration.Owners.Add(newOwner);
+                }
+
+                var testableService = new DeleteAccountTestService(testUser, registration);
+                var deleteAccountService = testableService.GetDeleteAccountService(isPackageOrphaned: true);
+
+                // Act
+                await deleteAccountService.DeleteAccountAsync(
+                    userToBeDeleted: testUser,
+                    userToExecuteTheDelete: testUser,
+                    orphanPackagePolicy: AccountDeletionOrphanPackagePolicy.UnlistOrphans);
+
+                // Assert
+                if (multipleOwners)
+                {
+                    Assert.Contains<User>(newOwner, registration.Owners);
+                    Assert.Equal(1, registration.Owners.Count());
+                }
+                else
+                {
+                    Assert.Empty(registration.Owners);
+                }
+            }
+
+
+            private static User CreateTestUserWithRegistration(ref PackageRegistration registration)
+            {
+                var testUser = new User("TestUser") { Key = Key++ };
+                testUser.EmailAddress = "user@test.com";
+                registration = new PackageRegistration();
+                registration.Id = "TestRegistration";
+                registration.Owners.Add(testUser);
+                return testUser;
+            }
+
             private static User CreateTestUser(ref PackageRegistration registration)
             {
                 var testUser = new User("TestUser") { Key = Key++ };
@@ -756,6 +806,12 @@ namespace NuGetGallery.Services
                 if (_user != null)
                 {
                     packageService.Setup(m => m.FindPackagesByAnyMatchingOwner(_user, true, It.IsAny<bool>())).Returns(_userPackages);
+                    var packageRegistraionList = new List<PackageRegistration>();
+                    if(_userPackagesRegistration != null)
+                    {
+                        packageRegistraionList.Add(_userPackagesRegistration);
+                    }
+                    packageService.Setup(m => m.FindPackageRegistrationsByOwner(_user)).Returns(packageRegistraionList.AsQueryable());
                 }
 
                 packageService

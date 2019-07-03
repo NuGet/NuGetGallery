@@ -90,6 +90,7 @@ namespace NuGetGallery
         private readonly IPackageUpdateService _packageUpdateService;
         private readonly IPackageFileService _packageFileService;
         private readonly ISearchService _searchService;
+        private readonly ISearchService _previewSearchService;
         private readonly IUploadFileService _uploadFileService;
         private readonly IUserService _userService;
         private readonly IEntitiesContext _entitiesContext;
@@ -112,6 +113,7 @@ namespace NuGetGallery
         private readonly ILicenseExpressionSplitter _licenseExpressionSplitter;
         private readonly IFeatureFlagService _featureFlagService;
         private readonly IPackageDeprecationService _deprecationService;
+        private readonly IABTestService _abTestService;
 
         public PackagesController(
             IPackageService packageService,
@@ -120,6 +122,7 @@ namespace NuGetGallery
             IUserService userService,
             IMessageService messageService,
             ISearchService searchService,
+            ISearchService previewSearchService,
             IPackageFileService packageFileService,
             IEntitiesContext entitiesContext,
             IAppConfiguration config,
@@ -141,14 +144,16 @@ namespace NuGetGallery
             ICoreLicenseFileService coreLicenseFileService,
             ILicenseExpressionSplitter licenseExpressionSplitter,
             IFeatureFlagService featureFlagService,
-            IPackageDeprecationService deprecationService)
+            IPackageDeprecationService deprecationService,
+            IABTestService abTestService)
         {
             _packageService = packageService;
             _packageUpdateService = packageUpdateService ?? throw new ArgumentNullException(nameof(packageUpdateService));
             _uploadFileService = uploadFileService;
             _userService = userService;
             _messageService = messageService;
-            _searchService = searchService;
+            _searchService = searchService ?? throw new ArgumentNullException(nameof(searchService));
+            _previewSearchService = previewSearchService ?? throw new ArgumentNullException(nameof(previewSearchService));
             _packageFileService = packageFileService;
             _entitiesContext = entitiesContext;
             _config = config;
@@ -171,6 +176,7 @@ namespace NuGetGallery
             _licenseExpressionSplitter = licenseExpressionSplitter ?? throw new ArgumentNullException(nameof(licenseExpressionSplitter));
             _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
             _deprecationService = deprecationService ?? throw new ArgumentNullException(nameof(deprecationService));
+            _abTestService = abTestService ?? throw new ArgumentNullException(nameof(abTestService));
         }
 
         [HttpGet]
@@ -980,8 +986,11 @@ namespace NuGetGallery
 
             SearchResults results;
 
+            var isPreviewSearchEnabled = !string.IsNullOrEmpty(q) && _abTestService.IsPreviewSearchEnabled(GetCurrentUser());
+            var searchService = isPreviewSearchEnabled ? _previewSearchService : _searchService;
+
             // fetch most common query from cache to relieve load on the search service
-            if (string.IsNullOrEmpty(q) && page == 1 && includePrerelease)
+            if (string.IsNullOrEmpty(q) && page == 1 && includePrerelease && !isPreviewSearchEnabled)
             {
                 var cachedResults = HttpContext.Cache.Get("DefaultSearchResults");
                 if (cachedResults == null)
@@ -994,7 +1003,7 @@ namespace NuGetGallery
                         context: SearchFilter.UISearchContext,
                         semVerLevel: SemVerLevelKey.SemVerLevel2);
 
-                    results = await _searchService.Search(searchFilter);
+                    results = await searchService.Search(searchFilter);
 
                     // note: this is a per instance cache
                     HttpContext.Cache.Add(
@@ -1021,7 +1030,7 @@ namespace NuGetGallery
                     context: SearchFilter.UISearchContext,
                     semVerLevel: SemVerLevelKey.SemVerLevel2);
 
-                results = await _searchService.Search(searchFilter);
+                results = await searchService.Search(searchFilter);
             }
 
             int totalHits = results.Hits;
@@ -1040,7 +1049,8 @@ namespace NuGetGallery
                 page - 1,
                 GalleryConstants.DefaultPackageListPageSize,
                 Url,
-                includePrerelease);
+                includePrerelease,
+                isPreviewSearchEnabled);
 
             ViewBag.SearchTerm = q;
 
