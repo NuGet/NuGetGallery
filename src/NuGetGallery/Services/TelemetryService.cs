@@ -239,7 +239,7 @@ namespace NuGetGallery
 
         public void TrackGetPackageDownloadCountFailed(string packageId, string packageVersion)
         {
-            TrackMetric(Events.GetPackageRegistrationDownloadCountFailed, 1, properties =>
+            TrackMetric(Events.GetPackageDownloadCountFailed, 1, properties =>
             {
                 properties.Add(PackageId, packageId);
                 properties.Add(PackageVersion, packageVersion);
