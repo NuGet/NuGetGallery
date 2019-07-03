@@ -16,8 +16,8 @@ namespace NuGetGallery
 
         public DownloadCountObjectMaterializedInterceptor(IDownloadCountService downloadCountService, ITelemetryService telemetryService)
         {
-            _downloadCountService = downloadCountService;
-            _telemetryService = telemetryService;
+            _downloadCountService = downloadCountService ?? throw new ArgumentNullException(nameof(downloadCountService));
+            _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
         }
 
         public void InterceptObjectMaterialized(object entity)
