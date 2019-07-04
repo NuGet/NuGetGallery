@@ -52,8 +52,10 @@
     <Compile Include="Authentication\IdentityInformation.cs" />
     <Compile Include="Authentication\NuGetScopes.cs" />
     <Compile Include="Authentication\V3Hasher.cs" />
+    <Compile Include="Configuration\ABTestConfiguration.cs" />
     <Compile Include="Configuration\AppConfiguration.cs" />
     <Compile Include="Configuration\CertificatesConfiguration.cs" />
+    <Compile Include="Configuration\IABTestConfiguration.cs" />
     <Compile Include="Configuration\IAppConfiguration.cs" />
     <Compile Include="Configuration\ICertificatesConfiguration.cs" />
     <Compile Include="Configuration\ILoginDiscontinuationConfiguration.cs" />
@@ -88,6 +90,7 @@
     <Compile Include="PackageManagement\IReservedNamespaceService.cs" />
     <Compile Include="PackageManagement\PackageDeleteDecision.cs" />
     <Compile Include="PackageManagement\PackageHelper.cs" />
+    <Compile Include="PackageManagement\PackageOwnerRequestService.cs" />
     <Compile Include="PackageManagement\PackageOwnershipManagementService.cs" />
     <Compile Include="PackageManagement\PackageService.cs" />
     <Compile Include="PackageManagement\ReservedNamespaceService.cs" />
@@ -171,6 +174,12 @@
     </PackageReference>
     <PackageReference Include="Microsoft.ApplicationInsights">
       <Version>2.3.0</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.AspNet.Mvc">
+      <Version>5.2.3</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.ApplicationInsights">
+      <Version>2.2.0</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.AspNet.Mvc">
       <Version>5.2.3</Version>

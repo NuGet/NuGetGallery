@@ -1,0 +1,139 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{8EE102B9-DA4E-4FDF-B6FD-FB12E6584DD7}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>NuGetGallery.AccountDeleter</RootNamespace>
+    <AssemblyName>AccountDeleter</AssemblyName>
+    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AccountDeleteMessageHandler.cs" />
+    <Compile Include="Configuration\AccountDeleteConfiguration.cs" />
+    <Compile Include="Configuration\CoreMessageServiceConfiguration.cs" />
+    <Compile Include="Configuration\EmailConfiguration.cs" />
+    <Compile Include="Configuration\GalleryConfiguration.cs" />
+    <Compile Include="Configuration\MailTemplateConfiguration.cs" />
+    <Compile Include="Configuration\SourceConfiguration.cs" />
+    <Compile Include="Evaluators\AlwaysAllowEvaluator.cs" />
+    <Compile Include="Exceptions\EmailContactNotAllowedException.cs" />
+    <Compile Include="Exceptions\UnknownSourceException.cs" />
+    <Compile Include="Exceptions\UserNotFoundException.cs" />
+    <Compile Include="Messaging\AccountDeleteEmailBuilder.cs" />
+    <Compile Include="Messaging\DisposableEmailBuilder.cs" />
+    <Compile Include="Messaging\EmailBuilderFactory.cs" />
+    <Compile Include="EmptyDeleteAccountService.cs" />
+    <Compile Include="Messaging\DebugMessageService.cs" />
+    <Compile Include="EmptyUserService.cs" />
+    <Compile Include="Evaluators\AggregateEvaluator.cs" />
+    <Compile Include="Evaluators\AlwaysRejectEvaluator.cs" />
+    <Compile Include="Evaluators\UserOrganizationEvaluator.cs" />
+    <Compile Include="GalleryAccountManager.cs" />
+    <Compile Include="IAccountManager.cs" />
+    <Compile Include="AccountDeleteMessage.cs" />
+    <Compile Include="AccountDeleteMessageSerializer.cs" />
+    <Compile Include="Messaging\IEmailBuilderFactory.cs" />
+    <Compile Include="Evaluators\IUserEvaluator.cs" />
+    <Compile Include="Job.cs" />
+    <Compile Include="AccountDeleteUserService.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Telemetry\GalleryTelemetryService.cs" />
+    <Compile Include="Telemetry\IAccountDeleteTelemetryService.cs" />
+    <Compile Include="Telemetry\AccountDeleteTelemetryService.cs" />
+    <Compile Include="Evaluators\UserPackageEvaluator.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NuGet.Services.Entities\NuGet.Services.Entities.csproj">
+      <Project>{6262f4fc-29be-4226-b676-db391c89d396}</Project>
+      <Name>NuGet.Services.Entities</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NuGetGallery.Core\NuGetGallery.Core.csproj">
+      <Project>{097b2cdd-9623-4c34-93c2-d373d51f5b4e}</Project>
+      <Name>NuGetGallery.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NuGetGallery.Services\NuGetGallery.Services.csproj">
+      <Project>{c7d5e850-33fa-4ec5-8d7f-b1c8dd5d48f9}</Project>
+      <Name>NuGetGallery.Services</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="MicroBuild.Core">
+      <Version>0.3.0</Version>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="NuGet.Jobs.Common">
+      <Version>4.1.0-master-2602271</Version>
+    </PackageReference>
+    <PackageReference Include="NuGet.Services.Configuration">
+      <Version>2.52.0</Version>
+    </PackageReference>
+    <PackageReference Include="NuGet.Services.Logging">
+      <Version>2.52.0</Version>
+    </PackageReference>
+    <PackageReference Include="NuGet.Services.Messaging.Email">
+      <Version>2.52.0</Version>
+    </PackageReference>
+    <PackageReference Include="NuGet.Services.ServiceBus">
+      <Version>2.52.0</Version>
+    </PackageReference>
+    <PackageReference Include="NuGet.Services.Validation.Common.Job">
+      <Version>4.1.0-dev-2759568</Version>
+    </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+    <None Include="Scripts\Functions.ps1" />
+    <None Include="Scripts\PostDeploy.ps1" />
+    <None Include="Scripts\PreDeploy.ps1" />
+    <Content Include="Scripts\nssm.exe" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <SignPath>..\..\build</SignPath>
+    <SignPath Condition="'$(BUILD_SOURCESDIRECTORY)' != ''">$(BUILD_SOURCESDIRECTORY)\build</SignPath>
+    <SignPath Condition="'$(NuGetBuildPath)' != ''">$(NuGetBuildPath)</SignPath>
+    <SignType Condition="'$(SignType)' == ''">none</SignType>
+  </PropertyGroup>
+  <Import Project="$(SignPath)\sign.targets" Condition="Exists('$(SignPath)\sign.targets')" />
+  <Import Project="$(SignPath)\sign.microbuild.targets" Condition="Exists('$(SignPath)\sign.microbuild.targets')" />
+  <Import Project="$(SignPath)\sign.scripts.targets" Condition="Exists('$(SignPath)\sign.scripts.targets')" />
+  <Import Project="..\..\sign.thirdparty.targets" />
+</Project>

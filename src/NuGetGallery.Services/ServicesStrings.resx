@@ -1118,4 +1118,7 @@ The {1} Team</value>
   <data name="UploadPackage_EmbeddedIconNotAccepted" xml:space="preserve">
     <value>The &lt;icon&gt; element is not currently supported.</value>
   </data>
+  <data name="NuGetPackageIdVersionCombinedTooLong" xml:space="preserve">
+    <value>A nuget package's ID and version properties combined may not be more than {0} characters long.</value>
+  </data>
 </root>
