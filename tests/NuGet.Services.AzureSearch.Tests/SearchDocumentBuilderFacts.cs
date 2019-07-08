@@ -177,6 +177,40 @@ namespace NuGet.Services.AzureSearch
             }
         }
 
+        public class UpdateDownloadCount : BaseFacts
+        {
+            public UpdateDownloadCount(ITestOutputHelper output) : base(output)
+            {
+            }
+
+            [Fact]
+            public async Task SetsExpectedProperties()
+            {
+                var document = _target.UpdateDownloadCount(
+                    Data.PackageId,
+                    Data.SearchFilters,
+                    Data.TotalDownloadCount);
+
+                SetDocumentLastUpdated(document);
+                var json = await SerializationUtilities.SerializeToJsonAsync(document);
+                Assert.Equal(@"{
+  ""value"": [
+    {
+      ""@search.action"": ""upload"",
+      ""totalDownloadCount"": 1001,
+      ""downloadScore"": 0.14381174563233068,
+      ""lastUpdatedDocument"": ""2018-12-14T09:30:00+00:00"",
+      ""lastDocumentType"": ""NuGet.Services.AzureSearch.SearchDocument+UpdateDownloadCount"",
+      ""lastUpdatedFromCatalog"": false,
+      ""lastCommitTimestamp"": null,
+      ""lastCommitId"": null,
+      ""key"": ""windowsazure_storage-d2luZG93c2F6dXJlLnN0b3JhZ2U1-IncludePrereleaseAndSemVer2""
+    }
+  ]
+}", json);
+            }
+        }
+
         public class UpdateVersionListFromCatalog : BaseFacts
         {
             public UpdateVersionListFromCatalog(ITestOutputHelper output) : base(output)

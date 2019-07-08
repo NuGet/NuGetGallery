@@ -212,8 +212,7 @@ namespace NuGet.Services.AzureSearch
                 fullVersion: fullVersion,
                 owners: owners);
             _baseDocumentBuilder.PopulateMetadata(document, packageId, package);
-            document.TotalDownloadCount = totalDownloadCount;
-            document.DownloadScore = DocumentUtilities.GetDownloadScore(totalDownloadCount);
+            PopulateDownloadCount(document, totalDownloadCount);
 
             return document;
         }
@@ -298,6 +297,32 @@ namespace NuGet.Services.AzureSearch
             PopulateOwners(document, owners);
 
             return document;
+        }
+
+        public SearchDocument.UpdateDownloadCount UpdateDownloadCount(
+            string packageId,
+            SearchFilters searchFilters,
+            long totalDownloadCount)
+        {
+            var document = new SearchDocument.UpdateDownloadCount();
+
+            PopulateKey(document, packageId, searchFilters);
+            _baseDocumentBuilder.PopulateCommitted(
+                document,
+                lastUpdatedFromCatalog: false,
+                lastCommitTimestamp: null,
+                lastCommitId: null);
+            PopulateDownloadCount(document, totalDownloadCount);
+
+            return document;
+        }
+
+        private static void PopulateDownloadCount<T>(
+            T document,
+            long totalDownloadCount) where T : KeyedDocument, SearchDocument.IDownloadCount
+        {
+            document.TotalDownloadCount = totalDownloadCount;
+            document.DownloadScore = DocumentUtilities.GetDownloadScore(totalDownloadCount);
         }
     }
 }
