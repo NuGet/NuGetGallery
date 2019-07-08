@@ -14,19 +14,19 @@ using Newtonsoft.Json;
 using NuGet.Indexing;
 using NuGetGallery;
 
-namespace NuGet.Services.AzureSearch.SearchService
+namespace NuGet.Services.AzureSearch.AuxiliaryFiles
 {
     public class AuxiliaryFileClient : IAuxiliaryFileClient
     {
         private readonly ICloudBlobClient _cloudBlobClient;
-        private readonly IOptionsSnapshot<SearchServiceConfiguration> _options;
+        private readonly IOptionsSnapshot<IAuxiliaryDataStorageConfiguration> _options;
         private readonly IAzureSearchTelemetryService _telemetryService;
         private readonly ILogger<AuxiliaryFileClient> _logger;
         private readonly Lazy<ICloudBlobContainer> _lazyContainer;
 
         public AuxiliaryFileClient(
             ICloudBlobClient cloudBlobClient,
-            IOptionsSnapshot<SearchServiceConfiguration> options,
+            IOptionsSnapshot<IAuxiliaryDataStorageConfiguration> options,
             IAzureSearchTelemetryService telemetryService,
             ILogger<AuxiliaryFileClient> logger)
         {

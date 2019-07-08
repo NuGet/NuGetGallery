@@ -3,7 +3,7 @@
 
 using System;
 
-namespace NuGet.Services.AzureSearch.SearchService
+namespace NuGet.Services.AzureSearch.AuxiliaryFiles
 {
     public class AuxiliaryFileResult<T> where T : class
     {

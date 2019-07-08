@@ -15,6 +15,7 @@ using NuGet.Protocol;
 using NuGet.Protocol.Catalog;
 using NuGet.Protocol.Registration;
 using NuGet.Services.AzureSearch.Auxiliary2AzureSearch;
+using NuGet.Services.AzureSearch.AuxiliaryFiles;
 using NuGet.Services.AzureSearch.Catalog2AzureSearch;
 using NuGet.Services.AzureSearch.Db2AzureSearch;
 using NuGet.Services.AzureSearch.Owners2AzureSearch;
@@ -181,7 +182,7 @@ namespace NuGet.Services.AzureSearch
             containerBuilder
                 .Register<ICloudBlobClient>(c =>
                 {
-                    var options = c.Resolve<IOptionsSnapshot<SearchServiceConfiguration>>();
+                    var options = c.Resolve<IOptionsSnapshot<IAuxiliaryDataStorageConfiguration>>();
                     return new CloudBlobClientWrapper(
                         options.Value.AuxiliaryDataStorageConnectionString,
                         readAccessGeoRedundant: true);
@@ -191,7 +192,7 @@ namespace NuGet.Services.AzureSearch
             containerBuilder
                 .Register<IAuxiliaryFileClient>(c => new AuxiliaryFileClient(
                     c.ResolveKeyed<ICloudBlobClient>(key),
-                    c.Resolve<IOptionsSnapshot<SearchServiceConfiguration>>(),
+                    c.Resolve<IOptionsSnapshot<IAuxiliaryDataStorageConfiguration>>(),
                     c.Resolve<IAzureSearchTelemetryService>(),
                     c.Resolve<ILogger<AuxiliaryFileClient>>()));
         }

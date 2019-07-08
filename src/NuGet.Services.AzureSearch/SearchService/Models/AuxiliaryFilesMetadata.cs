@@ -3,6 +3,7 @@
 
 using System;
 using Newtonsoft.Json;
+using NuGet.Services.AzureSearch.AuxiliaryFiles;
 
 namespace NuGet.Services.AzureSearch.SearchService
 {

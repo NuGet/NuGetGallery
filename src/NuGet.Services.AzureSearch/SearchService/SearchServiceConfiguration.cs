@@ -2,10 +2,11 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using NuGet.Services.AzureSearch.AuxiliaryFiles;
 
 namespace NuGet.Services.AzureSearch.SearchService
 {
-    public class SearchServiceConfiguration : AzureSearchConfiguration
+    public class SearchServiceConfiguration : AzureSearchConfiguration, IAuxiliaryDataStorageConfiguration
     {
         public string SemVer1RegistrationsBaseUrl { get; set; }
         public string SemVer2RegistrationsBaseUrl { get; set; }

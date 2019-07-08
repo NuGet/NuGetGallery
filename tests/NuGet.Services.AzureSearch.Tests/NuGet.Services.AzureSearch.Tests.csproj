@@ -69,7 +69,7 @@
     <Compile Include="Registration\RegistrationClientFacts.cs" />
     <Compile Include="SearchService\AuxiliaryDataCacheFacts.cs" />
     <Compile Include="SearchService\AuxiliaryDataFacts.cs" />
-    <Compile Include="SearchService\AuxiliaryFileClientFacts.cs" />
+    <Compile Include="AuxiliaryFiles\AuxiliaryFileClientFacts.cs" />
     <Compile Include="SearchService\AuxiliaryFileReloaderFacts.cs" />
     <Compile Include="SearchService\AzureSearchServiceFacts.cs" />
     <Compile Include="SearchService\SearchParametersBuilderFacts.cs" />

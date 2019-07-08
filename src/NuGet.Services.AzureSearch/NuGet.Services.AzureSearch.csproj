@@ -49,6 +49,7 @@
     <Compile Include="Analysis\PackageIdCustomTokenizer.cs" />
     <Compile Include="Auxiliary2AzureSearch\Auxiliary2AzureSearchCommand.cs" />
     <Compile Include="Auxiliary2AzureSearch\Auxiliary2AzureSearchConfiguration.cs" />
+    <Compile Include="AuxiliaryFiles\IAuxiliaryDataStorageConfiguration.cs" />
     <Compile Include="AzureSearchScoringConfiguration.cs" />
     <Compile Include="BaseDocumentBuilder.cs" />
     <Compile Include="DatabaseOwnerFetcher.cs" />
@@ -71,7 +72,7 @@
     <Compile Include="DurationMeasurement.cs" />
     <Compile Include="Analysis\ExactMatchCustomAnalyzer.cs" />
     <Compile Include="SearchService\AuxiliaryDataCache.cs" />
-    <Compile Include="SearchService\AuxiliaryFileClient.cs" />
+    <Compile Include="AuxiliaryFiles\AuxiliaryFileClient.cs" />
     <Compile Include="SearchService\AuxiliaryFileReloader.cs" />
     <Compile Include="AzureSearchConfiguration.cs" />
     <Compile Include="AzureSearchJobConfiguration.cs" />
@@ -127,9 +128,9 @@
     <Compile Include="Registration\RegistrationUrlBuilder.cs" />
     <Compile Include="SearchDocumentBuilder.cs" />
     <Compile Include="SearchService\AuxiliaryData.cs" />
-    <Compile Include="SearchService\AuxiliaryFileResult.cs" />
+    <Compile Include="AuxiliaryFiles\AuxiliaryFileResult.cs" />
     <Compile Include="SearchService\IAuxiliaryDataCache.cs" />
-    <Compile Include="SearchService\IAuxiliaryFileClient.cs" />
+    <Compile Include="AuxiliaryFiles\IAuxiliaryFileClient.cs" />
     <Compile Include="SearchService\IAuxiliaryFileReloader.cs" />
     <Compile Include="SearchService\ISearchStatusService.cs" />
     <Compile Include="SearchService\ISearchTextBuilder.cs" />
@@ -138,7 +139,7 @@
     <Compile Include="SearchService\Models\AutocompleteRequest.cs" />
     <Compile Include="SearchService\Models\AutocompleteResponse.cs" />
     <Compile Include="SearchService\Models\AutocompleteRequestType.cs" />
-    <Compile Include="SearchService\Models\AuxiliaryFileMetadata.cs" />
+    <Compile Include="AuxiliaryFiles\AuxiliaryFileMetadata.cs" />
     <Compile Include="SearchService\Models\AuxiliaryFilesMetadata.cs" />
     <Compile Include="SearchService\AzureSearchService.cs" />
     <Compile Include="SearchService\IAuxiliaryData.cs" />

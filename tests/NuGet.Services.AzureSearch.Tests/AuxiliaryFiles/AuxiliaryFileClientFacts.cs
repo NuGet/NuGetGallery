@@ -10,12 +10,13 @@ using Microsoft.Extensions.Options;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Moq;
+using NuGet.Services.AzureSearch.SearchService;
 using NuGet.Services.AzureSearch.Support;
 using NuGetGallery;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace NuGet.Services.AzureSearch.SearchService
+namespace NuGet.Services.AzureSearch.AuxiliaryFiles
 {
     public class AuxiliaryFileClientFacts
     {

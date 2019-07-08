@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Moq;
 using NuGet.Indexing;
+using NuGet.Services.AzureSearch.AuxiliaryFiles;
 using NuGet.Services.AzureSearch.Support;
 using Xunit;
 using Xunit.Abstractions;
