@@ -38,6 +38,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App_Start\ApiExceptionFilterAttributeFacts.cs" />
+    <Compile Include="App_Start\AzureWebAppTelemetryInitializerFacts.cs" />
     <Compile Include="Controllers\SearchControllerFacts.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

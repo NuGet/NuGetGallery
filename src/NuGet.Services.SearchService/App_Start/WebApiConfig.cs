@@ -133,6 +133,8 @@ namespace NuGet.Services.SearchService
                 TelemetryConfiguration.Active.InstrumentationKey = instrumentationKey;
             }
 
+            TelemetryConfiguration.Active.TelemetryInitializers.Add(new AzureWebAppTelemetryInitializer());
+
             var services = new ServiceCollection();
             services.Add(ServiceDescriptor.Scoped(typeof(IOptionsSnapshot<>), typeof(NonCachingOptionsSnapshot<>)));
             services.Configure<AzureSearchConfiguration>(configurationRoot.GetSection(ConfigurationSectionName));
