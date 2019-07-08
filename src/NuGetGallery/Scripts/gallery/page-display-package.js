@@ -126,4 +126,23 @@ $(function () {
             }
         });
     }
+
+    // Add smooth scrolling to dependent-repos-link
+    $("#dependent-repos-link").on('click', function (event) {
+        if (this.hash !== "") {
+            event.preventDefault();
+            let hash = this.hash;
+            let hashElem = $(hash);
+            if (hashElem.attr("aria-expanded") == "false") {
+                hashElem.click();
+            }
+            $('html, body').animate({
+                scrollTop: hashElem.offset().top
+            }, 400, function () {
+                // Add hash (#) to URL when done scrolling (default click behavior)
+                window.location.hash = hash;
+                    
+            });
+        }
+    });
 });
