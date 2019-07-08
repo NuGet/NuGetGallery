@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -169,7 +170,8 @@ namespace NuGet.Services.AzureSearch.Owners2AzureSearch
                 DatabaseOwnerFetcher = new Mock<IDatabaseOwnerFetcher>();
                 OwnerDataClient = new Mock<IOwnerDataClient>();
                 OwnerSetComparer = new Mock<IOwnerSetComparer>();
-                OwnerIndexActionBuilder = new Mock<IOwnerIndexActionBuilder>();
+                SearchDocumentBuilder = new Mock<ISearchDocumentBuilder>();
+                SearchIndexActionBuilder = new Mock<ISearchIndexActionBuilder>();
                 Pusher = new Mock<IBatchPusher>();
                 Options = new Mock<IOptionsSnapshot<AzureSearchJobConfiguration>>();
                 TelemetryService = new Mock<IAzureSearchTelemetryService>();
@@ -205,15 +207,16 @@ namespace NuGet.Services.AzureSearch.Owners2AzureSearch
                         It.IsAny<SortedDictionary<string, SortedSet<string>>>(),
                         It.IsAny<SortedDictionary<string, SortedSet<string>>>()))
                     .Returns(() => Changes);
-                OwnerIndexActionBuilder
-                    .Setup(x => x.UpdateOwnersAsync(It.IsAny<string>(), It.IsAny<string[]>()))
+                SearchIndexActionBuilder
+                    .Setup(x => x.UpdateAsync(It.IsAny<string>(), It.IsAny<Func<SearchFilters, KeyedDocument>>()))
                     .ReturnsAsync(() => IndexActions);
 
                 Target = new Owners2AzureSearchCommand(
                     DatabaseOwnerFetcher.Object,
                     OwnerDataClient.Object,
                     OwnerSetComparer.Object,
-                    OwnerIndexActionBuilder.Object,
+                    SearchDocumentBuilder.Object,
+                    SearchIndexActionBuilder.Object,
                     () => Pusher.Object,
                     Options.Object,
                     TelemetryService.Object,
@@ -223,7 +226,8 @@ namespace NuGet.Services.AzureSearch.Owners2AzureSearch
             public Mock<IDatabaseOwnerFetcher> DatabaseOwnerFetcher { get; }
             public Mock<IOwnerDataClient> OwnerDataClient { get; }
             public Mock<IOwnerSetComparer> OwnerSetComparer { get; }
-            public Mock<IOwnerIndexActionBuilder> OwnerIndexActionBuilder { get; }
+            public Mock<ISearchDocumentBuilder> SearchDocumentBuilder { get; }
+            public Mock<ISearchIndexActionBuilder> SearchIndexActionBuilder { get; }
             public Mock<IBatchPusher> Pusher { get; }
             public Mock<IOptionsSnapshot<AzureSearchJobConfiguration>> Options { get; }
             public Mock<IAzureSearchTelemetryService> TelemetryService { get; }

@@ -8,9 +8,9 @@ using System.Threading.Tasks;
 using Microsoft.Azure.Search.Models;
 using Microsoft.Extensions.Logging;
 
-namespace NuGet.Services.AzureSearch.Owners2AzureSearch
+namespace NuGet.Services.AzureSearch
 {
-    public class OwnerIndexActionBuilder : IOwnerIndexActionBuilder
+    public class SearchIndexActionBuilder : ISearchIndexActionBuilder
     {
         private static readonly IReadOnlyList<SearchFilters> AllSearchFilters = Enum
             .GetValues(typeof(SearchFilters))
@@ -18,33 +18,29 @@ namespace NuGet.Services.AzureSearch.Owners2AzureSearch
             .ToList();
 
         private readonly IVersionListDataClient _versionListDataClient;
-        private readonly ISearchDocumentBuilder _search;
-        private readonly ILogger<OwnerIndexActionBuilder> _logger;
+        private readonly ILogger<SearchIndexActionBuilder> _logger;
 
-        public OwnerIndexActionBuilder(
+        public SearchIndexActionBuilder(
             IVersionListDataClient versionListDataClient,
-            ISearchDocumentBuilder search,
-            ILogger<OwnerIndexActionBuilder> logger)
+            ILogger<SearchIndexActionBuilder> logger)
         {
             _versionListDataClient = versionListDataClient ?? throw new ArgumentNullException(nameof(versionListDataClient));
-            _search = search ?? throw new ArgumentNullException(nameof(search));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task<IndexActions> UpdateOwnersAsync(string packageId, string[] owners)
+        public async Task<IndexActions> UpdateAsync(string packageId, Func<SearchFilters, KeyedDocument> buildDocument)
         {
             var versionListDataResult = await _versionListDataClient.ReadAsync(packageId);
             var versionLists = new VersionLists(versionListDataResult.Result);
 
-            /// Update all of the search documents that exist for this package ID with the provided owners. Note that
-            /// this owner list can be empty (e.g. if the last owner was deleted). Here are some examples of different
-            /// search filter combinations that could occur.
+            /// Update all of the search documents that exist for this package ID with the provided document builder.
+            /// Here are some examples of different search filter combinations that could occur.
             ///
             /// Example #1: 1.0.0 (listed)
             ///
             ///   A stable SemVer 1.0.0 package matches all search filters, so one index action will be produced for
-            ///   each search document. That is four in total. All owner fields will be set to the same thing. All of
-            ///   these search documents have the same latest version: 1.0.0.
+            ///   each search document. That is four in total. All of these search documents have the same latest
+            ///   version: 1.0.0.
             ///
             /// Example #2: 1.0.0 (unlisted), 2.0.0 (unlisted)
             ///
@@ -56,7 +52,7 @@ namespace NuGet.Services.AzureSearch.Owners2AzureSearch
             ///   All of the versions are prerelease so there are no search documents for "stable" search filters. There
             ///   two search documents to be updated, one for <see cref="SearchFilters.IncludePrerelease"/> and one for
             ///   <see cref="SearchFilters.IncludePrereleaseAndSemVer2"/>. The latest version for each of these two
-            ///   documents is different, but both have the same update with regards to the owners field.
+            ///   documents is different.
             var search = new List<IndexAction<KeyedDocument>>();
             var searchFilters = new List<SearchFilters>();
             foreach (var searchFilter in AllSearchFilters)
@@ -67,8 +63,8 @@ namespace NuGet.Services.AzureSearch.Owners2AzureSearch
                     continue;
                 }
 
-                var document = _search.UpdateOwners(packageId, searchFilter, owners);
-                var indexAction = IndexAction.Merge<KeyedDocument>(document);
+                var document = buildDocument(searchFilter);
+                var indexAction = IndexAction.Merge(document);
                 search.Add(indexAction);
                 searchFilters.Add(searchFilter);
             }
@@ -85,8 +81,7 @@ namespace NuGet.Services.AzureSearch.Owners2AzureSearch
             // We never make any change to the version list but still want to push it back to storage. This will give
             // us an etag mismatch if the version list has changed. This is good because if the version list has
             // changed it's possible there is another search document that we have to update. If we didn't do this,
-            // then a race condition could occur where one of the search documents for an ID would have the old owners
-            // until the ownership changes again.
+            // then a race condition could occur where one of the search documents for an ID would not get an update.
             var newVersionListDataResult = versionListDataResult;
 
             return new IndexActions(

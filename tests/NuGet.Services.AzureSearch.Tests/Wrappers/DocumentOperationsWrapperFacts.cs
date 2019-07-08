@@ -8,7 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.Search;
 using Microsoft.Azure.Search.Models;
-using Microsoft.Rest.Azure;
 using Moq;
 using NuGet.Services.AzureSearch.Support;
 using Xunit;

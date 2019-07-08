@@ -61,7 +61,7 @@
     <Compile Include="IndexBuilderFacts.cs" />
     <Compile Include="Models\CommittedDocumentFacts.cs" />
     <Compile Include="Owners2AzureSearch\OwnerDataClientFacts.cs" />
-    <Compile Include="Owners2AzureSearch\OwnerIndexActionBuilderFacts.cs" />
+    <Compile Include="SearchIndexActionBuilderFacts.cs" />
     <Compile Include="Owners2AzureSearch\Owners2AzureSearchCommandFacts.cs" />
     <Compile Include="Owners2AzureSearch\OwnerSetComparerFacts.cs" />
     <Compile Include="Registration\RegistrationUrlBuilderFacts.cs" />

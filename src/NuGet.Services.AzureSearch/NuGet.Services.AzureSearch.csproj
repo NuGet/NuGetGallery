@@ -56,9 +56,9 @@
     <Compile Include="IAzureSearchTelemetryService.cs" />
     <Compile Include="IBaseDocumentBuilder.cs" />
     <Compile Include="IDatabaseOwnerFetcher.cs" />
-    <Compile Include="Owners2AzureSearch\IOwnerIndexActionBuilder.cs" />
+    <Compile Include="ISearchIndexActionBuilder.cs" />
     <Compile Include="Owners2AzureSearch\IOwnerSetComparer.cs" />
-    <Compile Include="Owners2AzureSearch\OwnerIndexActionBuilder.cs" />
+    <Compile Include="SearchIndexActionBuilder.cs" />
     <Compile Include="Owners2AzureSearch\OwnerSetComparer.cs" />
     <Compile Include="PackageIdToOwnersBuilder.cs" />
     <Compile Include="IOwnerDataClient.cs" />

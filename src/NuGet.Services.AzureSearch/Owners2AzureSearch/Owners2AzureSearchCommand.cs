@@ -17,7 +17,8 @@ namespace NuGet.Services.AzureSearch.Owners2AzureSearch
         private readonly IDatabaseOwnerFetcher _databaseOwnerFetcher;
         private readonly IOwnerDataClient _ownerDataClient;
         private readonly IOwnerSetComparer _ownerSetComparer;
-        private readonly IOwnerIndexActionBuilder _indexActionBuilder;
+        private readonly ISearchDocumentBuilder _searchDocumentBuilder;
+        private readonly ISearchIndexActionBuilder _searchIndexActionBuilder;
         private readonly Func<IBatchPusher> _batchPusherFactory;
         private readonly IOptionsSnapshot<AzureSearchJobConfiguration> _options;
         private readonly IAzureSearchTelemetryService _telemetryService;
@@ -27,7 +28,8 @@ namespace NuGet.Services.AzureSearch.Owners2AzureSearch
             IDatabaseOwnerFetcher databaseOwnerFetcher,
             IOwnerDataClient ownerDataClient,
             IOwnerSetComparer ownerSetComparer,
-            IOwnerIndexActionBuilder indexActionBuilder,
+            ISearchDocumentBuilder searchDocumentBuilder,
+            ISearchIndexActionBuilder indexActionBuilder,
             Func<IBatchPusher> batchPusherFactory,
             IOptionsSnapshot<AzureSearchJobConfiguration> options,
             IAzureSearchTelemetryService telemetryService,
@@ -36,7 +38,8 @@ namespace NuGet.Services.AzureSearch.Owners2AzureSearch
             _databaseOwnerFetcher = databaseOwnerFetcher ?? throw new ArgumentNullException(nameof(databaseOwnerFetcher));
             _ownerDataClient = ownerDataClient ?? throw new ArgumentNullException(nameof(ownerDataClient));
             _ownerSetComparer = ownerSetComparer ?? throw new ArgumentNullException(nameof(ownerSetComparer));
-            _indexActionBuilder = indexActionBuilder ?? throw new ArgumentNullException(nameof(indexActionBuilder));
+            _searchDocumentBuilder = searchDocumentBuilder ?? throw new ArgumentNullException(nameof(searchDocumentBuilder));
+            _searchIndexActionBuilder = indexActionBuilder ?? throw new ArgumentNullException(nameof(indexActionBuilder));
             _batchPusherFactory = batchPusherFactory ?? throw new ArgumentNullException(nameof(batchPusherFactory));
             _options = options ?? throw new ArgumentNullException(nameof(options));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
@@ -102,7 +105,14 @@ namespace NuGet.Services.AzureSearch.Owners2AzureSearch
             var batchPusher = _batchPusherFactory();
             while (changesBag.TryTake(out var changes))
             {
-                var indexActions = await _indexActionBuilder.UpdateOwnersAsync(changes.Id, changes.Value);
+                // Note that the owner list passed in can be empty (e.g. if the last owner was deleted or removed from
+                // the package registration).
+                var indexActions = await _searchIndexActionBuilder.UpdateAsync(
+                    changes.Id,
+                    searchFilters => _searchDocumentBuilder.UpdateOwners(changes.Id, searchFilters, changes.Value));
+
+                // If no index actions are returned, this means that there are no listed packages or no
+                // packages at all.
                 if (indexActions.IsEmpty)
                 {
                     continue;

@@ -245,11 +245,11 @@ namespace NuGet.Services.AzureSearch
             services.AddTransient<IHijackDocumentBuilder, HijackDocumentBuilder>();
             services.AddTransient<IIndexBuilder, IndexBuilder>();
             services.AddTransient<INewPackageRegistrationProducer, NewPackageRegistrationProducer>();
-            services.AddTransient<IOwnerIndexActionBuilder, OwnerIndexActionBuilder>();
             services.AddTransient<IOwnerSetComparer, OwnerSetComparer>();
             services.AddTransient<IPackageEntityIndexActionBuilder, PackageEntityIndexActionBuilder>();
             services.AddTransient<IRegistrationClient, RegistrationClient>();
             services.AddTransient<ISearchDocumentBuilder, SearchDocumentBuilder>();
+            services.AddTransient<ISearchIndexActionBuilder, SearchIndexActionBuilder>();
             services.AddTransient<ISearchParametersBuilder, SearchParametersBuilder>();
             services.AddTransient<ISearchResponseBuilder, SearchResponseBuilder>();
             services.AddTransient<ISearchServiceClientWrapper, SearchServiceClientWrapper>();
