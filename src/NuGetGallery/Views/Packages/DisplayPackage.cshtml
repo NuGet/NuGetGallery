@@ -526,69 +526,12 @@
                         <span>GitHub Usage</span>
                     </a>
                 </h2>
-
-                <style>
-                    .gh-repo-card {
-                        margin-top: -10px;
-                        margin-bottom: 10px;
-                    }
-
-                    .gh-desc {
-                        font-family: Segoe UI;
-                        font-size: 14px;
-                        line-height: 19px;
-                        /* identical to box height, or 136% */
-                        color: #333333;
-                        /*margin-top: -2px;*/
-                        margin: 4px 0 0 0;
-                    }
-
-                    .gh-link {
-                        font-family: Segoe UI;
-                        font-size: 16px;
-                        line-height: 19px;
-                        /* identical to box height, or 136% */
-                        color: #337AB7;
-                        width: auto; 
-                        /*margin-left: 5%;*/
-                    }
-
-                    .gh-star-count {
-                        font-family: Segoe UI;
-                        font-size: 14px;
-                        line-height: 16px;
-                        /* identical to box height, or 133% */
-                        font-weight: 400;
-
-                        color: #586069;
-                    }
-
-                    .gh-star {
-                        font-size: 14px;
-                        line-height: 12px;
-                        /* identical to box height, or 100% */
-                        /*color: #586069;*/
-                        color: #ef8b00;
-                    }
-
-                    .gh-line {
-                        margin-top: 15px;
-                        margin-bottom: 20px;
-                    }
-                </style>
-            
                 if (Model.GitHubDependenciesInformation.Repos.Any())
                 {
                     <div class="github-usage panel-collapse collapse" aria-expanded="true" id="github-usage">
                         <p>
                             Showing the top @(Model.GitHubDependenciesInformation.Repos.Count) GitHub repositories that depend on @(Model.Id):
                         </p>
-                        @*<div class="col-xs-9">
-                            Repository
-                        </div>
-                        <div class="col-xs-1"></div>
-                        <div class="col-xs-2">Stars</div>
-                        <hr class="gh-line"/>*@
                         <table class="table borderless">
                             <thead>
                                 <tr>
@@ -598,49 +541,24 @@
                                 </tr>
                             </thead>
                             <tbody class="no-border">
-
-                            
                             @foreach (var item in Model.GitHubDependenciesInformation.Repos.Select((elem, i) => new { Value = elem, Idx = i}))
                             {
                                 <tr>
-                                    <td style="width: 70%">
-                                                <a data-index-number="@item.Idx" class="text-left gh-link" href="@item.Value.Url" target="_blank">
-                                                    @(item.Value.Id)
-                                                </a>
-                                            <div class="row gh-desc" style="width: auto; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; line-height: 16px;     /* fallback */ max-height: 32px;      /* fallback */ -webkit-line-clamp: 2; /* number of lines to show */-webkit-box-orient: vertical;">
-                                                <span>@(item.Value.Description)</span>
-                                            </div>
+                                    <td class="gh-repo-column">
+                                        <a data-index-number="@item.Idx" class="text-left gh-link" href="@item.Value.Url" target="_blank">
+                                            @(item.Value.Id)
+                                        </a>
+                                        <div class="row gh-desc">
+                                            <span>@(item.Value.Description)</span>
+                                        </div>
                                     </td>
-                                    <td style="width: 15%;"></td>
+                                    <td class="gh-empty-column"></td>
                                     <td>
                                         <i class="ms-Icon ms-Icon--FavoriteStarFill gh-star" aria-hidden="true"></i> <label class="gh-star-count">@(item.Value.Stars.ToKiloFormat())</label>
                                     </td>
                                 </tr>
-                            
-                                @*<div class="row top-buffer gh-repo-card">
-                                    <div class="col-xs-9">
-                                        <div class="row">
-                                            <a data-index-number="@item.Idx" class="btn text-left gh-link" href="@item.Value.Url" target="_blank">
-                                                <span class="pull-left">
-                                                    @(item.Value.Id)
-                                                </span>
-                                            </a>
-                                        </div>
-                                        <div class="row gh-desc" style="width: auto; margin-left: 5%; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; line-height: 16px;     /* fallback */ max-height: 32px;      /* fallback */ -webkit-line-clamp: 2; /* number of lines to show */-webkit-box-orient: vertical;">
-                                            Some really long description that probably won't fit in a single line so it has to break into multiple lines and then an ellipsis is created to cut the remaining words.
-                                        </div>
-                                    </div>
-                                    <div class="col-xs-1"></div>
-                                    <div class="col-xs-2">
-                                            <span>
-                                                <i class="ms-Icon ms-Icon--FavoriteStarFill gh-star" aria-hidden="true"></i> <label class="gh-star-count">@(item.Value.Stars.ToKiloFormat())</label>
-                                            </span>
-                                    </div>
-
-                                </div>
-                                <hr class="gh-line"/>*@
                             }
-                                </tbody>
+                            </tbody>
                         </table>
                     </div>
                 }

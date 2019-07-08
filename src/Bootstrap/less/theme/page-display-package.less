@@ -117,23 +117,53 @@
     }
   }
 
-  .btn-gh-repo {
-    display: inline-block;
-    width: 100%;
-    background-color: white;
-  }
+  .gh-desc {
+    font-family: @font-family-base;
+    font-size: 14px;
+    color: #333333;
+    margin: 4px 0 0 0;
+    width: auto; 
+    overflow: hidden; 
+    text-overflow: ellipsis; 
+    display: -webkit-box;
+    line-height: 16px;
+    /* fallback */ 
+    max-height: 32px;
+    /* fallback */ 
+    -webkit-line-clamp: 2;
+    /* number of lines to show */
+    -webkit-box-orient: vertical;
+}
 
-  .btn-gh-repo:hover {
-    background-color: @state-info-bg;
-  }
+.gh-link {
+    font-family: @font-family-base;
+    font-size: 16px;
+    line-height: 19px;
+    color: @brand-primary;
+    width: auto; 
+}
 
-  .badge-gh-repo {
-    background-color: @navbar-inverse-bg;
-  }
+.gh-star-count {
+    font-family: @font-family-base;
+    font-size: 14px;
+    line-height: 16px;
+    font-weight: 400;
+    color: #586069;
+}
 
-  .star-gh-repo {
-    color: #ffac0e;
-  }
+.gh-star {
+    font-size: 14px;
+    line-height: 12px;
+    color: @brand-warning;
+}
+
+.gh-repo-column {
+    width: 70%;
+}
+
+.gh-empty-column {
+    width: 15%;
+}
   
   .install-tabs {
     font-size: 0.8em;
