@@ -823,10 +823,6 @@
                         @switch (Model.RepositoryType)
                         {
                             case DisplayPackageViewModel.RepositoryKind.GitHub:
-                                <img class="icon" aria-hidden="true" alt="GitHub logo"
-                                     src="@Url.Absolute("~/Content/gallery/img/github.svg")"
-                                     @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/github-32x32.png")) />
-                                break;
                             case DisplayPackageViewModel.RepositoryKind.Git:
                                 <img class="icon" aria-hidden="true" alt="Git logo"
                                      src="@Url.Absolute("~/Content/gallery/img/git.svg")"
@@ -840,6 +836,18 @@
                         <a href="@Model.RepositoryUrl" data-track="outbound-repository-url" title="View the source code for this package" rel="nofollow">
                             Source repository
                         </a>
+                    </li>
+                }
+                @if (Model.IsGitHubUsageEnabled && Model.GitHubDependenciesInformation.TotalRepos > 0)
+                {
+                    <li>
+                        <img class="icon" aria-hidden="true" alt="GitHub logo"
+                             src="@Url.Absolute("~/Content/gallery/img/github.svg")"
+                             @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/github-32x32.png")) />
+                        <a href="#show-github-usage" title="View the top depndent repositories" id="dependent-repos-link">
+                            Dependent repos
+                        </a>
+                        (@(Model.GitHubDependenciesInformation.TotalRepos.ToKiloFormat())+)
                     </li>
                 }
                 @if (!Model.Deleted && Model.LicenseUrl != null)
@@ -992,16 +1000,6 @@
                     @Model.DownloadsPerDayLabel @(Model.DownloadsPerDayLabel == "1" || Model.DownloadsPerDayLabel == "<1" ? "download" : "downloads")
                     per day (avg)
                 </li>
-
-                @if (Model.IsGitHubUsageEnabled && Model.GitHubDependenciesInformation.TotalRepos > 0)
-                {
-                    <li>
-                        <img class="icon" aria-hidden="true" alt="GitHub logo"
-                             src="@Url.Absolute("~/Content/gallery/img/github.svg")"
-                             @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/github-32x32.png")) />
-                        @(Model.GitHubDependenciesInformation.TotalRepos.ToKiloFormat()) popular dependent GitHub repos
-                    </li>
-                }
             </ul>
             @if (StatisticsHelper.IsStatisticsPageAvailable)
             {
