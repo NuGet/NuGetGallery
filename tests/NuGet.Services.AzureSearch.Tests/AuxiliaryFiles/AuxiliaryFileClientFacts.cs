@@ -20,6 +20,49 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
 {
     public class AuxiliaryFileClientFacts
     {
+        public class LoadDownloadDataAsync : BaseFacts
+        {
+            public LoadDownloadDataAsync(ITestOutputHelper output) : base(output)
+            {
+            }
+
+            [Fact]
+            public async Task ReadsContent()
+            {
+                var json = @"
+[
+    [
+        ""NuGet.Frameworks"",
+        [ ""1.0.0"", 406],
+        [ ""2.0.0-ALPHA"", 137]
+    ],
+    [
+        ""NuGet.Versioning"",
+        [""3.0.0"", 138]
+    ]
+]
+";
+                _blob
+                    .Setup(x => x.OpenReadAsync(It.IsAny<AccessCondition>()))
+                    .ReturnsAsync(() => new MemoryStream(Encoding.UTF8.GetBytes(json)));
+
+                var actual = await _target.LoadDownloadDataAsync();
+
+                Assert.NotNull(actual);
+                Assert.Equal(406, actual["NuGet.Frameworks"]["1.0.0"]);
+                Assert.Equal(137, actual["NuGet.Frameworks"]["2.0.0-alpha"]);
+                Assert.Equal(138, actual["nuget.versioning"]["3.0.0"]);
+                Assert.Equal(0, actual["nuget.versioning"].GetDownloadCount("4.0.0"));
+                Assert.Equal(0, actual.GetDownloadCount("something.else"));
+                _blobClient.Verify(x => x.GetContainerReference("my-container"), Times.Once);
+                _blobClient.Verify(x => x.GetContainerReference(It.IsAny<string>()), Times.Once);
+                _container.Verify(x => x.GetBlobReference("my-downloads.json"), Times.Once);
+                _container.Verify(x => x.GetBlobReference(It.IsAny<string>()), Times.Once);
+                _blob.Verify(x => x.OpenReadAsync(null), Times.Once);
+                _blob.Verify(x => x.OpenReadAsync(It.IsAny<AccessCondition>()), Times.Once);
+            }
+        }
+
         public class LoadDownloadsAsync : BaseFacts
         {
             public LoadDownloadsAsync(ITestOutputHelper output) : base(output)

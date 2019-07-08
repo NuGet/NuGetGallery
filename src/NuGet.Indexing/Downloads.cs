@@ -51,6 +51,45 @@ namespace NuGet.Indexing
             }
         }
 
+        public static void Load(string name, ILoader loader, Action<string, string, long> addCount)
+        {
+            // The data in downloads.v1.json will be an array of Package records - which has Id, Array of Versions and download count.
+            // Sample.json : [["AutofacContrib.NSubstitute",["2.4.3.700",406],["2.5.0",137]],["Assman.Core",["2.0.7",138]]....
+            using (var jsonReader = loader.GetReader(name))
+            {
+                jsonReader.Read();
+
+                while (jsonReader.Read())
+                {
+                    if (jsonReader.TokenType == JsonToken.StartArray)
+                    {
+                        JToken record = JToken.ReadFrom(jsonReader);
+
+                        // The second entry in each record should be an array of versions, if not move on to next entry.
+                        // This is a check to safe guard against invalid entries.
+                        if (record.Count() == 2 && record[1].Type != JTokenType.Array)
+                        {
+                            continue;
+                        }
+
+                        var id = record[0].ToString();
+
+                        foreach (JToken token in record)
+                        {
+                            if (token != null && token.Count() == 2)
+                            {
+                                var version = token[0].ToString();
+
+                                var count = token[1].ToObject<long>();
+
+                                addCount.Invoke(id, version, count);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         public void Load(string name, ILoader loader, FrameworkLogger logger)
         {
             // The data in downloads.v1.json will be an array of Package records - which has Id, Array of Versions and download count.

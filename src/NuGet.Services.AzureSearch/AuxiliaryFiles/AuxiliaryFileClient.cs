@@ -41,6 +41,27 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
 
         private ICloudBlobContainer Container => _lazyContainer.Value;
 
+        public async Task<DownloadData> LoadDownloadDataAsync()
+        {
+            var result = await LoadAuxiliaryFileAsync(
+                _options.Value.AuxiliaryDataStorageDownloadsPath,
+                etag: null,
+                loadData: loader =>
+                {
+                    var downloadData = new DownloadData();
+
+                    Downloads.Load(
+                        name: null,
+                        loader: loader,
+                        addCount: downloadData.SetDownloadCount);
+
+                    return downloadData;
+                });
+
+            // Discard the etag and other metadata since this API is only ever used to read the latest data.
+            return result.Data;
+        }
+
         public async Task<AuxiliaryFileResult<Downloads>> LoadDownloadsAsync(string etag)
         {
             return await LoadAuxiliaryFileAsync(
@@ -73,7 +94,11 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
             string etag,
             Func<ILoader, T> loadData) where T : class
         {
-            _logger.LogInformation("Attempted to load blob {BlobName} with etag {ETag}.", blobName, etag);
+            _logger.LogInformation(
+                "Attempted to load blob {BlobName} as {TypeName} with etag {ETag}.",
+                blobName,
+                typeof(T).FullName,
+                etag);
 
             var stopwatch = Stopwatch.StartNew();
             var blob = Container.GetBlobReference(blobName);
