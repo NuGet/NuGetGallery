@@ -113,7 +113,7 @@ function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defau
         }
 
         if (self.isAlternateOfSelf()) {
-            return "A package cannot be the alternate package of itself! Please choose a different alternate package.";
+            return "A package cannot be the alternate package of itself. Please choose a different alternate package.";
         }
 
         return null;

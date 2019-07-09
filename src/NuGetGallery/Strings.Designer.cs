@@ -767,7 +767,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A package cannot be the alternate package of itself!.
+        ///   Looks up a localized string similar to A package cannot be the alternate package of itself..
         /// </summary>
         public static string DeprecatePackage_AlternateOfSelf {
             get {

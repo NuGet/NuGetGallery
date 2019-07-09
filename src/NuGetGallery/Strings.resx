@@ -1122,6 +1122,6 @@ The {1} Team</value>
     <value>Your custom message is too long. It must be under {0} characters.</value>
   </data>
   <data name="DeprecatePackage_AlternateOfSelf" xml:space="preserve">
-    <value>A package cannot be the alternate package of itself!</value>
+    <value>A package cannot be the alternate package of itself.</value>
   </data>
 </root>
