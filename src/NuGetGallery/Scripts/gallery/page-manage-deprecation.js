@@ -154,7 +154,7 @@ function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defau
             error: function () {
                 if (self.alternatePackageId() === id) {
                     self.alternatePackageVersionsCached.removeAll();
-                    self.chosenAlternatePackageIdServerError("An unknown occurred when searching for alternate package '" + id + "'.");
+                    self.chosenAlternatePackageIdServerError("An unknown error occurred when searching for alternate package '" + id + "'.");
                 }
             }
         });
