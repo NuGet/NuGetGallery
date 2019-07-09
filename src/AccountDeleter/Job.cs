@@ -121,12 +121,16 @@ namespace NuGetGallery.AccountDeleter
             else
             {
                 services.AddScoped<IDeleteAccountService, EmptyDeleteAccountService>();
-                //services.AddScoped<IDeleteAccountService, DeleteAccountService>();
+                services.AddScoped<IDeleteAccountService, DeleteAccountService>();
 
                 services.AddScoped<IUserService, AccountDeleteUserService>();
                 services.AddScoped<IDiagnosticsService, LoggerDiagnosticsService>();
 
                 services.AddScoped<IPackageService, PackageService>();
+                services.AddScoped<IPackageUpdateService, PackageUpdateService>();
+
+                services.AddScoped<IAuthenticationService, AuthenticationService>();
+                services.AddScoped<ISupportRequestService, ISupportRequestService>();
 
                 services.AddScoped<ITelemetryService, GalleryTelemetryService>();
                 services.AddScoped<ISecurityPolicyService, SecurityPolicyService>();
@@ -175,6 +179,26 @@ namespace NuGetGallery.AccountDeleter
             containerBuilder.RegisterType<EntityRepository<ReservedNamespace>>()
                 .AsSelf()
                 .As<IEntityRepository<ReservedNamespace>>()
+                .InstancePerLifetimeScope();
+
+            containerBuilder.RegisterType<EntityRepository<AccountDelete>>()
+                .AsSelf()
+                .As<IEntityRepository<AccountDelete>>()
+                .InstancePerLifetimeScope();
+
+            containerBuilder.RegisterType<EntityRepository<PackageDelete>>()
+                .AsSelf()
+                .As<IEntityRepository<PackageDelete>>()
+                .InstancePerLifetimeScope();
+
+            containerBuilder.RegisterType<EntityRepository<PackageDeprecation>>()
+                .AsSelf()
+                .As<IEntityRepository<PackageDeprecation>>()
+                .InstancePerLifetimeScope();
+
+            containerBuilder.RegisterType<EntityRepository<Scope>>()
+                .AsSelf()
+                .As<IEntityRepository<Scope>>()
                 .InstancePerLifetimeScope();
         }
     }

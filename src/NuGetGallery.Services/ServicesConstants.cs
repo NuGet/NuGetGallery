@@ -33,6 +33,15 @@ namespace NuGetGallery
         public const string EmailValidationRegex = "^" + EmailValidationRegexFirstPart + "@" + EmailValidationRegexSecondPart + "$";
         public static TimeSpan EmailValidationRegexTimeout = TimeSpan.FromSeconds(5);
 
+        /// <summary>
+        /// Parameters for calculating account lockout period after 
+        /// wrong password entry.
+        /// </summary>
+        public const double AccountLockoutMultiplierInMinutes = 10;
+        public const double AllowedLoginAttempts = 10;
+
+        public const string Sha1HashAlgorithmId = "SHA1";
+
         public static class ContentNames
         {
             public static readonly string LoginDiscontinuationConfiguration = "Login-Discontinuation-Configuration";

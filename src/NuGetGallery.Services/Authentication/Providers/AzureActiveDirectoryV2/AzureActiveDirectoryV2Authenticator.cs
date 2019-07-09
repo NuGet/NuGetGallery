@@ -116,9 +116,9 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
         public override AuthenticatorUI GetUI()
         {
             return new AuthenticatorUI(
-                Strings.MicrosoftAccount_SignInMessage,
-                Strings.MicrosoftAccount_SignInMessage,
-                Strings.MicrosoftAccount_AccountNoun)
+                ServicesStrings.MicrosoftAccount_SignInMessage,
+                ServicesStrings.MicrosoftAccount_SignInMessage,
+                ServicesStrings.MicrosoftAccount_AccountNoun)
             {
                 IconImagePath = "~/Content/gallery/img/microsoft-account.svg",
                 IconImageFallbackPath = "~/Content/gallery/img/microsoft-account-24x24.png",

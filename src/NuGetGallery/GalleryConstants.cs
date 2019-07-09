@@ -43,7 +43,6 @@ namespace NuGetGallery
         public const string RecentSortOrder = "package-created";
         public const string RelevanceSortOrder = "relevance";
 
-        public const string Sha1HashAlgorithmId = "SHA1";
         public const string PBKDF2HashAlgorithmId = "PBKDF2";
 
         public const string UploadFileNameTemplate = "{0}{1}";
