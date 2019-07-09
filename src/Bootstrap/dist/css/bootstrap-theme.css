@@ -950,19 +950,47 @@ img.reserved-indicator-icon {
   margin-right: 8px;
   display: inline-block;
 }
-.page-package-details .btn-gh-repo {
-  display: inline-block;
-  width: 100%;
-  background-color: white;
+.page-package-details .gh-desc {
+  font-family: 'Segoe UI', "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  color: #333333;
+  margin: 4px 0 0 0;
+  width: auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  line-height: 16px;
+  /* fallback */
+  max-height: 32px;
+  /* fallback */
+  -webkit-line-clamp: 2;
+  /* number of lines to show */
+  -webkit-box-orient: vertical;
 }
-.page-package-details .btn-gh-repo:hover {
-  background-color: #d9edf7;
+.page-package-details .gh-link {
+  font-family: 'Segoe UI', "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 16px;
+  line-height: 19px;
+  color: #337ab7;
+  width: auto;
 }
-.page-package-details .badge-gh-repo {
-  background-color: #004880;
+.page-package-details .gh-star-count {
+  font-family: 'Segoe UI', "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  line-height: 16px;
+  font-weight: 400;
+  color: #586069;
 }
-.page-package-details .star-gh-repo {
-  color: #ffac0e;
+.page-package-details .gh-star {
+  font-size: 14px;
+  line-height: 12px;
+  color: #ef8b00;
+}
+.page-package-details .gh-repo-column {
+  width: 70%;
+}
+.page-package-details .gh-empty-column {
+  width: 15%;
 }
 .page-package-details .install-tabs {
   font-size: 0.8em;
