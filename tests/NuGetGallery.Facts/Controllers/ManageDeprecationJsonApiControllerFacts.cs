@@ -64,28 +64,29 @@ namespace NuGetGallery.Controllers
 
                 var deletedPackage = new Package
                 {
-                    Version = "2.1.0",
+                    Version = "2.1.0-deleted",
                     PackageStatusKey = PackageStatus.Deleted,
                     Listed = true
                 };
 
                 var validatingPackage = new Package
                 {
-                    Version = "2.1.0",
+                    Version = "2.2.0-validating",
                     PackageStatusKey = PackageStatus.Validating,
                     Listed = true
                 };
 
                 var failedValidationPackage = new Package
                 {
-                    Version = "2.1.0",
+                    Version = "2.3.0-failedValidation",
                     PackageStatusKey = PackageStatus.FailedValidation,
                     Listed = true
                 };
 
                 var unlistedPackage = new Package
                 {
-                    Version = "2.1.0"
+                    Version = "2.4.0-unlisted",
+                    Listed = false
                 };
 
                 var packages = new[]
