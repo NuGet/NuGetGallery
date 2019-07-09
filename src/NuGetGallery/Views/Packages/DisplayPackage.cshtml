@@ -517,7 +517,7 @@
                 }
             }
 
-            @if(Model.IsGitHubUsageEnabled)
+            @if(Model.IsGitHubUsageEnabled && !Model.IsDotnetToolPackageType)
             {
                 <h2>
                     <a role="button" data-toggle="collapse" data-target="#github-usage"
@@ -756,7 +756,7 @@
                         </a>
                     </li>
                 }
-                @if (Model.IsGitHubUsageEnabled && Model.GitHubDependenciesInformation.TotalRepos > 0)
+                @if (Model.IsGitHubUsageEnabled && !Model.IsDotnetToolPackageType && Model.GitHubDependenciesInformation.TotalRepos > 0)
                 {
                     <li>
                         <img class="icon" aria-hidden="true" alt="GitHub logo"
