@@ -111,12 +111,19 @@ namespace NuGetGallery
                 return new HttpStatusCodeResult(HttpStatusCode.Forbidden, Strings.Unauthorized);
             }
 
-            var alreadyConfirmed = account.UnconfirmedEmailAddress == null;
+            var hasUnconfirmedEmailAddress = account.UnconfirmedEmailAddress != null;
 
             ConfirmationViewModel model;
-            if (!alreadyConfirmed)
+            if (hasUnconfirmedEmailAddress)
             {
-                await SendNewAccountEmailAsync(account);
+                if (account.EmailAddress == null)
+                {
+                    await SendNewAccountEmailAsync(account);
+                }
+                else
+                {
+                    await SendEmailChangedConfirmationNoticeAsync(account);
+                }
 
                 model = new ConfirmationViewModel(account)
                 {
