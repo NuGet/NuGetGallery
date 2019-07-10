@@ -3,33 +3,23 @@
 
 using Microsoft.Extensions.Logging;
 using NuGet.Services.Entities;
-using System;
 
 namespace NuGetGallery.AccountDeleter
 {
     /// <summary>
     /// Evaluator that always fails
     /// </summary>
-    public class AlwaysRejectEvaluator : IUserEvaluator
+    public class AlwaysRejectEvaluator : BaseUserEvaluator
     {
-        private readonly Guid _id;
         private readonly ILogger<AlwaysRejectEvaluator> _logger;
 
         public AlwaysRejectEvaluator(ILogger<AlwaysRejectEvaluator> logger)
+            : base()
         {
-            _id = Guid.NewGuid();
             _logger = logger;
         }
 
-        public string EvaluatorId
-        {
-            get
-            {
-                return _id.ToString();
-            }
-        }
-
-        public bool CanUserBeDeleted(User user)
+        public override bool CanUserBeDeleted(User user)
         {
             _logger.LogWarning("{Evaluator}:{EvaluatorId} User cannot be deleted because this evaluator always disallows delete.", nameof(AlwaysRejectEvaluator), EvaluatorId);
             return false;
