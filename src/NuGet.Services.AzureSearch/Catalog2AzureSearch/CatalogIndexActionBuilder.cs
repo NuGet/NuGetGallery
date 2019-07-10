@@ -94,6 +94,12 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                     p.Value))
                 .ToList();
 
+            _logger.LogInformation(
+                "There are {SearchCount} search index changes and {HijackCount} hijack index changes for {PackageId}.",
+                search.Count,
+                hijack.Count,
+                packageId);
+
             return new IndexActions(
                 search,
                 hijack,
@@ -227,9 +233,11 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                 changeType == SearchIndexChangeType.Delete || latestFlags != null,
                 "Either the search document is being or there is a latest version.");
 
+            IndexAction<KeyedDocument> indexAction;
+
             if (changeType == SearchIndexChangeType.Delete)
             {
-                return IndexAction.Delete(_search.Keyed(
+                indexAction = IndexAction.Delete(_search.Keyed(
                     context.PackageId,
                     searchFilters));
             }
@@ -247,7 +255,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                     //      search documents get the benefit instead of having to reflow the latest version of each
                     //      search filter.
                     //
-                    return IndexAction.Merge<KeyedDocument>(_search.UpdateVersionListAndOwnersFromCatalog(
+                    indexAction = IndexAction.Merge<KeyedDocument>(_search.UpdateVersionListAndOwnersFromCatalog(
                        context.PackageId,
                        searchFilters,
                        lastCommitTimestamp: context.LatestCommitTimestamp,
@@ -259,7 +267,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                 }
                 else
                 {
-                    return IndexAction.Merge<KeyedDocument>(_search.UpdateVersionListFromCatalog(
+                    indexAction = IndexAction.Merge<KeyedDocument>(_search.UpdateVersionListFromCatalog(
                        context.PackageId,
                        searchFilters,
                        lastCommitTimestamp: context.LatestCommitTimestamp,
@@ -273,7 +281,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
             {
                 var leaf = context.GetLeaf(latestFlags.LatestVersionInfo.ParsedVersion);
                 var normalizedVersion = VerifyConsistencyAndNormalizeVersion(context, leaf);
-                return IndexAction.MergeOrUpload<KeyedDocument>(_search.UpdateLatestFromCatalog(
+                indexAction = IndexAction.MergeOrUpload<KeyedDocument>(_search.UpdateLatestFromCatalog(
                     searchFilters,
                     latestFlags.LatestVersionInfo.ListedFullVersions,
                     latestFlags.IsLatestStable,
@@ -287,6 +295,15 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
             {
                 throw new NotImplementedException($"The change type '{changeType}' is not supported.");
             }
+
+            _logger.LogInformation(
+                "Search index action prepared for {PackageId} {SearchFilters}: {IndexAction} with a {DocumentType} document.",
+                context.PackageId,
+                searchFilters,
+                indexAction.ActionType,
+                indexAction.Document.GetType().FullName);
+
+            return indexAction;
         }
 
         /// <summary>
@@ -312,30 +329,42 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
             NuGetVersion version,
             HijackDocumentChanges changes)
         {
+            IndexAction<KeyedDocument> indexAction;
+
             if (changes.Delete)
             {
-                return IndexAction.Delete(_hijack.Keyed(
+                indexAction = IndexAction.Delete(_hijack.Keyed(
                     context.PackageId,
                     version.ToNormalizedString()));
             }
-
-            if (!changes.UpdateMetadata)
+            else if (!changes.UpdateMetadata)
             {
-                return IndexAction.Merge<KeyedDocument>(_hijack.LatestFromCatalog(
+                indexAction = IndexAction.Merge<KeyedDocument>(_hijack.LatestFromCatalog(
                     context.PackageId,
                     version.ToNormalizedString(),
                     lastCommitTimestamp: context.LatestCommitTimestamp,
                     lastCommitId: context.LatestCommitId,
                     changes: changes));
             }
+            else
+            {
+                var leaf = context.GetLeaf(version);
+                var normalizedVersion = VerifyConsistencyAndNormalizeVersion(context, leaf);
 
-            var leaf = context.GetLeaf(version);
-            var normalizedVersion = VerifyConsistencyAndNormalizeVersion(context, leaf);
+                indexAction = IndexAction.MergeOrUpload<KeyedDocument>(_hijack.FullFromCatalog(
+                    normalizedVersion,
+                    changes,
+                    leaf));
+            }
 
-            return IndexAction.MergeOrUpload<KeyedDocument>(_hijack.FullFromCatalog(
-                normalizedVersion,
-                changes,
-                leaf));
+            _logger.LogInformation(
+                "Hijack index action prepared for {PackageId} {PackageVersion}: {IndexAction} with a {DocumentType} document.",
+                context.PackageId,
+                version.ToNormalizedString(),
+                indexAction.ActionType,
+                indexAction.Document.GetType().FullName);
+
+            return indexAction;
         }
 
         private string VerifyConsistencyAndNormalizeVersion(
