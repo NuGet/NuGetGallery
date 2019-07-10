@@ -57,6 +57,8 @@
     <Compile Include="IBaseDocumentBuilder.cs" />
     <Compile Include="IDatabaseOwnerFetcher.cs" />
     <Compile Include="ISearchIndexActionBuilder.cs" />
+    <Compile Include="Models\IUpdatedDocument.cs" />
+    <Compile Include="Models\UpdatedDocument.cs" />
     <Compile Include="Owners2AzureSearch\IOwnerSetComparer.cs" />
     <Compile Include="SearchIndexActionBuilder.cs" />
     <Compile Include="Owners2AzureSearch\OwnerSetComparer.cs" />

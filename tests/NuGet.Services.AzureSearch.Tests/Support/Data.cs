@@ -30,7 +30,7 @@ namespace NuGet.Services.AzureSearch.Support
         public static readonly DateTimeOffset CommitTimestamp = new DateTimeOffset(2018, 12, 13, 12, 30, 0, TimeSpan.Zero);
         public static readonly string CommitId = "6b9b24dd-7aec-48ae-afc1-2a117e3d50d1";
 
-        public static void SetDocumentLastUpdated(ICommittedDocument document, ITestOutputHelper output)
+        public static void SetDocumentLastUpdated(IUpdatedDocument document, ITestOutputHelper output)
         {
             var currentTimestamp = document.LastUpdatedDocument;
             output.WriteLine(

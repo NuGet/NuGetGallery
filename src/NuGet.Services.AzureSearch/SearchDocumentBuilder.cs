@@ -289,11 +289,9 @@ namespace NuGet.Services.AzureSearch
             var document = new SearchDocument.UpdateOwners();
 
             PopulateKey(document, packageId, searchFilters);
-            _baseDocumentBuilder.PopulateCommitted(
+            _baseDocumentBuilder.PopulateUpdated(
                 document,
-                lastUpdatedFromCatalog: false,
-                lastCommitTimestamp: null,
-                lastCommitId: null);
+                lastUpdatedFromCatalog: false);
             PopulateOwners(document, owners);
 
             return document;
@@ -307,11 +305,9 @@ namespace NuGet.Services.AzureSearch
             var document = new SearchDocument.UpdateDownloadCount();
 
             PopulateKey(document, packageId, searchFilters);
-            _baseDocumentBuilder.PopulateCommitted(
+            _baseDocumentBuilder.PopulateUpdated(
                 document,
-                lastUpdatedFromCatalog: false,
-                lastCommitTimestamp: null,
-                lastCommitId: null);
+                lastUpdatedFromCatalog: false);
             PopulateDownloadCount(document, totalDownloadCount);
 
             return document;

@@ -65,11 +65,11 @@ namespace NuGet.Services.AzureSearch
       ""isLatestSemVer1"": true,
       ""isLatestStableSemVer2"": false,
       ""isLatestSemVer2"": true,
+      ""lastCommitTimestamp"": ""2018-12-13T12:30:00+00:00"",
+      ""lastCommitId"": ""6b9b24dd-7aec-48ae-afc1-2a117e3d50d1"",
       ""lastUpdatedDocument"": ""2018-12-14T09:30:00+00:00"",
       ""lastDocumentType"": ""NuGet.Services.AzureSearch.HijackDocument+Latest"",
       ""lastUpdatedFromCatalog"": true,
-      ""lastCommitTimestamp"": ""2018-12-13T12:30:00+00:00"",
-      ""lastCommitId"": ""6b9b24dd-7aec-48ae-afc1-2a117e3d50d1"",
       ""key"": ""windowsazure_storage_7_1_2-alpha-d2luZG93c2F6dXJlLnN0b3JhZ2UvNy4xLjItYWxwaGE1""
     }
   ]
@@ -159,11 +159,11 @@ namespace NuGet.Services.AzureSearch
       ],
       ""title"": ""Windows Azure Storage"",
       ""tokenizedPackageId"": ""WindowsAzure.Storage"",
+      ""lastCommitTimestamp"": null,
+      ""lastCommitId"": null,
       ""lastUpdatedDocument"": ""2018-12-14T09:30:00+00:00"",
       ""lastDocumentType"": ""NuGet.Services.AzureSearch.HijackDocument+Full"",
       ""lastUpdatedFromCatalog"": false,
-      ""lastCommitTimestamp"": null,
-      ""lastCommitId"": null,
       ""key"": ""windowsazure_storage_7_1_2-alpha-d2luZG93c2F6dXJlLnN0b3JhZ2UvNy4xLjItYWxwaGE1""
     }
   ]
@@ -317,11 +317,11 @@ namespace NuGet.Services.AzureSearch
       ],
       ""title"": ""Windows Azure Storage"",
       ""tokenizedPackageId"": ""WindowsAzure.Storage"",
+      ""lastCommitTimestamp"": ""2018-12-13T12:30:00+00:00"",
+      ""lastCommitId"": ""6b9b24dd-7aec-48ae-afc1-2a117e3d50d1"",
       ""lastUpdatedDocument"": ""2018-12-14T09:30:00+00:00"",
       ""lastDocumentType"": ""NuGet.Services.AzureSearch.HijackDocument+Full"",
       ""lastUpdatedFromCatalog"": true,
-      ""lastCommitTimestamp"": ""2018-12-13T12:30:00+00:00"",
-      ""lastCommitId"": ""6b9b24dd-7aec-48ae-afc1-2a117e3d50d1"",
       ""key"": ""windowsazure_storage_7_1_2-alpha-d2luZG93c2F6dXJlLnN0b3JhZ2UvNy4xLjItYWxwaGE1""
     }
   ]
@@ -437,7 +437,7 @@ namespace NuGet.Services.AzureSearch
                 new object[] { " \t"},
             };
 
-            public void SetDocumentLastUpdated(ICommittedDocument document)
+            public void SetDocumentLastUpdated(IUpdatedDocument document)
             {
                 Data.SetDocumentLastUpdated(document, _output);
             }

@@ -9,6 +9,9 @@ namespace NuGet.Services.AzureSearch
 {
     public interface IBaseDocumentBuilder
     {
+        void PopulateUpdated(
+            IUpdatedDocument document,
+            bool lastUpdatedFromCatalog);
         void PopulateCommitted(
             ICommittedDocument document,
             bool lastUpdatedFromCatalog,
