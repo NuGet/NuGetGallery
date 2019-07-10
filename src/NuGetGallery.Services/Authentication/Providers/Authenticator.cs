@@ -59,7 +59,7 @@ namespace NuGetGallery.Authentication.Providers
             return name;
         }
 
-        internal static IEnumerable<Authenticator> GetAllAvailable()
+        public static IEnumerable<Authenticator> GetAllAvailable()
         {
             // Find all available auth providers
             return GetAllAvailable(typeof(Authenticator)

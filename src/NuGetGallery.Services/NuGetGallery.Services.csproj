@@ -156,12 +156,15 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Providers\DateTimeProvider.cs" />
     <Compile Include="Providers\IDateTimeProvider.cs" />
+    <Compile Include="Security\AllowLocalHttpRedirectPolicy.cs" />
     <Compile Include="Security\AutomaticOverwriteRequiredSignerPolicy.cs" />
     <Compile Include="Security\ControlRequiredSignerPolicy.cs" />
     <Compile Include="Security\DefaultSubscription.cs" />
     <Compile Include="Security\ISecurityPolicyService.cs" />
+    <Compile Include="Security\ISourceDestinationRedirectPolicy.cs" />
     <Compile Include="Security\IUserSecurityPolicySubscription.cs" />
     <Compile Include="Security\MicrosoftTeamSubscription.cs" />
+    <Compile Include="Security\NoLessSecureDestinationRedirectPolicy.cs" />
     <Compile Include="Security\PackageSecurityPolicyEvaluationContext.cs" />
     <Compile Include="Security\PackageSecurityPolicyHandler.cs" />
     <Compile Include="Security\RequiredSignerPolicy.cs" />
@@ -176,6 +179,7 @@
     <Compile Include="Security\UserSecurityPolicyEvaluationContext.cs" />
     <Compile Include="Security\UserSecurityPolicyHandler.cs" />
     <Compile Include="Security\UserSecurityPolicySubscriptionContext.cs" />
+    <Compile Include="Storage\CloudBlobFileStorageService.cs" />
     <Compile Include="Storage\ContentObjectService.cs" />
     <Compile Include="Storage\ContentService.cs" />
     <Compile Include="Storage\HttpContextCacheService.cs" />
@@ -188,6 +192,10 @@
     <Compile Include="SupportRequest\Issue.cs" />
     <Compile Include="SupportRequest\IssueStatus.cs" />
     <Compile Include="SupportRequest\ISupportRequestService.cs" />
+    <Compile Include="SupportRequest\Models\IssueStatusKeys.cs" />
+    <Compile Include="SupportRequest\Models\ISupportRequestDbContext.cs" />
+    <Compile Include="SupportRequest\Models\SupportRequestDbContext.cs" />
+    <Compile Include="SupportRequest\SupportRequestService.cs" />
     <Compile Include="Telemetry\ITelemetryClient.cs" />
     <Compile Include="Telemetry\ITelemetryService.cs" />
     <Compile Include="Telemetry\Obfuscator.cs" />
@@ -246,7 +254,7 @@
       <Version>3.0.1</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.Owin.Security">
-      <Version>4.0.1</Version>
+      <Version>3.0.1</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.Owin.Security.OpenIdConnect">
       <Version>3.0.1</Version>

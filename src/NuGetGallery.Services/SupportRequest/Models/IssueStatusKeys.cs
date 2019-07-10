@@ -14,6 +14,6 @@
         /// <remark>
         /// If one day we have 99 real issue status keys in the db, we can easily bump this one up in code.
         /// </remark>
-        internal const int Unresolved = 99;
+        public const int Unresolved = 99;
     }
 }

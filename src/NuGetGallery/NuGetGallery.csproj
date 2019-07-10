@@ -157,8 +157,6 @@
       <DependentUpon>ListDetails.aspx</DependentUpon>
     </Compile>
     <Compile Include="Areas\Admin\Helpers.cs" />
-    <Compile Include="Areas\Admin\Models\IssueStatusKeys.cs" />
-    <Compile Include="Areas\Admin\Models\ISupportRequestDbContext.cs" />
     <Compile Include="Areas\Admin\Migrations\201602111647053_SupportRequestDbModel.cs" />
     <Compile Include="Areas\Admin\Migrations\201602111647053_SupportRequestDbModel.Designer.cs">
       <DependentUpon>201602111647053_SupportRequestDbModel.cs</DependentUpon>
@@ -175,8 +173,6 @@
     <Compile Include="Areas\Admin\Migrations\SupportRequestMigrationsConfiguration.cs" />
     <Compile Include="Areas\Admin\Services\RevalidationAdminService.cs" />
     <Compile Include="Areas\Admin\Services\ValidationAdminService.cs" />
-    <Compile Include="Areas\Admin\Models\SupportRequestDbContext.cs" />
-    <Compile Include="Areas\Admin\Services\SupportRequestService.cs" />
     <Compile Include="Areas\Admin\ViewModels\DeleteAccountAsAdminViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\FeatureFlagsFeatureViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\FeatureFlagsFlightViewModel.cs" />
@@ -458,7 +454,6 @@
     <Compile Include="Services\TyposquattingCheckListCacheService.cs" />
     <Compile Include="Services\CertificateService.cs" />
     <Compile Include="Services\CertificateValidator.cs" />
-    <Compile Include="Services\CloudBlobFileStorageService.cs" />
     <Compile Include="Services\ICertificateService.cs" />
     <Compile Include="Services\ICertificateValidator.cs" />
     <Compile Include="Services\ImmediatePackageValidator.cs" />
@@ -1185,9 +1180,6 @@
     <Compile Include="RequestModels\DeletePackagesRequest.cs" />
     <Compile Include="RequestModels\EditPackageVersionRequest.cs" />
     <Compile Include="RequestModels\VerifyPackageRequest.cs" />
-    <Compile Include="Services\AllowLocalHttpRedirectPolicy.cs" />
-    <Compile Include="Services\ISourceDestinationRedirectPolicy.cs" />
-    <Compile Include="Services\NoLessSecureDestinationRedirectPolicy.cs" />
     <Compile Include="Services\ReflowPackageService.cs" />
     <Compile Include="ViewModels\ManageOrganizationsItemViewModel.cs" />
     <Compile Include="ViewModels\ManageOrganizationsViewModel.cs" />
