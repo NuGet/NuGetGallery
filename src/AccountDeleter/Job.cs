@@ -155,7 +155,7 @@ namespace NuGetGallery.AccountDeleter
                     return new SupportRequestDbContext(connection);
                 });
 
-                services.AddScoped<ICloudBlobClient>(sp => { return new CloudBlobClientWrapper("DefaultEndpointsProtocol=https;AccountName=ryuyustoreuse2;AccountKey=lWMBRXJ4hyPXr01rhdju1xa9nfxRAdNaVK7OudRZiRUhLWQPPcNh/IsXy0jUkSSPrKCMwys/ukPYsOS+AbFzPg==;EndpointSuffix=core.windows.net", true); });
+                services.AddScoped<ICloudBlobClient>(sp => { return new CloudBlobClientWrapper("", true); });
 
                 services.AddScoped<ITelemetryService, GalleryTelemetryService>();
                 services.AddScoped<ISecurityPolicyService, SecurityPolicyService>();
