@@ -51,7 +51,10 @@
     <Compile Include="Configuration\GalleryConfiguration.cs" />
     <Compile Include="Configuration\MailTemplateConfiguration.cs" />
     <Compile Include="Configuration\SourceConfiguration.cs" />
+    <Compile Include="EmptyIndexingService.cs" />
+    <Compile Include="Evaluators\AccountConfirmedEvaluator.cs" />
     <Compile Include="Evaluators\AlwaysAllowEvaluator.cs" />
+    <Compile Include="Evaluators\BaseUserEvaluator.cs" />
     <Compile Include="Exceptions\EmailContactNotAllowedException.cs" />
     <Compile Include="Exceptions\UnknownSourceException.cs" />
     <Compile Include="Exceptions\UserNotFoundException.cs" />
