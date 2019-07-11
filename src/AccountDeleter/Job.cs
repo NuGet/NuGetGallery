@@ -114,7 +114,6 @@ namespace NuGetGallery.AccountDeleter
             }
             else
             {
-                //services.AddScoped<IDeleteAccountService, EmptyDeleteAccountService>();
                 services.AddScoped<IEntitiesContext>(sp =>
                 {
                     var connectionFactory = sp.GetRequiredService<ISqlConnectionFactory<GalleryDbConfiguration>>();
@@ -162,9 +161,9 @@ namespace NuGetGallery.AccountDeleter
                     return new CloudBlobClientWrapper(optionsSnapshot.GalleryStorageConnectionString, readAccessGeoRedundant: true);
                 });
 
-                services.AddScoped<ITelemetryService, GalleryTelemetryService>();
+                services.AddScoped<ITelemetryService, TelemetryService>();
                 services.AddScoped<ISecurityPolicyService, SecurityPolicyService>();
-                services.AddScoped<IAuditingService>(sp => { return AuditingService.None; }); //Replace with real when we start doing deletes. For now, we are a readonly operation.
+                services.AddScoped<IAuditingService>(sp => { return AuditingService.None; });
                 services.AddScoped<IAppConfiguration, GalleryConfiguration>();
                 services.AddScoped<IPackageOwnershipManagementService, PackageOwnershipManagementService>();
                 services.AddScoped<IPackageOwnerRequestService, PackageOwnerRequestService>();
