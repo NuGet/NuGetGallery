@@ -25,11 +25,14 @@ namespace NuGet.Services.AzureSearch
         IDisposable TrackUploadOwnerChangeHistory(int packageIdCount);
         IDisposable TrackVersionListsUpdated(int versionListCount, int workerCount);
         IDisposable TrackCatalog2AzureSearchProcessBatch(int catalogLeafCount, int latestCatalogLeafCount, int packageIdCount);
-        void TrackV2SearchQueryWithSearchIndex(TimeSpan duration);
-        void TrackV2SearchQueryWithHijackIndex(TimeSpan duration);
-        void TrackAutocompleteQuery(TimeSpan duration);
-        void TrackV3SearchQuery(TimeSpan duration);
-        void TrackGetSearchServiceStatus(SearchStatusOptions options, bool success, TimeSpan duration);
+        void TrackV2SearchQueryWithSearchIndex(TimeSpan elapsed);
+        void TrackV2SearchQueryWithHijackIndex(TimeSpan elapsed);
+        void TrackAutocompleteQuery(TimeSpan elapsed);
+        void TrackV3SearchQuery(TimeSpan elapsed);
+        void TrackGetSearchServiceStatus(SearchStatusOptions options, bool success, TimeSpan elapsed);
+        void TrackDocumentCountQuery(string indexName, long count, TimeSpan elapsed);
+        void TrackWarmQuery(string indexName, TimeSpan elapsed);
+        void TrackLastCommitTimestampQuery(string indexName, DateTimeOffset? lastCommitTimestamp, TimeSpan elapsed);
         IDisposable TrackCatalogLeafDownloadBatch(int count);
     }
 }

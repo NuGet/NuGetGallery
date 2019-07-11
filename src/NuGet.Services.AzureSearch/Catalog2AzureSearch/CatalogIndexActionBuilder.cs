@@ -258,8 +258,8 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                     indexAction = IndexAction.Merge<KeyedDocument>(_search.UpdateVersionListAndOwnersFromCatalog(
                        context.PackageId,
                        searchFilters,
-                       lastCommitTimestamp: context.LatestCommitTimestamp,
-                       lastCommitId: context.LatestCommitId,
+                       lastCommitTimestamp: context.LastCommitTimestamp,
+                       lastCommitId: context.LastCommitId,
                        versions: latestFlags.LatestVersionInfo.ListedFullVersions,
                        isLatestStable: latestFlags.IsLatestStable,
                        isLatest: latestFlags.IsLatest,
@@ -270,8 +270,8 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                     indexAction = IndexAction.Merge<KeyedDocument>(_search.UpdateVersionListFromCatalog(
                        context.PackageId,
                        searchFilters,
-                       lastCommitTimestamp: context.LatestCommitTimestamp,
-                       lastCommitId: context.LatestCommitId,
+                       lastCommitTimestamp: context.LastCommitTimestamp,
+                       lastCommitId: context.LastCommitId,
                        versions: latestFlags.LatestVersionInfo.ListedFullVersions,
                        isLatestStable: latestFlags.IsLatestStable,
                        isLatest: latestFlags.IsLatest));
@@ -342,8 +342,8 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                 indexAction = IndexAction.Merge<KeyedDocument>(_hijack.LatestFromCatalog(
                     context.PackageId,
                     version.ToNormalizedString(),
-                    lastCommitTimestamp: context.LatestCommitTimestamp,
-                    lastCommitId: context.LatestCommitId,
+                    lastCommitTimestamp: context.LastCommitTimestamp,
+                    lastCommitId: context.LastCommitId,
                     changes: changes));
             }
             else
@@ -458,15 +458,15 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                     x => x.Value,
                     ReferenceEqualityComparer<CatalogCommitItem>.Default);
 
-                var latestCommit = latestEntries
+                var lastCommit = latestEntries
                     .GroupBy(x => new { x.CommitTimeStamp, x.CommitId })
                     .Select(x => x.Key)
                     .OrderByDescending(x => x.CommitTimeStamp)
                     .First();
 
                 // Assume UTC on the commit timestamp.
-                LatestCommitTimestamp = new DateTimeOffset(latestCommit.CommitTimeStamp.Ticks, TimeSpan.Zero);
-                LatestCommitId = latestCommit.CommitId;
+                LastCommitTimestamp = new DateTimeOffset(lastCommit.CommitTimeStamp.Ticks, TimeSpan.Zero);
+                LastCommitId = lastCommit.CommitId;
             }
 
             public string PackageId { get; }
@@ -474,8 +474,8 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
             public Dictionary<NuGetVersion, CatalogCommitItem> VersionToEntry { get; }
             public Dictionary<CatalogCommitItem, PackageDetailsCatalogLeaf> EntryToLeaf { get; }
             public VersionLists VersionLists { get; set; }
-            public DateTimeOffset LatestCommitTimestamp { get; }
-            public string LatestCommitId { get; }
+            public DateTimeOffset LastCommitTimestamp { get; }
+            public string LastCommitId { get; }
 
             public PackageDetailsCatalogLeaf GetLeaf(NuGetVersion version)
             {

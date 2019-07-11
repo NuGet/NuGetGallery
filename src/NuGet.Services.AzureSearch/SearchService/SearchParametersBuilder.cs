@@ -25,7 +25,7 @@ namespace NuGet.Services.AzureSearch.SearchService
         private static readonly List<string> SortableTitleAscending = new List<string> { IndexFields.SortableTitle + Ascending };
         private static readonly List<string> SortableTitleDescending = new List<string> { IndexFields.SortableTitle + Descending };
 
-        public SearchParameters LatestCommitTimestamp()
+        public SearchParameters LastCommitTimestamp()
         {
             return new SearchParameters
             {

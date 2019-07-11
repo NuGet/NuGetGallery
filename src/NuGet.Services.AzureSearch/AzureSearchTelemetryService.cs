@@ -250,5 +250,40 @@ namespace NuGet.Services.AzureSearch
                     { "Count", count.ToString() },
                 });
         }
+
+        public void TrackDocumentCountQuery(string indexName, long count, TimeSpan elapsed)
+        {
+            _telemetryClient.TrackMetric(
+                Prefix + "DocumentCountQueryMs",
+                elapsed.TotalMilliseconds,
+                new Dictionary<string, string>
+                {
+                    { "IndexName", indexName },
+                    { "Count", count.ToString() },
+                });
+        }
+
+        public void TrackWarmQuery(string indexName, TimeSpan elapsed)
+        {
+            _telemetryClient.TrackMetric(
+                Prefix + "WarmQueryMs",
+                elapsed.TotalMilliseconds,
+                new Dictionary<string, string>
+                {
+                    { "IndexName", indexName },
+                });
+        }
+
+        public void TrackLastCommitTimestampQuery(string indexName, DateTimeOffset? lastCommitTimestamp, TimeSpan elapsed)
+        {
+            _telemetryClient.TrackMetric(
+                Prefix + "LastCommitTimestampQueryMs",
+                elapsed.TotalMilliseconds,
+                new Dictionary<string, string>
+                {
+                    { "IndexName", indexName },
+                    { "LastCommitTimestamp", lastCommitTimestamp?.ToString("O") },
+                });
+        }
     }
 }
