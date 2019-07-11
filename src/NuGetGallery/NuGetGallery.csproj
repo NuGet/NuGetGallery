@@ -204,17 +204,6 @@
     <Compile Include="Areas\Admin\ViewModels\SupportRequestsViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\SupportRequestViewModel.cs" />
     <Compile Include="Authentication\AuthDependenciesModule.cs" />
-    <Compile Include="Authentication\Providers\ApiKey\ApiKeyAuthenticationExtensions.cs" />
-    <Compile Include="Authentication\Providers\ApiKey\ApiKeyAuthenticationHandler.cs" />
-    <Compile Include="Authentication\Providers\ApiKey\ApiKeyAuthenticationMiddleware.cs" />
-    <Compile Include="Authentication\Providers\ApiKey\ApiKeyAuthenticationOptions.cs" />
-    <Compile Include="Authentication\Providers\ApiKey\ApiKeyAuthenticator.cs" />
-    <Compile Include="Authentication\Providers\ApiKey\ApiKeyAuthenticatorConfiguration.cs" />
-    <Compile Include="Authentication\Providers\AzureActiveDirectory\AzureActiveDirectoryAuthenticator.cs" />
-    <Compile Include="Authentication\Providers\AzureActiveDirectory\AzureActiveDirectoryAuthenticatorConfiguration.cs" />
-    <Compile Include="Authentication\Providers\LocalUser\LocalUserAuthenticator.cs" />
-    <Compile Include="Authentication\Providers\MicrosoftAccount\MicrosoftAccountAuthenticator.cs" />
-    <Compile Include="Authentication\Providers\MicrosoftAccount\MicrosoftAccountAuthenticatorConfiguration.cs" />
     <Compile Include="Controllers\ExperimentsController.cs" />
     <Compile Include="Controllers\ManageDeprecationJsonApiController.cs" />
     <Compile Include="ExtensionMethods.cs" />
@@ -1978,6 +1967,7 @@
   <ItemGroup>
     <Folder Include="Areas\Admin\DynamicData\CustomPages\" />
     <Folder Include="Areas\Admin\Views\Shared\" />
+    <Folder Include="Authentication\Providers\" />
     <Folder Include="Infrastructure\Authentication\" />
     <Folder Include="Security\" />
   </ItemGroup>

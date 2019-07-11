@@ -77,7 +77,6 @@ namespace NuGetGallery
         public const string UsernameValidationErrorMessage =
             "User names must start and end with a letter or number, and may only contain letters, numbers, underscores, periods, and hyphens in between.";
 
-        internal const string ApiKeyHeaderName = "X-NuGet-ApiKey";
         internal const string WarningHeaderName = "X-NuGet-Warning";
         
         /// <summary>
@@ -92,7 +91,6 @@ namespace NuGetGallery
         internal const string CustomQueryHeaderName = "X-NuGet-CustomQuery";
 
         public static readonly string ReturnUrlParameterName = "ReturnUrl";
-        public static readonly string CurrentUserOwinEnvironmentKey = "nuget.user";
 
         public const string LicenseDeprecationUrl = "https://aka.ms/deprecateLicenseUrl";
 
