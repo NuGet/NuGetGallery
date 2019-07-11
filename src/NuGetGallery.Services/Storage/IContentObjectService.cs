@@ -14,6 +14,7 @@ namespace NuGetGallery
         ISymbolsConfiguration SymbolsConfiguration { get; }
         ITyposquattingConfiguration TyposquattingConfiguration { get; }
         IGitHubUsageConfiguration GitHubUsageConfiguration { get; }
+        IABTestConfiguration ABTestConfiguration { get; }
 
         Task Refresh();
     }

@@ -143,14 +143,14 @@ namespace NuGetGallery
 
         public class BaseFacts
         {
-            internal readonly Mock<ITelemetryClient> _telemetryService;
+            internal readonly Mock<ITelemetryService> _telemetryService;
             internal string _content;
             internal Func<IDictionary<string, int>, int> _calculateSum;
             internal TestableCloudDownloadCountService _target;
 
             public BaseFacts()
             {
-                _telemetryService = new Mock<ITelemetryClient>();
+                _telemetryService = new Mock<ITelemetryService>();
                 _content = "[[\"NuGet.Versioning\",[\"4.6.0\",23],[\"4.6.2\",42]]";
                 _calculateSum = null;
                 _target = new TestableCloudDownloadCountService(this);

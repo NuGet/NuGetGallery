@@ -207,6 +207,12 @@
     <Compile Include="Controllers\ExperimentsController.cs" />
     <Compile Include="Controllers\ManageDeprecationJsonApiController.cs" />
     <Compile Include="ExtensionMethods.cs" />
+    <Compile Include="Infrastructure\ABTestEnrollment.cs" />
+    <Compile Include="Infrastructure\ABTestEnrollmentState.cs" />
+    <Compile Include="Infrastructure\ABTestEnrollmentFactory.cs" />
+    <Compile Include="Infrastructure\CookieBasedABTestService.cs" />
+    <Compile Include="Infrastructure\IABTestEnrollmentFactory.cs" />
+    <Compile Include="Infrastructure\IABTestService.cs" />
     <Compile Include="Infrastructure\Lucene\Correlation\CorrelatingHttpClientHandler.cs" />
     <Compile Include="Infrastructure\Lucene\Correlation\WebApiCorrelationHandler.cs" />
     <Compile Include="Infrastructure\Lucene\IIndexingJobFactory.cs" />
@@ -1757,6 +1763,7 @@
     <Content Include="Areas\Admin\Views\Features\_AddFeature.cshtml" />
     <Content Include="Areas\Admin\Views\Features\_AddFlight.cshtml" />
     <Content Include="Areas\Admin\Views\Features\_EditFlight.cshtml" />
+    <Content Include="App_Data\Files\Content\AB-Test-Configuration.json" />
     <None Include="Properties\PublishProfiles\nuget-staging-frontend.pubxml" />
     <Content Include="Scripts\gallery\**\*" />
     <Content Include="Web.config">
@@ -2002,7 +2009,7 @@
       <Version>2.2.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Licenses">
-      <Version>2.50.0</Version>
+      <Version>2.52.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.StrongName.AnglicanGeek.MarkdownMailer">
       <Version>1.2.0</Version>
@@ -2070,28 +2077,28 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.ApplicationInsights">
-      <Version>2.2.0</Version>
+      <Version>2.3.0</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.ApplicationInsights.Agent.Intercept">
-      <Version>2.0.6</Version>
+      <Version>2.0.7</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.ApplicationInsights.DependencyCollector">
-      <Version>2.2.0</Version>
+      <Version>2.3.0</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.ApplicationInsights.PerfCounterCollector">
-      <Version>2.2.0</Version>
+      <Version>2.3.0</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.ApplicationInsights.TraceListener">
       <Version>2.2.0</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.ApplicationInsights.Web">
-      <Version>2.2.0</Version>
+      <Version>2.3.0</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.ApplicationInsights.WindowsServer">
-      <Version>2.2.0</Version>
+      <Version>2.3.0</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel">
-      <Version>2.2.0</Version>
+      <Version>2.3.0</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.AspNet.DynamicData.EFProvider">
       <Version>6.0.0</Version>
@@ -2214,13 +2221,13 @@
       <Version>5.0.0-preview1.5665</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.KeyVault">
-      <Version>2.50.0</Version>
+      <Version>2.52.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Owin">
-      <Version>2.50.0</Version>
+      <Version>2.52.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Sql">
-      <Version>2.50.0</Version>
+      <Version>2.52.0</Version>
     </PackageReference>
     <PackageReference Include="Owin">
       <Version>1.0.0</Version>

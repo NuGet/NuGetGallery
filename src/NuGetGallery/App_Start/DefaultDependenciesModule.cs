@@ -68,6 +68,11 @@ namespace NuGetGallery
             public const string PreviewSearchClient = "PreviewSearchClientBindingKey";
         }
 
+        public static class ParameterNames
+        {
+            public const string PackagesController_PreviewSearchService = "previewSearchService";
+        }
+
         protected override void Load(ContainerBuilder builder)
         {
             var services = new ServiceCollection();
@@ -401,7 +406,7 @@ namespace NuGetGallery
                     defaultAuditingService = GetAuditingServiceForLocalFileSystem(configuration);
                     break;
                 case StorageType.AzureStorage:
-                    ConfigureForAzureStorage(builder, configuration, telemetryClient);
+                    ConfigureForAzureStorage(builder, configuration, telemetryService);
                     defaultAuditingService = GetAuditingServiceForAzureStorage(builder, configuration);
                     break;
             }
@@ -411,6 +416,8 @@ namespace NuGetGallery
             RegisterAuditingServices(builder, defaultAuditingService);
 
             RegisterCookieComplianceService(builder, configuration, diagnosticsService);
+
+            RegisterABTestServices(builder);
 
             builder.RegisterType<MicrosoftTeamSubscription>()
                 .AsSelf()
@@ -431,6 +438,17 @@ namespace NuGetGallery
 
             ConfigureAutocomplete(builder, configuration);
             builder.Populate(services);
+        }
+
+        private void RegisterABTestServices(ContainerBuilder builder)
+        {
+            builder
+                .RegisterType<ABTestEnrollmentFactory>()
+                .As<IABTestEnrollmentFactory>();
+
+            builder
+                .RegisterType<CookieBasedABTestService>()
+                .As<IABTestService>();
         }
 
         private static void RegisterFeatureFlagsService(ContainerBuilder builder, ConfigurationService configuration)
@@ -789,6 +807,14 @@ namespace NuGetGallery
                     c.Resolve<IMessageServiceConfiguration>()))
                 .As<ISearchSideBySideService>()
                 .InstancePerLifetimeScope();
+
+            builder
+                .RegisterType<PackagesController>()
+                .WithParameter(new ResolvedParameter(
+                    (pi, ctx) => pi.ParameterType == typeof(ISearchService) && pi.Name == ParameterNames.PackagesController_PreviewSearchService,
+                    (pi, ctx) => ctx.ResolveKeyed<ISearchService>(BindingKeys.PreviewSearchClient)))
+                .As<PackagesController>()
+                .InstancePerLifetimeScope();
         }
 
         private static void RegisterSearchService(
@@ -982,7 +1008,7 @@ namespace NuGetGallery
             return new FileSystemAuditingService(auditingPath, AuditActor.GetAspNetOnBehalfOfAsync);
         }
 
-        private static void ConfigureForAzureStorage(ContainerBuilder builder, IGalleryConfigurationService configuration, ITelemetryClient telemetryClient)
+        private static void ConfigureForAzureStorage(ContainerBuilder builder, IGalleryConfigurationService configuration, ITelemetryService telemetryService)
         {
             /// The goal here is to initialize a <see cref="ICloudBlobClient"/> and <see cref="IFileStorageService"/>
             /// instance for each unique connection string. Each dependent of <see cref="IFileStorageService"/> (that
@@ -1045,7 +1071,7 @@ namespace NuGetGallery
 
             // when running on Windows Azure, download counts come from the downloads.v1.json blob
             var downloadCountService = new CloudDownloadCountService(
-                telemetryClient,
+                telemetryService,
                 configuration.Current.AzureStorage_Statistics_ConnectionString,
                 configuration.Current.AzureStorageReadAccessGeoRedundant);
 
@@ -1053,7 +1079,7 @@ namespace NuGetGallery
                 .AsSelf()
                 .As<IDownloadCountService>()
                 .SingleInstance();
-            ObjectMaterializedInterception.AddInterceptor(new DownloadCountObjectMaterializedInterceptor(downloadCountService));
+            ObjectMaterializedInterception.AddInterceptor(new DownloadCountObjectMaterializedInterceptor(downloadCountService, telemetryService));
 
             builder.RegisterType<JsonStatisticsService>()
                 .AsSelf()
