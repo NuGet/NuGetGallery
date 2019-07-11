@@ -61,12 +61,15 @@
     }
 
     <div class="list-packages" role="list">
-        @{ var itemIndex = Model.PageIndex * Model.PageSize; }
+        @{
+            var itemIndex = Model.PageIndex * Model.PageSize;
+            var eventName = Model.IsPreviewSearch ? "preview-search-selection" : "search-selection";
+        }
         @foreach (var package in Model.Items)
         {
             // Only set an item index when there is a search query, for now.
             var thisItemIndex = string.IsNullOrWhiteSpace(Model.SearchTerm) ? null : (int?) itemIndex;
-            @Html.Partial("_ListPackage", package, new ViewDataDictionary { { "itemIndex", thisItemIndex } })
+            @Html.Partial("_ListPackage", package, new ViewDataDictionary { { "itemIndex", thisItemIndex }, { "eventName", eventName } })
             itemIndex++;
         }
     </div>
@@ -88,16 +91,18 @@
         var sincePageLoadCount = 0;
         @if (!string.IsNullOrWhiteSpace(Model.SearchTerm) && (Model.PageIndex == 0 || Model.Items.Count() > 0))
         {
+            var category = Model.IsPreviewSearch ? "preview-search-page" : "search-page";
             var action = Model.IncludePrerelease ? "search-prerel" : "search-stable";
             // Emit an event representing the search page and the page index. This make it easier for the search selection
             // event to be correlated in Google Analytics.
             <text>
-            window.nuget.sendAnalyticsEvent('search-page', '@action', @Html.Raw(Json.Encode(Model.SearchTerm)), @Model.PageIndex);
+            window.nuget.sendAnalyticsEvent('@category', '@action', @Html.Raw(Json.Encode(Model.SearchTerm)), @Model.PageIndex);
             window.nuget.sendAiMetric('BrowserSearchPage', @Model.PageIndex, {
                 SearchTerm: @Html.Raw(Json.Encode(Model.SearchTerm)),
                 IncludePrerelease: '@Model.IncludePrerelease',
                 PageIndex: @Model.PageIndex,
-                TotalCount: @Model.TotalCount
+                TotalCount: @Model.TotalCount,
+                IsPreviewSearch: '@Model.IsPreviewSearch'
             });
             </text>
         }
@@ -142,7 +147,8 @@
                         PackageVersion: data.packageVersion,
                         UseVersion: data.useVersion,
                         SincePageLoadMs: Date.now() - pageLoadTime,
-                        SincePageLoadCount: sincePageLoadCount
+                        SincePageLoadCount: sincePageLoadCount,
+                        IsPreviewSearch: '@Model.IsPreviewSearch'
                     });
 
                     sincePageLoadCount++;

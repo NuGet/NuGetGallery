@@ -7,7 +7,6 @@ using System.Linq;
 using System.Net.Http;
 using System.Security.Principal;
 using System.Web;
-using System.Web.Helpers;
 using Newtonsoft.Json;
 using NuGet.Services.Entities;
 using NuGet.Services.FeatureFlags;
@@ -32,6 +31,12 @@ namespace NuGetGallery
             public const string NewUserRegistration = "NewUserRegistration";
             public const string CredentialAdded = "CredentialAdded";
             public const string CredentialUsed = "CredentialUsed";
+            public const string DownloadCountDecreasedDuringRefresh = "DownloadCountDecreasedDuringRefresh";
+            public const string DownloadJsonRefreshDuration = "DownloadJsonRefreshDuration";
+            public const string GalleryDownloadGreaterThanJsonForPackage = "GalleryDownloadGreaterThanJsonForPackage";
+            public const string GalleryDownloadGreaterThanJsonForPackageRegistration = "GalleryDownloadGreaterThanJsonForPackageRegistration";
+            public const string GetPackageDownloadCountFailed = "GetPackageDownloadCountFailed";
+            public const string GetPackageRegistrationDownloadCountFailed = "GetPackageRegistrationDownloadCountFailed";
             public const string UserPackageDeleteCheckedAfterHours = "UserPackageDeleteCheckedAfterHours";
             public const string UserPackageDeleteExecuted = "UserPackageDeleteExecuted";
             public const string UserMultiFactorAuthenticationEnabled = "UserMultiFactorAuthenticationEnabled";
@@ -78,16 +83,24 @@ namespace NuGetGallery
             public const string SearchOnRetry = "SearchOnRetry";
             public const string SearchSideBySideFeedback = "SearchSideBySideFeedback";
             public const string SearchSideBySide = "SearchSideBySide";
+            public const string ABTestEnrollmentInitialized = "ABTestEnrollmentInitialized";
+            public const string ABTestEvaluated = "ABTestEvaluated";
         }
 
-        private IDiagnosticsSource _diagnosticsSource;
-        private ITelemetryClient _telemetryClient;
+        private readonly IDiagnosticsSource _diagnosticsSource;
+        private readonly ITelemetryClient _telemetryClient;
 
         private readonly JsonSerializerSettings _defaultJsonSerializerSettings = new JsonSerializerSettings
         {
             ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
             Formatting = Formatting.None
         };
+
+        // Download Count properties
+        public const string OldJsonDownloadCount = "OldDownloadCount";
+        public const string NewJsonDownloadCount = "NewDownloadCount";
+        public const string GalleryDownloadCount = "GalleryDownloadCount";
+        public const string JsonDownloadCount = "JsonDownloadCount";
 
         // ODataQueryFilter properties
         public const string CallContext = "CallContext";
@@ -198,6 +211,14 @@ namespace NuGetGallery
         public const string HasComments = "HasComments";
         public const string HasEmailAddress = "HasEmailAddress";
 
+        // A/B testing properties
+        public const string SchemaVersion = "SchemaVersion";
+        public const string PreviewSearchBucket = "PreviewSearchBucket";
+        public const string TestName = "TestName";
+        public const string IsActive = "IsActive";
+        public const string TestBucket = "TestBucket";
+        public const string TestPercentage = "TestPercentage";
+
         public TelemetryService(IDiagnosticsService diagnosticsService, ITelemetryClient telemetryClient = null)
         {
             if (diagnosticsService == null)
@@ -223,6 +244,60 @@ namespace NuGetGallery
             }
 
             _diagnosticsSource.Warning(exception.ToString());
+        }
+
+        public void TrackGetPackageDownloadCountFailed(string packageId, string packageVersion)
+        {
+            TrackMetric(Events.GetPackageDownloadCountFailed, 1, properties =>
+            {
+                properties.Add(PackageId, packageId);
+                properties.Add(PackageVersion, packageVersion);
+            });
+        }
+
+        public void TrackGetPackageRegistrationDownloadCountFailed(string packageId)
+        {
+            TrackMetric(Events.GetPackageRegistrationDownloadCountFailed, 1, properties =>
+            {
+                properties.Add(PackageId, packageId);
+            });
+        }
+
+        public void TrackDownloadJsonRefreshDuration(long milliseconds)
+        {
+            TrackMetric(Events.DownloadJsonRefreshDuration, milliseconds, properties => { });
+        }
+
+        public void TrackDownloadCountDecreasedDuringRefresh(string packageId, string packageVersion, long oldCount, long newCount)
+        {
+            TrackMetric(Events.DownloadCountDecreasedDuringRefresh, 1, properties =>
+            {
+                properties.Add(PackageId, packageId);
+                properties.Add(PackageVersion, packageVersion);
+                properties.Add(OldJsonDownloadCount, oldCount.ToString());
+                properties.Add(NewJsonDownloadCount, newCount.ToString());
+            });
+        }
+
+        public void TrackPackageDownloadCountDecreasedFromGallery(string packageId, string packageVersion, long galleryCount, long jsonCount)
+        {
+            TrackMetric(Events.GalleryDownloadGreaterThanJsonForPackage, 1, properties =>
+            {
+                properties.Add(PackageId, packageId);
+                properties.Add(PackageVersion, packageVersion);
+                properties.Add(GalleryDownloadCount, galleryCount.ToString());
+                properties.Add(JsonDownloadCount, jsonCount.ToString());
+            });
+        }
+
+        public void TrackPackageRegistrationDownloadCountDecreasedFromGallery(string packageId, long galleryCount, long jsonCount)
+        {
+            TrackMetric(Events.GalleryDownloadGreaterThanJsonForPackageRegistration, 1, properties =>
+            {
+                properties.Add(PackageId, packageId);
+                properties.Add(GalleryDownloadCount, galleryCount.ToString());
+                properties.Add(JsonDownloadCount, jsonCount.ToString());
+            });
         }
 
         public void TrackODataQueryFilterEvent(string callContext, bool isEnabled, bool isAllowed, string queryPattern)
@@ -592,27 +667,6 @@ namespace NuGetGallery
 
         private void TrackMetricForPackage(
             string metricName,
-            Package package,
-            User user,
-            IIdentity identity,
-            Action<Dictionary<string, string>> addProperties = null)
-        {
-            if (package == null)
-            {
-                throw new ArgumentNullException(nameof(package));
-            }
-
-            TrackMetricForPackage(
-                metricName,
-                package.PackageRegistration.Id,
-                package.NormalizedVersion,
-                user,
-                identity,
-                addProperties);
-        }
-
-        private void TrackMetricForPackage(
-            string metricName,
             string packageId,
             string packageVersion,
             User user,
@@ -945,6 +999,32 @@ namespace NuGetGallery
                 properties.Add(OldHits, oldHits.ToString());
                 properties.Add(NewSuccess, newSuccess.ToString());
                 properties.Add(NewHits, newHits.ToString());
+            });
+        }
+
+        public void TrackABTestEnrollmentInitialized(
+            int schemaVersion,
+            int previewSearchBucket)
+        {
+            TrackMetric(Events.ABTestEnrollmentInitialized, 1, properties => {
+                properties.Add(SchemaVersion, schemaVersion.ToString());
+                properties.Add(PreviewSearchBucket, previewSearchBucket.ToString());
+            });
+        }
+
+        public void TrackABTestEvaluated(
+            string name,
+            bool isActive,
+            bool isAuthenticated,
+            int testBucket,
+            int testPercentage)
+        {
+            TrackMetric(Events.ABTestEvaluated, 1, properties => {
+                properties.Add(TestName, name);
+                properties.Add(IsActive, isActive.ToString());
+                properties.Add(IsAuthenticated, isAuthenticated.ToString());
+                properties.Add(TestBucket, testBucket.ToString());
+                properties.Add(TestPercentage, testPercentage.ToString());
             });
         }
 

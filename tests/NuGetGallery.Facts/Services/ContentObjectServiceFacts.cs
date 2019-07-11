@@ -42,6 +42,10 @@ namespace NuGetGallery.Services
                 Assert.False(typosquattingConfiguration.IsCheckEnabled);
                 Assert.False(typosquattingConfiguration.IsBlockUsersEnabled);
                 Assert.Equal(TyposquattingConfiguration.DefaultPackageIdChecklistCacheExpireTimeInHours, typosquattingConfiguration.PackageIdChecklistCacheExpireTimeInHours);
+
+                var abTestConfiguration = service.ABTestConfiguration as ABTestConfiguration;
+
+                Assert.Equal(0, abTestConfiguration.PreviewSearchPercentage);
             }
 
             [Fact]
@@ -61,9 +65,6 @@ namespace NuGetGallery.Services
                 var alwaysEnabledForDomains = new[] { "a" };
                 var alwaysEnabledForEmailAddresses = new[] { "b" };
 
-                var packageIdChecklistLength = 20000;
-                var packageIdChecklistCacheExpireTimeInHours = 12.0;
-
                 var certificatesConfiguration = new CertificatesConfiguration(
                     isUIEnabledByDefault,
                     alwaysEnabledForDomains,
@@ -75,6 +76,9 @@ namespace NuGetGallery.Services
                     alwaysEnabledForDomains: alwaysEnabledForDomains,
                     alwaysEnabledForEmailAddresses: alwaysEnabledForEmailAddresses);
                 var symbolsJson = JsonConvert.SerializeObject(symbolsConfiguration);
+                
+                var packageIdChecklistLength = 20000;
+                var packageIdChecklistCacheExpireTimeInHours = 12.0;
 
                 var typosquattingConfiguration = new TyposquattingConfiguration(
                     packageIdChecklistLength: packageIdChecklistLength,
@@ -82,6 +86,12 @@ namespace NuGetGallery.Services
                     isBlockUsersEnabled: true,
                     packageIdChecklistCacheExpireTimeInHours: packageIdChecklistCacheExpireTimeInHours);
                 var typosquattingJson = JsonConvert.SerializeObject(typosquattingConfiguration);
+
+                var previewSearchPercentage = 2;
+
+                var abTestConfiguration = new ABTestConfiguration(
+                    previewSearchPercentage);
+                var abTestJson = JsonConvert.SerializeObject(abTestConfiguration);
 
                 var contentService = GetMock<IContentService>();
 
@@ -101,6 +111,10 @@ namespace NuGetGallery.Services
                     .Setup(x => x.GetContentItemAsync(ServicesConstants.ContentNames.TyposquattingConfiguration, It.IsAny<TimeSpan>()))
                     .Returns(Task.FromResult<IHtmlString>(new HtmlString(typosquattingJson)));
 
+                contentService
+                    .Setup(x => x.GetContentItemAsync(ServicesConstants.ContentNames.ABTestConfiguration, It.IsAny<TimeSpan>()))
+                    .Returns(Task.FromResult<IHtmlString>(new HtmlString(abTestJson)));
+
                 var service = GetService<ContentObjectService>();
 
                 // Act
@@ -110,6 +124,7 @@ namespace NuGetGallery.Services
                 certificatesConfiguration = service.CertificatesConfiguration as CertificatesConfiguration;
                 symbolsConfiguration = service.SymbolsConfiguration as SymbolsConfiguration;
                 typosquattingConfiguration = service.TyposquattingConfiguration as TyposquattingConfiguration;
+                abTestConfiguration = service.ABTestConfiguration as ABTestConfiguration;
 
                 // Assert
                 Assert.Equal(emails, loginDiscontinuationConfiguration.DiscontinuedForEmailAddresses);
@@ -129,6 +144,8 @@ namespace NuGetGallery.Services
                 Assert.True(typosquattingConfiguration.IsCheckEnabled);
                 Assert.True(typosquattingConfiguration.IsBlockUsersEnabled);
                 Assert.Equal(packageIdChecklistCacheExpireTimeInHours, typosquattingConfiguration.PackageIdChecklistCacheExpireTimeInHours);
+
+                Assert.Equal(previewSearchPercentage, abTestConfiguration.PreviewSearchPercentage);
             }
         }
     }
