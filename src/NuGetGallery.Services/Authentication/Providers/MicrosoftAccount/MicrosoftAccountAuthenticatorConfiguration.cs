@@ -29,7 +29,7 @@ namespace NuGetGallery.Authentication.Providers.MicrosoftAccount
                 {
                     throw new ConfigurationErrorsException(String.Format(
                         CultureInfo.CurrentCulture,
-                        Strings.MissingRequiredConfigurationValue,
+                        ServicesStrings.MissingRequiredConfigurationValue,
                         "Auth.MicrosoftAccount.ClientId"));
                 }
 
@@ -39,7 +39,7 @@ namespace NuGetGallery.Authentication.Providers.MicrosoftAccount
                 {
                     throw new ConfigurationErrorsException(String.Format(
                         CultureInfo.CurrentCulture,
-                        Strings.MissingRequiredConfigurationValue,
+                        ServicesStrings.MissingRequiredConfigurationValue,
                         "Auth.MicrosoftAccount.ClientSecret"));
                 }
 

@@ -62,6 +62,12 @@
     <Compile Include="Authentication\ChallengeResult.cs" />
     <Compile Include="Authentication\CredentialKind.cs" />
     <Compile Include="Authentication\CredentialViewModel.cs" />
+    <Compile Include="Authentication\Providers\ApiKey\ApiKeyAuthenticationExtensions.cs" />
+    <Compile Include="Authentication\Providers\ApiKey\ApiKeyAuthenticationHandler.cs" />
+    <Compile Include="Authentication\Providers\ApiKey\ApiKeyAuthenticationMiddleware.cs" />
+    <Compile Include="Authentication\Providers\ApiKey\ApiKeyAuthenticationOptions.cs" />
+    <Compile Include="Authentication\Providers\ApiKey\ApiKeyAuthenticator.cs" />
+    <Compile Include="Authentication\Providers\ApiKey\ApiKeyAuthenticatorConfiguration.cs" />
     <Compile Include="Authentication\Providers\AuthenticationPolicy.cs" />
     <Compile Include="Authentication\Providers\Authenticator.cs" />
     <Compile Include="Authentication\Providers\AuthenticatorConfiguration.cs" />
@@ -69,6 +75,11 @@
     <Compile Include="Authentication\Providers\AuthenticatorUI.cs" />
     <Compile Include="Authentication\Providers\AzureActiveDirectoryV2\AzureActiveDirectoryV2Authenticator.cs" />
     <Compile Include="Authentication\Providers\AzureActiveDirectoryV2\AzureActiveDirectoryV2AuthenticatorConfiguration.cs" />
+    <Compile Include="Authentication\Providers\AzureActiveDirectory\AzureActiveDirectoryAuthenticator.cs" />
+    <Compile Include="Authentication\Providers\AzureActiveDirectory\AzureActiveDirectoryAuthenticatorConfiguration.cs" />
+    <Compile Include="Authentication\Providers\LocalUser\LocalUserAuthenticator.cs" />
+    <Compile Include="Authentication\Providers\MicrosoftAccount\MicrosoftAccountAuthenticator.cs" />
+    <Compile Include="Authentication\Providers\MicrosoftAccount\MicrosoftAccountAuthenticatorConfiguration.cs" />
     <Compile Include="Authentication\ScopeViewModel.cs" />
     <Compile Include="Authentication\CredentialBuilder.cs" />
     <Compile Include="Authentication\CredentialValidator.cs" />
@@ -254,6 +265,12 @@
       <Version>3.0.1</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.Owin.Security">
+      <Version>3.0.1</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Owin.Security.Cookies">
+      <Version>3.0.1</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Owin.Security.MicrosoftAccount">
       <Version>3.0.1</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.Owin.Security.OpenIdConnect">

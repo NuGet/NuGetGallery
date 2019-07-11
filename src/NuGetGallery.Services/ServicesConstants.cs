@@ -7,6 +7,8 @@ namespace NuGetGallery
 {
     public static class ServicesConstants
     {
+        public static readonly string CurrentUserOwinEnvironmentKey = "nuget.user";
+
         internal static readonly string UserAgentHeaderName = "User-Agent";
 
         // X-NuGet-Client-Version header was deprecated and replaced with X-NuGet-Protocol-Version header
@@ -41,6 +43,8 @@ namespace NuGetGallery
         public const double AllowedLoginAttempts = 10;
 
         public const string Sha1HashAlgorithmId = "SHA1";
+
+        public const string ApiKeyHeaderName = "X-NuGet-ApiKey";
 
         public static class ContentNames
         {
