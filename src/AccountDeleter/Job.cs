@@ -155,7 +155,12 @@ namespace NuGetGallery.AccountDeleter
                     return new SupportRequestDbContext(connection);
                 });
 
-                services.AddScoped<ICloudBlobClient>(sp => { return new CloudBlobClientWrapper("", true); });
+                services.AddScoped<ICloudBlobClient>(sp => {
+                    var options = sp.GetRequiredService<IOptionsSnapshot<AccountDeleteConfiguration>>();
+                    var optionsSnapshot = options.Value;
+
+                    return new CloudBlobClientWrapper(optionsSnapshot.GalleryStorageConnectionString, readAccessGeoRedundant: true);
+                });
 
                 services.AddScoped<ITelemetryService, GalleryTelemetryService>();
                 services.AddScoped<ISecurityPolicyService, SecurityPolicyService>();
