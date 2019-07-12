@@ -28,9 +28,19 @@ namespace NuGet.Services.AzureSearch
         void TrackV2SearchQueryWithSearchIndex(TimeSpan elapsed);
         void TrackV2SearchQueryWithHijackIndex(TimeSpan elapsed);
         void TrackAutocompleteQuery(TimeSpan elapsed);
+        void TrackDownloadSetComparison(int oldCount, int newCount, int changeCount, TimeSpan elapsed);
         void TrackV3SearchQuery(TimeSpan elapsed);
         void TrackGetSearchServiceStatus(SearchStatusOptions options, bool success, TimeSpan elapsed);
         void TrackDocumentCountQuery(string indexName, long count, TimeSpan elapsed);
+        void TrackDownloadCountDecrease(
+            string packageId,
+            string version,
+            bool oldHasId,
+            bool oldHasVersion,
+            long oldDownloads,
+            bool newHasId,
+            bool newHasVersion,
+            long newDownloads);
         void TrackWarmQuery(string indexName, TimeSpan elapsed);
         void TrackLastCommitTimestampQuery(string indexName, DateTimeOffset? lastCommitTimestamp, TimeSpan elapsed);
         IDisposable TrackCatalogLeafDownloadBatch(int count);

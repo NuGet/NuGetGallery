@@ -306,5 +306,44 @@ namespace NuGet.Services.AzureSearch
                     { "PackageIdCount", packageIdCount.ToString() },
                 });
         }
+
+        public void TrackDownloadSetComparison(int oldCount, int newCount, int changeCount, TimeSpan elapsed)
+        {
+            _telemetryClient.TrackMetric(
+                Prefix + "DownloadSetComparisonSeconds",
+                elapsed.TotalSeconds,
+                new Dictionary<string, string>
+                {
+                    { "OldCount", oldCount.ToString() },
+                    { "NewCount", newCount.ToString() },
+                    { "ChangeCount", changeCount.ToString() },
+                });
+        }
+
+        public void TrackDownloadCountDecrease(
+            string packageId,
+            string version,
+            bool oldHasId,
+            bool oldHasVersion,
+            long oldDownloads,
+            bool newHasId,
+            bool newHasVersion,
+            long newDownloads)
+        {
+            _telemetryClient.TrackMetric(
+                Prefix + "DownloadCountDecrease",
+                1,
+                new Dictionary<string, string>
+                {
+                    { "PackageId", packageId },
+                    { "Version", version },
+                    { "OldHasId", oldHasId.ToString() },
+                    { "OldHasVersion", oldHasVersion.ToString() },
+                    { "OldDownloads", oldDownloads.ToString() },
+                    { "NewHasId", newHasId.ToString() },
+                    { "NewHasVersion", newHasVersion.ToString() },
+                    { "NewDownloads", newDownloads.ToString() },
+                });
+        }
     }
 }
