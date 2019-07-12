@@ -11,6 +11,7 @@ using Microsoft.Azure.Search.Models;
 using Microsoft.Extensions.Options;
 using Moq;
 using NuGet.Protocol.Catalog;
+using NuGet.Services.AzureSearch.AuxiliaryFiles;
 using NuGet.Services.AzureSearch.Support;
 using NuGet.Services.Entities;
 using NuGet.Services.Metadata.Catalog.Persistence;

@@ -123,14 +123,14 @@ namespace NuGet.Services.AzureSearch
                 });
         }
 
-        public void TrackReadLatestIndexedOwners(int ownerCount, TimeSpan elapsed)
+        public void TrackReadLatestIndexedOwners(int packageIdCount, TimeSpan elapsed)
         {
             _telemetryClient.TrackMetric(
                 Prefix + "ReadLatestIndexedOwnersSeconds",
                 elapsed.TotalSeconds,
                 new Dictionary<string, string>
                 {
-                    { "OwnerCount", ownerCount.ToString() },
+                    { "PackageIdCount", packageIdCount.ToString() },
                 });
         }
 
@@ -283,6 +283,27 @@ namespace NuGet.Services.AzureSearch
                 {
                     { "IndexName", indexName },
                     { "LastCommitTimestamp", lastCommitTimestamp?.ToString("O") },
+                });
+        }
+
+        public void TrackReadLatestIndexedDownloads(int packageIdCount, TimeSpan elapsed)
+        {
+            _telemetryClient.TrackMetric(
+                Prefix + "ReadLatestIndexedDownloadsSeconds",
+                elapsed.TotalSeconds,
+                new Dictionary<string, string>
+                {
+                    { "PackageIdCount", packageIdCount.ToString() },
+                });
+        }
+
+        public IDisposable TrackReplaceLatestIndexedDownloads(int packageIdCount)
+        {
+            return _telemetryClient.TrackDuration(
+                Prefix + "ReplaceLatestIndexedDownloadsSeconds",
+                new Dictionary<string, string>
+                {
+                    { "PackageIdCount", packageIdCount.ToString() },
                 });
         }
     }

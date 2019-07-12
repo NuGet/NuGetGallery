@@ -37,6 +37,9 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AuxiliaryFiles\DownloadByVersionDataFacts.cs" />
+    <Compile Include="AuxiliaryFiles\DownloadDataClientFacts.cs" />
+    <Compile Include="AuxiliaryFiles\DownloadDataFacts.cs" />
     <Compile Include="BaseDocumentBuilderFacts.cs" />
     <Compile Include="BatchPusherFacts.cs" />
     <Compile Include="Catalog2AzureSearch\AzureSearchCollectorLogicFacts.cs" />
@@ -60,7 +63,7 @@
     <Compile Include="HijackDocumentBuilderFacts.cs" />
     <Compile Include="IndexBuilderFacts.cs" />
     <Compile Include="Models\CommittedDocumentFacts.cs" />
-    <Compile Include="Owners2AzureSearch\OwnerDataClientFacts.cs" />
+    <Compile Include="AuxiliaryFiles\OwnerDataClientFacts.cs" />
     <Compile Include="SearchIndexActionBuilderFacts.cs" />
     <Compile Include="Owners2AzureSearch\Owners2AzureSearchCommandFacts.cs" />
     <Compile Include="Owners2AzureSearch\OwnerSetComparerFacts.cs" />

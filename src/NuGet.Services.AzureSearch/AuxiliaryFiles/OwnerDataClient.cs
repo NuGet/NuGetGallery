@@ -13,7 +13,7 @@ using Microsoft.WindowsAzure.Storage;
 using Newtonsoft.Json;
 using NuGetGallery;
 
-namespace NuGet.Services.AzureSearch
+namespace NuGet.Services.AzureSearch.AuxiliaryFiles
 {
     public class OwnerDataClient : IOwnerDataClient
     {

@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using NuGet.Services.AzureSearch.AuxiliaryFiles;
 using NuGet.Services.Metadata.Catalog.Helpers;
 
 namespace NuGet.Services.AzureSearch.Owners2AzureSearch
