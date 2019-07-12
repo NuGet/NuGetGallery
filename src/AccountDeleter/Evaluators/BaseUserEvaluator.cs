@@ -5,7 +5,7 @@ namespace NuGetGallery.AccountDeleter
 {
     public abstract class BaseUserEvaluator : IUserEvaluator
     {
-        protected readonly Guid _id;
+        private readonly Guid _id;
 
         public BaseUserEvaluator()
         {

@@ -25,13 +25,6 @@ namespace NuGetGallery
         public const int GravatarImageSize = GravatarElementSize * 2;
         public const int GravatarImageSizeLarge = 332;
 
-        /// <summary>
-        /// Parameters for calculating account lockout period after 
-        /// wrong password entry.
-        /// </summary>
-        public const double AccountLockoutMultiplierInMinutes = 10;
-        public const double AllowedLoginAttempts = 10;
-
         public const int MaxEmailSubjectLength = 255;
         internal static readonly NuGetVersion MaxSupportedMinClientVersion = new NuGetVersion("4.1.0.0");
         public const string PackageFileDownloadUriTemplate = "packages/{0}/{1}/download";

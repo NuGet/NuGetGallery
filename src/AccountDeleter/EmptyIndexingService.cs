@@ -7,6 +7,11 @@ using NuGet.Services.Entities;
 
 namespace NuGetGallery.AccountDeleter
 {
+    /// <summary>
+    /// This class must exist becuase <see cref="PackageUpdateService"/> requires an <see cref="IIndexingService"/>
+    /// However, since our indexing depends directly on DB, we need to catch these calls and do nothing.
+    /// We have only no-oped the calls that we expect to need. Any unexpected call should throw here, and the need for a real indexing service should be re-evaluated if this occurs.
+    /// </summary>
     public class EmptyIndexingService : IIndexingService
     {
         public EmptyIndexingService()
