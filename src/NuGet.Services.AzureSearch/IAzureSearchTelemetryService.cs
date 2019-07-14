@@ -46,5 +46,6 @@ namespace NuGet.Services.AzureSearch
         IDisposable TrackCatalogLeafDownloadBatch(int count);
         void TrackReadLatestIndexedDownloads(int packageIdCount, TimeSpan elapsed);
         IDisposable TrackReplaceLatestIndexedDownloads(int packageIdCount);
+        void TrackAuxiliary2AzureSearchCompleted(bool success, TimeSpan elapsed);
     }
 }

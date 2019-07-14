@@ -155,6 +155,7 @@ namespace NuGet.Services.AzureSearch
                                 await Task.Yield();
                                 while (work.TryTake(out var finished))
                                 {
+                                    // This method can throw a storage exception if the version list has changed.
                                     await _versionListDataClient.ReplaceAsync(
                                         finished.Id,
                                         finished.Value.Result,

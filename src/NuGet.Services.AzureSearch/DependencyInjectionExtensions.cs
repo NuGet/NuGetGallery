@@ -147,6 +147,13 @@ namespace NuGet.Services.AzureSearch
                     c.Resolve<ILogger<BlobContainerBuilder>>()));
 
             containerBuilder
+                .Register<IDownloadDataClient>(c => new DownloadDataClient(
+                    c.ResolveKeyed<ICloudBlobClient>(key),
+                    c.Resolve<IOptionsSnapshot<AzureSearchJobConfiguration>>(),
+                    c.Resolve<IAzureSearchTelemetryService>(),
+                    c.Resolve<ILogger<DownloadDataClient>>()));
+
+            containerBuilder
                 .Register<IOwnerDataClient>(c => new OwnerDataClient(
                     c.ResolveKeyed<ICloudBlobClient>(key),
                     c.Resolve<IOptionsSnapshot<AzureSearchJobConfiguration>>(),
@@ -242,6 +249,7 @@ namespace NuGet.Services.AzureSearch
             services.AddTransient<ICommitCollectorLogic, AzureSearchCollectorLogic>();
             services.AddTransient<IDatabaseOwnerFetcher, DatabaseOwnerFetcher>();
             services.AddTransient<IDiagnosticsService, LoggerDiagnosticsService>();
+            services.AddTransient<IDownloadSetComparer, DownloadSetComparer>();
             services.AddTransient<IEntitiesContextFactory, EntitiesContextFactory>();
             services.AddTransient<IHijackDocumentBuilder, HijackDocumentBuilder>();
             services.AddTransient<IIndexBuilder, IndexBuilder>();

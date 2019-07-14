@@ -345,5 +345,16 @@ namespace NuGet.Services.AzureSearch
                     { "NewDownloads", newDownloads.ToString() },
                 });
         }
+
+        public void TrackAuxiliary2AzureSearchCompleted(bool success, TimeSpan elapsed)
+        {
+            _telemetryClient.TrackMetric(
+                Prefix + "Auxiliary2AzureSearchCompletedSeconds",
+                elapsed.TotalSeconds,
+                new Dictionary<string, string>
+                {
+                    { "Success", success.ToString() },
+                });
+        }
     }
 }
