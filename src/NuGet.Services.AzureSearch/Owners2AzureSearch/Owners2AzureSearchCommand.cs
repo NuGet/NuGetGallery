@@ -57,7 +57,7 @@ namespace NuGet.Services.AzureSearch.Owners2AzureSearch
         public async Task ExecuteAsync()
         {
             var stopwatch = Stopwatch.StartNew();
-            var success = false;
+            var outcome = JobOutcome.Failure;
             try
             {
                 _logger.LogInformation("Fetching old owner data from blob storage.");
@@ -73,7 +73,7 @@ namespace NuGet.Services.AzureSearch.Owners2AzureSearch
 
                 if (!changes.Any())
                 {
-                    success = true;
+                    outcome = JobOutcome.NoOp;
                     return;
                 }
 
@@ -90,12 +90,12 @@ namespace NuGet.Services.AzureSearch.Owners2AzureSearch
 
                 _logger.LogInformation("Uploading the new owner data to blob storage.");
                 await _ownerDataClient.ReplaceLatestIndexedAsync(databaseResult, storageResult.AccessCondition);
-                success = true;
+                outcome = JobOutcome.Success;
             }
             finally
             {
                 stopwatch.Stop();
-                _telemetryService.TrackOwners2AzureSearchCompleted(success, stopwatch.Elapsed);
+                _telemetryService.TrackOwners2AzureSearchCompleted(outcome, stopwatch.Elapsed);
             }
         }
 

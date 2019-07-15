@@ -78,14 +78,14 @@ namespace NuGet.Services.AzureSearch
                 });
         }
 
-        public void TrackOwners2AzureSearchCompleted(bool success, TimeSpan elapsed)
+        public void TrackOwners2AzureSearchCompleted(JobOutcome outcome, TimeSpan elapsed)
         {
             _telemetryClient.TrackMetric(
                 Prefix + "Owners2AzureSearchCompletedSeconds",
                 elapsed.TotalSeconds,
                 new Dictionary<string, string>
                 {
-                    { "Success", success.ToString() },
+                    { "Outcome", outcome.ToString() },
                 });
         }
 
@@ -346,14 +346,14 @@ namespace NuGet.Services.AzureSearch
                 });
         }
 
-        public void TrackAuxiliary2AzureSearchCompleted(bool success, TimeSpan elapsed)
+        public void TrackAuxiliary2AzureSearchCompleted(JobOutcome outcome, TimeSpan elapsed)
         {
             _telemetryClient.TrackMetric(
                 Prefix + "Auxiliary2AzureSearchCompletedSeconds",
                 elapsed.TotalSeconds,
                 new Dictionary<string, string>
                 {
-                    { "Success", success.ToString() },
+                    { "Outcome", outcome.ToString() },
                 });
         }
     }

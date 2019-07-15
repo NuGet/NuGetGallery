@@ -78,7 +78,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
         public async Task ExecuteAsync()
         {
             var stopwatch = Stopwatch.StartNew();
-            var success = false;
+            var outcome = JobOutcome.Failure;
             try
             {
                 // The "old" data in this case is the download count data that was last indexed by this job (or
@@ -100,7 +100,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
 
                 if (!changes.Any())
                 {
-                    success = true;
+                    outcome = JobOutcome.NoOp;
                     return;
                 }
 
@@ -114,12 +114,12 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
 
                 _logger.LogInformation("Uploading the new download count data to blob storage.");
                 await _downloadDataClient.ReplaceLatestIndexedAsync(newData, oldResult.AccessCondition);
-                success = true;
+                outcome = JobOutcome.Success;
             }
             finally
             {
                 stopwatch.Stop();
-                _telemetryService.TrackAuxiliary2AzureSearchCompleted(success, stopwatch.Elapsed);
+                _telemetryService.TrackAuxiliary2AzureSearchCompleted(outcome, stopwatch.Elapsed);
             }
         }
 

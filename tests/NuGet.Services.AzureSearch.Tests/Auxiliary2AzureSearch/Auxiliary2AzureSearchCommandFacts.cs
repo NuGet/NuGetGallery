@@ -31,7 +31,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
             {
                 await Target.ExecuteAsync();
 
-                VerifyCompletedTelemetry(success: true);
+                VerifyCompletedTelemetry(JobOutcome.NoOp);
                 VerifyAllIdsAreProcessed(changeCount: 0);
                 IndexActionBuilder.Verify(
                     x => x.UpdateAsync(
@@ -70,7 +70,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
 
                 await Target.ExecuteAsync();
 
-                VerifyCompletedTelemetry(success: true);
+                VerifyCompletedTelemetry(JobOutcome.Success);
                 VerifyAllIdsAreProcessed(changeCount);
                 IndexActionBuilder.Verify(
                     x => x.UpdateAsync(
@@ -107,7 +107,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
 
                 await Target.ExecuteAsync();
 
-                VerifyCompletedTelemetry(success: true);
+                VerifyCompletedTelemetry(JobOutcome.Success);
                 VerifyAllIdsAreProcessed(changeCount);
                 IndexActionBuilder.Verify(
                     x => x.UpdateAsync(
@@ -131,7 +131,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
 
                 var actual = await Assert.ThrowsAsync<InvalidOperationException>(() => Target.ExecuteAsync());
 
-                VerifyCompletedTelemetry(success: false);
+                VerifyCompletedTelemetry(JobOutcome.Failure);
                 Assert.Same(expected, actual);
             }
 
@@ -259,13 +259,13 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
             public ConcurrentBag<IndexActions> CurrentBatch { get; set; }
             public ConcurrentBag<List<IndexActions>> FinishedBatches { get; }
 
-            public void VerifyCompletedTelemetry(bool success)
+            public void VerifyCompletedTelemetry(JobOutcome outcome)
             {
                 TelemetryService.Verify(
-                    x => x.TrackAuxiliary2AzureSearchCompleted(It.IsAny<bool>(), It.IsAny<TimeSpan>()),
+                    x => x.TrackAuxiliary2AzureSearchCompleted(It.IsAny<JobOutcome>(), It.IsAny<TimeSpan>()),
                     Times.Once);
                 TelemetryService.Verify(
-                    x => x.TrackAuxiliary2AzureSearchCompleted(success, It.IsAny<TimeSpan>()),
+                    x => x.TrackAuxiliary2AzureSearchCompleted(outcome, It.IsAny<TimeSpan>()),
                     Times.Once);
             }
 

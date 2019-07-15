@@ -17,7 +17,7 @@ namespace NuGet.Services.AzureSearch
         void TrackIndexPushFailure(string indexName, int documentCount, TimeSpan elapsed);
         void TrackIndexPushSplit(string indexName, int documentCount);
         void TrackIndexPushSuccess(string indexName, int documentCount, TimeSpan elapsed);
-        void TrackOwners2AzureSearchCompleted(bool success, TimeSpan elapsed);
+        void TrackOwners2AzureSearchCompleted(JobOutcome outcome, TimeSpan elapsed);
         void TrackOwnerSetComparison(int oldCount, int newCount, int changeCount, TimeSpan elapsed);
         void TrackReadLatestIndexedOwners(int packageIdCount, TimeSpan elapsed);
         void TrackReadLatestOwnersFromDatabase(int packageIdCount, TimeSpan elapsed);
@@ -46,6 +46,6 @@ namespace NuGet.Services.AzureSearch
         IDisposable TrackCatalogLeafDownloadBatch(int count);
         void TrackReadLatestIndexedDownloads(int packageIdCount, TimeSpan elapsed);
         IDisposable TrackReplaceLatestIndexedDownloads(int packageIdCount);
-        void TrackAuxiliary2AzureSearchCompleted(bool success, TimeSpan elapsed);
+        void TrackAuxiliary2AzureSearchCompleted(JobOutcome outcome, TimeSpan elapsed);
     }
 }
