@@ -41,6 +41,9 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
                 BatchPusher.Verify(x => x.FinishAsync(), Times.Never);
                 BatchPusher.Verify(x => x.PushFullBatchesAsync(), Times.Never);
                 DownloadDataClient.Verify(
+                    x => x.UploadSnapshotAsync(It.IsAny<DownloadData>()),
+                    Times.Never);
+                DownloadDataClient.Verify(
                     x => x.ReplaceLatestIndexedAsync(It.IsAny<DownloadData>(), It.IsAny<IAccessCondition>()),
                     Times.Never);
             }
@@ -83,6 +86,9 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
                 BatchPusher.Verify(x => x.FinishAsync(), Times.Exactly(expectedPushes));
                 BatchPusher.Verify(x => x.PushFullBatchesAsync(), Times.Never);
                 SystemTime.Verify(x => x.Delay(It.IsAny<TimeSpan>()), Times.Exactly(expectedPushes - 1));
+                DownloadDataClient.Verify(
+                    x => x.UploadSnapshotAsync(NewData),
+                    Times.Once);
                 DownloadDataClient.Verify(
                     x => x.ReplaceLatestIndexedAsync(NewData, OldResult.AccessCondition),
                     Times.Once);

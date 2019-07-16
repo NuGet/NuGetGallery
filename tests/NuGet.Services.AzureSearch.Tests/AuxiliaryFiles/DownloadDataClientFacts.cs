@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -131,7 +132,7 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
                 Assert.Equal(10, output.Result.GetDownloadCount("EntityFramework"));
                 Assert.Equal(ETag, output.AccessCondition.IfMatchETag);
 
-                CloudBlobContainer.Verify(x => x.GetBlobReference("downloads.v2.json"), Times.Once);
+                CloudBlobContainer.Verify(x => x.GetBlobReference("downloads/downloads.v2.json"), Times.Once);
             }
         }
 
@@ -177,7 +178,7 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
             }
 
             [Fact]
-            public async Task SerializesVersionsSortedOrder()
+            public async Task SerializesInSortedOrder()
             {
                 var newData = new DownloadData();
                 newData.SetDownloadCount("ZZZ", "9.0.0", 23);
@@ -188,6 +189,104 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
                 newData.SetDownloadCount("EntityFramework", "1.0.0", 0);
 
                 await Target.ReplaceLatestIndexedAsync(newData, AccessCondition.Object);
+
+                // Pretty-ify the JSON to make the assertion clearer.
+                var json = Assert.Single(SavedStrings);
+                json = JsonConvert.DeserializeObject<JObject>(json).ToString();
+
+                Assert.Equal(@"{
+  ""EntityFramework"": {
+    ""3.0.0"": 10
+  },
+  ""NuGet.Versioning"": {
+    ""1.0.0"": 1,
+    ""2.0.0"": 5
+  },
+  ""ZZZ"": {
+    ""9.0.0"": 23
+  }
+}", json);
+            }
+        }
+
+        public class UploadSnapshotAsync : Facts
+        {
+            public UploadSnapshotAsync(ITestOutputHelper output) : base(output)
+            {
+            }
+
+            [Fact]
+            public async Task SerializesWithoutBOM()
+            {
+                var newData = new DownloadData();
+
+                await Target.UploadSnapshotAsync(newData);
+
+                var bytes = Assert.Single(SavedBytes);
+                Assert.Equal((byte)'{', bytes[0]);
+            }
+
+            [Fact]
+            public async Task SetsContentType()
+            {
+                var newData = new DownloadData();
+
+                await Target.UploadSnapshotAsync(newData);
+
+                Assert.Equal("application/json", CloudBlob.Object.Properties.ContentType);
+            }
+
+            [Fact]
+            public async Task UsesTimestampAsBlobName()
+            {
+                var newData = new DownloadData();
+                var before = DateTimeOffset.UtcNow;
+                await Target.UploadSnapshotAsync(newData);
+                var after = DateTimeOffset.UtcNow;
+
+                var blobName = Assert.Single(BlobNames);
+                var slashIndex = blobName.LastIndexOf('/');
+                Assert.True(slashIndex >= 0, "The index of the last slash must not be negative.");
+
+                var directoryName = blobName.Substring(0, slashIndex);
+                Assert.Equal("downloads/snapshots", directoryName);
+
+                var fileName = blobName.Substring(slashIndex + 1);
+                Assert.EndsWith(".json", fileName);
+                var timestamp = DateTimeOffset.ParseExact(
+                    fileName,
+                    "yyyy-MM-dd-HH-mm-ss-FFFFFFF\\.\\j\\s\\o\\n",
+                    CultureInfo.InvariantCulture,
+                    DateTimeStyles.AssumeUniversal);
+                Assert.InRange(timestamp, before, after);
+            }
+
+            [Fact]
+            public async Task SerializedWithoutIndentation()
+            {
+                var newData = new DownloadData();
+                newData.SetDownloadCount("nuget.versioning", "1.0.0", 1);
+                newData.SetDownloadCount("NuGet.Versioning", "2.0.0", 5);
+                newData.SetDownloadCount("EntityFramework", "3.0.0", 10);
+
+                await Target.UploadSnapshotAsync(newData);
+
+                var json = Assert.Single(SavedStrings);
+                Assert.DoesNotContain("\n", json);
+            }
+
+            [Fact]
+            public async Task SerializesInSortedOrder()
+            {
+                var newData = new DownloadData();
+                newData.SetDownloadCount("ZZZ", "9.0.0", 23);
+                newData.SetDownloadCount("YYY", "9.0.0", 0);
+                newData.SetDownloadCount("nuget.versioning", "1.0.0", 1);
+                newData.SetDownloadCount("NuGet.Versioning", "2.0.0", 5);
+                newData.SetDownloadCount("EntityFramework", "3.0.0", 10);
+                newData.SetDownloadCount("EntityFramework", "1.0.0", 0);
+
+                await Target.UploadSnapshotAsync(newData);
 
                 // Pretty-ify the JSON to make the assertion clearer.
                 var json = Assert.Single(SavedStrings);

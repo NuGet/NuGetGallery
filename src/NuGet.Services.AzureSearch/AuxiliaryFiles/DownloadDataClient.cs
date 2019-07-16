@@ -100,6 +100,26 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
             }
         }
 
+        public async Task UploadSnapshotAsync(DownloadData newData)
+        {
+            using (_telemetryService.TrackUploadDownloadsSnapshot(newData.Count))
+            {
+                var timestamp = DateTimeOffset.UtcNow.ToString("yyyy-MM-dd-HH-mm-ss-FFFFFFF");
+                var blobName = $"{_options.Value.NormalizeStoragePath()}downloads/snapshots/{timestamp}.json";
+                _logger.LogInformation("Uploading download data snapshot to {BlobName}.", blobName);
+
+                var blobReference = Container.GetBlobReference(blobName);
+
+                using (var stream = await blobReference.OpenWriteAsync(AccessCondition.GenerateIfNotExistsCondition()))
+                using (var streamWriter = new StreamWriter(stream))
+                using (var jsonTextWriter = new JsonTextWriter(streamWriter))
+                {
+                    blobReference.Properties.ContentType = "application/json";
+                    Serializer.Serialize(jsonTextWriter, newData);
+                }
+            }
+        }
+
         private static void ReadStream(
             Stream stream,
             Action<string, string, long> addVersion)
@@ -146,7 +166,7 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
 
         private string GetLatestIndexedBlobName()
         {
-            return $"{_options.Value.NormalizeStoragePath()}downloads.v2.json";
+            return $"{_options.Value.NormalizeStoragePath()}downloads/downloads.v2.json";
         }
     }
 }

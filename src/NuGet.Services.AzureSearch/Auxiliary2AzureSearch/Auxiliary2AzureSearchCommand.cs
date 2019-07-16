@@ -104,6 +104,9 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
                     return;
                 }
 
+                _logger.LogInformation("Uploading a snapshot of the new download count data to blob storage.");
+                await _downloadDataClient.UploadSnapshotAsync(newData);
+
                 _logger.LogInformation(
                     "Starting {Count} workers pushing download count changes to Azure Search.",
                     _options.Value.MaxConcurrentBatches);

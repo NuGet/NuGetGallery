@@ -356,5 +356,15 @@ namespace NuGet.Services.AzureSearch
                     { "Outcome", outcome.ToString() },
                 });
         }
+
+        public IDisposable TrackUploadDownloadsSnapshot(int packageIdCount)
+        {
+            return _telemetryClient.TrackDuration(
+                Prefix + "UploadDownloadsSnapshotSeconds",
+                new Dictionary<string, string>
+                {
+                    { "PackageIdCount", packageIdCount.ToString() },
+                });
+        }
     }
 }

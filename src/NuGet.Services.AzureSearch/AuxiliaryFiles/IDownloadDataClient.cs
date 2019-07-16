@@ -10,5 +10,6 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
     {
         Task<ResultAndAccessCondition<DownloadData>> ReadLatestIndexedAsync();
         Task ReplaceLatestIndexedAsync(DownloadData newData, IAccessCondition accessCondition);
+        Task UploadSnapshotAsync(DownloadData newData);
     }
 }
