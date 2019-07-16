@@ -420,7 +420,7 @@
 
     window.nuget = nuget;
 
-    jQuery.extend(jQuery.expr[':'], {
+    jQuery.extend(jQuery.expr.pseudos, {
         focusable: window.nuget.canElementBeFocused,
         tabbable: window.nuget.canElementBeTabbedTo
     });
@@ -446,7 +446,7 @@
         });
 
         // Handle confirm pop-ups.
-        $('*[data-confirm]').delegate('', 'click', function (e) {
+        $('*[data-confirm]').on('click', '', function (e) {
             window.nuget.confirmEvent($(this).data().confirm, e);
         });
 
@@ -454,7 +454,7 @@
         $('.has-error')
             .find('input,textarea,select')
             .filter(':visible:first')
-            .focus();
+            .trigger('focus');
 
         // Handle Google analytics tracking event on specific links.
         var emitClickEvent = function (e, emitDirectly) {
@@ -482,12 +482,12 @@
             }
         };
         $.each($('a[data-track]'), function () {
-            $(this).mouseup(function (e) {
+            $(this).on('mouseup', function (e) {
                 if (e.which === 2) { // Middle-mouse click
                     emitClickEvent.call(this, e, true);
                 }
             });
-            $(this).click(function (e) {
+            $(this).on('click', function (e) {
                 emitClickEvent.call(this, e, e.altKey || e.ctrlKey || e.metaKey);
             });
         });

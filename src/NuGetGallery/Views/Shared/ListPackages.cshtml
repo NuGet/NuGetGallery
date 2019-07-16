@@ -156,12 +156,12 @@
                 }
             };
             $.each($('a[data-track]'), function () {
-                $(this).mouseup(function (e) {
+                $(this).on('mouseup', function (e) {
                     if (e.which === 2) { // Middle-mouse click
                         emitAiClickEvent.call(this, e);
                     }
                 });
-                $(this).click(function (e) {
+                $(this).on('click', function (e) {
                     emitAiClickEvent.call(this, e);
                 });
             });
