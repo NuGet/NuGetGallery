@@ -12,10 +12,12 @@
             <ThirdPartyBinaries Include="Dapper.StrongName.dll" />
             <ThirdPartyBinaries Include="Elmah.dll" />
             <ThirdPartyBinaries Include="ICSharpCode.SharpZipLib.dll" />
+            <ThirdPartyBinaries Include="LibGit2Sharp.dll" />
             <ThirdPartyBinaries Include="Markdig.dll" />
             <ThirdPartyBinaries Include="MarkdownSharp.dll" />
             <ThirdPartyBinaries Include="Newtonsoft.Json.dll" />
             <ThirdPartyBinaries Include="Newtonsoft.Json.Schema.dll" />
+            <ThirdPartyBinaries Include="Octokit.dll" />
             <ThirdPartyBinaries Include="Owin.dll" />
             <ThirdPartyBinaries Include="Serilog.dll" />
             <ThirdPartyBinaries Include="Serilog.Enrichers.Environment.dll" />

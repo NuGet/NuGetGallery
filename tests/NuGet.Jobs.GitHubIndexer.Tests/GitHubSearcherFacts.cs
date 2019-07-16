@@ -61,7 +61,7 @@ namespace NuGet.Jobs.GitHubIndexer.Tests
                 int maxStars = (totalCount + _configuration.MinStars);
                 for (int i = 0; i < totalCount; i++)
                 {
-                    items.Add(new RepositoryInformation("owner/Hello" + i, "dummyUrl", maxStars - i, Array.Empty<string>()));
+                    items.Add(new RepositoryInformation("owner/Hello" + i, "dummyUrl", maxStars - i, "Some random description", Array.Empty<string>()));
                 }
 
                 // Create a mock GitHub Search API that serves those results
