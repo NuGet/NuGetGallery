@@ -12,28 +12,19 @@ namespace NuGetGallery.AccountDeleter
     /// <summary>
     /// Evaluator that runs other evaluators and returns a single result. Runs "AND" logic between evaluators.
     /// </summary>
-    public class AggregateEvaluator : IUserEvaluator
+    public class AggregateEvaluator : BaseUserEvaluator
     {
-        private readonly Guid _id;
         private readonly ILogger<AggregateEvaluator> _logger;
         private Dictionary<string, IUserEvaluator> _evaluatorList;
 
         public AggregateEvaluator(ILogger<AggregateEvaluator> logger)
+            : base()
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _evaluatorList = new Dictionary<string, IUserEvaluator>();
-            _id = Guid.NewGuid();
         }
 
-        public string EvaluatorId
-        {
-            get
-            {
-                return _id.ToString();
-            }
-        }
-
-        public bool CanUserBeDeleted(User user)
+        public override bool CanUserBeDeleted(User user)
         {
             var evaluators = _evaluatorList.Values;
             _logger.LogInformation("Running {EvaluatorCount} evaluators.", evaluators.Count);

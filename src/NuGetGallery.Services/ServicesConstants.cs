@@ -7,6 +7,8 @@ namespace NuGetGallery
 {
     public static class ServicesConstants
     {
+        public static readonly string CurrentUserOwinEnvironmentKey = "nuget.user";
+
         internal static readonly string UserAgentHeaderName = "User-Agent";
 
         // X-NuGet-Client-Version header was deprecated and replaced with X-NuGet-Protocol-Version header
@@ -32,6 +34,17 @@ namespace NuGetGallery
         internal const string EmailValidationRegexSecondPart = @"[A-Za-z0-9]+[\w\.-]*[A-Za-z0-9]*\.[A-Za-z0-9][A-Za-z\.]*[A-Za-z]";
         public const string EmailValidationRegex = "^" + EmailValidationRegexFirstPart + "@" + EmailValidationRegexSecondPart + "$";
         public static TimeSpan EmailValidationRegexTimeout = TimeSpan.FromSeconds(5);
+
+        /// <summary>
+        /// Parameters for calculating account lockout period after 
+        /// wrong password entry.
+        /// </summary>
+        public const double AccountLockoutMultiplierInMinutes = 10;
+        public const double AllowedLoginAttempts = 10;
+
+        public const string Sha1HashAlgorithmId = "SHA1";
+
+        public const string ApiKeyHeaderName = "X-NuGet-ApiKey";
 
         public static class ContentNames
         {

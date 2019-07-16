@@ -36,7 +36,7 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
                 {
                     throw new ConfigurationErrorsException(String.Format(
                         CultureInfo.CurrentCulture,
-                        Strings.MissingRequiredConfigurationValue,
+                        ServicesStrings.MissingRequiredConfigurationValue,
                         "Auth.CommonAuth.ClientId"));
                 }
 
@@ -44,7 +44,7 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
                 {
                     throw new ConfigurationErrorsException(String.Format(
                         CultureInfo.CurrentCulture,
-                        Strings.MissingRequiredConfigurationValue,
+                        ServicesStrings.MissingRequiredConfigurationValue,
                         "Auth.CommonAuth.ClientSecret"));
                 }
 

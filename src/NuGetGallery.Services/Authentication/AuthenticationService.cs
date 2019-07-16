@@ -19,7 +19,7 @@ using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
 using NuGetGallery.Infrastructure.Authentication;
 
-using static NuGetGallery.GalleryConstants;
+using static NuGetGallery.ServicesConstants;
 
 namespace NuGetGallery.Authentication
 {
@@ -71,8 +71,8 @@ namespace NuGetGallery.Authentication
         private void InitCredentialFormatters()
         {
             _credentialFormatters = new Dictionary<string, Func<string, string>>(StringComparer.OrdinalIgnoreCase) {
-                { "password", _ => Strings.CredentialType_Password },
-                { "apikey", _ => Strings.CredentialType_ApiKey },
+                { "password", _ => ServicesStrings.CredentialType_Password },
+                { "apikey", _ => ServicesStrings.CredentialType_ApiKey },
                 { "external", FormatExternalCredentialType }
             };
         }
@@ -168,7 +168,7 @@ namespace NuGetGallery.Authentication
             if (credential.IsPassword())
             {
                 // Password credentials cannot be used this way.
-                throw new ArgumentException(Strings.PasswordCredentialsCannotBeUsedHere, nameof(credential));
+                throw new ArgumentException(ServicesStrings.PasswordCredentialsCannotBeUsedHere, nameof(credential));
             }
 
             using (_trace.Activity("Authenticate Credential: " + credential.Type))
@@ -314,11 +314,11 @@ namespace NuGetGallery.Authentication
             {
                 if (string.Equals(existingUser.Username, username, StringComparison.OrdinalIgnoreCase))
                 {
-                    throw new EntityException(Strings.UsernameNotAvailable, username);
+                    throw new EntityException(ServicesStrings.UsernameNotAvailable, username);
                 }
                 else
                 {
-                    throw new EntityException(Strings.EmailAddressBeingUsed, emailAddress);
+                    throw new EntityException(ServicesStrings.EmailAddressBeingUsed, emailAddress);
                 }
             }
 
@@ -357,7 +357,7 @@ namespace NuGetGallery.Authentication
                 .SingleOrDefault(u => u.Username == username);
             if (user == null)
             {
-                throw new InvalidOperationException(Strings.UserNotFound);
+                throw new InvalidOperationException(ServicesStrings.UserNotFound);
             }
 
             return ReplaceCredential(user, credential);
@@ -412,7 +412,7 @@ namespace NuGetGallery.Authentication
             {
                 if (!user.Confirmed)
                 {
-                    throw new InvalidOperationException(Strings.UserIsNotYetConfirmed);
+                    throw new InvalidOperationException(ServicesStrings.UserIsNotYetConfirmed);
                 }
 
                 var cred = _credentialBuilder.CreatePasswordCredential(newPassword);
@@ -437,7 +437,7 @@ namespace NuGetGallery.Authentication
             if (expirationInMinutes < 1)
             {
                 throw new ArgumentException(
-                    Strings.TokenExpirationShouldGiveUser1MinuteToChangePassword, nameof(expirationInMinutes));
+                    ServicesStrings.TokenExpirationShouldGiveUser1MinuteToChangePassword, nameof(expirationInMinutes));
             }
             var user = FindByUserNameOrEmail(usernameOrEmail);
             if (user == null)
@@ -457,7 +457,7 @@ namespace NuGetGallery.Authentication
             if (expirationInMinutes < 1)
             {
                 throw new ArgumentException(
-                    Strings.TokenExpirationShouldGiveUser1MinuteToChangePassword, nameof(expirationInMinutes));
+                    ServicesStrings.TokenExpirationShouldGiveUser1MinuteToChangePassword, nameof(expirationInMinutes));
             }
 
             if (!user.Confirmed)
@@ -522,7 +522,7 @@ namespace NuGetGallery.Authentication
             {
                 throw new InvalidOperationException(string.Format(
                     CultureInfo.CurrentCulture,
-                    Strings.UnknownAuthenticationProvider,
+                    ServicesStrings.UnknownAuthenticationProvider,
                     providerName));
             }
 
@@ -530,7 +530,7 @@ namespace NuGetGallery.Authentication
             {
                 throw new InvalidOperationException(string.Format(
                     CultureInfo.CurrentCulture,
-                    Strings.AuthenticationProviderDisabled,
+                    ServicesStrings.AuthenticationProviderDisabled,
                     providerName));
             }
 
@@ -541,7 +541,7 @@ namespace NuGetGallery.Authentication
         {
             if (user is Organization)
             {
-                throw new InvalidOperationException(Strings.OrganizationsCannotCreateCredentials);
+                throw new InvalidOperationException(ServicesStrings.OrganizationsCannotCreateCredentials);
             }
 
             await Auditing.SaveAuditRecordAsync(new UserAuditRecord(user, AuditedUserAction.AddCredential, credential));
@@ -595,7 +595,7 @@ namespace NuGetGallery.Authentication
                                               !credential.HasBeenUsedInLastDays(_config.ExpirationInDaysForApiKeyV1));
 
             credentialViewModel.Description = credentialViewModel.IsNonScopedApiKey
-                ? Strings.NonScopedApiKeyDescription : credentialViewModel.Description;
+                ? ServicesStrings.NonScopedApiKeyDescription : credentialViewModel.Description;
 
             return credentialViewModel;
         }
@@ -708,7 +708,7 @@ namespace NuGetGallery.Authentication
         {
             if (user is Organization)
             {
-                throw new InvalidOperationException(Strings.OrganizationsCannotCreateCredentials);
+                throw new InvalidOperationException(ServicesStrings.OrganizationsCannotCreateCredentials);
             }
 
             string replaceCredPrefix = null;
@@ -818,7 +818,7 @@ namespace NuGetGallery.Authentication
 
             var results = _credentialValidator.GetValidCredentialsForApiKey(allCredentials, apiKeyCredential.Value);
 
-            return ValidateFoundCredentials(results, Strings.CredentialType_ApiKey);
+            return ValidateFoundCredentials(results, ServicesStrings.CredentialType_ApiKey);
         }
 
         private Credential ValidateFoundCredentials(IList<Credential> results, string credentialType)
@@ -828,7 +828,7 @@ namespace NuGetGallery.Authentication
                 // Don't put the credential itself in trace, but do put the key for lookup later.
                 string message = string.Format(
                     CultureInfo.CurrentCulture,
-                    Strings.MultipleMatchingCredentials,
+                    ServicesStrings.MultipleMatchingCredentials,
                     credentialType,
                     results.First().Key);
                 _trace.Error(message);

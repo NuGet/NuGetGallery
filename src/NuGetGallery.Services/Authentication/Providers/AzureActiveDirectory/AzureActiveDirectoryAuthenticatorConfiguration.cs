@@ -38,7 +38,7 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectory
                 {
                     throw new ConfigurationErrorsException(String.Format(
                         CultureInfo.CurrentCulture,
-                        Strings.MissingRequiredConfigurationValue,
+                        ServicesStrings.MissingRequiredConfigurationValue,
                         "Auth.AzureActiveDirectory.ClientId"));
                 }
 
@@ -49,7 +49,7 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectory
                 {
                     throw new ConfigurationErrorsException(String.Format(
                         CultureInfo.CurrentCulture,
-                        Strings.MissingRequiredConfigurationValue,
+                        ServicesStrings.MissingRequiredConfigurationValue,
                         "Auth.AzureActiveDirectory.Authority"));
                 }
 
@@ -60,7 +60,7 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectory
                 {
                     throw new ConfigurationErrorsException(String.Format(
                         CultureInfo.CurrentCulture,
-                        Strings.MissingRequiredConfigurationValue,
+                        ServicesStrings.MissingRequiredConfigurationValue,
                         "Auth.AzureActiveDirectory.Issuer"));
                 }
             }

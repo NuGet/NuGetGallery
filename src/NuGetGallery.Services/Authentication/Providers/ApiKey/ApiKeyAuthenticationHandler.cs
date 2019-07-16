@@ -47,12 +47,12 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
                 if (!String.IsNullOrEmpty(apiKey))
                 {
                     // Had an API key, but it didn't match a user
-                    WriteStatus(Strings.ApiKeyNotAuthorized, 403);
+                    WriteStatus(ServicesStrings.ApiKeyNotAuthorized, 403);
                 }
                 else
                 {
                     // Keep the 401, but add the authentication information
-                    WriteStatus(Strings.ApiKeyRequired, 401);
+                    WriteStatus(ServicesStrings.ApiKeyRequired, 401);
                     Response.Headers.Append("WWW-Authenticate", String.Format(
                         CultureInfo.InvariantCulture,
                         "ApiKey realm=\"{0}\"",
@@ -87,11 +87,11 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
                     // Ensure that the user matches the owner scope
                     if (!user.MatchesOwnerScope(credential))
                     {
-                        WriteStatus(Strings.ApiKeyNotAuthorized, 403);
+                        WriteStatus(ServicesStrings.ApiKeyNotAuthorized, 403);
                     }
 
                     // Set the current user
-                    Context.Set(GalleryConstants.CurrentUserOwinEnvironmentKey, authUser);
+                    Context.Set(ServicesConstants.CurrentUserOwinEnvironmentKey, authUser);
 
                     // Fetch scopes and store them in a claim
                     var scopes = JsonConvert.SerializeObject(

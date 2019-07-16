@@ -157,8 +157,6 @@
       <DependentUpon>ListDetails.aspx</DependentUpon>
     </Compile>
     <Compile Include="Areas\Admin\Helpers.cs" />
-    <Compile Include="Areas\Admin\Models\IssueStatusKeys.cs" />
-    <Compile Include="Areas\Admin\Models\ISupportRequestDbContext.cs" />
     <Compile Include="Areas\Admin\Migrations\201602111647053_SupportRequestDbModel.cs" />
     <Compile Include="Areas\Admin\Migrations\201602111647053_SupportRequestDbModel.Designer.cs">
       <DependentUpon>201602111647053_SupportRequestDbModel.cs</DependentUpon>
@@ -175,8 +173,6 @@
     <Compile Include="Areas\Admin\Migrations\SupportRequestMigrationsConfiguration.cs" />
     <Compile Include="Areas\Admin\Services\RevalidationAdminService.cs" />
     <Compile Include="Areas\Admin\Services\ValidationAdminService.cs" />
-    <Compile Include="Areas\Admin\Models\SupportRequestDbContext.cs" />
-    <Compile Include="Areas\Admin\Services\SupportRequestService.cs" />
     <Compile Include="Areas\Admin\ViewModels\DeleteAccountAsAdminViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\FeatureFlagsFeatureViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\FeatureFlagsFlightViewModel.cs" />
@@ -207,23 +203,7 @@
     <Compile Include="Areas\Admin\ViewModels\SupportRequestAdminViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\SupportRequestsViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\SupportRequestViewModel.cs" />
-    <Compile Include="Authentication\ApiScopeEvaluationResult.cs" />
-    <Compile Include="Authentication\ApiScopeEvaluator.cs" />
-    <Compile Include="Authentication\FeedOnlyModeException.cs" />
-    <Compile Include="Authentication\IApiScopeEvaluator.cs" />
-    <Compile Include="Authentication\NuGetPackagePattern.cs" />
-    <Compile Include="Authentication\PasswordAuthenticationResult.cs" />
-    <Compile Include="Authentication\PasswordResetResult.cs" />
-    <Compile Include="Authentication\AuthenticateExternalLoginResult.cs" />
-    <Compile Include="Authentication\Providers\AuthenticationPolicy.cs" />
-    <Compile Include="Authentication\AuthenticationService.cs" />
-    <Compile Include="Authentication\AuthenticationTypes.cs" />
-    <Compile Include="Authentication\Providers\Authenticator.cs" />
-    <Compile Include="Authentication\Providers\AuthenticatorT.cs" />
-    <Compile Include="Authentication\Providers\AzureActiveDirectoryV2\AzureActiveDirectoryV2Authenticator.cs" />
-    <Compile Include="Authentication\Providers\AzureActiveDirectoryV2\AzureActiveDirectoryV2AuthenticatorConfiguration.cs" />
-    <Compile Include="Authentication\Providers\AzureActiveDirectory\AzureActiveDirectoryAuthenticator.cs" />
-    <Compile Include="Authentication\Providers\AzureActiveDirectory\AzureActiveDirectoryAuthenticatorConfiguration.cs" />
+    <Compile Include="Authentication\AuthDependenciesModule.cs" />
     <Compile Include="Controllers\ExperimentsController.cs" />
     <Compile Include="Controllers\ManageDeprecationJsonApiController.cs" />
     <Compile Include="ExtensionMethods.cs" />
@@ -271,42 +251,16 @@
     <Compile Include="Queries\AutocompleteServiceQuery.cs" />
     <Compile Include="Queries\IAutocompletePackageVersionsQuery.cs" />
     <Compile Include="Queries\IAutocompletePackageIdsQuery.cs" />
-    <Compile Include="Diagnostics\TraceDiagnosticsSourceScope.cs" />
-    <Compile Include="Configuration\IGalleryConfigurationService.cs" />
-    <Compile Include="Configuration\IPackageDeleteConfiguration.cs" />
-    <Compile Include="Configuration\IServiceBusConfiguration.cs" />
-    <Compile Include="Configuration\PackageDeleteConfiguration.cs" />
-    <Compile Include="Configuration\SecretReader\EmptySecretReaderFactory.cs" />
-    <Compile Include="Configuration\SecretReader\SecretReaderFactory.cs" />
-    <Compile Include="Configuration\ServiceBusConfiguration.cs" />
     <Compile Include="Controllers\AccountsController.cs" />
     <Compile Include="Controllers\NuGetContext.cs" />
     <Compile Include="Controllers\OrganizationsController.cs" />
-    <Compile Include="Diagnostics\ElmahHandleErrorAttribute.cs" />
-    <Compile Include="Extensions\DateTimeExtensions.cs" />
     <Compile Include="Controllers\ODataV1FeedController.cs" />
     <Compile Include="Controllers\ODataV2CuratedFeedController.cs" />
     <Compile Include="Controllers\ODataV2FeedController.cs" />
-    <Compile Include="Diagnostics\PerfCounters.cs" />
-    <Compile Include="Diagnostics\ProcessPerfEvents.cs" />
     <Compile Include="App_Start\OwinStartup.cs" />
     <Compile Include="Areas\Admin\DynamicData\OrderedFieldGenerator.cs" />
     <Compile Include="Areas\Admin\Controllers\LuceneController.cs" />
     <Compile Include="Areas\Admin\Models\LuceneInfoModel.cs" />
-    <Compile Include="Authentication\Providers\ApiKey\ApiKeyAuthenticationExtensions.cs" />
-    <Compile Include="Authentication\Providers\ApiKey\ApiKeyAuthenticationHandler.cs" />
-    <Compile Include="Authentication\Providers\ApiKey\ApiKeyAuthenticationMiddleware.cs" />
-    <Compile Include="Authentication\Providers\ApiKey\ApiKeyAuthenticationOptions.cs" />
-    <Compile Include="Authentication\AuthDependenciesModule.cs" />
-    <Compile Include="Authentication\Providers\ApiKey\ApiKeyAuthenticator.cs" />
-    <Compile Include="Authentication\Providers\ApiKey\ApiKeyAuthenticatorConfiguration.cs" />
-    <Compile Include="Authentication\Providers\AuthenticatorConfiguration.cs" />
-    <Compile Include="Authentication\Providers\AuthenticatorUI.cs" />
-    <Compile Include="Authentication\Providers\LocalUser\LocalUserAuthenticator.cs" />
-    <Compile Include="Authentication\Providers\MicrosoftAccount\MicrosoftAccountAuthenticator.cs" />
-    <Compile Include="Authentication\Providers\MicrosoftAccount\MicrosoftAccountAuthenticatorConfiguration.cs" />
-    <Compile Include="Configuration\ConfigurationService.cs" />
-    <Compile Include="Configuration\FeatureConfiguration.cs" />
     <Compile Include="Configuration\SmtpUri.cs" />
     <Compile Include="Controllers\AppController.cs" />
     <Compile Include="Controllers\ErrorsController.cs" />
@@ -329,8 +283,6 @@
     <Compile Include="Helpers\ZipArchiveHelpers.cs" />
     <Compile Include="Helpers\RegexEx.cs" />
     <Compile Include="Helpers\RouteUrlTemplate.cs" />
-    <Compile Include="Helpers\UploadHelper.cs" />
-    <Compile Include="Infrastructure\Authentication\ApiKeyV3.cs" />
     <Compile Include="Infrastructure\Lucene\HttpClientWrapper.cs" />
     <Compile Include="Infrastructure\Lucene\IResilientSearchClient.cs" />
     <Compile Include="Infrastructure\Lucene\IHttpClientWrapper.cs" />
@@ -497,7 +449,6 @@
     <Compile Include="Services\TyposquattingCheckListCacheService.cs" />
     <Compile Include="Services\CertificateService.cs" />
     <Compile Include="Services\CertificateValidator.cs" />
-    <Compile Include="Services\CloudBlobFileStorageService.cs" />
     <Compile Include="Services\ICertificateService.cs" />
     <Compile Include="Services\ICertificateValidator.cs" />
     <Compile Include="Services\ImmediatePackageValidator.cs" />
@@ -577,8 +528,6 @@
     <Compile Include="Telemetry\ClientTelemetryPIIProcessor.cs" />
     <Compile Include="Telemetry\DeploymentIdTelemetryEnricher.cs" />
     <Compile Include="Telemetry\QuietExceptionLogger.cs" />
-    <Compile Include="Infrastructure\Authentication\CredentialValidator.cs" />
-    <Compile Include="Infrastructure\Authentication\ICredentialValidator.cs" />
     <Compile Include="Infrastructure\PasswordValidationAttribute.cs" />
     <Compile Include="Migrations\201602181939424_RemovePackageStatistics.cs" />
     <Compile Include="Migrations\201602181939424_RemovePackageStatistics.Designer.cs">
@@ -678,9 +627,6 @@
     <Compile Include="OData\QueryInterceptors\ODataRemoveSorter.cs" />
     <Compile Include="OData\SearchService\SearchAdaptorResult.cs" />
     <Compile Include="OData\SearchService\SearchHijacker.cs" />
-    <Compile Include="Diagnostics\DiagnosticsService.cs" />
-    <Compile Include="Diagnostics\PerfEvent.cs" />
-    <Compile Include="Diagnostics\SendErrorsToTelemetryAttribute.cs" />
     <Compile Include="Extensions\NumberExtensions.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -688,8 +634,6 @@
     <Compile Include="Helpers\HostMachine.cs" />
     <Compile Include="Infrastructure\DependencyResolverServiceProviderAdapter.cs" />
     <Compile Include="Infrastructure\Lucene\CloudDownloadCountServiceRefreshJob.cs" />
-    <Compile Include="Infrastructure\MessageQueue.cs" />
-    <Compile Include="Diagnostics\TraceDiagnosticsSource.cs" />
     <Compile Include="UrlHelperExtensions.cs" />
     <Compile Include="ViewModels\AddOrganizationViewModel.cs" />
     <Compile Include="ViewModels\AddPackageOwnerViewModel.cs" />
@@ -962,7 +906,6 @@
     <Compile Include="ImageResult.cs" />
     <Compile Include="Infrastructure\AntiForgeryErrorFilter.cs" />
     <Compile Include="Infrastructure\ApplicationVersionHelper.cs" />
-    <Compile Include="Infrastructure\ChallengeResult.cs" />
     <Compile Include="Infrastructure\Lucene\ExternalSearchService.cs" />
     <Compile Include="Infrastructure\MandatoryAttribute.cs" />
     <Compile Include="Infrastructure\NotEqualAttribute.cs" />
@@ -971,10 +914,6 @@
     <Compile Include="Infrastructure\SafeRedirectResult.cs" />
     <Compile Include="Infrastructure\StatisticsReport.cs" />
     <Compile Include="Infrastructure\SubtextAttribute.cs" />
-    <Compile Include="Authentication\AsyncFileUpload\AsyncFileUploadExtensions.cs" />
-    <Compile Include="Authentication\AsyncFileUpload\AsyncFileUploadModule.cs" />
-    <Compile Include="Authentication\AsyncFileUpload\AsyncFileUploadProgress.cs" />
-    <Compile Include="Authentication\AsyncFileUpload\AsyncFileUploadRequestParser.cs" />
     <Compile Include="Infrastructure\HintAttribute.cs" />
     <Compile Include="Infrastructure\HttpHeaderValueProvider.cs" />
     <Compile Include="Infrastructure\HttpHeaderValueProviderFactory.cs" />
@@ -1236,19 +1175,12 @@
     <Compile Include="RequestModels\DeletePackagesRequest.cs" />
     <Compile Include="RequestModels\EditPackageVersionRequest.cs" />
     <Compile Include="RequestModels\VerifyPackageRequest.cs" />
-    <Compile Include="Infrastructure\Authentication\LegacyHasher.cs" />
-    <Compile Include="Services\AllowLocalHttpRedirectPolicy.cs" />
-    <Compile Include="Services\ISourceDestinationRedirectPolicy.cs" />
-    <Compile Include="Services\NoLessSecureDestinationRedirectPolicy.cs" />
     <Compile Include="Services\ReflowPackageService.cs" />
-    <Compile Include="Services\TelemetryService.cs" />
     <Compile Include="ViewModels\ManageOrganizationsItemViewModel.cs" />
     <Compile Include="ViewModels\ManageOrganizationsViewModel.cs" />
     <Compile Include="ViewModels\ChangeEmailViewModel.cs" />
     <Compile Include="ViewModels\ChangeNotificationsViewModel.cs" />
     <Compile Include="ViewModels\ChangePasswordViewModel.cs" />
-    <Compile Include="ViewModels\CredentialKind.cs" />
-    <Compile Include="ViewModels\CredentialViewModel.cs" />
     <Compile Include="ViewModels\ListPackageOwnerViewModel.cs" />
     <Compile Include="ViewModels\OrganizationAccountViewModel.cs" />
     <Compile Include="ViewModels\OrganizationMemberViewModel.cs" />
@@ -1267,7 +1199,6 @@
     <Compile Include="ViewModels\PackageHeadingModel.cs" />
     <Compile Include="ViewModels\PackageManagerViewModel.cs" />
     <Compile Include="ViewModels\ReportMyPackageViewModel.cs" />
-    <Compile Include="ViewModels\ScopeViewModel.cs" />
     <Compile Include="ViewModels\PackageListSearchViewModel.cs" />
     <Compile Include="ViewModels\ThirdPartyPackageManagerViewModel.cs" />
     <Compile Include="ViewModels\TransformAccountFailedViewModel.cs" />
@@ -1439,8 +1370,6 @@
     <Compile Include="Services\JsonStatisticsService.cs" />
     <Compile Include="Services\CloudReportService.cs" />
     <Compile Include="Services\IReportService.cs" />
-    <Compile Include="Services\HttpContextCacheService.cs" />
-    <Compile Include="Services\ICacheService.cs" />
     <Compile Include="Services\IStatisticsService.cs" />
     <Compile Include="Services\FileSystemFileStorageService.cs" />
     <Compile Include="Services\IAggregateStatsService.cs" />
@@ -2045,6 +1974,8 @@
   <ItemGroup>
     <Folder Include="Areas\Admin\DynamicData\CustomPages\" />
     <Folder Include="Areas\Admin\Views\Shared\" />
+    <Folder Include="Authentication\Providers\" />
+    <Folder Include="Infrastructure\Authentication\" />
     <Folder Include="Security\" />
   </ItemGroup>
   <ItemGroup>
