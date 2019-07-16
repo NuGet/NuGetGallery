@@ -31,7 +31,7 @@ namespace NuGetGallery.Configuration
         private readonly Lazy<IServiceBusConfiguration> _lazyServiceBusConfiguration;
         private readonly Lazy<IPackageDeleteConfiguration> _lazyPackageDeleteConfiguration;
 
-        internal ISecretInjector SecretInjector { get; set; }
+        public ISecretInjector SecretInjector { get; set; }
 
         public ConfigurationService()
         {

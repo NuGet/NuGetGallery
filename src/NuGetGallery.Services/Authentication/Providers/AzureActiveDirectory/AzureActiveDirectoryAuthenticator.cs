@@ -56,9 +56,9 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectory
         public override AuthenticatorUI GetUI()
         {
             return new AuthenticatorUI(
-                Strings.AzureActiveDirectory_SignInMessage,
-                Strings.AzureActiveDirectory_RegisterMessage,
-                Strings.AzureActiveDirectory_AccountNoun)
+                ServicesStrings.AzureActiveDirectory_SignInMessage,
+                ServicesStrings.AzureActiveDirectory_RegisterMessage,
+                ServicesStrings.AzureActiveDirectory_AccountNoun)
             {
                 ShowOnLoginPage = Config.ShowOnLoginPage
             };

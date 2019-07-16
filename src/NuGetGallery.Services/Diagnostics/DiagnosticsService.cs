@@ -27,7 +27,7 @@ namespace NuGetGallery.Diagnostics
         {
             if (String.IsNullOrEmpty(name))
             {
-                throw new ArgumentException(String.Format(CultureInfo.CurrentCulture, Strings.ParameterCannotBeNullOrEmpty, "name"), nameof(name));
+                throw new ArgumentException(String.Format(CultureInfo.CurrentCulture, ServicesStrings.ParameterCannotBeNullOrEmpty, "name"), nameof(name));
             }
 
             return new TraceDiagnosticsSource(name, _telemetryClient);
