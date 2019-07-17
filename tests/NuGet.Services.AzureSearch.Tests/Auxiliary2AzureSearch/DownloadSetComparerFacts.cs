@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using Moq;
 using NuGet.Services.AzureSearch.AuxiliaryFiles;
 using NuGet.Services.AzureSearch.Support;
@@ -15,6 +16,46 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
         {
             public Compare(ITestOutputHelper output) : base(output)
             {
+            }
+
+            [Fact]
+            public void RejectsEmptyNewData()
+            {
+                var oldData = new DownloadData();
+                oldData.SetDownloadCount(IdA, V1, 5);
+                var newData = new DownloadData();
+
+                var ex = Assert.Throws<InvalidOperationException>(() => Target.Compare(oldData, newData));
+                Assert.Equal("The new data should not be empty.", ex.Message);
+            }
+
+            [Theory]
+            [InlineData(4999, false)]
+            [InlineData(5000, false)]
+            [InlineData(5001, true)]
+            [InlineData(5002, true)]
+            public void DetectsTooManyDecreases(int decreases, bool tooMany)
+            {
+                var oldData = new DownloadData();
+                oldData.SetDownloadCount($"NuGet.Frameworks", "1.0.0-alpha", 1);
+                for (var i = 0; i < decreases; i++)
+                {
+                    oldData.SetDownloadCount($"NuGet.Versioning.{i}", "1.0.0-alpha", 1);
+                }
+
+                var newData = new DownloadData();
+                newData.SetDownloadCount($"NuGet.Frameworks", "1.0.0-alpha", 1);
+
+                if (tooMany)
+                {
+                    var ex = Assert.Throws<InvalidOperationException>(() => Target.Compare(oldData, newData));
+                    Assert.Equal("Too many download count decreases are occurring.", ex.Message);
+                }
+                else
+                {
+                    var delta = Target.Compare(oldData, newData);
+                    Assert.Equal(decreases, delta.Count);
+                }
             }
 
             [Fact]
@@ -164,7 +205,9 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
                 var oldData = new DownloadData();
                 oldData.SetDownloadCount(IdA, V1, 7);
                 oldData.SetDownloadCount(IdA, V2, 1);
+                oldData.SetDownloadCount(IdB, V1, 1);
                 var newData = new DownloadData();
+                newData.SetDownloadCount(IdB, V1, 1);
 
                 var delta = Target.Compare(oldData, newData);
 

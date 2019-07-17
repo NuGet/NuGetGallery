@@ -12,6 +12,12 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
 {
     public class DownloadSetComparer : IDownloadSetComparer
     {
+        /// <summary>
+        /// If there are more than this number of packages (ID + version) that have their download count decrease,
+        /// throw an exception. This indicates a data issue and we should proceed no further.
+        /// </summary>
+        private const int MaxDecreases = 5000;
+
         private readonly IAzureSearchTelemetryService _telemetryService;
         private readonly ILogger<DownloadSetComparer> _logger;
 
@@ -27,6 +33,11 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
             DownloadData oldData,
             DownloadData newData)
         {
+            if (newData.Count == 0)
+            {
+                throw new InvalidOperationException("The new data should not be empty.");
+            }
+
             var stopwatch = Stopwatch.StartNew();
 
             // We use a very simplistic algorithm here. Find the union of both ID sets and compare each download count.
@@ -41,11 +52,12 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
                 uniqueIds.Count);
 
             var result = new SortedDictionary<string, long>(StringComparer.OrdinalIgnoreCase);
+            var decreaseCount = 0;
             foreach (var id in uniqueIds)
             {
                 // Detect download count decreases and emit a metric. This is not necessarily wrong because there have
                 // been times that we manually delete spoofed download counts.
-                DetectDownloadCountDescreases(oldData, newData, id);
+                DetectDownloadCountDecreases(oldData, newData, id, ref decreaseCount);
 
                 var oldCount = oldData.GetDownloadCount(id);
                 var newCount = newData.GetDownloadCount(id);
@@ -63,7 +75,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
             return result;
         }
 
-        private void DetectDownloadCountDescreases(DownloadData oldData, DownloadData newData, string id)
+        private void DetectDownloadCountDecreases(DownloadData oldData, DownloadData newData, string id, ref int decreaseCount)
         {
             var oldHasId = oldData.TryGetValue(id, out var oldDownloads);
             if (!oldHasId)
@@ -88,6 +100,13 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
 
                 if (newCount < oldCount)
                 {
+                    decreaseCount++;
+
+                    if (decreaseCount > MaxDecreases)
+                    {
+                        throw new InvalidOperationException("Too many download count decreases are occurring.");
+                    }
+
                     _telemetryService.TrackDownloadCountDecrease(
                         id,
                         version,
