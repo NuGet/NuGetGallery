@@ -86,7 +86,7 @@ namespace NuGet.Services.AzureSearch.SearchService
             }
 
             // Parse the NuGet query.
-            var grouping = _parser.ParseQuery(query.Trim());
+            var grouping = _parser.ParseQuery(query.Trim(), skipWhiteSpace: true);
             if (!grouping.Any())
             {
                 return MatchAllDocumentsQuery;

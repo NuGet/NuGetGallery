@@ -222,6 +222,22 @@ namespace NuGet.Services.AzureSearch.SearchService
                     { @"""foo bar"" baz", @"""foo bar"" baz" },
                     { @"title:""foo bar""", @"title:""foo bar""" },
                     { @"title:""a b"" c title:d f", @"+title:(""a b"" d) c f" },
+                    { @"title:"" a b    c   """, @"title:""a b    c""" },
+
+                    // Dangling quotes are handled with best effort
+                    { @"Tags:""windows", "tags:windows" },
+                    { @"json Tags:""net"" Tags:""windows sdk", @"+tags:(net windows sdk) json" },
+                    { @"json Tags:""net Tags:""windows sdk""", @"+tags:(net Tags\:) json windows sdk" },
+                    { @"sdk Tags:""windows", "+tags:windows sdk" },
+                    { @"Tags:""windows sdk", "tags:(windows sdk)" },
+                    { @"Tags:""""windows""", "windows" },
+
+                    // Empty quotes are ignored
+                    { @"Tags:""""", @"*" },
+                    { @"Tags:"" """, @"*" },
+                    { @"Tags:""      """, @"*" },
+                    { @"windows Tags:""      """, @"windows" },
+                    { @"windows Tags:""      "" Tags:sdk", @"+tags:sdk windows" },
 
                     // Duplicate search terms on the same query field are folded
                     { "a a", "a" },

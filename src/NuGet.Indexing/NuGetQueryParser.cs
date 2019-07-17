@@ -24,11 +24,16 @@ namespace NuGet.Indexing
             { QueryField.Any,  new [] { "*" } }
         };
 
-        public Dictionary<QueryField, HashSet<string>> ParseQuery(string query)
+        public Dictionary<QueryField, HashSet<string>> ParseQuery(string query, bool skipWhiteSpace = false)
         {
             var grouping = new Dictionary<QueryField, HashSet<string>>();
             foreach (Clause clause in MakeClauses(Tokenize(query)))
             {
+                if (skipWhiteSpace && string.IsNullOrWhiteSpace(clause.Text))
+                {
+                    continue;
+                }
+
                 HashSet<string> text;
                 var queryField = GetQueryField(clause.Field);
                 if (!grouping.TryGetValue(queryField, out text))
