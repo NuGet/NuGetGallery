@@ -130,7 +130,7 @@
                     }
                 }
             })
-            .error(failHandler);
+            .fail(failHandler);
         },
 
         removeOwner: function (item) {
@@ -170,7 +170,7 @@
                     }
                 }
             })
-            .error(failHandler);
+            .fail(failHandler);
         }
     };
 
@@ -186,7 +186,7 @@
             viewModel.owners($.map(data, function (item) { return new Owner(item); }));
         }
     })
-    .error(failHandler);
+    .fail(failHandler);
 
     function Owner(data) {
         this.name = ko.observable(data.Name);
