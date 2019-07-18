@@ -1,13 +1,15 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using BasicSearchTests.FunctionalTests.Core;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
+using BasicSearchTests.FunctionalTests.Core;
+using BasicSearchTests.FunctionalTests.Core.Models;
+using BasicSearchTests.FunctionalTests.Core.TestSupport;
+using Newtonsoft.Json;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -60,6 +62,21 @@ namespace NuGet.Services.AzureSearch.FunctionalTests
                 var result = JsonConvert.DeserializeObject<SearchResponse>(json);
 
                 return result.Data.Select(t => t.Id.ToLowerInvariant()).ToList();
+            }
+        }
+
+        protected async Task<V2SearchResult> V2SearchAsync(V2SearchBuilder searchBuilder)
+        {
+            var queryUrl = searchBuilder.RequestUri;
+            _testOutputHelper.WriteLine($"Fetching: {queryUrl}");
+            using (var response = await Client.GetAsync(queryUrl))
+            {
+                response.EnsureSuccessStatusCode();
+
+                var json = await response.Content.ReadAsStringAsync();
+                var result = JsonConvert.DeserializeObject<V2SearchResult>(json);
+
+                return result;
             }
         }
 
