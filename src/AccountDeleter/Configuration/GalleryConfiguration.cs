@@ -99,7 +99,7 @@ namespace NuGetGallery.AccountDeleter
         public int SearchCircuitBreakerWaitAndRetryIntervalInMilliseconds { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public int SearchCircuitBreakerWaitAndRetryCount { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public int SearchCircuitBreakerBreakAfterCount { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        public int SearchHttpClientTimeoutInMilliseconds { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public int SearchHttpRequestTimeoutInMilliseconds { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public MailAddress GalleryOwner { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public MailAddress GalleryNoReplyAddress { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public string SqlReadOnlyReplicaConnectionString { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
