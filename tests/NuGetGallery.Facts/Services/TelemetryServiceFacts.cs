@@ -305,6 +305,10 @@ namespace NuGetGallery
                         (TrackAction)(s => s.TrackMetricForSearchOnRetry("SomeName", exception: null, correlationId: string.Empty, uri: string.Empty, circuitBreakerStatus: string.Empty))
                     };
 
+                    yield return new object[] { "SearchOnTimeout",
+                        (TrackAction)(s => s.TrackMetricForSearchOnTimeout("SomeName", correlationId: string.Empty, uri: string.Empty, circuitBreakerStatus: string.Empty))
+                    };
+
                     yield return new object[] { "SearchSideBySideFeedback",
                         (TrackAction)(s => s.TrackSearchSideBySideFeedback("nuget", 1, 2, "new", "nuget.core", null, true, true))
                     };

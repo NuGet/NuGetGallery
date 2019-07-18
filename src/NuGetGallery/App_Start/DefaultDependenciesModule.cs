@@ -52,6 +52,7 @@ using NuGetGallery.Security;
 using SecretReaderFactory = NuGetGallery.Configuration.SecretReader.SecretReaderFactory;
 using Microsoft.Extensions.Http;
 using NuGetGallery.Infrastructure.Lucene;
+using System.Threading;
 
 namespace NuGetGallery
 {
@@ -838,23 +839,29 @@ namespace NuGetGallery
                         c =>
                         {
                             c.BaseAddress = searchClient.searchUri;
-                            c.Timeout = TimeSpan.FromMilliseconds(configuration.Current.SearchHttpClientTimeoutInMilliseconds);
+
+                            // Here we calculate a timeout for HttpClient that allows for all of the retries to occur.
+                            // This  is not strictly necessary today since the timeout exception is not a case that is
+                            // retried but it's best to set this right now instead of the default (100) or something
+                            // too small. The timeout on HttpClient is not really used. Instead, we depend on a timeout
+                            // policy from Polly.
+                            var perRetryMs = configuration.Current.SearchHttpRequestTimeoutInMilliseconds;
+                            var betweenRetryMs = configuration.Current.SearchCircuitBreakerWaitAndRetryIntervalInMilliseconds;
+                            var maxAttempts = configuration.Current.SearchCircuitBreakerWaitAndRetryCount + 1;
+                            var maxMs = (maxAttempts * perRetryMs) + ((maxAttempts - 1) * betweenRetryMs);
+
+                            // Add another timeout on top of the theoretical max to account for CPU time.
+                            maxMs += perRetryMs;
+
+                            c.Timeout = TimeSpan.FromMilliseconds(maxMs);
                         })
                     .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler() { AllowAutoRedirect = true })
                     .AddHttpMessageHandler<CorrelatingHttpClientHandler>()
-                    .AddPolicyHandler(SearchClientPolicies.SearchClientFallBackCircuitBreakerPolicy(logger, searchClient.name, telemetryService))
-                    .AddPolicyHandler(SearchClientPolicies.SearchClientWaitAndRetryPolicy(
-                            configuration.Current.SearchCircuitBreakerWaitAndRetryCount,
-                            configuration.Current.SearchCircuitBreakerWaitAndRetryIntervalInMilliseconds,
-                            logger,
-                            searchClient.name,
-                            telemetryService))
-                    .AddPolicyHandler(SearchClientPolicies.SearchClientCircuitBreakerPolicy(
-                            configuration.Current.SearchCircuitBreakerBreakAfterCount,
-                            TimeSpan.FromSeconds(configuration.Current.SearchCircuitBreakerDelayInSeconds),
-                            logger,
-                            searchClient.name,
-                            telemetryService));
+                    .AddSearchPolicyHandlers(
+                        logger,
+                        searchClient.name,
+                        telemetryService,
+                        configuration.Current);
             }
 
             var registrationBuilder = builder
