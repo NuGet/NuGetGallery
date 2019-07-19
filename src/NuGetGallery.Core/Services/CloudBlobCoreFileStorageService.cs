@@ -19,7 +19,7 @@ namespace NuGetGallery
     public class CloudBlobCoreFileStorageService : ICoreFileStorageService
     {
         /// <summary>
-        /// This is the maximum duration for <see cref="CopyFileAsync(string, string, string, string)"/> to poll,
+        /// This is the maximum duration for <see cref="CopyFileAsync(ISimpleCloudBlob, string, string, IAccessCondition)"/> to poll,
         /// waiting for a package copy to complete. The value picked today is based off of the maximum duration we wait
         /// when uploading files to Azure China blob storage. Note that in cases when the copy source and destination
         /// are in the same container, the copy completed immediately and no polling is necessary.
