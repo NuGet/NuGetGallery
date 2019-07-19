@@ -230,10 +230,10 @@
         });
 }
 
-@helper UserLinkWithIcon(UrlHelper url, User user)
+@helper UserLinkWithIcon(UrlHelper url, BasicUserViewModel user)
 {
     <span class="ms-noWrap">
-        @if (user is Organization)
+        @if (user.IsOrganization)
         {
             <i class="ms-Icon ms-Icon--Group" aria-hidden="true"></i>
         }
