@@ -86,6 +86,58 @@ namespace NuGet.Services.AzureSearch.FunctionalTests
             Assert.Null(results.Data);
         }
 
+        /// <summary>
+        /// This is the query pattern used by gallery to handle "FindPackagesById()?id={id}" OData queries.
+        /// </summary>
+        [Fact]
+        public async Task ODataFindPackagesById()
+        {
+            var results = await V2SearchAsync(new V2SearchBuilder
+            {
+                Query = $"Id:\"{Constants.TestPackageId}\"",
+                Skip = 0,
+                Take = 100,
+                SortBy = "relevance",
+                IncludeSemVer2 = true,
+                Prerelease = true,
+                IgnoreFilter = true,
+                LuceneQuery = null,
+            });
+
+            Assert.NotNull(results);
+            Assert.True(results.TotalHits >= 1);
+            Assert.NotEmpty(results.Data);
+            foreach (var result in results.Data)
+            {
+                Assert.Equal(Constants.TestPackageId, result.PackageRegistration.Id);
+            }
+        }
+
+        /// <summary>
+        /// This is the query pattern used by gallery to handle "Packages(Id='{id}',Version='{version}')" OData queries.
+        /// </summary>
+        [Fact]
+        public async Task ODataSpecificPackage()
+        {
+            var results = await V2SearchAsync(new V2SearchBuilder
+            {
+                Query = $"Id:\"{Constants.TestPackageId}\" AND Version:\"{Constants.TestPackageVersion}\"",
+                Skip = 0,
+                Take = 1,
+                SortBy = "relevance",
+                IncludeSemVer2 = true,
+                Prerelease = true,
+                IgnoreFilter = true,
+                LuceneQuery = null,
+            });
+
+            Assert.NotNull(results);
+            Assert.Equal(1, results.TotalHits);
+            var package = Assert.Single(results.Data);
+            Assert.Equal(Constants.TestPackageId, package.PackageRegistration.Id);
+            Assert.Equal(Constants.TestPackageVersion, package.NormalizedVersion);
+        }
+
         [Fact]
         public async Task ResultsHonorPreReleaseField()
         {

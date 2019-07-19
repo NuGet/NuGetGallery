@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Specialized;
 
 namespace BasicSearchTests.FunctionalTests.Core.TestSupport
@@ -19,6 +18,8 @@ namespace BasicSearchTests.FunctionalTests.Core.TestSupport
         public bool IncludeSemVer2 { get; set; }
 
         public string SortBy { get; set; }
+
+        public bool? LuceneQuery { get; set; }
 
         public V2SearchBuilder() : base("/search/query?") { }
 
@@ -48,6 +49,11 @@ namespace BasicSearchTests.FunctionalTests.Core.TestSupport
             if (!string.IsNullOrWhiteSpace(SortBy))
             {
                 queryString["sortBy"] = SortBy;
+            }
+
+            if (LuceneQuery.HasValue)
+            {
+                queryString["luceneQuery"] = LuceneQuery.ToString();
             }
 
             return queryString;

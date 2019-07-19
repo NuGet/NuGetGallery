@@ -77,7 +77,7 @@ namespace NuGet.Services.SearchService.Controllers
             string semVerLevel = null,
             string q = null,
             string sortBy = null,
-            bool luceneQuery = false,
+            bool luceneQuery = true,
             bool debug = false)
         {
             await EnsureInitializedAsync();
