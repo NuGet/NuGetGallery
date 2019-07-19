@@ -937,9 +937,9 @@ foreach (var owner in Model.Owners)
             <li>
                 @if (!String.IsNullOrEmpty(owner.EmailAddress))
     {
-            <a href="@Url.User(owner)" title="@owner.Username">@ViewHelpers.GravatarImage(owner.EmailAddress, owner.Username, GalleryConstants.GravatarElementSize)</a>
+            <a href="@Url.User(owner.Username)" title="@owner.Username">@ViewHelpers.GravatarImage(owner.EmailAddress, owner.Username, GalleryConstants.GravatarElementSize)</a>
 }
-                <a href="@Url.User(owner)" title="@owner.Username">
+                <a href="@Url.User(owner.Username)" title="@owner.Username">
                     @owner.Username
                 </a>
             </li>
