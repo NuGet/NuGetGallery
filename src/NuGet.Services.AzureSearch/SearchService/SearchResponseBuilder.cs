@@ -71,6 +71,40 @@ namespace NuGet.Services.AzureSearch.SearchService
                 duration,
                 p => ToV2SearchPackage(p));
         }
+        
+        public V3SearchResponse V3FromSearchDocument(
+            V3SearchRequest request,
+            string documentKey,
+            SearchDocument.Full document,
+            TimeSpan duration)
+        {
+            var registrationsBaseUrl = GetRegistrationsBaseUrl(request.IncludeSemVer2);
+
+            var data = new List<V3SearchPackage>();
+            if (document != null)
+            {
+                var package = ToV3SearchPackage(document, registrationsBaseUrl);
+                package.Debug = request.ShowDebug ? new DebugDocumentResult { Document = document } : null;
+                data.Add(package);
+            }
+
+            return new V3SearchResponse
+            {
+                Context = new V3SearchContext
+                {
+                    Vocab = "http://schema.nuget.org/schema#",
+                    Base = registrationsBaseUrl,
+                },
+                TotalHits = data.Count,
+                Data = data,
+                Debug = DebugInformation.CreateFromGetOrNull(
+                    request,
+                    _options.Value.SearchIndexName,
+                    documentKey,
+                    duration,
+                    AuxiliaryData.Metadata),
+            };
+        }
 
         public V3SearchResponse V3FromSearch(
             V3SearchRequest request,
@@ -100,7 +134,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                         return package;
                     })
                     .ToList(),
-                Debug = DebugInformation.CreateOrNull(
+                Debug = DebugInformation.CreateFromSearchOrNull(
                     request,
                     _options.Value.SearchIndexName,
                     parameters,
@@ -151,7 +185,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                 },
                 TotalHits = result.Count.Value,
                 Data = data,
-                Debug = DebugInformation.CreateOrNull(
+                Debug = DebugInformation.CreateFromSearchOrNull(
                     request,
                     _options.Value.SearchIndexName,
                     parameters,
@@ -190,7 +224,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                 return new V2SearchResponse
                 {
                     TotalHits = result.Count.Value,
-                    Debug = DebugInformation.CreateOrNull(
+                    Debug = DebugInformation.CreateFromSearchOrNull(
                         request,
                         indexName,
                         parameters,
@@ -213,7 +247,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                             return package;
                         })
                         .ToList(),
-                    Debug = DebugInformation.CreateOrNull(
+                    Debug = DebugInformation.CreateFromSearchOrNull(
                         request,
                         indexName,
                         parameters,

@@ -11,5 +11,6 @@ namespace NuGet.Services.AzureSearch.SearchService
         SearchParameters V2Search(V2SearchRequest request);
         SearchParameters V3Search(V3SearchRequest request);
         SearchParameters Autocomplete(AutocompleteRequest request);
+        SearchFilters GetSearchFilters(SearchRequest request);
     }
 }

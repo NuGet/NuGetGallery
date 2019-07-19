@@ -123,7 +123,14 @@ namespace NuGet.Services.AzureSearch.SearchService
             searchParameters.Top = request.Take < 0 || request.Take > MaximumTake ? DefaultTake : request.Take;
         }
 
-        private static void ApplySearchIndexFilter(SearchParameters searchParameters, SearchRequest request)
+        private void ApplySearchIndexFilter(SearchParameters searchParameters, SearchRequest request)
+        {
+            var searchFilters = GetSearchFilters(request);
+
+            searchParameters.Filter = $"{IndexFields.Search.SearchFilters} eq '{DocumentUtilities.GetSearchFilterString(searchFilters)}'";
+        }
+
+        public SearchFilters GetSearchFilters(SearchRequest request)
         {
             var searchFilters = SearchFilters.Default;
 
@@ -137,7 +144,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                 searchFilters |= SearchFilters.IncludeSemVer2;
             }
 
-            searchParameters.Filter = $"{IndexFields.Search.SearchFilters} eq '{DocumentUtilities.GetSearchFilterString(searchFilters)}'";
+            return searchFilters;
         }
 
         private static IList<string> GetOrderBy(V2SortBy sortBy)

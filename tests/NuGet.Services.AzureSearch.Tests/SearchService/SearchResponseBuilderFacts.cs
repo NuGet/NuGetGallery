@@ -149,6 +149,7 @@ namespace NuGet.Services.AzureSearch.SearchService
     ""ShowDebug"": true
   },
   ""IndexName"": ""hijack-index"",
+  ""ApiType"": ""Search"",
   ""SearchParameters"": {
     ""IncludeTotalResultCount"": false,
     ""QueryType"": ""simple"",
@@ -324,6 +325,7 @@ namespace NuGet.Services.AzureSearch.SearchService
     ""ShowDebug"": true
   },
   ""IndexName"": ""search-index"",
+  ""ApiType"": ""Search"",
   ""SearchParameters"": {
     ""IncludeTotalResultCount"": false,
     ""QueryType"": ""simple"",
@@ -515,8 +517,10 @@ namespace NuGet.Services.AzureSearch.SearchService
                     _searchResult,
                     _duration);
 
+                Assert.Same(docResult, response.Data[0].Debug);
+
                 Assert.NotNull(response.Debug);
-                var actualJson = JsonConvert.SerializeObject(response.Debug, _jsonSerializerSettings);
+                var rootDebugJson = JsonConvert.SerializeObject(response.Debug, _jsonSerializerSettings);
                 Assert.Equal(@"{
   ""SearchRequest"": {
     ""Skip"": 0,
@@ -526,6 +530,7 @@ namespace NuGet.Services.AzureSearch.SearchService
     ""ShowDebug"": true
   },
   ""IndexName"": ""search-index"",
+  ""ApiType"": ""Search"",
   ""SearchParameters"": {
     ""IncludeTotalResultCount"": false,
     ""QueryType"": ""simple"",
@@ -552,8 +557,7 @@ namespace NuGet.Services.AzureSearch.SearchService
       ""ETag"": ""\""etag-b\""""
     }
   }
-}", actualJson);
-                Assert.Same(docResult, response.Data[0].Debug);
+}", rootDebugJson);
             }
 
             [Fact]
@@ -564,6 +568,131 @@ namespace NuGet.Services.AzureSearch.SearchService
                     _searchParameters,
                     _text,
                     _searchResult,
+                    _duration);
+
+                var actualJson = JsonConvert.SerializeObject(response, _jsonSerializerSettings);
+                Assert.Equal(@"{
+  ""@context"": {
+    ""@vocab"": ""http://schema.nuget.org/schema#"",
+    ""@base"": ""https://example/reg-gz-semver2/""
+  },
+  ""totalHits"": 1,
+  ""data"": [
+    {
+      ""@id"": ""https://example/reg-gz-semver2/windowsazure.storage/index.json"",
+      ""@type"": ""Package"",
+      ""registration"": ""https://example/reg-gz-semver2/windowsazure.storage/index.json"",
+      ""id"": ""WindowsAzure.Storage"",
+      ""version"": ""7.1.2-alpha+git"",
+      ""description"": ""Description."",
+      ""summary"": ""Summary."",
+      ""title"": ""Windows Azure Storage"",
+      ""iconUrl"": ""http://go.microsoft.com/fwlink/?LinkID=288890"",
+      ""licenseUrl"": ""http://go.microsoft.com/fwlink/?LinkId=331471"",
+      ""projectUrl"": ""https://github.com/Azure/azure-storage-net"",
+      ""tags"": [
+        ""Microsoft"",
+        ""Azure"",
+        ""Storage"",
+        ""Table"",
+        ""Blob"",
+        ""File"",
+        ""Queue"",
+        ""Scalable"",
+        ""windowsazureofficial""
+      ],
+      ""authors"": [
+        ""Microsoft""
+      ],
+      ""totalDownloads"": 1001,
+      ""verified"": true,
+      ""versions"": [
+        {
+          ""version"": ""1.0.0"",
+          ""downloads"": 23,
+          ""@id"": ""https://example/reg-gz-semver2/windowsazure.storage/1.0.0.json""
+        },
+        {
+          ""version"": ""2.0.0+git"",
+          ""downloads"": 23,
+          ""@id"": ""https://example/reg-gz-semver2/windowsazure.storage/2.0.0.json""
+        },
+        {
+          ""version"": ""3.0.0-alpha.1"",
+          ""downloads"": 23,
+          ""@id"": ""https://example/reg-gz-semver2/windowsazure.storage/3.0.0-alpha.1.json""
+        },
+        {
+          ""version"": ""7.1.2-alpha+git"",
+          ""downloads"": 23,
+          ""@id"": ""https://example/reg-gz-semver2/windowsazure.storage/7.1.2-alpha.json""
+        }
+      ]
+    }
+  ]
+}", actualJson);
+            }
+        }
+
+        public class V3FromSearchDocument : BaseFacts
+        {
+            [Fact]
+            public void CanIncludeDebugInformation()
+            {
+                _v3Request.ShowDebug = true;
+                var doc = _searchResult.Results[0].Document;
+
+                var response = _target.V3FromSearchDocument(
+                    _v3Request,
+                    doc.Key,
+                    doc,
+                    _duration);
+
+                var debugDoc = Assert.IsType<DebugDocumentResult>(response.Data[0].Debug);
+                Assert.Same(doc, debugDoc.Document);
+
+                Assert.NotNull(response.Debug);
+                var rootDebugJson = JsonConvert.SerializeObject(response.Debug, _jsonSerializerSettings);
+                Assert.Equal(@"{
+  ""SearchRequest"": {
+    ""Skip"": 0,
+    ""Take"": 0,
+    ""IncludePrerelease"": true,
+    ""IncludeSemVer2"": true,
+    ""ShowDebug"": true
+  },
+  ""IndexName"": ""search-index"",
+  ""ApiType"": ""Get"",
+  ""DocumentKey"": ""windowsazure_storage-d2luZG93c2F6dXJlLnN0b3JhZ2U1-IncludePrereleaseAndSemVer2"",
+  ""QueryDuration"": ""00:00:00.2500000"",
+  ""AuxiliaryFilesMetadata"": {
+    ""Downloads"": {
+      ""LastModified"": ""2019-01-01T11:00:00+00:00"",
+      ""Loaded"": ""2019-01-01T12:00:00+00:00"",
+      ""LoadDuration"": ""00:00:15"",
+      ""FileSize"": 1234,
+      ""ETag"": ""\""etag-a\""""
+    },
+    ""VerifiedPackages"": {
+      ""LastModified"": ""2019-01-02T11:00:00+00:00"",
+      ""Loaded"": ""2019-01-02T12:00:00+00:00"",
+      ""LoadDuration"": ""00:00:30"",
+      ""FileSize"": 5678,
+      ""ETag"": ""\""etag-b\""""
+    }
+  }
+}", rootDebugJson);
+            }
+
+            [Fact]
+            public void ProducesExpectedResponse()
+            {
+                var doc = _searchResult.Results[0].Document;
+
+                var response = _target.V3FromSearchDocument(
+                    _v3Request,
+                    doc.Key,
+                    doc,
                     _duration);
 
                 var actualJson = JsonConvert.SerializeObject(response, _jsonSerializerSettings);
@@ -656,6 +785,7 @@ namespace NuGet.Services.AzureSearch.SearchService
     ""ShowDebug"": true
   },
   ""IndexName"": ""search-index"",
+  ""ApiType"": ""Search"",
   ""SearchParameters"": {
     ""IncludeTotalResultCount"": false,
     ""QueryType"": ""simple"",

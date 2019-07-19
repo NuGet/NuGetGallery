@@ -138,6 +138,7 @@
     <Compile Include="SearchDocumentBuilder.cs" />
     <Compile Include="SearchService\AuxiliaryData.cs" />
     <Compile Include="AuxiliaryFiles\AuxiliaryFileResult.cs" />
+    <Compile Include="SearchService\Models\DebugDocumentResult.cs" />
     <Compile Include="SearchService\IAuxiliaryDataCache.cs" />
     <Compile Include="AuxiliaryFiles\IAuxiliaryFileClient.cs" />
     <Compile Include="SearchService\IAuxiliaryFileReloader.cs" />
@@ -158,6 +159,7 @@
     <Compile Include="SearchService\ISearchService.cs" />
     <Compile Include="SearchService\Models\DebugInformation.cs" />
     <Compile Include="SearchService\Models\IndexStatus.cs" />
+    <Compile Include="SearchService\Models\ApiType.cs" />
     <Compile Include="SearchService\Models\SearchRequest.cs" />
     <Compile Include="SearchService\Models\ServerInformation.cs" />
     <Compile Include="SearchService\Models\SearchStatusResponse.cs" />
@@ -176,6 +178,7 @@
     <Compile Include="SearchService\SearchResponseBuilder.cs" />
     <Compile Include="SearchService\SearchStatusOptions.cs" />
     <Compile Include="SearchService\SearchStatusService.cs" />
+    <Compile Include="SearchService\ParsedQuery.cs" />
     <Compile Include="SearchService\SearchTextBuilder.cs" />
     <Compile Include="AzureSearchTelemetryService.cs" />
     <Compile Include="VersionList\Guard.cs" />

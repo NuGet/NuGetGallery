@@ -15,7 +15,7 @@ namespace NuGet.Services.AzureSearch.SearchService
         /// <param name="request">The V2 search request.</param>
         /// <returns>The Azure Search query.</returns>
         /// <exception cref="InvalidSearchRequestException">Thrown on invalid search requests.</exception>
-        string V2Search(V2SearchRequest request);
+        ParsedQuery V2Search(V2SearchRequest request);
 
         /// <summary>
         /// Map a V3 search request to Azure Search.
@@ -23,7 +23,7 @@ namespace NuGet.Services.AzureSearch.SearchService
         /// <param name="request">The V3 search request.</param>
         /// <returns>The Azure Search query.</returns>
         /// <exception cref="InvalidSearchRequestException">Thrown on invalid search requests.</exception>
-        string V3Search(V3SearchRequest request);
+        ParsedQuery V3Search(V3SearchRequest request);
 
         /// <summary>
         /// Map an autocomplete request to Azure Search.

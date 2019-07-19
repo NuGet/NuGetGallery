@@ -366,5 +366,12 @@ namespace NuGet.Services.AzureSearch
                     { "PackageIdCount", packageIdCount.ToString() },
                 });
         }
+
+        public void TrackV3GetDocument(TimeSpan elapsed)
+        {
+            _telemetryClient.TrackMetric(
+                Prefix + "V3GetDocumentMs",
+                elapsed.TotalMilliseconds);
+        }
     }
 }

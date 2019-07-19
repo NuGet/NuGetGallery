@@ -48,5 +48,6 @@ namespace NuGet.Services.AzureSearch
         IDisposable TrackReplaceLatestIndexedDownloads(int packageIdCount);
         void TrackAuxiliary2AzureSearchCompleted(JobOutcome outcome, TimeSpan elapsed);
         IDisposable TrackUploadDownloadsSnapshot(int packageIdCount);
+        void TrackV3GetDocument(TimeSpan elapsed);
     }
 }

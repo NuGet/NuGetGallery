@@ -26,6 +26,11 @@ namespace NuGet.Services.AzureSearch.SearchService
             string text,
             DocumentSearchResult<SearchDocument.Full> result,
             TimeSpan duration);
+        V3SearchResponse V3FromSearchDocument(
+            V3SearchRequest request,
+            string documentKey,
+            SearchDocument.Full document,
+            TimeSpan duration);
         AutocompleteResponse AutocompleteFromSearch(
             AutocompleteRequest request,
             SearchParameters parameters,

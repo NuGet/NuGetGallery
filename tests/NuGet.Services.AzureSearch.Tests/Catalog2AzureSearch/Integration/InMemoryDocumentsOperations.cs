@@ -27,6 +27,11 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
             throw new NotImplementedException();
         }
 
+        public Task<T> GetOrNullAsync<T>(string key) where T : class
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<DocumentIndexResult> IndexAsync<T>(IndexBatch<T> batch) where T : class
         {
             if (typeof(T) != typeof(KeyedDocument))

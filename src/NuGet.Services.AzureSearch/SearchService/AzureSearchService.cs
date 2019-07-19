@@ -46,21 +46,41 @@ namespace NuGet.Services.AzureSearch.SearchService
 
         public async Task<V3SearchResponse> V3SearchAsync(V3SearchRequest request)
         {
-            var text = _textBuilder.V3Search(request);
-            var parameters = _parametersBuilder.V3Search(request);
+            var parsed = _textBuilder.V3Search(request);
 
-            var result = await Measure.DurationWithValueAsync(() => _searchIndex.Documents.SearchAsync<SearchDocument.Full>(
-                text,
-                parameters));
+            V3SearchResponse output;
+            if (parsed.PackageId != null && request.Skip <= 0 && request.Take > 0)
+            {
+                var searchFilters = _parametersBuilder.GetSearchFilters(request);
+                var documentKey = DocumentUtilities.GetSearchDocumentKey(parsed.PackageId, searchFilters);
 
-            var output = _responseBuilder.V3FromSearch(
-                request,
-                parameters,
-                text,
-                result.Value,
-                result.Duration);
+                var result = await Measure.DurationWithValueAsync(() => _searchIndex.Documents.GetOrNullAsync<SearchDocument.Full>(documentKey));
 
-            _telemetryService.TrackV3SearchQuery(result.Duration);
+                output = _responseBuilder.V3FromSearchDocument(
+                    request,
+                    documentKey,
+                    result.Value,
+                    result.Duration);
+
+                _telemetryService.TrackV3GetDocument(result.Duration);
+            }
+            else
+            {
+                var parameters = _parametersBuilder.V3Search(request);
+
+                var result = await Measure.DurationWithValueAsync(() => _searchIndex.Documents.SearchAsync<SearchDocument.Full>(
+                    parsed.Text,
+                    parameters));
+
+                output = _responseBuilder.V3FromSearch(
+                    request,
+                    parameters,
+                    parsed.Text,
+                    result.Value,
+                    result.Duration);
+
+                _telemetryService.TrackV3SearchQuery(result.Duration);
+            }
 
             return output;
         }
@@ -88,17 +108,17 @@ namespace NuGet.Services.AzureSearch.SearchService
 
         private async Task<V2SearchResponse> UseHijackIndexAsync(V2SearchRequest request)
         {
-            var text = _textBuilder.V2Search(request);
+            var parsed = _textBuilder.V2Search(request);
             var parameters = _parametersBuilder.V2Search(request);
 
             var result = await Measure.DurationWithValueAsync(() => _hijackIndex.Documents.SearchAsync<HijackDocument.Full>(
-                text,
+                parsed.Text,
                 parameters));
 
             var output = _responseBuilder.V2FromHijack(
                 request,
                 parameters,
-                text,
+                parsed.Text,
                 result.Value,
                 result.Duration);
 
@@ -109,17 +129,17 @@ namespace NuGet.Services.AzureSearch.SearchService
 
         private async Task<V2SearchResponse> UseSearchIndexAsync(V2SearchRequest request)
         {
-            var text = _textBuilder.V2Search(request);
+            var parsed = _textBuilder.V2Search(request);
             var parameters = _parametersBuilder.V2Search(request);
 
             var result = await Measure.DurationWithValueAsync(() => _searchIndex.Documents.SearchAsync<SearchDocument.Full>(
-                text,
+                parsed.Text,
                 parameters));
 
             var output = _responseBuilder.V2FromSearch(
                 request,
                 parameters,
-                text,
+                parsed.Text,
                 result.Value,
                 result.Duration);
 

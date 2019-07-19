@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NuGet.Indexing;
+using NuGet.Packaging;
 using NuGet.Services.Metadata.Catalog;
 using NuGet.Versioning;
 
@@ -12,7 +13,7 @@ namespace NuGet.Services.AzureSearch.SearchService
 {
     public partial class SearchTextBuilder : ISearchTextBuilder
     {
-        private const string MatchAllDocumentsQuery = "*";
+        private static readonly ParsedQuery MatchAllDocumentsQuery = new ParsedQuery("*", packageId: null);
 
         private static readonly IReadOnlyDictionary<QueryField, string> FieldNames = new Dictionary<QueryField, string>
         {
@@ -34,7 +35,7 @@ namespace NuGet.Services.AzureSearch.SearchService
             _parser = new NuGetQueryParser();
         }
 
-        public string V2Search(V2SearchRequest request)
+        public ParsedQuery V2Search(V2SearchRequest request)
         {
             var query = request.Query;
 
@@ -48,7 +49,7 @@ namespace NuGet.Services.AzureSearch.SearchService
             return GetLuceneQuery(query);
         }
 
-        public string V3Search(V3SearchRequest request)
+        public ParsedQuery V3Search(V3SearchRequest request)
         {
             return GetLuceneQuery(request.Query);
         }
@@ -57,7 +58,7 @@ namespace NuGet.Services.AzureSearch.SearchService
         {
             if (string.IsNullOrWhiteSpace(request.Query))
             {
-                return MatchAllDocumentsQuery;
+                return MatchAllDocumentsQuery.Text;
             }
 
             // Generate a query on package ids. This will be a prefix search
@@ -72,13 +73,13 @@ namespace NuGet.Services.AzureSearch.SearchService
             var result = builder.ToString();
             if (string.IsNullOrWhiteSpace(result))
             {
-                return MatchAllDocumentsQuery;
+                return MatchAllDocumentsQuery.Text;
             }
 
             return result;
         }
 
-        private string GetLuceneQuery(string query)
+        private ParsedQuery GetLuceneQuery(string query)
         {
             if (string.IsNullOrWhiteSpace(query))
             {
@@ -92,7 +93,21 @@ namespace NuGet.Services.AzureSearch.SearchService
                 return MatchAllDocumentsQuery;
             }
 
-            // Generate a lucene query for Azure Search.
+            string packageId = null;
+            if (grouping.Count == 1
+                && grouping.TryGetValue(QueryField.PackageId, out var terms)
+                && terms.Count == 1)
+            {
+                packageId = terms.First();
+
+                if (packageId.Length > PackageIdValidator.MaxPackageIdLength
+                    || !PackageIdValidator.IsValidPackageId(packageId))
+                {
+                    packageId = null;
+                }
+            }
+
+            // Generate a Lucene query for Azure Search.
             var builder = new AzureSearchQueryBuilder();
             var scopedTerms = grouping.Where(g => g.Key != QueryField.Any && g.Key != QueryField.Invalid).ToList();
             var unscopedTerms = grouping.Where(g => g.Key == QueryField.Any)
@@ -121,7 +136,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                 return MatchAllDocumentsQuery;
             }
 
-            return result;
+            return new ParsedQuery(result, packageId);
         }
 
         private static IEnumerable<string> ProcessFieldValues(QueryField field, IEnumerable<string> values)

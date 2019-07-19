@@ -11,13 +11,18 @@ namespace NuGet.Services.AzureSearch.SearchService
     {
         public class V2Search : FactsBase
         {
+            /// <summary>
+            /// 100 characters is the maximum length for package IDs.
+            /// </summary>
+            private const string MaxId = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+
             [Theory]
             [MemberData(nameof(CommonAzureSearchQueryData))]
             public void GeneratesAzureSearchQuery(string input, string expected)
             {
                 var actual = _target.V2Search(new V2SearchRequest { Query = input });
 
-                Assert.Equal(expected, actual);
+                Assert.Equal(expected, actual.Text);
             }
 
             [Theory]
@@ -31,7 +36,52 @@ namespace NuGet.Services.AzureSearch.SearchService
                     LuceneQuery = luceneQuery,
                 });
 
-                Assert.Equal(expected, actual);
+                Assert.Equal(expected, actual.Text);
+            }
+
+            [Theory]
+            [InlineData("id:hello", "hello")]
+            [InlineData("packageid:hello", "hello")]
+            [InlineData("   packageid: hello   ", "hello")]
+            [InlineData("packageid:\"hello\"", "hello")]
+            [InlineData("packageid:\"HIthereFRIEND\"", "HIthereFRIEND")]
+            [InlineData("packageid:\"hi-there_FRIEND\"", "hi-there_FRIEND")]
+            [InlineData("packageid:hello packageid:hello", "hello")]
+            [InlineData("packageid:hello packageid:\"hello\"", "hello")]
+            [InlineData("packageid:" + MaxId, MaxId)]
+            public void ExtractsPackageIdWhenThereIsOnlyOneClause(string query, string expected)
+            {
+                var actual = _target.V2Search(new V2SearchRequest
+                {
+                    Query = query,
+                    LuceneQuery = true,
+                });
+
+                Assert.Equal(expected, actual.PackageId);
+            }
+
+            [Theory]
+            [InlineData("id:hello version:1.0.0")]
+            [InlineData("packageid:foo--bar")] // Invalid package ID
+            [InlineData("packageid:" + MaxId + "a")]
+            [InlineData("packageid:hello a")]
+            [InlineData("packageid:\"hello a\"")]
+            [InlineData("   packageid: \"hello  \" ")]
+            [InlineData("packageid: \"hello  \"")]
+            [InlineData("packageid:hello id:a")]
+            [InlineData("packageid:hello packageid:a")]
+            [InlineData("somethingelse:hello packageid:a")]
+            [InlineData("packageid:hello packageid:HELLO")]
+            [InlineData("hello")]
+            public void DoesNotExtractPackageIdWhenThereIsNotExactlyOneClauseOrADifferentField(string query)
+            {
+                var actual = _target.V2Search(new V2SearchRequest
+                {
+                    Query = query,
+                    LuceneQuery = true,
+                });
+
+                Assert.Null(actual.PackageId);
             }
 
             [Theory]
@@ -70,7 +120,33 @@ namespace NuGet.Services.AzureSearch.SearchService
             {
                 var actual = _target.V3Search(new V3SearchRequest { Query = input });
 
-                Assert.Equal(expected, actual);
+                Assert.Equal(expected, actual.Text);
+            }
+
+            [Fact]
+            public void ExtractsPackageIdWhenThereIsOnlyOneClause()
+            {
+                var actual = _target.V3Search(new V3SearchRequest
+                {
+                    Query = "packageid:hello",
+                });
+
+                Assert.Equal("hello", actual.PackageId);
+            }
+
+            [Theory]
+            [InlineData("id:hello")]
+            [InlineData("id:hello version:1.0.0")]
+            [InlineData("packageid:hello a")]
+            [InlineData("hello")]
+            public void DoesNotExtractPackageIdWhenThereIsNotExactlyOneClauseOrADifferentField(string query)
+            {
+                var actual = _target.V3Search(new V3SearchRequest
+                {
+                    Query = query,
+                });
+
+                Assert.Null(actual.PackageId);
             }
 
             [Theory]

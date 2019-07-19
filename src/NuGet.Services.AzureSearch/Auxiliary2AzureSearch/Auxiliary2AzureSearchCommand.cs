@@ -271,7 +271,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
 
             foreach (var id in data.Keys.ToList())
             {
-                var isValidId = PackageIdValidator.IsValidPackageId(id);
+                var isValidId = id.Length <= PackageIdValidator.MaxPackageIdLength && PackageIdValidator.IsValidPackageId(id);
                 if (!isValidId)
                 {
                     invalidIdCount++;
