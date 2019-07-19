@@ -767,6 +767,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A package cannot be the alternate package of itself..
+        /// </summary>
+        public static string DeprecatePackage_AlternateOfSelf {
+            get {
+                return ResourceManager.GetString("DeprecatePackage_AlternateOfSelf", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to You must add a custom message if you are deprecating a package due to another reason!.
         /// </summary>
         public static string DeprecatePackage_CustomMessageRequired {

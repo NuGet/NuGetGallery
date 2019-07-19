@@ -3,7 +3,7 @@
 
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -17,11 +17,14 @@ namespace NuGetGallery
 {
     public class CloudDownloadCountService : IDownloadCountService
     {
+        private const string AdditionalInfoDimensionName = "AdditionalInfo";
+        private const string TelemetryOriginDimensionName = "Origin";
+
         private const string StatsContainerName = "nuget-cdnstats";
         private const string DownloadCountBlobName = "downloads.v1.json";
         private const string TelemetryOriginForRefreshMethod = "CloudDownloadCountService.Refresh";
 
-        private readonly ITelemetryClient _telemetryClient;
+        private readonly ITelemetryService _telemetryService;
         private readonly string _connectionString;
         private readonly bool _readAccessGeoRedundant;
 
@@ -31,9 +34,9 @@ namespace NuGetGallery
         private readonly ConcurrentDictionary<string, ConcurrentDictionary<string, int>> _downloadCounts
             = new ConcurrentDictionary<string, ConcurrentDictionary<string, int>>(StringComparer.OrdinalIgnoreCase);
 
-        public CloudDownloadCountService(ITelemetryClient telemetryClient, string connectionString, bool readAccessGeoRedundant)
+        public CloudDownloadCountService(ITelemetryService telemetryService, string connectionString, bool readAccessGeoRedundant)
         {
-            _telemetryClient = telemetryClient ?? throw new ArgumentNullException(nameof(telemetryClient));
+            _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
 
             _connectionString = connectionString;
             _readAccessGeoRedundant = readAccessGeoRedundant;
@@ -51,6 +54,8 @@ namespace NuGetGallery
                 downloadCount = CalculateSum(versions);
                 return true;
             }
+
+            _telemetryService.TrackGetPackageRegistrationDownloadCountFailed(id);
 
             downloadCount = 0;
             return false;
@@ -74,6 +79,8 @@ namespace NuGetGallery
                 return true;
             }
 
+            _telemetryService.TrackGetPackageDownloadCountFailed(id, version);
+
             downloadCount = 0;
             return false;
         }
@@ -94,7 +101,11 @@ namespace NuGetGallery
             {
                 try
                 {
+                    var stopwatch = Stopwatch.StartNew();
                     RefreshCore();
+                    stopwatch.Stop();
+                    _telemetryService.TrackDownloadJsonRefreshDuration(stopwatch.ElapsedMilliseconds);
+
                 }
                 catch (WebException ex)
                 {
@@ -192,27 +203,34 @@ namespace NuGetGallery
                                                 var version = token[0].ToString();
                                                 var downloadCount = token[1].ToObject<int>();
 
-                                                versions.AddOrSet(version, downloadCount);
+                                                if (versions.ContainsKey(version) && downloadCount < versions[version])
+                                                {
+                                                    _telemetryService.TrackDownloadCountDecreasedDuringRefresh(id, version, versions[version], downloadCount);
+                                                }
+                                                else
+                                                {
+                                                    versions.AddOrSet(version, downloadCount);
+                                                }
                                             }
                                         }
                                     }
                                 }
                                 catch (JsonReaderException ex)
                                 {
-                                    _telemetryClient.TrackException(ex, new Dictionary<string, string>
+                                    _telemetryService.TrackException(ex, properties =>
                                     {
-                                        { "Origin", TelemetryOriginForRefreshMethod },
-                                        { "AdditionalInfo", "Invalid entry found in downloads.v1.json." }
+                                        properties.Add(TelemetryOriginDimensionName, TelemetryOriginForRefreshMethod);
+                                        properties.Add(AdditionalInfoDimensionName, "Invalid entry found in downloads.v1.json.");
                                     });
                                 }
                             }
                         }
                         catch (JsonReaderException ex)
                         {
-                            _telemetryClient.TrackException(ex, new Dictionary<string, string>
+                            _telemetryService.TrackException(ex, properties =>
                             {
-                                { "Origin", TelemetryOriginForRefreshMethod },
-                                { "AdditionalInfo", "Data present in downloads.v1.json is invalid. Couldn't get download data." }
+                                properties.Add(TelemetryOriginDimensionName, TelemetryOriginForRefreshMethod);
+                                properties.Add(AdditionalInfoDimensionName, "Data present in downloads.v1.json is invalid. Couldn't get download data.");
                             });
                         }
                     }
@@ -220,10 +238,10 @@ namespace NuGetGallery
             }
             catch (Exception ex)
             {
-                _telemetryClient.TrackException(ex, new Dictionary<string, string>
+                _telemetryService.TrackException(ex, properties =>
                 {
-                    { "Origin", TelemetryOriginForRefreshMethod },
-                    { "AdditionalInfo", "Unknown exception." }
+                    properties.Add(TelemetryOriginDimensionName, TelemetryOriginForRefreshMethod);
+                    properties.Add(AdditionalInfoDimensionName, "Unknown exception.");
                 });
             }
         }

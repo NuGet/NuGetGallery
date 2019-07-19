@@ -37,7 +37,7 @@ $(function () {
                 updateStat(stats.packageVersions, data['TotalPackages']);
                 updateStat(stats.uniquePackages, data['UniquePackages']);
             })
-            .error(function () {
+            .fail(function () {
                 // Fail silently.
             });
     }

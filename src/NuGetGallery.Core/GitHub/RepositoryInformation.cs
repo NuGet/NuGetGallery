@@ -13,6 +13,7 @@ namespace NuGetGallery
             string id,
             string url,
             int stars,
+            string description,
             IReadOnlyList<string> dependencies)
         {
             if (stars < 0)
@@ -35,6 +36,7 @@ namespace NuGetGallery
             Url = url ?? throw new ArgumentNullException(nameof(url));
             Stars = stars;
             Dependencies = dependencies ?? throw new ArgumentNullException(nameof(dependencies));
+            Description = description ?? throw new ArgumentNullException(nameof(description));
         }
 
         [JsonIgnore]
@@ -44,6 +46,7 @@ namespace NuGetGallery
         public string Url { get; }
         public int Stars { get; }
         public string Id { get; }
+        public string Description { get; }
         public IReadOnlyList<string> Dependencies { get; }
     }
 }

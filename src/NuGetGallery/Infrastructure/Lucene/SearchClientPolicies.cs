@@ -37,6 +37,7 @@ namespace NuGetGallery.Infrastructure.Search
             // https://github.com/App-vNext/Polly.Extensions.Http/blob/808665304882fb921b1c38cbbd38fcc102229f84/src/Polly.Extensions.Http.Shared/HttpPolicyExtensions.cs
             return HttpPolicyExtensions
                 .HandleTransientHttpError()
+                .OrResult(r => r.StatusCode == HttpStatusCode.Forbidden)
                 .CircuitBreakerAsync(breakAfterCount,
                 breakDuration,
                 onBreak: (delegateResult, circuitBreakerStatus, breakDelay, context) =>
@@ -68,8 +69,8 @@ namespace NuGetGallery.Infrastructure.Search
         /// <returns>The policy.</returns>
         public static IAsyncPolicy<HttpResponseMessage> SearchClientWaitAndRetryPolicy(int retryCount, int waitInMilliseconds, ILogger logger, string searchName, ITelemetryService telemetryService)
         {
-            return HttpPolicyExtensions.
-                         HandleTransientHttpError()
+            return HttpPolicyExtensions
+                        .HandleTransientHttpError()
                         .Or<BrokenCircuitException>(
                             (ex) =>
                             {
@@ -98,8 +99,9 @@ namespace NuGetGallery.Infrastructure.Search
         /// <returns></returns>
         public static IAsyncPolicy<HttpResponseMessage> SearchClientFallBackCircuitBreakerPolicy(ILogger logger, string searchName, ITelemetryService telemetryService)
         {
-            return HttpPolicyExtensions.
-                        HandleTransientHttpError()
+            return HttpPolicyExtensions
+                        .HandleTransientHttpError()
+                        .OrResult(r => r.StatusCode == HttpStatusCode.Forbidden)
                         .Or<Exception>()
                         .FallbackAsync(
                                 fallbackAction: async (context, cancellationToken) => {

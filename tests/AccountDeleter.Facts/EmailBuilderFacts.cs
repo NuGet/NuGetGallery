@@ -20,8 +20,8 @@ namespace NuGetGallery.AccountDeleter.Facts
 
         [Theory]
         [InlineData("test1test2", "none", "test1test2")]
-        [InlineData("test1USERNAME", "replaceUser", "test1replaceUser")]
-        [InlineData("USERNAME", "justUser", "justUser")]
+        [InlineData("test1{username}", "replaceUser", "test1replaceUser")]
+        [InlineData("{username}", "justUser", "justUser")]
         public void UsernamerReplacedInBody(string template, string username, string expected)
         {
             // Setup
@@ -43,8 +43,8 @@ namespace NuGetGallery.AccountDeleter.Facts
 
         [Theory]
         [InlineData("test1test2", "none", "test1test2")]
-        [InlineData("test1USERNAME", "replaceUser", "test1replaceUser")]
-        [InlineData("USERNAME", "justUser", "justUser")]
+        [InlineData("test1{username}", "replaceUser", "test1replaceUser")]
+        [InlineData("{username}", "justUser", "justUser")]
         public void UsernamerReplacedInSubject(string template, string username, string expected)
         {
             // Setup

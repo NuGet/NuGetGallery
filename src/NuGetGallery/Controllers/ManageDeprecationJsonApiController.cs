@@ -38,10 +38,10 @@ namespace NuGetGallery
         public virtual JsonResult GetAlternatePackageVersions(string id)
         {
             var versions = _packageService.FindPackagesById(id)
-                .Where(p => p.PackageStatusKey == PackageStatus.Available)
+                .Where(p => p.PackageStatusKey == PackageStatus.Available && p.Listed)
                 .Select(p => NuGetVersion.Parse(p.Version))
                 .OrderByDescending(v => v)
-                .Select(v => v.ToFullString())
+                .Select(v => v.ToNormalizedString())
                 .ToList();
 
             return Json(HttpStatusCode.OK, versions, JsonRequestBehavior.AllowGet);
@@ -162,6 +162,13 @@ namespace NuGetGallery
                 {
                     packagesToUpdate.Add(package);
                 }
+            }
+
+            if (alternatePackage != null && packagesToUpdate.Any(p => p == alternatePackage))
+            {
+                return DeprecateErrorResponse(
+                    HttpStatusCode.BadRequest,
+                    Strings.DeprecatePackage_AlternateOfSelf);
             }
 
             await _deprecationService.UpdateDeprecation(

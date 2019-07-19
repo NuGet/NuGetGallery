@@ -273,6 +273,46 @@ namespace NuGetGallery
                 Assert.NotNull(result);
                 Assert.Equal((int)HttpStatusCode.Forbidden, result.StatusCode);
             }
+
+            [Fact]
+            public async Task SendsProperNewAccountMessage()
+            {
+                // Arrange
+                var controller = GetController();
+                var account = GetAccount(controller);
+
+                account.EmailAddress = null;
+                account.UnconfirmedEmailAddress = "baz@bar.test";
+
+                // Act
+                var result = await InvokeConfirmationRequiredPostAsync(controller, account, _getFakesOrganizationAdmin) as HttpStatusCodeResult;
+
+                // Assert
+                GetMock<IMessageService>()
+                    .Verify(ms => ms.SendMessageAsync(It.IsAny<EmailChangeConfirmationMessage>(), It.IsAny<bool>(), It.IsAny<bool>()), Times.Never);
+                GetMock<IMessageService>()
+                    .Verify(ms => ms.SendMessageAsync(It.IsAny<NewAccountMessage>(), It.IsAny<bool>(), It.IsAny<bool>()), Times.Once);
+            }
+
+            [Fact]
+            public async Task ResendsProperConfirmationEmail()
+            {
+                // Arrange
+                var controller = GetController();
+                var account = GetAccount(controller);
+
+                account.EmailAddress = "foo@bar.test";
+                account.UnconfirmedEmailAddress = "baz@bar.test";
+
+                // Act
+                var result = await InvokeConfirmationRequiredPostAsync(controller, account, _getFakesOrganizationAdmin) as HttpStatusCodeResult;
+
+                // Assert
+                GetMock<IMessageService>()
+                    .Verify(ms => ms.SendMessageAsync(It.IsAny<EmailChangeConfirmationMessage>(), It.IsAny<bool>(), It.IsAny<bool>()), Times.Once);
+                GetMock<IMessageService>()
+                    .Verify(ms => ms.SendMessageAsync(It.IsAny<NewAccountMessage>(), It.IsAny<bool>(), It.IsAny<bool>()), Times.Never);
+            }
         }
 
         public class TheConfirmAction : TheConfirmBaseAction

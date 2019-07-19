@@ -49,7 +49,7 @@ $(function () {
                     }
                 }
             })
-            .error(failHandler);
+            .fail(failHandler);
         },
 
         sendEmailNotification: function () {
@@ -84,7 +84,7 @@ $(function () {
                     }
                 }
             })
-            .error(failHandler);
+            .fail(failHandler);
         },
 
         resetViewModel: function () {
