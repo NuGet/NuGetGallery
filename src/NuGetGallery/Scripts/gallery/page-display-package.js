@@ -117,7 +117,7 @@ $(function () {
         });
 
         // Emit a Google Analytics event when the user clicks on a repo link in the GitHub Usage section.
-        $(".btn-gh-repo").on('click', function (elem) {
+        $(".gh-link").on('click', function (elem) {
             if (!elem.delegateTarget.dataset.indexNumber) {
                 console.error("indexNumber property doesn't exist!");
             } else {
@@ -126,4 +126,27 @@ $(function () {
             }
         });
     }
+
+    // Add smooth scrolling to dependent-repos-link
+    $("#dependent-repos-link").on('click', function (event) {
+        // Emit a Google Analytics event
+        if (window.nuget.isGaAvailable()) {
+            ga('send', 'event', 'github-usage', 'sidebar-link-click');
+        }
+
+        if (this.hash !== "") {
+            event.preventDefault();
+            let hash = this.hash;
+            let hashElem = $(hash);
+            if (hashElem.attr("aria-expanded") == "false") {
+                hashElem.click();
+            }
+            $('html, body').animate({
+                scrollTop: hashElem.offset().top
+            }, 400, function () {
+                // Add hash (#) to URL when done scrolling (default click behavior)
+                window.location.hash = hash;
+            });
+        }
+    });
 });

@@ -10,6 +10,16 @@ namespace NuGetGallery.AccountDeleter
 {
     public class GalleryConfiguration : IAppConfiguration
     {
+        public string SiteRoot
+        {
+            get
+            {
+                return "";
+            }
+
+            set => throw new NotImplementedException();
+        }
+
         public LuceneIndexLocation LuceneIndexLocation { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public string Environment { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public string WarningBanner { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
@@ -47,7 +57,6 @@ namespace NuGetGallery.AccountDeleter
         public string FacebookAppId { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public string AppInsightsInstrumentationKey { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public double AppInsightsSamplingPercentage { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        public string SiteRoot { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public string ReCaptchaPrivateKey { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public string ReCaptchaPublicKey { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public string GoogleAnalyticsPropertyId { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }

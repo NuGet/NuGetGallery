@@ -38,7 +38,7 @@ var EditViewModel = (function () {
                 data: window.nuget.addAjaxAntiForgeryToken(model),
                 success: success
             })
-                .error(error);
+            .fail(error);
         };
     };
 }());
@@ -201,7 +201,7 @@ var SupportRequestsViewModel = (function () {
                     $self.historyDialog.dialog('open');
                 }
             })
-                .error(function (jqXhr, textStatus, errorThrown) {
+                .fail(function (jqXhr, textStatus, errorThrown) {
                     alert("Error: " + errorThrown);
                 });
 
@@ -268,7 +268,7 @@ var SupportRequestsViewModel = (function () {
                     $self.styleButtons();
                 }
             })
-                .error(function (jqXhr, textStatus, errorThrown) {
+                .fail(function (jqXhr, textStatus, errorThrown) {
                     alert("Error: " + errorThrown);
                 });
         };

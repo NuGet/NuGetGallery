@@ -49,7 +49,7 @@ namespace NuGetGallery.AccountDeleter.Facts
             var logger = _loggerFactory.CreateLogger<UserPackageEvaluator>();
             var testUser = new User();
 
-            var evaluator = new UserPackageEvaluator(packageService, accountDeleteTelemetryService, logger);
+            var evaluator = new UserPackageEvaluator(packageService, logger);
 
             // Act
             var result = evaluator.CanUserBeDeleted(testUser);

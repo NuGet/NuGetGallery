@@ -75,6 +75,20 @@ function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defau
 
     // The version chosen by the alternate package version dropdown.
     this.chosenAlternatePackageVersion = ko.observable();
+    this.isAlternateOfSelf = ko.pureComputed(function () {
+        var alternateId = self.alternatePackageId();
+        if (!alternateId) {
+            return false;
+        }
+
+        var alternateVersion = self.chosenAlternatePackageVersion();
+        if (!alternateVersion || alternateVersion === strings_SelectAlternateVersionOption) {
+            return false;
+        }
+
+        var chosenVersions = self.dropdown.chosenItems();
+        return alternateId === id && chosenVersions && chosenVersions.includes(alternateVersion);
+    }, this);
 
     // The cached list of versions associated with the currently entered alternate package ID.
     this.alternatePackageVersionsCached = ko.observableArray();
@@ -92,13 +106,26 @@ function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defau
 
     // The error to show with the currently entered alternate package ID.
     // E.g. the package does not exist or cannot be chosen as an alternate.
-    this.chosenAlternatePackageIdError = ko.observable();
+    this.chosenAlternatePackageIdError = ko.pureComputed(function () {
+        var serverError = self.chosenAlternatePackageIdServerError();
+        if (serverError) {
+            return serverError;
+        }
+
+        if (self.isAlternateOfSelf()) {
+            return "A package cannot be the alternate package of itself. Please choose a different alternate package.";
+        }
+
+        return null;
+    }, this);
 
     // When a new alternate package ID is entered, load the list of versions from the server.
+    this.chosenAlternatePackageIdServerError = ko.observable();
     this.chosenAlternatePackageId.subscribe(function (id) {
         if (!id) {
             // If the user hasn't input an ID, don't query the server.
-            self.chosenAlternatePackageIdError(null);
+            self.alternatePackageVersionsCached.removeAll();
+            self.chosenAlternatePackageIdServerError(null);
             return;
         }
 
@@ -115,10 +142,10 @@ function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defau
                     if (self.alternatePackageId() === id) {
                         if (data.length) {
                             self.alternatePackageVersionsCached(data);
-                            self.chosenAlternatePackageIdError(null);
+                            self.chosenAlternatePackageIdServerError(null);
                         } else {
                             self.alternatePackageVersionsCached.removeAll();
-                            self.chosenAlternatePackageIdError("Could not find alternate package '" + id + "'.");
+                            self.chosenAlternatePackageIdServerError("Could not find alternate package '" + id + "'.");
                         }
                     }
                 }
@@ -127,7 +154,7 @@ function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defau
             error: function () {
                 if (self.alternatePackageId() === id) {
                     self.alternatePackageVersionsCached.removeAll();
-                    self.chosenAlternatePackageIdError("An unknown occurred when searching for alternate package '" + id + "'.");
+                    self.chosenAlternatePackageIdServerError("An unknown error occurred when searching for alternate package '" + id + "'.");
                 }
             }
         });
@@ -194,6 +221,10 @@ function ManageDeprecationViewModel(id, versionDeprecationStateDictionary, defau
             }
         });
     };
+
+    this.submitDisabled = ko.pureComputed(function () {
+        return self.requiresCustomMessage() || self.isAlternateOfSelf();
+    }, this);
 
     // Clone the version deprecation state dictionary so that we can remember form state when the selected versions change.
     // The default state for a selected version is its current deprecation state.

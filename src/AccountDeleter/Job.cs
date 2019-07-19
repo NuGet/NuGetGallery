@@ -2,10 +2,8 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Autofac;
-using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NuGet.Jobs.Validation;
 using NuGet.Jobs.Configuration;
@@ -21,12 +19,10 @@ using System.Collections.Generic;
 using System.ComponentModel.Design;
 using NuGet.Services.Entities;
 using NuGetGallery.Diagnostics;
-using NuGet.Services.Logging;
-using System.Web.Hosting;
 using NuGetGallery.Configuration;
-using System.Runtime.Remoting.Messaging;
 using NuGetGallery.Areas.Admin.Models;
 using NuGet.Jobs;
+using NuGetGallery.Infrastructure.Authentication;
 
 namespace NuGetGallery.AccountDeleter
 {
@@ -57,9 +53,10 @@ namespace NuGetGallery.AccountDeleter
             services.AddTransient<ISubscriptionProcessorTelemetryService, AccountDeleteTelemetryService>();
 
             services.AddScoped<AggregateEvaluator>();
-            services.AddTransient<AlwaysRejectEvaluator>();
-            services.AddTransient<AlwaysAllowEvaluator>();
-            services.AddTransient<UserPackageEvaluator>();
+            services.AddScoped<AlwaysRejectEvaluator>();
+            services.AddScoped<AlwaysAllowEvaluator>();
+            services.AddScoped<UserPackageEvaluator>();
+            services.AddScoped<AccountConfirmedEvaluator>();
 
             services.AddScoped<IUserEvaluator>(sp =>
             {
@@ -76,11 +73,8 @@ namespace NuGetGallery.AccountDeleter
                 else
                 {
                     // Configure evaluators here.
-                    var alwaysReject = sp.GetRequiredService<AlwaysRejectEvaluator>();
-                    evaluator.AddEvaluator(alwaysReject); // For phase 1, we never want to actually delete, so we will add this here to guarantee that
-
-                    var userPackageEvaluator = sp.GetRequiredService<UserPackageEvaluator>();
-                    evaluator.AddEvaluator(userPackageEvaluator);
+                    var accountConfirmedEvaluator = sp.GetRequiredService<AccountConfirmedEvaluator>();
+                    evaluator.AddEvaluator(accountConfirmedEvaluator);
                 }
 
                 return evaluator;
@@ -120,17 +114,56 @@ namespace NuGetGallery.AccountDeleter
             }
             else
             {
-                services.AddScoped<IDeleteAccountService, EmptyDeleteAccountService>();
-                //services.AddScoped<IDeleteAccountService, DeleteAccountService>();
+                services.AddScoped<IEntitiesContext>(sp =>
+                {
+                    var connectionFactory = sp.GetRequiredService<ISqlConnectionFactory<GalleryDbConfiguration>>();
+                    var connection = connectionFactory.CreateAsync().GetAwaiter().GetResult();
+
+                    return new EntitiesContext(connection, readOnly: false);
+                });
+                services.AddScoped<IDeleteAccountService, DeleteAccountService>();
 
                 services.AddScoped<IUserService, AccountDeleteUserService>();
-                services.AddScoped<IDiagnosticsService, LoggerDiagnosticsService>();
+                services.AddScoped<ITelemetryClient>(sp => { return TelemetryClientWrapper.Instance; });
+                services.AddScoped<IDiagnosticsService, DiagnosticsService>();
 
                 services.AddScoped<IPackageService, PackageService>();
+                services.AddScoped<IPackageUpdateService, PackageUpdateService>();
 
-                services.AddScoped<ITelemetryService, GalleryTelemetryService>();
+                services.AddScoped<IAuthenticationService, AuthenticationService>();
+                services.AddScoped<ISupportRequestService, ISupportRequestService>();
+
+                services.AddScoped<IEditableFeatureFlagStorageService, FeatureFlagFileStorageService>();
+                services.AddScoped<ICoreFileStorageService, CloudBlobFileStorageService>();
+
+                services.AddScoped<IIndexingService, EmptyIndexingService>();
+                services.AddScoped<ICredentialBuilder, CredentialBuilder>();
+                services.AddScoped<ICredentialValidator, CredentialValidator>();
+                services.AddScoped<IDateTimeProvider, DateTimeProvider>();
+                services.AddScoped<IContentObjectService, ContentObjectService>();
+                services.AddScoped<IContentService, ContentService>();
+                services.AddScoped<IFileStorageService, CloudBlobFileStorageService>();
+                services.AddScoped<ISourceDestinationRedirectPolicy, NoLessSecureDestinationRedirectPolicy>();
+
+                services.AddScoped<ISupportRequestService, SupportRequestService>();
+                services.AddScoped<ISupportRequestDbContext>(sp =>
+                {
+                    var connectionFactory = sp.GetRequiredService<ISqlConnectionFactory<SupportRequestDbConfiguration>>();
+                    var connection = connectionFactory.CreateAsync().GetAwaiter().GetResult();
+
+                    return new SupportRequestDbContext(connection);
+                });
+
+                services.AddScoped<ICloudBlobClient>(sp => {
+                    var options = sp.GetRequiredService<IOptionsSnapshot<AccountDeleteConfiguration>>();
+                    var optionsSnapshot = options.Value;
+
+                    return new CloudBlobClientWrapper(optionsSnapshot.GalleryStorageConnectionString, readAccessGeoRedundant: true);
+                });
+
+                services.AddScoped<ITelemetryService, TelemetryService>();
                 services.AddScoped<ISecurityPolicyService, SecurityPolicyService>();
-                services.AddScoped<IAuditingService>(sp => { return AuditingService.None; }); //Replace with real when we start doing deletes. For now, we are a readonly operation.
+                services.AddScoped<IAuditingService>(sp => { return AuditingService.None; });
                 services.AddScoped<IAppConfiguration, GalleryConfiguration>();
                 services.AddScoped<IPackageOwnershipManagementService, PackageOwnershipManagementService>();
                 services.AddScoped<IPackageOwnerRequestService, PackageOwnerRequestService>();
@@ -175,6 +208,31 @@ namespace NuGetGallery.AccountDeleter
             containerBuilder.RegisterType<EntityRepository<ReservedNamespace>>()
                 .AsSelf()
                 .As<IEntityRepository<ReservedNamespace>>()
+                .InstancePerLifetimeScope();
+
+            containerBuilder.RegisterType<EntityRepository<AccountDelete>>()
+                .AsSelf()
+                .As<IEntityRepository<AccountDelete>>()
+                .InstancePerLifetimeScope();
+
+            containerBuilder.RegisterType<EntityRepository<PackageDelete>>()
+                .AsSelf()
+                .As<IEntityRepository<PackageDelete>>()
+                .InstancePerLifetimeScope();
+
+            containerBuilder.RegisterType<EntityRepository<PackageDeprecation>>()
+                .AsSelf()
+                .As<IEntityRepository<PackageDeprecation>>()
+                .InstancePerLifetimeScope();
+
+            containerBuilder.RegisterType<EntityRepository<Scope>>()
+                .AsSelf()
+                .As<IEntityRepository<Scope>>()
+                .InstancePerLifetimeScope();
+
+            containerBuilder.RegisterType<EntityRepository<PackageOwnerRequest>>()
+                .AsSelf()
+                .As<IEntityRepository<PackageOwnerRequest>>()
                 .InstancePerLifetimeScope();
         }
     }

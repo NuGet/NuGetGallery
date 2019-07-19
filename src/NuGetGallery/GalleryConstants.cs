@@ -25,13 +25,6 @@ namespace NuGetGallery
         public const int GravatarImageSize = GravatarElementSize * 2;
         public const int GravatarImageSizeLarge = 332;
 
-        /// <summary>
-        /// Parameters for calculating account lockout period after 
-        /// wrong password entry.
-        /// </summary>
-        public const double AccountLockoutMultiplierInMinutes = 10;
-        public const double AllowedLoginAttempts = 10;
-
         public const int MaxEmailSubjectLength = 255;
         internal static readonly NuGetVersion MaxSupportedMinClientVersion = new NuGetVersion("4.1.0.0");
         public const string PackageFileDownloadUriTemplate = "packages/{0}/{1}/download";
@@ -43,7 +36,6 @@ namespace NuGetGallery
         public const string RecentSortOrder = "package-created";
         public const string RelevanceSortOrder = "relevance";
 
-        public const string Sha1HashAlgorithmId = "SHA1";
         public const string PBKDF2HashAlgorithmId = "PBKDF2";
 
         public const string UploadFileNameTemplate = "{0}{1}";
@@ -78,7 +70,6 @@ namespace NuGetGallery
         public const string UsernameValidationErrorMessage =
             "User names must start and end with a letter or number, and may only contain letters, numbers, underscores, periods, and hyphens in between.";
 
-        internal const string ApiKeyHeaderName = "X-NuGet-ApiKey";
         internal const string WarningHeaderName = "X-NuGet-Warning";
         
         /// <summary>
@@ -93,7 +84,6 @@ namespace NuGetGallery
         internal const string CustomQueryHeaderName = "X-NuGet-CustomQuery";
 
         public static readonly string ReturnUrlParameterName = "ReturnUrl";
-        public static readonly string CurrentUserOwinEnvironmentKey = "nuget.user";
 
         public const string LicenseDeprecationUrl = "https://aka.ms/deprecateLicenseUrl";
 
