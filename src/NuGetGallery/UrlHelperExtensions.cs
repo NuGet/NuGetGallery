@@ -632,6 +632,26 @@ namespace NuGetGallery
             return new RouteUrlTemplate<User>(linkGenerator, routesGenerator);
         }
 
+        public static RouteUrlTemplate<BasicUserViewModel> BasicUserTemplate(
+            this UrlHelper url,
+            string scheme = null,
+            bool relativeUrl = true)
+        {
+            var routesGenerator = new Dictionary<string, Func<BasicUserViewModel, object>>
+            {
+                { "username", u => u.Username }
+            };
+
+            Func<RouteValueDictionary, string> linkGenerator = rv => GetActionLink(
+                url,
+                "Profiles",
+                "Users",
+                relativeUrl,
+                routeValues: rv);
+
+            return new RouteUrlTemplate<BasicUserViewModel>(linkGenerator, routesGenerator);
+        }
+
         public static string User(
             this UrlHelper url,
             string username,

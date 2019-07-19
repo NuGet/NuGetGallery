@@ -300,6 +300,7 @@
     // Performance: RouteCollection.VirtualPath is expensive, so resolve the path once and save as a template.
     // Then substitute route values into the template path when rendering links for each package on the page.
     private RouteUrlTemplate<User> userUrlTemplate;
+    private RouteUrlTemplate<BasicUserViewModel> basicUserUrlTemplate;
 
     private RouteUrlTemplate<IPackageVersionModel> packageUrlTemplate;
     private RouteUrlTemplate<IPackageVersionModel> manageUrlTemplate;
@@ -422,6 +423,27 @@
             TrimmedUsername = user.Username.Abbreviate(15),
             ProfileUrl = userUrlTemplate.Resolve(user),
             IsOrganization = user is Organization
+        };
+    }
+
+    dynamic GetSerializableOwners(IEnumerable<BasicUserViewModel> owners)
+    {
+        return owners.Select(o => GetSerializableOwner(o));
+    }
+
+    dynamic GetSerializableOwner(BasicUserViewModel user)
+    {
+        if (basicUserUrlTemplate == null)
+        {
+            basicUserUrlTemplate = Url.BasicUserTemplate();
+        }
+
+        return new
+        {
+            user.Username,
+            TrimmedUsername = user.Username.Abbreviate(15),
+            ProfileUrl = basicUserUrlTemplate.Resolve(user),
+            IsOrganization = user.IsOrganization
         };
     }
 
