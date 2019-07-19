@@ -1121,4 +1121,13 @@ The {1} Team</value>
   <data name="NuGetPackageIdVersionCombinedTooLong" xml:space="preserve">
     <value>A nuget package's ID and version properties combined may not be more than {0} characters long.</value>
   </data>
+  <data name="AsyncAccountDelete_InsufficientPermissions" xml:space="preserve">
+    <value>{0} is not allowed to delete account '{1}'</value>
+  </data>
+  <data name="AsyncAccountDelete_NoRetryError" xml:space="preserve">
+    <value>There was an exception that caused retrys to be aborted. Please check logs for details.</value>
+  </data>
+  <data name="AsyncAccountDelete_Success" xml:space="preserve">
+    <value>The account '{0}' was enqueued to be deleted succesfully.</value>
+  </data>
 </root>

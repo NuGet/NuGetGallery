@@ -9,6 +9,20 @@ namespace NuGetGallery.Configuration
     public interface IServiceBusConfiguration
     {
         /// <summary>
+        /// The connection string to use when connecting to the AccountDeleter topic. This connection string should not
+        /// contain the topic name as the name is explicitly specified by <see cref="AccountDeleter_TopicName"/>. This
+        /// connection string only needs to have the "Send" privilege. This topic is used for requesting asynchronous
+        /// delete of user accounts.
+        /// </summary>
+        string AccountDeleter_ConnectionString { get; set; }
+
+        /// <summary>
+        /// The name of the Azure Service Bus topic to send email messages to. This topic name is used at the same
+        /// time as the <see cref="AccountDeleter_ConnectionString"/>.
+        /// </summary>
+        string AccountDeleter_TopicName { get; set; }
+
+        /// <summary>
         /// The connection string to use when connecting to the validation topic. This connection string should not
         /// contain the topic name as the name is explicitly specified by <see cref="Validation_TopicName"/>. This
         /// connection string only needs to have the "Send" privilege. This topic is used for requesting asynchronous
