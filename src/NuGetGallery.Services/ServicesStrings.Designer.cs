@@ -487,6 +487,33 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {0} is not allowed to delete account &apos;{1}&apos;.
+        /// </summary>
+        public static string AsyncAccountDelete_InsufficientPermissions {
+            get {
+                return ResourceManager.GetString("AsyncAccountDelete_InsufficientPermissions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to There was an exception that caused retrys to be aborted. Please check logs for details..
+        /// </summary>
+        public static string AsyncAccountDelete_NoRetryError {
+            get {
+                return ResourceManager.GetString("AsyncAccountDelete_NoRetryError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The account &apos;{0}&apos; was enqueued to be deleted succesfully..
+        /// </summary>
+        public static string AsyncAccountDelete_Success {
+            get {
+                return ResourceManager.GetString("AsyncAccountDelete_Success", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unknown error!.
         /// </summary>
         public static string AuthenticationFailure_UnkownError {

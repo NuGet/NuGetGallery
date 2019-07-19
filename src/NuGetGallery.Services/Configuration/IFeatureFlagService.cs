@@ -8,6 +8,14 @@ namespace NuGetGallery
     public interface IFeatureFlagService
     {
         /// <summary>
+        /// Whether account deletes are performed asychronously or not.
+        /// If true, account deletes will be attempted to be performed asychronously
+        /// and fall back to old method if the async delete fails
+        /// </summary>
+        /// <returns></returns>
+        bool IsAsyncAccountDeleteEnabled();
+
+        /// <summary>
         /// Whether typosquatting detection is enabled on package uploads. If true, new packages
         /// cannot have an id that is similar to existing packages' ids.
         /// </summary>

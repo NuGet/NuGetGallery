@@ -7,6 +7,12 @@ namespace NuGetGallery.Configuration
 {
     public class ServiceBusConfiguration : IServiceBusConfiguration
     {
+        [DisplayName("AccountDeleter.ConnectionString")]
+        public string AccountDeleter_ConnectionString { get; set; }
+
+        [DisplayName("AccountDeleter.TopicName")]
+        public string AccountDeleter_TopicName { get; set; }
+
         [DisplayName("Validation.ConnectionString")]
         public string Validation_ConnectionString { get; set; }
 

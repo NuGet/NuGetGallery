@@ -371,6 +371,11 @@ namespace NuGetGallery.Configuration
         bool AsynchronousEmailServiceEnabled { get; set; }
 
         /// <summary>
+        /// Gets or sets a flag indicating whether asynchronous account deletion service is enabled.
+        /// </summary>
+        bool AsynchronousDeleteAccountServiceEnabled { get; set; }
+
+        /// <summary>
         /// Indicates whether packages that specify the license the "old" way (with a "licenseUrl" node only) should be rejected.
         /// </summary>
         bool BlockLegacyLicenseUrl { get; set; }
