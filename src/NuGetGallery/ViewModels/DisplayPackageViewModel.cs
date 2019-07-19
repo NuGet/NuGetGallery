@@ -13,8 +13,7 @@ namespace NuGetGallery
 {
     public class DisplayPackageViewModel : ListPackageItemViewModel
     {
-        internal readonly NuGetVersion NuGetVersion;
-
+        public NuGetVersion NuGetVersion { get; set; }
         public bool ValidatingTooLong { get; set; }
         public IReadOnlyList<ValidationIssue> PackageValidationIssues { get; set; }
         public IReadOnlyList<ValidationIssue> SymbolsPackageValidationIssues { get; set; }

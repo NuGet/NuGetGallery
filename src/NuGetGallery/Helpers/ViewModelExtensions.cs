@@ -318,9 +318,7 @@ namespace NuGetGallery
         {
             viewModel.SetupDisplayViewModelCommon(package, currentUser, pushedBy: null);
 
-            var nuGetVersion = NuGetVersion.Parse(NuGetVersionFormatter.ToFullString(package.Version));
-
-            viewModel.HasSemVer2Version = nuGetVersion.IsSemVer2;
+            viewModel.HasSemVer2Version = viewModel.NuGetVersion.IsSemVer2;
             viewModel.HasSemVer2Dependency = package.Dependencies.ToList()
                 .Where(pd => !string.IsNullOrEmpty(pd.VersionSpec))
                 .Select(pd => VersionRange.Parse(pd.VersionSpec))
@@ -412,6 +410,7 @@ namespace NuGetGallery
         {
             ((ListPackageItemViewModel)viewModel).Setup(package, currentUser);
 
+            viewModel.NuGetVersion = NuGetVersion.Parse(NuGetVersionFormatter.ToFullString(package.Version));
             viewModel.Copyright = package.Copyright;
 
             viewModel.DownloadCount = package.DownloadCount;
