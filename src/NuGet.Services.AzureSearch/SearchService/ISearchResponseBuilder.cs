@@ -10,20 +10,20 @@ namespace NuGet.Services.AzureSearch.SearchService
     {
         V2SearchResponse V2FromHijack(
             V2SearchRequest request,
-            SearchParameters parameters,
             string text,
+            SearchParameters parameters,
             DocumentSearchResult<HijackDocument.Full> result,
             TimeSpan duration);
         V2SearchResponse V2FromSearch(
             V2SearchRequest request,
-            SearchParameters parameters,
             string text,
+            SearchParameters parameters,
             DocumentSearchResult<SearchDocument.Full> result,
             TimeSpan duration);
         V3SearchResponse V3FromSearch(
             V3SearchRequest request,
-            SearchParameters parameters,
             string text,
+            SearchParameters parameters,
             DocumentSearchResult<SearchDocument.Full> result,
             TimeSpan duration);
         V3SearchResponse V3FromSearchDocument(
@@ -33,8 +33,8 @@ namespace NuGet.Services.AzureSearch.SearchService
             TimeSpan duration);
         AutocompleteResponse AutocompleteFromSearch(
             AutocompleteRequest request,
-            SearchParameters parameters,
             string text,
+            SearchParameters parameters,
             DocumentSearchResult<SearchDocument.Full> result,
             TimeSpan duration);
     }

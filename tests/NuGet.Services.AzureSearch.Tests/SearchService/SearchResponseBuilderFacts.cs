@@ -26,8 +26,8 @@ namespace NuGet.Services.AzureSearch.SearchService
 
                 var response = _target.V2FromHijack(
                     _v2Request,
-                    _searchParameters,
                     _text,
+                    _searchParameters,
                     _hijackResult,
                     _duration);
 
@@ -53,8 +53,8 @@ namespace NuGet.Services.AzureSearch.SearchService
 
                 var response = _target.V2FromHijack(
                     _v2Request,
-                    _searchParameters,
                     _text,
+                    _searchParameters,
                     _hijackResult,
                     _duration);
 
@@ -70,8 +70,8 @@ namespace NuGet.Services.AzureSearch.SearchService
 
                 var response = _target.V2FromHijack(
                     _v2Request,
-                    _searchParameters,
                     _text,
+                    _searchParameters,
                     _hijackResult,
                     _duration);
 
@@ -91,8 +91,8 @@ namespace NuGet.Services.AzureSearch.SearchService
 
                 var response = _target.V2FromHijack(
                     _v2Request,
-                    _searchParameters,
                     _text,
+                    _searchParameters,
                     _hijackResult,
                     _duration);
 
@@ -113,8 +113,8 @@ namespace NuGet.Services.AzureSearch.SearchService
 
                 var response = _target.V2FromHijack(
                     _v2Request,
-                    _searchParameters,
                     _text,
+                    _searchParameters,
                     _hijackResult,
                     _duration);
 
@@ -129,8 +129,8 @@ namespace NuGet.Services.AzureSearch.SearchService
 
                 var response = _target.V2FromHijack(
                     _v2Request,
-                    _searchParameters,
                     _text,
+                    _searchParameters,
                     _hijackResult,
                     _duration);
 
@@ -149,7 +149,7 @@ namespace NuGet.Services.AzureSearch.SearchService
     ""ShowDebug"": true
   },
   ""IndexName"": ""hijack-index"",
-  ""ApiType"": ""Search"",
+  ""IndexOperationType"": ""Search"",
   ""SearchParameters"": {
     ""IncludeTotalResultCount"": false,
     ""QueryType"": ""simple"",
@@ -185,8 +185,8 @@ namespace NuGet.Services.AzureSearch.SearchService
             {
                 var response = _target.V2FromHijack(
                     _v2Request,
-                    _searchParameters,
                     _text,
+                    _searchParameters,
                     _hijackResult,
                     _duration);
 
@@ -246,8 +246,8 @@ namespace NuGet.Services.AzureSearch.SearchService
 
                 var response = _target.V2FromSearch(
                     _v2Request,
-                    _searchParameters,
                     _text,
+                    _searchParameters,
                     _searchResult,
                     _duration);
 
@@ -267,8 +267,8 @@ namespace NuGet.Services.AzureSearch.SearchService
 
                 var response = _target.V2FromSearch(
                     _v2Request,
-                    _searchParameters,
                     _text,
+                    _searchParameters,
                     _searchResult,
                     _duration);
 
@@ -289,8 +289,8 @@ namespace NuGet.Services.AzureSearch.SearchService
 
                 var response = _target.V2FromSearch(
                     _v2Request,
-                    _searchParameters,
                     _text,
+                    _searchParameters,
                     _searchResult,
                     _duration);
 
@@ -305,8 +305,8 @@ namespace NuGet.Services.AzureSearch.SearchService
 
                 var response = _target.V2FromSearch(
                     _v2Request,
-                    _searchParameters,
                     _text,
+                    _searchParameters,
                     _searchResult,
                     _duration);
 
@@ -325,7 +325,7 @@ namespace NuGet.Services.AzureSearch.SearchService
     ""ShowDebug"": true
   },
   ""IndexName"": ""search-index"",
-  ""ApiType"": ""Search"",
+  ""IndexOperationType"": ""Search"",
   ""SearchParameters"": {
     ""IncludeTotalResultCount"": false,
     ""QueryType"": ""simple"",
@@ -361,8 +361,8 @@ namespace NuGet.Services.AzureSearch.SearchService
             {
                 var response = _target.V2FromSearch(
                     _v2Request,
-                    _searchParameters,
                     _text,
+                    _searchParameters,
                     _searchResult,
                     _duration);
 
@@ -426,8 +426,8 @@ namespace NuGet.Services.AzureSearch.SearchService
 
                 var response = _target.V3FromSearch(
                     _v3Request,
-                    _searchParameters,
                     _text,
+                    _searchParameters,
                     _searchResult,
                     _duration);
 
@@ -451,8 +451,8 @@ namespace NuGet.Services.AzureSearch.SearchService
 
                 var response = _target.V3FromSearch(
                     _v3Request,
-                    _searchParameters,
                     _text,
+                    _searchParameters,
                     _searchResult,
                     _duration);
 
@@ -470,8 +470,8 @@ namespace NuGet.Services.AzureSearch.SearchService
 
                 var response = _target.V3FromSearch(
                     _v3Request,
-                    _searchParameters,
                     _text,
+                    _searchParameters,
                     _searchResult,
                     _duration);
 
@@ -492,8 +492,8 @@ namespace NuGet.Services.AzureSearch.SearchService
 
                 var response = _target.V3FromSearch(
                     _v3Request,
-                    _searchParameters,
                     _text,
+                    _searchParameters,
                     _searchResult,
                     _duration);
 
@@ -512,8 +512,8 @@ namespace NuGet.Services.AzureSearch.SearchService
 
                 var response = _target.V3FromSearch(
                     _v3Request,
-                    _searchParameters,
                     _text,
+                    _searchParameters,
                     _searchResult,
                     _duration);
 
@@ -530,7 +530,7 @@ namespace NuGet.Services.AzureSearch.SearchService
     ""ShowDebug"": true
   },
   ""IndexName"": ""search-index"",
-  ""ApiType"": ""Search"",
+  ""IndexOperationType"": ""Search"",
   ""SearchParameters"": {
     ""IncludeTotalResultCount"": false,
     ""QueryType"": ""simple"",
@@ -565,8 +565,8 @@ namespace NuGet.Services.AzureSearch.SearchService
             {
                 var response = _target.V3FromSearch(
                     _v3Request,
-                    _searchParameters,
                     _text,
+                    _searchParameters,
                     _searchResult,
                     _duration);
 
@@ -662,7 +662,7 @@ namespace NuGet.Services.AzureSearch.SearchService
     ""ShowDebug"": true
   },
   ""IndexName"": ""search-index"",
-  ""ApiType"": ""Get"",
+  ""IndexOperationType"": ""Get"",
   ""DocumentKey"": ""windowsazure_storage-d2luZG93c2F6dXJlLnN0b3JhZ2U1-IncludePrereleaseAndSemVer2"",
   ""QueryDuration"": ""00:00:00.2500000"",
   ""AuxiliaryFilesMetadata"": {
@@ -768,8 +768,8 @@ namespace NuGet.Services.AzureSearch.SearchService
 
                 var response = _target.AutocompleteFromSearch(
                     _autocompleteRequest,
-                    _searchParameters,
                     _text,
+                    _searchParameters,
                     _searchResult,
                     _duration);
 
@@ -785,7 +785,7 @@ namespace NuGet.Services.AzureSearch.SearchService
     ""ShowDebug"": true
   },
   ""IndexName"": ""search-index"",
-  ""ApiType"": ""Search"",
+  ""IndexOperationType"": ""Search"",
   ""SearchParameters"": {
     ""IncludeTotalResultCount"": false,
     ""QueryType"": ""simple"",
@@ -806,8 +806,8 @@ namespace NuGet.Services.AzureSearch.SearchService
 
                 var response = _target.AutocompleteFromSearch(
                     _autocompleteRequest,
-                    _searchParameters,
                     _text,
+                    _searchParameters,
                     _searchResult,
                     _duration);
 
@@ -823,8 +823,8 @@ namespace NuGet.Services.AzureSearch.SearchService
 
                 var response = _target.AutocompleteFromSearch(
                     _autocompleteRequest,
-                    _searchParameters,
                     _text,
+                    _searchParameters,
                     _emptySearchResult,
                     _duration);
 
@@ -839,8 +839,8 @@ namespace NuGet.Services.AzureSearch.SearchService
 
                 var response = _target.AutocompleteFromSearch(
                     _autocompleteRequest,
-                    _searchParameters,
                     _text,
+                    _searchParameters,
                     _searchResult,
                     _duration);
 
@@ -859,8 +859,8 @@ namespace NuGet.Services.AzureSearch.SearchService
 
                 var exception = Assert.Throws<ArgumentException>(() => _target.AutocompleteFromSearch(
                     _autocompleteRequest,
-                    _searchParameters,
                     _text,
+                    _searchParameters,
                     _manySearchResults,
                     _duration));
 

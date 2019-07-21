@@ -10,7 +10,7 @@ namespace NuGet.Services.AzureSearch.SearchService
     {
         public SearchRequest SearchRequest { get; set; }
         public string IndexName { get; set; }
-        public ApiType ApiType { get; set; }
+        public IndexOperationType IndexOperationType { get; set; }
         public string DocumentKey { get; set; }
         public SearchParameters SearchParameters { get; set; }
         public string SearchText { get; set; }
@@ -36,7 +36,7 @@ namespace NuGet.Services.AzureSearch.SearchService
             {
                 SearchRequest = request,
                 IndexName = indexName,
-                ApiType = ApiType.Search,
+                IndexOperationType = IndexOperationType.Search,
                 SearchParameters = parameters,
                 SearchText = text,
                 DocumentSearchResult = result,
@@ -61,7 +61,7 @@ namespace NuGet.Services.AzureSearch.SearchService
             {
                 SearchRequest = request,
                 IndexName = indexName,
-                ApiType = ApiType.Get,
+                IndexOperationType = IndexOperationType.Get,
                 DocumentKey = documentKey,
                 QueryDuration = duration,
                 AuxiliaryFilesMetadata = auxiliaryFilesMetadata,

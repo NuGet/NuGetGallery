@@ -3,7 +3,7 @@
 
 namespace NuGet.Services.AzureSearch.SearchService
 {
-    public enum ApiType
+    public enum IndexOperationType
     {
         /// <summary>
         /// The data for the user was fetched using Azure Search's "get document by key" API. The .NET API is called "Get" and

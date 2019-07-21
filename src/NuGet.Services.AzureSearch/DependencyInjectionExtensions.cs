@@ -77,8 +77,7 @@ namespace NuGet.Services.AzureSearch
 
             containerBuilder
                 .Register<ISearchService>(c => new AzureSearchService(
-                    c.Resolve<ISearchTextBuilder>(),
-                    c.Resolve<ISearchParametersBuilder>(),
+                    c.Resolve<IIndexOperationBuilder>(),
                     c.ResolveKeyed<ISearchIndexClientWrapper>(searchIndexKey),
                     c.ResolveKeyed<ISearchIndexClientWrapper>(hijackIndexKey),
                     c.Resolve<ISearchResponseBuilder>(),
@@ -253,6 +252,7 @@ namespace NuGet.Services.AzureSearch
             services.AddTransient<IEntitiesContextFactory, EntitiesContextFactory>();
             services.AddTransient<IHijackDocumentBuilder, HijackDocumentBuilder>();
             services.AddTransient<IIndexBuilder, IndexBuilder>();
+            services.AddTransient<IIndexOperationBuilder, IndexOperationBuilder>();
             services.AddTransient<INewPackageRegistrationProducer, NewPackageRegistrationProducer>();
             services.AddTransient<IOwnerSetComparer, OwnerSetComparer>();
             services.AddTransient<IPackageEntityIndexActionBuilder, PackageEntityIndexActionBuilder>();

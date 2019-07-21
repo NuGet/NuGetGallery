@@ -40,8 +40,8 @@ namespace NuGet.Services.AzureSearch.SearchService
 
         public V2SearchResponse V2FromHijack(
             V2SearchRequest request,
-            SearchParameters searchParameters,
             string text,
+            SearchParameters searchParameters,
             DocumentSearchResult<HijackDocument.Full> result,
             TimeSpan duration)
         {
@@ -57,8 +57,8 @@ namespace NuGet.Services.AzureSearch.SearchService
 
         public V2SearchResponse V2FromSearch(
             V2SearchRequest request,
-            SearchParameters parameters,
             string text,
+            SearchParameters parameters,
             DocumentSearchResult<SearchDocument.Full> result,
             TimeSpan duration)
         {
@@ -71,7 +71,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                 duration,
                 p => ToV2SearchPackage(p));
         }
-        
+
         public V3SearchResponse V3FromSearchDocument(
             V3SearchRequest request,
             string documentKey,
@@ -108,8 +108,8 @@ namespace NuGet.Services.AzureSearch.SearchService
 
         public V3SearchResponse V3FromSearch(
             V3SearchRequest request,
-            SearchParameters parameters,
             string text,
+            SearchParameters parameters,
             DocumentSearchResult<SearchDocument.Full> result,
             TimeSpan duration)
         {
@@ -147,8 +147,8 @@ namespace NuGet.Services.AzureSearch.SearchService
 
         public AutocompleteResponse AutocompleteFromSearch(
             AutocompleteRequest request,
-            SearchParameters parameters,
             string text,
+            SearchParameters parameters,
             DocumentSearchResult<SearchDocument.Full> result,
             TimeSpan duration)
         {

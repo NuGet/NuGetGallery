@@ -20,9 +20,11 @@ namespace NuGet.Services.AzureSearch.SearchService
             [MemberData(nameof(CommonAzureSearchQueryData))]
             public void GeneratesAzureSearchQuery(string input, string expected)
             {
-                var actual = _target.V2Search(new V2SearchRequest { Query = input });
+                var parsed = _target.ParseV2Search(new V2SearchRequest { Query = input });
 
-                Assert.Equal(expected, actual.Text);
+                var actual = _target.Build(parsed);
+
+                Assert.Equal(expected, actual);
             }
 
             [Theory]
@@ -30,58 +32,15 @@ namespace NuGet.Services.AzureSearch.SearchService
             [InlineData(true, "packageId:hello")]
             public void WhenLuceneQuery_TreatsLeadingIdAsPackageId(bool luceneQuery, string expected)
             {
-                var actual = _target.V2Search(new V2SearchRequest
+                var parsed = _target.ParseV2Search(new V2SearchRequest
                 {
                     Query = "id:hello",
                     LuceneQuery = luceneQuery,
                 });
 
-                Assert.Equal(expected, actual.Text);
-            }
+                var actual = _target.Build(parsed);
 
-            [Theory]
-            [InlineData("id:hello", "hello")]
-            [InlineData("packageid:hello", "hello")]
-            [InlineData("   packageid: hello   ", "hello")]
-            [InlineData("packageid:\"hello\"", "hello")]
-            [InlineData("packageid:\"HIthereFRIEND\"", "HIthereFRIEND")]
-            [InlineData("packageid:\"hi-there_FRIEND\"", "hi-there_FRIEND")]
-            [InlineData("packageid:hello packageid:hello", "hello")]
-            [InlineData("packageid:hello packageid:\"hello\"", "hello")]
-            [InlineData("packageid:" + MaxId, MaxId)]
-            public void ExtractsPackageIdWhenThereIsOnlyOneClause(string query, string expected)
-            {
-                var actual = _target.V2Search(new V2SearchRequest
-                {
-                    Query = query,
-                    LuceneQuery = true,
-                });
-
-                Assert.Equal(expected, actual.PackageId);
-            }
-
-            [Theory]
-            [InlineData("id:hello version:1.0.0")]
-            [InlineData("packageid:foo--bar")] // Invalid package ID
-            [InlineData("packageid:" + MaxId + "a")]
-            [InlineData("packageid:hello a")]
-            [InlineData("packageid:\"hello a\"")]
-            [InlineData("   packageid: \"hello  \" ")]
-            [InlineData("packageid: \"hello  \"")]
-            [InlineData("packageid:hello id:a")]
-            [InlineData("packageid:hello packageid:a")]
-            [InlineData("somethingelse:hello packageid:a")]
-            [InlineData("packageid:hello packageid:HELLO")]
-            [InlineData("hello")]
-            public void DoesNotExtractPackageIdWhenThereIsNotExactlyOneClauseOrADifferentField(string query)
-            {
-                var actual = _target.V2Search(new V2SearchRequest
-                {
-                    Query = query,
-                    LuceneQuery = true,
-                });
-
-                Assert.Null(actual.PackageId);
+                Assert.Equal(expected, actual);
             }
 
             [Theory]
@@ -89,15 +48,16 @@ namespace NuGet.Services.AzureSearch.SearchService
             public void ThrowsWhenQueryHasTooManyClauses(int nonFieldScopedTerms, int fieldScopedTerms, bool shouldThrow)
             {
                 var request = new V2SearchRequest { Query = GenerateQuery(nonFieldScopedTerms, fieldScopedTerms) };
+                var parsed = _target.ParseV2Search(request);
 
                 if (shouldThrow)
                 {
-                    var e = Assert.Throws<InvalidSearchRequestException>(() => _target.V2Search(request));
+                    var e = Assert.Throws<InvalidSearchRequestException>(() => _target.Build(parsed));
                     Assert.Equal("A query can only have up to 1024 clauses.", e.Message);
                 }
                 else
                 {
-                    _target.V2Search(request);
+                    _target.ParseV2Search(request);
                 }
             }
 
@@ -106,7 +66,9 @@ namespace NuGet.Services.AzureSearch.SearchService
             public void ThrowsWhenTermIsTooBig(string query)
             {
                 var request = new V2SearchRequest { Query = query };
-                var e = Assert.Throws<InvalidSearchRequestException>(() => _target.V2Search(request));
+                var parsed = _target.ParseV2Search(request);
+
+                var e = Assert.Throws<InvalidSearchRequestException>(() => _target.Build(parsed));
 
                 Assert.Equal("Query terms cannot exceed 32768 bytes.", e.Message);
             }
@@ -118,35 +80,11 @@ namespace NuGet.Services.AzureSearch.SearchService
             [MemberData(nameof(CommonAzureSearchQueryData))]
             public void GeneratesAzureSearchQuery(string input, string expected)
             {
-                var actual = _target.V3Search(new V3SearchRequest { Query = input });
+                var parsed = _target.ParseV3Search(new V3SearchRequest { Query = input });
 
-                Assert.Equal(expected, actual.Text);
-            }
+                var actual = _target.Build(parsed);
 
-            [Fact]
-            public void ExtractsPackageIdWhenThereIsOnlyOneClause()
-            {
-                var actual = _target.V3Search(new V3SearchRequest
-                {
-                    Query = "packageid:hello",
-                });
-
-                Assert.Equal("hello", actual.PackageId);
-            }
-
-            [Theory]
-            [InlineData("id:hello")]
-            [InlineData("id:hello version:1.0.0")]
-            [InlineData("packageid:hello a")]
-            [InlineData("hello")]
-            public void DoesNotExtractPackageIdWhenThereIsNotExactlyOneClauseOrADifferentField(string query)
-            {
-                var actual = _target.V3Search(new V3SearchRequest
-                {
-                    Query = query,
-                });
-
-                Assert.Null(actual.PackageId);
+                Assert.Equal(expected, actual);
             }
 
             [Theory]
@@ -154,15 +92,16 @@ namespace NuGet.Services.AzureSearch.SearchService
             public void ThrowsWhenQueryHasTooManyClauses(int nonFieldScopedTerms, int fieldScopedTerms, bool shouldThrow)
             {
                 var request = new V3SearchRequest { Query = GenerateQuery(nonFieldScopedTerms, fieldScopedTerms) };
+                var parsed = _target.ParseV3Search(request);
 
                 if (shouldThrow)
                 {
-                    var e = Assert.Throws<InvalidSearchRequestException>(() => _target.V3Search(request));
+                    var e = Assert.Throws<InvalidSearchRequestException>(() => _target.Build(parsed));
                     Assert.Equal("A query can only have up to 1024 clauses.", e.Message);
                 }
                 else
                 {
-                    _target.V3Search(request);
+                    _target.ParseV3Search(request);
                 }
             }
 
@@ -171,7 +110,9 @@ namespace NuGet.Services.AzureSearch.SearchService
             public void ThrowsWhenTermIsTooBig(string query)
             {
                 var request = new V3SearchRequest { Query = query };
-                var e = Assert.Throws<InvalidSearchRequestException>(() => _target.V3Search(request));
+                var parsed = _target.ParseV3Search(request);
+
+                var e = Assert.Throws<InvalidSearchRequestException>(() => _target.Build(parsed));
 
                 Assert.Equal("Query terms cannot exceed 32768 bytes.", e.Message);
             }
@@ -195,9 +136,9 @@ namespace NuGet.Services.AzureSearch.SearchService
                     Type = AutocompleteRequestType.PackageIds
                 };
 
-                var result = _target.Autocomplete(request);
+                var actual = _target.Autocomplete(request);
 
-                Assert.Equal(expected, result);
+                Assert.Equal(expected, actual);
             }
 
             [Theory]
@@ -211,9 +152,9 @@ namespace NuGet.Services.AzureSearch.SearchService
                     Type = AutocompleteRequestType.PackageVersions
                 };
 
-                var result = _target.Autocomplete(request);
+                var actual = _target.Autocomplete(request);
 
-                Assert.Equal(expected, result);
+                Assert.Equal(expected, actual);
             }
         }
 

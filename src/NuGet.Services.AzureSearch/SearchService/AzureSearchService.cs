@@ -9,23 +9,20 @@ namespace NuGet.Services.AzureSearch.SearchService
 {
     public class AzureSearchService : ISearchService
     {
-        private readonly ISearchTextBuilder _textBuilder;
-        private readonly ISearchParametersBuilder _parametersBuilder;
+        private readonly IIndexOperationBuilder _operationBuilder;
         private readonly ISearchIndexClientWrapper _searchIndex;
         private readonly ISearchIndexClientWrapper _hijackIndex;
         private readonly ISearchResponseBuilder _responseBuilder;
         private readonly IAzureSearchTelemetryService _telemetryService;
 
         public AzureSearchService(
-            ISearchTextBuilder textBuilder,
-            ISearchParametersBuilder parametersBuilder,
+            IIndexOperationBuilder operationBuilder,
             ISearchIndexClientWrapper searchIndex,
             ISearchIndexClientWrapper hijackIndex,
             ISearchResponseBuilder responseBuilder,
             IAzureSearchTelemetryService telemetryService)
         {
-            _textBuilder = textBuilder ?? throw new ArgumentNullException(nameof(textBuilder));
-            _parametersBuilder = parametersBuilder ?? throw new ArgumentNullException(nameof(parametersBuilder));
+            _operationBuilder = operationBuilder ?? throw new ArgumentNullException(nameof(operationBuilder));
             _searchIndex = searchIndex ?? throw new ArgumentNullException(nameof(searchIndex));
             _hijackIndex = hijackIndex ?? throw new ArgumentNullException(nameof(hijackIndex));
             _responseBuilder = responseBuilder ?? throw new ArgumentNullException(nameof(responseBuilder));
@@ -46,40 +43,41 @@ namespace NuGet.Services.AzureSearch.SearchService
 
         public async Task<V3SearchResponse> V3SearchAsync(V3SearchRequest request)
         {
-            var parsed = _textBuilder.V3Search(request);
+            var operation = _operationBuilder.V3Search(request);
 
             V3SearchResponse output;
-            if (parsed.PackageId != null && request.Skip <= 0 && request.Take > 0)
+            switch (operation.Type)
             {
-                var searchFilters = _parametersBuilder.GetSearchFilters(request);
-                var documentKey = DocumentUtilities.GetSearchDocumentKey(parsed.PackageId, searchFilters);
+                case IndexOperationType.Get:
+                    var documentResult = await Measure.DurationWithValueAsync(
+                        () => _searchIndex.Documents.GetOrNullAsync<SearchDocument.Full>(operation.DocumentKey));
 
-                var result = await Measure.DurationWithValueAsync(() => _searchIndex.Documents.GetOrNullAsync<SearchDocument.Full>(documentKey));
+                    output = _responseBuilder.V3FromSearchDocument(
+                        request,
+                        operation.DocumentKey,
+                        documentResult.Value,
+                        documentResult.Duration);
 
-                output = _responseBuilder.V3FromSearchDocument(
-                    request,
-                    documentKey,
-                    result.Value,
-                    result.Duration);
+                    _telemetryService.TrackV3GetDocument(documentResult.Duration);
+                    break;
 
-                _telemetryService.TrackV3GetDocument(result.Duration);
-            }
-            else
-            {
-                var parameters = _parametersBuilder.V3Search(request);
+                case IndexOperationType.Search:
+                    var result = await Measure.DurationWithValueAsync(() => _searchIndex.Documents.SearchAsync<SearchDocument.Full>(
+                        operation.SearchText,
+                        operation.SearchParameters));
 
-                var result = await Measure.DurationWithValueAsync(() => _searchIndex.Documents.SearchAsync<SearchDocument.Full>(
-                    parsed.Text,
-                    parameters));
+                    output = _responseBuilder.V3FromSearch(
+                        request,
+                        operation.SearchText,
+                        operation.SearchParameters,
+                        result.Value,
+                        result.Duration);
 
-                output = _responseBuilder.V3FromSearch(
-                    request,
-                    parameters,
-                    parsed.Text,
-                    result.Value,
-                    result.Duration);
+                    _telemetryService.TrackV3SearchQuery(result.Duration);
+                    break;
 
-                _telemetryService.TrackV3SearchQuery(result.Duration);
+                default:
+                    throw UnsupportedOperation(operation);
             }
 
             return output;
@@ -87,65 +85,94 @@ namespace NuGet.Services.AzureSearch.SearchService
 
         public async Task<AutocompleteResponse> AutocompleteAsync(AutocompleteRequest request)
         {
-            var text = _textBuilder.Autocomplete(request);
-            var parameters = _parametersBuilder.Autocomplete(request);
+            var operation = _operationBuilder.Autocomplete(request);
 
-            var result = await Measure.DurationWithValueAsync(() => _searchIndex.Documents.SearchAsync<SearchDocument.Full>(
-                text,
-                parameters));
+            AutocompleteResponse output;
+            switch (operation.Type)
+            {
+                case IndexOperationType.Search:
+                    var result = await Measure.DurationWithValueAsync(() => _searchIndex.Documents.SearchAsync<SearchDocument.Full>(
+                        operation.SearchText,
+                        operation.SearchParameters));
 
-            var output = _responseBuilder.AutocompleteFromSearch(
-                request,
-                parameters,
-                text,
-                result.Value,
-                result.Duration);
+                    output = _responseBuilder.AutocompleteFromSearch(
+                        request,
+                        operation.SearchText,
+                        operation.SearchParameters,
+                        result.Value,
+                        result.Duration);
 
-            _telemetryService.TrackAutocompleteQuery(result.Duration);
+                    _telemetryService.TrackAutocompleteQuery(result.Duration);
+                    break;
+
+                default:
+                    throw UnsupportedOperation(operation);
+            }
 
             return output;
         }
 
         private async Task<V2SearchResponse> UseHijackIndexAsync(V2SearchRequest request)
         {
-            var parsed = _textBuilder.V2Search(request);
-            var parameters = _parametersBuilder.V2Search(request);
+            var operation = _operationBuilder.V2SearchWithHijackIndex(request);
 
-            var result = await Measure.DurationWithValueAsync(() => _hijackIndex.Documents.SearchAsync<HijackDocument.Full>(
-                parsed.Text,
-                parameters));
+            V2SearchResponse output;
+            switch (operation.Type)
+            {
+                case IndexOperationType.Search:
+                    var result = await Measure.DurationWithValueAsync(() => _hijackIndex.Documents.SearchAsync<HijackDocument.Full>(
+                        operation.SearchText,
+                        operation.SearchParameters));
 
-            var output = _responseBuilder.V2FromHijack(
-                request,
-                parameters,
-                parsed.Text,
-                result.Value,
-                result.Duration);
+                    output = _responseBuilder.V2FromHijack(
+                        request,
+                        operation.SearchText,
+                        operation.SearchParameters,
+                        result.Value,
+                        result.Duration);
 
-            _telemetryService.TrackV2SearchQueryWithHijackIndex(result.Duration);
+                    _telemetryService.TrackV2SearchQueryWithHijackIndex(result.Duration);
+                    break;
+
+                default:
+                    throw UnsupportedOperation(operation);
+            }
 
             return output;
         }
 
         private async Task<V2SearchResponse> UseSearchIndexAsync(V2SearchRequest request)
         {
-            var parsed = _textBuilder.V2Search(request);
-            var parameters = _parametersBuilder.V2Search(request);
+            var operation = _operationBuilder.V2SearchWithSearchIndex(request);
 
-            var result = await Measure.DurationWithValueAsync(() => _searchIndex.Documents.SearchAsync<SearchDocument.Full>(
-                parsed.Text,
-                parameters));
+            V2SearchResponse output;
+            switch (operation.Type)
+            {
+                case IndexOperationType.Search:
+                    var result = await Measure.DurationWithValueAsync(() => _searchIndex.Documents.SearchAsync<SearchDocument.Full>(
+                        operation.SearchText,
+                        operation.SearchParameters));
 
-            var output = _responseBuilder.V2FromSearch(
-                request,
-                parameters,
-                parsed.Text,
-                result.Value,
-                result.Duration);
+                    output = _responseBuilder.V2FromSearch(
+                        request,
+                        operation.SearchText,
+                        operation.SearchParameters,
+                        result.Value,
+                        result.Duration);
 
-            _telemetryService.TrackV2SearchQueryWithSearchIndex(result.Duration);
+                    _telemetryService.TrackV2SearchQueryWithSearchIndex(result.Duration);
+                    break;
+
+                default:
+                    throw UnsupportedOperation(operation);
+            }
 
             return output;
+        }
+
+        private static NotImplementedException UnsupportedOperation(IndexOperation operation)
+        {
+            return new NotImplementedException($"The operation type {operation.Type} is not supported.");
         }
     }
 }

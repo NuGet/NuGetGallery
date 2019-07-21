@@ -2,22 +2,21 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using NuGet.Indexing;
 
 namespace NuGet.Services.AzureSearch.SearchService
 {
+    /// <summary>
+    /// Contains the parsed in-memory model of the user's query.
+    /// </summary>
     public class ParsedQuery
     {
-        public ParsedQuery(string text, string packageId)
+        public ParsedQuery(Dictionary<QueryField, HashSet<string>> grouping)
         {
-            Text = text ?? throw new ArgumentNullException(nameof(text));
-            PackageId = packageId;
+            Grouping = grouping ?? throw new ArgumentNullException(nameof(grouping));
         }
 
-        /// <summary>
-        /// The text that will be provided to Azure Search. This is a Lucene query, not the query provided by the user.
-        /// </summary>
-        public string Text { get; }
-
-        public string PackageId { get; }
+        public Dictionary<QueryField, HashSet<string>> Grouping { get; }
     }
 }
