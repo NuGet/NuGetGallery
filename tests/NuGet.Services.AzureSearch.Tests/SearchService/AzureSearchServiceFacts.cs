@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.Azure.Search.Models;
 using Moq;
 using NuGet.Services.AzureSearch.Wrappers;
+using NuGetGallery;
 using Xunit;
 
 namespace NuGet.Services.AzureSearch.SearchService
@@ -38,6 +39,29 @@ namespace NuGet.Services.AzureSearch.SearchService
             }
 
             [Fact]
+            public async Task SearchIndexAndGetOperation()
+            {
+                _v2Request.IgnoreFilter = false;
+                _operation = IndexOperation.Get(_key);
+
+                var response = await _target.V2SearchAsync(_v2Request);
+
+                Assert.Same(_v2Response, response);
+                _operationBuilder.Verify(
+                    x => x.V2SearchWithSearchIndex(_v2Request),
+                    Times.Once);
+                _searchOperations.Verify(
+                    x => x.GetOrNullAsync<SearchDocument.Full>(_key),
+                    Times.Once);
+                _responseBuilder.Verify(
+                    x => x.V2FromSearchDocument(_v2Request, _key, _searchDocument, It.Is<TimeSpan>(t => t > TimeSpan.Zero)),
+                    Times.Once);
+                _telemetryService.Verify(
+                    x => x.TrackV2GetDocumentWithSearchIndex(It.Is<TimeSpan>(t => t > TimeSpan.Zero)),
+                    Times.Once);
+            }
+
+            [Fact]
             public async Task HijackIndexAndSearchOperation()
             {
                 _v2Request.IgnoreFilter = true;
@@ -56,6 +80,38 @@ namespace NuGet.Services.AzureSearch.SearchService
                     Times.Once);
                 _telemetryService.Verify(
                     x => x.TrackV2SearchQueryWithHijackIndex(It.Is<TimeSpan>(t => t > TimeSpan.Zero)),
+                    Times.Once);
+            }
+
+            [Theory]
+            [InlineData(false, false, false)]
+            [InlineData(true, false, false)]
+            [InlineData(false, true, true)]
+            [InlineData(true, true, true)]
+            public async Task HijackIndexAndGetOperation(bool includePrerelease, bool includeSemVer2, bool returned)
+            {
+                _v2Request.IgnoreFilter = true;
+                _v2Request.IncludePrerelease = includePrerelease;
+                _v2Request.IncludeSemVer2 = includeSemVer2;
+                _hijackDocument.Prerelease = true;
+                _hijackDocument.SemVerLevel = SemVerLevelKey.SemVer2;
+                _operation = IndexOperation.Get(_key);
+                var expectedDocument = returned ? _hijackDocument : null;
+
+                var response = await _target.V2SearchAsync(_v2Request);
+
+                Assert.Same(_v2Response, response);
+                _operationBuilder.Verify(
+                    x => x.V2SearchWithHijackIndex(_v2Request),
+                    Times.Once);
+                _hijackOperations.Verify(
+                    x => x.GetOrNullAsync<HijackDocument.Full>(_key),
+                    Times.Once);
+                _responseBuilder.Verify(
+                    x => x.V2FromHijackDocument(_v2Request, _key, expectedDocument, It.Is<TimeSpan>(t => t > TimeSpan.Zero)),
+                    Times.Once);
+                _telemetryService.Verify(
+                    x => x.TrackV2GetDocumentWithHijackIndex(It.Is<TimeSpan>(t => t > TimeSpan.Zero)),
                     Times.Once);
             }
         }
@@ -236,11 +292,25 @@ namespace NuGet.Services.AzureSearch.SearchService
                         It.IsAny<TimeSpan>()))
                     .Returns(() => _v2Response);
                 _responseBuilder
+                    .Setup(x => x.V2FromHijackDocument(
+                        It.IsAny<V2SearchRequest>(),
+                        It.IsAny<string>(),
+                        It.IsAny<HijackDocument.Full>(),
+                        It.IsAny<TimeSpan>()))
+                    .Returns(() => _v2Response);
+                _responseBuilder
                     .Setup(x => x.V2FromSearch(
                         It.IsAny<V2SearchRequest>(),
                         It.IsAny<string>(),
                         It.IsAny<SearchParameters>(),
                         It.IsAny<DocumentSearchResult<SearchDocument.Full>>(),
+                        It.IsAny<TimeSpan>()))
+                    .Returns(() => _v2Response);
+                _responseBuilder
+                    .Setup(x => x.V2FromSearchDocument(
+                        It.IsAny<V2SearchRequest>(),
+                        It.IsAny<string>(),
+                        It.IsAny<SearchDocument.Full>(),
                         It.IsAny<TimeSpan>()))
                     .Returns(() => _v2Response);
                 _responseBuilder

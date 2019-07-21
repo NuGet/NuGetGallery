@@ -20,11 +20,21 @@ namespace NuGet.Services.AzureSearch.SearchService
             SearchParameters parameters,
             DocumentSearchResult<SearchDocument.Full> result,
             TimeSpan duration);
+        V2SearchResponse V2FromHijackDocument(
+            V2SearchRequest request,
+            string documentKey,
+            HijackDocument.Full document,
+            TimeSpan duration);
         V3SearchResponse V3FromSearch(
             V3SearchRequest request,
             string text,
             SearchParameters parameters,
             DocumentSearchResult<SearchDocument.Full> result,
+            TimeSpan duration);
+        V2SearchResponse V2FromSearchDocument(
+            V2SearchRequest request,
+            string documentKey,
+            SearchDocument.Full document,
             TimeSpan duration);
         V3SearchResponse V3FromSearchDocument(
             V3SearchRequest request,

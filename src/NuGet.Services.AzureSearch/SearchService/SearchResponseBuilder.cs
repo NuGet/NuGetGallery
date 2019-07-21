@@ -72,6 +72,36 @@ namespace NuGet.Services.AzureSearch.SearchService
                 p => ToV2SearchPackage(p));
         }
 
+        public V2SearchResponse V2FromSearchDocument(
+            V2SearchRequest request,
+            string documentKey,
+            SearchDocument.Full document,
+            TimeSpan duration)
+        {
+            return ToResponse(
+                request,
+                _options.Value.SearchIndexName,
+                documentKey,
+                document,
+                duration,
+                p => ToV2SearchPackage(p));
+        }
+
+        public V2SearchResponse V2FromHijackDocument(
+            V2SearchRequest request,
+            string documentKey,
+            HijackDocument.Full document,
+            TimeSpan duration)
+        {
+            return ToResponse(
+                request,
+                _options.Value.HijackIndexName,
+                documentKey,
+                document,
+                duration,
+                p => ToV2SearchPackage(p, request.IncludeSemVer2));
+        }
+
         public V3SearchResponse V3FromSearchDocument(
             V3SearchRequest request,
             string documentKey,
@@ -204,6 +234,52 @@ namespace NuGet.Services.AzureSearch.SearchService
             }
 
             return document.PackageId;
+        }
+
+        private V2SearchResponse ToResponse<T>(
+            V2SearchRequest request,
+            string indexName,
+            string documentKey,
+            T document,
+            TimeSpan duration,
+            Func<T, V2SearchPackage> toPackage)
+            where T : class
+        {
+            var data = new List<V2SearchPackage>();
+            if (document != null)
+            {
+                var package = toPackage(document);
+                package.Debug = request.ShowDebug ? new DebugDocumentResult { Document = document } : null;
+                data.Add(package);
+            }
+
+            if (request.CountOnly)
+            {
+                return new V2SearchResponse
+                {
+                    TotalHits = data.Count,
+                    Debug = DebugInformation.CreateFromGetOrNull(
+                        request,
+                        indexName,
+                        documentKey,
+                        duration,
+                        AuxiliaryData.Metadata),
+                };
+            }
+            else
+            {
+                return new V2SearchResponse
+                {
+                    TotalHits = data.Count,
+                    Data = data,
+                    Debug = DebugInformation.CreateFromGetOrNull(
+                        request,
+                        indexName,
+                        documentKey,
+                        duration,
+                        AuxiliaryData.Metadata),
+                };
+            }
         }
 
         private V2SearchResponse ToResponse<T>(

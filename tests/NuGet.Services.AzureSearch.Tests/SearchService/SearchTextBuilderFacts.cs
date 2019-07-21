@@ -11,11 +11,6 @@ namespace NuGet.Services.AzureSearch.SearchService
     {
         public class V2Search : FactsBase
         {
-            /// <summary>
-            /// 100 characters is the maximum length for package IDs.
-            /// </summary>
-            private const string MaxId = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
-
             [Theory]
             [MemberData(nameof(CommonAzureSearchQueryData))]
             public void GeneratesAzureSearchQuery(string input, string expected)

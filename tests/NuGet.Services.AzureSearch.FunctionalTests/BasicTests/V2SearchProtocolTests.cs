@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -167,10 +168,137 @@ namespace NuGet.Services.AzureSearch.FunctionalTests
             Assert.False(hasPrereleaseVersions, $"The search query returned results with prerelease versions when queried for Prerelease = false");
         }
 
-        [Fact]
-        public async Task ResultsHonorSemverLevel()
+        [Theory]
+        [InlineData(false, false, Constants.TestPackageVersion_SearchFilters_Default)]
+        [InlineData(true, false, Constants.TestPackageVersion_SearchFilters_Prerel)]
+        [InlineData(false, true, Constants.TestPackageVersion_SearchFilters_SemVer2)]
+        [InlineData(true, true, Constants.TestPackageVersion_SearchFilters_PrerelSemVer2)]
+        public async Task LatestVersionChangesWithRespectToSearchFilters(bool prerelease, bool includeSemVer2, string version)
         {
-            var searchTerm = "packageId:" + Constants.TestPackageIdSemVer2;
+            var searchBuilder = new V2SearchBuilder
+            {
+                Query = $"packageid:{Constants.TestPackageId_SearchFilters}",
+                Prerelease = prerelease,
+                IncludeSemVer2 = includeSemVer2,
+            };
+
+            var results = await V2SearchAsync(searchBuilder);
+
+            var package = Assert.Single(results.Data);
+            Assert.Equal(Constants.TestPackageId_SearchFilters, package.PackageRegistration.Id);
+            Assert.Equal(version, package.Version);
+        }
+
+        public static IEnumerable<object[]> IgnoreFilterTrueData => new[]
+        {
+            new
+            {
+                Prerelease = false,
+                IncludeSemVer2 = false,
+                ExpectedVersions = new[] // prerelease is always returned with ignoreFilter=true
+                {
+                    Constants.TestPackageVersion_SearchFilters_Default,
+                    Constants.TestPackageVersion_SearchFilters_Prerel,
+                },
+            },
+            new
+            {
+                Prerelease = true,
+                IncludeSemVer2 = false,
+                ExpectedVersions = new[]
+                {
+                    Constants.TestPackageVersion_SearchFilters_Default,
+                    Constants.TestPackageVersion_SearchFilters_Prerel,
+                },
+            },
+            new
+            {
+                Prerelease = false, 
+                IncludeSemVer2 = true,
+                ExpectedVersions = new[] // prerelease is always returned with ignoreFilter=true
+                {
+                    Constants.TestPackageVersion_SearchFilters_Default,
+                    Constants.TestPackageVersion_SearchFilters_Prerel,
+                    Constants.TestPackageVersion_SearchFilters_SemVer2,
+                    Constants.TestPackageVersion_SearchFilters_PrerelSemVer2,
+                },
+            },
+            new
+            {
+                Prerelease = true,
+                IncludeSemVer2 = true,
+                ExpectedVersions = new[]
+                {
+                    Constants.TestPackageVersion_SearchFilters_Default,
+                    Constants.TestPackageVersion_SearchFilters_Prerel,
+                    Constants.TestPackageVersion_SearchFilters_SemVer2,
+                    Constants.TestPackageVersion_SearchFilters_PrerelSemVer2,
+                },
+            },
+        }.Select(x => new object[] { x.Prerelease, x.IncludeSemVer2, x.ExpectedVersions });
+
+        [Theory]
+        [MemberData(nameof(IgnoreFilterTrueData))]
+        public async Task IgnoreFilterTrueAlwaysIncludesPrerelease(bool prerelease, bool includeSemVer2, string[] expectedVersions)
+        {
+            var searchBuilder = new V2SearchBuilder
+            {
+                Query = $"packageid:{Constants.TestPackageId_SearchFilters}",
+                Prerelease = prerelease,
+                IncludeSemVer2 = includeSemVer2,
+                IgnoreFilter = true,
+            };
+
+            var results = await V2SearchAsync(searchBuilder);
+
+            Assert.Equal(
+                expectedVersions,
+                results.Data.Select(x => x.Version).OrderBy(x => x).ToArray());
+        }
+
+        [Theory]
+        [InlineData(false, false, false)]
+        [InlineData(true, false, false)]
+        [InlineData(false, true, true)]
+        [InlineData(true, true, true)]
+        public async Task IgnoreFilterTrueWithSpecificIdVersionAlwaysIncludesPrerelease(bool prerelease, bool includeSemVer2, bool returned)
+        {
+            var searchBuilder = new V2SearchBuilder
+            {
+                Query = $"packageid:{Constants.TestPackageId_SearchFilters} version:{Constants.TestPackageVersion_SearchFilters_PrerelSemVer2}",
+                Prerelease = prerelease,
+                IncludeSemVer2 = includeSemVer2,
+                IgnoreFilter = true,
+            };
+
+            var results = await V2SearchAsync(searchBuilder);
+
+            if (returned)
+            {
+                var package = Assert.Single(results.Data);
+                Assert.Equal(Constants.TestPackageId_SearchFilters, package.PackageRegistration.Id);
+                Assert.Equal(Constants.TestPackageVersion_SearchFilters_PrerelSemVer2, package.Version);
+            }
+            else
+            {
+                Assert.Empty(results.Data);
+            }
+        }
+
+        [Fact]
+        public async Task SemVer2IsHiddenByDefault()
+        {
+            var searchTerm = "packageId:" + Constants.TestPackageId_SemVer2;
+            var results = await V2SearchAsync(new V2SearchBuilder { Query = searchTerm });
+
+            Assert.NotNull(results);
+            Assert.Empty(results.Data);
+        }
+
+        [Fact]
+        public async Task SemVerLevel2AllowsSemVer2Packages()
+        {
+            var searchTerm = "packageId:" + Constants.TestPackageId_SemVer2;
             var results = await V2SearchAsync(new V2SearchBuilder { Query = searchTerm, IncludeSemVer2 = true });
 
             Assert.NotNull(results);
@@ -323,6 +451,6 @@ namespace NuGet.Services.AzureSearch.FunctionalTests
                 yield return new object[] { "title-asc", (Func<V2SearchResultEntry, object>)((V2SearchResultEntry data) => { return data.Title; }), true };
                 yield return new object[] { "title-desc", (Func<V2SearchResultEntry, object>)((V2SearchResultEntry data) => { return data.Title; }) };
             }
-    }
+        }
     }
 }

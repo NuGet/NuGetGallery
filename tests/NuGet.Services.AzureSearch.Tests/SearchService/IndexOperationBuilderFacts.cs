@@ -51,15 +51,28 @@ namespace NuGet.Services.AzureSearch.SearchService
                 Build();
 
                 TextBuilder.Verify(x => x.ParseV3Search(V3SearchRequest), Times.Once);
+                TextBuilder.Verify(x => x.Build(ParsedQuery), Times.Once);
                 ParametersBuilder.Verify(x => x.V3Search(V3SearchRequest), Times.Once);
             }
         }
 
-        public class V2SearchWithSearchIndex : Facts
+        public class V2SearchWithSearchIndex : SearchIndexFacts
         {
-            public IndexOperation Build()
+            public override IndexOperation Build()
             {
                 return Target.V2SearchWithSearchIndex(V2SearchRequest);
+            }
+
+            [Fact]
+            public void CallsDependenciesForGetOperation()
+            {
+                ParsedQuery.Grouping[QueryField.PackageId] = new HashSet<string>(new[] { Id });
+
+                Build();
+
+                TextBuilder.Verify(x => x.ParseV2Search(V2SearchRequest), Times.Once);
+                TextBuilder.Verify(x => x.Build(It.IsAny<ParsedQuery>()), Times.Never);
+                ParametersBuilder.Verify(x => x.V2Search(It.IsAny<V2SearchRequest>()), Times.Never);
             }
 
             [Fact]
@@ -68,6 +81,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                 Build();
 
                 TextBuilder.Verify(x => x.ParseV2Search(V2SearchRequest), Times.Once);
+                TextBuilder.Verify(x => x.Build(ParsedQuery), Times.Once);
                 ParametersBuilder.Verify(x => x.V2Search(V2SearchRequest), Times.Once);
             }
         }
@@ -79,12 +93,203 @@ namespace NuGet.Services.AzureSearch.SearchService
                 return Target.V2SearchWithHijackIndex(V2SearchRequest);
             }
 
+            [Theory]
+            [MemberData(nameof(ValidIdData))]
+            public void BuildsGetOperationForSingleValidPackageIdAndSingleValidVersion(string id)
+            {
+                ParsedQuery.Grouping[QueryField.PackageId] = new HashSet<string>(new[] { id });
+                ParsedQuery.Grouping[QueryField.Version] = new HashSet<string>(new[] { Version });
+
+                var actual = Build();
+
+                Assert.Equal(IndexOperationType.Get, actual.Type);
+                Assert.Equal(
+                    DocumentUtilities.GetHijackDocumentKey(id, Version),
+                    actual.DocumentKey);
+            }
+
+            [Theory]
+            [MemberData(nameof(InvalidIdData))]
+            public void DoesNotBuildGetOperationForSingleInvalidPackageIdAndSingleValidVersion(string id)
+            {
+                ParsedQuery.Grouping[QueryField.PackageId] = new HashSet<string>(new[] { id });
+                ParsedQuery.Grouping[QueryField.Version] = new HashSet<string>(new[] { Version });
+
+                var actual = Build();
+
+                Assert.Equal(IndexOperationType.Search, actual.Type);
+            }
+
+            [Theory]
+            [InlineData("\"1.0.0\"")]
+            [InlineData("1.0.0.0.0")]
+            [InlineData("1.0.0.a")]
+            [InlineData("1.0.0.-alpha")]
+            [InlineData("1.0.0-beta.01")]
+            [InlineData("alpha")]
+            [InlineData("")]
+            public void DoesNotBuildGetOperationForSingleValidPackageIdAndSingleInvalidVersion(string version)
+            {
+                ParsedQuery.Grouping[QueryField.PackageId] = new HashSet<string>(new[] { Id });
+                ParsedQuery.Grouping[QueryField.Version] = new HashSet<string>(new[] { version });
+
+                var actual = Build();
+
+                Assert.Equal(IndexOperationType.Search, actual.Type);
+            }
+
+            [Theory]
+            [InlineData("1.0.0", "1.0.0")]
+            [InlineData("1.0.0-BETA", "1.0.0-BETA")]
+            [InlineData("1.0.0-beta01", "1.0.0-beta01")]
+            [InlineData("1.0.0-beta.2", "1.0.0-beta.2")]
+            [InlineData("1.0.0.0", "1.0.0")]
+            [InlineData("1.0.0-ALPHA+git", "1.0.0-ALPHA")]
+            [InlineData("1.0.0-alpha+git", "1.0.0-alpha")]
+            [InlineData("1.0.00-alpha", "1.0.0-alpha")]
+            [InlineData("1.0.01-alpha", "1.0.1-alpha")]
+            [InlineData("   1.0.0   ", "1.0.0")]
+            public void NormalizesVersion(string version, string normalized)
+            {
+                ParsedQuery.Grouping[QueryField.PackageId] = new HashSet<string>(new[] { Id });
+                ParsedQuery.Grouping[QueryField.Version] = new HashSet<string>(new[] { version });
+
+                var actual = Build();
+
+                Assert.Equal(IndexOperationType.Get, actual.Type);
+                Assert.Equal(
+                    DocumentUtilities.GetHijackDocumentKey(Id, normalized),
+                    actual.DocumentKey);
+            }
+
+            [Fact]
+            public void IgnoresFiltersWithSpecificPackageIdAndVersion()
+            {
+                V2SearchRequest.IncludePrerelease = false;
+                V2SearchRequest.IncludeSemVer2 = false;
+                var prereleaseSemVer2 = "1.0.0-beta.1";
+                ParsedQuery.Grouping[QueryField.PackageId] = new HashSet<string>(new[] { Id });
+                ParsedQuery.Grouping[QueryField.Version] = new HashSet<string>(new[] { prereleaseSemVer2 });
+
+                var actual = Build();
+
+                Assert.Equal(IndexOperationType.Get, actual.Type);
+                Assert.Equal(
+                    DocumentUtilities.GetHijackDocumentKey(Id, prereleaseSemVer2),
+                    actual.DocumentKey);
+            }
+
+            [Fact]
+            public void DoesNotBuildGetOperationForNonPackageIdAndVersion()
+            {
+                ParsedQuery.Grouping[QueryField.Id] = new HashSet<string>(new[] { Id });
+                ParsedQuery.Grouping[QueryField.Version] = new HashSet<string>(new[] { Version });
+
+                var actual = Build();
+
+                Assert.Equal(IndexOperationType.Search, actual.Type);
+            }
+
+            [Fact]
+            public void DoesNotBuildGetOperationForMultiplePackageIds()
+            {
+                ParsedQuery.Grouping[QueryField.PackageId] = new HashSet<string>(new[] { Id, "A" });
+                ParsedQuery.Grouping[QueryField.Version] = new HashSet<string>(new[] { Version });
+
+                var actual = Build();
+
+                Assert.Equal(IndexOperationType.Search, actual.Type);
+            }
+
+            [Fact]
+            public void DoesNotBuildGetOperationForMultipleVersions()
+            {
+                ParsedQuery.Grouping[QueryField.PackageId] = new HashSet<string>(new[] { Id });
+                ParsedQuery.Grouping[QueryField.Version] = new HashSet<string>(new[] { Version, "9.9.9" });
+
+                var actual = Build();
+
+                Assert.Equal(IndexOperationType.Search, actual.Type);
+            }
+
+            [Fact]
+            public void DoesNotBuildGetOperationForPackageIdVersionAndExtra()
+            {
+                ParsedQuery.Grouping[QueryField.PackageId] = new HashSet<string>(new[] { Id });
+                ParsedQuery.Grouping[QueryField.Version] = new HashSet<string>(new[] { Version });
+                ParsedQuery.Grouping[QueryField.Description] = new HashSet<string>(new[] { "hi" });
+
+                var actual = Build();
+
+                Assert.Equal(IndexOperationType.Search, actual.Type);
+            }
+
+            [Fact]
+            public void DoesNotBuildGetOperationForEmptyPackageId()
+            {
+                ParsedQuery.Grouping[QueryField.PackageId] = new HashSet<string>();
+                ParsedQuery.Grouping[QueryField.Version] = new HashSet<string>(new[] { Version });
+
+                var actual = Build();
+
+                Assert.Equal(IndexOperationType.Search, actual.Type);
+            }
+
+            [Fact]
+            public void DoesNotBuildGetOperationForEmptyVersion()
+            {
+                ParsedQuery.Grouping[QueryField.PackageId] = new HashSet<string>(new[] { Id });
+                ParsedQuery.Grouping[QueryField.Version] = new HashSet<string>();
+
+                var actual = Build();
+
+                Assert.Equal(IndexOperationType.Search, actual.Type);
+            }
+
+            [Fact]
+            public void DoesNotBuildGetOperationForSkippingFirstItem()
+            {
+                V2SearchRequest.Skip = 1;
+                ParsedQuery.Grouping[QueryField.PackageId] = new HashSet<string>(new[] { Id });
+                ParsedQuery.Grouping[QueryField.Version] = new HashSet<string>(new[] { Version });
+
+                var actual = Build();
+
+                Assert.Equal(IndexOperationType.Search, actual.Type);
+            }
+
+            [Fact]
+            public void DoesNotBuildGetOperationForNoTake()
+            {
+                V2SearchRequest.Take = 0;
+                ParsedQuery.Grouping[QueryField.PackageId] = new HashSet<string>(new[] { Id });
+                ParsedQuery.Grouping[QueryField.Version] = new HashSet<string>(new[] { Version });
+
+                var actual = Build();
+
+                Assert.Equal(IndexOperationType.Search, actual.Type);
+            }
+
+            [Fact]
+            public void CallsDependenciesForGetOperation()
+            {
+                ParsedQuery.Grouping[QueryField.PackageId] = new HashSet<string>(new[] { Id });
+                ParsedQuery.Grouping[QueryField.Version] = new HashSet<string>(new[] { Version });
+
+                Build();
+
+                TextBuilder.Verify(x => x.ParseV2Search(V2SearchRequest), Times.Once);
+                TextBuilder.Verify(x => x.Build(It.IsAny<ParsedQuery>()), Times.Never);
+                ParametersBuilder.Verify(x => x.V2Search(It.IsAny<V2SearchRequest>()), Times.Never);
+            }
+
             [Fact]
             public void CallsDependenciesForSearchOperation()
             {
                 Build();
 
                 TextBuilder.Verify(x => x.ParseV2Search(V2SearchRequest), Times.Once);
+                TextBuilder.Verify(x => x.Build(ParsedQuery), Times.Once);
                 ParametersBuilder.Verify(x => x.V2Search(V2SearchRequest), Times.Once);
             }
         }

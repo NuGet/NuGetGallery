@@ -4,6 +4,7 @@
 using System;
 using System.Threading.Tasks;
 using NuGet.Services.AzureSearch.Wrappers;
+using NuGetGallery;
 
 namespace NuGet.Services.AzureSearch.SearchService
 {
@@ -119,6 +120,42 @@ namespace NuGet.Services.AzureSearch.SearchService
             V2SearchResponse output;
             switch (operation.Type)
             {
+                case IndexOperationType.Get:
+                    var documentResult = await Measure.DurationWithValueAsync(
+                        () => _hijackIndex.Documents.GetOrNullAsync<HijackDocument.Full>(operation.DocumentKey));
+
+                    // If the request is excluding SemVer 2.0.0 packages and the document is SemVer 2.0.0, filter it
+                    // out. The must be done after fetching the document because some SemVer 2.0.0 packages are
+                    // SemVer 2.0.0 because of a dependency version or because of build metadata (e.g. 1.0.0+metadata).
+                    // Neither of these reasons is apparent from the request. Build metadata is not used for comparison
+                    // so if someone searchs for "version:1.0.0+foo" and the actual package version is "1.0.0" or
+                    // "1.0.0+bar" the document will still be returned.
+                    //
+                    // A request looking for a specific package version that is SemVer 2.0.0 due to dots in the
+                    // prerelease label (e.g. 1.0.0-beta.1) could no-op if the request is not including SemVer 2.0.0
+                    // but that's not worth the effort since we can catch that case after fetching the document anyway.
+                    // It's more consistent with the search operation path to make the SemVer 2.0.0 filtering decision
+                    // solely based on the document data.
+                    //
+                    // Note that the prerelease filter is ignored here by design. This is legacy behavior from the
+                    // previous search implementation.
+                    var document = documentResult.Value;
+                    if (document != null
+                        && !request.IncludeSemVer2
+                        && document.SemVerLevel == SemVerLevelKey.SemVer2)
+                    {
+                        document = null;
+                    }
+
+                    output = _responseBuilder.V2FromHijackDocument(
+                        request,
+                        operation.DocumentKey,
+                        document,
+                        documentResult.Duration);
+
+                    _telemetryService.TrackV2GetDocumentWithHijackIndex(documentResult.Duration);
+                    break;
+
                 case IndexOperationType.Search:
                     var result = await Measure.DurationWithValueAsync(() => _hijackIndex.Documents.SearchAsync<HijackDocument.Full>(
                         operation.SearchText,
@@ -148,6 +185,19 @@ namespace NuGet.Services.AzureSearch.SearchService
             V2SearchResponse output;
             switch (operation.Type)
             {
+                case IndexOperationType.Get:
+                    var documentResult = await Measure.DurationWithValueAsync(
+                        () => _searchIndex.Documents.GetOrNullAsync<SearchDocument.Full>(operation.DocumentKey));
+
+                    output = _responseBuilder.V2FromSearchDocument(
+                        request,
+                        operation.DocumentKey,
+                        documentResult.Value,
+                        documentResult.Duration);
+
+                    _telemetryService.TrackV2GetDocumentWithSearchIndex(documentResult.Duration);
+                    break;
+
                 case IndexOperationType.Search:
                     var result = await Measure.DurationWithValueAsync(() => _searchIndex.Documents.SearchAsync<SearchDocument.Full>(
                         operation.SearchText,
