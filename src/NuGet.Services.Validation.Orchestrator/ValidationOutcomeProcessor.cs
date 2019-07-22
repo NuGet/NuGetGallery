@@ -52,7 +52,11 @@ namespace NuGet.Services.Validation.Orchestrator
             _validationConfigurationsByName = _validationConfiguration.Validations.ToDictionary(v => v.Name);
         }
 
-        public async Task ProcessValidationOutcomeAsync(PackageValidationSet validationSet, IValidatingEntity<T> validatingEntity, ValidationSetProcessorResult currentCallStats)
+        public async Task ProcessValidationOutcomeAsync(
+            PackageValidationSet validationSet,
+            IValidatingEntity<T> validatingEntity,
+            ValidationSetProcessorResult currentCallStats,
+            bool scheduleNextCheck)
         {
             var failedValidations = GetFailedValidations(validationSet);
 
@@ -131,7 +135,11 @@ namespace NuGet.Services.Validation.Orchestrator
 
                 if (areOptionalValidationsRunning)
                 {
-                    await ScheduleCheckIfNotTimedOut(validationSet, validatingEntity, tooLongNotificationAllowed: false);
+                    await ScheduleCheckIfNotTimedOut(
+                        validationSet,
+                        validatingEntity,
+                        scheduleNextCheck,
+                        tooLongNotificationAllowed: false);
                 }
 
                 // TODO: implement delayed cleanup that would allow internal services
@@ -140,7 +148,11 @@ namespace NuGet.Services.Validation.Orchestrator
             }
             else
             {
-                await ScheduleCheckIfNotTimedOut(validationSet, validatingEntity, tooLongNotificationAllowed: true);
+                await ScheduleCheckIfNotTimedOut(
+                    validationSet,
+                    validatingEntity,
+                    scheduleNextCheck,
+                    tooLongNotificationAllowed: true);
             }
         }
 
@@ -276,22 +288,29 @@ namespace NuGet.Services.Validation.Orchestrator
             return validationSetDuration;
         }
 
-        private async Task ScheduleCheckIfNotTimedOut(PackageValidationSet validationSet, IValidatingEntity<T> validatingEntity, bool tooLongNotificationAllowed)
+        private async Task ScheduleCheckIfNotTimedOut(
+            PackageValidationSet validationSet,
+            IValidatingEntity<T> validatingEntity,
+            bool scheduleNextCheck,
+            bool tooLongNotificationAllowed)
         {
             var validationSetDuration = await UpdateValidationDurationAsync(validationSet, validatingEntity, tooLongNotificationAllowed);
 
             // Schedule another check if we haven't reached the validation set timeout yet.
             if (validationSetDuration <= _validationConfiguration.TimeoutValidationSetAfter)
             {
-                var messageData = new PackageValidationMessageData(
-                    validationSet.PackageId,
-                    validationSet.PackageNormalizedVersion,
-                    validationSet.ValidationTrackingId,
-                    validationSet.ValidatingType,
-                    entityKey: validationSet.PackageKey);
-                var postponeUntil = DateTimeOffset.UtcNow + _validationConfiguration.ValidationMessageRecheckPeriod;
+                if (scheduleNextCheck)
+                {
+                    var messageData = PackageValidationMessageData.NewProcessValidationSet(
+                        validationSet.PackageId,
+                        validationSet.PackageNormalizedVersion,
+                        validationSet.ValidationTrackingId,
+                        validationSet.ValidatingType,
+                        entityKey: validationSet.PackageKey);
+                    var postponeUntil = DateTimeOffset.UtcNow + _validationConfiguration.ValidationMessageRecheckPeriod;
 
-                await _validationEnqueuer.StartValidationAsync(messageData, postponeUntil);
+                    await _validationEnqueuer.StartValidationAsync(messageData, postponeUntil);
+                }
             }
             else
             {

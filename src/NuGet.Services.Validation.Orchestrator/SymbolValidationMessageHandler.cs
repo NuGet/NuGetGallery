@@ -68,6 +68,63 @@ namespace NuGet.Services.Validation.Orchestrator
                 throw new ArgumentNullException(nameof(message));
             }
 
+            switch (message.Type)
+            {
+                case PackageValidationMessageType.CheckValidator:
+                    return await CheckValidatorAsync(message.CheckValidator);
+                case PackageValidationMessageType.ProcessValidationSet:
+                    return await ProcessValidationSetAsync(message.ProcessValidationSet, message.DeliveryCount);
+                default:
+                    throw new NotSupportedException($"The package validation message type '{message.Type}' is not supported.");
+            }
+        }
+
+        private async Task<bool> CheckValidatorAsync(CheckValidatorData message)
+        {
+            PackageValidationSet validationSet;
+            IValidatingEntity<SymbolPackage> symbolPackageEntity;
+            using (_logger.BeginScope("Finding validation set and symbol package for validation ID {ValidationId}", message.ValidationId))
+            {
+                validationSet = await _validationSetProvider.TryGetParentValidationSetAsync(message.ValidationId);
+                if (validationSet == null)
+                {
+                    _logger.LogError("Could not find validation set for {ValidationId}.", message.ValidationId);
+                    return false;
+                }
+
+                if (validationSet.ValidatingType != ValidatingType.SymbolPackage)
+                {
+                    _logger.LogError("Validation set {ValidationSetId} is not for a symbol package.", message.ValidationId);
+                    return false;
+                }
+
+                symbolPackageEntity = _gallerySymbolService.FindPackageByKey(validationSet.PackageKey);
+                if (symbolPackageEntity == null)
+                {
+                    _logger.LogError(
+                        "Could not find symbol package {PackageId} {PackageVersion} {Key} for validation set {ValidationSetId}.",
+                        validationSet.PackageId,
+                        validationSet.PackageNormalizedVersion,
+                        validationSet.PackageKey,
+                        validationSet.ValidationTrackingId);
+                    return false;
+                }
+            }
+
+            using (_logger.BeginScope("Handling check symbol validator message for {PackageId} {PackageVersion} {Key} validation set {ValidationSetId}",
+                validationSet.PackageId,
+                validationSet.PackageNormalizedVersion,
+                validationSet.PackageKey,
+                validationSet.ValidationTrackingId))
+            {
+                await ProcessValidationSetAsync(symbolPackageEntity, validationSet, scheduleNextCheck: false);
+            }
+
+            return true;
+        }
+
+        private async Task<bool> ProcessValidationSetAsync(ProcessValidationSetData message, int deliveryCount)
+        {
             using (_logger.BeginScope("Handling symbol message for {PackageId} {PackageVersion} validation set {ValidationSetId}",
                 message.PackageId,
                 message.PackageNormalizedVersion,
@@ -82,12 +139,12 @@ namespace NuGet.Services.Validation.Orchestrator
                 if (symbolPackageEntity == null)
                 {
                     // no package in DB yet. Might have received message a bit early, need to retry later
-                    if (message.DeliveryCount - 1 >= _configs.MissingPackageRetryCount)
+                    if (deliveryCount - 1 >= _configs.MissingPackageRetryCount)
                     {
                         _logger.LogWarning("Could not find symbols for package {PackageId} {PackageNormalizedVersion} in DB after {DeliveryCount} tries, dropping message",
                             message.PackageId,
                             message.PackageNormalizedVersion,
-                            message.DeliveryCount);
+                            deliveryCount);
 
                         _telemetryService.TrackMissingPackageForValidationMessage(
                             message.PackageId,
@@ -120,23 +177,35 @@ namespace NuGet.Services.Validation.Orchestrator
                     return true;
                 }
 
-                if (validationSet.ValidationSetStatus == ValidationSetStatus.Completed)
-                {
-                    _logger.LogInformation(
-                        "The validation set {PackageId} {PackageNormalizedVersion} {ValidationSetId} is already " +
-                        "completed. Discarding the message.",
-                        message.PackageId,
-                        message.PackageNormalizedVersion,
-                        message.ValidationTrackingId);
-                    return true;
-                }
-
-                var processorStats = await _validationSetProcessor.ProcessValidationsAsync(validationSet);
-                // As part of the processing the validation outcome the orchestrator will send itself a message if validation are still being processed.
-                await _validationOutcomeProcessor.ProcessValidationOutcomeAsync(validationSet, symbolPackageEntity, processorStats);
+                await ProcessValidationSetAsync(symbolPackageEntity, validationSet, scheduleNextCheck: true);
             }
 
             return true;
+        }
+
+        private async Task ProcessValidationSetAsync(
+            IValidatingEntity<SymbolPackage> symbolPackageEntity,
+            PackageValidationSet validationSet,
+            bool scheduleNextCheck)
+        {
+            if (validationSet.ValidationSetStatus == ValidationSetStatus.Completed)
+            {
+                _logger.LogInformation(
+                    "The validation set {PackageId} {PackageNormalizedVersion} {ValidationSetId} is already " +
+                    "completed. Discarding the message.",
+                    validationSet.PackageId,
+                    validationSet.PackageNormalizedVersion,
+                    validationSet.ValidationTrackingId);
+                return;
+            }
+
+            var processorStats = await _validationSetProcessor.ProcessValidationsAsync(validationSet);
+
+            await _validationOutcomeProcessor.ProcessValidationOutcomeAsync(
+                validationSet,
+                symbolPackageEntity,
+                processorStats,
+                scheduleNextCheck);
         }
     }
 }

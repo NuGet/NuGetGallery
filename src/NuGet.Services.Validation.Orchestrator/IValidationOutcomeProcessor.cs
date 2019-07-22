@@ -21,7 +21,12 @@ namespace NuGet.Services.Validation.Orchestrator
         /// <param name="validatingEntity">The validating entity.</param>
         /// <param name="currentCallStats">Contains information about what happened during current message processing in
         /// the validation set processor.</param>
+        /// <param name="scheduleNextCheck">Whether or not the next check should be scheduled.</param>
         /// <returns>A task that completes when the outcome has been processed</returns>
-        Task ProcessValidationOutcomeAsync(PackageValidationSet validationSet, IValidatingEntity<T> validatingEntity, ValidationSetProcessorResult currentCallStats);
+        Task ProcessValidationOutcomeAsync(
+            PackageValidationSet validationSet,
+            IValidatingEntity<T> validatingEntity,
+            ValidationSetProcessorResult currentCallStats,
+            bool scheduleNextCheck);
     }
 }

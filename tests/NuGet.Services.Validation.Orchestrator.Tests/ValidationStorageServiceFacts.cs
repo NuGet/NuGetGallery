@@ -120,6 +120,37 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             }
         }
 
+        public class TryGetParentValidationSetAsync : Facts
+        {
+            public TryGetParentValidationSetAsync(ITestOutputHelper output) : base(output)
+            {
+            }
+
+            [Fact]
+            public async Task ReturnsNullWhenValidationIdDoesNotMatch()
+            {
+                var differentValidationId = Guid.Parse("ca9be0e6-a9e1-49ae-ba35-53c4ee1e45fa");
+                _packageValidation.PackageValidationSet = new PackageValidationSet();
+                _entitiesContext.Object.PackageValidations.Add(_packageValidation);
+
+                var output = await _target.TryGetParentValidationSetAsync(differentValidationId);
+
+                Assert.Null(output);
+            }
+
+            [Fact]
+            public async Task ReturnsValidationSetWhenValidationIdMatches()
+            {
+                var packageValidationSet = new PackageValidationSet();
+                _packageValidation.PackageValidationSet = packageValidationSet;
+                _entitiesContext.Object.PackageValidations.Add(_packageValidation);
+
+                var output = await _target.TryGetParentValidationSetAsync(_packageValidation.Key);
+
+                Assert.Same(packageValidationSet, output);
+            }
+        }
+
         public class GetValidationSetCountAsync : Facts
         {
             public GetValidationSetCountAsync(ITestOutputHelper output) : base(output)
@@ -463,6 +494,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 _validatorType = "ExampleValidator";
                 _packageValidation = new PackageValidation
                 {
+                    Key = Guid.Parse("dc10bf5a-0557-459c-b33f-ea6738b8a044"),
                     Type = _validatorType,
                     ValidationStatus = ValidationStatus.Incomplete,
                     Started = new DateTime(2017, 1, 1, 8, 30, 0, DateTimeKind.Utc),
@@ -482,6 +514,9 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 _entitiesContext
                     .Setup(x => x.PackageValidationSets)
                     .Returns(DbSetMockFactory.Create<PackageValidationSet>());
+                _entitiesContext
+                    .Setup(x => x.PackageValidations)
+                    .Returns(DbSetMockFactory.Create<PackageValidation>());
 
                 _packageFileService = new Mock<IValidationFileService>();
 

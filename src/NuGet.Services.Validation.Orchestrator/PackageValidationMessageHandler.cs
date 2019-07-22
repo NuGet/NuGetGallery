@@ -65,6 +65,74 @@ namespace NuGet.Services.Validation.Orchestrator
                 throw new ArgumentNullException(nameof(message));
             }
 
+            switch (message.Type)
+            {
+                case PackageValidationMessageType.CheckValidator:
+                    return await CheckValidatorAsync(message.CheckValidator);
+                case PackageValidationMessageType.ProcessValidationSet:
+                    return await ProcessValidationSetAsync(message.ProcessValidationSet, message.DeliveryCount);
+                default:
+                    throw new NotSupportedException($"The package validation message type '{message.Type}' is not supported.");
+            }
+        }
+
+        private async Task<bool> CheckValidatorAsync(CheckValidatorData message)
+        {
+            PackageValidationSet validationSet;
+            IValidatingEntity<Package> package;
+            using (_logger.BeginScope("Finding validation set and package for validation ID {ValidationId}", message.ValidationId))
+            {
+                validationSet = await _validationSetProvider.TryGetParentValidationSetAsync(message.ValidationId);
+                if (validationSet == null)
+                {
+                    _logger.LogError("Could not find validation set for {ValidationId}.", message.ValidationId);
+                    return false;
+                }
+
+                if (validationSet.ValidatingType != ValidatingType.Package)
+                {
+                    _logger.LogError("Validation set {ValidationSetId} is not for a package.", message.ValidationId);
+                    return false;
+                }
+
+                package = _galleryPackageService.FindPackageByKey(validationSet.PackageKey);
+                if (package == null)
+                {
+                    _logger.LogError(
+                        "Could not find package {PackageId} {PackageVersion} for validation set {ValidationSetId}.",
+                        validationSet.PackageId,
+                        validationSet.PackageNormalizedVersion,
+                        validationSet.ValidationTrackingId);
+                    return false;
+                }
+                
+                // Immediately halt validation of a soft deleted package.
+                if (package.Status == PackageStatus.Deleted)
+                {
+                    _logger.LogWarning(
+                        "Package {PackageId} {PackageNormalizedVersion} (package key {PackageKey}) is soft deleted. Dropping message for validation set {ValidationSetId}.",
+                        validationSet.PackageId,
+                        validationSet.PackageNormalizedVersion,
+                        package.Key,
+                        validationSet.ValidationTrackingId);
+
+                    return true;
+                }
+            }
+
+            using (_logger.BeginScope("Handling check validator message for {PackageId} {PackageVersion} validation set {ValidationSetId}",
+                validationSet.PackageId,
+                validationSet.PackageNormalizedVersion,
+                validationSet.ValidationTrackingId))
+            {
+                await ProcessValidationSetAsync(package, validationSet, scheduleNextCheck: false);
+            }
+
+            return true;
+        }
+
+        private async Task<bool> ProcessValidationSetAsync(ProcessValidationSetData message, int deliveryCount)
+        {
             using (_logger.BeginScope("Handling message for {PackageId} {PackageVersion} validation set {ValidationSetId}",
                 message.PackageId,
                 message.PackageNormalizedVersion,
@@ -75,12 +143,12 @@ namespace NuGet.Services.Validation.Orchestrator
                 if (package == null)
                 {
                     // no package in DB yet. Might have received message a bit early, need to retry later
-                    if (message.DeliveryCount - 1 >= _configs.MissingPackageRetryCount)
+                    if (deliveryCount - 1 >= _configs.MissingPackageRetryCount)
                     {
                         _logger.LogWarning("Could not find package {PackageId} {PackageNormalizedVersion} in DB after {DeliveryCount} tries, dropping message",
                             message.PackageId,
                             message.PackageNormalizedVersion,
-                            message.DeliveryCount);
+                            deliveryCount);
 
                         _telemetryService.TrackMissingPackageForValidationMessage(
                             message.PackageId,
@@ -125,21 +193,35 @@ namespace NuGet.Services.Validation.Orchestrator
                     return true;
                 }
 
-                if (validationSet.ValidationSetStatus == ValidationSetStatus.Completed)
-                {
-                    _logger.LogInformation(
-                        "The validation set {PackageId} {PackageNormalizedVersion} {ValidationSetId} is already " +
-                        "completed. Discarding the message.",
-                        message.PackageId,
-                        message.PackageNormalizedVersion,
-                        message.ValidationTrackingId);
-                    return true;
-                }
-
-                var processorStats = await _validationSetProcessor.ProcessValidationsAsync(validationSet);
-                await _validationOutcomeProcessor.ProcessValidationOutcomeAsync(validationSet, package, processorStats);
+                await ProcessValidationSetAsync(package, validationSet, scheduleNextCheck: true);
             }
+
             return true;
+        }
+
+        private async Task ProcessValidationSetAsync(
+            IValidatingEntity<Package> package,
+            PackageValidationSet validationSet,
+            bool scheduleNextCheck)
+        {
+            if (validationSet.ValidationSetStatus == ValidationSetStatus.Completed)
+            {
+                _logger.LogInformation(
+                    "The validation set {PackageId} {PackageNormalizedVersion} {ValidationSetId} is already " +
+                    "completed. Discarding the message.",
+                    validationSet.PackageId,
+                    validationSet.PackageNormalizedVersion,
+                    validationSet.ValidationTrackingId);
+                return;
+            }
+
+            var processorStats = await _validationSetProcessor.ProcessValidationsAsync(validationSet);
+
+            await _validationOutcomeProcessor.ProcessValidationOutcomeAsync(
+                validationSet,
+                package,
+                processorStats,
+                scheduleNextCheck);
         }
     }
 }

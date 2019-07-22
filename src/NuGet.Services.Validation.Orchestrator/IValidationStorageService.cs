@@ -27,6 +27,14 @@ namespace NuGet.Services.Validation.Orchestrator
         Task<PackageValidationSet> GetValidationSetAsync(Guid validationTrackingId);
 
         /// <summary>
+        /// Reads a validation set from storage based given and ID of one of the validations in the set. If no such
+        /// validation exists, null is returned.
+        /// </summary>
+        /// <param name="validationId">The validation ID.</param>
+        /// <returns>The validation set, or null.</returns>
+        Task<PackageValidationSet> TryGetParentValidationSetAsync(Guid validationId);
+
+        /// <summary>
         /// Gets the number of validation sets that the provided entity has.
         /// </summary>
         /// <param name="entity">The entity.</param>
