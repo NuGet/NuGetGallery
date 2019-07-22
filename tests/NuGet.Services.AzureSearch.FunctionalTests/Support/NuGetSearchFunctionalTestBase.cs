@@ -40,9 +40,24 @@ namespace NuGet.Services.AzureSearch.FunctionalTests
         /// <param name="includePrerelease">Whether prerelease results should be included.</param>
         /// <param name="includeSemVer2">Whether semver2 results should be included.</param>
         /// <returns>The package ids' that matches the query, lowercased.</returns>
-        protected async Task<IReadOnlyList<string>> SearchAsync(string query, bool includePrerelease = true, bool includeSemVer2 = true)
+        protected async Task<IReadOnlyList<string>> SearchAsync(
+            string query,
+            int? skip = 0,
+            int? take = 20,
+            bool includePrerelease = true,
+            bool includeSemVer2 = true)
         {
             var requestUri = $"/query?q={HttpUtility.UrlEncode(query)}";
+
+            if (skip.HasValue)
+            {
+                requestUri += $"&skip={skip}";
+            }
+
+            if (take.HasValue)
+            {
+                requestUri += $"&skip={take}";
+            }
 
             if (includePrerelease)
             {
