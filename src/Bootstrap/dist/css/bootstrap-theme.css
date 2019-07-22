@@ -1493,9 +1493,6 @@ img.reserved-indicator-icon {
 .page-search-sxs .col-package-icon {
   padding-right: 0;
 }
-.page-search-sxs .package .package-legacy-title {
-  display: none;
-}
 .page-search-sxs .panel-body p:last-child {
   margin-bottom: 0;
 }
