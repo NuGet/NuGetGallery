@@ -7,7 +7,7 @@ using System.Globalization;
 
 namespace NuGetGallery
 {
-    public class GalleryCloudBlobFolderInformationProvider : ICloudBlobFolderInformationProvider
+    public class GalleryCloudBlobContainerInformationProvider : ICloudBlobContainerInformationProvider
     {
         private static readonly HashSet<string> KnownPublicFolders = new HashSet<string> {
             CoreConstants.Folders.PackagesFolderName,
@@ -93,7 +93,7 @@ namespace NuGetGallery
             }
         }
 
-        public bool IsPublicFolder(string folderName)
+        public bool IsPublicContainer(string folderName)
         {
             if (KnownPublicFolders.Contains(folderName))
             {

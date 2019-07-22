@@ -27,7 +27,7 @@ namespace NuGetGallery
         private static CloudBlobFileStorageService CreateService(
             Mock<ICloudBlobClient> fakeBlobClient = null,
             Mock<ISourceDestinationRedirectPolicy> redirectPolicy = null,
-            Mock<ICloudBlobFolderInformationProvider> folderInformationProvider = null)
+            Mock<ICloudBlobContainerInformationProvider> folderInformationProvider = null)
         {
             if (fakeBlobClient == null)
             {
@@ -42,9 +42,9 @@ namespace NuGetGallery
 
             if (folderInformationProvider == null)
             {
-                folderInformationProvider = new Mock<ICloudBlobFolderInformationProvider>();
+                folderInformationProvider = new Mock<ICloudBlobContainerInformationProvider>();
                 folderInformationProvider
-                    .Setup(fip => fip.IsPublicFolder(It.IsAny<string>()))
+                    .Setup(fip => fip.IsPublicContainer(It.IsAny<string>()))
                     .Returns(false);
             }
 

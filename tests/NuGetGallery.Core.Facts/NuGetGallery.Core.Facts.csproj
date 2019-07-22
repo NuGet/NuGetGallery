@@ -103,7 +103,7 @@
     <Compile Include="Services\FileUriPermissionsFacts.cs" />
     <Compile Include="Services\FolderNamesDataAttribute.cs" />
     <Compile Include="Services\FolderNamesDataAttributeFacts.cs" />
-    <Compile Include="Services\GalleryCloudBlobFolderInformationProviderFacts.cs" />
+    <Compile Include="Services\GalleryCloudBlobContainerInformationProviderFacts.cs" />
     <Compile Include="Services\RevalidationStateServiceFacts.cs" />
     <Compile Include="TestUtils\BlobStorageCollection.cs" />
     <Compile Include="TestUtils\BlobStorageFact.cs" />

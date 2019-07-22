@@ -20,7 +20,7 @@ namespace NuGetGallery
     {
         private static CloudBlobCoreFileStorageService CreateService(
             Mock<ICloudBlobClient> fakeBlobClient = null, 
-            Mock<ICloudBlobFolderInformationProvider> fakeFolderInformationProvider = null)
+            Mock<ICloudBlobContainerInformationProvider> fakeFolderInformationProvider = null)
         {
             if (fakeBlobClient == null)
             {
@@ -29,9 +29,9 @@ namespace NuGetGallery
 
             if (fakeFolderInformationProvider == null)
             {
-                fakeFolderInformationProvider = new Mock<ICloudBlobFolderInformationProvider>();
+                fakeFolderInformationProvider = new Mock<ICloudBlobContainerInformationProvider>();
                 fakeFolderInformationProvider
-                    .Setup(fip => fip.IsPublicFolder(It.IsAny<string>()))
+                    .Setup(fip => fip.IsPublicContainer(It.IsAny<string>()))
                     .Returns(false);
                 fakeFolderInformationProvider
                     .Setup(fip => fip.GetContentType(It.IsAny<string>()))
@@ -467,7 +467,7 @@ namespace NuGetGallery
                 fakeBlob.Setup(x => x.DeleteIfExistsAsync()).Returns(Task.FromResult(0));
                 fakeBlob.Setup(x => x.UploadFromStreamAsync(It.IsAny<Stream>(), true)).Returns(Task.FromResult(0));
                 fakeBlob.Setup(x => x.SetPropertiesAsync()).Returns(Task.FromResult(0));
-                var fakeFolderInformationProvider = new Mock<ICloudBlobFolderInformationProvider>();
+                var fakeFolderInformationProvider = new Mock<ICloudBlobContainerInformationProvider>();
                 const string ContentType = "some/content-type";
                 fakeFolderInformationProvider
                     .Setup(fip => fip.GetContentType(folderName))
@@ -497,7 +497,7 @@ namespace NuGetGallery
                 fakeBlob.Setup(x => x.Uri).Returns(new Uri("http://theUri"));
                 fakeBlob.Setup(x => x.DeleteIfExistsAsync()).Returns(Task.FromResult(0));
                 fakeBlob.Setup(x => x.SetPropertiesAsync()).Returns(Task.FromResult(0));
-                var fakeFolderInformationProvider = new Mock<ICloudBlobFolderInformationProvider>();
+                var fakeFolderInformationProvider = new Mock<ICloudBlobContainerInformationProvider>();
                 fakeFolderInformationProvider
                     .Setup(fip => fip.GetContentType(folderName))
                     .Returns("some/content-type");
@@ -675,7 +675,7 @@ namespace NuGetGallery
                 fakeBlob.Setup(x => x.DeleteIfExistsAsync()).Returns(Task.FromResult(0));
                 fakeBlob.Setup(x => x.UploadFromStreamAsync(It.IsAny<Stream>(), true)).Returns(Task.FromResult(0));
                 fakeBlob.Setup(x => x.SetPropertiesAsync()).Returns(Task.FromResult(0));
-                var fakeFolderInformationProvider = new Mock<ICloudBlobFolderInformationProvider>();
+                var fakeFolderInformationProvider = new Mock<ICloudBlobContainerInformationProvider>();
                 const string ContentType = "some/content-type";
                 fakeFolderInformationProvider
                     .Setup(fip => fip.GetContentType(folderName))
@@ -867,9 +867,9 @@ namespace NuGetGallery
                 fakeBlob
                     .Setup(b => b.GetSharedAccessSignature(SharedAccessBlobPermissions.Read, It.IsAny<DateTimeOffset?>()))
                     .Returns(signature);
-                var fakeFolderInformationProvider = new Mock<ICloudBlobFolderInformationProvider>();
+                var fakeFolderInformationProvider = new Mock<ICloudBlobContainerInformationProvider>();
                 fakeFolderInformationProvider
-                    .Setup(fip => fip.IsPublicFolder(containerName))
+                    .Setup(fip => fip.IsPublicContainer(containerName))
                     .Returns(isPublicContainer);
                 var service = CreateService(fakeBlobClient, fakeFolderInformationProvider);
 
@@ -881,9 +881,9 @@ namespace NuGetGallery
             [Fact]
             public async Task WillThrowIfNoEndOfAccessSpecifiedForNonPublicContainer()
             {
-                var fakeFolderInformationProvider = new Mock<ICloudBlobFolderInformationProvider>();
+                var fakeFolderInformationProvider = new Mock<ICloudBlobContainerInformationProvider>();
                 fakeFolderInformationProvider
-                    .Setup(fip => fip.IsPublicFolder(It.IsAny<string>()))
+                    .Setup(fip => fip.IsPublicContainer(It.IsAny<string>()))
                     .Returns(false);
                 var service = CreateService(fakeFolderInformationProvider: fakeFolderInformationProvider);
 
@@ -896,9 +896,9 @@ namespace NuGetGallery
             {
                 const string packagesFolderName = CoreConstants.Folders.PackagesFolderName;
                 var setupResult = Setup(packagesFolderName, fileName);
-                var fakeFolderInformationProvider = new Mock<ICloudBlobFolderInformationProvider>();
+                var fakeFolderInformationProvider = new Mock<ICloudBlobContainerInformationProvider>();
                 fakeFolderInformationProvider
-                    .Setup(fip => fip.IsPublicFolder(packagesFolderName))
+                    .Setup(fip => fip.IsPublicContainer(packagesFolderName))
                     .Returns(true);
                 var service = CreateService(setupResult.Item1, fakeFolderInformationProvider);
 

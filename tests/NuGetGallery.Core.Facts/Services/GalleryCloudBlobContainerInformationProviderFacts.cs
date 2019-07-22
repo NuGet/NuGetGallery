@@ -5,13 +5,13 @@ using Xunit;
 
 namespace NuGetGallery
 {
-    public class GalleryCloudBlobFolderInformationProviderFacts
+    public class GalleryCloudBlobContainerInformationProviderFacts
     {
         [Theory]
         [FolderNamesData()]
         public void ProvidesProperCacheControl(string folderName)
         {
-            var target = new GalleryCloudBlobFolderInformationProvider();
+            var target = new GalleryCloudBlobContainerInformationProvider();
 
             var cacheControl = target.GetCacheControl(folderName);
 
@@ -31,7 +31,7 @@ namespace NuGetGallery
         [FolderNamesData(includeContentTypes: true)]
         public void ProvidesProperContentType(string folderName, string expectedContentType)
         {
-            var target = new GalleryCloudBlobFolderInformationProvider();
+            var target = new GalleryCloudBlobContainerInformationProvider();
 
             var contentType = target.GetContentType(folderName);
 

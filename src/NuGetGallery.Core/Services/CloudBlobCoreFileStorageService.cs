@@ -29,13 +29,13 @@ namespace NuGetGallery
 
         protected readonly ICloudBlobClient _client;
         protected readonly IDiagnosticsSource _trace;
-        protected readonly ICloudBlobFolderInformationProvider _cloudBlobFolderInformationProvider;
+        protected readonly ICloudBlobContainerInformationProvider _cloudBlobFolderInformationProvider;
         protected readonly ConcurrentDictionary<string, ICloudBlobContainer> _containers = new ConcurrentDictionary<string, ICloudBlobContainer>();
 
         public CloudBlobCoreFileStorageService(
             ICloudBlobClient client,
             IDiagnosticsService diagnosticsService,
-            ICloudBlobFolderInformationProvider cloudBlobFolderInformationProvider)
+            ICloudBlobContainerInformationProvider cloudBlobFolderInformationProvider)
         {
             _client = client ?? throw new ArgumentNullException(nameof(client));
             _trace = diagnosticsService?.SafeGetSource(nameof(CloudBlobCoreFileStorageService)) ?? throw new ArgumentNullException(nameof(diagnosticsService));
@@ -533,7 +533,7 @@ namespace NuGetGallery
 
         private bool IsPublicContainer(string folderName)
         {
-            return _cloudBlobFolderInformationProvider.IsPublicFolder(folderName);
+            return _cloudBlobFolderInformationProvider.IsPublicContainer(folderName);
         }
 
         private async Task<StorageResult> GetBlobContentAsync(string folderName, string fileName, string ifNoneMatch = null)

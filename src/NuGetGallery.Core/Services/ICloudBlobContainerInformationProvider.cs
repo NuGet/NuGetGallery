@@ -7,28 +7,28 @@ namespace NuGetGallery
     /// Abstracts the specific storage container information allowing to reuse
     /// <see cref="CloudBlobCoreFileStorageService"/> class for any storage account.
     /// </summary>
-    public interface ICloudBlobFolderInformationProvider
+    public interface ICloudBlobContainerInformationProvider
     {
         /// <summary>
         /// Determines if specified folder is publicly accessible.
         /// Used for creation of missing storage containers.
         /// </summary>
-        /// <param name="folderName">Folder name to check.</param>
+        /// <param name="containerName">Folder name to check.</param>
         /// <returns>True if folder is publicly accessible, false otherwise.</returns>
-        bool IsPublicFolder(string folderName);
+        bool IsPublicContainer(string containerName);
 
         /// <summary>
         /// Determines the content type for files stored in the specified folder.
         /// </summary>
-        /// <param name="folderName">Folder name.</param>
+        /// <param name="containerName">Folder name.</param>
         /// <returns>Content type string to be set for the blob.</returns>
-        string GetContentType(string folderName);
+        string GetContentType(string containerName);
 
         /// <summary>
         /// Determines the cache control setting for the blobs stored in the specified folder.
         /// </summary>
-        /// <param name="folderName">Folder name.</param>
+        /// <param name="containerName">Folder name.</param>
         /// <returns>Cache control string to be set for the blob being created.</returns>
-        string GetCacheControl(string folderName);
+        string GetCacheControl(string containerName);
     }
 }
