@@ -389,6 +389,10 @@ namespace NuGetGallery
                 .As<IPackageUpdateService>()
                 .InstancePerLifetimeScope();
 
+            builder.RegisterType<GalleryCloudBlobContainerInformationProvider>()
+                .As<ICloudBlobContainerInformationProvider>()
+                .InstancePerLifetimeScope();
+
             RegisterFeatureFlagsService(builder, configuration);
             RegisterMessagingService(builder, configuration);
 
