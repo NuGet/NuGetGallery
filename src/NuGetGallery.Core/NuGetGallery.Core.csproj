@@ -188,6 +188,8 @@
     <Compile Include="Services\CorePackageService.cs" />
     <Compile Include="Services\CryptographyService.cs" />
     <Compile Include="Services\FileNameHelper.cs" />
+    <Compile Include="Services\GalleryCloudBlobFolderInformationProvider.cs" />
+    <Compile Include="Services\ICloudBlobFolderInformationProvider.cs" />
     <Compile Include="Services\IContentFileMetadataService.cs" />
     <Compile Include="Services\ICoreLicenseFileService.cs" />
     <Compile Include="Services\PackageAlreadyExistsException.cs" />

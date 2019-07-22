@@ -27,34 +27,19 @@ namespace NuGetGallery
         private static readonly TimeSpan MaxCopyDuration = TimeSpan.FromMinutes(10);
         private static readonly TimeSpan CopyPollFrequency = TimeSpan.FromMilliseconds(500);
 
-        private static readonly HashSet<string> KnownPublicFolders = new HashSet<string> {
-            CoreConstants.Folders.PackagesFolderName,
-            CoreConstants.Folders.PackageBackupsFolderName,
-            CoreConstants.Folders.DownloadsFolderName,
-            CoreConstants.Folders.SymbolPackagesFolderName,
-            CoreConstants.Folders.SymbolPackageBackupsFolderName,
-            CoreConstants.Folders.FlatContainerFolderName,
-        };
-
-        private static readonly HashSet<string> KnownPrivateFolders = new HashSet<string> {
-            CoreConstants.Folders.ContentFolderName,
-            CoreConstants.Folders.UploadsFolderName,
-            CoreConstants.Folders.PackageReadMesFolderName,
-            CoreConstants.Folders.ValidationFolderName,
-            CoreConstants.Folders.UserCertificatesFolderName,
-            CoreConstants.Folders.RevalidationFolderName,
-            CoreConstants.Folders.StatusFolderName,
-            CoreConstants.Folders.PackagesContentFolderName,
-        };
-
         protected readonly ICloudBlobClient _client;
         protected readonly IDiagnosticsSource _trace;
+        protected readonly ICloudBlobFolderInformationProvider _cloudBlobFolderInformationProvider;
         protected readonly ConcurrentDictionary<string, ICloudBlobContainer> _containers = new ConcurrentDictionary<string, ICloudBlobContainer>();
 
-        public CloudBlobCoreFileStorageService(ICloudBlobClient client, IDiagnosticsService diagnosticsService)
+        public CloudBlobCoreFileStorageService(
+            ICloudBlobClient client,
+            IDiagnosticsService diagnosticsService,
+            ICloudBlobFolderInformationProvider cloudBlobFolderInformationProvider)
         {
             _client = client ?? throw new ArgumentNullException(nameof(client));
             _trace = diagnosticsService?.SafeGetSource(nameof(CloudBlobCoreFileStorageService)) ?? throw new ArgumentNullException(nameof(diagnosticsService));
+            _cloudBlobFolderInformationProvider = cloudBlobFolderInformationProvider ?? throw new ArgumentNullException(nameof(cloudBlobFolderInformationProvider));
         }
 
         public async Task DeleteFileAsync(string folderName, string fileName)
@@ -548,18 +533,7 @@ namespace NuGetGallery
 
         private bool IsPublicContainer(string folderName)
         {
-            if (KnownPublicFolders.Contains(folderName))
-            {
-                return true;
-            }
-
-            if (KnownPrivateFolders.Contains(folderName))
-            {
-                return false;
-            }
-
-            throw new InvalidOperationException(
-                string.Format(CultureInfo.CurrentCulture, "The folder name {0} is not supported.", folderName));
+            return _cloudBlobFolderInformationProvider.IsPublicFolder(folderName);
         }
 
         private async Task<StorageResult> GetBlobContentAsync(string folderName, string fileName, string ifNoneMatch = null)

@@ -22,14 +22,23 @@ namespace NuGetGallery
     public class CloudBlobCoreFileStorageServiceFacts
     {
         private static CloudBlobCoreFileStorageService CreateService(
-            Mock<ICloudBlobClient> fakeBlobClient = null)
+            Mock<ICloudBlobClient> fakeBlobClient = null, 
+            Mock<ICloudBlobFolderInformationProvider> fakeFolderInformationProvider = null)
         {
             if (fakeBlobClient == null)
             {
                 fakeBlobClient = new Mock<ICloudBlobClient>();
             }
 
-            return new CloudBlobCoreFileStorageService(fakeBlobClient.Object, Mock.Of<IDiagnosticsService>());
+            if (fakeFolderInformationProvider == null)
+            {
+                fakeFolderInformationProvider = new Mock<ICloudBlobFolderInformationProvider>();
+                fakeFolderInformationProvider
+                    .Setup(fip => fip.IsPublicFolder(It.IsAny<string>()))
+                    .Returns(false);
+            }
+
+            return new CloudBlobCoreFileStorageService(fakeBlobClient.Object, Mock.Of<IDiagnosticsService>(), fakeFolderInformationProvider.Object);
         }
 
         private class FolderNamesDataAttribute : DataAttribute
@@ -899,10 +908,13 @@ namespace NuGetGallery
             }
 
             [Theory]
-            [InlineData(CoreConstants.Folders.ValidationFolderName, "http://example.com/" + CoreConstants.Folders.ValidationFolderName + "/" + fileName + signature)]
-            [InlineData(CoreConstants.Folders.PackagesFolderName, "http://example.com/" + CoreConstants.Folders.PackagesFolderName + "/" + fileName)]
-            public async Task WillUseSasTokenDependingOnContainerAvailability(string containerName, string expectedUri)
+            [InlineData(false, fileName + signature)]
+            [InlineData(true, fileName)]
+            public async Task WillUseSasTokenDependingOnContainerAvailability(bool isPublicContainer, string expectedUriPostfix)
             {
+                const string containerName = "someContainerName";
+                const string uriPrefix = "http://example.com/" + containerName + "/";
+                var expectedUri = uriPrefix + expectedUriPostfix;
                 var setupResult = Setup(containerName, fileName);
                 var fakeBlobClient = setupResult.Item1;
                 var fakeBlob = setupResult.Item2;
@@ -911,7 +923,11 @@ namespace NuGetGallery
                 fakeBlob
                     .Setup(b => b.GetSharedAccessSignature(SharedAccessBlobPermissions.Read, It.IsAny<DateTimeOffset?>()))
                     .Returns(signature);
-                var service = CreateService(fakeBlobClient);
+                var fakeFolderInformationProvider = new Mock<ICloudBlobFolderInformationProvider>();
+                fakeFolderInformationProvider
+                    .Setup(fip => fip.IsPublicFolder(containerName))
+                    .Returns(isPublicContainer);
+                var service = CreateService(fakeBlobClient, fakeFolderInformationProvider);
 
                 var uri = await service.GetFileReadUriAsync(containerName, fileName, DateTimeOffset.Now.AddHours(3));
 
@@ -921,7 +937,11 @@ namespace NuGetGallery
             [Fact]
             public async Task WillThrowIfNoEndOfAccessSpecifiedForNonPublicContainer()
             {
-                var service = CreateService();
+                var fakeFolderInformationProvider = new Mock<ICloudBlobFolderInformationProvider>();
+                fakeFolderInformationProvider
+                    .Setup(fip => fip.IsPublicFolder(It.IsAny<string>()))
+                    .Returns(false);
+                var service = CreateService(fakeFolderInformationProvider: fakeFolderInformationProvider);
 
                 var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => service.GetFileReadUriAsync(CoreConstants.Folders.ValidationFolderName, fileName, null));
                 Assert.Equal("endOfAccess", ex.ParamName);
@@ -932,7 +952,11 @@ namespace NuGetGallery
             {
                 const string packagesFolderName = CoreConstants.Folders.PackagesFolderName;
                 var setupResult = Setup(packagesFolderName, fileName);
-                var service = CreateService(setupResult.Item1);
+                var fakeFolderInformationProvider = new Mock<ICloudBlobFolderInformationProvider>();
+                fakeFolderInformationProvider
+                    .Setup(fip => fip.IsPublicFolder(packagesFolderName))
+                    .Returns(true);
+                var service = CreateService(setupResult.Item1, fakeFolderInformationProvider);
 
                 var ex = await Record.ExceptionAsync(() => service.GetFileReadUriAsync(packagesFolderName, fileName, null));
 
