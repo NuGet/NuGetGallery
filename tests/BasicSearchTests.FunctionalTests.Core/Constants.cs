@@ -9,11 +9,13 @@ namespace BasicSearchTests.FunctionalTests.Core
         public const string TestPackageId = "BaseTestPackage";
         public const string TestPackageId_SearchFilters = "BaseTestPackage.SearchFilters";
         public const string TestPackageId_SemVer2 = "BaseTestPackage.SemVer2";
+        public const string TestPackageId_Unlisted = "BaseTestPackage.Unlisted";
         public const string TestPackageVersion = "1.0.0";
         public const string TestPackageVersion_SearchFilters_Default = "1.1.0";
         public const string TestPackageVersion_SearchFilters_Prerel = "1.2.0-beta";
         public const string TestPackageVersion_SearchFilters_SemVer2 = "1.3.0+metadata";
         public const string TestPackageVersion_SearchFilters_PrerelSemVer2 = "1.4.0-delta.4";
+        public const string TestPackageVersion_Unlisted = "1.1.0";
         public const string TestPackageTitle = "BaseTestPackage";
         public const string TestPackageDescription = "Package description";
         public const string TestPackageSummary = "";

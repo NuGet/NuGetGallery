@@ -169,6 +169,100 @@ namespace NuGet.Services.AzureSearch.FunctionalTests
         }
 
         [Theory]
+        [InlineData("packageid:" + Constants.TestPackageId_Unlisted)]
+        [InlineData("packageid:" + Constants.TestPackageId_Unlisted + " version:" + Constants.TestPackageVersion_Unlisted)]
+        public async Task HidesUnlistedPackagesByDefault(string query)
+        {
+            var searchBuilder = new V2SearchBuilder
+            {
+                Query = query,
+            };
+
+            var results = await V2SearchAsync(searchBuilder);
+
+            Assert.Empty(results.Data);
+        }
+
+        [Theory]
+        [InlineData("packageid:" + Constants.TestPackageId_Unlisted)]
+        [InlineData("packageid:" + Constants.TestPackageId_Unlisted + " version:" + Constants.TestPackageVersion_Unlisted)]
+        public async Task ShowsUnlistedPackagesWithIgnoreFilterTrue(string query)
+        {
+            var searchBuilder = new V2SearchBuilder
+            {
+                Query = query,
+                IgnoreFilter = true,
+            };
+
+            var results = await V2SearchAsync(searchBuilder);
+
+            var package = Assert.Single(results.Data);
+            Assert.Equal(Constants.TestPackageId_Unlisted, package.PackageRegistration.Id);
+            Assert.Equal(Constants.TestPackageVersion_Unlisted, package.Version);
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task ComparesVersionAsCaseInsensitive(bool ignoreFilter)
+        {
+            var searchBuilder = new V2SearchBuilder
+            {
+                Query = $"packageid:{Constants.TestPackageId_SearchFilters} version:{Constants.TestPackageVersion_SearchFilters_PrerelSemVer2.ToUpperInvariant()}",
+                Prerelease = true,
+                IncludeSemVer2 = true,
+                IgnoreFilter = ignoreFilter,
+            };
+
+            var results = await V2SearchAsync(searchBuilder);
+
+            var package = Assert.Single(results.Data);
+            Assert.Equal(Constants.TestPackageId_SearchFilters, package.PackageRegistration.Id);
+            Assert.Equal(Constants.TestPackageVersion_SearchFilters_PrerelSemVer2, package.Version);
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task ComparesIdAsCaseInsensitive(bool ignoreFilter)
+        {
+            var searchBuilder = new V2SearchBuilder
+            {
+                Query = $"packageid:{Constants.TestPackageId_SearchFilters.ToUpperInvariant()}",
+                Prerelease = false,
+                IncludeSemVer2 = false,
+                IgnoreFilter = ignoreFilter,
+            };
+
+            var results = await V2SearchAsync(searchBuilder);
+
+            var package = results.Data.OrderBy(x => x.Version).FirstOrDefault();
+            Assert.NotNull(package);
+            Assert.Equal(Constants.TestPackageId_SearchFilters, package.PackageRegistration.Id);
+            Assert.Equal(Constants.TestPackageVersion_SearchFilters_Default, package.Version);
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task NormalizesVersion(bool ignoreFilter)
+        {
+            var searchBuilder = new V2SearchBuilder
+            {
+                Query = $"packageid:{Constants.TestPackageId_SearchFilters} version:1.04.0.0-delta.4+git",
+                Prerelease = true,
+                IncludeSemVer2 = true,
+                IgnoreFilter = ignoreFilter,
+            };
+
+            var results = await V2SearchAsync(searchBuilder);
+
+            var package = Assert.Single(results.Data);
+            Assert.Equal(Constants.TestPackageId_SearchFilters, package.PackageRegistration.Id);
+            Assert.Equal(Constants.TestPackageVersion_SearchFilters_PrerelSemVer2, package.Version);
+        }
+
+        [Theory]
         [InlineData(false, false, Constants.TestPackageVersion_SearchFilters_Default)]
         [InlineData(true, false, Constants.TestPackageVersion_SearchFilters_Prerel)]
         [InlineData(false, true, Constants.TestPackageVersion_SearchFilters_SemVer2)]
