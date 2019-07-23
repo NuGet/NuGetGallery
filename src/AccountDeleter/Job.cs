@@ -57,6 +57,7 @@ namespace NuGetGallery.AccountDeleter
             services.AddScoped<AlwaysAllowEvaluator>();
             services.AddScoped<UserPackageEvaluator>();
             services.AddScoped<AccountConfirmedEvaluator>();
+            services.AddScoped<NuGetDeleteEvaluator>();
 
             services.AddScoped<IUserEvaluator>(sp =>
             {
@@ -73,8 +74,7 @@ namespace NuGetGallery.AccountDeleter
                 else
                 {
                     // Configure evaluators here.
-                    var accountConfirmedEvaluator = sp.GetRequiredService<AccountConfirmedEvaluator>();
-                    evaluator.AddEvaluator(accountConfirmedEvaluator);
+                    return sp.GetRequiredService<NuGetDeleteEvaluator>();
                 }
 
                 return evaluator;
