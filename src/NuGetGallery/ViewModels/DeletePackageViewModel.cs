@@ -10,12 +10,6 @@ namespace NuGetGallery
 {
     public class DeletePackageViewModel : DisplayPackageViewModel
     {
-        public DeletePackageViewModel(Package package, User currentUser, IReadOnlyList<ReportPackageReason> reasons)
-        {
-            // TODO: remove
-            this.Setup(package, currentUser, reasons);
-        }
-
         public IEnumerable<SelectListItem> VersionSelectList { get; set; }
 
         public DeletePackagesRequest DeletePackagesRequest { get; set; }
