@@ -247,6 +247,7 @@ namespace NuGet.Services.Validation.Orchestrator
                         configurationAccessor.Value.ValidationStorageConnectionString,
                         readAccessGeoRedundant: false);
                 });
+            services.AddTransient<ICloudBlobContainerInformationProvider, GalleryCloudBlobContainerInformationProvider>();
             services.AddTransient<ICoreFileStorageService, CloudBlobCoreFileStorageService>();
             services.AddTransient<IFileDownloader, PackageDownloader>();
             services.AddTransient<IStatusProcessor<Package>, PackageStatusProcessor>();
