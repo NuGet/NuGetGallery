@@ -44,10 +44,13 @@
   <ItemGroup>
     <Compile Include="CommonTelemetryService.cs" />
     <Compile Include="Configuration\FeatureFlagConfiguration.cs" />
+    <Compile Include="Configuration\PackageValidationServiceBusConfiguration.cs" />
     <Compile Include="Error.cs" />
     <Compile Include="ExceptionExtensions.cs" />
+    <Compile Include="FeatureFlags\FeatureFlagService.cs" />
     <Compile Include="FeatureFlags\FeatureFlagRefresher.cs" />
     <Compile Include="FeatureFlags\IFeatureFlagRefresher.cs" />
+    <Compile Include="FeatureFlags\IFeatureFlagService.cs" />
     <Compile Include="FileStreamUtility.cs" />
     <Compile Include="ICommonTelemetryService.cs" />
     <Compile Include="IPackageDownloader.cs" />

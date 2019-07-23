@@ -9,6 +9,7 @@ using System.Net;
 using System.Net.Http;
 using System.Reflection;
 using Autofac;
+using Autofac.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -28,6 +29,8 @@ namespace NuGet.Jobs.Validation
     public abstract class ValidationJobBase : JsonConfigurationJob
     {
         private const string PackageDownloadTimeoutName = "PackageDownloadTimeout";
+        private const string PackageValidationServiceBusSectionName = "PackageValidationServiceBus";
+        private const string PackageValidationServiceBusBindingKey = "PackageValidationServiceBusBindingKey";
         private const string FeatureFlagConfigurationSectionName = "FeatureFlags";
 
         private const string FeatureFlagBindingKey = nameof(FeatureFlagBindingKey);
@@ -54,6 +57,7 @@ namespace NuGet.Jobs.Validation
             services.AddTransient<ICommonTelemetryService, CommonTelemetryService>();
             services.AddTransient<IDiagnosticsService, LoggerDiagnosticsService>();
             services.AddTransient<IFileDownloader, PackageDownloader>();
+            services.AddTransient<IServiceBusMessageSerializer, ServiceBusMessageSerializer>();
 
             services.AddTransient<ICloudBlobClient>(c =>
             {
@@ -75,6 +79,8 @@ namespace NuGet.Jobs.Validation
                     config.SubscriptionName,
                     p.GetRequiredService<ILogger<SubscriptionClientWrapper>>());
             });
+
+            services.Configure<PackageValidationServiceBusConfiguration>(configurationRoot.GetSection(PackageValidationServiceBusSectionName));
 
             services.AddSingleton(p =>
             {
@@ -100,6 +106,22 @@ namespace NuGet.Jobs.Validation
             base.ConfigureDefaultAutofacServices(containerBuilder);
 
             ConfigureFeatureFlagAutofacServices(containerBuilder);
+
+            containerBuilder
+                .Register(c =>
+                {
+                    var serviceBusConfiguration = c.Resolve<IOptionsSnapshot<PackageValidationServiceBusConfiguration>>();
+                    var topicClient = new TopicClientWrapper(serviceBusConfiguration.Value.ConnectionString, serviceBusConfiguration.Value.TopicPath);
+                    return topicClient;
+                })
+                .Keyed<TopicClientWrapper>(PackageValidationServiceBusBindingKey);
+
+            containerBuilder
+                .RegisterType<PackageValidationEnqueuer>()
+                .WithParameter(new ResolvedParameter(
+                    (pi, ctx) => pi.ParameterType == typeof(ITopicClient),
+                    (pi, ctx) => ctx.ResolveKeyed<TopicClientWrapper>(PackageValidationServiceBusBindingKey)))
+                .As<IPackageValidationEnqueuer>();
         }
 
         private static void ConfigureFeatureFlagServices(IServiceCollection services, IConfigurationRoot configurationRoot)
@@ -118,6 +140,7 @@ namespace NuGet.Jobs.Validation
 
             services.AddTransient<IFeatureFlagClient, FeatureFlagClient>();
             services.AddTransient<IFeatureFlagTelemetryService, CommonTelemetryService>();
+            services.AddTransient<IFeatureFlagService, FeatureFlagService>();
 
             services.AddSingleton<IFeatureFlagCacheService, FeatureFlagCacheService>();
         }

@@ -12,23 +12,30 @@ using NuGet.Jobs.Validation;
 using NuGet.Jobs.Validation.Storage;
 using NuGet.Services.Validation;
 
-
 namespace Validation.Symbols
 {
     public class SymbolsValidatorMessageHandler : IMessageHandler<SymbolsValidatorMessage>
     {
         private const int MaxDBSaveRetry = 5;
+
         private readonly ILogger<SymbolsValidatorMessageHandler> _logger;
         private readonly ISymbolsValidatorService _symbolValidatorService;
         private readonly IValidatorStateService _validatorStateService;
+        private readonly IPackageValidationEnqueuer _validationEnqueuer;
+        private readonly IFeatureFlagService _featureFlagService;
 
-        public SymbolsValidatorMessageHandler(ILogger<SymbolsValidatorMessageHandler> logger,
+        public SymbolsValidatorMessageHandler(
             ISymbolsValidatorService symbolValidatorService,
-            IValidatorStateService validatorStateService)
+            IValidatorStateService validatorStateService,
+            IPackageValidationEnqueuer validationEnqueuer,
+            IFeatureFlagService featureFlagService,
+            ILogger<SymbolsValidatorMessageHandler> logger)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _symbolValidatorService = symbolValidatorService ?? throw new ArgumentNullException(nameof(symbolValidatorService));
             _validatorStateService = validatorStateService ?? throw new ArgumentNullException(nameof(validatorStateService));
+            _validationEnqueuer = validationEnqueuer ?? throw new ArgumentNullException(nameof(validationEnqueuer));
+            _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
         }
 
         public async Task<bool> HandleAsync(SymbolsValidatorMessage message)
@@ -106,7 +113,18 @@ namespace Validation.Symbols
                         validation.NupkgUrl = validationResult.NupkgUrl;
                     }
 
-                    return await SaveStatusAsync(validation, message, MaxDBSaveRetry);
+                    var completed = await SaveStatusAsync(validation, message, MaxDBSaveRetry);
+                    if (completed && _featureFlagService.IsQueueBackEnabled())
+                    {
+                        // The validation has completed (either a terminal success or a terminal failure). This message
+                        // we are enqueueing notifies the orchestrator that this validator's work is done and means the
+                        // orchestrator can continue with the rest of the validation process.
+                        _logger.LogInformation("Sending queue-back message for validation {ValidationId}.", message.ValidationId);
+                        var messageData = PackageValidationMessageData.NewCheckValidator(message.ValidationId);
+                        await _validationEnqueuer.StartValidationAsync(messageData);
+                    }
+
+                    return completed;
                 }
 
                 _logger.LogWarning(
@@ -127,7 +145,7 @@ namespace Validation.Symbols
             {
                 try
                 {
-                    _logger.LogWarning(
+                    _logger.LogInformation(
                         "{ValidatorName}:Try to save validation status package {PackageId} {PackageVersion} for validation id: {ValidationId} RetryCount: {currentRetry}.",
                         ValidatorName.SymbolsValidator,
                         message.PackageId,
