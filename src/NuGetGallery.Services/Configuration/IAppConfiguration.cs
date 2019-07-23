@@ -422,8 +422,8 @@ namespace NuGetGallery.Configuration
         int SearchCircuitBreakerBreakAfterCount { get; set; }
 
         /// <summary>
-        /// The Search HttpClient timeout in seconds.
+        /// The Search timeout per request in milliseconds.
         /// </summary>
-        int SearchHttpClientTimeoutInMilliseconds { get; set; }
+        int SearchHttpRequestTimeoutInMilliseconds { get; set; }
     }
 }

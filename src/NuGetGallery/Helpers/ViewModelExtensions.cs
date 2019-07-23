@@ -53,7 +53,6 @@ namespace NuGetGallery
             viewModel.Deleted = package.PackageStatusKey == PackageStatus.Deleted;
             viewModel.PackageStatusSummary = GetPackageStatusSummary(package.PackageStatusKey, package.Listed);
             viewModel.TotalDownloadCount = package.PackageRegistration.DownloadCount;
-            viewModel.Title = string.IsNullOrEmpty(package.Title) ? package.PackageRegistration.Id : package.Title;
 
             return viewModel;
         }

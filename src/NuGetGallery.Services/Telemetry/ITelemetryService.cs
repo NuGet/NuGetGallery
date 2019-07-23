@@ -313,6 +313,15 @@ namespace NuGetGallery
         void TrackMetricForSearchOnRetry(string searchName, Exception exception, string correlationId, string uri, string circuitBreakerStatus);
 
         /// <summary>
+        /// Tracks the OnTimeout for the search timeout policy.
+        /// </summary>
+        /// <param name="searchName">A name to identify the search instance.</param>
+        /// <param name="correlationId">CorrelationId set by Polly context.</param>
+        /// <param name="uri">The request uri.</param>
+        /// <param name="circuitBreakerStatus">The CircuitBreakerStatus at the time of the Retry action.</param>
+        void TrackMetricForSearchOnTimeout(string searchName, string correlationId, string uri, string circuitBreakerStatus);
+
+        /// <summary>
         /// Tracks that some feedback was left on the search side-by-side page.
         /// </summary>
         /// <param name="searchTerm">The search term used.</param>

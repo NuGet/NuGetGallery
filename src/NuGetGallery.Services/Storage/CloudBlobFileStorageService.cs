@@ -20,7 +20,9 @@ namespace NuGetGallery
             ICloudBlobClient client,
             IAppConfiguration configuration,
             ISourceDestinationRedirectPolicy redirectPolicy,
-            IDiagnosticsService diagnosticsService) : base(client, diagnosticsService)
+            IDiagnosticsService diagnosticsService,
+            ICloudBlobContainerInformationProvider cloudBlobFolderInformationProvider) 
+            : base(client, diagnosticsService, cloudBlobFolderInformationProvider)
         {
             _configuration = configuration;
             _redirectPolicy = redirectPolicy;

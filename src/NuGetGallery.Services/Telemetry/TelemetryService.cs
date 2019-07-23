@@ -81,6 +81,7 @@ namespace NuGetGallery
             public const string SearchCircuitBreakerOnBreak = "SearchCircuitBreakerOnBreak";
             public const string SearchCircuitBreakerOnReset = "SearchCircuitBreakerOnReset";
             public const string SearchOnRetry = "SearchOnRetry";
+            public const string SearchOnTimeout = "SearchOnTimeout";
             public const string SearchSideBySideFeedback = "SearchSideBySideFeedback";
             public const string SearchSideBySide = "SearchSideBySide";
             public const string ABTestEnrollmentInitialized = "ABTestEnrollmentInitialized";
@@ -958,6 +959,16 @@ namespace NuGetGallery
             TrackMetric(Events.SearchOnRetry, 1, properties => {
                 properties.Add(SearchName, searchName);
                 properties.Add(SearchException, exception?.ToString() ?? string.Empty);
+                properties.Add(SearchPollyCorrelationId, correlationId);
+                properties.Add(SearchUrl, uri);
+                properties.Add(SearchCircuitBreakerStatus, circuitBreakerStatus);
+            });
+        }
+
+        public void TrackMetricForSearchOnTimeout(string searchName, string correlationId, string uri, string circuitBreakerStatus)
+        {
+            TrackMetric(Events.SearchOnTimeout, 1, properties => {
+                properties.Add(SearchName, searchName);
                 properties.Add(SearchPollyCorrelationId, correlationId);
                 properties.Add(SearchUrl, uri);
                 properties.Add(SearchCircuitBreakerStatus, circuitBreakerStatus);

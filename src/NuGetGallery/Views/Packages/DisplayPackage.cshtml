@@ -201,12 +201,6 @@
                     }
                 </h1>
 
-                @if (!Model.Deleted && !StringComparer.OrdinalIgnoreCase.Equals(Model.Id, Model.Title))
-                {
-                    <div class="ms-fontSize-xl">
-                        @Html.BreakWord(Model.Title)
-                    </div>
-                }
             </div>
 
             @if (!Model.Deleted && !String.IsNullOrWhiteSpace(Model.Description))

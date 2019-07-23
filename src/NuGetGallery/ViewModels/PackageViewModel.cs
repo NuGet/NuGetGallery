@@ -28,7 +28,6 @@ namespace NuGetGallery
         public string Version { get; set; }
         public string FullVersion { get; set; }
         public bool IsSemVer2 { get; set; }
-        public string Title { get; set; }
         public PackageStatusSummary PackageStatusSummary { get; set; }
 
         public bool IsCurrent(IPackageVersionModel current)

@@ -201,7 +201,6 @@
     <Compile Include="OData\Serializers\V2FeedPackageAnnotationStrategyFacts.cs" />
     <Compile Include="PasswordValidationRegexTests.cs" />
     <Compile Include="SearchClient\CorrelatingHttpClientHandlerFacts.cs" />
-    <Compile Include="SearchClient\RequestInspectingHandler.cs" />
     <Compile Include="SearchClient\WebApiCorrelationHandlerFacts.cs" />
     <Compile Include="Security\RequirePackageVerifyScopePolicyFacts.cs" />
     <Compile Include="Security\SecurityPolicyServiceFacts.cs" />

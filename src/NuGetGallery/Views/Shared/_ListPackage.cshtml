@@ -72,13 +72,6 @@
                 }
             </div>
 
-            @if (!StringComparer.OrdinalIgnoreCase.Equals(Model.Id, Model.Title))
-            {
-                <div class="package-title package-legacy-title">
-                    @Html.BreakWord(Model.Title)
-                </div>
-            }
-
             <ul class="package-list">
                 <li>
                     <span class="icon-text">

@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using Polly;
 using Polly.CircuitBreaker;
 using Polly.Extensions.Http;
+using Polly.Timeout;
 
 namespace NuGetGallery.Infrastructure.Search
 {
@@ -38,6 +39,7 @@ namespace NuGetGallery.Infrastructure.Search
             return HttpPolicyExtensions
                 .HandleTransientHttpError()
                 .OrResult(r => r.StatusCode == HttpStatusCode.Forbidden)
+                .Or<TimeoutRejectedException>()
                 .CircuitBreakerAsync(breakAfterCount,
                 breakDuration,
                 onBreak: (delegateResult, circuitBreakerStatus, breakDelay, context) =>
@@ -97,6 +99,32 @@ namespace NuGetGallery.Infrastructure.Search
         /// </summary>
         /// <param name="logger">An <see cref="ILogger"/> instance.</param>
         /// <returns></returns>
+        public static IAsyncPolicy<HttpResponseMessage> SearchClientTimeoutPolicy(TimeSpan timeout, ILogger logger, string searchName, ITelemetryService telemetryService)
+        {
+            return Policy.TimeoutAsync<HttpResponseMessage>(
+                timeout,
+                onTimeoutAsync: (context, actualTimeout, task) =>
+                {
+                    telemetryService.TrackMetricForSearchOnTimeout(
+                        searchName,
+                        context.CorrelationId.ToString(),
+                        GetValueFromContext(ContextKey_RequestUri, context),
+                        GetValueFromContext(ContextKey_CircuitBreakerStatus, context));
+
+                    logger.LogInformation(
+                        "Policy timeout - it will timeout after {Timeout} milliseconds. {SearchName}",
+                        actualTimeout,
+                        searchName);
+
+                    return Task.CompletedTask;
+                });
+        }
+
+        /// <summary>
+        /// In case of exception a <see cref="HttpResponseMessage"/> with status code = 503 is returned.
+        /// </summary>
+        /// <param name="logger">An <see cref="ILogger"/> instance.</param>
+        /// <returns></returns>
         public static IAsyncPolicy<HttpResponseMessage> SearchClientFallBackCircuitBreakerPolicy(ILogger logger, string searchName, ITelemetryService telemetryService)
         {
             return HttpPolicyExtensions
@@ -104,12 +132,14 @@ namespace NuGetGallery.Infrastructure.Search
                         .OrResult(r => r.StatusCode == HttpStatusCode.Forbidden)
                         .Or<Exception>()
                         .FallbackAsync(
-                                fallbackAction: async (context, cancellationToken) => {
+                                fallbackAction: async (context, cancellationToken) =>
+                                {
                                     return await Task.FromResult(new HttpResponseMessage()
                                     {
                                         Content = new StringContent(Strings.SearchServiceIsNotAvailable),
                                         StatusCode = HttpStatusCode.ServiceUnavailable
-                                    });}, 
+                                    });
+                                }, 
                                 onFallbackAsync: async (delegateResult, context) =>
                                 {
                                     // only to go async
