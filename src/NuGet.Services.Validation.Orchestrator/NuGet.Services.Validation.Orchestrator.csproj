@@ -43,6 +43,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BaseValidationMessageHandler.cs" />
     <Compile Include="BaseValidator.cs" />
     <Compile Include="Configuration\ConfigurationValidator.cs" />
     <Compile Include="Configuration\FlatContainerConfiguration.cs" />
