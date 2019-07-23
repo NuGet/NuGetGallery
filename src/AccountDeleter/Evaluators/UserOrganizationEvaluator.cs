@@ -12,19 +12,28 @@ namespace NuGetGallery.AccountDeleter
     /// </summary>
     public class UserOrganizationEvaluator : BaseUserEvaluator
     {
-        private readonly IPackageService _packageService;
-        private readonly ILogger<UserPackageEvaluator> _logger;
+        private readonly ILogger<UserOrganizationEvaluator> _logger;
 
-        public UserOrganizationEvaluator(IPackageService packageService, ILogger<UserPackageEvaluator> logger)
+        public UserOrganizationEvaluator(ILogger<UserOrganizationEvaluator> logger)
             : base()
         {
-            _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         public override bool CanUserBeDeleted(User user)
         {
-            throw new NotImplementedException();
+            var userOrgMemberships = user.Organizations;
+
+            var userIsAdminOnOrgs = userOrgMemberships.AnySafe(m => m.IsAdmin);
+
+            if (userIsAdminOnOrgs)
+            {
+                _logger.LogWarning("{Evaluator}:{EvaluatorId} User cannot be deleted because they are administrator on an organization.", nameof(UserOrganizationEvaluator), EvaluatorId);
+                return false;
+            }
+
+            return true;
+
         }
     }
 }
