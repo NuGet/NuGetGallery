@@ -15,7 +15,11 @@ namespace Tests.Stats.AzureCdnLogs.Common
         [Fact]
         public void ConstructorNullArgumentsTest()
         {
-            Assert.Throws<ArgumentNullException>(() => new AzureBlobLockResult(blob: null, lockIsTaken: false,leaseId: string.Empty, linkToken: CancellationToken.None));
+            Assert.Throws<ArgumentNullException>(() => new AzureBlobLockResult(
+                blob: null,
+                lockIsTaken: false,
+                leaseId: string.Empty,
+                linkToken: CancellationToken.None));
         }
 
         [Fact]
@@ -23,7 +27,11 @@ namespace Tests.Stats.AzureCdnLogs.Common
         {
             // Arrange 
             var cts = new CancellationTokenSource();
-            var testAzureBlobLockResult = new AzureBlobLockResult(blob: new CloudBlob(new Uri("https://test")), lockIsTaken: false, leaseId: string.Empty, linkToken: cts.Token);
+            var testAzureBlobLockResult = new AzureBlobLockResult(
+                blob: new CloudBlob(new Uri("https://test/container")),
+                lockIsTaken: false,
+                leaseId: string.Empty,
+                linkToken: cts.Token);
 
             // Act
             cts.Cancel();
@@ -38,7 +46,11 @@ namespace Tests.Stats.AzureCdnLogs.Common
             // Arrange 
             var cts = new CancellationTokenSource();
             var externalToken = cts.Token;
-            var testAzureBlobLockResult = new AzureBlobLockResult(blob: new CloudBlob(new Uri("https://test")), lockIsTaken: false, leaseId: string.Empty, linkToken: externalToken);
+            var testAzureBlobLockResult = new AzureBlobLockResult(
+                blob: new CloudBlob(new Uri("https://test/container")),
+                lockIsTaken: false,
+                leaseId: string.Empty,
+                linkToken: externalToken);
 
             // Act
             testAzureBlobLockResult.BlobOperationToken.Cancel();
