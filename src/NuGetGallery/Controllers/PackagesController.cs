@@ -1040,9 +1040,13 @@ namespace NuGetGallery
                 totalHits = 0;
             }
 
+            var currentUser = GetCurrentUser();
+            var items = results.Data
+                .Select(pv => new ListPackageItemViewModel().Setup(pv, currentUser))
+                .ToList();
+
             var viewModel = new PackageListViewModel(
-                results.Data,
-                GetCurrentUser(),
+                items,
                 results.IndexTimestampUtc,
                 q,
                 totalHits,
