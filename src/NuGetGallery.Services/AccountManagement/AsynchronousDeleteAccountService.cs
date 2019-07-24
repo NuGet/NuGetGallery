@@ -18,8 +18,6 @@ namespace NuGetGallery
     /// </summary>
     public class AsynchronousDeleteAccountService : IDeleteAccountService
     {
-        private const int MaxRetryCount = 5;
-
         private const string AccountDeleteMessageSchemaName = "AccountDeleteMessageData";
         private const string GalleryAccountDeleteMessageSourceName = "Gallery";
 
@@ -36,6 +34,11 @@ namespace NuGetGallery
 
         public async Task<DeleteAccountStatus> DeleteAccountAsync(User userToBeDeleted, User userToExecuteTheDelete, AccountDeletionOrphanPackagePolicy orphanPackagePolicy = AccountDeletionOrphanPackagePolicy.DoNotAllowOrphans)
         {
+            if (userToBeDeleted == null)
+            {
+                throw new ArgumentNullException(nameof(userToBeDeleted));
+            }
+
             var result = new DeleteAccountStatus()
             {
                 AccountName = userToBeDeleted.Username
