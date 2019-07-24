@@ -31,8 +31,11 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.WindowsAzure.ServiceRuntime, Version=2.7.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -44,27 +47,87 @@
     <Compile Include="AccountManagement\DeleteAccountService.cs" />
     <Compile Include="AccountManagement\DeleteAccountStatus.cs" />
     <Compile Include="AccountManagement\IDeleteAccountService.cs" />
+    <Compile Include="Authentication\ApiKeyV3.cs" />
     <Compile Include="Authentication\ApiKeyV4.cs" />
+    <Compile Include="Authentication\ApiScopeEvaluationResult.cs" />
+    <Compile Include="Authentication\ApiScopeEvaluator.cs" />
+    <Compile Include="Authentication\AsyncFileUpload\AsyncFileUploadExtensions.cs" />
+    <Compile Include="Authentication\AsyncFileUpload\AsyncFileUploadModule.cs" />
+    <Compile Include="Authentication\AsyncFileUpload\AsyncFileUploadProgress.cs" />
+    <Compile Include="Authentication\AsyncFileUpload\AsyncFileUploadRequestParser.cs" />
     <Compile Include="Authentication\AuthenticatedUser.cs" />
+    <Compile Include="Authentication\AuthenticateExternalLoginResult.cs" />
+    <Compile Include="Authentication\AuthenticationService.cs" />
+    <Compile Include="Authentication\AuthenticationTypes.cs" />
+    <Compile Include="Authentication\ChallengeResult.cs" />
+    <Compile Include="Authentication\CredentialKind.cs" />
+    <Compile Include="Authentication\CredentialViewModel.cs" />
+    <Compile Include="Authentication\Providers\ApiKey\ApiKeyAuthenticationExtensions.cs" />
+    <Compile Include="Authentication\Providers\ApiKey\ApiKeyAuthenticationHandler.cs" />
+    <Compile Include="Authentication\Providers\ApiKey\ApiKeyAuthenticationMiddleware.cs" />
+    <Compile Include="Authentication\Providers\ApiKey\ApiKeyAuthenticationOptions.cs" />
+    <Compile Include="Authentication\Providers\ApiKey\ApiKeyAuthenticator.cs" />
+    <Compile Include="Authentication\Providers\ApiKey\ApiKeyAuthenticatorConfiguration.cs" />
+    <Compile Include="Authentication\Providers\AuthenticationPolicy.cs" />
+    <Compile Include="Authentication\Providers\Authenticator.cs" />
+    <Compile Include="Authentication\Providers\AuthenticatorConfiguration.cs" />
+    <Compile Include="Authentication\Providers\AuthenticatorT.cs" />
+    <Compile Include="Authentication\Providers\AuthenticatorUI.cs" />
+    <Compile Include="Authentication\Providers\AzureActiveDirectoryV2\AzureActiveDirectoryV2Authenticator.cs" />
+    <Compile Include="Authentication\Providers\AzureActiveDirectoryV2\AzureActiveDirectoryV2AuthenticatorConfiguration.cs" />
+    <Compile Include="Authentication\Providers\AzureActiveDirectory\AzureActiveDirectoryAuthenticator.cs" />
+    <Compile Include="Authentication\Providers\AzureActiveDirectory\AzureActiveDirectoryAuthenticatorConfiguration.cs" />
+    <Compile Include="Authentication\Providers\LocalUser\LocalUserAuthenticator.cs" />
+    <Compile Include="Authentication\Providers\MicrosoftAccount\MicrosoftAccountAuthenticator.cs" />
+    <Compile Include="Authentication\Providers\MicrosoftAccount\MicrosoftAccountAuthenticatorConfiguration.cs" />
+    <Compile Include="Authentication\ScopeViewModel.cs" />
     <Compile Include="Authentication\CredentialBuilder.cs" />
+    <Compile Include="Authentication\CredentialValidator.cs" />
+    <Compile Include="Authentication\FeedOnlyModeException.cs" />
+    <Compile Include="Authentication\IApiScopeEvaluator.cs" />
     <Compile Include="Authentication\IAuthenticationService.cs" />
     <Compile Include="Authentication\ICredentialBuilder.cs" />
+    <Compile Include="Authentication\ICredentialValidator.cs" />
     <Compile Include="Authentication\IdentityInformation.cs" />
+    <Compile Include="Authentication\LegacyHasher.cs" />
+    <Compile Include="Authentication\NuGetPackagePattern.cs" />
     <Compile Include="Authentication\NuGetScopes.cs" />
+    <Compile Include="Authentication\PasswordAuthenticationResult.cs" />
+    <Compile Include="Authentication\PasswordResetResult.cs" />
     <Compile Include="Authentication\V3Hasher.cs" />
+    <Compile Include="Configuration\ABTestConfiguration.cs" />
     <Compile Include="Configuration\AppConfiguration.cs" />
     <Compile Include="Configuration\CertificatesConfiguration.cs" />
+    <Compile Include="Configuration\ConfigurationService.cs" />
+    <Compile Include="Configuration\FeatureConfiguration.cs" />
+    <Compile Include="Configuration\IABTestConfiguration.cs" />
     <Compile Include="Configuration\IAppConfiguration.cs" />
     <Compile Include="Configuration\ICertificatesConfiguration.cs" />
+    <Compile Include="Configuration\IGalleryConfigurationService.cs" />
     <Compile Include="Configuration\ILoginDiscontinuationConfiguration.cs" />
+    <Compile Include="Configuration\IPackageDeleteConfiguration.cs" />
+    <Compile Include="Configuration\IServiceBusConfiguration.cs" />
     <Compile Include="Configuration\ISymbolsConfiguration.cs" />
     <Compile Include="Configuration\ITyposquattingConfiguration.cs" />
     <Compile Include="Configuration\LoginDiscontinuationConfiguration.cs" />
+    <Compile Include="Configuration\PackageDeleteConfiguration.cs" />
+    <Compile Include="Configuration\SecretReader\EmptySecretReaderFactory.cs" />
+    <Compile Include="Configuration\SecretReader\SecretReaderFactory.cs" />
+    <Compile Include="Configuration\ServiceBusConfiguration.cs" />
     <Compile Include="Configuration\SymbolsConfiguration.cs" />
     <Compile Include="Configuration\TyposquattingConfiguration.cs" />
+    <Compile Include="Diagnostics\DiagnosticsService.cs" />
+    <Compile Include="Diagnostics\ElmahHandleErrorAttribute.cs" />
+    <Compile Include="Diagnostics\PerfCounters.cs" />
+    <Compile Include="Diagnostics\PerfEvent.cs" />
+    <Compile Include="Diagnostics\ProcessPerfEvents.cs" />
+    <Compile Include="Diagnostics\SendErrorsToTelemetryAttribute.cs" />
+    <Compile Include="Diagnostics\TraceDiagnosticsSource.cs" />
+    <Compile Include="Diagnostics\TraceDiagnosticsSourceScope.cs" />
     <Compile Include="Extensions\Base32Encoder.cs" />
     <Compile Include="Extensions\ClaimsExtensions.cs" />
     <Compile Include="Extensions\CredentialExtensions.cs" />
+    <Compile Include="Extensions\DateTimeExtensions.cs" />
     <Compile Include="Extensions\HttpContextBaseExtensions.cs" />
     <Compile Include="Extensions\IEnumerableExtensions.cs" />
     <Compile Include="Extensions\IOwinContextExtensions.cs" />
@@ -76,6 +139,7 @@
     <Compile Include="Extensions\UserExtensions.cs" />
     <Compile Include="Helpers\MailAddressConverter.cs" />
     <Compile Include="Helpers\StringArrayConverter.cs" />
+    <Compile Include="Helpers\UploadHelper.cs" />
     <Compile Include="Models\LuceneIndexLocation.cs" />
     <Compile Include="Models\ReportPackageReason.cs" />
     <Compile Include="Models\StorageType.cs" />
@@ -105,12 +169,15 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Providers\DateTimeProvider.cs" />
     <Compile Include="Providers\IDateTimeProvider.cs" />
+    <Compile Include="Security\AllowLocalHttpRedirectPolicy.cs" />
     <Compile Include="Security\AutomaticOverwriteRequiredSignerPolicy.cs" />
     <Compile Include="Security\ControlRequiredSignerPolicy.cs" />
     <Compile Include="Security\DefaultSubscription.cs" />
     <Compile Include="Security\ISecurityPolicyService.cs" />
+    <Compile Include="Security\ISourceDestinationRedirectPolicy.cs" />
     <Compile Include="Security\IUserSecurityPolicySubscription.cs" />
     <Compile Include="Security\MicrosoftTeamSubscription.cs" />
+    <Compile Include="Security\NoLessSecureDestinationRedirectPolicy.cs" />
     <Compile Include="Security\PackageSecurityPolicyEvaluationContext.cs" />
     <Compile Include="Security\PackageSecurityPolicyHandler.cs" />
     <Compile Include="Security\RequiredSignerPolicy.cs" />
@@ -125,8 +192,11 @@
     <Compile Include="Security\UserSecurityPolicyEvaluationContext.cs" />
     <Compile Include="Security\UserSecurityPolicyHandler.cs" />
     <Compile Include="Security\UserSecurityPolicySubscriptionContext.cs" />
+    <Compile Include="Storage\CloudBlobFileStorageService.cs" />
     <Compile Include="Storage\ContentObjectService.cs" />
     <Compile Include="Storage\ContentService.cs" />
+    <Compile Include="Storage\HttpContextCacheService.cs" />
+    <Compile Include="Storage\ICacheService.cs" />
     <Compile Include="Storage\IContentObjectService.cs" />
     <Compile Include="Storage\IContentService.cs" />
     <Compile Include="Storage\IFileStorageService.cs" />
@@ -135,11 +205,16 @@
     <Compile Include="SupportRequest\Issue.cs" />
     <Compile Include="SupportRequest\IssueStatus.cs" />
     <Compile Include="SupportRequest\ISupportRequestService.cs" />
+    <Compile Include="SupportRequest\Models\IssueStatusKeys.cs" />
+    <Compile Include="SupportRequest\Models\ISupportRequestDbContext.cs" />
+    <Compile Include="SupportRequest\Models\SupportRequestDbContext.cs" />
+    <Compile Include="SupportRequest\SupportRequestService.cs" />
     <Compile Include="Telemetry\ITelemetryClient.cs" />
     <Compile Include="Telemetry\ITelemetryService.cs" />
     <Compile Include="Telemetry\Obfuscator.cs" />
     <Compile Include="Telemetry\QuietLog.cs" />
     <Compile Include="Telemetry\TelemetryClientWrapper.cs" />
+    <Compile Include="Telemetry\TelemetryService.cs" />
     <Compile Include="Telemetry\UserPackageDeleteEvent.cs" />
     <Compile Include="Telemetry\UserPackageDeleteOutcome.cs" />
     <Compile Include="UserManagement\IUserService.cs" />
@@ -171,7 +246,7 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.ApplicationInsights">
-      <Version>2.2.0</Version>
+      <Version>2.3.0</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.AspNet.Mvc">
       <Version>5.2.3</Version>
@@ -191,14 +266,32 @@
     <PackageReference Include="Microsoft.Owin.Host.SystemWeb">
       <Version>3.0.1</Version>
     </PackageReference>
+    <PackageReference Include="Microsoft.Owin.Security">
+      <Version>3.0.1</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Owin.Security.Cookies">
+      <Version>3.0.1</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Owin.Security.MicrosoftAccount">
+      <Version>3.0.1</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Owin.Security.OpenIdConnect">
+      <Version>3.0.1</Version>
+    </PackageReference>
     <PackageReference Include="NuGet.Packaging">
       <Version>5.0.0-preview1.5665</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Protocol">
       <Version>5.0.0-preview1.5665</Version>
     </PackageReference>
+    <PackageReference Include="NuGet.Services.KeyVault">
+      <Version>2.52.0</Version>
+    </PackageReference>
     <PackageReference Include="NuGet.Services.Logging">
-      <Version>2.50.0</Version>
+      <Version>2.52.0</Version>
+    </PackageReference>
+    <PackageReference Include="NuGet.StrongName.WebBackgrounder">
+      <Version>0.2.0</Version>
     </PackageReference>
     <PackageReference Include="System.Runtime">
       <Version>4.3.1</Version>

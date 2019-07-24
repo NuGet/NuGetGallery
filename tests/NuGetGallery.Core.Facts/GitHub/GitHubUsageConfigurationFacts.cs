@@ -16,6 +16,7 @@ namespace NuGetGallery
                 id,
                 "http://randomUrl.fake",
                 stars,
+                "Some random repository description",
                 nugetDependencies);
         }
 

@@ -7,6 +7,8 @@ namespace NuGetGallery
 {
     public static class ServicesConstants
     {
+        public static readonly string CurrentUserOwinEnvironmentKey = "nuget.user";
+
         internal static readonly string UserAgentHeaderName = "User-Agent";
 
         // X-NuGet-Client-Version header was deprecated and replaced with X-NuGet-Protocol-Version header
@@ -33,6 +35,17 @@ namespace NuGetGallery
         public const string EmailValidationRegex = "^" + EmailValidationRegexFirstPart + "@" + EmailValidationRegexSecondPart + "$";
         public static TimeSpan EmailValidationRegexTimeout = TimeSpan.FromSeconds(5);
 
+        /// <summary>
+        /// Parameters for calculating account lockout period after 
+        /// wrong password entry.
+        /// </summary>
+        public const double AccountLockoutMultiplierInMinutes = 10;
+        public const double AllowedLoginAttempts = 10;
+
+        public const string Sha1HashAlgorithmId = "SHA1";
+
+        public const string ApiKeyHeaderName = "X-NuGet-ApiKey";
+
         public static class ContentNames
         {
             public static readonly string LoginDiscontinuationConfiguration = "Login-Discontinuation-Configuration";
@@ -40,6 +53,7 @@ namespace NuGetGallery
             public static readonly string SymbolsConfiguration = "Symbols-Configuration";
             public static readonly string TyposquattingConfiguration = "Typosquatting-Configuration";
             public static readonly string NuGetPackagesGitHubDependencies = "GitHubUsage.v1";
+            public static readonly string ABTestConfiguration = "AB-Test-Configuration";
         }
     }
 }

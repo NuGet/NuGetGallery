@@ -620,7 +620,7 @@ namespace NuGetGallery.Security
             httpContext.SetupGet(c => c.Items).Returns(new Dictionary<object, object> { { "owin.Environment", new Dictionary<string, object>() } });
 
             var owinContext = httpContext.Object.GetOwinContext();
-            owinContext.Environment[GalleryConstants.CurrentUserOwinEnvironmentKey] = user;
+            owinContext.Environment[ServicesConstants.CurrentUserOwinEnvironmentKey] = user;
             owinContext.Request.User = Fakes.ToPrincipal(user);
 
             return httpContext.Object;

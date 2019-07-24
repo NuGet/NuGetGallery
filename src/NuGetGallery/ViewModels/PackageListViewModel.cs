@@ -19,7 +19,8 @@ namespace NuGetGallery
             int pageIndex,
             int pageSize,
             UrlHelper url,
-            bool includePrerelease)
+            bool includePrerelease,
+            bool isPreviewSearch)
         {
             // TODO: Implement actual sorting
             PageIndex = pageIndex;
@@ -39,6 +40,7 @@ namespace NuGetGallery
             LastResultIndex = FirstResultIndex + Items.Count() - 1;
             Pager = pager;
             IncludePrerelease = includePrerelease;
+            IsPreviewSearch = isPreviewSearch;
         }
 
         public int FirstResultIndex { get; }
@@ -60,5 +62,7 @@ namespace NuGetGallery
         public DateTime? IndexTimestampUtc { get; }
 
         public bool IncludePrerelease { get; }
+
+        public bool IsPreviewSearch { get; }
     }
 }

@@ -23,13 +23,15 @@ namespace NuGetGallery
             CertificatesConfiguration = new CertificatesConfiguration();
             SymbolsConfiguration = new SymbolsConfiguration();
             TyposquattingConfiguration = new TyposquattingConfiguration();
+            ABTestConfiguration = new ABTestConfiguration();
         }
 
-        public ILoginDiscontinuationConfiguration LoginDiscontinuationConfiguration { get; set; }
-        public ICertificatesConfiguration CertificatesConfiguration { get; set; }
-        public ISymbolsConfiguration SymbolsConfiguration { get; set; }
-        public ITyposquattingConfiguration TyposquattingConfiguration { get; set; }
-        public IGitHubUsageConfiguration GitHubUsageConfiguration { get; set; }
+        public ILoginDiscontinuationConfiguration LoginDiscontinuationConfiguration { get; private set; }
+        public ICertificatesConfiguration CertificatesConfiguration { get; private set; }
+        public ISymbolsConfiguration SymbolsConfiguration { get; private set; }
+        public ITyposquattingConfiguration TyposquattingConfiguration { get; private set; }
+        public IGitHubUsageConfiguration GitHubUsageConfiguration { get; private set; }
+        public IABTestConfiguration ABTestConfiguration { get; private set; }
 
         public async Task Refresh()
         {
@@ -54,6 +56,10 @@ namespace NuGetGallery
                 Array.Empty<RepositoryInformation>();
 
             GitHubUsageConfiguration = new GitHubUsageConfiguration(reposCache);
+
+            ABTestConfiguration =
+               await Refresh<ABTestConfiguration>(ServicesConstants.ContentNames.ABTestConfiguration) ??
+               new ABTestConfiguration();
         }
 
         private async Task<T> Refresh<T>(string contentName)

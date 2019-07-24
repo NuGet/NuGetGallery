@@ -85,6 +85,8 @@
     <Compile Include="Controllers\AccountsControllerFacts.cs" />
     <Compile Include="Controllers\OrganizationsControllerFacts.cs" />
     <Compile Include="Controllers\SupportControllerFacts.cs" />
+    <Compile Include="Infrastructure\ABTestEnrollmentFactoryFacts.cs" />
+    <Compile Include="Infrastructure\CookieBasedABTestServiceFacts.cs" />
     <Compile Include="Infrastructure\Lucene\SearchPolicyFacts.cs" />
     <Compile Include="Infrastructure\Lucene\ResilientSearchServiceFacts.cs" />
     <Compile Include="Infrastructure\Lucene\GallerySearchServiceFacts.cs" />
@@ -201,7 +203,6 @@
     <Compile Include="OData\Serializers\V2FeedPackageAnnotationStrategyFacts.cs" />
     <Compile Include="PasswordValidationRegexTests.cs" />
     <Compile Include="SearchClient\CorrelatingHttpClientHandlerFacts.cs" />
-    <Compile Include="SearchClient\RequestInspectingHandler.cs" />
     <Compile Include="SearchClient\WebApiCorrelationHandlerFacts.cs" />
     <Compile Include="Security\RequirePackageVerifyScopePolicyFacts.cs" />
     <Compile Include="Security\SecurityPolicyServiceFacts.cs" />

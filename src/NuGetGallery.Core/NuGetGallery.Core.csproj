@@ -161,6 +161,7 @@
     <Compile Include="Infrastructure\Mail\Messages\SymbolPackageAddedMessage.cs" />
     <Compile Include="Infrastructure\Mail\Messages\SymbolPackageValidationFailedMessage.cs" />
     <Compile Include="Infrastructure\Mail\Messages\SymbolPackageValidationTakingTooLongMessage.cs" />
+    <Compile Include="Infrastructure\MessageQueue.cs" />
     <Compile Include="Infrastructure\TableErrorLog.cs" />
     <Compile Include="Authentication\NuGetClaims.cs" />
     <Compile Include="PackageMetadataExtensions.cs" />
@@ -187,6 +188,8 @@
     <Compile Include="Services\CorePackageService.cs" />
     <Compile Include="Services\CryptographyService.cs" />
     <Compile Include="Services\FileNameHelper.cs" />
+    <Compile Include="Services\GalleryCloudBlobContainerInformationProvider.cs" />
+    <Compile Include="Services\ICloudBlobContainerInformationProvider.cs" />
     <Compile Include="Services\IContentFileMetadataService.cs" />
     <Compile Include="Services\ICoreLicenseFileService.cs" />
     <Compile Include="Services\IStringTemplateProcessor.cs" />
@@ -234,19 +237,19 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="NuGet.Services.Entities">
-      <Version>2.49.0</Version>
+      <Version>2.52.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.FeatureFlags">
-      <Version>2.50.0</Version>
+      <Version>2.52.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Messaging.Email">
-      <Version>2.50.0</Version>
+      <Version>2.52.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Validation">
-      <Version>2.50.0</Version>
+      <Version>2.52.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Validation.Issues">
-      <Version>2.50.0</Version>
+      <Version>2.52.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.StrongName.AnglicanGeek.MarkdownMailer">
       <Version>1.2.0</Version>

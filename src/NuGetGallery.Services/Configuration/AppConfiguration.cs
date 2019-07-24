@@ -383,9 +383,11 @@ namespace NuGetGallery.Configuration
         [DefaultValue(200)]
         public int SearchCircuitBreakerBreakAfterCount { get; set; }
 
-        // Default HttpClient.Timeout is 100 seconds == 100000 milliseconds
+        /// <summary>
+        /// We use the default of HttpClient.Timeout, which is is 100 seconds == 100000 milliseconds.
+        /// </summary>
         [DefaultValue(100000)]
-        public int SearchHttpClientTimeoutInMilliseconds { get; set; }
+        public int SearchHttpRequestTimeoutInMilliseconds { get; set; }
 
         [DefaultValue(false)]
         public bool IgnoreIconUrl { get; set; }

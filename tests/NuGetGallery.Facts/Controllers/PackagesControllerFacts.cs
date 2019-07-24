@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -11,6 +12,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
+using System.Web.Caching;
 using System.Web.Mvc;
 using System.Web.Routing;
 using Moq;
@@ -52,6 +54,7 @@ namespace NuGetGallery
             Mock<HttpContextBase> httpContext = null,
             Stream fakeNuGetPackage = null,
             Mock<ISearchService> searchService = null,
+            Mock<ISearchService> previewSearchService = null,
             Exception readPackageException = null,
             Mock<IPackageFileService> packageFileService = null,
             Mock<IEntitiesContext> entitiesContext = null,
@@ -73,6 +76,7 @@ namespace NuGetGallery
             Mock<ILicenseExpressionSplitter> licenseExpressionSplitter = null,
             Mock<IFeatureFlagService> featureFlagService = null,
             Mock<IPackageDeprecationService> deprecationService = null,
+            Mock<IABTestService> abTestService = null,
             Mock<IIconUrlProvider> iconUrlProvider = null)
         {
             packageService = packageService ?? new Mock<IPackageService>();
@@ -86,7 +90,10 @@ namespace NuGetGallery
             }
             userService = userService ?? new Mock<IUserService>();
             messageService = messageService ?? new Mock<IMessageService>();
+
             searchService = searchService ?? new Mock<ISearchService>();
+
+            previewSearchService = previewSearchService ?? new Mock<ISearchService>();
 
             if (packageFileService == null)
             {
@@ -199,7 +206,10 @@ namespace NuGetGallery
             deprecationService = deprecationService ?? new Mock<IPackageDeprecationService>();
             iconUrlProvider = iconUrlProvider ?? new Mock<IIconUrlProvider>();
 
+            abTestService = abTestService ?? new Mock<IABTestService>();
+
             var diagnosticsService = new Mock<IDiagnosticsService>();
+
             var controller = new Mock<PackagesController>(
                 packageService.Object,
                 packageUpdateService.Object,
@@ -207,6 +217,7 @@ namespace NuGetGallery
                 userService.Object,
                 messageService.Object,
                 searchService.Object,
+                previewSearchService.Object,
                 packageFileService.Object,
                 entitiesContext.Object,
                 configurationService.Current,
@@ -229,6 +240,7 @@ namespace NuGetGallery
                 licenseExpressionSplitter.Object,
                 featureFlagService.Object,
                 deprecationService.Object,
+                abTestService.Object,
                 iconUrlProvider.Object);
 
             controller.CallBase = true;
@@ -318,6 +330,30 @@ namespace NuGetGallery
                     type, message: new PlainTextOnlyValidationMessage("Something"), warnings: null));
 
             return fakePackageUploadService;
+        }
+
+        public class TheConstructor
+            : TestContainer
+        {
+            /// <summary>
+            /// This test is to verify that the preview search service parameter name for the constructor has the
+            /// expected value. This is necessary because the dependency injection configuration uses the parameter
+            /// name to identify which search service should be preview implementation.
+            /// </summary>
+            [Fact]
+            public void HasPreviewSearchServiceParameter()
+            {
+                var type = typeof(PackagesController);
+
+                var constructors = type.GetConstructors();
+                var constructor = Assert.Single(constructors);
+
+                var parameters = constructor.GetParameters();
+                var parameter = Assert.Single(
+                    parameters,
+                    p => p.Name == DefaultDependenciesModule.ParameterNames.PackagesController_PreviewSearchService);
+                Assert.Equal(typeof(ISearchService), parameter.ParameterType);
+            }
         }
 
         public class TheCancelVerifyPackageAction
@@ -682,7 +718,6 @@ namespace NuGetGallery
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
                 Assert.Equal("Foo", model.Id);
                 Assert.Equal("1.1.1", model.Version);
-                Assert.Equal(title, model.Title);
 
                 deprecationService.Verify();
             }
@@ -760,7 +795,6 @@ namespace NuGetGallery
                 Assert.Equal(id, model.Id);
                 // The page should select the first package that is IsLatestSemVer2
                 Assert.Equal(latestPackage.NormalizedVersion, model.Version);
-                Assert.Equal(latestPackage.Title, model.Title);
                 Assert.True(model.LatestVersionSemVer2);
 
                 deprecationService.Verify();
@@ -816,7 +850,6 @@ namespace NuGetGallery
 
                 Assert.Equal(id, model.Id);
                 Assert.Equal(notLatestPackage.NormalizedVersion, model.Version);
-                Assert.Equal(notLatestPackage.Title, model.Title);
                 Assert.False(model.LatestVersionSemVer2);
 
                 deprecationService.Verify();
@@ -870,7 +903,6 @@ namespace NuGetGallery
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
                 Assert.Equal("Foo", model.Id);
                 Assert.Equal("1.1.1", model.Version);
-                Assert.Equal("A test package!", model.Title);
                 Assert.Null(model.ReadMeHtml);
 
                 deprecationService.Verify();
@@ -3847,6 +3879,13 @@ namespace NuGetGallery
         public class TheListPackagesMethod
             : TestContainer
         {
+            private readonly Cache _cache;
+
+            public TheListPackagesMethod()
+            {
+                _cache = new Cache();
+            }
+
             [Fact]
             public async Task TrimsSearchTerm()
             {
@@ -3900,6 +3939,83 @@ namespace NuGetGallery
                 var model = result.Model as PackageListViewModel;
                 Assert.Equal(prerel, model.IncludePrerelease);
                 searchService.Verify(x => x.Search(It.Is<SearchFilter>(f => f.IncludePrerelease == prerel)));
+            }
+
+            [Fact]
+            public async Task UsesPreviewSearchServiceWhenABTestServiceSaysSo()
+            {
+                var abTestService = new Mock<IABTestService>();
+                abTestService
+                    .Setup(x => x.IsPreviewSearchEnabled(It.IsAny<User>()))
+                    .Returns(true);
+
+                var searchService = new Mock<ISearchService>();
+                var previewSearchService = new Mock<ISearchService>();
+                previewSearchService
+                    .Setup(s => s.Search(It.IsAny<SearchFilter>()))
+                    .ReturnsAsync(() => new SearchResults(0, DateTime.UtcNow));
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    searchService: searchService,
+                    previewSearchService: previewSearchService,
+                    abTestService: abTestService);
+                controller.SetCurrentUser(TestUtility.FakeUser);
+
+                var result = await controller.ListPackages(new PackageListSearchViewModel { Q = "test", Prerel = true });
+
+                searchService.Verify(x => x.Search(It.IsAny<SearchFilter>()), Times.Never);
+                previewSearchService.Verify(x => x.Search(It.IsAny<SearchFilter>()), Times.Once);
+                abTestService.Verify(
+                    x => x.IsPreviewSearchEnabled(TestUtility.FakeUser),
+                    Times.Once);
+            }
+
+            [Theory]
+            [InlineData(null)]
+            [InlineData("")]
+            [InlineData(" ")]
+            public async Task DoesNotUsePreviewSearchServiceForEmptyQuery(string q)
+            {
+                var abTestService = new Mock<IABTestService>();
+                abTestService
+                    .Setup(x => x.IsPreviewSearchEnabled(It.IsAny<User>()))
+                    .Returns(true);
+
+                var httpContext = new Mock<HttpContextBase>();
+                httpContext.Setup(c => c.Cache).Returns(_cache);
+
+                var searchService = new Mock<ISearchService>();
+                searchService
+                    .Setup(s => s.Search(It.IsAny<SearchFilter>()))
+                    .ReturnsAsync(() => new SearchResults(0, DateTime.UtcNow));
+                var previewSearchService = new Mock<ISearchService>();
+
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    httpContext: httpContext,
+                    searchService: searchService,
+                    previewSearchService: previewSearchService,
+                    abTestService: abTestService);
+                controller.SetCurrentUser(TestUtility.FakeUser);
+
+                var result = await controller.ListPackages(new PackageListSearchViewModel { Q = q, Prerel = true });
+
+                searchService.Verify(x => x.Search(It.IsAny<SearchFilter>()), Times.Once);
+                previewSearchService.Verify(x => x.Search(It.IsAny<SearchFilter>()), Times.Never);
+                abTestService.Verify(
+                    x => x.IsPreviewSearchEnabled(TestUtility.FakeUser),
+                    Times.Never);
+            }
+
+            protected override void Dispose(bool disposing)
+            {
+                // Clear the cache to avoid test interaction.
+                foreach (DictionaryEntry entry in _cache)
+                {
+                    _cache.Remove((string)entry.Key);
+                }
+
+                base.Dispose(disposing);
             }
 
             [Theory]

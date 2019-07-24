@@ -2,12 +2,9 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using CommonMark.Syntax;
-using Microsoft.Ajax.Utilities;
 using Moq;
 using NuGet.Services.Entities;
 using NuGet.Versioning;
@@ -55,6 +52,30 @@ namespace NuGetGallery
 
                     yield return new object[] { "PackageRegistrationRequiredSignerSet",
                         (TrackAction)(s => s.TrackRequiredSignerSet(package.PackageRegistration.Id))
+                    };
+
+                    yield return new object[] { "DownloadJsonRefreshDuration",
+                        (TrackAction)(s => s.TrackDownloadJsonRefreshDuration(0))
+                    };
+
+                    yield return new object[] { "DownloadCountDecreasedDuringRefresh",
+                        (TrackAction)(s => s.TrackDownloadCountDecreasedDuringRefresh(package.PackageRegistration.Id, package.Version, 0, 0))
+                    };
+
+                    yield return new object[] { "GalleryDownloadGreaterThanJsonForPackage",
+                        (TrackAction)(s => s.TrackPackageDownloadCountDecreasedFromGallery(package.PackageRegistration.Id, package.Version, 0, 0))
+                    };
+
+                    yield return new object[] { "GalleryDownloadGreaterThanJsonForPackageRegistration",
+                        (TrackAction)(s => s.TrackPackageRegistrationDownloadCountDecreasedFromGallery(package.PackageRegistration.Id, 0, 0))
+                    };
+
+                    yield return new object[] { "GetPackageDownloadCountFailed",
+                        (TrackAction)(s => s.TrackGetPackageDownloadCountFailed(package.PackageRegistration.Id, package.Version))
+                    };
+
+                    yield return new object[] { "GetPackageRegistrationDownloadCountFailed",
+                        (TrackAction)(s => s.TrackGetPackageRegistrationDownloadCountFailed(package.PackageRegistration.Id))
                     };
 
                     yield return new object[] { "ODataQueryFilter",
@@ -281,12 +302,24 @@ namespace NuGetGallery
                         (TrackAction)(s => s.TrackMetricForSearchOnRetry("SomeName", exception: null, correlationId: string.Empty, uri: string.Empty, circuitBreakerStatus: string.Empty))
                     };
 
+                    yield return new object[] { "SearchOnTimeout",
+                        (TrackAction)(s => s.TrackMetricForSearchOnTimeout("SomeName", correlationId: string.Empty, uri: string.Empty, circuitBreakerStatus: string.Empty))
+                    };
+
                     yield return new object[] { "SearchSideBySideFeedback",
                         (TrackAction)(s => s.TrackSearchSideBySideFeedback("nuget", 1, 2, "new", "nuget.core", null, true, true))
                     };
 
                     yield return new object[] { "SearchSideBySide",
                         (TrackAction)(s => s.TrackSearchSideBySide("nuget", true, 1, true, 2))
+                    };
+
+                    yield return new object[] { "ABTestEnrollmentInitialized",
+                        (TrackAction)(s => s.TrackABTestEnrollmentInitialized(1, 42))
+                    };
+
+                    yield return new object[] { "ABTestEvaluated",
+                        (TrackAction)(s => s.TrackABTestEvaluated("SearchPreview", true, true, 0, 20))
                     };
                 }
             }

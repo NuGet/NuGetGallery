@@ -26,7 +26,8 @@ namespace NuGetGallery
 
         private static CloudBlobFileStorageService CreateService(
             Mock<ICloudBlobClient> fakeBlobClient = null,
-            Mock<ISourceDestinationRedirectPolicy> redirectPolicy = null)
+            Mock<ISourceDestinationRedirectPolicy> redirectPolicy = null,
+            Mock<ICloudBlobContainerInformationProvider> folderInformationProvider = null)
         {
             if (fakeBlobClient == null)
             {
@@ -39,11 +40,20 @@ namespace NuGetGallery
                 redirectPolicy.Setup(p => p.IsAllowed(It.IsAny<Uri>(), It.IsAny<Uri>())).Returns(true);
             }
 
+            if (folderInformationProvider == null)
+            {
+                folderInformationProvider = new Mock<ICloudBlobContainerInformationProvider>();
+                folderInformationProvider
+                    .Setup(fip => fip.IsPublicContainer(It.IsAny<string>()))
+                    .Returns(false);
+            }
+
             return new CloudBlobFileStorageService(
                 fakeBlobClient.Object,
                 Mock.Of<IAppConfiguration>(),
                 redirectPolicy.Object,
-                Mock.Of<IDiagnosticsService>());
+                Mock.Of<IDiagnosticsService>(),
+                folderInformationProvider.Object);
         }
 
         private class FolderNamesDataAttribute : DataAttribute

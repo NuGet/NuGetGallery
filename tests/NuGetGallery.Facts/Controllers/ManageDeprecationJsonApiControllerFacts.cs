@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Web.Mvc;
 using Newtonsoft.Json.Linq;
 using NuGet.Services.Entities;
+using NuGet.Versioning;
 using NuGetGallery.Framework;
 using NuGetGallery.RequestModels;
 using Xunit;
@@ -45,35 +46,47 @@ namespace NuGetGallery.Controllers
                 var id = "Crested.Gecko";
                 var firstPackage = new Package
                 {
-                    Version = "1.0.0+build"
+                    Version = "1.0.0+build",
+                    Listed = true
                 };
 
                 var secondPackage = new Package
                 {
-                    Version = "2.0.0+build"
+                    Version = "2.0.0+build",
+                    Listed = true
                 };
 
                 var thirdPackage = new Package
                 {
-                    Version = "3.0.0+build"
+                    Version = "3.0.0+build",
+                    Listed = true
                 };
 
                 var deletedPackage = new Package
                 {
-                    Version = "2.1.0",
-                    PackageStatusKey = PackageStatus.Deleted
+                    Version = "2.1.0-deleted",
+                    PackageStatusKey = PackageStatus.Deleted,
+                    Listed = true
                 };
 
                 var validatingPackage = new Package
                 {
-                    Version = "2.1.0",
-                    PackageStatusKey = PackageStatus.Validating
+                    Version = "2.2.0-validating",
+                    PackageStatusKey = PackageStatus.Validating,
+                    Listed = true
                 };
 
                 var failedValidationPackage = new Package
                 {
-                    Version = "2.1.0",
-                    PackageStatusKey = PackageStatus.FailedValidation
+                    Version = "2.3.0-failedValidation",
+                    PackageStatusKey = PackageStatus.FailedValidation,
+                    Listed = true
+                };
+
+                var unlistedPackage = new Package
+                {
+                    Version = "2.4.0-unlisted",
+                    Listed = false
                 };
 
                 var packages = new[]
@@ -83,7 +96,8 @@ namespace NuGetGallery.Controllers
                     validatingPackage,
                     failedValidationPackage,
                     thirdPackage,
-                    secondPackage
+                    secondPackage,
+                    unlistedPackage
                 };
 
                 GetMock<IPackageService>()
@@ -100,7 +114,7 @@ namespace NuGetGallery.Controllers
                 Assert.Equal((int)HttpStatusCode.OK, controller.Response.StatusCode);
 
                 var expected = new[] { thirdPackage, secondPackage, firstPackage }
-                    .Select(v => v.Version)
+                    .Select(v => NuGetVersion.Parse(v.Version).ToNormalizedString())
                     .ToList();
 
                 Assert.Equal(expected, result.Data);
@@ -603,6 +617,65 @@ namespace NuGetGallery.Controllers
                 packageService.Verify();
             }
 
+            [Theory]
+            [MemberData(nameof(Owner_Data))]
+            public async Task ReturnsNotFoundIfAlternateOfSelf(User currentUser, User owner)
+            {
+                // Arrange
+                var id = "id";
+
+                var registration = new PackageRegistration
+                {
+                    Id = id
+                };
+
+                var featureFlagService = GetMock<IFeatureFlagService>();
+                featureFlagService
+                    .Setup(x => x.IsManageDeprecationEnabled(currentUser, registration))
+                    .Returns(true)
+                    .Verifiable();
+
+                registration.Owners.Add(owner);
+
+                var version = "1.0.0";
+                var package = new Package
+                {
+                    NormalizedVersion = version,
+                    PackageRegistration = registration
+                };
+
+                var packageService = GetMock<IPackageService>();
+                packageService
+                    .Setup(x => x.FindPackagesById(id, PackageDeprecationFieldsToInclude.DeprecationAndRelationships))
+                    .Returns(new[] { package })
+                    .Verifiable();
+
+                packageService
+                    .Setup(x => x.FindPackageByIdAndVersionStrict(id, version))
+                    .Returns(package)
+                    .Verifiable();
+
+                var controller = GetController<ManageDeprecationJsonApiController>();
+                controller.SetCurrentUser(currentUser);
+
+                // Act
+                var result = await controller.Deprecate(
+                    CreateDeprecatePackageRequest(
+                        id, 
+                        new[] { version }, 
+                        alternatePackageId: id, 
+                        alternatePackageVersion: version));
+
+                // Assert
+                AssertErrorResponse(
+                    controller,
+                    result,
+                    HttpStatusCode.BadRequest,
+                    Strings.DeprecatePackage_AlternateOfSelf);
+                featureFlagService.Verify();
+                packageService.Verify();
+            }
+
             private static void AssertErrorResponse(
                 ManageDeprecationJsonApiController controller,
                 JsonResult result,
@@ -643,8 +716,10 @@ namespace NuGetGallery.Controllers
             public enum ReturnsSuccessful_AlternatePackage_State
             {
                 None,
-                Registration,
-                Package
+                RegistrationSameId,
+                RegistrationDifferentId,
+                PackageSameId,
+                PackageDifferentId
             }
 
             public static IEnumerable<object[]> ReturnsSuccessful_Data =
@@ -753,33 +828,47 @@ namespace NuGetGallery.Controllers
                     .Returns(new[] { package, package2, unselectedPackage })
                     .Verifiable();
 
-                var alternatePackageId = alternatePackageState != ReturnsSuccessful_AlternatePackage_State.None ? "altId" : null;
-                var alternatePackageVersion = alternatePackageState == ReturnsSuccessful_AlternatePackage_State.Package ? "1.2.3-alt" : null;
+                string alternatePackageId = null;
+                string alternatePackageVersion = null;
+                PackageRegistration alternatePackageRegistration = null;
+                Package alternatePackage = null;
+                if (alternatePackageState != ReturnsSuccessful_AlternatePackage_State.None)
+                {
+                    var alternateRegistration = 
+                        alternatePackageState == ReturnsSuccessful_AlternatePackage_State.RegistrationSameId 
+                        || alternatePackageState == ReturnsSuccessful_AlternatePackage_State.PackageSameId
+                        ? registration
+                        : new PackageRegistration
+                        {
+                            Id = "altId"
+                        };
 
-                var alternatePackageRegistration = new PackageRegistration
-                {
-                    Id = alternatePackageId
-                };
+                    alternatePackageId = alternateRegistration.Id;
 
-                var alternatePackage = new Package
-                {
-                    NormalizedVersion = alternatePackageVersion,
-                    PackageRegistration = alternatePackageRegistration
-                };
+                    if (alternatePackageState == ReturnsSuccessful_AlternatePackage_State.RegistrationSameId ||
+                        alternatePackageState == ReturnsSuccessful_AlternatePackage_State.RegistrationDifferentId)
+                    {
+                        alternatePackageRegistration = alternateRegistration;
+                        packageService
+                            .Setup(x => x.FindPackageRegistrationById(alternatePackageId))
+                            .Returns(alternateRegistration)
+                            .Verifiable();
+                    }
+                    else if (alternatePackageState == ReturnsSuccessful_AlternatePackage_State.PackageSameId || 
+                        alternatePackageState == ReturnsSuccessful_AlternatePackage_State.PackageDifferentId)
+                    {
+                        alternatePackageVersion = "1.2.3-alt";
+                        alternatePackage = new Package
+                        {
+                            NormalizedVersion = alternatePackageVersion,
+                            PackageRegistration = alternateRegistration
+                        };
 
-                if (alternatePackageState == ReturnsSuccessful_AlternatePackage_State.Registration)
-                {
-                    packageService
-                        .Setup(x => x.FindPackageRegistrationById(alternatePackageId))
-                        .Returns(alternatePackageRegistration)
-                        .Verifiable();
-                }
-                else if (alternatePackageState == ReturnsSuccessful_AlternatePackage_State.Package)
-                {
-                    packageService
-                        .Setup(x => x.FindPackageByIdAndVersionStrict(alternatePackageId, alternatePackageVersion))
-                        .Returns(alternatePackage)
-                        .Verifiable();
+                        packageService
+                            .Setup(x => x.FindPackageByIdAndVersionStrict(alternatePackageId, alternatePackageVersion))
+                            .Returns(alternatePackage)
+                            .Verifiable();
+                    }
                 }
 
                 var deprecationService = GetMock<IPackageDeprecationService>();
@@ -790,8 +879,8 @@ namespace NuGetGallery.Controllers
                     .Setup(x => x.UpdateDeprecation(
                         new[] { package, package2 },
                         expectedStatus,
-                        alternatePackageState == ReturnsSuccessful_AlternatePackage_State.Registration ? alternatePackageRegistration : null,
-                        alternatePackageState == ReturnsSuccessful_AlternatePackage_State.Package ? alternatePackage : null,
+                        alternatePackageRegistration,
+                        alternatePackage,
                         customMessage,
                         currentUser))
                     .Completes()

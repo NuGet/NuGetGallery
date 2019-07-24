@@ -101,6 +101,9 @@
     <Compile Include="Services\CoreLicenseFileServiceFacts.cs" />
     <Compile Include="Services\CoreSymbolPackageServiceFacts.cs" />
     <Compile Include="Services\FileUriPermissionsFacts.cs" />
+    <Compile Include="Services\FolderNamesDataAttribute.cs" />
+    <Compile Include="Services\FolderNamesDataAttributeFacts.cs" />
+    <Compile Include="Services\GalleryCloudBlobContainerInformationProviderFacts.cs" />
     <Compile Include="Services\RevalidationStateServiceFacts.cs" />
     <Compile Include="Services\StringReplaceTemplateProcessorFacts.cs" />
     <Compile Include="TestUtils\BlobStorageCollection.cs" />

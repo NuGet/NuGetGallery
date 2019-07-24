@@ -52,6 +52,7 @@ using NuGetGallery.Security;
 using SecretReaderFactory = NuGetGallery.Configuration.SecretReader.SecretReaderFactory;
 using Microsoft.Extensions.Http;
 using NuGetGallery.Infrastructure.Lucene;
+using System.Threading;
 
 namespace NuGetGallery
 {
@@ -66,6 +67,11 @@ namespace NuGetGallery
             public const string EmailPublisherTopic = "EmailPublisherBindingKey";
 
             public const string PreviewSearchClient = "PreviewSearchClientBindingKey";
+        }
+
+        public static class ParameterNames
+        {
+            public const string PackagesController_PreviewSearchService = "previewSearchService";
         }
 
         protected override void Load(ContainerBuilder builder)
@@ -383,6 +389,10 @@ namespace NuGetGallery
                 .As<IPackageUpdateService>()
                 .InstancePerLifetimeScope();
 
+            builder.RegisterType<GalleryCloudBlobContainerInformationProvider>()
+                .As<ICloudBlobContainerInformationProvider>()
+                .InstancePerLifetimeScope();
+
             builder.RegisterType<ConfigurationIconFileProvider>()
                 .As<IIconUrlProvider>()
                 .InstancePerLifetimeScope();
@@ -409,7 +419,7 @@ namespace NuGetGallery
                     defaultAuditingService = GetAuditingServiceForLocalFileSystem(configuration);
                     break;
                 case StorageType.AzureStorage:
-                    ConfigureForAzureStorage(builder, configuration, telemetryClient);
+                    ConfigureForAzureStorage(builder, configuration, telemetryService);
                     defaultAuditingService = GetAuditingServiceForAzureStorage(builder, configuration);
                     break;
             }
@@ -419,6 +429,8 @@ namespace NuGetGallery
             RegisterAuditingServices(builder, defaultAuditingService);
 
             RegisterCookieComplianceService(builder, configuration, diagnosticsService);
+
+            RegisterABTestServices(builder);
 
             builder.RegisterType<MicrosoftTeamSubscription>()
                 .AsSelf()
@@ -439,6 +451,17 @@ namespace NuGetGallery
 
             ConfigureAutocomplete(builder, configuration);
             builder.Populate(services);
+        }
+
+        private void RegisterABTestServices(ContainerBuilder builder)
+        {
+            builder
+                .RegisterType<ABTestEnrollmentFactory>()
+                .As<IABTestEnrollmentFactory>();
+
+            builder
+                .RegisterType<CookieBasedABTestService>()
+                .As<IABTestService>();
         }
 
         private static void RegisterFeatureFlagsService(ContainerBuilder builder, ConfigurationService configuration)
@@ -798,6 +821,14 @@ namespace NuGetGallery
                     c.Resolve<IIconUrlProvider>()))
                 .As<ISearchSideBySideService>()
                 .InstancePerLifetimeScope();
+
+            builder
+                .RegisterType<PackagesController>()
+                .WithParameter(new ResolvedParameter(
+                    (pi, ctx) => pi.ParameterType == typeof(ISearchService) && pi.Name == ParameterNames.PackagesController_PreviewSearchService,
+                    (pi, ctx) => ctx.ResolveKeyed<ISearchService>(BindingKeys.PreviewSearchClient)))
+                .As<PackagesController>()
+                .InstancePerLifetimeScope();
         }
 
         private static void RegisterSearchService(
@@ -821,23 +852,29 @@ namespace NuGetGallery
                         c =>
                         {
                             c.BaseAddress = searchClient.searchUri;
-                            c.Timeout = TimeSpan.FromMilliseconds(configuration.Current.SearchHttpClientTimeoutInMilliseconds);
+
+                            // Here we calculate a timeout for HttpClient that allows for all of the retries to occur.
+                            // This  is not strictly necessary today since the timeout exception is not a case that is
+                            // retried but it's best to set this right now instead of the default (100) or something
+                            // too small. The timeout on HttpClient is not really used. Instead, we depend on a timeout
+                            // policy from Polly.
+                            var perRetryMs = configuration.Current.SearchHttpRequestTimeoutInMilliseconds;
+                            var betweenRetryMs = configuration.Current.SearchCircuitBreakerWaitAndRetryIntervalInMilliseconds;
+                            var maxAttempts = configuration.Current.SearchCircuitBreakerWaitAndRetryCount + 1;
+                            var maxMs = (maxAttempts * perRetryMs) + ((maxAttempts - 1) * betweenRetryMs);
+
+                            // Add another timeout on top of the theoretical max to account for CPU time.
+                            maxMs += perRetryMs;
+
+                            c.Timeout = TimeSpan.FromMilliseconds(maxMs);
                         })
                     .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler() { AllowAutoRedirect = true })
                     .AddHttpMessageHandler<CorrelatingHttpClientHandler>()
-                    .AddPolicyHandler(SearchClientPolicies.SearchClientFallBackCircuitBreakerPolicy(logger, searchClient.name, telemetryService))
-                    .AddPolicyHandler(SearchClientPolicies.SearchClientWaitAndRetryPolicy(
-                            configuration.Current.SearchCircuitBreakerWaitAndRetryCount,
-                            configuration.Current.SearchCircuitBreakerWaitAndRetryIntervalInMilliseconds,
-                            logger,
-                            searchClient.name,
-                            telemetryService))
-                    .AddPolicyHandler(SearchClientPolicies.SearchClientCircuitBreakerPolicy(
-                            configuration.Current.SearchCircuitBreakerBreakAfterCount,
-                            TimeSpan.FromSeconds(configuration.Current.SearchCircuitBreakerDelayInSeconds),
-                            logger,
-                            searchClient.name,
-                            telemetryService));
+                    .AddSearchPolicyHandlers(
+                        logger,
+                        searchClient.name,
+                        telemetryService,
+                        configuration.Current);
             }
 
             var registrationBuilder = builder
@@ -991,7 +1028,7 @@ namespace NuGetGallery
             return new FileSystemAuditingService(auditingPath, AuditActor.GetAspNetOnBehalfOfAsync);
         }
 
-        private static void ConfigureForAzureStorage(ContainerBuilder builder, IGalleryConfigurationService configuration, ITelemetryClient telemetryClient)
+        private static void ConfigureForAzureStorage(ContainerBuilder builder, IGalleryConfigurationService configuration, ITelemetryService telemetryService)
         {
             /// The goal here is to initialize a <see cref="ICloudBlobClient"/> and <see cref="IFileStorageService"/>
             /// instance for each unique connection string. Each dependent of <see cref="IFileStorageService"/> (that
@@ -1054,7 +1091,7 @@ namespace NuGetGallery
 
             // when running on Windows Azure, download counts come from the downloads.v1.json blob
             var downloadCountService = new CloudDownloadCountService(
-                telemetryClient,
+                telemetryService,
                 configuration.Current.AzureStorage_Statistics_ConnectionString,
                 configuration.Current.AzureStorageReadAccessGeoRedundant);
 
@@ -1062,7 +1099,7 @@ namespace NuGetGallery
                 .AsSelf()
                 .As<IDownloadCountService>()
                 .SingleInstance();
-            ObjectMaterializedInterception.AddInterceptor(new DownloadCountObjectMaterializedInterceptor(downloadCountService));
+            ObjectMaterializedInterception.AddInterceptor(new DownloadCountObjectMaterializedInterceptor(downloadCountService, telemetryService));
 
             builder.RegisterType<JsonStatisticsService>()
                 .AsSelf()
