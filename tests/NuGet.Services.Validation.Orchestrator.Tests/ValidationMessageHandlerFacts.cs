@@ -11,13 +11,14 @@ using NuGet.Services.Entities;
 using NuGet.Services.ServiceBus;
 using NuGet.Services.Validation.Orchestrator.Telemetry;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace NuGet.Services.Validation.Orchestrator.Tests
 {
     public class ValidationMessageHandlerStrictFacts : ValidationMessageHandlerFactsBase
     {
-        public ValidationMessageHandlerStrictFacts()
-            : base(MockBehavior.Strict)
+        public ValidationMessageHandlerStrictFacts(ITestOutputHelper output)
+            : base(output, MockBehavior.Strict)
         {
         }
 
@@ -310,8 +311,8 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         protected PackageValidationSet ValidationSet { get; }
         protected PackageValidatingEntity PackageValidatingEntity { get; }
 
-        public ValidationMessageHandlerLooseFacts()
-            : base(MockBehavior.Loose)
+        public ValidationMessageHandlerLooseFacts(ITestOutputHelper output)
+            : base(output, MockBehavior.Loose)
         {
             Package = new Package { Key = 42 };
             ProcessValidationSetData = PackageValidationMessageData.NewProcessValidationSet(
@@ -438,9 +439,11 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         protected Mock<IValidationSetProcessor> ValidationSetProcessorMock { get; }
         protected Mock<IValidationOutcomeProcessor<Package>> ValidationOutcomeProcessorMock { get; }
         protected Mock<ITelemetryService> TelemetryServiceMock { get; }
-        protected Mock<ILogger<PackageValidationMessageHandler>> LoggerMock { get; }
+        public ILogger<PackageValidationMessageHandler> Logger { get; }
 
-        public ValidationMessageHandlerFactsBase(MockBehavior mockBehavior)
+        public ValidationMessageHandlerFactsBase(
+            ITestOutputHelper output,
+            MockBehavior mockBehavior)
         {
             ConfigurationAccessorMock = new Mock<IOptionsSnapshot<ValidationConfiguration>>();
             CorePackageServiceMock = new Mock<IEntityService<Package>>(mockBehavior);
@@ -448,7 +451,9 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             ValidationSetProcessorMock = new Mock<IValidationSetProcessor>(mockBehavior);
             ValidationOutcomeProcessorMock = new Mock<IValidationOutcomeProcessor<Package>>(mockBehavior);
             TelemetryServiceMock = new Mock<ITelemetryService>(mockBehavior);
-            LoggerMock = new Mock<ILogger<PackageValidationMessageHandler>>(); // we generally don't care about how logger is called, so it's loose all the time
+
+            // we generally don't care about how logger is called, so don't make a strict mock.
+            Logger = new LoggerFactory().AddXunit(output).CreateLogger<PackageValidationMessageHandler>();
 
             ConfigurationAccessorMock
                 .SetupGet(ca => ca.Value)
@@ -464,7 +469,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 ValidationSetProcessorMock.Object,
                 ValidationOutcomeProcessorMock.Object,
                 TelemetryServiceMock.Object,
-                LoggerMock.Object);
+                Logger);
         }
     }
 }

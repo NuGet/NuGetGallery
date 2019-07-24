@@ -11,22 +11,23 @@ using NuGet.Services.Validation.Orchestrator.Telemetry;
 
 namespace NuGet.Services.Validation.Orchestrator
 {
-    public abstract class BaseValidationMessageHandler<T> : IMessageHandler<PackageValidationMessageData> where T : class, IEntity
+    public abstract class BaseValidationMessageHandler<TEntity>
+        : IMessageHandler<PackageValidationMessageData> where TEntity : class, IEntity
     {
         private readonly ValidationConfiguration _configs;
-        private readonly IEntityService<T> _entityService;
-        private readonly IValidationSetProvider<T> _validationSetProvider;
+        private readonly IEntityService<TEntity> _entityService;
+        private readonly IValidationSetProvider<TEntity> _validationSetProvider;
         private readonly IValidationSetProcessor _validationSetProcessor;
-        private readonly IValidationOutcomeProcessor<T> _validationOutcomeProcessor;
+        private readonly IValidationOutcomeProcessor<TEntity> _validationOutcomeProcessor;
         private readonly ITelemetryService _telemetryService;
         private readonly ILogger _logger;
 
         public BaseValidationMessageHandler(
             IOptionsSnapshot<ValidationConfiguration> validationConfigsAccessor,
-            IEntityService<T> entityService,
-            IValidationSetProvider<T> validationSetProvider,
+            IEntityService<TEntity> entityService,
+            IValidationSetProvider<TEntity> validationSetProvider,
             IValidationSetProcessor validationSetProcessor,
-            IValidationOutcomeProcessor<T> validationOutcomeProcessor,
+            IValidationOutcomeProcessor<TEntity> validationOutcomeProcessor,
             ITelemetryService telemetryService,
             ILogger logger)
         {
@@ -82,7 +83,7 @@ namespace NuGet.Services.Validation.Orchestrator
         private async Task<bool> CheckValidatorAsync(CheckValidatorData message)
         {
             PackageValidationSet validationSet;
-            IValidatingEntity<T> entity;
+            IValidatingEntity<TEntity> entity;
             using (_logger.BeginScope(
                 "Finding validation set for {ValidatingType} validation ID {ValidationId}",
                 ValidatingType,
@@ -234,7 +235,7 @@ namespace NuGet.Services.Validation.Orchestrator
         }
 
         private async Task ProcessValidationSetAsync(
-            IValidatingEntity<T> entity,
+            IValidatingEntity<TEntity> entity,
             PackageValidationSet validationSet,
             bool scheduleNextCheck)
         {

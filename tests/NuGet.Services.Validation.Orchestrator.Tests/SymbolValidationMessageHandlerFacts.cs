@@ -11,13 +11,14 @@ using NuGet.Services.Entities;
 using NuGet.Services.ServiceBus;
 using NuGet.Services.Validation.Orchestrator.Telemetry;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace NuGet.Services.Validation.Orchestrator.Tests
 {
     public class SymbolValidationMessageHandlerStrictFacts : SymbolValidationMessageHandlerFactsBase
     {
-        public SymbolValidationMessageHandlerStrictFacts()
-            : base(MockBehavior.Strict) { }
+        public SymbolValidationMessageHandlerStrictFacts(ITestOutputHelper output)
+            : base(output, MockBehavior.Strict) { }
 
         [Fact]
         public async Task WaitsForValidationSetAvailabilityInValidationDBWithCheckValidator()
@@ -241,8 +242,8 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         protected PackageValidationSet ValidationSet { get; }
         protected SymbolPackageValidatingEntity SymbolPackageValidatingEntity { get; }
 
-        public SymbolValidationMessageHandlerLooseFacts()
-            : base(MockBehavior.Loose)
+        public SymbolValidationMessageHandlerLooseFacts(ITestOutputHelper output)
+            : base(output, MockBehavior.Loose)
         {
             SymbolPackage = new SymbolPackage() { Package = new Package(), Key = 42 };
             ProcessValidationSetData = PackageValidationMessageData.NewProcessValidationSet(
@@ -370,9 +371,9 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         protected Mock<IValidationSetProcessor> ValidationSetProcessorMock { get; }
         protected Mock<IValidationOutcomeProcessor<SymbolPackage>> ValidationOutcomeProcessorMock { get; }
         protected Mock<ITelemetryService> TelemetryServiceMock { get; }
-        protected Mock<ILogger<SymbolValidationMessageHandler>> LoggerMock { get; }
+        protected ILogger<SymbolValidationMessageHandler> Logger { get; }
 
-        public SymbolValidationMessageHandlerFactsBase(MockBehavior mockBehavior)
+        public SymbolValidationMessageHandlerFactsBase(ITestOutputHelper output, MockBehavior mockBehavior)
         {
             ConfigurationAccessorMock = new Mock<IOptionsSnapshot<ValidationConfiguration>>();
             CoreSymbolPackageServiceMock = new Mock<IEntityService<SymbolPackage>>(mockBehavior);
@@ -380,7 +381,9 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             ValidationSetProcessorMock = new Mock<IValidationSetProcessor>(mockBehavior);
             ValidationOutcomeProcessorMock = new Mock<IValidationOutcomeProcessor<SymbolPackage>>(mockBehavior);
             TelemetryServiceMock = new Mock<ITelemetryService>(mockBehavior);
-            LoggerMock = new Mock<ILogger<SymbolValidationMessageHandler>>(); // we generally don't care about how logger is called, so it's loose all the time
+
+            // we generally don't care about how logger is called, so don't make a strict mock.
+            Logger = new LoggerFactory().AddXunit(output).CreateLogger<SymbolValidationMessageHandler>();
 
             ConfigurationAccessorMock
                 .SetupGet(ca => ca.Value)
@@ -396,7 +399,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 ValidationSetProcessorMock.Object,
                 ValidationOutcomeProcessorMock.Object,
                 TelemetryServiceMock.Object,
-                LoggerMock.Object);
+                Logger);
         }
     }
 }
