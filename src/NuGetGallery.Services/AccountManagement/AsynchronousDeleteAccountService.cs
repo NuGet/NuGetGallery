@@ -2,11 +2,9 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Microsoft.ServiceBus.Messaging;
 using NuGet.Services.Entities;
 using NuGet.Services.ServiceBus;
 using NuGetGallery.Areas.Admin.ViewModels;
@@ -51,67 +49,34 @@ namespace NuGetGallery
 
             var message = _serializer.Serialize(messageData);
 
-            var enqueueSuccess = false;
-            var canRetry = true;
-            var retryCount = 0;
-
-            while (!enqueueSuccess && retryCount < MaxRetryCount && canRetry)
+            try
             {
-                try
-                {
-                    await _topicClient.SendAsync(message);
+                await _topicClient.SendAsync(message);
 
-                    // if SendAsync doesn't throw, as far as we can tell, the message went through.
-                    enqueueSuccess = true;
-                    result.Description = string.Format(CultureInfo.CurrentCulture,
-                        ServicesStrings.AsyncAccountDelete_Success,
-                        userToBeDeleted.Username);
-                    result.Success = true;
-                }
-                catch (Exception ex)
-                {
-                    if (UnretryableExceptionTypes.AnySafe(t => t.IsAssignableFrom(ex.GetType())))
-                    {
-                        _logger.LogError(0, ex, "Failed to enqueue. Retrying was aborted due to exception");
-                        result.Success = false;
-                        result.Description = ServicesStrings.AsyncAccountDelete_NoRetryError;
-                        canRetry = false;
-                    }
-                    else
-                    {
-                        retryCount++;
-                        _logger.LogError(0, ex, "Failed to enqueue to AccountDeleter. Retrying with count: {RetryCount}", retryCount);
-                    }
-                }
+                // if SendAsync doesn't throw, as far as we can tell, the message went through.
+                result.Description = string.Format(CultureInfo.CurrentCulture,
+                    ServicesStrings.AsyncAccountDelete_Success,
+                    userToBeDeleted.Username);
+                result.Success = true;
+            }
+            catch (Exception ex)
+            {
+                // See https://docs.microsoft.com/en-us/azure/service-bus-messaging/service-bus-messaging-exceptions for a list of possible exceptions
+                _logger.LogError(0, ex, "Failed to enqueue to AccountDeleter.");
+                result.Success = false;
+                result.Description = ServicesStrings.AsyncAccountDelete_Fail;
             }
 
             return result;
         }
 
-        // This is the list of exceptions that are not retryable according to https://docs.microsoft.com/en-us/azure/service-bus-messaging/service-bus-messaging-exceptions
-        private IReadOnlyList<Type> UnretryableExceptionTypes = new Type[]
-        {
-            typeof(InvalidOperationException),
-            typeof(OperationCanceledException),
-            typeof(ArgumentException),
-            typeof(ArgumentNullException),
-            typeof(ArgumentOutOfRangeException),
-            typeof(MessagingEntityNotFoundException),
-            typeof(MessageNotFoundException),
-            typeof(MessageLockLostException),
-            typeof(SessionLockLostException),
-            typeof(MessagingEntityAlreadyExistsException),
-            typeof(RuleActionException),
-            typeof(FilterException),
-            typeof(TransactionSizeExceededException),
-            typeof(NoMatchingSubscriptionException),
-            typeof(MessageSizeExceededException)
-        };
-
         [Schema(Name = AccountDeleteMessageSchemaName, Version = 1)]
         private struct AccountDeleteMessageData
         {
             public string Username { get; set; }
+
+            // This defines the origin of the outgoing message.
+            // This source must be defined in the AccountDeleter configuration, or it will refuse to process the message.
             public string Source { get; set; }
         }
     }
