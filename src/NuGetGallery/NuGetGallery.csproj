@@ -207,7 +207,14 @@
     <Compile Include="Controllers\ExperimentsController.cs" />
     <Compile Include="Controllers\ManageDeprecationJsonApiController.cs" />
     <Compile Include="ExtensionMethods.cs" />
-    <Compile Include="Helpers\ViewModelExtensions.cs" />
+    <Compile Include="Helpers\ViewModelExtensions\DeleteAccountListPackageItemViewModelExtensions.cs" />
+    <Compile Include="Helpers\ViewModelExtensions\DeletePackageViewModelExtensions.cs" />
+    <Compile Include="Helpers\ViewModelExtensions\DisplayLicenseViewModelExtensions.cs" />
+    <Compile Include="Helpers\ViewModelExtensions\DisplayPackageViewModelExtensions.cs" />
+    <Compile Include="Helpers\ViewModelExtensions\ListPackageItemRequiredSignerViewModelExtensions.cs" />
+    <Compile Include="Helpers\ViewModelExtensions\ListPackageItemViewModelExtensions.cs" />
+    <Compile Include="Helpers\ViewModelExtensions\ManagePackageViewModelExtensions.cs" />
+    <Compile Include="Helpers\ViewModelExtensions\PackageViewModelExtensions.cs" />
     <Compile Include="Infrastructure\ABTestEnrollment.cs" />
     <Compile Include="Infrastructure\ABTestEnrollmentState.cs" />
     <Compile Include="Infrastructure\ABTestEnrollmentFactory.cs" />
