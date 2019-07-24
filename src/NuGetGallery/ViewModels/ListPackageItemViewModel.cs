@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using NuGet.Services.Entities;
 using NuGetGallery.Helpers;
 
 namespace NuGetGallery
@@ -20,8 +19,8 @@ namespace NuGetGallery
         private string _sha1Thumbprint;
 
         public string Authors { get; set; }
-        public ICollection<BasicUserViewModel> Owners { get; set; }
-        public ICollection<string> Tags { get; set; }
+        public IReadOnlyCollection<BasicUserViewModel> Owners { get; set; }
+        public IReadOnlyCollection<string> Tags { get; set; }
         public string MinClientVersion { get; set; }
         public string ShortDescription { get; private set; }
         public bool IsDescriptionTruncated { get; set; }

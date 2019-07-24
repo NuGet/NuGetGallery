@@ -74,7 +74,7 @@ namespace NuGetGallery
                 var licenseNames = package.LicenseNames;
                 if (!string.IsNullOrEmpty(licenseNames))
                 {
-                    viewModel.LicenseNames = licenseNames.Split(',').Select(l => l.Trim());
+                    viewModel.LicenseNames = licenseNames.Split(',').Select(l => l.Trim()).ToList();
                 }
             }
             viewModel.LicenseExpressionSegments = licenseExpressionSegments;
@@ -183,14 +183,14 @@ namespace NuGetGallery
                         }
                         else
                         {
-                            viewModel.AllSigners = Enumerable.Empty<SignerViewModel>();
+                            viewModel.AllSigners = new List<SignerViewModel>();
                             viewModel.CanEditRequiredSigner = false;
                             viewModel.ShowTextBox = true;
                         }
                     }
                     else
                     {
-                        viewModel.AllSigners = new[] { AnySigner }.Concat(owners.Select(owner => GetSignerViewModel(owner)));
+                        viewModel.AllSigners = new[] { AnySigner }.Concat(owners.Select(owner => GetSignerViewModel(owner))).ToList();
                     }
                 }
                 else
@@ -251,10 +251,14 @@ namespace NuGetGallery
                 .OrderByDescending(p => new NuGetVersion(p.Version))
                 .ToList();
 
-            viewModel.VersionSelectList = new List<SelectListItem>();
-            viewModel.VersionListedStateDictionary = new Dictionary<string, ManagePackageViewModel.VersionListedState>();
-            viewModel.VersionReadMeStateDictionary = new Dictionary<string, ManagePackageViewModel.VersionReadMeState>();
-            viewModel.VersionDeprecationStateDictionary = new Dictionary<string, ManagePackageViewModel.VersionDeprecationState>();
+            var versionSelectList = new List<SelectListItem>();
+            viewModel.VersionSelectList = versionSelectList;
+            var versionListedStateDictionary = new Dictionary<string, ManagePackageViewModel.VersionListedState>();
+            viewModel.VersionListedStateDictionary = versionListedStateDictionary;
+            var versionReadMeStateDictionary = new Dictionary<string, ManagePackageViewModel.VersionReadMeState>();
+            viewModel.VersionReadMeStateDictionary = versionReadMeStateDictionary;
+            var versionDeprecationStateDictionary = new Dictionary<string, ManagePackageViewModel.VersionDeprecationState>();
+            viewModel.VersionDeprecationStateDictionary = versionDeprecationStateDictionary;
 
             var submitUrlTemplate = url.PackageVersionActionTemplate("Edit");
             var getReadMeUrlTemplate = url.PackageVersionActionTemplate("GetReadMeMd");
@@ -262,26 +266,26 @@ namespace NuGetGallery
             {
                 var text = PackageHelper.GetSelectListText(versionSelectPackage);
                 var value = NuGetVersionFormatter.Normalize(versionSelectPackage.Version);
-                viewModel.VersionSelectList.Add(new SelectListItem
+                versionSelectList.Add(new SelectListItem
                 {
                     Text = text,
                     Value = value,
                     Selected = package == versionSelectPackage
                 });
 
-                viewModel.VersionListedStateDictionary.Add(
+                versionListedStateDictionary.Add(
                     value,
                     new ManagePackageViewModel.VersionListedState(versionSelectPackage.Listed, versionSelectPackage.DownloadCount));
 
                 var model = new TrivialPackageVersionModel(versionSelectPackage);
-                viewModel.VersionReadMeStateDictionary.Add(
+                versionReadMeStateDictionary.Add(
                     value,
                     new ManagePackageViewModel.VersionReadMeState(
                         submitUrlTemplate.Resolve(model),
                         getReadMeUrlTemplate.Resolve(model),
                         null));
 
-                viewModel.VersionDeprecationStateDictionary.Add(
+                versionDeprecationStateDictionary.Add(
                     value,
                     GetVersionDeprecationState(versionSelectPackage.Deprecations.SingleOrDefault(), text));
             }
@@ -437,7 +441,7 @@ namespace NuGetGallery
                 var licenseNames = package.LicenseNames;
                 if (!string.IsNullOrEmpty(licenseNames))
                 {
-                    viewModel.LicenseNames = licenseNames.Split(',').Select(l => l.Trim());
+                    viewModel.LicenseNames = licenseNames.Split(',').Select(l => l.Trim()).ToList();
                 }
             }
 

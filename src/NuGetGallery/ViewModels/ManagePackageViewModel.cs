@@ -3,21 +3,20 @@
 
 using System.Collections.Generic;
 using System.Web.Mvc;
-using NuGet.Services.Entities;
 
 namespace NuGetGallery
 {
     public class ManagePackageViewModel : ListPackageItemViewModel
     {
-        public List<SelectListItem> VersionSelectList { get; set; }
+        public IReadOnlyCollection<SelectListItem> VersionSelectList { get; set; }
         public bool IsCurrentUserAnAdmin { get; set; }
         public DeletePackagesRequest DeletePackagesRequest { get; set; }
         public bool IsLocked { get; set; }
         public EditPackageVersionReadMeRequest ReadMe { get; set; }
-        public Dictionary<string, VersionListedState> VersionListedStateDictionary { get; set; }
-        public Dictionary<string, VersionReadMeState> VersionReadMeStateDictionary { get; set; }
+        public IReadOnlyDictionary<string, VersionListedState> VersionListedStateDictionary { get; set; }
+        public IReadOnlyDictionary<string, VersionReadMeState> VersionReadMeStateDictionary { get; set; }
         public bool IsManageDeprecationEnabled { get; set; }
-        public Dictionary<string, VersionDeprecationState> VersionDeprecationStateDictionary { get; set; }
+        public IReadOnlyDictionary<string, VersionDeprecationState> VersionDeprecationStateDictionary { get; set; }
 
         /// <remarks>
         /// The schema of this class is shared with the client-side Javascript to share information about package listing state.

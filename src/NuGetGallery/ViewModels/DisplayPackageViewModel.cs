@@ -15,10 +15,10 @@ namespace NuGetGallery
     {
         public NuGetVersion NuGetVersion { get; set; }
         public bool ValidatingTooLong { get; set; }
-        public IReadOnlyList<ValidationIssue> PackageValidationIssues { get; set; }
-        public IReadOnlyList<ValidationIssue> SymbolsPackageValidationIssues { get; set; }
+        public IReadOnlyCollection<ValidationIssue> PackageValidationIssues { get; set; }
+        public IReadOnlyCollection<ValidationIssue> SymbolsPackageValidationIssues { get; set; }
         public DependencySetsViewModel Dependencies { get; set; }
-        public IReadOnlyList<DisplayPackageViewModel> PackageVersions { get; set; }
+        public IReadOnlyCollection<DisplayPackageViewModel> PackageVersions { get; set; }
         public string Copyright { get; set; }
         public string ReadMeHtml { get; set; }
         public DateTime? LastEdited { get; set; }
@@ -71,7 +71,7 @@ namespace NuGetGallery
         public RepositoryKind RepositoryType { get; private set; }
         public string ProjectUrl { get; set; }
         public string LicenseUrl { get; set; }
-        public IEnumerable<string> LicenseNames { get; set; }
+        public IReadOnlyCollection<string> LicenseNames { get; set; }
         public string LicenseExpression { get; set; }
         public IReadOnlyCollection<CompositeLicenseExpressionSegment> LicenseExpressionSegments { get; set; }
         public EmbeddedLicenseFileType EmbeddedLicenseType { get; set; }

@@ -1,16 +1,14 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using NuGet.Services.Entities;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Web.Mvc;
 
 namespace NuGetGallery
 {
     public class DeletePackageViewModel : DisplayPackageViewModel
     {
-        public IEnumerable<SelectListItem> VersionSelectList { get; set; }
+        public IReadOnlyCollection<SelectListItem> VersionSelectList { get; set; }
 
         public DeletePackagesRequest DeletePackagesRequest { get; set; }
 

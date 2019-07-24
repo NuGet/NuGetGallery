@@ -1564,7 +1564,7 @@ namespace NuGetGallery
                     Text = PackageHelper.GetSelectListText(versionWithSymbols),
                     Value = Url.DeleteSymbolsPackage(new TrivialPackageVersionModel(versionWithSymbols)),
                     Selected = package == versionWithSymbols
-                });
+                }).ToList();
 
             return View(model);
         }

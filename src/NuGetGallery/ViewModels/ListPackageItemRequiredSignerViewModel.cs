@@ -11,7 +11,7 @@ namespace NuGetGallery
     {
         public SignerViewModel RequiredSigner { get; set; }
         public string RequiredSignerMessage { get; private set; }
-        public IEnumerable<SignerViewModel> AllSigners { get; set; }
+        public IReadOnlyCollection<SignerViewModel> AllSigners { get; set; }
         public bool ShowRequiredSigner { get; set; }
         public bool ShowTextBox { get; set; }
         public bool CanEditRequiredSigner { get; set; }
