@@ -43,17 +43,6 @@ namespace NuGetGallery
                 AccountName = userToBeDeleted.Username
             };
 
-            if (!UserIsAllowedToDelete(userToBeDeleted, userToExecuteTheDelete))
-            {
-                result.Success = false;
-                result.Description = string.Format(CultureInfo.CurrentCulture,
-                        ServicesStrings.AsyncAccountDelete_InsufficientPermissions,
-                        userToExecuteTheDelete.Username,
-                        userToBeDeleted.Username);
-
-                return result;
-            }
-
             var messageData = new AccountDeleteMessageData()
             {
                 Username = userToBeDeleted.Username,
@@ -97,18 +86,6 @@ namespace NuGetGallery
             }
 
             return result;
-        }
-
-        /// <summary>
-        /// Determine if the user requesting the delete is allowed to request a delete of the account.
-        /// This passes if the user requests their own delete, or if the user requesting is an admin.
-        /// </summary>
-        /// <param name="userToBeDeleted"></param>
-        /// <param name="userRequestingDelete"></param>
-        /// <returns></returns>
-        private bool UserIsAllowedToDelete(User userToBeDeleted, User userRequestingDelete)
-        {
-            return userRequestingDelete.MatchesUser(userToBeDeleted) || userRequestingDelete.IsAdministrator;
         }
 
         // This is the list of exceptions that are not retryable according to https://docs.microsoft.com/en-us/azure/service-bus-messaging/service-bus-messaging-exceptions
