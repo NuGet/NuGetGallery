@@ -8,6 +8,7 @@ namespace NuGet.Services.AzureSearch.SearchService
 {
     public class SearchServiceConfiguration : AzureSearchConfiguration, IAuxiliaryDataStorageConfiguration
     {
+        public float MatchAllTermsBoost { get; set; } = 3;
         public string SemVer1RegistrationsBaseUrl { get; set; }
         public string SemVer2RegistrationsBaseUrl { get; set; }
         public string AuxiliaryDataStorageConnectionString { get; set; }

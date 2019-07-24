@@ -35,7 +35,7 @@ namespace NuGet.Services.AzureSearch.FunctionalTests
             // Test that common queries have the most frequently selected results at the top.
             // These results were determined using the "BrowserSearchPage" and "BrowserSearchSelection" metrics
             // on the Gallery's Application Insights telemetry.
-            // TODO: Reduce exact match boost and update "json.net", "entity framework", "redis", and "csv" tests.
+            // TODO: Reduce exact match boost and update "json.net", "redis", and "csv" tests.
             // See: https://github.com/NuGet/NuGetGallery/issues/7330
             yield return new object[] { "newtonsoft.json", new[] { "newtonsoft.json" } };
             yield return new object[] { "newtonsoft", new[] { "newtonsoft.json" } };
@@ -45,7 +45,7 @@ namespace NuGet.Services.AzureSearch.FunctionalTests
             yield return new object[] { "tags:\"aws-sdk-v3\"", new[] { "awssdk.core", "awssdk.s3" } };
 
             yield return new object[] { "entityframework", new[] { "entityframework" } };
-            yield return new object[] { "entity framework", new[] { "entity", "entityframework" } };
+            yield return new object[] { "entity framework", new[] { "entityframework" } };
             yield return new object[] { "EntityFrameworkCore", new[] { "microsoft.entityframeworkcore" } };
             yield return new object[] { "microsoft.entityframeworkcore", new[] { "microsoft.entityframeworkcore" } };
             yield return new object[] { "mysql", new[] { "mysql.data" } };

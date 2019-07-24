@@ -74,7 +74,7 @@
     <Compile Include="AuxiliaryFiles\OwnerDataClient.cs" />
     <Compile Include="ScoringProfiles\DefaultScoringProfile.cs" />
     <Compile Include="Owners2AzureSearch\Owners2AzureSearchCommand.cs" />
-    <Compile Include="SearchService\AzureSearchQueryBuilder.cs" />
+    <Compile Include="SearchService\AzureSearchTextBuilder.cs" />
     <Compile Include="BlobContainerBuilder.cs" />
     <Compile Include="IBlobContainerBuilder.cs" />
     <Compile Include="Measure.cs" />
