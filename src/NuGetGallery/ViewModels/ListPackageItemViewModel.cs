@@ -83,7 +83,7 @@ namespace NuGetGallery
                 return null;
             }
 
-            var signersCount = _signerUsernames.Count();
+            var signersCount = _signerUsernames.Count;
 
             var builder = new StringBuilder();
 
