@@ -487,18 +487,16 @@ namespace NuGetGallery
             builder.RegisterType<DeleteAccountService>();
 
             builder
-                .RegisterType<SwitchingDeleteAccountService>()
-                .WithParameters(new List<Parameter> {
-                    new ResolvedParameter(
-                        (pi, ctx) => pi.Name == "syncDeleteService",
-                        (pi, ctx) => ctx.Resolve<DeleteAccountService>()
-                    ),
-                    new ResolvedParameter(
-                        (pi, ctx) => pi.Name == "asyncDeleteService",
-                        (pi, ctx) => ctx.Resolve<AsynchronousDeleteAccountService>()
-                    ),
+                .Register<IDeleteAccountService>(c =>
+                {
+                    var featureFlagService = c.Resolve<IFeatureFlagService>();
+                    if(featureFlagService.IsAsyncAccountDeleteEnabled())
+                    {
+                        return c.Resolve<AsynchronousDeleteAccountService>();
+                    }
+
+                    return c.Resolve<DeleteAccountService>();
                 })
-                .As<IDeleteAccountService>()
                 .InstancePerLifetimeScope();
         }
 

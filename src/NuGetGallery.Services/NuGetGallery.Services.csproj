@@ -48,7 +48,6 @@
     <Compile Include="AccountManagement\DeleteAccountService.cs" />
     <Compile Include="AccountManagement\DeleteAccountStatus.cs" />
     <Compile Include="AccountManagement\IDeleteAccountService.cs" />
-    <Compile Include="AccountManagement\SwitchingDeleteAccountService.cs" />
     <Compile Include="Authentication\ApiKeyV3.cs" />
     <Compile Include="Authentication\ApiKeyV4.cs" />
     <Compile Include="Authentication\ApiScopeEvaluationResult.cs" />

@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -19,7 +20,7 @@ namespace NuGetGallery
     /// </summary>
     public class AsynchronousDeleteAccountService : IDeleteAccountService
     {
-        private const int MAX_RETRY_COUNT = 5;
+        private const int MaxRetryCount = 5;
 
         private const string AccountDeleteMessageSchemaName = "AccountDeleteMessageData";
         private const string GalleryAccountDeleteMessageSourceName = "Gallery";
@@ -65,7 +66,7 @@ namespace NuGetGallery
             var canRetry = true;
             var retryCount = 0;
 
-            while (!enqueueSuccess && retryCount < MAX_RETRY_COUNT && canRetry)
+            while (!enqueueSuccess && retryCount < MaxRetryCount && canRetry)
             {
                 try
                 {
@@ -80,24 +81,8 @@ namespace NuGetGallery
                 }
                 catch (Exception ex)
                 {
-                    // This is the list of exceptions that are not retryable according to https://docs.microsoft.com/en-us/azure/service-bus-messaging/service-bus-messaging-exceptions
-                    if (ex is InvalidOperationException
-                        || ex is OperationCanceledException
-                        || ex is ArgumentException
-                        || ex is ArgumentNullException
-                        || ex is ArgumentOutOfRangeException
-                        || ex is MessagingEntityNotFoundException
-                        || ex is MessageNotFoundException
-                        || ex is MessageLockLostException
-                        || ex is SessionLockLostException
-                        || ex is MessagingEntityAlreadyExistsException
-                        || ex is RuleActionException
-                        || ex is FilterException
-                        || ex is TransactionSizeExceededException
-                        || ex is NoMatchingSubscriptionException
-                        || ex is MessageSizeExceededException)
+                    if (UnretryableExceptionTypes.AnySafe(t => t.IsAssignableFrom(ex.GetType())))
                     {
-
                         _logger.LogError(0, ex, "Failed to enqueue. Retrying was aborted due to exception");
                         result.Success = false;
                         result.Description = ServicesStrings.AsyncAccountDelete_NoRetryError;
@@ -123,13 +108,28 @@ namespace NuGetGallery
         /// <returns></returns>
         private bool UserIsAllowedToDelete(User userToBeDeleted, User userRequestingDelete)
         {
-            if (userRequestingDelete.MatchesUser(userToBeDeleted) || userRequestingDelete.IsAdministrator)
-            {
-                return true;
-            }
-
-            return false;
+            return userRequestingDelete.MatchesUser(userToBeDeleted) || userRequestingDelete.IsAdministrator;
         }
+
+        // This is the list of exceptions that are not retryable according to https://docs.microsoft.com/en-us/azure/service-bus-messaging/service-bus-messaging-exceptions
+        private IReadOnlyList<Type> UnretryableExceptionTypes = new Type[]
+        {
+            typeof(InvalidOperationException),
+            typeof(OperationCanceledException),
+            typeof(ArgumentException),
+            typeof(ArgumentNullException),
+            typeof(ArgumentOutOfRangeException),
+            typeof(MessagingEntityNotFoundException),
+            typeof(MessageNotFoundException),
+            typeof(MessageLockLostException),
+            typeof(SessionLockLostException),
+            typeof(MessagingEntityAlreadyExistsException),
+            typeof(RuleActionException),
+            typeof(FilterException),
+            typeof(TransactionSizeExceededException),
+            typeof(NoMatchingSubscriptionException),
+            typeof(MessageSizeExceededException)
+        };
 
         [Schema(Name = AccountDeleteMessageSchemaName, Version = 1)]
         private struct AccountDeleteMessageData

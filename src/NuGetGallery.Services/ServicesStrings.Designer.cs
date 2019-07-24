@@ -496,7 +496,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to There was an exception that caused retrys to be aborted. Please check logs for details..
+        ///   Looks up a localized string similar to There was an exception that caused retries to be aborted. Please check logs for details..
         /// </summary>
         public static string AsyncAccountDelete_NoRetryError {
             get {

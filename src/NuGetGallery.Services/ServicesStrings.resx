@@ -1125,7 +1125,7 @@ The {1} Team</value>
     <value>{0} is not allowed to delete account '{1}'</value>
   </data>
   <data name="AsyncAccountDelete_NoRetryError" xml:space="preserve">
-    <value>There was an exception that caused retrys to be aborted. Please check logs for details.</value>
+    <value>There was an exception that caused retries to be aborted. Please check logs for details.</value>
   </data>
   <data name="AsyncAccountDelete_Success" xml:space="preserve">
     <value>The account '{0}' was enqueued to be deleted succesfully.</value>
