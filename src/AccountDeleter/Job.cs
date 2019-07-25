@@ -23,6 +23,9 @@ using NuGetGallery.Configuration;
 using NuGetGallery.Areas.Admin.Models;
 using NuGet.Jobs;
 using NuGetGallery.Infrastructure.Authentication;
+using System.IO;
+using System;
+using System.Linq;
 
 namespace NuGetGallery.AccountDeleter
 {
@@ -154,7 +157,8 @@ namespace NuGetGallery.AccountDeleter
                     return new SupportRequestDbContext(connection);
                 });
 
-                services.AddScoped<ICloudBlobClient>(sp => {
+                services.AddScoped<ICloudBlobClient>(sp =>
+                {
                     var options = sp.GetRequiredService<IOptionsSnapshot<AccountDeleteConfiguration>>();
                     var optionsSnapshot = options.Value;
 
@@ -163,12 +167,13 @@ namespace NuGetGallery.AccountDeleter
 
                 services.AddScoped<ITelemetryService, TelemetryService>();
                 services.AddScoped<ISecurityPolicyService, SecurityPolicyService>();
-                services.AddScoped<IAuditingService>(sp => { return AuditingService.None; });
                 services.AddScoped<IAppConfiguration, GalleryConfiguration>();
                 services.AddScoped<IPackageOwnershipManagementService, PackageOwnershipManagementService>();
                 services.AddScoped<IPackageOwnerRequestService, PackageOwnerRequestService>();
                 services.AddScoped<IReservedNamespaceService, ReservedNamespaceService>();
                 services.AddScoped<MicrosoftTeamSubscription>();
+
+                RegisterAuditingServices(services);
             }
         }
 
@@ -234,6 +239,81 @@ namespace NuGetGallery.AccountDeleter
                 .AsSelf()
                 .As<IEntityRepository<PackageOwnerRequest>>()
                 .InstancePerLifetimeScope();
+        }
+
+        private void RegisterAuditingServices(IServiceCollection services)
+        {
+            services.AddSingleton<AuditingService>(sp =>
+            {
+                var configuration = sp.GetRequiredService<IOptionsSnapshot<AccountDeleteConfiguration>>().Value;
+                var cloudAuditingConnectionString = configuration.CloudAuditingConnectionString;
+                if (String.IsNullOrEmpty(cloudAuditingConnectionString))
+                {
+                    return GetAuditingServiceForLocalFileSystem();
+                }
+
+                return GetAuditingServiceForAzureStorage(cloudAuditingConnectionString);
+            });
+
+            services.AddSingleton<IAuditingService>(sp =>
+            {
+                var addInAuditingServices = GetAddInServices<IAuditingService>();
+                var auditingServices = new List<IAuditingService>(addInAuditingServices);
+
+                try
+                {
+                    auditingServices.Add(sp.GetRequiredService<AuditingService>());
+                }
+                catch
+                {
+                    // no default auditing service was registered, no-op
+                }
+
+                return CombineAuditingServices(auditingServices);
+            });
+        }
+
+        private static IAuditingService CombineAuditingServices(IEnumerable<IAuditingService> services)
+        {
+            if (!services.Any())
+            {
+                return null;
+            }
+
+            if (services.Count() == 1)
+            {
+                return services.First();
+            }
+
+            return new AggregateAuditingService(services);
+        }
+
+        private AuditingService GetAuditingServiceForLocalFileSystem()
+        {
+            var auditingPath = Path.Combine(
+                AppDomain.CurrentDomain.BaseDirectory,
+                FileSystemAuditingService.DefaultContainerName);
+
+            return new FileSystemAuditingService(auditingPath, AuditActor.GetAspNetOnBehalfOfAsync);
+        }
+
+        private AuditingService GetAuditingServiceForAzureStorage(string auditStorageConnectionString, bool readAccessGeoRedundant = true)
+        {
+            string instanceId = Environment.MachineName;
+            var localIp = AuditActor.GetLocalIpAddressAsync().Result;
+
+            var service = new CloudAuditingService(instanceId, localIp, auditStorageConnectionString, readAccessGeoRedundant, AuditActor.GetAspNetOnBehalfOfAsync);
+            return service;
+        }
+
+        private static IEnumerable<T> GetAddInServices<T>()
+        {
+            var addInsDirectoryPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "bin", "add-ins");
+
+            using (var serviceProvider = RuntimeServiceProvider.Create(addInsDirectoryPath))
+            {
+                return serviceProvider.GetExportedValues<T>();
+            }
         }
     }
 }

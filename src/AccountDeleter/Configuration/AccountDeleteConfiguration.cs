@@ -33,6 +33,12 @@ namespace NuGetGallery.AccountDeleter
         /// </summary>
         public string GalleryStorageConnectionString { get; set; }
 
+        /// <summary>
+        /// Azure Storage connection string to account where audit logs will be stored.
+        /// If not specified, we will audit to local disk.
+        /// </summary>
+        public string CloudAuditingConnectionString { get; set; }
+
         public void VerifySource(string source)
         {
             foreach (var sourceConfig in SourceConfigurations)
