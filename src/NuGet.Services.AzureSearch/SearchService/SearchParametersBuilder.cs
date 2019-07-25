@@ -25,7 +25,7 @@ namespace NuGet.Services.AzureSearch.SearchService
         private static readonly List<string> SortableTitleAscending = new List<string> { IndexFields.SortableTitle + Ascending };
         private static readonly List<string> SortableTitleDescending = new List<string> { IndexFields.SortableTitle + Descending };
 
-        public SearchParameters LatestCommitTimestamp()
+        public SearchParameters LastCommitTimestamp()
         {
             return new SearchParameters
             {
@@ -37,7 +37,7 @@ namespace NuGet.Services.AzureSearch.SearchService
             };
         }
 
-        public SearchParameters V2Search(V2SearchRequest request)
+        public SearchParameters V2Search(V2SearchRequest request, bool isDefaultSearch)
         {
             var searchParameters = NewSearchParameters();
 
@@ -64,27 +64,27 @@ namespace NuGet.Services.AzureSearch.SearchService
             }
             else
             {
-                ApplySearchIndexFilter(searchParameters, request);
+                ApplySearchIndexFilter(searchParameters, request, isDefaultSearch);
             }
 
             return searchParameters;
         }
 
-        public SearchParameters V3Search(V3SearchRequest request)
+        public SearchParameters V3Search(V3SearchRequest request, bool isDefaultSearch)
         {
             var searchParameters = NewSearchParameters();
 
             ApplyPaging(searchParameters, request);
-            ApplySearchIndexFilter(searchParameters, request);
+            ApplySearchIndexFilter(searchParameters, request, isDefaultSearch);
 
             return searchParameters;
         }
 
-        public SearchParameters Autocomplete(AutocompleteRequest request)
+        public SearchParameters Autocomplete(AutocompleteRequest request, bool isDefaultSearch)
         {
             var searchParameters = NewSearchParameters();
 
-            ApplySearchIndexFilter(searchParameters, request);
+            ApplySearchIndexFilter(searchParameters, request, isDefaultSearch);
 
             switch (request.Type)
             {
@@ -123,7 +123,14 @@ namespace NuGet.Services.AzureSearch.SearchService
             searchParameters.Top = request.Take < 0 || request.Take > MaximumTake ? DefaultTake : request.Take;
         }
 
-        private static void ApplySearchIndexFilter(SearchParameters searchParameters, SearchRequest request)
+        private void ApplySearchIndexFilter(SearchParameters searchParameters, SearchRequest request, bool excludePackagesHiddenByDefault)
+        {
+            var searchFilters = GetSearchFilters(request);
+
+            searchParameters.Filter = GetFilterString(searchFilters, excludePackagesHiddenByDefault);
+        }
+
+        public SearchFilters GetSearchFilters(SearchRequest request)
         {
             var searchFilters = SearchFilters.Default;
 
@@ -137,7 +144,16 @@ namespace NuGet.Services.AzureSearch.SearchService
                 searchFilters |= SearchFilters.IncludeSemVer2;
             }
 
-            searchParameters.Filter = $"{IndexFields.Search.SearchFilters} eq '{DocumentUtilities.GetSearchFilterString(searchFilters)}'";
+            return searchFilters;
+        }
+
+        private static string GetFilterString(SearchFilters searchFilters, bool excludePackagesHiddenByDefault)
+        {
+            var filterString = $"{IndexFields.Search.SearchFilters} eq '{DocumentUtilities.GetSearchFilterString(searchFilters)}'";
+
+            filterString += excludePackagesHiddenByDefault ? $" and {IndexFields.Search.IsExcludedByDefault} eq false" : "";
+
+            return filterString;
         }
 
         private static IList<string> GetOrderBy(V2SortBy sortBy)

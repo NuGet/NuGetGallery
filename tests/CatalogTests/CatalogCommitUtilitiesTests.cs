@@ -166,7 +166,7 @@ namespace CatalogTests
         }
 
         [Fact]
-        public void CreateCommitItemBatches_WhenCommitItemsContainMultipleCommitsForSamePackageIdentity_ReturnsOnlyLatestCommitForEachPackageIdentity()
+        public void CreateCommitItemBatches_WhenCommitItemsContainMultipleCommitsForSamePackageIdentity_ReturnsOnlyLastCommitForEachPackageIdentity()
         {
             var now = DateTime.UtcNow;
             var commitItem0 = TestUtility.CreateCatalogCommitItem(now, _packageIdentitya);

@@ -150,7 +150,7 @@ namespace NuGet.Services.SearchService.Controllers
                 Assert.False(lastRequest.IncludePrerelease);
                 Assert.False(lastRequest.IncludeSemVer2);
                 Assert.Null(lastRequest.Query);
-                Assert.False(lastRequest.LuceneQuery);
+                Assert.True(lastRequest.LuceneQuery);
                 Assert.False(lastRequest.ShowDebug);
             }
 

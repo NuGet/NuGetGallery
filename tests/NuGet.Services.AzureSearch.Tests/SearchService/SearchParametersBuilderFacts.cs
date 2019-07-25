@@ -5,18 +5,37 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Azure.Search.Models;
+using Moq;
 using Xunit;
 
 namespace NuGet.Services.AzureSearch.SearchService
 {
     public class SearchParametersBuilderFacts
     {
-        public class LatestCommitTimestamp : BaseFacts
+        public class GetSearchFilters : BaseFacts
+        {
+            [Theory]
+            [MemberData(nameof(AllSearchFilters))]
+            public void SearchFilters(bool includePrerelease, bool includeSemVer2, SearchFilters filter)
+            {
+                var request = new SearchRequest
+                {
+                    IncludePrerelease = includePrerelease,
+                    IncludeSemVer2 = includeSemVer2,
+                };
+
+                var actual = _target.GetSearchFilters(request);
+
+                Assert.Equal(filter, actual);
+            }
+        }
+
+        public class LastCommitTimestamp : BaseFacts
         {
             [Fact]
             public void Defaults()
             {
-                var output = _target.LatestCommitTimestamp();
+                var output = _target.LastCommitTimestamp();
 
                 Assert.Equal(QueryType.Full, output.QueryType);
                 Assert.False(output.IncludeTotalResultCount);
@@ -34,14 +53,14 @@ namespace NuGet.Services.AzureSearch.SearchService
             {
                 var request = new V2SearchRequest();
 
-                var output = _target.V2Search(request);
+                var output = _target.V2Search(request, isDefaultSearch: true);
 
                 Assert.Equal(QueryType.Full, output.QueryType);
                 Assert.True(output.IncludeTotalResultCount);
                 Assert.Null(output.OrderBy);
                 Assert.Equal(0, output.Skip);
                 Assert.Equal(0, output.Top);
-                Assert.Equal("searchFilters eq 'Default'", output.Filter);
+                Assert.Equal("searchFilters eq 'Default' and isExcludedByDefault eq false", output.Filter);
             }
 
             [Fact]
@@ -55,7 +74,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                     SortBy = V2SortBy.SortableTitleAsc,
                 };
 
-                var output = _target.V2Search(request);
+                var output = _target.V2Search(request, It.IsAny<bool>());
 
                 Assert.Equal(QueryType.Full, output.QueryType);
                 Assert.True(output.IncludeTotalResultCount);
@@ -73,7 +92,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                     Take = 30,
                 };
 
-                var output = _target.V2Search(request);
+                var output = _target.V2Search(request, It.IsAny<bool>());
 
                 Assert.Equal(10, output.Skip);
                 Assert.Equal(30, output.Top);
@@ -87,7 +106,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                     Skip = -10,
                 };
 
-                var output = _target.V2Search(request);
+                var output = _target.V2Search(request, It.IsAny<bool>());
 
                 Assert.Equal(0, output.Skip);
             }
@@ -100,7 +119,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                     Take = -20,
                 };
 
-                var output = _target.V2Search(request);
+                var output = _target.V2Search(request, It.IsAny<bool>());
 
                 Assert.Equal(20, output.Top);
             }
@@ -113,7 +132,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                     Take = 1001,
                 };
 
-                var output = _target.V2Search(request);
+                var output = _target.V2Search(request, It.IsAny<bool>());
 
                 Assert.Equal(20, output.Top);
             }
@@ -132,7 +151,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                     IncludeSemVer2 = includeSemVer2,
                 };
 
-                var output = _target.V2Search(request);
+                var output = _target.V2Search(request, It.IsAny<bool>());
 
                 Assert.Equal(filter, output.Filter);
             }
@@ -147,7 +166,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                 };
                 var expectedOrderBy = V2SortByToOrderBy[v2SortBy];
 
-                var output = _target.V2Search(request);
+                var output = _target.V2Search(request, It.IsAny<bool>());
 
                 if (expectedOrderBy == null)
                 {
@@ -160,16 +179,17 @@ namespace NuGet.Services.AzureSearch.SearchService
             }
 
             [Theory]
-            [MemberData(nameof(AllSearchFilters))]
+            [MemberData(nameof(AllSearchFiltersExpressions))]
             public void SearchFilters(bool includePrerelease, bool includeSemVer2, string filter)
             {
                 var request = new V2SearchRequest
                 {
                     IncludePrerelease = includePrerelease,
                     IncludeSemVer2 = includeSemVer2,
+                    Query = "js"
                 };
 
-                var output = _target.V2Search(request);
+                var output = _target.V2Search(request, It.IsAny<bool>());
 
                 Assert.Equal(filter, output.Filter);
             }
@@ -182,14 +202,14 @@ namespace NuGet.Services.AzureSearch.SearchService
             {
                 var request = new V3SearchRequest();
 
-                var output = _target.V3Search(request);
+                var output = _target.V3Search(request, isDefaultSearch: true);
 
                 Assert.Equal(QueryType.Full, output.QueryType);
                 Assert.True(output.IncludeTotalResultCount);
                 Assert.Null(output.OrderBy);
                 Assert.Equal(0, output.Skip);
                 Assert.Equal(0, output.Top);
-                Assert.Equal("searchFilters eq 'Default'", output.Filter);
+                Assert.Equal("searchFilters eq 'Default' and isExcludedByDefault eq false", output.Filter);
             }
 
             [Fact]
@@ -201,7 +221,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                     Take = 30,
                 };
 
-                var output = _target.V3Search(request);
+                var output = _target.V3Search(request, It.IsAny<bool>());
 
                 Assert.Equal(10, output.Skip);
                 Assert.Equal(30, output.Top);
@@ -215,7 +235,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                     Skip = -10,
                 };
 
-                var output = _target.V3Search(request);
+                var output = _target.V3Search(request, It.IsAny<bool>());
 
                 Assert.Equal(0, output.Skip);
             }
@@ -228,7 +248,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                     Take = -20,
                 };
 
-                var output = _target.V3Search(request);
+                var output = _target.V3Search(request, It.IsAny<bool>());
 
                 Assert.Equal(20, output.Top);
             }
@@ -241,22 +261,23 @@ namespace NuGet.Services.AzureSearch.SearchService
                     Take = 1001,
                 };
 
-                var output = _target.V3Search(request);
+                var output = _target.V3Search(request, It.IsAny<bool>());
 
                 Assert.Equal(20, output.Top);
             }
 
             [Theory]
-            [MemberData(nameof(AllSearchFilters))]
+            [MemberData(nameof(AllSearchFiltersExpressions))]
             public void SearchFilters(bool includePrerelease, bool includeSemVer2, string filter)
             {
                 var request = new V3SearchRequest
                 {
                     IncludePrerelease = includePrerelease,
                     IncludeSemVer2 = includeSemVer2,
+                    Query = "js"
                 };
 
-                var output = _target.V3Search(request);
+                var output = _target.V3Search(request, It.IsAny<bool>());
 
                 Assert.Equal(filter, output.Filter);
             }
@@ -270,14 +291,14 @@ namespace NuGet.Services.AzureSearch.SearchService
                 var request = new AutocompleteRequest();
                 request.Type = AutocompleteRequestType.PackageIds;
 
-                var output = _target.Autocomplete(request);
+                var output = _target.Autocomplete(request, isDefaultSearch: true);
 
                 Assert.Equal(QueryType.Full, output.QueryType);
                 Assert.True(output.IncludeTotalResultCount);
                 Assert.Null(output.OrderBy);
                 Assert.Equal(0, output.Skip);
                 Assert.Equal(0, output.Top);
-                Assert.Equal("searchFilters eq 'Default'", output.Filter);
+                Assert.Equal("searchFilters eq 'Default' and isExcludedByDefault eq false", output.Filter);
                 Assert.Single(output.Select);
                 Assert.Equal(IndexFields.PackageId, output.Select[0]);
             }
@@ -288,14 +309,14 @@ namespace NuGet.Services.AzureSearch.SearchService
                 var request = new AutocompleteRequest();
                 request.Type = AutocompleteRequestType.PackageVersions;
 
-                var output = _target.Autocomplete(request);
+                var output = _target.Autocomplete(request, isDefaultSearch: true);
 
                 Assert.Equal(QueryType.Full, output.QueryType);
                 Assert.True(output.IncludeTotalResultCount);
                 Assert.Null(output.OrderBy);
                 Assert.Equal(0, output.Skip);
                 Assert.Equal(1, output.Top);
-                Assert.Equal("searchFilters eq 'Default'", output.Filter);
+                Assert.Equal("searchFilters eq 'Default' and isExcludedByDefault eq false", output.Filter);
                 Assert.Single(output.Select);
                 Assert.Equal(IndexFields.Search.Versions, output.Select[0]);
             }
@@ -310,7 +331,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                     Type = AutocompleteRequestType.PackageIds,
                 };
 
-                var output = _target.Autocomplete(request);
+                var output = _target.Autocomplete(request, It.IsAny<bool>());
 
                 Assert.Equal(10, output.Skip);
                 Assert.Equal(30, output.Top);
@@ -326,7 +347,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                     Type = AutocompleteRequestType.PackageVersions,
                 };
 
-                var output = _target.Autocomplete(request);
+                var output = _target.Autocomplete(request, It.IsAny<bool>());
 
                 Assert.Equal(0, output.Skip);
                 Assert.Equal(1, output.Top);
@@ -341,7 +362,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                     Type = AutocompleteRequestType.PackageIds,
                 };
 
-                var output = _target.Autocomplete(request);
+                var output = _target.Autocomplete(request, It.IsAny<bool>());
 
                 Assert.Equal(0, output.Skip);
             }
@@ -355,7 +376,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                     Type = AutocompleteRequestType.PackageIds,
                 };
 
-                var output = _target.Autocomplete(request);
+                var output = _target.Autocomplete(request, It.IsAny<bool>());
 
                 Assert.Equal(20, output.Top);
             }
@@ -369,22 +390,23 @@ namespace NuGet.Services.AzureSearch.SearchService
                     Take = 1001,
                 };
 
-                var output = _target.Autocomplete(request);
+                var output = _target.Autocomplete(request, It.IsAny<bool>());
 
                 Assert.Equal(20, output.Top);
             }
 
             [Theory]
-            [MemberData(nameof(AllSearchFilters))]
+            [MemberData(nameof(AllSearchFiltersExpressions))]
             public void SearchFilters(bool includePrerelease, bool includeSemVer2, string filter)
             {
                 var request = new AutocompleteRequest
                 {
                     IncludePrerelease = includePrerelease,
                     IncludeSemVer2 = includeSemVer2,
+                    Query = "js"
                 };
 
-                var output = _target.Autocomplete(request);
+                var output = _target.Autocomplete(request, It.IsAny<bool>());
 
                 Assert.Equal(filter, output.Filter);
             }
@@ -405,11 +427,14 @@ namespace NuGet.Services.AzureSearch.SearchService
 
             public static IEnumerable<object[]> AllSearchFilters => new[]
             {
-                new object[] { false, false, "searchFilters eq 'Default'" },
-                new object[] { true, false, "searchFilters eq 'IncludePrerelease'" },
-                new object[] { false, true, "searchFilters eq 'IncludeSemVer2'" },
-                new object[] { true, true, "searchFilters eq 'IncludePrereleaseAndSemVer2'" },
+                new object[] { false, false, SearchFilters.Default },
+                new object[] { true, false, SearchFilters.IncludePrerelease },
+                new object[] { false, true, SearchFilters.IncludeSemVer2 },
+                new object[] { true, true, SearchFilters.IncludePrereleaseAndSemVer2 },
             };
+
+            public static IEnumerable<object[]> AllSearchFiltersExpressions => AllSearchFilters
+                .Select(x => new[] { x[0], x[1], $"searchFilters eq '{x[2]}'" });
 
             public static IEnumerable<object[]> AllV2SortBy => Enum
                 .GetValues(typeof(V2SortBy))

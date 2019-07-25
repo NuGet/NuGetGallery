@@ -3,6 +3,8 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Extensions.Options;
+using Moq;
 using Xunit;
 
 namespace NuGet.Services.AzureSearch.SearchService
@@ -15,7 +17,9 @@ namespace NuGet.Services.AzureSearch.SearchService
             [MemberData(nameof(CommonAzureSearchQueryData))]
             public void GeneratesAzureSearchQuery(string input, string expected)
             {
-                var actual = _target.V2Search(new V2SearchRequest { Query = input });
+                var parsed = _target.ParseV2Search(new V2SearchRequest { Query = input });
+
+                var actual = _target.Build(parsed);
 
                 Assert.Equal(expected, actual);
             }
@@ -25,11 +29,13 @@ namespace NuGet.Services.AzureSearch.SearchService
             [InlineData(true, "packageId:hello")]
             public void WhenLuceneQuery_TreatsLeadingIdAsPackageId(bool luceneQuery, string expected)
             {
-                var actual = _target.V2Search(new V2SearchRequest
+                var parsed = _target.ParseV2Search(new V2SearchRequest
                 {
                     Query = "id:hello",
                     LuceneQuery = luceneQuery,
                 });
+
+                var actual = _target.Build(parsed);
 
                 Assert.Equal(expected, actual);
             }
@@ -39,15 +45,16 @@ namespace NuGet.Services.AzureSearch.SearchService
             public void ThrowsWhenQueryHasTooManyClauses(int nonFieldScopedTerms, int fieldScopedTerms, bool shouldThrow)
             {
                 var request = new V2SearchRequest { Query = GenerateQuery(nonFieldScopedTerms, fieldScopedTerms) };
+                var parsed = _target.ParseV2Search(request);
 
                 if (shouldThrow)
                 {
-                    var e = Assert.Throws<InvalidSearchRequestException>(() => _target.V2Search(request));
+                    var e = Assert.Throws<InvalidSearchRequestException>(() => _target.Build(parsed));
                     Assert.Equal("A query can only have up to 1024 clauses.", e.Message);
                 }
                 else
                 {
-                    _target.V2Search(request);
+                    _target.ParseV2Search(request);
                 }
             }
 
@@ -56,7 +63,9 @@ namespace NuGet.Services.AzureSearch.SearchService
             public void ThrowsWhenTermIsTooBig(string query)
             {
                 var request = new V2SearchRequest { Query = query };
-                var e = Assert.Throws<InvalidSearchRequestException>(() => _target.V2Search(request));
+                var parsed = _target.ParseV2Search(request);
+
+                var e = Assert.Throws<InvalidSearchRequestException>(() => _target.Build(parsed));
 
                 Assert.Equal("Query terms cannot exceed 32768 bytes.", e.Message);
             }
@@ -68,7 +77,9 @@ namespace NuGet.Services.AzureSearch.SearchService
             [MemberData(nameof(CommonAzureSearchQueryData))]
             public void GeneratesAzureSearchQuery(string input, string expected)
             {
-                var actual = _target.V3Search(new V3SearchRequest { Query = input });
+                var parsed = _target.ParseV3Search(new V3SearchRequest { Query = input });
+
+                var actual = _target.Build(parsed);
 
                 Assert.Equal(expected, actual);
             }
@@ -78,15 +89,16 @@ namespace NuGet.Services.AzureSearch.SearchService
             public void ThrowsWhenQueryHasTooManyClauses(int nonFieldScopedTerms, int fieldScopedTerms, bool shouldThrow)
             {
                 var request = new V3SearchRequest { Query = GenerateQuery(nonFieldScopedTerms, fieldScopedTerms) };
+                var parsed = _target.ParseV3Search(request);
 
                 if (shouldThrow)
                 {
-                    var e = Assert.Throws<InvalidSearchRequestException>(() => _target.V3Search(request));
+                    var e = Assert.Throws<InvalidSearchRequestException>(() => _target.Build(parsed));
                     Assert.Equal("A query can only have up to 1024 clauses.", e.Message);
                 }
                 else
                 {
-                    _target.V3Search(request);
+                    _target.ParseV3Search(request);
                 }
             }
 
@@ -95,7 +107,9 @@ namespace NuGet.Services.AzureSearch.SearchService
             public void ThrowsWhenTermIsTooBig(string query)
             {
                 var request = new V3SearchRequest { Query = query };
-                var e = Assert.Throws<InvalidSearchRequestException>(() => _target.V3Search(request));
+                var parsed = _target.ParseV3Search(request);
+
+                var e = Assert.Throws<InvalidSearchRequestException>(() => _target.Build(parsed));
 
                 Assert.Equal("Query terms cannot exceed 32768 bytes.", e.Message);
             }
@@ -119,9 +133,9 @@ namespace NuGet.Services.AzureSearch.SearchService
                     Type = AutocompleteRequestType.PackageIds
                 };
 
-                var result = _target.Autocomplete(request);
+                var actual = _target.Autocomplete(request);
 
-                Assert.Equal(expected, result);
+                Assert.Equal(expected, actual);
             }
 
             [Theory]
@@ -135,9 +149,9 @@ namespace NuGet.Services.AzureSearch.SearchService
                     Type = AutocompleteRequestType.PackageVersions
                 };
 
-                var result = _target.Autocomplete(request);
+                var actual = _target.Autocomplete(request);
 
-                Assert.Equal(expected, result);
+                Assert.Equal(expected, actual);
             }
         }
 
@@ -147,7 +161,11 @@ namespace NuGet.Services.AzureSearch.SearchService
 
             public FactsBase()
             {
-                _target = new SearchTextBuilder();
+                var config = new SearchServiceConfiguration { MatchAllTermsBoost = 2.0f };
+                var options = new Mock<IOptionsSnapshot<SearchServiceConfiguration>>();
+                options.Setup(o => o.Value).Returns(config);
+
+                _target = new SearchTextBuilder(options.Object);
             }
 
             public static IEnumerable<object[]> CommonAzureSearchQueryData()
@@ -187,6 +205,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                     
                     // Unknown fields are ignored
                     { "fake:test", "*" },
+                    { "foo:a bar:b", "*" },
 
                     // The version field is normalized, if possible
                     { "version:1.0.0.0", "normalizedVersion:1.0.0" },
@@ -196,6 +215,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                     // The tags field is split by delimiters
                     { "tag:a,b;c|d", "tags:(a b c d)" },
                     { "tags:a,b;c|d", "tags:(a b c d)" },
+                    { "tags:,;|", "*" },
 
                     { "id:foo id:bar", "tokenizedPackageId:(foo bar)" },
                     { "packageId:foo packageId:bar", "packageId:(foo bar)" },
@@ -213,15 +233,34 @@ namespace NuGet.Services.AzureSearch.SearchService
                     { "title:foo unknown:bar", "title:foo" },
 
                     // If there are non-field-scoped terms and no field-scoped terms, at least of one the non-field-scoped terms is required.
-                    { "foo bar", "foo bar" },
-                    { "id packageId version title description tag author summary owner owners", "id packageId version title description tag author summary owner owners" },
-                    { "ID PACKAGEID VERSION TITLE DESCRIPTION TAG AUTHOR SUMMARY OWNER OWNERS", "ID PACKAGEID VERSION TITLE DESCRIPTION TAG AUTHOR SUMMARY OWNER OWNERS" },
+                    // Results that match all terms are boosted.
+                    { "foo", "foo" },
+                    { "foo bar", "foo bar (+foo +bar)^2" },
+                    { "id packageId VERSION Title description tag author summary owner owners",
+                        "id packageId VERSION Title description tag author summary owner owners " +
+                        "(+id +packageId +VERSION +Title +description +tag +author +summary +owner +owners)^2" },
                     
-                    // Quotes allow adjacent terms to be searched
+                    // Phrases are supported in queries
                     { @"""foo bar""", @"""foo bar""" },
-                    { @"""foo bar"" baz", @"""foo bar"" baz" },
+                    { @"""foo bar"" baz", @"""foo bar"" baz (+""foo bar"" +baz)^2" },
                     { @"title:""foo bar""", @"title:""foo bar""" },
-                    { @"title:""a b"" c title:d f", @"+title:(""a b"" d) c f" },
+                    { @"title:""a b"" c title:d f", @"+title:(""a b"" d) c f (+c +f)^2" },
+                    { @"title:"" a b    c   """, @"title:""a b    c""" },
+
+                    // Dangling quotes are handled with best effort
+                    { @"Tags:""windows", "tags:windows" },
+                    { @"json Tags:""net"" Tags:""windows sdk", @"+tags:(net windows sdk) json" },
+                    { @"json Tags:""net Tags:""windows sdk""", @"+tags:(net Tags\:) json windows sdk (+json +windows +sdk)^2" },
+                    { @"sdk Tags:""windows", "+tags:windows sdk" },
+                    { @"Tags:""windows sdk", "tags:(windows sdk)" },
+                    { @"Tags:""""windows""", "windows" },
+
+                    // Empty quotes are ignored
+                    { @"Tags:""""", @"*" },
+                    { @"Tags:"" """, @"*" },
+                    { @"Tags:""      """, @"*" },
+                    { @"windows Tags:""      """, @"windows" },
+                    { @"windows Tags:""      "" Tags:sdk", @"+tags:sdk windows" },
 
                     // Duplicate search terms on the same query field are folded
                     { "a a", "a" },
@@ -237,8 +276,8 @@ namespace NuGet.Services.AzureSearch.SearchService
                     { @"AND OR", @"*" },
                     { @"""AND"" ""OR""", @"*" },
                     { @"""AND OR""", @"""AND OR""" },
-                    { @"hello AND world", @"hello world" },
-                    { @"hello OR world", @"hello world" },
+                    { @"hello AND world", @"hello world (+hello +world)^2" },
+                    { @"hello OR world", @"hello world (+hello +world)^2" },
                     { @"title:""hello AND world""", @"title:""hello AND world""" },
                     { @"title:""hello OR world""", @"title:""hello OR world""" },
 
@@ -261,14 +300,17 @@ namespace NuGet.Services.AzureSearch.SearchService
                     { @"title:/ description:""/""", @"+title:\/ +description:\/" },
                     { @"title:"":""", @"title:\:" },
 
-                    { @"+ - & | ! ( ) { } [ ] ~ * ? \ / "":""", @"\+ \- \& \| \! \( \) \{ \} \[ \] \~ \* \? \\ \/ \:" },
+                    { @"+ - & | ! ( ) { } [ ] ~ * ? \ / "":""",
+                        @"\+ \- \& \| \! \( \) \{ \} \[ \] \~ \* \? \\ \/ \: " +
+                        @"(+\+ +\- +\& +\| +\! +\( +\) +\{ +\} +\[ +\] +\~ +\* +\? +\\ +\/ +\:)^2"},
 
                     // Unicode surrogate pairs
                     { "A𠈓C", "A𠈓C" },
                     { "packageId:A𠈓C", "packageId:A𠈓C" },
-                    { "A𠈓C packageId:A𠈓C A𠈓C packageId:A𠈓C hello packageId:hello", "+packageId:(A𠈓C hello) A𠈓C hello" },
                     { @"""A𠈓C"" packageId:""A𠈓C""", "+packageId:A𠈓C A𠈓C" },
                     { @"(𠈓) packageId:(𠈓)", @"+packageId:\(𠈓\) \(𠈓\)" },
+                    { "A𠈓C packageId:A𠈓C A𠈓C packageId:A𠈓C hello packageId:hello",
+                        "+packageId:(A𠈓C hello) A𠈓C hello (+A𠈓C +hello)^2" },
                 };
 
                 foreach (var datum in data)

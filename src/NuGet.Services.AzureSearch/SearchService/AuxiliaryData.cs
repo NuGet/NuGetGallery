@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using NuGet.Indexing;
+using NuGet.Services.AzureSearch.AuxiliaryFiles;
 
 namespace NuGet.Services.AzureSearch.SearchService
 {

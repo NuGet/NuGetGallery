@@ -4,6 +4,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Lucene.Net.Search;
+using Microsoft.Extensions.Options;
 using NuGet.Indexing;
 using NuGet.Services.Metadata.Catalog;
 using NuGet.Versioning;
@@ -12,7 +14,7 @@ namespace NuGet.Services.AzureSearch.SearchService
 {
     public partial class SearchTextBuilder : ISearchTextBuilder
     {
-        private const string MatchAllDocumentsQuery = "*";
+        public static string MatchAllDocumentsQuery = "*";
 
         private static readonly IReadOnlyDictionary<QueryField, string> FieldNames = new Dictionary<QueryField, string>
         {
@@ -27,14 +29,16 @@ namespace NuGet.Services.AzureSearch.SearchService
             { QueryField.Version, IndexFields.NormalizedVersion },
         };
 
+        private readonly IOptionsSnapshot<SearchServiceConfiguration> _options;
         private readonly NuGetQueryParser _parser;
 
-        public SearchTextBuilder()
+        public SearchTextBuilder(IOptionsSnapshot<SearchServiceConfiguration> options)
         {
+            _options = options ?? throw new ArgumentNullException(nameof(options));
             _parser = new NuGetQueryParser();
         }
 
-        public string V2Search(V2SearchRequest request)
+        public ParsedQuery ParseV2Search(V2SearchRequest request)
         {
             var query = request.Query;
 
@@ -45,12 +49,12 @@ namespace NuGet.Services.AzureSearch.SearchService
                 query = "packageid:" + query.Substring(3);
             }
 
-            return GetLuceneQuery(query);
+            return GetParsedQuery(query);
         }
 
-        public string V3Search(V3SearchRequest request)
+        public ParsedQuery ParseV3Search(V3SearchRequest request)
         {
-            return GetLuceneQuery(request.Query);
+            return GetParsedQuery(request.Query);
         }
 
         public string Autocomplete(AutocompleteRequest request)
@@ -60,59 +64,84 @@ namespace NuGet.Services.AzureSearch.SearchService
                 return MatchAllDocumentsQuery;
             }
 
-            // Generate a query on package ids. This will be a prefix search
-            // if we are autocompleting package ids.
-            var builder = new AzureSearchQueryBuilder();
+            // Query package ids. If autocompleting package ids, allow prefix matches.
+            var builder = new AzureSearchTextBuilder();
 
-            builder.AppendScopedTerms(
-                IndexFields.PackageId,
-                new[] { request.Query },
+            builder.AppendScopedTerm(
+                fieldName: IndexFields.PackageId,
+                term: request.Query,
                 prefixSearch: request.Type == AutocompleteRequestType.PackageIds);
 
-            var result = builder.ToString();
-            if (string.IsNullOrWhiteSpace(result))
-            {
-                return MatchAllDocumentsQuery;
-            }
-
-            return result;
+            return builder.ToString();
         }
 
-        private string GetLuceneQuery(string query)
+        private ParsedQuery GetParsedQuery(string query)
         {
             if (string.IsNullOrWhiteSpace(query))
             {
-                return MatchAllDocumentsQuery;
+                return new ParsedQuery(new Dictionary<QueryField, HashSet<string>>());
             }
 
-            // Parse the NuGet query.
-            var grouping = _parser.ParseQuery(query.Trim());
-            if (!grouping.Any())
+            var grouping = _parser.ParseQuery(query.Trim(), skipWhiteSpace: true);
+
+            return new ParsedQuery(grouping);
+        }
+
+        public string Build(ParsedQuery parsed)
+        {
+            if (!parsed.Grouping.Any())
             {
                 return MatchAllDocumentsQuery;
             }
 
-            // Generate a lucene query for Azure Search.
-            var builder = new AzureSearchQueryBuilder();
-            var scopedTerms = grouping.Where(g => g.Key != QueryField.Any && g.Key != QueryField.Invalid).ToList();
-            var unscopedTerms = grouping.Where(g => g.Key == QueryField.Any)
+            var scopedTerms = parsed.Grouping.Where(g => g.Key != QueryField.Any && g.Key != QueryField.Invalid).ToList();
+            var unscopedTerms = parsed.Grouping.Where(g => g.Key == QueryField.Any)
                 .Select(g => g.Value)
-                .SingleOrDefault();
+                .SingleOrDefault()?
+                .ToList();
 
-            var requireScopedTerms = unscopedTerms != null
-                || scopedTerms.Select(t => t.Key).Distinct().Count() > 1;
+            // Don't bother generating Azure Search text if all terms are scoped to invalid fields.
+            var hasUnscopedTerms = unscopedTerms != null && unscopedTerms.Count > 0;
+            if (scopedTerms.Count == 0 && !hasUnscopedTerms)
+            {
+                return MatchAllDocumentsQuery;
+            }
+
+            // Add the terms that are scoped to specific fields.
+            var builder = new AzureSearchTextBuilder();
+            var requireScopedTerms = hasUnscopedTerms || scopedTerms.Count > 1;
 
             foreach (var scopedTerm in scopedTerms)
             {
                 var fieldName = FieldNames[scopedTerm.Key];
                 var values = ProcessFieldValues(scopedTerm.Key, scopedTerm.Value).ToList();
 
-                builder.AppendScopedTerms(fieldName, values, required: requireScopedTerms);
+                if (values.Count == 0)
+                {
+                    // This happens if tags have only delimiters.
+                    continue;
+                }
+                else if (values.Count > 1)
+                {
+                    builder.AppendScopedTerms(fieldName, values, required: requireScopedTerms);
+                }
+                else
+                {
+                    builder.AppendScopedTerm(fieldName, values.First(), required: requireScopedTerms);
+                }
             }
 
-            if (unscopedTerms != null)
+            // Add the terms that can match any fields.
+            if (hasUnscopedTerms)
             {
-                builder.AppendTerms(unscopedTerms.ToList());
+                builder.AppendTerms(unscopedTerms);
+
+                // Generate a clause to favor results that match all unscoped terms.
+                // We don't need to include scoped terms as these are already required.
+                if (unscopedTerms.Count > 1)
+                {
+                    builder.AppendBoostIfMatchAllTerms(unscopedTerms, _options.Value.MatchAllTermsBoost);
+                }
             }
 
             var result = builder.ToString();

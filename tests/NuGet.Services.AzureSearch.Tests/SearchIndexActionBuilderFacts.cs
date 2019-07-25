@@ -10,13 +10,13 @@ using NuGetGallery;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace NuGet.Services.AzureSearch.Owners2AzureSearch
+namespace NuGet.Services.AzureSearch
 {
-    public class OwnerIndexActionBuilderFacts
+    public class SearchIndexActionBuilderFacts
     {
-        public class UpdateOwnersAsync : Facts
+        public class UpdateAsync : Facts
         {
-            public UpdateOwnersAsync(ITestOutputHelper output) : base(output)
+            public UpdateAsync(ITestOutputHelper output) : base(output)
             {
             }
 
@@ -33,9 +33,7 @@ namespace NuGet.Services.AzureSearch.Owners2AzureSearch
                     }),
                     AccessConditionWrapper.GenerateIfNotExistsCondition());
 
-                var indexActions = await Target.UpdateOwnersAsync(
-                    Data.PackageId,
-                    Data.Owners);
+                var indexActions = await Target.UpdateAsync(Data.PackageId, BuildDocument);
 
                 Assert.Same(VersionListDataResult, indexActions.VersionListDataResult);
                 Assert.Empty(indexActions.Hijack);
@@ -63,9 +61,7 @@ namespace NuGet.Services.AzureSearch.Owners2AzureSearch
                     }),
                     AccessConditionWrapper.GenerateIfNotExistsCondition());
 
-                var indexActions = await Target.UpdateOwnersAsync(
-                    Data.PackageId,
-                    Data.Owners);
+                var indexActions = await Target.UpdateAsync(Data.PackageId, BuildDocument);
 
                 Assert.Same(VersionListDataResult, indexActions.VersionListDataResult);
                 Assert.Empty(indexActions.Hijack);
@@ -91,9 +87,7 @@ namespace NuGet.Services.AzureSearch.Owners2AzureSearch
                     }),
                     AccessConditionWrapper.GenerateIfNotExistsCondition());
 
-                var indexActions = await Target.UpdateOwnersAsync(
-                    Data.PackageId,
-                    Data.Owners);
+                var indexActions = await Target.UpdateAsync(Data.PackageId, BuildDocument);
 
                 Assert.Same(VersionListDataResult, indexActions.VersionListDataResult);
                 Assert.Empty(indexActions.Hijack);
@@ -107,9 +101,7 @@ namespace NuGet.Services.AzureSearch.Owners2AzureSearch
                     new VersionListData(new Dictionary<string, VersionPropertiesData>()),
                     AccessConditionWrapper.GenerateIfNotExistsCondition());
 
-                var indexActions = await Target.UpdateOwnersAsync(
-                    Data.PackageId,
-                    Data.Owners);
+                var indexActions = await Target.UpdateAsync(Data.PackageId, BuildDocument);
 
                 Assert.Same(VersionListDataResult, indexActions.VersionListDataResult);
                 Assert.Empty(indexActions.Hijack);
@@ -123,7 +115,7 @@ namespace NuGet.Services.AzureSearch.Owners2AzureSearch
             {
                 VersionListDataClient = new Mock<IVersionListDataClient>();
                 Search = new Mock<ISearchDocumentBuilder>();
-                Logger = output.GetLogger<OwnerIndexActionBuilder>();
+                Logger = output.GetLogger<SearchIndexActionBuilder>();
 
                 VersionListDataResult = new ResultAndAccessCondition<VersionListData>(
                     new VersionListData(new Dictionary<string, VersionPropertiesData>()),
@@ -139,17 +131,23 @@ namespace NuGet.Services.AzureSearch.Owners2AzureSearch
                         Key = sf.ToString(),
                     });
 
-                Target = new OwnerIndexActionBuilder(
-                    VersionListDataClient.Object,
-                    Search.Object,
-                    Logger);
+                Target = new SearchIndexActionBuilder(VersionListDataClient.Object, Logger);
             }
 
             public Mock<IVersionListDataClient> VersionListDataClient { get; }
             public Mock<ISearchDocumentBuilder> Search { get; }
-            public RecordingLogger<OwnerIndexActionBuilder> Logger { get; }
+            public RecordingLogger<SearchIndexActionBuilder> Logger { get; }
             public ResultAndAccessCondition<VersionListData> VersionListDataResult { get; set; }
-            public OwnerIndexActionBuilder Target { get; }
+            public SearchIndexActionBuilder Target { get; }
+
+            /// <summary>
+            /// The <see cref="SearchDocument.UpdateOwners"/> document is used as a simple example but other documents
+            /// could be produced.
+            /// </summary>
+            public SearchDocument.UpdateOwners BuildDocument(SearchFilters sf)
+            {
+                return Search.Object.UpdateOwners(Data.PackageId, sf, Data.Owners);
+            }
         }
     }
 }

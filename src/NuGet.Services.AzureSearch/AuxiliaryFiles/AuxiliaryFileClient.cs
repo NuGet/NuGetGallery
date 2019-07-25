@@ -14,19 +14,19 @@ using Newtonsoft.Json;
 using NuGet.Indexing;
 using NuGetGallery;
 
-namespace NuGet.Services.AzureSearch.SearchService
+namespace NuGet.Services.AzureSearch.AuxiliaryFiles
 {
     public class AuxiliaryFileClient : IAuxiliaryFileClient
     {
         private readonly ICloudBlobClient _cloudBlobClient;
-        private readonly IOptionsSnapshot<SearchServiceConfiguration> _options;
+        private readonly IOptionsSnapshot<IAuxiliaryDataStorageConfiguration> _options;
         private readonly IAzureSearchTelemetryService _telemetryService;
         private readonly ILogger<AuxiliaryFileClient> _logger;
         private readonly Lazy<ICloudBlobContainer> _lazyContainer;
 
         public AuxiliaryFileClient(
             ICloudBlobClient cloudBlobClient,
-            IOptionsSnapshot<SearchServiceConfiguration> options,
+            IOptionsSnapshot<IAuxiliaryDataStorageConfiguration> options,
             IAzureSearchTelemetryService telemetryService,
             ILogger<AuxiliaryFileClient> logger)
         {
@@ -40,6 +40,27 @@ namespace NuGet.Services.AzureSearch.SearchService
         }
 
         private ICloudBlobContainer Container => _lazyContainer.Value;
+
+        public async Task<DownloadData> LoadDownloadDataAsync()
+        {
+            var result = await LoadAuxiliaryFileAsync(
+                _options.Value.AuxiliaryDataStorageDownloadsPath,
+                etag: null,
+                loadData: loader =>
+                {
+                    var downloadData = new DownloadData();
+
+                    Downloads.Load(
+                        name: null,
+                        loader: loader,
+                        addCount: downloadData.SetDownloadCount);
+
+                    return downloadData;
+                });
+
+            // Discard the etag and other metadata since this API is only ever used to read the latest data.
+            return result.Data;
+        }
 
         public async Task<AuxiliaryFileResult<Downloads>> LoadDownloadsAsync(string etag)
         {
@@ -62,7 +83,18 @@ namespace NuGet.Services.AzureSearch.SearchService
             return await LoadAuxiliaryFileAsync(
                 _options.Value.AuxiliaryDataStorageVerifiedPackagesPath,
                 etag,
-                loader => VerifiedPackages.Load(
+                loader => JsonStringArrayFileParser.Load(
+                    fileName: null,
+                    loader: loader,
+                    logger: _logger));
+        }
+
+        public async Task<AuxiliaryFileResult<HashSet<string>>> LoadExcludedPackagesAsync(string etag)
+        {
+            return await LoadAuxiliaryFileAsync(
+                _options.Value.AuxiliaryDataStorageExcludedPackagesPath,
+                etag,
+                loader => JsonStringArrayFileParser.Load(
                     fileName: null,
                     loader: loader,
                     logger: _logger));
@@ -73,7 +105,11 @@ namespace NuGet.Services.AzureSearch.SearchService
             string etag,
             Func<ILoader, T> loadData) where T : class
         {
-            _logger.LogInformation("Attempted to load blob {BlobName} with etag {ETag}.", blobName, etag);
+            _logger.LogInformation(
+                "Attempted to load blob {BlobName} as {TypeName} with etag {ETag}.",
+                blobName,
+                typeof(T).FullName,
+                etag);
 
             var stopwatch = Stopwatch.StartNew();
             var blob = Container.GetBlobReference(blobName);

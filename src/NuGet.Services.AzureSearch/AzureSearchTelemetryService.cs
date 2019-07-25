@@ -78,14 +78,14 @@ namespace NuGet.Services.AzureSearch
                 });
         }
 
-        public void TrackOwners2AzureSearchCompleted(bool success, TimeSpan elapsed)
+        public void TrackOwners2AzureSearchCompleted(JobOutcome outcome, TimeSpan elapsed)
         {
             _telemetryClient.TrackMetric(
                 Prefix + "Owners2AzureSearchCompletedSeconds",
                 elapsed.TotalSeconds,
                 new Dictionary<string, string>
                 {
-                    { "Success", success.ToString() },
+                    { "Outcome", outcome.ToString() },
                 });
         }
 
@@ -123,14 +123,14 @@ namespace NuGet.Services.AzureSearch
                 });
         }
 
-        public void TrackReadLatestIndexedOwners(int ownerCount, TimeSpan elapsed)
+        public void TrackReadLatestIndexedOwners(int packageIdCount, TimeSpan elapsed)
         {
             _telemetryClient.TrackMetric(
                 Prefix + "ReadLatestIndexedOwnersSeconds",
                 elapsed.TotalSeconds,
                 new Dictionary<string, string>
                 {
-                    { "OwnerCount", ownerCount.ToString() },
+                    { "PackageIdCount", packageIdCount.ToString() },
                 });
         }
 
@@ -249,6 +249,143 @@ namespace NuGet.Services.AzureSearch
                 {
                     { "Count", count.ToString() },
                 });
+        }
+
+        public void TrackDocumentCountQuery(string indexName, long count, TimeSpan elapsed)
+        {
+            _telemetryClient.TrackMetric(
+                Prefix + "DocumentCountQueryMs",
+                elapsed.TotalMilliseconds,
+                new Dictionary<string, string>
+                {
+                    { "IndexName", indexName },
+                    { "Count", count.ToString() },
+                });
+        }
+
+        public void TrackWarmQuery(string indexName, TimeSpan elapsed)
+        {
+            _telemetryClient.TrackMetric(
+                Prefix + "WarmQueryMs",
+                elapsed.TotalMilliseconds,
+                new Dictionary<string, string>
+                {
+                    { "IndexName", indexName },
+                });
+        }
+
+        public void TrackLastCommitTimestampQuery(string indexName, DateTimeOffset? lastCommitTimestamp, TimeSpan elapsed)
+        {
+            _telemetryClient.TrackMetric(
+                Prefix + "LastCommitTimestampQueryMs",
+                elapsed.TotalMilliseconds,
+                new Dictionary<string, string>
+                {
+                    { "IndexName", indexName },
+                    { "LastCommitTimestamp", lastCommitTimestamp?.ToString("O") },
+                });
+        }
+
+        public void TrackReadLatestIndexedDownloads(int packageIdCount, TimeSpan elapsed)
+        {
+            _telemetryClient.TrackMetric(
+                Prefix + "ReadLatestIndexedDownloadsSeconds",
+                elapsed.TotalSeconds,
+                new Dictionary<string, string>
+                {
+                    { "PackageIdCount", packageIdCount.ToString() },
+                });
+        }
+
+        public IDisposable TrackReplaceLatestIndexedDownloads(int packageIdCount)
+        {
+            return _telemetryClient.TrackDuration(
+                Prefix + "ReplaceLatestIndexedDownloadsSeconds",
+                new Dictionary<string, string>
+                {
+                    { "PackageIdCount", packageIdCount.ToString() },
+                });
+        }
+
+        public void TrackDownloadSetComparison(int oldCount, int newCount, int changeCount, TimeSpan elapsed)
+        {
+            _telemetryClient.TrackMetric(
+                Prefix + "DownloadSetComparisonSeconds",
+                elapsed.TotalSeconds,
+                new Dictionary<string, string>
+                {
+                    { "OldCount", oldCount.ToString() },
+                    { "NewCount", newCount.ToString() },
+                    { "ChangeCount", changeCount.ToString() },
+                });
+        }
+
+        public void TrackDownloadCountDecrease(
+            string packageId,
+            string version,
+            bool oldHasId,
+            bool oldHasVersion,
+            long oldDownloads,
+            bool newHasId,
+            bool newHasVersion,
+            long newDownloads)
+        {
+            _telemetryClient.TrackMetric(
+                Prefix + "DownloadCountDecrease",
+                1,
+                new Dictionary<string, string>
+                {
+                    { "PackageId", packageId },
+                    { "Version", version },
+                    { "OldHasId", oldHasId.ToString() },
+                    { "OldHasVersion", oldHasVersion.ToString() },
+                    { "OldDownloads", oldDownloads.ToString() },
+                    { "NewHasId", newHasId.ToString() },
+                    { "NewHasVersion", newHasVersion.ToString() },
+                    { "NewDownloads", newDownloads.ToString() },
+                });
+        }
+
+        public void TrackAuxiliary2AzureSearchCompleted(JobOutcome outcome, TimeSpan elapsed)
+        {
+            _telemetryClient.TrackMetric(
+                Prefix + "Auxiliary2AzureSearchCompletedSeconds",
+                elapsed.TotalSeconds,
+                new Dictionary<string, string>
+                {
+                    { "Outcome", outcome.ToString() },
+                });
+        }
+
+        public IDisposable TrackUploadDownloadsSnapshot(int packageIdCount)
+        {
+            return _telemetryClient.TrackDuration(
+                Prefix + "UploadDownloadsSnapshotSeconds",
+                new Dictionary<string, string>
+                {
+                    { "PackageIdCount", packageIdCount.ToString() },
+                });
+        }
+
+        public void TrackV3GetDocument(TimeSpan elapsed)
+        {
+            _telemetryClient.TrackMetric(
+                Prefix + "V3GetDocumentMs",
+                elapsed.TotalMilliseconds);
+        }
+
+        public void TrackV2GetDocumentWithSearchIndex(TimeSpan elapsed)
+        {
+            _telemetryClient.TrackMetric(
+                Prefix + "V2GetDocumentWithSearchIndexMs",
+                elapsed.TotalMilliseconds);
+        }
+
+        public void TrackV2GetDocumentWithHijackIndex(TimeSpan elapsed)
+        {
+            _telemetryClient.TrackMetric(
+                Prefix + "V2GetDocumentWithHijackIndexMs",
+                elapsed.TotalMilliseconds);
         }
     }
 }

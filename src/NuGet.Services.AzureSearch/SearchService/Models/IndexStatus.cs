@@ -9,7 +9,9 @@ namespace NuGet.Services.AzureSearch.SearchService
     {
         public string Name { get; set; }
         public long DocumentCount { get; set; }
+        public TimeSpan DocumentCountDuration { get; set; }
         public TimeSpan WarmQueryDuration { get; set; }
         public DateTimeOffset? LastCommitTimestamp { get; set; }
+        public TimeSpan LastCommitTimestampDuration { get; set; }
     }
 }

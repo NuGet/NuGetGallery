@@ -37,6 +37,11 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Auxiliary2AzureSearch\Auxiliary2AzureSearchCommandFacts.cs" />
+    <Compile Include="Auxiliary2AzureSearch\DownloadSetComparerFacts.cs" />
+    <Compile Include="AuxiliaryFiles\DownloadByVersionDataFacts.cs" />
+    <Compile Include="AuxiliaryFiles\DownloadDataClientFacts.cs" />
+    <Compile Include="AuxiliaryFiles\DownloadDataFacts.cs" />
     <Compile Include="BaseDocumentBuilderFacts.cs" />
     <Compile Include="BatchPusherFacts.cs" />
     <Compile Include="Catalog2AzureSearch\AzureSearchCollectorLogicFacts.cs" />
@@ -60,8 +65,8 @@
     <Compile Include="HijackDocumentBuilderFacts.cs" />
     <Compile Include="IndexBuilderFacts.cs" />
     <Compile Include="Models\CommittedDocumentFacts.cs" />
-    <Compile Include="Owners2AzureSearch\OwnerDataClientFacts.cs" />
-    <Compile Include="Owners2AzureSearch\OwnerIndexActionBuilderFacts.cs" />
+    <Compile Include="AuxiliaryFiles\OwnerDataClientFacts.cs" />
+    <Compile Include="SearchIndexActionBuilderFacts.cs" />
     <Compile Include="Owners2AzureSearch\Owners2AzureSearchCommandFacts.cs" />
     <Compile Include="Owners2AzureSearch\OwnerSetComparerFacts.cs" />
     <Compile Include="Registration\RegistrationUrlBuilderFacts.cs" />
@@ -69,9 +74,10 @@
     <Compile Include="Registration\RegistrationClientFacts.cs" />
     <Compile Include="SearchService\AuxiliaryDataCacheFacts.cs" />
     <Compile Include="SearchService\AuxiliaryDataFacts.cs" />
-    <Compile Include="SearchService\AuxiliaryFileClientFacts.cs" />
+    <Compile Include="AuxiliaryFiles\AuxiliaryFileClientFacts.cs" />
     <Compile Include="SearchService\AuxiliaryFileReloaderFacts.cs" />
     <Compile Include="SearchService\AzureSearchServiceFacts.cs" />
+    <Compile Include="SearchService\IndexOperationBuilderFacts.cs" />
     <Compile Include="SearchService\SearchParametersBuilderFacts.cs" />
     <Compile Include="SearchService\SearchResponseBuilderFacts.cs" />
     <Compile Include="SearchService\SearchStatusServiceFacts.cs" />

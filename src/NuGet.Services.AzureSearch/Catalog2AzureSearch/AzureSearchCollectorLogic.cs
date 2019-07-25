@@ -189,6 +189,12 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                         {
                             try
                             {
+                                _logger.LogInformation(
+                                    "Downloading catalog leaf for {PackageId} {Version}: {Url}",
+                                    work.PackageIdentity.Id,
+                                    work.PackageIdentity.Version.ToNormalizedString(),
+                                    work.Uri.AbsoluteUri);
+
                                 var leaf = await _catalogClient.GetPackageDetailsLeafAsync(work.Uri.AbsoluteUri);
                                 output.Add(KeyValuePair.Create(work, leaf));
                             }

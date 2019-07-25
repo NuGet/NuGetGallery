@@ -168,23 +168,29 @@ namespace NuGet.Services.AzureSearch.SearchService
 
         private async Task<IndexStatus> GetIndexStatusAsync(ISearchIndexClientWrapper index)
         {
-            var documentCount = await index.Documents.CountAsync();
+            var documentCountResult = await Measure.DurationWithValueAsync(() => index.Documents.CountAsync());
+            _telemetryService.TrackDocumentCountQuery(index.IndexName, documentCountResult.Value, documentCountResult.Duration);
 
-            var lastCommitTimestampParameters = _parametersBuilder.LatestCommitTimestamp();
-            var lastCommitTimestampResult = await index.Documents.SearchAsync("*", lastCommitTimestampParameters);
-            var lastCommitTimestamp = lastCommitTimestampResult?
+            var lastCommitTimestampParameters = _parametersBuilder.LastCommitTimestamp();
+            var lastCommitTimestampResult = await Measure.DurationWithValueAsync(() => index.Documents.SearchAsync("*", lastCommitTimestampParameters));
+            var lastCommitTimestamp = lastCommitTimestampResult
+                .Value?
                 .Results?
                 .FirstOrDefault()?
                 .Document[IndexFields.LastCommitTimestamp] as DateTimeOffset?;
+            _telemetryService.TrackLastCommitTimestampQuery(index.IndexName, lastCommitTimestamp, lastCommitTimestampResult.Duration);
 
             var warmQueryDuration = await Measure.DurationAsync(() => index.Documents.SearchAsync("*", new SearchParameters()));
+            _telemetryService.TrackWarmQuery(index.IndexName, warmQueryDuration);
 
             return new IndexStatus
             {
-                DocumentCount = documentCount,
+                DocumentCount = documentCountResult.Value,
+                DocumentCountDuration = documentCountResult.Duration,
                 Name = index.IndexName,
                 WarmQueryDuration = warmQueryDuration,
                 LastCommitTimestamp = lastCommitTimestamp,
+                LastCommitTimestampDuration = lastCommitTimestampResult.Duration,
             };
         }
     }

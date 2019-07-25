@@ -20,7 +20,7 @@ using NuGetGallery;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace NuGet.Services.AzureSearch.Owners2AzureSearch
+namespace NuGet.Services.AzureSearch.AuxiliaryFiles
 {
     public class OwnerDataClientFacts
     {

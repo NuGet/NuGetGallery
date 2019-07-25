@@ -21,7 +21,7 @@ namespace NuGet.Services.AzureSearch.SearchService
         ///   * "value1" is a field-scoped term
         ///   * "value2" is an unscoped term
         /// </remarks>
-        private class AzureSearchQueryBuilder
+        private class AzureSearchTextBuilder
         {
             /// <summary>
             /// Azure Search Queries must have less than 1024 clauses.
@@ -47,26 +47,26 @@ namespace NuGet.Services.AzureSearch.SearchService
             private readonly StringBuilder _result;
             private int _clauses;
 
-            public AzureSearchQueryBuilder()
+            public AzureSearchTextBuilder()
             {
                 _result = new StringBuilder();
                 _clauses = 0;
             }
 
             /// <summary>
-            /// Append unscoped search terms to the query. This can be called many times.
+            /// Append search terms to the query. These terms may match any field.
             /// </summary>
-            /// <param name="terms">
-            /// The terms to append to the search query. Each term will be escaped and will be wrapped
-            /// with quotes if it contains whitespaces.
-            /// </param>
+            /// <param name="terms">The terms to append to the search query.</param>
             public void AppendTerms(IReadOnlyList<string> terms)
             {
-                ValidateOrThrow(terms, additionalClauses: terms.Count);
+                ValidateAdditionalClausesOrThrow(terms.Count);
+                ValidateTermsOrThrow(terms);
+
+                AppendSpaceIfNotEmpty();
 
                 for (var i = 0; i < terms.Count; i++)
                 {
-                    if (_result.Length > 0)
+                    if (i > 0)
                     {
                         _result.Append(' ');
                     }
@@ -76,32 +76,55 @@ namespace NuGet.Services.AzureSearch.SearchService
             }
 
             /// <summary>
-            /// Append search terms to the query. These terms will be scoped to the specified field. This can be called many times.
+            /// Append a clause to boost results that match all terms.
+            /// </summary>
+            /// <param name="terms">All terms that must be matched.</param>
+            /// <param name="boost">The boost for results that match all terms.</param>
+            public void AppendBoostIfMatchAllTerms(IReadOnlyList<string> terms, float boost)
+            {
+                // We will generate a clause for each term and a clause to OR terms together.
+                ValidateAdditionalClausesOrThrow(terms.Count + 1);
+                ValidateTermsOrThrow(terms);
+
+                AppendSpaceIfNotEmpty();
+
+                _result.Append('(');
+
+                for (var i = 0; i < terms.Count; i++)
+                {
+                    if (i > 0)
+                    {
+                        _result.Append(' ');
+                    }
+
+                    _result.Append('+');
+                    AppendEscapedString(terms[i], quoteWhiteSpace: true);
+                }
+
+                _result.Append(")^");
+                _result.Append(boost);
+            }
+
+            /// <summary>
+            /// Append a term to the query that is scoped to a specified field. This generates
+            /// queries like "field:value". Unlike <see cref="AppendScopedTerms"/>, this supports
+            /// prefix matching.
             /// </summary>
             /// <param name="fieldName">The field that these terms should be scoped to.</param>
-            /// <param name="terms">The terms to search for.</param>
+            /// <param name="term">The term to search.</param>
             /// <param name="required">Whether search results MUST match these terms.</param>
             /// <param name="prefixSearch">If true, prefix matches are allowed for the terms.</param>
-            public void AppendScopedTerms(
+            public void AppendScopedTerm(
                 string fieldName,
-                IReadOnlyList<string> terms,
+                string term,
                 bool required = false,
                 bool prefixSearch = false)
             {
-                // We will only generate a single clause if this field-scope has a single term.
-                // Otherwise, we will generate a clause for each term and a clause to OR terms together.
-                var additionalClauses = 1;
-                if (terms.Count > 1)
-                {
-                    additionalClauses += terms.Count;
-                }
+                // We will generate a single clause.
+                ValidateAdditionalClausesOrThrow(1);
+                ValidateTermOrThrow(term);
 
-                ValidateOrThrow(terms, additionalClauses);
-
-                if (_result.Length > 0)
-                {
-                    _result.Append(' ');
-                }
+                AppendSpaceIfNotEmpty();
 
                 if (required)
                 {
@@ -111,26 +134,53 @@ namespace NuGet.Services.AzureSearch.SearchService
                 _result.Append(fieldName);
                 _result.Append(':');
 
-                if (terms.Count == 1)
+                // Don't escape whitespace with quotes if this is prefix matching.
+                AppendEscapedString(term.Trim(), quoteWhiteSpace: !prefixSearch);
+
+                if (prefixSearch)
                 {
-                    AppendScopedTerm(terms[0], prefixSearch);
+                    _result.Append('*');
                 }
-                else
+            }
+
+            /// <summary>
+            /// Append search terms to the query that are scoped to a specified field.
+            /// This generates queries like "field:(value1 value2)". Unlike
+            /// <see cref="AppendScopedTerm"/>, this doesn't support prefix matches.
+            /// </summary>
+            /// <param name="fieldName">The field that should match the terms.</param>
+            /// <param name="terms">The terms to search</param>
+            /// <param name="required">Whether search results MUST match these terms.</param>
+            public void AppendScopedTerms(
+                string fieldName,
+                IReadOnlyList<string> terms,
+                bool required = false)
+            {
+                // We will generate a clause for each term and a clause to OR terms together.
+                ValidateAdditionalClausesOrThrow(terms.Count + 1);
+                ValidateTermsOrThrow(terms);
+
+                AppendSpaceIfNotEmpty();
+
+                if (required)
                 {
-                    _result.Append('(');
+                    _result.Append('+');
+                }
 
-                    for (var i = 0; i < terms.Count; i++)
+                _result.Append(fieldName);
+                _result.Append(":(");
+
+                for (var i = 0; i < terms.Count; i++)
+                {
+                    if (i > 0)
                     {
-                        if (i > 0)
-                        {
-                            _result.Append(' ');
-                        }
-
-                        AppendScopedTerm(terms[i], prefixSearch);
+                        _result.Append(' ');
                     }
 
-                    _result.Append(')');
+                    AppendEscapedString(terms[i].Trim(), quoteWhiteSpace: true);
                 }
+
+                _result.Append(')');
             }
 
             /// <summary>
@@ -142,13 +192,11 @@ namespace NuGet.Services.AzureSearch.SearchService
                 return _result.ToString();
             }
 
-            private void AppendScopedTerm(string term, bool prefixSearch)
+            private void AppendSpaceIfNotEmpty()
             {
-                AppendEscapedString(term.Trim(), quoteWhiteSpace: !prefixSearch);
-
-                if (prefixSearch)
+                if (_result.Length > 0)
                 {
-                    _result.Append('*');
+                    _result.Append(' ');
                 }
             }
 
@@ -204,24 +252,30 @@ namespace NuGet.Services.AzureSearch.SearchService
                 }
             }
 
-            private void ValidateOrThrow(IReadOnlyList<string> terms, int additionalClauses)
+            private void ValidateAdditionalClausesOrThrow(int additionalClauses)
             {
                 if ((_clauses + additionalClauses) > MaxClauses)
                 {
                     throw new InvalidSearchRequestException($"A query can only have up to {MaxClauses} clauses.");
                 }
 
-                if (terms.Any(TermExceedsMaxSize))
-                {
-                    throw new InvalidSearchRequestException($"Query terms cannot exceed {MaxTermSizeBytes} bytes.");
-                }
-
                 _clauses += additionalClauses;
             }
 
-            private static bool TermExceedsMaxSize(string term)
+            private void ValidateTermsOrThrow(IReadOnlyList<string> terms)
             {
-                return Encoding.Unicode.GetByteCount(term) > MaxTermSizeBytes;
+                foreach (var term in terms)
+                {
+                    ValidateTermOrThrow(term);
+                }
+            }
+
+            private void ValidateTermOrThrow(string term)
+            {
+                if (Encoding.Unicode.GetByteCount(term) > MaxTermSizeBytes)
+                {
+                    throw new InvalidSearchRequestException($"Query terms cannot exceed {MaxTermSizeBytes} bytes.");
+                }
             }
         }
     }

@@ -21,6 +21,7 @@ using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using NuGet.Services.AzureSearch;
+using NuGet.Services.AzureSearch.AuxiliaryFiles;
 using NuGet.Services.AzureSearch.SearchService;
 using NuGet.Services.Configuration;
 using NuGet.Services.KeyVault;
@@ -133,10 +134,14 @@ namespace NuGet.Services.SearchService
                 TelemetryConfiguration.Active.InstrumentationKey = instrumentationKey;
             }
 
+            TelemetryConfiguration.Active.TelemetryInitializers.Add(new AzureWebAppTelemetryInitializer());
+
             var services = new ServiceCollection();
             services.Add(ServiceDescriptor.Scoped(typeof(IOptionsSnapshot<>), typeof(NonCachingOptionsSnapshot<>)));
             services.Configure<AzureSearchConfiguration>(configurationRoot.GetSection(ConfigurationSectionName));
             services.Configure<SearchServiceConfiguration>(configurationRoot.GetSection(ConfigurationSectionName));
+            services.AddScoped<IOptionsSnapshot<IAuxiliaryDataStorageConfiguration>>(
+                p => p.GetRequiredService<IOptionsSnapshot<SearchServiceConfiguration>>());
             services.AddAzureSearch();
             services.AddSingleton(new TelemetryClient());
             services.AddTransient<ITelemetryClient, TelemetryClientWrapper>();

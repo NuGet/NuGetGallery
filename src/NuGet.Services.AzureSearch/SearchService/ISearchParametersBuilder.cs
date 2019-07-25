@@ -7,9 +7,10 @@ namespace NuGet.Services.AzureSearch.SearchService
 {
     public interface ISearchParametersBuilder
     {
-        SearchParameters LatestCommitTimestamp();
-        SearchParameters V2Search(V2SearchRequest request);
-        SearchParameters V3Search(V3SearchRequest request);
-        SearchParameters Autocomplete(AutocompleteRequest request);
+        SearchParameters LastCommitTimestamp();
+        SearchParameters V2Search(V2SearchRequest request, bool isDefaultSearch);
+        SearchParameters V3Search(V3SearchRequest request, bool isDefaultSearch);
+        SearchParameters Autocomplete(AutocompleteRequest request, bool isDefaultSearch);
+        SearchFilters GetSearchFilters(SearchRequest request);
     }
 }

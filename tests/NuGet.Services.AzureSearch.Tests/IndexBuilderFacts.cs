@@ -241,21 +241,14 @@ namespace NuGet.Services.AzureSearch
                 Assert.Equal(4.0, result.TextWeights.Weights[IndexFields.TokenizedPackageId]);
 
                 // Verify boosting functions
-                Assert.Equal(2, result.Functions.Count);
+                Assert.Equal(1, result.Functions.Count);
                 var downloadsBoost = result
                     .Functions
                     .Where(f => f.FieldName == IndexFields.Search.DownloadScore)
                     .FirstOrDefault();
-                var freshnessBoost = result
-                    .Functions
-                    .Where(f => f.FieldName == IndexFields.Published)
-                    .FirstOrDefault();
 
                 Assert.NotNull(downloadsBoost);
                 Assert.Equal(5.0, downloadsBoost.Boost);
-
-                Assert.NotNull(freshnessBoost);
-                Assert.Equal(6.0, freshnessBoost.Boost);
             }
 
             [Fact]
@@ -484,7 +477,6 @@ namespace NuGet.Services.AzureSearch
                         },
 
                         DownloadScoreBoost = 5.0,
-                        PublishedFreshnessBoost = 6.0
                     }
                 };
                 _logger = output.GetLogger<IndexBuilder>();

@@ -22,6 +22,11 @@ namespace NuGet.Services.AzureSearch
             SearchFilters searchFilters,
             string[] owners);
 
+        SearchDocument.UpdateDownloadCount UpdateDownloadCount(
+            string packageId,
+            SearchFilters searchFilters,
+            long totalDownloadCount);
+
         SearchDocument.UpdateVersionList UpdateVersionListFromCatalog(
             string packageId,
             SearchFilters searchFilters,
@@ -50,7 +55,8 @@ namespace NuGet.Services.AzureSearch
             string fullVersion,
             Package package,
             string[] owners,
-            long totalDownloadCount);
+            long totalDownloadCount,
+            bool isExcludedByDefault);
 
         SearchDocument.UpdateLatest UpdateLatestFromCatalog(
             SearchFilters searchFilters,

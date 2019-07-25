@@ -20,11 +20,5 @@ namespace NuGet.Services.AzureSearch
         /// This boosts packages with many downloads.
         /// </summary>
         public double DownloadScoreBoost { get; set; }
-
-        /// <summary>
-        /// The <see cref="BaseMetadataDocument.Published"/> freshness boost.
-        /// This boosts packages that were published recently.
-        /// </summary>
-        public double PublishedFreshnessBoost { get; set; }
     }
 }

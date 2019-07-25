@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using NuGet.Services.AzureSearch.AuxiliaryFiles;
 
 namespace NuGet.Services.AzureSearch.SearchService
 {

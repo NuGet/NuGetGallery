@@ -10,15 +10,15 @@ using FrameworkLogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace NuGet.Indexing
 {
-    public static class VerifiedPackages
+    public static class JsonStringArrayFileParser
     {
         /// <summary>
-        /// Load the verified packages auxiliary data.
+        /// Load the auxiliary data in simple json string array format.
         /// </summary>
         /// <param name="fileName">The name of the file that contains the auxiliary data</param>
         /// <param name="loader">The loader that should be used to fetch the file's content</param>
         /// <param name="logger">The logger</param>
-        /// <returns>A case-insensitive set of all the verified packages</returns>
+        /// <returns>A case-insensitive set of all the strings in the json array</returns>
         public static HashSet<string> Load(string fileName, ILoader loader, FrameworkLogger logger)
         {
             try
@@ -37,7 +37,7 @@ namespace NuGet.Indexing
         }
 
         /// <summary>
-        /// Parse the verified packages from the input.
+        /// Parse the string from the input.
         /// </summary>
         /// <param name="reader">The reader whose content should be parsed</param>
         /// <returns>A case-insensitive set of all the verified packages</returns>
@@ -47,17 +47,17 @@ namespace NuGet.Indexing
             reader.Read();
             ThrowIfNotExpectedToken(reader, JsonToken.StartArray);
 
-            // Read all of the package ID strings from the JSON array.
+            // Read all of the strings from the JSON array.
             var result = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            var packageId = reader.ReadAsString();
+            var stringValue = reader.ReadAsString();
 
-            while (packageId != null)
+            while (stringValue != null)
             {
                 // Package IDs strings are likely to be duplicates from previous reloads. We'll reuse the
                 // interned strings so that duplicated strings can be garbage collected right away.
-                result.Add(String.Intern(packageId));
+                result.Add(String.Intern(stringValue));
 
-                packageId = reader.ReadAsString();
+                stringValue = reader.ReadAsString();
             }
 
             ThrowIfNotExpectedToken(reader, JsonToken.EndArray);
@@ -69,7 +69,7 @@ namespace NuGet.Indexing
         {
             if (reader.TokenType != expected)
             {
-                throw new InvalidDataException($"Malformed Verified Packages Auxiliary file - expected '{JsonToken.StartArray}', actual: '{reader.TokenType}'");
+                throw new InvalidDataException($"Malformed simple json string array auxiliary file - expected '{JsonToken.StartArray}', actual: '{reader.TokenType}'");
             }
         }
     }

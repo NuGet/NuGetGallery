@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using NuGetGallery;
 
-namespace NuGet.Services.AzureSearch
+namespace NuGet.Services.AzureSearch.AuxiliaryFiles
 {
     /// <summary>
     /// The purpose of this interface is allow reading and writing owner information from storage. The Catalog2Owners

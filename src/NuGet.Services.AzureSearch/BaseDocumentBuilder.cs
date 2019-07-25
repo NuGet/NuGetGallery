@@ -36,6 +36,15 @@ namespace NuGet.Services.AzureSearch
             _options = options ?? throw new ArgumentNullException(nameof(options));
         }
 
+        public void PopulateUpdated(
+            IUpdatedDocument document,
+            bool lastUpdatedFromCatalog)
+        {
+            document.SetLastUpdatedDocumentOnNextRead();
+            document.LastDocumentType = document.GetType().FullName;
+            document.LastUpdatedFromCatalog = lastUpdatedFromCatalog;
+        }
+
         public void PopulateCommitted(
             ICommittedDocument document,
             bool lastUpdatedFromCatalog,
@@ -67,9 +76,7 @@ namespace NuGet.Services.AzureSearch
                 }
             }
 
-            document.SetLastUpdatedDocumentOnNextRead();
-            document.LastDocumentType = document.GetType().FullName;
-            document.LastUpdatedFromCatalog = lastUpdatedFromCatalog;
+            PopulateUpdated(document, lastUpdatedFromCatalog);
             document.LastCommitTimestamp = lastCommitTimestamp;
             document.LastCommitId = lastCommitId;
         }

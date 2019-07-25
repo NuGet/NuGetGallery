@@ -4,7 +4,7 @@
 using System;
 using Newtonsoft.Json;
 
-namespace NuGet.Services.AzureSearch.SearchService
+namespace NuGet.Services.AzureSearch.AuxiliaryFiles
 {
     public class AuxiliaryFileMetadata
     {

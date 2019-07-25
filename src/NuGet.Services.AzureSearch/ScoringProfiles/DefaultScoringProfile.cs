@@ -45,11 +45,6 @@ namespace NuGet.Services.AzureSearch.ScoringProfiles
                 throw new ArgumentOutOfRangeException(nameof(config.DownloadScoreBoost));
             }
 
-            if (config.PublishedFreshnessBoost <= 1)
-            {
-                throw new ArgumentOutOfRangeException(nameof(config.PublishedFreshnessBoost));
-            }
-
             if (config.FieldWeights.Count != 0)
             {
                 var unknownField = config
@@ -88,14 +83,6 @@ namespace NuGet.Services.AzureSearch.ScoringProfiles
                             boostingRangeEnd: DocumentUtilities.GetDownloadScore(999_999_999_999),
                             shouldBoostBeyondRangeByConstant: true),
                         interpolation: ScoringFunctionInterpolation.Linear),
-
-                    // Boost results with a recent published date. We use a quadatric interpolation
-                    // so that the boost decreases faster as the publish date nears the end of the boost range.
-                    new FreshnessScoringFunction(
-                        fieldName: IndexFields.Published,
-                        boost: config.PublishedFreshnessBoost,
-                        boostingDuration: TimeSpan.FromDays(365),
-                        interpolation: ScoringFunctionInterpolation.Quadratic),
                 },
 
                 // The scores of each Scoring Function should be summed together before multiplying the base relevance scores.

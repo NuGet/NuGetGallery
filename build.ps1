@@ -85,7 +85,8 @@ Invoke-BuildStep 'Set version metadata in AssemblyInfo.cs' {
             "src\NuGet.Jobs.Db2AzureSearch\Properties\AssemblyInfo.g.cs", `
             "src\NuGet.Jobs.Catalog2AzureSearch\Properties\AssemblyInfo.g.cs", `
             "src\NuGet.Jobs.Owners2AzureSearch\Properties\AssemblyInfo.g.cs", `
-            "src\NuGet.Services.SearchService\Properties\AssemblyInfo.g.cs"
+            "src\NuGet.Services.SearchService\Properties\AssemblyInfo.g.cs", `
+            "src\NuGet.Jobs.Auxiliary2AzureSearch\Properties\AssemblyInfo.g.cs"
 
         Foreach ($assemblyInfo in $assemblyInfos) {
             Set-VersionInfo -Path (Join-Path $PSScriptRoot $assemblyInfo) -Version $SimpleVersion -Branch $Branch -Commit $CommitSHA
@@ -124,7 +125,8 @@ Invoke-BuildStep 'Creating artifacts' {
             "src\Ng\Ng.Operations.nuspec", `
             "src\NuGet.Jobs.Db2AzureSearch\NuGet.Jobs.Db2AzureSearch.nuspec", `
             "src\NuGet.Jobs.Catalog2AzureSearch\NuGet.Jobs.Catalog2AzureSearch.nuspec", `
-            "src\NuGet.Jobs.Owners2AzureSearch\NuGet.Jobs.Owners2AzureSearch.nuspec"
+            "src\NuGet.Jobs.Owners2AzureSearch\NuGet.Jobs.Owners2AzureSearch.nuspec", `
+            "src\NuGet.Jobs.Auxiliary2AzureSearch\NuGet.Jobs.Auxiliary2AzureSearch.nuspec"
 
         $nuspecPackages | ForEach-Object {
             New-Package (Join-Path $PSScriptRoot $_) -Configuration $Configuration -BuildNumber $BuildNumber -Version $SemanticVersion -Branch $Branch

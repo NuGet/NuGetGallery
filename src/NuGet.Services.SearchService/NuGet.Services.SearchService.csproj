@@ -53,6 +53,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App_Start\ApiExceptionFilterAttribute.cs" />
+    <Compile Include="App_Start\AzureWebAppTelemetryInitializer.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Controllers\SearchController.cs" />
     <Compile Include="Global.asax.cs">

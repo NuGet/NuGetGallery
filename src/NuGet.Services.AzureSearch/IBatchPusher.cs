@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
+using Microsoft.WindowsAzure.Storage;
 
 namespace NuGet.Services.AzureSearch
 {
@@ -27,11 +28,13 @@ namespace NuGet.Services.AzureSearch
         /// the index actions for a specific package ID completed (pushed to Azure Search), the corresponding version
         /// list is also updated. Hijack index changes are applied before search index changes.
         /// </summary>
+        /// <exception cref="StorageException">Thrown if the one of the version lists has changed.</exception>
         Task PushFullBatchesAsync();
 
         /// <summary>
         /// Same as <see cref="PushFullBatchesAsync"/> but if there is a partial batch remaining, it is also pushed.
         /// </summary>
+        /// <exception cref="StorageException">Thrown if the one of the version lists has changed.</exception>
         Task FinishAsync();
     }
 }

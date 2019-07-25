@@ -2,10 +2,12 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Net;
 using System.Threading.Tasks;
 using Microsoft.Azure.Search;
 using Microsoft.Azure.Search.Models;
 using Microsoft.Extensions.Logging;
+using Microsoft.Rest.Azure;
 
 namespace NuGet.Services.AzureSearch.Wrappers
 {
@@ -24,25 +26,45 @@ namespace NuGet.Services.AzureSearch.Wrappers
 
         public async Task<DocumentIndexResult> IndexAsync<T>(IndexBatch<T> batch) where T : class
         {
-            return await RetryAsync(nameof(IndexAsync), async () => await _inner.IndexAsync(batch));
+            return await RetryAsync(
+                nameof(IndexAsync),
+                () => _inner.IndexAsync(batch),
+                allow404: false);
+        }
+
+        public async Task<T> GetOrNullAsync<T>(string key) where T : class
+        {
+            return await RetryAsync(
+                nameof(GetOrNullAsync) + "<T>",
+                () => _inner.GetAsync<T>(key),
+                allow404: true);
         }
 
         public async Task<DocumentSearchResult> SearchAsync(string searchText, SearchParameters searchParameters)
         {
-            return await RetryAsync(nameof(SearchAsync), async () => await _inner.SearchAsync(searchText, searchParameters));
+            return await RetryAsync(
+                nameof(SearchAsync),
+                () => _inner.SearchAsync(searchText, searchParameters),
+                allow404: false);
         }
 
         public async Task<DocumentSearchResult<T>> SearchAsync<T>(string searchText, SearchParameters searchParameters) where T : class
         {
-            return await RetryAsync(nameof(SearchAsync) + "<T>", async() => await _inner.SearchAsync<T>(searchText, searchParameters));
+            return await RetryAsync(
+                nameof(SearchAsync) + "<T>",
+                () => _inner.SearchAsync<T>(searchText, searchParameters),
+                allow404: false);
         }
 
         public async Task<long> CountAsync()
         {
-            return await RetryAsync(nameof(CountAsync), async () => await _inner.CountAsync());
+            return await RetryAsync(
+                nameof(CountAsync),
+                async () => await _inner.CountAsync(),
+                allow404: false);
         }
 
-        private async Task<T> RetryAsync<T>(string name, Func<Task<T>> actAsync)
+        private async Task<T> RetryAsync<T>(string name, Func<Task<T>> actAsync, bool allow404)
         {
             const int maxAttempts = 3;
             int currentAttempt = 0;
@@ -71,6 +93,10 @@ namespace NuGet.Services.AzureSearch.Wrappers
                     // https://github.com/Azure/azure-sdk-for-net/issues/3224
                     // https://github.com/NuGet/Engineering/issues/2511
                     throw new AzureSearchException("The search query failed due to Azure/azure-sdk-for-net#3224.", ex);
+                }
+                catch (CloudException ex) when (allow404 && ex.Response?.StatusCode == HttpStatusCode.NotFound)
+                {
+                    return default(T);
                 }
                 catch (Exception ex)
                 {

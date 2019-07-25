@@ -195,7 +195,8 @@ namespace NuGet.Services.AzureSearch
             string fullVersion,
             Package package,
             string[] owners,
-            long totalDownloadCount)
+            long totalDownloadCount,
+            bool isExcludedByDefault)
         {
             var document = new SearchDocument.Full();
 
@@ -212,8 +213,8 @@ namespace NuGet.Services.AzureSearch
                 fullVersion: fullVersion,
                 owners: owners);
             _baseDocumentBuilder.PopulateMetadata(document, packageId, package);
-            document.TotalDownloadCount = totalDownloadCount;
-            document.DownloadScore = DocumentUtilities.GetDownloadScore(totalDownloadCount);
+            PopulateDownloadCount(document, totalDownloadCount);
+            PopulateIsExcludedByDefault(document, isExcludedByDefault);
 
             return document;
         }
@@ -290,14 +291,43 @@ namespace NuGet.Services.AzureSearch
             var document = new SearchDocument.UpdateOwners();
 
             PopulateKey(document, packageId, searchFilters);
-            _baseDocumentBuilder.PopulateCommitted(
+            _baseDocumentBuilder.PopulateUpdated(
                 document,
-                lastUpdatedFromCatalog: false,
-                lastCommitTimestamp: null,
-                lastCommitId: null);
+                lastUpdatedFromCatalog: false);
             PopulateOwners(document, owners);
 
             return document;
+        }
+
+        public SearchDocument.UpdateDownloadCount UpdateDownloadCount(
+            string packageId,
+            SearchFilters searchFilters,
+            long totalDownloadCount)
+        {
+            var document = new SearchDocument.UpdateDownloadCount();
+
+            PopulateKey(document, packageId, searchFilters);
+            _baseDocumentBuilder.PopulateUpdated(
+                document,
+                lastUpdatedFromCatalog: false);
+            PopulateDownloadCount(document, totalDownloadCount);
+
+            return document;
+        }
+
+        private static void PopulateDownloadCount<T>(
+            T document,
+            long totalDownloadCount) where T : KeyedDocument, SearchDocument.IDownloadCount
+        {
+            document.TotalDownloadCount = totalDownloadCount;
+            document.DownloadScore = DocumentUtilities.GetDownloadScore(totalDownloadCount);
+        }
+
+        private static void PopulateIsExcludedByDefault<T>(
+            T document,
+            bool isExcludedByDefault) where T : KeyedDocument, SearchDocument.IIsExcludedByDefault
+        {
+            document.IsExcludedByDefault = isExcludedByDefault;
         }
     }
 }

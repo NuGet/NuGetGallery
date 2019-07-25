@@ -5,12 +5,15 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.Search.Models;
 using Microsoft.Extensions.Options;
+using Microsoft.WindowsAzure.Storage;
 using Moq;
 using NuGet.Protocol.Catalog;
+using NuGet.Services.AzureSearch.AuxiliaryFiles;
 using NuGet.Services.AzureSearch.Support;
 using NuGet.Services.Entities;
 using NuGet.Services.Metadata.Catalog.Persistence;
@@ -30,6 +33,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
         private readonly Mock<ICatalogClient> _catalogClient;
         private readonly Mock<IStorageFactory> _storageFactory;
         private readonly Mock<IOwnerDataClient> _ownerDataClient;
+        private readonly Mock<IDownloadDataClient> _downloadDataClient;
         private readonly Mock<IOptionsSnapshot<Db2AzureSearchConfiguration>> _options;
         private readonly Db2AzureSearchConfiguration _config;
         private readonly TestCursorStorage _storage;
@@ -46,6 +50,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             _catalogClient = new Mock<ICatalogClient>();
             _storageFactory = new Mock<IStorageFactory>();
             _ownerDataClient = new Mock<IOwnerDataClient>();
+            _downloadDataClient = new Mock<IDownloadDataClient>();
             _options = new Mock<IOptionsSnapshot<Db2AzureSearchConfiguration>>();
             _logger = output.GetLogger<Db2AzureSearchCommand>();
 
@@ -77,6 +82,13 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 .Setup(x => x.DeleteIfExistsAsync())
                 .ReturnsAsync(true);
 
+            var excludedPackagesMetadata = new AuxiliaryFileMetadata(
+                DateTimeOffset.MinValue,
+                DateTimeOffset.MinValue,
+                TimeSpan.Zero,
+                fileSize: 0,
+                etag: string.Empty);
+
             _target = new Db2AzureSearchCommand(
                 _producer.Object,
                 _builder.Object,
@@ -86,6 +98,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 _catalogClient.Object,
                 _storageFactory.Object,
                 _ownerDataClient.Object,
+                _downloadDataClient.Object,
                 _options.Object,
                 _logger);
         }
@@ -131,11 +144,11 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 .Returns(Task.CompletedTask)
                 .Callback<ConcurrentBag<NewPackageRegistration>, CancellationToken>((w, _) =>
                 {
-                    w.Add(new NewPackageRegistration("A", 0, new string[0], new Package[0]));
-                    w.Add(new NewPackageRegistration("B", 0, new string[0], new Package[0]));
-                    w.Add(new NewPackageRegistration("C", 0, new string[0], new Package[0]));
-                    w.Add(new NewPackageRegistration("D", 0, new string[0], new Package[0]));
-                    w.Add(new NewPackageRegistration("E", 0, new string[0], new Package[0]));
+                    w.Add(new NewPackageRegistration("A", 0, new string[0], new Package[0], false));
+                    w.Add(new NewPackageRegistration("B", 0, new string[0], new Package[0], false));
+                    w.Add(new NewPackageRegistration("C", 0, new string[0], new Package[0], false));
+                    w.Add(new NewPackageRegistration("D", 0, new string[0], new Package[0], false));
+                    w.Add(new NewPackageRegistration("E", 0, new string[0], new Package[0], false));
                 });
             _builder
                 .Setup(x => x.AddNewPackageRegistration(It.IsAny<NewPackageRegistration>()))
@@ -178,9 +191,9 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 .Returns(Task.CompletedTask)
                 .Callback<ConcurrentBag<NewPackageRegistration>, CancellationToken>((w, _) =>
                 {
-                    w.Add(new NewPackageRegistration("A", 0, new[] { "Microsoft", "EntityFramework" }, new Package[0]));
-                    w.Add(new NewPackageRegistration("B", 0, new[] { "nuget" }, new Package[0]));
-                    w.Add(new NewPackageRegistration("C", 0, new[] { "aspnet" }, new Package[0]));
+                    w.Add(new NewPackageRegistration("A", 0, new[] { "Microsoft", "EntityFramework" }, new Package[0], false));
+                    w.Add(new NewPackageRegistration("B", 0, new[] { "nuget" }, new Package[0], false));
+                    w.Add(new NewPackageRegistration("C", 0, new[] { "aspnet" }, new Package[0], false));
                 });
 
             // Return empty index action for ID "B". This package ID will not be pushed to Azure Search but will appear
@@ -234,17 +247,16 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
         }
 
         [Fact]
-        public async Task PushesOwnersData()
+        public async Task PushesOwnerData()
         {
-            _config.AzureSearchBatchSize = 2;
             _producer
                 .Setup(x => x.ProduceWorkAsync(It.IsAny<ConcurrentBag<NewPackageRegistration>>(), It.IsAny<CancellationToken>()))
                 .Returns(Task.CompletedTask)
                 .Callback<ConcurrentBag<NewPackageRegistration>, CancellationToken>((w, _) =>
                 {
-                    w.Add(new NewPackageRegistration("A", 0, new[] { "Microsoft", "EntityFramework" }, new Package[0]));
-                    w.Add(new NewPackageRegistration("B", 0, new string[0], new Package[0]));
-                    w.Add(new NewPackageRegistration("C", 0, new[] { "nuget" }, new Package[0]));
+                    w.Add(new NewPackageRegistration("A", 0, new[] { "Microsoft", "EntityFramework" }, new Package[0], false));
+                    w.Add(new NewPackageRegistration("B", 0, new string[0], new Package[0], false));
+                    w.Add(new NewPackageRegistration("C", 0, new[] { "nuget" }, new Package[0], false));
                 });
 
             SortedDictionary<string, SortedSet<string>> data = null;
@@ -269,6 +281,67 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
 
             _ownerDataClient.Verify(
                 x => x.ReplaceLatestIndexedAsync(It.IsAny<SortedDictionary<string, SortedSet<string>>>(), It.IsAny<IAccessCondition>()),
+                Times.Once);
+        }
+
+        [Fact]
+        public async Task PushesDownloadData()
+        {
+            _producer
+                .Setup(x => x.ProduceWorkAsync(It.IsAny<ConcurrentBag<NewPackageRegistration>>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask)
+                .Callback<ConcurrentBag<NewPackageRegistration>, CancellationToken>((w, _) =>
+                {
+                    w.Add(new NewPackageRegistration(
+                        "A",
+                        0,
+                        new string[0],
+                        new Package[0],
+                        false));
+                    w.Add(new NewPackageRegistration(
+                        "B",
+                        0,
+                        new string[0],
+                        new[]
+                        {
+                            new Package { NormalizedVersion = "1.0.0", DownloadCount = 23 },
+                        },
+                        false));
+                    w.Add(new NewPackageRegistration(
+                        "C",
+                        0,
+                        new string[0],
+                        new[]
+                        {
+                            new Package { NormalizedVersion = "1.0.0", DownloadCount = 42 },
+                            new Package { NormalizedVersion = "2.0.0-ALPHA", DownloadCount = 43 },
+                        },
+                        false));
+                });
+
+            DownloadData data = null;
+            IAccessCondition accessCondition = null;
+            _downloadDataClient
+                .Setup(x => x.ReplaceLatestIndexedAsync(It.IsAny<DownloadData>(), It.IsAny<IAccessCondition>()))
+                .Returns(Task.CompletedTask)
+                .Callback<DownloadData, IAccessCondition>((d, a) =>
+                {
+                    data = d;
+                    accessCondition = a;
+                });
+
+            await _target.ExecuteAsync();
+
+            Assert.Equal(new[] { "B", "C" }, data.Keys.ToArray());
+            Assert.Equal(23, data.GetDownloadCount("B", "1.0.0"));
+            Assert.Equal(42, data.GetDownloadCount("C", "1.0.0"));
+            Assert.Equal(43, data.GetDownloadCount("C", "2.0.0-ALPHA"));
+
+            Assert.Equal("*", accessCondition.IfNoneMatchETag);
+            Assert.Null(accessCondition.IfMatchETag);
+
+            _downloadDataClient.Verify(
+                x => x.ReplaceLatestIndexedAsync(It.IsAny<DownloadData>(), It.IsAny<IAccessCondition>()),
                 Times.Once);
         }
     }
