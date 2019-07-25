@@ -144,6 +144,7 @@
     <Compile Include="SearchService\IndexOperation.cs" />
     <Compile Include="SearchService\IndexOperationBuilder.cs" />
     <Compile Include="SearchService\IndexOperationType.cs" />
+    <Compile Include="SearchService\ISecretRefresher.cs" />
     <Compile Include="SearchService\Models\DebugDocumentResult.cs" />
     <Compile Include="SearchService\IAuxiliaryDataCache.cs" />
     <Compile Include="AuxiliaryFiles\IAuxiliaryFileClient.cs" />
@@ -186,6 +187,7 @@
     <Compile Include="SearchService\ParsedQuery.cs" />
     <Compile Include="SearchService\SearchTextBuilder.cs" />
     <Compile Include="AzureSearchTelemetryService.cs" />
+    <Compile Include="SearchService\SecretRefresher.cs" />
     <Compile Include="VersionList\Guard.cs" />
     <Compile Include="VersionList\HijackIndexChange.cs" />
     <Compile Include="VersionList\HijackIndexChangeType.cs" />
@@ -234,15 +236,12 @@
       <Version>5.0.3</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Validation.Common.Job">
-      <Version>4.1.0-dev-2701693</Version>
+      <Version>4.1.0-dev-2884457</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Build.Tasks.Pack">
       <Version>4.8.0</Version>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
-    <PackageReference Include="NuGetGallery.Core">
-      <Version>4.4.5-master-2699519</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>

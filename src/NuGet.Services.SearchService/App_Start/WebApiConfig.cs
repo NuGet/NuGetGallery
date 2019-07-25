@@ -35,14 +35,6 @@ namespace NuGet.Services.SearchService
         private const string ControllerSuffix = "Controller";
         private const string ConfigurationSectionName = "SearchService";
 
-        /// <summary>
-        /// We use <see cref="int.MaxValue"/> number of seconds for the caching timeout to essentially cache the
-        /// KeyVault secrets for the entire life of the process. This duration is over 68 years so... close enough. 
-        /// This is necessary because the KeyVault secret injector waits for an asynchronous operation to complete
-        /// in a synchronous context. This can cause deadlocks in ASP.NET when this occurs in request context.
-        /// </summary>
-        private static readonly TimeSpan KeyVaultSecretCachingTimeout = TimeSpan.FromSeconds(int.MaxValue);
-
         public static void Register(HttpConfiguration config)
         {
             config.Filters.Add(new ApiExceptionFilterAttribute());
@@ -102,14 +94,8 @@ namespace NuGet.Services.SearchService
 
             config.EnsureInitialized();
 
-            // Force the secrets to be loaded outside of a request context. This avoids deadlocks. As a side benefit,
-            // KeyVault errors also occur on start-up.
-            var searchServiceConfiguration = dependencyResolver
-                .Container
-                .Resolve<IOptionsSnapshot<SearchServiceConfiguration>>()
-                .Value;
-
             HostingEnvironment.QueueBackgroundWorkItem(token => ReloadAuxiliaryFilesAsync(dependencyResolver.Container, token));
+            HostingEnvironment.QueueBackgroundWorkItem(token => RefreshSecretsAsync(dependencyResolver.Container, token));
         }
 
         public static void SetSerializerSettings(JsonSerializerSettings settings)
@@ -124,11 +110,17 @@ namespace NuGet.Services.SearchService
             await loader.ReloadContinuouslyAsync(token);
         }
 
+        private static async Task RefreshSecretsAsync(ILifetimeScope serviceProvider, CancellationToken token)
+        {
+            var loader = serviceProvider.Resolve<ISecretRefresher>();
+            await loader.RefreshContinuouslyAsync(token);
+        }
+
         private static AutofacWebApiDependencyResolver GetDependencyResolver(HttpConfiguration config)
         {
-            var configurationRoot = GetConfigurationRoot();
+            var configuration = GetConfiguration();
 
-            var instrumentationKey = configurationRoot.GetValue<string>("ApplicationInsights_InstrumentationKey");
+            var instrumentationKey = configuration.Root.GetValue<string>("ApplicationInsights_InstrumentationKey");
             if (!string.IsNullOrWhiteSpace(instrumentationKey))
             {
                 TelemetryConfiguration.Active.InstrumentationKey = instrumentationKey;
@@ -137,9 +129,10 @@ namespace NuGet.Services.SearchService
             TelemetryConfiguration.Active.TelemetryInitializers.Add(new AzureWebAppTelemetryInitializer());
 
             var services = new ServiceCollection();
+            services.AddSingleton(configuration.SecretReaderFactory);
             services.Add(ServiceDescriptor.Scoped(typeof(IOptionsSnapshot<>), typeof(NonCachingOptionsSnapshot<>)));
-            services.Configure<AzureSearchConfiguration>(configurationRoot.GetSection(ConfigurationSectionName));
-            services.Configure<SearchServiceConfiguration>(configurationRoot.GetSection(ConfigurationSectionName));
+            services.Configure<AzureSearchConfiguration>(configuration.Root.GetSection(ConfigurationSectionName));
+            services.Configure<SearchServiceConfiguration>(configuration.Root.GetSection(ConfigurationSectionName));
             services.AddScoped<IOptionsSnapshot<IAuxiliaryDataStorageConfiguration>>(
                 p => p.GetRequiredService<IOptionsSnapshot<SearchServiceConfiguration>>());
             services.AddAzureSearch();
@@ -162,7 +155,7 @@ namespace NuGet.Services.SearchService
             return new AutofacWebApiDependencyResolver(container);
         }
 
-        private static IConfigurationRoot GetConfigurationRoot()
+        private static RefreshableConfiguration GetConfiguration()
         {
             const string prefix = "APPSETTING_";
             var jsonFile = Path.Combine(HostingEnvironment.MapPath("~/"), @"Settings\local.json");
@@ -175,9 +168,22 @@ namespace NuGet.Services.SearchService
 
             // Initialize KeyVault integration.
             var secretReaderFactory = new ConfigurationRootSecretReaderFactory(uninjectedConfiguration);
-            var cachingSecretReaderFactory = new CachingSecretReaderFactory(secretReaderFactory, KeyVaultSecretCachingTimeout);
-            var secretReader = cachingSecretReaderFactory.CreateSecretReader();
-            var secretInjector = cachingSecretReaderFactory.CreateSecretInjector(secretReader);
+            var refreshSecretReaderSettings = new RefreshableSecretReaderSettings();
+            var refreshingSecretReaderFactory = new RefreshableSecretReaderFactory(secretReaderFactory, refreshSecretReaderSettings);
+            var secretReader = refreshingSecretReaderFactory.CreateSecretReader();
+            var secretInjector = refreshingSecretReaderFactory.CreateSecretInjector(secretReader);
+
+            // Attempt to inject secrets into all of the configuration strings.
+            foreach (var pair in uninjectedConfiguration.AsEnumerable())
+            {
+                if (!string.IsNullOrWhiteSpace(pair.Value))
+                {
+                    // We can synchronously wait here because we are outside of the request context. It's not great
+                    // but we need to fetch the initial secrets for the cache before activating any controllers or
+                    // asking DI for configuration.
+                    secretInjector.InjectAsync(pair.Value).Wait();
+                }
+            }
 
             // Reload the configuration with secret injection enabled. This is was is used by the application.
             var injectedBuilder = new ConfigurationBuilder()
@@ -185,7 +191,15 @@ namespace NuGet.Services.SearchService
                 .AddInjectedEnvironmentVariables(prefix, secretInjector);
             var injectedConfiguration = injectedBuilder.Build();
 
-            return injectedConfiguration;
+            // Now disable all secrets loads from a non-refresh path. Refresh will be called periodically from a
+            // background thread. Foreground (request) threads MUST use the cache otherwise there will be a deadlock.
+            refreshSecretReaderSettings.BlockUncachedReads = true;
+
+            return new RefreshableConfiguration
+            {
+                SecretReaderFactory = refreshingSecretReaderFactory,
+                Root = injectedConfiguration,
+            };
         }
 
         private static string GetControllerName<T>() where T : ApiController
@@ -197,6 +211,12 @@ namespace NuGet.Services.SearchService
             }
 
             throw new ArgumentException($"The controller type name must end with '{ControllerSuffix}'.");
+        }
+
+        private class RefreshableConfiguration
+        {
+            public IRefreshableSecretReaderFactory SecretReaderFactory { get; set; }
+            public IConfigurationRoot Root { get; set; }
         }
     }
 }

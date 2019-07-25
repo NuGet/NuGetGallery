@@ -76,6 +76,7 @@
     <Compile Include="SearchService\AuxiliaryDataFacts.cs" />
     <Compile Include="AuxiliaryFiles\AuxiliaryFileClientFacts.cs" />
     <Compile Include="SearchService\AuxiliaryFileReloaderFacts.cs" />
+    <Compile Include="SearchService\SecretRefresherFacts.cs" />
     <Compile Include="SearchService\AzureSearchServiceFacts.cs" />
     <Compile Include="SearchService\IndexOperationBuilderFacts.cs" />
     <Compile Include="SearchService\SearchParametersBuilderFacts.cs" />

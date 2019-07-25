@@ -127,6 +127,7 @@ namespace NuGet.Services.AzureSearch
             public DbSet<UserCertificate> UserCertificates { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
             public DbSet<SymbolPackage> SymbolPackages { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
             public DbSet<Package> Packages { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+            public DbSet<PackageDeprecation> Deprecations { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
             public bool Disposed { get; private set; }
 

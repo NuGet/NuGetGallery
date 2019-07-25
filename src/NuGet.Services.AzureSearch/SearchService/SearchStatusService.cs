@@ -19,6 +19,7 @@ namespace NuGet.Services.AzureSearch.SearchService
         private readonly ISearchIndexClientWrapper _hijackIndex;
         private readonly ISearchParametersBuilder _parametersBuilder;
         private readonly IAuxiliaryDataCache _auxiliaryDataCache;
+        private readonly ISecretRefresher _secretRefresher;
         private readonly IOptionsSnapshot<SearchServiceConfiguration> _options;
         private readonly IAzureSearchTelemetryService _telemetryService;
         private readonly ILogger<SearchStatusService> _logger;
@@ -28,6 +29,7 @@ namespace NuGet.Services.AzureSearch.SearchService
             ISearchIndexClientWrapper hijackIndex,
             ISearchParametersBuilder parametersBuilder,
             IAuxiliaryDataCache auxiliaryDataCache,
+            ISecretRefresher secretRefresher,
             IOptionsSnapshot<SearchServiceConfiguration> options,
             IAzureSearchTelemetryService telemetryService,
             ILogger<SearchStatusService> logger)
@@ -36,6 +38,7 @@ namespace NuGet.Services.AzureSearch.SearchService
             _hijackIndex = hijackIndex ?? throw new ArgumentNullException(nameof(hijackIndex));
             _parametersBuilder = parametersBuilder ?? throw new ArgumentNullException(nameof(parametersBuilder));
             _auxiliaryDataCache = auxiliaryDataCache ?? throw new ArgumentNullException(nameof(auxiliaryDataCache));
+            _secretRefresher = secretRefresher ?? throw new ArgumentNullException(nameof(secretRefresher));
             _options = options ?? throw new ArgumentNullException(nameof(options));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -127,6 +130,8 @@ namespace NuGet.Services.AzureSearch.SearchService
                 processId = process.Id;
             }
 
+            var lastSecretRefresh = _secretRefresher.LastRefresh;
+
             var serverStatus = new ServerStatus
             {
                 AssemblyBuildDateUtc = GetAssemblyMetadataOrNull(assembly, "BuildDateUtc"),
@@ -138,6 +143,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                 ProcessDuration = DateTimeOffset.UtcNow - processStartTime,
                 ProcessId = processId,
                 ProcessStartTime = processStartTime,
+                LastServiceRefreshTime = lastSecretRefresh,
             };
 
             return Task.FromResult(serverStatus);

@@ -89,6 +89,7 @@ namespace NuGet.Services.AzureSearch
                     c.ResolveKeyed<ISearchIndexClientWrapper>(hijackIndexKey),
                     c.Resolve<ISearchParametersBuilder>(),
                     c.Resolve<IAuxiliaryDataCache>(),
+                    c.Resolve<ISecretRefresher>(),
                     c.Resolve<IOptionsSnapshot<SearchServiceConfiguration>>(),
                     c.Resolve<IAzureSearchTelemetryService>(),
                     c.Resolve<ILogger<SearchStatusService>>()));
@@ -236,6 +237,8 @@ namespace NuGet.Services.AzureSearch
             services.AddSingleton<IAuxiliaryDataCache, AuxiliaryDataCache>();
             services.AddScoped(p => p.GetRequiredService<IAuxiliaryDataCache>().Get());
             services.AddSingleton<IAuxiliaryFileReloader, AuxiliaryFileReloader>();
+
+            services.AddSingleton<ISecretRefresher, SecretRefresher>();
 
             services.AddTransient<Auxiliary2AzureSearchCommand>();
             services.AddTransient<Owners2AzureSearchCommand>();
