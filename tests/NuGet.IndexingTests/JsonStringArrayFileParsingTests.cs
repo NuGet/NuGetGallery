@@ -11,7 +11,7 @@ using Xunit;
 
 namespace NuGet.IndexingTests
 {
-    public class VerifiedPackagesTest
+    public class JsonStringArrayFileParserTest
     {
         [Theory]
         [InlineData("[]", new string[0])]
@@ -38,7 +38,7 @@ namespace NuGet.IndexingTests
 
         private HashSet<string> Parse(string input)
         {
-            return VerifiedPackages.Parse(new JsonTextReader(new StringReader(input)));
+            return JsonStringArrayFileParser.Parse(new JsonTextReader(new StringReader(input)));
         }
     }
 }

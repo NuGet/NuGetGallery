@@ -195,7 +195,8 @@ namespace NuGet.Services.AzureSearch
             string fullVersion,
             Package package,
             string[] owners,
-            long totalDownloadCount)
+            long totalDownloadCount,
+            bool isExcludedByDefault)
         {
             var document = new SearchDocument.Full();
 
@@ -213,6 +214,7 @@ namespace NuGet.Services.AzureSearch
                 owners: owners);
             _baseDocumentBuilder.PopulateMetadata(document, packageId, package);
             PopulateDownloadCount(document, totalDownloadCount);
+            PopulateIsExcludedByDefault(document, isExcludedByDefault);
 
             return document;
         }
@@ -319,6 +321,13 @@ namespace NuGet.Services.AzureSearch
         {
             document.TotalDownloadCount = totalDownloadCount;
             document.DownloadScore = DocumentUtilities.GetDownloadScore(totalDownloadCount);
+        }
+
+        private static void PopulateIsExcludedByDefault<T>(
+            T document,
+            bool isExcludedByDefault) where T : KeyedDocument, SearchDocument.IIsExcludedByDefault
+        {
+            document.IsExcludedByDefault = isExcludedByDefault;
         }
     }
 }

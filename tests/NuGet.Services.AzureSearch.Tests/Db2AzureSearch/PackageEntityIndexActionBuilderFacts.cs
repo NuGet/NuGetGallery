@@ -31,7 +31,8 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                     "NuGet.Versioning",
                     1001,
                     new string[0],
-                    new[] { new TestPackage(version) { SemVerLevelKey = SemVerLevelKey.SemVer2 } });
+                    new[] { new TestPackage(version) { SemVerLevelKey = SemVerLevelKey.SemVer2 } },
+                    false);
 
                 var actions = _target.AddNewPackageRegistration(input);
 
@@ -54,7 +55,8 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                         fullVersion,
                         input.Packages[0],
                         input.Owners,
-                        input.TotalDownloadCount),
+                        input.TotalDownloadCount,
+                        It.IsAny<bool>()),
                     Times.Once);
             }
 
@@ -71,16 +73,18 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                         It.IsAny<string>(),
                         It.IsAny<Package>(),
                         It.IsAny<string[]>(),
-                        It.IsAny<long>()))
-                    .Returns<string, SearchFilters, string[], bool, bool, string, Package, string[], long>(
-                        (i, sf, v, ls, l, fv, p, o, d) => new SearchDocument.Full { OriginalVersion = p.Version });
+                        It.IsAny<long>(),
+                        It.IsAny<bool>()))
+                    .Returns<string, SearchFilters, string[], bool, bool, string, Package, string[], long, bool>(
+                        (i, sf, v, ls, l, fv, p, o, d, ie) => new SearchDocument.Full { OriginalVersion = p.Version });
                 var package1 = new TestPackage("1.0.0") { Description = "This is version 1.0.0." };
                 var package2 = new TestPackage("2.0.0-alpha") { Description = "This is version 2.0.0." };
                 var input = new NewPackageRegistration(
                     "NuGet.Versioning",
                     1001,
                     new string[0],
-                    new[] { package1, package2 });
+                    new[] { package1, package2 },
+                    false);
 
                 var actions = _target.AddNewPackageRegistration(input);
 
@@ -99,6 +103,35 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 Assert.Equal(package2.Version, doc3.OriginalVersion);
             }
 
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public void PassesIsExcludedByDefaultValueCorrectly(bool shouldBeExcluded)
+            {
+                var input = new NewPackageRegistration(
+                    "NuGet.Versioning",
+                    1001,
+                    new string[0],
+                    new[] { new TestPackage("1.0.0") { SemVerLevelKey = SemVerLevelKey.SemVer2 } },
+                    isExcludedByDefault: shouldBeExcluded);
+
+                var actions = _target.AddNewPackageRegistration(input);
+
+                _search.Verify(
+                    x => x.FullFromDb(
+                        input.PackageId,
+                        SearchFilters.IncludePrereleaseAndSemVer2,
+                        It.IsAny<string[]>(),
+                        It.IsAny<bool>(),
+                        It.IsAny<bool>(),
+                        It.IsAny<string>(),
+                        input.Packages[0],
+                        input.Owners,
+                        input.TotalDownloadCount,
+                        shouldBeExcluded),
+                    Times.Once);
+            }
+
             [Fact]
             public void ReturnsDeleteSearchActionsForAllUnlisted()
             {
@@ -106,7 +139,8 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                     "NuGet.Versioning",
                     1001,
                     new string[0],
-                    new[] { new TestPackage("1.0.0") { Listed = false } });
+                    new[] { new TestPackage("1.0.0") { Listed = false } },
+                    false);
 
                 var actions = _target.AddNewPackageRegistration(input);
 
@@ -130,13 +164,15 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                         It.IsAny<string>(),
                         It.IsAny<Package>(),
                         It.IsAny<string[]>(),
-                        It.IsAny<long>()))
+                        It.IsAny<long>(),
+                        It.IsAny<bool>()))
                     .Returns(() => new SearchDocument.Full());
                 var input = new NewPackageRegistration(
                     "NuGet.Versioning",
                     1001,
                     new string[0],
-                    new[] { new TestPackage("1.0.0") { SemVerLevelKey = SemVerLevelKey.SemVer2 } });
+                    new[] { new TestPackage("1.0.0") { SemVerLevelKey = SemVerLevelKey.SemVer2 } },
+                    false);
 
                 var actions = _target.AddNewPackageRegistration(input);
 

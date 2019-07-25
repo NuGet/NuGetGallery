@@ -17,13 +17,16 @@ namespace NuGet.Services.AzureSearch
         /// download count).
         /// </summary>
         [SerializePropertyNamesAsCamelCase]
-        public class Full : UpdateLatest, IDownloadCount
+        public class Full : UpdateLatest, IDownloadCount, IIsExcludedByDefault
         {
             [IsFilterable]
             public long? TotalDownloadCount { get; set; }
 
             [IsFilterable]
             public double? DownloadScore { get; set; }
+
+            [IsFilterable]
+            public bool? IsExcludedByDefault { get; set; }
         }
 
         /// <summary>
@@ -117,6 +120,14 @@ namespace NuGet.Services.AzureSearch
         {
             long? TotalDownloadCount { get; set; }
             double? DownloadScore { get; set; }
+        }
+
+        /// <summary>
+        /// Allows index updating code to apply default search exclusion information to a document.
+        /// </summary>
+        public interface IIsExcludedByDefault: IUpdatedDocument
+        {
+            bool? IsExcludedByDefault { get; set; }
         }
 
         /// <summary>

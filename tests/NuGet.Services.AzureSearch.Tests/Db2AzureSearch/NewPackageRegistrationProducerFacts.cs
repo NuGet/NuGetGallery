@@ -1,13 +1,18 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
+using Microsoft.WindowsAzure.Storage;
 using Moq;
+using NuGet.Services.AzureSearch.AuxiliaryFiles;
 using NuGet.Services.AzureSearch.Support;
 using NuGet.Services.Entities;
 using NuGetGallery;
@@ -30,7 +35,9 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             private readonly ConcurrentBag<NewPackageRegistration> _work;
             private readonly CancellationToken _token;
             private readonly NewPackageRegistrationProducer _target;
+            private readonly Mock<IAuxiliaryFileClient> _auxiliaryFileClient;
 
+            private AuxiliaryFileMetadata _metadata;
             public ProduceWorkAsync(ITestOutputHelper output)
             {
                 _entitiesContextFactory = new Mock<IEntitiesContextFactory>();
@@ -45,6 +52,17 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 _packages = DbSetMockFactory.Create<Package>();
                 _work = new ConcurrentBag<NewPackageRegistration>();
                 _token = CancellationToken.None;
+
+                _auxiliaryFileClient = new Mock<IAuxiliaryFileClient>();
+                _metadata = new AuxiliaryFileMetadata(
+                    DateTimeOffset.MinValue,
+                    DateTimeOffset.MinValue,
+                    TimeSpan.Zero,
+                    fileSize: 0,
+                    etag: string.Empty);
+                _auxiliaryFileClient
+                    .Setup(x => x.LoadExcludedPackagesAsync(It.IsAny<string>()))
+                    .ReturnsAsync(new AuxiliaryFileResult<HashSet<string>>(false, new HashSet<string>(StringComparer.OrdinalIgnoreCase), _metadata));
 
                 _entitiesContextFactory
                    .Setup(x => x.CreateAsync(It.IsAny<bool>()))
@@ -62,6 +80,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 _target = new NewPackageRegistrationProducer(
                     _entitiesContextFactory.Object,
                     _options.Object,
+                    _auxiliaryFileClient.Object,
                     _logger);
             }
 
@@ -236,6 +255,86 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 Assert.Empty(work[3].Packages);
                 Assert.Equal(new[] { "OwnerE" }, work[3].Owners);
                 Assert.Equal(26, work[3].TotalDownloadCount);
+            }
+
+            [Fact]
+            public async Task RetrievesAndUsesExclusionList()
+            {
+                _packageRegistrations.Add(new PackageRegistration
+                {
+                    Key = 1,
+                    Id = "A",
+                    DownloadCount = 23,
+                    Owners = new[] { new User { Username = "OwnerA" } },
+                    Packages = new[]
+                    {
+                        new Package { Version = "1.0.0" },
+                        new Package { Version = "2.0.0" },
+                    },
+                });
+                _packageRegistrations.Add(new PackageRegistration
+                {
+                    Key = 2,
+                    Id = "B",
+                    DownloadCount = 24,
+                    Owners = new[] { new User { Username = "OwnerB" } },
+                    Packages = new[]
+                    {
+                        new Package { Version = "3.0.0" },
+                    },
+                });
+                _packageRegistrations.Add(new PackageRegistration
+                {
+                    Key = 3,
+                    Id = "C",
+                    DownloadCount = 25,
+                    Owners = new[] { new User { Username = "OwnerC" }, new User { Username = "OwnerD" } },
+                    Packages = new[]
+                    {
+                        new Package { Version = "4.0.0" },
+                    },
+                });
+                _packageRegistrations.Add(new PackageRegistration
+                {
+                    Key = 4,
+                    Id = "D",
+                    DownloadCount = 26,
+                    Owners = new[] { new User { Username = "OwnerE" } },
+                    Packages = new Package[0],
+                });
+
+                InitializePackagesFromPackageRegistrations();
+
+                var excludedPackages = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "A", "C" };
+                _auxiliaryFileClient
+                    .Setup(x => x.LoadExcludedPackagesAsync(It.IsAny<string>()))
+                    .ReturnsAsync(new AuxiliaryFileResult<HashSet<string>>(false, excludedPackages, _metadata));
+
+                await _target.ProduceWorkAsync(_work, _token);
+
+                var work = _work.Reverse().ToList();
+                Assert.Equal(4, work.Count);
+                for (int i = 0; i < work.Count; i++)
+                {
+                    var shouldBeExcluded = excludedPackages.Contains(work[i].PackageId, StringComparer.OrdinalIgnoreCase);
+                    Assert.Equal(shouldBeExcluded, work[i].IsExcludedByDefault);
+                }
+            }
+
+            [Fact]
+            public async Task ThrowsWhenExcludedPackagesIsMissing()
+            {
+                _auxiliaryFileClient
+                    .Setup(x => x.LoadExcludedPackagesAsync(null))
+                    .ThrowsAsync(new StorageException(
+                        new RequestResult
+                        {
+                            HttpStatusCode = (int)HttpStatusCode.NotFound,
+                        },
+                        message: "Not found.",
+                        inner: null));
+
+                await Assert.ThrowsAsync<StorageException>(async () => await _target.ProduceWorkAsync(_work, _token));
             }
 
             private void InitializePackagesFromPackageRegistrations()

@@ -535,7 +535,8 @@ namespace NuGet.Services.AzureSearch
                     fullVersion: Data.FullVersion,
                     package: package,
                     owners: Data.Owners,
-                    totalDownloadCount: Data.TotalDownloadCount);
+                    totalDownloadCount: Data.TotalDownloadCount,
+                    isExcludedByDefault: false);
 
                 Assert.Equal("some title", document.SortableTitle);
             }
@@ -556,9 +557,30 @@ namespace NuGet.Services.AzureSearch
                     fullVersion: Data.FullVersion,
                     package: package,
                     owners: Data.Owners,
-                    totalDownloadCount: Data.TotalDownloadCount);
+                    totalDownloadCount: Data.TotalDownloadCount,
+                    isExcludedByDefault: false);
 
                 Assert.Equal(Data.PackageId.ToLowerInvariant(), document.SortableTitle);
+            }
+
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public void SetsIsExcludedByDefaultPropertyCorrectly(bool shouldBeExcluded)
+            {
+                var document = _target.FullFromDb(
+                    Data.PackageId,
+                    Data.SearchFilters,
+                    Data.Versions,
+                    isLatestStable: false,
+                    isLatest: true,
+                    fullVersion: Data.FullVersion,
+                    package: Data.PackageEntity,
+                    owners: Data.Owners,
+                    totalDownloadCount: Data.TotalDownloadCount,
+                    isExcludedByDefault: shouldBeExcluded);
+
+                Assert.Equal(shouldBeExcluded, document.IsExcludedByDefault);
             }
 
             [Fact]
@@ -576,7 +598,8 @@ namespace NuGet.Services.AzureSearch
                     fullVersion: Data.FullVersion,
                     package: package,
                     owners: Data.Owners,
-                    totalDownloadCount: Data.TotalDownloadCount);
+                    totalDownloadCount: Data.TotalDownloadCount,
+                    isExcludedByDefault: false);
 
                 var json = await SerializationUtilities.SerializeToJsonAsync(document);
                 Assert.Contains("\"semVerLevel\": null,", json);
@@ -595,7 +618,8 @@ namespace NuGet.Services.AzureSearch
                     fullVersion: Data.FullVersion,
                     package: Data.PackageEntity,
                     owners: Data.Owners,
-                    totalDownloadCount: Data.TotalDownloadCount);
+                    totalDownloadCount: Data.TotalDownloadCount,
+                    isExcludedByDefault: false);
 
                 SetDocumentLastUpdated(document);
                 var json = await SerializationUtilities.SerializeToJsonAsync(document);
@@ -605,6 +629,7 @@ namespace NuGet.Services.AzureSearch
       ""@search.action"": ""upload"",
       ""totalDownloadCount"": 1001,
       ""downloadScore"": 0.14381174563233068,
+      ""isExcludedByDefault"": false,
       ""owners"": [
         ""Microsoft"",
         ""azure-sdk""
@@ -682,7 +707,8 @@ namespace NuGet.Services.AzureSearch
                     fullVersion: Data.FullVersion,
                     package: package,
                     owners: Data.Owners,
-                    totalDownloadCount: Data.TotalDownloadCount);
+                    totalDownloadCount: Data.TotalDownloadCount,
+                    isExcludedByDefault: false);
 
                 Assert.Equal(new[] { "foo", "BAR", "Baz" }, document.Tags);
             }
@@ -702,7 +728,8 @@ namespace NuGet.Services.AzureSearch
                     fullVersion: Data.FullVersion,
                     package: package,
                     owners: Data.Owners,
-                    totalDownloadCount: Data.TotalDownloadCount);
+                    totalDownloadCount: Data.TotalDownloadCount,
+                    isExcludedByDefault: false);
 
                 Assert.Equal(Data.GalleryLicenseUrl, document.LicenseUrl);
             }
@@ -724,7 +751,8 @@ namespace NuGet.Services.AzureSearch
                     fullVersion: Data.FullVersion,
                     package: package,
                     owners: Data.Owners,
-                    totalDownloadCount: Data.TotalDownloadCount);
+                    totalDownloadCount: Data.TotalDownloadCount,
+                    isExcludedByDefault: false);
 
                 Assert.Equal(Data.GalleryLicenseUrl, document.LicenseUrl);
             }

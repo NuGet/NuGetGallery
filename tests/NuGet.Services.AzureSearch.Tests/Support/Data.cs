@@ -121,7 +121,8 @@ namespace NuGet.Services.AzureSearch.Support
             fullVersion: FullVersion,
             package: PackageEntity,
             owners: Owners,
-            totalDownloadCount: TotalDownloadCount);
+            totalDownloadCount: TotalDownloadCount,
+            isExcludedByDefault: false);
 
         public static HijackDocumentChanges HijackDocumentChanges => new HijackDocumentChanges(
             delete: false,

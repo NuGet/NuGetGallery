@@ -22,7 +22,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                 Assert.Same(Text, actual.SearchText);
                 Assert.Same(Parameters, actual.SearchParameters);
                 TextBuilder.Verify(x => x.Autocomplete(AutocompleteRequest), Times.Once);
-                ParametersBuilder.Verify(x => x.Autocomplete(AutocompleteRequest), Times.Once);
+                ParametersBuilder.Verify(x => x.Autocomplete(AutocompleteRequest, It.IsAny<bool>()), Times.Once);
             }
         }
 
@@ -42,7 +42,7 @@ namespace NuGet.Services.AzureSearch.SearchService
 
                 TextBuilder.Verify(x => x.ParseV3Search(V3SearchRequest), Times.Once);
                 TextBuilder.Verify(x => x.Build(It.IsAny<ParsedQuery>()), Times.Never);
-                ParametersBuilder.Verify(x => x.V3Search(It.IsAny<V3SearchRequest>()), Times.Never);
+                ParametersBuilder.Verify(x => x.V3Search(It.IsAny<V3SearchRequest>(), It.IsAny<bool>()), Times.Never);
             }
 
             [Fact]
@@ -52,7 +52,7 @@ namespace NuGet.Services.AzureSearch.SearchService
 
                 TextBuilder.Verify(x => x.ParseV3Search(V3SearchRequest), Times.Once);
                 TextBuilder.Verify(x => x.Build(ParsedQuery), Times.Once);
-                ParametersBuilder.Verify(x => x.V3Search(V3SearchRequest), Times.Once);
+                ParametersBuilder.Verify(x => x.V3Search(V3SearchRequest, It.IsAny<bool>()), Times.Once);
             }
         }
 
@@ -72,7 +72,7 @@ namespace NuGet.Services.AzureSearch.SearchService
 
                 TextBuilder.Verify(x => x.ParseV2Search(V2SearchRequest), Times.Once);
                 TextBuilder.Verify(x => x.Build(It.IsAny<ParsedQuery>()), Times.Never);
-                ParametersBuilder.Verify(x => x.V2Search(It.IsAny<V2SearchRequest>()), Times.Never);
+                ParametersBuilder.Verify(x => x.V2Search(It.IsAny<V2SearchRequest>(), It.IsAny<bool>()), Times.Never);
             }
 
             [Fact]
@@ -82,7 +82,7 @@ namespace NuGet.Services.AzureSearch.SearchService
 
                 TextBuilder.Verify(x => x.ParseV2Search(V2SearchRequest), Times.Once);
                 TextBuilder.Verify(x => x.Build(ParsedQuery), Times.Once);
-                ParametersBuilder.Verify(x => x.V2Search(V2SearchRequest), Times.Once);
+                ParametersBuilder.Verify(x => x.V2Search(V2SearchRequest, It.IsAny<bool>()), Times.Once);
             }
         }
 
@@ -280,7 +280,7 @@ namespace NuGet.Services.AzureSearch.SearchService
 
                 TextBuilder.Verify(x => x.ParseV2Search(V2SearchRequest), Times.Once);
                 TextBuilder.Verify(x => x.Build(It.IsAny<ParsedQuery>()), Times.Never);
-                ParametersBuilder.Verify(x => x.V2Search(It.IsAny<V2SearchRequest>()), Times.Never);
+                ParametersBuilder.Verify(x => x.V2Search(It.IsAny<V2SearchRequest>(), It.IsAny<bool>()), Times.Never);
             }
 
             [Fact]
@@ -290,7 +290,7 @@ namespace NuGet.Services.AzureSearch.SearchService
 
                 TextBuilder.Verify(x => x.ParseV2Search(V2SearchRequest), Times.Once);
                 TextBuilder.Verify(x => x.Build(ParsedQuery), Times.Once);
-                ParametersBuilder.Verify(x => x.V2Search(V2SearchRequest), Times.Once);
+                ParametersBuilder.Verify(x => x.V2Search(V2SearchRequest, It.IsAny<bool>()), Times.Once);
             }
         }
 
@@ -466,13 +466,13 @@ namespace NuGet.Services.AzureSearch.SearchService
                     .Setup(x => x.Build(It.IsAny<ParsedQuery>()))
                     .Returns(() => Text);
                 ParametersBuilder
-                    .Setup(x => x.Autocomplete(It.IsAny<AutocompleteRequest>()))
+                    .Setup(x => x.Autocomplete(It.IsAny<AutocompleteRequest>(), It.IsAny<bool>()))
                     .Returns(() => Parameters);
                 ParametersBuilder
-                    .Setup(x => x.V2Search(It.IsAny<V2SearchRequest>()))
+                    .Setup(x => x.V2Search(It.IsAny<V2SearchRequest>(), It.IsAny<bool>()))
                     .Returns(() => Parameters);
                 ParametersBuilder
-                    .Setup(x => x.V3Search(It.IsAny<V3SearchRequest>()))
+                    .Setup(x => x.V3Search(It.IsAny<V3SearchRequest>(), It.IsAny<bool>()))
                     .Returns(() => Parameters);
 
                 Target = new IndexOperationBuilder(

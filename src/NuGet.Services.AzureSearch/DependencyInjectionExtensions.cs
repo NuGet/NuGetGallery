@@ -37,7 +37,7 @@ namespace NuGet.Services.AzureSearch
             /// There are multiple implementations of <see cref="ISearchServiceClientWrapper"/>.
             RegisterIndexServices(containerBuilder, "SearchIndex", "HijackIndex");
 
-            /// There are multiple implementations of storage, in particulare <see cref="ICloudBlobClient"/>.
+            /// There are multiple implementations of storage, in particular <see cref="ICloudBlobClient"/>.
             RegisterAzureSearchJobStorageServices(containerBuilder, "AzureSearchJobStorage");
             RegisterAuxiliaryDataStorageServices(containerBuilder, "AuxiliaryDataStorage");
 

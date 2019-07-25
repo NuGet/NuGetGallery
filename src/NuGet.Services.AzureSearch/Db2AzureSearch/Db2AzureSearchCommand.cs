@@ -75,7 +75,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             using (var cancelledCts = new CancellationTokenSource())
             using (var produceWorkCts = new CancellationTokenSource())
             {
-                // Initialize the indexes and container.
+                // Initialize the indexes, container and excluded packages data.
                 await InitializeAsync();
 
                 // Here, we fetch the current catalog timestamp to use as the initial cursor value for
@@ -100,6 +100,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 // Push all package package data to the Azure Search indexes and write the version list blobs.
                 var allOwners = new ConcurrentBag<IdAndValue<IReadOnlyList<string>>>();
                 var allDownloads = new ConcurrentBag<DownloadRecord>();
+
                 await PushAllPackageRegistrationsAsync(cancelledCts, produceWorkCts, allOwners, allDownloads);
 
                 // Write the owner data file.
@@ -197,6 +198,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             CancellationTokenSource produceWorkCts,
             CancellationToken cancellationToken)
         {
+
             await Task.Yield();
             await _producer.ProduceWorkAsync(allWork, cancellationToken);
             produceWorkCts.Cancel();

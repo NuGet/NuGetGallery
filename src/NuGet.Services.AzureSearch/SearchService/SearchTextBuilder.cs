@@ -14,7 +14,7 @@ namespace NuGet.Services.AzureSearch.SearchService
 {
     public partial class SearchTextBuilder : ISearchTextBuilder
     {
-        private const string MatchAllDocumentsQuery = "*";
+        public static string MatchAllDocumentsQuery = "*";
 
         private static readonly IReadOnlyDictionary<QueryField, string> FieldNames = new Dictionary<QueryField, string>
         {

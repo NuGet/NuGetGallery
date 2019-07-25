@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using NuGet.Services.AzureSearch.AuxiliaryFiles;
 using NuGet.Services.Entities;
 using NuGetGallery;
 
@@ -21,14 +22,17 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
         private readonly IEntitiesContextFactory _contextFactory;
         private readonly IOptionsSnapshot<Db2AzureSearchConfiguration> _options;
         private readonly ILogger<NewPackageRegistrationProducer> _logger;
+        private readonly IAuxiliaryFileClient _auxiliaryFileClient;
 
         public NewPackageRegistrationProducer(
             IEntitiesContextFactory contextFactory,
             IOptionsSnapshot<Db2AzureSearchConfiguration> options,
+            IAuxiliaryFileClient auxiliaryFileClient,
             ILogger<NewPackageRegistrationProducer> logger)
         {
             _contextFactory = contextFactory ?? throw new ArgumentNullException(nameof(contextFactory));
             _options = options ?? throw new ArgumentNullException(nameof(options));
+            _auxiliaryFileClient = auxiliaryFileClient ?? throw new ArgumentNullException(nameof(auxiliaryFileClient));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -37,6 +41,12 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             CancellationToken cancellationToken)
         {
             var ranges = await GetPackageRegistrationRangesAsync();
+
+            // Fetch exclude packages list from auxiliary files
+            var storageResult = await _auxiliaryFileClient.LoadExcludedPackagesAsync(etag: null);
+            HashSet<string> excludedPackages = storageResult.Data;
+
+            Guard.Assert(excludedPackages.Comparer == StringComparer.OrdinalIgnoreCase, $"Excluded packages HashSet should be using {nameof(StringComparer.OrdinalIgnoreCase)}");
 
             for (var i = 0; i < ranges.Count && !cancellationToken.IsCancellationRequested; i++)
             {
@@ -66,11 +76,14 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                         packages = new List<Package>();
                     }
 
+                    var isExcludedByDefault = excludedPackages.Contains(pr.Id);
+
                     allWork.Add(new NewPackageRegistration(
                         pr.Id,
                         pr.DownloadCount,
                         pr.Owners,
-                        packages));
+                        packages,
+                        isExcludedByDefault));
                 }
 
                 _logger.LogInformation("Done initializing batch {Number}/{Count}.", i + 1, ranges.Count);

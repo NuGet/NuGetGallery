@@ -331,7 +331,7 @@ namespace NuGet.Indexing
                 _downloads.Load(AuxiliaryFiles.DownloadsV1, _loader, _logger);
                 _rankings = DownloadRankings.Load(AuxiliaryFiles.RankingsV1, _loader, _logger);
                 _queryBoostingContext = QueryBoostingContext.Load(AuxiliaryFiles.SearchSettingsV1, _loader, _logger);
-                _verifiedPackages = VerifiedPackages.Load(AuxiliaryFiles.VerifiedPackages, _loader, _logger);
+                _verifiedPackages = JsonStringArrayFileParser.Load(AuxiliaryFiles.VerifiedPackages, _loader, _logger);
 
                 LastAuxiliaryDataLoadTime = DateTime.UtcNow;
                 AuxiliaryFiles.UpdateLastModifiedTime();
