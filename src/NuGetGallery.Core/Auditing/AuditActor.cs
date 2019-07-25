@@ -54,7 +54,8 @@ namespace NuGetGallery.Auditing
             var context = HttpContext.Current;
             if (context == null)
             {
-                return Task.FromResult<AuditActor>(null);
+                // If we have no http context, use the machine context instead.
+                return GetCurrentMachineActorAsync();
             }
 
             return GetAspNetOnBehalfOfAsync(new HttpContextWrapper(context));

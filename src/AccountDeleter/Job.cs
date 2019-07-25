@@ -138,6 +138,7 @@ namespace NuGetGallery.AccountDeleter
 
                 services.AddScoped<IEditableFeatureFlagStorageService, FeatureFlagFileStorageService>();
                 services.AddScoped<ICoreFileStorageService, CloudBlobFileStorageService>();
+                services.AddScoped<ICloudBlobContainerInformationProvider, GalleryCloudBlobContainerInformationProvider>();
 
                 services.AddScoped<IIndexingService, EmptyIndexingService>();
                 services.AddScoped<ICredentialBuilder, CredentialBuilder>();
@@ -308,7 +309,7 @@ namespace NuGetGallery.AccountDeleter
 
         private static IEnumerable<T> GetAddInServices<T>()
         {
-            var addInsDirectoryPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "bin", "add-ins");
+            var addInsDirectoryPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "add-ins");
 
             using (var serviceProvider = RuntimeServiceProvider.Create(addInsDirectoryPath))
             {
