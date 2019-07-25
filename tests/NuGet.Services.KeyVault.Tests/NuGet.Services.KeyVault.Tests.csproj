@@ -41,6 +41,8 @@
     <Compile Include="CachingSecretReaderFacts.cs" />
     <Compile Include="KeyVaultReaderFormatterFacts.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RefreshableSecretReaderFactoryFacts.cs" />
+    <Compile Include="RefreshableSecretReaderFacts.cs" />
     <Compile Include="SecretReaderFacts.cs" />
   </ItemGroup>
   <ItemGroup>
