@@ -224,6 +224,7 @@ namespace NuGet.Services.BasicSearch
 
                 // A hack related to: https://github.com/nuget/engineering/issues/2412 This can be removed/ignored after AAD tenant migration.
                 TokenCache.DefaultShared.Clear();
+                HttpBearerChallengeCache.GetInstance().Clear();
 
                 _logger.LogWarning("Failed to get config from KeyVault. Cleared token cache. Error details: {Error}", e.ToString());
             }
