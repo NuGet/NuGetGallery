@@ -9,7 +9,7 @@ namespace NuGetGallery.AccountDeleter
 {
     /// <summary>
     /// Simple single (non aggregate) evaluator for easy use
-    /// Criteria is user must own zero (0) packages, and be admin on zero (0) organizations. OR User is unconfirmed
+    /// Criteria is user must own zero (0) packages and be admin on zero (0) organizations OR be unconfirmed.
     /// </summary>
     public class NuGetDeleteEvaluator : BaseUserEvaluator
     {
@@ -44,7 +44,7 @@ namespace NuGetGallery.AccountDeleter
 
             if (userIsAdminOnOrgs)
             {
-                _logger.LogWarning("{Evaluator}:{EvaluatorId} User cannot be deleted because they are administrator on an organization.", nameof(UserOrganizationEvaluator), EvaluatorId);
+                _logger.LogWarning("{Evaluator}:{EvaluatorId} User cannot be deleted because they are administrator on an organization.", nameof(NuGetDeleteEvaluator), EvaluatorId);
                 deleteUser = false;
             }
 
