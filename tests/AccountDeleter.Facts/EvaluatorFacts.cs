@@ -28,7 +28,7 @@ namespace NuGetGallery.AccountDeleter.Facts
         }
 
         [Fact]
-        public void NuGetDeleteEvaulatorReturnsCorrectValueForUnconfirmed()
+        public void NuGetDeleteevaluatorReturnsCorrectValueForUnconfirmed()
         {
             // Setup
             _packageService.Setup(ps => ps.FindPackagesByOwner(It.IsAny<User>(), It.IsAny<bool>(), It.IsAny<bool>()))
@@ -55,7 +55,7 @@ namespace NuGetGallery.AccountDeleter.Facts
         [Theory]
         [InlineData(true, false)]
         [InlineData(false, true)]
-        public void NuGetDeleteEvaulatorReturnsCorrectValueForPackages(bool userHasPackages, bool expectedResult)
+        public void NuGetDeleteevaluatorReturnsCorrectValueForPackages(bool userHasPackages, bool expectedResult)
         {
             // Setup
             _packageService.Setup(ps => ps.FindPackagesByOwner(It.IsAny<User>(), It.IsAny<bool>(), It.IsAny<bool>()))
@@ -91,7 +91,7 @@ namespace NuGetGallery.AccountDeleter.Facts
         [InlineData(true, true, false)]
         [InlineData(false, false, true)]
         [InlineData(true, false, true)]
-        public void NuGetDeleteEvaulatorReturnsCorrectValueForOrganizations(bool userHasOrgs, bool userIsAdmin, bool expectedResult)
+        public void NuGetDeleteevaluatorReturnsCorrectValueForOrganizations(bool userHasOrgs, bool userIsAdmin, bool expectedResult)
         {
             // Setup
             _packageService.Setup(ps => ps.FindPackagesByOwner(It.IsAny<User>(), It.IsAny<bool>(), It.IsAny<bool>()))
@@ -133,7 +133,7 @@ namespace NuGetGallery.AccountDeleter.Facts
         }
 
         [Fact]
-        public void AlwayRejectEvaulatorReturnsFalse()
+        public void AlwayRejectevaluatorReturnsFalse()
         {
             // Setup
             var logger = _loggerFactory.CreateLogger<AlwaysRejectEvaluator>();
@@ -149,7 +149,7 @@ namespace NuGetGallery.AccountDeleter.Facts
         }
 
         [Fact]
-        public void AlwayAllowEvaulatorReturnsTrue()
+        public void AlwayAllowevaluatorReturnsTrue()
         {
             // Setup
             var logger = _loggerFactory.CreateLogger<AlwaysAllowEvaluator>();

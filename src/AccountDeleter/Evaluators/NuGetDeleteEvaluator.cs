@@ -35,7 +35,7 @@ namespace NuGetGallery.AccountDeleter
 
             if (userPackages.AnySafe())
             {
-                _logger.LogWarning("{Evaluator}:{EvaluatorId} User cannot be deleted because they owned packages.", nameof(NuGetDeleteEvaluator), EvaluatorId);
+                _logger.LogWarning("{Evaluator}:{EvaluatorId} User cannot be deleted because they own packages.", nameof(NuGetDeleteEvaluator), EvaluatorId);
                 deleteUser = false;
             }
 
@@ -44,7 +44,7 @@ namespace NuGetGallery.AccountDeleter
 
             if (userIsAdminOnOrgs)
             {
-                _logger.LogWarning("{Evaluator}:{EvaluatorId} User cannot be deleted because they are administrator on an organization.", nameof(NuGetDeleteEvaluator), EvaluatorId);
+                _logger.LogWarning("{Evaluator}:{EvaluatorId} User cannot be deleted because they are administrator of an organization.", nameof(NuGetDeleteEvaluator), EvaluatorId);
                 deleteUser = false;
             }
 
