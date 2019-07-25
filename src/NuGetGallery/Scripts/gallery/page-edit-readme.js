@@ -339,7 +339,7 @@ var BindReadMeDataManager = (function () {
                 $("#readme-errors").addClass("hidden");
                 $("#readme-error-content").text("");
             }
-            $("#preview-readme-button").removeAttr("disabled");
+            $("#preview-readme-button").prop("disabled", false);
         }
     };
 }());

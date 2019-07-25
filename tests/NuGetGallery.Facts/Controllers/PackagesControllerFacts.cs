@@ -715,7 +715,6 @@ namespace NuGetGallery
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
                 Assert.Equal("Foo", model.Id);
                 Assert.Equal("1.1.1", model.Version);
-                Assert.Equal(title, model.Title);
 
                 deprecationService.Verify();
             }
@@ -793,7 +792,6 @@ namespace NuGetGallery
                 Assert.Equal(id, model.Id);
                 // The page should select the first package that is IsLatestSemVer2
                 Assert.Equal(latestPackage.NormalizedVersion, model.Version);
-                Assert.Equal(latestPackage.Title, model.Title);
                 Assert.True(model.LatestVersionSemVer2);
 
                 deprecationService.Verify();
@@ -849,7 +847,6 @@ namespace NuGetGallery
 
                 Assert.Equal(id, model.Id);
                 Assert.Equal(notLatestPackage.NormalizedVersion, model.Version);
-                Assert.Equal(notLatestPackage.Title, model.Title);
                 Assert.False(model.LatestVersionSemVer2);
 
                 deprecationService.Verify();
@@ -903,7 +900,6 @@ namespace NuGetGallery
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
                 Assert.Equal("Foo", model.Id);
                 Assert.Equal("1.1.1", model.Version);
-                Assert.Equal("A test package!", model.Title);
                 Assert.Null(model.ReadMeHtml);
 
                 deprecationService.Verify();

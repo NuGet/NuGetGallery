@@ -28,6 +28,11 @@ namespace NuGetGallery.AccountDeleter
         /// </summary>
         public Dictionary<string, string> TemplateReplacements { get; set; }
 
+        /// <summary>
+        /// Storage container connection string where gallery content can be found
+        /// </summary>
+        public string GalleryStorageConnectionString { get; set; }
+
         public void VerifySource(string source)
         {
             foreach (var sourceConfig in SourceConfigurations)

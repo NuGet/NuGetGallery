@@ -2,12 +2,9 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using CommonMark.Syntax;
-using Microsoft.Ajax.Utilities;
 using Moq;
 using NuGet.Services.Entities;
 using NuGet.Versioning;
@@ -303,6 +300,10 @@ namespace NuGetGallery
 
                     yield return new object[] { "SearchOnRetry",
                         (TrackAction)(s => s.TrackMetricForSearchOnRetry("SomeName", exception: null, correlationId: string.Empty, uri: string.Empty, circuitBreakerStatus: string.Empty))
+                    };
+
+                    yield return new object[] { "SearchOnTimeout",
+                        (TrackAction)(s => s.TrackMetricForSearchOnTimeout("SomeName", correlationId: string.Empty, uri: string.Empty, circuitBreakerStatus: string.Empty))
                     };
 
                     yield return new object[] { "SearchSideBySideFeedback",

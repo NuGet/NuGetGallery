@@ -56,6 +56,7 @@ namespace NuGetGallery.AccountDeleter
             else
             {
                 _logger.LogError("Criteria passed but delete failed.");
+                _logger.LogError(result.Description);
                 return false;
             }
         }

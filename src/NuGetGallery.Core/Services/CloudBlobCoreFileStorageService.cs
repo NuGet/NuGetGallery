@@ -19,7 +19,7 @@ namespace NuGetGallery
     public class CloudBlobCoreFileStorageService : ICoreFileStorageService
     {
         /// <summary>
-        /// This is the maximum duration for <see cref="CopyFileAsync(string, string, string, string)"/> to poll,
+        /// This is the maximum duration for <see cref="CopyFileAsync(ISimpleCloudBlob, string, string, IAccessCondition)"/> to poll,
         /// waiting for a package copy to complete. The value picked today is based off of the maximum duration we wait
         /// when uploading files to Azure China blob storage. Note that in cases when the copy source and destination
         /// are in the same container, the copy completed immediately and no polling is necessary.
@@ -27,34 +27,19 @@ namespace NuGetGallery
         private static readonly TimeSpan MaxCopyDuration = TimeSpan.FromMinutes(10);
         private static readonly TimeSpan CopyPollFrequency = TimeSpan.FromMilliseconds(500);
 
-        private static readonly HashSet<string> KnownPublicFolders = new HashSet<string> {
-            CoreConstants.Folders.PackagesFolderName,
-            CoreConstants.Folders.PackageBackupsFolderName,
-            CoreConstants.Folders.DownloadsFolderName,
-            CoreConstants.Folders.SymbolPackagesFolderName,
-            CoreConstants.Folders.SymbolPackageBackupsFolderName,
-            CoreConstants.Folders.FlatContainerFolderName,
-        };
-
-        private static readonly HashSet<string> KnownPrivateFolders = new HashSet<string> {
-            CoreConstants.Folders.ContentFolderName,
-            CoreConstants.Folders.UploadsFolderName,
-            CoreConstants.Folders.PackageReadMesFolderName,
-            CoreConstants.Folders.ValidationFolderName,
-            CoreConstants.Folders.UserCertificatesFolderName,
-            CoreConstants.Folders.RevalidationFolderName,
-            CoreConstants.Folders.StatusFolderName,
-            CoreConstants.Folders.PackagesContentFolderName,
-        };
-
         protected readonly ICloudBlobClient _client;
         protected readonly IDiagnosticsSource _trace;
+        protected readonly ICloudBlobContainerInformationProvider _cloudBlobFolderInformationProvider;
         protected readonly ConcurrentDictionary<string, ICloudBlobContainer> _containers = new ConcurrentDictionary<string, ICloudBlobContainer>();
 
-        public CloudBlobCoreFileStorageService(ICloudBlobClient client, IDiagnosticsService diagnosticsService)
+        public CloudBlobCoreFileStorageService(
+            ICloudBlobClient client,
+            IDiagnosticsService diagnosticsService,
+            ICloudBlobContainerInformationProvider cloudBlobFolderInformationProvider)
         {
             _client = client ?? throw new ArgumentNullException(nameof(client));
             _trace = diagnosticsService?.SafeGetSource(nameof(CloudBlobCoreFileStorageService)) ?? throw new ArgumentNullException(nameof(diagnosticsService));
+            _cloudBlobFolderInformationProvider = cloudBlobFolderInformationProvider ?? throw new ArgumentNullException(nameof(cloudBlobFolderInformationProvider));
         }
 
         public async Task DeleteFileAsync(string folderName, string fileName)
@@ -548,18 +533,7 @@ namespace NuGetGallery
 
         private bool IsPublicContainer(string folderName)
         {
-            if (KnownPublicFolders.Contains(folderName))
-            {
-                return true;
-            }
-
-            if (KnownPrivateFolders.Contains(folderName))
-            {
-                return false;
-            }
-
-            throw new InvalidOperationException(
-                string.Format(CultureInfo.CurrentCulture, "The folder name {0} is not supported.", folderName));
+            return _cloudBlobFolderInformationProvider.IsPublicContainer(folderName);
         }
 
         private async Task<StorageResult> GetBlobContentAsync(string folderName, string fileName, string ifNoneMatch = null)
@@ -611,68 +585,14 @@ namespace NuGetGallery
             return new StorageResult(HttpStatusCode.OK, stream, blob.ETag);
         }
 
-        private static string GetContentType(string folderName)
+        private string GetContentType(string folderName)
         {
-            switch (folderName)
-            {
-                case CoreConstants.Folders.PackagesFolderName:
-                case CoreConstants.Folders.PackageBackupsFolderName:
-                case CoreConstants.Folders.UploadsFolderName:
-                case CoreConstants.Folders.ValidationFolderName:
-                case CoreConstants.Folders.SymbolPackagesFolderName:
-                case CoreConstants.Folders.SymbolPackageBackupsFolderName:
-                case CoreConstants.Folders.FlatContainerFolderName:
-                    return CoreConstants.PackageContentType;
-
-                case CoreConstants.Folders.DownloadsFolderName:
-                    return CoreConstants.OctetStreamContentType;
-
-                case CoreConstants.Folders.PackageReadMesFolderName:
-                    return CoreConstants.TextContentType;
-
-                case CoreConstants.Folders.ContentFolderName:
-                case CoreConstants.Folders.RevalidationFolderName:
-                case CoreConstants.Folders.StatusFolderName:
-                    return CoreConstants.JsonContentType;
-
-                case CoreConstants.Folders.UserCertificatesFolderName:
-                    return CoreConstants.CertificateContentType;
-
-                case CoreConstants.Folders.PackagesContentFolderName:
-                    return CoreConstants.OctetStreamContentType;
-
-                default:
-                    throw new InvalidOperationException(
-                        string.Format(CultureInfo.CurrentCulture, "The folder name {0} is not supported.", folderName));
-            }
+            return _cloudBlobFolderInformationProvider.GetContentType(folderName);
         }
 
-        private static string GetCacheControl(string folderName)
+        private string GetCacheControl(string folderName)
         {
-            switch (folderName)
-            {
-                case CoreConstants.Folders.PackagesFolderName:
-                case CoreConstants.Folders.SymbolPackagesFolderName:
-                case CoreConstants.Folders.ValidationFolderName:
-                    return CoreConstants.DefaultCacheControl;
-
-                case CoreConstants.Folders.PackageBackupsFolderName:
-                case CoreConstants.Folders.UploadsFolderName:
-                case CoreConstants.Folders.SymbolPackageBackupsFolderName:
-                case CoreConstants.Folders.DownloadsFolderName:
-                case CoreConstants.Folders.PackageReadMesFolderName:
-                case CoreConstants.Folders.ContentFolderName:
-                case CoreConstants.Folders.RevalidationFolderName:
-                case CoreConstants.Folders.StatusFolderName:
-                case CoreConstants.Folders.UserCertificatesFolderName:
-                case CoreConstants.Folders.PackagesContentFolderName:
-                case CoreConstants.Folders.FlatContainerFolderName:
-                    return null;
-
-                default:
-                    throw new InvalidOperationException(
-                        string.Format(CultureInfo.CurrentCulture, "The folder name {0} is not supported.", folderName));
-            }
+            return _cloudBlobFolderInformationProvider.GetCacheControl(folderName);
         }
 
         private async Task<ICloudBlobContainer> PrepareContainer(string folderName, bool isPublic)

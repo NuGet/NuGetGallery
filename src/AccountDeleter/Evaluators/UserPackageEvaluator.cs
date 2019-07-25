@@ -10,29 +10,19 @@ namespace NuGetGallery.AccountDeleter
     /// <summary>
     /// Evaluates a user's package ownership status
     /// </summary>
-    public class UserPackageEvaluator : IUserEvaluator
+    public class UserPackageEvaluator : BaseUserEvaluator
     {
-        private readonly Guid _id;
         private readonly IPackageService _packageService;
-        private readonly IAccountDeleteTelemetryService _telemtryService;
         private readonly ILogger<UserPackageEvaluator> _logger;
 
-        public UserPackageEvaluator(IPackageService packageService, IAccountDeleteTelemetryService telemetryService, ILogger<UserPackageEvaluator> logger)
+        public UserPackageEvaluator(IPackageService packageService, ILogger<UserPackageEvaluator> logger)
+            : base()
         {
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
-            _telemtryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _id = Guid.NewGuid();
         }
 
-        public string EvaluatorId {
-            get
-            {
-                return _id.ToString();
-            }
-        }
-
-        public bool CanUserBeDeleted(User user)
+        public override bool CanUserBeDeleted(User user)
         {
             var userPackages = _packageService.FindPackagesByOwner(user, includeUnlisted: false);
 
