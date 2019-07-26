@@ -400,18 +400,8 @@ namespace NuGetGallery
                 return PackageValidationResult.Invalid(Strings.UploadPackage_CorruptNupkg);
             }
 
-            bool isJpg = false;
-            bool isPng = false;
-
-            using (var stream = await nuGetPackage.GetStreamAsync(iconFilePath, CancellationToken.None))
-            {
-                isJpg = await IsJpegAsync(stream);
-            }
-
-            using (var stream = await nuGetPackage.GetStreamAsync(iconFilePath, CancellationToken.None))
-            {
-                isPng = await IsPngAsync(stream);
-            }
+            bool isJpg = await IsJpegAsync(nuGetPackage, iconFilePath);
+            bool isPng = await IsPngAsync(nuGetPackage, iconFilePath);
 
             if (!isPng && !isJpg)
             {
@@ -421,14 +411,22 @@ namespace NuGetGallery
             return null;
         }
 
-        private async Task<bool> IsPngAsync(Stream stream)
+        private static async Task<bool> FileMatchesPredicate(PackageArchiveReader nuGetPackage, string filePath, Func<Stream, Task<bool>> predicate)
         {
-            return await StreamStartsWithAsync(stream, PngHeader);
+            using (var stream = await nuGetPackage.GetStreamAsync(filePath, CancellationToken.None))
+            {
+                return await predicate(stream);
+            }
         }
 
-        private async Task<bool> IsJpegAsync(Stream stream)
+        private async Task<bool> IsPngAsync(PackageArchiveReader nuGetPackage, string iconPath)
         {
-            return await StreamStartsWithAsync(stream, JpegHeader);
+            return await FileMatchesPredicate(nuGetPackage, iconPath, IsPngAsync);
+        }
+
+        private async Task<bool> IsJpegAsync(PackageArchiveReader nuGetPackage, string iconPath)
+        {
+            return await FileMatchesPredicate(nuGetPackage, iconPath, IsJpegAsync);
         }
 
         private static async Task<bool> StreamStartsWithAsync(Stream stream, byte[] expectedBytes)
@@ -442,6 +440,16 @@ namespace NuGetGallery
             }
 
             return expectedBytes.SequenceEqual(actualBytes);
+        }
+
+        private async Task<bool> IsPngAsync(Stream stream)
+        {
+            return await StreamStartsWithAsync(stream, PngHeader);
+        }
+
+        private async Task<bool> IsJpegAsync(Stream stream)
+        {
+            return await StreamStartsWithAsync(stream, JpegHeader);
         }
 
         private static bool FileExists(PackageArchiveReader nuGetPackage, string filename)
