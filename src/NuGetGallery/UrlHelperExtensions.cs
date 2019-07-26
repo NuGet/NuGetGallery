@@ -632,7 +632,7 @@ namespace NuGetGallery
             return new RouteUrlTemplate<User>(linkGenerator, routesGenerator);
         }
 
-        public static RouteUrlTemplate<BasicUserViewModel> BasicUserTemplate(
+        public static RouteUrlTemplate<BasicUserViewModel> BasicUserViewModelTemplate(
             this UrlHelper url,
             string scheme = null,
             bool relativeUrl = true)
