@@ -169,6 +169,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Providers\DateTimeProvider.cs" />
     <Compile Include="Providers\IDateTimeProvider.cs" />
+    <Compile Include="Providers\RuntimeServiceProvider.cs" />
     <Compile Include="Security\AllowLocalHttpRedirectPolicy.cs" />
     <Compile Include="Security\AutomaticOverwriteRequiredSignerPolicy.cs" />
     <Compile Include="Security\ControlRequiredSignerPolicy.cs" />

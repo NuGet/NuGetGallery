@@ -261,7 +261,7 @@ namespace NuGetGallery.AccountDeleter
                 {
                     auditingServices.Add(sp.GetRequiredService<AuditingService>());
                 }
-                catch
+                catch (InvalidOperationException)
                 {
                     // no default auditing service was registered, no-op
                 }
