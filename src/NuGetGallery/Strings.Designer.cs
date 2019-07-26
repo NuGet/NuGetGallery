@@ -2653,6 +2653,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unsupported icon image format. Only PNG and JPG images are supported..
+        /// </summary>
+        public static string UploadPackage_UnsupportedIconImageFormat {
+            get {
+                return ResourceManager.GetString("UploadPackage_UnsupportedIconImageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unsupported license type &apos;{0}&apos;..
         /// </summary>
         public static string UploadPackage_UnsupportedLicenseType {

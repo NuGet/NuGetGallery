@@ -816,7 +816,7 @@ namespace NuGetGallery
                 else
                 {
                     Assert.Equal(PackageValidationResultType.Invalid, result.Type);
-                    Assert.Contains("The license file has invalid extension", result.Message.PlainTextMessage);
+                    Assert.Contains("The license file has an invalid extension", result.Message.PlainTextMessage);
                     Assert.Contains("Extension must be either empty or one of the following", result.Message.PlainTextMessage);
                     Assert.Contains(extension, result.Message.PlainTextMessage);
                     Assert.Empty(result.Warnings);
@@ -1122,8 +1122,8 @@ namespace NuGetGallery
             public async Task AcceptsPackagesWithEmbeddedIconForFlightedUsers()
             {
                 _nuGetPackage = GeneratePackageWithUserContent(
-                    iconFilename: "icon.png",
-                    iconFileBinaryContents: new byte[] { 1, 2, 3 },
+                    iconFilename: "icon.jpg",
+                    iconFileBinaryContents: new byte[] { 0xFF, 0xD8, 0xFF, 0x32 },
                     licenseExpression: "MIT",
                     licenseUrl: new Uri("https://licenses.nuget.org/MIT"));
                 _featureFlagService

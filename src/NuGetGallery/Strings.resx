@@ -1135,4 +1135,7 @@ The {1} Team</value>
   <data name="UploadPackage_LicenseFileType" xml:space="preserve">
     <value>license</value>
   </data>
+  <data name="UploadPackage_UnsupportedIconImageFormat" xml:space="preserve">
+    <value>Unsupported icon image format. Only PNG and JPG images are supported.</value>
+  </data>
 </root>

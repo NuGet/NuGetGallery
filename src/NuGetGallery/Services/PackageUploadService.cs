@@ -13,6 +13,7 @@ using System.Xml.Linq;
 using NuGet.Packaging;
 using NuGet.Packaging.Licenses;
 using NuGet.Services.Entities;
+using NuGet.Services.Validation;
 using NuGet.Versioning;
 using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
@@ -33,6 +34,7 @@ namespace NuGetGallery
         private static readonly IReadOnlyCollection<string> AllowedIconFileExtensions = new HashSet<string>
         {
             ".jpg",
+            ".jpeg",
             ".png"
         };
 
@@ -41,6 +43,9 @@ namespace NuGetGallery
             LicenseType.File.ToString(),
             LicenseType.Expression.ToString()
         };
+
+        private static readonly byte[] PngHeader = new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A };
+        private static readonly byte[] JpegHeader = new byte[] { 0xFF, 0xD8, 0xFF };
 
         /// <summary>
         /// The upper limit on allowed license file size.
@@ -395,7 +400,48 @@ namespace NuGetGallery
                 return PackageValidationResult.Invalid(Strings.UploadPackage_CorruptNupkg);
             }
 
+            bool isJpg = false;
+            bool isPng = false;
+
+            using (var stream = await nuGetPackage.GetStreamAsync(iconFilePath, CancellationToken.None))
+            {
+                isJpg = await IsJpegAsync(stream);
+            }
+
+            using (var stream = await nuGetPackage.GetStreamAsync(iconFilePath, CancellationToken.None))
+            {
+                isPng = await IsPngAsync(stream);
+            }
+
+            if (!isPng && !isJpg)
+            {
+                return PackageValidationResult.Invalid(Strings.UploadPackage_UnsupportedIconImageFormat);
+            }
+
             return null;
+        }
+
+        private async Task<bool> IsPngAsync(Stream stream)
+        {
+            return await StreamStartsWithAsync(stream, PngHeader);
+        }
+
+        private async Task<bool> IsJpegAsync(Stream stream)
+        {
+            return await StreamStartsWithAsync(stream, JpegHeader);
+        }
+
+        private static async Task<bool> StreamStartsWithAsync(Stream stream, byte[] expectedBytes)
+        {
+            var actualBytes = new byte[expectedBytes.Length];
+            var bytesRead = await stream.ReadAsync(actualBytes, 0, actualBytes.Length);
+
+            if (bytesRead != expectedBytes.Length)
+            {
+                return false;
+            }
+
+            return expectedBytes.SequenceEqual(actualBytes);
         }
 
         private static bool FileExists(PackageArchiveReader nuGetPackage, string filename)
@@ -475,7 +521,7 @@ namespace NuGetGallery
 
         private static async Task<bool> IsStreamLengthMatchesReportedAsync(PackageArchiveReader nuGetPackage, string path, long reportedLength)
         {
-            using (var stream = nuGetPackage.GetStream(path))
+            using (var stream = await nuGetPackage.GetStreamAsync(path, CancellationToken.None))
             {
                 return await IsStreamLengthMatchesReportedAsync(stream, reportedLength);
             }
