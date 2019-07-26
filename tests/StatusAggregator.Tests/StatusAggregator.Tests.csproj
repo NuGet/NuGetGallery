@@ -61,6 +61,7 @@
     <Compile Include="Factory\IncidentFactoryTests.cs" />
     <Compile Include="Factory\IncidentGroupFactoryTests.cs" />
     <Compile Include="Factory\NuGetServiceComponentFactoryTests.cs" />
+    <Compile Include="JobTests.cs" />
     <Compile Include="Manual\AddStatusEventManualChangeHandlerTests.cs" />
     <Compile Include="Manual\AddStatusMessageManualChangeHandlerTests.cs" />
     <Compile Include="Manual\DeleteStatusEventManualChangeHandlerTests.cs" />
@@ -94,6 +95,10 @@
     <Compile Include="Update\StatusUpdaterTests.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\src\NuGet.Jobs.Common\NuGet.Jobs.Common.csproj">
+      <Project>{4B4B1EFB-8F33-42E6-B79F-54E7F3293D31}</Project>
+      <Name>NuGet.Jobs.Common</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\src\StatusAggregator\StatusAggregator.csproj">
       <Project>{d357fdb5-bf19-41a5-82b0-14c8cec2a5eb}</Project>
       <Name>StatusAggregator</Name>

@@ -13,6 +13,7 @@ using Autofac.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NuGet.Jobs;
 using NuGet.Services.Incidents;
@@ -302,7 +303,7 @@ namespace StatusAggregator
         private const int _defaultEventEndDelayMinutes = 15;
         private const int _defaultEventVisibilityPeriod = 10;
 
-        private static void AddConfiguration(IServiceCollection serviceCollection, IDictionary<string, string> jobArgsDictionary)
+        private void AddConfiguration(IServiceCollection serviceCollection, IDictionary<string, string> jobArgsDictionary)
         {
             var configuration = new StatusAggregatorConfiguration()
             {
@@ -340,7 +341,9 @@ namespace StatusAggregator
                 BaseUri = 
                     new Uri(JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.StatusIncidentApiBaseUri)),
                 Certificate = 
-                    GetCertificateFromJson(JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.StatusIncidentApiCertificate))
+                    GetCertificateFromConfiguration(
+                        JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.StatusIncidentApiCertificate),
+                        Logger)
             };
 
             serviceCollection.AddSingleton(incidentApiConfiguration);
@@ -352,15 +355,34 @@ namespace StatusAggregator
             serviceCollection.AddLogging();
         }
 
-        private static X509Certificate2 GetCertificateFromJson(string certJson)
+        public static X509Certificate2 GetCertificateFromConfiguration(string certSecret, ILogger logger)
         {
-            var certJObject = JObject.Parse(certJson);
+            // Certificates are persisted in two different ways in KeyVault.
+            // Try both before failing.
+            logger.LogInformation("Parsing certificate from configuration.");
+            X509Certificate2 certificate;
+            try
+            {
+                // Legacy KeyVault certificates are stored as JSON objects with Base64 data and a password.
+                logger.LogInformation("Attempting to parse certificate as JSON.");
+                var certJObject = JObject.Parse(certSecret);
 
-            var certData = certJObject["Data"].Value<string>();
-            var certPassword = certJObject["Password"].Value<string>();
+                var certData = certJObject["Data"].Value<string>();
+                var certPassword = certJObject["Password"].Value<string>();
 
-            var certBytes = Convert.FromBase64String(certData);
-            return new X509Certificate2(certBytes, certPassword);
+                var certBytes = Convert.FromBase64String(certData);
+                certificate = new X509Certificate2(certBytes, certPassword);
+            }
+            catch (JsonReaderException)
+            {
+                // New KeyVault certificates are stored as Base64 strings and have no password.
+                logger.LogInformation("Failed to parse certificate as JSON. Attempting to parse certificate as Base64.");
+                var certBytes = Convert.FromBase64String(certSecret);
+                certificate = new X509Certificate2(certBytes);
+            }
+
+            logger.LogInformation("Successfully parsed certificate.");
+            return certificate;
         }
     }
 }
