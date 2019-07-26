@@ -1,31 +1,31 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.Design;
+using System.IO;
+using System.Linq;
 using Autofac;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using NuGet.Jobs.Validation;
+using NuGet.Jobs;
 using NuGet.Jobs.Configuration;
+using NuGet.Jobs.Validation;
+using NuGet.Services.Entities;
 using NuGet.Services.Messaging;
 using NuGet.Services.Messaging.Email;
 using NuGet.Services.ServiceBus;
 using NuGetGallery.Areas.Admin;
+using NuGetGallery.Areas.Admin.Models;
 using NuGetGallery.Auditing;
 using NuGetGallery.Authentication;
-using NuGetGallery.Features;
-using NuGetGallery.Security;
-using System.Collections.Generic;
-using System.ComponentModel.Design;
-using NuGet.Services.Entities;
-using NuGetGallery.Diagnostics;
 using NuGetGallery.Configuration;
-using NuGetGallery.Areas.Admin.Models;
-using NuGet.Jobs;
+using NuGetGallery.Diagnostics;
+using NuGetGallery.Features;
 using NuGetGallery.Infrastructure.Authentication;
-using System.IO;
-using System;
-using System.Linq;
+using NuGetGallery.Security;
 
 namespace NuGetGallery.AccountDeleter
 {
@@ -244,17 +244,13 @@ namespace NuGetGallery.AccountDeleter
 
         private void RegisterAuditingServices(IServiceCollection services)
         {
-            services.AddSingleton<AuditingService>(sp =>
+            if (IsDebugMode)
             {
-                var configuration = sp.GetRequiredService<IOptionsSnapshot<AccountDeleteConfiguration>>().Value;
-                var cloudAuditingConnectionString = configuration.CloudAuditingConnectionString;
-                if (String.IsNullOrEmpty(cloudAuditingConnectionString))
+                services.AddSingleton<AuditingService>(sp =>
                 {
                     return GetAuditingServiceForLocalFileSystem();
-                }
-
-                return GetAuditingServiceForAzureStorage(cloudAuditingConnectionString);
-            });
+                });
+            }
 
             services.AddSingleton<IAuditingService>(sp =>
             {
@@ -296,15 +292,6 @@ namespace NuGetGallery.AccountDeleter
                 FileSystemAuditingService.DefaultContainerName);
 
             return new FileSystemAuditingService(auditingPath, AuditActor.GetAspNetOnBehalfOfAsync);
-        }
-
-        private AuditingService GetAuditingServiceForAzureStorage(string auditStorageConnectionString, bool readAccessGeoRedundant = true)
-        {
-            string instanceId = Environment.MachineName;
-            var localIp = AuditActor.GetLocalIpAddressAsync().Result;
-
-            var service = new CloudAuditingService(instanceId, localIp, auditStorageConnectionString, readAccessGeoRedundant, AuditActor.GetAspNetOnBehalfOfAsync);
-            return service;
         }
 
         private static IEnumerable<T> GetAddInServices<T>()
