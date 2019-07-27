@@ -163,6 +163,7 @@ namespace NuGetGallery
                         rejectionUrl,
                         encodedMessage,
                         string.Empty);
+
                     await _messageService.SendMessageAsync(packageOwnershipRequestMessage);
 
                     foreach (var owner in model.Package.Owners)
