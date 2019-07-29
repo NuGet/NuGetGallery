@@ -97,17 +97,13 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 var initialCursorValue = catalogIndex.CommitTimestamp;
                 _logger.LogInformation("The initial cursor value will be {CursorValue:O}.", initialCursorValue);
 
-                // Push all package package data to the Azure Search indexes and write the version list blobs.
-                var allOwners = new ConcurrentBag<IdAndValue<IReadOnlyList<string>>>();
-                var allDownloads = new ConcurrentBag<DownloadRecord>();
-
-                await PushAllPackageRegistrationsAsync(cancelledCts, produceWorkCts, allOwners, allDownloads);
+                var initialAuxiliaryData = await PushAllPackageRegistrationsAsync(cancelledCts, produceWorkCts);
 
                 // Write the owner data file.
-                await WriteOwnerDataAsync(allOwners);
+                await WriteOwnerDataAsync(initialAuxiliaryData.Owners);
 
                 // Write the download data file.
-                await WriteDownloadDataAsync(allDownloads);
+                await WriteDownloadDataAsync(initialAuxiliaryData.Downloads);
 
                 // Write the cursor.
                 _logger.LogInformation("Writing the initial cursor value to be {CursorValue:O}.", initialCursorValue);
@@ -136,18 +132,16 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             await _indexBuilder.CreateHijackIndexAsync();
         }
 
-        private async Task PushAllPackageRegistrationsAsync(
+        private async Task<InitialAuxiliaryData> PushAllPackageRegistrationsAsync(
             CancellationTokenSource cancelledCts,
-            CancellationTokenSource produceWorkCts,
-            ConcurrentBag<IdAndValue<IReadOnlyList<string>>> allOwners,
-            ConcurrentBag<DownloadRecord> allDownloads)
+            CancellationTokenSource produceWorkCts)
         {
             _logger.LogInformation("Pushing all packages to Azure Search and initializing version lists.");
             var allWork = new ConcurrentBag<NewPackageRegistration>();
             var producerTask = ProduceWorkAsync(allWork, produceWorkCts, cancelledCts.Token);
             var consumerTasks = Enumerable
                 .Range(0, _options.Value.MaxConcurrentBatches)
-                .Select(i => ConsumeWorkAsync(allWork, allOwners, allDownloads, produceWorkCts.Token, cancelledCts.Token))
+                .Select(i => ConsumeWorkAsync(allWork, produceWorkCts.Token, cancelledCts.Token))
                 .ToList();
             var allTasks = new[] { producerTask }.Concat(consumerTasks).ToList();
 
@@ -161,53 +155,41 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             await firstTask;
             await Task.WhenAll(allTasks);
             _logger.LogInformation("Done initializing the Azure Search indexes and version lists.");
+
+            return await producerTask;
         }
 
-        private async Task WriteOwnerDataAsync(ConcurrentBag<IdAndValue<IReadOnlyList<string>>> allOwners)
+        private async Task WriteOwnerDataAsync(SortedDictionary<string, SortedSet<string>> owners)
         {
-            _logger.LogInformation("Building and writing the initial owners file.");
-            var ownersBuilder = new PackageIdToOwnersBuilder(_logger);
-            foreach (var owners in allOwners)
-            {
-                ownersBuilder.Add(owners.Id, owners.Value);
-            }
-
+            _logger.LogInformation("Writing the initial owners file.");
             await _ownerDataClient.ReplaceLatestIndexedAsync(
-                ownersBuilder.GetResult(),
+                owners,
                 AccessConditionWrapper.GenerateIfNotExistsCondition());
             _logger.LogInformation("Done uploading the initial owners file.");
         }
 
-        private async Task WriteDownloadDataAsync(ConcurrentBag<DownloadRecord> allDownloads)
+        private async Task WriteDownloadDataAsync(DownloadData downloadData)
         {
-            _logger.LogInformation("Building and writing the initial download data file.");
-            var downloadData = new DownloadData();
-            foreach (var dr in allDownloads)
-            {
-                downloadData.SetDownloadCount(dr.PackageId, dr.NormalizedVersion, dr.DownloadCount);
-            }
-
+            _logger.LogInformation("Writing the initial download data file.");
             await _downloadDataClient.ReplaceLatestIndexedAsync(
                 downloadData,
                 AccessConditionWrapper.GenerateIfNotExistsCondition());
             _logger.LogInformation("Done uploading the initial download data file.");
         }
 
-        private async Task ProduceWorkAsync(
+        private async Task<InitialAuxiliaryData> ProduceWorkAsync(
             ConcurrentBag<NewPackageRegistration> allWork,
             CancellationTokenSource produceWorkCts,
             CancellationToken cancellationToken)
         {
-
             await Task.Yield();
-            await _producer.ProduceWorkAsync(allWork, cancellationToken);
+            var output = await _producer.ProduceWorkAsync(allWork, cancellationToken);
             produceWorkCts.Cancel();
+            return output;
         }
 
         private async Task ConsumeWorkAsync(
             ConcurrentBag<NewPackageRegistration> allWork,
-            ConcurrentBag<IdAndValue<IReadOnlyList<string>>> allOwners,
-            ConcurrentBag<DownloadRecord> allDownloads,
             CancellationToken produceWorkToken,
             CancellationToken cancellationToken)
         {
@@ -237,15 +219,6 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                         batchPusher.EnqueueIndexActions(work.PackageId, indexActions);
                         await batchPusher.PushFullBatchesAsync();
                     }
-
-                    // Keep track of all owners so we can write them to the initial owners.v2.json file.
-                    allOwners.Add(new IdAndValue<IReadOnlyList<string>>(work.PackageId, work.Owners));
-
-                    // Keep track of all download counts so we can write them to the initial downloads.v2.json file.
-                    foreach (var package in work.Packages)
-                    {
-                        allDownloads.Add(new DownloadRecord(work.PackageId, package.NormalizedVersion, package.DownloadCount));
-                    }
                 }
 
                 await batchPusher.FinishAsync();
@@ -259,20 +232,6 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                     work?.PackageId ?? "(last batch...)");
                 throw;
             }
-        }
-
-        private struct DownloadRecord
-        {
-            public DownloadRecord(string packageId, string normalizedVersion, int downloadCount)
-            {
-                PackageId = packageId;
-                NormalizedVersion = normalizedVersion;
-                DownloadCount = downloadCount;
-            }
-
-            public string PackageId { get; }
-            public string NormalizedVersion { get; }
-            public int DownloadCount { get; }
         }
     }
 }

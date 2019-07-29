@@ -36,17 +36,27 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task ProduceWorkAsync(
+        public async Task<InitialAuxiliaryData> ProduceWorkAsync(
             ConcurrentBag<NewPackageRegistration> allWork,
             CancellationToken cancellationToken)
         {
             var ranges = await GetPackageRegistrationRangesAsync();
 
-            // Fetch exclude packages list from auxiliary files
-            var storageResult = await _auxiliaryFileClient.LoadExcludedPackagesAsync(etag: null);
-            HashSet<string> excludedPackages = storageResult.Data;
+            // Fetch exclude packages list from auxiliary files.
+            var excludedPackagesResult = await _auxiliaryFileClient.LoadExcludedPackagesAsync(etag: null);
+            var excludedPackages = excludedPackagesResult.Data;
 
-            Guard.Assert(excludedPackages.Comparer == StringComparer.OrdinalIgnoreCase, $"Excluded packages HashSet should be using {nameof(StringComparer.OrdinalIgnoreCase)}");
+            Guard.Assert(
+                excludedPackages.Comparer == StringComparer.OrdinalIgnoreCase,
+                $"Excluded packages HashSet should be using {nameof(StringComparer.OrdinalIgnoreCase)}");
+
+            // Fetch the download data from the auxiliary file, since this is what is used for displaying download
+            // counts in the search service. The gallery DB and the downloads data file have different download count
+            // numbers we don't use the gallery DB values.
+            var downloads = await _auxiliaryFileClient.LoadDownloadDataAsync();
+
+            // Build a list of the owners data as we collect package registrations from the database.
+            var ownersBuilder = new PackageIdToOwnersBuilder(_logger);
 
             for (var i = 0; i < ranges.Count && !cancellationToken.IsCancellationRequested; i++)
             {
@@ -80,14 +90,21 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
 
                     allWork.Add(new NewPackageRegistration(
                         pr.Id,
-                        pr.DownloadCount,
+                        downloads.GetDownloadCount(pr.Id),
                         pr.Owners,
                         packages,
                         isExcludedByDefault));
+
+                    ownersBuilder.Add(pr.Id, pr.Owners);
                 }
 
                 _logger.LogInformation("Done initializing batch {Number}/{Count}.", i + 1, ranges.Count);
             }
+
+            return new InitialAuxiliaryData(
+                ownersBuilder.GetResult(),
+                downloads,
+                excludedPackages);
         }
 
         private bool ShouldWait(ConcurrentBag<NewPackageRegistration> allWork, bool log)
@@ -179,7 +196,6 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                     .Select(pr => new PackageRegistrationInfo(
                         pr.Key,
                         pr.Id,
-                        pr.DownloadCount,
                         pr.Owners.Select(x => x.Username).ToArray()))
                     .ToList();
             }
@@ -283,17 +299,15 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
 
         private class PackageRegistrationInfo
         {
-            public PackageRegistrationInfo(int key, string id, int downloadCount, string[] owners)
+            public PackageRegistrationInfo(int key, string id, string[] owners)
             {
                 Key = key;
                 Id = id;
-                DownloadCount = downloadCount;
                 Owners = owners;
             }
 
             public int Key { get; }
             public string Id { get; }
-            public int DownloadCount { get; }
             public string[] Owners { get; }
         }
     }

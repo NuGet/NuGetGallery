@@ -60,6 +60,7 @@
     <Compile Include="AzureSearchScoringConfiguration.cs" />
     <Compile Include="BaseDocumentBuilder.cs" />
     <Compile Include="DatabaseOwnerFetcher.cs" />
+    <Compile Include="Db2AzureSearch\InitialAuxiliaryData.cs" />
     <Compile Include="IAzureSearchTelemetryService.cs" />
     <Compile Include="IBaseDocumentBuilder.cs" />
     <Compile Include="IDatabaseOwnerFetcher.cs" />

@@ -36,8 +36,10 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             private readonly CancellationToken _token;
             private readonly NewPackageRegistrationProducer _target;
             private readonly Mock<IAuxiliaryFileClient> _auxiliaryFileClient;
-
+            private readonly DownloadData _downloads;
             private AuxiliaryFileMetadata _metadata;
+            private readonly HashSet<string> _excludedPackages;
+
             public ProduceWorkAsync(ITestOutputHelper output)
             {
                 _entitiesContextFactory = new Mock<IEntitiesContextFactory>();
@@ -60,9 +62,14 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                     TimeSpan.Zero,
                     fileSize: 0,
                     etag: string.Empty);
+                _excludedPackages = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                 _auxiliaryFileClient
                     .Setup(x => x.LoadExcludedPackagesAsync(It.IsAny<string>()))
-                    .ReturnsAsync(new AuxiliaryFileResult<HashSet<string>>(false, new HashSet<string>(StringComparer.OrdinalIgnoreCase), _metadata));
+                    .ReturnsAsync(new AuxiliaryFileResult<HashSet<string>>(false, _excludedPackages, _metadata));
+                _downloads = new DownloadData();
+                _auxiliaryFileClient
+                    .Setup(x => x.LoadDownloadDataAsync())
+                    .ReturnsAsync(() => _downloads);
 
                 _entitiesContextFactory
                    .Setup(x => x.CreateAsync(It.IsAny<bool>()))
@@ -190,36 +197,36 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 {
                     Key = 1,
                     Id = "A",
-                    DownloadCount = 23,
-                    Owners = new[] { new User { Username = "OwnerA" }  },
+                    Owners = new[] { new User { Username = "OwnerA" } },
                     Packages = new[]
                     {
                         new Package { Version = "1.0.0" },
                         new Package { Version = "2.0.0" },
                     },
                 });
+                _downloads.SetDownloadCount("A", "1.0.0", 23);
                 _packageRegistrations.Add(new PackageRegistration
                 {
                     Key = 2,
                     Id = "B",
-                    DownloadCount = 24,
                     Owners = new[] { new User { Username = "OwnerB" } },
                     Packages = new[]
                     {
                         new Package { Version = "3.0.0" },
                     },
                 });
+                _downloads.SetDownloadCount("B", "3.0.0", 24);
                 _packageRegistrations.Add(new PackageRegistration
                 {
                     Key = 3,
                     Id = "C",
-                    DownloadCount = 25,
                     Owners = new[] { new User { Username = "OwnerC" }, new User { Username = "OwnerD" } },
                     Packages = new[]
                     {
                         new Package { Version = "4.0.0" },
                     },
                 });
+                _downloads.SetDownloadCount("C", "4.0.0", 25);
                 _packageRegistrations.Add(new PackageRegistration
                 {
                     Key = 4,
@@ -228,6 +235,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                     Owners = new[] { new User { Username = "OwnerE" } },
                     Packages = new Package[0],
                 });
+                _downloads.SetDownloadCount("D", "5.0.0", 26);
                 InitializePackagesFromPackageRegistrations();
 
                 await _target.ProduceWorkAsync(_work, _token);
@@ -264,8 +272,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 {
                     Key = 1,
                     Id = "A",
-                    DownloadCount = 23,
-                    Owners = new[] { new User { Username = "OwnerA" } },
+                    Owners = new User[0],
                     Packages = new[]
                     {
                         new Package { Version = "1.0.0" },
@@ -276,8 +283,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 {
                     Key = 2,
                     Id = "B",
-                    DownloadCount = 24,
-                    Owners = new[] { new User { Username = "OwnerB" } },
+                    Owners = new User[0],
                     Packages = new[]
                     {
                         new Package { Version = "3.0.0" },
@@ -287,8 +293,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 {
                     Key = 3,
                     Id = "C",
-                    DownloadCount = 25,
-                    Owners = new[] { new User { Username = "OwnerC" }, new User { Username = "OwnerD" } },
+                    Owners = new User[0],
                     Packages = new[]
                     {
                         new Package { Version = "4.0.0" },
@@ -298,8 +303,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 {
                     Key = 4,
                     Id = "D",
-                    DownloadCount = 26,
-                    Owners = new[] { new User { Username = "OwnerE" } },
+                    Owners = new User[0],
                     Packages = new Package[0],
                 });
 
@@ -319,6 +323,30 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                     var shouldBeExcluded = excludedPackages.Contains(work[i].PackageId, StringComparer.OrdinalIgnoreCase);
                     Assert.Equal(shouldBeExcluded, work[i].IsExcludedByDefault);
                 }
+            }
+
+            [Fact]
+            public async Task ReturnsInitialAuxiliaryData()
+            {
+                _packageRegistrations.Add(new PackageRegistration
+                {
+                    Key = 1,
+                    Id = "A",
+                    Owners = new[] { new User { Username = "OwnerA" } },
+                    Packages = new[]
+                    {
+                        new Package { Version = "1.0.0" },
+                        new Package { Version = "2.0.0" },
+                    },
+                });
+
+                var output = await _target.ProduceWorkAsync(_work, _token);
+
+                Assert.Same(_downloads, output.Downloads);
+                Assert.Same(_excludedPackages, output.ExcludedPackages);
+                Assert.NotNull(output.Owners);
+                Assert.Contains("A", output.Owners.Keys);
+                Assert.Equal(new[] { "OwnerA" }, output.Owners["A"].ToArray());
             }
 
             [Fact]
