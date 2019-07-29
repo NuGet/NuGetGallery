@@ -24,5 +24,15 @@ namespace NuGet.Jobs.GitHubIndexer
         /// The number of concurrent threads running to index Git repositories
         /// </summary>
         public int MaxDegreeOfParallelism { get; set; } = 32;
+
+        /// <summary>
+        /// The connection string to be used for a <see cref="NuGetGallery.CloudBlobClientWrapper"/> instance.
+        /// </summary>
+        public string StorageConnectionString { get; set; }
+
+        /// <summary>
+        /// Gets a setting if Read Access Geo Redundant is enabled in azure storage
+        /// </summary>
+        public bool StorageReadAccessGeoRedundant { get; set; }
     }
 }

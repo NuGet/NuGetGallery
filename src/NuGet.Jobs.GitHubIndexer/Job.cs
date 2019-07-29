@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using Autofac;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
+using NuGetGallery;
 using Octokit;
 
 namespace NuGet.Jobs.GitHubIndexer
@@ -33,6 +35,10 @@ namespace NuGet.Jobs.GitHubIndexer
             services.AddTransient<IRepositoriesCache, DiskRepositoriesCache>();
             services.AddTransient<IConfigFileParser, ConfigFileParser>();
             services.AddTransient<IRepoFetcher, RepoFetcher>();
+            services.AddTransient<ICloudBlobClient>(provider => {
+                var config = provider.GetRequiredService<IOptionsSnapshot<GitHubIndexerConfiguration>>();
+                return new CloudBlobClientWrapper(config.Value.StorageConnectionString, config.Value.StorageReadAccessGeoRedundant);
+            });
 
             services.Configure<GitHubIndexerConfiguration>(configurationRoot.GetSection(GitHubIndexerConfigurationSectionName));
         }

@@ -3,11 +3,16 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Blob;
 using Moq;
+using Newtonsoft.Json;
 using NuGetGallery;
 using Xunit;
 
@@ -18,6 +23,7 @@ namespace NuGet.Jobs.GitHubIndexer.Tests
         private static ReposIndexer CreateIndexer(
             WritableRepositoryInformation searchResult,
             IReadOnlyList<GitFileInfo> repoFiles,
+            Action<string> onDisposeHandler,
             Func<ICheckedOutFile, IReadOnlyList<string>> configFileParser = null)
         {
             var mockConfig = new Mock<IOptionsSnapshot<GitHubIndexerConfiguration>>();
@@ -57,12 +63,36 @@ namespace NuGet.Jobs.GitHubIndexer.Tests
                 .Setup(x => x.FetchRepo(It.IsAny<WritableRepositoryInformation>()))
                 .Returns(mockFetchedRepo.Object);
 
+            var mockBlobClient = new Mock<ICloudBlobClient>();
+            var mockBlobContainer = new Mock<ICloudBlobContainer>();
+            var mockBlob = new Mock<ISimpleCloudBlob>();
+
+            mockBlobClient
+                .Setup(x => x.GetContainerReference(It.IsAny<string>()))
+                .Returns(() => mockBlobContainer.Object);
+            mockBlobContainer
+                .Setup(x => x.GetBlobReference(It.IsAny<string>()))
+                .Returns(() => mockBlob.Object);
+            mockBlob
+                .Setup(x => x.ETag)
+                .Returns("\"some-etag\"");
+            mockBlob
+            .Setup(x => x.Properties)
+            .Returns(new CloudBlockBlob(new Uri("https://example/blob")).Properties);
+            mockBlob
+                .Setup(x => x.OpenWriteAsync(It.IsAny<AccessCondition>()))
+                .ReturnsAsync(() => new RecordingStream(bytes =>
+                    {
+                        onDisposeHandler?.Invoke(Encoding.UTF8.GetString(bytes));
+                    }));
+
             return new ReposIndexer(
                 mockSearcher.Object,
                 new Mock<ILogger<ReposIndexer>>().Object,
                 mockRepoCache.Object,
                 mockConfigFileParser.Object,
                 mockRepoFetcher.Object,
+                mockBlobClient.Object,
                 mockConfig.Object);
         }
         public class TheRunMethod
@@ -71,7 +101,7 @@ namespace NuGet.Jobs.GitHubIndexer.Tests
             public async Task TestNoDependenciesInFiles()
             {
                 var repo = new WritableRepositoryInformation("owner/test", url: "", stars: 100, description: "", mainBranch: "master");
-                var configFileNames = new string[] { "packages.config", "someProjFile.csproj",  "someProjFile.props", "someProjFile.targets"};
+                var configFileNames = new string[] { "packages.config", "someProjFile.csproj", "someProjFile.props", "someProjFile.targets" };
                 var repoFiles = new List<GitFileInfo>()
                 {
                     new GitFileInfo("file1.txt", 1),
@@ -82,7 +112,7 @@ namespace NuGet.Jobs.GitHubIndexer.Tests
                     new GitFileInfo(configFileNames[3], 1)
                 };
 
-                var indexer = CreateIndexer(repo, repoFiles);
+                var indexer = CreateIndexer(repo, repoFiles, onDisposeHandler: null);
                 await indexer.RunAsync();
 
                 var result = repo.ToRepositoryInformation();
@@ -93,8 +123,8 @@ namespace NuGet.Jobs.GitHubIndexer.Tests
             public async Task TestWithDependenciesInFiles()
             {
                 var repo = new WritableRepositoryInformation("owner/test", url: "", stars: 100, description: "", mainBranch: "master");
-                var configFileNames = new string[] { "packages.config", "someProjFile.csproj",  "someProjFile.props", "someProjFile.targets"};
-                var repoDependencies = new string[] { "dependency1", "dependency2",  "dependency3", "dependency4"};
+                var configFileNames = new string[] { "packages.config", "someProjFile.csproj", "someProjFile.props", "someProjFile.targets" };
+                var repoDependencies = new string[] { "dependency1", "dependency2", "dependency3", "dependency4" };
                 var repoFiles = new List<GitFileInfo>()
                 {
                     new GitFileInfo("file1.txt", 1),
@@ -104,12 +134,17 @@ namespace NuGet.Jobs.GitHubIndexer.Tests
                     new GitFileInfo(configFileNames[2], 1),
                     new GitFileInfo(configFileNames[3], 1)
                 };
-
-                var indexer = CreateIndexer(repo, repoFiles, (ICheckedOutFile file) =>
+                var writeToBlobCalled = false;
+                var indexer = CreateIndexer(repo, repoFiles, configFileParser: (ICheckedOutFile file) =>
                     {
                         // Make sure that the Indexer filters out the non-config files
                         Assert.True(Array.Exists(configFileNames, x => string.Equals(x, file.Path)));
                         return repoDependencies;
+                    },
+                    onDisposeHandler: (string serializedText) =>
+                    {
+                        writeToBlobCalled = true;
+                        Assert.Equal(JsonConvert.SerializeObject(new RepositoryInformation[] { repo.ToRepositoryInformation() }), serializedText);
                     });
                 await indexer.RunAsync();
 
@@ -123,6 +158,33 @@ namespace NuGet.Jobs.GitHubIndexer.Tests
                 Assert.Equal(repo.Id, result.Id);
                 Assert.Equal(repo.Stars, result.Stars);
                 Assert.Equal(repo.Url, result.Url);
+
+                // Make sure the blob has been written
+                Assert.True(writeToBlobCalled);
+            }
+        }
+        private class RecordingStream : MemoryStream
+        {
+            private readonly object _lock = new object();
+            private Action<byte[]> _onDispose;
+
+            public RecordingStream(Action<byte[]> onDispose)
+            {
+                _onDispose = onDispose;
+            }
+
+            protected override void Dispose(bool disposing)
+            {
+                lock (_lock)
+                {
+                    if (_onDispose != null)
+                    {
+                        _onDispose(ToArray());
+                        _onDispose = null;
+                    }
+                }
+
+                base.Dispose(disposing);
             }
         }
     }

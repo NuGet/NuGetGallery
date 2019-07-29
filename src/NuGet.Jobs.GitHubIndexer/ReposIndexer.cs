@@ -18,10 +18,12 @@ namespace NuGet.Jobs.GitHubIndexer
     public class ReposIndexer
     {
         private const string WorkingDirectory = "work";
+        private const string BlobStorageContainerName = "content";
+        private const string GitHubUsageFileName = "GitHubUsage.v1.json";
 
-        private static readonly string GitHubUsageFilePath = Path.Combine(WorkingDirectory, "GitHubUsage.v1.json");
         public static readonly string RepositoriesDirectory = Path.Combine(WorkingDirectory, "repos");
         public static readonly string CacheDirectory = Path.Combine(WorkingDirectory, "cache");
+        private static readonly JsonSerializer Serializer = new JsonSerializer();
 
         private readonly IGitRepoSearcher _searcher;
         private readonly ILogger<ReposIndexer> _logger;
@@ -29,6 +31,7 @@ namespace NuGet.Jobs.GitHubIndexer
         private readonly IRepositoriesCache _repoCache;
         private readonly IRepoFetcher _repoFetcher;
         private readonly IConfigFileParser _configFileParser;
+        private readonly ICloudBlobClient _cloudClient;
 
         public ReposIndexer(
             IGitRepoSearcher searcher,
@@ -36,6 +39,7 @@ namespace NuGet.Jobs.GitHubIndexer
             IRepositoriesCache repoCache,
             IConfigFileParser configFileParser,
             IRepoFetcher repoFetcher,
+            ICloudBlobClient cloudClient,
             IOptionsSnapshot<GitHubIndexerConfiguration> configuration)
         {
             _searcher = searcher ?? throw new ArgumentNullException(nameof(searcher));
@@ -50,6 +54,7 @@ namespace NuGet.Jobs.GitHubIndexer
             }
 
             _maxDegreeOfParallelism = configuration.Value.MaxDegreeOfParallelism;
+            _cloudClient = cloudClient ?? throw new ArgumentNullException(nameof(cloudClient));
         }
 
         public async Task RunAsync()
@@ -80,12 +85,24 @@ namespace NuGet.Jobs.GitHubIndexer
                 .ThenBy(x => x.Id)
                 .ToList();
 
-            // TODO: Replace with upload to Azure Blob Storage (https://github.com/NuGet/NuGetGallery/issues/7211)
-            File.WriteAllText(GitHubUsageFilePath, JsonConvert.SerializeObject(finalList));
+            await WriteFinalBlobAsync(finalList);
 
             // Delete the repos and cache directory
             Directory.Delete(RepositoriesDirectory, recursive: true);
             Directory.Delete(CacheDirectory, recursive: true);
+        }
+
+        private async Task WriteFinalBlobAsync(List<RepositoryInformation> finalList)
+        {
+            var blobReference = _cloudClient.GetContainerReference(BlobStorageContainerName).GetBlobReference(GitHubUsageFileName);
+
+            using (var stream = await blobReference.OpenWriteAsync(accessCondition: null))
+            using (var streamWriter = new StreamWriter(stream))
+            using (var jsonTextWriter = new JsonTextWriter(streamWriter))
+            {
+                blobReference.Properties.ContentType = "application/json";
+                Serializer.Serialize(jsonTextWriter, finalList);
+            }
         }
 
         private RepositoryInformation ProcessSingleRepo(WritableRepositoryInformation repo)
