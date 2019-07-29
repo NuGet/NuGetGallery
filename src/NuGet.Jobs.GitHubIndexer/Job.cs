@@ -1,27 +1,22 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
 using Autofac;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Newtonsoft.Json;
 using Octokit;
 
 namespace NuGet.Jobs.GitHubIndexer
 {
     public class Job : JsonConfigurationJob
     {
-        private const string GitHubSearcherConfigurationSectionName = "GitHubSearcher";
+        private const string GitHubIndexerConfigurationSectionName = "GitHubIndexer";
 
         public override async Task Run()
         {
-            var searcher = _serviceProvider.GetRequiredService<IGitRepoSearcher>();
-            var repos = await searcher.GetPopularRepositories();
-
-            File.WriteAllText("Repos.json", JsonConvert.SerializeObject(repos));
+            await _serviceProvider.GetRequiredService<ReposIndexer>().RunAsync();
         }
 
         protected override void ConfigureJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
@@ -33,8 +28,13 @@ namespace NuGet.Jobs.GitHubIndexer
             services.AddTransient<IGitRepoSearcher, GitHubSearcher>();
             services.AddSingleton<IGitHubClient>(provider => new GitHubClient(new ProductHeaderValue(assemblyName, assemblyVersion)));
             services.AddSingleton<IGitHubSearchWrapper, GitHubSearchWrapper>();
+            services.AddTransient<RepoUtils>();
+            services.AddTransient<ReposIndexer>();
+            services.AddTransient<IRepositoriesCache, DiskRepositoriesCache>();
+            services.AddTransient<IConfigFileParser, ConfigFileParser>();
+            services.AddTransient<IRepoFetcher, RepoFetcher>();
 
-            services.Configure<GitHubSearcherConfiguration>(configurationRoot.GetSection(GitHubSearcherConfigurationSectionName));
+            services.Configure<GitHubIndexerConfiguration>(configurationRoot.GetSection(GitHubIndexerConfigurationSectionName));
         }
 
         protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder)

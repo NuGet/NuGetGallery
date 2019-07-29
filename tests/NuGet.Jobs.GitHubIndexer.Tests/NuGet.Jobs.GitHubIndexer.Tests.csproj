@@ -42,8 +42,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FiltersFacts.cs" />
     <Compile Include="GitHubSearcherFacts.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ReposIndexerFacts.cs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="moq">

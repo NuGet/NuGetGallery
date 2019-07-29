@@ -3,20 +3,19 @@
 
 using System;
 using System.Collections.Generic;
-using NuGetGallery;
 
 namespace NuGet.Jobs.GitHubIndexer
 {
     public class GitHubSearchApiResponse
     {
-        public GitHubSearchApiResponse(IReadOnlyList<RepositoryInformation> result, DateTimeOffset date, DateTimeOffset throttleResetTime)
+        public GitHubSearchApiResponse(IReadOnlyList<WritableRepositoryInformation> result, DateTimeOffset date, DateTimeOffset throttleResetTime)
         {
             Result = result ?? throw new ArgumentNullException(nameof(result));
             Date = date;
             ThrottleResetTime = throttleResetTime;
         }
 
-        public IReadOnlyList<RepositoryInformation> Result { get; }
+        public IReadOnlyList<WritableRepositoryInformation> Result { get; }
         public DateTimeOffset Date { get; }
         public DateTimeOffset ThrottleResetTime { get; }
     }

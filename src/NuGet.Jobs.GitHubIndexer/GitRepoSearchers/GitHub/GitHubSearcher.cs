@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -7,7 +7,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using NuGetGallery;
 using Octokit;
 
 namespace NuGet.Jobs.GitHubIndexer
@@ -17,7 +16,7 @@ namespace NuGet.Jobs.GitHubIndexer
         private static readonly TimeSpan LimitExceededRetryTime = TimeSpan.FromSeconds(5);
 
         private readonly ILogger<GitHubSearcher> _logger;
-        private readonly IOptionsSnapshot<GitHubSearcherConfiguration> _configuration;
+        private readonly IOptionsSnapshot<GitHubIndexerConfiguration> _configuration;
         private readonly IGitHubSearchWrapper _searchApiRequester;
 
         private DateTimeOffset _throttleResetTime;
@@ -25,7 +24,7 @@ namespace NuGet.Jobs.GitHubIndexer
         public GitHubSearcher(
             IGitHubSearchWrapper searchApiRequester,
             ILogger<GitHubSearcher> logger,
-            IOptionsSnapshot<GitHubSearcherConfiguration> configuration)
+            IOptionsSnapshot<GitHubIndexerConfiguration> configuration)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
@@ -40,7 +39,7 @@ namespace NuGet.Jobs.GitHubIndexer
         /// Searches for all the C# repos that have more than 100 stars on GitHub, orders them in Descending order and returns them.
         /// </summary>
         /// <returns>List of C# repos on GitHub that have more than 100 stars</returns>
-        public async Task<IReadOnlyList<RepositoryInformation>> GetPopularRepositories()
+        public async Task<IReadOnlyList<WritableRepositoryInformation>> GetPopularRepositories()
         {
             _logger.LogInformation("Starting search on GitHub...");
             var result = await GetResultsFromGitHub();
@@ -55,8 +54,8 @@ namespace NuGet.Jobs.GitHubIndexer
         {
             if (_searchApiRequester.GetRemainingRequestCount() == 0)
             {
-                var sleepTime = _throttleResetTime - DateTimeOffset.Now;
-                _throttleResetTime = DateTimeOffset.Now;
+                var sleepTime = _throttleResetTime - DateTimeOffset.UtcNow;
+                _throttleResetTime = DateTimeOffset.UtcNow;
                 if (sleepTime.TotalSeconds > 0)
                 {
                     _logger.LogInformation("Waiting {TotalSeconds} seconds to cooldown.", sleepTime.TotalSeconds);
@@ -67,7 +66,7 @@ namespace NuGet.Jobs.GitHubIndexer
             }
         }
 
-        private async Task<IReadOnlyList<RepositoryInformation>> SearchRepo(SearchRepositoriesRequest request)
+        private async Task<IReadOnlyList<WritableRepositoryInformation>> SearchRepo(SearchRepositoriesRequest request)
         {
             _logger.LogInformation("Requesting page {Page} for stars {Stars}", request.Page, request.Stars);
 
@@ -87,20 +86,21 @@ namespace NuGet.Jobs.GitHubIndexer
                 }
             }
 
-            if (_throttleResetTime < DateTimeOffset.Now)
+            if (_throttleResetTime < DateTimeOffset.UtcNow)
             {
                 var timeToWait = response.ThrottleResetTime - response.Date;
-                _throttleResetTime = DateTimeOffset.Now + timeToWait;
+                _throttleResetTime = DateTimeOffset.UtcNow + timeToWait;
             }
 
             return response.Result;
         }
 
-        private async Task<List<RepositoryInformation>> GetResultsFromGitHub()
+        private async Task<IReadOnlyList<WritableRepositoryInformation>> GetResultsFromGitHub()
         {
-            _throttleResetTime = DateTimeOffset.Now;
+            _logger.LogInformation("Starting GitHub search with configuration: {ConfigInfo}", GetConfigInfo());
+            _throttleResetTime = DateTimeOffset.UtcNow;
             var upperStarBound = int.MaxValue;
-            var resultList = new List<RepositoryInformation>();
+            var resultList = new List<WritableRepositoryInformation>();
             var lastPage = Math.Ceiling(_maxGithubResultPerQuery / (double)_resultsPerPage);
 
             while (upperStarBound >= _minStars)
