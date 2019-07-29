@@ -147,5 +147,15 @@ namespace NuGetGallery.AccountDeleter
         {
             throw new NotImplementedException();
         }
+
+        public IReadOnlyList<User> GetSiteAdmins()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task SetIsAdministrator(User user, bool isAdmin)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

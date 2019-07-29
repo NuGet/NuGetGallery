@@ -53,6 +53,7 @@ using SecretReaderFactory = NuGetGallery.Configuration.SecretReader.SecretReader
 using Microsoft.Extensions.Http;
 using NuGetGallery.Infrastructure.Lucene;
 using System.Threading;
+using Role = NuGet.Services.Entities.Role;
 
 namespace NuGetGallery
 {
@@ -176,6 +177,11 @@ namespace NuGetGallery
             builder.RegisterType<EntityRepository<User>>()
                 .AsSelf()
                 .As<IEntityRepository<User>>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<EntityRepository<Role>>()
+                .AsSelf()
+                .As<IEntityRepository<Role>>()
                 .InstancePerLifetimeScope();
 
             builder.RegisterType<EntityRepository<ReservedNamespace>>()

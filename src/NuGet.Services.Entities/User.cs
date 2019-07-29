@@ -177,7 +177,7 @@ namespace NuGet.Services.Entities
 
         public bool IsInRole(string roleName)
         {
-            return Roles.Any(r => String.Equals(r.Name, roleName, StringComparison.OrdinalIgnoreCase));
+            return Roles.Any(r => r.Is(roleName));
         }
 
         public bool Equals(User other)

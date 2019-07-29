@@ -140,6 +140,7 @@
     <Compile Include="Areas\Admin\Controllers\ReservedNamespaceController.cs" />
     <Compile Include="Areas\Admin\Controllers\RevalidationController.cs" />
     <Compile Include="Areas\Admin\Controllers\SecurityPolicyController.cs" />
+    <Compile Include="Areas\Admin\Controllers\SiteAdminsController.cs" />
     <Compile Include="Areas\Admin\Controllers\SupportRequestController.cs" />
     <Compile Include="Areas\Admin\Controllers\ValidationController.cs" />
     <Compile Include="Areas\Admin\DynamicData\FieldTemplates\Url_Edit.ascx.cs">
@@ -185,6 +186,7 @@
     <Compile Include="Areas\Admin\ViewModels\LockPackageViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\ModifyFeatureFlagsFeatureViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\ModifyFeatureFlagsFlightViewModel.cs" />
+    <Compile Include="Areas\Admin\ViewModels\SiteAdminsViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\ValidatedPackageViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\RevalidationPageViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\ValidationPageViewModel.cs" />
@@ -1765,6 +1767,7 @@
     <Content Include="Areas\Admin\Views\Features\_AddFlight.cshtml" />
     <Content Include="Areas\Admin\Views\Features\_EditFlight.cshtml" />
     <Content Include="App_Data\Files\Content\AB-Test-Configuration.json" />
+    <Content Include="Areas\Admin\Views\SiteAdmins\Index.cshtml" />
     <None Include="Properties\PublishProfiles\nuget-staging-frontend.pubxml" />
     <Content Include="Scripts\gallery\async-file-upload.js" />
     <Content Include="Scripts\gallery\autocomplete.js" />

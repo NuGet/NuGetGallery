@@ -55,6 +55,7 @@
     <Compile Include="EntityException.cs" />
     <Compile Include="Extensions\PackageExtensions.cs" />
     <Compile Include="Extensions\PackageRegistrationExtensions.cs" />
+    <Compile Include="Extensions\RoleExtensions.cs" />
     <Compile Include="IEntity.cs" />
     <Compile Include="IPackageEntity.cs" />
     <Compile Include="Membership.cs" />

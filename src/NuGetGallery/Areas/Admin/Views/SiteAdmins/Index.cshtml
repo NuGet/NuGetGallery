@@ -1,0 +1,39 @@
+﻿@model SiteAdminsViewModel
+@{
+    ViewBag.Title = "Site Admins";
+}
+
+<section role="main" class="container main-container">
+    <h2>Current Admins</h2>
+    <table class="table">
+        @foreach (var adminUsername in Model.AdminUsernames)
+        {
+            <tr>
+                @using (Html.BeginForm("RemoveAdmin", "SiteAdmins"))
+                {
+                    <th>
+                        <a href="@Url.User(adminUsername)"
+                           title="View profile of @adminUsername">
+                            @adminUsername
+                        </a>
+                    </th>
+                    <th>
+                        @Html.AntiForgeryToken()
+                        @Html.Hidden("username", adminUsername)
+                        <button class="btn-link">
+                            <span>Remove</span>
+                        </button>
+                    </th>
+                }
+            </tr>
+        }
+    </table>
+
+    <h2>Add Admin</h2>
+    @using (Html.BeginForm("AddAdmin", "SiteAdmins"))
+    {
+        @Html.AntiForgeryToken()
+        <input type="text" name="username" />
+        <button type="submit">Add</button>
+    }
+</section>
