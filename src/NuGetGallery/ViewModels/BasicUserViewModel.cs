@@ -5,7 +5,7 @@ namespace NuGetGallery
 {
     public class BasicUserViewModel
     {
-        public string EmailAddress { get; set; } // we might want to make it private and expose Gravatar URL instead to reduce chance to leak the email address to public
+        public string EmailAddress { get; set; }
         public string Username { get; set; }
         public bool IsOrganization { get; set; }
     }
