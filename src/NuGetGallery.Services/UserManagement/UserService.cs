@@ -705,7 +705,6 @@ namespace NuGetGallery
         private Role GetAdminRole()
         {
             return RoleRepository.GetAll()
-                .Include(r => r.Users)
                 .ToList()
                 .Single(r => r.Is(Constants.AdminRoleName));
         }

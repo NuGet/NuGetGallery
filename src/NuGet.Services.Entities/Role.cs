@@ -17,10 +17,5 @@ namespace NuGet.Services.Entities
         {
             Users = new HashSet<User>();
         }
-
-        public bool Is(string roleName)
-        {
-            return string.Equals(Name, roleName, StringComparison.OrdinalIgnoreCase);
-        }
     }
 }
