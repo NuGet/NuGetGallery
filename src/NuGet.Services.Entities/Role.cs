@@ -20,7 +20,7 @@ namespace NuGet.Services.Entities
 
         public bool Is(string roleName)
         {
-            return Name.Equals(roleName, StringComparison.OrdinalIgnoreCase);
+            return string.Equals(Name, roleName, StringComparison.OrdinalIgnoreCase);
         }
     }
 }

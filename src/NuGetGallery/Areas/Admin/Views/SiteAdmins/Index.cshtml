@@ -5,28 +5,29 @@
 
 <section role="main" class="container main-container">
     <h2>Current Admins</h2>
-    @foreach (var adminUsername in Model.AdminUsernames)
-    {
-        using (Html.BeginForm("RemoveAdmin", "SiteAdmins"))
+    <table class="table">
+        @foreach (var adminUsername in Model.AdminUsernames)
         {
-            <div class="row">
-                <div class="col-xs-6">
-                    <a href="@Url.User(adminUsername)"
-                        title="View profile of @adminUsername">
-                        @adminUsername
-                    </a>
-                </div>
-                <div class="col-xs-6">
-                    @Html.AntiForgeryToken()
-                    @Html.Hidden("username", adminUsername)
-                    <a href="#" onclick="$(this).closest('form').submit()">
-                        <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
-                        <span>Remove</span>
-                    </a>
-                </div>
-            </div>
+            <tr>
+                @using (Html.BeginForm("RemoveAdmin", "SiteAdmins"))
+                {
+                    <th>
+                        <a href="@Url.User(adminUsername)"
+                           title="View profile of @adminUsername">
+                            @adminUsername
+                        </a>
+                    </th>
+                    <th>
+                        @Html.AntiForgeryToken()
+                        @Html.Hidden("username", adminUsername)
+                        <button class="btn-link">
+                            <span>Remove</span>
+                        </button>
+                    </th>
+                }
+            </tr>
         }
-    }
+    </table>
 
     <h2>Add Admin</h2>
     @using (Html.BeginForm("AddAdmin", "SiteAdmins"))
