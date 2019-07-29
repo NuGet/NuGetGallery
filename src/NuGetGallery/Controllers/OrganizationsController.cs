@@ -326,14 +326,14 @@ namespace NuGetGallery
 
         protected override string GetDeleteAccountViewName() => "DeleteOrganizationAccount";
 
-        protected override DeleteAccountViewModel<Organization> GetDeleteAccountViewModel(Organization account)
+        protected override DeleteAccountViewModel GetDeleteAccountViewModel(Organization account)
         {
             return GetDeleteOrganizationViewModel(account);
         }
 
         private DeleteOrganizationViewModel GetDeleteOrganizationViewModel(Organization account)
         {
-            return new DeleteOrganizationViewModel(account, GetCurrentUser(), PackageService);
+            return new DeleteOrganizationViewModel(account, base.GetCurrentUser(), GetOwnedPackagesViewModels(account));
         }
 
         [HttpPost]

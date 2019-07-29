@@ -7,13 +7,13 @@ using NuGet.Services.Entities;
 
 namespace NuGetGallery
 {
-    public class DeleteOrganizationViewModel : DeleteAccountViewModel<Organization>
+    public class DeleteOrganizationViewModel : DeleteAccountViewModel
     {
         public DeleteOrganizationViewModel(
             Organization organizationToDelete, 
-            User currentUser, 
-            IPackageService packageService)
-            : base(organizationToDelete, currentUser, packageService)
+            User currentUser,
+            IReadOnlyCollection<DeleteAccountListPackageItemViewModel> ownedPackages)
+            : base(organizationToDelete, ownedPackages)
         {
             Members = organizationToDelete.Members
                 .Select(m => new OrganizationMemberViewModel(m))

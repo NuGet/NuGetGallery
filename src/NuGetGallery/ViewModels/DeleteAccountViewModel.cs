@@ -7,38 +7,25 @@ using NuGet.Services.Entities;
 
 namespace NuGetGallery
 {
-    public class DeleteAccountViewModel<TAccount> : DeleteAccountViewModel where TAccount : User
-    {
-        public DeleteAccountViewModel(
-            TAccount accountToDelete,
-            User currentUser,
-            IPackageService packageService)
-            : base(accountToDelete, currentUser, packageService)
-        {
-            Account = accountToDelete;
-        }
-
-        public TAccount Account { get; set; }
-    }
-
     public class DeleteAccountViewModel : IDeleteAccountViewModel
     {
         public DeleteAccountViewModel(
             User userToDelete,
-            User currentUser,
-            IPackageService packageService)
+            IReadOnlyCollection<DeleteAccountListPackageItemViewModel> ownedPackages)
         {
             User = userToDelete;
 
-            Packages = packageService
-                 .FindPackagesByAnyMatchingOwner(User, includeUnlisted: true)
-                 .Select(p => new DeleteAccountListPackageItemViewModel().Setup(p, userToDelete, currentUser, packageService))
-                 .ToList();
+            //Packages = packageService
+            //     .FindPackagesByAnyMatchingOwner(User, includeUnlisted: true)
+            //     .Select(p => new DeleteAccountListPackageItemViewModel().Setup(p, userToDelete, currentUser, packageService))
+            //     .ToList();
+
+            Packages = ownedPackages;
 
             HasPackagesThatWillBeOrphaned = Packages.Any(p => p.WillBeOrphaned);
         }
 
-        public List<DeleteAccountListPackageItemViewModel> Packages { get; }
+        public IReadOnlyCollection<DeleteAccountListPackageItemViewModel> Packages { get; }
 
         public User User { get; }
 
