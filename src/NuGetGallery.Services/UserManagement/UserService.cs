@@ -25,6 +25,8 @@ namespace NuGetGallery
 
         public IEntityRepository<User> UserRepository { get; protected set; }
 
+        public IEntityRepository<Role> RoleRepository { get; protected set; }
+
         public IEntityRepository<Credential> CredentialRepository { get; protected set; }
 
         public IEntityRepository<Organization> OrganizationRepository { get; protected set; }
@@ -48,6 +50,7 @@ namespace NuGetGallery
         public UserService(
             IAppConfiguration config,
             IEntityRepository<User> userRepository,
+            IEntityRepository<Role> roleRepository,
             IEntityRepository<Credential> credentialRepository,
             IEntityRepository<Organization> organizationRepository,
             IAuditingService auditing,
@@ -62,6 +65,7 @@ namespace NuGetGallery
         {
             Config = config;
             UserRepository = userRepository;
+            RoleRepository = roleRepository;
             CredentialRepository = credentialRepository;
             OrganizationRepository = organizationRepository;
             Auditing = auditing;
@@ -661,6 +665,49 @@ namespace NuGetGallery
             await UserRepository.CommitChangesAsync();
 
             return true;
+        }
+
+        public IReadOnlyList<User> GetSiteAdmins()
+        {
+            return GetAdminRole()
+                .Users
+                .Where(u => !u.IsDeleted)
+                .ToList();
+        }
+
+        public Task SetIsAdministrator(User user, bool isAdmin)
+        {
+            if (user == null)
+            {
+                throw new ArgumentNullException(nameof(user));
+            }
+
+            var adminRole = GetAdminRole();
+            if (adminRole == null)
+            {
+                throw new InvalidOperationException("No admin role exists!");
+            }
+
+            if (isAdmin)
+            {
+                adminRole.Users.Add(user);
+                user.Roles.Add(adminRole);
+            }
+            else
+            {
+                adminRole.Users.Remove(user);
+                user.Roles.Remove(adminRole);
+            }
+
+            return RoleRepository.CommitChangesAsync();
+        }
+
+        private Role GetAdminRole()
+        {
+            return RoleRepository.GetAll()
+                .Include(r => r.Users)
+                .ToList()
+                .Single(r => r.Is(Constants.AdminRoleName));
         }
     }
 }

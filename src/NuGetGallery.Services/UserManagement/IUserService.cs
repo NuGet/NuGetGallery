@@ -56,5 +56,9 @@ namespace NuGetGallery
         Task<bool> CancelTransformUserToOrganizationRequest(User accountToTransform, string token);
 
         Task<Organization> AddOrganizationAsync(string username, string emailAddress, User adminUser);
+
+        IReadOnlyList<User> GetSiteAdmins();
+
+        Task SetIsAdministrator(User user, bool isAdmin);
     }
 }
