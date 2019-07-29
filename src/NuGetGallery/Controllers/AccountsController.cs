@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -364,9 +365,29 @@ namespace NuGetGallery
 
         protected abstract string GetDeleteAccountViewName();
 
-        protected abstract DeleteAccountViewModel<TUser> GetDeleteAccountViewModel(TUser account);
+        protected abstract DeleteAccountViewModel GetDeleteAccountViewModel(TUser account);
 
         public abstract Task<ActionResult> RequestAccountDeletion(string accountName = null);
+
+        protected List<DeleteAccountListPackageItemViewModel> GetOwnedPackagesViewModels(User account)
+        {
+            return PackageService
+                 .FindPackagesByAnyMatchingOwner(account, includeUnlisted: true)
+                 .Select(p => CreateDeleteAccountListPackageItemViewModel(p, account, GetCurrentUser()))
+                 .ToList();
+        }
+
+        private DeleteAccountListPackageItemViewModel CreateDeleteAccountListPackageItemViewModel(
+            Package package,
+            User userToDelete,
+            User currentUser)
+        {
+            var viewModel = new DeleteAccountListPackageItemViewModel();
+            ((ListPackageItemViewModel)viewModel).Setup(package, currentUser);
+            viewModel.WillBeOrphaned = PackageService.WillPackageBeOrphanedIfOwnerRemoved(package.PackageRegistration, userToDelete);
+            return viewModel;
+        }
+
 
         protected virtual TUser GetAccount(string accountName)
         {

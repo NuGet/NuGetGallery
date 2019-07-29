@@ -249,7 +249,7 @@
                         </ul>
                         @if (!Model.PackageValidationIssues.Any(i => i.IssueCode == ValidationIssueCode.Unknown))
                         {
-                            var issuePluralString = Model.PackageValidationIssues.Count() > 1 ? "all the issues" : "the issue";
+                            var issuePluralString = Model.PackageValidationIssues.Count > 1 ? "all the issues" : "the issue";
                             <text>Once you've fixed @issuePluralString with your package, you can reupload it with the same ID and version.</text>
                         }
                         else
@@ -931,9 +931,9 @@ foreach (var owner in Model.Owners)
             <li>
                 @if (!String.IsNullOrEmpty(owner.EmailAddress))
     {
-            <a href="@Url.User(owner)" title="@owner.Username">@ViewHelpers.GravatarImage(owner.EmailAddress, owner.Username, GalleryConstants.GravatarElementSize)</a>
+            <a href="@Url.User(owner.Username)" title="@owner.Username">@ViewHelpers.GravatarImage(owner.EmailAddress, owner.Username, GalleryConstants.GravatarElementSize)</a>
 }
-                <a href="@Url.User(owner)" title="@owner.Username">
+                <a href="@Url.User(owner.Username)" title="@owner.Username">
                     @owner.Username
                 </a>
             </li>

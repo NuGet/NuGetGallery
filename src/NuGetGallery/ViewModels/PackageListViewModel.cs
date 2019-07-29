@@ -12,8 +12,7 @@ namespace NuGetGallery
     public class PackageListViewModel
     {
         public PackageListViewModel(
-            IQueryable<Package> packages,
-            User currentUser,
+            IReadOnlyCollection<ListPackageItemViewModel> items,
             DateTime? indexTimestampUtc,
             string searchTerm,
             int totalCount,
@@ -23,8 +22,6 @@ namespace NuGetGallery
             bool includePrerelease,
             bool isPreviewSearch)
         {
-            // TODO: Implement actual sorting
-            IEnumerable<ListPackageItemViewModel> items = packages.ToList().Select(pv => new ListPackageItemViewModel(pv, currentUser));
             PageIndex = pageIndex;
             IndexTimestampUtc = indexTimestampUtc;
             PageSize = pageSize;
@@ -38,18 +35,15 @@ namespace NuGetGallery
                 pageCount,
                 page => url.PackageList(page, searchTerm, includePrerelease));
             Items = pager.Items;
-            FirstResultIndex = 1 + (PageIndex * PageSize);
-            LastResultIndex = FirstResultIndex + Items.Count() - 1;
             Pager = pager;
             IncludePrerelease = includePrerelease;
             IsPreviewSearch = isPreviewSearch;
         }
 
-        public int FirstResultIndex { get; }
+        public int FirstResultIndex => 1 + (PageIndex * PageSize);
+        public int LastResultIndex => FirstResultIndex + Items.Count() - 1;
 
-        public IEnumerable<ListPackageItemViewModel> Items { get; }
-
-        public int LastResultIndex { get; }
+        public IReadOnlyCollection<ListPackageItemViewModel> Items { get; }
 
         public IPreviousNextPager Pager { get; }
 

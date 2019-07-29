@@ -1,10 +1,10 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using NuGet.Services.Entities;
 using NuGetGallery.Helpers;
 
 namespace NuGetGallery
@@ -15,40 +15,14 @@ namespace NuGetGallery
         private const string _omissionString = "...";
 
         private string _signatureInformation;
-
-        public ListPackageItemViewModel(Package package, User currentUser)
-            : base(package)
-        {
-            Tags = package.Tags?
-                .Split(' ')
-                .Where(t => !string.IsNullOrEmpty(t))
-                .Select(t => t.Trim())
-                .ToArray();
-
-            Authors = package.FlattenedAuthors;
-            MinClientVersion = package.MinClientVersion;
-            Owners = package.PackageRegistration?.Owners;
-            IsVerified = package.PackageRegistration?.IsVerified;
-
-            bool wasTruncated;
-            ShortDescription = Description.TruncateAtWordBoundary(_descriptionLengthLimit, _omissionString, out wasTruncated);
-            IsDescriptionTruncated = wasTruncated;
-
-            CanDisplayPrivateMetadata = CanPerformAction(currentUser, package, ActionsRequiringPermissions.DisplayPrivatePackageMetadata);
-            CanEdit = CanPerformAction(currentUser, package, ActionsRequiringPermissions.EditPackage);
-            CanUnlistOrRelist = CanPerformAction(currentUser, package, ActionsRequiringPermissions.UnlistOrRelistPackage);
-            CanManageOwners = CanPerformAction(currentUser, package, ActionsRequiringPermissions.ManagePackageOwnership);
-            CanReportAsOwner = CanPerformAction(currentUser, package, ActionsRequiringPermissions.ReportPackageAsOwner);
-            CanSeeBreadcrumbWithProfile = CanPerformAction(currentUser, package, ActionsRequiringPermissions.ShowProfileBreadcrumb);
-            CanDeleteSymbolsPackage = CanPerformAction(currentUser, package, ActionsRequiringPermissions.DeleteSymbolPackage);
-            CanDeprecate = CanPerformAction(currentUser, package, ActionsRequiringPermissions.DeprecatePackage);
-        }
+        private IReadOnlyCollection<string> _signerUsernames;
+        private string _sha1Thumbprint;
 
         public string Authors { get; set; }
-        public ICollection<User> Owners { get; set; }
-        public IEnumerable<string> Tags { get; set; }
+        public IReadOnlyCollection<BasicUserViewModel> Owners { get; set; }
+        public IReadOnlyCollection<string> Tags { get; set; }
         public string MinClientVersion { get; set; }
-        public string ShortDescription { get; set; }
+        public string ShortDescription { get; private set; }
         public bool IsDescriptionTruncated { get; set; }
         public bool? IsVerified { get; set; }
         public string SignatureInformation
@@ -84,21 +58,32 @@ namespace NuGetGallery
         public bool CanDeleteSymbolsPackage { get; set; }
         public bool CanDeprecate { get; set; }
 
-        private static bool CanPerformAction(User currentUser, Package package, ActionRequiringPackagePermissions action)
+        public void SetShortDescriptionFrom(string fullDescription)
         {
-            return action.CheckPermissionsOnBehalfOfAnyAccount(currentUser, package) == PermissionsCheckResult.Allowed;
+            ShortDescription = fullDescription.TruncateAtWordBoundary(_descriptionLengthLimit, _omissionString, out var wasTruncated);
+            IsDescriptionTruncated = wasTruncated;
+        }
+
+        public void UpdateSignatureInformation(IReadOnlyCollection<string> signerUsernames, string sha1Thumbprint)
+        {
+            if ((signerUsernames == null && sha1Thumbprint != null) || (signerUsernames != null && sha1Thumbprint == null))
+            {
+                throw new ArgumentException($"{nameof(signerUsernames)} and {nameof(sha1Thumbprint)} arguments must either be both null or both non-null.");
+            }
+
+            _signerUsernames = signerUsernames;
+            _sha1Thumbprint = sha1Thumbprint;
+            _signatureInformation = null;
         }
 
         private string GetSignerInformation()
         {
-            if (_package.Certificate == null)
+            if (_signerUsernames == null)
             {
                 return null;
             }
 
-            var owners = _package.PackageRegistration?.Owners ?? Enumerable.Empty<User>();
-            var signers = owners.Where(owner => owner.UserCertificates.Any(uc => uc.CertificateKey == _package.CertificateKey));
-            var signersCount = signers.Count();
+            var signersCount = _signerUsernames.Count;
 
             var builder = new StringBuilder();
 
@@ -106,23 +91,23 @@ namespace NuGetGallery
 
             if (signersCount == 1)
             {
-                builder.Append($" {signers.Single().Username}'s");
+                builder.Append($" {_signerUsernames.Single()}'s");
             }
             else if (signersCount == 2)
             {
-                builder.Append($" {signers.First().Username} and {signers.Last().Username}'s");
+                builder.Append($" {_signerUsernames.First()} and {_signerUsernames.Last()}'s");
             }
             else if (signersCount != 0)
             {
-                foreach (var signer in signers.Take(signersCount - 1))
+                foreach (var signerUsername in _signerUsernames.Take(signersCount - 1))
                 {
-                    builder.Append($" {signer.Username},");
+                    builder.Append($" {signerUsername},");
                 }
 
-                builder.Append($" and {signers.Last().Username}'s");
+                builder.Append($" and {_signerUsernames.Last()}'s");
             }
 
-            builder.Append($" certificate ({_package.Certificate.Sha1Thumbprint})");
+            builder.Append($" certificate ({_sha1Thumbprint})");
 
             return builder.ToString();
         }
