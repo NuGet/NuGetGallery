@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using System.Data.Entity.Core.Metadata.Edm;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Azure.Search.Models;
 using Moq;

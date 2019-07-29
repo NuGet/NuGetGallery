@@ -204,7 +204,7 @@ namespace Ng.Jobs
                     {
                         await Task.Delay(_queueDelay, combinedQueueLoopCancellationToken);
                     }
-                    catch (TaskCanceledException e)
+                    catch (TaskCanceledException)
                     {
                         Logger.LogInformation("Stopped waiting before polling because task was cancelled.");
                     }

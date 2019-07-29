@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Lucene.Net.Search;
 using Microsoft.Extensions.Options;
 using NuGet.Indexing;
 using NuGet.Services.Metadata.Catalog;

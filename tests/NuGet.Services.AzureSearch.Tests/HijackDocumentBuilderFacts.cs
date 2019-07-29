@@ -172,7 +172,19 @@ namespace NuGet.Services.AzureSearch
 
             [Theory]
             [MemberData(nameof(MissingTitles))]
-            public void UsesIdWhenMissingForSortableTitle(string title)
+            public void UsesIdWhenMissingForTitle(string title)
+            {
+                var package = Data.PackageEntity;
+                package.Title = title;
+
+                var document = _target.FullFromDb(Data.PackageId, Data.HijackDocumentChanges, package);
+
+                Assert.Equal(Data.PackageId, document.Title);
+            }
+
+            [Theory]
+            [MemberData(nameof(MissingTitles))]
+            public void UsesLowerIdWhenMissingForSortableTitle(string title)
             {
                 var package = Data.PackageEntity;
                 package.Title = title;
@@ -342,7 +354,19 @@ namespace NuGet.Services.AzureSearch
 
             [Theory]
             [MemberData(nameof(MissingTitles))]
-            public void UsesIdWhenMissingForSortableTitle(string title)
+            public void UsesIdWhenMissingForTitle(string title)
+            {
+                var leaf = Data.Leaf;
+                leaf.Title = title;
+
+                var document = _target.FullFromCatalog(Data.NormalizedVersion, Data.HijackDocumentChanges, leaf);
+
+                Assert.Equal(Data.PackageId, document.Title);
+            }
+
+            [Theory]
+            [MemberData(nameof(MissingTitles))]
+            public void UsesLowerIdWhenMissingForSortableTitle(string title)
             {
                 var leaf = Data.Leaf;
                 leaf.Title = title;
