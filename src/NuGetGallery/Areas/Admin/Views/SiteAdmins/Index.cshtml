@@ -19,7 +19,7 @@
                 <div class="col-xs-6">
                     @Html.AntiForgeryToken()
                     @Html.Hidden("username", adminUsername)
-                    <a href="#" onclick="$(this).closest('form').submit()" class="icon-link">
+                    <a href="#" onclick="$(this).closest('form').submit()">
                         <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
                         <span>Remove</span>
                     </a>
