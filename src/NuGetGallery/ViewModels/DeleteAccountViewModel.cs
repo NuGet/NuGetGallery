@@ -7,40 +7,25 @@ using NuGet.Services.Entities;
 
 namespace NuGetGallery
 {
-    public class DeleteAccountViewModel<TAccount> : DeleteAccountViewModel where TAccount : User
-    {
-        public DeleteAccountViewModel(
-            TAccount accountToDelete,
-            User currentUser,
-            IPackageService packageService,
-            IIconUrlProvider iconUrlProvider)
-            : base(accountToDelete, currentUser, packageService, iconUrlProvider)
-        {
-            Account = accountToDelete;
-        }
-
-        public TAccount Account { get; set; }
-    }
-
     public class DeleteAccountViewModel : IDeleteAccountViewModel
     {
         public DeleteAccountViewModel(
             User userToDelete,
-            User currentUser,
-            IPackageService packageService,
-            IIconUrlProvider iconUrlProvider)
+            IReadOnlyCollection<DeleteAccountListPackageItemViewModel> ownedPackages)
         {
             User = userToDelete;
 
-            Packages = packageService
-                 .FindPackagesByAnyMatchingOwner(User, includeUnlisted: true)
-                 .Select(p => new DeleteAccountListPackageItemViewModel(p, userToDelete, currentUser, packageService, iconUrlProvider.GetIconUrlString(p)))
-                 .ToList();
+            //Packages = packageService
+            //     .FindPackagesByAnyMatchingOwner(User, includeUnlisted: true)
+            //     .Select(p => new DeleteAccountListPackageItemViewModel().Setup(p, userToDelete, currentUser, packageService))
+            //     .ToList();
+
+            Packages = ownedPackages;
 
             HasPackagesThatWillBeOrphaned = Packages.Any(p => p.WillBeOrphaned);
         }
 
-        public List<DeleteAccountListPackageItemViewModel> Packages { get; }
+        public IReadOnlyCollection<DeleteAccountListPackageItemViewModel> Packages { get; }
 
         public User User { get; }
 
@@ -51,18 +36,7 @@ namespace NuGetGallery
 
     public class DeleteAccountListPackageItemViewModel : ListPackageItemViewModel
     {
-        public DeleteAccountListPackageItemViewModel(
-            Package package, 
-            User userToDelete, 
-            User currentUser, 
-            IPackageService packageService,
-            string overrideIconUrl)
-            : base(package, currentUser, overrideIconUrl)
-        {
-            WillBeOrphaned = packageService.WillPackageBeOrphanedIfOwnerRemoved(package.PackageRegistration, userToDelete);
-        }
-
-        public bool WillBeOrphaned { get; }
+        public bool WillBeOrphaned { get; set; }
     }
 
     public interface IDeleteAccountViewModel

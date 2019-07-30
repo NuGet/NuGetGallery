@@ -2123,6 +2123,105 @@ namespace NuGetGallery
                 service.MockUserRepository.Verify(x => x.CommitChangesAsync(), Times.Once);
             }
         }
+
+        public class TheGetSiteAdminsMethod
+        {
+            [Fact]
+            public void ReturnsExpectedUsers()
+            {
+                var adminRole = new Role { Key = 0, Name = Constants.AdminRoleName };
+
+                var notAdminUser = new User { Username = "notAdminUser", Key = 1, EmailAddress = "notAdminUser@example.org" };
+                var notAdminDeletedUser = new User { Username = "notAdminDeletedUser", Key = 1, EmailAddress = "notAdminDeletedUser@example.org" };
+
+                var adminUser = new User { Username = "adminUser", Key = 1, EmailAddress = "adminUser@example.org" };
+                adminRole.Users.Add(adminUser);
+                adminUser.Roles.Add(adminRole);
+                var adminDeletedUser = new User { Username = "adminDeletedUser", Key = 1, EmailAddress = "adminDeletedUser@example.org" };
+                adminRole.Users.Add(adminDeletedUser);
+                adminDeletedUser.Roles.Add(adminRole);
+
+                var service = new TestableUserServiceWithDBFaking
+                {
+                    Users = new[] { notAdminUser, notAdminDeletedUser, adminUser, adminDeletedUser },
+                    Roles = new[] { adminRole }
+                };
+
+                var result = service.GetSiteAdmins();
+                Assert.Equal(1, result.Count);
+                Assert.Equal(adminUser, result.Single());
+            }
+        }
+
+        public class TheSetIsAdministratorMethod
+        {
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public Task ThrowsArgumentNullExceptionIfUserNull(bool isAdmin)
+            {
+                var service = new TestableUserService();
+                return Assert.ThrowsAsync<ArgumentNullException>(() => service.SetIsAdministrator(null, isAdmin));
+            }
+
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public Task ThrowsInvalidOperationExceptionIfRoleNull(bool isAdmin)
+            {
+                var user = new User();
+                var service = new TestableUserService();
+                return Assert.ThrowsAsync<InvalidOperationException>(() => service.SetIsAdministrator(user, isAdmin));
+            }
+
+            [Fact]
+            public async Task AddsAdminCorrectly()
+            {
+                // Arrange
+                var adminRole = new Role { Key = 0, Name = Constants.AdminRoleName };
+                var user = new User { Username = "user", Key = 1, EmailAddress = "user@example.org" };
+
+                var service = new TestableUserServiceWithDBFaking
+                {
+                    Users = new[] { user },
+                    Roles = new[] { adminRole }
+                };
+
+                // Act
+                await service.SetIsAdministrator(user, true);
+
+                // Assert
+                service.FakeEntitiesContext.VerifyCommitChanges();
+
+                Assert.Contains(user, adminRole.Users);
+                Assert.Contains(adminRole, user.Roles);
+            }
+
+            [Fact]
+            public async Task RemovesAdminCorrectly()
+            {
+                // Arrange
+                var adminRole = new Role { Key = 0, Name = Constants.AdminRoleName };
+                var user = new User { Username = "user", Key = 1, EmailAddress = "user@example.org" };
+                adminRole.Users.Add(user);
+                user.Roles.Add(adminRole);
+
+                var service = new TestableUserServiceWithDBFaking
+                {
+                    Users = new[] { user },
+                    Roles = new[] { adminRole }
+                };
+
+                // Act
+                await service.SetIsAdministrator(user, false);
+
+                // Assert
+                service.FakeEntitiesContext.VerifyCommitChanges();
+
+                Assert.DoesNotContain(user, adminRole.Users);
+                Assert.DoesNotContain(adminRole, user.Roles);
+            }
+        }
     }
 }
 

@@ -117,7 +117,7 @@ namespace NuGetGallery
 
                 // Act
                 var result = urlHelper.PackageRegistrationTemplate()
-                    .Resolve(new ListPackageItemViewModel(package, currentUser: null, overrideIconUrl: null));
+                    .Resolve(new ListPackageItemViewModel().Setup(package, currentUser: null));
 
                 // Assert
                 Assert.Equal(urlHelper.Package(package.PackageRegistration), result);
@@ -207,7 +207,7 @@ namespace NuGetGallery
                 var urlHelper = TestUtility.MockUrlHelper();
                 
                 var idModel = new TrivialPackageVersionModel(packageId, version: null);
-                var versionModel = new ListPackageItemViewModel(package, currentUser: null, overrideIconUrl: null);
+                var versionModel = new ListPackageItemViewModel().Setup(package, currentUser: null);
 
                 // Act
                 var idResult = urlHelper.PackageVersionAction(action, idModel);

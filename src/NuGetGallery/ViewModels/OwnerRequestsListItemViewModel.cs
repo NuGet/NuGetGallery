@@ -12,8 +12,7 @@ namespace NuGetGallery
             Request = request;
 
             var package = packageService.FindPackageByIdAndVersion(request.PackageRegistration.Id, version: null, semVerLevelKey: SemVerLevelKey.SemVer2, allowPrerelease: true);
-            var icon = iconUrlProvider.GetIconUrlString(package);
-            Package = new ListPackageItemViewModel(package, currentUser, icon);
+            Package = new ListPackageItemViewModel().Setup(package, currentUser);
 
             CanAccept = ActionsRequiringPermissions.HandlePackageOwnershipRequest.CheckPermissions(currentUser, Request.NewOwner) == PermissionsCheckResult.Allowed;
             CanCancel = Package.CanManageOwners;

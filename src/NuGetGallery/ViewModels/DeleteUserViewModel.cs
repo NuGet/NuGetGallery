@@ -9,15 +9,14 @@ using NuGetGallery.Areas.Admin.Models;
 
 namespace NuGetGallery
 {
-    public class DeleteUserViewModel : DeleteAccountViewModel<User>
+    public class DeleteUserViewModel : DeleteAccountViewModel
     {
         public DeleteUserViewModel(
             User userToDelete,
-            User currentUser,
             IPackageService packageService,
-            ISupportRequestService supportRequestService,
-            IIconUrlProvider iconUrlProvider)
-            : base(userToDelete, currentUser, packageService, iconUrlProvider)
+            IReadOnlyCollection<DeleteAccountListPackageItemViewModel> ownedPackages,
+            ISupportRequestService supportRequestService)
+            : base(userToDelete, ownedPackages)
         {
             Organizations = userToDelete.Organizations
                 .Select(u => new ManageOrganizationsItemViewModel(u, packageService));

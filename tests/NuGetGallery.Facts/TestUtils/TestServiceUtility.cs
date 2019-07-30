@@ -19,6 +19,7 @@ namespace NuGetGallery.TestUtils
         public Mock<IAppConfiguration> MockConfig { get; protected set; }
         public Mock<ISecurityPolicyService> MockSecurityPolicyService { get; protected set; }
         public Mock<IEntityRepository<User>> MockUserRepository { get; protected set; }
+        public Mock<IEntityRepository<Role>> MockRoleRepository { get; protected set; }
         public Mock<IEntityRepository<Credential>> MockCredentialRepository { get; protected set; }
         public Mock<IEntityRepository<Organization>> MockOrganizationRepository { get; protected set; }
         public Mock<IEntitiesContext> MockEntitiesContext { get; protected set; }
@@ -33,6 +34,7 @@ namespace NuGetGallery.TestUtils
             Config = (MockConfig = new Mock<IAppConfiguration>()).Object;
             SecurityPolicyService = (MockSecurityPolicyService = new Mock<ISecurityPolicyService>()).Object;
             UserRepository = (MockUserRepository = new Mock<IEntityRepository<User>>()).Object;
+            RoleRepository = (MockRoleRepository = new Mock<IEntityRepository<Role>>()).Object;
             CredentialRepository = (MockCredentialRepository = new Mock<IEntityRepository<Credential>>()).Object;
             OrganizationRepository = (MockOrganizationRepository = new Mock<IEntityRepository<Organization>>()).Object;
             EntitiesContext = (MockEntitiesContext = new Mock<IEntitiesContext>()).Object;
@@ -64,11 +66,20 @@ namespace NuGetGallery.TestUtils
             }
         }
 
+        public IEnumerable<Role> Roles
+        {
+            set
+            {
+                foreach (Role r in value) FakeEntitiesContext.Set<Role>().Add(r);
+            }
+        }
+
         public TestableUserServiceWithDBFaking(FakeEntitiesContext context = null)
         {
             FakeEntitiesContext = context ?? new FakeEntitiesContext();
             Config = (MockConfig = new Mock<IAppConfiguration>()).Object;
             UserRepository = new EntityRepository<User>(FakeEntitiesContext);
+            RoleRepository = new EntityRepository<Role>(FakeEntitiesContext);
             Auditing = new TestAuditingService();
             TelemetryService = new TelemetryService();
         }

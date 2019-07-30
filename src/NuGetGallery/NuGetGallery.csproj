@@ -140,6 +140,7 @@
     <Compile Include="Areas\Admin\Controllers\ReservedNamespaceController.cs" />
     <Compile Include="Areas\Admin\Controllers\RevalidationController.cs" />
     <Compile Include="Areas\Admin\Controllers\SecurityPolicyController.cs" />
+    <Compile Include="Areas\Admin\Controllers\SiteAdminsController.cs" />
     <Compile Include="Areas\Admin\Controllers\SupportRequestController.cs" />
     <Compile Include="Areas\Admin\Controllers\ValidationController.cs" />
     <Compile Include="Areas\Admin\DynamicData\FieldTemplates\Url_Edit.ascx.cs">
@@ -185,6 +186,7 @@
     <Compile Include="Areas\Admin\ViewModels\LockPackageViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\ModifyFeatureFlagsFeatureViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\ModifyFeatureFlagsFlightViewModel.cs" />
+    <Compile Include="Areas\Admin\ViewModels\SiteAdminsViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\ValidatedPackageViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\RevalidationPageViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\ValidationPageViewModel.cs" />
@@ -207,6 +209,13 @@
     <Compile Include="Controllers\ExperimentsController.cs" />
     <Compile Include="Controllers\ManageDeprecationJsonApiController.cs" />
     <Compile Include="ExtensionMethods.cs" />
+    <Compile Include="Helpers\ViewModelExtensions\DeletePackageViewModelExtensions.cs" />
+    <Compile Include="Helpers\ViewModelExtensions\DisplayLicenseViewModelExtensions.cs" />
+    <Compile Include="Helpers\ViewModelExtensions\DisplayPackageViewModelExtensions.cs" />
+    <Compile Include="Helpers\ViewModelExtensions\ListPackageItemRequiredSignerViewModelExtensions.cs" />
+    <Compile Include="Helpers\ViewModelExtensions\ListPackageItemViewModelExtensions.cs" />
+    <Compile Include="Helpers\ViewModelExtensions\ManagePackageViewModelExtensions.cs" />
+    <Compile Include="Helpers\ViewModelExtensions\PackageViewModelExtensions.cs" />
     <Compile Include="Infrastructure\ABTestEnrollment.cs" />
     <Compile Include="Infrastructure\ABTestEnrollmentState.cs" />
     <Compile Include="Infrastructure\ABTestEnrollmentFactory.cs" />
@@ -655,6 +664,7 @@
     <Compile Include="ViewModels\HandleOrganizationMembershipRequestModel.cs" />
     <Compile Include="ViewModels\ListPackageItemRequiredSignerViewModel.cs" />
     <Compile Include="ViewModels\ManagePackageViewModel.cs" />
+    <Compile Include="ViewModels\BasicUserViewModel.cs" />
     <Compile Include="ViewModels\SearchSideBySideViewModel.cs" />
     <Compile Include="ViewModels\SignerViewModel.cs" />
     <Compile Include="WebRole.cs" />
@@ -1776,6 +1786,7 @@
     <Content Include="Areas\Admin\Views\Features\_AddFlight.cshtml" />
     <Content Include="Areas\Admin\Views\Features\_EditFlight.cshtml" />
     <Content Include="App_Data\Files\Content\AB-Test-Configuration.json" />
+    <Content Include="Areas\Admin\Views\SiteAdmins\Index.cshtml" />
     <None Include="Properties\PublishProfiles\nuget-staging-frontend.pubxml" />
     <Content Include="Scripts\gallery\async-file-upload.js" />
     <Content Include="Scripts\gallery\autocomplete.js" />

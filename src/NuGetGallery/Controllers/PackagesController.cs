@@ -753,7 +753,7 @@ namespace NuGetGallery
             }
 
             var deprecation = _deprecationService.GetDeprecationByPackage(package);
-            var model = new DisplayPackageViewModel(package, currentUser, deprecation, _iconUrlProvider);
+            var model = new DisplayPackageViewModel().Setup(package, currentUser, deprecation);
 
             model.ValidatingTooLong = _validationService.IsValidatingTooLong(package);
             model.PackageValidationIssues = _validationService.GetLatestPackageValidationIssues(package);
@@ -867,7 +867,7 @@ namespace NuGetGallery
             // the last edited or created package is used as the feed timestamp
             var lastUpdatedPackage = packageVersions.Max(x => x.LastEdited ?? x.Created);
 
-            SyndicationFeed feed = new SyndicationFeed()
+            var feed = new SyndicationFeed()
             {
                 Id = Url.Package(packageRegistration.Id, version: null, relativeUrl: false),
                 Title = SyndicationContent.CreatePlaintextContent($"{_config.Brand} Feed for {packageRegistration.Id}"),
@@ -955,7 +955,7 @@ namespace NuGetGallery
                 throw;
             }
 
-            var model = new DisplayLicenseViewModel(package, licenseExpressionSegments, licenseFileContents, _iconUrlProvider.GetIconUrlString(package));
+            var model = new DisplayLicenseViewModel().Setup(package, licenseExpressionSegments, licenseFileContents);
 
             return View(model);
         }
@@ -1040,8 +1040,12 @@ namespace NuGetGallery
             }
 
             var currentUser = GetCurrentUser();
+            var items = results.Data
+                .Select(pv => new ListPackageItemViewModel().Setup(pv, currentUser))
+                .ToList();
+
             var viewModel = new PackageListViewModel(
-                results.Data.Select(p => new ListPackageItemViewModel(p, currentUser, _iconUrlProvider.GetIconUrlString(p))).ToList(),
+                items,
                 results.IndexTimestampUtc,
                 q,
                 totalHits,
@@ -1496,14 +1500,14 @@ namespace NuGetGallery
             }
 
             var currentUser = GetCurrentUser();
-            var model = new ManagePackageViewModel(
+            var model = new ManagePackageViewModel().Setup(
                 package,
                 GetCurrentUser(),
                 ReportMyPackageReasons,
                 Url,
                 await _readMeService.GetReadMeMdAsync(package),
-                _featureFlagService.IsManageDeprecationEnabled(currentUser, package.PackageRegistration),
-                _iconUrlProvider.GetIconUrlString(package));
+                _featureFlagService.IsManageDeprecationEnabled(currentUser, package.PackageRegistration));
+            model.IconUrl = _iconUrlProvider.GetIconUrlString(package);
 
             if (!model.CanEdit && !model.CanManageOwners && !model.CanUnlistOrRelist)
             {
@@ -1546,7 +1550,7 @@ namespace NuGetGallery
                 return HttpForbidden();
             }
 
-            var model = new DeletePackageViewModel(package, currentUser, DeleteReasons, _iconUrlProvider);
+            var model = new DeletePackageViewModel().Setup(package, currentUser, DeleteReasons);
 
             // Fetch all versions of the package with symbols.
             var versionsWithSymbols = packages
@@ -1560,7 +1564,7 @@ namespace NuGetGallery
                     Text = PackageHelper.GetSelectListText(versionWithSymbols),
                     Value = Url.DeleteSymbolsPackage(new TrivialPackageVersionModel(versionWithSymbols)),
                     Selected = package == versionWithSymbols
-                });
+                }).ToList();
 
             return View(model);
         }

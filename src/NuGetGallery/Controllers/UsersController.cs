@@ -109,9 +109,9 @@ namespace NuGetGallery
 
         protected override string GetDeleteAccountViewName() => "DeleteUserAccount";
 
-        protected override DeleteAccountViewModel<User> GetDeleteAccountViewModel(User account)
+        protected override DeleteAccountViewModel GetDeleteAccountViewModel(User account)
         {
-            return new DeleteUserViewModel(account, GetCurrentUser(), PackageService, _supportRequestService, _iconUrlProvider);
+            return new DeleteUserViewModel(account, PackageService, GetOwnedPackagesViewModels(account), _supportRequestService);
         }
 
         [HttpGet]
@@ -438,12 +438,12 @@ namespace NuGetGallery
             var packages = PackageService.FindPackagesByAnyMatchingOwner(currentUser, includeUnlisted: true);
             var listedPackages = packages
                 .Where(p => p.Listed && p.PackageStatusKey == PackageStatus.Available)
-                .Select(p => new ListPackageItemRequiredSignerViewModel(p, currentUser, SecurityPolicyService, wasAADLoginOrMultiFactorAuthenticated, _iconUrlProvider.GetIconUrlString(p)))
+                .Select(p => new ListPackageItemRequiredSignerViewModel().Setup(p, currentUser, SecurityPolicyService, wasAADLoginOrMultiFactorAuthenticated))
                 .OrderBy(p => p.Id)
                 .ToList();
             var unlistedPackages = packages
                 .Where(p => !p.Listed || p.PackageStatusKey != PackageStatus.Available)
-                .Select(p => new ListPackageItemRequiredSignerViewModel(p, currentUser, SecurityPolicyService, wasAADLoginOrMultiFactorAuthenticated, _iconUrlProvider.GetIconUrlString(p)))
+                .Select(p => new ListPackageItemRequiredSignerViewModel().Setup(p, currentUser, SecurityPolicyService, wasAADLoginOrMultiFactorAuthenticated))
                 .OrderBy(p => p.Id)
                 .ToList();
 
@@ -616,9 +616,11 @@ namespace NuGetGallery
             var packages = PackageService.FindPackagesByOwner(user, includeUnlisted: false)
                 .Where(p => p.PackageStatusKey == PackageStatus.Available)
                 .OrderByDescending(p => p.PackageRegistration.DownloadCount)
-                .Select(p => new ListPackageItemViewModel(p, currentUser, _iconUrlProvider.GetIconUrlString(p))
+                .Select(p => 
                 {
-                    DownloadCount = p.PackageRegistration.DownloadCount
+                    var viewModel = new ListPackageItemViewModel().Setup(p, currentUser);
+                    viewModel.DownloadCount = p.PackageRegistration.DownloadCount;
+                    return viewModel;
                 }).ToList();
 
             var model = new UserProfileModel(user, currentUser, packages, page - 1, GalleryConstants.DefaultPackageListPageSize, Url);
