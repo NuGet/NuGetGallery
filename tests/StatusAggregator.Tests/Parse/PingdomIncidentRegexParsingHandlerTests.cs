@@ -22,13 +22,9 @@ namespace StatusAggregator.Tests.Parse
             [Fact]
             public void ReturnsFalseIfUnexpectedCheck()
             {
-                var match = ParsingUtility.GetMatchWithGroup(
-                    PingdomIncidentRegexParsingHandler.CheckNameGroupName,
-                    "invalid");
-
-                var result = Handler.TryParseAffectedComponentPath(Incident, match.Groups, out var path);
-
-                Assert.False(result);
+                var title = $"Pingdom check 'invalid' is failing! 'https://test' is DOWN!";
+                IncidentParsingHandlerTestUtility.AssertTryParseAffectedComponentPath(
+                    Handler, new Incident { Title = title }, false, null);
             }
 
             public static IEnumerable<object[]> ReturnsExpectedPath_Data => CheckNameMapping.Select(p => new object[] { p.Key, p.Value });
@@ -183,14 +179,9 @@ namespace StatusAggregator.Tests.Parse
             [MemberData(nameof(ReturnsExpectedPath_Data))]
             public void ReturnsExpectedPath(string checkName, string[] names)
             {
-                var match = ParsingUtility.GetMatchWithGroup(
-                    PingdomIncidentRegexParsingHandler.CheckNameGroupName, 
-                    checkName);
-
-                var result = Handler.TryParseAffectedComponentPath(Incident, match.Groups, out var path);
-
-                Assert.True(result);
-                Assert.Equal(ComponentUtility.GetPath(names), path);
+                var title = $"Pingdom check '{checkName}' is failing! 'https://test' is DOWN!";
+                IncidentParsingHandlerTestUtility.AssertTryParseAffectedComponentPath(
+                    Handler, new Incident { Title = title }, true, ComponentUtility.GetPath(names));
             }
 
             private static string[] CombineNames(params string[] names)
@@ -205,7 +196,7 @@ namespace StatusAggregator.Tests.Parse
             [Fact]
             public void ReturnsExpected()
             {
-                var result = Handler.TryParseAffectedComponentStatus(Incident, Match.Empty.Groups, out var status);
+                var result = Handler.TryParseAffectedComponentStatus(new Incident(), Match.Empty.Groups, out var status);
 
                 Assert.True(result);
                 Assert.Equal(ComponentStatus.Degraded, status);
@@ -214,7 +205,6 @@ namespace StatusAggregator.Tests.Parse
 
         public class PingdomIncidentRegexParsingHandlerTest
         {
-            public Incident Incident = new Incident();
             public PingdomIncidentRegexParsingHandler Handler { get; }
 
             public PingdomIncidentRegexParsingHandlerTest()

@@ -49,8 +49,9 @@ namespace StatusAggregator.Tests.Messages
 
             [Theory]
             [MemberData(nameof(AllMessageTypes_Data))]
-            public async Task ThrowsIfUnexpectedPath(MessageType type)
+            public async Task ReturnsExistingIfUnexpectedPath(MessageType type)
             {
+                // Arrange
                 var change = new MessageChangeEvent(
                     DefaultTimestamp,
                     "missingPath",
@@ -64,7 +65,11 @@ namespace StatusAggregator.Tests.Messages
                     new TestComponent("name"),
                     ComponentStatus.Down);
 
-                await Assert.ThrowsAsync<ArgumentException>(() => Processor.ProcessAsync(change, EventEntity, root, context));
+                // Act
+                var result = await Processor.ProcessAsync(change, EventEntity, root, context);
+
+                // Assert
+                Assert.Equal(context, result);
             }
 
             [Fact]

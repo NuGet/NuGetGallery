@@ -34,7 +34,7 @@ namespace StatusAggregator.Tests.Parse
                 Severity = inputSeverity
             };
 
-            var filter = ParsingUtility.CreateSeverityFilter(maximumSeverity);
+            var filter = IncidentParsingHandlerTestUtility.CreateSeverityFilter(maximumSeverity);
 
             var result = filter.ShouldParse(incident, null);
 

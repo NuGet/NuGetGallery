@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Text.RegularExpressions;
 using NuGet.Services.Incidents;
 using StatusAggregator.Parse;
 using Xunit;
@@ -47,7 +48,7 @@ namespace StatusAggregator.Tests.Parse
 
             private static Match GetMatchWithEnvironmentGroup(string environment)
             {
-                return ParsingUtility.GetMatchWithGroup(EnvironmentRegexParsingFilter.EnvironmentGroupName, environment);
+                return Regex.Match($"[{environment}]", $@"\[(?<{ EnvironmentRegexParsingFilter.EnvironmentGroupName}>.*)\]");
             }
         }
 
@@ -62,7 +63,7 @@ namespace StatusAggregator.Tests.Parse
 
             public EnvironmentRegexParsingFilterTest()
             {
-                Filter = ParsingUtility.CreateEnvironmentFilter(Environment1, Environment2);
+                Filter = IncidentParsingHandlerTestUtility.CreateEnvironmentFilter(Environment1, Environment2);
             }
         }
     }

@@ -76,9 +76,10 @@
     <Compile Include="Messages\MessageContentBuilderTests.cs" />
     <Compile Include="Messages\MessageFactoryTests.cs" />
     <Compile Include="Parse\AggregateIncidentParserTests.cs" />
+    <Compile Include="Parse\AIAvailabilityIncidentRegexParsingHandlerTests.cs" />
     <Compile Include="Parse\EnvironmentPrefixIncidentRegexParsingHandlerTests.cs" />
     <Compile Include="Parse\EnvironmentRegexParsingFilterTests.cs" />
-    <Compile Include="Parse\ParsingUtility.cs" />
+    <Compile Include="Parse\IncidentParsingHandlerTestUtility.cs" />
     <Compile Include="Parse\IncidentRegexParserTests.cs" />
     <Compile Include="Parse\OutdatedSearchServiceInstanceIncidentRegexParsingHandlerTests.cs" />
     <Compile Include="Parse\PingdomIncidentRegexParsingHandlerTests.cs" />

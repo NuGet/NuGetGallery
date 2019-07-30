@@ -56,7 +56,7 @@ namespace StatusAggregator.Tests.Parse
 
             public ValidationDurationIncidentRegexParsingHandlerTest()
             {
-                var environmentFilter = ParsingUtility.CreateEnvironmentFilter();
+                var environmentFilter = IncidentParsingHandlerTestUtility.CreateEnvironmentFilter();
                 Handler = Construct(new[] { environmentFilter });
             }
         }

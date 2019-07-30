@@ -101,6 +101,7 @@ namespace StatusAggregator
             serviceCollection.AddTransient<IIncidentRegexParsingFilter, SeverityRegexParsingFilter>();
             serviceCollection.AddTransient<IIncidentRegexParsingFilter, EnvironmentRegexParsingFilter>();
 
+            serviceCollection.AddTransient<IIncidentRegexParsingHandler, AIAvailabilityIncidentRegexParsingHandler>();
             serviceCollection.AddTransient<IIncidentRegexParsingHandler, OutdatedSearchServiceInstanceIncidentRegexParsingHandler>();
             serviceCollection.AddTransient<IIncidentRegexParsingHandler, PingdomIncidentRegexParsingHandler>();
             serviceCollection.AddTransient<IIncidentRegexParsingHandler, ValidationDurationIncidentRegexParsingHandler>();

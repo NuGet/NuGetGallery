@@ -23,20 +23,9 @@ namespace StatusAggregator.Tests.Parse
             [Fact]
             public void ReturnsFalseIfUnexpectedValues()
             {
-                var match = ParsingUtility.GetMatchWithGroups(
-                    new KeyValuePair<string, string>(
-                        EnvironmentRegexParsingFilter.EnvironmentGroupName,
-                        "environment"),
-                    new KeyValuePair<string, string>(
-                        TrafficManagerEndpointStatusIncidentRegexParsingHandler.DomainGroupName,
-                        "domain"),
-                    new KeyValuePair<string, string>(
-                        TrafficManagerEndpointStatusIncidentRegexParsingHandler.TargetGroupName,
-                        "target"));
-
-                var result = Handler.TryParseAffectedComponentPath(Incident, match.Groups, out var path);
-
-                Assert.False(result);
+                var title = "[environment] Traffic Manager for domain is reporting target as not Online!";
+                IncidentParsingHandlerTestUtility.AssertTryParseAffectedComponentPath(
+                    Handler, new Incident { Title = title }, false, null);
             }
 
             private static readonly string[] GalleryUsncPath = new[]
@@ -92,22 +81,9 @@ namespace StatusAggregator.Tests.Parse
             [MemberData(nameof(ReturnsExpected_Data))]
             public void ReturnsExpected(string environment, string domain, string target, string[] names)
             {
-                var match = ParsingUtility.GetMatchWithGroups(
-                    new KeyValuePair<string, string>(
-                        EnvironmentRegexParsingFilter.EnvironmentGroupName,
-                        environment),
-                    new KeyValuePair<string, string>(
-                        TrafficManagerEndpointStatusIncidentRegexParsingHandler.DomainGroupName,
-                        domain),
-                    new KeyValuePair<string, string>(
-                        TrafficManagerEndpointStatusIncidentRegexParsingHandler.TargetGroupName,
-                        target));
-
-                var result = Handler.TryParseAffectedComponentPath(Incident, match.Groups, out var path);
-
-                Assert.True(result);
-
-                Assert.Equal(ComponentUtility.GetPath(names), path);
+                var title = $"[{environment}] Traffic Manager for {domain} is reporting {target} as not Online!";
+                IncidentParsingHandlerTestUtility.AssertTryParseAffectedComponentPath(
+                    Handler, new Incident { Title = title }, true, ComponentUtility.GetPath(names));
             }
 
             private static Tuple<string, string, string, string[]> CreateMapping(string environment, string domain, string target, string[] names)
@@ -122,7 +98,7 @@ namespace StatusAggregator.Tests.Parse
             [Fact]
             public void ReturnsExpected()
             {
-                var result = Handler.TryParseAffectedComponentStatus(Incident, Match.Empty.Groups, out var status);
+                var result = Handler.TryParseAffectedComponentStatus(new Incident(), Match.Empty.Groups, out var status);
                 Assert.True(result);
                 Assert.Equal(ComponentStatus.Down, status);
             }
@@ -134,13 +110,12 @@ namespace StatusAggregator.Tests.Parse
             public const string Int = "int";
             public const string Prod = "prod";
 
-            public Incident Incident = new Incident();
             public TrafficManagerEndpointStatusIncidentRegexParsingHandler Handler { get; }
 
             public TrafficManagerEndpointStatusIncidentRegexParsingHandlerTest()
             {
                 Handler = new TrafficManagerEndpointStatusIncidentRegexParsingHandler(
-                    new[] { ParsingUtility.CreateEnvironmentFilter(Dev, Int, Prod) },
+                    new[] { IncidentParsingHandlerTestUtility.CreateEnvironmentFilter(Dev, Int, Prod) },
                     Mock.Of<ILogger<TrafficManagerEndpointStatusIncidentRegexParsingHandler>>());
             }
         }
