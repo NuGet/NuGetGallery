@@ -26,9 +26,9 @@
             <div>
                 <aside class="col-sm-3 col-sm-push-9">
                     @Html.Label("Logo")
-                    <a href="#" id="transform-tooltip" data-toggle="tooltip" title="We use the email address for your organization and gravatar.com to get the logo.">
+                    <span class="btn-link" id="transform-tooltip" data-toggle="tooltip" data-placement="right" title="We use the email address for your organization and gravatar.com to get the logo.">
                         <i class="ms-Icon ms-Icon--Info" aria-hidden="true" style="vertical-align: -2px"></i>
-                    </a>
+                    </span>
                     <img src="@Url.Absolute("~/Content/gallery/img/default-package-icon-256x256.png")" class="owner-image img-responsive" height="332" id="gravatar-image" width="332" alt="gravatar" title="Organization logo">
                 </aside>
 
@@ -74,6 +74,7 @@
         var organizationNameTextId = "@organizationNameTextId";
         var defaultImage = "@Html.Raw(@Url.Absolute("~/Content/gallery/img/default-package-icon-256x256.png"))";
         var emailValidationRegex = new RegExp("@Html.Raw(@GalleryConstants.EmailValidationRegex)");
+        $('#transform-tooltip').tooltip();
     </script>
     @Scripts.Render("~/Scripts/gallery/page-add-organization.min.js")
 }
