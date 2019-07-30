@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace NuGetGallery
 {
-    internal sealed class RuntimeServiceProvider : IDisposable
+    public sealed class RuntimeServiceProvider : IDisposable
     {
         private readonly CompositionContainer _compositionContainer;
         private bool _isDisposed;
@@ -29,11 +29,11 @@ namespace NuGetGallery
             }
         }
 
-        internal static RuntimeServiceProvider Create(string baseDirectoryPath)
+        public static RuntimeServiceProvider Create(string baseDirectoryPath)
         {
             if (string.IsNullOrEmpty(baseDirectoryPath))
             {
-                throw new ArgumentException(Strings.ParameterCannotBeNullOrEmpty, nameof(baseDirectoryPath));
+                throw new ArgumentException(ServicesStrings.ParameterCannotBeNullOrEmpty, nameof(baseDirectoryPath));
             }
 
             var compositionContainer = CreateCompositionContainer(baseDirectoryPath);
@@ -41,7 +41,7 @@ namespace NuGetGallery
             return new RuntimeServiceProvider(compositionContainer);
         }
 
-        internal IEnumerable<T> GetExportedValues<T>()
+        public IEnumerable<T> GetExportedValues<T>()
         {
             if (_isDisposed)
             {

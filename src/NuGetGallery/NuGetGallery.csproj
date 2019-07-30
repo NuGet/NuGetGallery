@@ -128,7 +128,6 @@
     <Compile Include="App_Start\NuGetODataV2FeedConfig.cs" />
     <Compile Include="App_Start\NuGetODataV1FeedConfig.cs" />
     <Compile Include="App_Start\NuGetODataConfig.cs" />
-    <Compile Include="App_Start\RuntimeServiceProvider.cs" />
     <Compile Include="App_Start\StorageDependent.cs" />
     <Compile Include="App_Start\SessionPersistence.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />

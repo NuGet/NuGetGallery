@@ -1,28 +1,31 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.Design;
+using System.IO;
+using System.Linq;
 using Autofac;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using NuGet.Jobs.Validation;
+using NuGet.Jobs;
 using NuGet.Jobs.Configuration;
+using NuGet.Jobs.Validation;
+using NuGet.Services.Entities;
 using NuGet.Services.Messaging;
 using NuGet.Services.Messaging.Email;
 using NuGet.Services.ServiceBus;
 using NuGetGallery.Areas.Admin;
+using NuGetGallery.Areas.Admin.Models;
 using NuGetGallery.Auditing;
 using NuGetGallery.Authentication;
-using NuGetGallery.Features;
-using NuGetGallery.Security;
-using System.Collections.Generic;
-using System.ComponentModel.Design;
-using NuGet.Services.Entities;
-using NuGetGallery.Diagnostics;
 using NuGetGallery.Configuration;
-using NuGetGallery.Areas.Admin.Models;
-using NuGet.Jobs;
+using NuGetGallery.Diagnostics;
+using NuGetGallery.Features;
 using NuGetGallery.Infrastructure.Authentication;
+using NuGetGallery.Security;
 
 namespace NuGetGallery.AccountDeleter
 {
@@ -135,6 +138,7 @@ namespace NuGetGallery.AccountDeleter
 
                 services.AddScoped<IEditableFeatureFlagStorageService, FeatureFlagFileStorageService>();
                 services.AddScoped<ICoreFileStorageService, CloudBlobFileStorageService>();
+                services.AddScoped<ICloudBlobContainerInformationProvider, GalleryCloudBlobContainerInformationProvider>();
 
                 services.AddScoped<IIndexingService, EmptyIndexingService>();
                 services.AddScoped<ICredentialBuilder, CredentialBuilder>();
@@ -154,7 +158,8 @@ namespace NuGetGallery.AccountDeleter
                     return new SupportRequestDbContext(connection);
                 });
 
-                services.AddScoped<ICloudBlobClient>(sp => {
+                services.AddScoped<ICloudBlobClient>(sp =>
+                {
                     var options = sp.GetRequiredService<IOptionsSnapshot<AccountDeleteConfiguration>>();
                     var optionsSnapshot = options.Value;
 
@@ -163,12 +168,13 @@ namespace NuGetGallery.AccountDeleter
 
                 services.AddScoped<ITelemetryService, TelemetryService>();
                 services.AddScoped<ISecurityPolicyService, SecurityPolicyService>();
-                services.AddScoped<IAuditingService>(sp => { return AuditingService.None; });
                 services.AddScoped<IAppConfiguration, GalleryConfiguration>();
                 services.AddScoped<IPackageOwnershipManagementService, PackageOwnershipManagementService>();
                 services.AddScoped<IPackageOwnerRequestService, PackageOwnerRequestService>();
                 services.AddScoped<IReservedNamespaceService, ReservedNamespaceService>();
                 services.AddScoped<MicrosoftTeamSubscription>();
+
+                RegisterAuditingServices(services);
             }
         }
 
@@ -234,6 +240,68 @@ namespace NuGetGallery.AccountDeleter
                 .AsSelf()
                 .As<IEntityRepository<PackageOwnerRequest>>()
                 .InstancePerLifetimeScope();
+        }
+
+        private void RegisterAuditingServices(IServiceCollection services)
+        {
+            if (IsDebugMode)
+            {
+                services.AddSingleton<AuditingService>(sp =>
+                {
+                    return GetAuditingServiceForLocalFileSystem();
+                });
+            }
+
+            services.AddSingleton<IAuditingService>(sp =>
+            {
+                var addInAuditingServices = GetAddInServices<IAuditingService>();
+                var auditingServices = new List<IAuditingService>(addInAuditingServices);
+
+                try
+                {
+                    auditingServices.Add(sp.GetRequiredService<AuditingService>());
+                }
+                catch (InvalidOperationException)
+                {
+                    // no default auditing service was registered, no-op
+                }
+
+                return CombineAuditingServices(auditingServices);
+            });
+        }
+
+        private static IAuditingService CombineAuditingServices(IEnumerable<IAuditingService> services)
+        {
+            if (!services.Any())
+            {
+                return null;
+            }
+
+            if (services.Count() == 1)
+            {
+                return services.First();
+            }
+
+            return new AggregateAuditingService(services);
+        }
+
+        private AuditingService GetAuditingServiceForLocalFileSystem()
+        {
+            var auditingPath = Path.Combine(
+                AppDomain.CurrentDomain.BaseDirectory,
+                FileSystemAuditingService.DefaultContainerName);
+
+            return new FileSystemAuditingService(auditingPath, AuditActor.GetAspNetOnBehalfOfAsync);
+        }
+
+        private static IEnumerable<T> GetAddInServices<T>()
+        {
+            var addInsDirectoryPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "add-ins");
+
+            using (var serviceProvider = RuntimeServiceProvider.Create(addInsDirectoryPath))
+            {
+                return serviceProvider.GetExportedValues<T>();
+            }
         }
     }
 }
