@@ -15,11 +15,6 @@ namespace NuGetGallery
         {
             User = userToDelete;
 
-            //Packages = packageService
-            //     .FindPackagesByAnyMatchingOwner(User, includeUnlisted: true)
-            //     .Select(p => new DeleteAccountListPackageItemViewModel().Setup(p, userToDelete, currentUser, packageService))
-            //     .ToList();
-
             Packages = ownedPackages;
 
             HasPackagesThatWillBeOrphaned = Packages.Any(p => p.WillBeOrphaned);
