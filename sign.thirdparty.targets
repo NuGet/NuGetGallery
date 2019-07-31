@@ -12,6 +12,8 @@
             <ThirdPartyBinaries Include="Dapper.StrongName.dll" />
             <ThirdPartyBinaries Include="Elmah.dll" />
             <ThirdPartyBinaries Include="ICSharpCode.SharpZipLib.dll" />
+            <ThirdPartyBinaries Include="lib\win32\x64\git2-572e4d8.dll" />
+            <ThirdPartyBinaries Include="lib\win32\x86\git2-572e4d8.dll" />
             <ThirdPartyBinaries Include="LibGit2Sharp.dll" />
             <ThirdPartyBinaries Include="Markdig.dll" />
             <ThirdPartyBinaries Include="MarkdownSharp.dll" />

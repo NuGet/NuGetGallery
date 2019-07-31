@@ -10,7 +10,7 @@
     <copyright>Copyright .NET Foundation</copyright>
   </metadata>
   <files>
-    <file src="bin\$configuration$\*.*" target="bin"/>
+    <file src="bin\$configuration$\**.*" target="bin"/>
     <file src="Scripts\*.ps1" />
     <file src="Scripts\nssm.exe" />
   </files>
