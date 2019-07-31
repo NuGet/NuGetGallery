@@ -112,7 +112,10 @@ namespace NuGet.Jobs.GitHubIndexer.Tests
                     new GitFileInfo(configFileNames[3], 1)
                 };
 
-                var indexer = CreateIndexer(repo, repoFiles, onDisposeHandler: null);
+                var indexer = CreateIndexer(repo,
+                    repoFiles, 
+                    // This should not be called since there is no dependencies
+                    onDisposeHandler: (string serializedValue) => Assert.True(false));
                 await indexer.RunAsync();
 
                 var result = repo.ToRepositoryInformation();
