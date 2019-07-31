@@ -37,8 +37,7 @@
                     <div class="col-md-3 text-right remove-owner">
                         <a class="icon-link"
                            href="#"
-                           title="Remove as owner of @Model.Id"
-                           data-bind="click: $root.removeOwner">
+                           data-bind="click: $root.removeOwner, attr: { 'aria-label': 'Remove ' + name() + ' as owner of @Model.Id' }">
                             <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
                             <span>Remove</span>
                         </a>
@@ -47,7 +46,7 @@
                     <!-- ko ifnot: $parent.IsAllowedToRemove($data) -->
                     <div class="col-md-3 text-right remove-owner-disabled">
                         <a class="icon-link"
-                           title="Cannot remove the only owner or reserved namespace restrictions apply.">
+                           data-bind="attr: { 'aria-label': 'You cannot remove ' + name() + ' as owner of @Model.Id because they are the only owner or they own the only reserved namespace' }">
                             <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
                             <span>Remove</span>
                         </a>
@@ -86,7 +85,7 @@
                     </div>
 
                     <div class="form-group">
-                        <input type="submit" class="btn btn-primary form-control" value="Add" title="Add the user as an owner to @Model.Id" data-bind="click: addOwner" />
+                        <input type="submit" class="btn btn-primary form-control" value="Add" aria-label="Add the user as an owner to @Model.Id" data-bind="click: addOwner" />
                     </div>
                 </div>
             }
