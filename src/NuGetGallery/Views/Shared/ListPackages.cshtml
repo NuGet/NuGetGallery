@@ -37,13 +37,7 @@
             </h1>
         </div>
         <div class="cell-controls">
-            <form action="@Url.PackageList()" method="get">
-                @Html.Hidden("q", Model.SearchTerm, new { id = "search-term" })
-                <label>
-                    <input type="checkbox" id="include-prerelease" @(Model.IncludePrerelease ? "checked" : string.Empty) />
-                    Include prerelease
-                </label>
-            </form>
+            <a href="?q=@Model.SearchTerm&prerel=@(Model.IncludePrerelease ? "false" : "true")">@(Model.IncludePrerelease ? "Hide" : "Show") prerelease</a>
         </div>
     </div>
 
