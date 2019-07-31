@@ -25,7 +25,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         public string ETag { get; }
         public Package Package { get; }
         public PackageValidationSet ValidationSet { get; }
-        public PackageValidationMessageData PackageValidationMessageData { get; }
+        public ProcessValidationSetData PackageValidationMessageData { get; }
         public PackageValidatingEntity PackageValidatingEntity { get; }
 
         [Fact]
@@ -106,10 +106,12 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 .ReturnsAsync(1);
 
             var provider = CreateProvider();
-            var packageValidationMessageData = new PackageValidationMessageData(
+            var packageValidationMessageData = new ProcessValidationSetData(
               Package.PackageRegistration.Id,
               Package.NormalizedVersion,
-              validationTrackingId);
+              validationTrackingId,
+              ValidatingType.Package,
+              Package.Key);
             await provider.TryGetOrCreateValidationSetAsync(packageValidationMessageData, new PackageValidatingEntity(Package));
 
             Assert.Equal(new[]
@@ -156,10 +158,12 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
 
             var provider = CreateProvider();
 
-            var packageValidationMessageData = new PackageValidationMessageData(
+            var packageValidationMessageData = new ProcessValidationSetData(
               Package.PackageRegistration.Id,
               Package.NormalizedVersion,
-              validationTrackingId);
+              validationTrackingId,
+              ValidatingType.Package,
+              Package.Key);
             var actual = await provider.TryGetOrCreateValidationSetAsync(packageValidationMessageData, PackageValidatingEntity);
 
             PackageFileServiceMock.Verify(
@@ -207,10 +211,12 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
 
             var provider = CreateProvider();
 
-            var packageValidationMessageData = new PackageValidationMessageData(
+            var packageValidationMessageData = new ProcessValidationSetData(
                Package.PackageRegistration.Id,
                Package.NormalizedVersion,
-               validationTrackingId);
+               validationTrackingId,
+               ValidatingType.Package,
+               Package.Key);
             var actual = await provider.TryGetOrCreateValidationSetAsync(packageValidationMessageData, PackageValidatingEntity);
 
             PackageFileServiceMock.Verify(x => x.CopyPackageFileForValidationSetAsync(createdSet), Times.Once);
@@ -262,10 +268,12 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
 
             var provider = CreateProvider();
 
-            var packageValidationMessageData = new PackageValidationMessageData(
+            var packageValidationMessageData = new ProcessValidationSetData(
                 Package.PackageRegistration.Id,
                 Package.NormalizedVersion,
-                validationTrackingId);
+                validationTrackingId,
+                ValidatingType.Package,
+                Package.Key);
             var actual = await provider.TryGetOrCreateValidationSetAsync(packageValidationMessageData, PackageValidatingEntity);
 
             PackageFileServiceMock.Verify(x => x.CopyPackageFileForValidationSetAsync(It.IsAny<PackageValidationSet>()), Times.Never);
@@ -344,10 +352,12 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 TelemetryServiceMock.Object,
                 LoggerMock.Object);
 
-            var packageValidationMessageData = new PackageValidationMessageData(
+            var packageValidationMessageData = new ProcessValidationSetData(
                 Package.PackageRegistration.Id,
                 Package.NormalizedVersion,
-                validationTrackingId);
+                validationTrackingId,
+                ValidatingType.Package,
+                Package.Key);
             var returnedSet = await provider.TryGetOrCreateValidationSetAsync(packageValidationMessageData, PackageValidatingEntity);
             var endOfCallTimestamp = DateTime.UtcNow;
 
@@ -433,10 +443,12 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 TelemetryServiceMock.Object,
                 LoggerMock.Object);
 
-            var packageValidationMessageData = new PackageValidationMessageData(
+            var packageValidationMessageData = new ProcessValidationSetData(
                 Package.PackageRegistration.Id,
                 Package.NormalizedVersion,
-                validationTrackingId);
+                validationTrackingId,
+                ValidatingType.Package,
+                Package.Key);
             var returnedSet = await provider.TryGetOrCreateValidationSetAsync(packageValidationMessageData, PackageValidatingEntity);
             var endOfCallTimestamp = DateTime.UtcNow;
 
@@ -508,10 +520,12 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 TelemetryServiceMock.Object,
                 LoggerMock.Object);
 
-            var packageValidationMessageData = new PackageValidationMessageData(
+            var packageValidationMessageData = new ProcessValidationSetData(
                 Package.PackageRegistration.Id,
                 Package.NormalizedVersion,
-                validationTrackingId);
+                validationTrackingId,
+                ValidatingType.Package,
+                Package.Key);
 
             var returnedSet = await provider.TryGetOrCreateValidationSetAsync(packageValidationMessageData, PackageValidatingEntity);
 
@@ -527,7 +541,12 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         public async Task GetOrCreateValidationSetAsyncDoesNotCreateDuplicateValidationSet()
         {
             Guid validationTrackingId = Guid.NewGuid();
-            var message = new PackageValidationMessageData(PackageValidationMessageData.PackageId, PackageValidationMessageData.PackageVersion, validationTrackingId);
+            var message = new ProcessValidationSetData(
+                PackageValidationMessageData.PackageId,
+                PackageValidationMessageData.PackageVersion,
+                validationTrackingId,
+                ValidatingType.Package,
+                PackageValidationMessageData.EntityKey);
 
             ValidationStorageMock
                 .Setup(vs => vs.GetValidationSetAsync(validationTrackingId))
@@ -611,10 +630,12 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 ValidationTrackingId = Guid.NewGuid(),
             };
 
-            PackageValidationMessageData = new PackageValidationMessageData(
+            PackageValidationMessageData = new ProcessValidationSetData(
                 Package.PackageRegistration.Id,
                 Package.NormalizedVersion,
-                ValidationSet.ValidationTrackingId);
+                ValidationSet.ValidationTrackingId,
+                ValidatingType.Package,
+                Package.Key);
 
             PackageValidatingEntity = new PackageValidatingEntity(Package);
         }

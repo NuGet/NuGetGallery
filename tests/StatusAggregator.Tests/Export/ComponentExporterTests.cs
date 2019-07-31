@@ -34,20 +34,6 @@ namespace StatusAggregator.Tests.Export
             }
 
             [Fact]
-            public void ThrowsWithMissingPath()
-            {
-                var eventWithMessage = new EventEntity(Level2A.Path, DefaultStartTime, ComponentStatus.Degraded);
-                var messageForEventWithMessage = new MessageEntity(eventWithMessage, DefaultStartTime, "", MessageType.Manual);
-                var missingPathIncidentGroupForEventWithMessage = new IncidentGroupEntity(eventWithMessage, "missingPath", ComponentStatus.Degraded, DefaultStartTime);
-
-                Table.SetupQuery(messageForEventWithMessage);
-                Table.SetupQuery(missingPathIncidentGroupForEventWithMessage);
-                Table.SetupQuery(eventWithMessage);
-
-                Assert.Throws<InvalidOperationException>(() => Exporter.Export());
-            }
-
-            [Fact]
             public void AppliesActiveEntitiesToComponentTree()
             {
                 var eventWithMessage = new EventEntity(Level2A.Path, DefaultStartTime, ComponentStatus.Degraded);
@@ -56,6 +42,7 @@ namespace StatusAggregator.Tests.Export
                 var downIncidentGroupForEventWithMessage = new IncidentGroupEntity(eventWithMessage, Level3AFrom2A.Path, ComponentStatus.Down, DefaultStartTime);
                 var upIncidentGroupForEventWithMessage = new IncidentGroupEntity(eventWithMessage, Level3AFrom2A.Path, ComponentStatus.Up, DefaultStartTime);
                 var inactiveIncidentGroupForEventWithMessage = new IncidentGroupEntity(eventWithMessage, Level3BFrom2A.Path, ComponentStatus.Degraded, DefaultStartTime, DefaultStartTime);
+                var missingPathIncidentGroupForEventWithMessage = new IncidentGroupEntity(eventWithMessage, "missingPath", ComponentStatus.Degraded, DefaultStartTime);
 
                 var eventWithoutMessage = new EventEntity(Level2B.Path, DefaultStartTime, ComponentStatus.Degraded);
                 var incidentGroupForEventWithoutMessage = new IncidentGroupEntity(eventWithoutMessage, Level3AFrom2B.Path, ComponentStatus.Degraded, DefaultStartTime);
@@ -64,11 +51,23 @@ namespace StatusAggregator.Tests.Export
                 var messageForInactiveEventWithMessage = new MessageEntity(inactiveEventWithMessage, DefaultStartTime + TimeSpan.FromDays(1), "", MessageType.Manual);
                 var incidentGroupForInactiveEventWithMessage = new IncidentGroupEntity(inactiveEventWithMessage, Level3BFrom2B.Path, ComponentStatus.Degraded, DefaultStartTime + TimeSpan.FromDays(1));
 
-                Table.SetupQuery(messageForEventWithMessage, messageForInactiveEventWithMessage);
                 Table.SetupQuery(
-                    degradedIncidentGroupForEventWithMessage, downIncidentGroupForEventWithMessage, upIncidentGroupForEventWithMessage, inactiveIncidentGroupForEventWithMessage,
-                    incidentGroupForEventWithoutMessage, incidentGroupForInactiveEventWithMessage);
-                Table.SetupQuery(eventWithMessage, eventWithoutMessage, inactiveEventWithMessage);
+                    messageForEventWithMessage, 
+                    messageForInactiveEventWithMessage);
+
+                Table.SetupQuery(
+                    degradedIncidentGroupForEventWithMessage, 
+                    downIncidentGroupForEventWithMessage, 
+                    upIncidentGroupForEventWithMessage, 
+                    inactiveIncidentGroupForEventWithMessage, 
+                    missingPathIncidentGroupForEventWithMessage,
+                    incidentGroupForEventWithoutMessage, 
+                    incidentGroupForInactiveEventWithMessage);
+
+                Table.SetupQuery(
+                    eventWithMessage, 
+                    eventWithoutMessage, 
+                    inactiveEventWithMessage);
 
                 var result = Exporter.Export();
 

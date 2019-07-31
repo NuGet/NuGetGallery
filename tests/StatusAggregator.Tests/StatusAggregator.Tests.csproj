@@ -61,6 +61,7 @@
     <Compile Include="Factory\IncidentFactoryTests.cs" />
     <Compile Include="Factory\IncidentGroupFactoryTests.cs" />
     <Compile Include="Factory\NuGetServiceComponentFactoryTests.cs" />
+    <Compile Include="JobTests.cs" />
     <Compile Include="Manual\AddStatusEventManualChangeHandlerTests.cs" />
     <Compile Include="Manual\AddStatusMessageManualChangeHandlerTests.cs" />
     <Compile Include="Manual\DeleteStatusEventManualChangeHandlerTests.cs" />
@@ -75,9 +76,10 @@
     <Compile Include="Messages\MessageContentBuilderTests.cs" />
     <Compile Include="Messages\MessageFactoryTests.cs" />
     <Compile Include="Parse\AggregateIncidentParserTests.cs" />
+    <Compile Include="Parse\AIAvailabilityIncidentRegexParsingHandlerTests.cs" />
     <Compile Include="Parse\EnvironmentPrefixIncidentRegexParsingHandlerTests.cs" />
     <Compile Include="Parse\EnvironmentRegexParsingFilterTests.cs" />
-    <Compile Include="Parse\ParsingUtility.cs" />
+    <Compile Include="Parse\IncidentParsingHandlerTestUtility.cs" />
     <Compile Include="Parse\IncidentRegexParserTests.cs" />
     <Compile Include="Parse\OutdatedSearchServiceInstanceIncidentRegexParsingHandlerTests.cs" />
     <Compile Include="Parse\PingdomIncidentRegexParsingHandlerTests.cs" />
@@ -94,6 +96,10 @@
     <Compile Include="Update\StatusUpdaterTests.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\src\NuGet.Jobs.Common\NuGet.Jobs.Common.csproj">
+      <Project>{4B4B1EFB-8F33-42E6-B79F-54E7F3293D31}</Project>
+      <Name>NuGet.Jobs.Common</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\src\StatusAggregator\StatusAggregator.csproj">
       <Project>{d357fdb5-bf19-41a5-82b0-14c8cec2a5eb}</Project>
       <Name>StatusAggregator</Name>

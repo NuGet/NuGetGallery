@@ -181,7 +181,7 @@ namespace NuGet.Services.Revalidate.Tests.Services
 
                 _validationEnqueuer
                     .Setup(e => e.StartValidationAsync(It.IsAny<PackageValidationMessageData>()))
-                    .Callback<PackageValidationMessageData>(m => steps.Add($"Enqueue {m.PackageId} {m.PackageNormalizedVersion}"))
+                    .Callback<PackageValidationMessageData>(m => steps.Add($"Enqueue {m.ProcessValidationSet.PackageId} {m.ProcessValidationSet.PackageNormalizedVersion}"))
                     .Returns(Task.CompletedTask);
 
                 _packageState
@@ -202,9 +202,10 @@ namespace NuGet.Services.Revalidate.Tests.Services
 
                 _validationEnqueuer.Verify(
                     e => e.StartValidationAsync(It.Is<PackageValidationMessageData>(m =>
-                        m.PackageId == _revalidation1.PackageId &&
-                        m.PackageNormalizedVersion == _revalidation1.PackageNormalizedVersion &&
-                        m.ValidationTrackingId == _revalidation1.ValidationTrackingId.Value)),
+                        m.Type == PackageValidationMessageType.ProcessValidationSet &&
+                        m.ProcessValidationSet.PackageId == _revalidation1.PackageId &&
+                        m.ProcessValidationSet.PackageNormalizedVersion == _revalidation1.PackageNormalizedVersion &&
+                        m.ProcessValidationSet.ValidationTrackingId == _revalidation1.ValidationTrackingId.Value)),
                     Times.Once);
 
                 _packageState.Verify(

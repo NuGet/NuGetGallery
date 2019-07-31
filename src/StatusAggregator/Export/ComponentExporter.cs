@@ -77,7 +77,11 @@ namespace StatusAggregator.Export
 
                         if (currentComponent == null)
                         {
-                            throw new InvalidOperationException($"Couldn't find component with path {activeEntity.AffectedComponentPath} corresponding to active entities.");
+                            _logger.LogWarning(
+                                "Couldn't find component with path {AffectedComponentPath} corresponding to active entities. Ignoring entity.",
+                                activeEntity.AffectedComponentPath);
+
+                            continue;
                         }
 
                         currentComponent.Status = (ComponentStatus)activeEntity.AffectedComponentStatus;

@@ -15,7 +15,7 @@ namespace StatusAggregator.Parse
     {
         public const string DomainGroupName = "Domain";
         public const string TargetGroupName = "Target";
-        private static string SubtitleRegEx = $"Traffic Manager for (?<{DomainGroupName}>.*) is reporting (?<{TargetGroupName}>.*) as not Online!";
+        private static string SubtitleRegEx = $"Traffic Manager for (?<{DomainGroupName}>.+) is reporting (?<{TargetGroupName}>.+) as not Online!";
 
         private readonly ILogger<TrafficManagerEndpointStatusIncidentRegexParsingHandler> _logger;
 

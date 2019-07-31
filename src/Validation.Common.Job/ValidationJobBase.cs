@@ -53,6 +53,7 @@ namespace NuGet.Jobs.Validation
                     configurationAccessor.Value.ConnectionString,
                     readAccessGeoRedundant: false);
             });
+            services.AddTransient<ICloudBlobContainerInformationProvider, GalleryCloudBlobContainerInformationProvider>();
             services.AddTransient<ICoreFileStorageService, CloudBlobCoreFileStorageService>();
 
             services.AddTransient<ISubscriptionClient>(p =>

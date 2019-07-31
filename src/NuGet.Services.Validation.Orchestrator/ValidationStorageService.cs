@@ -46,6 +46,21 @@ namespace NuGet.Services.Validation.Orchestrator
                 .FirstOrDefaultAsync(vs => vs.ValidationTrackingId == validationTrackingId);
         }
 
+        public async Task<PackageValidationSet> TryGetParentValidationSetAsync(Guid validationId)
+        {
+            var packageValidation = await _validationContext
+                .PackageValidations
+                .Include(x => x.PackageValidationSet)
+                .FirstOrDefaultAsync(x => x.Key == validationId);
+
+            if (packageValidation == null)
+            {
+                return null;
+            }
+
+            return packageValidation.PackageValidationSet;
+        }
+
         public async Task<PackageValidationSet> CreateValidationSetAsync(PackageValidationSet packageValidationSet)
         {
             packageValidationSet = packageValidationSet ?? throw new ArgumentNullException(nameof(packageValidationSet));

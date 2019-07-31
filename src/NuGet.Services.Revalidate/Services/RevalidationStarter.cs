@@ -141,10 +141,12 @@ namespace NuGet.Services.Revalidate
                     revalidation.PackageId,
                     revalidation.PackageNormalizedVersion);
 
-                var message = new PackageValidationMessageData(
+                var message = PackageValidationMessageData.NewProcessValidationSet(
                     revalidation.PackageId,
                     revalidation.PackageNormalizedVersion,
-                    revalidation.ValidationTrackingId.Value);
+                    revalidation.ValidationTrackingId.Value,
+                    ValidatingType.Package,
+                    entityKey: null);
 
                 await _validationEnqueuer.StartValidationAsync(message);
 

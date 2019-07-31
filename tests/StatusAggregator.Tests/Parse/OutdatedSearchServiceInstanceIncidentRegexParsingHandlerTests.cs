@@ -56,7 +56,7 @@ namespace StatusAggregator.Tests.Parse
 
             public OutdatedSearchServiceInstanceIncidentRegexParsingHandlerTest()
             {
-                var environmentFilter = ParsingUtility.CreateEnvironmentFilter();
+                var environmentFilter = IncidentParsingHandlerTestUtility.CreateEnvironmentFilter();
                 Handler = Construct(new[] { environmentFilter });
             }
         }
@@ -67,8 +67,8 @@ namespace StatusAggregator.Tests.Parse
             [Fact]
             public void IgnoresSeverityFilter()
             {
-                var severityFilter = ParsingUtility.CreateSeverityFilter(0);
-                var environmentFilter = ParsingUtility.CreateEnvironmentFilter();
+                var severityFilter = IncidentParsingHandlerTestUtility.CreateSeverityFilter(0);
+                var environmentFilter = IncidentParsingHandlerTestUtility.CreateEnvironmentFilter();
 
                 var handler = Construct(new IIncidentRegexParsingFilter[] { severityFilter, environmentFilter });
 

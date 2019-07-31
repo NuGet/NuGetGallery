@@ -30,7 +30,7 @@ namespace StatusAggregator.Parse
 
         private static string PrependEnvironmentRegexGroup(string subtitleRegEx)
         {
-            return $@"\[(?<{EnvironmentRegexParsingFilter.EnvironmentGroupName}>.*)\] {subtitleRegEx}";
+            return $@"\[(?<{EnvironmentRegexParsingFilter.EnvironmentGroupName}>.+)\] {subtitleRegEx}";
         }
     }
 }

@@ -32,13 +32,19 @@ namespace Validation.Symbols
             services.AddSingleton<ISymbolsFileService>(c =>
             {
                 var configurationAccessor = c.GetRequiredService<IOptionsSnapshot<SymbolsValidatorConfiguration>>();
-                var packageStorageService = new CloudBlobCoreFileStorageService(new CloudBlobClientWrapper(
-                    configurationAccessor.Value.PackageConnectionString,
-                    readAccessGeoRedundant: false), c.GetRequiredService<IDiagnosticsService>());
+                var packageStorageService = new CloudBlobCoreFileStorageService(
+                    new CloudBlobClientWrapper(
+                        configurationAccessor.Value.PackageConnectionString,
+                        readAccessGeoRedundant: false),
+                    c.GetRequiredService<IDiagnosticsService>(),
+                    c.GetRequiredService<ICloudBlobContainerInformationProvider>());
 
-                var packageValidationStorageService = new CloudBlobCoreFileStorageService(new CloudBlobClientWrapper(
-                    configurationAccessor.Value.ValidationPackageConnectionString,
-                    readAccessGeoRedundant: false), c.GetRequiredService<IDiagnosticsService>());
+                var packageValidationStorageService = new CloudBlobCoreFileStorageService(
+                    new CloudBlobClientWrapper(
+                        configurationAccessor.Value.ValidationPackageConnectionString,
+                        readAccessGeoRedundant: false),
+                    c.GetRequiredService<IDiagnosticsService>(),
+                    c.GetRequiredService<ICloudBlobContainerInformationProvider>());
 
                 return new SymbolsFileService(packageStorageService, packageValidationStorageService, c.GetRequiredService<IFileDownloader>());
             });

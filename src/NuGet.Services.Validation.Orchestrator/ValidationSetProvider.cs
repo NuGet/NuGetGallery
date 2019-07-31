@@ -41,7 +41,12 @@ namespace NuGet.Services.Validation.Orchestrator
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task<PackageValidationSet> TryGetOrCreateValidationSetAsync(PackageValidationMessageData message, IValidatingEntity<T> validatingEntity)
+        public async Task<PackageValidationSet> TryGetParentValidationSetAsync(Guid validationId)
+        {
+            return await _validationStorageService.TryGetParentValidationSetAsync(validationId);
+        }
+
+        public async Task<PackageValidationSet> TryGetOrCreateValidationSetAsync(ProcessValidationSetData message, IValidatingEntity<T> validatingEntity)
         {
             var validationSet = await _validationStorageService.GetValidationSetAsync(message.ValidationTrackingId);
 
@@ -129,7 +134,7 @@ namespace NuGet.Services.Validation.Orchestrator
             return persistedValidationSet;
         }
 
-        private PackageValidationSet InitializeValidationSet(PackageValidationMessageData message, IValidatingEntity<T> validatingEntity)
+        private PackageValidationSet InitializeValidationSet(ProcessValidationSetData message, IValidatingEntity<T> validatingEntity)
         {
             // If message would have the package Key the package will not need to be passed as an argument
             _logger.LogInformation("Initializing validation set {ValidationSetId} for package {PackageId} {PackageVersion} (package key {PackageKey})",

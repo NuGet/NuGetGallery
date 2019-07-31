@@ -24,7 +24,7 @@ namespace StatusAggregator.Tests.Parse
             [Fact]
             public void DoesNotThrowWithEnvironmentFilter()
             {
-                var handler = Construct(new[] { ParsingUtility.CreateEnvironmentFilter() });
+                var handler = Construct(new[] { IncidentParsingHandlerTestUtility.CreateEnvironmentFilter() });
                 Assert.NotNull(handler);
             }
 

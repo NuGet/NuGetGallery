@@ -38,7 +38,8 @@ namespace StatusAggregator.Messages
                 var component = rootComponent.GetByPath(change.AffectedComponentPath);
                 if (component == null)
                 {
-                    throw new ArgumentException($"Affected path {change.AffectedComponentPath} does not exist in component tree.", nameof(change));
+                    _logger.LogWarning("Affected path {change.AffectedComponentPath} does not exist in component tree.", nameof(change));
+                    return Task.FromResult(existingStartMessageContext);
                 }
 
                 switch (change.Type)
