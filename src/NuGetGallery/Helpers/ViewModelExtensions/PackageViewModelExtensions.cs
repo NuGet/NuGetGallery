@@ -8,7 +8,7 @@ namespace NuGetGallery
 {
     public static class PackageViewModelExtensions
     {
-        public static PackageViewModel Setup(this PackageViewModel viewModel, Package package)
+        public static PackageViewModel Setup(this PackageViewModel viewModel, Package package, IIconUrlProvider iconUrlProvider)
         {
             if (viewModel == null)
             {
@@ -30,7 +30,7 @@ namespace NuGetGallery
 
             viewModel.Description = package.Description;
             viewModel.ReleaseNotes = package.ReleaseNotes;
-            viewModel.IconUrl = package.IconUrl;
+            viewModel.IconUrl = iconUrlProvider.GetIconUrlString(package);
             viewModel.LatestVersion = package.IsLatest;
             viewModel.LatestVersionSemVer2 = package.IsLatestSemVer2;
             viewModel.LatestStableVersion = package.IsLatestStable;

@@ -19,9 +19,10 @@ namespace NuGetGallery
             IReadOnlyList<ReportPackageReason> reasons,
             UrlHelper url,
             string readMe,
-            bool isManageDeprecationEnabled)
+            bool isManageDeprecationEnabled,
+            IIconUrlProvider iconUrlProvider)
         {
-            ((ListPackageItemViewModel)viewModel).Setup(package, currentUser);
+            ((ListPackageItemViewModel)viewModel).Setup(package, currentUser, iconUrlProvider);
 
             viewModel.IsCurrentUserAnAdmin = currentUser != null && currentUser.IsAdministrator;
 

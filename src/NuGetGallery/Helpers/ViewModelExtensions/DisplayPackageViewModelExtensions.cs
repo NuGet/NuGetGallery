@@ -15,9 +15,10 @@ namespace NuGetGallery
             this DisplayPackageViewModel viewModel,
             Package package,
             User currentUser,
-            PackageDeprecation deprecation)
+            PackageDeprecation deprecation,
+            IIconUrlProvider iconUrlProvider)
         {
-            viewModel.SetupDisplayViewModelCommon(package, currentUser, pushedBy: null);
+            viewModel.SetupDisplayViewModelCommon(package, currentUser, pushedBy: null, iconUrlProvider: iconUrlProvider);
 
             viewModel.HasSemVer2Version = viewModel.NuGetVersion.IsSemVer2;
             viewModel.HasSemVer2Dependency = package.Dependencies.ToList()
@@ -36,7 +37,7 @@ namespace NuGetGallery
             viewModel.PackageVersions = packageHistory
                 .Select(
                     p => new DisplayPackageViewModel()
-                        .SetupDisplayViewModelCommon(p, currentUser, GetPushedBy(p, currentUser, pushedByCache)))
+                        .SetupDisplayViewModelCommon(p, currentUser, GetPushedBy(p, currentUser, pushedByCache), iconUrlProvider))
                 .ToList();
 
             viewModel.PushedBy = GetPushedBy(package, currentUser, pushedByCache);
@@ -81,9 +82,10 @@ namespace NuGetGallery
             this DisplayPackageViewModel viewModel,
             Package package,
             User currentUser,
-            string pushedBy)
+            string pushedBy,
+            IIconUrlProvider iconUrlProvider)
         {
-            ((ListPackageItemViewModel)viewModel).Setup(package, currentUser);
+            ((ListPackageItemViewModel)viewModel).Setup(package, currentUser, iconUrlProvider);
 
             viewModel.NuGetVersion = NuGetVersion.Parse(NuGetVersionFormatter.ToFullString(package.Version));
             viewModel.Copyright = package.Copyright;

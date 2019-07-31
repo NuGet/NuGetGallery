@@ -56,10 +56,10 @@ namespace NuGetGallery
                     SearchTerm = searchTerm,
                     OldSuccess = SearchResults.IsSuccessful(oldResults),
                     OldHits = oldResults.Hits,
-                    OldItems = oldResults.Data.Select(x => new ListPackageItemViewModel().Setup(x, currentUser)).ToList(),
+                    OldItems = oldResults.Data.Select(x => new ListPackageItemViewModel().Setup(x, currentUser, _iconUrlProvider)).ToList(),
                     NewSuccess = SearchResults.IsSuccessful(newResults),
                     NewHits = newResults.Hits,
-                    NewItems = newResults.Data.Select(x => new ListPackageItemViewModel().Setup(x, currentUser)).ToList(),
+                    NewItems = newResults.Data.Select(x => new ListPackageItemViewModel().Setup(x, currentUser, _iconUrlProvider)).ToList(),
                 };
 
                 _telemetryService.TrackSearchSideBySide(

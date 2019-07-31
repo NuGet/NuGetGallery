@@ -22,9 +22,10 @@ namespace NuGetGallery
             Package package,
             User currentUser,
             ISecurityPolicyService securityPolicyService,
-            bool wasAADLoginOrMultiFactorAuthenticated)
+            bool wasAADLoginOrMultiFactorAuthenticated,
+            IIconUrlProvider iconUrlProvider)
         {
-            ((ListPackageItemViewModel)viewModel).Setup(package, currentUser);
+            ((ListPackageItemViewModel)viewModel).Setup(package, currentUser, iconUrlProvider);
 
             if (currentUser == null)
             {

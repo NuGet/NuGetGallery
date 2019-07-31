@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using Moq;
 using NuGet.Services.Entities;
 using NuGetGallery.Framework;
 using Xunit;
@@ -42,7 +43,7 @@ namespace NuGetGallery.ViewModels
                         DownloadCount = int.MaxValue
                     },
                     Version = version
-                }, currentUser: null);
+                }, currentUser: null, Mock.Of<IIconUrlProvider>());
             }
         }
     }

@@ -1,6 +1,7 @@
-﻿﻿// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using Moq;
 using NuGet.Services.Entities;
 using NuGet.Services.Licenses;
 using System.Collections.Generic;
@@ -27,7 +28,7 @@ namespace NuGetGallery.ViewModels
             };
 
             // act
-            var model = new DisplayLicenseViewModel().Setup(package, licenseExpressionSegments: null, licenseFileContents: null);
+            var model = CreateDisplayLicenseViewModel(package);
 
             // assert
             Assert.Equal(embeddedLicenseType, model.EmbeddedLicenseType);
@@ -48,7 +49,7 @@ namespace NuGetGallery.ViewModels
             };
 
             // act
-            var model = new DisplayLicenseViewModel().Setup(package, licenseExpressionSegments: null, licenseFileContents: null);
+            var model = CreateDisplayLicenseViewModel(package);
 
             // assert
             Assert.Equal(new string[] { "l1", "l2", "l3", "l4", "l5" }, model.LicenseNames);
@@ -76,7 +77,7 @@ namespace NuGetGallery.ViewModels
             };
 
             // act
-            var model = new DisplayLicenseViewModel().Setup(package, licenseExpressionSegments: null, licenseFileContents: null);
+            var model = CreateDisplayLicenseViewModel(package);
 
             // assert
             Assert.Equal(expected, model.LicenseUrl);
@@ -94,7 +95,7 @@ namespace NuGetGallery.ViewModels
             var segments = new List<CompositeLicenseExpressionSegment>();
 
             // act
-            var model = new DisplayLicenseViewModel().Setup(package, licenseExpressionSegments: segments, licenseFileContents: null);
+            var model = CreateDisplayLicenseViewModel(package, licenseExpressionSegments: segments);
 
             // assert
             Assert.Equal(segments, model.LicenseExpressionSegments);
@@ -112,10 +113,22 @@ namespace NuGetGallery.ViewModels
             var licenseFileContents = "It's a license";
 
             // act
-            var model = new DisplayLicenseViewModel().Setup(package, licenseExpressionSegments: null, licenseFileContents: licenseFileContents);
+            var model = CreateDisplayLicenseViewModel(package, licenseFileContents: licenseFileContents);
 
             // assert
             Assert.Equal(licenseFileContents, model.LicenseFileContents);
+        }
+
+        private static DisplayLicenseViewModel CreateDisplayLicenseViewModel(
+            Package package,
+            IReadOnlyCollection<CompositeLicenseExpressionSegment> licenseExpressionSegments = null,
+            string licenseFileContents = null)
+        {
+            return new DisplayLicenseViewModel().Setup(
+                package,
+                licenseExpressionSegments,
+                licenseFileContents,
+                iconUrlProvider: Mock.Of<IIconUrlProvider>());
         }
     }
 }

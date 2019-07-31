@@ -753,7 +753,7 @@ namespace NuGetGallery
             }
 
             var deprecation = _deprecationService.GetDeprecationByPackage(package);
-            var model = new DisplayPackageViewModel().Setup(package, currentUser, deprecation);
+            var model = new DisplayPackageViewModel().Setup(package, currentUser, deprecation, _iconUrlProvider);
 
             model.ValidatingTooLong = _validationService.IsValidatingTooLong(package);
             model.PackageValidationIssues = _validationService.GetLatestPackageValidationIssues(package);
@@ -955,7 +955,7 @@ namespace NuGetGallery
                 throw;
             }
 
-            var model = new DisplayLicenseViewModel().Setup(package, licenseExpressionSegments, licenseFileContents);
+            var model = new DisplayLicenseViewModel().Setup(package, licenseExpressionSegments, licenseFileContents, _iconUrlProvider);
 
             return View(model);
         }
@@ -1041,7 +1041,7 @@ namespace NuGetGallery
 
             var currentUser = GetCurrentUser();
             var items = results.Data
-                .Select(pv => new ListPackageItemViewModel().Setup(pv, currentUser))
+                .Select(pv => new ListPackageItemViewModel().Setup(pv, currentUser, _iconUrlProvider))
                 .ToList();
 
             var viewModel = new PackageListViewModel(
@@ -1506,8 +1506,8 @@ namespace NuGetGallery
                 ReportMyPackageReasons,
                 Url,
                 await _readMeService.GetReadMeMdAsync(package),
-                _featureFlagService.IsManageDeprecationEnabled(currentUser, package.PackageRegistration));
-            model.IconUrl = _iconUrlProvider.GetIconUrlString(package);
+                _featureFlagService.IsManageDeprecationEnabled(currentUser, package.PackageRegistration),
+                _iconUrlProvider);
 
             if (!model.CanEdit && !model.CanManageOwners && !model.CanUnlistOrRelist)
             {
@@ -1550,7 +1550,7 @@ namespace NuGetGallery
                 return HttpForbidden();
             }
 
-            var model = new DeletePackageViewModel().Setup(package, currentUser, DeleteReasons);
+            var model = new DeletePackageViewModel().Setup(package, currentUser, DeleteReasons, _iconUrlProvider);
 
             // Fetch all versions of the package with symbols.
             var versionsWithSymbols = packages

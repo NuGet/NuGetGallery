@@ -14,9 +14,10 @@ namespace NuGetGallery
             this DisplayLicenseViewModel viewModel,
             Package package,
             IReadOnlyCollection<CompositeLicenseExpressionSegment> licenseExpressionSegments,
-            string licenseFileContents)
+            string licenseFileContents,
+            IIconUrlProvider iconUrlProvider)
         {
-            ((PackageViewModel)viewModel).Setup(package);
+            ((PackageViewModel)viewModel).Setup(package, iconUrlProvider);
 
             viewModel.EmbeddedLicenseType = package.EmbeddedLicenseType;
             viewModel.LicenseExpression = package.LicenseExpression;

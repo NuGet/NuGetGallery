@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using Moq;
 using NuGet.Services.Entities;
 using Xunit;
 
@@ -22,7 +23,7 @@ namespace NuGetGallery.ViewModels
                 PackageRegistration = new PackageRegistration { Id = "SomeId" },
                 NormalizedVersion = "1.3.0" // Different just to prove the View Model is using the DB column.
             };
-            var packageViewModel = new ListPackageItemViewModel().Setup(package, currentUser: null);
+            var packageViewModel = CreateListPackageItemViewModel(package);
             Assert.Equal("1.3.0", packageViewModel.Version);
         }
 
@@ -34,7 +35,7 @@ namespace NuGetGallery.ViewModels
                 Version = "01.02.00.00",
                 PackageRegistration = new PackageRegistration { Id = "SomeId" },
             };
-            var packageViewModel = new ListPackageItemViewModel().Setup(package, currentUser: null);
+            var packageViewModel = CreateListPackageItemViewModel(package);
             Assert.Equal("1.2.0", packageViewModel.Version);
         }
 
@@ -51,7 +52,7 @@ namespace NuGetGallery.ViewModels
                 Description = description
             };
 
-            var listPackageItemViewModel = new ListPackageItemViewModel().Setup(package, currentUser: null);
+            var listPackageItemViewModel = CreateListPackageItemViewModel(package);
 
             Assert.Equal(description, listPackageItemViewModel.ShortDescription);
             Assert.False(listPackageItemViewModel.IsDescriptionTruncated);
@@ -72,7 +73,7 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
                 Description = description
             };
 
-            var listPackageItemViewModel = new ListPackageItemViewModel().Setup(package, currentUser: null);
+            var listPackageItemViewModel = CreateListPackageItemViewModel(package);
 
             Assert.NotEqual(description, listPackageItemViewModel.ShortDescription);
             Assert.True(listPackageItemViewModel.IsDescriptionTruncated);
@@ -94,7 +95,7 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
                 Description = description
             };
 
-            var listPackageItemViewModel = new ListPackageItemViewModel().Setup(package, currentUser: null);
+            var listPackageItemViewModel = CreateListPackageItemViewModel(package);
 
             Assert.Equal(charLimit + omission.Length, listPackageItemViewModel.ShortDescription.Length);
             Assert.True(listPackageItemViewModel.IsDescriptionTruncated);
@@ -110,7 +111,7 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
                 PackageRegistration = new PackageRegistration { Id = "SomeId" },
             };
 
-            var listPackageItemViewModel = new ListPackageItemViewModel().Setup(package, currentUser: null);
+            var listPackageItemViewModel = CreateListPackageItemViewModel(package);
 
             Assert.Null(listPackageItemViewModel.Tags);
         }
@@ -125,7 +126,7 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
                 Tags = "tag1 tag2 tag3"
             };
 
-            var listPackageItemViewModel = new ListPackageItemViewModel().Setup(package, currentUser: null);
+            var listPackageItemViewModel = CreateListPackageItemViewModel(package);
 
             Assert.Equal(3, listPackageItemViewModel.Tags.Count());
             Assert.Contains("tag1", listPackageItemViewModel.Tags);
@@ -161,7 +162,7 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
                 FlattenedAuthors = flattenedAuthors
             };
 
-            var listPackageItemViewModel = new ListPackageItemViewModel().Setup(package, currentUser: null);
+            var listPackageItemViewModel = CreateListPackageItemViewModel(package);
 
             Assert.Equal(flattenedAuthors, listPackageItemViewModel.Authors);
         }
@@ -177,7 +178,7 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
                 IsLatestStable = false
             };
 
-            var listPackageItemViewModel = new ListPackageItemViewModel().Setup(package, currentUser: null);
+            var listPackageItemViewModel = CreateListPackageItemViewModel(package);
             Assert.True(listPackageItemViewModel.UseVersion);
 
             listPackageItemViewModel.LatestVersion = false;
@@ -205,7 +206,7 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
                 IsLatestStableSemVer2 = false
             };
 
-            var listPackageItemViewModel = new ListPackageItemViewModel().Setup(package, currentUser: null);
+            var listPackageItemViewModel = CreateListPackageItemViewModel(package);
             Assert.True(listPackageItemViewModel.UseVersion);
 
             listPackageItemViewModel.LatestVersionSemVer2 = false;
@@ -274,7 +275,7 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
             [Fact]
             public void WhenCannotDisplayPrivateMetadata_ReturnsNull()
             {
-                var viewModel = new ListPackageItemViewModel().Setup(_package, _user1);
+                var viewModel = CreateListPackageItemViewModel(_package, _user1);
 
                 Assert.False(viewModel.CanDisplayPrivateMetadata);
                 Assert.Null(viewModel.SignatureInformation);
@@ -285,7 +286,7 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
             {
                 _packageRegistration.Owners.Add(_user1);
 
-                var viewModel = new ListPackageItemViewModel().Setup(_package, _user1);
+                var viewModel = CreateListPackageItemViewModel(_package, _user1);
 
                 Assert.True(viewModel.CanDisplayPrivateMetadata);
                 Assert.Null(viewModel.SignatureInformation);
@@ -296,7 +297,7 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
             {
                 SignPackage();
 
-                var viewModel = new ListPackageItemViewModel().Setup(_package, _user1);
+                var viewModel = CreateListPackageItemViewModel(_package, _user1);
 
                 viewModel.CanDisplayPrivateMetadata = true;
 
@@ -311,7 +312,7 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
                 ActivateCertificate(_user1);
                 SignPackage();
 
-                var viewModel = new ListPackageItemViewModel().Setup(_package, _user1);
+                var viewModel = CreateListPackageItemViewModel(_package, _user1);
 
                 Assert.True(viewModel.CanDisplayPrivateMetadata);
                 Assert.Equal("Signed with A's certificate (E)", viewModel.SignatureInformation);
@@ -327,7 +328,7 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
                 ActivateCertificate(_user2);
                 SignPackage();
 
-                var viewModel = new ListPackageItemViewModel().Setup(_package, _user1);
+                var viewModel = CreateListPackageItemViewModel(_package, _user1);
 
                 Assert.True(viewModel.CanDisplayPrivateMetadata);
                 Assert.Equal("Signed with A and B's certificate (E)", viewModel.SignatureInformation);
@@ -345,7 +346,7 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
                 ActivateCertificate(_user3);
                 SignPackage();
 
-                var viewModel = new ListPackageItemViewModel().Setup(_package, _user1);
+                var viewModel = CreateListPackageItemViewModel(_package, _user1);
 
                 Assert.True(viewModel.CanDisplayPrivateMetadata);
                 Assert.Equal("Signed with A, B, and C's certificate (E)", viewModel.SignatureInformation);
@@ -371,6 +372,11 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
                 _package.CertificateKey = _certificate.Key;
                 _package.Certificate = _certificate;
             }
+        }
+
+        private static ListPackageItemViewModel CreateListPackageItemViewModel(Package package, User user = null)
+        {
+            return new ListPackageItemViewModel().Setup(package, currentUser: user, iconUrlProvider: Mock.Of<IIconUrlProvider>());
         }
     }
 }

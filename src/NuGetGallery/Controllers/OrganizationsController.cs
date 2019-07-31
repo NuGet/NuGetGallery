@@ -20,8 +20,6 @@ namespace NuGetGallery
     public class OrganizationsController
         : AccountsController<Organization, OrganizationAccountViewModel>
     {
-        private readonly IIconUrlProvider _iconUrlProvider;
-
         public OrganizationsController(
             AuthenticationService authService,
             IMessageService messageService,
@@ -44,9 +42,9 @@ namespace NuGetGallery
                   certificateService,
                   contentObjectService,
                   messageServiceConfiguration,
-                  deleteAccountService)
+                  deleteAccountService,
+                  iconUrlProvider)
         {
-            _iconUrlProvider = iconUrlProvider ?? throw new ArgumentNullException(nameof(iconUrlProvider));
         }
 
         public override string AccountAction => nameof(ManageOrganization);
