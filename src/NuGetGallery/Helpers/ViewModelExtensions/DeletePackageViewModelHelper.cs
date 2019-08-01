@@ -16,7 +16,7 @@ namespace NuGetGallery
             _displayPackageViewModelHelper = new DisplayPackageViewModelHelper();
         }
 
-        public DeletePackageViewModel CreateDeletePackageViewModel(
+        public DeletePackageViewModel Create(
             Package package,
             User currentUser,
             IReadOnlyList<ReportPackageReason> reasons)

@@ -26,7 +26,7 @@ namespace NuGetGallery
         private static readonly SignerViewModel AnySigner =
             new SignerViewModel(username: "", displayText: "Any");
 
-        public ListPackageItemRequiredSignerViewModel CreateListPackageItemRequiredSignerViewModel(
+        public ListPackageItemRequiredSignerViewModel Create(
             Package package,
             User currentUser,
             bool wasAADLoginOrMultiFactorAuthenticated)

@@ -8,7 +8,7 @@ namespace NuGetGallery
 {
     public class PackageViewModelHelper
     {
-        public PackageViewModel CreatePackageViewModel(Package package)
+        public PackageViewModel Create(Package package)
         {
             var viewModel = new PackageViewModel();
             return SetupPackageViewModel(viewModel, package);

@@ -19,7 +19,7 @@ namespace NuGetGallery
             _listPackageItemViewModelHelper = new ListPackageItemViewModelHelper();
         }
 
-        public ManagePackageViewModel CreateManagePackageViewModel(
+        public ManagePackageViewModel Create(
             Package package,
             User currentUser,
             IReadOnlyList<ReportPackageReason> reasons,

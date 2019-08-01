@@ -18,7 +18,7 @@ namespace NuGetGallery
             _listPackageItemViewModelHelper = new ListPackageItemViewModelHelper();
         }
 
-        public DisplayPackageViewModel CreateDisplayPackageViewModel(
+        public DisplayPackageViewModel Create(
             Package package,
             User currentUser,
             PackageDeprecation deprecation,

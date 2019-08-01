@@ -17,7 +17,7 @@ namespace NuGetGallery
             _packageViewModelHelper = new PackageViewModelHelper();
         }
 
-        public DisplayLicenseViewModel CreateDisplayLicenseViewModel(
+        public DisplayLicenseViewModel Create(
             Package package,
             IReadOnlyCollection<CompositeLicenseExpressionSegment> licenseExpressionSegments,
             string licenseFileContents)

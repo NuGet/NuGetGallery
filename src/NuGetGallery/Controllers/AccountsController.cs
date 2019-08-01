@@ -386,7 +386,7 @@ namespace NuGetGallery
             User userToDelete,
             User currentUser)
         {
-            return _deleteAccountListPackageItemViewModelHelper.CreateDeleteAccountListPackageItemViewModel(package, userToDelete, currentUser);
+            return _deleteAccountListPackageItemViewModelHelper.Create(package, userToDelete, currentUser);
         }
 
 

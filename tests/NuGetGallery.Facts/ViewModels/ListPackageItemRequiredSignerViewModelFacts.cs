@@ -38,7 +38,7 @@ namespace NuGetGallery.ViewModels
         public void WhenPackageIsNull_Throws()
         {
             var target = new ListPackageItemRequiredSignerViewModelHelper(_securityPolicyService.Object);
-            var exception = Assert.Throws<ArgumentNullException>(() => target.CreateListPackageItemRequiredSignerViewModel(
+            var exception = Assert.Throws<ArgumentNullException>(() => target.Create(
                 package: null,
                 currentUser: _currentUser,
                 wasAADLoginOrMultiFactorAuthenticated: true));
@@ -57,7 +57,7 @@ namespace NuGetGallery.ViewModels
             var target = new ListPackageItemRequiredSignerViewModelHelper(_securityPolicyService.Object);
 
             var exception = Assert.Throws<ArgumentNullException>(
-                () => target.CreateListPackageItemRequiredSignerViewModel(
+                () => target.Create(
                     package,
                     currentUser: null,
                     wasAADLoginOrMultiFactorAuthenticated: true));
@@ -97,7 +97,7 @@ namespace NuGetGallery.ViewModels
                 .Returns(false);
             var target = new ListPackageItemRequiredSignerViewModelHelper(_securityPolicyService.Object);
 
-            var viewModel = target.CreateListPackageItemRequiredSignerViewModel(
+            var viewModel = target.Create(
                 package,
                 _currentUser,
                 wasAADLoginOrMultiFactorAuthenticated: true);
@@ -132,7 +132,7 @@ namespace NuGetGallery.ViewModels
                     It.Is<string>(policyName => policyName == ControlRequiredSignerPolicy.PolicyName)))
                 .Returns(false);
 
-            var viewModel = target.CreateListPackageItemRequiredSignerViewModel(
+            var viewModel = target.Create(
                 package,
                 _currentUser,
                 wasAADLoginOrMultiFactorAuthenticated: true);
@@ -167,7 +167,7 @@ namespace NuGetGallery.ViewModels
                     It.Is<string>(policyName => policyName == ControlRequiredSignerPolicy.PolicyName)))
                 .Returns(false);
 
-            var viewModel = target.CreateListPackageItemRequiredSignerViewModel(
+            var viewModel = target.Create(
                 package,
                 _currentUser,
                 wasAADLoginOrMultiFactorAuthenticated: true);
@@ -202,7 +202,7 @@ namespace NuGetGallery.ViewModels
                     It.Is<string>(s => s == ControlRequiredSignerPolicy.PolicyName)))
                 .Returns(false);
 
-            var viewModel = target.CreateListPackageItemRequiredSignerViewModel(
+            var viewModel = target.Create(
                 package,
                 _currentUser,
                 wasAADLoginOrMultiFactorAuthenticated: true);
@@ -237,7 +237,7 @@ namespace NuGetGallery.ViewModels
                     It.Is<string>(s => s == ControlRequiredSignerPolicy.PolicyName)))
                 .Returns(false);
 
-            var viewModel = target.CreateListPackageItemRequiredSignerViewModel(
+            var viewModel = target.Create(
                 package,
                 _currentUser,
                 wasAADLoginOrMultiFactorAuthenticated: false);
@@ -287,7 +287,7 @@ namespace NuGetGallery.ViewModels
                     It.Is<string>(s => s == ControlRequiredSignerPolicy.PolicyName)))
                 .Returns(false);
 
-            var viewModel = target.CreateListPackageItemRequiredSignerViewModel(
+            var viewModel = target.Create(
                 package,
                 _currentUser,
                 wasAADLoginOrMultiFactorAuthenticated: true);
@@ -323,7 +323,7 @@ namespace NuGetGallery.ViewModels
                     It.Is<string>(s => s == ControlRequiredSignerPolicy.PolicyName)))
                 .Returns(false);
 
-            var viewModel = target.CreateListPackageItemRequiredSignerViewModel(
+            var viewModel = target.Create(
                 package,
                 _currentUser,
                 wasAADLoginOrMultiFactorAuthenticated: true);
@@ -359,7 +359,7 @@ namespace NuGetGallery.ViewModels
                     It.Is<string>(s => s == ControlRequiredSignerPolicy.PolicyName)))
                 .Returns(false);
 
-            var viewModel = target.CreateListPackageItemRequiredSignerViewModel(
+            var viewModel = target.Create(
                 package,
                 _currentUser,
                 wasAADLoginOrMultiFactorAuthenticated: true);
@@ -422,7 +422,7 @@ namespace NuGetGallery.ViewModels
                     It.Is<string>(s => s == ControlRequiredSignerPolicy.PolicyName)))
                 .Returns(false);
 
-            var viewModel = target.CreateListPackageItemRequiredSignerViewModel(
+            var viewModel = target.Create(
                 package,
                 currentUser,
                 wasAADLoginOrMultiFactorAuthenticated: true);
@@ -458,7 +458,7 @@ namespace NuGetGallery.ViewModels
                     It.Is<string>(s => s == ControlRequiredSignerPolicy.PolicyName)))
                 .Returns(true);
 
-            var viewModel = target.CreateListPackageItemRequiredSignerViewModel(
+            var viewModel = target.Create(
                 package,
                 _currentUser,
                 wasAADLoginOrMultiFactorAuthenticated: true);
@@ -499,7 +499,7 @@ namespace NuGetGallery.ViewModels
                     It.Is<string>(s => s == ControlRequiredSignerPolicy.PolicyName)))
                 .Returns(true);
 
-            var viewModel = target.CreateListPackageItemRequiredSignerViewModel(
+            var viewModel = target.Create(
                 package,
                 _currentUser,
                 wasAADLoginOrMultiFactorAuthenticated: true);
@@ -551,7 +551,7 @@ namespace NuGetGallery.ViewModels
                     It.Is<string>(s => s == ControlRequiredSignerPolicy.PolicyName)))
                 .Returns(true);
 
-            var viewModel = target.CreateListPackageItemRequiredSignerViewModel(
+            var viewModel = target.Create(
                 package,
                 _currentUser,
                 wasAADLoginOrMultiFactorAuthenticated: true);
@@ -614,7 +614,7 @@ namespace NuGetGallery.ViewModels
                     It.Is<string>(s => s == ControlRequiredSignerPolicy.PolicyName)))
                 .Returns(true);
 
-            var viewModel = target.CreateListPackageItemRequiredSignerViewModel(
+            var viewModel = target.Create(
                 package,
                 _currentUser,
                 wasAADLoginOrMultiFactorAuthenticated: true);

@@ -761,7 +761,7 @@ namespace NuGetGallery
             }
 
             var deprecation = _deprecationService.GetDeprecationByPackage(package);
-            var model = _displayPackageViewModelHelper.CreateDisplayPackageViewModel(package, currentUser, deprecation, await _readMeService.GetReadMeHtmlAsync(package));
+            var model = _displayPackageViewModelHelper.Create(package, currentUser, deprecation, await _readMeService.GetReadMeHtmlAsync(package));
 
             model.ValidatingTooLong = _validationService.IsValidatingTooLong(package);
             model.PackageValidationIssues = _validationService.GetLatestPackageValidationIssues(package);
@@ -965,7 +965,7 @@ namespace NuGetGallery
                 throw;
             }
 
-            var model = _displayLicenseViewModelHelper.CreateDisplayLicenseViewModel(package, licenseExpressionSegments, licenseFileContents);
+            var model = _displayLicenseViewModelHelper.Create(package, licenseExpressionSegments, licenseFileContents);
 
             return View(model);
         }
@@ -1051,7 +1051,7 @@ namespace NuGetGallery
 
             var currentUser = GetCurrentUser();
             var items = results.Data
-                .Select(pv => _listPackageItemViewModelHelper.CreateListPackageItemViewModel(pv, currentUser))
+                .Select(pv => _listPackageItemViewModelHelper.Create(pv, currentUser))
                 .ToList();
 
             var viewModel = new PackageListViewModel(
@@ -1510,7 +1510,7 @@ namespace NuGetGallery
             }
 
             var currentUser = GetCurrentUser();
-            var model = _managePackageViewModelHelper.CreateManagePackageViewModel(
+            var model = _managePackageViewModelHelper.Create(
                 package,
                 GetCurrentUser(),
                 ReportMyPackageReasons,
@@ -1559,7 +1559,7 @@ namespace NuGetGallery
                 return HttpForbidden();
             }
 
-            var model = _deletePackageViewModelHelper.CreateDeletePackageViewModel(package, currentUser, DeleteReasons);
+            var model = _deletePackageViewModelHelper.Create(package, currentUser, DeleteReasons);
 
             // Fetch all versions of the package with symbols.
             var versionsWithSymbols = packages

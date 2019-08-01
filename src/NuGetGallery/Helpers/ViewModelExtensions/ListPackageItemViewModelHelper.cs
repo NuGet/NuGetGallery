@@ -15,7 +15,7 @@ namespace NuGetGallery
             _packageViewModelHelper = new PackageViewModelHelper();
         }
 
-        public ListPackageItemViewModel CreateListPackageItemViewModel(Package package, User currentUser)
+        public ListPackageItemViewModel Create(Package package, User currentUser)
         {
             var viewModel = new ListPackageItemViewModel();
             return SetupListPackageItemViewModel(viewModel, package, currentUser);

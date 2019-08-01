@@ -17,7 +17,7 @@ namespace NuGetGallery
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
         }
 
-        public DeleteAccountListPackageItemViewModel CreateDeleteAccountListPackageItemViewModel(Package package, User userToDelete, User currentUser)
+        public DeleteAccountListPackageItemViewModel Create(Package package, User userToDelete, User currentUser)
         {
             var viewModel = new DeleteAccountListPackageItemViewModel();
             return SetupDeleteAccountListPackageItemViewModel(viewModel, package, userToDelete, currentUser);
