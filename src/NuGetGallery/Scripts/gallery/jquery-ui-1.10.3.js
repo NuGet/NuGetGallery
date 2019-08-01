@@ -9836,7 +9836,7 @@ $.widget( "ui.dialog", {
 		}
 
 		this._isOpen = true;
-        this.opener = $( this.document[0].activeElement );
+		this.opener = $( this.document[0].activeElement );
 
 		this._size();
 		this._position();
