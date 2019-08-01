@@ -6,13 +6,13 @@ using NuGet.Services.Entities;
 
 namespace NuGetGallery
 {
-    public class ListPackageItemViewModelHelper
+    public class ListPackageItemViewModelFactory
     {
-        private readonly PackageViewModelHelper _packageViewModelHelper;
+        private readonly PackageViewModelFactory _packageViewModelHelper;
 
-        public ListPackageItemViewModelHelper()
+        public ListPackageItemViewModelFactory()
         {
-            _packageViewModelHelper = new PackageViewModelHelper();
+            _packageViewModelHelper = new PackageViewModelFactory();
         }
 
         public ListPackageItemViewModel Create(Package package, User currentUser)

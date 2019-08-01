@@ -8,13 +8,13 @@ using NuGet.Services.Licenses;
 
 namespace NuGetGallery
 {
-    public class DisplayLicenseViewModelHelper
+    public class DisplayLicenseViewModelFactory
     {
-        private PackageViewModelHelper _packageViewModelHelper;
+        private PackageViewModelFactory _packageViewModelHelper;
 
-        public DisplayLicenseViewModelHelper()
+        public DisplayLicenseViewModelFactory()
         {
-            _packageViewModelHelper = new PackageViewModelHelper();
+            _packageViewModelHelper = new PackageViewModelFactory();
         }
 
         public DisplayLicenseViewModel Create(

@@ -9,14 +9,14 @@ using NuGetGallery.Security;
 
 namespace NuGetGallery
 {
-    public class ListPackageItemRequiredSignerViewModelHelper
+    public class ListPackageItemRequiredSignerViewModelFactory
     {
-        private readonly ListPackageItemViewModelHelper _listPackageItemViewModel;
+        private readonly ListPackageItemViewModelFactory _listPackageItemViewModel;
         private readonly ISecurityPolicyService _securityPolicyService;
 
-        public ListPackageItemRequiredSignerViewModelHelper(ISecurityPolicyService securityPolicyService)
+        public ListPackageItemRequiredSignerViewModelFactory(ISecurityPolicyService securityPolicyService)
         {
-            _listPackageItemViewModel = new ListPackageItemViewModelHelper();
+            _listPackageItemViewModel = new ListPackageItemViewModelFactory();
             _securityPolicyService = securityPolicyService ?? throw new ArgumentNullException(nameof(securityPolicyService));
         }
 

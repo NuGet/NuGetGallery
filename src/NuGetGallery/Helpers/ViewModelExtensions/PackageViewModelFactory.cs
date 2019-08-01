@@ -6,7 +6,7 @@ using NuGet.Services.Entities;
 
 namespace NuGetGallery
 {
-    public class PackageViewModelHelper
+    public class PackageViewModelFactory
     {
         public PackageViewModel Create(Package package)
         {

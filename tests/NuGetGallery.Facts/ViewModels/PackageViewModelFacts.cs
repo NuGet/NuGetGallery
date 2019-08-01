@@ -18,7 +18,7 @@ namespace NuGetGallery.ViewModels
                 PackageRegistration = new PackageRegistration { Id = "SomeId" },
                 NormalizedVersion = "1.3.0" // Different just to prove the View Model is using the DB column.
             };
-            var packageViewModel = new PackageViewModelHelper().Create(package);
+            var packageViewModel = new PackageViewModelFactory().Create(package);
             Assert.Equal("1.3.0", packageViewModel.Version);
         }
 
@@ -30,7 +30,7 @@ namespace NuGetGallery.ViewModels
                 Version = "01.02.00.00",
                 PackageRegistration = new PackageRegistration { Id = "SomeId" },
             };
-            var packageViewModel = new PackageViewModelHelper().Create(package);
+            var packageViewModel = new PackageViewModelFactory().Create(package);
             Assert.Equal("1.2.0", packageViewModel.Version);
         }
 
@@ -55,7 +55,7 @@ namespace NuGetGallery.ViewModels
             };
 
             // Act 
-            var packageViewModel = new PackageViewModelHelper().Create(package);
+            var packageViewModel = new PackageViewModelFactory().Create(package);
 
             // Assert
             Assert.Equal(expected, packageViewModel.PackageStatusSummary);
@@ -73,7 +73,7 @@ namespace NuGetGallery.ViewModels
             };
 
             // Act & Assert
-            Assert.Throws<ArgumentOutOfRangeException>(() => new PackageViewModelHelper().Create(package));
+            Assert.Throws<ArgumentOutOfRangeException>(() => new PackageViewModelFactory().Create(package));
         }
     }
 }

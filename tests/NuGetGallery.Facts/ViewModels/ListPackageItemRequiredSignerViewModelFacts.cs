@@ -11,13 +11,13 @@ using Xunit;
 
 namespace NuGetGallery.ViewModels
 {
-    public class ListPackageItemRequiredSignerViewModelHelperFacts
+    public class ListPackageItemRequiredSignerViewModelFactoryFacts
     {
         private readonly User _currentUser;
         private readonly User _otherUser;
         private readonly Mock<ISecurityPolicyService> _securityPolicyService;
 
-        public ListPackageItemRequiredSignerViewModelHelperFacts()
+        public ListPackageItemRequiredSignerViewModelFactoryFacts()
         {
             _currentUser = new User()
             {
@@ -37,7 +37,7 @@ namespace NuGetGallery.ViewModels
         [Fact]
         public void WhenPackageIsNull_Throws()
         {
-            var target = new ListPackageItemRequiredSignerViewModelHelper(_securityPolicyService.Object);
+            var target = new ListPackageItemRequiredSignerViewModelFactory(_securityPolicyService.Object);
             var exception = Assert.Throws<ArgumentNullException>(() => target.Create(
                 package: null,
                 currentUser: _currentUser,
@@ -54,7 +54,7 @@ namespace NuGetGallery.ViewModels
                 PackageRegistration = new PackageRegistration(),
                 Version = "1.0.0"
             };
-            var target = new ListPackageItemRequiredSignerViewModelHelper(_securityPolicyService.Object);
+            var target = new ListPackageItemRequiredSignerViewModelFactory(_securityPolicyService.Object);
 
             var exception = Assert.Throws<ArgumentNullException>(
                 () => target.Create(
@@ -74,7 +74,7 @@ namespace NuGetGallery.ViewModels
                 Version = "1.0.0"
             };
 
-            var exception = Assert.Throws<ArgumentNullException>(() => new ListPackageItemRequiredSignerViewModelHelper(null));
+            var exception = Assert.Throws<ArgumentNullException>(() => new ListPackageItemRequiredSignerViewModelFactory(null));
 
             Assert.Equal("securityPolicyService", exception.ParamName);
         }
@@ -95,7 +95,7 @@ namespace NuGetGallery.ViewModels
                     It.Is<User>(user => user == _currentUser),
                     It.Is<string>(policyName => policyName == ControlRequiredSignerPolicy.PolicyName)))
                 .Returns(false);
-            var target = new ListPackageItemRequiredSignerViewModelHelper(_securityPolicyService.Object);
+            var target = new ListPackageItemRequiredSignerViewModelFactory(_securityPolicyService.Object);
 
             var viewModel = target.Create(
                 package,
@@ -125,7 +125,7 @@ namespace NuGetGallery.ViewModels
                 },
                 Version = "1.0.0"
             };
-            var target = new ListPackageItemRequiredSignerViewModelHelper(_securityPolicyService.Object);
+            var target = new ListPackageItemRequiredSignerViewModelFactory(_securityPolicyService.Object);
 
             _securityPolicyService.Setup(x => x.IsSubscribed(
                     It.Is<User>(user => user == _currentUser),
@@ -160,7 +160,7 @@ namespace NuGetGallery.ViewModels
                 },
                 Version = "1.0.0"
             };
-            var target = new ListPackageItemRequiredSignerViewModelHelper(_securityPolicyService.Object);
+            var target = new ListPackageItemRequiredSignerViewModelFactory(_securityPolicyService.Object);
 
             _securityPolicyService.Setup(x => x.IsSubscribed(
                     It.Is<User>(user => user == _currentUser),
@@ -194,7 +194,7 @@ namespace NuGetGallery.ViewModels
                 },
                 Version = "1.0.0"
             };
-            var target = new ListPackageItemRequiredSignerViewModelHelper(_securityPolicyService.Object);
+            var target = new ListPackageItemRequiredSignerViewModelFactory(_securityPolicyService.Object);
 
             _securityPolicyService.Setup(
                 x => x.IsSubscribed(
@@ -229,7 +229,7 @@ namespace NuGetGallery.ViewModels
                 },
                 Version = "1.0.0"
             };
-            var target = new ListPackageItemRequiredSignerViewModelHelper(_securityPolicyService.Object);
+            var target = new ListPackageItemRequiredSignerViewModelFactory(_securityPolicyService.Object);
 
             _securityPolicyService.Setup(
                 x => x.IsSubscribed(
@@ -279,7 +279,7 @@ namespace NuGetGallery.ViewModels
                 },
                 Version = "1.0.0"
             };
-            var target = new ListPackageItemRequiredSignerViewModelHelper(_securityPolicyService.Object);
+            var target = new ListPackageItemRequiredSignerViewModelFactory(_securityPolicyService.Object);
 
             _securityPolicyService.Setup(
                 x => x.IsSubscribed(
@@ -315,7 +315,7 @@ namespace NuGetGallery.ViewModels
                 },
                 Version = "1.0.0"
             };
-            var target = new ListPackageItemRequiredSignerViewModelHelper(_securityPolicyService.Object);
+            var target = new ListPackageItemRequiredSignerViewModelFactory(_securityPolicyService.Object);
 
             _securityPolicyService.Setup(
                 x => x.IsSubscribed(
@@ -351,7 +351,7 @@ namespace NuGetGallery.ViewModels
                 },
                 Version = "1.0.0"
             };
-            var target = new ListPackageItemRequiredSignerViewModelHelper(_securityPolicyService.Object);
+            var target = new ListPackageItemRequiredSignerViewModelFactory(_securityPolicyService.Object);
 
             _securityPolicyService.Setup(
                 x => x.IsSubscribed(
@@ -414,7 +414,7 @@ namespace NuGetGallery.ViewModels
                 },
                 Version = "1.0.0"
             };
-            var target = new ListPackageItemRequiredSignerViewModelHelper(_securityPolicyService.Object);
+            var target = new ListPackageItemRequiredSignerViewModelFactory(_securityPolicyService.Object);
 
             _securityPolicyService.Setup(
                 x => x.IsSubscribed(
@@ -450,7 +450,7 @@ namespace NuGetGallery.ViewModels
                 },
                 Version = "1.0.0"
             };
-            var target = new ListPackageItemRequiredSignerViewModelHelper(_securityPolicyService.Object);
+            var target = new ListPackageItemRequiredSignerViewModelFactory(_securityPolicyService.Object);
 
             _securityPolicyService.Setup(
                 x => x.IsSubscribed(
@@ -486,7 +486,7 @@ namespace NuGetGallery.ViewModels
                 },
                 Version = "1.0.0"
             };
-            var target = new ListPackageItemRequiredSignerViewModelHelper(_securityPolicyService.Object);
+            var target = new ListPackageItemRequiredSignerViewModelFactory(_securityPolicyService.Object);
 
             _securityPolicyService.Setup(
                 x => x.IsSubscribed(
@@ -533,7 +533,7 @@ namespace NuGetGallery.ViewModels
                 },
                 Version = "1.0.0"
             };
-            var target = new ListPackageItemRequiredSignerViewModelHelper(_securityPolicyService.Object);
+            var target = new ListPackageItemRequiredSignerViewModelFactory(_securityPolicyService.Object);
 
             _securityPolicyService.Setup(
                 x => x.IsSubscribed(
@@ -591,7 +591,7 @@ namespace NuGetGallery.ViewModels
                 },
                 Version = "1.0.0"
             };
-            var target = new ListPackageItemRequiredSignerViewModelHelper(_securityPolicyService.Object);
+            var target = new ListPackageItemRequiredSignerViewModelFactory(_securityPolicyService.Object);
 
             _securityPolicyService.Setup(
                 x => x.IsSubscribed(

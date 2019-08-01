@@ -6,14 +6,14 @@ using NuGet.Services.Entities;
 
 namespace NuGetGallery
 {
-    public class DeleteAccountListPackageItemViewModelHelper
+    public class DeleteAccountListPackageItemViewModelFactory
     {
-        private readonly ListPackageItemViewModelHelper _listPackageItemViewModelHelper;
+        private readonly ListPackageItemViewModelFactory _listPackageItemViewModelHelper;
         private readonly IPackageService _packageService;
 
-        public DeleteAccountListPackageItemViewModelHelper(IPackageService packageService)
+        public DeleteAccountListPackageItemViewModelFactory(IPackageService packageService)
         {
-            _listPackageItemViewModelHelper = new ListPackageItemViewModelHelper();
+            _listPackageItemViewModelHelper = new ListPackageItemViewModelFactory();
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
         }
 

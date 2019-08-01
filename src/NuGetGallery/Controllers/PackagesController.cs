@@ -114,11 +114,11 @@ namespace NuGetGallery
         private readonly IFeatureFlagService _featureFlagService;
         private readonly IPackageDeprecationService _deprecationService;
         private readonly IABTestService _abTestService;
-        private readonly DisplayPackageViewModelHelper _displayPackageViewModelHelper;
-        private readonly DisplayLicenseViewModelHelper _displayLicenseViewModelHelper;
-        private readonly ListPackageItemViewModelHelper _listPackageItemViewModelHelper;
-        private readonly ManagePackageViewModelHelper _managePackageViewModelHelper;
-        private readonly DeletePackageViewModelHelper _deletePackageViewModelHelper;
+        private readonly DisplayPackageViewModelFactory _displayPackageViewModelFactory;
+        private readonly DisplayLicenseViewModelFactory _displayLicenseViewModelFactory;
+        private readonly ListPackageItemViewModelFactory _listPackageItemViewModelFactory;
+        private readonly ManagePackageViewModelFactory _managePackageViewModelFactory;
+        private readonly DeletePackageViewModelFactory _deletePackageViewModelFactory;
 
         public PackagesController(
             IPackageService packageService,
@@ -183,11 +183,11 @@ namespace NuGetGallery
             _deprecationService = deprecationService ?? throw new ArgumentNullException(nameof(deprecationService));
             _abTestService = abTestService ?? throw new ArgumentNullException(nameof(abTestService));
 
-            _displayPackageViewModelHelper = new DisplayPackageViewModelHelper();
-            _displayLicenseViewModelHelper = new DisplayLicenseViewModelHelper();
-            _listPackageItemViewModelHelper = new ListPackageItemViewModelHelper();
-            _managePackageViewModelHelper = new ManagePackageViewModelHelper();
-            _deletePackageViewModelHelper = new DeletePackageViewModelHelper();
+            _displayPackageViewModelFactory = new DisplayPackageViewModelFactory();
+            _displayLicenseViewModelFactory = new DisplayLicenseViewModelFactory();
+            _listPackageItemViewModelFactory = new ListPackageItemViewModelFactory();
+            _managePackageViewModelFactory = new ManagePackageViewModelFactory();
+            _deletePackageViewModelFactory = new DeletePackageViewModelFactory();
         }
 
         [HttpGet]
@@ -761,7 +761,7 @@ namespace NuGetGallery
             }
 
             var deprecation = _deprecationService.GetDeprecationByPackage(package);
-            var model = _displayPackageViewModelHelper.Create(package, currentUser, deprecation, await _readMeService.GetReadMeHtmlAsync(package));
+            var model = _displayPackageViewModelFactory.Create(package, currentUser, deprecation, await _readMeService.GetReadMeHtmlAsync(package));
 
             model.ValidatingTooLong = _validationService.IsValidatingTooLong(package);
             model.PackageValidationIssues = _validationService.GetLatestPackageValidationIssues(package);
@@ -965,7 +965,7 @@ namespace NuGetGallery
                 throw;
             }
 
-            var model = _displayLicenseViewModelHelper.Create(package, licenseExpressionSegments, licenseFileContents);
+            var model = _displayLicenseViewModelFactory.Create(package, licenseExpressionSegments, licenseFileContents);
 
             return View(model);
         }
@@ -1051,7 +1051,7 @@ namespace NuGetGallery
 
             var currentUser = GetCurrentUser();
             var items = results.Data
-                .Select(pv => _listPackageItemViewModelHelper.Create(pv, currentUser))
+                .Select(pv => _listPackageItemViewModelFactory.Create(pv, currentUser))
                 .ToList();
 
             var viewModel = new PackageListViewModel(
@@ -1510,7 +1510,7 @@ namespace NuGetGallery
             }
 
             var currentUser = GetCurrentUser();
-            var model = _managePackageViewModelHelper.Create(
+            var model = _managePackageViewModelFactory.Create(
                 package,
                 GetCurrentUser(),
                 ReportMyPackageReasons,
@@ -1559,7 +1559,7 @@ namespace NuGetGallery
                 return HttpForbidden();
             }
 
-            var model = _deletePackageViewModelHelper.Create(package, currentUser, DeleteReasons);
+            var model = _deletePackageViewModelFactory.Create(package, currentUser, DeleteReasons);
 
             // Fetch all versions of the package with symbols.
             var versionsWithSymbols = packages

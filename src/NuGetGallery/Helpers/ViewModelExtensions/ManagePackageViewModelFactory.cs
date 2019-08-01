@@ -10,13 +10,13 @@ using NuGet.Versioning;
 
 namespace NuGetGallery
 {
-    public class ManagePackageViewModelHelper
+    public class ManagePackageViewModelFactory
     {
-        private readonly ListPackageItemViewModelHelper _listPackageItemViewModelHelper;
+        private readonly ListPackageItemViewModelFactory _listPackageItemViewModelHelper;
 
-        public ManagePackageViewModelHelper()
+        public ManagePackageViewModelFactory()
         {
-            _listPackageItemViewModelHelper = new ListPackageItemViewModelHelper();
+            _listPackageItemViewModelHelper = new ListPackageItemViewModelFactory();
         }
 
         public ManagePackageViewModel Create(

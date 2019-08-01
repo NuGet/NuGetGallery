@@ -52,7 +52,7 @@ namespace NuGetGallery
 
         public IDeleteAccountService DeleteAccountService { get; }
 
-        private readonly DeleteAccountListPackageItemViewModelHelper _deleteAccountListPackageItemViewModelHelper;
+        private readonly DeleteAccountListPackageItemViewModelFactory _deleteAccountListPackageItemViewModelFactory;
 
         public AccountsController(
             AuthenticationService authenticationService,
@@ -77,7 +77,7 @@ namespace NuGetGallery
             MessageServiceConfiguration = messageServiceConfiguration ?? throw new ArgumentNullException(nameof(messageServiceConfiguration));
             DeleteAccountService = deleteAccountService ?? throw new ArgumentNullException(nameof(deleteAccountService));
 
-            _deleteAccountListPackageItemViewModelHelper = new DeleteAccountListPackageItemViewModelHelper(PackageService);
+            _deleteAccountListPackageItemViewModelFactory = new DeleteAccountListPackageItemViewModelFactory(PackageService);
         }
 
         public abstract string AccountAction { get; }
@@ -386,7 +386,7 @@ namespace NuGetGallery
             User userToDelete,
             User currentUser)
         {
-            return _deleteAccountListPackageItemViewModelHelper.Create(package, userToDelete, currentUser);
+            return _deleteAccountListPackageItemViewModelFactory.Create(package, userToDelete, currentUser);
         }
 
 

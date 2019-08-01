@@ -7,13 +7,13 @@ using NuGet.Services.Entities;
 
 namespace NuGetGallery
 {
-    public class DeletePackageViewModelHelper
+    public class DeletePackageViewModelFactory
     {
-        private readonly DisplayPackageViewModelHelper _displayPackageViewModelHelper;
+        private readonly DisplayPackageViewModelFactory _displayPackageViewModelHelper;
 
-        public DeletePackageViewModelHelper()
+        public DeletePackageViewModelFactory()
         {
-            _displayPackageViewModelHelper = new DisplayPackageViewModelHelper();
+            _displayPackageViewModelHelper = new DisplayPackageViewModelFactory();
         }
 
         public DeletePackageViewModel Create(
