@@ -11,11 +11,11 @@ namespace NuGetGallery
 {
     public class DisplayPackageViewModelFactory
     {
-        private readonly ListPackageItemViewModelFactory _listPackageItemViewModelHelper;
+        private readonly ListPackageItemViewModelFactory _listPackageItemViewModelFactory;
 
         public DisplayPackageViewModelFactory()
         {
-            _listPackageItemViewModelHelper = new ListPackageItemViewModelFactory();
+            _listPackageItemViewModelFactory = new ListPackageItemViewModelFactory();
         }
 
         public DisplayPackageViewModel Create(
@@ -40,7 +40,7 @@ namespace NuGetGallery
             PackageDeprecation deprecation,
             string readMeHtml)
         {
-            _listPackageItemViewModelHelper.Setup(viewModel, package, currentUser);
+            _listPackageItemViewModelFactory.Setup(viewModel, package, currentUser);
             SetupCommon(viewModel, package, pushedBy: null);
             return SetupInternal(viewModel, package, currentUser, deprecation, readMeHtml);
         }
@@ -71,7 +71,7 @@ namespace NuGetGallery
                     p => 
                     {
                         var vm = new DisplayPackageViewModel();
-                        _listPackageItemViewModelHelper.Setup(vm, p, currentUser);
+                        _listPackageItemViewModelFactory.Setup(vm, p, currentUser);
                         return SetupCommon(vm, p, GetPushedBy(p, currentUser, pushedByCache));
                     })
                 .ToList();

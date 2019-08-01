@@ -9,11 +9,11 @@ namespace NuGetGallery
 {
     public class DeletePackageViewModelFactory
     {
-        private readonly DisplayPackageViewModelFactory _displayPackageViewModelHelper;
+        private readonly DisplayPackageViewModelFactory _displayPackageViewModelFactory;
 
         public DeletePackageViewModelFactory()
         {
-            _displayPackageViewModelHelper = new DisplayPackageViewModelFactory();
+            _displayPackageViewModelFactory = new DisplayPackageViewModelFactory();
         }
 
         public DeletePackageViewModel Create(
@@ -31,7 +31,7 @@ namespace NuGetGallery
             User currentUser,
             IReadOnlyList<ReportPackageReason> reasons)
         {
-            _displayPackageViewModelHelper.Setup(viewModel, package, currentUser, deprecation: null, readMeHtml: null);
+            _displayPackageViewModelFactory.Setup(viewModel, package, currentUser, deprecation: null, readMeHtml: null);
             return SetupInternal(viewModel, package, reasons);
         }
 

@@ -12,11 +12,11 @@ namespace NuGetGallery
 {
     public class ManagePackageViewModelFactory
     {
-        private readonly ListPackageItemViewModelFactory _listPackageItemViewModelHelper;
+        private readonly ListPackageItemViewModelFactory _listPackageItemViewModelFactory;
 
         public ManagePackageViewModelFactory()
         {
-            _listPackageItemViewModelHelper = new ListPackageItemViewModelFactory();
+            _listPackageItemViewModelFactory = new ListPackageItemViewModelFactory();
         }
 
         public ManagePackageViewModel Create(
@@ -40,7 +40,7 @@ namespace NuGetGallery
             string readMe,
             bool isManageDeprecationEnabled)
         {
-            _listPackageItemViewModelHelper.Setup(viewModel, package, currentUser);
+            _listPackageItemViewModelFactory.Setup(viewModel, package, currentUser);
             return SetupInternal(viewModel, package, currentUser, reasons, url, readMe, isManageDeprecationEnabled);
         }
 

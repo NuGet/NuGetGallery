@@ -11,12 +11,12 @@ namespace NuGetGallery
 {
     public class ListPackageItemRequiredSignerViewModelFactory
     {
-        private readonly ListPackageItemViewModelFactory _listPackageItemViewModel;
+        private readonly ListPackageItemViewModelFactory _listPackageItemViewModelFactory;
         private readonly ISecurityPolicyService _securityPolicyService;
 
         public ListPackageItemRequiredSignerViewModelFactory(ISecurityPolicyService securityPolicyService)
         {
-            _listPackageItemViewModel = new ListPackageItemViewModelFactory();
+            _listPackageItemViewModelFactory = new ListPackageItemViewModelFactory();
             _securityPolicyService = securityPolicyService ?? throw new ArgumentNullException(nameof(securityPolicyService));
         }
 
@@ -41,7 +41,7 @@ namespace NuGetGallery
             User currentUser,
             bool wasAADLoginOrMultiFactorAuthenticated)
         {
-            _listPackageItemViewModel.Setup(viewModel, package, currentUser);
+            _listPackageItemViewModelFactory.Setup(viewModel, package, currentUser);
             return SetupInternal(viewModel, package, currentUser, wasAADLoginOrMultiFactorAuthenticated);
         }
 

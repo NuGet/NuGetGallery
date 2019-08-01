@@ -8,12 +8,12 @@ namespace NuGetGallery
 {
     public class DeleteAccountListPackageItemViewModelFactory
     {
-        private readonly ListPackageItemViewModelFactory _listPackageItemViewModelHelper;
+        private readonly ListPackageItemViewModelFactory _listPackageItemViewModelFactory;
         private readonly IPackageService _packageService;
 
         public DeleteAccountListPackageItemViewModelFactory(IPackageService packageService)
         {
-            _listPackageItemViewModelHelper = new ListPackageItemViewModelFactory();
+            _listPackageItemViewModelFactory = new ListPackageItemViewModelFactory();
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
         }
 
@@ -25,7 +25,7 @@ namespace NuGetGallery
 
         private DeleteAccountListPackageItemViewModel Setup(DeleteAccountListPackageItemViewModel viewModel, Package package, User userToDelete, User currentUser)
         {
-            _listPackageItemViewModelHelper.Setup(viewModel, package, currentUser);
+            _listPackageItemViewModelFactory.Setup(viewModel, package, currentUser);
             return SetupInternal(viewModel, package, userToDelete);
         }
 

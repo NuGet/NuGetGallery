@@ -8,11 +8,11 @@ namespace NuGetGallery
 {
     public class ListPackageItemViewModelFactory
     {
-        private readonly PackageViewModelFactory _packageViewModelHelper;
+        private readonly PackageViewModelFactory _packageViewModelFactory;
 
         public ListPackageItemViewModelFactory()
         {
-            _packageViewModelHelper = new PackageViewModelFactory();
+            _packageViewModelFactory = new PackageViewModelFactory();
         }
 
         public ListPackageItemViewModel Create(Package package, User currentUser)
@@ -23,7 +23,7 @@ namespace NuGetGallery
 
         public ListPackageItemViewModel Setup(ListPackageItemViewModel viewModel, Package package, User currentUser)
         {
-            _packageViewModelHelper.Setup(viewModel, package);
+            _packageViewModelFactory.Setup(viewModel, package);
             return SetupInternal(viewModel, package, currentUser);
         }
 

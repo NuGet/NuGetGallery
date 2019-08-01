@@ -10,11 +10,11 @@ namespace NuGetGallery
 {
     public class DisplayLicenseViewModelFactory
     {
-        private PackageViewModelFactory _packageViewModelHelper;
+        private PackageViewModelFactory _packageViewModelFactory;
 
         public DisplayLicenseViewModelFactory()
         {
-            _packageViewModelHelper = new PackageViewModelFactory();
+            _packageViewModelFactory = new PackageViewModelFactory();
         }
 
         public DisplayLicenseViewModel Create(
@@ -32,7 +32,7 @@ namespace NuGetGallery
             IReadOnlyCollection<CompositeLicenseExpressionSegment> licenseExpressionSegments,
             string licenseFileContents)
         {
-            _packageViewModelHelper.Setup(viewModel, package);
+            _packageViewModelFactory.Setup(viewModel, package);
             return SetupInternal(viewModel, package, licenseExpressionSegments, licenseFileContents);
         }
 
