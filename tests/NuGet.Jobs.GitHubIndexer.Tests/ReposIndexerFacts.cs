@@ -113,7 +113,7 @@ namespace NuGet.Jobs.GitHubIndexer.Tests
                 };
 
                 var indexer = CreateIndexer(repo,
-                    repoFiles, 
+                    repoFiles,
                     // This should not be called since there is no dependencies
                     onDisposeHandler: (string serializedValue) => Assert.True(false));
                 await indexer.RunAsync();
@@ -142,6 +142,55 @@ namespace NuGet.Jobs.GitHubIndexer.Tests
                     {
                         // Make sure that the Indexer filters out the non-config files
                         Assert.True(Array.Exists(configFileNames, x => string.Equals(x, file.Path)));
+                        return repoDependencies;
+                    },
+                    onDisposeHandler: (string serializedText) =>
+                    {
+                        writeToBlobCalled = true;
+                        Assert.Equal(JsonConvert.SerializeObject(new RepositoryInformation[] { repo.ToRepositoryInformation() }), serializedText);
+                    });
+                await indexer.RunAsync();
+
+                var result = repo.ToRepositoryInformation();
+
+                // Make sure the dependencies got read correctly
+                Assert.Equal(repoDependencies.Length, result.Dependencies.Count);
+                Assert.Equal(repoDependencies, result.Dependencies);
+
+                // Make sure the repo information didn't get changed in the process
+                Assert.Equal(repo.Id, result.Id);
+                Assert.Equal(repo.Stars, result.Stars);
+                Assert.Equal(repo.Url, result.Url);
+
+                // Make sure the blob has been written
+                Assert.True(writeToBlobCalled);
+            }
+
+            [Fact]
+            public async Task OversizedBlobs()
+            {
+                var repo = new WritableRepositoryInformation("owner/test", url: "", stars: 100, description: "", mainBranch: "master");
+                var configFileNames = new string[] { "packages.config", "someProjFile.csproj", "someProjFile.props", "someProjFile.targets" };
+                var repoDependencies = new string[] { "dependency1", "dependency2", "dependency3", "dependency4" };
+                var repoFiles = new List<GitFileInfo>()
+                {
+                    new GitFileInfo("file1.txt", 1),
+                    new GitFileInfo("file2.txt", 1),
+                    new GitFileInfo(configFileNames[0], ReposIndexer.MaxBlobSizeBytes + 1),
+                    new GitFileInfo(configFileNames[1], 1),
+                    new GitFileInfo(configFileNames[2], 1),
+                    new GitFileInfo(configFileNames[3], 1)
+                };
+                var writeToBlobCalled = false;
+                var indexer = CreateIndexer(repo, repoFiles, configFileParser: (ICheckedOutFile file) =>
+                    {
+                        var idx = Array.FindIndex(configFileNames, x => string.Equals(x, file.Path));
+
+                        // Make sure that the Indexer filters out the non-config files
+                        Assert.True(idx != -1);
+                        Assert.True(
+                            repoFiles[repoFiles.FindIndex(f => string.Equals(f.Path, file.Path))]
+                                .BlobSize < ReposIndexer.MaxBlobSizeBytes);
                         return repoDependencies;
                     },
                     onDisposeHandler: (string serializedText) =>

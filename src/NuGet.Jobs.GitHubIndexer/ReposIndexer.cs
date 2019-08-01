@@ -20,6 +20,7 @@ namespace NuGet.Jobs.GitHubIndexer
         private const string WorkingDirectory = "work";
         private const string BlobStorageContainerName = "content";
         private const string GitHubUsageFileName = "GitHubUsage.v1.json";
+        public const int MaxBlobSizeBytes = 1 << 20; // 1 MB = 2^20
 
         public static readonly string RepositoriesDirectory = Path.Combine(WorkingDirectory, "repos");
         public static readonly string CacheDirectory = Path.Combine(WorkingDirectory, "cache");
@@ -127,8 +128,17 @@ namespace NuGet.Jobs.GitHubIndexer
                 var checkedOutFiles =
                     fetchedRepo.CheckoutFiles(
                         filePaths
-                        // TODO: Filter by blobSize too! (https://github.com/NuGet/NuGetGallery/issues/7339)
                         .Where(x => Filters.GetConfigFileType(x.Path) != Filters.ConfigFileType.None)
+                        .Where(x =>
+                        {
+                            var isValidBlob = x.BlobSize <= MaxBlobSizeBytes;
+                            if (!isValidBlob)
+                            {
+                                _logger.LogWarning("File is too big! {FilePath} {FileSizeBytes} bytes", x.Path, x.BlobSize);
+                            }
+
+                            return isValidBlob;
+                        })
                         .Select(x => x.Path)
                         .ToList()); // List of config files that are on-disk
 
