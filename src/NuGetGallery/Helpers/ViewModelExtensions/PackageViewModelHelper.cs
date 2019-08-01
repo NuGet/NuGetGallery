@@ -11,10 +11,10 @@ namespace NuGetGallery
         public PackageViewModel Create(Package package)
         {
             var viewModel = new PackageViewModel();
-            return SetupPackageViewModel(viewModel, package);
+            return Setup(viewModel, package);
         }
 
-        public PackageViewModel SetupPackageViewModel(PackageViewModel viewModel, Package package)
+        public PackageViewModel Setup(PackageViewModel viewModel, Package package)
         {
             if (viewModel == null)
             {

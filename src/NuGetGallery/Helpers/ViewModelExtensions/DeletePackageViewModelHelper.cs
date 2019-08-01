@@ -22,20 +22,20 @@ namespace NuGetGallery
             IReadOnlyList<ReportPackageReason> reasons)
         {
             var viewModel = new DeletePackageViewModel();
-            return SetupDeletePackageViewModel(viewModel, package, currentUser, reasons);
+            return Setup(viewModel, package, currentUser, reasons);
         }
 
-        public DeletePackageViewModel SetupDeletePackageViewModel(
+        public DeletePackageViewModel Setup(
             DeletePackageViewModel viewModel,
             Package package,
             User currentUser,
             IReadOnlyList<ReportPackageReason> reasons)
         {
-            _displayPackageViewModelHelper.SetupDisplayPackageViewModel(viewModel, package, currentUser, deprecation: null, readMeHtml: null);
-            return SetupDeletePackageViewModelInternal(viewModel, package, reasons);
+            _displayPackageViewModelHelper.Setup(viewModel, package, currentUser, deprecation: null, readMeHtml: null);
+            return SetupInternal(viewModel, package, reasons);
         }
 
-        private DeletePackageViewModel SetupDeletePackageViewModelInternal(
+        private DeletePackageViewModel SetupInternal(
             DeletePackageViewModel viewModel,
             Package package,
             IReadOnlyList<ReportPackageReason> reasons)

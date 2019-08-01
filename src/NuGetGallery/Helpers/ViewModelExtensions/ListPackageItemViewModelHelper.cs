@@ -18,16 +18,16 @@ namespace NuGetGallery
         public ListPackageItemViewModel Create(Package package, User currentUser)
         {
             var viewModel = new ListPackageItemViewModel();
-            return SetupListPackageItemViewModel(viewModel, package, currentUser);
+            return Setup(viewModel, package, currentUser);
         }
 
-        public ListPackageItemViewModel SetupListPackageItemViewModel(ListPackageItemViewModel viewModel, Package package, User currentUser)
+        public ListPackageItemViewModel Setup(ListPackageItemViewModel viewModel, Package package, User currentUser)
         {
-            _packageViewModelHelper.SetupPackageViewModel(viewModel, package);
-            return SetupListPackageItemViewModelInternal(viewModel, package, currentUser);
+            _packageViewModelHelper.Setup(viewModel, package);
+            return SetupInternal(viewModel, package, currentUser);
         }
 
-        private ListPackageItemViewModel SetupListPackageItemViewModelInternal(ListPackageItemViewModel viewModel, Package package, User currentUser)
+        private ListPackageItemViewModel SetupInternal(ListPackageItemViewModel viewModel, Package package, User currentUser)
         {
             viewModel.Tags = package.Tags?
                 .Split(' ')

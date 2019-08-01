@@ -25,7 +25,7 @@ namespace NuGetGallery
             string readmeHtml)
         {
             var viewModel = new DisplayPackageViewModel();
-            return SetupDisplayPackageViewModel(
+            return Setup(
                 viewModel,
                 package,
                 currentUser,
@@ -33,19 +33,19 @@ namespace NuGetGallery
                 readmeHtml);
         }
 
-        public DisplayPackageViewModel SetupDisplayPackageViewModel(
+        public DisplayPackageViewModel Setup(
             DisplayPackageViewModel viewModel,
             Package package,
             User currentUser,
             PackageDeprecation deprecation,
             string readMeHtml)
         {
-            _listPackageItemViewModelHelper.SetupListPackageItemViewModel(viewModel, package, currentUser);
-            SetupDisplayViewModelCommon(viewModel, package, pushedBy: null);
-            return SetupDisplayPackageViewModelInternal(viewModel, package, currentUser, deprecation, readMeHtml);
+            _listPackageItemViewModelHelper.Setup(viewModel, package, currentUser);
+            SetupCommon(viewModel, package, pushedBy: null);
+            return SetupInternal(viewModel, package, currentUser, deprecation, readMeHtml);
         }
 
-        private DisplayPackageViewModel SetupDisplayPackageViewModelInternal(
+        private DisplayPackageViewModel SetupInternal(
             DisplayPackageViewModel viewModel,
             Package package,
             User currentUser,
@@ -71,8 +71,8 @@ namespace NuGetGallery
                     p => 
                     {
                         var vm = new DisplayPackageViewModel();
-                        _listPackageItemViewModelHelper.SetupListPackageItemViewModel(vm, p, currentUser);
-                        return SetupDisplayViewModelCommon(vm, p, GetPushedBy(p, currentUser, pushedByCache));
+                        _listPackageItemViewModelHelper.Setup(vm, p, currentUser);
+                        return SetupCommon(vm, p, GetPushedBy(p, currentUser, pushedByCache));
                     })
                 .ToList();
 
@@ -116,7 +116,7 @@ namespace NuGetGallery
             return viewModel;
         }
 
-        private DisplayPackageViewModel SetupDisplayViewModelCommon(
+        private DisplayPackageViewModel SetupCommon(
             DisplayPackageViewModel viewModel,
             Package package,
             string pushedBy)

@@ -23,20 +23,20 @@ namespace NuGetGallery
             string licenseFileContents)
         {
             var viewModel = new DisplayLicenseViewModel();
-            return SetupDisplayLicenseViewModel(viewModel, package, licenseExpressionSegments, licenseFileContents);
+            return Setup(viewModel, package, licenseExpressionSegments, licenseFileContents);
         }
 
-        private DisplayLicenseViewModel SetupDisplayLicenseViewModel(
+        private DisplayLicenseViewModel Setup(
             DisplayLicenseViewModel viewModel,
             Package package,
             IReadOnlyCollection<CompositeLicenseExpressionSegment> licenseExpressionSegments,
             string licenseFileContents)
         {
-            _packageViewModelHelper.SetupPackageViewModel(viewModel, package);
-            return SetupDisplayLicenseViewModelInternal(viewModel, package, licenseExpressionSegments, licenseFileContents);
+            _packageViewModelHelper.Setup(viewModel, package);
+            return SetupInternal(viewModel, package, licenseExpressionSegments, licenseFileContents);
         }
 
-        private DisplayLicenseViewModel SetupDisplayLicenseViewModelInternal(
+        private DisplayLicenseViewModel SetupInternal(
             DisplayLicenseViewModel viewModel,
             Package package,
             IReadOnlyCollection<CompositeLicenseExpressionSegment> licenseExpressionSegments,

@@ -28,10 +28,10 @@ namespace NuGetGallery
             bool isManageDeprecationEnabled)
         {
             var viewModel = new ManagePackageViewModel();
-            return SetupManagePackageViewModel(viewModel, package, currentUser, reasons, url, readMe, isManageDeprecationEnabled);
+            return Setup(viewModel, package, currentUser, reasons, url, readMe, isManageDeprecationEnabled);
         }
 
-        public ManagePackageViewModel SetupManagePackageViewModel(
+        public ManagePackageViewModel Setup(
             ManagePackageViewModel viewModel,
             Package package,
             User currentUser,
@@ -40,11 +40,11 @@ namespace NuGetGallery
             string readMe,
             bool isManageDeprecationEnabled)
         {
-            _listPackageItemViewModelHelper.SetupListPackageItemViewModel(viewModel, package, currentUser);
-            return SetupManagePackageViewModelInternal(viewModel, package, currentUser, reasons, url, readMe, isManageDeprecationEnabled);
+            _listPackageItemViewModelHelper.Setup(viewModel, package, currentUser);
+            return SetupInternal(viewModel, package, currentUser, reasons, url, readMe, isManageDeprecationEnabled);
         }
 
-        private ManagePackageViewModel SetupManagePackageViewModelInternal(
+        private ManagePackageViewModel SetupInternal(
             ManagePackageViewModel viewModel,
             Package package,
             User currentUser,

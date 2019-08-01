@@ -20,16 +20,16 @@ namespace NuGetGallery
         public DeleteAccountListPackageItemViewModel Create(Package package, User userToDelete, User currentUser)
         {
             var viewModel = new DeleteAccountListPackageItemViewModel();
-            return SetupDeleteAccountListPackageItemViewModel(viewModel, package, userToDelete, currentUser);
+            return Setup(viewModel, package, userToDelete, currentUser);
         }
 
-        private DeleteAccountListPackageItemViewModel SetupDeleteAccountListPackageItemViewModel(DeleteAccountListPackageItemViewModel viewModel, Package package, User userToDelete, User currentUser)
+        private DeleteAccountListPackageItemViewModel Setup(DeleteAccountListPackageItemViewModel viewModel, Package package, User userToDelete, User currentUser)
         {
-            _listPackageItemViewModelHelper.SetupListPackageItemViewModel(viewModel, package, currentUser);
-            return SetupDeleteAccountListPackageItemViewModelInternal(viewModel, package, userToDelete);
+            _listPackageItemViewModelHelper.Setup(viewModel, package, currentUser);
+            return SetupInternal(viewModel, package, userToDelete);
         }
 
-        private DeleteAccountListPackageItemViewModel SetupDeleteAccountListPackageItemViewModelInternal(DeleteAccountListPackageItemViewModel viewModel, Package package, User userToDelete)
+        private DeleteAccountListPackageItemViewModel SetupInternal(DeleteAccountListPackageItemViewModel viewModel, Package package, User userToDelete)
         {
             viewModel.WillBeOrphaned = _packageService.WillPackageBeOrphanedIfOwnerRemoved(package.PackageRegistration, userToDelete);
             return viewModel;

@@ -32,20 +32,20 @@ namespace NuGetGallery
             bool wasAADLoginOrMultiFactorAuthenticated)
         {
             var viewModel = new ListPackageItemRequiredSignerViewModel();
-            return SetupListPackageItemRequiredSignerViewModel(viewModel, package, currentUser, wasAADLoginOrMultiFactorAuthenticated);
+            return Setup(viewModel, package, currentUser, wasAADLoginOrMultiFactorAuthenticated);
         }
 
-        public ListPackageItemRequiredSignerViewModel SetupListPackageItemRequiredSignerViewModel(
+        public ListPackageItemRequiredSignerViewModel Setup(
             ListPackageItemRequiredSignerViewModel viewModel,
             Package package,
             User currentUser,
             bool wasAADLoginOrMultiFactorAuthenticated)
         {
-            _listPackageItemViewModel.SetupListPackageItemViewModel(viewModel, package, currentUser);
-            return SetupListPackageItemRequiredSignerViewModelInternal(viewModel, package, currentUser, wasAADLoginOrMultiFactorAuthenticated);
+            _listPackageItemViewModel.Setup(viewModel, package, currentUser);
+            return SetupInternal(viewModel, package, currentUser, wasAADLoginOrMultiFactorAuthenticated);
         }
 
-        private ListPackageItemRequiredSignerViewModel SetupListPackageItemRequiredSignerViewModelInternal(
+        private ListPackageItemRequiredSignerViewModel SetupInternal(
             ListPackageItemRequiredSignerViewModel viewModel,
             Package package,
             User currentUser,
