@@ -9836,7 +9836,7 @@ $.widget( "ui.dialog", {
 		}
 
 		this._isOpen = true;
-		this.opener = $( this.document[0].activeElement );
+        this.opener = $( this.document[0].activeElement );
 
 		this._size();
 		this._position();
@@ -12116,17 +12116,20 @@ $.position = {
 		};
 	},
 	getWithinInfo: function( element ) {
-		var withinElement = $( element || window ),
-			isWindow = $.isWindow( withinElement[0] );
-		return {
-			element: withinElement,
-			isWindow: isWindow,
-			offset: withinElement.offset() || { left: 0, top: 0 },
-			scrollLeft: withinElement.scrollLeft(),
-			scrollTop: withinElement.scrollTop(),
-			width: isWindow ? withinElement.width() : withinElement.outerWidth(),
-			height: isWindow ? withinElement.height() : withinElement.outerHeight()
-		};
+        var withinElement = $(element || window),
+            isWindow = $.isWindow(withinElement[0]),
+            isDocument = !!withinElement[0] && withinElement[0].nodeType === 9,
+            hasOffset = !isWindow && !isDocument;
+        return {
+            element: withinElement,
+            isWindow: isWindow,
+            isDocument: isDocument,
+            offset: hasOffset ? $(element).offset() : { left: 0, top: 0 },
+            scrollLeft: withinElement.scrollLeft(),
+            scrollTop: withinElement.scrollTop(),
+            width: withinElement.outerWidth(),
+            height: withinElement.outerHeight()
+        };
 	}
 };
 
