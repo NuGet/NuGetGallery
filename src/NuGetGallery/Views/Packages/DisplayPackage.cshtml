@@ -572,7 +572,7 @@
                 </a>
             </h2>
             <div class="version-history panel-collapse collapse in" aria-expanded="true" id="version-history">
-                <table class="table borderless">
+                <table aria-label="Version History of @Model.Id" class="table borderless">
                     <thead>
                         <tr>
                             <th>Version</th>
@@ -582,7 +582,8 @@
                             {
                                 <th>Status</th>
                             }
-                            <th colspan="2"></th>
+                            <th aria-label="Signature Information"></th>
+                            <th aria-label="Deprecation Information"></th>
                         </tr>
                     </thead>
                     <tbody class="no-border">
