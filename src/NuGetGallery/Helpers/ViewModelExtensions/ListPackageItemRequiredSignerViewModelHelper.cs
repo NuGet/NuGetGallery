@@ -9,31 +9,51 @@ using NuGetGallery.Security;
 
 namespace NuGetGallery
 {
-    public static class ListPackageItemRequiredSignerViewModelExtensions
+    public class ListPackageItemRequiredSignerViewModelHelper
     {
+        private readonly ListPackageItemViewModelHelper _listPackageItemViewModel;
+        private readonly ISecurityPolicyService _securityPolicyService;
+
+        public ListPackageItemRequiredSignerViewModelHelper(ISecurityPolicyService securityPolicyService)
+        {
+            _listPackageItemViewModel = new ListPackageItemViewModelHelper();
+            _securityPolicyService = securityPolicyService ?? throw new ArgumentNullException(nameof(securityPolicyService));
+        }
+
         // username must be an empty string because <select /> option values are based on username
         // and this "user" must be distinguishable from an account named "Any" and any other user;
         // null would be ideal, but null won't work as a <select /> option value.
         private static readonly SignerViewModel AnySigner =
             new SignerViewModel(username: "", displayText: "Any");
 
-        public static ListPackageItemRequiredSignerViewModel Setup(
-            this ListPackageItemRequiredSignerViewModel viewModel,
+        public ListPackageItemRequiredSignerViewModel CreateListPackageItemRequiredSignerViewModel(
             Package package,
             User currentUser,
-            ISecurityPolicyService securityPolicyService,
             bool wasAADLoginOrMultiFactorAuthenticated)
         {
-            ((ListPackageItemViewModel)viewModel).Setup(package, currentUser);
+            var viewModel = new ListPackageItemRequiredSignerViewModel();
+            return SetupListPackageItemRequiredSignerViewModel(viewModel, package, currentUser, wasAADLoginOrMultiFactorAuthenticated);
+        }
 
+        public ListPackageItemRequiredSignerViewModel SetupListPackageItemRequiredSignerViewModel(
+            ListPackageItemRequiredSignerViewModel viewModel,
+            Package package,
+            User currentUser,
+            bool wasAADLoginOrMultiFactorAuthenticated)
+        {
+            _listPackageItemViewModel.SetupListPackageItemViewModel(viewModel, package, currentUser);
+            return SetupListPackageItemRequiredSignerViewModelInternal(viewModel, package, currentUser, wasAADLoginOrMultiFactorAuthenticated);
+        }
+
+        private ListPackageItemRequiredSignerViewModel SetupListPackageItemRequiredSignerViewModelInternal(
+            ListPackageItemRequiredSignerViewModel viewModel,
+            Package package,
+            User currentUser,
+            bool wasAADLoginOrMultiFactorAuthenticated)
+        {
             if (currentUser == null)
             {
                 throw new ArgumentNullException(nameof(currentUser));
-            }
-
-            if (securityPolicyService == null)
-            {
-                throw new ArgumentNullException(nameof(securityPolicyService));
             }
 
             var owners = package.PackageRegistration?.Owners ?? Enumerable.Empty<User>();
@@ -42,7 +62,7 @@ namespace NuGetGallery
             {
                 viewModel.ShowRequiredSigner = true;
 
-                viewModel.CanEditRequiredSigner = CanEditRequiredSigner(package, currentUser, securityPolicyService, owners);
+                viewModel.CanEditRequiredSigner = CanEditRequiredSigner(package, currentUser, _securityPolicyService, owners);
 
                 var requiredSigner = package.PackageRegistration?.RequiredSigners.FirstOrDefault();
 
@@ -90,7 +110,7 @@ namespace NuGetGallery
                     viewModel.AllSigners = new[] { viewModel.RequiredSigner };
 
                     var ownersWithRequiredSignerControl = owners.Where(
-                        owner => securityPolicyService.IsSubscribed(owner, ControlRequiredSignerPolicy.PolicyName));
+                        owner => _securityPolicyService.IsSubscribed(owner, ControlRequiredSignerPolicy.PolicyName));
 
                     if (owners.Count() == 1)
                     {

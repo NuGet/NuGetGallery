@@ -9,16 +9,49 @@ using NuGet.Versioning;
 
 namespace NuGetGallery
 {
-    public static class DisplayPackageViewModelExtensions
+    public class DisplayPackageViewModelHelper
     {
-        public static DisplayPackageViewModel Setup(
-            this DisplayPackageViewModel viewModel,
+        private readonly ListPackageItemViewModelHelper _listPackageItemViewModelHelper;
+
+        public DisplayPackageViewModelHelper()
+        {
+            _listPackageItemViewModelHelper = new ListPackageItemViewModelHelper();
+        }
+
+        public DisplayPackageViewModel CreateDisplayPackageViewModel(
             Package package,
             User currentUser,
-            PackageDeprecation deprecation)
+            PackageDeprecation deprecation,
+            string readmeHtml)
         {
-            viewModel.SetupDisplayViewModelCommon(package, currentUser, pushedBy: null);
+            var viewModel = new DisplayPackageViewModel();
+            return SetupDisplayPackageViewModel(
+                viewModel,
+                package,
+                currentUser,
+                deprecation,
+                readmeHtml);
+        }
 
+        public DisplayPackageViewModel SetupDisplayPackageViewModel(
+            DisplayPackageViewModel viewModel,
+            Package package,
+            User currentUser,
+            PackageDeprecation deprecation,
+            string readMeHtml)
+        {
+            _listPackageItemViewModelHelper.SetupListPackageItemViewModel(viewModel, package, currentUser);
+            SetupDisplayViewModelCommon(viewModel, package, pushedBy: null);
+            return SetupDisplayPackageViewModelInternal(viewModel, package, currentUser, deprecation, readMeHtml);
+        }
+
+        private DisplayPackageViewModel SetupDisplayPackageViewModelInternal(
+            DisplayPackageViewModel viewModel,
+            Package package,
+            User currentUser,
+            PackageDeprecation deprecation,
+            string readMeHtml)
+        {
             viewModel.HasSemVer2Version = viewModel.NuGetVersion.IsSemVer2;
             viewModel.HasSemVer2Dependency = package.Dependencies.ToList()
                 .Where(pd => !string.IsNullOrEmpty(pd.VersionSpec))
@@ -35,8 +68,12 @@ namespace NuGetGallery
             var pushedByCache = new Dictionary<User, string>();
             viewModel.PackageVersions = packageHistory
                 .Select(
-                    p => new DisplayPackageViewModel()
-                        .SetupDisplayViewModelCommon(p, currentUser, GetPushedBy(p, currentUser, pushedByCache)))
+                    p => 
+                    {
+                        var vm = new DisplayPackageViewModel();
+                        _listPackageItemViewModelHelper.SetupListPackageItemViewModel(vm, p, currentUser);
+                        return SetupDisplayViewModelCommon(vm, p, GetPushedBy(p, currentUser, pushedByCache));
+                    })
                 .ToList();
 
             viewModel.PushedBy = GetPushedBy(package, currentUser, pushedByCache);
@@ -74,17 +111,16 @@ namespace NuGetGallery
                 viewModel.CustomMessage = deprecation.CustomMessage;
             }
 
+            viewModel.ReadMeHtml = readMeHtml;
+
             return viewModel;
         }
 
-        private static DisplayPackageViewModel SetupDisplayViewModelCommon(
-            this DisplayPackageViewModel viewModel,
+        private DisplayPackageViewModel SetupDisplayViewModelCommon(
+            DisplayPackageViewModel viewModel,
             Package package,
-            User currentUser,
             string pushedBy)
         {
-            ((ListPackageItemViewModel)viewModel).Setup(package, currentUser);
-
             viewModel.NuGetVersion = NuGetVersion.Parse(NuGetVersionFormatter.ToFullString(package.Version));
             viewModel.Copyright = package.Copyright;
 

@@ -8,7 +8,7 @@ using Xunit;
 
 namespace NuGetGallery.ViewModels
 {
-    public class DisplayLicenseViewModelFacts
+    public class DisplayLicenseViewModelHelperFacts
     {
         [Theory]
         [InlineData(EmbeddedLicenseFileType.Absent, "some expression")]
@@ -27,7 +27,7 @@ namespace NuGetGallery.ViewModels
             };
 
             // act
-            var model = new DisplayLicenseViewModel().Setup(package, licenseExpressionSegments: null, licenseFileContents: null);
+            var model = new DisplayLicenseViewModelHelper().CreateDisplayLicenseViewModel(package, licenseExpressionSegments: null, licenseFileContents: null);
 
             // assert
             Assert.Equal(embeddedLicenseType, model.EmbeddedLicenseType);
@@ -48,7 +48,7 @@ namespace NuGetGallery.ViewModels
             };
 
             // act
-            var model = new DisplayLicenseViewModel().Setup(package, licenseExpressionSegments: null, licenseFileContents: null);
+            var model = new DisplayLicenseViewModelHelper().CreateDisplayLicenseViewModel(package, licenseExpressionSegments: null, licenseFileContents: null);
 
             // assert
             Assert.Equal(new string[] { "l1", "l2", "l3", "l4", "l5" }, model.LicenseNames);
@@ -76,7 +76,7 @@ namespace NuGetGallery.ViewModels
             };
 
             // act
-            var model = new DisplayLicenseViewModel().Setup(package, licenseExpressionSegments: null, licenseFileContents: null);
+            var model = new DisplayLicenseViewModelHelper().CreateDisplayLicenseViewModel(package, licenseExpressionSegments: null, licenseFileContents: null);
 
             // assert
             Assert.Equal(expected, model.LicenseUrl);
@@ -94,7 +94,7 @@ namespace NuGetGallery.ViewModels
             var segments = new List<CompositeLicenseExpressionSegment>();
 
             // act
-            var model = new DisplayLicenseViewModel().Setup(package, licenseExpressionSegments: segments, licenseFileContents: null);
+            var model = new DisplayLicenseViewModelHelper().CreateDisplayLicenseViewModel(package, licenseExpressionSegments: segments, licenseFileContents: null);
 
             // assert
             Assert.Equal(segments, model.LicenseExpressionSegments);
@@ -112,7 +112,7 @@ namespace NuGetGallery.ViewModels
             var licenseFileContents = "It's a license";
 
             // act
-            var model = new DisplayLicenseViewModel().Setup(package, licenseExpressionSegments: null, licenseFileContents: licenseFileContents);
+            var model = new DisplayLicenseViewModelHelper().CreateDisplayLicenseViewModel(package, licenseExpressionSegments: null, licenseFileContents: licenseFileContents);
 
             // assert
             Assert.Equal(licenseFileContents, model.LicenseFileContents);

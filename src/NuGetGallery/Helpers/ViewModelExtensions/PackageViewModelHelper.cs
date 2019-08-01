@@ -6,9 +6,15 @@ using NuGet.Services.Entities;
 
 namespace NuGetGallery
 {
-    public static class PackageViewModelExtensions
+    public class PackageViewModelHelper
     {
-        public static PackageViewModel Setup(this PackageViewModel viewModel, Package package)
+        public PackageViewModel CreatePackageViewModel(Package package)
+        {
+            var viewModel = new PackageViewModel();
+            return SetupPackageViewModel(viewModel, package);
+        }
+
+        public PackageViewModel SetupPackageViewModel(PackageViewModel viewModel, Package package)
         {
             if (viewModel == null)
             {

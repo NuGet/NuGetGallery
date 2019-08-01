@@ -30,6 +30,8 @@ namespace NuGetGallery
         private readonly IAppConfiguration _config;
         private readonly ICredentialBuilder _credentialBuilder;
         private readonly ISupportRequestService _supportRequestService;
+        private readonly ListPackageItemRequiredSignerViewModelHelper _listPackageItemRequiredSignerViewModelHelper;
+        private readonly ListPackageItemViewModelHelper _listPackageItemViewModelHelper;
 
         public UsersController(
             IUserService userService,
@@ -62,6 +64,9 @@ namespace NuGetGallery
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _credentialBuilder = credentialBuilder ?? throw new ArgumentNullException(nameof(credentialBuilder));
             _supportRequestService = supportRequestService ?? throw new ArgumentNullException(nameof(supportRequestService));
+
+            _listPackageItemRequiredSignerViewModelHelper = new ListPackageItemRequiredSignerViewModelHelper(securityPolicyService);
+            _listPackageItemViewModelHelper = new ListPackageItemViewModelHelper();
         }
 
         public override string AccountAction => nameof(Account);
@@ -435,12 +440,12 @@ namespace NuGetGallery
             var packages = PackageService.FindPackagesByAnyMatchingOwner(currentUser, includeUnlisted: true);
             var listedPackages = packages
                 .Where(p => p.Listed && p.PackageStatusKey == PackageStatus.Available)
-                .Select(p => new ListPackageItemRequiredSignerViewModel().Setup(p, currentUser, SecurityPolicyService, wasAADLoginOrMultiFactorAuthenticated))
+                .Select(p => _listPackageItemRequiredSignerViewModelHelper.CreateListPackageItemRequiredSignerViewModel(p, currentUser, wasAADLoginOrMultiFactorAuthenticated))
                 .OrderBy(p => p.Id)
                 .ToList();
             var unlistedPackages = packages
                 .Where(p => !p.Listed || p.PackageStatusKey != PackageStatus.Available)
-                .Select(p => new ListPackageItemRequiredSignerViewModel().Setup(p, currentUser, SecurityPolicyService, wasAADLoginOrMultiFactorAuthenticated))
+                .Select(p => _listPackageItemRequiredSignerViewModelHelper.CreateListPackageItemRequiredSignerViewModel(p, currentUser, wasAADLoginOrMultiFactorAuthenticated))
                 .OrderBy(p => p.Id)
                 .ToList();
 
@@ -615,7 +620,7 @@ namespace NuGetGallery
                 .OrderByDescending(p => p.PackageRegistration.DownloadCount)
                 .Select(p => 
                 {
-                    var viewModel = new ListPackageItemViewModel().Setup(p, currentUser);
+                    var viewModel = _listPackageItemViewModelHelper.CreateListPackageItemViewModel(p, currentUser);
                     viewModel.DownloadCount = p.PackageRegistration.DownloadCount;
                     return viewModel;
                 }).ToList();

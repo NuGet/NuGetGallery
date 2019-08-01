@@ -35,7 +35,7 @@ namespace NuGetGallery.ViewModels
 
             private ListPackageItemViewModel CreatePackageItemViewModel(string version)
             {
-                return new ListPackageItemViewModel().Setup(new Package
+                return new ListPackageItemViewModelHelper().CreateListPackageItemViewModel(new Package
                 {
                     PackageRegistration = new PackageRegistration
                     {

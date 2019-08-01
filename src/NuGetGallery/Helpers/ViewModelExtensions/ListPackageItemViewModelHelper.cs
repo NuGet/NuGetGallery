@@ -6,12 +6,29 @@ using NuGet.Services.Entities;
 
 namespace NuGetGallery
 {
-    public static class ListPackageItemViewModelExtensions
+    public class ListPackageItemViewModelHelper
     {
-        public static ListPackageItemViewModel Setup(this ListPackageItemViewModel viewModel, Package package, User currentUser)
-        {
-            ((PackageViewModel)viewModel).Setup(package);
+        private readonly PackageViewModelHelper _packageViewModelHelper;
 
+        public ListPackageItemViewModelHelper()
+        {
+            _packageViewModelHelper = new PackageViewModelHelper();
+        }
+
+        public ListPackageItemViewModel CreateListPackageItemViewModel(Package package, User currentUser)
+        {
+            var viewModel = new ListPackageItemViewModel();
+            return SetupListPackageItemViewModel(viewModel, package, currentUser);
+        }
+
+        public ListPackageItemViewModel SetupListPackageItemViewModel(ListPackageItemViewModel viewModel, Package package, User currentUser)
+        {
+            _packageViewModelHelper.SetupPackageViewModel(viewModel, package);
+            return SetupListPackageItemViewModelInternal(viewModel, package, currentUser);
+        }
+
+        private ListPackageItemViewModel SetupListPackageItemViewModelInternal(ListPackageItemViewModel viewModel, Package package, User currentUser)
+        {
             viewModel.Tags = package.Tags?
                 .Split(' ')
                 .Where(t => !string.IsNullOrEmpty(t))
