@@ -19,8 +19,8 @@ namespace NuGetGallery
 
         public PackageIndexEntity(Package package, IIconUrlProvider iconUrlProvider)
         {
-            this.Package = package;
-            this._iconUrlProvider = iconUrlProvider ?? throw new ArgumentNullException(nameof(iconUrlProvider));
+            Package = package;
+            _iconUrlProvider = iconUrlProvider ?? throw new ArgumentNullException(nameof(iconUrlProvider));
         }
 
         public Document ToDocument()
