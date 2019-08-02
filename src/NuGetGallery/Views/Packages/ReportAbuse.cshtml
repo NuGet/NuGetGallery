@@ -97,7 +97,7 @@
 </section>
 
 @section BottomScripts {
-    @ViewHelpers.RecatpchaScripts(Config.Current.ReCaptchaPublicKey, "Submit")
+    @ViewHelpers.RecaptchaScripts(Config.Current.ReCaptchaPublicKey, "Submit")
     <script>
         function reasonSelected() {
             var $form = $('#Reason').parents('form');

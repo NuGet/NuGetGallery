@@ -632,7 +632,7 @@ var hlp = new AccordionHelper(name, formModelStatePrefix, expanded, page);
     @BreadcrumbWithProfile(url, currentUser, showDivider, newSegments);
 }
 
-@helper RecatpchaScripts(string reCaptchaPublicKey, string submitId)
+@helper RecaptchaScripts(string reCaptchaPublicKey, string submitId)
 {
     if (!string.IsNullOrEmpty(reCaptchaPublicKey))
     {
@@ -647,7 +647,12 @@ var hlp = new AccordionHelper(name, formModelStatePrefix, expanded, page);
                 'data-tabindex': "-1"
             });
             function onSubmit(token) {
-                $submit.parents('form').submit();
+                var form = $submit.parents('form');
+                if (form.validate().errorList.length > 0) {
+                    return;
+                }               
+
+                form.submit();
             }
         </script>
     }
