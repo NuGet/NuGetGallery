@@ -49,10 +49,5 @@ namespace NuGet.Services.Validation.Orchestrator
         /// The threshold until a validation set is no longer processed.
         /// </summary>
         public TimeSpan TimeoutValidationSetAfter { get; set; }
-
-        /// <summary>
-        /// The duration for which SAS tokens are generated for package URLs passed down to validators.
-        /// </summary>
-        public TimeSpan NupkgUrlValidityPeriod { get; set; } = TimeSpan.FromDays(7);
     }
 }
