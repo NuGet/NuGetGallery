@@ -47,7 +47,7 @@
       <FilesToSign
         Include="%(OutputToSign.Identity)"
         Condition="Exists('%(OutputToSign.Identity)')">
-        <Authenticode>Microsoft</Authenticode>
+        <Authenticode>Microsoft400</Authenticode>
         <StrongName>MsSharedLib72</StrongName>
       </FilesToSign>
     </ItemGroup>
@@ -65,7 +65,7 @@
       <FilesToSign
         Include="$(WPPAllFilesInSingleFolder)\bin\$(TargetFileName)"
         Condition="Exists('$(WPPAllFilesInSingleFolder)\bin\$(TargetFileName)')">
-        <Authenticode>Microsoft</Authenticode>
+        <Authenticode>Microsoft400</Authenticode>
         <StrongName>MsSharedLib72</StrongName>
       </FilesToSign>
     </ItemGroup>
