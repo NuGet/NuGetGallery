@@ -639,20 +639,24 @@ var hlp = new AccordionHelper(name, formModelStatePrefix, expanded, page);
         <script src='https://www.google.com/recaptcha/api.js' async defer></script>
         <script type="text/javascript">
             var $submit = $('@("#" + submitId)');
-            $submit.addClass("g-recaptcha");
-            $submit.attr({
+            $submit.before('<div id="recaptcha"></div>');
+            var $recaptcha = $('#recaptcha');
+            $recaptcha.addClass("g-recaptcha");
+            $recaptcha.attr({
                 'data-sitekey': "@reCaptchaPublicKey",
                 'data-size': "invisible",
                 'data-callback': "onSubmit",
                 'data-tabindex': "-1"
             });
-            function onSubmit(token) {
-                var form = $submit.parents('form');
-                if (form.validate().errorList.length > 0) {
-                    return;
-                }               
 
-                form.submit();
+            var $form = $submit.parents('form')
+            $submit.click(function () {
+                event.preventDefault();
+                $form.valid() && grecaptcha.execute();
+            });
+
+            function onSubmit(token) {
+                $form.submit();
             }
         </script>
     }
