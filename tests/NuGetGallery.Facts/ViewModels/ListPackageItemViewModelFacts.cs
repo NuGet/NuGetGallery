@@ -376,7 +376,7 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
 
         private static ListPackageItemViewModel CreateListPackageItemViewModel(Package package, User user = null)
         {
-            return new ListPackageItemViewModel().Setup(package, currentUser: user, iconUrlProvider: Mock.Of<IIconUrlProvider>());
+            return new ListPackageItemViewModelFactory(Mock.Of<IIconUrlProvider>()).Create(package, currentUser: user);
         }
     }
 }

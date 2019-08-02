@@ -36,14 +36,14 @@ namespace NuGetGallery.ViewModels
 
             private ListPackageItemViewModel CreatePackageItemViewModel(string version)
             {
-                return new ListPackageItemViewModel().Setup(new Package
+                return new ListPackageItemViewModelFactory(Mock.Of<IIconUrlProvider>()).Create(new Package
                 {
                     PackageRegistration = new PackageRegistration
                     {
                         DownloadCount = int.MaxValue
                     },
                     Version = version
-                }, currentUser: null, Mock.Of<IIconUrlProvider>());
+                }, currentUser: null);
             }
         }
     }

@@ -140,11 +140,16 @@ namespace NuGetGallery.Auditing
         }
 
         [Fact]
-        public async Task GetAspNetOnBehalfOfAsync_WithoutContext_ReturnsNullForNullHttpContext()
+        public async Task GetAspNetOnBehalfOfAsync_WithoutContext_ReturnsMachineActorNullHttpContext()
         {
             var actor = await AuditActor.GetAspNetOnBehalfOfAsync();
 
-            Assert.Null(actor);
+            var machineActor = await AuditActor.GetCurrentMachineActorAsync();
+
+            Assert.Equal(machineActor.MachineName, actor.MachineName);
+            Assert.Equal(machineActor.MachineIP, actor.MachineIP);
+            Assert.Equal(machineActor.UserName, actor.UserName);
+            Assert.Equal(machineActor.CredentialKey, actor.CredentialKey);
         }
 
         [Fact]

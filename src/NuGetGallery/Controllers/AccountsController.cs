@@ -54,6 +54,8 @@ namespace NuGetGallery
 
         protected IIconUrlProvider IconUrlProvider { get; }
 
+        private readonly DeleteAccountListPackageItemViewModelFactory _deleteAccountListPackageItemViewModelFactory;
+
         public AccountsController(
             AuthenticationService authenticationService,
             IPackageService packageService,
@@ -78,6 +80,8 @@ namespace NuGetGallery
             MessageServiceConfiguration = messageServiceConfiguration ?? throw new ArgumentNullException(nameof(messageServiceConfiguration));
             DeleteAccountService = deleteAccountService ?? throw new ArgumentNullException(nameof(deleteAccountService));
             IconUrlProvider = iconUrlProvider ?? throw new ArgumentNullException(nameof(iconUrlProvider));
+
+            _deleteAccountListPackageItemViewModelFactory = new DeleteAccountListPackageItemViewModelFactory(PackageService, IconUrlProvider);
         }
 
         public abstract string AccountAction { get; }
@@ -386,10 +390,7 @@ namespace NuGetGallery
             User userToDelete,
             User currentUser)
         {
-            var viewModel = new DeleteAccountListPackageItemViewModel();
-            ((ListPackageItemViewModel)viewModel).Setup(package, currentUser, IconUrlProvider);
-            viewModel.WillBeOrphaned = PackageService.WillPackageBeOrphanedIfOwnerRemoved(package.PackageRegistration, userToDelete);
-            return viewModel;
+            return _deleteAccountListPackageItemViewModelFactory.Create(package, userToDelete, currentUser);
         }
 
 

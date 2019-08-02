@@ -98,15 +98,15 @@ namespace NuGetGallery.ViewModels
                 .Returns(expectedUri);
 
             // Act
-            var viewModel = new PackageViewModel().Setup(package, iconUrlProviderMock.Object);
+            var viewModel = CreatePackageViewModel(package, iconUrlProviderMock.Object);
 
             // Assert
             Assert.Equal(expectedUri.AbsoluteUri, viewModel.IconUrl);
         }
 
-        private static PackageViewModel CreatePackageViewModel(Package package)
+        private static PackageViewModel CreatePackageViewModel(Package package, IIconUrlProvider iconUrlProvider = null)
         {
-            return new PackageViewModel().Setup(package, Mock.Of<IIconUrlProvider>());
+            return new PackageViewModelFactory(iconUrlProvider ?? Mock.Of<IIconUrlProvider>()).Create(package);
         }
     }
 }

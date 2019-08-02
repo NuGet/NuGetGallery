@@ -6,9 +6,22 @@ using NuGet.Services.Entities;
 
 namespace NuGetGallery
 {
-    public static class PackageViewModelExtensions
+    public class PackageViewModelFactory
     {
-        public static PackageViewModel Setup(this PackageViewModel viewModel, Package package, IIconUrlProvider iconUrlProvider)
+        private readonly IIconUrlProvider _iconUrlProvider;
+
+        public PackageViewModelFactory(IIconUrlProvider iconUrlProvider)
+        {
+            _iconUrlProvider = iconUrlProvider ?? throw new ArgumentNullException(nameof(iconUrlProvider));
+        }
+
+        public PackageViewModel Create(Package package)
+        {
+            var viewModel = new PackageViewModel();
+            return Setup(viewModel, package);
+        }
+
+        public PackageViewModel Setup(PackageViewModel viewModel, Package package)
         {
             if (viewModel == null)
             {
@@ -30,7 +43,7 @@ namespace NuGetGallery
 
             viewModel.Description = package.Description;
             viewModel.ReleaseNotes = package.ReleaseNotes;
-            viewModel.IconUrl = iconUrlProvider.GetIconUrlString(package);
+            viewModel.IconUrl = _iconUrlProvider.GetIconUrlString(package);
             viewModel.LatestVersion = package.IsLatest;
             viewModel.LatestVersionSemVer2 = package.IsLatestSemVer2;
             viewModel.LatestStableVersion = package.IsLatestStable;

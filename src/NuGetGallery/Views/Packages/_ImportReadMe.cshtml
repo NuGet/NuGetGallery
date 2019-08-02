@@ -1,4 +1,4 @@
-﻿@helper ReadMeTab(string label, string id, string sourceType, bool active)
+﻿@helper ReadMeTab(string label, string id, string sourceType, string title, bool active)
 {
     <li role="presentation" class="@(active ? "active" : string.Empty)">
         <a href="#@id" aria-expanded="@(active ? "true" : "false")"
@@ -6,7 +6,7 @@
            aria-controls="@id" role="tab" data-toggle="tab"
            data-source-type="@sourceType"
            data-bind="event: { 'show.bs.tab': OnReadmeTabChange }"
-           title="Switch to tab panel which allows import of readme from @label">
+           aria-label="@title">
             @label
         </a>
     </li>
@@ -41,9 +41,9 @@
         <div class="readme-tabs">
             <input type="hidden" data-bind="value: SelectedTab" name="Edit.ReadMe.SourceType" />
             <ul class="nav nav-tabs" role="tablist">
-                @ReadMeTab("Custom", "readme-written", "written", active: true)
-                @ReadMeTab("Url", "readme-url", "url", active: false)
-                @ReadMeTab("File", "readme-file", "file", active: false)
+                @ReadMeTab("Custom", "readme-written", "written", "Enter readme in Markdown", active: true)
+                @ReadMeTab("Url", "readme-url", "url", "Import readme from URL", active: false)
+                @ReadMeTab("File", "readme-file", "file", "Import readme from file", active: false)
             </ul>
             <div class="tab-content">
                 @ReadMePanel(

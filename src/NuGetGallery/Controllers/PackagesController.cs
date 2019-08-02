@@ -115,6 +115,11 @@ namespace NuGetGallery
         private readonly IPackageDeprecationService _deprecationService;
         private readonly IABTestService _abTestService;
         private readonly IIconUrlProvider _iconUrlProvider;
+        private readonly DisplayPackageViewModelFactory _displayPackageViewModelFactory;
+        private readonly DisplayLicenseViewModelFactory _displayLicenseViewModelFactory;
+        private readonly ListPackageItemViewModelFactory _listPackageItemViewModelFactory;
+        private readonly ManagePackageViewModelFactory _managePackageViewModelFactory;
+        private readonly DeletePackageViewModelFactory _deletePackageViewModelFactory;
 
         public PackagesController(
             IPackageService packageService,
@@ -180,6 +185,12 @@ namespace NuGetGallery
             _deprecationService = deprecationService ?? throw new ArgumentNullException(nameof(deprecationService));
             _abTestService = abTestService ?? throw new ArgumentNullException(nameof(abTestService));
             _iconUrlProvider = iconUrlProvider ?? throw new ArgumentNullException(nameof(iconUrlProvider));
+
+            _displayPackageViewModelFactory = new DisplayPackageViewModelFactory(_iconUrlProvider);
+            _displayLicenseViewModelFactory = new DisplayLicenseViewModelFactory(_iconUrlProvider);
+            _listPackageItemViewModelFactory = new ListPackageItemViewModelFactory(_iconUrlProvider);
+            _managePackageViewModelFactory = new ManagePackageViewModelFactory(_iconUrlProvider);
+            _deletePackageViewModelFactory = new DeletePackageViewModelFactory(_iconUrlProvider);
         }
 
         [HttpGet]
@@ -753,7 +764,7 @@ namespace NuGetGallery
             }
 
             var deprecation = _deprecationService.GetDeprecationByPackage(package);
-            var model = new DisplayPackageViewModel().Setup(package, currentUser, deprecation, _iconUrlProvider);
+            var model = _displayPackageViewModelFactory.Create(package, currentUser, deprecation, await _readMeService.GetReadMeHtmlAsync(package));
 
             model.ValidatingTooLong = _validationService.IsValidatingTooLong(package);
             model.PackageValidationIssues = _validationService.GetLatestPackageValidationIssues(package);
@@ -766,8 +777,6 @@ namespace NuGetGallery
             {
                 model.GitHubDependenciesInformation = _contentObjectService.GitHubUsageConfiguration.GetPackageInformation(id);
             }
-
-            model.ReadMeHtml = await _readMeService.GetReadMeHtmlAsync(package);
 
             if (!string.IsNullOrWhiteSpace(package.LicenseExpression))
             {
@@ -955,7 +964,7 @@ namespace NuGetGallery
                 throw;
             }
 
-            var model = new DisplayLicenseViewModel().Setup(package, licenseExpressionSegments, licenseFileContents, _iconUrlProvider);
+            var model = _displayLicenseViewModelFactory.Create(package, licenseExpressionSegments, licenseFileContents);
 
             return View(model);
         }
@@ -1041,7 +1050,7 @@ namespace NuGetGallery
 
             var currentUser = GetCurrentUser();
             var items = results.Data
-                .Select(pv => new ListPackageItemViewModel().Setup(pv, currentUser, _iconUrlProvider))
+                .Select(pv => _listPackageItemViewModelFactory.Create(pv, currentUser))
                 .ToList();
 
             var viewModel = new PackageListViewModel(
@@ -1500,14 +1509,13 @@ namespace NuGetGallery
             }
 
             var currentUser = GetCurrentUser();
-            var model = new ManagePackageViewModel().Setup(
+            var model = _managePackageViewModelFactory.Create(
                 package,
                 GetCurrentUser(),
                 ReportMyPackageReasons,
                 Url,
                 await _readMeService.GetReadMeMdAsync(package),
-                _featureFlagService.IsManageDeprecationEnabled(currentUser, package.PackageRegistration),
-                _iconUrlProvider);
+                _featureFlagService.IsManageDeprecationEnabled(currentUser, package.PackageRegistration));
 
             if (!model.CanEdit && !model.CanManageOwners && !model.CanUnlistOrRelist)
             {
@@ -1550,7 +1558,7 @@ namespace NuGetGallery
                 return HttpForbidden();
             }
 
-            var model = new DeletePackageViewModel().Setup(package, currentUser, DeleteReasons, _iconUrlProvider);
+            var model = _deletePackageViewModelFactory.Create(package, currentUser, DeleteReasons);
 
             // Fetch all versions of the package with symbols.
             var versionsWithSymbols = packages
