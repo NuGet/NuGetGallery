@@ -202,7 +202,9 @@ namespace NuGetGallery
                 htmlAttributes["class"] = "form-control";
             }
 
-            if (metadata.IsRequired)
+            // If the property is required, mark it as required unless it's a bool (which are usually checkboxes).
+            // Hearing that a checkbox is required is very confusing to screen readers.
+            if (metadata.IsRequired && metadata.ModelType != typeof(bool))
             {
                 htmlAttributes["aria-required"] = "true";
             }
