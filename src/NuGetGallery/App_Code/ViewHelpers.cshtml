@@ -650,9 +650,11 @@ var hlp = new AccordionHelper(name, formModelStatePrefix, expanded, page);
             });
 
             var $form = $submit.parents('form')
-            $submit.click(function () {
-                event.preventDefault();
-                $form.valid() && grecaptcha.execute();
+            $submit.click(function (e) {
+                if ($form.valid()) {
+                    e.preventDefault();
+                    grecaptcha.execute();
+                }
             });
 
             function onSubmit(token) {
