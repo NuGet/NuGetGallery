@@ -8,16 +8,40 @@ using NuGet.Services.Licenses;
 
 namespace NuGetGallery
 {
-    public static class DisplayLicenseViewModelExtensions
+    public class DisplayLicenseViewModelFactory
     {
-        public static DisplayLicenseViewModel Setup(
-            this DisplayLicenseViewModel viewModel,
+        private PackageViewModelFactory _packageViewModelFactory;
+
+        public DisplayLicenseViewModelFactory()
+        {
+            _packageViewModelFactory = new PackageViewModelFactory();
+        }
+
+        public DisplayLicenseViewModel Create(
             Package package,
             IReadOnlyCollection<CompositeLicenseExpressionSegment> licenseExpressionSegments,
             string licenseFileContents)
         {
-            ((PackageViewModel)viewModel).Setup(package);
+            var viewModel = new DisplayLicenseViewModel();
+            return Setup(viewModel, package, licenseExpressionSegments, licenseFileContents);
+        }
 
+        private DisplayLicenseViewModel Setup(
+            DisplayLicenseViewModel viewModel,
+            Package package,
+            IReadOnlyCollection<CompositeLicenseExpressionSegment> licenseExpressionSegments,
+            string licenseFileContents)
+        {
+            _packageViewModelFactory.Setup(viewModel, package);
+            return SetupInternal(viewModel, package, licenseExpressionSegments, licenseFileContents);
+        }
+
+        private DisplayLicenseViewModel SetupInternal(
+            DisplayLicenseViewModel viewModel,
+            Package package,
+            IReadOnlyCollection<CompositeLicenseExpressionSegment> licenseExpressionSegments,
+            string licenseFileContents)
+        {
             viewModel.EmbeddedLicenseType = package.EmbeddedLicenseType;
             viewModel.LicenseExpression = package.LicenseExpression;
             if (PackageHelper.TryPrepareUrlForRendering(package.LicenseUrl, out string licenseUrl))

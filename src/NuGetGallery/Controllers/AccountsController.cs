@@ -52,6 +52,8 @@ namespace NuGetGallery
 
         public IDeleteAccountService DeleteAccountService { get; }
 
+        private readonly DeleteAccountListPackageItemViewModelFactory _deleteAccountListPackageItemViewModelFactory;
+
         public AccountsController(
             AuthenticationService authenticationService,
             IPackageService packageService,
@@ -74,6 +76,8 @@ namespace NuGetGallery
             ContentObjectService = contentObjectService ?? throw new ArgumentNullException(nameof(contentObjectService));
             MessageServiceConfiguration = messageServiceConfiguration ?? throw new ArgumentNullException(nameof(messageServiceConfiguration));
             DeleteAccountService = deleteAccountService ?? throw new ArgumentNullException(nameof(deleteAccountService));
+
+            _deleteAccountListPackageItemViewModelFactory = new DeleteAccountListPackageItemViewModelFactory(PackageService);
         }
 
         public abstract string AccountAction { get; }
@@ -382,10 +386,7 @@ namespace NuGetGallery
             User userToDelete,
             User currentUser)
         {
-            var viewModel = new DeleteAccountListPackageItemViewModel();
-            ((ListPackageItemViewModel)viewModel).Setup(package, currentUser);
-            viewModel.WillBeOrphaned = PackageService.WillPackageBeOrphanedIfOwnerRemoved(package.PackageRegistration, userToDelete);
-            return viewModel;
+            return _deleteAccountListPackageItemViewModelFactory.Create(package, userToDelete, currentUser);
         }
 
 

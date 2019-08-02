@@ -11,13 +11,13 @@ using Xunit;
 
 namespace NuGetGallery.ViewModels
 {
-    public class ListPackageItemRequiredSignerViewModelFacts
+    public class ListPackageItemRequiredSignerViewModelFactoryFacts
     {
         private readonly User _currentUser;
         private readonly User _otherUser;
         private readonly Mock<ISecurityPolicyService> _securityPolicyService;
 
-        public ListPackageItemRequiredSignerViewModelFacts()
+        public ListPackageItemRequiredSignerViewModelFactoryFacts()
         {
             _currentUser = new User()
             {
@@ -35,60 +35,52 @@ namespace NuGetGallery.ViewModels
         }
 
         [Fact]
-        public void SetupExtension_WhenPackageIsNull_Throws()
+        public void WhenPackageIsNull_Throws()
         {
-            var target = new ListPackageItemRequiredSignerViewModel();
-            var exception = Assert.Throws<ArgumentNullException>(() => target.Setup(
+            var target = new ListPackageItemRequiredSignerViewModelFactory(_securityPolicyService.Object);
+            var exception = Assert.Throws<ArgumentNullException>(() => target.Create(
                 package: null,
                 currentUser: _currentUser,
-                securityPolicyService: _securityPolicyService.Object,
                 wasAADLoginOrMultiFactorAuthenticated: true));
 
             Assert.Equal("package", exception.ParamName);
         }
 
         [Fact]
-        public void SetupExtension_WhenCurrentUserIsNull_Throws()
+        public void WhenCurrentUserIsNull_Throws()
         {
             var package = new Package()
             {
                 PackageRegistration = new PackageRegistration(),
                 Version = "1.0.0"
             };
-            var target = new ListPackageItemRequiredSignerViewModel();
+            var target = new ListPackageItemRequiredSignerViewModelFactory(_securityPolicyService.Object);
 
             var exception = Assert.Throws<ArgumentNullException>(
-                () => target.Setup(
+                () => target.Create(
                     package,
                     currentUser: null,
-                    securityPolicyService: _securityPolicyService.Object,
                     wasAADLoginOrMultiFactorAuthenticated: true));
 
             Assert.Equal("currentUser", exception.ParamName);
         }
 
         [Fact]
-        public void SetupExtension_WhenSecurityPolicyServiceIsNull_Throws()
+        public void WhenSecurityPolicyServiceIsNull_Throws()
         {
             var package = new Package()
             {
                 PackageRegistration = new PackageRegistration(),
                 Version = "1.0.0"
             };
-            var target = new ListPackageItemRequiredSignerViewModel();
 
-            var exception = Assert.Throws<ArgumentNullException>(
-                () => target.Setup(
-                    package,
-                    _currentUser,
-                    securityPolicyService: null,
-                    wasAADLoginOrMultiFactorAuthenticated: true));
+            var exception = Assert.Throws<ArgumentNullException>(() => new ListPackageItemRequiredSignerViewModelFactory(null));
 
             Assert.Equal("securityPolicyService", exception.ParamName);
         }
 
         [Fact]
-        public void SetupExtension_WhenPackageHasOneOwnerAndItIsTheCurrentUser_WhenRequiredSignerIsNull()
+        public void WhenPackageHasOneOwnerAndItIsTheCurrentUser_WhenRequiredSignerIsNull()
         {
             var package = new Package()
             {
@@ -103,12 +95,11 @@ namespace NuGetGallery.ViewModels
                     It.Is<User>(user => user == _currentUser),
                     It.Is<string>(policyName => policyName == ControlRequiredSignerPolicy.PolicyName)))
                 .Returns(false);
-            var target = new ListPackageItemRequiredSignerViewModel();
+            var target = new ListPackageItemRequiredSignerViewModelFactory(_securityPolicyService.Object);
 
-            var viewModel = target.Setup(
+            var viewModel = target.Create(
                 package,
                 _currentUser,
-                _securityPolicyService.Object,
                 wasAADLoginOrMultiFactorAuthenticated: true);
 
             Assert.Equal(_currentUser.Username, viewModel.RequiredSigner.Username);
@@ -123,7 +114,7 @@ namespace NuGetGallery.ViewModels
         }
 
         [Fact]
-        public void SetupExtension_WhenPackageHasOneOwnerAndItIsTheCurrentUser_WhenRequiredSignerIsCurrentUser()
+        public void WhenPackageHasOneOwnerAndItIsTheCurrentUser_WhenRequiredSignerIsCurrentUser()
         {
             var package = new Package()
             {
@@ -134,17 +125,16 @@ namespace NuGetGallery.ViewModels
                 },
                 Version = "1.0.0"
             };
-            var target = new ListPackageItemRequiredSignerViewModel();
+            var target = new ListPackageItemRequiredSignerViewModelFactory(_securityPolicyService.Object);
 
             _securityPolicyService.Setup(x => x.IsSubscribed(
                     It.Is<User>(user => user == _currentUser),
                     It.Is<string>(policyName => policyName == ControlRequiredSignerPolicy.PolicyName)))
                 .Returns(false);
 
-            var viewModel = target.Setup(
+            var viewModel = target.Create(
                 package,
                 _currentUser,
-                _securityPolicyService.Object,
                 wasAADLoginOrMultiFactorAuthenticated: true);
 
             Assert.Equal(_currentUser.Username, viewModel.RequiredSigner.Username);
@@ -159,7 +149,7 @@ namespace NuGetGallery.ViewModels
         }
 
         [Fact]
-        public void SetupExtension_WhenPackageHasOneOwnerAndItIsTheCurrentUser_WhenRequiredSignerIsAnotherUser()
+        public void WhenPackageHasOneOwnerAndItIsTheCurrentUser_WhenRequiredSignerIsAnotherUser()
         {
             var package = new Package()
             {
@@ -170,17 +160,16 @@ namespace NuGetGallery.ViewModels
                 },
                 Version = "1.0.0"
             };
-            var target = new ListPackageItemRequiredSignerViewModel();
+            var target = new ListPackageItemRequiredSignerViewModelFactory(_securityPolicyService.Object);
 
             _securityPolicyService.Setup(x => x.IsSubscribed(
                     It.Is<User>(user => user == _currentUser),
                     It.Is<string>(policyName => policyName == ControlRequiredSignerPolicy.PolicyName)))
                 .Returns(false);
 
-            var viewModel = target.Setup(
+            var viewModel = target.Create(
                 package,
                 _currentUser,
-                _securityPolicyService.Object,
                 wasAADLoginOrMultiFactorAuthenticated: true);
 
             Assert.Equal(_otherUser.Username, viewModel.RequiredSigner.Username);
@@ -195,7 +184,7 @@ namespace NuGetGallery.ViewModels
         }
 
         [Fact]
-        public void SetupExtension_WhenPackageHasTwoOwnersAndTheCurrentUserIsAnOwner_WhenRequiredSignerIsNull()
+        public void WhenPackageHasTwoOwnersAndTheCurrentUserIsAnOwner_WhenRequiredSignerIsNull()
         {
             var package = new Package()
             {
@@ -205,7 +194,7 @@ namespace NuGetGallery.ViewModels
                 },
                 Version = "1.0.0"
             };
-            var target = new ListPackageItemRequiredSignerViewModel();
+            var target = new ListPackageItemRequiredSignerViewModelFactory(_securityPolicyService.Object);
 
             _securityPolicyService.Setup(
                 x => x.IsSubscribed(
@@ -213,10 +202,9 @@ namespace NuGetGallery.ViewModels
                     It.Is<string>(s => s == ControlRequiredSignerPolicy.PolicyName)))
                 .Returns(false);
 
-            var viewModel = target.Setup(
+            var viewModel = target.Create(
                 package,
                 _currentUser,
-                _securityPolicyService.Object,
                 wasAADLoginOrMultiFactorAuthenticated: true);
 
             Assert.Equal(string.Empty, viewModel.RequiredSigner.Username);
@@ -231,7 +219,7 @@ namespace NuGetGallery.ViewModels
         }
 
         [Fact]
-        public void SetupExtension_WhenPackageHasTwoOwnersAndTheCurrentUserIsAnOwnerAndNotMultiFactorAuthenticated_WhenRequiredSignerIsNull()
+        public void WhenPackageHasTwoOwnersAndTheCurrentUserIsAnOwnerAndNotMultiFactorAuthenticated_WhenRequiredSignerIsNull()
         {
             var package = new Package()
             {
@@ -241,7 +229,7 @@ namespace NuGetGallery.ViewModels
                 },
                 Version = "1.0.0"
             };
-            var target = new ListPackageItemRequiredSignerViewModel();
+            var target = new ListPackageItemRequiredSignerViewModelFactory(_securityPolicyService.Object);
 
             _securityPolicyService.Setup(
                 x => x.IsSubscribed(
@@ -249,10 +237,9 @@ namespace NuGetGallery.ViewModels
                     It.Is<string>(s => s == ControlRequiredSignerPolicy.PolicyName)))
                 .Returns(false);
 
-            var viewModel = target.Setup(
+            var viewModel = target.Create(
                 package,
                 _currentUser,
-                _securityPolicyService.Object,
                 wasAADLoginOrMultiFactorAuthenticated: false);
 
             Assert.Equal(string.Empty, viewModel.RequiredSigner.Username);
@@ -267,7 +254,7 @@ namespace NuGetGallery.ViewModels
         }
 
         [Fact]
-        public void SetupExtension_WhenPackageHasOneOwnerAndTheCurrentUserIsACollaborator_WhenRequiredSignerIsNull()
+        public void WhenPackageHasOneOwnerAndTheCurrentUserIsACollaborator_WhenRequiredSignerIsNull()
         {
             var organization = new Organization()
             {
@@ -292,7 +279,7 @@ namespace NuGetGallery.ViewModels
                 },
                 Version = "1.0.0"
             };
-            var target = new ListPackageItemRequiredSignerViewModel();
+            var target = new ListPackageItemRequiredSignerViewModelFactory(_securityPolicyService.Object);
 
             _securityPolicyService.Setup(
                 x => x.IsSubscribed(
@@ -300,10 +287,9 @@ namespace NuGetGallery.ViewModels
                     It.Is<string>(s => s == ControlRequiredSignerPolicy.PolicyName)))
                 .Returns(false);
 
-            var viewModel = target.Setup(
+            var viewModel = target.Create(
                 package,
                 _currentUser,
-                _securityPolicyService.Object,
                 wasAADLoginOrMultiFactorAuthenticated: true);
 
             Assert.Equal("c", viewModel.RequiredSigner.Username);
@@ -318,7 +304,7 @@ namespace NuGetGallery.ViewModels
         }
 
         [Fact]
-        public void SetupExtension_WhenPackageHasTwoOwnersAndTheCurrentUserIsAnOwner_WhenRequiredSignerIsCurrentUser()
+        public void WhenPackageHasTwoOwnersAndTheCurrentUserIsAnOwner_WhenRequiredSignerIsCurrentUser()
         {
             var package = new Package()
             {
@@ -329,7 +315,7 @@ namespace NuGetGallery.ViewModels
                 },
                 Version = "1.0.0"
             };
-            var target = new ListPackageItemRequiredSignerViewModel();
+            var target = new ListPackageItemRequiredSignerViewModelFactory(_securityPolicyService.Object);
 
             _securityPolicyService.Setup(
                 x => x.IsSubscribed(
@@ -337,10 +323,9 @@ namespace NuGetGallery.ViewModels
                     It.Is<string>(s => s == ControlRequiredSignerPolicy.PolicyName)))
                 .Returns(false);
 
-            var viewModel = target.Setup(
+            var viewModel = target.Create(
                 package,
                 _currentUser,
-                _securityPolicyService.Object,
                 wasAADLoginOrMultiFactorAuthenticated: true);
 
             Assert.Equal(_currentUser.Username, viewModel.RequiredSigner.Username);
@@ -355,7 +340,7 @@ namespace NuGetGallery.ViewModels
         }
 
         [Fact]
-        public void SetupExtension_WhenPackageHasTwoOwnersAndTheCurrentUserIsAnOwner_WhenRequiredSignerIsAnotherUser()
+        public void WhenPackageHasTwoOwnersAndTheCurrentUserIsAnOwner_WhenRequiredSignerIsAnotherUser()
         {
             var package = new Package()
             {
@@ -366,7 +351,7 @@ namespace NuGetGallery.ViewModels
                 },
                 Version = "1.0.0"
             };
-            var target = new ListPackageItemRequiredSignerViewModel();
+            var target = new ListPackageItemRequiredSignerViewModelFactory(_securityPolicyService.Object);
 
             _securityPolicyService.Setup(
                 x => x.IsSubscribed(
@@ -374,10 +359,9 @@ namespace NuGetGallery.ViewModels
                     It.Is<string>(s => s == ControlRequiredSignerPolicy.PolicyName)))
                 .Returns(false);
 
-            var viewModel = target.Setup(
+            var viewModel = target.Create(
                 package,
                 _currentUser,
-                _securityPolicyService.Object,
                 wasAADLoginOrMultiFactorAuthenticated: true);
 
             Assert.Equal(_otherUser.Username, viewModel.RequiredSigner.Username);
@@ -392,7 +376,7 @@ namespace NuGetGallery.ViewModels
         }
 
         [Fact]
-        public void SetupExtension_WhenPackageHasMultipleOwners_WhenOwnersHaveVaryingCertificateCounts()
+        public void WhenPackageHasMultipleOwners_WhenOwnersHaveVaryingCertificateCounts()
         {
             User currentUser = new User()
             {
@@ -430,7 +414,7 @@ namespace NuGetGallery.ViewModels
                 },
                 Version = "1.0.0"
             };
-            var target = new ListPackageItemRequiredSignerViewModel();
+            var target = new ListPackageItemRequiredSignerViewModelFactory(_securityPolicyService.Object);
 
             _securityPolicyService.Setup(
                 x => x.IsSubscribed(
@@ -438,10 +422,9 @@ namespace NuGetGallery.ViewModels
                     It.Is<string>(s => s == ControlRequiredSignerPolicy.PolicyName)))
                 .Returns(false);
 
-            var viewModel = target.Setup(
+            var viewModel = target.Create(
                 package,
                 currentUser,
-                _securityPolicyService.Object,
                 wasAADLoginOrMultiFactorAuthenticated: true);
 
             Assert.Equal(currentUser.Username, viewModel.RequiredSigner.Username);
@@ -456,7 +439,7 @@ namespace NuGetGallery.ViewModels
         }
 
         [Fact]
-        public void SetupExtension_WhenPackageHasTwoOwnersAndTheCurrentUserIsAnOwner_WhenCurrentUserHasRequiredSignerControl()
+        public void WhenPackageHasTwoOwnersAndTheCurrentUserIsAnOwner_WhenCurrentUserHasRequiredSignerControl()
         {
             var package = new Package()
             {
@@ -467,7 +450,7 @@ namespace NuGetGallery.ViewModels
                 },
                 Version = "1.0.0"
             };
-            var target = new ListPackageItemRequiredSignerViewModel();
+            var target = new ListPackageItemRequiredSignerViewModelFactory(_securityPolicyService.Object);
 
             _securityPolicyService.Setup(
                 x => x.IsSubscribed(
@@ -475,10 +458,9 @@ namespace NuGetGallery.ViewModels
                     It.Is<string>(s => s == ControlRequiredSignerPolicy.PolicyName)))
                 .Returns(true);
 
-            var viewModel = target.Setup(
+            var viewModel = target.Create(
                 package,
                 _currentUser,
-                _securityPolicyService.Object,
                 wasAADLoginOrMultiFactorAuthenticated: true);
 
             Assert.Equal(_currentUser.Username, viewModel.RequiredSigner.Username);
@@ -493,7 +475,7 @@ namespace NuGetGallery.ViewModels
         }
 
         [Fact]
-        public void SetupExtension_WhenPackageHasTwoOwnersAndTheCurrentUserIsAnOwner_WhenCurrentUserDoesNotHaveRequiredSignerControl()
+        public void WhenPackageHasTwoOwnersAndTheCurrentUserIsAnOwner_WhenCurrentUserDoesNotHaveRequiredSignerControl()
         {
             var package = new Package()
             {
@@ -504,7 +486,7 @@ namespace NuGetGallery.ViewModels
                 },
                 Version = "1.0.0"
             };
-            var target = new ListPackageItemRequiredSignerViewModel();
+            var target = new ListPackageItemRequiredSignerViewModelFactory(_securityPolicyService.Object);
 
             _securityPolicyService.Setup(
                 x => x.IsSubscribed(
@@ -517,10 +499,9 @@ namespace NuGetGallery.ViewModels
                     It.Is<string>(s => s == ControlRequiredSignerPolicy.PolicyName)))
                 .Returns(true);
 
-            var viewModel = target.Setup(
+            var viewModel = target.Create(
                 package,
                 _currentUser,
-                _securityPolicyService.Object,
                 wasAADLoginOrMultiFactorAuthenticated: true);
 
             Assert.Equal(_otherUser.Username, viewModel.RequiredSigner.Username);
@@ -535,7 +516,7 @@ namespace NuGetGallery.ViewModels
         }
 
         [Fact]
-        public void SetupExtension_WhenPackageHasThreeOwnersAndTheCurrentUserIsAnOwner_WhenTwoOtherOwnersHaveRequiredSignerControl()
+        public void WhenPackageHasThreeOwnersAndTheCurrentUserIsAnOwner_WhenTwoOtherOwnersHaveRequiredSignerControl()
         {
             var otherUser2 = new User()
             {
@@ -552,7 +533,7 @@ namespace NuGetGallery.ViewModels
                 },
                 Version = "1.0.0"
             };
-            var target = new ListPackageItemRequiredSignerViewModel();
+            var target = new ListPackageItemRequiredSignerViewModelFactory(_securityPolicyService.Object);
 
             _securityPolicyService.Setup(
                 x => x.IsSubscribed(
@@ -570,10 +551,9 @@ namespace NuGetGallery.ViewModels
                     It.Is<string>(s => s == ControlRequiredSignerPolicy.PolicyName)))
                 .Returns(true);
 
-            var viewModel = target.Setup(
+            var viewModel = target.Create(
                 package,
                 _currentUser,
-                _securityPolicyService.Object,
                 wasAADLoginOrMultiFactorAuthenticated: true);
 
             Assert.Equal(_currentUser.Username, viewModel.RequiredSigner.Username);
@@ -588,7 +568,7 @@ namespace NuGetGallery.ViewModels
         }
 
         [Fact]
-        public void SetupExtension_WhenPackageHasFourOwnersAndTheCurrentUserIsAnOwner_WhenThreeOtherOwnersHaveRequiredSignerControl()
+        public void WhenPackageHasFourOwnersAndTheCurrentUserIsAnOwner_WhenThreeOtherOwnersHaveRequiredSignerControl()
         {
             var otherUser2 = new User()
             {
@@ -611,7 +591,7 @@ namespace NuGetGallery.ViewModels
                 },
                 Version = "1.0.0"
             };
-            var target = new ListPackageItemRequiredSignerViewModel();
+            var target = new ListPackageItemRequiredSignerViewModelFactory(_securityPolicyService.Object);
 
             _securityPolicyService.Setup(
                 x => x.IsSubscribed(
@@ -634,10 +614,9 @@ namespace NuGetGallery.ViewModels
                     It.Is<string>(s => s == ControlRequiredSignerPolicy.PolicyName)))
                 .Returns(true);
 
-            var viewModel = target.Setup(
+            var viewModel = target.Create(
                 package,
                 _currentUser,
-                _securityPolicyService.Object,
                 wasAADLoginOrMultiFactorAuthenticated: true);
 
             Assert.Equal(_otherUser.Username, viewModel.RequiredSigner.Username);

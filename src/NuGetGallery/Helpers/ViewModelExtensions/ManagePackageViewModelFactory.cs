@@ -10,10 +10,16 @@ using NuGet.Versioning;
 
 namespace NuGetGallery
 {
-    public static class ManagePackageViewModelExtensions
+    public class ManagePackageViewModelFactory
     {
-        public static ManagePackageViewModel Setup(
-            this ManagePackageViewModel viewModel,
+        private readonly ListPackageItemViewModelFactory _listPackageItemViewModelFactory;
+
+        public ManagePackageViewModelFactory()
+        {
+            _listPackageItemViewModelFactory = new ListPackageItemViewModelFactory();
+        }
+
+        public ManagePackageViewModel Create(
             Package package,
             User currentUser,
             IReadOnlyList<ReportPackageReason> reasons,
@@ -21,8 +27,32 @@ namespace NuGetGallery
             string readMe,
             bool isManageDeprecationEnabled)
         {
-            ((ListPackageItemViewModel)viewModel).Setup(package, currentUser);
+            var viewModel = new ManagePackageViewModel();
+            return Setup(viewModel, package, currentUser, reasons, url, readMe, isManageDeprecationEnabled);
+        }
 
+        public ManagePackageViewModel Setup(
+            ManagePackageViewModel viewModel,
+            Package package,
+            User currentUser,
+            IReadOnlyList<ReportPackageReason> reasons,
+            UrlHelper url,
+            string readMe,
+            bool isManageDeprecationEnabled)
+        {
+            _listPackageItemViewModelFactory.Setup(viewModel, package, currentUser);
+            return SetupInternal(viewModel, package, currentUser, reasons, url, readMe, isManageDeprecationEnabled);
+        }
+
+        private ManagePackageViewModel SetupInternal(
+            ManagePackageViewModel viewModel,
+            Package package,
+            User currentUser,
+            IReadOnlyList<ReportPackageReason> reasons,
+            UrlHelper url,
+            string readMe,
+            bool isManageDeprecationEnabled)
+        {
             viewModel.IsCurrentUserAnAdmin = currentUser != null && currentUser.IsAdministrator;
 
             viewModel.DeletePackagesRequest = new DeletePackagesRequest
