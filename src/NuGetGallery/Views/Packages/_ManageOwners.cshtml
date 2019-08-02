@@ -35,7 +35,7 @@
                     </div>
                     <!-- ko if: $parent.IsAllowedToRemove($data) -->
                     <div class="col-md-3 text-right remove-owner">
-                        <a class="icon-link"
+                        <a role="button" class="icon-link"
                            href="#"
                            data-bind="click: $root.removeOwner, attr: { 'aria-label': 'Remove ' + name() + ' as owner of @Model.Id' }">
                             <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
@@ -45,7 +45,7 @@
                     <!-- /ko -->
                     <!-- ko ifnot: $parent.IsAllowedToRemove($data) -->
                     <div class="col-md-3 text-right remove-owner-disabled">
-                        <a class="icon-link"
+                        <a role="button" aria-disabled="true" class="icon-link"
                            data-bind="attr: { 'aria-label': 'You cannot remove ' + name() + ' as owner of @Model.Id because they are the only owner or they own the only reserved namespace' }">
                             <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
                             <span>Remove</span>
