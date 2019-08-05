@@ -29,7 +29,7 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.Equal(2, _data.Count);
-                Assert.NotEqual(_data[0].ValidationTrackingId, _data[1].ValidationTrackingId);
+                Assert.NotEqual(_data[0].ProcessValidationSet.ValidationTrackingId, _data[1].ProcessValidationSet.ValidationTrackingId);
             }
 
             [Fact]
@@ -47,8 +47,8 @@ namespace NuGetGallery
                     Times.Once);
                 Assert.Equal(1, _data.Count);
                 Assert.NotNull(_data[0]);
-                Assert.Equal(package.PackageRegistration.Id, _data[0].PackageId);
-                Assert.Equal(package.Version, _data[0].PackageVersion);
+                Assert.Equal(package.PackageRegistration.Id, _data[0].ProcessValidationSet.PackageId);
+                Assert.Equal(package.Version, _data[0].ProcessValidationSet.PackageVersion);
             }
 
             [Theory]
@@ -69,9 +69,9 @@ namespace NuGetGallery
                     Times.Once);
                 Assert.Equal(1, _data.Count);
                 Assert.NotNull(_data[0]);
-                Assert.Equal(package.PackageRegistration.Id, _data[0].PackageId);
-                Assert.Equal(package.Version, _data[0].PackageVersion);
-                Assert.Equal(expectedEntityKey, _data[0].EntityKey);
+                Assert.Equal(package.PackageRegistration.Id, _data[0].ProcessValidationSet.PackageId);
+                Assert.Equal(package.Version, _data[0].ProcessValidationSet.PackageVersion);
+                Assert.Equal(expectedEntityKey, _data[0].ProcessValidationSet.EntityKey);
             }
 
             [Fact]
@@ -152,7 +152,9 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.Equal(2, _data.Count);
-                Assert.NotEqual(_data[0].ValidationTrackingId, _data[1].ValidationTrackingId);
+                Assert.NotEqual(
+                    _data[0].ProcessValidationSet.ValidationTrackingId,
+                    _data[1].ProcessValidationSet.ValidationTrackingId);
             }
 
             [Fact]
@@ -170,8 +172,8 @@ namespace NuGetGallery
                     Times.Once);
                 Assert.Equal(1, _data.Count);
                 Assert.NotNull(_data[0]);
-                Assert.Equal(symbolPackage.Package.PackageRegistration.Id, _data[0].PackageId);
-                Assert.Equal(symbolPackage.Package.Version, _data[0].PackageVersion);
+                Assert.Equal(symbolPackage.Package.PackageRegistration.Id, _data[0].ProcessValidationSet.PackageId);
+                Assert.Equal(symbolPackage.Package.Version, _data[0].ProcessValidationSet.PackageVersion);
             }
 
             [Theory]
@@ -192,9 +194,9 @@ namespace NuGetGallery
                     Times.Once);
                 Assert.Equal(1, _data.Count);
                 Assert.NotNull(_data[0]);
-                Assert.Equal(symbolPackage.Package.PackageRegistration.Id, _data[0].PackageId);
-                Assert.Equal(symbolPackage.Package.Version, _data[0].PackageVersion);
-                Assert.Equal(expectedEntityKey, _data[0].EntityKey);
+                Assert.Equal(symbolPackage.Package.PackageRegistration.Id, _data[0].ProcessValidationSet.PackageId);
+                Assert.Equal(symbolPackage.Package.Version, _data[0].ProcessValidationSet.PackageVersion);
+                Assert.Equal(expectedEntityKey, _data[0].ProcessValidationSet.EntityKey);
             }
 
             [Fact]
