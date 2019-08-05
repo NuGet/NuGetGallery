@@ -70,8 +70,9 @@ namespace NuGetGallery.Helpers
             const int LineFeed = '\n';
             const int CarriageReturn = '\r';
             const int Tab = '\t';
+            const int FormFeed = '\f';
 
-            return byteValue >= TextRangeStart || byteValue == LineFeed || byteValue == CarriageReturn || byteValue == Tab;
+            return byteValue >= TextRangeStart || byteValue == LineFeed || byteValue == CarriageReturn || byteValue == Tab || byteValue == FormFeed;
         }
     }
 }
