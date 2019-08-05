@@ -110,7 +110,7 @@ namespace NuGet.Services.AzureSearch
             document.SortableTitle = GetSortableTitle(package.Title, packageId);
             document.Summary = package.Summary;
             document.Tags = package.Tags == null ? null : Utils.SplitTags(package.Tags);
-            document.Title = package.Title;
+            document.Title = GetTitle(package.Title, packageId);
             document.TokenizedPackageId = packageId;
 
             if (package.LicenseExpression != null || package.EmbeddedLicenseType != EmbeddedLicenseFileType.Absent)
@@ -158,7 +158,7 @@ namespace NuGet.Services.AzureSearch
             document.SortableTitle = GetSortableTitle(leaf.Title, leaf.PackageId);
             document.Summary = leaf.Summary;
             document.Tags = leaf.Tags == null ? null : leaf.Tags.ToArray();
-            document.Title = leaf.Title;
+            document.Title = GetTitle(leaf.Title, leaf.PackageId);
             document.TokenizedPackageId = leaf.PackageId;
 
             if (leaf.LicenseExpression != null || leaf.LicenseFile != null)
@@ -185,9 +185,14 @@ namespace NuGet.Services.AzureSearch
             }
         }
 
+        private static string GetTitle(string title, string packageId)
+        {
+            return string.IsNullOrWhiteSpace(title) ? packageId : title;
+        }
+
         private static string GetSortableTitle(string title, string packageId)
         {
-            var output = string.IsNullOrWhiteSpace(title) ? packageId : title;
+            var output = GetTitle(title, packageId);
             return output.Trim().ToLowerInvariant();
         }
 

@@ -316,7 +316,27 @@ namespace NuGet.Services.AzureSearch
 
             [Theory]
             [MemberData(nameof(MissingTitles))]
-            public void UsesIdWhenMissingForSortableTitle(string title)
+            public void UsesIdWhenMissingForTitle(string title)
+            {
+                var leaf = Data.Leaf;
+                leaf.Title = title;
+
+                var document = _target.UpdateLatestFromCatalog(
+                    Data.SearchFilters,
+                    Data.Versions,
+                    isLatestStable: false,
+                    isLatest: true,
+                    normalizedVersion: Data.NormalizedVersion,
+                    fullVersion: Data.FullVersion,
+                    leaf: leaf,
+                    owners: Data.Owners);
+
+                Assert.Equal(Data.PackageId, document.Title);
+            }
+
+            [Theory]
+            [MemberData(nameof(MissingTitles))]
+            public void UsesLowerIdWhenMissingForSortableTitle(string title)
             {
                 var leaf = Data.Leaf;
                 leaf.Title = title;
@@ -543,7 +563,29 @@ namespace NuGet.Services.AzureSearch
 
             [Theory]
             [MemberData(nameof(MissingTitles))]
-            public void UsesIdWhenMissingForSortableTitle(string title)
+            public void UsesIdWhenMissingForTitle(string title)
+            {
+                var package = Data.PackageEntity;
+                package.Title = title;
+
+                var document = _target.FullFromDb(
+                    Data.PackageId,
+                    Data.SearchFilters,
+                    Data.Versions,
+                    isLatestStable: false,
+                    isLatest: true,
+                    fullVersion: Data.FullVersion,
+                    package: package,
+                    owners: Data.Owners,
+                    totalDownloadCount: Data.TotalDownloadCount,
+                    isExcludedByDefault: false);
+
+                Assert.Equal(Data.PackageId, document.Title);
+            }
+
+            [Theory]
+            [MemberData(nameof(MissingTitles))]
+            public void UsesLowerIdWhenMissingForSortableTitle(string title)
             {
                 var package = Data.PackageEntity;
                 package.Title = title;
@@ -807,12 +849,11 @@ namespace NuGet.Services.AzureSearch
                     GalleryBaseUrl = Data.GalleryBaseUrl,
                     FlatContainerBaseUrl = Data.FlatContainerBaseUrl,
                     FlatContainerContainerName = Data.FlatContainerContainerName,
-                    Scoring = new AzureSearchScoringConfiguration(),
                 };
 
                 _options.Setup(o => o.Value).Returns(() => _config);
 
-                _target = new SearchDocumentBuilder(_baseDocumentBuilder, _options.Object);
+                _target = new SearchDocumentBuilder(_baseDocumentBuilder);
             }
         }
     }

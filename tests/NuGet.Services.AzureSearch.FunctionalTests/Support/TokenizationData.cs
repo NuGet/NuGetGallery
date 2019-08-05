@@ -15,6 +15,13 @@ namespace NuGet.Services.AzureSearch.FunctionalTests
             { "𠈓", new[] { "𠈓" } },
         });
 
+        private static readonly string TokenWith300Characters = new string('a', 300);
+        public static readonly IEnumerable<object[]> TruncatesTokensAtLength300 = ToMemberData(new Dictionary<string, string[]>
+        {
+            { TokenWith300Characters, new[] { TokenWith300Characters } },
+            { TokenWith300Characters + 'z', new[] { TokenWith300Characters } }
+        });
+
         public static readonly IEnumerable<object[]> SplitsTokensOnSpecialCharactersAndLowercases = ToMemberData(new Dictionary<string, string[]>
         {
             { "Foo.Bar", new[] { "foo", "bar" } },
@@ -45,7 +52,7 @@ namespace NuGet.Services.AzureSearch.FunctionalTests
             { "HTML", new[] { "html"} },
             { "HTMLThing", new[] { "htmlthing" } },
             { "HTMLThingA", new[] { "htmlthinga", "htmlthing", "a" } },
-            { "HelloWorld𠈓Foo", new[] { "helloworld", "hello", "world𠈓foo" } },
+            { "HelloWorld𠈓Foo", new[] { "helloworld𠈓foo", "hello", "world𠈓foo" } },
         });
 
         public static readonly IEnumerable<object[]> AddsTokensOnNonAlphaNumericAndRemovesStopWords = ToMemberData(new Dictionary<string, string[]>

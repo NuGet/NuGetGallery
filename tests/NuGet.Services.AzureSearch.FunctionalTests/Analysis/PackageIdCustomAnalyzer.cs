@@ -18,6 +18,7 @@ namespace NuGet.Services.AzureSearch.FunctionalTests
 
         [AnalysisTheory]
         [MemberData(nameof(TokenizationData.LowercasesTokens), MemberType = typeof(TokenizationData))]
+        [MemberData(nameof(TokenizationData.TruncatesTokensAtLength300), MemberType = typeof(TokenizationData))]
         [MemberData(nameof(TokenizationData.SplitsTokensOnSpecialCharactersAndLowercases), MemberType = typeof(TokenizationData))]
         [MemberData(nameof(TokenizationData.LowercasesAndAddsTokensOnCasingAndNonAlphaNumeric), MemberType = typeof(TokenizationData))]
         public async Task ProducesExpectedTokens(string input, string[] expectedTokens)

@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using Microsoft.Extensions.Options;
 using NuGet.Protocol.Catalog;
 using NuGet.Services.Entities;
 
@@ -11,14 +10,10 @@ namespace NuGet.Services.AzureSearch
     public class SearchDocumentBuilder : ISearchDocumentBuilder
     {
         private readonly IBaseDocumentBuilder _baseDocumentBuilder;
-        private readonly IOptionsSnapshot<AzureSearchJobConfiguration> _options;
 
-        public SearchDocumentBuilder(
-            IBaseDocumentBuilder baseDocumentBuilder,
-            IOptionsSnapshot<AzureSearchJobConfiguration> options)
+        public SearchDocumentBuilder(IBaseDocumentBuilder baseDocumentBuilder)
         {
             _baseDocumentBuilder = baseDocumentBuilder ?? throw new ArgumentNullException(nameof(baseDocumentBuilder));
-            _options = options ?? throw new ArgumentNullException(nameof(options));
         }
 
         public SearchDocument.LatestFlags LatestFlagsOrNull(VersionLists versionLists, SearchFilters searchFilters)

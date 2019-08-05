@@ -112,7 +112,7 @@ namespace NuGet.Services.AzureSearch.Support
 
         private static BaseDocumentBuilder BaseDocumentBuilder => new BaseDocumentBuilder(Options);
 
-        public static SearchDocument.Full SearchDocument => new SearchDocumentBuilder(BaseDocumentBuilder, Options).FullFromDb(
+        public static SearchDocument.Full SearchDocument => new SearchDocumentBuilder(BaseDocumentBuilder).FullFromDb(
             PackageId,
             SearchFilters.IncludePrereleaseAndSemVer2,
             Versions,

@@ -9,7 +9,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
 {
     public interface INewPackageRegistrationProducer
     {
-        Task ProduceWorkAsync(
+        Task<InitialAuxiliaryData> ProduceWorkAsync(
             ConcurrentBag<NewPackageRegistration> allWork,
             CancellationToken cancellationToken);
     }

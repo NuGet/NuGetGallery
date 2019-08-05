@@ -97,7 +97,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
                 _telemetryService,
                 output.GetLogger<CatalogLeafFetcher>());
             _baseDocumentBuilder = new BaseDocumentBuilder(_options.Object);
-            _search = new SearchDocumentBuilder(_baseDocumentBuilder, _options.Object);
+            _search = new SearchDocumentBuilder(_baseDocumentBuilder);
             _hijack = new HijackDocumentBuilder(_baseDocumentBuilder);
             _builder = new CatalogIndexActionBuilder(
                 _versionListDataClient,
