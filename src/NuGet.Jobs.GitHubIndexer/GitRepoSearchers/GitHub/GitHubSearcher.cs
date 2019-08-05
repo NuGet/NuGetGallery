@@ -15,6 +15,7 @@ namespace NuGet.Jobs.GitHubIndexer
     {
         private static readonly TimeSpan LimitExceededRetryTime = TimeSpan.FromSeconds(5);
 
+        private readonly ITelemetryService _telemetry;
         private readonly ILogger<GitHubSearcher> _logger;
         private readonly IOptionsSnapshot<GitHubIndexerConfiguration> _configuration;
         private readonly IGitHubSearchWrapper _searchApiRequester;
@@ -23,9 +24,11 @@ namespace NuGet.Jobs.GitHubIndexer
 
         public GitHubSearcher(
             IGitHubSearchWrapper searchApiRequester,
+            ITelemetryService telemetry,
             ILogger<GitHubSearcher> logger,
             IOptionsSnapshot<GitHubIndexerConfiguration> configuration)
         {
+            _telemetry = telemetry ?? throw new ArgumentNullException(nameof(telemetry));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             _searchApiRequester = searchApiRequester ?? throw new ArgumentNullException(nameof(searchApiRequester));
@@ -41,13 +44,16 @@ namespace NuGet.Jobs.GitHubIndexer
         /// <returns>List of C# repos on GitHub that have more than 100 stars</returns>
         public async Task<IReadOnlyList<WritableRepositoryInformation>> GetPopularRepositories()
         {
-            _logger.LogInformation("Starting search on GitHub...");
-            var result = await GetResultsFromGitHub();
-            return result
-                .GroupBy(x => x.Id) // Used to remove duplicate repos (since the GH Search API may return a result that we already had in memory)
-                .Select(g => g.First())
-                .OrderByDescending(x => x.Stars)
-                .ToList();
+            using (_telemetry.TrackDiscoverRepositoriesDuration())
+            {
+                _logger.LogInformation("Starting search on GitHub...");
+                var result = await GetResultsFromGitHub();
+                return result
+                    .GroupBy(x => x.Id) // Used to remove duplicate repos (since the GH Search API may return a result that we already had in memory)
+                    .Select(g => g.First())
+                    .OrderByDescending(x => x.Stars)
+                    .ToList();
+            }
         }
 
         private async Task CheckThrottle()

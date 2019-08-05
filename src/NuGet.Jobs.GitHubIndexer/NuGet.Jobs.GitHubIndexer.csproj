@@ -60,6 +60,7 @@
     <Compile Include="IFetchedRepo.cs" />
     <Compile Include="IRepoFetcher.cs" />
     <Compile Include="IRepositoriesCache.cs" />
+    <Compile Include="ITelemetryService.cs" />
     <Compile Include="Job.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -67,6 +68,7 @@
     <Compile Include="ReposIndexer.cs" />
     <Compile Include="DiskRepositoriesCache.cs" />
     <Compile Include="RepoUtils.cs" />
+    <Compile Include="TelemetryService.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

@@ -27,6 +27,7 @@ namespace NuGet.Jobs.GitHubIndexer
             var assemblyName = assembly.GetName().Name;
             var assemblyVersion = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "0.0.0";
 
+            services.AddTransient<ITelemetryService, TelemetryService>();
             services.AddTransient<IGitRepoSearcher, GitHubSearcher>();
             services.AddSingleton<IGitHubClient>(provider => new GitHubClient(new ProductHeaderValue(assemblyName, assemblyVersion)));
             services.AddSingleton<IGitHubSearchWrapper, GitHubSearchWrapper>();
