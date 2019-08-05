@@ -639,15 +639,10 @@ var hlp = new AccordionHelper(name, formModelStatePrefix, expanded, page);
         <script src='https://www.google.com/recaptcha/api.js' async defer></script>
         <script type="text/javascript">
             var $submit = $('@("#" + submitId)');
-            $submit.before('<div id="recaptcha"></div>');
-            var $recaptcha = $('#recaptcha');
-            $recaptcha.addClass("g-recaptcha");
-            $recaptcha.attr({
-                'data-sitekey': "@reCaptchaPublicKey",
-                'data-size': "invisible",
-                'data-callback': "onSubmit",
-                'data-tabindex': "-1"
-            });
+            $submit.before(
+                '<div id="recaptcha" class="g-recaptcha" '
+                + 'data-sitekey="@reCaptchaPublicKey" data-size="invisible" '
+                + 'data-callback="onSubmit" data-tabindex="-1"></div>');
 
             var $form = $submit.parents('form')
             $submit.click(function (e) {
