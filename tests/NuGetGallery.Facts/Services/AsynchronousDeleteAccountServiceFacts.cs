@@ -30,7 +30,7 @@ namespace NuGetGallery.Services
                 var testService = new TestAsynchronousDeleteAccountService(shouldFail: false);
                 testService.SetupSimple();
                 var deleteAccountService = testService.GetTestService();
-                var messageSerializer = new BrokeredMessageSerializer<AccountDeleteMessageData>();
+                var messageSerializer = new AccountDeleteMessageSerializer();
 
                 // Act
                 var result = await deleteAccountService.DeleteAccountAsync(testUser, testUser, AccountDeletionOrphanPackagePolicy.UnlistOrphans);
@@ -102,7 +102,7 @@ namespace NuGetGallery.Services
 
             public AsynchronousDeleteAccountService GetTestService()
             {
-                return new AsynchronousDeleteAccountService(TopicClient, LoggerMock.Object);
+                return new AsynchronousDeleteAccountService(TopicClient, new AccountDeleteMessageSerializer(), LoggerMock.Object);
             }
         }
 
