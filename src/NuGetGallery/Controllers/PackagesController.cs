@@ -599,6 +599,12 @@ namespace NuGetGallery
             model.Warnings.AddRange(packageContentData.Warnings.Select(w => new JsonValidationMessage(w)));
             model.LicenseFileContents = packageContentData.LicenseFileContents;
             model.LicenseExpressionSegments = packageContentData.LicenseExpressionSegments;
+
+            if (packageContentData.EmbeddedIconInformation != null)
+            {
+                model.IconUrl = $"data:{packageContentData.EmbeddedIconInformation.EmbeddedIconContentType};base64,{Convert.ToBase64String(packageContentData.EmbeddedIconInformation.EmbeddedIconData)}";
+            }
+
             return Json(model);
         }
 
@@ -614,12 +620,14 @@ namespace NuGetGallery
                 PackageMetadata packageMetadata,
                 IReadOnlyList<IValidationMessage> warnings,
                 string licenseFileContents,
-                IReadOnlyCollection<CompositeLicenseExpressionSegmentViewModel> licenseExpressionSegments)
+                IReadOnlyCollection<CompositeLicenseExpressionSegmentViewModel> licenseExpressionSegments,
+                EmbeddedIconInformation embeddedIconInformation)
             {
                 PackageMetadata = packageMetadata;
                 Warnings = warnings;
                 LicenseFileContents = licenseFileContents;
                 LicenseExpressionSegments = licenseExpressionSegments;
+                EmbeddedIconInformation = embeddedIconInformation;
             }
 
             public JsonResult ErrorResult { get; }
@@ -627,6 +635,21 @@ namespace NuGetGallery
             public IReadOnlyList<IValidationMessage> Warnings { get; }
             public string LicenseFileContents { get; }
             public IReadOnlyCollection<CompositeLicenseExpressionSegmentViewModel> LicenseExpressionSegments { get; }
+            public EmbeddedIconInformation EmbeddedIconInformation { get; }
+        }
+
+        private class EmbeddedIconInformation
+        {
+            public EmbeddedIconInformation(
+                string embeddedIconContentType,
+                byte[] embeddedIconData)
+            {
+                EmbeddedIconContentType = embeddedIconContentType;
+                EmbeddedIconData = embeddedIconData;
+            }
+
+            public string EmbeddedIconContentType { get; }
+            public byte[] EmbeddedIconData { get; }
         }
 
         private async Task<PackageContentData> ValidateAndProcessPackageContents(User currentUser, bool isSymbolsPackageUpload)
@@ -635,6 +658,7 @@ namespace NuGetGallery
             string licenseFileContents = null;
             IReadOnlyCollection<CompositeLicenseExpressionSegmentViewModel> licenseExpressionSegments = null;
             PackageMetadata packageMetadata = null;
+            EmbeddedIconInformation embeddedIconInformation = null;
 
             using (Stream uploadedFile = await _uploadFileService.GetUploadFileAsync(currentUser.Key))
             {
@@ -681,6 +705,7 @@ namespace NuGetGallery
                 {
                     licenseFileContents = await GetLicenseFileContentsOrNullAsync(packageMetadata, packageArchiveReader);
                     licenseExpressionSegments = GetLicenseExpressionSegmentsOrNull(packageMetadata.LicenseMetadata);
+                    embeddedIconInformation = await GetEmbeddedIconOrNullAsync(packageMetadata, packageArchiveReader);
                 }
                 catch (Exception ex)
                 {
@@ -691,7 +716,7 @@ namespace NuGetGallery
                 }
             }
 
-            return new PackageContentData(packageMetadata, warnings, licenseFileContents, licenseExpressionSegments);
+            return new PackageContentData(packageMetadata, warnings, licenseFileContents, licenseExpressionSegments, embeddedIconInformation);
         }
 
         private IReadOnlyCollection<CompositeLicenseExpressionSegmentViewModel> GetLicenseExpressionSegmentsOrNull(LicenseMetadata licenseMetadata)
@@ -720,6 +745,39 @@ namespace NuGetGallery
             {
                 return await streamReader.ReadToEndAsync();
             }
+        }
+
+        private static async Task<EmbeddedIconInformation> GetEmbeddedIconOrNullAsync(PackageMetadata packageMetadata, PackageArchiveReader packageArchiveReader)
+        {
+            if (string.IsNullOrWhiteSpace(packageMetadata.IconFile))
+            {
+                return null;
+            }
+
+            var iconFilename = FileNameHelper.GetZipEntryPath(packageMetadata.IconFile);
+            byte[] imageData;
+            string imageContentType;
+            using (var iconFileStream = packageArchiveReader.GetStream(iconFilename))
+            using (var destination = new MemoryStream())
+            {
+                await iconFileStream.CopyToAsync(destination);
+                imageData = destination.ToArray();
+                if (imageData.HasJpegHeader())
+                {
+                    imageContentType = "image/jpeg";
+                }
+                else if (imageData.HasPngHeader())
+                {
+                    imageContentType = "image/png";
+                }
+                else
+                {
+                    // we should never get here: wrong file contents should have been caught during validation 
+                    throw new InvalidOperationException("The package icon is neither JPEG nor PNG file");
+                }
+            }
+
+            return new EmbeddedIconInformation(imageContentType, imageData);
         }
 
         public virtual async Task<ActionResult> DisplayPackage(string id, string version)
