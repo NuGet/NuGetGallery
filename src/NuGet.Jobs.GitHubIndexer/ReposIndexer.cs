@@ -20,6 +20,7 @@ namespace NuGet.Jobs.GitHubIndexer
         private const string WorkingDirectory = "work";
         private const string BlobStorageContainerName = "content";
         private const string GitHubUsageFileName = "GitHubUsage.v1.json";
+        public const int MaxBlobSizeBytes = 1 << 20; // 1 MB = 2^20
 
         public static readonly string RepositoriesDirectory = Path.Combine(WorkingDirectory, "repos");
         public static readonly string CacheDirectory = Path.Combine(WorkingDirectory, "cache");
@@ -32,6 +33,7 @@ namespace NuGet.Jobs.GitHubIndexer
         private readonly IRepoFetcher _repoFetcher;
         private readonly IConfigFileParser _configFileParser;
         private readonly ICloudBlobClient _cloudClient;
+        private readonly ITelemetryService _telemetry;
 
         public ReposIndexer(
             IGitRepoSearcher searcher,
@@ -40,7 +42,8 @@ namespace NuGet.Jobs.GitHubIndexer
             IConfigFileParser configFileParser,
             IRepoFetcher repoFetcher,
             ICloudBlobClient cloudClient,
-            IOptionsSnapshot<GitHubIndexerConfiguration> configuration)
+            IOptionsSnapshot<GitHubIndexerConfiguration> configuration,
+            ITelemetryService telemetry)
         {
             _searcher = searcher ?? throw new ArgumentNullException(nameof(searcher));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -55,6 +58,7 @@ namespace NuGet.Jobs.GitHubIndexer
 
             _maxDegreeOfParallelism = configuration.Value.MaxDegreeOfParallelism;
             _cloudClient = cloudClient ?? throw new ArgumentNullException(nameof(cloudClient));
+            _telemetry = telemetry ?? throw new ArgumentNullException(nameof(telemetry));
         }
 
         public async Task RunAsync()
@@ -87,12 +91,17 @@ namespace NuGet.Jobs.GitHubIndexer
 
             if (finalList.Any())
             {
-                await WriteFinalBlobAsync(finalList);
+                using (_telemetry.TrackUploadGitHubUsageBlobDuration())
+                {
+                    _logger.LogInformation("Uploading the GitHub Usage blob...");
+                    await WriteFinalBlobAsync(finalList);
+                    _logger.LogInformation("Uploaded the GitHub Usage blob...");
+                }
             }
             else
             {
-                // TODO: Add telemetry for this (https://github.com/NuGet/NuGetGallery/issues/7359)
-                _logger.LogError("The final blob is empty!");
+                _telemetry.TrackEmptyGitHubUsageBlob();
+                _logger.LogError("The final GitHub Usage blob is empty!");
             }
 
             // Delete the repos and cache directory
@@ -120,28 +129,60 @@ namespace NuGet.Jobs.GitHubIndexer
                 return cachedVersion;
             }
 
-            using (_logger.BeginScope("Starting indexing for repo {name}", repo.Id))
+            using (_telemetry.TrackIndexRepositoryDuration(repo.Id))
+            using (_logger.BeginScope("Starting indexing for repo {Name}", repo.Id))
             using (var fetchedRepo = _repoFetcher.FetchRepo(repo))
             {
-                var filePaths = fetchedRepo.GetFileInfos(); // Paths of all files in the Git Repo
-                var checkedOutFiles =
-                    fetchedRepo.CheckoutFiles(
-                        filePaths
-                        // TODO: Filter by blobSize too! (https://github.com/NuGet/NuGetGallery/issues/7339)
-                        .Where(x => Filters.GetConfigFileType(x.Path) != Filters.ConfigFileType.None)
-                        .Select(x => x.Path)
-                        .ToList()); // List of config files that are on-disk
+                IReadOnlyList<GitFileInfo> files;
+                using (_telemetry.TrackListFilesDuration(repo.Id))
+                {
+                    _logger.LogInformation("Finding files in repo {Name}...", repo.Id);
+
+                    files = fetchedRepo.GetFileInfos();
+                }
+
+                var filePaths = files.Where(ShouldCheckOutFile).Select(x => x.Path).ToList();
+
+                IReadOnlyList<ICheckedOutFile> checkedOutFiles;
+                using (_telemetry.TrackCheckOutFilesDuration(repo.Id))
+                {
+                    _logger.LogInformation(
+                        "Checking out {FileCount} files from repo {Name}",
+                        filePaths.Count,
+                        repo.Id);
+
+                    checkedOutFiles = fetchedRepo.CheckoutFiles(filePaths);
+                }
 
                 foreach (var cfgFile in checkedOutFiles)
                 {
                     var dependencies = _configFileParser.Parse(cfgFile);
                     repo.AddDependencies(dependencies);
                 }
+
+                _logger.LogInformation("Finished indexing repo {Name}", repo.Id);
             }
 
             var result = repo.ToRepositoryInformation();
             _repoCache.Persist(result);
             return result;
+        }
+
+        private bool ShouldCheckOutFile(GitFileInfo file)
+        {
+            // Only checkout files that are known to declare NuGet dependencies.
+            if (Filters.GetConfigFileType(file.Path) == Filters.ConfigFileType.None)
+            {
+                return false;
+            }
+
+            if (file.BlobSize > MaxBlobSizeBytes)
+            {
+                _logger.LogWarning("File is too big! {FilePath} {FileSizeBytes} bytes", file.Path, file.BlobSize);
+                return false;
+            }
+
+            return true;
         }
 
         private async Task ProcessInParallel<T>(ConcurrentBag<T> items, Action<T> work)

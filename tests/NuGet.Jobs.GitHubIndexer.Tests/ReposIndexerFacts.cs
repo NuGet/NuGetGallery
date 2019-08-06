@@ -23,6 +23,7 @@ namespace NuGet.Jobs.GitHubIndexer.Tests
         private static ReposIndexer CreateIndexer(
             WritableRepositoryInformation searchResult,
             IReadOnlyList<GitFileInfo> repoFiles,
+            Mock<ITelemetryService> mockTelemetry,
             Action<string> onDisposeHandler,
             Func<ICheckedOutFile, IReadOnlyList<string>> configFileParser = null)
         {
@@ -88,13 +89,15 @@ namespace NuGet.Jobs.GitHubIndexer.Tests
 
             return new ReposIndexer(
                 mockSearcher.Object,
-                new Mock<ILogger<ReposIndexer>>().Object,
+                Mock.Of<ILogger<ReposIndexer>>(),
                 mockRepoCache.Object,
                 mockConfigFileParser.Object,
                 mockRepoFetcher.Object,
                 mockBlobClient.Object,
-                mockConfig.Object);
+                mockConfig.Object,
+                mockTelemetry.Object);
         }
+
         public class TheRunMethod
         {
             [Fact]
@@ -112,14 +115,46 @@ namespace NuGet.Jobs.GitHubIndexer.Tests
                     new GitFileInfo(configFileNames[3], 1)
                 };
 
-                var indexer = CreateIndexer(repo,
-                    repoFiles, 
+                var telemetry = new Mock<ITelemetryService>();
+                var indexMetric = new Mock<IDisposable>();
+                var listMetric = new Mock<IDisposable>();
+                var checkoutMetric = new Mock<IDisposable>();
+                var uploadMetric = new Mock<IDisposable>();
+                telemetry
+                    .Setup(t => t.TrackIndexRepositoryDuration("owner/test"))
+                    .Returns(indexMetric.Object);
+                telemetry
+                    .Setup(t => t.TrackListFilesDuration("owner/test"))
+                    .Returns(listMetric.Object);
+                telemetry
+                    .Setup(t => t.TrackCheckOutFilesDuration("owner/test"))
+                    .Returns(checkoutMetric.Object);
+                telemetry
+                    .Setup(t => t.TrackUploadGitHubUsageBlobDuration())
+                    .Returns(uploadMetric.Object);
+
+                var indexer = CreateIndexer(
+                    repo,
+                    repoFiles,
+                    telemetry,
                     // This should not be called since there is no dependencies
                     onDisposeHandler: (string serializedValue) => Assert.True(false));
                 await indexer.RunAsync();
 
                 var result = repo.ToRepositoryInformation();
                 Assert.Equal(0, result.Dependencies.Count);
+
+                telemetry.Verify(t => t.TrackIndexRepositoryDuration("owner/test"), Times.Once);
+                telemetry.Verify(t => t.TrackListFilesDuration("owner/test"), Times.Once);
+                telemetry.Verify(t => t.TrackCheckOutFilesDuration("owner/test"), Times.Once);
+                telemetry.Verify(t => t.TrackUploadGitHubUsageBlobDuration(), Times.Never);
+
+                indexMetric.Verify(m => m.Dispose(), Times.Once);
+                listMetric.Verify(m => m.Dispose(), Times.Once);
+                checkoutMetric.Verify(m => m.Dispose(), Times.Once);
+                uploadMetric.Verify(m => m.Dispose(), Times.Never);
+
+                telemetry.Verify(t => t.TrackEmptyGitHubUsageBlob(), Times.Once);
             }
 
             [Fact]
@@ -137,8 +172,27 @@ namespace NuGet.Jobs.GitHubIndexer.Tests
                     new GitFileInfo(configFileNames[2], 1),
                     new GitFileInfo(configFileNames[3], 1)
                 };
+
+                var telemetry = new Mock<ITelemetryService>();
+                var indexMetric = new Mock<IDisposable>();
+                var listMetric = new Mock<IDisposable>();
+                var checkoutMetric = new Mock<IDisposable>();
+                var uploadMetric = new Mock<IDisposable>();
+                telemetry
+                    .Setup(t => t.TrackIndexRepositoryDuration("owner/test"))
+                    .Returns(indexMetric.Object);
+                telemetry
+                    .Setup(t => t.TrackListFilesDuration("owner/test"))
+                    .Returns(listMetric.Object);
+                telemetry
+                    .Setup(t => t.TrackCheckOutFilesDuration("owner/test"))
+                    .Returns(checkoutMetric.Object);
+                telemetry
+                    .Setup(t => t.TrackUploadGitHubUsageBlobDuration())
+                    .Returns(uploadMetric.Object);
+
                 var writeToBlobCalled = false;
-                var indexer = CreateIndexer(repo, repoFiles, configFileParser: (ICheckedOutFile file) =>
+                var indexer = CreateIndexer(repo, repoFiles, telemetry, configFileParser: (ICheckedOutFile file) =>
                     {
                         // Make sure that the Indexer filters out the non-config files
                         Assert.True(Array.Exists(configFileNames, x => string.Equals(x, file.Path)));
@@ -164,6 +218,100 @@ namespace NuGet.Jobs.GitHubIndexer.Tests
 
                 // Make sure the blob has been written
                 Assert.True(writeToBlobCalled);
+
+                // Verify telemetry
+                telemetry.Verify(t => t.TrackIndexRepositoryDuration("owner/test"), Times.Once);
+                telemetry.Verify(t => t.TrackListFilesDuration("owner/test"), Times.Once);
+                telemetry.Verify(t => t.TrackCheckOutFilesDuration("owner/test"), Times.Once);
+                telemetry.Verify(t => t.TrackUploadGitHubUsageBlobDuration(), Times.Once);
+
+                indexMetric.Verify(m => m.Dispose(), Times.Once);
+                listMetric.Verify(m => m.Dispose(), Times.Once);
+                checkoutMetric.Verify(m => m.Dispose(), Times.Once);
+                uploadMetric.Verify(m => m.Dispose(), Times.Once);
+
+                telemetry.Verify(t => t.TrackEmptyGitHubUsageBlob(), Times.Never);
+            }
+
+            [Fact]
+            public async Task OversizedBlobs()
+            {
+                var repo = new WritableRepositoryInformation("owner/test", url: "", stars: 100, description: "", mainBranch: "master");
+                var configFileNames = new string[] { "packages.config", "someProjFile.csproj", "someProjFile.props", "someProjFile.targets" };
+                var repoDependencies = new string[] { "dependency1", "dependency2", "dependency3", "dependency4" };
+                var repoFiles = new List<GitFileInfo>()
+                {
+                    new GitFileInfo("file1.txt", 1),
+                    new GitFileInfo("file2.txt", 1),
+                    new GitFileInfo(configFileNames[0], ReposIndexer.MaxBlobSizeBytes + 1),
+                    new GitFileInfo(configFileNames[1], 1),
+                    new GitFileInfo(configFileNames[2], 1),
+                    new GitFileInfo(configFileNames[3], 1)
+                };
+
+                var telemetry = new Mock<ITelemetryService>();
+                var indexMetric = new Mock<IDisposable>();
+                var listMetric = new Mock<IDisposable>();
+                var checkoutMetric = new Mock<IDisposable>();
+                var uploadMetric = new Mock<IDisposable>();
+                telemetry
+                    .Setup(t => t.TrackIndexRepositoryDuration("owner/test"))
+                    .Returns(indexMetric.Object);
+                telemetry
+                    .Setup(t => t.TrackListFilesDuration("owner/test"))
+                    .Returns(listMetric.Object);
+                telemetry
+                    .Setup(t => t.TrackCheckOutFilesDuration("owner/test"))
+                    .Returns(checkoutMetric.Object);
+                telemetry
+                    .Setup(t => t.TrackUploadGitHubUsageBlobDuration())
+                    .Returns(uploadMetric.Object);
+
+                var writeToBlobCalled = false;
+                var indexer = CreateIndexer(repo, repoFiles, telemetry, configFileParser: (ICheckedOutFile file) =>
+                    {
+                        var idx = Array.FindIndex(configFileNames, x => string.Equals(x, file.Path));
+
+                        // Make sure that the Indexer filters out the non-config files
+                        Assert.True(idx != -1);
+                        Assert.True(
+                            repoFiles[repoFiles.FindIndex(f => string.Equals(f.Path, file.Path))]
+                                .BlobSize < ReposIndexer.MaxBlobSizeBytes);
+                        return repoDependencies;
+                    },
+                    onDisposeHandler: (string serializedText) =>
+                    {
+                        writeToBlobCalled = true;
+                        Assert.Equal(JsonConvert.SerializeObject(new RepositoryInformation[] { repo.ToRepositoryInformation() }), serializedText);
+                    });
+                await indexer.RunAsync();
+
+                var result = repo.ToRepositoryInformation();
+
+                // Make sure the dependencies got read correctly
+                Assert.Equal(repoDependencies.Length, result.Dependencies.Count);
+                Assert.Equal(repoDependencies, result.Dependencies);
+
+                // Make sure the repo information didn't get changed in the process
+                Assert.Equal(repo.Id, result.Id);
+                Assert.Equal(repo.Stars, result.Stars);
+                Assert.Equal(repo.Url, result.Url);
+
+                // Make sure the blob has been written
+                Assert.True(writeToBlobCalled);
+
+                // Verify telemetry
+                telemetry.Verify(t => t.TrackIndexRepositoryDuration("owner/test"), Times.Once);
+                telemetry.Verify(t => t.TrackListFilesDuration("owner/test"), Times.Once);
+                telemetry.Verify(t => t.TrackCheckOutFilesDuration("owner/test"), Times.Once);
+                telemetry.Verify(t => t.TrackUploadGitHubUsageBlobDuration(), Times.Once);
+
+                indexMetric.Verify(m => m.Dispose(), Times.Once);
+                listMetric.Verify(m => m.Dispose(), Times.Once);
+                checkoutMetric.Verify(m => m.Dispose(), Times.Once);
+                uploadMetric.Verify(m => m.Dispose(), Times.Once);
+
+                telemetry.Verify(t => t.TrackEmptyGitHubUsageBlob(), Times.Never);
             }
         }
         private class RecordingStream : MemoryStream
