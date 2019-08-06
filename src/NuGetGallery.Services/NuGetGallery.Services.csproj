@@ -43,6 +43,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AccountManagement\AccountDeleteMessage.cs" />
+    <Compile Include="AccountManagement\AccountDeleteMessageSerializer.cs" />
     <Compile Include="AccountManagement\AccountDeletionOrphanPackagePolicy.cs" />
     <Compile Include="AccountManagement\AsynchronousDeleteAccountService.cs" />
     <Compile Include="AccountManagement\DeleteAccountService.cs" />

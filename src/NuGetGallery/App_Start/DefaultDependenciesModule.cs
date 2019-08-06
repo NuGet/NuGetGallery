@@ -486,11 +486,14 @@ namespace NuGetGallery
 
             builder.RegisterType<DeleteAccountService>();
 
+            builder.RegisterType<AccountDeleteMessageSerializer>()
+                .As<IBrokeredMessageSerializer<AccountDeleteMessage>>();
+
             builder
                 .Register<IDeleteAccountService>(c =>
                 {
                     var featureFlagService = c.Resolve<IFeatureFlagService>();
-                    if(featureFlagService.IsAsyncAccountDeleteEnabled())
+                    if (featureFlagService.IsAsyncAccountDeleteEnabled())
                     {
                         return c.Resolve<AsynchronousDeleteAccountService>();
                     }

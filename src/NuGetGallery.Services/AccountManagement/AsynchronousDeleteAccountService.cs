@@ -18,18 +18,17 @@ namespace NuGetGallery
     /// </summary>
     public class AsynchronousDeleteAccountService : IDeleteAccountService
     {
-        private const string AccountDeleteMessageSchemaName = "AccountDeleteMessageData";
         private const string GalleryAccountDeleteMessageSourceName = "Gallery";
 
         private ITopicClient _topicClient;
-        private IBrokeredMessageSerializer<AccountDeleteMessageData> _serializer;
+        private IBrokeredMessageSerializer<AccountDeleteMessage> _serializer;
         private ILogger<AsynchronousDeleteAccountService> _logger;
 
-        public AsynchronousDeleteAccountService(ITopicClient topicClient, ILogger<AsynchronousDeleteAccountService> logger)
+        public AsynchronousDeleteAccountService(ITopicClient topicClient, IBrokeredMessageSerializer<AccountDeleteMessage> accountDeleteMessageSerializer, ILogger<AsynchronousDeleteAccountService> logger)
         {
             _topicClient = topicClient ?? throw new ArgumentNullException(nameof(topicClient));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _serializer = new BrokeredMessageSerializer<AccountDeleteMessageData>();
+            _serializer = accountDeleteMessageSerializer ?? throw new ArgumentNullException(nameof(accountDeleteMessageSerializer));
         }
 
         public async Task<DeleteAccountStatus> DeleteAccountAsync(User userToBeDeleted, User userToExecuteTheDelete, AccountDeletionOrphanPackagePolicy orphanPackagePolicy = AccountDeletionOrphanPackagePolicy.DoNotAllowOrphans)
@@ -44,11 +43,7 @@ namespace NuGetGallery
                 AccountName = userToBeDeleted.Username
             };
 
-            var messageData = new AccountDeleteMessageData()
-            {
-                Username = userToBeDeleted.Username,
-                Source = GalleryAccountDeleteMessageSourceName
-            };
+            var messageData = new AccountDeleteMessage(userToBeDeleted.Username, GalleryAccountDeleteMessageSourceName);
 
             var message = _serializer.Serialize(messageData);
 
@@ -71,16 +66,6 @@ namespace NuGetGallery
             }
 
             return result;
-        }
-
-        [Schema(Name = AccountDeleteMessageSchemaName, Version = 1)]
-        private struct AccountDeleteMessageData
-        {
-            public string Username { get; set; }
-
-            // This defines the origin of the outgoing message.
-            // This source must be defined in the AccountDeleter configuration, or it will refuse to process the message.
-            public string Source { get; set; }
         }
     }
 }
