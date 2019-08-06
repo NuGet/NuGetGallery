@@ -827,7 +827,7 @@ namespace NuGetGallery
             public static IEnumerable<object[]> RejectsBinaryLicenseFiles_Smoke => new object[][]
             {
                 new object[] { new byte[] { 0, 1, 2, 3 }, true },
-                new object[] { new byte[] { 10, 13 }, false },
+                new object[] { new byte[] { 10, 13, 12 }, false },
                 new object[] { Encoding.UTF8.GetBytes("Sample license test"), false},
                 new object[] { Encoding.UTF8.GetBytes("тест тест"), false},
             };

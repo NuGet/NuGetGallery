@@ -17,10 +17,10 @@ namespace NuGetGallery.Helpers
         public static IEnumerable<object[]> IsTextFile_Input => new object[][]
         {
             new object[] { new byte[] { 0, 1, 2, 3 }, false },
-            new object[] { new byte[] { 10, 13 }, true },
+            new object[] { new byte[] { 10, 13, 12 }, true },
             new object[] { Encoding.UTF8.GetBytes("Sample license test"), true},
             new object[] { Encoding.UTF8.GetBytes("тест тест"), true},
-            new object[] { Encoding.UTF8.GetBytes("test\tlicense. Some line breaks\r\nSome non-latin characters: тест тест\n some random \r line \n breaks."), true},
+            new object[] { Encoding.UTF8.GetBytes("test\tlicense. Some line breaks\r\nSome non-latin characters: тест тест\n some random \r line \n breaks.\n\f\nAnd a form feed."), true},
             new object[] { Encoding.UTF32.GetBytes("UTF-32 text is considered binary"), false},
             new object[] { new byte[0], true },
         };
@@ -28,7 +28,7 @@ namespace NuGetGallery.Helpers
         // any characters with code <32 except line break and tab characters should be rejected
         public static IEnumerable<object[]> IsTextFile_IndividualBytes =>
             from @byte in Enumerable.Range(0, 256)
-            select new object[] { new byte[1] { (byte)@byte }, @byte == '\r' || @byte == '\n' || @byte == '\t' || @byte >= 32 };
+            select new object[] { new byte[1] { (byte)@byte }, @byte == '\r' || @byte == '\n' || @byte == '\t' || @byte == '\f' || @byte >= 32 };
 
         [Theory]
         [MemberData(nameof(IsTextFile_Input))]
