@@ -43,7 +43,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AccountManagement\AccountDeleteMessage.cs" />
+    <Compile Include="AccountManagement\AccountDeleteMessageSerializer.cs" />
     <Compile Include="AccountManagement\AccountDeletionOrphanPackagePolicy.cs" />
+    <Compile Include="AccountManagement\AsynchronousDeleteAccountService.cs" />
     <Compile Include="AccountManagement\DeleteAccountService.cs" />
     <Compile Include="AccountManagement\DeleteAccountStatus.cs" />
     <Compile Include="AccountManagement\IDeleteAccountService.cs" />
@@ -100,9 +103,11 @@
     <Compile Include="Configuration\CertificatesConfiguration.cs" />
     <Compile Include="Configuration\ConfigurationService.cs" />
     <Compile Include="Configuration\FeatureConfiguration.cs" />
+    <Compile Include="Configuration\FeatureFlagService.cs" />
     <Compile Include="Configuration\IABTestConfiguration.cs" />
     <Compile Include="Configuration\IAppConfiguration.cs" />
     <Compile Include="Configuration\ICertificatesConfiguration.cs" />
+    <Compile Include="Configuration\IFeatureFlagService.cs" />
     <Compile Include="Configuration\IGalleryConfigurationService.cs" />
     <Compile Include="Configuration\ILoginDiscontinuationConfiguration.cs" />
     <Compile Include="Configuration\IPackageDeleteConfiguration.cs" />

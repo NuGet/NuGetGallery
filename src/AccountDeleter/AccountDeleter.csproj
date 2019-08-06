@@ -71,8 +71,6 @@
     <Compile Include="Evaluators\UserOrganizationEvaluator.cs" />
     <Compile Include="GalleryAccountManager.cs" />
     <Compile Include="IAccountManager.cs" />
-    <Compile Include="AccountDeleteMessage.cs" />
-    <Compile Include="AccountDeleteMessageSerializer.cs" />
     <Compile Include="Messaging\IEmailBuilderFactory.cs" />
     <Compile Include="Evaluators\IUserEvaluator.cs" />
     <Compile Include="Job.cs" />
