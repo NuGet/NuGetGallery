@@ -81,6 +81,7 @@ namespace Stats.CreateAzureCdnWarehouseReports
                         _logger.LogInformation("Writing report to {ReportUri}", blob.Uri.AbsoluteUri);
                         blob.Properties.ContentType = "application/json";
                         await blob.UploadTextAsync(reportText);
+                        await blob.CreateSnapshotAsync();
                         _logger.LogInformation("Wrote report to {ReportUri}", blob.Uri.AbsoluteUri);
                     }
                     catch (Exception ex)
