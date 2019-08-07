@@ -22,11 +22,9 @@ $(function () {
     });
 
     function showModal() {
-        $(function (e) {
-            $("#popUpModal").modal({
-                show: true,
-                focus: true
-            });
+        $("#popUpModal").modal({
+            show: true,
+            focus: true
         });
     };
 
