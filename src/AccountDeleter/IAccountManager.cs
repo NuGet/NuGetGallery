@@ -13,6 +13,6 @@ namespace NuGetGallery.AccountDeleter
         /// </summary>
         /// <param name="user">User entity to act on</param>
         /// <returns>True if the account delete completes, false if account delete did not proceed for some reason.</returns>
-        Task<bool> DeleteAccount(User user);
+        Task<bool> DeleteAccount(User user, string source);
     }
 }
