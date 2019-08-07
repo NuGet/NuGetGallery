@@ -152,7 +152,7 @@ namespace NuGetGallery
 
         public static HtmlString ShowCheckboxFor<TModel>(this HtmlHelper<TModel> html, Expression<Func<TModel, bool>> expression)
         {
-            var htmlAttributes = GetHtmlAttributes(html, expression, isFormControl: false);
+            var htmlAttributes = GetHtmlAttributes(html, expression, isFormControl: false, isCheckbox: true);
             return html.CheckBoxFor(expression, htmlAttributes);
         }
 
@@ -189,7 +189,8 @@ namespace NuGetGallery
         private static Dictionary<string, object> GetHtmlAttributes<TModel, TProperty>(
             HtmlHelper<TModel> html,
             Expression<Func<TModel, TProperty>> expression,
-            bool isFormControl = true)
+            bool isFormControl = true,
+            bool isCheckbox = false)
         {
             var metadata = ModelMetadata.FromLambdaExpression(expression, html.ViewData);
             var propertyName = metadata.PropertyName.ToLower();
@@ -202,9 +203,9 @@ namespace NuGetGallery
                 htmlAttributes["class"] = "form-control";
             }
 
-            // If the property is required, mark it as required unless it's a bool (which are usually checkboxes).
+            // If the property is required, mark it as required unless it's a checkbox.
             // Hearing that a checkbox is required is very confusing to screen readers.
-            if (metadata.IsRequired && metadata.ModelType != typeof(bool))
+            if (!isCheckbox && metadata.IsRequired)
             {
                 htmlAttributes["aria-required"] = "true";
             }
