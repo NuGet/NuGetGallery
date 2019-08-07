@@ -254,7 +254,7 @@
     <Compile Include="Services\ConfigurationIconFileProvider.cs" />
     <Compile Include="Services\IconUrlTemplateProcessor.cs" />
     <Compile Include="Services\IIconUrlTemplateProcessor.cs" />
-    <Compile Include="Services\IInternalIconUrlProvider.cs" />
+    <Compile Include="Services\IIconUrlProvider.cs" />
     <Compile Include="Migrations\201905071526573_DevelopmentDependencyMetadata.cs" />
     <Compile Include="Migrations\201905071526573_DevelopmentDependencyMetadata.Designer.cs">
       <DependentUpon>201905071526573_DevelopmentDependencyMetadata.cs</DependentUpon>
