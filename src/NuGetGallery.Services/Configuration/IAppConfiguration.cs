@@ -427,14 +427,6 @@ namespace NuGetGallery.Configuration
         int SearchHttpRequestTimeoutInMilliseconds { get; set; }
 
         /// <summary>
-        /// Indicates whether the contents of the IconUrl package metadata should be ignored.
-        /// Specifically, Gallery will not expose those URLs in its responses and will assume
-        /// that the icon was copied to the embedded icon storage location in the V3 indexing
-        /// process (see <see cref="EmbeddedIconUrlTemplate"/>).
-        /// </summary>
-        bool IgnoreIconUrl { get; set; }
-
-        /// <summary>
         /// Template for the storage URL for packages with embedded icons.
         /// When expanded the '{id-lower}' will be replaced with the package id in lowercase,
         /// '{version-lower}' will be replaced with the normalized package version in lowercase.

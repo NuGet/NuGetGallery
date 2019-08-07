@@ -39,11 +39,6 @@ namespace NuGetGallery
                 {
                     return null;
                 }
-                if (_configuration.IgnoreIconUrl)
-                {
-                    // Assuming the icon was copied to the embedded storage
-                    return GetIconUrlFromTemplate(package);
-                }
 
                 return package.IconUrl;
             }

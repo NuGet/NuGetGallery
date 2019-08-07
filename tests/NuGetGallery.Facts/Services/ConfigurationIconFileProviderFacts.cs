@@ -115,29 +115,16 @@ namespace NuGetGallery
             }
 
             [Theory]
-            [InlineData(false, null, null, null)]
-            [InlineData(false, "", null, null)]
-            [InlineData(false, " ", null, null)]
-            [InlineData(false, null, "https://internal.test/icon", null)]
-            [InlineData(false, "", "https://internal.test/icon", null)]
-            [InlineData(false, " ", "https://internal.test/icon", null)]
-            [InlineData(false, "https://external.test/icon", null, "https://external.test/icon")]
-            [InlineData(false, "https://external.test/icon", "https://internal.test/icon", "https://external.test/icon")]
-
-            [InlineData(true, null, null, null)]
-            [InlineData(true, "", null, null)]
-            [InlineData(true, " ", null, null)]
-            [InlineData(true, null, "https://internal.test/icon", null)]
-            [InlineData(true, "", "https://internal.test/icon", null)]
-            [InlineData(true, " ", "https://internal.test/icon", null)]
-            [InlineData(true, "https://external.test/icon", null, null)]
-            [InlineData(true, "https://external.test/icon", "", null)]
-            [InlineData(true, "https://external.test/icon", " ", null)]
-            [InlineData(true, "https://external.test/icon", "https://internal.test/icon", "https://internal.test/icon")]
-            public void ProducesExpectedIconUrlWhenNoEmbeddedIcon(bool ignoreIconUrl, string iconUrl, string templateProcessorOutput, string expectedIconUrl)
+            [InlineData(null, null, null)]
+            [InlineData("", null, null)]
+            [InlineData(" ", null, null)]
+            [InlineData(null, "https://internal.test/icon", null)]
+            [InlineData("", "https://internal.test/icon", null)]
+            [InlineData(" ", "https://internal.test/icon", null)]
+            [InlineData("https://external.test/icon", null, "https://external.test/icon")]
+            [InlineData("https://external.test/icon", "https://internal.test/icon", "https://external.test/icon")]
+            public void ProducesExpectedIconUrlWhenNoEmbeddedIcon(string iconUrl, string templateProcessorOutput, string expectedIconUrl)
             {
-                _configuration.IgnoreIconUrl = ignoreIconUrl;
-
                 var package = new Package
                 {
                     PackageRegistration = new PackageRegistration
