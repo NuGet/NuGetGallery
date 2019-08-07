@@ -10,6 +10,7 @@ namespace NuGetGallery.Authentication
         public const string PackagePush = "package:push";
         public const string PackageUnlist = "package:unlist";
         public const string PackageVerify = "package:verify";
+        public const string PackageDeprecate = "package:deprecate";
 
         public static string Describe(string scope)
         {
@@ -25,6 +26,8 @@ namespace NuGetGallery.Authentication
                     return ServicesStrings.ScopeDescription_UnlistPackage;
                 case PackageVerify:
                     return ServicesStrings.ScopeDescription_VerifyPackage;
+                case PackageDeprecate:
+                    return ServicesStrings.ScopeDescription_DeprecatePackage;
             }
 
             return ServicesStrings.ScopeDescription_Unknown;

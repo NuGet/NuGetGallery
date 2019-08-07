@@ -407,6 +407,7 @@ namespace NuGetGallery
                 ActionsRequiringPermissions.UploadNewPackageId.IsAllowedOnBehalfOfAccount(currentUser, account),
                 ActionsRequiringPermissions.UploadNewPackageVersion.IsAllowedOnBehalfOfAccount(currentUser, account),
                 ActionsRequiringPermissions.UnlistOrRelistPackage.IsAllowedOnBehalfOfAccount(currentUser, account),
+                ActionsRequiringPermissions.DeprecatePackage.IsAllowedOnBehalfOfAccount(currentUser, account),
                 packageIds: PackageService.FindPackageRegistrationsByOwner(account)
                                 .Select(p => p.Id)
                                 .OrderBy(i => i)
@@ -907,6 +908,7 @@ namespace NuGetGallery
             { NuGetScopes.PackagePushVersion, new [] { ActionsRequiringPermissions.UploadNewPackageVersion } },
             { NuGetScopes.PackageUnlist, new [] { ActionsRequiringPermissions.UnlistOrRelistPackage } },
             { NuGetScopes.PackageVerify, new [] { ActionsRequiringPermissions.VerifyPackage } },
+            { NuGetScopes.PackageDeprecate, new[] { ActionsRequiringPermissions.DeprecatePackage } },
         };
 
         private bool VerifyScopes(IEnumerable<Scope> scopes)

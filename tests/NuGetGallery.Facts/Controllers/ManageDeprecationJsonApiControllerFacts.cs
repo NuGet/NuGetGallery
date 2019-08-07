@@ -619,7 +619,65 @@ namespace NuGetGallery.Controllers
 
             [Theory]
             [MemberData(nameof(Owner_Data))]
-            public async Task ReturnsNotFoundIfAlternateOfSelf(User currentUser, User owner)
+            public async Task ReturnsBadRequestIfAlternateOfSelfById(User currentUser, User owner)
+            {
+                // Arrange
+                var id = "id";
+
+                var registration = new PackageRegistration
+                {
+                    Id = id
+                };
+
+                var featureFlagService = GetMock<IFeatureFlagService>();
+                featureFlagService
+                    .Setup(x => x.IsManageDeprecationEnabled(currentUser, registration))
+                    .Returns(true)
+                    .Verifiable();
+
+                registration.Owners.Add(owner);
+
+                var version = "1.0.0";
+                var package = new Package
+                {
+                    NormalizedVersion = version,
+                    PackageRegistration = registration
+                };
+
+                var packageService = GetMock<IPackageService>();
+                packageService
+                    .Setup(x => x.FindPackagesById(id, PackageDeprecationFieldsToInclude.DeprecationAndRelationships))
+                    .Returns(new[] { package })
+                    .Verifiable();
+
+                packageService
+                    .Setup(x => x.FindPackageRegistrationById(id))
+                    .Returns(registration)
+                    .Verifiable();
+
+                var controller = GetController<ManageDeprecationJsonApiController>();
+                controller.SetCurrentUser(currentUser);
+
+                // Act
+                var result = await controller.Deprecate(
+                    CreateDeprecatePackageRequest(
+                        id,
+                        new[] { version },
+                        alternatePackageId: id));
+
+                // Assert
+                AssertErrorResponse(
+                    controller,
+                    result,
+                    HttpStatusCode.BadRequest,
+                    Strings.DeprecatePackage_AlternateOfSelf);
+                featureFlagService.Verify();
+                packageService.Verify();
+            }
+
+            [Theory]
+            [MemberData(nameof(Owner_Data))]
+            public async Task ReturnsBadRequestIfAlternateOfSelfByVersion(User currentUser, User owner)
             {
                 // Arrange
                 var id = "id";

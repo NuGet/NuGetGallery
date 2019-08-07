@@ -17,8 +17,6 @@ namespace NuGetGallery
     public partial class ManageDeprecationJsonApiController
         : AppController
     {
-        private const int MaxCustomMessageLength = 1000;
-
         private readonly IPackageService _packageService;
         private readonly IPackageDeprecationService _deprecationService;
         private readonly IFeatureFlagService _featureFlagService;
@@ -79,11 +77,11 @@ namespace NuGetGallery
 
             if (customMessage != null)
             {
-                if (customMessage.Length > MaxCustomMessageLength)
+                if (customMessage.Length > PackageDeprecation.MaxCustomMessageLength)
                 {
                     return DeprecateErrorResponse(
                         HttpStatusCode.BadRequest,
-                        string.Format(Strings.DeprecatePackage_CustomMessageTooLong, MaxCustomMessageLength));
+                        string.Format(Strings.DeprecatePackage_CustomMessageTooLong, PackageDeprecation.MaxCustomMessageLength));
                 }
             }
 
@@ -164,7 +162,7 @@ namespace NuGetGallery
                 }
             }
 
-            if (alternatePackage != null && packagesToUpdate.Any(p => p == alternatePackage))
+            if (alternatePackageRegistration == registration || packagesToUpdate.Any(p => p == alternatePackage))
             {
                 return DeprecateErrorResponse(
                     HttpStatusCode.BadRequest,

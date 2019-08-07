@@ -1778,6 +1778,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Deprecate package.
+        /// </summary>
+        public static string ScopeDescription_DeprecatePackage {
+            get {
+                return ResourceManager.GetString("ScopeDescription_DeprecatePackage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Push new packages and package versions.
         /// </summary>
         public static string ScopeDescription_PushPackage {

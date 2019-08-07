@@ -13,6 +13,8 @@ namespace NuGet.Services.Entities
     public class PackageDeprecation
         : IEntity
     {
+        public const int MaxCustomMessageLength = 1000;
+
         public PackageDeprecation()
         {
         }
