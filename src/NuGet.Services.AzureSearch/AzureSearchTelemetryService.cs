@@ -357,16 +357,6 @@ namespace NuGet.Services.AzureSearch
                 });
         }
 
-        public IDisposable TrackUploadDownloadsSnapshot(int packageIdCount)
-        {
-            return _telemetryClient.TrackDuration(
-                Prefix + "UploadDownloadsSnapshotSeconds",
-                new Dictionary<string, string>
-                {
-                    { "PackageIdCount", packageIdCount.ToString() },
-                });
-        }
-
         public void TrackV3GetDocument(TimeSpan elapsed)
         {
             _telemetryClient.TrackMetric(
