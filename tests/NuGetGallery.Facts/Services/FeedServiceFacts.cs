@@ -559,7 +559,6 @@ namespace NuGetGallery
 
                     var searchService = new Mock<ExternalSearchService>(
                         MockBehavior.Loose,
-                        Mock.Of<IAppConfiguration>(),
                         Mock.Of<IDiagnosticsService>(),
                         Mock.Of<ISearchClient>());
                     searchService.CallBase = true;
@@ -623,7 +622,6 @@ namespace NuGetGallery
                     bool called = false;
                     var searchService = new Mock<ExternalSearchService>(
                         MockBehavior.Loose,
-                        Mock.Of<IAppConfiguration>(),
                         Mock.Of<IDiagnosticsService>(),
                         Mock.Of<ISearchClient>());
                     searchService

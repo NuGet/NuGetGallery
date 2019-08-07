@@ -61,7 +61,6 @@ namespace NuGetGallery
         /// <returns>Whether or not the Flight is enabled for the user</returns>
         bool IsGitHubUsageEnabled(User user);
         
-
         /// <summary>
         /// Whether the OData controllers use the read-only replica.
         /// </summary>
@@ -71,5 +70,10 @@ namespace NuGetGallery
         /// Whether the user can participate in A/B tests.
         /// </summary>
         bool IsABTestingEnabled(User user);
+
+        /// <summary>
+        /// Whether using the preview search to hijack OData queries is enabled.
+        /// </summary>
+        bool IsPreviewHijackEnabled();
     }
 }

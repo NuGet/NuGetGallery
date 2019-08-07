@@ -224,6 +224,7 @@
     <Compile Include="Infrastructure\IABTestService.cs" />
     <Compile Include="Infrastructure\ILuceneDocumentFactory.cs" />
     <Compile Include="Infrastructure\LuceneDocumentFactory.cs" />
+    <Compile Include="Infrastructure\IHijackSearchServiceFactory.cs" />
     <Compile Include="Infrastructure\Lucene\Correlation\CorrelatingHttpClientHandler.cs" />
     <Compile Include="Infrastructure\Lucene\Correlation\WebApiCorrelationHandler.cs" />
     <Compile Include="Infrastructure\Lucene\HttpClientBuilderExtensions.cs" />
@@ -233,6 +234,7 @@
     <Compile Include="Infrastructure\Lucene\Models\SortOrder.cs" />
     <Compile Include="Infrastructure\Lucene\ServiceResponse.cs" />
     <Compile Include="Infrastructure\Mail\Messages\SearchSideBySideMessage.cs" />
+    <Compile Include="Infrastructure\HijackSearchServiceFactory.cs" />
     <Compile Include="Migrations\201903020136235_CvesCanBeEmpty.cs" />
     <Compile Include="Migrations\201903020136235_CvesCanBeEmpty.Designer.cs">
       <DependentUpon>201903020136235_CvesCanBeEmpty.cs</DependentUpon>

@@ -410,17 +410,22 @@ namespace NuGetGallery.Controllers
         {
             var packagesRepositoryMock = new Mock<IReadOnlyEntityRepository<Package>>();          
             var readWritePackagesRepositoryMock = new Mock<IEntityRepository<Package>>();
-            var configurationService = new Mock<IGalleryConfigurationService>().Object;
-            var searchService = new Mock<ISearchService>().Object;
-            var telemetryService = new Mock<ITelemetryService>().Object;
+            var configurationService = Mock.Of<IGalleryConfigurationService>();
+            var searchService = Mock.Of<ISearchService>();
+            var telemetryService = Mock.Of<ITelemetryService>();
             var featureFlagServiceMock = new Mock<IFeatureFlagService>();
             featureFlagServiceMock.Setup(ffs => ffs.IsODataDatabaseReadOnlyEnabled()).Returns(readOnly);
+
+            var searchServiceFactoryMock = new Mock<IHijackSearchServiceFactory>();
+            searchServiceFactoryMock
+                .Setup(f => f.GetService())
+                .Returns(searchService);
 
             var testController = new ODataV2FeedController(
                 packagesRepositoryMock.Object,
                 readWritePackagesRepositoryMock.Object,
                 configurationService,
-                searchService,
+                searchServiceFactoryMock.Object,
                 telemetryService,
                 featureFlagServiceMock.Object);
 
@@ -446,11 +451,16 @@ namespace NuGetGallery.Controllers
             ITelemetryService telemetryService,
             IFeatureFlagService featureFlagService)
         {
+            var searchServiceFactory = new Mock<IHijackSearchServiceFactory>();
+            searchServiceFactory
+                .Setup(f => f.GetService())
+                .Returns(searchService);
+
             return new ODataV2FeedController(
                 packagesRepository,
                 readWritePackagesRepository,
                 configurationService,
-                searchService,
+                searchServiceFactory.Object,
                 telemetryService,
                 featureFlagService);
         }
