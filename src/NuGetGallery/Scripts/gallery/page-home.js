@@ -22,12 +22,12 @@ $(function () {
     });
 
     function showModal() {
-        $(document).on('ready', function (e) {
+        $(function (e) {
             $("#popUpModal").modal({
                 show: true,
                 focus: true
             });
-        })
+        });
     };
 
     function updateStats() {
