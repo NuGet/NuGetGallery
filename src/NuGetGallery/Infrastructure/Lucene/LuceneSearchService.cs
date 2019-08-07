@@ -352,7 +352,7 @@ namespace NuGetGallery
 
             if (fieldName == "Id")
             {
-                searchTerm.TermOrPhrase = PackageIndexEntity.SplitId(searchTerm.TermOrPhrase);
+                searchTerm.TermOrPhrase = LuceneDocumentFactory.SplitId(searchTerm.TermOrPhrase);
             }
 
             return searchTerm;

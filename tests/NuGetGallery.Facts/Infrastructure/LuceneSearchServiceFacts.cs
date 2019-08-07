@@ -680,7 +680,7 @@ namespace NuGetGallery.Infrastructure
                 d,
                 null,
                 null,
-                Mock.Of<IIconUrlProvider>());
+                new LuceneDocumentFactory(Mock.Of<IIconUrlProvider>()));
             luceneIndexingService.UpdateIndex(forceRefresh: true);
 
             var luceneSearchService = new LuceneSearchService(d);

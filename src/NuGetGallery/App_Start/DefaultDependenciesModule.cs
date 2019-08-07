@@ -815,6 +815,9 @@ namespace NuGetGallery
                     .As<IIndexingService>()
                     .As<IIndexingJobFactory>()
                     .InstancePerLifetimeScope();
+                builder.RegisterType<LuceneDocumentFactory>()
+                    .As<ILuceneDocumentFactory>()
+                    .InstancePerLifetimeScope();
             }
 
             builder
