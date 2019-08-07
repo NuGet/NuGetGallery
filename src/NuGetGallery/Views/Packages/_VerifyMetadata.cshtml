@@ -201,11 +201,13 @@
                 <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: $data.RepositoryUrl }}"></div>
             </div>
 
+            <!-- ko if: !$data.IconUrl || !$data.IconUrl.startsWith('data:') -->
             <div class="verify-package-field">
                 <!-- Bind an on change event here to update the preview below-->
                 <label class="verify-package-field-heading">Icon URL</label>
                 <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: $data.IconUrl }}"></div>
             </div>
+            <!-- /ko -->
 
             <!-- ko if: $data.IconUrl -->
             <div class="verify-package-field row">
