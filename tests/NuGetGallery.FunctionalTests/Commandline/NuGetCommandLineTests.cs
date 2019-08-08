@@ -116,7 +116,7 @@ namespace NuGetGallery.FunctionalTests.Commandline
         [Category("P0Tests")]
         public async Task UploadAndDownloadPackageWithMinClientVersion()
         {
-            string packageId = DateTime.Now.Ticks + "PackageWithDotCsNames.Cs";
+            string packageId = $"{Guid.NewGuid():N}PackageWithDotCsNames.Cs";
             string version = "1.0.0";
             string packageFullPath = await _packageCreationHelper.CreatePackageWithMinClientVersion(packageId, version, "2.3");
 
