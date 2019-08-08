@@ -15,6 +15,7 @@ namespace NuGetGallery
 
         private const string ABTestingFlightName = GalleryPrefix + "ABTesting";
         private const string AsyncAccountDeleteFeatureName = GalleryPrefix + "AsyncAccountDelete";
+        private const string SelfServiceAccountDeleteFeatureName = GalleryPrefix + "SelfServiceAccountDelete";
         private const string EmbeddedIconFlightName = GalleryPrefix + "EmbeddedIcons";
         private const string GitHubUsageFlightName = GalleryPrefix + "GitHubUsage";
         private const string ManageDeprecationFeatureName = GalleryPrefix + "ManageDeprecation";
@@ -36,6 +37,11 @@ namespace NuGetGallery
         public bool IsAsyncAccountDeleteEnabled()
         {
             return _client.IsEnabled(AsyncAccountDeleteFeatureName, false);
+        }
+
+        public bool IsSelfServiceAccountDeleteEnabled()
+        {
+            return _client.IsEnabled(SelfServiceAccountDeleteFeatureName, false);
         }
 
         public bool IsTyposquattingEnabled()

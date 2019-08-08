@@ -16,6 +16,14 @@ namespace NuGetGallery
         bool IsAsyncAccountDeleteEnabled();
 
         /// <summary>
+        /// Whether account deletes requested by user are handled automatically or not.
+        /// If true, user account deletes will be deleted automatically if possible
+        /// and send alert mail to user if not.
+        /// </summary>
+        /// <returns></returns>
+        bool IsSelfServiceAccountDeleteEnabled();
+
+        /// <summary>
         /// Whether typosquatting detection is enabled on package uploads. If true, new packages
         /// cannot have an id that is similar to existing packages' ids.
         /// </summary>
