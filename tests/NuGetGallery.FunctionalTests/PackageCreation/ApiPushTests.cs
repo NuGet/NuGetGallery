@@ -33,7 +33,7 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
         public async Task DuplicatePushesAreRejectedAndNotDeleted()
         {
             // Arrange
-            var packageId = $"{nameof(DuplicatePushesAreRejectedAndNotDeleted)}.{DateTime.UtcNow.Ticks}";
+            var packageId = $"{nameof(DuplicatePushesAreRejectedAndNotDeleted)}.{Guid.NewGuid():N}";
 
             int pushVersionCount = 10;
             var duplicatePushTasks = new List<Task>();
