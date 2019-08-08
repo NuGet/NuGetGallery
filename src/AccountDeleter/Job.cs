@@ -254,14 +254,11 @@ namespace NuGetGallery.AccountDeleter
                 {
                     auditingServices.Add(sp.GetRequiredService<AuditingService>());
                 }
-                catch (InvalidOperationException)
+                catch (Exception ex)
+                when (ex is InvalidOperationException
+                   || ex is DependencyResolutionException)
                 {
-                    auditingServices.Add(GetAuditingServiceForLocalFileSystem());
                     // no default auditing service was registered, no-op
-                }
-                catch (DependencyResolutionException)
-                {
-                    auditingServices.Add(GetAuditingServiceForLocalFileSystem());
                 }
 
                 return CombineAuditingServices(auditingServices);
