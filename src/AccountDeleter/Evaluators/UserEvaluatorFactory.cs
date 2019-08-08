@@ -27,8 +27,7 @@ namespace NuGetGallery.AccountDeleter
             var result = new AggregateEvaluator();
             foreach(var evaluatorKey in configEvaluators)
             {
-                IUserEvaluator userEvaluator;
-                if(!_evaluatorMap.TryGetValue(evaluatorKey, out userEvaluator))
+                if(!_evaluatorMap.TryGetValue(evaluatorKey, out IUserEvaluator userEvaluator))
                 {
                     throw new UnknownEvaluatorException(evaluatorKey, source);
                 }
