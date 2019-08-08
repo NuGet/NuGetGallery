@@ -10,6 +10,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Blob;
+using Microsoft.WindowsAzure.Storage.RetryPolicies;
 using NuGet.Jobs.Validation;
 using NuGet.Protocol;
 using NuGet.Protocol.Catalog;
@@ -103,7 +105,7 @@ namespace NuGet.Services.AzureSearch
                     var options = c.Resolve<IOptionsSnapshot<AzureSearchJobConfiguration>>();
                     return new CloudBlobClientWrapper(
                         options.Value.StorageConnectionString,
-                        readAccessGeoRedundant: true);
+                        GetBlobRequestOptions());
                 })
                 .Keyed<ICloudBlobClient>(key);
 
@@ -193,7 +195,7 @@ namespace NuGet.Services.AzureSearch
                     var options = c.Resolve<IOptionsSnapshot<IAuxiliaryDataStorageConfiguration>>();
                     return new CloudBlobClientWrapper(
                         options.Value.AuxiliaryDataStorageConnectionString,
-                        readAccessGeoRedundant: true);
+                        GetBlobRequestOptions());
                 })
                 .Keyed<ICloudBlobClient>(key);
 
@@ -203,6 +205,17 @@ namespace NuGet.Services.AzureSearch
                     c.Resolve<IOptionsSnapshot<IAuxiliaryDataStorageConfiguration>>(),
                     c.Resolve<IAzureSearchTelemetryService>(),
                     c.Resolve<ILogger<AuxiliaryFileClient>>()));
+        }
+
+        private static BlobRequestOptions GetBlobRequestOptions()
+        {
+            return new BlobRequestOptions
+            {
+                ServerTimeout = AzureStorage.DefaultServerTimeout,
+                MaximumExecutionTime = AzureStorage.DefaultMaxExecutionTime,
+                LocationMode = LocationMode.PrimaryThenSecondary,
+                RetryPolicy = new ExponentialRetry(),
+            };
         }
 
         public static IServiceCollection AddAzureSearch(this IServiceCollection services)
