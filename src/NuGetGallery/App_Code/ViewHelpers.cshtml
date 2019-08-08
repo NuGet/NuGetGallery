@@ -585,10 +585,10 @@ var hlp = new AccordionHelper(name, formModelStatePrefix, expanded, page);
 
 @helper Breadcrumb(bool showDivider, params Func<MvcHtmlString, HelperResult>[] segments)
 {
-    <h1 class="ms-font-xl breadcrumb-title">
+    <h1 role="list" class="ms-font-xl breadcrumb-title">
         @for (int i = 0; i < segments.Length; i++)
         {
-            <span class="ms-noWrap">@segments[i](MvcHtmlString.Empty)</span>
+            <span role="listitem" class="ms-noWrap">@segments[i](MvcHtmlString.Empty)</span>
 
             if (i < segments.Length - 1)
             {
