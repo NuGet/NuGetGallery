@@ -6,7 +6,9 @@ using System.Collections.Generic;
 using System.ComponentModel.Design;
 using System.IO;
 using System.Linq;
+using System.ServiceModel.Configuration;
 using Autofac;
+using Autofac.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -60,17 +62,18 @@ namespace NuGetGallery.AccountDeleter
             services.AddScoped<AccountConfirmedEvaluator>();
             services.AddScoped<NuGetDeleteEvaluator>();
 
-            services.AddScoped<IUserEvaluator>(sp =>
+            services.AddScoped<IUserEvaluatorFactory>(sp =>
             {
-                if (IsDebugMode)
-                {
-                    return sp.GetRequiredService<AlwaysRejectEvaluator>();
-                }
-                else
-                {
-                    // Configure evaluators here.
-                    return sp.GetRequiredService<NuGetDeleteEvaluator>();
-                }
+                var configuration = sp.GetRequiredService<IOptionsSnapshot<AccountDeleteConfiguration>>();
+
+                var factory = new UserEvaluatorFactory(configuration);
+
+                factory.AddEvaluatorByKey(EvaluatorKeys.AccountConfirmed, sp.GetRequiredService<AccountConfirmedEvaluator>());
+                factory.AddEvaluatorByKey(EvaluatorKeys.AlwaysAllow, sp.GetRequiredService<AlwaysAllowEvaluator>());
+                factory.AddEvaluatorByKey(EvaluatorKeys.AlwaysReject, sp.GetRequiredService<AlwaysRejectEvaluator>());
+                factory.AddEvaluatorByKey(EvaluatorKeys.NuGetDelete, sp.GetRequiredService<NuGetDeleteEvaluator>());
+
+                return factory;
             });
 
             if (IsDebugMode)
@@ -253,7 +256,12 @@ namespace NuGetGallery.AccountDeleter
                 }
                 catch (InvalidOperationException)
                 {
+                    auditingServices.Add(GetAuditingServiceForLocalFileSystem());
                     // no default auditing service was registered, no-op
+                }
+                catch (DependencyResolutionException)
+                {
+                    auditingServices.Add(GetAuditingServiceForLocalFileSystem());
                 }
 
                 return CombineAuditingServices(auditingServices);

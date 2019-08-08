@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+
 namespace NuGetGallery.AccountDeleter
 {
     /// <summary>
@@ -27,5 +29,10 @@ namespace NuGetGallery.AccountDeleter
         /// Mail template for notifying a user that the account has been deleted.
         /// </summary>
         public MailTemplateConfiguration DeletedMailTemplate { get; set; }
+
+        /// <summary>
+        /// List of evaluators to use for this source. See <see cref="EvaluatorKeys"/> for valid values.
+        /// </summary>
+        public List<string> Evaluators { get; set; }
     }
 }
