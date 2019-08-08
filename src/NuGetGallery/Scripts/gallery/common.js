@@ -55,22 +55,19 @@
             showErrors: function (errorMap, errorList) {
                 this.defaultShowErrors();
 
-                // By default, showErrors adds an aria-describedby attribute to every field that it validates, even if it finds no issues.
-                // This is a problem, because the aria-describedby attribute will then link to an empty element.
-                // This code removes the aria-describedby if the describing element is missing or empty.
                 var i;
                 for (i = 0; this.errorList[i]; i++) {
-                    removeInvalidAriaDescribedBy(this.errorList[i].element, validatorErrorClass);
+                    fixAccessibilityIssuesWithAriaDescribedBy(this.errorList[i].element, validatorErrorClass);
                 }
 
                 for (i = 0; this.successList[i]; i++) {
-                    removeInvalidAriaDescribedBy(this.successList[i], validatorErrorClass);
+                    fixAccessibilityIssuesWithAriaDescribedBy(this.successList[i], validatorErrorClass);
                 }
             }
         });
     }
 
-    function removeInvalidAriaDescribedBy(element, validatorErrorClass) {
+    function fixAccessibilityIssuesWithAriaDescribedBy(element, validatorErrorClass) {
         var describedBy = element.getAttribute("aria-describedby");
         if (!describedBy) {
             return;
@@ -84,11 +81,14 @@
                     return false;
                 }
 
+                // The default showErrors adds an aria-describedby attribute to every field that it validates, even if it finds no issues.
+                // This is a problem, because the aria-describedby attribute will then link to an empty element.
+                // If the element linked to by the aria-describedby attribute is empty, remove the aria-describedby.
                 var describedByElement = $("#" + describedById);
                 return describedByElement && describedByElement.text();
             })
             .map(function (describedById) {
-                // By default, showErrors puts the error inside a container.
+                // The default showErrors puts the error inside a container.
                 // This causes Narrator to read the error as being part of a group, even though it is the only error.
                 // JQuery Validator only ever shows a single error for each form input so it is always possible for us to simply unwrap the error.
                 var describedByElement = $("#" + describedById);
