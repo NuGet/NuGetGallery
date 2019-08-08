@@ -73,8 +73,7 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
                 uploadedPackageIds.Add(packageId);
             }
 
-            await Task.WhenAll(uploadedPackageIds.Select(id => _clientSdkHelper.VerifyPackageExistsInV2Async(id, version)));
-
+            await Task.WhenAll(uploadedPackageIds.Select(id => _clientSdkHelper.VerifyPackageExistsInV2Async(id, version, listed: true)));
             await CheckPackageTimestampsInOrder(uploadedPackageIds, "Created", uploadStartTimestamp);
 
             // Unlist the packages in order.
@@ -86,6 +85,7 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
                 unlistedPackageIds.Add(uploadedPackageId);
             }
 
+            await Task.WhenAll(unlistedPackageIds.Select(id => _clientSdkHelper.VerifyPackageExistsInV2Async(id, version, listed: false)));
             await CheckPackageTimestampsInOrder(unlistedPackageIds, "LastEdited", unlistStartTimestamp);
         }
 

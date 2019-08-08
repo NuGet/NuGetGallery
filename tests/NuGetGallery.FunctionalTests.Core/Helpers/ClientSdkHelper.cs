@@ -70,11 +70,16 @@ namespace NuGetGallery.FunctionalTests
         /// <summary>
         /// Checks if the given package version is present in V2 and V3. This method bypasses the hijack.
         /// </summary>
-        private async Task<bool> CheckIfPackageVersionExistsInV2Async(string packageId, string version)
+        private async Task<bool> CheckIfPackageVersionExistsInV2Async(string packageId, string version, bool? isListed)
         {
             var sourceUrl = UrlHelper.V2FeedRootUrl;
             var normalizedVersion = NuGetVersion.Parse(version).ToNormalizedString();
             var filter = $"Id eq '{packageId}' and NormalizedVersion eq '{normalizedVersion}' and 1 eq 1";
+            if (isListed.HasValue)
+            {
+                filter += $" and Published {(isListed.Value ? "ne" : "eq")} datetime'1900-01-01T00:00:00'";
+            }
+
             var url = UrlHelper.V2FeedRootUrl + $"/Packages/$count?$filter={Uri.EscapeDataString(filter)}";
             using (var httpClient = new System.Net.Http.HttpClient())
             {
@@ -530,11 +535,12 @@ namespace NuGetGallery.FunctionalTests
                 $"Package {packageId} with version {version} is not found on the site {UrlHelper.V2FeedRootUrl}.");
         }
 
-        public async Task VerifyPackageExistsInV2Async(string packageId, string version)
+        public async Task VerifyPackageExistsInV2Async(string packageId, string version, bool? listed = null)
         {
-            var packageExistsInSource = await CheckIfPackageVersionExistsInV2Async(packageId, version);
-            Assert.True(packageExistsInSource,
-                $"Package {packageId} with version {version} is not found on the site {UrlHelper.V2FeedRootUrl}.");
+            var packageExistsInSource = await CheckIfPackageVersionExistsInV2Async(packageId, version, listed);
+            Assert.True(
+                packageExistsInSource,
+                $"Package {packageId} with version {version}{(listed.HasValue ? (listed.Value ? " listed" : " unlisted") : "")} is not found on the site {UrlHelper.V2FeedRootUrl}.");
         }
 
         /// <summary>
