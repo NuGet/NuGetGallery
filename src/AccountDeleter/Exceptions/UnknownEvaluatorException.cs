@@ -12,7 +12,7 @@ namespace NuGetGallery.AccountDeleter
     {
         private const string _messageTemplate = "{0} requested unknown evaluator {1}";
 
-        public UnknownEvaluatorException(string requestedEvaluator, string source)
+        public UnknownEvaluatorException(EvaluatorKey requestedEvaluator, string source)
             : base(String.Format(_messageTemplate, source, requestedEvaluator))
         {
             

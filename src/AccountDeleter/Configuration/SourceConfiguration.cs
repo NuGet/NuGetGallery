@@ -31,8 +31,8 @@ namespace NuGetGallery.AccountDeleter
         public MailTemplateConfiguration DeletedMailTemplate { get; set; }
 
         /// <summary>
-        /// List of evaluators to use for this source. See <see cref="EvaluatorKeys"/> for valid values.
+        /// List of evaluators to use for this source. See <see cref="EvaluatorKey"/> for valid values.
         /// </summary>
-        public List<string> Evaluators { get; set; }
+        public List<EvaluatorKey> Evaluators { get; set; }
     }
 }

@@ -10,52 +10,36 @@ namespace NuGetGallery.AccountDeleter
     public class UserEvaluatorFactory : IUserEvaluatorFactory
     {
         private IOptionsSnapshot<AccountDeleteConfiguration> _options;
-        private Dictionary<string, IUserEvaluator> _evaluatorMap;
+        private Dictionary<EvaluatorKey, IUserEvaluator> _evaluatorMap;
 
         public UserEvaluatorFactory(IOptionsSnapshot<AccountDeleteConfiguration> options)
         {
             _options = options ?? throw new ArgumentNullException(nameof(options));
-            _evaluatorMap = new Dictionary<string, IUserEvaluator>();
+            _evaluatorMap = new Dictionary<EvaluatorKey, IUserEvaluator>();
         }
 
         public IUserEvaluator GetEvaluatorForSource(string source)
         {
             var configuration = _options.Value;
-
             var sourceConfig = configuration.GetSourceConfiguration(source);
 
             var configEvaluators = sourceConfig.Evaluators;
-
-            if (configEvaluators.Count > 1)
+            var result = new AggregateEvaluator();
+            foreach(var evaluatorKey in configEvaluators)
             {
-                var result = new AggregateEvaluator();
-                foreach(var evaluatorKey in configEvaluators)
-                {
-                    IUserEvaluator userEvaluator;
-                    if(!_evaluatorMap.TryGetValue(evaluatorKey, out userEvaluator))
-                    {
-                        throw new UnknownEvaluatorException(evaluatorKey, source);
-                    }
-
-                    result.AddEvaluator(userEvaluator);
-                }
-
-                return result;
-            }
-            else
-            {
-                var evaluatorKey = configEvaluators[0];
                 IUserEvaluator userEvaluator;
-                if (!_evaluatorMap.TryGetValue(evaluatorKey, out userEvaluator))
+                if(!_evaluatorMap.TryGetValue(evaluatorKey, out userEvaluator))
                 {
                     throw new UnknownEvaluatorException(evaluatorKey, source);
                 }
 
-                return userEvaluator;
+                result.AddEvaluator(userEvaluator);
             }
+
+            return result;
         }
 
-        public bool AddEvaluatorByKey(string key, IUserEvaluator evaluator)
+        public bool AddEvaluatorByKey(EvaluatorKey key, IUserEvaluator evaluator)
         {
             if (_evaluatorMap.ContainsKey(key))
             {

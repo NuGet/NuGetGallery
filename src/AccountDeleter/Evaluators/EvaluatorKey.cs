@@ -3,10 +3,11 @@
 
 namespace NuGetGallery.AccountDeleter
 {
-    public interface IUserEvaluatorFactory
+    public enum EvaluatorKey
     {
-        IUserEvaluator GetEvaluatorForSource(string source);
-
-        bool AddEvaluatorByKey(EvaluatorKey key, IUserEvaluator evaluator);
+        AccountConfirmed,
+        AlwaysAllow,
+        AlwaysReject,
+        NuGetDelete
     }
 }

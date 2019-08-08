@@ -68,10 +68,10 @@ namespace NuGetGallery.AccountDeleter
 
                 var factory = new UserEvaluatorFactory(configuration);
 
-                factory.AddEvaluatorByKey(EvaluatorKeys.AccountConfirmed, sp.GetRequiredService<AccountConfirmedEvaluator>());
-                factory.AddEvaluatorByKey(EvaluatorKeys.AlwaysAllow, sp.GetRequiredService<AlwaysAllowEvaluator>());
-                factory.AddEvaluatorByKey(EvaluatorKeys.AlwaysReject, sp.GetRequiredService<AlwaysRejectEvaluator>());
-                factory.AddEvaluatorByKey(EvaluatorKeys.NuGetDelete, sp.GetRequiredService<NuGetDeleteEvaluator>());
+                factory.AddEvaluatorByKey(EvaluatorKey.AccountConfirmed, sp.GetRequiredService<AccountConfirmedEvaluator>());
+                factory.AddEvaluatorByKey(EvaluatorKey.AlwaysAllow, sp.GetRequiredService<AlwaysAllowEvaluator>());
+                factory.AddEvaluatorByKey(EvaluatorKey.AlwaysReject, sp.GetRequiredService<AlwaysRejectEvaluator>());
+                factory.AddEvaluatorByKey(EvaluatorKey.NuGetDelete, sp.GetRequiredService<NuGetDeleteEvaluator>());
 
                 return factory;
             });

@@ -18,7 +18,7 @@ namespace NuGetGallery
     /// </summary>
     public class AsynchronousDeleteAccountService : IDeleteAccountService
     {
-        private const string GalleryAccountDeleteMessageSourceName = "GalleryUser";
+        private const string GalleryUserAccountDeleteMessageSourceName = "GalleryUser";
         private const string GalleryAdminAccountDeleteMessageSourceName = "GalleryAdmin";
 
         private ITopicClient _topicClient;
@@ -44,7 +44,7 @@ namespace NuGetGallery
                 AccountName = userToBeDeleted.Username
             };
 
-            var sourceName = GalleryAccountDeleteMessageSourceName;
+            var sourceName = GalleryUserAccountDeleteMessageSourceName;
             if (userToExecuteTheDelete.IsAdministrator)
             {
                 sourceName = GalleryAdminAccountDeleteMessageSourceName;

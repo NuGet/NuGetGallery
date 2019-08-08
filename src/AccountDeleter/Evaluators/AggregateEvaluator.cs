@@ -12,29 +12,22 @@ namespace NuGetGallery.AccountDeleter
     /// </summary>
     public class AggregateEvaluator : BaseUserEvaluator
     {
-        private Dictionary<string, IUserEvaluator> _evaluatorList;
+        private HashSet<IUserEvaluator> _evaluatorList;
 
         public AggregateEvaluator()
             : base()
         {
-            _evaluatorList = new Dictionary<string, IUserEvaluator>();
+            _evaluatorList = new HashSet<IUserEvaluator>(new UserEvaluatorComparer());
         }
 
         public override bool CanUserBeDeleted(User user)
         {
-            var evaluators = _evaluatorList.Values;
-            return evaluators.All(e => e.CanUserBeDeleted(user));
+            return _evaluatorList.All(e => e.CanUserBeDeleted(user));
         }
 
         public bool AddEvaluator(IUserEvaluator userEvaluator)
         {
-            if (_evaluatorList.ContainsKey(userEvaluator.EvaluatorId))
-            {
-                return false;
-            }
-
-            _evaluatorList.Add(userEvaluator.EvaluatorId, userEvaluator);
-            return true;
+            return _evaluatorList.Add(userEvaluator);
         }
     }
 }
