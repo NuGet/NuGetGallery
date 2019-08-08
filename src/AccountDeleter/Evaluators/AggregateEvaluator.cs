@@ -12,13 +12,7 @@ namespace NuGetGallery.AccountDeleter
     /// </summary>
     public class AggregateEvaluator : BaseUserEvaluator
     {
-        private HashSet<IUserEvaluator> _evaluatorList;
-
-        public AggregateEvaluator()
-            : base()
-        {
-            _evaluatorList = new HashSet<IUserEvaluator>(new UserEvaluatorComparer());
-        }
+        private HashSet<IUserEvaluator> _evaluatorList = new HashSet<IUserEvaluator>(new UserEvaluatorComparer());
 
         public override bool CanUserBeDeleted(User user)
         {
