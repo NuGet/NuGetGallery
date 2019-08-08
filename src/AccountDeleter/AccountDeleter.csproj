@@ -58,9 +58,10 @@
     <Compile Include="Evaluators\AggregateEvaluator.cs" />
     <Compile Include="Evaluators\AlwaysAllowEvaluator.cs" />
     <Compile Include="Evaluators\BaseUserEvaluator.cs" />
-    <Compile Include="Evaluators\EvaluatorKeys.cs" />
+    <Compile Include="Evaluators\EvaluatorKey.cs" />
     <Compile Include="Evaluators\NuGetDeleteEvaluator.cs" />
     <Compile Include="Evaluators\IUserEvaluatorFactory.cs" />
+    <Compile Include="Evaluators\UserEvaluatorComparer.cs" />
     <Compile Include="Evaluators\UserEvaluatorFactory.cs" />
     <Compile Include="Exceptions\EmailContactNotAllowedException.cs" />
     <Compile Include="Exceptions\UnknownEvaluatorException.cs" />
