@@ -4,18 +4,19 @@
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
+using System.Web.UI;
 
 namespace NuGetGallery.AccountDeleter
 {
     public class UserEvaluatorFactory : IUserEvaluatorFactory
     {
         private IOptionsSnapshot<AccountDeleteConfiguration> _options;
-        private Dictionary<EvaluatorKey, IUserEvaluator> _evaluatorMap;
+        private Func<EvaluatorKey, IUserEvaluator> _func;
 
-        public UserEvaluatorFactory(IOptionsSnapshot<AccountDeleteConfiguration> options)
+        public UserEvaluatorFactory(IOptionsSnapshot<AccountDeleteConfiguration> options, Func<EvaluatorKey, IUserEvaluator> func)
         {
             _options = options ?? throw new ArgumentNullException(nameof(options));
-            _evaluatorMap = new Dictionary<EvaluatorKey, IUserEvaluator>();
+            _func = func ?? throw new ArgumentNullException(nameof(func));
         }
 
         public IUserEvaluator GetEvaluatorForSource(string source)
@@ -27,26 +28,10 @@ namespace NuGetGallery.AccountDeleter
             var result = new AggregateEvaluator();
             foreach(var evaluatorKey in configEvaluators)
             {
-                if(!_evaluatorMap.TryGetValue(evaluatorKey, out IUserEvaluator userEvaluator))
-                {
-                    throw new UnknownEvaluatorException(evaluatorKey, source);
-                }
-
-                result.AddEvaluator(userEvaluator);
+                result.AddEvaluator(_func(evaluatorKey));
             }
 
             return result;
-        }
-
-        public bool AddEvaluatorByKey(EvaluatorKey key, IUserEvaluator evaluator)
-        {
-            if (_evaluatorMap.ContainsKey(key))
-            {
-                return false;
-            }
-
-            _evaluatorMap.Add(key, evaluator);
-            return true;
         }
     }
 }

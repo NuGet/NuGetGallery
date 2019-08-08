@@ -5,8 +5,12 @@ namespace NuGetGallery.AccountDeleter
 {
     public interface IUserEvaluatorFactory
     {
+        /// <summary>
+        /// Returns an <see cref="IUserEvaluator"/> instance that corresponds to the requested name
+        /// </summary>
+        /// <param name="source"></param>
+        /// <returns></returns>
+        /// <exception cref="UnknownEvaluatorException"></exception>
         IUserEvaluator GetEvaluatorForSource(string source);
-
-        bool AddEvaluatorByKey(EvaluatorKey key, IUserEvaluator evaluator);
     }
 }

@@ -62,18 +62,25 @@ namespace NuGetGallery.AccountDeleter
             services.AddScoped<AccountConfirmedEvaluator>();
             services.AddScoped<NuGetDeleteEvaluator>();
 
-            services.AddScoped<IUserEvaluatorFactory>(sp =>
+            services.AddScoped<IUserEvaluatorFactory, UserEvaluatorFactory>();
+            services.AddScoped<Func<EvaluatorKey, IUserEvaluator>>(sp =>
             {
-                var configuration = sp.GetRequiredService<IOptionsSnapshot<AccountDeleteConfiguration>>();
-
-                var factory = new UserEvaluatorFactory(configuration);
-
-                factory.AddEvaluatorByKey(EvaluatorKey.AccountConfirmed, sp.GetRequiredService<AccountConfirmedEvaluator>());
-                factory.AddEvaluatorByKey(EvaluatorKey.AlwaysAllow, sp.GetRequiredService<AlwaysAllowEvaluator>());
-                factory.AddEvaluatorByKey(EvaluatorKey.AlwaysReject, sp.GetRequiredService<AlwaysRejectEvaluator>());
-                factory.AddEvaluatorByKey(EvaluatorKey.NuGetDelete, sp.GetRequiredService<NuGetDeleteEvaluator>());
-
-                return factory;
+                return evaluatorKey =>
+                {
+                    switch (evaluatorKey)
+                    {
+                        case EvaluatorKey.AccountConfirmed:
+                            return sp.GetRequiredService<AccountConfirmedEvaluator>();
+                        case EvaluatorKey.AlwaysAllow:
+                            return sp.GetRequiredService<AlwaysAllowEvaluator>();
+                        case EvaluatorKey.AlwaysReject:
+                            return sp.GetRequiredService<AlwaysRejectEvaluator>();
+                        case EvaluatorKey.NuGetDelete:
+                            return sp.GetRequiredService<NuGetDeleteEvaluator>();
+                        default:
+                            throw new UnknownEvaluatorException();
+                    }
+                };
             });
 
             if (IsDebugMode)
